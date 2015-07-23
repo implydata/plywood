@@ -1,0 +1,50 @@
+html {
+    font-family: Helvetica, Arial, freesans, clean, sans-serif;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    height: 100%;
+    overflow: hidden;
+}
+
+.test-cont {
+    position: relative;
+    height: 100%;
+}
+
+textarea#input {
+    position: absolute;
+    top: 27px;
+    bottom: 40px;
+    width: 48%;
+    margin: 0;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+pre#output {
+    position: absolute;
+    top: 27px;
+    bottom: 40px;
+    right: 0;
+    width: 48%;
+    border: 1px solid black;
+    margin: 0;
+    font-size: 14px;
+    overflow: scroll;
+}
+
+#error {
+    display: none;
+    position: absolute;
+    width: 45%;
+    right: 20px;
+    top: 32px;
+    border: 2px solid red;
+    background: #f0f0f0;
+    border-radius: 4px;
+    padding: 6px;
+    box-sizing: border-box;
+}

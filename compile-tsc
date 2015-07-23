@@ -1,0 +1,82 @@
+#!/bin/bash
+
+rm -rf build/*
+mkdir -p build
+
+  #src/remote/druidDataset.ts \
+  #src/remote/mySqlDataset.ts \
+
+
+node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComments --out build/plywood.js \
+  src/init.ts \
+  \
+  src/dialect/sqlDialect.ts \
+  src/datatypes/common.ts \
+  src/datatypes/attributeInfo.ts \
+  src/datatypes/range.ts \
+  src/datatypes/numberRange.ts \
+  src/datatypes/set.ts \
+  src/datatypes/shape.ts \
+  src/datatypes/timeRange.ts \
+  src/datatypes/mark.ts \
+  src/datatypes/dataset.ts \
+  src/datatypes/nativeDataset.ts \
+  \
+  src/render/binder.ts \
+  \
+  src/expressions/baseExpression.ts \
+  src/expressions/literalExpression.ts \
+  src/expressions/refExpression.ts \
+  src/expressions/remoteExpression.ts \
+  src/expressions/chainExpression.ts \
+  \
+  src/actions/baseAction.ts \
+  src/actions/addAction.ts \
+  src/actions/andAction.ts \
+  src/actions/applyAction.ts \
+  src/actions/attachAction.ts \
+  src/actions/averageAction.ts \
+  src/actions/baseAction.ts \
+  src/actions/concatAction.ts \
+  src/actions/containsAction.ts \
+  src/actions/countAction.ts \
+  src/actions/countDistinctAction.ts \
+  src/actions/divideAction.ts \
+  src/actions/filterAction.ts \
+  src/actions/greaterThanAction.ts \
+  src/actions/greaterThanOrEqualAction.ts \
+  src/actions/inAction.ts \
+  src/actions/isAction.ts \
+  src/actions/joinAction.ts \
+  src/actions/lessThanAction.ts \
+  src/actions/lessThanOrEqualAction.ts \
+  src/actions/limitAction.ts \
+  src/actions/matchAction.ts \
+  src/actions/maxAction.ts \
+  src/actions/minAction.ts \
+  src/actions/multiplyAction.ts \
+  src/actions/notAction.ts \
+  src/actions/numberBucketAction.ts \
+  src/actions/orAction.ts \
+  src/actions/quantileAction.ts \
+  src/actions/sortAction.ts \
+  src/actions/splitAction.ts \
+  src/actions/substrAction.ts \
+  src/actions/subtractAction.ts \
+  src/actions/sumAction.ts \
+  src/actions/timeBucketAction.ts \
+  src/actions/timeOffsetAction.ts \
+  src/actions/timePartAction.ts \
+  \
+  src/remote/remoteDataset.ts \
+  \
+  src/dispatcher/basicDispatcher.ts \
+  \
+  src/helper/simpleLocator.ts \
+  src/helper/verboseRequester.ts \
+  src/helper/retryRequester.ts \
+  src/helper/concurrentLimitRequester.ts \
+  \
+  src/exports.ts \
+  && \
+  node extra/extra.js;
