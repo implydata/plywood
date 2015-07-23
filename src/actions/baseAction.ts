@@ -325,6 +325,14 @@ module Plywood {
     public contextDiff(): int {
       return 0;
     }
+
+    public getLiteralValue(): any {
+      var expression = this.expression;
+      if (expression instanceof LiteralExpression) {
+        return expression.value;
+      }
+      return null;
+    }
   }
   checkAction = Action;
 }
