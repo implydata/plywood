@@ -95,7 +95,7 @@ module Plywood {
     var datasets = parameters.datasets;
     for (var k in datasets) {
       if (!hasOwnProperty(datasets, k)) continue;
-      if (datasets[k].source !== 'cache') throw new Error(k + ' must be a cache dataset');
+
     }
 
     // Break down query and see how much of it can be solved

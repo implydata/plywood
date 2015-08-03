@@ -88,7 +88,7 @@ module Plywood {
   }
 
   function makePostProcessTimeBoundary(applies: ApplyAction[]): PostProcess {
-    return (res: Druid.TimeBoundaryResults): NativeDataset => {
+    return (res: Druid.TimeBoundaryResults): Dataset => {
       if (!correctTimeBoundaryResult(res)) {
         var err = new Error("unexpected result from Druid (timeBoundary)");
         (<any>err).result = res; // ToDo: special error type
@@ -111,21 +111,21 @@ module Plywood {
         }
       }
 
-      return new NativeDataset({ source: 'native', data: [datum] });
+      return new Dataset({ data: [datum] });
     };
   }
 
-  function postProcessTotal(res: Druid.TimeseriesResults): NativeDataset {
+  function postProcessTotal(res: Druid.TimeseriesResults): Dataset {
     if (!correctTimeseriesResult(res)) {
       var err = new Error("unexpected result from Druid (all)");
       (<any>err).result = res; // ToDo: special error type
       throw err;
     }
-    return new NativeDataset({ source: 'native', data: [res[0].result] });
+    return new Dataset({ data: [res[0].result] });
   }
 
   function makePostProcessTimeseries(duration: Duration, timezone: Timezone, label: string): PostProcess {
-    return (res: Druid.TimeseriesResults): NativeDataset => {
+    return (res: Druid.TimeseriesResults): Dataset => {
       if (!correctTimeseriesResult(res)) {
         var err = new Error("unexpected result from Druid (timeseries)");
         (<any>err).result = res; // ToDo: special error type
@@ -134,8 +134,7 @@ module Plywood {
       //var warp = split.warp;
       //var warpDirection = split.warpDirection;
       var canonicalDurationLengthAndThenSome = duration.getCanonicalLength() * 1.5;
-      return new NativeDataset({
-        source: 'native',
+      return new Dataset({
         data: res.map((d: any, i: int) => {
           var rangeStart = new Date(d.timestamp);
           var next = res[i + 1];
@@ -173,7 +172,7 @@ module Plywood {
   }
 
   function postProcessTopNFactory(labelProcess: LabelProcess, label: string): PostProcess {
-    return (res: Druid.DruidResults): NativeDataset => {
+    return (res: Druid.DruidResults): Dataset => {
       if (!correctTopNResult(res)) {
         var err = new Error("unexpected result from Druid (topN)");
         (<any>err).result = res; // ToDo: special error type
@@ -181,8 +180,7 @@ module Plywood {
       }
       var data = res.length ? res[0].result : [];
       if (labelProcess) {
-        return new NativeDataset({
-          source: 'native',
+        return new Dataset({
           data: data.map((d: Datum) => {
             cleanDatumInPlace(d);
             var v: any = d[label];
@@ -196,8 +194,7 @@ module Plywood {
           })
         });
       } else {
-        return new NativeDataset({
-          source: 'native',
+        return new Dataset({
           data: data.map((d: Datum) => {
             cleanDatumInPlace(d);
             return d;
@@ -207,14 +204,13 @@ module Plywood {
     };
   }
 
-  function postProcessGroupBy(res: Druid.GroupByResults): NativeDataset {
+  function postProcessGroupBy(res: Druid.GroupByResults): Dataset {
     if (!correctGroupByResult(res)) {
       var err = new Error("unexpected result from Druid (groupBy)");
       (<any>err).result = res; // ToDo: special error type
       throw err;
     }
-    return new NativeDataset({
-      source: 'native',
+    return new Dataset({
       data: res.map(r => {
         var datum = r.event;
         cleanDatumInPlace(datum);
@@ -223,14 +219,13 @@ module Plywood {
     });
   }
 
-  function postProcessSelect(res: Druid.SelectResults): NativeDataset {
+  function postProcessSelect(res: Druid.SelectResults): Dataset {
     if (!correctSelectResult(res)) {
       var err = new Error("unexpected result from Druid (select)");
       (<any>err).result = res; // ToDo: special error type
       throw err;
     }
-    return new NativeDataset({
-      source: 'native',
+    return new Dataset({
       data: res[0].result.events.map(event => event.event)
     });
   }
@@ -248,7 +243,7 @@ module Plywood {
       return attributes;
     }
   }
-  
+
 
   export interface DruidDatasetValue extends DatasetValue{
     dataSource?: string | string[];
@@ -268,14 +263,14 @@ module Plywood {
     context?: Lookup<any>;
   }
 
-  export class DruidDataset extends RemoteDataset {
+  export class DruidDataset extends External {
     static type = 'DATASET';
 
     static TRUE_INTERVAL = ["1000-01-01/3000-01-01"];
     static FALSE_INTERVAL = ["1000-01-01/1000-01-02"];
 
     static fromJS(datasetJS: any): DruidDataset {
-      var value: DruidDatasetValue = RemoteDataset.jsToValue(datasetJS);
+      var value: DruidDatasetValue = External.jsToValue(datasetJS);
       value.dataSource = datasetJS.dataSource;
       value.timeAttribute = datasetJS.timeAttribute;
       value.allowEternity = Boolean(datasetJS.allowEternity);
@@ -1144,7 +1139,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             "pagingIdentifiers": {},
             "threshold": 10000
           };
-          
+
           return {
             query: druidQuery,
             postProcess: postProcessSelect

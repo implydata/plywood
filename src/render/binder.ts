@@ -72,7 +72,7 @@ module Plywood {
     return update;
   }
 
-  export function binder(baseSelection: d3.Selection<Datum>, dataset: NativeDataset, bindSpecs: BindSpec[]): void {
+  export function binder(baseSelection: d3.Selection<Datum>, dataset: Dataset, bindSpecs: BindSpec[]): void {
     var selections: Lookup<d3.Selection<Datum>> = {
       __base__: baseSelection
     };

@@ -329,19 +329,6 @@ module Plywood {
         elements: this.elements.filter(element => keyFn(element) !== key)
       });
     }
-
-    public label(name: string): Dataset {
-      return new NativeDataset({
-        source: 'native',
-        key: name,
-        data: this.elements.map(v => {
-          var datum: Datum = {};
-          datum[name] = v;
-          return datum
-        })
-      });
-    }
-
   }
   check = Set;
 

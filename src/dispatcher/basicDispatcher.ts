@@ -1,6 +1,6 @@
 module Plywood {
   export interface Dispatcher {
-    (ex: Expression): Q.Promise<NativeDataset>;
+    (ex: Expression): Q.Promise<Dataset>;
   }
 
   export interface BasicDispatcherParameters {

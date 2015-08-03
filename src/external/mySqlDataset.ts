@@ -18,7 +18,7 @@ module Plywood {
       var size = split.size;
     }
 
-    return (res: any[]): NativeDataset => {
+    return (res: any[]): Dataset => {
       if (!correctResult(res)) {
         var err = new Error("unexpected result from MySQL");
         (<any>err).result = res; // ToDo: special error type
@@ -36,7 +36,7 @@ module Plywood {
           return d;
         })
       }
-      return new NativeDataset({ source: 'native', data: res });
+      return new Dataset({ data: res });
     }
   }
 
@@ -66,11 +66,11 @@ module Plywood {
     table?: string;
   }
 
-  export class MySQLDataset extends RemoteDataset {
+  export class MySQLDataset extends External {
     static type = 'DATASET';
 
     static fromJS(datasetJS: any): MySQLDataset {
-      var value: MySQLDatasetValue = RemoteDataset.jsToValue(datasetJS);
+      var value: MySQLDatasetValue = External.jsToValue(datasetJS);
       value.table = datasetJS.table;
       return new MySQLDataset(value);
     }

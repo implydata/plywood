@@ -146,16 +146,16 @@ module Plywood {
       }
 
       // These are actions on a remote dataset
-      var remoteDatasets = this.getRemoteDatasets();
-      var remoteDataset: RemoteDataset;
+      var externals = this.getExternals();
+      var external: External;
       var digestedOperand = simpleExpression;
-      if (remoteDatasets.length && (digestedOperand instanceof LiteralExpression || digestedOperand instanceof JoinExpression)) {
-        remoteDataset = remoteDatasets[0];
+      if (externals.length && (digestedOperand instanceof LiteralExpression || digestedOperand instanceof JoinExpression)) {
+        external = externals[0];
         if (digestedOperand instanceof LiteralExpression && !digestedOperand.isRemote() && simpleActions.some(isRemoteSimpleApply)) {
-          if (remoteDatasets.length === 1) {
+          if (externals.length === 1) {
             digestedOperand = new LiteralExpression({
               op: 'literal',
-              value: remoteDataset.makeTotal()
+              value: external.makeTotal()
             });
           } else {
             throw new Error('not done yet')
@@ -165,7 +165,7 @@ module Plywood {
         var undigestedActions: Action[] = [];
         for (var i = 0; i < simpleActions.length; i++) {
           var action: Action = simpleActions[i];
-          var digest = remoteDataset.digest(digestedOperand, action);
+          var digest = external.digest(digestedOperand, action);
           if (digest) {
             digestedOperand = digest.expression;
             if (digest.undigested) undigestedActions.push(digest.undigested);
@@ -340,12 +340,12 @@ module Plywood {
       }
     }
 
-    public _computeResolved(): Q.Promise<NativeDataset> {
+    public _computeResolved(): Q.Promise<Dataset> {
       var actions = this.actions;
 
       /*
       function execAction(i: int) {
-        return (dataset: NativeDataset): NativeDataset | Q.Promise<NativeDataset> => {
+        return (dataset: Dataset): Dataset | Q.Promise<Dataset> => {
           var action = actions[i];
           var actionExpression = action.expression;
 

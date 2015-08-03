@@ -90,59 +90,7 @@ describe "Dataset", ->
           "Count": 298
         }
       ]
-
-      {
-        source: 'druid',
-        dataSource: 'moon_child',
-        timeAttribute: 'time',
-        context: null
-        attributes: {
-          color: { type: 'STRING' }
-          cut: { type: 'STRING' }
-          carat: { type: 'STRING' }
-          price: { type: 'NUMBER', filterable: false, splitable: false }
-        }
-      }
-
-      {
-        source: 'druid',
-        dataSource: 'wiki',
-        timeAttribute: 'time',
-        allowEternity: true,
-        allowSelectQueries: true,
-        exactResultsOnly: true,
-        context: null
-      }
-
-      {
-        source: 'druid',
-        dataSource: 'moon_child2', # ToDo: remove the 2 and fix the equality test
-        timeAttribute: 'time',
-        context: null
-        attributeOverrides: {
-          color: { type: 'STRING' }
-          cut: { type: 'STRING' }
-          unique: { type: "STRING", special: 'unique' }
-        }
-      }
-    ], {
-      newThrows: true
-    })
-
-  describe "does not die with hasOwnProperty", ->
-    it "survives", ->
-      expect(Dataset.fromJS({
-        source: 'druid',
-        dataSource: 'wiki',
-        timeAttribute: 'time',
-        context: null,
-        hasOwnProperty: 'troll'
-      }).toJS()).to.deep.equal({
-        source: 'druid',
-        dataSource: 'wiki',
-        timeAttribute: 'time',
-        context: null
-      })
+    ])
 
   describe "getFullType (NativeDataset)", ->
     it "works in empty case", ->
@@ -160,7 +108,7 @@ describe "Dataset", ->
     it "works in basic case", ->
       expect(Dataset.fromJS([
         { x: 1, y: "hello", z: new Date(1000) }
-        { x: 2, y: "woops", z: new Date(1001) }
+        { x: 2, y: "world", z: new Date(1001) }
       ]).getFullType()).to.deep.equal({
         "type": "DATASET"
         "datasetType": {

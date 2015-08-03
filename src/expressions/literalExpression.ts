@@ -110,10 +110,6 @@ module Plywood {
       }
     }
 
-    public isRemote(): boolean {
-      return this.value instanceof Dataset && this.value.source !== 'native';
-    }
-
     public _collectBindSpecs(bindSpecs: BindSpec[], selectionDepth: Lookup<number>, depth: number, applyName: string, data: string, key: string): void {
       if (this.type === 'MARK') {
         if (depth !== 0) throw new Error('can not have a mark that is not in the base context');
@@ -142,7 +138,7 @@ module Plywood {
 
     public _computeResolved(): Q.Promise<any> {
       var value = this.value;
-      if (value instanceof RemoteDataset) {
+      if (value instanceof External) {
         return value.queryValues();
       } else {
         return Q(this.value);

@@ -35,7 +35,7 @@ module Plywood {
     value?: any;
     name?: string;
     nest?: int;
-    dataset?: RemoteDataset;
+    external?: External;
     expression?: Expression;
     actions?: Action[];
 
@@ -48,7 +48,7 @@ module Plywood {
     value?: any;
     name?: string;
     nest?: int;
-    dataset?: DatasetJS; // ToDo: make RemoteDatasetJS
+    external?: ExternalJS;
     action?: ActionJS;
     expression?: ExpressionJS;
     actions?: ActionJS[];
@@ -101,7 +101,7 @@ module Plywood {
     } else {
       return new LiteralExpression({
         op: 'literal',
-        value: new NativeDataset({ source: 'native', data: [{}] })
+        value: new Dataset({ data: [{}] })
       });
     }
   }
@@ -358,28 +358,28 @@ module Plywood {
       });
     }
 
-    public getRemoteDatasetIds(): string[] {
-      var remoteDatasetIds: string[] = [];
+    public getExternalIds(): string[] {
+      var externalIds: string[] = [];
       var push = Array.prototype.push;
       this.forEach(function(ex: Expression) {
         if (ex.type !== 'DATASET') return;
         if (ex instanceof LiteralExpression) {
-          push.apply(remoteDatasetIds, (<Dataset>ex.value).getRemoteDatasetIds());
+          push.apply(externalIds, (<Dataset>ex.value).getExternalIds());
         } else if (ex instanceof RefExpression) {
-          push.apply(remoteDatasetIds, ex.remote);
+          push.apply(externalIds, ex.remote);
         }
       });
-      return deduplicateSort(remoteDatasetIds);
+      return deduplicateSort(externalIds);
     }
 
-    public getRemoteDatasets(): RemoteDataset[] {
-      var remoteDatasets: RemoteDataset[][] = [];
+    public getExternals(): External[] {
+      var externals: External[][] = [];
       this.forEach(function(ex: Expression) {
         if (ex instanceof LiteralExpression && ex.type === 'DATASET') {
-          remoteDatasets.push((<Dataset>ex.value).getRemoteDatasets());
+          externals.push((<Dataset>ex.value).getExternals());
         }
       });
-      return mergeRemoteDatasets(remoteDatasets);
+      return mergeExternals(externals);
     }
 
     /**
@@ -569,14 +569,14 @@ module Plywood {
       var nameIndex = 0;
       var singleDatasetActions: ApplyAction[] = [];
 
-      var remoteDatasets = this.getRemoteDatasetIds();
-      if (remoteDatasets.length < 2) {
+      var externals = this.getExternalIds();
+      if (externals.length < 2) {
         throw new Error('not a multiple dataset expression');
       }
 
       var combine = this.substitute(ex => {
-        var remoteDatasets = ex.getRemoteDatasetIds();
-        if (remoteDatasets.length !== 1) return null;
+        var externals = ex.getExternalIds();
+        if (externals.length !== 1) return null;
 
         var existingApply = find(singleDatasetActions, (apply) => apply.expression.equals(ex));
 
@@ -864,7 +864,7 @@ module Plywood {
         type: 'DATASET',
         datasetType: datasetType
       };
-      
+
       var alterations: Alterations = {};
       this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This return the final type
       if (!Object.keys(alterations).length) return this;
@@ -975,10 +975,10 @@ module Plywood {
      * @returns {Q.Promise<any>}
      */
     public compute(context: Datum = {}, selector: string = null): Q.Promise<any> {
-      if (!datumHasRemote(context) && !this.hasRemote()) {
+      if (!datumHasExternal(context) && !this.hasRemote()) {
         var referenceChecked = this.referenceCheck(context);
         var value = referenceChecked.computeNative(context);
-        if (selector && value instanceof NativeDataset) {
+        if (selector && value instanceof Dataset) {
           var selection = d3.select(selector);
           binder(selection, value, referenceChecked.getBindSpecs());
         }

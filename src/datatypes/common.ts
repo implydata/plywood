@@ -35,10 +35,7 @@ module Plywood {
     if (v == null) {
       return null;
     } else if (Array.isArray(v)) {
-      return NativeDataset.fromJS({
-        source: 'native',
-        data: v
-      })
+      return Dataset.fromJS(v);
     } else if (typeof v === 'object') {
       switch (typeOverride || v.type) {
         case 'NUMBER':
@@ -130,7 +127,7 @@ module Plywood {
 
   // Remote functionality
 
-  export function datumHasRemote(datum: Datum): boolean {
+  export function datumHasExternal(datum: Datum): boolean {
     for (var applyName in datum) {
       var applyValue = datum[applyName];
       if (applyValue instanceof Dataset && applyValue.hasRemote()) {
@@ -145,9 +142,9 @@ module Plywood {
       Object.keys(datum).map(applyName => {
         /*
         var applyValue = datum[applyName];
-        if (applyValue instanceof RemoteDataset && applyValue.needsIntrospect()) {
-          return applyValue.introspect().then((newRemoteDataset: RemoteDataset) => {
-            datum[applyName] = newRemoteDataset;
+        if (applyValue instanceof External && applyValue.needsIntrospect()) {
+          return applyValue.introspect().then((newExternal: External) => {
+            datum[applyName] = newExternal;
           })
         }
         */

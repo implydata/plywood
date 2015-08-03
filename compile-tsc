@@ -20,14 +20,14 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/datatypes/timeRange.ts \
   src/datatypes/mark.ts \
   src/datatypes/dataset.ts \
-  src/datatypes/nativeDataset.ts \
+  src/datatypes/external.ts \
   \
   src/render/binder.ts \
   \
   src/expressions/baseExpression.ts \
   src/expressions/literalExpression.ts \
   src/expressions/refExpression.ts \
-  src/expressions/remoteExpression.ts \
+  src/expressions/externalExpression.ts \
   src/expressions/chainExpression.ts \
   \
   src/actions/baseAction.ts \
@@ -67,8 +67,6 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/actions/timeBucketAction.ts \
   src/actions/timeOffsetAction.ts \
   src/actions/timePartAction.ts \
-  \
-  src/remote/remoteDataset.ts \
   \
   src/dispatcher/basicDispatcher.ts \
   \

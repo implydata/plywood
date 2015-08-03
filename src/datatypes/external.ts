@@ -1,6 +1,6 @@
 module Plywood {
   export interface PostProcess {
-    (result: any): NativeDataset;
+    (result: any): Dataset;
   }
 
   export interface QueryAndPostProcess<T> {
@@ -15,6 +15,18 @@ module Plywood {
   export interface IntrospectQueryAndPostProcess<T> {
     query: T;
     postProcess: IntrospectPostProcess;
+  }
+
+  export function mergeExternals(remoteGroups: External[][]): External[] {
+    var seen: Lookup<External> = {};
+    remoteGroups.forEach(remoteGroup => {
+      remoteGroup.forEach(remote => {
+        var id = remote.getId();
+        if (seen[id]) return;
+        seen[id] = remote;
+      })
+    });
+    return Object.keys(seen).sort().map(k => seen[k]);
   }
 
   function getSampleValue(valueType: string, ex: Expression): any {
@@ -64,15 +76,78 @@ module Plywood {
     return newObj;
   }
 
-  export class RemoteDataset extends Dataset {
-    static type = 'DATASET';
+  export interface ExternalValue {
+    engine?: string;
+    suppress?: boolean;
+    attributes?: Attributes;
+    attributeOverrides?: Attributes;
+    key?: string;
 
-    static jsToValue(parameters: any): DatasetValue {
-      var value = Dataset.jsToValue(parameters);
-      if (parameters.requester) value.requester = parameters.requester;
-      value.filter = parameters.filter || Expression.TRUE;
-      return value;
+    filter?: Expression;
+    rawAttributes?: Attributes;
+    mode?: string;
+    derivedAttributes?: Lookup<Expression>;
+    split?: Expression;
+    applies?: ApplyAction[];
+    sort?: SortAction;
+    limit?: LimitAction;
+    havingFilter?: Expression;
+
+    requester?: Requester.PlywoodRequester<any>;
+  }
+
+  export interface ExternalJS {
+    engine: string;
+    attributes?: AttributeJSs;
+    attributeOverrides?: AttributeJSs;
+    key?: string;
+
+    filter?: ExpressionJS;
+    rawAttributes?: AttributeJSs;
+
+    requester?: Requester.PlywoodRequester<any>;
+  }
+
+  export class External {
+    static type = 'EXTERNAL';
+
+    static isExternal(candidate: any): boolean {
+      return isInstanceOf(candidate, External);
     }
+
+    static classMap: Lookup<typeof External> = {};
+    static register(ex: typeof External, id: string = null): void {
+      if (!id) id = (<any>ex).name.replace('External', '').replace(/^\w/, (s: string) => s.toLowerCase());
+      External.classMap[id] = ex;
+    }
+
+    static fromJS(parameters: ExternalJS): External {
+      if (!hasOwnProperty(parameters, "engine")) {
+        throw new Error("external `engine` must be defined");
+      }
+      var engine: string = parameters.engine;
+      if (typeof engine !== "string") {
+        throw new Error("dataset must be a string");
+      }
+      var ClassFn = External.classMap[engine];
+      if (!ClassFn) {
+        throw new Error(`unsupported engine '${engine}'`);
+      }
+
+      // ToDo: fix this hack.
+      var value: ExternalValue = <any>parameters;
+
+      if (parameters.requester) value.requester = parameters.requester;
+      value.filter = parameters.filter ? Expression.fromJS(parameters.filter) : Expression.TRUE;
+
+      return ClassFn.fromJS(parameters);
+    }
+
+    public engine: string;
+    public suppress: boolean;
+    public attributes: Attributes = null;
+    public attributeOverrides: Attributes = null;
+    public key: string = null;
 
     public rawAttributes: Attributes = null;
     public requester: Requester.PlywoodRequester<any>;
@@ -85,8 +160,21 @@ module Plywood {
     public limit: LimitAction;
     public havingFilter: Expression;
 
-    constructor(parameters: DatasetValue, dummy: Dummy = null) {
-      super(parameters, dummyObject);
+    constructor(parameters: ExternalValue, dummy: Dummy = null) {
+      if (dummy !== dummyObject) {
+        throw new TypeError("can not call `new External` directly use External.fromJS instead");
+      }
+      this.engine = parameters.engine;
+      if (parameters.suppress === true) this.suppress = true;
+      if (parameters.attributes) {
+        this.attributes = parameters.attributes;
+      }
+      if (parameters.attributeOverrides) {
+        this.attributeOverrides = parameters.attributeOverrides;
+      }
+      if (parameters.key) {
+        this.key = parameters.key;
+      }
       this.rawAttributes = parameters.rawAttributes;
       this.requester = parameters.requester;
       this.mode = parameters.mode || 'raw';
@@ -109,8 +197,25 @@ module Plywood {
       }
     }
 
-    public valueOf(): DatasetValue {
-      var value = super.valueOf();
+    protected _ensureEngine(engine: string) {
+      if (!this.engine) {
+        this.engine = engine;
+        return;
+      }
+      if (this.engine !== engine) {
+        throw new TypeError(`incorrect engine '${this.engine}' (needs to be: '${engine}')`);
+      }
+    }
+
+    public valueOf(): ExternalValue {
+      var value: ExternalValue = {
+        engine: this.engine
+      };
+      if (this.suppress) value.suppress = this.suppress;
+      if (this.attributes) value.attributes = this.attributes;
+      if (this.attributeOverrides) value.attributeOverrides = this.attributeOverrides;
+      if (this.key) value.key = this.key;
+
       if (this.rawAttributes) {
         value.rawAttributes = this.rawAttributes;
       }
@@ -138,8 +243,14 @@ module Plywood {
       return value;
     }
 
-    public toJS(): DatasetJS {
-      var js = super.toJS();
+    public toJS(): ExternalJS {
+      var js: ExternalJS = {
+        engine: this.engine
+      };
+      if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
+      if (this.attributeOverrides) js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
+      if (this.key) js.key = this.key;
+
       if (this.rawAttributes) js.rawAttributes = AttributeInfo.toJSs(this.rawAttributes);
       if (this.requester) {
         js.requester = this.requester;
@@ -153,38 +264,39 @@ module Plywood {
     public toString(): string {
       switch (this.mode) {
         case 'raw':
-          return `RemoteRaw(${this.filter.toString()})`;
+          return `ExternalRaw(${this.filter.toString()})`;
 
         case 'total':
-          return `RemoteTotal(${this.applies.length})`;
+          return `ExternalTotal(${this.applies.length})`;
 
         case 'split':
-          return `RemoteSplit(${this.applies.length})`;
+          return `ExternalSplit(${this.applies.length})`;
 
         default :
-          return 'Remote()';
+          return 'External()';
       }
 
     }
 
-    public equals(other: RemoteDataset): boolean {
-      return super.equals(other) &&
+    public equals(other: External): boolean {
+      return External.isExternal(other) &&
+        this.engine === other.engine &&
         this.filter.equals(other.filter);
     }
 
     public getId(): string {
-      return super.getId() + ':' + this.filter.toString();
+      return this.engine + ':' + this.filter.toString();
     }
 
     public hasRemote(): boolean {
       return true;
     }
 
-    public getRemoteDatasets(): RemoteDataset[] {
+    public getExternals(): External[] {
       return [this];
     }
 
-    public getRemoteDatasetIds(): string[] {
+    public getExternalIds(): string[] {
       return [this.getId()]
     }
 
@@ -224,7 +336,7 @@ module Plywood {
 
     // -----------------
 
-    public addFilter(expression: Expression): RemoteDataset {
+    public addFilter(expression: Expression): External {
       if (!expression.resolved()) return null;
 
       var value = this.valueOf();
@@ -243,10 +355,10 @@ module Plywood {
           return null; // can not add filter in total mode
       }
 
-      return <RemoteDataset>(new (Dataset.classMap[this.source])(value));
+      return <External>(new (External.classMap[this.engine])(value));
     }
 
-    public makeTotal(): RemoteDataset {
+    public makeTotal(): External {
       if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
       if (!this.canHandleTotal()) return null;
 
@@ -255,10 +367,10 @@ module Plywood {
       value.rawAttributes = value.attributes;
       value.attributes = {};
 
-      return <RemoteDataset>(new (Dataset.classMap[this.source])(value));
+      return <External>(new (External.classMap[this.engine])(value));
     }
 
-    public addSplit(splitExpression: Expression, label: string): RemoteDataset {
+    public addSplit(splitExpression: Expression, label: string): External {
       if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
       if (!this.canHandleSplit(splitExpression)) return null;
 
@@ -270,7 +382,7 @@ module Plywood {
       value.attributes = Object.create(null);
       value.attributes[label] = new AttributeInfo({ type: splitExpression.type });
 
-      return <RemoteDataset>(new (Dataset.classMap[this.source])(value));
+      return <External>(new (External.classMap[this.engine])(value));
     }
 
     public getExistingActionForExpression(expression: Expression): ApplyAction {
@@ -389,7 +501,7 @@ module Plywood {
       return [action];
     }
 
-    public addAction(action: Action): RemoteDataset {
+    public addAction(action: Action): External {
       var expression = action.expression;
       if (action instanceof FilterAction) {
         return this.addFilter(expression);
@@ -403,9 +515,9 @@ module Plywood {
             case 'total':
               // Expect it to be the dataset definer
               if (expression instanceof LiteralExpression) {
-                var otherDataset: RemoteDataset = expression.value;
-                value.derivedAttributes = otherDataset.derivedAttributes;
-                value.filter = otherDataset.filter;
+                var otherExternal: External = expression.value;
+                value.derivedAttributes = otherExternal.derivedAttributes;
+                value.filter = otherExternal.filter;
                 //value.defs = value.defs.concat(action);
               } else {
                 return null;
@@ -493,12 +605,12 @@ module Plywood {
         return null;
       }
 
-      return <RemoteDataset>(new (Dataset.classMap[this.source])(value));
+      return <External>(new (External.classMap[this.engine])(value));
     }
 
     // -----------------
 
-    public simulate(): NativeDataset {
+    public simulate(): Dataset {
       var datum: Datum = {};
 
       if (this.mode === 'raw') {
@@ -518,27 +630,24 @@ module Plywood {
         }
       }
 
-      return new NativeDataset({
-        source: 'native',
-        data: [datum]
-      });
+      return new Dataset([datum]);
     }
 
     public getQueryAndPostProcess(): QueryAndPostProcess<any> {
       throw new Error("can not call getQueryAndPostProcess directly");
     }
 
-    public queryValues(): Q.Promise<NativeDataset> {
+    public queryValues(): Q.Promise<Dataset> {
       if (!this.requester) {
-        return <Q.Promise<NativeDataset>>Q.reject(new Error('must have a requester to make queries'));
+        return <Q.Promise<Dataset>>Q.reject(new Error('must have a requester to make queries'));
       }
       try {
         var queryAndPostProcess = this.getQueryAndPostProcess();
       } catch (e) {
-        return <Q.Promise<NativeDataset>>Q.reject(e);
+        return <Q.Promise<Dataset>>Q.reject(e);
       }
       if (!hasOwnProperty(queryAndPostProcess, 'query') || typeof queryAndPostProcess.postProcess !== 'function') {
-        return <Q.Promise<NativeDataset>>Q.reject(new Error('no error query or postProcess'));
+        return <Q.Promise<Dataset>>Q.reject(new Error('no error query or postProcess'));
       }
       return this.requester({ query: queryAndPostProcess.query })
         .then(queryAndPostProcess.postProcess);
@@ -554,24 +663,24 @@ module Plywood {
       throw new Error("can not call getIntrospectQueryAndPostProcess directly");
     }
 
-    public introspect(): Q.Promise<RemoteDataset> {
+    public introspect(): Q.Promise<External> {
       if (this.attributes) {
         return Q(this);
       }
 
       if (!this.requester) {
-        return <Q.Promise<RemoteDataset>>Q.reject(new Error('must have a requester to introspect'));
+        return <Q.Promise<External>>Q.reject(new Error('must have a requester to introspect'));
       }
       try {
         var queryAndPostProcess = this.getIntrospectQueryAndPostProcess();
       } catch (e) {
-        return <Q.Promise<RemoteDataset>>Q.reject(e);
+        return <Q.Promise<External>>Q.reject(e);
       }
       if (!hasOwnProperty(queryAndPostProcess, 'query') || typeof queryAndPostProcess.postProcess !== 'function') {
-        return <Q.Promise<RemoteDataset>>Q.reject(new Error('no error query or postProcess'));
+        return <Q.Promise<External>>Q.reject(new Error('no error query or postProcess'));
       }
       var value = this.valueOf();
-      var ClassFn = Dataset.classMap[this.source];
+      var ClassFn = External.classMap[this.engine];
       return this.requester({ query: queryAndPostProcess.query })
         .then(queryAndPostProcess.postProcess)
         .then((attributes: Attributes) => {
@@ -583,17 +692,40 @@ module Plywood {
           }
 
           value.attributes = attributes; // Once attributes are set attributeOverrides will be ignored
-          return <RemoteDataset>(new ClassFn(value));
+          return <External>(new ClassFn(value));
         })
+    }
+
+    public getFullType(): FullType {
+      var attributes = this.attributes;
+      if (!attributes) throw new Error("dataset has not been introspected");
+
+      var remote = [this.engine];
+
+      var myDatasetType: Lookup<FullType> = {};
+      for (var attrName in attributes) {
+        if (!hasOwnProperty(attributes, attrName)) continue;
+        var attrType = attributes[attrName];
+        myDatasetType[attrName] = {
+          type: attrType.type,
+          remote
+        };
+      }
+      var myFullType: FullType = {
+        type: 'DATASET',
+        datasetType: myDatasetType,
+        remote
+      };
+      return myFullType;
     }
 
     // ------------------------
 
     /*
     private _joinDigestHelper(joinExpression: JoinExpression, action: Action): JoinExpression {
-      var ids = action.expression.getRemoteDatasetIds();
+      var ids = action.expression.getExternalIds();
       if (ids.length !== 1) throw new Error('must be single dataset');
-      if (ids[0] === (<RemoteDataset>(<LiteralExpression>joinExpression.lhs).value).getId()) {
+      if (ids[0] === (<External>(<LiteralExpression>joinExpression.lhs).value).getId()) {
         var lhsDigest = this.digest(joinExpression.lhs, action);
         if (!lhsDigest) return null;
         return new JoinExpression({
@@ -615,15 +747,15 @@ module Plywood {
 
     public digest(expression: Expression, action: Action): Digest {
       if (expression instanceof LiteralExpression) {
-        var remoteDataset = expression.value;
-        if (remoteDataset instanceof RemoteDataset) {
-          var newRemoteDataset = remoteDataset.addAction(action);
-          if (!newRemoteDataset) return null;
+        var external = expression.value;
+        if (external instanceof External) {
+          var newExternal = external.addAction(action);
+          if (!newExternal) return null;
           return {
             undigested: null,
             expression: new LiteralExpression({
               op: 'literal',
-              value: newRemoteDataset
+              value: newExternal
             })
           };
         } else {
@@ -637,11 +769,11 @@ module Plywood {
         if (lhs instanceof LiteralExpression && rhs instanceof LiteralExpression) {
           var lhsValue = lhs.value;
           var rhsValue = rhs.value;
-          if (lhsValue instanceof RemoteDataset && rhsValue instanceof RemoteDataset) {
+          if (lhsValue instanceof External && rhsValue instanceof External) {
             var actionExpression = action.expression;
 
             if (action instanceof DefAction) {
-              var actionDatasets = actionExpression.getRemoteDatasetIds();
+              var actionDatasets = actionExpression.getExternalIds();
               if (actionDatasets.length !== 1) return null;
               newJoin = this._joinDigestHelper(expression, action);
               if (!newJoin) return null;
@@ -651,7 +783,7 @@ module Plywood {
               };
 
             } else if (action instanceof ApplyAction) {
-              var actionDatasets = actionExpression.getRemoteDatasetIds();
+              var actionDatasets = actionExpression.getExternalIds();
               if (!actionDatasets.length) return null;
               var newJoin: JoinExpression = null;
               if (actionDatasets.length === 1) {
