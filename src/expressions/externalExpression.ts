@@ -35,14 +35,14 @@ module Plywood {
     }
 
     public getFn(): ComputeFn {
-      var value = this.external;
+      var external = this.external;
 
       var hasSimulated = false;
       var simulatedValue: any;
       return (d: Datum, c: Datum) => {
         if (!hasSimulated) {
-          simulatedQueries.push(value.getQueryAndPostProcess().query);
-          simulatedValue = value.simulate();
+          simulatedQueries.push(external.getQueryAndPostProcess().query);
+          simulatedValue = external.simulate();
           hasSimulated = true;
         }
         return simulatedValue;

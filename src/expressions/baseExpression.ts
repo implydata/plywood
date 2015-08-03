@@ -976,13 +976,15 @@ module Plywood {
      */
     public compute(context: Datum = {}, selector: string = null): Q.Promise<any> {
       if (!datumHasExternal(context) && !this.hasRemote()) {
-        var referenceChecked = this.referenceCheck(context);
-        var value = referenceChecked.computeNative(context);
-        if (selector && value instanceof Dataset) {
-          var selection = d3.select(selector);
-          binder(selection, value, referenceChecked.getBindSpecs());
-        }
-        return Q(value);
+        return Q.fcall(() => {
+          var referenceChecked = this.referenceCheck(context);
+          var value = referenceChecked.computeNative(context);
+          if (selector && value instanceof Dataset) {
+            var selection = d3.select(selector);
+            binder(selection, value, referenceChecked.getBindSpecs());
+          }
+          return value;
+        });
       }
       var ex = this;
       return introspectDatum(context).then(introspectedContext => {

@@ -16,7 +16,7 @@ timeFilter = $('time').in(TimeRange.fromJS({
 
 context = {
   wiki: Dataset.fromJS({
-    source: 'druid',
+    engine: 'druid',
     dataSource: 'wikipedia_editstream',
     timeAttribute: 'time',
     attributes: {
@@ -32,7 +32,7 @@ context = {
 
 contextNoApprox = {
   wiki: Dataset.fromJS({
-    source: 'druid',
+    engine: 'druid',
     dataSource: 'wikipedia_editstream',
     timeAttribute: 'time',
     exactResultsOnly: true,
@@ -404,7 +404,7 @@ describe "DruidDataset", ->
 
     it "does a simple introspect", (testComplete) ->
       wikiDataset = Dataset.fromJS({
-        source: 'druid',
+        engine: 'druid',
         dataSource: 'wikipedia_editstream',
         timeAttribute: 'time',
         requester
@@ -443,7 +443,7 @@ describe "DruidDataset", ->
 
     it "does an introspect with overrides", (testComplete) ->
       wikiDataset = Dataset.fromJS({
-        source: 'druid',
+        engine: 'druid',
         dataSource: 'wikipedia_editstream',
         timeAttribute: 'time',
         requester
