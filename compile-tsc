@@ -3,8 +3,7 @@
 rm -rf build/*
 mkdir -p build
 
-  #src/remote/druidDataset.ts \
-  #src/remote/mySqlDataset.ts \
+  #src/external/mySqlExternal.ts \
 
 
 node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComments --out build/plywood.js \
@@ -21,6 +20,8 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/datatypes/mark.ts \
   src/datatypes/dataset.ts \
   src/datatypes/external.ts \
+  \
+  src/external/druidExternal.ts \
   \
   src/render/binder.ts \
   \

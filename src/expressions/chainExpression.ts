@@ -296,6 +296,12 @@ module Plywood {
       ].concat(actions.slice(k));
     }
 
+    public getExpressionPattern(actionType: string): Expression[] {
+      var actions = this.actionize(actionType);
+      if (actions.length < 2) return null;
+      return actions.map((action) => action.expression);
+    }
+
     public _collectBindSpecs(bindSpecs: BindSpec[], selectionDepth: Lookup<number>, depth: number, applyName: string, data: string, key: string): void {
       var expression = this.expression;
       var actions = this.actions;

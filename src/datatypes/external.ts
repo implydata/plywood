@@ -17,6 +17,16 @@ module Plywood {
     postProcess: IntrospectPostProcess;
   }
 
+  export var aggregateActions: Lookup<number> = {
+    count: 1,
+    sum: 1,
+    min: 1,
+    max: 1,
+    average: 1,
+    countDistinct: 1,
+    quantile: 1
+  };
+
   export function mergeExternals(remoteGroups: External[][]): External[] {
     var seen: Lookup<External> = {};
     remoteGroups.forEach(remoteGroup => {
@@ -44,10 +54,12 @@ module Plywood {
         } else {
           return new NumberRange({ start: 0, end: 1 });
         }
+      */
 
       case 'TIME':
         return new Date('2015-03-14T00:00:00');
 
+      /*
       case 'TIME_RANGE':
         if (ex instanceof TimeBucketExpression) {
           var start = ex.duration.floor(new Date('2015-03-14T00:00:00'), ex.timezone);
@@ -115,6 +127,24 @@ module Plywood {
       return isInstanceOf(candidate, External);
     }
 
+    static jsToValue(parameters: ExternalJS): ExpressionValue {
+      var value: ExternalValue = {
+        engine: parameters.engine,
+        key: parameters.key
+      };
+      if (parameters.attributes) {
+        value.attributes = AttributeInfo.fromJSs(parameters.attributes);
+      }
+      if (parameters.attributeOverrides) {
+        value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
+      }
+      if (parameters.filter) {
+        value.filter = Expression.fromJS(parameters.filter);
+      }
+
+      return value;
+    }
+
     static classMap: Lookup<typeof External> = {};
     static register(ex: typeof External, id: string = null): void {
       if (!id) id = (<any>ex).name.replace('External', '').replace(/^\w/, (s: string) => s.toLowerCase());
@@ -134,8 +164,18 @@ module Plywood {
         throw new Error(`unsupported engine '${engine}'`);
       }
 
-      // ToDo: fix this hack.
-      var value: ExternalValue = <any>parameters;
+      var value: ExternalValue = {
+        engine: parameters.engine
+      };
+      if (parameters.attributes) {
+        value.attributes = AttributeInfo.fromJSs(parameters.attributes);
+      }
+      if (parameters.attributeOverrides) {
+        value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
+      }
+      if (parameters.key) {
+        value.key = parameters.key;
+      }
 
       if (parameters.requester) value.requester = parameters.requester;
       value.filter = parameters.filter ? Expression.fromJS(parameters.filter) : Expression.TRUE;
@@ -259,6 +299,10 @@ module Plywood {
         js.filter = this.filter.toJS();
       }
       return js;
+    }
+
+    public toJSON(): ExternalJS {
+      return this.toJS();
     }
 
     public toString(): string {
@@ -385,11 +429,10 @@ module Plywood {
       return <External>(new (External.classMap[this.engine])(value));
     }
 
-    public getExistingActionForExpression(expression: Expression): ApplyAction {
-      var key = expression.toString();
+    public getExistingApplyForExpression(expression: Expression): ApplyAction {
       var applies = this.applies;
       for (let apply of applies) {
-        if (apply.expression.toString() === key) return apply;
+        if (apply.expression.equals(expression)) return apply;
       }
       return null;
     }
@@ -420,60 +463,65 @@ module Plywood {
       return true;
     }
 
-    public separateAggregates(apply: ApplyAction): Action[] {
-      var actions: Action[] = [];
+    public separateAggregates(apply: ApplyAction): ApplyAction[] {
+      var applies: ApplyAction[] = [];
       var namesUsed: string[] = [];
 
-      var newExpression = apply.expression.substitute((ex: Expression, index: int) => {
-        return null;
-        /*
-        if (ex instanceof AggregateExpression) {
-          var existingAction = this.getExistingActionForExpression(ex);
-          if (index === 0) {
-            if (existingAction) {
-              return new RefExpression({
-                op: 'ref',
-                name: existingAction.name,
-                nest: 0,
-                type: existingAction.expression.type
-              });
-            } else {
-              return null;
-            }
-          }
+      var self = this;
 
-          var name: string;
-          if (existingAction) {
-            name = existingAction.name;
-          } else {
-            name = this.getTempName(namesUsed);
-            namesUsed.push(name);
-            actions.push(new ApplyAction({
-              action: 'apply',
-              name: name,
-              expression: ex
-            }))
-          }
-
+      function swapWithExisting(aggregateChain: ChainExpression): Expression {
+        var existingApply = self.getExistingApplyForExpression(aggregateChain);
+        if (existingApply) {
           return new RefExpression({
-            op: 'ref',
+            name: existingApply.name,
+            nest: 0,
+            type: existingApply.expression.type
+          });
+        } else {
+          name = self.getTempName(namesUsed);
+          namesUsed.push(name);
+          applies.push(new ApplyAction({
+            action: 'apply',
+            name: name,
+            expression: aggregateChain
+          }));
+          return new RefExpression({
             name: name,
             nest: 0,
-            type: 'NUMBER'
+            type: aggregateChain.type
           });
         }
-        */
-      });
+      }
+
+      function substituteFn(ex: Expression, index: int): Expression {
+        if (ex instanceof ChainExpression) {
+          var actions = ex.actions;
+          if (!aggregateActions[actions[0].action]) return;
+          if (actions.length === 1) {
+            return swapWithExisting(ex);
+          } else {
+            return swapWithExisting(new ChainExpression({
+              expression: swapWithExisting(new ChainExpression({
+                expression: ex.expression,
+                actions: [actions[0]]
+              })),
+              actions: actions.slice(1)
+            }));
+          }
+        }
+      }
+
+      var newExpression = apply.expression.substitute(substituteFn);
 
       if (!(newExpression instanceof RefExpression && newExpression.name === apply.name)) {
-        actions.push(new ApplyAction({
+        applies.push(new ApplyAction({
           action: 'apply',
           name: apply.name,
           expression: newExpression
         }));
       }
 
-      return actions;
+      return applies;
     }
 
     public inlineDerivedAttributes(expression: Expression): Expression {
