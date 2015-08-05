@@ -163,14 +163,22 @@ module Plywood {
       }
 
       if (simpleExpression instanceof ExternalExpression) {
-        while (simpleActions.length) {
-          let newSimpleExpression = (<ExternalExpression>simpleExpression).addAction(simpleActions[0]);
-          if (!newSimpleExpression) break;
-          simpleExpression = newSimpleExpression;
-          simpleActions.shift();
-        }
-      }
+        var undigestedActions: Action[] = [];
+        for (let simpleAction of simpleActions) {
+          if (undigestedActions.length && simpleAction.getFreeReferences().length > 1) { // ToDo: fix the > 1
+            undigestedActions.push(simpleAction);
+            continue;
+          }
 
+          let newSimpleExpression = (<ExternalExpression>simpleExpression).addAction(simpleAction);
+          if (newSimpleExpression) {
+            simpleExpression = newSimpleExpression;
+          } else {
+            undigestedActions.push(simpleAction);
+          }
+        }
+        simpleActions = undigestedActions;
+      }
 
 
       /*

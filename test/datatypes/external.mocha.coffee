@@ -92,7 +92,7 @@ describe "External", ->
       })
 
 
-  describe.only "simplifies / digests", ->
+  describe "simplifies / digests", ->
     it "a simple select", ->
       ex = $('wiki')
 
@@ -240,7 +240,6 @@ describe "External", ->
 
     it "a filtered split on string", ->
       ex = $('wiki').filter('$language = "en"').split("$page", 'Page')
-        .apply('wiki', '$wiki.filter($language = "en").filter($page = $^Page)')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
         .sort('$Count', 'descending')
@@ -250,7 +249,13 @@ describe "External", ->
 
       expect(ex.op).to.equal('external')
       externalDataset = ex.external
-      expect(externalDataset.filter.toString()).to.equal('($language:STRING = "en" and $time in [2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z))')
+
+      expect(
+        externalDataset.filter.toJS()
+      ).to.deep.equal(
+        context.wiki.filter.and($("language:STRING").is('en')).toJS()
+      )
+
       expect(externalDataset.applies).to.have.length(2)
       expect(externalDataset.toJS().attributes).to.deep.equal({
         Page: { "type": "STRING" },
@@ -264,7 +269,6 @@ describe "External", ->
         "Page": "some_page"
       ])
 
-    return
     it "a total and a split", ->
       ex = $()
         .apply("wiki",
@@ -285,7 +289,7 @@ describe "External", ->
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
       expect(ex.op).to.equal('chain')
-      expect(ex.actions).to.have.length(2)
+      expect(ex.actions).to.have.length(1)
 
       externalDataset = ex.expression.external
       expect(externalDataset.applies).to.have.length(2)
@@ -314,7 +318,7 @@ describe "External", ->
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
       expect(ex.op).to.equal('chain')
-      expect(ex.actions).to.have.length(2)
+      expect(ex.actions).to.have.length(1)
 
       externalDataset = ex.expression.external
       expect(externalDataset.applies).to.have.length(2)
@@ -339,7 +343,7 @@ describe "External", ->
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
       expect(ex.op).to.equal('chain')
-      expect(ex.actions).to.have.length(2)
+      expect(ex.actions).to.have.length(1)
 
       externalDataset = ex.expression.external
       expect(externalDataset.applies).to.have.length(2)
