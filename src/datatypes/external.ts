@@ -380,7 +380,20 @@ module Plywood {
 
     // -----------------
 
-    public addFilter(expression: Expression): External {
+    public makeTotal(): External {
+      if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
+      if (!this.canHandleTotal()) return null;
+
+      var value = this.valueOf();
+      value.mode = 'total';
+      value.rawAttributes = value.attributes;
+      value.attributes = {};
+
+      return <External>(new (External.classMap[this.engine])(value));
+    }
+
+    public addFilter(action: FilterAction): External {
+      var expression = action.expression;
       if (!expression.resolved()) return null;
 
       var value = this.valueOf();
@@ -402,31 +415,91 @@ module Plywood {
       return <External>(new (External.classMap[this.engine])(value));
     }
 
-    public makeTotal(): External {
+    public addSplit(action: SplitAction): External {
+      var expression = action.expression;
+      var name = action.name;
       if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
-      if (!this.canHandleTotal()) return null;
+      if (!this.canHandleSplit(expression)) return null;
 
       var value = this.valueOf();
-      value.mode = 'total';
+      value.mode = 'split';
+      value.split = expression;
+      value.key = name;
       value.rawAttributes = value.attributes;
-      value.attributes = {};
+      value.attributes = Object.create(null);
+      value.attributes[name] = new AttributeInfo({ type: expression.type });
 
       return <External>(new (External.classMap[this.engine])(value));
     }
 
-    public addSplit(splitExpression: Expression, label: string): External {
-      if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
-      if (!this.canHandleSplit(splitExpression)) return null;
+    public addApply(action: ApplyAction): External {
+      var expression = action.expression;
+      if (expression.type !== 'NUMBER' && expression.type !== 'TIME') return null;
+      if (!this.canHandleApply(action.expression)) return null;
 
       var value = this.valueOf();
-      value.mode = 'split';
-      value.split = splitExpression;
-      value.key = label;
-      value.rawAttributes = value.attributes;
-      value.attributes = Object.create(null);
-      value.attributes[label] = new AttributeInfo({ type: splitExpression.type });
+      if (this.mode === 'raw') {
+        value.derivedAttributes = immutableAdd(
+          value.derivedAttributes, action.name, action.expression
+        );
+        value.attributes = immutableAdd(
+          value.attributes, action.name, new AttributeInfo({ type: action.expression.type })
+        );
+      } else {
+        // Can not redefine index for now.
+        if (action.name === this.key) return null;
 
+        var basicActions = this.processApply(action);
+        for (let basicAction of basicActions) {
+          if (basicAction instanceof ApplyAction) {
+            value.applies = value.applies.concat(basicAction);
+            value.attributes = immutableAdd(
+              value.attributes, basicAction.name, new AttributeInfo({ type: basicAction.expression.type })
+            );
+          } else {
+            throw new Error('got something strange from breakUpApply');
+          }
+        }
+      }
       return <External>(new (External.classMap[this.engine])(value));
+    }
+
+    public addSort(action: SortAction): External {
+      if (this.limit) return null; // Can not sort after limit
+      if (!this.canHandleSort(action)) return null;
+
+      var value = this.valueOf();
+      value.sort = action;
+      return <External>(new (External.classMap[this.engine])(value));
+    }
+
+    public addLimit(action: LimitAction): External {
+      if (!this.canHandleLimit(action)) return null;
+
+      var value = this.valueOf();
+      if (!value.limit || action.limit < value.limit.limit) {
+        value.limit = action;
+      }
+      return <External>(new (External.classMap[this.engine])(value));
+    }
+
+    public addAction(action: Action): External {
+      if (action instanceof FilterAction) {
+        return this.addFilter(action);
+      }
+      if (action instanceof SplitAction) {
+        return this.addSplit(action);
+      }
+      if (action instanceof ApplyAction) {
+        return this.addApply(action);
+      }
+      if (action instanceof SortAction) {
+        return this.addSort(action);
+      }
+      if (action instanceof LimitAction) {
+        return this.addLimit(action);
+      }
+      return null;
     }
 
     public getExistingApplyForExpression(expression: Expression): ApplyAction {
@@ -548,113 +621,6 @@ module Plywood {
 
     public processApply(action: ApplyAction): Action[] {
       return [action];
-    }
-
-    public addAction(action: Action): External {
-      var expression = action.expression;
-      if (action instanceof FilterAction) {
-        return this.addFilter(expression);
-      }
-
-      var value = this.valueOf();
-      /*
-      if (action instanceof DefAction) {
-        if (expression.type === 'DATASET') {
-          switch (this.mode) {
-            case 'total':
-              // Expect it to be the dataset definer
-              if (expression instanceof LiteralExpression) {
-                var otherExternal: External = expression.value;
-                value.derivedAttributes = otherExternal.derivedAttributes;
-                value.filter = otherExternal.filter;
-                //value.defs = value.defs.concat(action);
-              } else {
-                return null;
-              }
-              break;
-
-            case 'split':
-              // Expect it to be .def('myData', facet('myData').filter(split = ^label))
-              // i.e. the filter part of the split pattern
-              var defExpression = action.expression;
-              if (defExpression instanceof ChainExpression &&
-                defExpression.actions.length === 1 &&
-                defExpression.actions[0].action === 'filter' &&
-                defExpression.actions[0].expression.equals(
-                  this.split.is(new RefExpression({ op: 'ref', name: this.key, nest: 1, type: this.split.type })))
-              ) {
-                //value.defs = value.defs.concat(action);
-
-              } else {
-                return null;
-              }
-              break;
-
-            default:
-              return null; // can not do things in raw mode
-          }
-        } else {
-          switch (this.mode) {
-            case 'raw':
-              value.derivedAttributes = immutableAdd(
-                value.derivedAttributes, action.name, action.expression
-              );
-              value.attributes = immutableAdd(
-                value.attributes, action.name, new AttributeInfo({ type: action.expression.type })
-              );
-              break;
-
-            default:
-              value.defs = value.defs.concat(action);
-              break;
-          }
-        }
-
-      } else */
-      if (action instanceof ApplyAction) {
-        if (expression.type !== 'NUMBER' && expression.type !== 'TIME') return null;
-        if (!this.canHandleApply(action.expression)) return null;
-
-        if (this.mode === 'raw') {
-          value.derivedAttributes = immutableAdd(
-            value.derivedAttributes, action.name, action.expression
-          );
-          value.attributes = immutableAdd(
-            value.attributes, action.name, new AttributeInfo({ type: action.expression.type })
-          );
-        } else {
-          // Can not redefine index for now.
-          if (action.name === this.key) return null;
-
-          var basicActions = this.processApply(action);
-          for (let basicAction of basicActions) {
-            if (basicAction instanceof ApplyAction) {
-              value.applies = value.applies.concat(basicAction);
-              value.attributes = immutableAdd(
-                value.attributes, basicAction.name, new AttributeInfo({ type: basicAction.expression.type })
-              );
-            } else {
-              throw new Error('got something strange from breakUpApply');
-            }
-          }
-        }
-
-      } else if (action instanceof SortAction) {
-        if (this.limit) return null; // Can not sort after limit
-        if (!this.canHandleSort(action)) return null;
-        value.sort = action;
-
-      } else if (action instanceof LimitAction) {
-        if (!this.canHandleLimit(action)) return null;
-        if (!value.limit || action.limit < value.limit.limit) {
-          value.limit = action;
-        }
-
-      } else {
-        return null;
-      }
-
-      return <External>(new (External.classMap[this.engine])(value));
     }
 
     // -----------------
