@@ -478,7 +478,7 @@ module Plywood {
             type: existingApply.expression.type
           });
         } else {
-          name = self.getTempName(namesUsed);
+          var name = self.getTempName(namesUsed);
           namesUsed.push(name);
           applies.push(new ApplyAction({
             action: 'apply',
@@ -498,6 +498,7 @@ module Plywood {
           var actions = ex.actions;
           if (!aggregateActions[actions[0].action]) return;
           if (actions.length === 1) {
+            if (index === 0) return null;
             return swapWithExisting(ex);
           } else {
             return swapWithExisting(new ChainExpression({
@@ -678,7 +679,7 @@ module Plywood {
         }
       }
 
-      return new Dataset([datum]);
+      return new Dataset({ data: [datum] });
     }
 
     public getQueryAndPostProcess(): QueryAndPostProcess<any> {

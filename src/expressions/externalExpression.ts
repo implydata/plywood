@@ -1,11 +1,11 @@
 module Plywood {
-  export class RemoteExpression extends Expression {
+  export class ExternalExpression extends Expression {
     static fromJS(parameters: ExpressionJS): Expression {
       var value: ExpressionValue = {
         op: parameters.op
       };
       value.external = External.fromJS(parameters.external);
-      return new RemoteExpression(value);
+      return new ExternalExpression(value);
     }
 
     public external: External;
@@ -13,7 +13,7 @@ module Plywood {
     constructor(parameters: ExpressionValue) {
       super(parameters, dummyObject);
       this.external = parameters.external;
-      this._ensureOp('remote');
+      this._ensureOp('external');
       this.type = 'DATASET';
       this.simple = true;
     }
@@ -49,7 +49,7 @@ module Plywood {
       };
     }
 
-    public equals(other: RemoteExpression): boolean {
+    public equals(other: ExternalExpression): boolean {
       return super.equals(other) &&
         this.external.equals(other.external);
     }
@@ -65,7 +65,18 @@ module Plywood {
       return this.external.queryValues();
     }
 
+    public addAction(action: Action): ExternalExpression {
+      var newExternal = this.external.addAction(action);
+      if (!newExternal) return;
+      return new ExternalExpression({ external: newExternal });
+    }
+
+    public makeTotal(): ExternalExpression {
+      var newExternal = this.external.makeTotal();
+      if (!newExternal) return;
+      return new ExternalExpression({ external: newExternal });
+    }
   }
 
-  Expression.register(RemoteExpression);
+  Expression.register(ExternalExpression);
 }

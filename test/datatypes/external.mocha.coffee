@@ -93,6 +93,27 @@ describe "External", ->
 
 
   describe.only "simplifies / digests", ->
+    it "a simple select", ->
+      ex = $('wiki')
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+      expect(ex.op).to.equal('external')
+
+    it "select, apply, filter", ->
+      ex = $('wiki')
+        .apply('addedTwice', '$added * 2')
+        .filter($("language").is('en'))
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+      expect(ex.op).to.equal('external')
+      externalDataset = ex.external
+      expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice'])
+      expect(
+        externalDataset.filter.toJS()
+      ).to.deep.equal(
+        context.wiki.filter.and($("language:STRING").is('en')).toJS()
+      )
+
     it "a total", ->
       ex = $()
         .apply("wiki",
@@ -105,24 +126,22 @@ describe "External", ->
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
-      expect(ex.op).to.equal('literal')
-      remoteDataset = ex.value
-      expect(remoteDataset.derivedAttributes).to.have.all.keys(['addedTwice']);
-      expect(remoteDataset.defs).to.have.length(0)
-      expect(remoteDataset.applies).to.have.length(2)
-      expect(remoteDataset.toJS().attributes).to.deep.equal({
+      expect(ex.op).to.equal('external')
+      externalDataset = ex.external
+      expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice'])
+      expect(externalDataset.applies).to.have.length(2)
+      expect(externalDataset.toJS().attributes).to.deep.equal({
         Count: { "type": "NUMBER" },
         TotalAdded: { "type": "NUMBER" }
       })
 
-      expect(remoteDataset.simulate().toJS()).to.deep.equal([
+      expect(externalDataset.simulate().toJS()).to.deep.equal([
         {
           "Count": 4
           "TotalAdded": 4
         }
       ])
 
-    return
     it "a split on string", ->
       ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
@@ -132,23 +151,23 @@ describe "External", ->
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
-      expect(ex.op).to.equal('literal')
-      remoteDataset = ex.value
-      expect(remoteDataset.defs).to.have.length(0)
-      expect(remoteDataset.applies).to.have.length(2)
-      expect(remoteDataset.limit.limit).to.equal(5)
-      expect(remoteDataset.toJS().attributes).to.deep.equal({
+      expect(ex.op).to.equal('external')
+      externalDataset = ex.external
+      expect(externalDataset.applies).to.have.length(2)
+      expect(externalDataset.limit.limit).to.equal(5)
+      expect(externalDataset.toJS().attributes).to.deep.equal({
         Page: { "type": "STRING" },
         Count: { "type": "NUMBER" },
         Added: { "type": "NUMBER" }
       })
 
-      expect(remoteDataset.simulate().toJS()).to.deep.equal([
+      expect(externalDataset.simulate().toJS()).to.deep.equal([
         "Added": 4
         "Count": 4
         "Page": "some_page"
       ])
 
+    return
     it "a split on string with multiple limits in ascending order", ->
       ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
@@ -159,12 +178,11 @@ describe "External", ->
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
-      expect(ex.op).to.equal('literal')
-      remoteDataset = ex.value
-      expect(remoteDataset.defs).to.have.length(0)
-      expect(remoteDataset.applies).to.have.length(2)
-      expect(remoteDataset.limit.limit).to.equal(5)
-      expect(remoteDataset.toJS().attributes).to.deep.equal({
+      expect(ex.op).to.equal('external')
+      externalDataset = ex.external
+      expect(externalDataset.applies).to.have.length(2)
+      expect(externalDataset.limit.limit).to.equal(5)
+      expect(externalDataset.toJS().attributes).to.deep.equal({
         Page: { "type": "STRING" },
         Count: { "type": "NUMBER" },
         Added: { "type": "NUMBER" }
@@ -180,12 +198,11 @@ describe "External", ->
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
-      expect(ex.op).to.equal('literal')
-      remoteDataset = ex.value
-      expect(remoteDataset.defs).to.have.length(0)
-      expect(remoteDataset.applies).to.have.length(2)
-      expect(remoteDataset.limit.limit).to.equal(5)
-      expect(remoteDataset.toJS().attributes).to.deep.equal({
+      expect(ex.op).to.equal('external')
+      externalDataset = ex.external
+      expect(externalDataset.applies).to.have.length(2)
+      expect(externalDataset.limit.limit).to.equal(5)
+      expect(externalDataset.toJS().attributes).to.deep.equal({
         Page: { "type": "STRING" },
         Count: { "type": "NUMBER" },
         Added: { "type": "NUMBER" }
@@ -200,18 +217,17 @@ describe "External", ->
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
-      expect(ex.op).to.equal('actions')
+      expect(ex.op).to.equal('chain')
       expect(ex.actions).to.have.length(2)
-      remoteDataset = ex.operand.value
-      expect(remoteDataset.defs).to.have.length(0)
-      expect(remoteDataset.applies).to.have.length(2)
-      expect(remoteDataset.toJS().attributes).to.deep.equal({
+      externalDataset = ex.expression.external
+      expect(externalDataset.applies).to.have.length(2)
+      expect(externalDataset.toJS().attributes).to.deep.equal({
         Timestamp: { "type": "TIME_RANGE" },
         Count: { "type": "NUMBER" },
         Added: { "type": "NUMBER" }
       })
 
-      expect(remoteDataset.simulate().toJS()).to.deep.equal([
+      expect(externalDataset.simulate().toJS()).to.deep.equal([
         {
           "Added": 4
           "Count": 4
@@ -233,18 +249,17 @@ describe "External", ->
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
-      expect(ex.op).to.equal('literal')
-      remoteDataset = ex.value
-      expect(remoteDataset.filter.toString()).to.equal('($language:STRING = "en" and $time in [2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z))')
-      expect(remoteDataset.defs).to.have.length(0)
-      expect(remoteDataset.applies).to.have.length(2)
-      expect(remoteDataset.toJS().attributes).to.deep.equal({
+      expect(ex.op).to.equal('external')
+      externalDataset = ex.external
+      expect(externalDataset.filter.toString()).to.equal('($language:STRING = "en" and $time in [2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z))')
+      expect(externalDataset.applies).to.have.length(2)
+      expect(externalDataset.toJS().attributes).to.deep.equal({
         Page: { "type": "STRING" },
         Count: { "type": "NUMBER" },
         Added: { "type": "NUMBER" }
       })
 
-      expect(remoteDataset.simulate().toJS()).to.deep.equal([
+      expect(externalDataset.simulate().toJS()).to.deep.equal([
         "Added": 4
         "Count": 4
         "Page": "some_page"
@@ -269,13 +284,12 @@ describe "External", ->
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
-      expect(ex.op).to.equal('actions')
+      expect(ex.op).to.equal('chain')
       expect(ex.actions).to.have.length(2)
 
-      remoteDataset = ex.operand.value
-      expect(remoteDataset.defs).to.have.length(0)
-      expect(remoteDataset.applies).to.have.length(2)
-      expect(remoteDataset.toJS().attributes).to.deep.equal({
+      externalDataset = ex.expression.external
+      expect(externalDataset.applies).to.have.length(2)
+      expect(externalDataset.toJS().attributes).to.deep.equal({
         Count: { "type": "NUMBER" },
         TotalAdded: { "type": "NUMBER" }
       })
@@ -299,13 +313,12 @@ describe "External", ->
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
-      expect(ex.op).to.equal('actions')
+      expect(ex.op).to.equal('chain')
       expect(ex.actions).to.have.length(2)
 
-      remoteDataset = ex.operand.value
-      expect(remoteDataset.defs).to.have.length(0)
-      expect(remoteDataset.applies).to.have.length(2)
-      expect(remoteDataset.toJS().attributes).to.deep.equal({
+      externalDataset = ex.expression.external
+      expect(externalDataset.applies).to.have.length(2)
+      expect(externalDataset.toJS().attributes).to.deep.equal({
         Count: { "type": "NUMBER" },
         TotalAdded: { "type": "NUMBER" }
       })
@@ -325,14 +338,13 @@ describe "External", ->
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
-      expect(ex.op).to.equal('actions')
+      expect(ex.op).to.equal('chain')
       expect(ex.actions).to.have.length(2)
 
-      remoteDataset = ex.operand.value
-      expect(remoteDataset.defs).to.have.length(0)
-      expect(remoteDataset.applies).to.have.length(2)
-      expect(remoteDataset.limit.limit).to.equal(5)
-      expect(remoteDataset.toJS().attributes).to.deep.equal({
+      externalDataset = ex.expression.external
+      expect(externalDataset.applies).to.have.length(2)
+      expect(externalDataset.limit.limit).to.equal(5)
+      expect(externalDataset.toJS().attributes).to.deep.equal({
         Page: { "type": "STRING" },
         Count: { "type": "NUMBER" },
         Added: { "type": "NUMBER" }
@@ -351,22 +363,22 @@ describe "External", ->
 
       # console.log("ex.toString()", ex.toString());
 
-      expect(ex.op).to.equal('actions')
+      expect(ex.op).to.equal('chain')
       expect(ex.operand.op).to.equal('join')
 
-      remoteDatasetMain = ex.operand.lhs.value
-      expect(remoteDatasetMain.defs).to.have.length(0)
-      expect(remoteDatasetMain.applies).to.have.length(2)
-      expect(remoteDatasetMain.toJS().attributes).to.deep.equal({
+      externalDatasetMain = ex.operand.lhs.value
+      expect(externalDatasetMain.defs).to.have.length(0)
+      expect(externalDatasetMain.applies).to.have.length(2)
+      expect(externalDatasetMain.toJS().attributes).to.deep.equal({
         Count: { "type": "NUMBER" }
         Page: { "type": "STRING" }
         _br_0: { "type": "NUMBER" }
       })
 
-      remoteDatasetCmp = ex.operand.rhs.value
-      expect(remoteDatasetCmp.defs).to.have.length(1)
-      expect(remoteDatasetCmp.applies).to.have.length(1)
-      expect(remoteDatasetCmp.toJS().attributes).to.deep.equal({
+      externalDatasetCmp = ex.operand.rhs.value
+      expect(externalDatasetCmp.defs).to.have.length(1)
+      expect(externalDatasetCmp.applies).to.have.length(1)
+      expect(externalDatasetCmp.toJS().attributes).to.deep.equal({
         Page: { "type": "STRING" }
         _br_1: { "type": "NUMBER" }
       })

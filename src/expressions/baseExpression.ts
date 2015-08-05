@@ -95,8 +95,10 @@ module Plywood {
     if (arguments.length) {
       if (typeof input === 'string') {
         return RefExpression.parse(input);
+      } else if (External.isExternal(input)) {
+        return new ExternalExpression({ external: input });
       } else {
-        return new LiteralExpression({ op: 'literal', value: input });
+        return new LiteralExpression({ value: input });
       }
     } else {
       return new LiteralExpression({
@@ -352,7 +354,7 @@ module Plywood {
      */
     public hasRemote(): boolean {
       return this.some(function(ex: Expression) {
-        if (ex instanceof RemoteExpression) return true;
+        if (ex instanceof ExternalExpression) return true;
         if (ex instanceof RefExpression) return ex.isRemote();
         return null; // search further
       });
@@ -893,7 +895,9 @@ module Plywood {
             }
 
             if (valueFound) {
-              return new LiteralExpression({ value: foundValue });
+              return External.isExternal(foundValue) ?
+                new ExternalExpression({ external: foundValue }) :
+                new LiteralExpression({ value: foundValue });
             } else if (ifNotFound === 'throw') {
               throw new Error('could not resolve ' + ex.toString() + ' because is was not in the context');
             } else if (ifNotFound === 'null') {

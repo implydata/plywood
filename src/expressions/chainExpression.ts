@@ -137,8 +137,28 @@ module Plywood {
         simpleExpression = foldedExpression.simplify();
       }
 
-      // ToDo: try to merge actions
-      if (simpleActions.length === 0) return simpleExpression;
+      // ToDo: try to merge actions here
+
+      if (simpleExpression instanceof LiteralExpression && simpleExpression.type === 'DATASET' && simpleActions.length) {
+        var dataset: Dataset = (<LiteralExpression>simpleExpression).value;
+        var externalAction = simpleActions[0];
+        var externalExpression = externalAction.expression;
+        if (dataset.basis() && externalAction.action === 'apply' && externalExpression instanceof ExternalExpression) {
+          simpleExpression = externalExpression.makeTotal();
+          simpleActions.shift();
+        }
+      }
+
+      if (simpleExpression instanceof ExternalExpression) {
+        while (simpleActions.length) {
+          let newSimpleExpression = (<ExternalExpression>simpleExpression).addAction(simpleActions[0]);
+          if (!newSimpleExpression) break;
+          simpleExpression = newSimpleExpression;
+          simpleActions.shift();
+        }
+      }
+
+
 
       /*
       function isRemoteSimpleApply(action: Action): boolean {
@@ -180,6 +200,8 @@ module Plywood {
         }
       }
       */
+
+      if (simpleActions.length === 0) return simpleExpression;
 
       var simpleValue = this.valueOf();
       simpleValue.expression = simpleExpression;
