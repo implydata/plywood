@@ -380,6 +380,25 @@ module Plywood {
 
     // -----------------
 
+    public addAction(action: Action): External {
+      if (action instanceof FilterAction) {
+        return this.addFilter(action);
+      }
+      if (action instanceof SplitAction) {
+        return this.addSplit(action);
+      }
+      if (action instanceof ApplyAction) {
+        return this.addApply(action);
+      }
+      if (action instanceof SortAction) {
+        return this.addSort(action);
+      }
+      if (action instanceof LimitAction) {
+        return this.addLimit(action);
+      }
+      return null;
+    }
+
     public makeTotal(): External {
       if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
       if (!this.canHandleTotal()) return null;
@@ -483,24 +502,7 @@ module Plywood {
       return <External>(new (External.classMap[this.engine])(value));
     }
 
-    public addAction(action: Action): External {
-      if (action instanceof FilterAction) {
-        return this.addFilter(action);
-      }
-      if (action instanceof SplitAction) {
-        return this.addSplit(action);
-      }
-      if (action instanceof ApplyAction) {
-        return this.addApply(action);
-      }
-      if (action instanceof SortAction) {
-        return this.addSort(action);
-      }
-      if (action instanceof LimitAction) {
-        return this.addLimit(action);
-      }
-      return null;
-    }
+    // ----------------------
 
     public getExistingApplyForExpression(expression: Expression): ApplyAction {
       var applies = this.applies;
