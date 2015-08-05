@@ -167,7 +167,6 @@ describe "External", ->
         "Page": "some_page"
       ])
 
-    return
     it "a split on string with multiple limits in ascending order", ->
       ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
@@ -240,7 +239,7 @@ describe "External", ->
       ])
 
     it "a filtered split on string", ->
-      ex = $('wiki').filter('$language = "en"').group("$page").label('Page')
+      ex = $('wiki').filter('$language = "en"').split("$page", 'Page')
         .apply('wiki', '$wiki.filter($language = "en").filter($page = $^Page)')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -265,6 +264,7 @@ describe "External", ->
         "Page": "some_page"
       ])
 
+    return
     it "a total and a split", ->
       ex = $()
         .apply("wiki",
@@ -350,8 +350,8 @@ describe "External", ->
         Added: { "type": "NUMBER" }
       })
 
-    it "a union of two groups", ->
-      ex = $('wiki').group('$page').union($('wikiCmp').group('$page')).label('Page')
+    it.skip "a join of two splits", ->
+      ex = $('wiki').split('$page', 'Page').join($('wikiCmp').split('$page', 'Page'))
         .apply('wiki', '$wiki.filter($page = $^Page)')
         .apply('wikiCmp', '$wikiCmp.filter($page = $^Page)')
         .apply('Count', '$wiki.count()')

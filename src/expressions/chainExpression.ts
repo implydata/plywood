@@ -94,6 +94,19 @@ module Plywood {
       throw new Error("can not call getSQL on actions");
     }
 
+    /**
+     * Returns the single action of the chain, if there are multiple actions null is returned
+     * @param neededAction and optional type can be passed in to retrun only an action of this type
+     * @returns Action
+     */
+    public getSingleAction(neededAction?: string): Action {
+      var actions = this.actions;
+      if (actions.length !== 1) return null;
+      var singleAction = actions[0];
+      if (neededAction && singleAction.action !== neededAction) return null;
+      return singleAction;
+    }
+
     public simplify(): Expression {
       if (this.simple) return this;
 

@@ -47,27 +47,31 @@ module Plywood {
       case 'NUMBER':
         return 4;
 
-      /*
       case 'NUMBER_RANGE':
-        if (ex instanceof NumberBucketExpression) {
-          return new NumberRange({ start: ex.offset, end: ex.offset + ex.size });
+        var numberBucketAction: NumberBucketAction;
+        if (ex instanceof ChainExpression && (numberBucketAction = <NumberBucketAction>ex.getSingleAction('numberBucket'))) {
+          return new NumberRange({
+            start: numberBucketAction.offset,
+            end: numberBucketAction.offset + numberBucketAction.size
+          });
         } else {
           return new NumberRange({ start: 0, end: 1 });
         }
-      */
 
       case 'TIME':
         return new Date('2015-03-14T00:00:00');
 
-      /*
       case 'TIME_RANGE':
-        if (ex instanceof TimeBucketExpression) {
-          var start = ex.duration.floor(new Date('2015-03-14T00:00:00'), ex.timezone);
-          return new TimeRange({ start: start, end: ex.duration.move(start, ex.timezone, 1) });
+        var timeBucketAction: TimeBucketAction;
+        if (ex instanceof ChainExpression && (timeBucketAction = <TimeBucketAction>ex.getSingleAction('timeBucket'))) {
+          var start = timeBucketAction.duration.floor(new Date('2015-03-14T00:00:00'), timeBucketAction.timezone);
+          return new TimeRange({
+            start,
+            end: timeBucketAction.duration.move(start, timeBucketAction.timezone, 1)
+          });
         } else {
           return new TimeRange({ start: new Date('2015-03-14T00:00:00'), end: new Date('2015-03-15T00:00:00') });
         }
-      */
 
       case 'STRING':
         if (ex instanceof RefExpression) {
