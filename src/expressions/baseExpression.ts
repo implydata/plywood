@@ -89,7 +89,6 @@ module Plywood {
    * $('blah') produces an reference lookup expression on 'blah'
    *
    * @param input The input that can be nothing, a string, or a driver
-   * @returns {Expression}
    */
   export function $(input?: any): Expression {
     if (arguments.length) {
@@ -135,7 +134,6 @@ module Plywood {
      * Parses an expression
      *
      * @param str The expression to parse
-     * @returns {Expression}
      */
     static parse(str: string): Expression {
       try {
@@ -150,7 +148,6 @@ module Plywood {
      * Parses SQL statements into facet expressions
      *
      * @param str The SQL to parse
-     * @returns {Expression}
      */
     static parseSQL(str: string): Expression {
       try {
@@ -165,7 +162,6 @@ module Plywood {
      * Deserializes or parses an expression
      *
      * @param param The expression to parse
-     * @returns {Expression}
      */
     static fromJSLoose(param: any): Expression {
       var expressionJS: ExpressionJS;
@@ -216,6 +212,7 @@ module Plywood {
 
     /**
      * Composes the given expressions with an AND
+     *
      * @param expressions the expressions to compose
      */
     static and(expressions: Expression[]): Expression {
@@ -231,6 +228,7 @@ module Plywood {
 
     /**
      * Composes the given expressions with an OR
+     *
      * @param expressions the expressions to compose
      */
     static or(expressions: Expression[]): Expression {
@@ -254,7 +252,6 @@ module Plywood {
      * Deserializes the expression JSON
      *
      * @param expressionJS
-     * @returns {any}
      */
     static fromJS(expressionJS: ExpressionJS): Expression {
       if (!hasOwnProperty(expressionJS, "op")) {
@@ -290,7 +287,7 @@ module Plywood {
         return;
       }
       if (this.op !== op) {
-        throw new TypeError("incorrect expression op '" + this.op + "' (needs to be: '" + op + "')");
+        throw new TypeError(`incorrect expression op '${this.op}' (needs to be: '${op}')`);
       }
     }
 
@@ -324,7 +321,6 @@ module Plywood {
      * Validate that two expressions are equal in their meaning
      *
      * @param other
-     * @returns {boolean}
      */
     public equals(other: Expression): boolean {
       return Expression.isExpression(other) &&
@@ -337,7 +333,6 @@ module Plywood {
      * If wanted type is 'SET' then any SET/* type is matched
      *
      * @param wantedType The type that is wanted
-     * @returns {boolean}
      */
     public canHaveType(wantedType: string): boolean {
       if (!this.type) return true;
@@ -350,8 +345,6 @@ module Plywood {
 
     /**
      * Counts the number of expressions contained within this expression
-     *
-     * @returns {number}
      */
     public expressionCount(): int {
       return 1;
@@ -361,7 +354,6 @@ module Plywood {
      * Check if the expression is of the given operation (op)
      *
      * @param op The operation to test
-     * @returns {boolean}
      */
     public isOp(op: string): boolean {
       return this.op === op;
@@ -371,7 +363,6 @@ module Plywood {
      * Check if the expression contains the given operation (op)
      *
      * @param op The operation to test
-     * @returns {boolean}
      */
     public containsOp(op: string): boolean {
       return this.some((ex: Expression) => ex.isOp(op) || null);
@@ -379,8 +370,6 @@ module Plywood {
 
     /**
      * Check if the expression contains references to remote datasets
-     *
-     * @returns {boolean}
      */
     public hasRemote(): boolean {
       return this.some(function(ex: Expression) {
@@ -417,8 +406,6 @@ module Plywood {
     /**
      * Retrieve all free references by name
      * returns the alphabetically sorted list of the references
-     *
-     * @returns {string[]}
      */
     public getFreeReferences(): string[] {
       var freeReferences: string[] = [];
@@ -432,8 +419,6 @@ module Plywood {
 
     /**
      * Retrieve all free references by index in the query
-     *
-     * @returns {number[]}
      */
     public getFreeReferenceIndexes(): number[] {
       var freeReferenceIndexes: number[] = [];
@@ -447,9 +432,7 @@ module Plywood {
 
     /**
      * Increment the ^ nesting on all the free reference variables within this expression
-
      * @param by The number of generation to increment by (default: 1)
-     * @returns {any}
      */
     public incrementNesting(by: int = 1): Expression {
       var freeReferenceIndexes = this.getFreeReferenceIndexes();
@@ -464,8 +447,6 @@ module Plywood {
 
     /**
      * Merge self with the provided expression for AND operation and returns a merged expression.
-     *
-     * @returns {Expression}
      */
     public mergeAnd(ex: Expression): Expression {
       throw new Error('can not call on base');
@@ -473,8 +454,6 @@ module Plywood {
 
     /**
      * Merge self with the provided expression for OR operation and returns a merged expression.
-     *
-     * @returns {Expression}
      */
     public mergeOr(ex: Expression): Expression {
       throw new Error('can not call on base');
@@ -483,8 +462,6 @@ module Plywood {
     /**
      * Returns an expression that is equivalent but no more complex
      * If no simplification can be done will return itself.
-     *
-     * @returns {Expression}
      */
     public simplify(): Expression {
       return this;
@@ -495,7 +472,6 @@ module Plywood {
      *
      * @param iter The function to run
      * @param thisArg The this for the substitution function
-     * @returns {boolean}
      */
     public every(iter: BooleanExpressionIterator, thisArg?: any): boolean {
       return this._everyHelper(iter, thisArg, { index: 0 }, 0, 0);
@@ -516,7 +492,6 @@ module Plywood {
      *
      * @param iter The function to run
      * @param thisArg The this for the substitution function
-     * @returns {boolean}
      */
     public some(iter: BooleanExpressionIterator, thisArg?: any): boolean {
       return !this.every((ex: Expression, index: int, depth: int, nestDiff: int) => {
@@ -530,7 +505,6 @@ module Plywood {
      *
      * @param iter The function to run
      * @param thisArg The this for the substitution function
-     * @returns {boolean}
      */
     public forEach(iter: VoidExpressionIterator, thisArg?: any): void {
       this.every((ex: Expression, index: int, depth: int, nestDiff: int) => {
@@ -653,7 +627,6 @@ module Plywood {
      *
      * @param name The name of where to store the results
      * @param ex The expression to evaluate
-     * @returns {ChainExpression}
      */
     public apply(name: string, ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
@@ -665,7 +638,6 @@ module Plywood {
      * Only works on expressions that return DATASET
      *
      * @param ex A boolean expression to filter on
-     * @returns {ChainExpression}
      */
     public filter(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
@@ -676,7 +648,6 @@ module Plywood {
      *
      * @param ex
      * @param direction
-     * @returns {ChainExpression}
      */
     public sort(ex: any, direction: string): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
@@ -884,7 +855,6 @@ module Plywood {
      * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
      *
      * @param context The datum within which the check is happening
-     * @returns {ChainExpression}
      */
     public referenceCheck(context: Datum) {
       var datasetType: Lookup<FullType> = {};
@@ -995,7 +965,6 @@ module Plywood {
      * Computes an expression synchronously if possible
      *
      * @param context The context within which to compute the expression
-     * @returns {any}
      */
     public computeNative(context: Datum = {}): any {
       return this.getFn()(context, null);
@@ -1006,7 +975,6 @@ module Plywood {
      *
      * @param context The context within which to compute the expression
      * @param selector The selector where to attach the visualization
-     * @returns {Q.Promise<any>}
      */
     public compute(context: Datum = {}, selector: string = null): Q.Promise<any> {
       if (!datumHasExternal(context) && !this.hasRemote()) {
