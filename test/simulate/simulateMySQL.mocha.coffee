@@ -6,11 +6,11 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, TimeRange, $ } = plywood
+{ Expression, External, TimeRange, $ } = plywood
 
 context = {
-  diamonds: Dataset.fromJS({
-    source: 'mysql',
+  diamonds: External.fromJS({
+    engine: 'mysql',
     table: 'diamonds',
     attributes: {
       time: { type: 'TIME' }

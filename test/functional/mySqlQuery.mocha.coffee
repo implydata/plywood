@@ -5,10 +5,10 @@ if not WallTime.rules
   tzData = require("chronology/lib/walltime/walltime-data.js")
   WallTime.init(tzData.rules, tzData.zones)
 
-{ mySqlRequesterFactory } = require('plywoodjs-mysql-requester')
+{ mySqlRequesterFactory } = require('facetjs-mysql-requester')
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, TimeRange, $, basicDispatcherFactory } = plywood
+{ Expression, External, TimeRange, $, basicDispatcherFactory } = plywood
 
 info = require('../info')
 
@@ -19,14 +19,14 @@ mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 })
 
-describe "MySQLDataset", ->
+describe "MySQLExternal", ->
   @timeout(10000);
 
   it "works in advanced case", (testComplete) ->
     basicDispatcher = basicDispatcherFactory({
       datasets: {
-        wiki: Dataset.fromJS({
-          source: 'mysql'
+        wiki: External.fromJS({
+          engine: 'mysql'
           table: 'wiki_day_agg'
           attributes: {
             time: {type: 'TIME'}
@@ -139,8 +139,8 @@ describe "MySQLDataset", ->
   it "works with introspection", (testComplete) ->
     basicDispatcher = basicDispatcherFactory({
       datasets: {
-        wiki: Dataset.fromJS({
-          source: 'mysql'
+        wiki: External.fromJS({
+          engine: 'mysql'
           table: 'wiki_day_agg'
           requester: mySqlRequester
         })

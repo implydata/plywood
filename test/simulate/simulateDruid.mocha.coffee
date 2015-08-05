@@ -6,7 +6,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, TimeRange, $ } = plywood
+{ Expression, External, TimeRange, $ } = plywood
 
 attributes = {
   time: { type: 'TIME' }
@@ -21,8 +21,8 @@ attributes = {
 }
 
 context = {
-  'diamonds': Dataset.fromJS({
-    source: 'druid',
+  'diamonds': External.fromJS({
+    engine: 'druid',
     dataSource: 'diamonds',
     timeAttribute: 'time',
     attributes
@@ -31,8 +31,8 @@ context = {
       end:   new Date('2015-03-19T00:00:00')
     })
   })
-  'diamonds-alt:;<>': Dataset.fromJS({
-    source: 'druid',
+  'diamonds-alt:;<>': External.fromJS({
+    engine: 'druid',
     dataSource: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes
@@ -46,7 +46,7 @@ context = {
 describe "simulate Druid", ->
   it "works in advanced case", ->
     ex = $()
-      .def("diamonds", $('diamonds').filter($("color").is('D')))
+      .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
       .apply('PriceTimes2', '$diamonds.sum($price) * 2')
@@ -825,7 +825,7 @@ describe "simulate Druid", ->
 
   it "inlines a defined derived attribute", ->
     ex = $()
-      .def("diamonds", $('diamonds').def('sale_price', '$price + $tax'))
+      .apply("diamonds", $('diamonds').apply('sale_price', '$price + $tax'))
       .apply('ByTime',
         $('diamonds').split($("time").timeBucket('P1D', 'Etc/UTC'), 'Time')
           .apply('TotalSalePrice', $('diamonds').sum('$sale_price'))
@@ -877,7 +877,7 @@ describe "simulate Druid", ->
 
   it "inlines a def", ->
     ex = $('diamonds').split("$cut", 'Cut')
-      .def('TotalPrice', '$diamonds.sum($price)')
+      .apply('TotalPrice', '$diamonds.sum($price)')
       .apply('TotalPriceX2', '$TotalPrice * 2')
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([

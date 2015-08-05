@@ -371,7 +371,6 @@ describe "External", ->
       expect(ex.operand.op).to.equal('join')
 
       externalDatasetMain = ex.operand.lhs.value
-      expect(externalDatasetMain.defs).to.have.length(0)
       expect(externalDatasetMain.applies).to.have.length(2)
       expect(externalDatasetMain.toJS().attributes).to.deep.equal({
         Count: { "type": "NUMBER" }
@@ -380,7 +379,6 @@ describe "External", ->
       })
 
       externalDatasetCmp = ex.operand.rhs.value
-      expect(externalDatasetCmp.defs).to.have.length(1)
       expect(externalDatasetCmp.applies).to.have.length(1)
       expect(externalDatasetCmp.toJS().attributes).to.deep.equal({
         Page: { "type": "STRING" }

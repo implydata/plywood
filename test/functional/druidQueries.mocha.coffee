@@ -5,10 +5,10 @@ if not WallTime.rules
   tzData = require("chronology/lib/walltime/walltime-data.js")
   WallTime.init(tzData.rules, tzData.zones)
 
-{ druidRequesterFactory } = require('plywoodjs-druid-requester')
+{ druidRequesterFactory } = require('facetjs-druid-requester')
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, TimeRange, $, basicDispatcherFactory, helper } = plywood
+{ Expression, External, TimeRange, $, basicDispatcherFactory, helper } = plywood
 
 info = require('../info')
 
@@ -20,14 +20,14 @@ druidRequester = druidRequesterFactory({
 #  requester: druidRequester
 #})
 
-describe "DruidDataset", ->
+describe "DruidExternal", ->
   @timeout(10000);
 
   describe "defined attributes in datasource", ->
     basicDispatcher = basicDispatcherFactory({
       datasets: {
-        wiki: Dataset.fromJS({
-          source: 'druid',
+        wiki: External.fromJS({
+          engine: 'druid',
           dataSource: 'wikipedia_editstream',
           timeAttribute: 'time',
           context: null
@@ -334,8 +334,8 @@ describe "DruidDataset", ->
   describe "introspection", ->
     basicDispatcher = basicDispatcherFactory({
       datasets: {
-        wiki: Dataset.fromJS({
-          source: 'druid',
+        wiki: External.fromJS({
+          engine: 'druid',
           dataSource: 'wikipedia_editstream',
           timeAttribute: 'time',
           context: null

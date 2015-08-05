@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, NativeDataset, $ } = plywood
+{ Expression, Dataset, External, $ } = plywood
 
 describe "resolve", ->
   describe "errors if", ->
@@ -97,7 +97,7 @@ describe "resolve", ->
 
       ex = ex.simplify()
       expect(ex.toJS()).to.deep.equal(
-        $(Dataset.fromJS([{ num: 8 }]))
+        $(External.fromJS([{ num: 8 }]))
           .apply('subData',
             $()
               .apply('x', '$^num * 3')
@@ -134,8 +134,8 @@ describe "resolve", ->
   return
   describe.skip "resolves remotes", ->
     context = {
-      diamonds: Dataset.fromJS({
-        source: 'druid',
+      diamonds: External.fromJS({
+        engine: 'druid',
         dataSource: 'diamonds',
         timeAttribute: 'time',
         context: null
@@ -146,8 +146,8 @@ describe "resolve", ->
           carat: { type: 'NUMBER' }
         }
       })
-      diamonds2: Dataset.fromJS({
-        source: 'druid',
+      diamonds2: External.fromJS({
+        engine: 'druid',
         dataSource: 'diamonds2',
         timeAttribute: 'time',
         context: null

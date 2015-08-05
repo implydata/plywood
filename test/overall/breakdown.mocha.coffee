@@ -1,14 +1,14 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, NativeDataset, $ } = plywood
+{ Expression, External, $ } = plywood
 
 describe "breakdown", ->
   context = {
     x: 1
     y: 2
-    diamonds: Dataset.fromJS({
-      source: 'druid',
+    diamonds: External.fromJS({
+      engine: 'druid',
       dataSource: 'diamonds',
       timeAttribute: 'time',
       context: null
@@ -19,8 +19,8 @@ describe "breakdown", ->
         carat: { type: 'NUMBER' }
       }
     })
-    diamonds2: Dataset.fromJS({
-      source: 'druid',
+    diamonds2: External.fromJS({
+      engine: 'druid',
       dataSource: 'diamonds2',
       timeAttribute: 'time',
       context: null
@@ -35,7 +35,7 @@ describe "breakdown", ->
 
   it "errors on breakdown zero datasets", ->
     ex = Expression.parse('$x * $y + 2')
-  
+
     ex = ex.referenceCheck(context)
     expect(-> ex.breakdownByDataset('b')).to.throw()
 

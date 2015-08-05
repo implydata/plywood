@@ -10,7 +10,7 @@ plywood = require('../../build/plywood')
 
 context = {
   rankings: Dataset.fromJS({
-    source: 'druid',
+    engine: 'druid',
     dataSource: 'rankings',
     timeAttribute: 'time',
     allowEternity: true,
@@ -22,7 +22,7 @@ context = {
     }
   })
   uservisits: Dataset.fromJS({
-    source: 'druid',
+    engine: 'druid',
     dataSource: 'uservisits',
     timeAttribute: 'visitDate',
     allowEternity: true,
@@ -140,4 +140,3 @@ describe "simulate Druid for amplab benchmark", ->
         "queryType": "groupBy"
       }
     ])
-    

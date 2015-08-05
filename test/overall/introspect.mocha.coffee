@@ -7,7 +7,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Dataset, introspectDatum, $ } = plywood
+{ External, introspectDatum, $ } = plywood
 
 
 describe "introspect", ->
@@ -31,16 +31,16 @@ describe "introspect", ->
 
   context = {
     something: 'else'
-    diamonds: Dataset.fromJS({
+    diamonds: External.fromJS({
       requester: mockRequester
-      source: 'druid',
+      engine: 'druid',
       dataSource: 'diamonds',
       timeAttribute: 'time',
       context: null
     })
-    wiki: Dataset.fromJS({
+    wiki: External.fromJS({
       requester: mockRequester
-      source: 'druid',
+      engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'timestamp',
       context: null
