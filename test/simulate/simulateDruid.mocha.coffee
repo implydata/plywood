@@ -89,6 +89,9 @@ describe "simulate Druid", ->
           )
       )
 
+
+    ex = ex.referenceCheck(context).resolve(context).simplify()
+
     console.log('ex.toString(2)', ex.toString(2));
     return
 
