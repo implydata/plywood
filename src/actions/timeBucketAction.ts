@@ -53,7 +53,7 @@ module Plywood {
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      return [expressionString, this.duration.toString(), this.timezone.toString()];
+      return [this.duration.toString(), this.timezone.toString()];
     }
 
     public equals(other: TimeBucketAction): boolean {

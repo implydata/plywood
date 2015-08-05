@@ -136,9 +136,25 @@ module Plywood {
       return expressionString ? [expressionString] : [];
     }
 
-    public toString(): string {
+    public toString(indent?: int): string {
       var expression = this.expression;
-      return this.action + '(' + this._toStringParameters(expression ? expression.toString() : null).join(', ') + ')';
+      var spacer = '';
+      var joinStr = ', ';
+      var nextIndent: int = null;
+      if (indent != null && expression && expression.type === 'DATASET') {
+        var space = repeat(' ', indent);
+        spacer = '\n' + space;
+        joinStr = ',\n' + space;
+        nextIndent = indent + 2;
+      }
+      return [
+        this.action,
+        '(',
+        spacer,
+        this._toStringParameters(expression ? expression.toString(nextIndent) : null).join(joinStr),
+        spacer,
+        ')'
+      ].join('');
     }
 
     public valueOf(): ActionValue {

@@ -58,7 +58,7 @@ module Plywood {
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      var params: string[] = [expressionString, String(this.size)];
+      var params: string[] = [String(this.size)];
       if (this.offset) params.push(String(this.offset));
       return params;
     }

@@ -41,8 +41,17 @@ module Plywood {
       return js;
     }
 
-    public toString(): string {
-      return [this.expression.toString()].concat(this.actions.map(action => action.toString())).join('\n  .');
+    public toString(indent?: int): string {
+      var actions = this.actions;
+      var joinStr = '.';
+      var nextIndent: int = null;
+      if (indent != null && actions.length > 1) {
+        joinStr = '\n' + repeat(' ', indent) + joinStr;
+        nextIndent = indent + 2;
+      }
+      return [this.expression.toString()]
+        .concat(actions.map(action => action.toString(nextIndent)))
+        .join(joinStr);
     }
 
     public equals(other: ChainExpression): boolean {
@@ -341,7 +350,7 @@ module Plywood {
 
     public getExpressionPattern(actionType: string): Expression[] {
       var actions = this.actionize(actionType);
-      if (actions.length < 2) return null;
+      if (!actions || actions.length < 2) return null;
       return actions.map((action) => action.expression);
     }
 

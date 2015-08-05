@@ -299,8 +299,6 @@ module Plywood {
 
     /**
      * Serializes the expression into a simple JS object that can be passed to JSON.serialize
-     *
-     * @returns ExpressionJS
      */
     public toJS(): ExpressionJS {
       return {
@@ -310,11 +308,13 @@ module Plywood {
 
     /**
      * Makes it safe to call JSON.serialize on expressions
-     *
-     * @returns ExpressionJS
      */
     public toJSON(): ExpressionJS {
       return this.toJS();
+    }
+
+    public toString(indent?: int): string {
+      return 'BaseExpression';
     }
 
     /**
@@ -644,11 +644,6 @@ module Plywood {
       return this._performAction(new FilterAction({ expression: ex }));
     }
 
-    /**
-     *
-     * @param ex
-     * @param direction
-     */
     public sort(ex: any, direction: string): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
       return this._performAction(new SortAction({ expression: ex, direction: direction }));
