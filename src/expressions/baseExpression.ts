@@ -214,6 +214,36 @@ module Plywood {
       return Expression.fromJS(expressionJS);
     }
 
+    /**
+     * Composes the given expressions with an AND
+     * @param expressions the expressions to compose
+     */
+    static and(expressions: Expression[]): Expression {
+      switch (expressions.length) {
+        case 0: return Expression.TRUE;
+        case 1: return expressions[0];
+        default:
+          var acc = expressions[0];
+          for (var i = 1; i < expressions.length; i++) acc = acc.and(expressions[i]);
+          return acc;
+      }
+    }
+
+    /**
+     * Composes the given expressions with an OR
+     * @param expressions the expressions to compose
+     */
+    static or(expressions: Expression[]): Expression {
+      switch (expressions.length) {
+        case 0: return Expression.FALSE;
+        case 1: return expressions[0];
+        default:
+          var acc = expressions[0];
+          for (var i = 1; i < expressions.length; i++) acc = acc.or(expressions[i]);
+          return acc;
+      }
+    }
+
     static classMap: Lookup<typeof Expression> = {};
     static register(ex: typeof Expression): void {
       var op = (<any>ex).name.replace('Expression', '').replace(/^\w/, (s: string) => s.toLowerCase());

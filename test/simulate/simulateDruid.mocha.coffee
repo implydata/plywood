@@ -44,6 +44,19 @@ context = {
 }
 
 describe "simulate Druid", ->
+  it "works in basic case", ->
+    ex = $()
+      .apply("diamonds", $('diamonds').filter($("color").is('D')))
+      .apply('Count', '$diamonds.count()')
+      .apply('TotalPrice', '$diamonds.sum($price)')
+
+    ex = ex.referenceCheck(context).resolve(context).simplify() # ToDo: fix this
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+
+    ])
+
+  return
   it "works in advanced case", ->
     ex = $()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))

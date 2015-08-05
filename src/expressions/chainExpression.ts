@@ -430,13 +430,13 @@ module Plywood {
 
     public separateViaAnd(refName: string): Separation {
       if (typeof refName !== 'string') throw new Error('must have refName');
-      /*
-      //if (!this.simple) return this.simplify().separateViaAnd(refName);
+      if (!this.simple) return this.simplify().separateViaAnd(refName);
+
+      var andExpressions = this.getExpressionPattern('and'); // ToDo: what if there is only 1
 
       var includedExpressions: Expression[] = [];
       var excludedExpressions: Expression[] = [];
-      var expressions = this.expressions;
-      for (let operand of operands) {
+      for (let operand of andExpressions) {
         var sep = operand.separateViaAnd(refName);
         if (sep === null) return null;
         includedExpressions.push(sep.included);
@@ -444,10 +444,10 @@ module Plywood {
       }
 
       return {
-        included: new AndExpression({ op: 'and', operands: includedExpressions }).simplify(),
-        excluded: new AndExpression({ op: 'and', operands: excludedExpressions }).simplify()
+        included: Expression.and(includedExpressions).simplify(),
+        excluded: Expression.and(excludedExpressions).simplify()
       };
-      */
+
       return null;
     }
   }
