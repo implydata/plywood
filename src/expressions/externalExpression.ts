@@ -76,6 +76,12 @@ module Plywood {
       if (!newExternal) return;
       return new ExternalExpression({ external: newExternal });
     }
+
+    public simulate(simulatedQueries: any[]): Dataset {
+      var external = this.external;
+      simulatedQueries.push(external.getQueryAndPostProcess().query);
+      return external.simulate();
+    }
   }
 
   Expression.register(ExternalExpression);

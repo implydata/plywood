@@ -6,7 +6,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, External, TimeRange, $ } = plywood
+{ Expression, External, Dataset, TimeRange, $ } = plywood
 
 attributes = {
   time: { type: 'TIME' }
@@ -51,12 +51,26 @@ describe "simulate Druid", ->
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
 
-    ex = ex.referenceCheck(context).resolve(context).simplify() # ToDo: fix this
+    #ex = ex.referenceCheck(context).resolve(context).simplify() # ToDo: fix this
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
 
     ])
   ###
+
+  it "works on initial dataset", ->
+    dataset = Dataset.fromJS([
+      { col: 'D' }
+      { col: 'E' }
+    ])
+
+    ex = $(dataset)
+      .apply("diamonds", $('diamonds').filter($("color").is('$col')))
+      .apply('Count', '$diamonds.count()')
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+
+    ])
 
   it "works in advanced case", ->
     ex = $()
@@ -90,9 +104,9 @@ describe "simulate Druid", ->
       )
 
 
-    ex = ex.referenceCheck(context).resolve(context).simplify()
+    ex = ex.referenceCheck(context).resolve(context) #.simplify()
 
-    console.log('ex.toString(2)', ex.toString(2));
+    console.log('ex >', ex.toString(2));
     return
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([

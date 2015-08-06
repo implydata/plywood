@@ -932,17 +932,19 @@ module Plywood {
     }
 
     public simulateQueryPlan(context: Datum = {}): any[] {
+      var simulatedQueries: any[] = [];
       var ex = this.referenceCheck(context).resolve(context).simplify();
 
       if (ex instanceof ChainExpression) {
-        if (ex.expression instanceof ExternalExpression) {
-
-        } else {
-          return [];
+        console.log('aaa');
+        var externalExpression = ex.expression;
+        if (externalExpression instanceof ExternalExpression) {
+          console.log('poo');
+          externalExpression.simulate(simulatedQueries);
         }
-      } else {
-        return [];
       }
+
+      return simulatedQueries;
 
       /*
       simulatedQueries = [];
