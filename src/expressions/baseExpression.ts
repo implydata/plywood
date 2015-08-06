@@ -132,7 +132,6 @@ module Plywood {
 
     /**
      * Parses an expression
-     *
      * @param str The expression to parse
      */
     static parse(str: string): Expression {
@@ -146,7 +145,6 @@ module Plywood {
 
     /**
      * Parses SQL statements into facet expressions
-     *
      * @param str The SQL to parse
      */
     static parseSQL(str: string): Expression {
@@ -160,7 +158,6 @@ module Plywood {
 
     /**
      * Deserializes or parses an expression
-     *
      * @param param The expression to parse
      */
     static fromJSLoose(param: any): Expression {
@@ -212,7 +209,6 @@ module Plywood {
 
     /**
      * Composes the given expressions with an AND
-     *
      * @param expressions the expressions to compose
      */
     static and(expressions: Expression[]): Expression {
@@ -228,7 +224,6 @@ module Plywood {
 
     /**
      * Composes the given expressions with an OR
-     *
      * @param expressions the expressions to compose
      */
     static or(expressions: Expression[]): Expression {
@@ -250,7 +245,6 @@ module Plywood {
 
     /**
      * Deserializes the expression JSON
-     *
      * @param expressionJS
      */
     static fromJS(expressionJS: ExpressionJS): Expression {
@@ -319,7 +313,6 @@ module Plywood {
 
     /**
      * Validate that two expressions are equal in their meaning
-     *
      * @param other
      */
     public equals(other: Expression): boolean {
@@ -331,7 +324,6 @@ module Plywood {
     /**
      * Check that the expression can potentially have the desired type
      * If wanted type is 'SET' then any SET/* type is matched
-     *
      * @param wantedType The type that is wanted
      */
     public canHaveType(wantedType: string): boolean {
@@ -352,7 +344,6 @@ module Plywood {
 
     /**
      * Check if the expression is of the given operation (op)
-     *
      * @param op The operation to test
      */
     public isOp(op: string): boolean {
@@ -361,7 +352,6 @@ module Plywood {
 
     /**
      * Check if the expression contains the given operation (op)
-     *
      * @param op The operation to test
      */
     public containsOp(op: string): boolean {
@@ -469,7 +459,6 @@ module Plywood {
 
     /**
      * Runs iter over all the sub expression and return true if iter returns true for everything
-     *
      * @param iter The function to run
      * @param thisArg The this for the substitution function
      */
@@ -489,7 +478,6 @@ module Plywood {
 
     /**
      * Runs iter over all the sub expression and return true if iter returns true for anything
-     *
      * @param iter The function to run
      * @param thisArg The this for the substitution function
      */
@@ -502,7 +490,6 @@ module Plywood {
 
     /**
      * Runs iter over all the sub expressions
-     *
      * @param iter The function to run
      * @param thisArg The this for the substitution function
      */
@@ -516,7 +503,6 @@ module Plywood {
     /**
      * Performs a substitution by recursively applying the given substitutionFn to every sub-expression
      * if substitutionFn returns an expression than it is replaced; if null is returned this expression is returned
-     *
      * @param substitutionFn The function with which to substitute
      * @param thisArg The this for the substitution function
      */
@@ -624,7 +610,6 @@ module Plywood {
 
     /**
      * Evaluate some expression on every datum in the dataset. Record the result as `name`
-     *
      * @param name The name of where to store the results
      * @param ex The expression to evaluate
      */
@@ -636,7 +621,6 @@ module Plywood {
     /**
      * Filter the dataset with a boolean expression
      * Only works on expressions that return DATASET
-     *
      * @param ex A boolean expression to filter on
      */
     public filter(ex: any): ChainExpression {
@@ -834,7 +818,6 @@ module Plywood {
 
     /**
      * Checks for references and returns the list of alterations that need to be made to the expression
-     *
      * @param typeContext the context inherited from the parent
      * @param indexer the index along the tree to maintain
      * @param alterations the accumulation of the alterations to be made (output)
@@ -848,7 +831,6 @@ module Plywood {
 
     /**
      * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
-     *
      * @param context The datum within which the check is happening
      */
     public referenceCheck(context: Datum) {
@@ -870,7 +852,6 @@ module Plywood {
 
     /**
      * Resolves one level of dependencies that refer outside of this expression.
-     *
      * @param context The context containing the values to resolve to
      * @param ifNotFound If the reference is not in the context what to do? "throw", "leave", "null"
      * @return The resolved expression
@@ -951,14 +932,27 @@ module Plywood {
     }
 
     public simulateQueryPlan(context: Datum = {}): any[] {
+      var ex = this.referenceCheck(context).resolve(context).simplify();
+
+      if (ex instanceof ChainExpression) {
+        if (ex.expression instanceof ExternalExpression) {
+
+        } else {
+          return [];
+        }
+      } else {
+        return [];
+      }
+
+      /*
       simulatedQueries = [];
       this.referenceCheck(context).getFn()(context, null);
       return simulatedQueries;
+      */
     }
 
     /**
      * Computes an expression synchronously if possible
-     *
      * @param context The context within which to compute the expression
      */
     public computeNative(context: Datum = {}): any {
@@ -967,7 +961,6 @@ module Plywood {
 
     /**
      * Computes a general asynchronous expression
-     *
      * @param context The context within which to compute the expression
      * @param selector The selector where to attach the visualization
      */

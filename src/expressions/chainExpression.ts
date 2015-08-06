@@ -42,14 +42,15 @@ module Plywood {
     }
 
     public toString(indent?: int): string {
+      var expression = this.expression;
       var actions = this.actions;
       var joinStr = '.';
       var nextIndent: int = null;
-      if (indent != null && actions.length > 1) {
+      if (indent != null && (actions.length > 1 || expression.type === 'DATASET')) {
         joinStr = '\n' + repeat(' ', indent) + joinStr;
         nextIndent = indent + 2;
       }
-      return [this.expression.toString()]
+      return [expression.toString()]
         .concat(actions.map(action => action.toString(nextIndent)))
         .join(joinStr);
     }
@@ -77,23 +78,6 @@ module Plywood {
       }
       return fn;
     }
-
-    /*
-    public getFn(): ComputeFn {
-      var ex = this;
-      var expression = this.expression;
-      var actions = this.actions;
-      return (d: Datum, context: Datum) => {
-        var input = expression.getFn()(null);
-
-        for (let action of actions) {
-          input = action.getFn(() => input)(null);
-        }
-
-        return input;
-      };
-    }
-    */
 
     public getJS(datumVar: string): string {
       throw new Error("can not call getJS on actions");
