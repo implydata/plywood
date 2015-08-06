@@ -11,11 +11,14 @@ module Plywood {
   }
 
   function postProcessFactory(split: Expression, label: string): PostProcess {
-    if (split instanceof TimeBucketExpression) {
-      var duration = split.duration;
-      var timezone = split.timezone;
-    } else if (split instanceof NumberBucketExpression) {
-      var size = split.size;
+    if (split instanceof ChainExpression) {
+      var firstAction = split.actions[0];
+      if (firstAction instanceof TimeBucketAction) {
+        var duration = firstAction.duration;
+        var timezone = firstAction.timezone;
+      } else if (firstAction instanceof NumberBucketAction) {
+        var size = firstAction.size;
+      }
     }
 
     return (res: any[]): Dataset => {
@@ -31,7 +34,7 @@ module Plywood {
             v = new Date(v);
             d[label] = new TimeRange({ start: v, end: duration.move(v, timezone) })
           } else {
-            d[label] = new TimeRange({ start: v, end: v + size })
+            d[label] = new NumberRange({ start: v, end: v + size })
           }
           return d;
         })
@@ -58,44 +61,44 @@ module Plywood {
     return attributes;
   }
 
-  export interface MySQLDatasetValue extends DatasetValue{
+  export interface MySQLExternalValue extends ExternalValue {
     table?: string;
   }
 
-  export interface MySQLDatasetJS extends DatasetJS {
+  export interface MySQLExternalJS extends ExternalJS {
     table?: string;
   }
 
-  export class MySQLDataset extends External {
+  export class MySQLExternal extends External {
     static type = 'DATASET';
 
-    static fromJS(datasetJS: any): MySQLDataset {
-      var value: MySQLDatasetValue = External.jsToValue(datasetJS);
+    static fromJS(datasetJS: any): MySQLExternal {
+      var value: MySQLExternalValue = External.jsToValue(datasetJS);
       value.table = datasetJS.table;
-      return new MySQLDataset(value);
+      return new MySQLExternal(value);
     }
 
     public table: string;
 
-    constructor(parameters: MySQLDatasetValue) {
+    constructor(parameters: MySQLExternalValue) {
       super(parameters, dummyObject);
-      this._ensureSource("mysql");
+      this._ensureEngine("mysql");
       this.table = parameters.table;
     }
 
-    public valueOf(): DatasetValue {
-      var value: MySQLDatasetValue = super.valueOf();
+    public valueOf(): ExternalValue {
+      var value: MySQLExternalValue = super.valueOf();
       value.table = this.table;
       return value;
     }
 
-    public toJS(): DatasetJS {
-      var js: MySQLDatasetJS = super.toJS();
+    public toJS(): ExternalJS {
+      var js: MySQLExternalJS = super.toJS();
       js.table = this.table;
       return js;
     }
 
-    public equals(other: MySQLDataset): boolean {
+    public equals(other: MySQLExternal): boolean {
       return super.equals(other) &&
         this.table === other.table;
     }
@@ -149,7 +152,7 @@ module Plywood {
           break;
 
         case 'total':
-          query.push(this.applies.map(apply => apply.getSQL(mySQLDialect)).join(',\n'));
+          query.push(this.applies.map(apply => apply.getSQL(mySQLDialect, '')).join(',\n'));
           query.push('FROM ' + table);
           if (!(this.filter.equals(Expression.TRUE))) {
             query.push('WHERE ' + this.filter.getSQL(mySQLDialect));
@@ -160,21 +163,21 @@ module Plywood {
         case 'split':
           query.push(
             [`${this.split.getSQL(mySQLDialect)} AS '${this.key}'`]
-              .concat(this.applies.map(apply => apply.getSQL(mySQLDialect))).join(',\n')
+              .concat(this.applies.map(apply => apply.getSQL(mySQLDialect, ''))).join(',\n')
           );
           query.push('FROM ' + table);
           if (!(this.filter.equals(Expression.TRUE))) {
             query.push('WHERE ' + this.filter.getSQL(mySQLDialect));
           }
-          query.push('GROUP BY ' + this.split.getSQL(mySQLDialect, true));
+          query.push('GROUP BY ' + this.split.getSQL(mySQLDialect));
           if (!(this.havingFilter.equals(Expression.TRUE))) {
             query.push('HAVING ' + this.havingFilter.getSQL(mySQLDialect));
           }
           if (this.sort) {
-            query.push(this.sort.getSQL(mySQLDialect));
+            query.push(this.sort.getSQL(mySQLDialect, ''));
           }
           if (this.limit) {
-            query.push(this.limit.getSQL(mySQLDialect));
+            query.push(this.limit.getSQL(mySQLDialect, ''));
           }
           break;
 
@@ -195,5 +198,6 @@ module Plywood {
       };
     }
   }
-  Dataset.register(MySQLDataset, 'mysql');
+
+  External.register(MySQLExternal, 'mysql');
 }

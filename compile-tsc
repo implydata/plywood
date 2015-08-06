@@ -3,9 +3,6 @@
 rm -rf build/*
 mkdir -p build
 
-  #src/external/mySqlExternal.ts \
-
-
 node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComments --out build/plywood.js \
   src/init.ts \
   \
@@ -22,6 +19,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/datatypes/external.ts \
   \
   src/external/druidExternal.ts \
+  src/external/mySqlExternal.ts \
   \
   src/render/binder.ts \
   \
