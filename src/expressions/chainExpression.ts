@@ -425,7 +425,10 @@ module Plywood {
       if (typeof refName !== 'string') throw new Error('must have refName');
       if (!this.simple) return this.simplify().separateViaAnd(refName);
 
-      var andExpressions = this.getExpressionPattern('and'); // ToDo: what if there is only 1
+      var andExpressions = this.getExpressionPattern('and');
+      if (!andExpressions) {
+        return super.separateViaAnd(refName);
+      }
 
       var includedExpressions: Expression[] = [];
       var excludedExpressions: Expression[] = [];

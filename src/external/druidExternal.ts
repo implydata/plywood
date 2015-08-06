@@ -425,98 +425,104 @@ module Plywood {
         } else {
           throw new Error("should never get here");
         }
-
-      /*
-
-      } else if (filter instanceof IsExpression) {
-        var lhs = filter.lhs;
-        var rhs = filter.rhs;
-        if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-          attributeInfo = this.getAttributesInfo(lhs.name);
+      } else if (filter instanceof ChainExpression) {
+        var pattern: Expression[];
+        if (pattern = filter.getExpressionPattern('and')) {
           return {
-            type: "selector",
-            dimension: lhs.name,
-            value: attributeInfo.serialize(rhs.value)
+            type: 'and',
+            fields: pattern.map(this.timelessFilterToDruid, this)
           };
-        } else {
-          throw new Error("can not convert " + filter.toString() + " to Druid filter");
+        }
+        if (pattern = filter.getExpressionPattern('or')) {
+          return {
+            type: 'or',
+            fields: pattern.map(this.timelessFilterToDruid, this)
+          };
         }
 
-      } else if (filter instanceof InExpression) {
-        var lhs = filter.lhs;
-        var rhs = filter.rhs;
-        if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-          attributeInfo = this.getAttributesInfo(lhs.name);
-          var rhsType = rhs.type;
-          if (rhsType === 'SET/STRING') {
+        var lhs = filter.expression;
+        var actions = filter.actions;
+        if (actions.length !== 1) throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+        var filterAction = actions[0];
+        var rhs = filterAction.expression;
+
+        if (filterAction instanceof IsAction) {
+          if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
+            attributeInfo = this.getAttributesInfo(lhs.name);
             return {
-              type: "or",
-              fields: rhs.value.getElements().map((value: string) => {
-                return {
-                  type: "selector",
-                  dimension: lhs.name,
-                  value: attributeInfo.serialize(value)
-                }
-              })
-            };
-          } else if (rhsType === 'NUMBER_RANGE') {
-            var range: NumberRange = rhs.value;
-            var r0 = range.start;
-            var r1 = range.end;
-            return {
-              type: "javascript",
+              type: "selector",
               dimension: lhs.name,
-              "function": "function(a) { a = Number(a); return " + r0 + " <= a && a < " + r1 + "; }"
+              value: attributeInfo.serialize(rhs.value)
             };
-          } else if (rhsType === 'TIME_RANGE') {
-            throw new Error("can not time filter on non-primary time dimension");
           } else {
-            throw new Error("not supported " + rhsType);
+            throw new Error("can not convert " + filter.toString() + " to Druid filter");
           }
-        } else {
-          throw new Error("can not convert " + filter.toString() + " to Druid filter");
-        }
 
-      } else if (filter instanceof MatchExpression) {
-        var operand = filter.operand;
-        if (operand instanceof RefExpression) {
-          return {
-            type: "regex",
-            dimension: operand.name,
-            pattern: filter.regexp
-          };
-        } else {
-          throw new Error("can not convert " + filter.toString() + " to Druid filter");
-        }
-
-      } else if (filter instanceof ContainsExpression) {
-        var lhs = filter.lhs;
-        var rhs = filter.rhs;
-        if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-          return {
-            type: "search",
-            dimension: lhs.name,
-            query: {
-              type: "fragment",
-              values: [rhs.value]
+        } else if (filterAction instanceof InAction) {
+          if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
+            attributeInfo = this.getAttributesInfo(lhs.name);
+            var rhsType = rhs.type;
+            if (rhsType === 'SET/STRING') {
+              return {
+                type: "or",
+                fields: rhs.value.getElements().map((value: string) => {
+                  return {
+                    type: "selector",
+                    dimension: lhs.name,
+                    value: attributeInfo.serialize(value)
+                  }
+                })
+              };
+            } else if (rhsType === 'NUMBER_RANGE') {
+              var range: NumberRange = rhs.value;
+              var r0 = range.start;
+              var r1 = range.end;
+              return {
+                type: "javascript",
+                dimension: lhs.name,
+                "function": "function(a) { a = Number(a); return " + r0 + " <= a && a < " + r1 + "; }"
+              };
+            } else if (rhsType === 'TIME_RANGE') {
+              throw new Error("can not time filter on non-primary time dimension");
+            } else {
+              throw new Error("not supported " + rhsType);
             }
+          } else {
+            throw new Error("can not convert " + filter.toString() + " to Druid filter");
+          }
+
+        } else if (filterAction instanceof MatchAction) {
+          if (lhs instanceof RefExpression) {
+            return {
+              type: "regex",
+              dimension: lhs.name,
+              pattern: filterAction.regexp
+            };
+          } else {
+            throw new Error("can not convert " + filter.toString() + " to Druid filter");
+          }
+
+        } else if (filterAction instanceof ContainsAction) {
+          if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
+            return {
+              type: "search",
+              dimension: lhs.name,
+              query: {
+                type: "fragment",
+                values: [rhs.value]
+              }
+            };
+          } else {
+            throw new Error(`can not express ${rhs.toString()} in SQL`);
+          }
+
+        } else if (filterAction instanceof NotAction) {
+          return {
+            type: "not",
+            field: this.timelessFilterToDruid(lhs)
           };
-        } else {
-          throw new Error(`can not express ${rhs.toString()} in SQL`);
+
         }
-
-      } else if (filter instanceof NotExpression) {
-        return {
-          type: "not",
-          field: this.timelessFilterToDruid(filter.operand)
-        };
-
-      } else if (filter instanceof AndExpression || filter instanceof OrExpression) {
-        return {
-          type: filter.op,
-          fields: filter.operands.map(this.timelessFilterToDruid, this)
-        };
-      */
 
       } else {
         throw new Error("could not convert filter " + filter.toString() + " to Druid filter");

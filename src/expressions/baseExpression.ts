@@ -59,8 +59,6 @@ module Plywood {
     excluded: Expression;
   }
 
-  export var simulatedQueries: any[] = null;
-
   function getDataName(ex: Expression): string {
     if (ex instanceof RefExpression) {
       return ex.name;
@@ -927,6 +925,37 @@ module Plywood {
     // ---------------------------------------------------------
     // Evaluation
 
+    public computeExternalsSimulate(simulatedQueries: any[]): Expression {
+      return this.substitute((ex: Expression) => {
+        if (ex instanceof ExternalExpression) {
+          var external = ex.external;
+          simulatedQueries.push(external.getQueryAndPostProcess().query);
+          return new LiteralExpression({ value: external.simulate() });
+        }
+      });
+    }
+
+    public computeExternals(): Q.Promise<Expression> {
+      var externalLookup: Lookup<External> = {};
+      this.forEach((ex: Expression, index: int) => {
+        if (ex instanceof ExternalExpression) externalLookup[index] = ex.external;
+      });
+
+      var self = this;
+      var resultLookup: Lookup<Dataset> = {};
+      return Q.all(Object.keys(externalLookup).map(key => {
+        var external = externalLookup[key];
+        return external.queryValues().then((data) => {
+          resultLookup[key] = data
+        });
+      })).then(() => {
+        return self.substitute((ex: Expression, index: int) => {
+          if (!resultLookup[index]) return null;
+          return new LiteralExpression({ value: resultLookup[index] });
+        });
+      })
+    }
+
     public _computeResolved(): Q.Promise<any> {
       throw new Error("can not call this directly");
     }
@@ -935,14 +964,7 @@ module Plywood {
       var simulatedQueries: any[] = [];
       var ex = this.referenceCheck(context).resolve(context).simplify();
 
-      if (ex instanceof ChainExpression) {
-        console.log('aaa');
-        var externalExpression = ex.expression;
-        if (externalExpression instanceof ExternalExpression) {
-          console.log('poo');
-          externalExpression.simulate(simulatedQueries);
-        }
-      }
+      ex.computeExternalsSimulate(simulatedQueries);
 
       return simulatedQueries;
 

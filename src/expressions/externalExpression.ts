@@ -41,7 +41,7 @@ module Plywood {
       var simulatedValue: any;
       return (d: Datum, c: Datum) => {
         if (!hasSimulated) {
-          simulatedQueries.push(external.getQueryAndPostProcess().query);
+          //simulatedQueries.push(external.getQueryAndPostProcess().query);
           simulatedValue = external.simulate();
           hasSimulated = true;
         }

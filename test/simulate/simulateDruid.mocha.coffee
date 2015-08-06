@@ -44,20 +44,42 @@ context = {
 }
 
 describe "simulate Druid", ->
-  ###
+
   it "works in basic case", ->
     ex = $()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
 
-    #ex = ex.referenceCheck(context).resolve(context).simplify() # ToDo: fix this
-
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
-
+      {
+        "aggregations": [
+          {
+            "name": "Count"
+            "type": "count"
+          }
+          {
+            "fieldName": "price"
+            "name": "TotalPrice"
+            "type": "doubleSum"
+          }
+        ]
+        "dataSource": "diamonds"
+        "filter": {
+          "dimension": "color"
+          "type": "selector"
+          "value": "D"
+        }
+        "granularity": "all"
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ]
+        "queryType": "timeseries"
+      }
     ])
-  ###
 
+
+  return
   it "works on initial dataset", ->
     dataset = Dataset.fromJS([
       { col: 'D' }
@@ -68,10 +90,15 @@ describe "simulate Druid", ->
       .apply("diamonds", $('diamonds').filter($("color").is('$col')))
       .apply('Count', '$diamonds.count()')
 
+    ex = ex.referenceCheck(context).resolve(context).simplify()
+    console.log('ex.toString(2)', ex.toString(2));
+
+    return
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
 
     ])
 
+  return
   it "works in advanced case", ->
     ex = $()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
