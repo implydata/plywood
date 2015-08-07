@@ -25,7 +25,7 @@ module Plywood {
       return `String(${inputJS}).indexOf(${expressionJS}) > -1`;
     }
 
-    public getSQL(dialect: SQLDialect, inputSQL: string): string {
+    public getSQL(inputSQL: string, dialect: SQLDialect): string {
       var expression = this.expression;
       if (expression instanceof LiteralExpression) {
         return `${inputSQL} LIKE "%${expression.value}%"`;

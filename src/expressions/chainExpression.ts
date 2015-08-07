@@ -80,11 +80,23 @@ module Plywood {
     }
 
     public getJS(datumVar: string): string {
-      throw new Error("can not call getJS on actions");
+      var expression = this.expression;
+      var actions = this.actions;
+      var js = expression.getJS(datumVar);
+      for (let action of actions) {
+        js = action.getJS(js, datumVar);
+      }
+      return js;
     }
 
-    public getSQL(dialect: SQLDialect, minimal: boolean = false): string {
-      throw new Error("can not call getSQL on actions");
+    public getSQL(dialect: SQLDialect): string {
+      var expression = this.expression;
+      var actions = this.actions;
+      var sql = expression.getSQL(dialect);
+      for (let action of actions) {
+        sql = action.getSQL(sql, dialect);
+      }
+      return sql;
     }
 
     /**

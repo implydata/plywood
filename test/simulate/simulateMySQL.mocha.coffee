@@ -32,7 +32,7 @@ context = {
 describe "simulate MySQL", ->
   it "works in advanced case", ->
     ex = $()
-      .def("diamonds", $('diamonds').filter($("color").is('D')))
+      .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
       .apply('PriceTimes2', '$diamonds.sum($price) * 2')
@@ -65,7 +65,7 @@ describe "simulate MySQL", ->
 
     expect(queryPlan[0]).to.equal("""
       SELECT
-      COUNT(1) AS 'Count',
+      COUNT(*) AS 'Count',
       SUM(`price`) AS 'TotalPrice',
       (SUM(`price`)*2) AS 'PriceTimes2',
       (SUM(`price`)-SUM(`tax`)) AS 'PriceMinusTax',
@@ -79,7 +79,7 @@ describe "simulate MySQL", ->
     expect(queryPlan[1]).to.equal("""
       SELECT
       `cut` AS 'Cut',
-      COUNT(1) AS 'Count',
+      COUNT(*) AS 'Count',
       ((1/`Count`)*4) AS 'PercentOfTotal'
       FROM `diamonds`
       WHERE (`color`="D")
@@ -101,7 +101,7 @@ describe "simulate MySQL", ->
     expect(queryPlan[3]).to.equal("""
       SELECT
       FLOOR(`carat` / 0.25) * 0.25 AS 'Carat',
-      COUNT(1) AS 'Count'
+      COUNT(*) AS 'Count'
       FROM `diamonds`
       WHERE ((`color`="D") AND (`cut`="some_cut") AND ('2015-03-13 07:00:00'<=`time` AND `time`<'2015-03-14 07:00:00'))
       GROUP BY FLOOR(`carat` / 0.25) * 0.25
@@ -123,7 +123,7 @@ describe "simulate MySQL", ->
     expect(queryPlan[0]).to.equal("""
       SELECT
       `cut` AS 'Cut',
-      COUNT(1) AS 'Count'
+      COUNT(*) AS 'Count'
       FROM `diamonds`
       GROUP BY `cut`
       HAVING 100<`Count`
@@ -152,7 +152,7 @@ describe "simulate MySQL", ->
     expect(queryPlan[0]).to.equal("""
       SELECT
       `height_bucket` AS 'HeightBucket',
-      COUNT(1) AS 'Count'
+      COUNT(*) AS 'Count'
       FROM `diamonds`
       GROUP BY `height_bucket`
       ORDER BY `Count` DESC
@@ -162,7 +162,7 @@ describe "simulate MySQL", ->
     expect(queryPlan[1]).to.equal("""
       SELECT
       FLOOR((`height_bucket` - 0.5) / 2) * 2 + 0.5 AS 'HeightBucket',
-      COUNT(1) AS 'Count'
+      COUNT(*) AS 'Count'
       FROM `diamonds`
       GROUP BY FLOOR((`height_bucket` - 0.5) / 2) * 2 + 0.5
       ORDER BY `Count` DESC
