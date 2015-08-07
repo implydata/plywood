@@ -12,7 +12,7 @@ module Plywood {
       var requester = parameters.requester;
 
       var printLine = parameters.printLine || ((line: string): void => {
-          console.log(line);
+          console['log'](line);
         });
 
       var preQuery = parameters.preQuery || ((query: any): void => {

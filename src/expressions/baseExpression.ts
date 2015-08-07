@@ -382,13 +382,11 @@ module Plywood {
     }
 
     public getExternals(): External[] {
-      var externals: External[][] = [];
+      var externals: External[] = [];
       this.forEach(function(ex: Expression) {
-        if (ex instanceof LiteralExpression && ex.type === 'DATASET') {
-          externals.push((<Dataset>ex.value).getExternals());
-        }
+        if (ex instanceof ExternalExpression) externals.push(ex.external);
       });
-      return mergeExternals(externals);
+      return mergeExternals([externals]);
     }
 
     /**

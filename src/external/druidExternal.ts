@@ -1110,9 +1110,9 @@ return (start < 0 ?'-':'') + parts.join('.');
       if (applyExpression instanceof ChainExpression) {
         var actions = applyExpression.actions;
         if (actions.length !== 1) return false;
-        var firstAction = actions[0];
-        return this.isTimeRef(applyExpression.expression) &&
-          (firstAction.action === "min" || firstAction.action === "max");
+        var minMaxAction = actions[0];
+        return (minMaxAction.action === "min" || minMaxAction.action === "max") &&
+          this.isTimeRef(minMaxAction.expression);
       } else {
         return false;
       }
@@ -1230,7 +1230,6 @@ return (start < 0 ?'-':'') + parts.join('.');
             case 'topN':
               var sortAction = this.sort;
               var metric: string | Druid.TopNMetricSpec;
-              console.log('sortAction', sortAction);
               if (sortAction) {
                 metric = (<RefExpression>sortAction.expression).name;
                 if (this.sortOnLabel()) {

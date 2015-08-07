@@ -500,7 +500,7 @@ describe "simulate Druid", ->
       }
     ])
 
-  it.only "makes a timeBoundary query", ->
+  it "makes a timeBoundary query", ->
     ex = $()
       .apply('maximumTime', '$diamonds.max($time)')
       .apply('minimumTime', '$diamonds.min($time)')

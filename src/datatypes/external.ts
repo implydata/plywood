@@ -27,13 +27,13 @@ module Plywood {
     quantile: 1
   };
 
-  export function mergeExternals(remoteGroups: External[][]): External[] {
+  export function mergeExternals(externalGroups: External[][]): External[] {
     var seen: Lookup<External> = {};
-    remoteGroups.forEach(remoteGroup => {
-      remoteGroup.forEach(remote => {
-        var id = remote.getId();
+    externalGroups.forEach(externalGroup => {
+      externalGroup.forEach(external => {
+        var id = external.getId();
         if (seen[id]) return;
-        seen[id] = remote;
+        seen[id] = external;
       })
     });
     return Object.keys(seen).sort().map(k => seen[k]);

@@ -149,11 +149,22 @@ module Plywood {
         var dataset: Dataset = (<LiteralExpression>simpleExpression).value;
         var externalAction = simpleActions[0];
         var externalExpression = externalAction.expression;
-        if (dataset.basis() && externalAction.action === 'apply' && externalExpression instanceof ExternalExpression) {
-          var newTotalExpression = externalExpression.makeTotal();
-          if (newTotalExpression) {
-            simpleExpression = newTotalExpression
-            simpleActions.shift();
+        if (dataset.basis() && externalAction.action === 'apply') {
+          if (externalExpression instanceof ExternalExpression) {
+            var newTotalExpression = externalExpression.makeTotal();
+            if (newTotalExpression) {
+              simpleExpression = newTotalExpression;
+              simpleActions.shift();
+            }
+          } else {
+            var externals = this.getExternals();
+            if (externals.length === 1) {
+              simpleExpression = new ExternalExpression({
+                external: externals[0].makeTotal()
+              });
+            } else {
+              throw new Error('not done yet');
+            }
           }
         }
       }
@@ -176,10 +187,6 @@ module Plywood {
         simpleActions = undigestedActions;
       }
 
-      if (!simpleExpression) {
-        console.log('s4', simpleActions[0].toString(2));
-      }
-
       /*
       function isRemoteSimpleApply(action: Action): boolean {
         return action instanceof ApplyAction && action.expression.hasExternal() && action.expression.type !== 'DATASET';
@@ -194,7 +201,6 @@ module Plywood {
         if (digestedOperand instanceof LiteralExpression && !digestedOperand.isRemote() && simpleActions.some(isRemoteSimpleApply)) {
           if (externals.length === 1) {
             digestedOperand = new LiteralExpression({
-              op: 'literal',
               value: external.makeTotal()
             });
           } else {
@@ -398,11 +404,9 @@ module Plywood {
     }
 
     public _computeResolvedSimulate(simulatedQueries: any[]): any {
-      console.log('_computeResolvedSimulate', this.toString(2));
       var actions = this.actions;
 
       function execAction(i: int, dataset: Dataset): Dataset {
-        console.log('exec');
         var action = actions[i];
         var actionExpression = action.expression;
 
@@ -413,7 +417,6 @@ module Plywood {
           if (actionExpression.hasExternal()) {
             return dataset.apply(action.name, (d: Datum) => {
               var simpleActionExpression = actionExpression.resolve(d).simplify();
-              console.log('hered', d, simpleActionExpression.toString(2));
               return simpleActionExpression._computeResolvedSimulate(simulatedQueries);
             }, null);
           } else {
