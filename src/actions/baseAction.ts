@@ -344,10 +344,6 @@ module Plywood {
       return new (Action.classMap[this.action])(value);
     }
 
-    public newDataset(): boolean {
-      return false;
-    }
-
     public isNester(): boolean {
       return false;
     }

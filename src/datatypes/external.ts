@@ -384,6 +384,10 @@ module Plywood {
       value.dataName = null;
       value.attributes = value.rawAttributes;
       value.rawAttributes = null;
+      value.applies = [];
+      value.split = null;
+      value.sort = null;
+      value.limit = null;
 
       return <External>(new (External.classMap[this.engine])(value));
     }
@@ -685,7 +689,6 @@ module Plywood {
 
       var dataset = new Dataset({ data: [datum] });
       dataset = this.addNextExternal(dataset);
-      console.log('dataset >>', dataset.data[0]);
       return dataset;
     }
 
@@ -711,11 +714,6 @@ module Plywood {
       if (this.mode !== 'raw') {
         result = <Q.Promise<Dataset>>result.then(this.addNextExternal.bind(this));
       }
-
-      result = <Q.Promise<Dataset>>result.then((dataset: Dataset) => {
-        console.log('dataset >>', dataset.data[0]);
-        return dataset;
-      });
 
       return result;
     }

@@ -20,10 +20,10 @@ describe "traversal", ->
           .apply('z', $().sum(13003003).add(14003002))
           .apply('w', $().sum('$a + 19004003 + $b'))
           .split('$x', 'X', 'data')
-            .apply('x', '$num + 24003003')
-            .apply('y', '$data:DATASET.sum(27003004) + 28003003')
-            .apply('z', $().sum(31003004).add(32003003))
-            .apply('w', '34003003 + $data:DATASET.sum(37004004)')
+            .apply('x', '$num + 24003002')
+            .apply('y', '$data:DATASET.sum(27003003) + 28003002')
+            .apply('z', $().sum(31003003).add(32003002))
+            .apply('w', '34003002 + $data:DATASET.sum(37004003)')
       )
 
     it "on substitute", ->

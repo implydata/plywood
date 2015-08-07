@@ -123,4 +123,4 @@ describe "expression parser", ->
   it "should complain on identity misuse (on non numbers)", ->
     expect(->
       Expression.parse("+'poo'")
-    ).to.throw("Expression parse error: subtract must have expression of type NUMBER on `+'poo'`")
+    ).to.throw("Expression parse error: subtract must have expression of type NUMBER (is STRING) on `+\'poo\'`")

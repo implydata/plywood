@@ -111,7 +111,7 @@ AdditiveExpression
   = head:MultiplicativeExpression tail:(_ AdditiveOp _ MultiplicativeExpression)*
     { return naryExpressionWithAltFactory('add', head, tail, '-', 'subtract'); }
 
-AdditiveOp = [+-] ![+]
+AdditiveOp = op:[+-] ![+] { return op; }
 
 
 MultiplicativeExpression

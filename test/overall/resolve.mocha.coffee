@@ -134,6 +134,31 @@ describe "resolve", ->
           .toJS()
       )
 
+    it "works with sub-expressions", ->
+      datum = {
+        Count: 5
+        diamonds: External.fromJS({
+          engine: 'druid',
+          dataSource: 'diamonds',
+          timeAttribute: 'time',
+          context: null
+          attributes: {
+            time: {type: 'TIME'}
+            color: {type: 'STRING'}
+            cut: {type: 'STRING'}
+            carat: {type: 'NUMBER'}
+          }
+        })
+      }
+
+      ex = $("diamonds").split("$cut", 'Cut')
+        .apply('Count', $('diamonds').count())
+        .apply('PercentOfTotal', '$^Count / $Count')
+
+      ex = ex.resolve(datum)
+      console.log('ex.toString(2)', ex.toString(2));
+
+
   describe.skip "resolves remotes", ->
     context = {
       diamonds: External.fromJS({

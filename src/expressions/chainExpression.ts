@@ -265,7 +265,6 @@ module Plywood {
       for (let action of actions) {
         if (every) {
           every = action._everyHelper(iter, thisArg, indexer, depth, nestDiff);
-          nestDiff += Number(action.newDataset());
         } else {
           indexer.index += action.expressionCount();
         }
@@ -289,7 +288,6 @@ module Plywood {
       var actions = this.actions;
       var subActions = actions.map(action => {
         var subbedAction = action._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff);
-        nestDiff += Number(action.newDataset());
         return subbedAction;
       });
       if (expression === subExpression && arraysEqual(actions, subActions)) return this;
@@ -426,10 +424,7 @@ module Plywood {
         } else if (action instanceof ApplyAction) {
           if (actionExpression.hasExternal()) {
             return dataset.apply(action.name, (d: Datum) => {
-              console.log('resolve with', Object.keys(d));
-              console.log('pre', actionExpression.toString(2));
               var simpleActionExpression = actionExpression.resolve(d);
-              console.log('post', simpleActionExpression.toString(2));
               simpleActionExpression = simpleActionExpression.simplify();
               return simpleActionExpression._computeResolvedSimulate(simulatedQueries);
             }, null);
@@ -446,8 +441,6 @@ module Plywood {
         }
       }
 
-      console.log('--------------------------------------------------');
-      console.log('this', this.toString(2));
       var value = this.expression._computeResolvedSimulate(simulatedQueries);
       for (var i = 0; i < actions.length; i++) {
         value = execAction(i, value);

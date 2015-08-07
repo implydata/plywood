@@ -30,7 +30,7 @@ context = {
 }
 
 describe "simulate MySQL", ->
-  it.only "works in advanced case", ->
+  it "works in advanced case", ->
     ex = $()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
@@ -69,7 +69,7 @@ describe "simulate MySQL", ->
       SUM(`price`) AS 'TotalPrice',
       (SUM(`price`)*2) AS 'PriceTimes2',
       (SUM(`price`)-SUM(`tax`)) AS 'PriceMinusTax',
-      (SUM(`price`)-SUM(`tax`)-SUM(`carat`)+10) AS 'Crazy',
+      (((SUM(`price`)-SUM(`tax`))+10)-SUM(`carat`)) AS 'Crazy',
       (SUM(`price`)+SUM(`tax`)) AS 'PriceAndTax'
       FROM `diamonds`
       WHERE (`color`="D")
@@ -80,7 +80,7 @@ describe "simulate MySQL", ->
       SELECT
       `cut` AS 'Cut',
       COUNT(*) AS 'Count',
-      ((1/`Count`)*4) AS 'PercentOfTotal'
+      (4/`Count`) AS 'PercentOfTotal'
       FROM `diamonds`
       WHERE (`color`="D")
       GROUP BY `cut`
