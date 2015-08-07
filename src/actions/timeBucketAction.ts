@@ -48,7 +48,7 @@ module Plywood {
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'TIME');
+      this._checkInputTypes(inputType, 'TIME', 'TIME_RANGE');
       return 'TIME_RANGE';
     }
 

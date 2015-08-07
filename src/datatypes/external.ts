@@ -134,6 +134,7 @@ module Plywood {
     static jsToValue(parameters: ExternalJS): ExpressionValue {
       var value: ExternalValue = {
         engine: parameters.engine,
+        suppress: true,
         key: parameters.key
       };
       if (parameters.attributes) {
@@ -142,9 +143,8 @@ module Plywood {
       if (parameters.attributeOverrides) {
         value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
       }
-      if (parameters.filter) {
-        value.filter = Expression.fromJS(parameters.filter);
-      }
+      if (parameters.requester) value.requester = parameters.requester;
+      value.filter = parameters.filter ? Expression.fromJS(parameters.filter) : Expression.TRUE;
 
       return value;
     }
@@ -167,23 +167,6 @@ module Plywood {
       if (!ClassFn) {
         throw new Error(`unsupported engine '${engine}'`);
       }
-
-      var value: ExternalValue = {
-        engine: parameters.engine
-      };
-      if (parameters.attributes) {
-        value.attributes = AttributeInfo.fromJSs(parameters.attributes);
-      }
-      if (parameters.attributeOverrides) {
-        value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
-      }
-      if (parameters.key) {
-        value.key = parameters.key;
-      }
-
-      if (parameters.requester) value.requester = parameters.requester;
-      value.filter = parameters.filter ? Expression.fromJS(parameters.filter) : Expression.TRUE;
-
       return ClassFn.fromJS(parameters);
     }
 
@@ -209,7 +192,7 @@ module Plywood {
         throw new TypeError("can not call `new External` directly use External.fromJS instead");
       }
       this.engine = parameters.engine;
-      if (parameters.suppress === true) this.suppress = true;
+      this.suppress = parameters.suppress === true;
       if (parameters.attributes) {
         this.attributes = parameters.attributes;
       }
@@ -336,7 +319,7 @@ module Plywood {
       return this.engine + ':' + this.filter.toString();
     }
 
-    public hasRemote(): boolean {
+    public hasExternal(): boolean {
       return true;
     }
 
@@ -384,6 +367,19 @@ module Plywood {
 
     // -----------------
 
+    public makeTotal(): External {
+      if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
+      if (!this.canHandleTotal()) return null;
+
+      var value = this.valueOf();
+      value.suppress = false;
+      value.mode = 'total';
+      value.rawAttributes = value.attributes;
+      value.attributes = {};
+
+      return <External>(new (External.classMap[this.engine])(value));
+    }
+
     public addAction(action: Action): External {
       if (action instanceof FilterAction) {
         return this.addFilter(action);
@@ -401,18 +397,6 @@ module Plywood {
         return this.addLimit(action);
       }
       return null;
-    }
-
-    public makeTotal(): External {
-      if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
-      if (!this.canHandleTotal()) return null;
-
-      var value = this.valueOf();
-      value.mode = 'total';
-      value.rawAttributes = value.attributes;
-      value.attributes = {};
-
-      return <External>(new (External.classMap[this.engine])(value));
     }
 
     public addFilter(action: FilterAction): External {
@@ -445,6 +429,7 @@ module Plywood {
       if (!this.canHandleSplit(expression)) return null;
 
       var value = this.valueOf();
+      value.suppress = false;
       value.mode = 'split';
       value.split = expression;
       value.key = name;
@@ -539,6 +524,7 @@ module Plywood {
       for (let apply of applies) {
         if (apply.name === sortOn) return false;
       }
+
       return true;
     }
 

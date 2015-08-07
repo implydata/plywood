@@ -44,7 +44,6 @@ context = {
 }
 
 describe "simulate Druid", ->
-
   it "works in basic case", ->
     ex = $()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
@@ -78,9 +77,7 @@ describe "simulate Druid", ->
       }
     ])
 
-
-  return
-  it "works on initial dataset", ->
+  it.skip "works on initial dataset", ->
     dataset = Dataset.fromJS([
       { col: 'D' }
       { col: 'E' }
@@ -90,16 +87,11 @@ describe "simulate Druid", ->
       .apply("diamonds", $('diamonds').filter($("color").is('$col')))
       .apply('Count', '$diamonds.count()')
 
-    ex = ex.referenceCheck(context).resolve(context).simplify()
-    console.log('ex.toString(2)', ex.toString(2));
-
-    return
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
 
     ])
 
-  return
-  it "works in advanced case", ->
+  it.skip "works in advanced case", ->
     ex = $()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
@@ -129,12 +121,6 @@ describe "simulate Druid", ->
               )
           )
       )
-
-
-    ex = ex.referenceCheck(context).resolve(context) #.simplify()
-
-    console.log('ex >', ex.toString(2));
-    return
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
       {
@@ -399,7 +385,6 @@ describe "simulate Druid", ->
       }
     ])
 
-  return
   it "works with having filter", ->
     ex = $("diamonds").split("$cut", 'Cut')
       .apply('Count', $('diamonds').count())
@@ -515,7 +500,7 @@ describe "simulate Druid", ->
       }
     ])
 
-  it "makes a timeBoundary query", ->
+  it.only "makes a timeBoundary query", ->
     ex = $()
       .apply('maximumTime', '$diamonds.max($time)')
       .apply('minimumTime', '$diamonds.min($time)')

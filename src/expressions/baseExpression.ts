@@ -359,7 +359,7 @@ module Plywood {
     /**
      * Check if the expression contains references to remote datasets
      */
-    public hasRemote(): boolean {
+    public hasExternal(): boolean {
       return this.some(function(ex: Expression) {
         if (ex instanceof ExternalExpression) return true;
         if (ex instanceof RefExpression) return ex.isRemote();
@@ -925,62 +925,22 @@ module Plywood {
     // ---------------------------------------------------------
     // Evaluation
 
-    public computeExternalsSimulate(simulatedQueries: any[]): Expression {
-      return this.substitute((ex: Expression) => {
-        if (ex instanceof ExternalExpression) {
-          var external = ex.external;
-          simulatedQueries.push(external.getQueryAndPostProcess().query);
-          return new LiteralExpression({ value: external.simulate() });
-        }
-      });
-    }
-
-    public computeExternals(): Q.Promise<Expression> {
-      var externalLookup: Lookup<External> = {};
-      this.forEach((ex: Expression, index: int) => {
-        if (ex instanceof ExternalExpression) externalLookup[index] = ex.external;
-      });
-
-      var self = this;
-      var resultLookup: Lookup<Dataset> = {};
-      return Q.all(Object.keys(externalLookup).map(key => {
-        var external = externalLookup[key];
-        return external.queryValues().then((data) => {
-          resultLookup[key] = data
-        });
-      })).then(() => {
-        return self.substitute((ex: Expression, index: int) => {
-          if (!resultLookup[index]) return null;
-          return new LiteralExpression({ value: resultLookup[index] });
-        });
-      })
-    }
-
-    public _computeResolved(): Q.Promise<any> {
+    public _computeResolvedSimulate(simulatedQueries: any[]): any {
       throw new Error("can not call this directly");
     }
 
     public simulateQueryPlan(context: Datum = {}): any[] {
+      if (!datumHasExternal(context) && !this.hasExternal()) {
+        return [];
+      }
+
       var simulatedQueries: any[] = [];
-      var ex = this.referenceCheck(context).resolve(context).simplify();
-
-      ex.computeExternalsSimulate(simulatedQueries);
-
+      this.referenceCheck(context).resolve(context).simplify()._computeResolvedSimulate(simulatedQueries);
       return simulatedQueries;
-
-      /*
-      simulatedQueries = [];
-      this.referenceCheck(context).getFn()(context, null);
-      return simulatedQueries;
-      */
     }
 
-    /**
-     * Computes an expression synchronously if possible
-     * @param context The context within which to compute the expression
-     */
-    public computeNative(context: Datum = {}): any {
-      return this.getFn()(context, null);
+    public _computeResolved(): Q.Promise<any> {
+      throw new Error("can not call this directly");
     }
 
     /**
@@ -989,10 +949,10 @@ module Plywood {
      * @param selector The selector where to attach the visualization
      */
     public compute(context: Datum = {}, selector: string = null): Q.Promise<any> {
-      if (!datumHasExternal(context) && !this.hasRemote()) {
+      if (!datumHasExternal(context) && !this.hasExternal()) {
         return Q.fcall(() => {
           var referenceChecked = this.referenceCheck(context);
-          var value = referenceChecked.computeNative(context);
+          var value = referenceChecked.getFn()(context, null);
           if (selector && value instanceof Dataset) {
             var selection = d3.select(selector);
             binder(selection, value, referenceChecked.getBindSpecs());

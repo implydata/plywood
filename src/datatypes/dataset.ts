@@ -277,7 +277,7 @@ module Plywood {
       return data.length === 1 && Object.keys(data[0]).length === 0;
     }
 
-    public hasRemote(): boolean {
+    public hasExternal(): boolean {
       if (!this.data.length) return false;
       return datumHasExternal(this.data[0]);
     }

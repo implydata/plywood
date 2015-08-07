@@ -194,6 +194,12 @@ module Plywood {
       }
     }
 
+    protected _checkInputTypes(inputType: string, ...neededTypes: string[]) {
+      if (inputType && inputType !== 'NULL' && neededTypes.indexOf(inputType) === -1) {
+        throw new Error(`${this.action} must have input of type ${neededTypes.join(' or ')} (is ${inputType})`);
+      }
+    }
+
     protected _checkExpressionType(neededType: string) {
       var expressionType = this.expression.type;
       if (expressionType && expressionType !== 'NULL' && expressionType !== neededType) {

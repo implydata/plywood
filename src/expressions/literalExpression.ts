@@ -136,13 +136,12 @@ module Plywood {
       }
     }
 
+    public _computeResolvedSimulate(simulatedQueries: any[]): any {
+      return this.value;
+    }
+
     public _computeResolved(): Q.Promise<any> {
-      var value = this.value;
-      if (value instanceof External) {
-        return value.queryValues();
-      } else {
-        return Q(this.value);
-      }
+      return Q(this.value);
     }
 
   }

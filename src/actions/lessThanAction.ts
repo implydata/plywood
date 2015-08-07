@@ -34,11 +34,11 @@ module Plywood {
       if (expression instanceof LiteralExpression) {
         return {
           simplification: Simplification.Replace,
-          action: new InAction({
+          actions: [new InAction({
             expression: new LiteralExpression({
               value: Range.fromJS({ start: null, end: expression.value, bounds: '()' })
             })
-          })
+          })]
         };
       }
       return null;

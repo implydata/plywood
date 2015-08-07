@@ -53,7 +53,7 @@ module Plywood {
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'NUMBER');
+      this._checkInputTypes(inputType, 'NUMBER', 'NUMBER_RANGE');
       return 'NUMBER_RANGE';
     }
 

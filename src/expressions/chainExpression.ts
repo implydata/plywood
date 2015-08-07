@@ -150,8 +150,11 @@ module Plywood {
         var externalAction = simpleActions[0];
         var externalExpression = externalAction.expression;
         if (dataset.basis() && externalAction.action === 'apply' && externalExpression instanceof ExternalExpression) {
-          simpleExpression = externalExpression.makeTotal();
-          simpleActions.shift();
+          var newTotalExpression = externalExpression.makeTotal();
+          if (newTotalExpression) {
+            simpleExpression = newTotalExpression
+            simpleActions.shift();
+          }
         }
       }
 
@@ -173,10 +176,13 @@ module Plywood {
         simpleActions = undigestedActions;
       }
 
+      if (!simpleExpression) {
+        console.log('s4', simpleActions[0].toString(2));
+      }
 
       /*
       function isRemoteSimpleApply(action: Action): boolean {
-        return action instanceof ApplyAction && action.expression.hasRemote() && action.expression.type !== 'DATASET';
+        return action instanceof ApplyAction && action.expression.hasExternal() && action.expression.type !== 'DATASET';
       }
 
       // These are actions on a remote dataset
@@ -391,29 +397,67 @@ module Plywood {
       }
     }
 
+    public _computeResolvedSimulate(simulatedQueries: any[]): any {
+      console.log('_computeResolvedSimulate', this.toString(2));
+      var actions = this.actions;
+
+      function execAction(i: int, dataset: Dataset): Dataset {
+        console.log('exec');
+        var action = actions[i];
+        var actionExpression = action.expression;
+
+        if (action instanceof FilterAction) {
+          return dataset.filter(action.expression.getFn(), null);
+
+        } else if (action instanceof ApplyAction) {
+          if (actionExpression.hasExternal()) {
+            return dataset.apply(action.name, (d: Datum) => {
+              var simpleActionExpression = actionExpression.resolve(d).simplify();
+              console.log('hered', d, simpleActionExpression.toString(2));
+              return simpleActionExpression._computeResolvedSimulate(simulatedQueries);
+            }, null);
+          } else {
+            return dataset.apply(action.name, actionExpression.getFn(), null);
+          }
+
+        } else if (action instanceof SortAction) {
+          return dataset.sort(actionExpression.getFn(), action.direction, null);
+
+        } else if (action instanceof LimitAction) {
+          return dataset.limit(action.limit);
+
+        }
+      }
+
+      var value = this.expression._computeResolvedSimulate(simulatedQueries);
+      for (var i = 0; i < actions.length; i++) {
+        value = execAction(i, value);
+      }
+      return value;
+    }
+
     public _computeResolved(): Q.Promise<Dataset> {
       var actions = this.actions;
 
-      /*
       function execAction(i: int) {
         return (dataset: Dataset): Dataset | Q.Promise<Dataset> => {
           var action = actions[i];
           var actionExpression = action.expression;
 
           if (action instanceof FilterAction) {
-            return dataset.filter(action.expression.getFn());
+            return dataset.filter(action.expression.getFn(), null);
 
           } else if (action instanceof ApplyAction) {
-            if (actionExpression instanceof ChainExpression) {
+            if (actionExpression.hasExternal()) {
               return dataset.applyPromise(action.name, (d: Datum) => {
                 return actionExpression.resolve(d).simplify()._computeResolved();
-              });
+              }, null);
             } else {
-              return dataset.apply(action.name, actionExpression.getFn());
+              return dataset.apply(action.name, actionExpression.getFn(), null);
             }
 
           } else if (action instanceof SortAction) {
-            return dataset.sort(actionExpression.getFn(), action.direction);
+            return dataset.sort(actionExpression.getFn(), action.direction, null);
 
           } else if (action instanceof LimitAction) {
             return dataset.limit(action.limit);
@@ -421,11 +465,10 @@ module Plywood {
           }
         }
       }
-      */
 
       var promise = this.expression._computeResolved();
       for (var i = 0; i < actions.length; i++) {
-        //promise = promise.then(execAction(i));
+        promise = promise.then(execAction(i));
       }
       return promise;
     }

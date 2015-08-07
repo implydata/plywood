@@ -356,13 +356,16 @@ module Plywood {
     public canHandleSort(sortAction: SortAction): boolean {
       var split = this.split;
       if (split instanceof ChainExpression) {
-        if (split.actions.length !== 1 || split.actions[0].action === 'timeBucket') return false;
-        if (sortAction.direction !== 'ascending') return false;
-        var sortExpression = sortAction.expression;
-        if (sortExpression instanceof RefExpression) {
-          return sortExpression.name === this.key;
+        if (split.actions.length === 1 && split.actions[0].action === 'timeBucket') {
+          if (sortAction.direction !== 'ascending') return false;
+          var sortExpression = sortAction.expression;
+          if (sortExpression instanceof RefExpression) {
+            return sortExpression.name === this.key;
+          } else {
+            return false;
+          }
         } else {
-          return false;
+          return true
         }
       } else {
         return true;
@@ -1227,6 +1230,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             case 'topN':
               var sortAction = this.sort;
               var metric: string | Druid.TopNMetricSpec;
+              console.log('sortAction', sortAction);
               if (sortAction) {
                 metric = (<RefExpression>sortAction.expression).name;
                 if (this.sortOnLabel()) {

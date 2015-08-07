@@ -128,26 +128,23 @@ module Plywood {
   // Remote functionality
 
   export function datumHasExternal(datum: Datum): boolean {
-    for (var applyName in datum) {
-      var applyValue = datum[applyName];
-      if (applyValue instanceof Dataset && applyValue.hasRemote()) {
-        return true;
-      }
+    for (var name in datum) {
+      var value = datum[name];
+      if (value instanceof External) return true;
+      if (value instanceof Dataset && value.hasExternal()) return true;
     }
     return false;
   }
 
   export function introspectDatum(datum: Datum): Q.Promise<Datum> {
     return Q.all(
-      Object.keys(datum).map(applyName => {
-        /*
-        var applyValue = datum[applyName];
-        if (applyValue instanceof External && applyValue.needsIntrospect()) {
-          return applyValue.introspect().then((newExternal: External) => {
-            datum[applyName] = newExternal;
+      Object.keys(datum).map(name => {
+        var external = datum[name];
+        if (external instanceof External && external.needsIntrospect()) {
+          return external.introspect().then((newExternal: External) => {
+            datum[name] = newExternal;
           })
         }
-        */
         return null;
       }).filter(Boolean)
     ).then(() => datum);

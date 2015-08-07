@@ -35,18 +35,7 @@ module Plywood {
     }
 
     public getFn(): ComputeFn {
-      var external = this.external;
-
-      var hasSimulated = false;
-      var simulatedValue: any;
-      return (d: Datum, c: Datum) => {
-        if (!hasSimulated) {
-          //simulatedQueries.push(external.getQueryAndPostProcess().query);
-          simulatedValue = external.simulate();
-          hasSimulated = true;
-        }
-        return simulatedValue;
-      };
+      throw new Error('should not call getFn on External');
     }
 
     public equals(other: ExternalExpression): boolean {
@@ -61,8 +50,17 @@ module Plywood {
       return newTypeContext;
     }
 
+    public _computeResolvedSimulate(simulatedQueries: any[]): any {
+      var external = this.external;
+      if (external.suppress) return external;
+      simulatedQueries.push(external.getQueryAndPostProcess().query);
+      return external.simulate();
+    }
+
     public _computeResolved(): Q.Promise<any> {
-      return this.external.queryValues();
+      var external = this.external;
+      if (external.suppress) return Q(external);
+      return external.queryValues();
     }
 
     public addAction(action: Action): ExternalExpression {
@@ -73,14 +71,8 @@ module Plywood {
 
     public makeTotal(): ExternalExpression {
       var newExternal = this.external.makeTotal();
-      if (!newExternal) return;
+      if (!newExternal) return null;
       return new ExternalExpression({ external: newExternal });
-    }
-
-    public simulate(simulatedQueries: any[]): Dataset {
-      var external = this.external;
-      simulatedQueries.push(external.getQueryAndPostProcess().query);
-      return external.simulate();
     }
   }
 
