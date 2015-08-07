@@ -98,10 +98,11 @@ module Plywood {
     attributes?: Attributes;
     attributeOverrides?: Attributes;
     key?: string;
+    mode?: string;
+    dataName?: string;
 
     filter?: Expression;
     rawAttributes?: Attributes;
-    mode?: string;
     derivedAttributes?: Lookup<Expression>;
     split?: Expression;
     applies?: ApplyAction[];
@@ -182,6 +183,7 @@ module Plywood {
     public derivedAttributes: Lookup<Expression>;
     public filter: Expression;
     public split: Expression;
+    public dataName: string;
     public applies: ApplyAction[];
     public sort: SortAction;
     public limit: LimitAction;
@@ -208,6 +210,7 @@ module Plywood {
       this.derivedAttributes = parameters.derivedAttributes || {};
       this.filter = parameters.filter || Expression.TRUE;
       this.split = parameters.split;
+      this.dataName = parameters.dataName;
       this.applies = parameters.applies;
       this.sort = parameters.sort;
       this.limit = parameters.limit;
@@ -250,6 +253,9 @@ module Plywood {
         value.requester = this.requester;
       }
       value.mode = this.mode;
+      if (this.dataName) {
+        value.dataName = this.dataName;
+      }
       value.derivedAttributes = this.derivedAttributes;
       value.filter = this.filter;
       if (this.split) {
@@ -312,6 +318,7 @@ module Plywood {
     public equals(other: External): boolean {
       return External.isExternal(other) &&
         this.engine === other.engine &&
+        this.mode === other.mode &&
         this.filter.equals(other.filter);
     }
 
@@ -367,13 +374,14 @@ module Plywood {
 
     // -----------------
 
-    public makeTotal(): External {
+    public makeTotal(dataName: string): External {
       if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
       if (!this.canHandleTotal()) return null;
 
       var value = this.valueOf();
       value.suppress = false;
       value.mode = 'total';
+      value.dataName = dataName;
       value.rawAttributes = value.attributes;
       value.attributes = {};
 
@@ -431,6 +439,7 @@ module Plywood {
       var value = this.valueOf();
       value.suppress = false;
       value.mode = 'split';
+      value.dataName = action.dataName;
       value.split = expression;
       value.key = name;
       value.rawAttributes = value.attributes;

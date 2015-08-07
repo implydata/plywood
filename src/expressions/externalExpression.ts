@@ -69,8 +69,8 @@ module Plywood {
       return new ExternalExpression({ external: newExternal });
     }
 
-    public makeTotal(): ExternalExpression {
-      var newExternal = this.external.makeTotal();
+    public makeTotal(dataName: string): ExternalExpression {
+      var newExternal = this.external.makeTotal(dataName);
       if (!newExternal) return null;
       return new ExternalExpression({ external: newExternal });
     }

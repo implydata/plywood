@@ -161,9 +161,9 @@ module Plywood {
         var dataset: Dataset = (<LiteralExpression>simpleExpression).value;
         var externalAction = simpleActions[0];
         var externalExpression = externalAction.expression;
-        if (dataset.basis() && externalAction.action === 'apply') {
+        if (dataset.basis() && externalAction instanceof ApplyAction) {
           if (externalExpression instanceof ExternalExpression) {
-            var newTotalExpression = externalExpression.makeTotal();
+            var newTotalExpression = externalExpression.makeTotal((<ApplyAction>externalAction).name);
             if (newTotalExpression) {
               simpleExpression = newTotalExpression;
               simpleActions.shift();
@@ -172,7 +172,7 @@ module Plywood {
             var externals = this.getExternals();
             if (externals.length === 1) {
               simpleExpression = new ExternalExpression({
-                external: externals[0].makeTotal()
+                external: externals[0].makeTotal((<ApplyAction>externalAction).name)
               });
             } else {
               throw new Error('not done yet');
