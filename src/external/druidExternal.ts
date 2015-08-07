@@ -397,22 +397,28 @@ module Plywood {
       }
     }
 
-    public canUseNativeAggregateFilter(filterExpression: Expression): boolean {
-      if (filterExpression.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
-
-      return false;
-      /*
-      return filterExpression.every(ex => {
-        if (ex instanceof IsExpression) {
-          return ex.lhs.isOp('ref') && ex.rhs.isOp('literal')
-        } else if (ex instanceof InExpression) {
-          return ex.lhs.isOp('ref') && ex.rhs.isOp('literal')
-        } else if (ex.isOp('not') || ex.isOp('and') || ex.isOp('or')) {
-          return null; // search within
+    public canUseNativeAggregateFilter(filter: Expression): boolean {
+      if (filter instanceof ChainExpression) {
+        var pattern: Expression[];
+        if (pattern = (filter.getExpressionPattern('and') || filter.getExpressionPattern('or'))) {
+          return pattern.every(ex => {
+            return this.canUseNativeAggregateFilter(ex);
+          }, this);
         }
-        return false
-      });
-      */
+
+        var prefix: Expression;
+        if (prefix = filter.getTailPattern('not')) {
+          return this.canUseNativeAggregateFilter(prefix);
+        }
+
+        var actions = filter.actions;
+        if (actions.length !== 1) return false;
+        var firstAction = actions[0];
+        return filter.expression.isOp('ref') &&
+          (firstAction.action === 'is' || firstAction.action === 'in') &&
+          firstAction.expression.isOp('literal');
+      }
+      return false;
     }
 
     public timelessFilterToDruid(filter: Expression): Druid.Filter {
@@ -438,6 +444,11 @@ module Plywood {
             type: 'or',
             fields: pattern.map(this.timelessFilterToDruid, this)
           };
+        }
+
+        var prefix: Expression;
+        if (prefix = filter.getTailPattern('not')) {
+          return this.timelessFilterToDruid(prefix);
         }
 
         var lhs = filter.expression;
@@ -515,12 +526,6 @@ module Plywood {
           } else {
             throw new Error(`can not express ${rhs.toString()} in SQL`);
           }
-
-        } else if (filterAction instanceof NotAction) {
-          return {
-            type: "not",
-            field: this.timelessFilterToDruid(lhs)
-          };
 
         }
 
@@ -1031,6 +1036,11 @@ return (start < 0 ?'-':'') + parts.join('.');
           };
         }
 
+        var prefix: Expression;
+        if (prefix = filter.getTailPattern('not')) {
+          return this.havingFilterToDruid(prefix);
+        }
+
         var lhs = filter.expression;
         var actions = filter.actions;
         if (actions.length !== 1) throw new Error(`can not convert ${filter.toString()} to Druid interval`);
@@ -1084,12 +1094,6 @@ return (start < 0 ?'-':'') + parts.join('.');
           } else {
             throw new Error(`can not convert ${filter.toString()} to Druid having filter`);
           }
-
-        } else if (filterAction instanceof NotAction) {
-          return {
-            type: "not",
-            field: this.havingFilterToDruid(filter.expression)
-          };
 
         }
 

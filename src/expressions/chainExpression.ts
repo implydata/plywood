@@ -338,6 +338,15 @@ module Plywood {
       return actions.map((action) => action.expression);
     }
 
+    public getTailPattern(actionType: string): Expression {
+      var actions = this.actions;
+      var lastAction = actions[actions.length - 1];
+      if (lastAction.action !== actionType) return null;
+      var value = this.valueOf();
+      value.actions = actions.slice(0, -1);
+      return new ChainExpression(value);
+    }
+
     public _collectBindSpecs(bindSpecs: BindSpec[], selectionDepth: Lookup<number>, depth: number, applyName: string, data: string, key: string): void {
       var expression = this.expression;
       var actions = this.actions;
