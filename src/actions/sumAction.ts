@@ -26,8 +26,8 @@ module Plywood {
       return 'SUM(' + expressionSQL + ')';
     }
 
-    public contextDiff(): int {
-      return -1;
+    public isNester(): boolean {
+      return true;
     }
   }
 

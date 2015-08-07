@@ -374,6 +374,20 @@ module Plywood {
 
     // -----------------
 
+    // ToDo: make this better
+    public getRaw(): External {
+      if (this.mode === 'raw') return this;
+
+      var value = this.valueOf();
+      value.suppress = true;
+      value.mode = 'raw';
+      value.dataName = null;
+      value.attributes = value.rawAttributes;
+      value.rawAttributes = null;
+
+      return <External>(new (External.classMap[this.engine])(value));
+    }
+
     public makeTotal(dataName: string): External {
       if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
       if (!this.canHandleTotal()) return null;
@@ -390,25 +404,28 @@ module Plywood {
 
     public addAction(action: Action): External {
       if (action instanceof FilterAction) {
-        return this.addFilter(action);
+        return this._addFilterAction(action);
       }
       if (action instanceof SplitAction) {
-        return this.addSplit(action);
+        return this._addSplitAction(action);
       }
       if (action instanceof ApplyAction) {
-        return this.addApply(action);
+        return this._addApplyAction(action);
       }
       if (action instanceof SortAction) {
-        return this.addSort(action);
+        return this._addSortAction(action);
       }
       if (action instanceof LimitAction) {
-        return this.addLimit(action);
+        return this._addLimitAction(action);
       }
       return null;
     }
 
-    public addFilter(action: FilterAction): External {
-      var expression = action.expression;
+    private _addFilterAction(action: FilterAction): External {
+      return this.addFilter(action.expression);
+    }
+
+    public addFilter(expression: Expression): External {
       if (!expression.resolved()) return null;
 
       var value = this.valueOf();
@@ -430,7 +447,7 @@ module Plywood {
       return <External>(new (External.classMap[this.engine])(value));
     }
 
-    public addSplit(action: SplitAction): External {
+    private _addSplitAction(action: SplitAction): External {
       var expression = action.expression;
       var name = action.name;
       if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
@@ -449,7 +466,7 @@ module Plywood {
       return <External>(new (External.classMap[this.engine])(value));
     }
 
-    public addApply(action: ApplyAction): External {
+    private _addApplyAction(action: ApplyAction): External {
       var expression = action.expression;
       if (expression.type !== 'NUMBER' && expression.type !== 'TIME') return null;
       if (!this.canHandleApply(action.expression)) return null;
@@ -481,7 +498,7 @@ module Plywood {
       return <External>(new (External.classMap[this.engine])(value));
     }
 
-    public addSort(action: SortAction): External {
+    private _addSortAction(action: SortAction): External {
       if (this.limit) return null; // Can not sort after limit
       if (!this.canHandleSort(action)) return null;
 
@@ -490,7 +507,7 @@ module Plywood {
       return <External>(new (External.classMap[this.engine])(value));
     }
 
-    public addLimit(action: LimitAction): External {
+    private _addLimitAction(action: LimitAction): External {
       if (!this.canHandleLimit(action)) return null;
 
       var value = this.valueOf();
@@ -626,6 +643,26 @@ module Plywood {
 
     // -----------------
 
+    public addNextExternal(dataset: Dataset): Dataset {
+      var dataName = this.dataName;
+      switch (this.mode) {
+        case 'total':
+          return dataset.apply(dataName, () => {
+            return this.getRaw();
+          }, null);
+
+        case 'split':
+          var split = this.split;
+          var key = this.key;
+          return dataset.apply(dataName, (d: Datum) => {
+            return this.getRaw().addFilter(split.is(d[key]).simplify());
+          }, null);
+
+        default:
+          return dataset;
+      }
+    }
+
     public simulate(): Dataset {
       var datum: Datum = {};
 
@@ -646,7 +683,10 @@ module Plywood {
         }
       }
 
-      return new Dataset({ data: [datum] });
+      var dataset = new Dataset({ data: [datum] });
+      dataset = this.addNextExternal(dataset);
+      console.log('dataset >>', dataset.data[0]);
+      return dataset;
     }
 
     public getQueryAndPostProcess(): QueryAndPostProcess<any> {
@@ -665,8 +705,19 @@ module Plywood {
       if (!hasOwnProperty(queryAndPostProcess, 'query') || typeof queryAndPostProcess.postProcess !== 'function') {
         return <Q.Promise<Dataset>>Q.reject(new Error('no error query or postProcess'));
       }
-      return this.requester({ query: queryAndPostProcess.query })
+      var result = this.requester({ query: queryAndPostProcess.query })
         .then(queryAndPostProcess.postProcess);
+
+      if (this.mode !== 'raw') {
+        result = <Q.Promise<Dataset>>result.then(this.addNextExternal.bind(this));
+      }
+
+      result = <Q.Promise<Dataset>>result.then((dataset: Dataset) => {
+        console.log('dataset >>', dataset.data[0]);
+        return dataset;
+      });
+
+      return result;
     }
 
     // -------------------------

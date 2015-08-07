@@ -22,6 +22,10 @@ module Plywood {
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `${inputSQL} WHERE ${expressionSQL}`;
     }
+
+    public isNester(): boolean {
+      return true;
+    }
   }
 
   Action.register(FilterAction);

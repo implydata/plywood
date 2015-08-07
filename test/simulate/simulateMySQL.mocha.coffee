@@ -30,7 +30,7 @@ context = {
 }
 
 describe "simulate MySQL", ->
-  it "works in advanced case", ->
+  it.only "works in advanced case", ->
     ex = $()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')

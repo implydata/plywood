@@ -73,8 +73,12 @@ module Plywood {
       throw `GROUP BY ${expressionSQL}`;
     }
 
-    public contextDiff(): int {
-      return 1;
+    public newDataset(): boolean {
+      return true;
+    }
+
+    public isNester(): boolean {
+      return true;
     }
   }
 

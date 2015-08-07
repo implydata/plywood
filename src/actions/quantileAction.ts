@@ -48,8 +48,8 @@ module Plywood {
         this.quantile === other.quantile;
     }
 
-    public contextDiff(): int {
-      return -1;
+    public isNester(): boolean {
+      return true;
     }
   }
 

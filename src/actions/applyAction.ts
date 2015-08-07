@@ -56,6 +56,10 @@ module Plywood {
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `${expressionSQL} AS '${this.name}'`;
     }
+
+    public isNester(): boolean {
+      return true;
+    }
   }
 
   Action.register(ApplyAction);

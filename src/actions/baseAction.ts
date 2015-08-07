@@ -309,7 +309,7 @@ module Plywood {
     }
 
     public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {
-      return this.expression ? this.expression._everyHelper(iter, thisArg, indexer, depth, nestDiff) : true;
+      return this.expression ? this.expression._everyHelper(iter, thisArg, indexer, depth, nestDiff + Number(this.isNester())) : true;
     }
 
     /**
@@ -327,7 +327,7 @@ module Plywood {
     public _substituteHelper(substitutionFn: SubstitutionFn, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): Action {
       var expression = this.expression;
       if (!expression) return this;
-      var subExpression = expression._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff);
+      var subExpression = expression._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff + Number(this.isNester()));
       if (expression === subExpression) return this;
       var value = this.valueOf();
       value.expression = subExpression;
@@ -344,8 +344,12 @@ module Plywood {
       return new (Action.classMap[this.action])(value);
     }
 
-    public contextDiff(): int {
-      return 0;
+    public newDataset(): boolean {
+      return false;
+    }
+
+    public isNester(): boolean {
+      return false;
     }
 
     public getLiteralValue(): any {

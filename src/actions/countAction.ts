@@ -31,10 +31,6 @@ module Plywood {
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return 'COUNT(*)';
     }
-
-    public contextDiff(): int {
-      return -1;
-    }
   }
 
   Action.register(CountAction);

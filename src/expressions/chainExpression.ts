@@ -174,7 +174,7 @@ module Plywood {
               simpleExpression = new ExternalExpression({
                 external: externals[0].makeTotal((<ApplyAction>externalAction).name)
               });
-            } else {
+            } else if (externals.length > 1) {
               throw new Error('not done yet');
             }
           }
@@ -259,14 +259,13 @@ module Plywood {
 
       var expression = this.expression;
       if (!expression._everyHelper(iter, thisArg, indexer, depth, nestDiff)) return false;
-      var actionNestDiff = nestDiff + (expression.type === 'DATASET' ? 1 : 0);
 
       var actions = this.actions;
       var every: boolean = true;
       for (let action of actions) {
         if (every) {
-          every = action._everyHelper(iter, thisArg, indexer, depth, actionNestDiff);
-          actionNestDiff += action.contextDiff();
+          every = action._everyHelper(iter, thisArg, indexer, depth, nestDiff);
+          nestDiff += Number(action.newDataset());
         } else {
           indexer.index += action.expressionCount();
         }
@@ -286,12 +285,11 @@ module Plywood {
 
       var expression = this.expression;
       var subExpression = expression._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff);
-      var actionNestDiff = nestDiff + (expression.type === 'DATASET' ? 1 : 0);
 
       var actions = this.actions;
       var subActions = actions.map(action => {
-        var subbedAction = action._substituteHelper(substitutionFn, thisArg, indexer, depth, actionNestDiff);
-        actionNestDiff += action.contextDiff();
+        var subbedAction = action._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff);
+        nestDiff += Number(action.newDataset());
         return subbedAction;
       });
       if (expression === subExpression && arraysEqual(actions, subActions)) return this;
@@ -428,7 +426,11 @@ module Plywood {
         } else if (action instanceof ApplyAction) {
           if (actionExpression.hasExternal()) {
             return dataset.apply(action.name, (d: Datum) => {
-              var simpleActionExpression = actionExpression.resolve(d).simplify();
+              console.log('resolve with', Object.keys(d));
+              console.log('pre', actionExpression.toString(2));
+              var simpleActionExpression = actionExpression.resolve(d);
+              console.log('post', simpleActionExpression.toString(2));
+              simpleActionExpression = simpleActionExpression.simplify();
               return simpleActionExpression._computeResolvedSimulate(simulatedQueries);
             }, null);
           } else {
@@ -444,6 +446,8 @@ module Plywood {
         }
       }
 
+      console.log('--------------------------------------------------');
+      console.log('this', this.toString(2));
       var value = this.expression._computeResolvedSimulate(simulatedQueries);
       for (var i = 0; i < actions.length; i++) {
         value = execAction(i, value);

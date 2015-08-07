@@ -65,6 +65,10 @@ module Plywood {
       var expression = this.expression;
       return (expression instanceof RefExpression) ? expression.name : null;
     }
+
+    public isNester(): boolean {
+      return true;
+    }
   }
 
   Action.register(SortAction);

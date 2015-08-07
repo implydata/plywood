@@ -97,7 +97,7 @@ describe "resolve", ->
 
       ex = ex.simplify()
       expect(ex.toJS()).to.deep.equal(
-        $(External.fromJS([{ num: 8 }]))
+        $(Dataset.fromJS([{ num: 8 }]))
           .apply('subData',
             $()
               .apply('x', '$^num * 3')
@@ -117,21 +117,23 @@ describe "resolve", ->
 
       ex = $()
         .apply('Data', $(Dataset.fromJS(data)))
-        .apply('CountPlusFoo', '$Data.count() + $^foo')
+        .apply('FooPlusCount', '$^foo + $Data.count()')
+        .apply('CountPlusBar', '$Data.count() + $^bar')
 
       context = {
         foo: 7
+        bar: 8
       }
 
       ex = ex.resolve(context)
       expect(ex.toJS()).to.deep.equal(
         $()
           .apply('Data', $(Dataset.fromJS(data)))
-          .apply('CountPlusFoo', '$Data.count() + 7')
+          .apply('FooPlusCount', '7 + $Data.count()')
+          .apply('CountPlusBar', '$Data.count() + 8')
           .toJS()
       )
 
-  return
   describe.skip "resolves remotes", ->
     context = {
       diamonds: External.fromJS({
