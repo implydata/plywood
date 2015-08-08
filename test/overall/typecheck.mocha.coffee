@@ -11,36 +11,20 @@ describe "typecheck", ->
 
   it "should throw on unbalanced IS", ->
     expect(->
-      Expression.fromJS({
-        op: 'is'
-        lhs: 5
-        rhs: 'hello'
-      })
-    ).to.throw('is expression must have matching types, (are: NUMBER, STRING)')
+      $(5).is('hello')
+    ).to.throw('is must have input of type STRING (is NUMBER)')
 
   it "should throw on unbalanced IS (via explicit type)", ->
     expect(->
-      Expression.fromJS({
-        op: 'is'  
-        lhs: 5
-        rhs: { op: 'ref', type: 'STRING', name: 'str' }
-      })
-    ).to.throw('is expression must have matching types, (are: NUMBER, STRING)')
+      $(5).is('$hello:STRING')
+    ).to.throw('is must have input of type STRING (is NUMBER)')
 
   it "should throw on non numeric lessThan", ->
     expect(->
-      Expression.fromJS({
-        op: 'lessThan'
-        lhs: 5
-        rhs: 'hello'
-      })
-    ).to.throw('lessThan expression must have matching types, (are: NUMBER, STRING)')
+      $(5).lessThan('hello')
+    ).to.throw('lessThan must have expression of type NUMBER or TIME (is STRING)')
 
   it "should throw on bad in", ->
     expect(->
-      Expression.fromJS({
-        op: 'in'
-        lhs: 5
-        rhs: 'hello'
-      })
-    ).to.throw('in expression has a bad type combination NUMBER in STRING')
+      $(5).in('hello')
+    ).to.throw('in action has a bad type combination NUMBER in STRING')
