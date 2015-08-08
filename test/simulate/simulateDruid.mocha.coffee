@@ -814,8 +814,6 @@ describe "simulate Druid", ->
     ])
 
   it "works with no attributes in time split dataset", ->
-    # Unit test added thanks for bug found by Venkatesh Kavuluri
-    # https://groups.google.com/forum/#!topic/plywoodjs/uM9SldjRuhY
     ex = $()
       .apply('ByHour',
         $('diamonds').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
@@ -920,15 +918,6 @@ describe "simulate Druid", ->
         ]
         "queryType": "timeseries"
       }
-    ])
-
-  it "inlines a def", ->
-    ex = $('diamonds').split("$cut", 'Cut')
-      .apply('TotalPrice', '$diamonds.sum($price)')
-      .apply('TotalPriceX2', '$TotalPrice * 2')
-
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
-
     ])
 
   it "makes a query on a dataset with a fancy name", ->

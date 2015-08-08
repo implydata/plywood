@@ -125,7 +125,7 @@ describe "compute native nontrivial data", ->
           "CountLT1000": false
           "CountLTE397": false
           "Language": "[en]"
-          "NegSumAdded": 2086462
+          "NegSumAdded": -2086462
           "SumAdded": 2086462
         }
         {
@@ -135,7 +135,7 @@ describe "compute native nontrivial data", ->
           "CountLT1000": true
           "CountLTE397": true
           "Language": "[pl]"
-          "NegSumAdded": 784245
+          "NegSumAdded": -784245
           "SumAdded": 784245
         }
         {
@@ -145,7 +145,7 @@ describe "compute native nontrivial data", ->
           "CountLT1000": false
           "CountLTE397": false
           "Language": "[sv]"
-          "NegSumAdded": 573478
+          "NegSumAdded": -573478
           "SumAdded": 573478
         }
         {
@@ -155,7 +155,7 @@ describe "compute native nontrivial data", ->
           "CountLT1000": false
           "CountLTE397": false
           "Language": "[fr]"
-          "NegSumAdded": 458503
+          "NegSumAdded": -458503
           "SumAdded": 458503
         }
         {
@@ -165,7 +165,7 @@ describe "compute native nontrivial data", ->
           "CountLT1000": true
           "CountLTE397": false
           "Language": "[ru]"
-          "NegSumAdded": 412581
+          "NegSumAdded": -412581
           "SumAdded": 412581
         }
       ])
