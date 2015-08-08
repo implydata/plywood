@@ -304,6 +304,11 @@ module Plywood {
     }
 
 
+    public mergeWithPrevAction(prevAction: Action): Action[] {
+      return null;
+    }
+
+
     public getFreeReferences(): string[] {
       return this.expression ? this.expression.getFreeReferences() : [];
     }

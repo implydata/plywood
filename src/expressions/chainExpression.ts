@@ -155,7 +155,21 @@ module Plywood {
         simpleExpression = foldedExpression.simplify();
       }
 
-      // ToDo: try to merge actions here
+      var nextSimpleActions: Action[] = [];
+      for (let simpleAction of simpleActions) {
+        if (nextSimpleActions.length) {
+          let merged = simpleAction.mergeWithPrevAction(nextSimpleActions[nextSimpleActions.length - 1]);
+          if (merged) {
+            nextSimpleActions.pop();
+            nextSimpleActions = nextSimpleActions.concat(merged);
+          } else {
+            nextSimpleActions.push(simpleAction);
+          }
+        } else {
+          nextSimpleActions.push(simpleAction);
+        }
+      }
+      simpleActions = nextSimpleActions;
 
       if (simpleExpression instanceof LiteralExpression && simpleExpression.type === 'DATASET' && simpleActions.length) {
         var dataset: Dataset = (<LiteralExpression>simpleExpression).value;

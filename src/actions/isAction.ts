@@ -28,6 +28,29 @@ module Plywood {
       return `(${inputSQL}=${expressionSQL})`;
     }
 
+    public mergeWithPrevAction(prevAction: Action): Action[] {
+      var expression = this.expression;
+      if (prevAction instanceof TimeBucketAction && expression instanceof LiteralExpression) {
+        var value = expression.value;
+        if (value instanceof TimeRange) {
+          var duration = prevAction.duration;
+          var timezone = prevAction.timezone;
+          var start = value.start;
+          var end = value.end;
+
+          if (duration.isSimple()) {
+            if (duration.floor(start, timezone).valueOf() === start.valueOf() &&
+              duration.move(start, timezone, 1).valueOf() === end.valueOf()) {
+              return [new InAction({ expression })];
+            } else {
+              return null; // Expression.FALSE;
+            }
+          }
+        }
+      }
+      return null;
+    }
+
     /*
     public mergeAnd(ex: Expression): Expression {
       if (ex.isOp('literal')) return ex.mergeAnd(this);
