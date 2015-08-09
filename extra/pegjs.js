@@ -16,7 +16,7 @@ var expressionParser = PEG.buildParser(expressionGrammar, {
 
 expressionParser = expressionParser.substring(prefixToRemove.length, expressionParser.length - postfixToRemove.length);
 
-expressionParser = 'module.exports = function(facet) {' + expressionParser + '};\n';
+expressionParser = 'module.exports = function(plywood) {' + expressionParser + '};\n';
 
 fs.writeFileSync('./parser/expression.js', expressionParser, 'utf8');
 
@@ -32,6 +32,6 @@ var sqlParser = PEG.buildParser(sqlGrammar, {
 
 sqlParser = sqlParser.substring(prefixToRemove.length, sqlParser.length - postfixToRemove.length);
 
-sqlParser = 'module.exports = function(facet) {' + sqlParser + '};\n';
+sqlParser = 'module.exports = function(plywood) {' + sqlParser + '};\n';
 
 fs.writeFileSync('./parser/sql.js', sqlParser, 'utf8');

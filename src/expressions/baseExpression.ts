@@ -596,7 +596,7 @@ module Plywood {
     // API behaviour
 
     // Action constructors
-    public _performAction(action: Action): ChainExpression {
+    public performAction(action: Action): ChainExpression {
       return new ChainExpression({
         op: 'chain',
         expression: this,
@@ -611,7 +611,7 @@ module Plywood {
      */
     public apply(name: string, ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new ApplyAction({ name: name, expression: ex }));
+      return this.performAction(new ApplyAction({ name: name, expression: ex }));
     }
 
     /**
@@ -621,77 +621,77 @@ module Plywood {
      */
     public filter(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new FilterAction({ expression: ex }));
+      return this.performAction(new FilterAction({ expression: ex }));
     }
 
     public sort(ex: any, direction: string): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new SortAction({ expression: ex, direction: direction }));
+      return this.performAction(new SortAction({ expression: ex, direction: direction }));
     }
 
     public limit(limit: int): ChainExpression {
-      return this._performAction(new LimitAction({ limit: limit }));
+      return this.performAction(new LimitAction({ limit: limit }));
     }
 
     public not(): ChainExpression {
-      return this._performAction(new NotAction({}));
+      return this.performAction(new NotAction({}));
     }
 
     public match(re: string): ChainExpression {
-      return this._performAction(new MatchAction({ regexp: re }));
+      return this.performAction(new MatchAction({ regexp: re }));
     }
 
     public numberBucket(size: number, offset: number = 0): ChainExpression {
-      return this._performAction(new NumberBucketAction({ size: size, offset: offset }));
+      return this.performAction(new NumberBucketAction({ size: size, offset: offset }));
     }
 
     public timeBucket(duration: any, timezone: any): ChainExpression {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(duration);
       if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(timezone);
-      return this._performAction(new TimeBucketAction({ duration: duration, timezone: timezone }));
+      return this.performAction(new TimeBucketAction({ duration: duration, timezone: timezone }));
     }
 
     public timePart(part: any, timezone: any): ChainExpression {
       if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(timezone);
-      return this._performAction(new TimePartAction({ part: part, timezone: timezone }));
+      return this.performAction(new TimePartAction({ part: part, timezone: timezone }));
     }
 
     public substr(position: number, length: number): ChainExpression {
-      return this._performAction(new SubstrAction({ position: position, length: length }));
+      return this.performAction(new SubstrAction({ position: position, length: length }));
     }
 
     public count(): ChainExpression {
-      return this._performAction(new CountAction({}));
+      return this.performAction(new CountAction({}));
     }
 
     public sum(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new SumAction({ expression: ex }));
+      return this.performAction(new SumAction({ expression: ex }));
     }
 
     public min(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new MinAction({ expression: ex }));
+      return this.performAction(new MinAction({ expression: ex }));
     }
 
     public max(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new MaxAction({ expression: ex }));
+      return this.performAction(new MaxAction({ expression: ex }));
     }
 
     public average(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new AverageAction({ expression: ex }));
+      return this.performAction(new AverageAction({ expression: ex }));
     }
 
     public countDistinct(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new CountDistinctAction({ expression: ex }));
+      return this.performAction(new CountDistinctAction({ expression: ex }));
     }
 
     public quantile(ex: any, quantile: number): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new QuantileAction({ expression: ex, quantile }));
+      return this.performAction(new QuantileAction({ expression: ex, quantile }));
     }
 
     public split(ex: any, name: string, newDataName: string = null): ChainExpression {
@@ -700,12 +700,12 @@ module Plywood {
       if (!dataName && !newDataName) {
         throw new Error("could not guess data name in `split`, please provide one explicitly");
       }
-      return this._performAction(new SplitAction({ expression: ex, name, dataName: newDataName || dataName }));
+      return this.performAction(new SplitAction({ expression: ex, name, dataName: newDataName || dataName }));
     }
 
     public is(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new IsAction({ expression: ex }));
+      return this.performAction(new IsAction({ expression: ex }));
     }
 
     public isnt(ex: any): ChainExpression {
@@ -714,27 +714,27 @@ module Plywood {
 
     public lessThan(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new LessThanAction({ expression: ex }));
+      return this.performAction(new LessThanAction({ expression: ex }));
     }
 
     public lessThanOrEqual(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new LessThanOrEqualAction({ expression: ex }));
+      return this.performAction(new LessThanOrEqualAction({ expression: ex }));
     }
 
     public greaterThan(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new GreaterThanAction({ expression: ex }));
+      return this.performAction(new GreaterThanAction({ expression: ex }));
     }
 
     public greaterThanOrEqual(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new GreaterThanOrEqualAction({ expression: ex }));
+      return this.performAction(new GreaterThanOrEqualAction({ expression: ex }));
     }
 
     public contains(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new ContainsAction({ expression: ex }));
+      return this.performAction(new ContainsAction({ expression: ex }));
     }
 
     public in(start: Date, end: Date): ChainExpression;
@@ -751,16 +751,16 @@ module Plywood {
         }
       }
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new InAction({ expression: ex }));
+      return this.performAction(new InAction({ expression: ex }));
     }
 
     public join(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this._performAction(new JoinAction({ expression: ex }));
+      return this.performAction(new JoinAction({ expression: ex }));
     }
 
     public attach(selector: string, prop: Lookup<any>) {
-      return this._performAction(new AttachAction({
+      return this.performAction(new AttachAction({
         selector,
         prop
       }));
@@ -771,7 +771,7 @@ module Plywood {
       var ret = <ChainExpression>this; // A slight type hack but it works because we know that we will go through the loop
       for (var ex of exs) {
         if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-        ret = ret._performAction(new Action.classMap[action]({ expression: ex }));
+        ret = ret.performAction(new Action.classMap[action]({ expression: ex }));
       }
       return ret;
     }

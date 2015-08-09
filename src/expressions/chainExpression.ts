@@ -17,6 +17,7 @@ module Plywood {
       var expression = parameters.expression;
       this.expression = expression;
       var actions = parameters.actions;
+      if (!actions.length) throw new Error('can not have empty actions');
       this.actions = actions;
       this._ensureOp('chain');
 
@@ -313,7 +314,7 @@ module Plywood {
       return new ChainExpression(value);
     }
 
-    public _performAction(action: Action): ChainExpression {
+    public performAction(action: Action): ChainExpression {
       return new ChainExpression({
         expression: this.expression,
         actions: this.actions.concat(action)

@@ -1,8 +1,8 @@
-{// starts with function(facet)
-var $ = facet.$;
-var Expression = facet.Expression;
-var LiteralExpression = facet.LiteralExpression;
-var RefExpression = facet.RefExpression;
+{// starts with function(plywood)
+var $ = plywood.$;
+var Expression = plywood.Expression;
+var LiteralExpression = plywood.LiteralExpression;
+var RefExpression = plywood.RefExpression;
 
 var possibleCalls = {
   'is': 1,

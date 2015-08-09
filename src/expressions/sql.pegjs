@@ -1,11 +1,10 @@
-{// starts with function(facet)
-var $ = facet.$;
-var Expression = facet.Expression;
-var FilterAction = facet.FilterAction;
-var ApplyAction = facet.ApplyAction;
-var DefAction = facet.DefAction;
-var SortAction = facet.SortAction;
-var LimitAction = facet.LimitAction;
+{// starts with function(plywood)
+var $ = plywood.$;
+var Expression = plywood.Expression;
+var FilterAction = plywood.FilterAction;
+var ApplyAction = plywood.ApplyAction;
+var SortAction = plywood.SortAction;
+var LimitAction = plywood.LimitAction;
 
 var dataRef = $('data');
 var dateRegExp = /^\d\d\d\d-\d\d-\d\d(?:T(?:\d\d)?(?::\d\d)?(?::\d\d)?(?:.\d\d\d)?)?Z?$/;
@@ -68,7 +67,7 @@ function extractGroupByColumn(columns, groupBy) {
   };
 }
 
-function handleQuery(columns, from, where, groupBy, having, orderBy, limit) {
+function constructQuery(columns, from, where, groupBy, having, orderBy, limit) {
   if (!columns) error('Can not have empty column list');
   from = from || dataRef;
 
@@ -138,11 +137,11 @@ start
 
 SQLQuery
   = SelectToken columns:Columns? from:FromClause? where:WhereClause? groupBy:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
-    { return handleQuery(columns, from, where, groupBy, having, orderBy, limit); }
+    { return constructQuery(columns, from, where, groupBy, having, orderBy, limit); }
 
 SQLSubQuery
   = SelectToken columns:Columns? where:WhereClause? groupBy:GroupByClause having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
-    { return handleQuery(columns, null, where, groupBy, having, orderBy, limit); }
+    { return constructQuery(columns, null, where, groupBy, having, orderBy, limit); }
 
 Columns
   = _ head:Column tail:(_ "," _ Column)*
@@ -251,7 +250,7 @@ AdditiveExpression
   = head:MultiplicativeExpression tail:(_ AdditiveOp _ MultiplicativeExpression)*
     { return naryExpressionWithAltFactory('add', head, tail, '-', 'subtract'); }
 
-AdditiveOp = [+-]
+AdditiveOp = op:[+-] ![+] { return op; }
 
 
 MultiplicativeExpression

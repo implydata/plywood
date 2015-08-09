@@ -106,7 +106,7 @@ describe "SQL parser", ->
 
     expect(ex.toJS()).to.deep.equal(ex2.toJS())
 
-  it "should work without with a BETWEEN", ->
+  it "should work with a BETWEEN", ->
     ex = Expression.parseSQL("""
       SELECT
       SUM(added) AS 'TotalAdded'
@@ -126,7 +126,7 @@ describe "SQL parser", ->
 
     expect(ex.toJS()).to.deep.equal(ex2.toJS())
 
-  it "should work without with <= <", ->
+  it.only "should work with <= <", ->
     ex = Expression.parseSQL("""
       SELECT
       SUM(added) AS 'TotalAdded'
