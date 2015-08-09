@@ -22,6 +22,7 @@ module Plywood {
     quantile?: number;
     selector?: string;
     prop?: Lookup<any>;
+    simple?: boolean;
   }
 
   export interface ActionJS {
@@ -48,13 +49,6 @@ module Plywood {
 
   export interface ExpressionTransformation {
     (ex: Expression): Expression;
-  }
-
-  export enum Simplification { Remove, Replace, Wipe }
-  export interface ActionSimplification {
-    simplification: Simplification;
-    actions?: Action[];
-    expression?: Expression;
   }
 
 // =====================================================================================
@@ -113,13 +107,15 @@ module Plywood {
 
     public action: string;
     public expression: Expression;
+    public simple: boolean;
 
     constructor(parameters: ActionValue, dummy: Dummy = null) {
-      this.action = parameters.action;
-      this.expression = parameters.expression;
       if (dummy !== dummyObject) {
         throw new TypeError("can not call `new Action` directly use Action.fromJS instead");
       }
+      this.action = parameters.action;
+      this.expression = parameters.expression;
+      this.simple = parameters.simple;
     }
 
     protected _ensureAction(action: string) {
@@ -161,9 +157,8 @@ module Plywood {
       var value: ActionValue = {
         action: this.action
       };
-      if (this.expression) {
-        value.expression = this.expression;
-      }
+      if (this.expression) value.expression = this.expression;
+      if (this.simple) value.simple = true;
       return value;
     }
 
@@ -265,47 +260,103 @@ module Plywood {
       return this.expression ? this.expression.expressionCount() : 0;
     }
 
-
-    protected _specialSimplify(simpleExpression: Expression): ActionSimplification {
+    // Simplification
+    protected _specialSimplify(simpleExpression: Expression): Action {
       return null;
     }
 
-    public simplify(): ActionSimplification {
+    public simplify(): Action {
+      if (this.simple) return this;
       var expression = this.expression;
-      if (!expression) return this._specialSimplify(null);
+      var simpleExpression = expression ? expression.simplify() : null;
 
-      var simpleExpression = expression.simplify();
       var special = this._specialSimplify(simpleExpression);
       if (special) return special;
-      if (simpleExpression === expression) return null;
 
       var value = this.valueOf();
-      value.expression = simpleExpression;
-      return {
-        simplification: Simplification.Replace,
-        actions: [new Action.classMap[this.action](value)]
-      };
+      if (simpleExpression) {
+        value.expression = simpleExpression;
+      }
+      value.simple = true;
+      return new Action.classMap[this.action](value);
     }
 
+    /**
+     * Remove action if possible
+     * For example +0 and *1
+     */
+    protected _removeAction(): boolean {
+      return false;
+    }
 
-    protected _specialFoldLiteral(literalInput: LiteralExpression): Expression {
+    /**
+     * Distribute this action over the inner expression if needed
+     * For example +(x +y +z) => +x +y +z
+     */
+    protected _distributeAction(): Action[] {
       return null;
     }
 
-    public foldLiteral(literalInput: LiteralExpression): Expression {
-      var special = this._specialFoldLiteral(literalInput);
-      if (special) return special;
-
-      var expression = this.expression;
-      if (expression && !(expression instanceof LiteralExpression)) return null;
-      return new LiteralExpression({
-        value: this.getFn(literalInput.getFn())(null, null)
-      });
+    /**
+     * Special logic to perform this action on a literal
+     * @param literalExpression the expression on which to perform
+     */
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+      return null;
     }
 
-
-    public mergeWithPrevAction(prevAction: Action): Action[] {
+    /**
+     * Special logic to perform this action on a reference
+     * @param refExpression the expression on which to perform
+     */
+    protected _performOnRef(refExpression: RefExpression): Expression {
       return null;
+    }
+
+    /**
+     * Special logic to perform this action on a chain
+     * @param chainExpression the expression on which to perform
+     */
+    protected _performOnChain(chainExpression: ChainExpression): Expression {
+      return null;
+    }
+
+    public performSimple(simpleExpression: Expression): Expression {
+      if (!this.simple) return this.simplify().performSimple(simpleExpression);
+      if (!simpleExpression.simple) throw new Error('must get a simple expression');
+
+      if (this._removeAction()) return simpleExpression;
+
+      var distributedActions = this._distributeAction();
+      if (distributedActions) {
+        for (var distributedAction of distributedActions) {
+          simpleExpression = distributedAction.performSimple(simpleExpression);
+        }
+        return simpleExpression;
+      }
+
+      if (simpleExpression instanceof LiteralExpression) {
+        var myExpression = this.expression;
+        if (!myExpression || myExpression.isOp('literal')) {
+          return new LiteralExpression({
+            value: this.getFn(simpleExpression.getFn())(null, null)
+          });
+        }
+
+        var special = this._performOnLiteral(simpleExpression);
+        if (special) return special;
+
+      } else if (simpleExpression instanceof RefExpression) {
+        var special = this._performOnRef(simpleExpression);
+        if (special) return special;
+
+      } else if (simpleExpression instanceof ChainExpression) {
+        var special = this._performOnChain(simpleExpression);
+        if (special) return special;
+
+      }
+
+      return simpleExpression.performAction(this, true);
     }
 
 

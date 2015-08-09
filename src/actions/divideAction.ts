@@ -37,13 +37,8 @@ module Plywood {
       return '(' + inputSQL + '/' + expressionSQL + ')';
     }
 
-    protected _specialSimplify(simpleExpression: Expression): ActionSimplification {
-      if (simpleExpression.equals(Expression.ONE)) {
-        return {
-          simplification: Simplification.Remove
-        };
-      }
-      return null;
+    protected _removeAction(): boolean {
+      return this.expression.equals(Expression.ONE);
     }
   }
 

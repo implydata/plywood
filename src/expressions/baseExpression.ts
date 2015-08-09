@@ -592,15 +592,33 @@ module Plywood {
       }
     }
 
+    public actionize(containingAction: string): Action[] {
+      return null;
+    }
+
+    public getExpressionPattern(actionType: string): Expression[] {
+      var actions = this.actionize(actionType);
+      return actions ? actions.map((action) => action.expression) : null;
+    }
+
+    public popAction(actionType?: string): Expression {
+      return null
+    }
+
+    public getLiteralValue(): any {
+      return null;
+    }
+
     // ------------------------------------------------------------------------
     // API behaviour
 
     // Action constructors
-    public performAction(action: Action): ChainExpression {
+    public performAction(action: Action, markSimple?: boolean): ChainExpression {
       return new ChainExpression({
         op: 'chain',
         expression: this,
-        actions: [action]
+        actions: [action],
+        simple: Boolean(markSimple)
       });
     }
 

@@ -91,17 +91,23 @@ module Plywood {
       }
     }
 
-    protected _specialSimplify(simpleExpression: Expression): ActionSimplification {
+    protected _performOnRef(refExpression: RefExpression): Expression {
+      var expression = this.expression;
       if (
-        simpleExpression instanceof LiteralExpression &&
-        simpleExpression.type.indexOf('SET/') === 0 &&
-        simpleExpression.value.empty()
-      ) {
-        return {
-          simplification: Simplification.Wipe,
-          expression: Expression.FALSE
-        };
-      }
+        expression instanceof LiteralExpression &&
+        expression.type.indexOf('SET/') === 0 &&
+        expression.value.empty()
+      ) return Expression.FALSE;
+      return null;
+    }
+
+    protected _performOnChain(chainExpression: ChainExpression): Expression {
+      var expression = this.expression;
+      if (
+        expression instanceof LiteralExpression &&
+        expression.type.indexOf('SET/') === 0 &&
+        expression.value.empty()
+      ) return Expression.FALSE;
       return null;
     }
 

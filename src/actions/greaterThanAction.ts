@@ -29,17 +29,14 @@ module Plywood {
       return `(${inputSQL}>${expressionSQL})`;
     }
 
-    protected _specialSimplify(simpleExpression: Expression): ActionSimplification {
+    protected _specialSimplify(simpleExpression: Expression): Action {
       var expression = this.expression;
       if (expression instanceof LiteralExpression) {
-        return {
-          simplification: Simplification.Replace,
-          actions: [new InAction({
-            expression: new LiteralExpression({
-              value: Range.fromJS({ start: expression.value, end: null, bounds: '()' })
-            })
-          })]
-        };
+        return new InAction({
+          expression: new LiteralExpression({
+            value: Range.fromJS({ start: expression.value, end: null, bounds: '()' })
+          })
+        });
       }
       return null;
     }

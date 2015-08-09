@@ -117,12 +117,21 @@ module Plywood {
       if (this.simple) return this;
 
       var simpleExpression = this.expression.simplify();
+      var actions = this.actions;
       if (simpleExpression instanceof ChainExpression) {
         return new ChainExpression({
           expression: simpleExpression.expression,
-          actions: simpleExpression.actions.concat(this.actions)
+          actions: simpleExpression.actions.concat(actions)
         }).simplify();
       }
+
+      for (let action of actions) {
+        simpleExpression = action.performSimple(simpleExpression);
+      }
+
+      return simpleExpression;
+
+      /*
 
       // Simplify all actions
       var actions = this.actions;
@@ -214,6 +223,8 @@ module Plywood {
         simpleActions = undigestedActions;
       }
 
+      */
+
       /*
       function isRemoteSimpleApply(action: Action): boolean {
         return action instanceof ApplyAction && action.expression.hasExternal() && action.expression.type !== 'DATASET';
@@ -254,6 +265,7 @@ module Plywood {
       }
       */
 
+      /*
       if (simpleActions.length === 0) return simpleExpression;
 
       var simpleValue = this.valueOf();
@@ -261,6 +273,7 @@ module Plywood {
       simpleValue.actions = simpleActions;
       simpleValue.simple = true;
       return new ChainExpression(simpleValue);
+      */
     }
 
     public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {
@@ -314,10 +327,11 @@ module Plywood {
       return new ChainExpression(value);
     }
 
-    public performAction(action: Action): ChainExpression {
+    public performAction(action: Action, markSimple?: boolean): ChainExpression {
       return new ChainExpression({
         expression: this.expression,
-        actions: this.actions.concat(action)
+        actions: this.actions.concat(action),
+        simple: Boolean(markSimple)
       });
     }
 
@@ -367,18 +381,14 @@ module Plywood {
       ].concat(actions.slice(k));
     }
 
-    public getExpressionPattern(actionType: string): Expression[] {
-      var actions = this.actionize(actionType);
-      if (!actions || actions.length < 2) return null;
-      return actions.map((action) => action.expression);
-    }
-
-    public getTailPattern(actionType: string): Expression {
+    public popAction(actionType?: string): Expression {
       var actions = this.actions;
       var lastAction = actions[actions.length - 1];
-      if (lastAction.action !== actionType) return null;
+      if (actionType && lastAction.action !== actionType) return null;
+      actions = actions.slice(0, -1);
+      if (!actions.length) return this.expression;
       var value = this.valueOf();
-      value.actions = actions.slice(0, -1);
+      value.actions = actions;
       return new ChainExpression(value);
     }
 

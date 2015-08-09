@@ -26,28 +26,32 @@ module Plywood {
       return '(' + inputSQL + ' AND ' + expressionSQL + ')';
     }
 
-    protected _specialSimplify(simpleExpression: Expression): ActionSimplification {
-      if (simpleExpression.equals(Expression.TRUE)) {
-        return {
-          simplification: Simplification.Remove
-        };
-      } else if (simpleExpression.equals(Expression.FALSE)) {
-        return {
-          simplification: Simplification.Wipe,
-          expression: Expression.FALSE
-        };
-      } else if (simpleExpression instanceof ChainExpression) {
-        var newActions = simpleExpression.actionize(this.action);
-        if (!newActions) return null;
-        return { simplification: Simplification.Replace, actions: newActions };
+    protected _removeAction(): boolean {
+      return this.expression.equals(Expression.TRUE);
+    }
+
+    protected _distributeAction(): Action[] {
+      return this.expression.actionize(this.action);
+    }
+
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+      if (literalExpression.equals(Expression.TRUE)) {
+        return this.expression;
+      } else if (literalExpression.equals(Expression.FALSE)) {
+        return Expression.FALSE;
       }
       return null;
     }
 
-    protected _specialFoldLiteral(literalInput: LiteralExpression): Expression {
-      if (literalInput.equals(Expression.TRUE)) {
-        return this.expression;
-      } else if (literalInput.equals(Expression.FALSE)) {
+    protected _performOnRef(refExpression: RefExpression): Expression {
+      if (this.expression.equals(Expression.FALSE)) {
+        return Expression.FALSE;
+      }
+      return null;
+    }
+
+    protected _performOnChain(chainExpression: ChainExpression): Expression {
+      if (this.expression.equals(Expression.FALSE)) {
         return Expression.FALSE;
       }
       return null;

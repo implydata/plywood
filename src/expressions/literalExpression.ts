@@ -136,6 +136,10 @@ module Plywood {
       }
     }
 
+    public getLiteralValue(): any {
+      return this.value;
+    }
+
     public _computeResolvedSimulate(simulatedQueries: any[]): any {
       return this.value;
     }

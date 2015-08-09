@@ -28,23 +28,30 @@ module Plywood {
       return `(${inputSQL}=${expressionSQL})`;
     }
 
-    public mergeWithPrevAction(prevAction: Action): Action[] {
-      var expression = this.expression;
-      if (prevAction instanceof TimeBucketAction && expression instanceof LiteralExpression) {
-        var value = expression.value;
-        if (value instanceof TimeRange) {
-          var duration = prevAction.duration;
-          var timezone = prevAction.timezone;
-          var start = value.start;
-          var end = value.end;
+    protected _performOnChain(chainExpression: ChainExpression): Expression {
+      var actions = chainExpression.actions;
+      var lastAction = actions[actions.length - 1];
+      var literalValue = this.getLiteralValue();
+      if (lastAction instanceof TimeBucketAction && literalValue instanceof TimeRange) {
+        var duration = lastAction.duration;
+        var timezone = lastAction.timezone;
+        var start = literalValue.start;
+        var end = literalValue.end;
 
-          if (duration.isSimple()) {
-            if (duration.floor(start, timezone).valueOf() === start.valueOf() &&
-              duration.move(start, timezone, 1).valueOf() === end.valueOf()) {
-              return [new InAction({ expression })];
-            } else {
-              return null; // Expression.FALSE;
-            }
+        if (duration.isSimple()) {
+          if (duration.floor(start, timezone).valueOf() === start.valueOf() &&
+            duration.move(start, timezone, 1).valueOf() === end.valueOf()) {
+
+            actions = actions.slice(0, -1);
+            actions.push(new InAction({
+              expression: this.expression
+            }));
+
+            var chainExpressionValue = chainExpression.valueOf();
+            chainExpressionValue.actions = actions;
+            return new ChainExpression(chainExpressionValue);
+          } else {
+            return Expression.FALSE;
           }
         }
       }

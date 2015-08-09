@@ -410,7 +410,7 @@ module Plywood {
         }
 
         var prefix: Expression;
-        if (prefix = filter.getTailPattern('not')) {
+        if (prefix = filter.popAction('not')) {
           return this.canUseNativeAggregateFilter(prefix);
         }
 
@@ -450,7 +450,7 @@ module Plywood {
         }
 
         var prefix: Expression;
-        if (prefix = filter.getTailPattern('not')) {
+        if (prefix = filter.popAction('not')) {
           return this.timelessFilterToDruid(prefix);
         }
 
@@ -1040,7 +1040,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         var prefix: Expression;
-        if (prefix = filter.getTailPattern('not')) {
+        if (prefix = filter.popAction('not')) {
           return this.havingFilterToDruid(prefix);
         }
 

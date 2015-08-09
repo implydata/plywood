@@ -37,28 +37,32 @@ module Plywood {
       return '(' + inputSQL + '*' + expressionSQL + ')';
     }
 
-    protected _specialSimplify(simpleExpression: Expression): ActionSimplification {
-      if (simpleExpression.equals(Expression.ONE)) {
-        return {
-          simplification: Simplification.Remove
-        };
-      } else if (simpleExpression.equals(Expression.ZERO)) {
-        return {
-          simplification: Simplification.Wipe,
-          expression: Expression.ZERO
-        };
-      } else if (simpleExpression instanceof ChainExpression) {
-        var newActions = simpleExpression.actionize(this.action);
-        if (!newActions) return null;
-        return { simplification: Simplification.Replace, actions: newActions };
+    protected _removeAction(): boolean {
+      return this.expression.equals(Expression.ONE);
+    }
+
+    protected _distributeAction(): Action[] {
+      return this.expression.actionize(this.action);
+    }
+
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+      if (literalExpression.equals(Expression.ONE)) {
+        return this.expression;
+      } else if (literalExpression.equals(Expression.ZERO)) {
+        return Expression.ZERO;
       }
       return null;
     }
 
-    protected _specialFoldLiteral(literalInput: LiteralExpression): Expression {
-      if (literalInput.equals(Expression.ONE)) {
-        return this.expression;
-      } else if (literalInput.equals(Expression.ZERO)) {
+    protected _performOnRef(refExpression: RefExpression): Expression {
+      if (this.expression.equals(Expression.ZERO)) {
+        return Expression.ZERO;
+      }
+      return null;
+    }
+
+    protected _performOnChain(chainExpression: ChainExpression): Expression {
+      if (this.expression.equals(Expression.ZERO)) {
         return Expression.ZERO;
       }
       return null;
