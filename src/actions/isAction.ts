@@ -122,32 +122,6 @@ module Plywood {
         return null;
       }
     }
-
-    protected _specialSimplify(simpleLhs: Expression, simpleRhs: Expression): Expression {
-      if (simpleLhs.equals(simpleRhs)) return Expression.TRUE;
-
-      if (simpleLhs instanceof TimeBucketExpression && simpleRhs instanceof LiteralExpression) {
-        var duration = simpleLhs.duration;
-        var value: TimeRange = simpleRhs.value;
-        var start = value.start;
-        var end = value.end;
-
-        if (duration.isSimple()) {
-          if (duration.floor(start, simpleLhs.timezone).valueOf() === start.valueOf() &&
-              duration.move(start, simpleLhs.timezone, 1).valueOf() === end.valueOf()) {
-            return new InExpression({
-              op: 'in',
-              lhs: simpleLhs.operand,
-              rhs: simpleRhs
-            })
-          } else {
-            return Expression.FALSE;
-          }
-        }
-      }
-
-      return null;
-    }
     */
   }
 

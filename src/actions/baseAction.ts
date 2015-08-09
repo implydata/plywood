@@ -306,6 +306,14 @@ module Plywood {
     }
 
     /**
+     * Special logic to perform this action on an external
+     * @param externalExpression the expression on which to perform
+     */
+    protected _performOnExternal(externalExpression: ExternalExpression): Expression {
+      return externalExpression.addAction(this);
+    }
+
+    /**
      * Special logic to perform this action on a reference
      * @param refExpression the expression on which to perform
      */
@@ -321,8 +329,8 @@ module Plywood {
       return null;
     }
 
-    public performSimple(simpleExpression: Expression): Expression {
-      if (!this.simple) return this.simplify().performSimple(simpleExpression);
+    public performOnSimple(simpleExpression: Expression): Expression {
+      if (!this.simple) return this.simplify().performOnSimple(simpleExpression);
       if (!simpleExpression.simple) throw new Error('must get a simple expression');
 
       if (this._removeAction()) return simpleExpression;
@@ -330,7 +338,7 @@ module Plywood {
       var distributedActions = this._distributeAction();
       if (distributedActions) {
         for (var distributedAction of distributedActions) {
-          simpleExpression = distributedAction.performSimple(simpleExpression);
+          simpleExpression = distributedAction.performOnSimple(simpleExpression);
         }
         return simpleExpression;
       }
@@ -346,14 +354,30 @@ module Plywood {
         var special = this._performOnLiteral(simpleExpression);
         if (special) return special;
 
+      } else if (simpleExpression instanceof ExternalExpression) {
+        var special = this._performOnExternal(simpleExpression);
+        if (special) return special;
+
       } else if (simpleExpression instanceof RefExpression) {
         var special = this._performOnRef(simpleExpression);
         if (special) return special;
 
       } else if (simpleExpression instanceof ChainExpression) {
+        var simpleExpressionExpression = simpleExpression.expression;
+        if (simpleExpressionExpression instanceof ExternalExpression) {
+          // There are some digested and some undigested actions
+          var newExternalExpression = simpleExpressionExpression.addAction(this);
+          if (newExternalExpression) {
+            return new ChainExpression({
+              expression: newExternalExpression,
+              actions: simpleExpression.actions,
+              simple: true
+            })
+          }
+        }
+
         var special = this._performOnChain(simpleExpression);
         if (special) return special;
-
       }
 
       return simpleExpression.performAction(this, true);

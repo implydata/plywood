@@ -60,6 +60,27 @@ module Plywood {
     public isNester(): boolean {
       return true;
     }
+
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+      var dataset: Dataset = literalExpression.value;
+      var myExpression = this.expression;
+      if (dataset.basis()) {
+        if (myExpression instanceof ExternalExpression) {
+          var newTotalExpression = myExpression.makeTotal(this.name);
+          if (newTotalExpression) return newTotalExpression;
+        } else {
+          var externals = myExpression.getExternals();
+          if (externals.length === 1) {
+            return this.performOnSimple(new ExternalExpression({
+              external: externals[0].makeTotal(this.name)
+            }));
+          } else if (externals.length > 1) {
+            throw new Error('not done yet');
+          }
+        }
+      }
+      return null;
+    }
   }
 
   Action.register(ApplyAction);

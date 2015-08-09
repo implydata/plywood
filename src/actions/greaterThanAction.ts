@@ -31,7 +31,7 @@ module Plywood {
 
     protected _specialSimplify(simpleExpression: Expression): Action {
       var expression = this.expression;
-      if (expression instanceof LiteralExpression) {
+      if (expression instanceof LiteralExpression) { // x > 5
         return new InAction({
           expression: new LiteralExpression({
             value: Range.fromJS({ start: expression.value, end: null, bounds: '()' })
@@ -39,6 +39,15 @@ module Plywood {
         });
       }
       return null;
+    }
+
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+      // 5 > x
+      return (new InAction({
+        expression: new LiteralExpression({
+          value: Range.fromJS({ start: null, end: literalExpression.value, bounds: '()' })
+        })
+      })).performOnSimple(this.expression);
     }
   }
 
