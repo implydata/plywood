@@ -221,6 +221,13 @@ describe "Simplify", ->
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
+  describe 'is', ->
+    it 'swaps literal', ->
+      ex = literal("Honda").is('$x')
+      ex2 = $('x').is('Honda')
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
   describe 'match', ->
     it 'with false value', ->
       ex = literal("Honda").match('^\\d+')
