@@ -1,4 +1,4 @@
-var druidRequesterFactory = require('facetjs-druid-requester').druidRequesterFactory;
+var druidRequesterFactory = require('plywood-druid-requester').druidRequesterFactory;
 var plywood = require('../../build/plywood');
 var $ = plywood.$;
 var Dataset = plywood.Dataset;

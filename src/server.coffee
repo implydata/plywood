@@ -8,7 +8,7 @@ app.use(express.static(__dirname + '/../inspector'))
 app.use(express.static(__dirname + '/../package'))
 
 #app.get '/', (req, res) ->
-#  res.send('Welcome to facet')
+#  res.send('Welcome to Plywood')
 #  return
 
 app.listen(9876)

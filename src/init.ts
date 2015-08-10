@@ -25,7 +25,7 @@
 
  example:  dataset.split(...) => Set  and  set.label('blah') => Dataset
 
- Because so many classes in facet are interdependent and writing the entire program as one file would suck:
+ Because so many classes in Plywood are interdependent and writing the entire program as one file would suck:
  external modules are a no go.
 
  Internal modules have a nicer syntax and can be split across files and then compiled into one file.
@@ -35,10 +35,10 @@
  The solution / witchcraft:
  Internal modules are used and require is defined as just a function (see ../definitions/require.d.ts).
  Required modules are also declared above allowing their type information to be used.
- The file ./exports.ts manually defines the `module` and sets `module.exports` to the `facet` function.
+ The file ./exports.ts manually defines the `module` and sets `module.exports`.
  The file build order is specified in ../compile-tsc (this file is first, exports.ts is last).
  Please look at compile-tsc and exports.ts to get the full picture.
- Also checkout ../build/facet.js to understand what it ends up looking as.
+ Also checkout ../build/plywood.js to understand what it ends up looking as.
 
  Footnotes:
  [1] If I am wrong and there is a better way to do this PLEASE let me know; I will buy you a beer - VO

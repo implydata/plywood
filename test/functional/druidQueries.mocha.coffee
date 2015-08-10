@@ -5,7 +5,7 @@ if not WallTime.rules
   tzData = require("chronology/lib/walltime/walltime-data.js")
   WallTime.init(tzData.rules, tzData.zones)
 
-{ druidRequesterFactory } = require('facetjs-druid-requester')
+{ druidRequesterFactory } = require('plywood-druid-requester')
 
 plywood = require('../../build/plywood')
 { Expression, External, TimeRange, $, basicDispatcherFactory, helper } = plywood

@@ -5,7 +5,7 @@ if not WallTime.rules
   tzData = require("chronology/lib/walltime/walltime-data.js")
   WallTime.init(tzData.rules, tzData.zones)
 
-{ mySqlRequesterFactory } = require('facetjs-mysql-requester')
+{ mySqlRequesterFactory } = require('plywood-mysql-requester')
 
 plywood = require('../../build/plywood')
 { Expression, External, TimeRange, $, basicDispatcherFactory } = plywood
