@@ -207,7 +207,7 @@ describe "Simplify", ->
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
-  describe.only 'is', ->
+  describe 'is', ->
     it "simplifies to false", ->
       ex = $(5).is(8)
       expect(ex.simplify().toJS()).to.deep.equal({

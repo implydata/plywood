@@ -36,7 +36,18 @@ module Plywood {
       return null;
     }
 
+    protected _performOnRef(refExpression: RefExpression): Expression {
+      if (this.expression.equals(refExpression)) {
+        return Expression.TRUE;
+      }
+      return null;
+    }
+
     protected _performOnChain(chainExpression: ChainExpression): Expression {
+      if (this.expression.equals(chainExpression)) {
+        return Expression.TRUE;
+      }
+
       var actions = chainExpression.actions;
       var lastAction = actions[actions.length - 1];
       var literalValue = this.getLiteralValue();
