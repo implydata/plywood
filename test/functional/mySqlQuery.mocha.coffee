@@ -41,7 +41,7 @@ describe "MySQLExternal", ->
     })
 
     ex = $()
-      .def("wiki", $('wiki').filter($("language").is('en')))
+      .apply("wiki", $('wiki').filter($("language").is('en')))
       .apply('Count', '$wiki.sum($count)')
       .apply('TotalAdded', '$wiki.sum($added)')
       .apply('Pages',
@@ -148,7 +148,7 @@ describe "MySQLExternal", ->
     })
 
     ex = $()
-      .def("wiki", $('wiki').filter($("language").is('en')))
+      .apply("wiki", $('wiki').filter($("language").is('en')))
       .apply('Count', '$wiki.sum($count)')
       .apply('TotalAdded', '$wiki.sum($added)')
       .apply('Time',

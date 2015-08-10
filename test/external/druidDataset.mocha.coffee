@@ -50,7 +50,7 @@ describe "DruidDataset", ->
   describe "processApply", ->
     it "breaks up correctly in simple case", ->
       ex = $()
-        .def('wiki', '$wiki') # for now
+        .apply('wiki', '$wiki') # for now
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
         .apply('Volatile', '$wiki.max($added) - $wiki.min($deleted)')
@@ -61,8 +61,8 @@ describe "DruidDataset", ->
       druidDataset = ex.value
 
       expect(druidDataset.defs.join('\n')).to.equal("""
-        .def('_sd_0', $wiki:DATASET.max($added:NUMBER))
-        .def('_sd_1', $wiki:DATASET.min($deleted:NUMBER))
+        .apply('_sd_0', $wiki:DATASET.max($added:NUMBER))
+        .apply('_sd_1', $wiki:DATASET.min($deleted:NUMBER))
         """)
 
       expect(druidDataset.applies.join('\n')).to.equal("""
@@ -73,7 +73,7 @@ describe "DruidDataset", ->
 
     it "breaks up correctly in case of duplicate name", ->
       ex = $()
-        .def('wiki', '$wiki') # for now
+        .apply('wiki', '$wiki') # for now
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
         .apply('Volatile', '$wiki.sum($added) - $wiki.sum($deleted)')
@@ -84,7 +84,7 @@ describe "DruidDataset", ->
       druidDataset = ex.value
 
       expect(druidDataset.defs.join('\n')).to.equal("""
-        .def('_sd_0', $wiki:DATASET.sum($deleted:NUMBER))
+        .apply('_sd_0', $wiki:DATASET.sum($deleted:NUMBER))
         """)
 
       expect(druidDataset.applies.join('\n')).to.equal("""
@@ -95,7 +95,7 @@ describe "DruidDataset", ->
 
     it "breaks up correctly in case of variable reference", ->
       ex = $()
-        .def('wiki', '$wiki') # for now
+        .apply('wiki', '$wiki') # for now
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
         .apply('Volatile', '$Added - $wiki.sum($deleted)')
@@ -106,7 +106,7 @@ describe "DruidDataset", ->
       druidDataset = ex.value
 
       expect(druidDataset.defs.join('\n')).to.equal("""
-        .def('_sd_0', $wiki:DATASET.sum($deleted:NUMBER))
+        .apply('_sd_0', $wiki:DATASET.sum($deleted:NUMBER))
         """)
 
       expect(druidDataset.applies.join('\n')).to.equal("""
@@ -117,7 +117,7 @@ describe "DruidDataset", ->
 
     it "breaks up correctly in case of duplicate apply", ->
       ex = $()
-        .def('wiki', '$wiki') # for now
+        .apply('wiki', '$wiki') # for now
         .apply('Added', '$wiki.sum($added)')
         .apply('Added2', '$wiki.sum($added)')
         .apply('Volatile', '$Added - $wiki.sum($deleted)')
@@ -128,7 +128,7 @@ describe "DruidDataset", ->
       druidDataset = ex.value
 
       expect(druidDataset.defs.join('\n')).to.equal("""
-        .def('_sd_0', $wiki:DATASET.sum($deleted:NUMBER))
+        .apply('_sd_0', $wiki:DATASET.sum($deleted:NUMBER))
         """)
 
       expect(druidDataset.applies.join('\n')).to.equal("""
@@ -139,7 +139,7 @@ describe "DruidDataset", ->
 
     it "breaks up correctly in case of duplicate apply (same name)", ->
       ex = $()
-        .def('wiki', '$wiki') # for now
+        .apply('wiki', '$wiki') # for now
         .apply('Added', '$wiki.sum($added)')
         .apply('Added', '$wiki.sum($added)')
         .apply('Volatile', '$Added - $wiki.sum($deleted)')
@@ -150,7 +150,7 @@ describe "DruidDataset", ->
       druidDataset = ex.value
 
       expect(druidDataset.defs.join('\n')).to.equal("""
-        .def('_sd_0', $wiki:DATASET.sum($deleted:NUMBER))
+        .apply('_sd_0', $wiki:DATASET.sum($deleted:NUMBER))
         """)
 
       expect(druidDataset.applies.join('\n')).to.equal("""
@@ -175,7 +175,7 @@ describe "DruidDataset", ->
 
     it "a total", ->
       ex = $()
-        .def("wiki",
+        .apply("wiki",
           $('^wiki')
             .apply('addedTwice', '$added * 2')
             .filter($("language").is('en'))
@@ -214,7 +214,7 @@ describe "DruidDataset", ->
 
     it "inlines a total with a def", ->
       ex = $()
-        .def('TotalAdded', '$wiki.sum($added)')
+        .apply('TotalAdded', '$wiki.sum($added)')
         .apply('TotalAddedX2', '$TotalAdded * 2')
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
@@ -356,7 +356,7 @@ describe "DruidDataset", ->
 
     it "filters", ->
       ex = $()
-        .def("wiki",
+        .apply("wiki",
           $('^wiki')
             .filter($("language").contains('en'))
         )

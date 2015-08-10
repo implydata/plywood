@@ -14,7 +14,7 @@ describe "reference check", ->
   describe "works as expected", ->
     it "works when there are no free references", ->
       ex = $()
-        .def('num', 5)
+        .apply('num', 5)
         .apply('subData',
           $()
             .apply('x', '$num + 1')
@@ -31,7 +31,7 @@ describe "reference check", ->
 
     it "works in a actions case", ->
       ex = $()
-        .def('num', 5)
+        .apply('num', 5)
         .apply('subData',
           $()
             .apply('x', '$num + 1')

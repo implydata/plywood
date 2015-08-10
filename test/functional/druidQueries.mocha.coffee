@@ -51,7 +51,7 @@ describe "DruidExternal", ->
 
     it "works timePart case", (testComplete) ->
       ex = $()
-        .def("wiki", $('wiki').filter($("language").is('en')))
+        .apply("wiki", $('wiki').filter($("language").is('en')))
         .apply('HoursOfDay',
           $("wiki").split("$time.timePart(HOUR_OF_DAY, 'Etc/UTC')", 'HourOfDay')
             .apply('TotalAdded', '$wiki.sum($added)')
@@ -85,7 +85,7 @@ describe "DruidExternal", ->
 
     it "works in advanced case", (testComplete) ->
       ex = $()
-        .def("wiki", $('wiki').filter($("language").is('en')))
+        .apply("wiki", $('wiki').filter($("language").is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply('Pages',
@@ -350,7 +350,7 @@ describe "DruidExternal", ->
 
     it "works with introspection", (testComplete) ->
       ex = $()
-        .def("wiki", $('wiki').filter($("language").is('en')))
+        .apply("wiki", $('wiki').filter($("language").is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply('Time',

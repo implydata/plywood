@@ -1,14 +1,14 @@
-// Type definitions for druid.io (version 0.7.0)
+// Type definitions for druid.io (version 0.8.0)
 // Project: http://druid.io/
 // Definitions by: Vadim Ogievetsky <https://github.com/vogievetsky/>
-// Definitions: https://github.com/facetjs/typescript-druid
+// Definitions: https://github.com/implyio/druid.d.ts
 
 declare module Druid {
     /* ----------------------- *\
     |           Query           |
     \* ----------------------- */
 
-    // http://druid.io/docs/0.7.0/Querying.html#query-context
+    // http://druid.io/docs/0.8.0/Querying.html#query-context
     interface Context {
         timeout?: number;
         priority?: number;
@@ -25,7 +25,7 @@ declare module Druid {
         [key: string]: any;
     }
 
-    // http://druid.io/docs/0.7.0/GeographicQueries.html
+    // http://druid.io/docs/0.8.0/GeographicQueries.html
     interface SpatialBound {
         type: string;
 
@@ -38,10 +38,10 @@ declare module Druid {
         radius?: number;
     }
 
-    // http://druid.io/docs/0.7.0/TimeseriesQuery.html
+    // http://druid.io/docs/0.8.0/TimeseriesQuery.html
     type Intervals = Array<string>;
 
-    // http://druid.io/docs/0.7.0/Filters.html
+    // http://druid.io/docs/0.8.0/Filters.html
     interface Filter {
         type: string;
         dimension?: string;
@@ -65,7 +65,7 @@ declare module Druid {
         fields?: Filter[];
     }
 
-    // http://druid.io/docs/0.7.0/Aggregations.html
+    // http://druid.io/docs/0.8.0/Aggregations.html
     interface Aggregation {
         type: string;
         name?: string;
@@ -88,7 +88,7 @@ declare module Druid {
         upperLimit?: number;
     }
 
-    // http://druid.io/docs/0.7.0/Post-aggregations.html
+    // http://druid.io/docs/0.8.0/Post-aggregations.html
     interface PostAggregation {
         type: string;
         name?: string;
@@ -119,7 +119,7 @@ declare module Druid {
         probabilities?: number[];
     }
 
-    // http://druid.io/docs/0.7.0/Granularities.html
+    // http://druid.io/docs/0.8.0/Granularities.html
     interface Granularity {
         type: string;
         duration?: number; // or string?
@@ -129,7 +129,7 @@ declare module Druid {
         origin?: string;
     }
 
-    // http://druid.io/docs/0.7.0/LimitSpec.html
+    // http://druid.io/docs/0.8.0/LimitSpec.html
     interface OrderByColumnSpec {
         dimension: string;
         direction: string;
@@ -140,7 +140,7 @@ declare module Druid {
         columns: Array<string|OrderByColumnSpec>;
     }
 
-    // http://druid.io/docs/0.7.0/Having.html
+    // http://druid.io/docs/0.8.0/Having.html
     interface Having {
         type: string;
         aggregation?: string;
@@ -153,7 +153,7 @@ declare module Druid {
         havingSpecs?: Having[];
     }
 
-    // http://druid.io/docs/0.7.0/SearchQuerySpec.html
+    // http://druid.io/docs/0.8.0/SearchQuerySpec.html
     interface SearchQuerySpec {
         type: string;
 
@@ -164,7 +164,7 @@ declare module Druid {
         values?: string[];
     }
 
-    // http://druid.io/docs/0.7.0/SegmentMetadataQuery.html
+    // http://druid.io/docs/0.8.0/SegmentMetadataQuery.html
     interface ToInclude {
         type: string;
 
@@ -172,7 +172,7 @@ declare module Druid {
         columns?: string[];
     }
 
-    // http://druid.io/docs/0.7.0/DimensionSpecs.html
+    // http://druid.io/docs/0.8.0/DimensionSpecs.html
     interface ExtractionFn {
         type: string;
 
@@ -204,7 +204,7 @@ declare module Druid {
         dimExtractionFn?: ExtractionFn; // This will be deprecated soon
     }
 
-    // http://druid.io/docs/0.7.0/TopNMetricSpec.html
+    // http://druid.io/docs/0.8.0/TopNMetricSpec.html
     interface TopNMetricSpec {
         type: string;
 
@@ -215,13 +215,13 @@ declare module Druid {
         previousStop?: any;
     }
 
-    // http://druid.io/docs/0.7.0/SelectQuery.html
+    // http://druid.io/docs/0.8.0/SelectQuery.html
     interface PagingSpec {
         pagingIdentifiers: any; // ToDo: find better docs for this / ask FJ
         threshold: number
     }
 
-    // http://druid.io/docs/0.7.0/DataSource.html
+    // http://druid.io/docs/0.8.0/DataSource.html
     interface DataSource {
         type: string;
 
@@ -235,7 +235,7 @@ declare module Druid {
         query?: Query;
     }
 
-    // http://druid.io/docs/0.7.0/Querying.html
+    // http://druid.io/docs/0.8.0/Querying.html
     interface Query {
         queryType: string;
         dataSource: string|DataSource;
@@ -250,37 +250,37 @@ declare module Druid {
         dimensions?: Array<string|DimensionSpec>;
 
         // Specific to queryType: "groupBy"
-        // http://druid.io/docs/0.7.0/GroupByQuery.html
+        // http://druid.io/docs/0.8.0/GroupByQuery.html
         limitSpec?: LimitSpec;
         having?: Having;
 
         // Specific to queryType: "search"
-        // http://druid.io/docs/0.7.0/SearchQuery.html
+        // http://druid.io/docs/0.8.0/SearchQuery.html
         searchDimensions?: string[];
         query?: SearchQuerySpec;
         sort?: string; // ToDo: revisit after clarification
 
         // Specific to queryType: "segmentMetadata"
-        // http://druid.io/docs/0.7.0/SegmentMetadataQuery.html
+        // http://druid.io/docs/0.8.0/SegmentMetadataQuery.html
         toInclude?: ToInclude;
         merge?: boolean;
 
         // Specific to queryType: "timeBoundary"
-        // http://druid.io/docs/0.7.0/TimeBoundaryQuery.html
+        // http://druid.io/docs/0.8.0/TimeBoundaryQuery.html
         bound?: string;
 
         // Specific to queryType: "timeseries"
-        // http://druid.io/docs/0.7.0/TimeseriesQuery.html
+        // http://druid.io/docs/0.8.0/TimeseriesQuery.html
         // <nothing>
 
         // Specific to queryType: "topN"
-        // http://druid.io/docs/0.7.0/TopNQuery.html
+        // http://druid.io/docs/0.8.0/TopNQuery.html
         dimension?: string|DimensionSpec;
         threshold?: number;
         metric?: string|TopNMetricSpec;
 
         // Specific to queryType: "select"
-        // http://druid.io/docs/0.7.0/SelectQuery.html
+        // http://druid.io/docs/0.8.0/SelectQuery.html
         metrics?: string[];
         pagingSpec?: PagingSpec;
     }
@@ -298,7 +298,7 @@ declare module Druid {
         metrics: string[];
     }
 
-    // http://druid.io/docs/0.7.0/TimeBoundaryQuery.html
+    // http://druid.io/docs/0.8.0/TimeBoundaryQuery.html
     interface TimeBoundaryDatum {
         timestamp: string;
         result: string | Result; // string in case of useDataSourceMetadata
@@ -306,8 +306,8 @@ declare module Druid {
 
     type TimeBoundaryResults = Array<TimeBoundaryDatum>;
 
-    // http://druid.io/docs/0.7.0/TopNQuery.html
-    // http://druid.io/docs/0.7.0/SearchQuery.html
+    // http://druid.io/docs/0.8.0/TopNQuery.html
+    // http://druid.io/docs/0.8.0/SearchQuery.html
     interface Result {
         [field: string]: string|number;
     }
@@ -319,7 +319,7 @@ declare module Druid {
 
     type DruidResults = Array<DruidDatum>;
 
-    // http://druid.io/docs/0.7.0/TimeseriesQuery.html
+    // http://druid.io/docs/0.8.0/TimeseriesQuery.html
     interface TimeseriesDatum {
         timestamp: string;
         result: Result;
@@ -327,7 +327,7 @@ declare module Druid {
 
     type TimeseriesResults = Array<TimeseriesDatum>;
 
-    // http://druid.io/docs/0.7.0/GroupByQuery.html
+    // http://druid.io/docs/0.8.0/GroupByQuery.html
     interface GroupByDatum {
         version: string;
         timestamp: string;
@@ -336,7 +336,7 @@ declare module Druid {
 
     type GroupByResults = Array<GroupByDatum>;
 
-    // http://druid.io/docs/0.7.0/SegmentMetadataQuery.html
+    // http://druid.io/docs/0.8.0/SegmentMetadataQuery.html
     interface ColumnMetadata {
         type: string;
         size: number;
@@ -352,15 +352,19 @@ declare module Druid {
 
     type SegmentMetadataResults = Array<SegmentMetadataDatum>;
 
-    // http://druid.io/docs/0.7.0/SelectQuery.html
+    // http://druid.io/docs/0.8.0/SelectQuery.html
     interface Event {
         segmentId: string;
         offset: number;
         event: Result;
     }
 
+    interface PagingIdentifiers {
+        [segment: string]: number;
+    }
+
     interface SelectResult {
-        pagingIdentifiers: Lookup<number>;
+        pagingIdentifiers: PagingIdentifiers;
         events: Event[];
     }
 

@@ -659,7 +659,7 @@ module Plywood {
           var split = this.split;
           var key = this.key;
           return dataset.apply(dataName, (d: Datum) => {
-            return this.getRaw().addFilter(split.is(d[key]).simplify());
+            return this.getRaw().addFilter(split.is(new LiteralExpression({ value: d[key] })).simplify());
           }, null);
 
         default:

@@ -116,7 +116,7 @@ module Plywood {
 
   /**
    * Provides a way to express arithmetic operations, aggregations and database operators.
-   * This class is the backbone of facet.js
+   * This class is the backbone of plywood
    */
   export class Expression implements ImmutableInstance<ExpressionValue, ExpressionJS> {
     static ZERO: LiteralExpression;
@@ -142,7 +142,7 @@ module Plywood {
     }
 
     /**
-     * Parses SQL statements into facet expressions
+     * Parses SQL statements into a plywood expressions
      * @param str The SQL to parse
      */
     static parseSQL(str: string): Expression {
