@@ -8,7 +8,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, $, RefExpression } = plywood
+{ Expression, $, literal, TimeRange, NumberRange } = plywood
 
 describe "Simplify", ->
   it "simplifies to false", ->
@@ -148,6 +148,21 @@ describe "Simplify", ->
       ex2 = $('x').and('$a or $b', '$z')
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
+    it "works with different filters", ->
+      ex = $('flight').is(5).and($('flight').is(7))
+      ex2 = $(false)
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "works with same filters", ->
+      ex = $('flight').is(5).and($('flight').is(5))
+      ex2 = $('flight').is(7)
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "works with IS an IN", ->
+      ex = $('flight').is(5).and($('flight').in(new NumberRange({start: 5, end: 7})))
+      ex2 = $('flight').is(5)
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
 
   describe 'or', ->
     it "collapses true in simple case", ->
@@ -189,3 +204,62 @@ describe "Simplify", ->
       ex = $('x').or('($a and $b) or $z')
       ex2 = $('x').or('$a and $b', '$z')
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "works with different filters", ->
+      ex = $('flight').is(5).or($('flight').is(7))
+      ex2 = $('flight').in([5, 7])
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "works with same filters", ->
+      ex = $('flight').is(5).or($('flight').is(5))
+      ex2 = $('flight').is(5)
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "works with IS an IN", ->
+      ex = $('flight').is(5).or($('flight').in(new NumberRange({start: 5, end: 7})))
+      ex2 = $('flight').is($('flight').in(new NumberRange({start: 5, end: 7})))
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'match', ->
+    it 'with false value', ->
+      ex = literal("Honda").match('^\\d+')
+      ex2 = $(false)
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'with true value', ->
+      ex = literal("123").match('^\\d+')
+      ex2 = $(true)
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'with reference value', ->
+      ex = $('test').match('^\\d+')
+      expect(ex.simplify().toJS()).to.deep.equal(ex.toJS())
+
+
+  describe 'timeOffset', ->
+    it 'with simple expression', ->
+      ex = literal(new Date('2015-02-20T15:41:12')).timeOffset('P1D', 'Etc/UTC')
+      ex2 = $(new Date('2015-02-21T15:41:12'))
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'timeBucket', ->
+    it 'with simple expression', ->
+      ex = literal(new Date("2015-02-19T05:59:02.822Z")).timeBucket('P1D', 'Etc/UTC')
+      ex2 = literal(TimeRange.fromJS({
+        start: new Date("2015-02-19T00:00:00.000Z")
+        end: new Date("2015-02-20T00:00:00.000Z")
+      }))
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'numberBucket', ->
+    it 'with simple expression', ->
+      ex = literal(1.03).numberBucket(0.05, 0.02)
+      ex2 = literal(NumberRange.fromJS({
+        start: 1.02
+        end: 1.07
+      }))
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+

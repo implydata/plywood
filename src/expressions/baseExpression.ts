@@ -92,16 +92,19 @@ module Plywood {
     if (arguments.length) {
       if (typeof input === 'string') {
         return RefExpression.parse(input);
-      } else if (External.isExternal(input)) {
-        return new ExternalExpression({ external: input });
-      } else {
-        return new LiteralExpression({ value: input });
+      } else  {
+        return literal(input);
       }
     } else {
-      return new LiteralExpression({
-        op: 'literal',
-        value: new Dataset({ data: [{}] })
-      });
+      return literal(new Dataset({ data: [{}] }));
+    }
+  }
+
+  export function literal(input: any): Expression {
+    if (External.isExternal(input)) {
+      return new ExternalExpression({ external: input });
+    } else {
+      return new LiteralExpression({ value: input });
     }
   }
 
@@ -667,6 +670,12 @@ module Plywood {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(duration);
       if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(timezone);
       return this.performAction(new TimeBucketAction({ duration: duration, timezone: timezone }));
+    }
+
+    public timeOffset(duration: any, timezone: any): ChainExpression {
+      if (!Duration.isDuration(duration)) duration = Duration.fromJS(duration);
+      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(timezone);
+      return this.performAction(new TimeOffsetAction({ duration: duration, timezone: timezone }));
     }
 
     public timePart(part: any, timezone: any): ChainExpression {

@@ -14,7 +14,7 @@ var context = {
 };
 
 var ex = $()
-  .def("diamonds", $('diamonds').filter($("color").is('D')))
+  .apply("diamonds", $('diamonds').filter($("color").is('D')))
   .apply('Count', $('diamonds').count())
   .apply('TotalPrice', '$diamonds.sum($price)');
 

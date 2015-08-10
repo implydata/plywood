@@ -25,7 +25,7 @@ var context = {
 };
 
 var ex = $()
-  .def("wiki",
+  .apply("wiki",
     $('wiki').filter($("time").in({
       start: new Date("2013-02-26T00:00:00Z"),
       end: new Date("2013-02-27T00:00:00Z")

@@ -65,10 +65,10 @@ Here is an example of a simple plywood query that illustrates the different ways
 ```javascript
 var ex0 = $() // Create an empty singleton dataset literal [{}]
   // 1 is converted into a literal
-  .def("one", 1)
+  .apply("one", 1)
 
   // 2 is converted into a literal via the $() function
-  .def("two", $(2))
+  .apply("two", $(2))
 
   // The string "$one + $two" is parsed into an expression
   .apply("three", "$one + $two")
@@ -151,7 +151,7 @@ var context = {
 
 var ex = $()
   // Define the dataset in context with a filter on time and language
-  .def("wiki",
+  .apply("wiki",
     $('wiki').filter($("time").in({
       start: new Date("2013-02-26T00:00:00Z"),
       end: new Date("2013-02-27T00:00:00Z")
@@ -196,7 +196,7 @@ var context = {
 };
 
 var ex = $()
-  .def("wiki",
+  .apply("wiki",
     $('wiki').filter($("time").in({
       start: new Date("2013-02-26T00:00:00Z"),
       end: new Date("2013-02-27T00:00:00Z")
