@@ -11,20 +11,6 @@ plywood = require('../../build/plywood')
 { Expression, $, literal, TimeRange, NumberRange } = plywood
 
 describe "Simplify", ->
-  it "simplifies to false", ->
-    ex = $(5).is(8)
-    expect(ex.simplify().toJS()).to.deep.equal({
-      op: 'literal'
-      value: false
-    })
-
-  it "simplifies to true", ->
-    ex = $(5).is(5)
-    expect(ex.simplify().toJS()).to.deep.equal({
-      op: 'literal'
-      value: true
-    })
-
   it "simplifies to number", ->
     ex = $(5).add(1).subtract(4)
     expect(ex.simplify().toJS()).to.deep.equal({
@@ -221,7 +207,28 @@ describe "Simplify", ->
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
-  describe 'is', ->
+  describe.only 'is', ->
+    it "simplifies to false", ->
+      ex = $(5).is(8)
+      expect(ex.simplify().toJS()).to.deep.equal({
+        op: 'literal'
+        value: false
+      })
+
+    it "simplifies to true", ->
+      ex = $(5).is(5)
+      expect(ex.simplify().toJS()).to.deep.equal({
+        op: 'literal'
+        value: true
+      })
+
+    it "simplifies to true", ->
+      ex = $('x').is('$x')
+      expect(ex.simplify().toJS()).to.deep.equal({
+        op: 'literal'
+        value: true
+      })
+
     it 'swaps literal', ->
       ex = literal("Honda").is('$x')
       ex2 = $('x').is('Honda')
