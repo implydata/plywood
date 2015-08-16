@@ -183,35 +183,51 @@ describe "Expression", ->
       expect(exFn({x: 8, y: -3})).to.equal(10)
 
 
-  describe.skip '#decomposeAverage', ->
-    it 'works', ->
-      ex = $('data').average('$x')
-      ex = ex.decomposeAverage()
-      expect(ex.toString()).to.equal('($data.sum($x) / $data.count())')
+  describe '#decomposeAverage', ->
+    it 'works in simple case', ->
+      ex1 = $('data').average('$x')
+      ex2 = $('data').sum('$x').divide($('data').count())
+      expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'works in more nested case', ->
+      ex1 = $('w').add(
+        $('data').average('$x'),
+        $('data').average('$y + $z')
+      )
+      ex2 = $('w').add(
+        $('data').sum('$x').divide($('data').count()),
+        $('data').sum('$y + $z').divide($('data').count())
+      )
+      expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'works in custom count case', ->
+      ex1 = $('data').average('$x')
+      ex2 = $('data').sum('$x').divide($('data').sum('$count'))
+      expect(ex1.decomposeAverage($('count')).toJS()).to.deep.equal(ex2.toJS())
 
 
-  describe.skip '#distributeAggregates', ->
+  describe '#distribute', ->
     it 'works in simple - case', ->
-      ex = $('data').sum('-$x')
-      ex = ex.distributeAggregates()
-      expect(ex.toString()).to.equal('$data.sum($x).negate()')
+      ex1 = $('data').sum('-$x')
+      ex2 = $('data').sum('$x').negate()
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS())
 
     it 'works in simple + case', ->
-      ex = $('data').sum('$x + $y')
-      ex = ex.distributeAggregates()
-      expect(ex.toString()).to.equal('($data.sum($x) + $data.sum($y))')
+      ex1 = $('data').sum('$x + $y')
+      ex2 = $('data').sum('$x').add('$data.sum($y)')
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS())
 
-    it 'works in constant * case', ->
-      ex = $('data').sum('$x * 6')
-      ex = ex.distributeAggregates()
-      expect(ex.toString()).to.equal('(6 * $data.sum($x))')
+    it.skip 'works in constant * case', ->
+      ex1 = $('data').sum('$x * 6')
+      ex2 = $(6).multiply('$data.sum($x)')
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS())
 
-    it 'works in constant * case (multiple operands)', ->
-      ex = $('data').sum('$x * 6 * $y')
-      ex = ex.distributeAggregates()
-      expect(ex.toString()).to.equal('(6 * $data.sum(($x * $y)))')
+    it.skip 'works in constant * case (multiple operands)', ->
+      ex1 = $('data').sum('$x * 6 * $y')
+      ex2 = $(6).multiply('$data.sum($x * $y)')
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS())
 
-    it 'works in complex case', ->
-      ex = $('data').sum('$x + $y - $z * 5 + 6')
-      ex = ex.distributeAggregates()
-      expect(ex.toString()).to.equal('($data.sum($x) + $data.sum($y) + (5 * $data.sum($z)).negate() + (6 * $data.count()))')
+    it.skip 'works in complex case', ->
+      ex1 = $('data').sum('$x + $y - $z * 5 + 6')
+      ex2 = $('data').sum($x).add('$data.sum($y)', '(5 * $data.sum($z)).negate()', '6 * $data.count()')
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS())

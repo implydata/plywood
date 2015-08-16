@@ -12,7 +12,7 @@ module Plywood {
 
     public getOutputType(inputType: string): string {
       this._checkInputType(inputType, 'STRING');
-      return 'STRING';
+      return 'BOOLEAN';
     }
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {

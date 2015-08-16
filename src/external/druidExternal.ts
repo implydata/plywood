@@ -426,8 +426,22 @@ module Plywood {
 
     public timelessFilterToDruid(filter: Expression): Druid.Filter {
       if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
-      var attributeInfo: AttributeInfo;
 
+      var pattern: Expression[];
+      if (pattern = filter.getExpressionPattern('and')) {
+        return {
+          type: 'and',
+          fields: pattern.map(this.timelessFilterToDruid, this)
+        };
+      }
+      if (pattern = filter.getExpressionPattern('or')) {
+        return {
+          type: 'or',
+          fields: pattern.map(this.timelessFilterToDruid, this)
+        };
+      }
+
+      var attributeInfo: AttributeInfo;
       if (filter instanceof LiteralExpression) {
         if (filter.value === true) {
           return null;
@@ -435,20 +449,6 @@ module Plywood {
           throw new Error("should never get here");
         }
       } else if (filter instanceof ChainExpression) {
-        var pattern: Expression[];
-        if (pattern = filter.getExpressionPattern('and')) {
-          return {
-            type: 'and',
-            fields: pattern.map(this.timelessFilterToDruid, this)
-          };
-        }
-        if (pattern = filter.getExpressionPattern('or')) {
-          return {
-            type: 'or',
-            fields: pattern.map(this.timelessFilterToDruid, this)
-          };
-        }
-
         var prefix: Expression;
         if (prefix = filter.popAction('not')) {
           return this.timelessFilterToDruid(prefix);
@@ -477,16 +477,16 @@ module Plywood {
             attributeInfo = this.getAttributesInfo(lhs.name);
             var rhsType = rhs.type;
             if (rhsType === 'SET/STRING') {
-              return {
-                type: "or",
-                fields: rhs.value.getElements().map((value: string) => {
-                  return {
-                    type: "selector",
-                    dimension: lhs.name,
-                    value: attributeInfo.serialize(value)
-                  }
-                })
-              };
+              var fields = rhs.value.elements.map((value: string) => {
+                return {
+                  type: "selector",
+                  dimension: lhs.name,
+                  value: attributeInfo.serialize(value)
+                }
+              });
+
+              if (fields.length === 1) return fields[0];
+              return { type: "or", fields };
             } else if (rhsType === 'NUMBER_RANGE') {
               var range: NumberRange = rhs.value;
               var r0 = range.start;
@@ -558,7 +558,7 @@ module Plywood {
             var timeRanges: TimeRange[];
             var rhsType = rhs.type;
             if (rhsType === 'SET/TIME_RANGE') {
-              timeRanges = rhs.value.getElements();
+              timeRanges = rhs.value.elements;
             } else if (rhsType === 'TIME_RANGE') {
               timeRanges = [rhs.value];
             } else {
@@ -971,7 +971,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
     public processApply(apply: ApplyAction): Action[] {
       return this.separateAggregates(<ApplyAction>apply.applyToExpression(ex => {
-        return this.inlineDerivedAttributes(ex).decomposeAverage().distributeAggregates();
+        return this.inlineDerivedAttributes(ex).decomposeAverage().distribute();
       }));
     }
 
@@ -1068,7 +1068,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             if (rhsType === 'SET/STRING') {
               return {
                 type: "or",
-                fields: rhs.value.getElements().map((value: string) => {
+                fields: rhs.value.elements.map((value: string) => {
                   return {
                     type: "equalTo",
                     aggregation: lhs.name,
@@ -1080,7 +1080,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             } else if (rhsType === 'SET/NUMBER_RANGE') {
               return {
                 type: "or",
-                fields: rhs.value.getElements().map((value: NumberRange) => {
+                fields: rhs.value.elements.map((value: NumberRange) => {
                   return this.inToHavingFilter(lhs.name, value);
                 }, this)
               };

@@ -31,6 +31,14 @@ module Plywood {
       return 'BOOLEAN';
     }
 
+    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+      return {
+        type: 'NUMBER',
+        remote: typeContext.remote
+      };
+    }
+
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       var quantile = this.quantile;
       return (d: Datum, c: Datum) => {

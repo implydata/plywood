@@ -29,6 +29,30 @@ module Plywood {
     public isNester(): boolean {
       return true;
     }
+
+    public canDistribute(): boolean {
+      var expression = this.expression;
+      return expression instanceof LiteralExpression ||
+        Boolean(expression.getExpressionPattern('add') || expression.getExpressionPattern('subtract'));
+    }
+
+    public distribute(preEx: Expression): Expression {
+      var expression = this.expression;
+      if (expression instanceof LiteralExpression) {
+        var value = expression.value;
+        if (value === 0) return Expression.ZERO;
+        return expression.multiply(preEx.count());
+      }
+
+      var pattern: Expression[];
+      if (pattern = expression.getExpressionPattern('add')) {
+        return Expression.add(pattern.map(ex => preEx.sum(ex).distribute()));
+      }
+      if (pattern = expression.getExpressionPattern('subtract')) {
+        return Expression.subtract(pattern.map(ex => preEx.sum(ex).distribute()));
+      }
+      return null;
+    }
   }
 
   Action.register(SumAction);

@@ -559,63 +559,54 @@ module Plywood {
     }
 
     public separateAggregates(apply: ApplyAction): ApplyAction[] {
+      var applyExpression = apply.expression;
+      if (applyExpression instanceof ChainExpression) {
+        var actions = applyExpression.actions;
+        if (aggregateActions[actions[actions.length - 1].action]) {
+          // This is a vanilla aggregate, just return it.
+          return [apply];
+        }
+      }
+
       var applies: ApplyAction[] = [];
       var namesUsed: string[] = [];
 
-      var self = this;
-
-      function swapWithExisting(aggregateChain: ChainExpression): Expression {
-        var existingApply = self.getExistingApplyForExpression(aggregateChain);
-        if (existingApply) {
-          return new RefExpression({
-            name: existingApply.name,
-            nest: 0,
-            type: existingApply.expression.type
-          });
-        } else {
-          var name = self.getTempName(namesUsed);
-          namesUsed.push(name);
-          applies.push(new ApplyAction({
-            action: 'apply',
-            name: name,
-            expression: aggregateChain
-          }));
-          return new RefExpression({
-            name: name,
-            nest: 0,
-            type: aggregateChain.type
-          });
-        }
-      }
-
-      function substituteFn(ex: Expression, index: int): Expression {
-        if (ex instanceof ChainExpression) {
-          var actions = ex.actions;
-          if (!aggregateActions[actions[0].action]) return;
-          if (actions.length === 1) {
-            if (index === 0) return null;
-            return swapWithExisting(ex);
+      var newExpression = applyExpression.substituteAction(
+        (action) => {
+          return Boolean(aggregateActions[action.action]);
+        },
+        (preEx: Expression, action: Action) => {
+          var aggregateChain = preEx.performAction(action);
+          var existingApply = this.getExistingApplyForExpression(aggregateChain);
+          if (existingApply) {
+            return new RefExpression({
+              name: existingApply.name,
+              nest: 0,
+              type: existingApply.expression.type
+            });
           } else {
-            return swapWithExisting(new ChainExpression({
-              expression: swapWithExisting(new ChainExpression({
-                expression: ex.expression,
-                actions: [actions[0]]
-              })),
-              actions: actions.slice(1)
+            var name = this.getTempName(namesUsed);
+            namesUsed.push(name);
+            applies.push(new ApplyAction({
+              action: 'apply',
+              name: name,
+              expression: aggregateChain
             }));
+            return new RefExpression({
+              name: name,
+              nest: 0,
+              type: aggregateChain.type
+            });
           }
-        }
-      }
+        },
+        this
+      );
 
-      var newExpression = apply.expression.substitute(substituteFn);
-
-      if (!(newExpression instanceof RefExpression && newExpression.name === apply.name)) {
-        applies.push(new ApplyAction({
-          action: 'apply',
-          name: apply.name,
-          expression: newExpression
-        }));
-      }
+      applies.push(new ApplyAction({
+        action: 'apply',
+        name: apply.name,
+        expression: newExpression
+      }));
 
       return applies;
     }

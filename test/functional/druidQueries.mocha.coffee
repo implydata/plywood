@@ -16,9 +16,9 @@ druidRequester = druidRequesterFactory({
   host: info.druidHost
 })
 
-#druidRequester = helper.verboseRequesterFactory({
-#  requester: druidRequester
-#})
+druidRequester = helper.verboseRequesterFactory({
+  requester: druidRequester
+})
 
 describe "DruidExternal", ->
   @timeout(10000);
@@ -28,7 +28,7 @@ describe "DruidExternal", ->
       datasets: {
         wiki: External.fromJS({
           engine: 'druid',
-          dataSource: 'wikipedia_editstream',
+          dataSource: 'wikipedia',
           timeAttribute: 'time',
           context: null
           attributes: {
@@ -41,8 +41,8 @@ describe "DruidExternal", ->
             unique_users: { special: 'unique' }
           }
           filter: $('time').in(TimeRange.fromJS({
-            start: new Date("2013-02-26T00:00:00Z")
-            end: new Date("2013-02-27T00:00:00Z")
+            start: new Date("2015-08-14T00:00:00Z")
+            end: new Date("2015-08-15T00:00:00Z")
           }))
           requester: druidRequester
         })
@@ -111,103 +111,111 @@ describe "DruidExternal", ->
       basicDispatcher(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
-            "Count": 334129
+            "Count": 122857
             "Pages": [
               {
-                "Count": 626
-                "Page": "User:Addbot/log/wikidata"
+                "Count": 262
+                "Page": "Wikipedia:Administrators'_noticeboard/Incidents"
                 "Time": [
                   {
                     "Timestamp": {
-                      "end": new Date("2013-02-26T20:00:00.000Z")
-                      "start": new Date("2013-02-26T19:00:00.000Z")
+                      "end": new Date('2015-08-14T03:00:00.000Z')
+                      "start": new Date('2015-08-14T02:00:00.000Z')
                       "type": "TIME_RANGE"
                     }
-                    "TotalAdded": 180454
+                    "TotalAdded": 100304
                   }
                   {
                     "Timestamp": {
-                      "end": new Date("2013-02-26T13:00:00.000Z")
-                      "start": new Date("2013-02-26T12:00:00.000Z")
+                      "end": new Date('2015-08-14T20:00:00.000Z')
+                      "start": new Date('2015-08-14T19:00:00.000Z')
                       "type": "TIME_RANGE"
                     }
-                    "TotalAdded": 178939
+                    "TotalAdded": 18856
                   }
                   {
                     "Timestamp": {
-                      "end": new Date("2013-02-26T01:00:00.000Z")
-                      "start": new Date("2013-02-26T00:00:00.000Z")
+                      "end": new Date('2015-08-14T22:00:00.000Z')
+                      "start": new Date('2015-08-14T21:00:00.000Z')
                       "type": "TIME_RANGE"
                     }
-                    "TotalAdded": 159582
+                    "TotalAdded": 11550
                   }
                 ]
               }
               {
-                "Count": 329
-                "Page": "User:Legobot/Wikidata/General"
+                "Count": 253
+                "Page": "User:Cyde/List_of_candidates_for_speedy_deletion/Subpage"
                 "Time": [
                   {
                     "Timestamp": {
-                      "end": new Date("2013-02-26T16:00:00.000Z")
-                      "start": new Date("2013-02-26T15:00:00.000Z")
+                      "end": new Date('2015-08-14T07:00:00.000Z')
+                      "start": new Date('2015-08-14T06:00:00.000Z')
                       "type": "TIME_RANGE"
                     }
-                    "TotalAdded": 7609
+                    "TotalAdded": 3416
                   }
                   {
                     "Timestamp": {
-                      "end": new Date("2013-02-26T22:00:00.000Z")
-                      "start": new Date("2013-02-26T21:00:00.000Z")
+                      "end": new Date('2015-08-14T02:00:00.000Z')
+                      "start": new Date('2015-08-14T01:00:00.000Z')
                       "type": "TIME_RANGE"
                     }
-                    "TotalAdded": 6919
+                    "TotalAdded": 2400
                   }
                   {
                     "Timestamp": {
-                      "end": new Date("2013-02-26T17:00:00.000Z")
-                      "start": new Date("2013-02-26T16:00:00.000Z")
+                      "end": new Date('2015-08-14T16:00:00.000Z')
+                      "start": new Date('2015-08-14T15:00:00.000Z')
                       "type": "TIME_RANGE"
                     }
-                    "TotalAdded": 5717
+                    "TotalAdded": 2213
                   }
                 ]
               }
-            ],
+            ]
             "PagesHaving": [
               {
-                "Count": 252
+                "Count": 266
+                "Page": "Wikipedia:Administrators'_noticeboard/Incidents"
+              }
+              {
+                "Count": 253
                 "Page": "User:Cyde/List_of_candidates_for_speedy_deletion/Subpage"
               }
               {
-                "Count": 242
+                "Count": 200
                 "Page": "Wikipedia:Administrator_intervention_against_vandalism"
               }
               {
-                "Count": 133
-                "Page": "Wikipedia:Reference_desk/Science"
+                "Count": 140
+                "Page": "2015_Tianjin_explosions"
+              }
+              {
+                "Count": 130
+                "Page": "Indoor_Football_League_(1999–2000)"
               }
             ]
-            "TotalAdded": 41412583
+            "TotalAdded": 45268530
           }
         ])
         testComplete()
       ).done()
 
-    it "works with uniques", (testComplete) ->
+    it.only "works with uniques", (testComplete) ->
       ex = $()
         .apply('UniquePages', $('wiki').countDistinct("$page"))
         .apply('UniqueUsers1', $('wiki').countDistinct("$user"))
-        .apply('UniqueUsers2', $('wiki').countDistinct("$unique_users"))
-        .apply('Diff', '$UniqueUsers1 - $UniqueUsers2')
+        #.apply('UniqueUsers2', $('wiki').countDistinct("$unique_users"))
+        #.apply('Diff', '$UniqueUsers1 - $UniqueUsers2')
 
       basicDispatcher(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
-            "Diff": 1969.3654788279018
             "UniquePages": 457035.7144048186
             "UniqueUsers1": 49498.509337114636
-            "UniqueUsers2": 47529.143858286734
+            #"UniqueUsers2": 47529.143858286734
+            #"Diff": 1969.3654788279018
           }
         ])
         testComplete()
@@ -336,7 +344,7 @@ describe "DruidExternal", ->
       datasets: {
         wiki: External.fromJS({
           engine: 'druid',
-          dataSource: 'wikipedia_editstream',
+          dataSource: 'wikipedia',
           timeAttribute: 'time',
           context: null
           filter: $('time').in(TimeRange.fromJS({

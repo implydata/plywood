@@ -87,48 +87,57 @@ describe "reference check", ->
             .apply('y', '$x * 2')
         )
 
-      expect(ex.referenceCheck({}).toJS()).to.deep.equal(
-        $()
-          .apply('num', 5)
-          .apply('subData',
-            $()
-              .apply('x', '$^num:NUMBER + 1')
-              .apply('y', '$x:NUMBER * 2')
-          )
-          .toJS()
-      )
+      ex2 = $()
+        .apply('num', 5)
+        .apply('subData',
+          $()
+            .apply('x', '$^num:NUMBER + 1')
+            .apply('y', '$x:NUMBER * 2')
+        )
+
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "works with simple context", ->
       ex = $()
         .apply('xPlusOne', '$x + 1')
 
-      expect(ex.referenceCheck({ x: 70 }).toJS()).to.deep.equal(
-        $()
-          .apply('xPlusOne', '$^x:NUMBER + 1')
-          .toJS()
-      )
+      ex2 = $()
+        .apply('xPlusOne', '$^x:NUMBER + 1')
+
+      expect(ex.referenceCheck({ x: 70 }).toJS()).to.deep.equal(ex2.toJS())
 
     it "works from context 1", ->
       ex = $('diamonds')
         .apply('priceOver2', '$price / 2')
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(
-        $('diamonds:DATASET')
-          .apply('priceOver2', '$price:NUMBER / 2')
-          .toJS()
-      )
+      ex2 = $('diamonds:DATASET')
+        .apply('priceOver2', '$price:NUMBER / 2')
+
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "works from context 2", ->
       ex = $()
         .apply('Diamonds', $('diamonds'))
         .apply('countPlusSeventy', '$Diamonds.count() + $seventy')
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(
-        $()
-          .apply('Diamonds', $('^diamonds:DATASET'))
-          .apply('countPlusSeventy', '$Diamonds:DATASET.count() + $^seventy:NUMBER')
-          .toJS()
-      )
+      ex2 = $()
+        .apply('Diamonds', $('^diamonds:DATASET'))
+        .apply('countPlusSeventy', '$Diamonds:DATASET.count() + $^seventy:NUMBER')
+
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
+
+    it "works with countDistinct", ->
+      ex = $()
+        .apply('DistinctColors', '$diamonds.countDistinct($color)')
+        .apply('DistinctCuts', '$diamonds.countDistinct($cut)')
+        .apply('Diff', '$DistinctColors - $DistinctCuts')
+
+      ex2 = $()
+        .apply('DistinctColors', '$^diamonds:DATASET.countDistinct($color:STRING)')
+        .apply('DistinctCuts', '$^diamonds:DATASET.countDistinct($cut:STRING)')
+        .apply('Diff', '$DistinctColors:NUMBER - $DistinctCuts:NUMBER')
+
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "a total", ->
       ex = $()
@@ -136,13 +145,12 @@ describe "reference check", ->
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)')
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(
-        $()
-          .apply("diamonds", $("^diamonds:DATASET").filter($('color:STRING').is('D')))
-          .apply('Count', '$diamonds:DATASET.count()')
-          .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
-          .toJS()
-      )
+      ex2 = $()
+        .apply("diamonds", $("^diamonds:DATASET").filter($('color:STRING').is('D')))
+        .apply('Count', '$diamonds:DATASET.count()')
+        .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
+
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "a split", ->
       ex = $()
@@ -158,45 +166,42 @@ describe "reference check", ->
             .limit(10)
         )
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(
-        $()
-          .apply("diamonds", $("^diamonds:DATASET").filter($('color:STRING').is('D')))
-          .apply('Count', '$diamonds:DATASET.count()')
-          .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
-          .apply('Cuts',
-            $("diamonds:DATASET").split("$cut:STRING", 'Cut')
-              .apply('Count2', '$diamonds:DATASET.count()')
-              .apply('TotalPrice2', '$diamonds:DATASET.sum($price:NUMBER)')
-              .apply('AvgPrice2', '$TotalPrice2:NUMBER / $Count2:NUMBER')
-              .sort('$AvgPrice2:NUMBER', 'descending')
-              .limit(10)
-          )
-          .toJS()
-      )
+      ex2 = $()
+        .apply("diamonds", $("^diamonds:DATASET").filter($('color:STRING').is('D')))
+        .apply('Count', '$diamonds:DATASET.count()')
+        .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
+        .apply('Cuts',
+          $("diamonds:DATASET").split("$cut:STRING", 'Cut')
+            .apply('Count2', '$diamonds:DATASET.count()')
+            .apply('TotalPrice2', '$diamonds:DATASET.sum($price:NUMBER)')
+            .apply('AvgPrice2', '$TotalPrice2:NUMBER / $Count2:NUMBER')
+            .sort('$AvgPrice2:NUMBER', 'descending')
+            .limit(10)
+        )
+
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "a base split", ->
       ex = $("diamonds").split("$cut", 'Cut')
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)')
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(
-        $("diamonds:DATASET").split("$cut:STRING", 'Cut')
-          .apply('Count', '$diamonds:DATASET.count()')
-          .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
-          .toJS()
-      )
+      ex2 = $("diamonds:DATASET").split("$cut:STRING", 'Cut')
+        .apply('Count', '$diamonds:DATASET.count()')
+        .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
+
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "a base split + filter", ->
       ex = $("diamonds").filter($('color').is('D')).split("$cut", 'Cut')
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)')
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(
-        $("diamonds:DATASET").filter($('color:STRING').is('D')).split("$cut:STRING", 'Cut')
-          .apply('Count', '$diamonds:DATASET.count()')
-          .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
-          .toJS()
-      )
+      ex2 = $("diamonds:DATASET").filter($('color:STRING').is('D')).split("$cut:STRING", 'Cut')
+        .apply('Count', '$diamonds:DATASET.count()')
+        .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
+
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "two splits", ->
       ex = $()
@@ -217,26 +222,25 @@ describe "reference check", ->
             )
         )
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(
-        $()
-          .apply("diamonds", $('^diamonds:DATASET').filter($("color:STRING").is('D')))
-          .apply('Count', $('diamonds:DATASET').count())
-          .apply('TotalPrice', $('diamonds:DATASET').sum('$price:NUMBER'))
-          .apply('Cuts',
-            $("diamonds:DATASET").split("$cut:STRING", 'Cut')
-              .apply('Count', $('diamonds:DATASET').count())
-              .apply('PercentOfTotal', '$diamonds:DATASET.sum($price:NUMBER) / $^TotalPrice:NUMBER')
-              .sort('$Count:NUMBER', 'descending')
-              .limit(2)
-              .apply('Carats',
-                $("diamonds:DATASET").split($("carat:NUMBER").numberBucket(0.25), 'Carat')
-                  .apply('Count', $('diamonds:DATASET').count())
-                  .sort('$Count:NUMBER', 'descending')
-                  .limit(3)
-              )
-          )
-          .toJS()
-      )
+      ex2 = $()
+        .apply("diamonds", $('^diamonds:DATASET').filter($("color:STRING").is('D')))
+        .apply('Count', $('diamonds:DATASET').count())
+        .apply('TotalPrice', $('diamonds:DATASET').sum('$price:NUMBER'))
+        .apply('Cuts',
+          $("diamonds:DATASET").split("$cut:STRING", 'Cut')
+            .apply('Count', $('diamonds:DATASET').count())
+            .apply('PercentOfTotal', '$diamonds:DATASET.sum($price:NUMBER) / $^TotalPrice:NUMBER')
+            .sort('$Count:NUMBER', 'descending')
+            .limit(2)
+            .apply('Carats',
+              $("diamonds:DATASET").split($("carat:NUMBER").numberBucket(0.25), 'Carat')
+                .apply('Count', $('diamonds:DATASET').count())
+                .sort('$Count:NUMBER', 'descending')
+                .limit(3)
+            )
+        )
+
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "a join", ->
       ex = $()
@@ -248,14 +252,13 @@ describe "reference check", ->
             .apply('Count2', '$K2.count()')
         )
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(
-        $()
-          .apply('Data1', $('^diamonds:DATASET').filter($('price:NUMBER').in(105, 305)))
-          .apply('Data2', $('^diamonds:DATASET').filter($('price:NUMBER').in(105, 305).not()))
-          .apply('Cuts'
-            $('Data1:DATASET').split('$cut:STRING', 'Cut', 'K1').join($('Data2:DATASET').split('$cut:STRING', 'Cut', 'K2'))
-              .apply('Count1', '$K1:DATASET.count()')
-              .apply('Count2', '$K2:DATASET.count()')
-          )
-          .toJS()
-      )
+      ex2 = $()
+        .apply('Data1', $('^diamonds:DATASET').filter($('price:NUMBER').in(105, 305)))
+        .apply('Data2', $('^diamonds:DATASET').filter($('price:NUMBER').in(105, 305).not()))
+        .apply('Cuts'
+          $('Data1:DATASET').split('$cut:STRING', 'Cut', 'K1').join($('Data2:DATASET').split('$cut:STRING', 'Cut', 'K2'))
+            .apply('Count1', '$K1:DATASET.count()')
+            .apply('Count2', '$K2:DATASET.count()')
+        )
+
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())

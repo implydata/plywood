@@ -12,7 +12,7 @@ plywood = require('../../build/plywood')
 
 wikiDataset = External.fromJS({
   engine: 'druid',
-  dataSource: 'wikipedia_editstream',
+  dataSource: 'wikipedia',
   timeAttribute: 'time',
   context: null
   attributes: {

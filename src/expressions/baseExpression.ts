@@ -1,15 +1,22 @@
 module Plywood {
-
-  export interface SubstitutionFn {
-    (ex: Expression, index?: int, depth?: int, nestDiff?: int): Expression;
-  }
-
   export interface BooleanExpressionIterator {
     (ex: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
   }
 
   export interface VoidExpressionIterator {
     (ex: Expression, index?: int, depth?: int, nestDiff?: int): void;
+  }
+
+  export interface SubstitutionFn {
+    (ex: Expression, index?: int, depth?: int, nestDiff?: int): Expression;
+  }
+
+  export interface ActionMatchFn {
+    (action: Action): boolean;
+  }
+
+  export interface ActionSubstitutionFn {
+    (preEx: Expression, action: Action): Expression;
   }
 
   export interface DatasetBreakdown {
@@ -115,6 +122,19 @@ module Plywood {
     })
   }
 
+  function chainVia(op: string, expressions: Expression[], zero: Expression): Expression {
+    switch (expressions.length) {
+      case 0: return zero;
+      case 1: return expressions[0];
+      default:
+        var acc = expressions[0];
+        for (var i = 1; i < expressions.length; i++) {
+          acc = (<any>acc)[op](expressions[i]);
+        }
+        return acc;
+    }
+  }
+
   var check: ImmutableClass<ExpressionValue, ExpressionJS>;
 
   /**
@@ -213,14 +233,7 @@ module Plywood {
      * @param expressions the expressions to compose
      */
     static and(expressions: Expression[]): Expression {
-      switch (expressions.length) {
-        case 0: return Expression.TRUE;
-        case 1: return expressions[0];
-        default:
-          var acc = expressions[0];
-          for (var i = 1; i < expressions.length; i++) acc = acc.and(expressions[i]);
-          return acc;
-      }
+      return chainVia('and', expressions, Expression.TRUE);
     }
 
     /**
@@ -228,14 +241,19 @@ module Plywood {
      * @param expressions the expressions to compose
      */
     static or(expressions: Expression[]): Expression {
-      switch (expressions.length) {
-        case 0: return Expression.FALSE;
-        case 1: return expressions[0];
-        default:
-          var acc = expressions[0];
-          for (var i = 1; i < expressions.length; i++) acc = acc.or(expressions[i]);
-          return acc;
-      }
+      return chainVia('or', expressions, Expression.FALSE);
+    }
+
+    static add(expressions: Expression[]): Expression {
+      return chainVia('add', expressions, Expression.ZERO);
+    }
+
+    static subtract(expressions: Expression[]): Expression {
+      return chainVia('subtract', expressions, Expression.ZERO);
+    }
+
+    static multiply(expressions: Expression[]): Expression {
+      return chainVia('multiply', expressions, Expression.ONE);
     }
 
     static classMap: Lookup<typeof Expression> = {};
@@ -522,6 +540,30 @@ module Plywood {
     }
 
 
+    public substituteAction(actionMatchFn: ActionMatchFn, actionSubstitutionFn: ActionSubstitutionFn, thisArg?: any): Expression {
+      return this.substitute((ex: Expression) => {
+        if (ex instanceof ChainExpression) {
+          var actions = ex.actions;
+          for (var i = 0; i < actions.length; i++) {
+            var action = actions[i];
+            if (actionMatchFn.call(this, action)) {
+              var preEx = ex.expression;
+              if (i) {
+                preEx = new ChainExpression({
+                  expression: preEx,
+                  actions: actions.slice(0, i)
+                })
+              }
+              var newEx = actionSubstitutionFn.call(this, preEx, action);
+              for (var j = i + 1; j < actions.length; j++) newEx = newEx.performAction(actions[j]);
+              return newEx.substituteAction(actionMatchFn, actionSubstitutionFn, this);
+            }
+          }
+        }
+        return null;
+      }, thisArg);
+    }
+
     public getFn(): ComputeFn {
       throw new Error('should never be called directly');
     }
@@ -604,6 +646,12 @@ module Plywood {
       return actions ? actions.map((action) => action.expression) : null;
     }
 
+    /**
+     * Returns an expression without the last action.
+     * Return null if an action can not be poped
+     * An optional action type can be supplied to indicate that the last action must have that type (or else return null)
+     * @param actionType
+     */
     public popAction(actionType?: string): Expression {
       return null
     }
@@ -920,21 +968,35 @@ module Plywood {
 
     /**
      * Decompose instances of $data.average($x) into $data.sum($x) / $data.count()
+     * @param countEx and optional expression to use in a sum instead of a count
      */
-    public decomposeAverage(): Expression {
-      return this.substitute(ex => {
-        return ex.isOp('aggregate') ? ex.decomposeAverage() : null;
-      })
+    public decomposeAverage(countEx?: Expression): Expression {
+      return this.substituteAction(
+        (action) => {
+          return action.action === 'average';
+        },
+        (preEx: Expression, action: Action) => {
+          var expression = action.expression;
+          return preEx.sum(expression).divide(countEx ? preEx.sum(countEx) : preEx.count())
+        }
+      );
     }
 
     /**
      * Apply the distributive law wherever possible to aggregates
      * Turns $data.sum($x - 2 * $y) into $data.sum($x) - 2 * $data.sum($y)
      */
-    public distributeAggregates(): Expression {
-      return this.substitute(ex => {
-        return ex.isOp('aggregate') ? ex.distributeAggregates() : null;
-      })
+    public distribute(): Expression {
+      return this.substituteAction(
+        (action) => {
+          return action.canDistribute();
+        },
+        (preEx: Expression, action: Action) => {
+          var distributed = action.distribute(preEx);
+          if (!distributed) throw new Error('distribute returned null');
+          return distributed;
+        }
+      );
     }
 
 

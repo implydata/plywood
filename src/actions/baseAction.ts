@@ -414,6 +414,14 @@ module Plywood {
       return new (Action.classMap[this.action])(value);
     }
 
+    public canDistribute(): boolean {
+      return false;
+    }
+
+    public distribute(preEx: Expression): Expression {
+      return null;
+    }
+
     public applyToExpression(transformation: ExpressionTransformation): Action {
       var expression = this.expression;
       if (!expression) return this;
