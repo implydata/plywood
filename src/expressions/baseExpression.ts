@@ -142,6 +142,7 @@ module Plywood {
    * This class is the backbone of plywood
    */
   export class Expression implements ImmutableInstance<ExpressionValue, ExpressionJS> {
+    static NULL: LiteralExpression;
     static ZERO: LiteralExpression;
     static ONE: LiteralExpression;
     static FALSE: LiteralExpression;
@@ -186,7 +187,9 @@ module Plywood {
       // Quick parse simple expressions
       switch (typeof param) {
         case 'object':
-          if (Expression.isExpression(param)) {
+          if (param === null) {
+            return Expression.NULL;
+          } else if (Expression.isExpression(param)) {
             return param
           } else if (isHigherObject(param)) {
             if (param.constructor.type) {
@@ -950,7 +953,7 @@ module Plywood {
             } else if (ifNotFound === 'null') {
               return new LiteralExpression({ value: null });
             } else if (ifNotFound === 'leave') {
-              return this;
+              return ex;
             }
           } else if (nestDiff < nest) {
             throw new Error('went too deep during resolve on: ' + ex.toString());

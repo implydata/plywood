@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, External, $ } = plywood
+{ Expression, Dataset, External, $, literal } = plywood
 
 describe "resolve", ->
   describe "errors if", ->
@@ -53,9 +53,33 @@ describe "resolve", ->
         foo: 7
       }
 
-      ex = ex.resolve(context, true)
+      ex = ex.resolve(context, 'leave')
       expect(ex.toJS()).to.deep.equal(
         $(7).add('$bar').toJS()
+      )
+
+    it "works with null", ->
+      ex = $('foo').add('$bar')
+
+      context = {
+        foo: null
+      }
+
+      ex = ex.resolve(context, 'leave')
+      expect(ex.toJS()).to.deep.equal(
+        $(null).add('$bar').toJS()
+      )
+
+    it "works with null with is", ->
+      ex = $('bar:STRING').is('$foo')
+
+      context = {
+        foo: null
+      }
+
+      ex = ex.resolve(context, 'leave')
+      expect(ex.toJS()).to.deep.equal(
+        $('bar:STRING').is(null).toJS()
       )
 
     it "works in a basic case (and simplifies)", ->
@@ -65,7 +89,7 @@ describe "resolve", ->
         foo: 7
       }
 
-      ex = ex.resolve(context, true).simplify()
+      ex = ex.resolve(context).simplify()
       expect(ex.toJS()).to.deep.equal(
         $(10).toJS()
       )
@@ -134,7 +158,7 @@ describe "resolve", ->
           .toJS()
       )
 
-    it "works with sub-expressions", ->
+    it.skip "works with sub-expressions", ->
       datum = {
         Count: 5
         diamonds: External.fromJS({

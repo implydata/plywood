@@ -150,6 +150,7 @@ module Plywood {
 
   }
 
+  Expression.NULL = new LiteralExpression({ value: null });
   Expression.ZERO = new LiteralExpression({ value: 0 });
   Expression.ONE = new LiteralExpression({ value: 1 });
   Expression.FALSE = new LiteralExpression({ value: false });
