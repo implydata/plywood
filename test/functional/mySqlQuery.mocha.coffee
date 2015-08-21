@@ -8,7 +8,7 @@ if not WallTime.rules
 { mySqlRequesterFactory } = require('plywood-mysql-requester')
 
 plywood = require('../../build/plywood')
-{ Expression, External, TimeRange, $, basicDispatcherFactory } = plywood
+{ Expression, External, TimeRange, $, basicExecutorFactory } = plywood
 
 info = require('../info')
 
@@ -23,7 +23,7 @@ describe "MySQLExternal", ->
   @timeout(10000);
 
   it "works in advanced case", (testComplete) ->
-    basicDispatcher = basicDispatcherFactory({
+    basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql'
@@ -64,7 +64,7 @@ describe "MySQLExternal", ->
 #          .limit(100)
 #      )
 
-    basicDispatcher(ex).then((result) ->
+    basicExecutor(ex).then((result) ->
       expect(result.toJS()).to.deep.equal([
         {
           "Count": 334129
@@ -137,7 +137,7 @@ describe "MySQLExternal", ->
     ).done()
 
   it "works with introspection", (testComplete) ->
-    basicDispatcher = basicDispatcherFactory({
+    basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql'
@@ -164,7 +164,7 @@ describe "MySQLExternal", ->
           )
       )
 
-    basicDispatcher(ex).then((result) ->
+    basicExecutor(ex).then((result) ->
       expect(result.toJS()).to.deep.equal([
         {
           "Count": 334129

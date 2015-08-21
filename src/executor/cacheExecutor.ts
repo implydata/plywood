@@ -86,12 +86,12 @@ module Plywood {
   }
 
 
-  interface CacheDispatcherParameters {
-    dispatcher: Dispatcher;
+  interface CacheExecutorParameters {
+    executor: Executor;
     datasets: Datum;
   }
 
-  function cacheDispatcherFactory(parameters: CacheDispatcherParameters) {
+  function cacheExecutorFactory(parameters: CacheExecutorParameters) {
     var datasets = parameters.datasets;
     for (var k in datasets) {
       if (!hasOwnProperty(datasets, k)) continue;

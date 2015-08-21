@@ -8,7 +8,7 @@ if not WallTime.rules
 { druidRequesterFactory } = require('plywood-druid-requester')
 
 plywood = require('../../build/plywood')
-{ Expression, External, TimeRange, $, basicDispatcherFactory, helper } = plywood
+{ Expression, External, TimeRange, $, basicExecutorFactory, helper } = plywood
 
 info = require('../info')
 
@@ -24,7 +24,7 @@ describe "DruidExternal", ->
   @timeout(10000);
 
   describe "defined attributes in datasource", ->
-    basicDispatcher = basicDispatcherFactory({
+    basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
           engine: 'druid',
@@ -61,7 +61,7 @@ describe "DruidExternal", ->
 
       # console.log("ex.simulateQueryPlan(context)", JSON.stringify(ex.simulateQueryPlan(context), null, 2));
 
-      basicDispatcher(ex).then((result) ->
+      basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
          {
            "HoursOfDay": [
@@ -108,7 +108,7 @@ describe "DruidExternal", ->
             .limit(5)
         )
 
-      basicDispatcher(ex).then((result) ->
+      basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
             "Count": 122857
@@ -209,7 +209,7 @@ describe "DruidExternal", ->
         #.apply('UniqueUsers2', $('wiki').countDistinct("$unique_users"))
         #.apply('Diff', '$UniqueUsers1 - $UniqueUsers2')
 
-      basicDispatcher(ex).then((result) ->
+      basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
             "UniquePages": 457035.7144048186
@@ -235,7 +235,7 @@ describe "DruidExternal", ->
             )
         )
 
-      basicDispatcher(ex).then((result) ->
+      basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
             "Pages": [
@@ -277,7 +277,7 @@ describe "DruidExternal", ->
           )
         )
 
-      basicDispatcher(ex).then((result) ->
+      basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
             "ByHour": [
@@ -340,7 +340,7 @@ describe "DruidExternal", ->
 
 
   describe "introspection", ->
-    basicDispatcher = basicDispatcherFactory({
+    basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
           engine: 'druid',
@@ -374,7 +374,7 @@ describe "DruidExternal", ->
             )
         )
 
-      basicDispatcher(ex).then((result) ->
+      basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
             "Count": 334129
