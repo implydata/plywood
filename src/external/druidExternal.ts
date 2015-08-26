@@ -87,7 +87,7 @@ module Plywood {
     return Array.isArray(result) && (result.length === 0 || typeof result[0].result === 'object');
   }
 
-  function makePostProcessTimeBoundary(applies: ApplyAction[]): PostProcess {
+  function postProcessTimeBoundaryFactory(applies: ApplyAction[]): PostProcess {
     return (res: Druid.TimeBoundaryResults): Dataset => {
       if (!correctTimeBoundaryResult(res)) {
         var err = new Error("unexpected result from Druid (timeBoundary)");
@@ -115,16 +115,31 @@ module Plywood {
     };
   }
 
-  function postProcessTotal(res: Druid.TimeseriesResults): Dataset {
-    if (!correctTimeseriesResult(res)) {
-      var err = new Error("unexpected result from Druid (all)");
-      (<any>err).result = res; // ToDo: special error type
-      throw err;
+  function makeZeroDatum(applies: ApplyAction[]): Datum {
+    var newDatum = Object.create(null);
+    for (var apply of applies) {
+      var applyName = apply.name;
+      if (applyName[0] === '_') continue;
+      newDatum[applyName] = 0;
     }
-    return new Dataset({ data: [res[0].result] });
+    return newDatum;
   }
 
-  function makePostProcessTimeseries(duration: Duration, timezone: Timezone, label: string): PostProcess {
+  function postProcessTotalFactory(applies: ApplyAction[]) {
+    return (res: Druid.TimeseriesResults): Dataset => {
+      if (!correctTimeseriesResult(res)) {
+        var err = new Error("unexpected result from Druid (all)");
+        (<any>err).result = res; // ToDo: special error type
+        throw err;
+      }
+      if (!res.length) {
+        return new Dataset({ data: [makeZeroDatum(applies)] });
+      }
+      return new Dataset({ data: [res[0].result] });
+    };
+  }
+
+  function postProcessTimeseriesFactory(duration: Duration, timezone: Timezone, label: string): PostProcess {
     return (res: Druid.TimeseriesResults): Dataset => {
       if (!correctTimeseriesResult(res)) {
         var err = new Error("unexpected result from Druid (timeseries)");
@@ -725,7 +740,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             period: splitAction.duration.toString(),
             timeZone: splitAction.timezone.toString()
           };
-          postProcess = makePostProcessTimeseries(splitAction.duration, splitAction.timezone, label);
+          postProcess = postProcessTimeseriesFactory(splitAction.duration, splitAction.timezone, label);
 
         } else if (splitAction instanceof NumberBucketAction) {
           var attributeInfo = this.getAttributesInfo(refExpression.name);
@@ -1140,7 +1155,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       return {
         query: druidQuery,
-        postProcess: makePostProcessTimeBoundary(this.applies)
+        postProcess: postProcessTimeBoundaryFactory(this.applies)
       };
     }
 
@@ -1192,7 +1207,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return {
             query: druidQuery,
-            postProcess: postProcessTotal
+            postProcess: postProcessTotalFactory(this.applies)
           };
 
         case 'split':

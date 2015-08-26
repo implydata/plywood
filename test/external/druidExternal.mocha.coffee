@@ -61,11 +61,11 @@ describe "DruidExternal", ->
       druidExternal = ex.external
 
       expect(druidExternal.applies.join('\n')).to.equal("""
-        apply(Count, $wiki:DATASET.count())
-        apply(Added, $wiki:DATASET.sum($added:NUMBER))
-        apply(_sd_0, $wiki:DATASET.max($added:NUMBER))
-        apply(_sd_1, $wiki:DATASET.min($deleted:NUMBER))
-        apply(Volatile, $_sd_0:NUMBER.subtract($_sd_1:NUMBER))
+        apply(Count,$wiki:DATASET.count())
+        apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        apply(_sd_0,$wiki:DATASET.max($added:NUMBER))
+        apply(_sd_1,$wiki:DATASET.min($deleted:NUMBER))
+        apply(Volatile,$_sd_0:NUMBER.subtract($_sd_1:NUMBER))
         """)
 
     it "breaks up correctly in case of duplicate name", ->
@@ -81,10 +81,10 @@ describe "DruidExternal", ->
       druidExternal = ex.external
 
       expect(druidExternal.applies.join('\n')).to.equal("""
-        apply(Count, $wiki:DATASET.count())
-        apply(Added, $wiki:DATASET.sum($added:NUMBER))
-        apply(_sd_0, $wiki:DATASET.sum($deleted:NUMBER))
-        apply(Volatile, $Added:NUMBER.subtract($_sd_0:NUMBER))
+        apply(Count,$wiki:DATASET.count())
+        apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
+        apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))
         """)
 
     it "breaks up correctly in case of variable reference", ->
@@ -100,10 +100,10 @@ describe "DruidExternal", ->
       druidExternal = ex.external
 
       expect(druidExternal.applies.join('\n')).to.equal("""
-        apply(Count, $wiki:DATASET.count())
-        apply(Added, $wiki:DATASET.sum($added:NUMBER))
-        apply(_sd_0, $wiki:DATASET.sum($deleted:NUMBER))
-        apply(Volatile, $Added:NUMBER.subtract($_sd_0:NUMBER))
+        apply(Count,$wiki:DATASET.count())
+        apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
+        apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))
         """)
 
     it.skip "breaks up correctly in case of duplicate apply", ->
@@ -119,10 +119,10 @@ describe "DruidExternal", ->
       druidExternal = ex.external
 
       expect(druidExternal.applies.join('\n')).to.equal("""
-        apply(Added, $wiki:DATASET.sum($added:NUMBER))
-        apply(Added2, $Added:NUMBER)
-        apply(_sd_0, $wiki:DATASET.sum($deleted:NUMBER))
-        apply(Volatile, $Added:NUMBER.subtract($_sd_0:NUMBER))
+        apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        apply(Added2,$Added:NUMBER)
+        apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
+        apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))
         """)
 
     it.skip "breaks up correctly in case of duplicate apply (same name)", ->
@@ -138,12 +138,12 @@ describe "DruidExternal", ->
       druidExternal = ex.external
 
       expect(druidExternal.defs.join('\n')).to.equal("""
-        .apply('_sd_0', $wiki:DATASET.sum($deleted:NUMBER))
+        .apply('_sd_0',$wiki:DATASET.sum($deleted:NUMBER))
         """)
 
       expect(druidExternal.applies.join('\n')).to.equal("""
-        .apply(Added, $wiki:DATASET.sum($added:NUMBER))
-        .apply(Volatile, ($Added:NUMBER + $_sd_0:NUMBER.negate()))
+        .apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        .apply(Volatile,$Added:NUMBER.add($_sd_0:NUMBER.negate()))
         """)
 
 
@@ -507,3 +507,116 @@ describe "DruidExternal", ->
         })
         testComplete()
       ).done()
+
+
+  describe "should work when getting back [] and [{result:[]}]", ->
+    nullExternal = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      requester: (query) -> Q([]),
+      attributes: {
+        time: { type: 'TIME' }
+        language: { type: 'STRING' }
+        page: { type: 'STRING' }
+        added: { type: 'NUMBER' }
+      }
+      filter: timeFilter
+    })
+
+    emptyExternal = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      requester: (query) -> Q([{result:[]}]),
+      attributes: {
+        time: { type: 'TIME' }
+        language: { type: 'STRING' }
+        page: { type: 'STRING' }
+        added: { type: 'NUMBER' }
+      }
+      filter: timeFilter
+    })
+
+    describe "should return null correctly on a totals query", ->
+      ex = $()
+        .apply('wiki', '$wiki') # for now
+        .apply('Count', '$wiki.count()')
+
+      it "should work with [] return", (testComplete) ->
+        ex.compute({ wiki: nullExternal }).then((result) ->
+          expect(result.toJS()).to.deep.equal([
+            { Count: 0 }
+          ])
+          testComplete()
+        ).done()
+
+    describe "should return null correctly on a timeseries query", ->
+      ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
+        .apply('Count', '$wiki.count()')
+        .sort('$Time', 'ascending')
+
+      it "should work with [] return", (testComplete) ->
+        ex.compute({ wiki: nullExternal }).then((result) ->
+          expect(result.toJS()).to.deep.equal([])
+          testComplete()
+        ).done()
+
+    describe "should return null correctly on a topN query", ->
+      ex = $('wiki').split("$page", 'Page')
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5)
+
+      it "should work with [] return", (testComplete) ->
+        ex.compute({ wiki: nullExternal }).then((result) ->
+          expect(result.toJS()).to.deep.equal([])
+          testComplete()
+        ).done()
+
+      it "should work with [{result:[]}] return", (testComplete) ->
+        ex.compute({ wiki: emptyExternal }).then((result) ->
+          expect(result.toJS()).to.deep.equal([])
+          testComplete()
+        ).done()
+
+
+  describe "should work when getting back crap data", ->
+    crapExternal = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      requester: (query) -> Q("[Does this look like data to you?")
+      attributes: {
+        time: { type: 'TIME' }
+        language: { type: 'STRING' }
+        page: { type: 'STRING' }
+        added: { type: 'NUMBER' }
+      }
+      filter: timeFilter
+    })
+
+    it "should work with all query", (testComplete) ->
+      ex = $()
+        .apply('wiki', '$wiki') # for now
+        .apply('Count', '$wiki.count()')
+
+      ex.compute({ wiki: crapExternal })
+        .then(-> throw new Error('DID_NOT_ERROR'))
+        .fail((err) ->
+          expect(err.message).to.equal('unexpected result from Druid (all)')
+          testComplete()
+        ).done()
+
+    it "should work with timeseries query", (testComplete) ->
+      ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
+        .apply('Count', '$wiki.count()')
+        .sort('$Time', 'ascending')
+
+      ex.compute({ wiki: crapExternal })
+        .then(-> throw new Error('DID_NOT_ERROR'))
+        .fail((err) ->
+          expect(err.message).to.equal('unexpected result from Druid (timeseries)')
+          testComplete()
+        ).done()

@@ -135,7 +135,7 @@ module Plywood {
     public toString(indent?: int): string {
       var expression = this.expression;
       var spacer = '';
-      var joinStr = ', ';
+      var joinStr = indent != null ? ', ' : ',';
       var nextIndent: int = null;
       if (indent != null && expression && expression.type === 'DATASET') {
         var space = repeat(' ', indent);
