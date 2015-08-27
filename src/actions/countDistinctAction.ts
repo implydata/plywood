@@ -6,7 +6,7 @@ module Plywood {
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
-      this._ensureAction("sum");
+      this._ensureAction("countDistinct");
     }
 
     public getOutputType(inputType: string): string {

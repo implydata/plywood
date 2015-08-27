@@ -32,6 +32,13 @@ describe "Actions", ->
         action: 'limit'
         limit: 10
       }
+      { action: 'count' }
+      { action: 'sum', expression: { op: 'ref', name: 'myVar' } }
+      { action: 'min', expression: { op: 'ref', name: 'myVar' } }
+      { action: 'max', expression: { op: 'ref', name: 'myVar' } }
+      { action: 'average', expression: { op: 'ref', name: 'myVar' } }
+      { action: 'countDistinct', expression: { op: 'ref', name: 'myVar' } }
+      { action: 'quantile', expression: { op: 'ref', name: 'myVar' }, quantile: 0.5 }
     ], {
       newThrows: true
     })
