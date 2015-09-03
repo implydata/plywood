@@ -113,6 +113,31 @@ module Plywood {
       return singleAction;
     }
 
+    public foldIntoExternal(): Expression {
+      var { expression, actions } = this;
+      if (expression instanceof ExternalExpression) {
+        var undigestedActions: Action[] = [];
+        for (var action of actions) {
+          var newExternal = (<ExternalExpression>expression).addAction(action);
+          if (newExternal) {
+            expression = newExternal;
+          } else {
+            undigestedActions.push(action);
+          }
+        }
+        if (undigestedActions.length) {
+          return new ChainExpression({
+            expression: expression,
+            actions: undigestedActions,
+            simple: true
+          });
+        } else {
+          return expression;
+        }
+      }
+      return this;
+    }
+
     public simplify(): Expression {
       if (this.simple) return this;
 
@@ -129,7 +154,11 @@ module Plywood {
         simpleExpression = action.performOnSimple(simpleExpression);
       }
 
-      return simpleExpression;
+      if (simpleExpression instanceof ChainExpression) {
+        return simpleExpression.foldIntoExternal();
+      } else {
+        return simpleExpression;
+      }
     }
 
     public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {

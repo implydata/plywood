@@ -93,7 +93,7 @@ describe "Simplify", ->
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
-  describe 'and', ->
+  describe 'AND', ->
     it "collapses false in simple case", ->
       ex = $('x').and(false)
       ex2 = $(false)
@@ -144,13 +144,13 @@ describe "Simplify", ->
       ex2 = $('flight').is(7)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
-    it "works with IS an IN", ->
+    it "works with IS and IN", ->
       ex = $('flight').is(5).and($('flight').in(new NumberRange({start: 5, end: 7})))
       ex2 = $('flight').is(5)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
-  describe 'or', ->
+  describe 'OR', ->
     it "collapses true in simple case", ->
       ex = $('x').or(true)
       ex2 = $(true)
@@ -201,7 +201,7 @@ describe "Simplify", ->
       ex2 = $('flight').is(5)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
-    it "works with IS an IN", ->
+    it "works with IS and IN", ->
       ex = $('flight').is(5).or($('flight').in(new NumberRange({start: 5, end: 7})))
       ex2 = $('flight').is($('flight').in(new NumberRange({start: 5, end: 7})))
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
@@ -277,3 +277,40 @@ describe "Simplify", ->
       }))
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
+
+  describe 'apply', ->
+    it 'sorts applies does not mess with sort if all are simple 1', ->
+      ex = $()
+        .apply('Count', '$wiki.count()')
+        .apply('Deleted', '$wiki.sum($deleted)')
+
+      ex2 = $()
+        .apply('Count', '$wiki.count()')
+        .apply('Deleted', '$wiki.sum($deleted)')
+
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+    it 'sorts applies does not mess with sort if all are simple 2', ->
+      ex = $()
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('Count', '$wiki.count()')
+
+      ex2 = $()
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('Count', '$wiki.count()')
+
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'sorts applies 2', ->
+      ex = $()
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .apply('Deleted', '$wiki.sum($deleted)')
+
+      ex2 = $()
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())

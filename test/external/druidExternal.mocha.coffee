@@ -25,6 +25,7 @@ context = {
       page: { type: 'STRING' }
       added: { type: 'NUMBER' }
       deleted: { type: 'NUMBER' }
+      inserted: { type: 'NUMBER' }
     }
     filter: timeFilter
   })
@@ -41,6 +42,8 @@ contextNoApprox = {
       language: { type: 'STRING' }
       page: { type: 'STRING' }
       added: { type: 'NUMBER' }
+      deleted: { type: 'NUMBER' }
+      inserted: { type: 'NUMBER' }
     }
     filter: timeFilter
   })
@@ -104,6 +107,26 @@ describe "DruidExternal", ->
         apply(Added,$wiki:DATASET.sum($added:NUMBER))
         apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
         apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))
+        """)
+
+    it "breaks up correctly in complex case", ->
+      ex = $()
+        .apply('wiki', '$wiki') # for now
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .apply('Deleted', '$wiki.sum($deleted)')
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('external')
+      druidExternal = ex.external
+
+      expect(druidExternal.applies.join('\n')).to.equal("""
+        apply(Deleted,$wiki:DATASET.sum($deleted:NUMBER))
+        apply(_sd_0,$wiki:DATASET.sum($added:NUMBER))
+        apply(AddedByDeleted,$_sd_0:NUMBER.divide($Deleted:NUMBER))
+        apply(_sd_1,$wiki:DATASET.sum($inserted:NUMBER))
+        apply(DeletedByInserted,$Deleted:NUMBER.divide($_sd_1:NUMBER))
         """)
 
     it.skip "breaks up correctly in case of duplicate apply", ->

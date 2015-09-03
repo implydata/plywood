@@ -1,4 +1,14 @@
 module Plywood {
+  var aggregateActions: Lookup<boolean> = {
+    count: true,
+    sum: true,
+    min: true,
+    max: true,
+    average: true,
+    countDistinct: true,
+    quantile: true
+  };
+
   export class ApplyAction extends Action {
     static fromJS(parameters: ActionJS): ApplyAction {
       var value = Action.jsToValue(parameters);
@@ -57,6 +67,15 @@ module Plywood {
       return `${expressionSQL} AS '${this.name}'`;
     }
 
+    public isSimpleAggregate(): boolean {
+      var expression = this.expression;
+      if (expression instanceof ChainExpression) {
+        var actions = expression.actions;
+        return actions.length === 1 && aggregateActions[actions[0].action];
+      }
+      return false;
+    }
+
     public isNester(): boolean {
       return true;
     }
@@ -80,6 +99,25 @@ module Plywood {
         }
       }
       return null;
+    }
+
+    protected _performOnChain(chainExpression: ChainExpression): Expression {
+      if (!this.isSimpleAggregate()) return null;
+      var actions = chainExpression.actions;
+      var i = actions.length;
+      while (i > 0) {
+        let action = actions[i - 1];
+        if (action.action !== 'apply') break;
+        if ((<ApplyAction>action).isSimpleAggregate()) break;
+        i--;
+      }
+      actions = actions.slice();
+      actions.splice(i, 0, this);
+      return new ChainExpression({
+        expression: chainExpression.expression,
+        actions: actions,
+        simple: true
+      })
     }
   }
 

@@ -33,14 +33,57 @@ module Plywood {
   export interface Column {
     name: string;
     type: string;
-    columns?: OrderedColumns;
+    columns?: Column[];
   }
 
-  export type OrderedColumns = Column[];
+  function typePreference(type: string): number {
+    switch (type) {
+      case 'TIME': return 0;
+      case 'STRING': return 1;
+      case 'DATASET': return 5;
+      default: return 2;
+    }
+  }
 
-  export interface FlatData {
-    columns: OrderedColumns;
-    data: Datum[];
+  function sortColumns(columns: Column[]): Column[] {
+    return columns.sort((c1, c2) => {
+      var typeDiff = typePreference(c1.type) - typePreference(c2.type);
+      if (typeDiff) return typeDiff;
+      return c1.name.localeCompare(c2.name);
+    });
+  }
+
+  function uniqueColumns(columns: Column[]): Column[] {
+    var seen: Lookup<boolean> = {};
+    var uniqueColumns: Column[] = [];
+    for (var column of columns) {
+      if (!seen[column.name]) {
+        uniqueColumns.push(column);
+        seen[column.name] = true;
+      }
+    }
+    return uniqueColumns;
+  }
+
+  function flattenColumns(nestedColumns: Column[], prefixColumns: boolean): Column[] {
+    var flatColumns: Column[] = [];
+    var i = 0;
+    var prefixString = '';
+    while (i < nestedColumns.length) {
+      var nestedColumn = nestedColumns[i];
+      if (nestedColumn.type === 'DATASET') {
+        nestedColumns = nestedColumn.columns;
+        if (prefixColumns) prefixString += nestedColumn.name + '.';
+        i = 0;
+      } else {
+        flatColumns.push({
+          name: prefixString + nestedColumn.name,
+          type: nestedColumn.type
+        });
+        i++;
+      }
+    }
+    return sortColumns(uniqueColumns(flatColumns));
   }
 
   var typeOrder: Lookup<number> = {
@@ -94,7 +137,13 @@ module Plywood {
     'DATASET': (v: Dataset) => { return 'DATASET'; }
   };
 
-  export interface TabulatorOptions {
+  export interface FlattenOptions {
+    prefixColumns?: boolean;
+    order?: string; // preorder, inline [default], postorder
+    nestingName?: string;
+  }
+
+  export interface TabulatorOptions extends FlattenOptions {
     separator?: string;
     lineBreak?: string;
     formatter?: Formatter;
@@ -522,9 +571,9 @@ module Plywood {
       return new Dataset({ data: newData });
     }
 
-    public getOrderedColumns(): OrderedColumns {
+    public getNestedColumns(): Column[] {
       this.introspect();
-      var orderedColumns: OrderedColumns = [];
+      var nestedColumns: Column[] = [];
       var attributes = this.attributes;
 
       var subDatasetAdded: boolean = false;
@@ -538,79 +587,65 @@ module Plywood {
         if (attributeInfo.type === 'DATASET') {
           if (!subDatasetAdded) {
             subDatasetAdded = true;
-            column.columns = this.data[0][attributeName].getOrderedColumns();
-            orderedColumns.push(column);
+            column.columns = this.data[0][attributeName].getNestedColumns();
+            nestedColumns.push(column);
           }
         } else {
-          orderedColumns.push(column);
+          nestedColumns.push(column);
         }
       }
 
-      return orderedColumns.sort((a, b) => {
+      return nestedColumns.sort((a, b) => {
         var typeDiff = typeOrder[a.type] - typeOrder[b.type];
         if (typeDiff) return typeDiff;
         return a.name.localeCompare(b.name);
       });
     }
 
-    private _flattenHelper(flattenedColumns: OrderedColumns, prefix: string, context: Datum, flat: Datum[]): void {
+    public getColumns(options: FlattenOptions = {}): Column[] {
+      var prefixColumns = options.prefixColumns;
+      return flattenColumns(this.getNestedColumns(), prefixColumns);
+    }
+
+    private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, nesting: number, context: Datum, flat: Datum[]): void {
       var data = this.data;
+      var leaf = nestedColumns[nestedColumns.length - 1].type !== 'DATASET';
       for (let datum of data) {
         var flatDatum = copy(context);
-        for (let flattenedColumn of flattenedColumns) {
+        if (nestingName) flatDatum[nestingName] = nesting;
+
+        for (let flattenedColumn of nestedColumns) {
           if (flattenedColumn.type === 'DATASET') {
-            datum[flattenedColumn.name]._flattenHelper(
-              flattenedColumn.columns,
-              prefix + flattenedColumn.name + '.',
-              flatDatum,
-              flat
-            );
+            var nextPrefix: string = null;
+            if (prefix !== null) nextPrefix = prefix + flattenedColumn.name + '.';
+
+            if (order === 'preorder') flat.push(flatDatum);
+            datum[flattenedColumn.name]._flattenHelper(flattenedColumn.columns, nextPrefix, order, nestingName, nesting + 1, flatDatum, flat);
+            if (order === 'postorder') flat.push(flatDatum);
           } else {
-            flatDatum[prefix + flattenedColumn.name] = datum[flattenedColumn.name];
+            var flatName = (prefix !== null ? prefix : '') + flattenedColumn.name;
+            flatDatum[flatName] = datum[flattenedColumn.name];
           }
         }
-        if (flattenedColumns[flattenedColumns.length - 1].type !== 'DATASET') {
-          // There is no subset to delegate to
-          flat.push(flatDatum);
-        }
+
+        if (leaf) flat.push(flatDatum);
       }
     }
 
-    public flatten(): FlatData {
-      var flattenedColumns = this.getOrderedColumns();
+    public flatten(options: FlattenOptions = {}): Datum[] {
+      var prefixColumns = options.prefixColumns;
+      var order = options.order; // preorder, inline [default], postorder
+      var nestingName = options.nestingName;
+      var nestedColumns = this.getNestedColumns();
       var flatData: Datum[] = [];
-      this._flattenHelper(flattenedColumns, '', {}, flatData);
-
-      var flatColumns: OrderedColumns = [];
-      var workingColumns = flattenedColumns;
-      var i = 0;
-      var prefix = '';
-      while (i < workingColumns.length) {
-        var workingColumn = workingColumns[i];
-        if (workingColumn.type === 'DATASET') {
-          workingColumns = workingColumn.columns;
-          prefix += workingColumn.name + '.';
-          i = 0;
-        } else {
-          flatColumns.push({
-            name: prefix + workingColumn.name,
-            type: workingColumn.type
-          });
-          i++;
-        }
-      }
-
-      return {
-        columns: flatColumns,
-        data: flatData
-      };
+      this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, 0, {}, flatData);
+      return flatData;
     }
 
     public toTabular(tabulatorOptions: TabulatorOptions): string {
       var formatter: Formatter = tabulatorOptions.formatter || {};
-      var flatData = this.flatten();
-      var columns = flatData.columns;
-      var data = flatData.data;
+      var data = this.flatten(tabulatorOptions);
+      var columns = this.getColumns(tabulatorOptions);
 
       var lines: string[] = [];
       lines.push(columns.map(c => c.name).join(tabulatorOptions.separator || ','));
@@ -636,6 +671,7 @@ module Plywood {
       tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
       return this.toTabular(tabulatorOptions);
     }
+
   }
   check = Dataset;
 }

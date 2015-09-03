@@ -238,9 +238,9 @@ describe "Dataset", ->
       }
     ])
 
-    describe "#getOrderedColumns", ->
+    describe "#getColumns", ->
       it "works with basic dataset", ->
-        expect(carDataset.getOrderedColumns()).to.deep.equal([
+        expect(carDataset.getColumns()).to.deep.equal([
           {
             "name": "time"
             "type": "TIME"
@@ -259,8 +259,8 @@ describe "Dataset", ->
           }
         ])
 
-      it "works with sub-dataset", ->
-        expect(carAndPartsDataset.getOrderedColumns()).to.deep.equal([
+      it "works with sub-dataset without prefix", ->
+        expect(carAndPartsDataset.getColumns()).to.deep.equal([
           {
             "name": "time"
             "type": "TIME"
@@ -274,28 +274,71 @@ describe "Dataset", ->
             "type": "STRING"
           }
           {
+            "name": "part"
+            "type": "STRING"
+          }
+          {
             "name": "price"
             "type": "NUMBER"
           }
           {
-            "columns": [
-              {
-                "name": "part"
-                "type": "STRING"
-              }
-              {
-                "name": "weight"
-                "type": "NUMBER"
-              }
-            ]
-            "name": "parts"
-            "type": "DATASET"
+            "name": "weight"
+            "type": "NUMBER"
           }
         ])
+
+      it "works with sub-dataset with prefix", ->
+        expect(carAndPartsDataset.getColumns({ prefixColumns: true })).to.deep.equal([
+          {
+            "name": "time"
+            "type": "TIME"
+          }
+          {
+            "name": "make"
+            "type": "STRING"
+          }
+          {
+            "name": "model"
+            "type": "STRING"
+          }
+          {
+            "name": "parts.part"
+            "type": "STRING"
+          }
+          {
+            "name": "parts.weight"
+            "type": "NUMBER"
+          }
+          {
+            "name": "price"
+            "type": "NUMBER"
+          }
+        ])
+
+      it "works with total and sub-split", ->
+        expect(carTotalAndSubSplitDataset.getColumns()).to.deep.equal([
+          {
+            "name": "make"
+            "type": "STRING"
+          }
+          {
+            "name": "model"
+            "type": "STRING"
+          }
+          {
+            "name": "price"
+            "type": "NUMBER"
+          }
+          {
+            "name": "weight"
+            "type": "NUMBER"
+          }
+        ])
+
 
     describe "#flatten", ->
       it "works with basic dataset", ->
-        expect(carDataset.flatten().data).to.deep.equal([
+        expect(carDataset.flatten()).to.deep.equal([
           {
             "make": "Honda"
             "model": "Civic"
@@ -310,8 +353,8 @@ describe "Dataset", ->
           }
         ])
 
-      it "works with sub-dataset", ->
-        expect(carAndPartsDataset.flatten().data).to.deep.equal([
+      it "works with sub-dataset with prefix", ->
+        expect(carAndPartsDataset.flatten({ prefixColumns: true })).to.deep.equal([
           {
             "make": "Honda"
             "model": "Civic"
@@ -347,9 +390,123 @@ describe "Dataset", ->
         ])
 
       it "works with total and sub-split", ->
-        expect(carTotalAndSubSplitDataset.flatten()).to.deep.equal({
+        expect(carTotalAndSubSplitDataset.flatten()).to.deep.equal([
+          {
+            "make": "Honda"
+            "model": "Civic"
+            "price": 11000
+            "weight": 1100
+          }
+          {
+            "make": "Honda"
+            "model": "Accord"
+            "price": 13000
+            "weight": 1300
+          }
+          {
+            "make": "Toyota"
+            "model": "Prius"
+            "price": 11000
+            "weight": 1100
+          }
+          {
+            "make": "Toyota"
+            "model": "Corolla"
+            "price": 13000
+            "weight": 1300
+          }
+        ])
 
-        })
+      it "works with total and sub-split with postorder", ->
+        expect(carTotalAndSubSplitDataset.flatten({ order: 'postorder' })).to.deep.equal([
+          {
+            "make": "Honda"
+            "model": "Civic"
+            "price": 11000
+            "weight": 1100
+          }
+          {
+            "make": "Honda"
+            "model": "Accord"
+            "price": 13000
+            "weight": 1300
+          }
+          {
+            "make": "Honda"
+            "price": 12000
+            "weight": 1200
+          }
+          {
+            "make": "Toyota"
+            "model": "Prius"
+            "price": 11000
+            "weight": 1100
+          }
+          {
+            "make": "Toyota"
+            "model": "Corolla"
+            "price": 13000
+            "weight": 1300
+          }
+          {
+            "make": "Toyota"
+            "price": 12000
+            "weight": 1200
+          }
+          {
+            "price": 10000
+            "weight": 1000
+          }
+        ])
+
+      it "works with total and sub-split with preorder and nesting indicator", ->
+        expect(carTotalAndSubSplitDataset.flatten({ order: 'preorder', nestingName: 'nest' })).to.deep.equal([
+          {
+            "nest": 0
+            "price": 10000
+            "weight": 1000
+          }
+          {
+            "make": "Honda"
+            "nest": 1
+            "price": 12000
+            "weight": 1200
+          }
+          {
+            "make": "Honda"
+            "model": "Civic"
+            "nest": 2
+            "price": 11000
+            "weight": 1100
+          }
+          {
+            "make": "Honda"
+            "model": "Accord"
+            "nest": 2
+            "price": 13000
+            "weight": 1300
+          }
+          {
+            "make": "Toyota"
+            "nest": 1
+            "price": 12000
+            "weight": 1200
+          }
+          {
+            "make": "Toyota"
+            "model": "Prius"
+            "nest": 2
+            "price": 11000
+            "weight": 1100
+          }
+          {
+            "make": "Toyota"
+            "model": "Corolla"
+            "nest": 2
+            "price": 13000
+            "weight": 1300
+          }
+        ])
 
 
     describe "#toCSV", ->
@@ -362,9 +519,9 @@ describe "Dataset", ->
 
       it "works with sub-dataset", ->
         expect(carAndPartsDataset.toTabular({})).to.equal("""
-        time,make,model,price,parts.part,parts.weight
-        2015-01-04T12:32:43.000Z,Honda,Civic,10000,Engine,500
-        2015-01-04T12:32:43.000Z,Honda,Civic,10000,Door,20
-        2015-01-04T14:00:40.000Z,Toyota,Prius,20000,Engine,400
-        2015-01-04T14:00:40.000Z,Toyota,Prius,20000,Door,25
+        time,make,model,part,price,weight
+        2015-01-04T12:32:43.000Z,Honda,Civic,Engine,10000,500
+        2015-01-04T12:32:43.000Z,Honda,Civic,Door,10000,20
+        2015-01-04T14:00:40.000Z,Toyota,Prius,Engine,20000,400
+        2015-01-04T14:00:40.000Z,Toyota,Prius,Door,20000,25
         """)
