@@ -238,6 +238,42 @@ describe "Dataset", ->
       }
     ])
 
+    timeSeriesResult = Dataset.fromJS([
+      {
+        "count": 31427,
+        "added": 6686857,
+        "Split": [
+          {
+            "Segment": {
+              "start": "2013-02-26T16:00:00.000Z",
+              "end": "2013-02-26T17:00:00.000Z",
+              "type": "TIME_RANGE"
+            },
+            "count": 2012,
+            "added": 373390,
+          },
+          {
+            "Segment": {
+              "start": "2013-02-26T01:00:00.000Z",
+              "end": "2013-02-26T02:00:00.000Z",
+              "type": "TIME_RANGE"
+            },
+            "count": 1702,
+            "added": 181266,
+          },
+          {
+            "Segment": {
+              "start": "2013-02-26T15:00:00.000Z",
+              "end": "2013-02-26T16:00:00.000Z",
+              "type": "TIME_RANGE"
+            },
+            "count": 1625,
+            "added": 284339,
+          },
+        ]
+      }
+    ])
+
     describe "#getColumns", ->
       it "works with basic dataset", ->
         expect(carDataset.getColumns()).to.deep.equal([
@@ -507,6 +543,15 @@ describe "Dataset", ->
             "weight": 1300
           }
         ])
+
+      it "works with timeseries with preorder and nesting indicator", ->
+        expect(timeSeriesResult.flatten({ order: 'preorder', nestingName: 'nest' })[0]).to.deep.equal(
+          {
+            "added": 6686857
+            "count": 31427
+            "nest": 0
+          }
+        )
 
 
     describe "#toCSV", ->

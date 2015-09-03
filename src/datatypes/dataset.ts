@@ -168,6 +168,10 @@ module Plywood {
       return new AttributeInfo({ type: 'NUMBER' });
     } else if (isString(attributeValue)) {
       return new AttributeInfo({ type: 'STRING' });
+    } else if (NumberRange.isNumberRange(attributeValue)) {
+      return new AttributeInfo({ type: 'NUMBER_RANGE' });
+    } else if (TimeRange.isTimeRange(attributeValue)) {
+      return new AttributeInfo({ type: 'TIME_RANGE' });
     } else if (attributeValue instanceof Dataset) {
       return new AttributeInfo(attributeValue.getFullType());
     } else {
