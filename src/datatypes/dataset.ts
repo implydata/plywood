@@ -174,6 +174,8 @@ module Plywood {
       return new AttributeInfo({ type: 'TIME_RANGE' });
     } else if (attributeValue instanceof Dataset) {
       return new AttributeInfo(attributeValue.getFullType());
+    } else if (attributeValue instanceof DruidExternal) {
+      return new AttributeInfo(attributeValue.getFullType());
     } else {
       throw new Error("Could not introspect");
     }
@@ -590,9 +592,11 @@ module Plywood {
         };
         if (attributeInfo.type === 'DATASET') {
           if (!subDatasetAdded) {
-            subDatasetAdded = true;
-            column.columns = this.data[0][attributeName].getNestedColumns();
-            nestedColumns.push(column);
+            if(!External.isExternal(this.data[0][attributeName])) {
+              subDatasetAdded = true;
+              column.columns = this.data[0][attributeName].getNestedColumns();
+              nestedColumns.push(column);
+            }
           }
         } else {
           nestedColumns.push(column);
