@@ -150,7 +150,7 @@ module Plywood {
   }
 
   function isDate(dt: any) {
-    return Boolean(dt.toISOString)
+    return Boolean(dt && dt.toISOString);
   }
 
   function isNumber(n: any) {
@@ -169,7 +169,7 @@ module Plywood {
     } else if (isString(attributeValue)) {
       return new AttributeInfo({ type: 'STRING' });
     } else if (attributeValue instanceof Dataset) {
-      return new AttributeInfo(attributeValue.getFullType())
+      return new AttributeInfo(attributeValue.getFullType());
     } else {
       throw new Error("Could not introspect");
     }
