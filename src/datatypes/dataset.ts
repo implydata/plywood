@@ -236,8 +236,8 @@ module Plywood {
     data?: Datum[];
   }
 
-  var check: ImmutableClass<DatasetValue, any>;
-  export class Dataset implements ImmutableInstance<DatasetValue, any> {
+  var check: Class<DatasetValue, any>;
+  export class Dataset implements Instance<DatasetValue, any> {
     static type = 'DATASET';
 
     static isDataset(candidate: any): boolean {

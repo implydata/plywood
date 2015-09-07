@@ -135,13 +135,13 @@ module Plywood {
     }
   }
 
-  var check: ImmutableClass<ExpressionValue, ExpressionJS>;
+  var check: Class<ExpressionValue, ExpressionJS>;
 
   /**
    * Provides a way to express arithmetic operations, aggregations and database operators.
    * This class is the backbone of plywood
    */
-  export class Expression implements ImmutableInstance<ExpressionValue, ExpressionJS> {
+  export class Expression implements Instance<ExpressionValue, ExpressionJS> {
     static NULL: LiteralExpression;
     static ZERO: LiteralExpression;
     static ONE: LiteralExpression;
@@ -191,7 +191,7 @@ module Plywood {
             return Expression.NULL;
           } else if (Expression.isExpression(param)) {
             return param
-          } else if (isHigherObject(param)) {
+          } else if (isImmutableClass(param)) {
             if (param.constructor.type) {
               // Must be a datatype
               expressionJS = { op: 'literal', value: param };

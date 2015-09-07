@@ -1,10 +1,10 @@
 { expect } = require("chai")
 
-{ testHigherObjects } = require("higher-object/build/tester")
+{ testImmutableClass } = require("immutable-class/build/tester")
 
-{ WallTime } = require('chronology')
+{ WallTime } = require('chronoshift')
 if not WallTime.rules
-  tzData = require("chronology/lib/walltime/walltime-data.js")
+  tzData = require("chronoshift/lib/walltime/walltime-data.js")
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
@@ -12,7 +12,7 @@ plywood = require('../../build/plywood')
 
 describe "Expression", ->
   it "passes higher object tests", ->
-    testHigherObjects(Expression, [
+    testImmutableClass(Expression, [
       { op: 'literal', value: null }
       { op: 'literal', value: false }
       { op: 'literal', value: true }

@@ -28,8 +28,8 @@ module Plywood {
     height?: number;
   }
 
-  var check: ImmutableClass<ShapeJS, ShapeJS>;
-  export class Shape implements ImmutableInstance<ShapeJS, ShapeJS> {
+  var check: Class<ShapeJS, ShapeJS>;
+  export class Shape implements Instance<ShapeJS, ShapeJS> {
     static type = 'SHAPE';
 
     static isShape(candidate: any): boolean {

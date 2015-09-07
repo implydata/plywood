@@ -1,10 +1,10 @@
 { expect } = require("chai")
 
-{ testHigherObjects } = require("higher-object/build/tester")
+{ testImmutableClass } = require("immutable-class/build/tester")
 
-{ WallTime } = require('chronology')
+{ WallTime } = require('chronoshift')
 if not WallTime.rules
-  tzData = require("chronology/lib/walltime/walltime-data.js")
+  tzData = require("chronoshift/lib/walltime/walltime-data.js")
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
@@ -37,7 +37,7 @@ context = {
 
 describe "External", ->
   it "passes higher object tests", ->
-    testHigherObjects(External, [
+    testImmutableClass(External, [
       {
         engine: 'druid',
         dataSource: 'moon_child',

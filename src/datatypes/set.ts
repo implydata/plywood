@@ -50,8 +50,8 @@ module Plywood {
     'TIME': 'TIME_RANGE'
   };
 
-  var check: ImmutableClass<SetValue, SetJS>;
-  export class Set implements ImmutableInstance<SetValue, SetJS> {
+  var check: Class<SetValue, SetJS>;
+  export class Set implements Instance<SetValue, SetJS> {
     static type = 'SET';
     static EMPTY: Set;
 

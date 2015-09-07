@@ -24,8 +24,8 @@ module Plywood {
     digitsAfterDecimal?: int;
   }
 
-  var check: ImmutableClass<AttributeInfoJS, AttributeInfoJS>;
-  export class AttributeInfo implements ImmutableInstance<AttributeInfoJS, AttributeInfoJS> {
+  var check: Class<AttributeInfoJS, AttributeInfoJS>;
+  export class AttributeInfo implements Instance<AttributeInfoJS, AttributeInfoJS> {
     static UNIQUE: UniqueAttributeInfo;
     static HISTOGRAM: HistogramAttributeInfo;
 

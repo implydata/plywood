@@ -15,8 +15,8 @@ module Plywood {
     return (isNaN(n) || isFinite(n)) ? n : null;
   }
 
-  var check: ImmutableClass<NumberRangeValue, NumberRangeJS>;
-  export class NumberRange extends Range<number> implements ImmutableInstance<NumberRangeValue, NumberRangeJS> {
+  var check: Class<NumberRangeValue, NumberRangeJS>;
+  export class NumberRange extends Range<number> implements Instance<NumberRangeValue, NumberRangeJS> {
     static type = 'NUMBER_RANGE';
 
     static isNumberRange(candidate: any): boolean {

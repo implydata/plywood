@@ -6,7 +6,7 @@ module Plywood {
         type: parameters.type
       };
       var v: any = parameters.value;
-      if (isHigherObject(v)) {
+      if (isImmutableClass(v)) {
         value.value = v;
       } else {
         value.value = valueFromJS(v, parameters.type);

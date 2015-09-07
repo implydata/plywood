@@ -1,9 +1,9 @@
 { expect } = require("chai")
 Q = require('q')
 
-{ WallTime } = require('chronology')
+{ WallTime } = require('chronoshift')
 if not WallTime.rules
-  tzData = require("chronology/lib/walltime/walltime-data.js")
+  tzData = require("chronoshift/lib/walltime/walltime-data.js")
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')

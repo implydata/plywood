@@ -2,7 +2,6 @@
 Q = require('q')
 
 plywood = require('../build/plywood')
-{ FacetQuery, SegmentTree } = plywood.legacy
 
 uniformizeResults = (result) ->
   if not result?.prop
@@ -56,6 +55,7 @@ exports.wrapVerbose = (requester, name) ->
         throw err
     )
 
+###
 exports.makeEqualityTest = (driverFnMap) ->
   return ({drivers, query, verbose, before, after}) ->
     throw new Error("must have at least two drivers") if drivers.length < 2
@@ -107,7 +107,7 @@ exports.makeEqualityTest = (driverFnMap) ->
           console.log err
           throw err
       ).done()
-
+###
 
 exports.makeErrorTest = (driverFnMap) ->
   return ({drivers, request, error, verbose}) ->

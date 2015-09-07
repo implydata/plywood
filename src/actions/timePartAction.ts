@@ -73,8 +73,8 @@ module Plywood {
       var unitSmall = partUnits[0];
       var unitBig = partUnits[1];
       var timezone = this.timezone;
-      var smallTimeMover = <Chronology.TimeMover>(<any>Chronology)[unitSmall];
-      var bigTimeMover = <Chronology.TimeMover>(<any>Chronology)[unitBig];
+      var smallTimeMover = <Chronoshift.TimeMover>(<any>Chronoshift)[unitSmall];
+      var bigTimeMover = <Chronoshift.TimeMover>(<any>Chronoshift)[unitBig];
 
       var start = extentRange.start;
       var end = extentRange.end;

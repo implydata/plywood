@@ -1,6 +1,6 @@
 {
   "name": "plywood",
-  "version": "0.0.20",
+  "version": "0.1.1",
   "description": "split-apply-combine; unify data and vis; with single language",
   "keywords": [
     "split",
@@ -26,11 +26,11 @@
   },
   "dependencies": {
     "d3": "^3.5.6",
-    "higher-object": "^0.2.6",
+    "immutable-class": "^0.3.x",
     "q": "^1.1.2"
   },
   "peerDependencies": {
-    "chronology": "0.8.x"
+    "chronoshift": "^0.3.x"
   },
   "devDependencies": {
     "browserify": "~11.0.1",

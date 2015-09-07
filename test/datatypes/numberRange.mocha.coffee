@@ -1,13 +1,13 @@
 { expect } = require("chai")
 
-{ testHigherObjects } = require("higher-object/build/tester")
+{ testImmutableClass } = require("immutable-class/build/tester")
 
 plywood = require('../../build/plywood')
 { NumberRange, $ } = plywood
 
 describe "NumberRange", ->
   it "passes higher object tests", ->
-    testHigherObjects(NumberRange, [
+    testImmutableClass(NumberRange, [
       {
         start: 0
         end:   0

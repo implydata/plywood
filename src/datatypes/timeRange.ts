@@ -28,8 +28,8 @@ module Plywood {
       .replace(/T00$/, '');
   }
 
-  var check: ImmutableClass<TimeRangeValue, TimeRangeJS>;
-  export class TimeRange extends Range<Date> implements ImmutableInstance<TimeRangeValue, TimeRangeJS> {
+  var check: Class<TimeRangeValue, TimeRangeJS>;
+  export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, TimeRangeJS> {
     static type = 'TIME_RANGE';
 
     static isTimeRange(candidate: any): boolean {

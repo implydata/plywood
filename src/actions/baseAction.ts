@@ -54,8 +54,8 @@ module Plywood {
 // =====================================================================================
 // =====================================================================================
 
-  var checkAction: ImmutableClass<ActionValue, ActionJS>;
-  export class Action implements ImmutableInstance<ActionValue, ActionJS> {
+  var checkAction: Class<ActionValue, ActionJS>;
+  export class Action implements Instance<ActionValue, ActionJS> {
 
     static jsToValue(parameters: ActionJS): ActionValue {
       var value: ActionValue = {

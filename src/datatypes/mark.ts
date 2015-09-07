@@ -20,8 +20,8 @@ module Plywood {
     prop: Lookup<any>;
   }
 
-  var check: ImmutableClass<MarkJS, MarkJS>;
-  export class Mark implements ImmutableInstance<MarkJS, MarkJS> {
+  var check: Class<MarkJS, MarkJS>;
+  export class Mark implements Instance<MarkJS, MarkJS> {
     static type = 'MARK';
 
     static isMark(candidate: any): boolean {

@@ -1,13 +1,13 @@
 { expect } = require("chai")
 
-{ testHigherObjects } = require("higher-object/build/tester")
+{ testImmutableClass } = require("immutable-class/build/tester")
 
 plywood = require('../../build/plywood')
 { TimeRange, $ } = plywood
 
 describe "TimeRange", ->
   it "passes higher object tests", ->
-    testHigherObjects(TimeRange, [
+    testImmutableClass(TimeRange, [
       {
         start: new Date('2015-01-26T04:54:10Z')
         end:   new Date('2015-01-26T05:54:10Z')

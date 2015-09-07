@@ -1,13 +1,13 @@
 { expect } = require("chai")
 
-{ testHigherObjects } = require("higher-object/build/tester")
+{ testImmutableClass } = require("immutable-class/build/tester")
 
 plywood = require('../../build/plywood')
 { Action, $ } = plywood
 
 describe "Actions", ->
   it "passes higher object tests", ->
-    testHigherObjects(Action, [
+    testImmutableClass(Action, [
       {
         action: 'apply'
         name: 'Five'
