@@ -26,6 +26,10 @@ describe "Set", ->
       }
       {
         setType: 'STRING'
+        elements: ['B']
+      }
+      {
+        setType: 'STRING'
         elements: ['B', 'C']
       }
       {

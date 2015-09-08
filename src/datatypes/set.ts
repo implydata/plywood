@@ -181,7 +181,8 @@ module Plywood {
     public equals(other: Set): boolean {
       return Set.isSet(other) &&
         this.setType === other.setType &&
-        Object.keys(this.elements).sort().join('') === Object.keys(other.elements).sort().join('');
+        this.elements.length === other.elements.length &&
+        this.elements.slice().sort().join('') === other.elements.slice().sort().join('');
     }
 
     public empty(): boolean {
