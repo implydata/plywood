@@ -1,3 +1,32 @@
-# plywood
+# Imply Plywood
 
-Not ready yet.
+[![Build Status](https://travis-ci.org/plywood/plywood.svg?branch=master)](https://travis-ci.org/plywood/plywood)
+
+## Introduction
+
+Imply Plywood is an open-source JavaScript framework for creating powerful database queries that return data optimized for 
+creating complex visualizations. Plywood is about creating on-the-fly visualizations out of ad-hoc, real-time query results.
+
+Plywood was built with these goals in mind:
+
+### Higher-level language
+
+A high-level *domain specific language* is employed to describe the Plywood API.
+This language is inspired by Hadley Wickham's [split-apply-combine](http://www.jstatsoft.org/v40/i01/paper) principle,
+and by [jq](https://stedolan.github.io/jq/).
+
+### Higher-level objects
+
+A number of core datatypes are provided to make life easy.
+
+### Serializability
+
+Plywood queries and visualizations can be serialized to and from JSON.
+
+## License
+
+Apache License, Version 2.0.
+
+## Questions & Support
+
+Please direct all questions to our [user groups](https://groups.google.com/forum/#!forum/imply-user-group).
