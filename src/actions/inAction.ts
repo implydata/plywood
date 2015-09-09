@@ -1,21 +1,4 @@
 module Plywood {
-  /*
-  function makeInOrIs(lhs: Expression, value: any): Expression {
-    var literal = new LiteralExpression({
-      op: 'literal',
-      value: value
-    });
-
-    var literalType = literal.type;
-    var returnExpression: Expression = null;
-    if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || literalType.indexOf('SET/') === 0) {
-      returnExpression = new InExpression({ op: 'in', lhs: lhs, rhs: literal });
-    } else {
-      returnExpression = new IsExpression({ op: 'is', lhs: lhs, rhs: literal });
-    }
-    return returnExpression.simplify();
-  }
-  */
 
   export class InAction extends Action {
     static fromJS(parameters: ActionJS): InAction {
@@ -110,42 +93,6 @@ module Plywood {
       ) return Expression.FALSE;
       return null;
     }
-
-    /*
-    public mergeAnd(ex: Expression): Expression {
-      if (ex.isOp('literal')) return ex.mergeAnd(this);
-
-      if (!this.checkLefthandedness()) return null;
-      if (!arraysEqual(this.getFreeReferences(), ex.getFreeReferences())) return null;
-
-      if (ex instanceof IsExpression || ex instanceof InExpression) {
-        if (!ex.checkLefthandedness()) return null;
-
-        var intersect = Set.generalIntersect((<LiteralExpression>this.expression).value, (<LiteralExpression>ex.rhs).value);
-        if (intersect === null) return null;
-
-        return makeInOrIs(this.lhs, intersect);
-      }
-      return null;
-    }
-
-    public mergeOr(ex: Expression): Expression {
-      if (ex.isOp('literal')) return ex.mergeOr(this);
-
-      if (!this.checkLefthandedness()) return null;
-      if (!arraysEqual(this.getFreeReferences(), ex.getFreeReferences())) return null;
-
-      if (ex instanceof IsExpression || ex instanceof InExpression) {
-        if (!ex.checkLefthandedness()) return null;
-
-        var intersect = Set.generalUnion((<LiteralExpression>this.rhs).value, (<LiteralExpression>ex.rhs).value);
-        if (intersect === null) return null;
-
-        return makeInOrIs(this.lhs, intersect);
-      }
-      return null;
-    }
-    */
   }
 
   Action.register(InAction);

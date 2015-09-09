@@ -231,6 +231,22 @@ module Plywood {
       return Expression.fromJS(expressionJS);
     }
 
+    static inOrIs(lhs: Expression, value: any): Expression {
+      var literal = new LiteralExpression({
+        op: 'literal',
+        value: value
+      });
+
+      var literalType = literal.type;
+      var returnExpression: Expression = null;
+      if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || literalType.indexOf('SET/') === 0) {
+        returnExpression = lhs.in(literal);
+      } else {
+        returnExpression = lhs.is(literal);
+      }
+      return returnExpression.simplify();
+    }
+
     /**
      * Composes the given expressions with an AND
      * @param expressions the expressions to compose
@@ -453,20 +469,6 @@ module Plywood {
         }
         return null;
       });
-    }
-
-    /**
-     * Merge self with the provided expression for AND operation and returns a merged expression.
-     */
-    public mergeAnd(ex: Expression): Expression {
-      throw new Error('can not call on base');
-    }
-
-    /**
-     * Merge self with the provided expression for OR operation and returns a merged expression.
-     */
-    public mergeOr(ex: Expression): Expression {
-      throw new Error('can not call on base');
     }
 
     /**

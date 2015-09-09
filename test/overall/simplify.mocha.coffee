@@ -134,14 +134,14 @@ describe "Simplify", ->
       ex2 = $('x').and('$a or $b', '$z')
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
-    it.only "works with different filters", ->
+    it "works with different filters", ->
       ex = $('flight').is(5).and($('flight').is(7))
       ex2 = $(false)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "works with same filters", ->
       ex = $('flight').is(5).and($('flight').is(5))
-      ex2 = $('flight').is(7)
+      ex2 = $('flight').is(5)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "works with IS and IN", ->
@@ -203,7 +203,7 @@ describe "Simplify", ->
 
     it "works with IS and IN", ->
       ex = $('flight').is(5).or($('flight').in(new NumberRange({start: 5, end: 7})))
-      ex2 = $('flight').is($('flight').in(new NumberRange({start: 5, end: 7})))
+      ex2 = $('flight').in(new NumberRange({start: 5, end: 7}))
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
