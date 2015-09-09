@@ -134,7 +134,7 @@ describe "Simplify", ->
       ex2 = $('x').and('$a or $b', '$z')
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
-    it "works with different filters", ->
+    it.only "works with different filters", ->
       ex = $('flight').is(5).and($('flight').is(7))
       ex2 = $(false)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())

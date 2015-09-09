@@ -86,48 +86,6 @@ describe "Expression", ->
       newThrows: true
     })
 
-
-  ###
-  { op: 'is', lhs: { op: 'literal', value: 5 }, rhs: { op: 'literal', value: 5 } }
-  { op: 'is', lhs: { op: 'literal', value: 5 }, rhs: { op: 'ref', name: 'flight_time' } }
-  { op: 'lessThan', lhs: { op: 'literal', value: 5 }, rhs: { op: 'literal', value: 5 } }
-  { op: 'lessThan', lhs: { op: 'literal', value: 5 }, rhs: { op: 'literal', value: 6 } }
-  { op: 'lessThanOrEqual', lhs: { op: 'literal', value: 5 }, rhs: { op: 'ref', name: 'flight_time' } }
-  { op: 'greaterThan', lhs: { op: 'literal', value: 5 }, rhs: { op: 'literal', value: 5 } }
-  { op: 'greaterThan', lhs: { op: 'literal', value: 5 }, rhs: { op: 'ref', name: 'flight_time' } }
-  { op: 'greaterThanOrEqual', lhs: { op: 'literal', value: 5 }, rhs: { op: 'literal', value: 5 } }
-  { op: 'greaterThanOrEqual', lhs: { op: 'literal', value: 5 }, rhs: { op: 'ref', name: 'flight_time' } }
-  { op: 'in', lhs: { op: 'literal', value: 'Honda' }, rhs: { op: 'literal', value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] }, type: 'SET' } }
-  #{ op: 'in', lhs: { op: 'literal', value: 5 }, rhs: { op: 'literal', value: [0.05, 0.1] } }
-  { op: 'match', regexp: '^\d+', operand: { op: 'literal', value: 'Honda' } }
-  { op: 'not', operand: { op: 'literal', value: true } }
-  { op: 'and', operands: [{ op: 'literal', value: true }, { op: 'literal', value: false }, { op: 'literal', value: false }] }
-  { op: 'or', operands: [{ op: 'literal', value: true }, { op: 'literal', value: false }, { op: 'literal', value: false }] }
-
-  { op: 'add', operands: [{ op: 'literal', value: 5 }, { op: 'literal', value: -12 }, { op: 'literal', value: 0.4 }] }
-  { op: 'negate', operand: { op: 'literal', value: 5 } }
-  { op: 'multiply', operands: [{ op: 'literal', value: 5 }, { op: 'literal', value: -12 }, { op: 'literal', value: 0.4 }] }
-  { op: 'reciprocate', operand: { op: 'literal', value: 5 } }
-
-  { op: 'numberBucket', operand: { op: 'ref', name: 'num' }, size: 1 }
-  { op: 'numberBucket', operand: { op: 'ref', name: 'num' }, size: 0.05, offset: 0.01 }
-  { op: 'numberBucket', operand: { op: 'ref', name: 'num' }, size: 1, lowerLimit: 0, upperLimit: 5 }
-  { op: 'numberBucket', operand: { op: 'ref', name: 'num' }, size: 1, lowerLimit: -8, upperLimit: 0 }
-  { op: 'numberBucket', operand: { op: 'ref', name: 'num' }, size: 1, lowerLimit: 0 }
-
-  { op: 'timeBucket', operand: { op: 'ref', name: 'time' }, duration: 'P1D', timezone: 'Etc/UTC' }
-  { op: 'timeBucket', operand: { op: 'ref', name: 'time' }, duration: 'PT1H', timezone: 'Etc/UTC' }
-  { op: 'timeBucket', operand: { op: 'ref', name: 'time' }, duration: 'PT1H', timezone: 'America/Los_Angeles' }
-
-  { op: 'aggregate', operand: { op: 'ref', name: 'diamonds', type: 'DATASET' }, fn: 'sum', attribute: { op: 'ref', name: 'added' } }
-  { op: 'aggregate', operand: { op: 'ref', name: 'diamonds', type: 'DATASET' }, fn: 'min', attribute: { op: 'ref', name: 'added' } }
-  { op: 'aggregate', operand: { op: 'ref', name: 'diamonds', type: 'DATASET' }, fn: 'max', attribute: { op: 'ref', name: 'added' } }
-  { op: 'aggregate', operand: { op: 'ref', name: 'diamonds', type: 'DATASET' }, fn: 'quantile', attribute: { op: 'ref', name: 'added' }, value: 0.5 }
-  { op: 'aggregate', operand: { op: 'ref', name: 'diamonds', type: 'DATASET' }, fn: 'quantile', attribute: { op: 'ref', name: 'added' }, value: 0.6 }
-
-  { op: 'concat', operands: [{ op: 'literal', value: 'Honda' }, { op: 'literal', value: 'BMW' }, { op: 'literal', value: 'Suzuki' } ]}
-  ###
-
   describe "does not die with hasOwnProperty", ->
     it "survives", ->
       expect(Expression.fromJS({

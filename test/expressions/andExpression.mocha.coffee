@@ -5,34 +5,6 @@ plywood = require('../../build/plywood')
 { Set, TimeRange, NumberRange, $ } = plywood
 
 describe 'AndExpression', ->
-  describe 'empty expressions', ->
-    beforeEach ->
-      this.expression = { op: 'and', operands: [] }
-
-    tests.expressionCountIs(1)
-    tests.simplifiedExpressionIs({op: 'literal', value: true})
-
-  describe 'with true expressions', ->
-    beforeEach ->
-      this.expression = { op: 'and', operands: [
-        { op: 'literal', value: true },
-        { op: 'literal', value: true }
-      ] }
-
-    tests.expressionCountIs(3)
-    tests.simplifiedExpressionIs({op: 'literal', value: true})
-
-  describe 'with boolean expressions', ->
-    beforeEach ->
-      this.expression = { op: 'and', operands: [
-        { op: 'literal', value: true },
-        { op: 'literal', value: false },
-        { op: 'literal', value: false }
-      ] }
-
-    tests.expressionCountIs(4)
-    tests.simplifiedExpressionIs({op: 'literal', value: false})
-
   describe 'with is expressions', ->
     beforeEach ->
       this.expression = { op: 'and', operands: [
