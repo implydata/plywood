@@ -1,10 +1,10 @@
-# Imply Plywood
+# Plywood
 
 [![Build Status](https://travis-ci.org/plywood/plywood.svg?branch=master)](https://travis-ci.org/plywood/plywood)
 
 ## Introduction
 
-Imply Plywood is an open-source JavaScript framework for creating powerful database queries that return data optimized for 
+Plywood is an open-source JavaScript framework for creating powerful database queries that return data optimized for 
 creating complex visualizations. Plywood is about creating on-the-fly visualizations out of ad-hoc, real-time query results.
 
 Plywood was built with these goals in mind:
