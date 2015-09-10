@@ -15,13 +15,13 @@ A high-level *domain specific language* is employed to describe the Plywood API.
 This language is inspired by Hadley Wickham's [split-apply-combine](http://www.jstatsoft.org/v40/i01/paper) principle,
 and by [jq](https://stedolan.github.io/jq/).
 
-### Higher-level objects
+### Immutable query primitives
 
 A number of core datatypes are provided to make life easy.
 
 ### Serializability
 
-Plywood queries and visualizations can be serialized to and from JSON.
+Plywood queries can be serialized to and from JSON.
 
 ## License
 
