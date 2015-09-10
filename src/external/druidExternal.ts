@@ -246,15 +246,21 @@ module Plywood {
   }
 
   function postProcessIntrospectFactory(timeAttribute: string): IntrospectPostProcess {
-    return (res: Druid.DatasourceIntrospectResult): Attributes => {
+    return (res: Druid.SegmentMetadataResults): Attributes => {
       var attributes: Attributes = Object.create(null);
       attributes[timeAttribute] = new AttributeInfo({ type: 'TIME' });
-      res.dimensions.forEach(dimension => {
-        attributes[dimension] = new AttributeInfo({ type: 'STRING' });
-      });
-      res.metrics.forEach(metric => {
-        attributes[metric] = new AttributeInfo({ type: 'NUMBER', filterable: false, splitable: false });
-      });
+      var columns = res[0].columns;
+      for (var columnName in columns) {
+        if (columnName === timeAttribute) {
+          continue;
+        }
+        var columnData: Druid.ColumnMetadata = columns[columnName];
+        if (columnData.type === "STRING") {
+          attributes[columnName] = new AttributeInfo({ type: 'STRING' });
+        } else {
+          attributes[columnName] = new AttributeInfo({ type: 'NUMBER', filterable: false, splitable: false });
+        }
+      }
       return attributes;
     }
   }
@@ -1295,8 +1301,10 @@ return (start < 0 ?'-':'') + parts.join('.');
     public getIntrospectQueryAndPostProcess(): IntrospectQueryAndPostProcess<Druid.Query> {
       return {
         query: {
-          queryType: 'introspect',
-          dataSource: this.getDruidDataSource()
+          queryType: 'segmentMetadata',
+          dataSource: this.getDruidDataSource(),
+          intervals: ['0000-01-01/9999-12-31'],
+          merge: true
         },
         postProcess: postProcessIntrospectFactory(this.timeAttribute)
       };
