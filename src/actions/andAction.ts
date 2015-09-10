@@ -1,14 +1,16 @@
 module Plywood {
 
-  function mergeAnd(ex1: ChainExpression, ex2: ChainExpression): Expression {
+  function mergeAnd(ex1: Expression, ex2: Expression): Expression {
     if (
-      !ex1.expression.isOp('ref') ||
-      !ex2.expression.isOp('ref') ||
+      !ex1.isOp('chain') ||
+      !ex2.isOp('chain') ||
+      !(<ChainExpression>ex1).expression.isOp('ref') ||
+      !(<ChainExpression>ex2).expression.isOp('ref') ||
       !arraysEqual(ex1.getFreeReferences(), ex2.getFreeReferences())
     ) return null;
 
-    var ex1Actions = ex1.actions;
-    var ex2Actions = ex2.actions;
+    var ex1Actions = (<ChainExpression>ex1).actions;
+    var ex2Actions = (<ChainExpression>ex2).actions;
     if (ex1Actions.length !== 1 || ex2Actions.length !== 1) return null;
 
     var firstActionExpression1 = ex1Actions[0].expression;
@@ -18,7 +20,7 @@ module Plywood {
     var intersect = Set.generalIntersect(firstActionExpression1.getLiteralValue(), firstActionExpression2.getLiteralValue());
     if (intersect === null) return null;
 
-    return Expression.inOrIs(ex1.expression, intersect);
+    return Expression.inOrIs((<ChainExpression>ex1).expression, intersect);
   }
 
 
@@ -77,15 +79,21 @@ module Plywood {
 
     protected _performOnChain(chainExpression: ChainExpression): Expression {
       var { expression } = this;
-      if (expression.equals(Expression.FALSE)) {
-        return Expression.FALSE;
+      if (expression.equals(Expression.FALSE)) return Expression.FALSE;
 
-      } else if (expression instanceof ChainExpression) {
+      var andExpressions = chainExpression.getExpressionPattern('and');
+      if (andExpressions) {
+        for (var i = 0; i < andExpressions.length; i++) {
+          var andExpression = andExpressions[i];
+          var mergedExpression = mergeAnd(andExpression, expression);
+          if (mergedExpression) {
+            andExpressions[i] = mergedExpression;
+            return Expression.and(andExpressions).simplify();
+          }
+        }
+      } else {
         return mergeAnd(chainExpression, expression);
-
       }
-
-      return null;
     }
   }
 

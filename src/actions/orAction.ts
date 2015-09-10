@@ -1,14 +1,16 @@
 module Plywood {
 
-  function mergeOr(ex1: ChainExpression, ex2: ChainExpression): Expression {
+  function mergeOr(ex1: Expression, ex2: Expression): Expression {
     if (
-      !ex1.expression.isOp('ref') ||
-      !ex2.expression.isOp('ref') ||
+      !ex1.isOp('chain') ||
+      !ex2.isOp('chain') ||
+      !(<ChainExpression>ex1).expression.isOp('ref') ||
+      !(<ChainExpression>ex2).expression.isOp('ref') ||
       !arraysEqual(ex1.getFreeReferences(), ex2.getFreeReferences())
     ) return null;
 
-    var ex1Actions = ex1.actions;
-    var ex2Actions = ex2.actions;
+    var ex1Actions = (<ChainExpression>ex1).actions;
+    var ex2Actions = (<ChainExpression>ex2).actions;
     if (ex1Actions.length !== 1 || ex2Actions.length !== 1) return null;
 
     var firstActionExpression1 = ex1Actions[0].expression;
@@ -18,7 +20,7 @@ module Plywood {
     var intersect = Set.generalUnion(firstActionExpression1.getLiteralValue(), firstActionExpression2.getLiteralValue());
     if (intersect === null) return null;
 
-    return Expression.inOrIs(ex1.expression, intersect);
+    return Expression.inOrIs((<ChainExpression>ex1).expression, intersect);
   }
 
 
@@ -77,15 +79,21 @@ module Plywood {
 
     protected _performOnChain(chainExpression: ChainExpression): Expression {
       var { expression } = this;
-      if (expression.equals(Expression.TRUE)) {
-        return Expression.TRUE;
+      if (expression.equals(Expression.TRUE)) return Expression.TRUE;
 
-      } else if (expression instanceof ChainExpression) {
+      var orExpressions = chainExpression.getExpressionPattern('or');
+      if (orExpressions) {
+        for (var i = 0; i < orExpressions.length; i++) {
+          var orExpression = orExpressions[i];
+          var mergedExpression = mergeOr(orExpression, expression);
+          if (mergedExpression) {
+            orExpressions[i] = mergedExpression;
+            return Expression.or(orExpressions).simplify();
+          }
+        }
+      } else {
         return mergeOr(chainExpression, expression);
-
       }
-
-      return null;
     }
   }
 

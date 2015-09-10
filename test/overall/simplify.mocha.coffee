@@ -149,6 +149,16 @@ describe "Simplify", ->
       ex2 = $('flight').is(5)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
+    it "re-arranges filters 1", ->
+      ex = $('flight').is(5).and($('x').is(1)).and($('flight').is(7))
+      ex2 = $(false)
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "re-arranges filters 2", ->
+      ex = $('flight').is(5).and($('x').is(1)).and($('flight').is(5))
+      ex2 = $('flight').is(5).and($('x').is(1))
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
 
   describe 'OR', ->
     it "collapses true in simple case", ->
@@ -204,6 +214,16 @@ describe "Simplify", ->
     it "works with IS and IN", ->
       ex = $('flight').is(5).or($('flight').in(new NumberRange({start: 5, end: 7})))
       ex2 = $('flight').in(new NumberRange({start: 5, end: 7}))
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "re-arranges filters 1", ->
+      ex = $('flight').is(5).or($('x').is(1)).or($('flight').is(7))
+      ex2 = $('flight').in([5, 7]).or($('x').is(1))
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "re-arranges filters 2", ->
+      ex = $('flight').is(5).or($('x').is(1)).or($('flight').is(5))
+      ex2 = $('flight').is(5).or($('x').is(1))
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
