@@ -185,12 +185,12 @@ module Plywood {
         this.elements.slice().sort().join('') === other.elements.slice().sort().join('');
     }
 
+    public size(): int {
+      return this.elements.length;
+    }
+
     public empty(): boolean {
-      var elements = this.elements;
-      for (var k in elements) {
-        if (hasOwnProperty(elements, k)) return false;
-      }
-      return true;
+      return this.elements.length === 0;
     }
 
     public simplify(): any {

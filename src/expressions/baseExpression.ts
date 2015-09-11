@@ -107,6 +107,13 @@ module Plywood {
     }
   }
 
+  export function ref(name: string): RefExpression {
+    return RefExpression.fromJS({
+      op: 'ref',
+      name
+    })
+  }
+
   export function literal(input: any): Expression {
     if (External.isExternal(input)) {
       return new ExternalExpression({ external: input });
