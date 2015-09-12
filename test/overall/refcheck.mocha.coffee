@@ -171,7 +171,7 @@ describe "reference check", ->
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
         .apply('Cuts',
-          $("diamonds:DATASET").split("$cut:STRING", 'Cut')
+          $("diamonds", "DATASET").split("$cut:STRING", 'Cut')
             .apply('Count2', '$diamonds:DATASET.count()')
             .apply('TotalPrice2', '$diamonds:DATASET.sum($price:NUMBER)')
             .apply('AvgPrice2', '$TotalPrice2:NUMBER / $Count2:NUMBER')
@@ -186,7 +186,7 @@ describe "reference check", ->
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)')
 
-      ex2 = $("diamonds:DATASET").split("$cut:STRING", 'Cut')
+      ex2 = $("diamonds", "DATASET").split("$cut:STRING", 'Cut')
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
 
@@ -197,7 +197,7 @@ describe "reference check", ->
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)')
 
-      ex2 = $("diamonds:DATASET").filter($('color:STRING').is('D')).split("$cut:STRING", 'Cut')
+      ex2 = $("diamonds", "DATASET").filter($('color:STRING').is('D')).split("$cut:STRING", 'Cut')
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
 
@@ -223,17 +223,17 @@ describe "reference check", ->
         )
 
       ex2 = ply()
-        .apply("diamonds", $('^diamonds:DATASET').filter($("color:STRING").is('D')))
+        .apply("diamonds", $('^diamonds:DATASET').filter($("color", "STRING").is('D')))
         .apply('Count', $('diamonds:DATASET').count())
         .apply('TotalPrice', $('diamonds:DATASET').sum('$price:NUMBER'))
         .apply('Cuts',
-          $("diamonds:DATASET").split("$cut:STRING", 'Cut')
+          $("diamonds", "DATASET").split("$cut:STRING", 'Cut')
             .apply('Count', $('diamonds:DATASET').count())
             .apply('PercentOfTotal', '$diamonds:DATASET.sum($price:NUMBER) / $^TotalPrice:NUMBER')
             .sort('$Count:NUMBER', 'descending')
             .limit(2)
             .apply('Carats',
-              $("diamonds:DATASET").split($("carat:NUMBER").numberBucket(0.25), 'Carat')
+              $("diamonds", "DATASET").split($("carat", "NUMBER").numberBucket(0.25), 'Carat')
                 .apply('Count', $('diamonds:DATASET').count())
                 .sort('$Count:NUMBER', 'descending')
                 .limit(3)

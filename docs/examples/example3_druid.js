@@ -1,5 +1,6 @@
 var druidRequesterFactory = require('plywood-druid-requester').druidRequesterFactory;
 var plywood = require('../../build/plywood');
+var ply = plywood.ply;
 var $ = plywood.$;
 var Dataset = plywood.Dataset;
 
@@ -18,7 +19,7 @@ var context = {
   })
 };
 
-var ex = $()
+var ex = ply()
   .apply("wiki",
     $('wiki').filter($("time").in({
       start: new Date("2013-02-26T00:00:00Z"),

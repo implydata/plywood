@@ -1,4 +1,5 @@
 var plywood = require('../../build/plywood');
+var ply = plywood.ply;
 var $ = plywood.$;
 var Dataset = plywood.Dataset;
 
@@ -13,7 +14,7 @@ var context = {
   })
 };
 
-var ex = $()
+var ex = ply()
   .apply("diamonds", $('diamonds').filter($("color").is('D')))
   .apply('Count', $('diamonds').count())
   .apply('TotalPrice', '$diamonds.sum($price)');

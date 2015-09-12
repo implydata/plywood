@@ -29,7 +29,7 @@ Making a query in plywood consists of creating an expression and then evaluating
 
 There are a number of ways to create expressions:
 
-- by using the ```$()``` helper method
+- by using the ```ply()``` helper method
 - by parsing an expression string using the built-in parser
 - by composing them manually using the Expression sub-class objects
 - by constructing the appropriate JSON and then deserializing it into an Expression
@@ -63,11 +63,11 @@ Lear more about [data types here](./datatypes.md).
 Here is an example of a simple plywood query that illustrates the different ways by which expressions can be created:
 
 ```javascript
-var ex0 = $() // Create an empty singleton dataset literal [{}]
+var ex0 = ply() // Create an empty singleton dataset literal [{}]
   // 1 is converted into a literal
   .apply("one", 1)
 
-  // 2 is converted into a literal via the $() function
+  // 2 is converted into a literal via the ply() function
   .apply("two", $(2))
 
   // The string "$one + $two" is parsed into an expression
@@ -106,7 +106,7 @@ Calling ```ex0.compute()``` will return a Q promise that will resolve to:
 
 This example employees three functions:
 
-* `$()` creates a dataset with one empty datum inside of it. This is the base of most plywood operations.
+* `ply()` creates a dataset with one empty datum inside of it. This is the base of most plywood operations.
 
 * `apply(name, expression)` evaluates the given `expression` for every element of the dataset and saves the result as `name`.
 
@@ -149,7 +149,7 @@ var context = {
   wiki: wikiDataset
 };
 
-var ex = $()
+var ex = ply()
   // Define the dataset in context with a filter on time and language
   .apply("wiki",
     $('wiki').filter($("time").in({
@@ -195,7 +195,7 @@ var context = {
   wiki: wikiDataset
 };
 
-var ex = $()
+var ex = ply()
   .apply("wiki",
     $('wiki').filter($("time").in({
       start: new Date("2013-02-26T00:00:00Z"),

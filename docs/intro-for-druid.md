@@ -19,7 +19,7 @@ Here are plywood queries the would translate directly to single Druid queries.
 *ToDo: add description*
 
 ```javascript
-$()
+ply()
   .apply('maxTime', '$wiki.max($timestamp)')
   .apply('minTime', '$wiki.min($timestamp)')
 ```
@@ -29,7 +29,7 @@ $()
 *ToDo: add description*
 
 ```javascript
-$()
+ply()
   .apply('TimeByHour'
     $('wiki').split($('timestamp').numberBucket('PT1H', 'Etc/UTC'), "Time")
       .apply('Count', '$wiki.count()')
@@ -43,7 +43,7 @@ $()
 *ToDo: add description*
 
 ```javascript
-$()
+ply()
   .apply('Pages'
     $('wiki').split('$page', "Page")
       .apply('Count', '$wiki.count()')

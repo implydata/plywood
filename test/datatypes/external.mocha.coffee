@@ -111,7 +111,7 @@ describe "External", ->
       expect(
         externalDataset.filter.toJS()
       ).to.deep.equal(
-        context.wiki.filter.and($("language:STRING").is('en')).toJS()
+        context.wiki.filter.and($("language", "STRING").is('en')).toJS()
       )
 
     it "a total", ->
@@ -253,7 +253,7 @@ describe "External", ->
       expect(
         externalDataset.filter.toJS()
       ).to.deep.equal(
-        context.wiki.filter.and($("language:STRING").is('en')).toJS()
+        context.wiki.filter.and($("language", "STRING").is('en')).toJS()
       )
 
       expect(externalDataset.applies).to.have.length(2)

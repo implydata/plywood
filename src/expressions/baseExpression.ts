@@ -105,7 +105,13 @@ module Plywood {
    * @param nest (optional) the amount of nesting to add default: 0
    * @param type (optional) force the type of the reference
    */
-  export function $(name: string, nest?: number, type?: string): Expression {
+  export function $(name: string, nest?: number, type?: string): Expression;
+  export function $(name: string, type?: string): Expression;
+  export function $(name: string, nest?: any, type?: string): Expression {
+    if (typeof nest === 'string') {
+      type = nest;
+      nest = 0;
+    }
     return new RefExpression({
       name,
       nest: nest != null ? nest : 0,
