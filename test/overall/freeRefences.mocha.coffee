@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Action, Dataset, $, ply } = plywood
+{ Expression, Action, Dataset, $, ply, r } = plywood
 
 describe "reference check", ->
 

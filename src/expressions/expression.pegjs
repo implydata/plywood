@@ -157,19 +157,20 @@ Param
 
 BasicExpression
   = "(" _ ex:Expression _ ")" { return ex; }
+  / "ply(" _ ")" { return ply(); }
   / LiteralExpression
   / RefExpression
-  / "ply(" _ ")" { return ply(); }
 
 
 RefExpression
-  = "$" name:$("^"* SimpleName (":" TypeName)?)
+  = "$" name:$("^"* Name (":" TypeName)?)
     { return RefExpression.parse(name); }
   / "$" name:$("^"* "{" [^}]+ "}" (":" TypeName)?)
     { return RefExpression.parse(name); }
 
 LiteralExpression
   = value:Number { return r(value); }
+  / value:Name { return r(value); }
   / value:String { return r(value); }
   / value:(NullToken/FalseToken/TrueToken) { return r(value); }
 
@@ -218,14 +219,14 @@ Digit
 
 /* Extra */
 
+ReservedWord
+  = "ply" ![A-Za-z_]
+
 CallFn "CallFn"
   = $([a-zA-Z]+)
 
 Name "Name"
-  = $([a-z0-9A-Z_]+)
-
-SimpleName "Simple Name"
-  = $([a-zA-Z_] [a-z0-9A-Z_]*)
+  = $(!ReservedWord [a-zA-Z_] [a-z0-9A-Z_]*)
 
 TypeName "TypeName"
   = $([A-Z_/]+)

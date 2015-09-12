@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, External, $, ply } = plywood
+{ Expression, External, $, ply, r } = plywood
 
 describe "breakdown", ->
   context = {

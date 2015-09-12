@@ -8,7 +8,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, External, TimeRange, $, ply } = plywood
+{ Expression, Dataset, External, TimeRange, $, ply, r } = plywood
 
 wikiDataset = External.fromJS({
   engine: 'druid',

@@ -7,7 +7,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ External, introspectDatum, $, ply } = plywood
+{ External, introspectDatum, $, ply, r } = plywood
 
 
 describe "introspect", ->

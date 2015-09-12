@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, $, ply } = plywood
+{ Expression, $, ply, r } = plywood
 
 toJS = (sep) ->
   return sep unless sep

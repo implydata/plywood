@@ -3,7 +3,7 @@
 { testImmutableClass } = require("immutable-class/build/tester")
 
 plywood = require('../../build/plywood')
-{ Set, $, ply } = plywood
+{ Set, $, ply, r } = plywood
 
 describe "Set", ->
   it "passes higher object tests", ->

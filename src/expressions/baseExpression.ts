@@ -690,6 +690,7 @@ module Plywood {
      * @param ex The expression to evaluate
      */
     public apply(name: string, ex: any): ChainExpression {
+      if (typeof name !== 'string') throw new TypeError('apply name must be a string');
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
       return this.performAction(new ApplyAction({ name: name, expression: ex }));
     }

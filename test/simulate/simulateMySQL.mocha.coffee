@@ -6,7 +6,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, External, TimeRange, $, ply } = plywood
+{ Expression, External, TimeRange, $, ply, r } = plywood
 
 context = {
   diamonds: External.fromJS({

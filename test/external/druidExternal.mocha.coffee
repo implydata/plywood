@@ -7,7 +7,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, External, TimeRange, $, ply } = plywood
+{ Expression, External, TimeRange, $, ply, r } = plywood
 
 timeFilter = $('time').in(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z")

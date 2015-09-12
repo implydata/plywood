@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, $, ply } = plywood
+{ Expression, $, ply, r } = plywood
 
 describe "every", ->
   it "has sequential indexes", ->

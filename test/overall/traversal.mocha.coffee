@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, $, ply } = plywood
+{ Expression, Dataset, $, ply, r } = plywood
 
 describe "traversal", ->
   subs = (ex, index, depth, nestDiff) ->

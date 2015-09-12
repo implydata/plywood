@@ -265,7 +265,7 @@ describe "SQL parser", ->
     ex2 = ply()
       .apply('data',
         $('wiki').filter(
-          $('language').is("en").and($('page').isnt("Hello World"), $('added').lessThan(5))
+          $('language').is("en").and($('page').isnt(r("Hello World")), $('added').lessThan(5))
         )
       )
       .apply('TotalAdded', '$data.sum($added)')
