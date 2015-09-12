@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Action, Dataset, $ } = plywood
+{ Expression, Action, Dataset, $, ply } = plywood
 
 describe "reference check", ->
 
@@ -13,10 +13,10 @@ describe "reference check", ->
 
   describe "works as expected", ->
     it "works when there are no free references", ->
-      ex = $()
+      ex = ply()
         .apply('num', 5)
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$num + 1')
             .apply('y', '$x * 2')
         )
@@ -30,10 +30,10 @@ describe "reference check", ->
       expect(ex.getFreeReferences()).to.deep.equal(['data', 'x', 'y', 'z'])
 
     it "works in a actions case", ->
-      ex = $()
+      ex = ply()
         .apply('num', 5)
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$num + 1')
             .apply('y', '$x * 2')
             .apply('z', '$diamonds.sum($price)')
@@ -45,7 +45,7 @@ describe "reference check", ->
       expect(ex.actions[1].getFreeReferences()).to.deep.equal(['^diamonds', 'num'])
 
     it "works in a consecutive actions case", ->
-      ex = $()
+      ex = ply()
         .apply('one', 1)
         .apply('two', '$one + 1')
         .apply('three', '$two + 1')
@@ -57,7 +57,7 @@ describe "reference check", ->
 
 
   describe 'checks action decencies', ->
-    ex = $()
+    ex = ply()
       .apply('two', '$one + 1')
       .apply('three', '$two + 1')
       .apply('four', '$three + 1')

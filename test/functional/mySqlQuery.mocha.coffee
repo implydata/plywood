@@ -40,7 +40,7 @@ describe "MySQLExternal", ->
       }
     })
 
-    ex = $()
+    ex = ply()
       .apply("wiki", $('wiki').filter($("language").is('en')))
       .apply('Count', '$wiki.sum($count)')
       .apply('TotalAdded', '$wiki.sum($added)')
@@ -147,7 +147,7 @@ describe "MySQLExternal", ->
       }
     })
 
-    ex = $()
+    ex = ply()
       .apply("wiki", $('wiki').filter($("language").is('en')))
       .apply('Count', '$wiki.sum($count)')
       .apply('TotalAdded', '$wiki.sum($added)')

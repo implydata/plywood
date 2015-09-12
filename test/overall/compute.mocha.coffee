@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, $ } = plywood
+{ Expression, Dataset, $, ply } = plywood
 
 describe "compute native", ->
   data = [
@@ -13,7 +13,7 @@ describe "compute native", ->
   ]
 
   it "works in uber-basic case", (testComplete) ->
-    ex = $()
+    ex = ply()
       .apply('five', 5)
       .apply('nine', 9)
 
@@ -51,7 +51,7 @@ describe "compute native", ->
   it "works with simple split aggregator", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
-    ex = $()
+    ex = ply()
       .apply('Data', $(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
@@ -74,7 +74,7 @@ describe "compute native", ->
   it "works with simple split followed by some simple applies", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
-    ex = $()
+    ex = ply()
       .apply('Data', $(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
@@ -111,7 +111,7 @@ describe "compute native", ->
   it "works with context", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
-    ex = $()
+    ex = ply()
       .apply('Data', $(ds))
       .apply('CountPlusX', '$Data.count() + $x')
 
@@ -128,7 +128,7 @@ describe "compute native", ->
   it "works with context and split", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
-    ex = $()
+    ex = ply()
       .apply('Data', $(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
@@ -161,13 +161,13 @@ describe "compute native", ->
   it "works with simple split and sub apply", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
-    ex = $()
+    ex = ply()
       .apply('Data', $(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
           .apply('Count', $('Data').count())
       )
-    
+
     p = ex.compute()
     p.then((v) ->
       expect(v.toJS()).to.deep.equal([
@@ -194,7 +194,7 @@ describe "compute native", ->
   it "works with simple split and sub apply + sort + limit", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
-    ex = $()
+    ex = ply()
       .apply('Data', $(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
@@ -225,7 +225,7 @@ describe "compute native", ->
   it "works with simple filter", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
-    ex = $()
+    ex = ply()
       .apply('Data', $(ds).filter($('price').in(105, 305)))
       .apply('Count', '$Data.count()')
 
@@ -245,7 +245,7 @@ describe "compute native", ->
     midData = null
 
     it "works with simple group/label and subData filter with applies", (testComplete) ->
-      ex = $()
+      ex = ply()
         .apply('Data', $(ds))
         .apply('Count', '$Data.count()')
         .apply('Price', '$Data.sum($price)')
@@ -329,7 +329,7 @@ describe "compute native", ->
     it "does a join on split", (testComplete) ->
       ds = Dataset.fromJS(data).hide()
 
-      ex = $()
+      ex = ply()
         .apply('Data1', $(ds).filter($('price').in(105, 305)))
         .apply('Data2', $(ds).filter($('price').in(105, 305).not()))
         .apply('Count1', '$Data1.count()')

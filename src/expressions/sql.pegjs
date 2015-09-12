@@ -1,5 +1,7 @@
 {// starts with function(plywood)
+var ply = plywood.ply;
 var $ = plywood.$;
+var r = plywood.r;
 var Expression = plywood.Expression;
 var FilterAction = plywood.FilterAction;
 var ApplyAction = plywood.ApplyAction;
@@ -92,7 +94,7 @@ function constructQuery(columns, from, where, groupBy, having, orderBy, limit) {
     query = from;
   } else {
     if (groupBy.isOp('literal')) {
-      query = $().apply('data', from);
+      query = ply().apply('data', from);
     } else {
       var extract = extractGroupByColumn(columns, groupBy);
       columns = extract.applyColumns;
@@ -316,21 +318,21 @@ NameOrString = Name / String
 
 
 LiteralExpression
-  = number:Number { return Expression.fromJS({ op: "literal", value: number }); }
+  = number:Number { return r(number); }
   / string:String
     {
       if (dateRegExp.test(string)) {
         var date = new Date(string);
         if (!isNaN(date)) {
-          return Expression.fromJS({ op: "literal", value: date });
+          return r(date);
         } else {
-          return Expression.fromJS({ op: "literal", value: string });
+          return r(string);
         }
       } else {
-        return Expression.fromJS({ op: "literal", value: string });
+        return r(string);
       }
     }
-  / v:(NullToken / TrueToken / FalseToken) { return Expression.fromJS({ op: "literal", value: v }); }
+  / v:(NullToken / TrueToken / FalseToken) { return r(v); }
 
 
 String "String"

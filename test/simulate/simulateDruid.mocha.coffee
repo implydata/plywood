@@ -6,7 +6,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, External, Dataset, TimeRange, $ } = plywood
+{ Expression, External, Dataset, TimeRange, $, ply } = plywood
 
 attributes = {
   time: { type: 'TIME' }
@@ -45,7 +45,7 @@ context = {
 
 describe "simulate Druid", ->
   it "works in basic case", ->
-    ex = $()
+    ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
@@ -92,7 +92,7 @@ describe "simulate Druid", ->
     ])
 
   it.skip "works in advanced case", ->
-    ex = $()
+    ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
@@ -432,7 +432,7 @@ describe "simulate Druid", ->
     ])
 
   it "works with range bucket", ->
-    ex = $()
+    ex = ply()
       .apply('HeightBuckets',
         $("diamonds").split("$height_bucket", 'HeightBucket')
           .apply('Count', $('diamonds').count())
@@ -501,7 +501,7 @@ describe "simulate Druid", ->
     ])
 
   it "makes a timeBoundary query", ->
-    ex = $()
+    ex = ply()
       .apply('maximumTime', '$diamonds.max($time)')
       .apply('minimumTime', '$diamonds.min($time)')
 
@@ -513,7 +513,7 @@ describe "simulate Druid", ->
     ])
 
   it "makes a timeBoundary query (maxTime only)", ->
-    ex = $()
+    ex = ply()
       .apply('maximumTime', '$diamonds.max($time)')
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
@@ -525,7 +525,7 @@ describe "simulate Druid", ->
     ])
 
   it "makes a timeBoundary query (minTime only)", ->
-    ex = $()
+    ex = ply()
       .apply('minimumTime', '$diamonds.min($time)')
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
@@ -688,7 +688,7 @@ describe "simulate Druid", ->
     ])
 
   it "works without a sort defined", ->
-    ex = $()
+    ex = ply()
       .apply('topN',
         $("diamonds").split("$color", 'Color')
           .apply('Count', $('diamonds').count())
@@ -745,7 +745,7 @@ describe "simulate Druid", ->
     ])
 
   it "works with no attributes in dimension split dataset", ->
-    ex = $()
+    ex = ply()
       .apply('Cuts',
         $('diamonds').split("$cut", 'Cut')
           .sort('$Cut', 'ascending')
@@ -814,7 +814,7 @@ describe "simulate Druid", ->
     ])
 
   it "works with no attributes in time split dataset", ->
-    ex = $()
+    ex = ply()
       .apply('ByHour',
         $('diamonds').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
           .sort('$TimeByHour', 'ascending')
@@ -869,7 +869,7 @@ describe "simulate Druid", ->
     ])
 
   it "inlines a defined derived attribute", ->
-    ex = $()
+    ex = ply()
       .apply("diamonds", $('diamonds').apply('sale_price', '$price + $tax'))
       .apply('ByTime',
         $('diamonds').split($("time").timeBucket('P1D', 'Etc/UTC'), 'Time')
@@ -921,7 +921,7 @@ describe "simulate Druid", ->
     ])
 
   it "makes a query on a dataset with a fancy name", ->
-    ex = $()
+    ex = ply()
       .apply('maximumTime', '${diamonds-alt:;<>}.max($time)')
       .apply('minimumTime', '${diamonds-alt:;<>}.min($time)')
 
@@ -933,7 +933,7 @@ describe "simulate Druid", ->
     ])
 
   it "makes a query with countDistinct", ->
-    ex = $()
+    ex = ply()
       .apply('NumColors', '$diamonds.countDistinct($color)')
       .apply('NumVendors', '$diamonds.countDistinct($vendor_id)')
       .apply('VendorsByColors', '$NumVendors / $NumColors')

@@ -2,7 +2,7 @@
 
 tests = require './sharedTests'
 plywood = require('../../build/plywood')
-{ Set, TimeRange, NumberRange, $ } = plywood
+{ Set, TimeRange, NumberRange, $, ply } = plywood
 
 describe 'AndExpression', ->
   describe 'with is expressions', ->

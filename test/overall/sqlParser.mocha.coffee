@@ -6,7 +6,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, $ } = plywood
+{ Expression, $, ply } = plywood
 
 describe "SQL parser", ->
   it "should fail on a expression with no columns", ->
@@ -31,7 +31,7 @@ describe "SQL parser", ->
       FROM `wiki`
       """)
 
-    ex2 = $()
+    ex2 = ply()
       .apply('data', '$wiki')
       .apply('Count', '$data.count()')
 
@@ -59,7 +59,7 @@ describe "SQL parser", ->
       GROUP BY ''
       """)
 
-    ex2 = $()
+    ex2 = ply()
       .apply('data', '$wiki.filter($language = "en")')
       .apply('Count1', '$data.count()')
       .apply('Count2', '$data.count()')
@@ -86,7 +86,7 @@ describe "SQL parser", ->
       WHERE `language`="en"    -- This is just some comment
       """)
 
-    ex2 = $()
+    ex2 = ply()
       .apply('data', '$wiki.filter($language = "en")')
       .apply('TotalAdded', '$data.sum($added)')
 
@@ -100,7 +100,7 @@ describe "SQL parser", ->
       GROUP BY 1
       """)
 
-    ex2 = $()
+    ex2 = ply()
       .apply('data', '$data.filter($language = "en")')
       .apply('TotalAdded', '$data.sum($added)')
 
@@ -114,7 +114,7 @@ describe "SQL parser", ->
       GROUP BY 1
       """)
 
-    ex2 = $()
+    ex2 = ply()
       .apply('data', $('data').filter(
         $('language').is("en").and($('time').in({
           start: new Date('2015-01-01T10:30:00'),
@@ -134,7 +134,7 @@ describe "SQL parser", ->
       GROUP BY 1
       """).simplify()
 
-    ex2 = $()
+    ex2 = ply()
       .apply('data', $('data').filter(
         $('language').is("en").and($('time').in({
           start: new Date('2015-01-01T10:30:00'),
@@ -262,7 +262,7 @@ describe "SQL parser", ->
       GROUP BY ''
       """)
 
-    ex2 = $()
+    ex2 = ply()
       .apply('data',
         $('wiki').filter(
           $('language').is("en").and($('page').isnt("Hello World"), $('added').lessThan(5))
@@ -293,7 +293,7 @@ describe "SQL parser", ->
       GROUP BY ''
       """)
 
-    ex2 = $()
+    ex2 = ply()
       .apply('data', '$wiki.filter($language = "en")')
       .apply('TotalAdded', '$data.sum($added)')
       .apply('Pages',

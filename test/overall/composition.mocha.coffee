@@ -5,7 +5,7 @@ plywood = require('../../build/plywood')
 
 describe "composition", ->
   it "works in blank case", ->
-    ex = $()
+    ex = ply()
     expect(ex.toJS()).to.deep.equal({
       "op": "literal"
       "type": "DATASET"
@@ -20,7 +20,7 @@ describe "composition", ->
     })
 
   it "works in uber-basic case", ->
-    ex = $()
+    ex = ply()
       .apply('five', 5)
       .apply('nine', 9)
 
@@ -48,9 +48,9 @@ describe "composition", ->
   it "works in semi-realistic case", ->
     someDriver = {} # ToDo: fix this
 
-    ex = $()
+    ex = ply()
       .apply("Diamonds",
-        $() # someDriver)
+        ply() # someDriver)
           .filter($('color').is('D'))
           .apply("priceOver2", $("price").divide(2))
       )
@@ -126,9 +126,9 @@ describe "composition", ->
   it "works in semi-realistic case (using parser)", ->
     someDriver = {} # ToDo: fix this
 
-    ex = $()
+    ex = ply()
       .apply("Diamonds",
-        $() #someDriver)
+        ply() #someDriver)
           #.filter("$color = 'D'")
           .apply("priceOver2", "$price/2")
       )

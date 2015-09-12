@@ -6,7 +6,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, External, TimeRange, $ } = plywood
+{ Expression, External, TimeRange, $, ply } = plywood
 
 context = {
   diamonds: External.fromJS({
@@ -31,7 +31,7 @@ context = {
 
 describe "simulate MySQL", ->
   it "works in advanced case", ->
-    ex = $()
+    ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
@@ -132,7 +132,7 @@ describe "simulate MySQL", ->
       """)
 
   it "works with range bucket", ->
-    ex = $()
+    ex = ply()
       .apply('HeightBuckets',
         $("diamonds").split("$height_bucket", 'HeightBucket')
           .apply('Count', $('diamonds').count())

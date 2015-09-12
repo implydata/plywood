@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, $ } = plywood
+{ Expression, Dataset, $, ply } = plywood
 
 wikiDayData = require('../../data/wikipedia')
 
@@ -9,7 +9,7 @@ describe "compute native nontrivial data", ->
   ds = Dataset.fromJS(wikiDayData)
 
   it "works in simple agg case", (testComplete) ->
-    ex = $()
+    ex = ply()
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)')
 

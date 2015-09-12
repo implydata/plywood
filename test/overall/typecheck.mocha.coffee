@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, $ } = plywood
+{ Expression, $, ply } = plywood
 
 describe "typecheck", ->
   it "should throw silly ref type", ->

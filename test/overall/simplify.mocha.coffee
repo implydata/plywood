@@ -300,11 +300,11 @@ describe "Simplify", ->
 
   describe 'apply', ->
     it 'sorts applies does not mess with sort if all are simple 1', ->
-      ex = $()
+      ex = ply()
         .apply('Count', '$wiki.count()')
         .apply('Deleted', '$wiki.sum($deleted)')
 
-      ex2 = $()
+      ex2 = ply()
         .apply('Count', '$wiki.count()')
         .apply('Deleted', '$wiki.sum($deleted)')
 
@@ -312,23 +312,23 @@ describe "Simplify", ->
 
 
     it 'sorts applies does not mess with sort if all are simple 2', ->
-      ex = $()
+      ex = ply()
         .apply('Deleted', '$wiki.sum($deleted)')
         .apply('Count', '$wiki.count()')
 
-      ex2 = $()
+      ex2 = ply()
         .apply('Deleted', '$wiki.sum($deleted)')
         .apply('Count', '$wiki.count()')
 
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it 'sorts applies 2', ->
-      ex = $()
+      ex = ply()
         .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
         .apply('Deleted', '$wiki.sum($deleted)')
 
-      ex2 = $()
+      ex2 = ply()
         .apply('Deleted', '$wiki.sum($deleted)')
         .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')

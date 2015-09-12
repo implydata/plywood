@@ -6,10 +6,10 @@ plywood = require('../../build/plywood')
 describe "resolve", ->
   describe "errors if", ->
     it "went too deep", ->
-      ex = $()
+      ex = ply()
         .apply('num', '$^foo + 1')
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$^num * 3')
             .apply('y', '$^^^foo * 10')
         )
@@ -19,10 +19,10 @@ describe "resolve", ->
       ).to.throw('went too deep during resolve on: $^^^foo')
 
     it "could not find something in context", ->
-      ex = $()
+      ex = ply()
         .apply('num', '$^foo + 1')
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$^num * 3')
             .apply('y', '$^^foobar * 10')
         )
@@ -32,10 +32,10 @@ describe "resolve", ->
       ).to.throw('could not resolve $^^foobar because is was not in the context')
 
     it "ended up with bad types", ->
-      ex = $()
+      ex = ply()
         .apply('num', '$^foo + 1')
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$^num * 3')
             .apply('y', '$^^foo * 10')
         )
@@ -95,10 +95,10 @@ describe "resolve", ->
       )
 
     it "works in a nested case", ->
-      ex = $()
+      ex = ply()
         .apply('num', '$^foo + 1')
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$^num * 3')
             .apply('y', '$^^foo * 10')
         )
@@ -109,10 +109,10 @@ describe "resolve", ->
 
       ex = ex.resolve(context)
       expect(ex.toJS()).to.deep.equal(
-        $()
+        ply()
           .apply('num', '7 + 1')
           .apply('subData',
-            $()
+            ply()
               .apply('x', '$^num * 3')
               .apply('y', '7 * 10')
           )
@@ -123,7 +123,7 @@ describe "resolve", ->
       expect(ex.toJS()).to.deep.equal(
         $(Dataset.fromJS([{ num: 8 }]))
           .apply('subData',
-            $()
+            ply()
               .apply('x', '$^num * 3')
               .apply('y', 70)
           )
@@ -139,7 +139,7 @@ describe "resolve", ->
         { cut: 'Wow',   price: 100 }
       ]
 
-      ex = $()
+      ex = ply()
         .apply('Data', $(Dataset.fromJS(data)))
         .apply('FooPlusCount', '$^foo + $Data.count()')
         .apply('CountPlusBar', '$Data.count() + $^bar')
@@ -151,7 +151,7 @@ describe "resolve", ->
 
       ex = ex.resolve(context)
       expect(ex.toJS()).to.deep.equal(
-        $()
+        ply()
           .apply('Data', $(Dataset.fromJS(data)))
           .apply('FooPlusCount', '7 + $Data.count()')
           .apply('CountPlusBar', '$Data.count() + 8')
@@ -212,7 +212,7 @@ describe "resolve", ->
     }
 
     it "resolves all remotes correctly", ->
-      ex = $()
+      ex = ply()
         .apply('Cuts',
           $("diamonds").split("$cut", 'Cut')
             .apply('Count', $('diamonds').count())
@@ -234,7 +234,7 @@ describe "resolve", ->
       )).to.equal(true)
 
     it "resolves two dataset remotes", ->
-      ex = $()
+      ex = ply()
         .apply('Cuts',
           $("diamonds").split("$cut", 'Cut')
             .apply('Count', $('diamonds').count())

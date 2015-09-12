@@ -8,7 +8,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, External, TimeRange, $ } = plywood
+{ Expression, Dataset, External, TimeRange, $, ply } = plywood
 
 wikiDataset = External.fromJS({
   engine: 'druid',
@@ -115,7 +115,7 @@ describe "External", ->
       )
 
     it "a total", ->
-      ex = $()
+      ex = ply()
         .apply("wiki",
           $('^wiki')
             .apply('addedTwice', '$added * 2')
@@ -270,7 +270,7 @@ describe "External", ->
       ])
 
     it "a total and a split", ->
-      ex = $()
+      ex = ply()
         .apply("wiki",
           $('^wiki')
             .apply('addedTwice', '$added * 2')
@@ -299,7 +299,7 @@ describe "External", ->
       })
 
     it "a total and a split in a strange order", ->
-      ex = $()
+      ex = ply()
         .apply("wiki",
           $('^wiki')
             .apply('addedTwice', '$added * 2')

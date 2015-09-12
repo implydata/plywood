@@ -1,12 +1,12 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, $ } = plywood
+{ Expression, Dataset, $, ply } = plywood
 
 describe "stringification", ->
   it "works in advanced case", ->
 
-    ex = $()
+    ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', $('diamonds').count())
       .apply('TotalPrice', $('diamonds').sum('$price'))
@@ -26,7 +26,7 @@ describe "stringification", ->
       )
 
     expect(ex.toString()).to.equal("""
-      $().apply('diamonds', $diamonds.filter($color = "D"))
+      ply().apply('diamonds', $diamonds.filter($color = "D"))
         .apply(Count, $diamonds.count())
         .apply(TotalPrice, $diamonds.sum($price))
         .apply(Cuts, $diamonds.group($cut).label('Cut').apply('diamonds', $diamonds.filter($cut = $^Cut))

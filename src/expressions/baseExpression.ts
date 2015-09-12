@@ -88,38 +88,34 @@ module Plywood {
     return merged.length ? merged.sort() : null;
   }
 
+  // -----------------------------
+
   /**
-   * The expression starter function. Performs different operations depending on the type and value of the input
-   * $() produces a native dataset with a singleton empty datum inside of it. This is useful to describe the base container
+   * The expression starter function. It produces a native dataset with a singleton empty datum inside of it.
+   * This is useful to describe the base container
+   */
+  export function ply(): LiteralExpression {
+    return r(new Dataset({ data: [{}] }));
+  }
+
+  /**
    * $('blah') produces an reference lookup expression on 'blah'
    *
-   * @param input The input that can be nothing, a string, or a driver
+   * @param name The name of the column
+   * @param nest (optional) the amount of nesting to add default: 0
+   * @param type (optional) force the type of the reference
    */
-  export function $(input?: any): Expression {
-    if (arguments.length) {
-      if (typeof input === 'string') {
-        return RefExpression.parse(input);
-      } else  {
-        return literal(input);
-      }
-    } else {
-      return literal(new Dataset({ data: [{}] }));
-    }
+  export function $(name: string, nest?: number, type?: string): Expression {
+    return new RefExpression({
+      name,
+      nest: nest != null ? nest : 0,
+      type
+    });
   }
 
-  export function ref(name: string): RefExpression {
-    return RefExpression.fromJS({
-      op: 'ref',
-      name
-    })
-  }
-
-  export function literal(input: any): Expression {
-    if (External.isExternal(input)) {
-      return new ExternalExpression({ external: input });
-    } else {
-      return new LiteralExpression({ value: input });
-    }
+  export function r(value: any): LiteralExpression {
+    if (External.isExternal(value)) throw new TypeError('r can not accept externals');
+    return new LiteralExpression({ value: value });
   }
 
   export function mark(selector: string, prop: Lookup<any> = {}): Mark {

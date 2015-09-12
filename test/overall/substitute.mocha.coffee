@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, $ } = plywood
+{ Expression, $, ply } = plywood
 
 describe "substitute", ->
   it "should substitute on IS", ->
@@ -18,14 +18,14 @@ describe "substitute", ->
     )
 
   it "should substitute on complex expression", ->
-    ex = $()
+    ex = ply()
       .apply('num', 5)
       .apply('subData',
-        $()
+        ply()
           .apply('x', '$num + 1')
           .apply('y', '$foo * 2')
-          .apply('z', $().sum('$a + 3'))
-          .apply('w', $().sum('$a + 4 + $b'))
+          .apply('z', ply().sum('$a + 3'))
+          .apply('w', ply().sum('$a + 4 + $b'))
       )
 
     subs = (ex) ->
@@ -35,27 +35,27 @@ describe "substitute", ->
         return null
 
     expect(ex.substitute(subs).toJS()).to.deep.equal(
-      $()
+      ply()
         .apply('num', 15)
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$num + 11')
             .apply('y', '$foo * 12')
-            .apply('z', $().sum('$a + 13'))
-            .apply('w', $().sum('$a + 14 + $b'))
+            .apply('z', ply().sum('$a + 13'))
+            .apply('w', ply().sum('$a + 14 + $b'))
         )
         .toJS()
     )
 
   it "has sequential indexes", ->
-    ex = $()
+    ex = ply()
       .apply('num', 5)
       .apply('subData',
-        $()
+        ply()
           .apply('x', '$num + 1')
           .apply('y', '$foo * 2')
-          .apply('z', $().sum('$a + 3'))
-          .apply('w', $().sum('$a + 4 + $b'))
+          .apply('z', ply().sum('$a + 3'))
+          .apply('w', ply().sum('$a + 4 + $b'))
       )
 
     indexes = []

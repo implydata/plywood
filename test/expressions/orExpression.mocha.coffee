@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Set, $ } = plywood
+{ Set, $, ply } = plywood
 
 tests = require './sharedTests'
 

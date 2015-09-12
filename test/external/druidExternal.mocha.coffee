@@ -7,7 +7,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, External, TimeRange, $ } = plywood
+{ Expression, External, TimeRange, $, ply } = plywood
 
 timeFilter = $('time').in(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z")
@@ -52,7 +52,7 @@ contextNoApprox = {
 describe "DruidExternal", ->
   describe "processApply", ->
     it "breaks up correctly in simple case", ->
-      ex = $()
+      ex = ply()
         .apply('wiki', '$wiki') # for now
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -72,7 +72,7 @@ describe "DruidExternal", ->
         """)
 
     it "breaks up correctly in case of duplicate name", ->
-      ex = $()
+      ex = ply()
         .apply('wiki', '$wiki') # for now
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -91,7 +91,7 @@ describe "DruidExternal", ->
         """)
 
     it "breaks up correctly in case of variable reference", ->
-      ex = $()
+      ex = ply()
         .apply('wiki', '$wiki') # for now
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -110,7 +110,7 @@ describe "DruidExternal", ->
         """)
 
     it "breaks up correctly in complex case", ->
-      ex = $()
+      ex = ply()
         .apply('wiki', '$wiki') # for now
         .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
@@ -130,7 +130,7 @@ describe "DruidExternal", ->
         """)
 
     it.skip "breaks up correctly in case of duplicate apply", ->
-      ex = $()
+      ex = ply()
         .apply('wiki', '$wiki') # for now
         .apply('Added', '$wiki.sum($added)')
         .apply('Added2', '$wiki.sum($added)')
@@ -149,7 +149,7 @@ describe "DruidExternal", ->
         """)
 
     it.skip "breaks up correctly in case of duplicate apply (same name)", ->
-      ex = $()
+      ex = ply()
         .apply('wiki', '$wiki') # for now
         .apply('Added', '$wiki.sum($added)')
         .apply('Added', '$wiki.sum($added)')
@@ -172,7 +172,7 @@ describe "DruidExternal", ->
 
   describe "simplifies / digests", ->
     it "a (timeBoundary) total", ->
-      ex = $()
+      ex = ply()
         .apply('maximumTime', '$wiki.max($time)')
         .apply('minimumTime', '$wiki.min($time)')
 
@@ -185,7 +185,7 @@ describe "DruidExternal", ->
       })
 
     it "a total", ->
-      ex = $()
+      ex = ply()
         .apply("wiki",
           $('^wiki')
             .apply('addedTwice', '$added * 2')
@@ -224,7 +224,7 @@ describe "DruidExternal", ->
       })
 
     it "inlines a total with no explicit dataset apply", ->
-      ex = $()
+      ex = ply()
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply('TotalAddedX2', '$TotalAdded * 2')
 
@@ -367,7 +367,7 @@ describe "DruidExternal", ->
       })
 
     it "filters (in)", ->
-      ex = $()
+      ex = ply()
         .apply("wiki",
           $('^wiki')
             .filter($("language").in(['en']))
@@ -399,7 +399,7 @@ describe "DruidExternal", ->
       })
 
     it "filters (contains)", ->
-      ex = $()
+      ex = ply()
         .apply("wiki",
           $('^wiki')
             .filter($("language").contains('en'))
@@ -562,7 +562,7 @@ describe "DruidExternal", ->
     })
 
     describe "should return null correctly on a totals query", ->
-      ex = $()
+      ex = ply()
         .apply('wiki', '$wiki') # for now
         .apply('Count', '$wiki.count()')
 
@@ -621,7 +621,7 @@ describe "DruidExternal", ->
     })
 
     it "should work with all query", (testComplete) ->
-      ex = $()
+      ex = ply()
         .apply('wiki', '$wiki') # for now
         .apply('Count', '$wiki.count()')
 

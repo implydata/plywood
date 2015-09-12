@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, $ } = plywood
+{ Expression, Dataset, $, ply } = plywood
 
 describe "reference check", ->
 
@@ -14,10 +14,10 @@ describe "reference check", ->
 
   describe "errors", ->
     it "fails to resolve a variable that does not exist", ->
-      ex = $()
+      ex = ply()
         .apply('num', 5)
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$num + 1')
             .apply('y', '$foo * 2')
         )
@@ -27,10 +27,10 @@ describe "reference check", ->
       ).to.throw('could not resolve $foo')
 
     it "fails to resolve a variable that does not exist (in scope)", ->
-      ex = $()
+      ex = ply()
         .apply('num', 5)
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$num + 1')
             .apply('y', '$^x * 2')
         )
@@ -40,10 +40,10 @@ describe "reference check", ->
       ).to.throw('could not resolve $^x')
 
     it "fails to when a variable goes too deep", ->
-      ex = $()
+      ex = ply()
         .apply('num', 5)
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$num + 1')
             .apply('y', '$^^^x * 2')
         )
@@ -53,10 +53,10 @@ describe "reference check", ->
       ).to.throw('went too deep on $^^^x')
 
     it "fails when discovering that the types mismatch", ->
-      ex = $()
+      ex = ply()
         .apply('str', 'Hello')
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$str + 1')
         )
 
@@ -65,7 +65,7 @@ describe "reference check", ->
       ).to.throw('add must have input of type NUMBER')
 
     it "fails when discovering that the types mismatch via split", ->
-      ex = $()
+      ex = ply()
         .apply("diamonds", $("diamonds").filter($('color').is('D')))
         .apply('Cuts',
           $("diamonds").split("$cut", 'Cut')
@@ -79,18 +79,18 @@ describe "reference check", ->
 
   describe "resolves", ->
     it "works in a basic case", ->
-      ex = $()
+      ex = ply()
         .apply('num', 5)
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$num + 1')
             .apply('y', '$x * 2')
         )
 
-      ex2 = $()
+      ex2 = ply()
         .apply('num', 5)
         .apply('subData',
-          $()
+          ply()
             .apply('x', '$^num:NUMBER + 1')
             .apply('y', '$x:NUMBER * 2')
         )
@@ -98,10 +98,10 @@ describe "reference check", ->
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "works with simple context", ->
-      ex = $()
+      ex = ply()
         .apply('xPlusOne', '$x + 1')
 
-      ex2 = $()
+      ex2 = ply()
         .apply('xPlusOne', '$^x:NUMBER + 1')
 
       expect(ex.referenceCheck({ x: 70 }).toJS()).to.deep.equal(ex2.toJS())
@@ -116,23 +116,23 @@ describe "reference check", ->
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "works from context 2", ->
-      ex = $()
+      ex = ply()
         .apply('Diamonds', $('diamonds'))
         .apply('countPlusSeventy', '$Diamonds.count() + $seventy')
 
-      ex2 = $()
+      ex2 = ply()
         .apply('Diamonds', $('^diamonds:DATASET'))
         .apply('countPlusSeventy', '$Diamonds:DATASET.count() + $^seventy:NUMBER')
 
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "works with countDistinct", ->
-      ex = $()
+      ex = ply()
         .apply('DistinctColors', '$diamonds.countDistinct($color)')
         .apply('DistinctCuts', '$diamonds.countDistinct($cut)')
         .apply('Diff', '$DistinctColors - $DistinctCuts')
 
-      ex2 = $()
+      ex2 = ply()
         .apply('DistinctColors', '$^diamonds:DATASET.countDistinct($color:STRING)')
         .apply('DistinctCuts', '$^diamonds:DATASET.countDistinct($cut:STRING)')
         .apply('Diff', '$DistinctColors:NUMBER - $DistinctCuts:NUMBER')
@@ -140,12 +140,12 @@ describe "reference check", ->
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "a total", ->
-      ex = $()
+      ex = ply()
         .apply("diamonds", $("diamonds").filter($('color').is('D')))
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)')
 
-      ex2 = $()
+      ex2 = ply()
         .apply("diamonds", $("^diamonds:DATASET").filter($('color:STRING').is('D')))
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
@@ -153,7 +153,7 @@ describe "reference check", ->
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "a split", ->
-      ex = $()
+      ex = ply()
         .apply("diamonds", $("diamonds").filter($('color').is('D')))
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)')
@@ -166,7 +166,7 @@ describe "reference check", ->
             .limit(10)
         )
 
-      ex2 = $()
+      ex2 = ply()
         .apply("diamonds", $("^diamonds:DATASET").filter($('color:STRING').is('D')))
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
@@ -204,7 +204,7 @@ describe "reference check", ->
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "two splits", ->
-      ex = $()
+      ex = ply()
         .apply("diamonds", $('diamonds').filter($("color").is('D')))
         .apply('Count', $('diamonds').count())
         .apply('TotalPrice', $('diamonds').sum('$price'))
@@ -222,7 +222,7 @@ describe "reference check", ->
             )
         )
 
-      ex2 = $()
+      ex2 = ply()
         .apply("diamonds", $('^diamonds:DATASET').filter($("color:STRING").is('D')))
         .apply('Count', $('diamonds:DATASET').count())
         .apply('TotalPrice', $('diamonds:DATASET').sum('$price:NUMBER'))
@@ -243,7 +243,7 @@ describe "reference check", ->
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
 
     it "a join", ->
-      ex = $()
+      ex = ply()
         .apply('Data1', $('diamonds').filter($('price').in(105, 305)))
         .apply('Data2', $('diamonds').filter($('price').in(105, 305).not()))
         .apply('Cuts'
@@ -252,7 +252,7 @@ describe "reference check", ->
             .apply('Count2', '$K2.count()')
         )
 
-      ex2 = $()
+      ex2 = ply()
         .apply('Data1', $('^diamonds:DATASET').filter($('price:NUMBER').in(105, 305)))
         .apply('Data2', $('^diamonds:DATASET').filter($('price:NUMBER').in(105, 305).not()))
         .apply('Cuts'

@@ -6,7 +6,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, TimeRange, $ } = plywood
+{ Expression, Dataset, TimeRange, $, ply } = plywood
 
 context = {
   rankings: Dataset.fromJS({

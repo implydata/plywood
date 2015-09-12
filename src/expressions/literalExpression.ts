@@ -49,7 +49,7 @@ module Plywood {
     public toString(): string {
       var value = this.value;
       if (value instanceof Dataset && value.basis()) {
-        return '$()';
+        return 'ply()';
       } else if (this.type === 'STRING') {
         return JSON.stringify(value);
       } else {

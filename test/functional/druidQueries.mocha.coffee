@@ -50,7 +50,7 @@ describe "DruidExternal", ->
     })
 
     it "works timePart case", (testComplete) ->
-      ex = $()
+      ex = ply()
         .apply("wiki", $('wiki').filter($("language").is('en')))
         .apply('HoursOfDay',
           $("wiki").split("$time.timePart(HOUR_OF_DAY, 'Etc/UTC')", 'HourOfDay')
@@ -84,7 +84,7 @@ describe "DruidExternal", ->
       ).done()
 
     it "works in advanced case", (testComplete) ->
-      ex = $()
+      ex = ply()
         .apply("wiki", $('wiki').filter($("language").is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -203,7 +203,7 @@ describe "DruidExternal", ->
       ).done()
 
     it.only "works with uniques", (testComplete) ->
-      ex = $()
+      ex = ply()
         .apply('UniquePages', $('wiki').countDistinct("$page"))
         .apply('UniqueUsers1', $('wiki').countDistinct("$user"))
         #.apply('UniqueUsers2', $('wiki').countDistinct("$unique_users"))
@@ -222,7 +222,7 @@ describe "DruidExternal", ->
       ).done()
 
     it "works with no applies in dimensions split dataset", (testComplete) ->
-      ex = $()
+      ex = ply()
         .apply('Pages',
           $('wiki').split("$page", 'Page')
             .sort('$Page', 'descending')
@@ -264,7 +264,7 @@ describe "DruidExternal", ->
       ).done()
 
     it "works with no applies in time split dataset", (testComplete) ->
-      ex = $()
+      ex = ply()
         .apply('ByHour',
           $('wiki').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
             .sort('$TimeByHour', 'ascending')
@@ -357,7 +357,7 @@ describe "DruidExternal", ->
     })
 
     it "works with introspection", (testComplete) ->
-      ex = $()
+      ex = ply()
         .apply("wiki", $('wiki').filter($("language").is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')

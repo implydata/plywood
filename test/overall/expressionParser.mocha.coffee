@@ -6,11 +6,11 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, $ } = plywood
+{ Expression, $, ply } = plywood
 
 describe "expression parser", ->
   it "should parse the mega definition", ->
-    ex = $()
+    ex = ply()
       .filter('$color = "Red"')
       .filter('$price < 5')
       .filter('$country.is("USA")')
@@ -34,7 +34,7 @@ describe "expression parser", ->
       .apply('agg_split', "$data.split($carat, 'Carat')")
       .apply('agg_filter_count', "$data.filter($country = 'USA').count()")
 
-    ex2 = $()
+    ex2 = ply()
       .filter($('color').is("Red"))
       .filter($('price').lessThan(5))
       .filter($('country').is("USA"))
@@ -62,19 +62,19 @@ describe "expression parser", ->
 
   it "should parse a whole expression", ->
     ex = Expression.parse("""
-      $()
+      ply()
         .apply(num, 5)
         .apply(subData,
-          $()
+          ply()
             .apply(x, $num + 1)
             .apply(y, $foo * 2)
         )
       """)
 
-    ex2 = $()
+    ex2 = ply()
       .apply('num', 5)
       .apply('subData',
-        $()
+        ply()
           .apply('x', '$num + 1')
           .apply('y', '$foo * 2')
       )
@@ -83,7 +83,7 @@ describe "expression parser", ->
 
   it "should parse a whole complex expression", ->
     ex = Expression.parse("""
-      $()
+      ply()
         .apply(wiki, $wiki.filter($language = 'en'))
         .apply(Count, $wiki.sum($count))
         .apply(TotalAdded, $wiki.sum($added))
@@ -101,7 +101,7 @@ describe "expression parser", ->
         )
       """)
 
-    ex2 = $()
+    ex2 = ply()
       .apply("wiki", $('wiki').filter($("language").is('en')))
       .apply('Count', '$wiki.sum($count)')
       .apply('TotalAdded', '$wiki.sum($added)')

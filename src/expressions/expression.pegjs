@@ -157,7 +157,7 @@ BasicExpression
   = "(" _ ex:Expression _ ")" { return ex; }
   / LiteralExpression
   / RefExpression
-  / "$()" { return $(); }
+  / "ply()" { return ply(); }
 
 
 RefExpression

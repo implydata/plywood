@@ -3,7 +3,7 @@
 { testImmutableClass } = require("immutable-class/build/tester")
 
 plywood = require('../../build/plywood')
-{ TimeRange, $ } = plywood
+{ TimeRange, $, ply } = plywood
 
 describe "TimeRange", ->
   it "passes higher object tests", ->
