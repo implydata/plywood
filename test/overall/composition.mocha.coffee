@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ $ } = plywood
+{ $, ply, r } = plywood
 
 describe "composition", ->
   it "works in blank case", ->

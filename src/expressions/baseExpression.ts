@@ -94,8 +94,9 @@ module Plywood {
    * The expression starter function. It produces a native dataset with a singleton empty datum inside of it.
    * This is useful to describe the base container
    */
-  export function ply(): LiteralExpression {
-    return r(new Dataset({ data: [{}] }));
+  export function ply(dataset?: Dataset): LiteralExpression {
+    if (!dataset) dataset = new Dataset({ data: [{}] });
+    return r(dataset);
   }
 
   /**
@@ -108,6 +109,7 @@ module Plywood {
   export function $(name: string, nest?: number, type?: string): Expression;
   export function $(name: string, type?: string): Expression;
   export function $(name: string, nest?: any, type?: string): Expression {
+    if (typeof name !== 'string') throw new TypeError('name must be a string');
     if (typeof nest === 'string') {
       type = nest;
       nest = 0;
@@ -226,12 +228,7 @@ module Plywood {
           break;
 
         case 'string':
-          if (/^[\w ]+$/.test(param)) { // ToDo: is [\w ] right?
-            expressionJS = { op: 'literal', value: param };
-          } else {
-            return Expression.parse(param);
-          }
-          break;
+          return Expression.parse(param);
 
         default:
           throw new Error("unrecognizable expression");

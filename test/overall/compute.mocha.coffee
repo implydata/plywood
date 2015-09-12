@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, $, ply } = plywood
+{ Expression, Dataset, $, ply, r } = plywood
 
 describe "compute native", ->
   data = [
@@ -35,7 +35,7 @@ describe "compute native", ->
       { cut: 'Wow',   price: 160 }
     ])
 
-    ex = $(ds)
+    ex = ply(ds)
       .apply('priceX2', $('price').multiply(2))
 
     p = ex.compute()
@@ -52,7 +52,7 @@ describe "compute native", ->
     ds = Dataset.fromJS(data).hide()
 
     ex = ply()
-      .apply('Data', $(ds))
+      .apply('Data', ply(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
       )
@@ -75,7 +75,7 @@ describe "compute native", ->
     ds = Dataset.fromJS(data).hide()
 
     ex = ply()
-      .apply('Data', $(ds))
+      .apply('Data', ply(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
           .apply('Six', 6)
@@ -112,7 +112,7 @@ describe "compute native", ->
     ds = Dataset.fromJS(data).hide()
 
     ex = ply()
-      .apply('Data', $(ds))
+      .apply('Data', ply(ds))
       .apply('CountPlusX', '$Data.count() + $x')
 
     p = ex.compute({ x: 13 })
@@ -129,7 +129,7 @@ describe "compute native", ->
     ds = Dataset.fromJS(data).hide()
 
     ex = ply()
-      .apply('Data', $(ds))
+      .apply('Data', ply(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
           .apply('CountPlusX', '$Data.count() + $x')
@@ -162,7 +162,7 @@ describe "compute native", ->
     ds = Dataset.fromJS(data).hide()
 
     ex = ply()
-      .apply('Data', $(ds))
+      .apply('Data', ply(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
           .apply('Count', $('Data').count())
@@ -195,7 +195,7 @@ describe "compute native", ->
     ds = Dataset.fromJS(data).hide()
 
     ex = ply()
-      .apply('Data', $(ds))
+      .apply('Data', ply(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
           .apply('Count', $('Data').count())
@@ -226,7 +226,7 @@ describe "compute native", ->
     ds = Dataset.fromJS(data).hide()
 
     ex = ply()
-      .apply('Data', $(ds).filter($('price').in(105, 305)))
+      .apply('Data', ply(ds).filter($('price').in(105, 305)))
       .apply('Count', '$Data.count()')
 
     p = ex.compute()
@@ -246,7 +246,7 @@ describe "compute native", ->
 
     it "works with simple group/label and subData filter with applies", (testComplete) ->
       ex = ply()
-        .apply('Data', $(ds))
+        .apply('Data', ply(ds))
         .apply('Count', '$Data.count()')
         .apply('Price', '$Data.sum($price)')
         .apply('Cuts'
@@ -330,8 +330,8 @@ describe "compute native", ->
       ds = Dataset.fromJS(data).hide()
 
       ex = ply()
-        .apply('Data1', $(ds).filter($('price').in(105, 305)))
-        .apply('Data2', $(ds).filter($('price').in(105, 305).not()))
+        .apply('Data1', ply(ds).filter($('price').in(105, 305)))
+        .apply('Data2', ply(ds).filter($('price').in(105, 305).not()))
         .apply('Count1', '$Data1.count()')
         .apply('Count2', '$Data2.count()')
         .apply('Cuts'

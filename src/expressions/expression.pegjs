@@ -1,5 +1,7 @@
 {// starts with function(plywood)
+var ply = plywood.ply;
 var $ = plywood.$;
+var r = plywood.r;
 var Expression = plywood.Expression;
 var LiteralExpression = plywood.LiteralExpression;
 var RefExpression = plywood.RefExpression;
@@ -157,7 +159,7 @@ BasicExpression
   = "(" _ ex:Expression _ ")" { return ex; }
   / LiteralExpression
   / RefExpression
-  / "ply()" { return ply(); }
+  / "ply(" _ ")" { return ply(); }
 
 
 RefExpression
@@ -167,9 +169,9 @@ RefExpression
     { return RefExpression.parse(name); }
 
 LiteralExpression
-  = value:Number { return new LiteralExpression({ value: value }); }
-  / value:String { return new LiteralExpression({ value: value }); }
-  / value:(NullToken/FalseToken/TrueToken) { return new LiteralExpression({ value: value }); }
+  = value:Number { return r(value); }
+  / value:String { return r(value); }
+  / value:(NullToken/FalseToken/TrueToken) { return r(value); }
 
 
 String "String"

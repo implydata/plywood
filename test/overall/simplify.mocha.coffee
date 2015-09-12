@@ -8,19 +8,19 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, $, literal, TimeRange, NumberRange } = plywood
+{ Expression, TimeRange, NumberRange, $, r, ply } = plywood
 
 describe "Simplify", ->
   it "simplifies to number", ->
-    ex = $(5).add(1).subtract(4)
+    ex = r(5).add(1).subtract(4)
     expect(ex.simplify().toJS()).to.deep.equal({
       op: 'literal'
       value: 2
     })
 
   it "simplifies literal prefix", ->
-    ex = $(5).add(1).subtract(4).multiply('$x')
-    ex2 = $(2).multiply('$x')
+    ex = r(5).add(1).subtract(4).multiply('$x')
+    ex2 = r(2).multiply('$x')
     expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
@@ -36,7 +36,7 @@ describe "Simplify", ->
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "removes leading 0", ->
-      ex = $(0).add('$y', '$z')
+      ex = r(0).add('$y', '$z')
       ex2 = $('y').add('$z')
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
@@ -54,17 +54,17 @@ describe "Simplify", ->
   describe 'multiply', ->
     it "collapses 0 in simple case", ->
       ex = $('x').multiply(0)
-      ex2 = $(0)
+      ex2 = r(0)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "collapses 0 in complex case", ->
       ex = $('x').multiply(6, '$y', 0, '$z')
-      ex2 = $(0)
+      ex2 = r(0)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "collapses leading 0", ->
-      ex = $(0).multiply(6, '$y', '$z')
-      ex2 = $(0)
+      ex = r(0).multiply(6, '$y', '$z')
+      ex2 = r(0)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "removes 1 in simple case", ->
@@ -78,7 +78,7 @@ describe "Simplify", ->
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "removes leading 1", ->
-      ex = $(1).multiply('$y', '$z')
+      ex = r(1).multiply('$y', '$z')
       ex2 = $('y').multiply('$z')
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
@@ -96,17 +96,17 @@ describe "Simplify", ->
   describe 'AND', ->
     it "collapses false in simple case", ->
       ex = $('x').and(false)
-      ex2 = $(false)
+      ex2 = r(false)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "collapses false in complex case", ->
       ex = $('x').and('$y', false, '$z')
-      ex2 = $(false)
+      ex2 = r(false)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "collapses leading false", ->
-      ex = $(false).and('$y', '$z')
-      ex2 = $(false)
+      ex = r(false).and('$y', '$z')
+      ex2 = r(false)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "removes true in simple case", ->
@@ -120,7 +120,7 @@ describe "Simplify", ->
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "removes leading true", ->
-      ex = $(true).and('$y', '$z')
+      ex = r(true).and('$y', '$z')
       ex2 = $('y').and('$z')
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
@@ -136,7 +136,7 @@ describe "Simplify", ->
 
     it "works with different filters", ->
       ex = $('flight').is(5).and($('flight').is(7))
-      ex2 = $(false)
+      ex2 = r(false)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "works with same filters", ->
@@ -151,7 +151,7 @@ describe "Simplify", ->
 
     it "re-arranges filters 1", ->
       ex = $('flight').is(5).and($('x').is(1)).and($('flight').is(7))
-      ex2 = $(false)
+      ex2 = r(false)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "re-arranges filters 2", ->
@@ -163,17 +163,17 @@ describe "Simplify", ->
   describe 'OR', ->
     it "collapses true in simple case", ->
       ex = $('x').or(true)
-      ex2 = $(true)
+      ex2 = r(true)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "collapses true in complex case", ->
       ex = $('x').or('$y', true, '$z')
-      ex2 = $(true)
+      ex2 = r(true)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "collapses leading true", ->
-      ex = $(true).or('$y', '$z')
-      ex2 = $(true)
+      ex = r(true).or('$y', '$z')
+      ex2 = r(true)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "removes false in simple case", ->
@@ -187,7 +187,7 @@ describe "Simplify", ->
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "removes leading false", ->
-      ex = $(false).or('$y', '$z')
+      ex = r(false).or('$y', '$z')
       ex2 = $('y').or('$z')
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
@@ -229,14 +229,14 @@ describe "Simplify", ->
 
   describe 'is', ->
     it "simplifies to false", ->
-      ex = $(5).is(8)
+      ex = r(5).is(8)
       expect(ex.simplify().toJS()).to.deep.equal({
         op: 'literal'
         value: false
       })
 
     it "simplifies to true", ->
-      ex = $(5).is(5)
+      ex = r(5).is(5)
       expect(ex.simplify().toJS()).to.deep.equal({
         op: 'literal'
         value: true
@@ -250,20 +250,20 @@ describe "Simplify", ->
       })
 
     it 'swaps literal', ->
-      ex = literal("Honda").is('$x')
+      ex = r("Honda").is('$x')
       ex2 = $('x').is('Honda')
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
   describe 'match', ->
     it 'with false value', ->
-      ex = literal("Honda").match('^\\d+')
-      ex2 = $(false)
+      ex = r("Honda").match('^\\d+')
+      ex2 = r(false)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it 'with true value', ->
-      ex = literal("123").match('^\\d+')
-      ex2 = $(true)
+      ex = r("123").match('^\\d+')
+      ex2 = r(true)
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it 'with reference value', ->
@@ -273,15 +273,15 @@ describe "Simplify", ->
 
   describe 'timeOffset', ->
     it 'with simple expression', ->
-      ex = literal(new Date('2015-02-20T15:41:12')).timeOffset('P1D', 'Etc/UTC')
-      ex2 = $(new Date('2015-02-21T15:41:12'))
+      ex = r(new Date('2015-02-20T15:41:12')).timeOffset('P1D', 'Etc/UTC')
+      ex2 = r(new Date('2015-02-21T15:41:12'))
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
   describe 'timeBucket', ->
     it 'with simple expression', ->
-      ex = literal(new Date("2015-02-19T05:59:02.822Z")).timeBucket('P1D', 'Etc/UTC')
-      ex2 = literal(TimeRange.fromJS({
+      ex = r(new Date("2015-02-19T05:59:02.822Z")).timeBucket('P1D', 'Etc/UTC')
+      ex2 = r(TimeRange.fromJS({
         start: new Date("2015-02-19T00:00:00.000Z")
         end: new Date("2015-02-20T00:00:00.000Z")
       }))
@@ -290,8 +290,8 @@ describe "Simplify", ->
 
   describe 'numberBucket', ->
     it 'with simple expression', ->
-      ex = literal(1.03).numberBucket(0.05, 0.02)
-      ex2 = literal(NumberRange.fromJS({
+      ex = r(1.03).numberBucket(0.05, 0.02)
+      ex2 = r(NumberRange.fromJS({
         start: 1.02
         end: 1.07
       }))

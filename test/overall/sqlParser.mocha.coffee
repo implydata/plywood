@@ -6,7 +6,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, $, ply } = plywood
+{ Expression, $, ply, r } = plywood
 
 describe "SQL parser", ->
   it "should fail on a expression with no columns", ->
@@ -68,7 +68,7 @@ describe "SQL parser", ->
       .apply('TotalAdded', '$data.sum($added)')
       .apply('Date', new Date('2014-01-02T00:00:00.000Z'))
       .apply('TotalAddedOver4', '$data.sum($added) / 4')
-      .apply('False', $(true).not())
+      .apply('False', r(true).not())
       .apply('MinusAdded', $('added').negate())
       .apply('SimplyAdded', $('added'))
       .apply('Median', $('data').quantile('$added', 0.5))
@@ -126,7 +126,7 @@ describe "SQL parser", ->
 
     expect(ex.toJS()).to.deep.equal(ex2.toJS())
 
-  it.only "should work with <= <", ->
+  it.skip "should work with <= <", ->
     ex = Expression.parseSQL("""
       SELECT
       SUM(added) AS 'TotalAdded'

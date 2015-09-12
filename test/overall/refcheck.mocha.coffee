@@ -110,7 +110,7 @@ describe "reference check", ->
       ex = $('diamonds')
         .apply('priceOver2', '$price / 2')
 
-      ex2 = $('diamonds:DATASET')
+      ex2 = $('diamonds', 'DATASET')
         .apply('priceOver2', '$price:NUMBER / 2')
 
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
@@ -121,7 +121,7 @@ describe "reference check", ->
         .apply('countPlusSeventy', '$Diamonds.count() + $seventy')
 
       ex2 = ply()
-        .apply('Diamonds', $('^diamonds:DATASET'))
+        .apply('Diamonds', $('diamonds', 1, 'DATASET'))
         .apply('countPlusSeventy', '$Diamonds:DATASET.count() + $^seventy:NUMBER')
 
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS())
@@ -146,7 +146,7 @@ describe "reference check", ->
         .apply('TotalPrice', '$diamonds.sum($price)')
 
       ex2 = ply()
-        .apply("diamonds", $("^diamonds:DATASET").filter($('color:STRING').is('D')))
+        .apply("diamonds", $("^diamonds:DATASET").filter($('color', 'STRING').is('D')))
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
 
@@ -167,7 +167,7 @@ describe "reference check", ->
         )
 
       ex2 = ply()
-        .apply("diamonds", $("^diamonds:DATASET").filter($('color:STRING').is('D')))
+        .apply("diamonds", $("^diamonds:DATASET").filter($('color', 'STRING').is('D')))
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
         .apply('Cuts',
@@ -197,7 +197,7 @@ describe "reference check", ->
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)')
 
-      ex2 = $("diamonds", "DATASET").filter($('color:STRING').is('D')).split("$cut:STRING", 'Cut')
+      ex2 = $("diamonds", "DATASET").filter($('color', 'STRING').is('D')).split("$cut:STRING", 'Cut')
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
 
@@ -223,18 +223,18 @@ describe "reference check", ->
         )
 
       ex2 = ply()
-        .apply("diamonds", $('^diamonds:DATASET').filter($("color", "STRING").is('D')))
-        .apply('Count', $('diamonds:DATASET').count())
-        .apply('TotalPrice', $('diamonds:DATASET').sum('$price:NUMBER'))
+        .apply("diamonds", $('diamonds', 1, 'DATASET').filter($("color", "STRING").is('D')))
+        .apply('Count', $('diamonds', 'DATASET').count())
+        .apply('TotalPrice', $('diamonds', 'DATASET').sum('$price:NUMBER'))
         .apply('Cuts',
           $("diamonds", "DATASET").split("$cut:STRING", 'Cut')
-            .apply('Count', $('diamonds:DATASET').count())
+            .apply('Count', $('diamonds', 'DATASET').count())
             .apply('PercentOfTotal', '$diamonds:DATASET.sum($price:NUMBER) / $^TotalPrice:NUMBER')
             .sort('$Count:NUMBER', 'descending')
             .limit(2)
             .apply('Carats',
               $("diamonds", "DATASET").split($("carat", "NUMBER").numberBucket(0.25), 'Carat')
-                .apply('Count', $('diamonds:DATASET').count())
+                .apply('Count', $('diamonds', 'DATASET').count())
                 .sort('$Count:NUMBER', 'descending')
                 .limit(3)
             )
@@ -253,10 +253,10 @@ describe "reference check", ->
         )
 
       ex2 = ply()
-        .apply('Data1', $('^diamonds:DATASET').filter($('price:NUMBER').in(105, 305)))
-        .apply('Data2', $('^diamonds:DATASET').filter($('price:NUMBER').in(105, 305).not()))
+        .apply('Data1', $('diamonds', 1, 'DATASET').filter($('price', 'NUMBER').in(105, 305)))
+        .apply('Data2', $('diamonds', 1, 'DATASET').filter($('price', 'NUMBER').in(105, 305).not()))
         .apply('Cuts'
-          $('Data1:DATASET').split('$cut:STRING', 'Cut', 'K1').join($('Data2:DATASET').split('$cut:STRING', 'Cut', 'K2'))
+          $('Data1', 'DATASET').split('$cut:STRING', 'Cut', 'K1').join($('Data2', 'DATASET').split('$cut:STRING', 'Cut', 'K2'))
             .apply('Count1', '$K1:DATASET.count()')
             .apply('Count2', '$K2:DATASET.count()')
         )

@@ -1,11 +1,11 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, $, ply } = plywood
+{ Expression, $, ply, r } = plywood
 
 describe "substitute", ->
   it "should substitute on IS", ->
-    ex = $(5).is('$hello')
+    ex = r(5).is('$hello')
 
     subs = (ex) ->
       if ex.op is 'literal' and ex.type is 'NUMBER'
@@ -14,7 +14,7 @@ describe "substitute", ->
         return null
 
     expect(ex.substitute(subs).toJS()).to.deep.equal(
-      $(15).is('$hello').toJS()
+      r(15).is('$hello').toJS()
     )
 
   it "should substitute on complex expression", ->

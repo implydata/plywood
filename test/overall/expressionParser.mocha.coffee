@@ -38,7 +38,7 @@ describe "expression parser", ->
       .filter($('color').is("Red"))
       .filter($('price').lessThan(5))
       .filter($('country').is("USA"))
-      .apply('parent_x', $("^x"))
+      .apply('parent_x', $("x", 1))
       .apply('typed_y', { op: 'ref', name: 'y', type: 'STRING' })
       .apply('sub_typed_z', { op: 'ref', name: 'z', type: 'SET/STRING' })
       .apply('or', $('a').or($('b'), $('c')))

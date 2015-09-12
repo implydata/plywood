@@ -213,12 +213,12 @@ describe "Expression", ->
 
     it.skip 'works in constant * case', ->
       ex1 = $('data').sum('$x * 6')
-      ex2 = $(6).multiply('$data.sum($x)')
+      ex2 = r(6).multiply('$data.sum($x)')
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS())
 
     it.skip 'works in constant * case (multiple operands)', ->
       ex1 = $('data').sum('$x * 6 * $y')
-      ex2 = $(6).multiply('$data.sum($x * $y)')
+      ex2 = r(6).multiply('$data.sum($x * $y)')
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS())
 
     it.skip 'works in complex case', ->

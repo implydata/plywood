@@ -1,7 +1,7 @@
 { expect } = require("chai")
 
 plywood = require('../../build/plywood')
-{ Expression, $, Dataset } = plywood
+{ Expression, Dataset, $, ply } = plywood
 
 describe "traversal", ->
   subs = (ex, index, depth, nestDiff) ->
@@ -43,7 +43,7 @@ describe "traversal", ->
     ]
 
     ex = ply()
-      .apply('Data', $(Dataset.fromJS(data)))
+      .apply('Data', Dataset.fromJS(data))
       .apply('FooPlusCount', '4002001 + $Data.count()')
       .apply('CountPlusBar', '$Data.count() + 9002001')
 
