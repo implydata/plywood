@@ -124,7 +124,7 @@ This example will use Druid as the data store.
 var druidRequesterFactory = require('plywoodjs-druid-requester').druidRequesterFactory;
 
 var plywood = require('plywood');
-var Dataset = plywood.core.Dataset;
+var Dataset = plywood.Dataset;
 ```
 
 Next, the druid connection needs to be configured:
@@ -136,7 +136,7 @@ var druidRequester = druidRequesterFactory({
 
 var wikiDataset = Dataset.fromJS({
   source: 'druid',
-  dataSource: 'wikipedia_editstream',  // The datasource name in Druid
+  dataSource: 'wikipedia',  // The datasource name in Druid
   timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time'
   requester: druidRequester
 });
@@ -153,8 +153,8 @@ var ex = ply()
   // Define the dataset in context with a filter on time and language
   .apply("wiki",
     $('wiki').filter($("time").in({
-      start: new Date("2013-02-26T00:00:00Z"),
-      end: new Date("2013-02-27T00:00:00Z")
+      start: new Date("2015-08-26T00:00:00Z"),
+      end: new Date("2015-08-27T00:00:00Z")
     }).and($('language').is('en')))
   )
 
@@ -198,8 +198,8 @@ var context = {
 var ex = ply()
   .apply("wiki",
     $('wiki').filter($("time").in({
-      start: new Date("2013-02-26T00:00:00Z"),
-      end: new Date("2013-02-27T00:00:00Z")
+      start: new Date("2015-08-26T00:00:00Z"),
+      end: new Date("2015-08-27T00:00:00Z")
     }))
   )
   .apply('Count', $('wiki').count())

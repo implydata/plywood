@@ -23,10 +23,6 @@ A number of core datatypes are provided to make life easy.
 
 Plywood queries can be serialized to and from JSON.
 
-## License
-
-Apache License, Version 2.0.
-
 ## Questions & Support
 
 Please direct all questions to our [user groups](https://groups.google.com/forum/#!forum/imply-user-group).
