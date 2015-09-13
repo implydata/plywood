@@ -9,9 +9,8 @@ var diamondsData = require('../../data/diamonds.js');
 
 var context = {
   diamonds: Dataset.fromJS({
-    source: 'native',
     data: diamondsData
-  })
+  }).hide()
 };
 
 var ex = ply()

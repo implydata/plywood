@@ -2,18 +2,18 @@ var druidRequesterFactory = require('plywood-druid-requester').druidRequesterFac
 var plywood = require('../../build/plywood');
 var ply = plywood.ply;
 var $ = plywood.$;
-var Dataset = plywood.Dataset;
+var External = plywood.External;
 
 var druidRequester = druidRequesterFactory({
-  host: '10.153.211.100' // Where ever your Druid may be
+  host: 'localhost:8082' // Where ever your Druid may be
 });
 
 // ----------------------------------
 
 var context = {
-  wiki: Dataset.fromJS({
-    source: 'druid',
-    dataSource: 'wikipedia_editstream',
+  wiki: External.fromJS({
+    engine: 'druid',
+    dataSource: 'wikipedia',
     timeAttribute: 'time',
     requester: druidRequester
   })
@@ -22,8 +22,8 @@ var context = {
 var ex = ply()
   .apply("wiki",
     $('wiki').filter($("time").in({
-      start: new Date("2013-02-26T00:00:00Z"),
-      end: new Date("2013-02-27T00:00:00Z")
+      start: new Date("2015-08-26T00:00:00Z"),
+      end: new Date("2015-08-27T00:00:00Z")
     }).and($('language').is('en')))
   )
   .apply('Count', $('wiki').count())
@@ -40,8 +40,8 @@ ex.compute(context).then(function(data) {
 Output:
 [
   {
-    "Count": 308675,
-    "TotalAdded": 41412583
+    "TotalAdded": 50493721,
+    "Count": 127007
   }
 ]
 */

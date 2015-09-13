@@ -2,18 +2,18 @@ var druidRequesterFactory = require('plywood-druid-requester').druidRequesterFac
 var plywood = require('../../build/plywood');
 var ply = plywood.ply;
 var $ = plywood.$;
-var Dataset = plywood.Dataset;
+var External = plywood.External;
 
 var druidRequester = druidRequesterFactory({
-  host: '10.153.211.100' // Where ever your Druid may be
+  host: 'localhost:8082' // Where ever your Druid may be
 });
 
 // ----------------------------------
 
 var context = {
-  wiki: Dataset.fromJS({
-    source: 'druid',
-    dataSource: 'wikipedia_editstream',  // The datasource name in Druid
+  wiki: External.fromJS({
+    engine: 'druid',
+    dataSource: 'wikipedia',  // The datasource name in Druid
     timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time'
     requester: druidRequester
   })
@@ -22,8 +22,8 @@ var context = {
 var ex = ply()
   .apply("wiki",
     $('wiki').filter($("time").in({
-      start: new Date("2013-02-26T00:00:00Z"),
-      end: new Date("2013-02-27T00:00:00Z")
+      start: new Date("2015-08-26T00:00:00Z"),
+      end: new Date("2015-08-27T00:00:00Z")
     }))
   )
   .apply('Count', $('wiki').count())
@@ -46,32 +46,32 @@ ex.compute(context).then(function(data) {
 Output:
 [
   {
-    "Count": 573775,
-    "TotalAdded": 124184252,
-    "Page": [
+    "TotalAdded": 68403467,
+    "Count": 183026,
+    "Pages": [
       {
-        "Page": "Wikipedia:Vandalismusmeldung",
-        "Count": 177
+        "Page": "Murders_of_Alison_Parker_and_Adam_Ward",
+        "Count": 363
+      },
+      {
+        "Page": "Wikipedia:Administrators'_noticeboard/Incidents",
+        "Count": 312
+      },
+      {
+        "Page": "Wikipedia:Version_1.0_Editorial_Team/Psychedelics,_dissociatives_and_deliriants_articles_by_quality_log",
+        "Count": 307
+      },
+      {
+        "Page": "User:Cyde/List_of_candidates_for_speedy_deletion/Subpage",
+        "Count": 275
       },
       {
         "Page": "Wikipedia:Administrator_intervention_against_vandalism",
-        "Count": 124
+        "Count": 238
       },
       {
-        "Page": "Wikipedia:Auskunft",
-        "Count": 124
-      },
-      {
-        "Page": "Wikipedia:Löschkandidaten/26._Februar_2013",
-        "Count": 88
-      },
-      {
-        "Page": "Wikipedia:Reference_desk/Science",
-        "Count": 88
-      },
-      {
-        "Page": "Wikipedia:Administrators'_noticeboard",
-        "Count": 87
+        "Page": "Wikipedia:Löschkandidaten/26._August_2015",
+        "Count": 238
       }
     ]
   }

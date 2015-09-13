@@ -2,7 +2,7 @@ var druidRequesterFactory = require('plywood-druid-requester').druidRequesterFac
 var plywood = require('../../build/plywood');
 var ply = plywood.ply;
 var $ = plywood.$;
-var Dataset = plywood.Dataset;
+var External = plywood.External;
 
 WallTime = require('chronology').WallTime;
 if (!WallTime.rules) {
@@ -11,15 +11,15 @@ if (!WallTime.rules) {
 }
 
 var druidRequester = druidRequesterFactory({
-  host: '10.153.211.100' // Where ever your Druid may be
+  host: 'localhost:8082' // Where ever your Druid may be
 });
 
 // ----------------------------------
 
 var context = {
-  wiki: Dataset.fromJS({
-    source: 'druid',
-    dataSource: 'wikipedia_editstream',  // The datasource name in Druid
+  wiki: External.fromJS({
+    engine: 'druid',
+    dataSource: 'wikipedia',  // The datasource name in Druid
     timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time'
     requester: druidRequester
   })
@@ -28,8 +28,8 @@ var context = {
 var ex = ply()
   .apply("wiki",
     $('wiki').filter($("time").in({
-      start: new Date("2013-02-26T00:00:00Z"),
-      end: new Date("2013-02-27T00:00:00Z")
+      start: new Date("2015-08-26T00:00:00Z"),
+      end: new Date("2015-08-27T00:00:00Z")
     }))
   )
   .apply('ByHour',
@@ -57,8 +57,8 @@ Output:
     "ByHour": [
       {
         "TimeByHour": {
-          "start": "2013-02-26T00:00:00.000Z",
-          "end": "2013-02-26T01:00:00.000Z",
+          "start": "2015-08-26T00:00:00.000Z",
+          "end": "2015-08-26T01:00:00.000Z",
           "type": "TIME_RANGE"
         },
         "Users": [
@@ -78,8 +78,8 @@ Output:
       },
       {
         "TimeByHour": {
-          "start": "2013-02-26T01:00:00.000Z",
-          "end": "2013-02-26T02:00:00.000Z",
+          "start": "2015-08-26T01:00:00.000Z",
+          "end": "2015-08-26T02:00:00.000Z",
           "type": "TIME_RANGE"
         },
         "Users": [
@@ -99,8 +99,8 @@ Output:
       },
       {
         "TimeByHour": {
-          "start": "2013-02-26T02:00:00.000Z",
-          "end": "2013-02-26T03:00:00.000Z",
+          "start": "2015-08-26T02:00:00.000Z",
+          "end": "2015-08-26T03:00:00.000Z",
           "type": "TIME_RANGE"
         },
         "Users": [
@@ -120,8 +120,8 @@ Output:
       },
       {
         "TimeByHour": {
-          "start": "2013-02-26T03:00:00.000Z",
-          "end": "2013-02-26T04:00:00.000Z",
+          "start": "2015-08-26T03:00:00.000Z",
+          "end": "2015-08-26T04:00:00.000Z",
           "type": "TIME_RANGE"
         },
         "Users": [
