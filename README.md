@@ -1,6 +1,6 @@
 # Plywood
 
-[![Build Status](https://travis-ci.org/plywood/plywood.svg?branch=master)](https://travis-ci.org/plywood/plywood)
+[![Build Status](https://travis-ci.org/implydata/plywood.svg?branch=master)](https://travis-ci.org/implydata/plywood)
 
 ## Introduction
 
