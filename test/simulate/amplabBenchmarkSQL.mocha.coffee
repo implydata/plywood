@@ -6,10 +6,10 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, TimeRange, $, ply, r } = plywood
+{ Expression, External, TimeRange, $, ply, r } = plywood
 
 context = {
-  rankings: Dataset.fromJS({
+  rankings: External.fromJS({
     engine: 'druid',
     dataSource: 'rankings',
     timeAttribute: 'time',
@@ -21,7 +21,7 @@ context = {
       avgDuration: { type: 'NUMBER' } # INT
     }
   })
-  uservisits: Dataset.fromJS({
+  uservisits: External.fromJS({
     engine: 'druid',
     dataSource: 'uservisits',
     timeAttribute: 'visitDate',

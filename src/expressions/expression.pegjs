@@ -95,7 +95,7 @@ ComparisonExpression
     }
 
 ComparisonOp
-  = "="  { return 'is'; }
+  = "==" { return 'is'; }
   / "!=" { return 'isnt'; }
   / "in" { return 'in'; }
   / "<=" { return 'lessThanOrEqual'; }

@@ -20,7 +20,7 @@ describe "expression parser", ->
   describe "parses", ->
     it "should parse the mega definition", ->
       ex1 = ply()
-        .filter('$color = "Red"')
+        .filter('$color == "Red"')
         .filter('$price < 5')
         .filter('$country.is("USA")')
         .apply('parent_x', "$^x")
@@ -41,7 +41,7 @@ describe "expression parser", ->
         .apply('agg_max', "$data.max($price)")
         .apply('agg_quantile', "$data.quantile($price, 0.5)")
         .apply('agg_split', "$data.split($carat, 'Carat')")
-        .apply('agg_filter_count', "$data.filter($country = 'USA').count()")
+        .apply('agg_filter_count', "$data.filter($country == 'USA').count()")
 
       ex2 = ply()
         .filter($('color').is("Red"))
@@ -111,7 +111,7 @@ describe "expression parser", ->
     it "should parse a whole complex expression", ->
       ex1 = Expression.parse("""
         ply()
-          .apply(wiki, $wiki.filter($language = 'en'))
+          .apply(wiki, $wiki.filter($language == 'en'))
           .apply(Count, $wiki.sum($count))
           .apply(TotalAdded, $wiki.sum($added))
           .apply(Pages,

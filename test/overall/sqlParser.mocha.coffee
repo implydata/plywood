@@ -60,7 +60,7 @@ describe "SQL parser", ->
       """)
 
     ex2 = ply()
-      .apply('data', '$wiki.filter($language = "en")')
+      .apply('data', '$wiki.filter($language == "en")')
       .apply('Count1', '$data.count()')
       .apply('Count2', '$data.count()')
       .apply('Count3', '$data.count()')
@@ -87,7 +87,7 @@ describe "SQL parser", ->
       """)
 
     ex2 = ply()
-      .apply('data', '$wiki.filter($language = "en")')
+      .apply('data', '$wiki.filter($language == "en")')
       .apply('TotalAdded', '$data.sum($added)')
 
     expect(ex.toJS()).to.deep.equal(ex2.toJS())
@@ -101,7 +101,7 @@ describe "SQL parser", ->
       """)
 
     ex2 = ply()
-      .apply('data', '$data.filter($language = "en")')
+      .apply('data', '$data.filter($language == "en")')
       .apply('TotalAdded', '$data.sum($added)')
 
     expect(ex.toJS()).to.deep.equal(ex2.toJS())
@@ -294,7 +294,7 @@ describe "SQL parser", ->
       """)
 
     ex2 = ply()
-      .apply('data', '$wiki.filter($language = "en")')
+      .apply('data', '$wiki.filter($language == "en")')
       .apply('TotalAdded', '$data.sum($added)')
       .apply('Pages',
         $('data').split('$page', 'Page')

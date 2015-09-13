@@ -14,7 +14,7 @@ describe "render", ->
   describe "bind", ->
     it "fails to resolve a variable that does not exist", ->
       ex = ply()
-        .apply("wiki", $('wiki').filter("$language = 'en'"))
+        .apply("wiki", $('wiki').filter("$language == 'en'"))
         .apply('cont', mark('div.vis', {
           style: { width: '100px' }
         }))

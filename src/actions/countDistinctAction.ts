@@ -25,6 +25,10 @@ module Plywood {
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return 'COUNT(DISTINCT ' + expressionSQL + ')';
     }
+
+    public isNester(): boolean {
+      return true;
+    }
   }
 
   Action.register(CountDistinctAction);

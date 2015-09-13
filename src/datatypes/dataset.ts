@@ -424,12 +424,7 @@ module Plywood {
     }
 
     public average(exFn: ComputeFn, context: Datum): number {
-      var data = this.data;
-      var sum = 0;
-      for (let datum of data) {
-        sum += exFn(datum, context);
-      }
-      return sum / data.length;
+      return this.sum(exFn, context) / this.count();
     }
 
     public min(exFn: ComputeFn, context: Datum): number {
@@ -450,6 +445,15 @@ module Plywood {
         if (max < v) max = v;
       }
       return max;
+    }
+
+    public countDistinct(exFn: ComputeFn, context: Datum): number {
+      var data = this.data;
+      var seen: Lookup<number> = Object.create(null);
+      for (let datum of data) {
+        seen[exFn(datum, context)] = 1;
+      }
+      return Object.keys(seen).length;
     }
 
     public quantile(exFn: ComputeFn, quantile: number, context: Datum): number {

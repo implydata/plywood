@@ -167,7 +167,7 @@ describe "composition", ->
     ex = ply()
       .apply("Diamonds",
         ply() #someDriver)
-          #.filter("$color = 'D'")
+          #.filter("$color == 'D'")
           .apply("priceOver2", "$price/2")
       )
       .apply('Count', $('Diamonds').count())

@@ -90,8 +90,10 @@ module Plywood {
         } else {
           var externals = myExpression.getExternals();
           if (externals.length === 1) {
+            var newExternal = externals[0].makeTotal(this.name);
+            if (!newExternal) return null;
             return this.performOnSimple(new ExternalExpression({
-              external: externals[0].makeTotal(this.name)
+              external: newExternal
             }));
           } else if (externals.length > 1) {
             throw new Error('not done yet');

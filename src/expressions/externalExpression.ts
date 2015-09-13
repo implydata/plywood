@@ -13,6 +13,7 @@ module Plywood {
     constructor(parameters: ExpressionValue) {
       super(parameters, dummyObject);
       this.external = parameters.external;
+      if (!this.external) throw new Error('must have an external');
       this._ensureOp('external');
       this.type = 'DATASET';
       this.simple = true;

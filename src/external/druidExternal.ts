@@ -934,30 +934,31 @@ return (start < 0 ?'-':'') + parts.join('.');
       if (this.exactResultsOnly) {
         throw new Error("approximate query not allowed");
       }
-      if (inputExpression instanceof RefExpression) {
-        var attribute = action.expression;
-        if (attribute instanceof RefExpression) {
-          var attributeInfo = this.getAttributesInfo(attribute.name);
-          if (attributeInfo instanceof UniqueAttributeInfo) {
-            return {
-              name: name,
-              type: "hyperUnique",
-              fieldName: attribute.name
-            };
-          } else {
-            return {
-              name: name,
-              type: "cardinality",
-              fieldNames: [attribute.name],
-              byRow: true
-            };
-          }
 
-        } else {
-          throw new Error('can not compute distinctCount on derived attribute');
-        }
-      } else {
+      if (inputExpression instanceof ChainExpression) {
         throw new Error("filtering on countDistinct aggregator isn't supported");
+      }
+
+      var attribute = action.expression;
+      if (attribute instanceof RefExpression) {
+        var attributeInfo = this.getAttributesInfo(attribute.name);
+        if (attributeInfo instanceof UniqueAttributeInfo) {
+          return {
+            name: name,
+            type: "hyperUnique",
+            fieldName: attribute.name
+          };
+        } else {
+          return {
+            name: name,
+            type: "cardinality",
+            fieldNames: [attribute.name],
+            byRow: true
+          };
+        }
+
+      } else {
+        throw new Error('can not compute distinctCount on derived attribute');
       }
     }
 

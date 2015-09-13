@@ -117,7 +117,7 @@ describe "External", ->
     it "a total", ->
       ex = ply()
         .apply("wiki",
-          $('^wiki')
+          $('wiki', 1)
             .apply('addedTwice', '$added * 2')
             .filter($("language").is('en'))
         )
@@ -239,7 +239,7 @@ describe "External", ->
       ])
 
     it "a filtered split on string", ->
-      ex = $('wiki').filter('$language = "en"').split("$page", 'Page')
+      ex = $('wiki').filter('$language == "en"').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
         .sort('$Count', 'descending')
@@ -272,7 +272,7 @@ describe "External", ->
     it "a total and a split", ->
       ex = ply()
         .apply("wiki",
-          $('^wiki')
+          $('wiki', 1)
             .apply('addedTwice', '$added * 2')
             .filter($("language").is('en'))
         )
@@ -301,7 +301,7 @@ describe "External", ->
     it "a total and a split in a strange order", ->
       ex = ply()
         .apply("wiki",
-          $('^wiki')
+          $('wiki', 1)
             .apply('addedTwice', '$added * 2')
             .filter($("language").is('en'))
         )

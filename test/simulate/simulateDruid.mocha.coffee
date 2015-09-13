@@ -572,7 +572,7 @@ describe "simulate Druid", ->
       }
     ])
 
-  it "makes a filter on timePart", ->
+  it.skip "makes a filter on timePart", ->
     ex = $("diamonds").filter(
       $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').in([3, 4, 10]).and($("time").in([
           TimeRange.fromJS({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-15T00:00:00') })
@@ -618,7 +618,7 @@ describe "simulate Druid", ->
       }
     ])
 
-  it "splits on timePart with sub split", ->
+  it.skip "splits on timePart with sub split", ->
     ex = $("diamonds").split($("time").timePart('HOUR_OF_DAY', 'Etc/UTC'), 'hourOfDay')
       .apply('Count', '$diamonds.count()')
       .sort('$Count', 'descending')
@@ -868,7 +868,7 @@ describe "simulate Druid", ->
       }
     ])
 
-  it "inlines a defined derived attribute", ->
+  it.skip "inlines a defined derived attribute", ->
     ex = ply()
       .apply("diamonds", $('diamonds').apply('sale_price', '$price + $tax'))
       .apply('ByTime',

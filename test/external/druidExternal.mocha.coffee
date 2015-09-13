@@ -187,7 +187,7 @@ describe "DruidExternal", ->
     it "a total", ->
       ex = ply()
         .apply("wiki",
-          $('^wiki')
+          $('wiki', 1)
             .apply('addedTwice', '$added * 2')
             .filter($("language").is('en'))
         )
@@ -369,7 +369,7 @@ describe "DruidExternal", ->
     it "filters (in)", ->
       ex = ply()
         .apply("wiki",
-          $('^wiki')
+          $('wiki', 1)
             .filter($("language").in(['en']))
         )
         .apply('Count', '$wiki.count()')
@@ -401,7 +401,7 @@ describe "DruidExternal", ->
     it "filters (contains)", ->
       ex = ply()
         .apply("wiki",
-          $('^wiki')
+          $('wiki', 1)
             .filter($("language").contains('en'))
         )
         .apply('Count', '$wiki.count()')
