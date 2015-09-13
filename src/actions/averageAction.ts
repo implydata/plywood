@@ -14,8 +14,20 @@ module Plywood {
       return 'NUMBER';
     }
 
+    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+      return {
+        type: 'NUMBER',
+        remote: typeContext.remote
+      };
+    }
+
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return 'AVG(' + expressionSQL + ')';
+    }
+
+    public isNester(): boolean {
+      return true;
     }
   }
 

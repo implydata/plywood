@@ -71,8 +71,19 @@ describe "expression parser", ->
 
     it "should not get confused with parsable strings in strange places", ->
       ex1 = Expression.parse("ply().apply('$x + 1', $x + 1)")
-
       ex2 = ply().apply('$x + 1', $("x").add(1))
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS())
+
+    it "should work with lots of keywords 1", ->
+      ex1 = Expression.parse('$y and true and $z')
+      ex2 = $('y').and(r(true), $('z'))
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS())
+
+    it.skip "should work with lots of keywords 2", ->
+      ex1 = Expression.parse('true and $y and true and $z')
+      ex2 = r('true').and($('y'), r(true), $('z'))
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS())
 

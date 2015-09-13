@@ -158,8 +158,8 @@ Param
 BasicExpression
   = "(" _ ex:Expression _ ")" { return ex; }
   / "ply(" _ ")" { return ply(); }
-  / LiteralExpression
   / RefExpression
+  / LiteralExpression
 
 
 RefExpression
@@ -169,10 +169,10 @@ RefExpression
     { return RefExpression.parse(name); }
 
 LiteralExpression
-  = value:Number { return r(value); }
+  = value:(NullToken/FalseToken/TrueToken) { return r(value); }
+  / value:Number { return r(value); }
   / value:Name { return r(value); }
   / value:String { return r(value); }
-  / value:(NullToken/FalseToken/TrueToken) { return r(value); }
 
 
 String "String"
@@ -220,7 +220,7 @@ Digit
 /* Extra */
 
 ReservedWord
-  = "ply" ![A-Za-z_]
+  = ( "ply" / "false" / "true" ) ![A-Za-z_]
 
 CallFn "CallFn"
   = $([a-zA-Z]+)

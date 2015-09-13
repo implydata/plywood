@@ -146,7 +146,7 @@ describe "reference check", ->
         .apply('TotalPrice', '$diamonds.sum($price)')
 
       ex2 = ply()
-        .apply("diamonds", $("^diamonds:DATASET").filter($('color', 'STRING').is('D')))
+        .apply("diamonds", $('diamonds', 1, 'DATASET').filter($('color', 'STRING').is('D')))
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
 
@@ -167,7 +167,7 @@ describe "reference check", ->
         )
 
       ex2 = ply()
-        .apply("diamonds", $("^diamonds:DATASET").filter($('color', 'STRING').is('D')))
+        .apply("diamonds", $('diamonds', 1, 'DATASET').filter($('color', 'STRING').is('D')))
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)')
         .apply('Cuts',

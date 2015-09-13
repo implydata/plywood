@@ -166,6 +166,7 @@ describe "compute native", ->
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
           .apply('Count', $('Data').count())
+          .apply('AvgPrice', $('Data').average('$price'))
       )
 
     p = ex.compute()
@@ -176,14 +177,17 @@ describe "compute native", ->
             {
               "Count": 2
               "Cut": "Good"
+              "AvgPrice": 350
             }
             {
               "Count": 1
               "Cut": "Great"
+              "AvgPrice": 124
             }
             {
               "Count": 2
               "Cut": "Wow"
+              "AvgPrice": 130
             }
           ]
         }
@@ -285,7 +289,7 @@ describe "compute native", ->
       ).done()
 
     it "re-selects", (testComplete) ->
-      ex = $(midData)
+      ex = ply(midData)
         .apply('CountOver2', '$Count / 2')
         .apply('Cuts'
           $('Cuts')

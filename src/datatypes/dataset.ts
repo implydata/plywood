@@ -423,6 +423,15 @@ module Plywood {
       return sum;
     }
 
+    public average(exFn: ComputeFn, context: Datum): number {
+      var data = this.data;
+      var sum = 0;
+      for (let datum of data) {
+        sum += exFn(datum, context);
+      }
+      return sum / data.length;
+    }
+
     public min(exFn: ComputeFn, context: Datum): number {
       var data = this.data;
       var min = Infinity;
