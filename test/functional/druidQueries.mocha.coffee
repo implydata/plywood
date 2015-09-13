@@ -202,7 +202,7 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
-    it.only "works with uniques", (testComplete) ->
+    it "works with uniques", (testComplete) ->
       ex = ply()
         .apply('UniquePages', $('wiki').countDistinct("$page"))
         .apply('UniqueUsers1', $('wiki').countDistinct("$user"))

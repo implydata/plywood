@@ -15,8 +15,8 @@ fi
 mocha \
   test/actions/* \
   test/datatypes/* \
-  test/expressions/* \
-  test/overall/* \
-  test/remote/* \
+  test/external/* \
   test/helper/* \
+  test/overall/* \
+  test/simulate/* \
   ;

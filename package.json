@@ -15,7 +15,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "http://github.com/implyio/plywood.git"
+    "url": "http://github.com/implydata/plywood.git"
   },
   "main": "build/plywood.js",
   "typescript": {
