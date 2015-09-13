@@ -3,7 +3,7 @@
 plywood = require('../../build/plywood')
 { Expression, External, $, ply, r } = plywood
 
-describe "breakdown", ->
+describe.skip "breakdown", ->
   context = {
     x: 1
     y: 2

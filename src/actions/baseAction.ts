@@ -67,7 +67,6 @@ module Plywood {
       return value;
     }
 
-    /*
     static actionsDependOn(actions: Action[], name: string): boolean {
       for (let action of actions) {
         var freeReferences = action.getFreeReferences();
@@ -76,7 +75,6 @@ module Plywood {
       }
       return false;
     }
-    */
 
     static isAction(candidate: any): boolean {
       return isInstanceOf(candidate, Action);

@@ -61,7 +61,7 @@ describe "separate", ->
 
     expect(toJS(ex.separateViaAnd('country'))).to.deep.equal(toJS({
       included: $('country').is('USA')
-      excluded: $('state').is('California').and($('venue').is('Google'))
+      excluded: $('venue').is('Google').and($('state').is('California'))
     }))
 
   it 'extracts a NOT expression', ->
@@ -69,7 +69,7 @@ describe "separate", ->
 
     expect(toJS(ex.separateViaAnd('country'))).to.deep.equal(toJS({
       included: $('country').is('USA').not()
-      excluded: $('state').is('California').and($('venue').is('Google'))
+      excluded: $('venue').is('Google').and($('state').is('California'))
     }))
 
   it 'does not work on mixed OR expression', ->

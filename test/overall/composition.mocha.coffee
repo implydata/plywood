@@ -25,8 +25,8 @@ describe "composition", ->
       .apply('nine', 9)
 
     expect(ex.toJS()).to.deep.equal({
-      "op": "actions"
-      "operand": {
+      "op": "chain"
+      "expression": {
         "op": "literal"
         "type": "DATASET"
         "value": [{}]
@@ -58,69 +58,107 @@ describe "composition", ->
       .apply('TotalPrice', $('Diamonds').sum('$priceOver2'))
 
     expect(ex.toJS()).to.deep.equal({
-      "op": "actions"
-      "operand": {
-        "op": "literal"
-        "type": "DATASET"
-        "value": [{}]
-      }
       "actions": [
         {
           "action": "apply"
-          "name": "Diamonds"
           "expression": {
-            "op": "actions"
-            "operand": {
-              "op": "literal"
-              "type": "DATASET"
-              "value": [{}]
-            }
             "actions": [
               {
                 "action": "filter"
                 "expression": {
-                  "lhs": { "name": "color", "op": "ref" }
-                  "op": "is"
-                  "rhs": { "op": "literal", "value": "D" }
+                  "actions": [
+                    {
+                      "action": "is"
+                      "expression": {
+                        "op": "literal"
+                        "value": "D"
+                      }
+                    }
+                  ]
+                  "expression": {
+                    "name": "color"
+                    "op": "ref"
+                  }
+                  "op": "chain"
                 }
               }
               {
                 "action": "apply"
-                "name": "priceOver2"
                 "expression": {
-                  "op": "multiply"
-                  "operands": [
-                    { "op": "ref", "name": "price" }
-                    { "op": "reciprocate", "operand": { "op": "literal", "value": 2 } }
+                  "actions": [
+                    {
+                      "action": "divide"
+                      "expression": {
+                        "op": "literal"
+                        "value": 2
+                      }
+                    }
                   ]
+                  "expression": {
+                    "name": "price"
+                    "op": "ref"
+                  }
+                  "op": "chain"
                 }
+                "name": "priceOver2"
               }
             ]
+            "expression": {
+              "op": "literal"
+              "type": "DATASET"
+              "value": [
+                {}
+              ]
+            }
+            "op": "chain"
           }
+          "name": "Diamonds"
         }
         {
           "action": "apply"
-          "name": "Count"
           "expression": {
-            "fn": "count"
-            "op": "aggregate"
-            "operand": {
+            "actions": [
+              {
+                "action": "count"
+              }
+            ]
+            "expression": {
               "name": "Diamonds"
               "op": "ref"
             }
+            "op": "chain"
           }
+          "name": "Count"
         }
         {
           "action": "apply"
-          "name": "TotalPrice"
           "expression": {
-            "op": "aggregate"
-            "operand": { "op": "ref", "name": "Diamonds" }
-            "fn": "sum"
-            "attribute": { "op": "ref", "name": "priceOver2" }
+            "actions": [
+              {
+                "action": "sum"
+                "expression": {
+                  "name": "priceOver2"
+                  "op": "ref"
+                }
+              }
+            ]
+            "expression": {
+              "name": "Diamonds"
+              "op": "ref"
+            }
+            "op": "chain"
           }
+          "name": "TotalPrice"
         }
       ]
+      "expression": {
+        "op": "literal"
+        "type": "DATASET"
+        "value": [
+          {}
+        ]
+      }
+      "op": "chain"
     })
 
   it "works in semi-realistic case (using parser)", ->
@@ -144,66 +182,78 @@ describe "composition", ->
               {
                 "action": "apply"
                 "expression": {
-                  "op": "multiply"
-                  "operands": [
+                  "actions": [
                     {
-                      "name": "price"
-                      "op": "ref"
-                    }
-                    {
-                      "op": "reciprocate"
-                      "operand": {
+                      "action": "divide"
+                      "expression": {
                         "op": "literal"
                         "value": 2
                       }
                     }
                   ]
+                  "expression": {
+                    "name": "price"
+                    "op": "ref"
+                  }
+                  "op": "chain"
                 }
                 "name": "priceOver2"
               }
             ]
-            "op": "actions"
-            "operand": {
+            "expression": {
               "op": "literal"
               "type": "DATASET"
-              "value": [{}]
+              "value": [
+                {}
+              ]
             }
+            "op": "chain"
           }
           "name": "Diamonds"
         }
         {
           "action": "apply"
           "expression": {
-            "fn": "count"
-            "op": "aggregate"
-            "operand": {
+            "actions": [
+              {
+                "action": "count"
+              }
+            ]
+            "expression": {
               "name": "Diamonds"
               "op": "ref"
             }
+            "op": "chain"
           }
           "name": "Count"
         }
         {
           "action": "apply"
           "expression": {
-            "attribute": {
-              "name": "priceOver2"
-              "op": "ref"
-            }
-            "fn": "sum"
-            "op": "aggregate"
-            "operand": {
+            "actions": [
+              {
+                "action": "sum"
+                "expression": {
+                  "name": "priceOver2"
+                  "op": "ref"
+                }
+              }
+            ]
+            "expression": {
               "name": "Diamonds"
               "op": "ref"
             }
+            "op": "chain"
           }
           "name": "TotalPrice"
         }
       ]
-      "op": "actions"
-      "operand": {
+      "expression": {
         "op": "literal"
         "type": "DATASET"
-        "value": [{}]
+        "value": [
+          {}
+        ]
       }
+      "op": "chain"
     })
