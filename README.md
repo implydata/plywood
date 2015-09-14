@@ -5,6 +5,8 @@
 Plywood is an open-source JavaScript framework for creating powerful database queries that return data optimized for 
 creating complex visualizations. Plywood is about creating on-the-fly visualizations out of ad-hoc, real-time query results.
 
+If you are more interested in a complete UI (rather than building your own) you should have a look at [Pivot](https://github.com/implydata/pivot). 
+
 Plywood was built with these goals in mind:
 
 ### Higher-level language
