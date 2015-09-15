@@ -25,7 +25,8 @@ module Plywood {
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
-        return (inputFn(d, c) || 0) / (expressionFn(d, c) || 0);
+        var v = (inputFn(d, c) || 0) / (expressionFn(d, c) || 0);
+        return isNaN(v) ? null : v;
       }
     }
 

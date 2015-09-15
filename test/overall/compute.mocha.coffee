@@ -80,6 +80,8 @@ describe "compute native", ->
         $('Data').split('$cut', 'Cut')
           .apply('Six', 6)
           .apply('Seven', $('Six').add(1))
+          .apply('EightByZero', r(8).divide(0))
+          .apply('ZeroByZero', r(0).divide(0))
       )
 
     p = ex.compute()
@@ -91,16 +93,22 @@ describe "compute native", ->
               "Cut": "Good"
               "Six": 6
               "Seven": 7
+              "EightByZero": { "type": "NUMBER", "value": "Infinity" }
+              "ZeroByZero": null
             }
             {
               "Cut": "Great"
               "Six": 6
               "Seven": 7
+              "EightByZero": { "type": "NUMBER", "value": "Infinity" }
+              "ZeroByZero": null
             }
             {
               "Cut": "Wow"
               "Six": 6
               "Seven": 7
+              "EightByZero": { "type": "NUMBER", "value": "Infinity" }
+              "ZeroByZero": null
             }
           ]
         }
