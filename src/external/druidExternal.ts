@@ -259,25 +259,6 @@ module Plywood {
     }
   }
 
-
-  export interface DruidExternalValue extends ExternalValue {
-    dataSource?: string | string[];
-    timeAttribute?: string;
-    allowEternity?: boolean;
-    allowSelectQueries?: boolean;
-    exactResultsOnly?: boolean;
-    context?: Lookup<any>;
-  }
-
-  export interface DruidExternalJS extends ExternalJS {
-    dataSource?: string | string[];
-    timeAttribute?: string;
-    allowEternity?: boolean;
-    allowSelectQueries?: boolean;
-    exactResultsOnly?: boolean;
-    context?: Lookup<any>;
-  }
-
   export class DruidExternal extends External {
     static type = 'DATASET';
 
@@ -285,7 +266,7 @@ module Plywood {
     static FALSE_INTERVAL = ["1000-01-01/1000-01-02"];
 
     static fromJS(datasetJS: any): DruidExternal {
-      var value: DruidExternalValue = External.jsToValue(datasetJS);
+      var value: ExternalValue = External.jsToValue(datasetJS);
       value.dataSource = datasetJS.dataSource;
       value.timeAttribute = datasetJS.timeAttribute;
       value.allowEternity = Boolean(datasetJS.allowEternity);
@@ -302,7 +283,7 @@ module Plywood {
     public exactResultsOnly: boolean;
     public context: Lookup<any>;
 
-    constructor(parameters: DruidExternalValue) {
+    constructor(parameters: ExternalValue) {
       super(parameters, dummyObject);
       this._ensureEngine("druid");
       this.dataSource = parameters.dataSource;
@@ -314,8 +295,8 @@ module Plywood {
       this.context = parameters.context;
     }
 
-    public valueOf(): DruidExternalValue {
-      var value: DruidExternalValue = super.valueOf();
+    public valueOf(): ExternalValue {
+      var value: ExternalValue = super.valueOf();
       value.dataSource = this.dataSource;
       value.timeAttribute = this.timeAttribute;
       value.allowEternity = this.allowEternity;
@@ -325,8 +306,8 @@ module Plywood {
       return value;
     }
 
-    public toJS(): DruidExternalJS {
-      var js: DruidExternalJS = super.toJS();
+    public toJS(): ExternalJS {
+      var js: ExternalJS = super.toJS();
       js.dataSource = this.dataSource;
       js.timeAttribute = this.timeAttribute;
       if (this.allowEternity) js.allowEternity = true;
@@ -934,7 +915,6 @@ return (start < 0 ?'-':'') + parts.join('.');
       if (this.exactResultsOnly) {
         throw new Error("approximate query not allowed");
       }
-
       if (inputExpression instanceof ChainExpression) {
         throw new Error("filtering on countDistinct aggregator isn't supported");
       }
@@ -1015,21 +995,21 @@ return (start < 0 ?'-':'') + parts.join('.');
       switch (op) {
         case '<':  return { type: "lessThan", aggregation: agg, value: value };
         case '>':  return { type: "greaterThan", aggregation: agg, value: value };
-        case '<=': return { type: 'not', field: { type: "greaterThan", aggregation: agg, value: value } };
-        case '>=': return { type: 'not', field: { type: "lessThan", aggregation: agg, value: value } };
+        case '<=': return { type: 'not', havingSpec: { type: "greaterThan", aggregation: agg, value: value } };
+        case '>=': return { type: 'not', havingSpec: { type: "lessThan", aggregation: agg, value: value } };
         default:   throw new Error('unknown op: ' + op);
       }
     }
 
     public inToHavingFilter(agg: string, range: NumberRange): Druid.Having {
-      var fields: Druid.Having[] = [];
+      var havingSpecs: Druid.Having[] = [];
       if (range.start !== null) {
-        fields.push(this.makeHavingComparison(agg, (range.bounds[0] === '[' ? '>=' : '>'), range.start));
+        havingSpecs.push(this.makeHavingComparison(agg, (range.bounds[0] === '[' ? '>=' : '>'), range.start));
       }
       if (range.end !== null) {
-        fields.push(this.makeHavingComparison(agg, (range.bounds[1] === ']' ? '<=' : '<'), range.end));
+        havingSpecs.push(this.makeHavingComparison(agg, (range.bounds[1] === ']' ? '<=' : '<'), range.end));
       }
-      return fields.length === 1 ? fields[0] : { type: 'or', fields: fields };
+      return havingSpecs.length === 1 ? havingSpecs[0] : { type: 'or', havingSpecs };
     }
 
     public havingFilterToDruid(filter: Expression): Druid.Having {
@@ -1045,13 +1025,13 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (pattern = filter.getExpressionPattern('and')) {
           return {
             type: 'and',
-            fields: pattern.map(this.havingFilterToDruid, this)
+            havingSpecs: pattern.map(this.havingFilterToDruid, this)
           };
         }
         if (pattern = filter.getExpressionPattern('or')) {
           return {
             type: 'or',
-            fields: pattern.map(this.havingFilterToDruid, this)
+            havingSpecs: pattern.map(this.havingFilterToDruid, this)
           };
         }
 
@@ -1084,7 +1064,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             if (rhsType === 'SET/STRING') {
               return {
                 type: "or",
-                fields: rhs.value.elements.map((value: string) => {
+                havingSpecs: rhs.value.elements.map((value: string) => {
                   return {
                     type: "equalTo",
                     aggregation: lhs.name,
@@ -1096,7 +1076,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             } else if (rhsType === 'SET/NUMBER_RANGE') {
               return {
                 type: "or",
-                fields: rhs.value.elements.map((value: NumberRange) => {
+                havingSpecs: rhs.value.elements.map((value: NumberRange) => {
                   return this.inToHavingFilter(lhs.name, value);
                 }, this)
               };

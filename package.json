@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "d3": "^3.5.6",
+    "druid.d.ts": "latest",
     "immutable-class": "^0.3.x",
     "q": "^1.1.2"
   },

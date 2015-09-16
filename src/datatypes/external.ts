@@ -110,6 +110,17 @@ module Plywood {
     limit?: LimitAction;
     havingFilter?: Expression;
 
+    // MySQL
+    table?: string;
+
+    // Druid
+    dataSource?: string | string[];
+    timeAttribute?: string;
+    allowEternity?: boolean;
+    allowSelectQueries?: boolean;
+    exactResultsOnly?: boolean;
+    context?: Lookup<any>;
+
     requester?: Requester.PlywoodRequester<any>;
   }
 
@@ -121,6 +132,17 @@ module Plywood {
 
     filter?: ExpressionJS;
     rawAttributes?: AttributeJSs;
+
+    // MySQL
+    table?: string;
+
+    // Druid
+    dataSource?: string | string[];
+    timeAttribute?: string;
+    allowEternity?: boolean;
+    allowSelectQueries?: boolean;
+    exactResultsOnly?: boolean;
+    context?: Lookup<any>;
 
     requester?: Requester.PlywoodRequester<any>;
   }

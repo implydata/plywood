@@ -4,7 +4,7 @@
 /// <reference path="../typings/chronoshift.d.ts" />
 /// <reference path="../typings/locator.d.ts" />
 /// <reference path="../typings/requester.d.ts" />
-/// <reference path="../typings/druid.d.ts" />
+/// <reference path="../node_modules/druid.d.ts/druid/druid.d.ts" />
 "use strict";
 
 interface Lookup<T> { [key: string]: T }

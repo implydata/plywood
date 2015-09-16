@@ -61,39 +61,31 @@ module Plywood {
     return attributes;
   }
 
-  export interface MySQLExternalValue extends ExternalValue {
-    table?: string;
-  }
-
-  export interface MySQLExternalJS extends ExternalJS {
-    table?: string;
-  }
-
   export class MySQLExternal extends External {
     static type = 'DATASET';
 
     static fromJS(datasetJS: any): MySQLExternal {
-      var value: MySQLExternalValue = External.jsToValue(datasetJS);
+      var value: ExternalValue = External.jsToValue(datasetJS);
       value.table = datasetJS.table;
       return new MySQLExternal(value);
     }
 
     public table: string;
 
-    constructor(parameters: MySQLExternalValue) {
+    constructor(parameters: ExternalValue) {
       super(parameters, dummyObject);
       this._ensureEngine("mysql");
       this.table = parameters.table;
     }
 
     public valueOf(): ExternalValue {
-      var value: MySQLExternalValue = super.valueOf();
+      var value: ExternalValue = super.valueOf();
       value.table = this.table;
       return value;
     }
 
     public toJS(): ExternalJS {
-      var js: MySQLExternalJS = super.toJS();
+      var js: ExternalJS = super.toJS();
       js.table = this.table;
       return js;
     }
