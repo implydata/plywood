@@ -141,6 +141,7 @@ module Plywood {
     prefixColumns?: boolean;
     order?: string; // preorder, inline [default], postorder
     nestingName?: string;
+    parentName?: string;
   }
 
   export interface TabulatorOptions extends FlattenOptions {
@@ -624,12 +625,13 @@ module Plywood {
       return flattenColumns(this.getNestedColumns(), prefixColumns);
     }
 
-    private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, nesting: number, context: Datum, flat: Datum[]): void {
+    private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, parentName: string, nesting: number, context: Datum, flat: Datum[]): void {
       var data = this.data;
       var leaf = nestedColumns[nestedColumns.length - 1].type !== 'DATASET';
       for (let datum of data) {
-        var flatDatum = copy(context);
+        var flatDatum: Datum = context ? copy(context) : {};
         if (nestingName) flatDatum[nestingName] = nesting;
+        if (parentName) flatDatum[parentName] = context;
 
         for (let flattenedColumn of nestedColumns) {
           if (flattenedColumn.type === 'DATASET') {
@@ -637,7 +639,7 @@ module Plywood {
             if (prefix !== null) nextPrefix = prefix + flattenedColumn.name + '.';
 
             if (order === 'preorder') flat.push(flatDatum);
-            datum[flattenedColumn.name]._flattenHelper(flattenedColumn.columns, nextPrefix, order, nestingName, nesting + 1, flatDatum, flat);
+            datum[flattenedColumn.name]._flattenHelper(flattenedColumn.columns, nextPrefix, order, nestingName, parentName, nesting + 1, flatDatum, flat);
             if (order === 'postorder') flat.push(flatDatum);
           } else {
             var flatName = (prefix !== null ? prefix : '') + flattenedColumn.name;
@@ -653,9 +655,10 @@ module Plywood {
       var prefixColumns = options.prefixColumns;
       var order = options.order; // preorder, inline [default], postorder
       var nestingName = options.nestingName;
+      var parentName = options.parentName;
       var nestedColumns = this.getNestedColumns();
       var flatData: Datum[] = [];
-      this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, 0, {}, flatData);
+      this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, parentName, 0, null, flatData);
       return flatData;
     }
 

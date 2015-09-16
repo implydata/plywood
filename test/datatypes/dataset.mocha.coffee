@@ -544,6 +544,24 @@ describe "Dataset", ->
           }
         ])
 
+      it "works with total and sub-split with preorder and parent indicator", ->
+        expect(carTotalAndSubSplitDataset.flatten({ order: 'preorder', parentName: 'p' })[3]).to.deep.equal({
+          "make": "Honda"
+          "model": "Accord"
+          "p": {
+            "make": "Honda"
+            "p": {
+              "p": null
+              "price": 10000
+              "weight": 1000
+            }
+            "price": 12000
+            "weight": 1200
+          }
+          "price": 13000
+          "weight": 1300
+        })
+
       it "works with timeseries with preorder and nesting indicator", ->
         expect(timeSeriesResult.flatten({ order: 'preorder', nestingName: 'nest' })[0]).to.deep.equal(
           {
