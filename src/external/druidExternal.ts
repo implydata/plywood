@@ -39,6 +39,17 @@ module Plywood {
     return acc;
   }
 
+  export interface CustomDruidAggregation {
+    aggregation: Druid.Aggregation;
+    accessType?: string;
+  }
+
+  export type CustomDruidAggregations = Lookup<CustomDruidAggregation>;
+
+  function customAggregationsEqual(customA: CustomDruidAggregations, customB: CustomDruidAggregations): boolean {
+    return JSON.stringify(customA) === JSON.stringify(customB); // ToDo: fill this in;
+  }
+
   export interface DruidFilterAndIntervals {
     filter: Druid.Filter;
     intervals: string[];
@@ -269,6 +280,7 @@ module Plywood {
       var value: ExternalValue = External.jsToValue(datasetJS);
       value.dataSource = datasetJS.dataSource;
       value.timeAttribute = datasetJS.timeAttribute;
+      value.customAggregations = datasetJS.customAggregations || {};
       value.allowEternity = Boolean(datasetJS.allowEternity);
       value.allowSelectQueries = Boolean(datasetJS.allowSelectQueries);
       value.exactResultsOnly = Boolean(datasetJS.exactResultsOnly);
@@ -276,8 +288,10 @@ module Plywood {
       return new DruidExternal(value);
     }
 
+
     public dataSource: string | string[];
     public timeAttribute: string;
+    public customAggregations: CustomDruidAggregations;
     public allowEternity: boolean;
     public allowSelectQueries: boolean;
     public exactResultsOnly: boolean;
@@ -288,6 +302,7 @@ module Plywood {
       this._ensureEngine("druid");
       this.dataSource = parameters.dataSource;
       this.timeAttribute = parameters.timeAttribute;
+      this.customAggregations = parameters.customAggregations;
       if (typeof this.timeAttribute !== 'string') throw new Error("must have a timeAttribute");
       this.allowEternity = parameters.allowEternity;
       this.allowSelectQueries = parameters.allowSelectQueries;
@@ -299,6 +314,7 @@ module Plywood {
       var value: ExternalValue = super.valueOf();
       value.dataSource = this.dataSource;
       value.timeAttribute = this.timeAttribute;
+      value.customAggregations = this.customAggregations;
       value.allowEternity = this.allowEternity;
       value.allowSelectQueries = this.allowSelectQueries;
       value.exactResultsOnly = this.exactResultsOnly;
@@ -310,6 +326,7 @@ module Plywood {
       var js: ExternalJS = super.toJS();
       js.dataSource = this.dataSource;
       js.timeAttribute = this.timeAttribute;
+      js.customAggregations = this.customAggregations;
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
       if (this.exactResultsOnly) js.exactResultsOnly = true;
@@ -321,6 +338,7 @@ module Plywood {
       return super.equals(other) &&
         String(this.dataSource) === String(other.dataSource) &&
         this.timeAttribute === other.timeAttribute &&
+        customAggregationsEqual(this.customAggregations, other.customAggregations) &&
         this.allowEternity === other.allowEternity &&
         this.allowSelectQueries === other.allowSelectQueries &&
         this.exactResultsOnly === other.exactResultsOnly &&
@@ -810,19 +828,36 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
+    public getAccessTypeForAggregation(aggregationType: string): string {
+      if (aggregationType === 'hyperUnique' || aggregationType === 'cardinality') return 'hyperUniqueCardinality';
+
+      var customAggregations = this.customAggregations;
+      for (var customName in customAggregations) {
+        if (!hasOwnProperty(customAggregations, customName)) continue;
+        var customAggregation = customAggregations[customName];
+        if (customAggregation.aggregation.type === aggregationType) {
+          return customAggregation.accessType || 'fieldAccess';
+        }
+      }
+
+      return 'fieldAccess';
+    }
+
+    public getAccessType(aggregations: Druid.Aggregation[], aggregationName: string): string {
+      for (let aggregation of aggregations) {
+        if (aggregation.name === aggregationName) {
+          return this.getAccessTypeForAggregation(aggregation.type);
+        }
+      }
+      throw new Error(`aggregation '${aggregationName}' not found`);
+    }
+
     public expressionToPostAggregation(ex: Expression, aggregations: Druid.Aggregation[]): Druid.PostAggregation {
       if (ex instanceof RefExpression) {
         var refName = ex.name;
-        var accessType: string;
-        for (let aggregation of aggregations) {
-          if (aggregation.name === refName) {
-            var aggType = aggregation.type;
-            accessType = (aggType === 'hyperUnique' || aggType === 'cardinality') ? 'hyperUniqueCardinality' : 'fieldAccess';
-          }
-        }
         return {
-          type: accessType,
-          fieldName: ex.name
+          type: this.getAccessType(aggregations, refName),
+          fieldName: refName
         };
 
       } else if (ex instanceof LiteralExpression) {
@@ -960,6 +995,23 @@ return (start < 0 ?'-':'') + parts.join('.');
         case "countDistinct":
           return this.makeCountDistinctAggregation(action.name, inputExpression, <CountDistinctAction>aggregateAction);
 
+        case "quantile":
+          throw new Error(`ToDo: add quantile support`); // ToDo: add quantile support
+
+        case "custom":
+          var customAggregationName = (<CustomAction>aggregateAction).custom;
+          var customAggregation = this.customAggregations[customAggregationName];
+          if (!customAggregation) throw new Error(`could not find '${customAggregationName}'`);
+          var aggregationObj = customAggregation.aggregation;
+          if (typeof aggregationObj.type !== 'string') throw new Error(`must have type in custom aggregation '${customAggregationName}'`);
+          try {
+            aggregationObj = JSON.parse(JSON.stringify(aggregationObj));
+          } catch (e) {
+            throw new Error(`must have JSON custom aggregation '${customAggregationName}'`);
+          }
+          aggregationObj.name = action.name;
+          return aggregationObj;
+
         default:
           throw new Error(`unsupported aggregate action ${aggregateAction.action}`);
       }
@@ -977,7 +1029,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       this.applies.forEach(action => {
         var expression = action.expression;
-        if (expression instanceof ChainExpression && expression.actions.length === 1 && aggregateActions[expression.actions[0].action]) {
+        if (expression instanceof ChainExpression && expression.actions.length === 1 && expression.actions[0].isAggregate()) {
           aggregations.push(this.applyToAggregation(action));
         } else {
           postAggregations.push(this.applyToPostAggregation(action, aggregations));

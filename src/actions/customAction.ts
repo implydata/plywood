@@ -50,6 +50,10 @@ module Plywood {
       return super.equals(other) &&
         this.custom === other.custom;
     }
+
+    public isAggregate(): boolean {
+      return true;
+    }
   }
 
   Action.register(CustomAction);

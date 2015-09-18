@@ -26,6 +26,10 @@ module Plywood {
       return 'MIN(' + expressionSQL + ')';
     }
 
+    public isAggregate(): boolean {
+      return true;
+    }
+
     public isNester(): boolean {
       return true;
     }

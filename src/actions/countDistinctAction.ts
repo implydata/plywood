@@ -26,6 +26,10 @@ module Plywood {
       return 'COUNT(DISTINCT ' + expressionSQL + ')';
     }
 
+    public isAggregate(): boolean {
+      return true;
+    }
+
     public isNester(): boolean {
       return true;
     }

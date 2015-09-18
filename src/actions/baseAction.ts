@@ -183,6 +183,10 @@ module Plywood {
         (!this.expression || this.expression.equals(other.expression))
     }
 
+    public isAggregate(): boolean {
+      return false;
+    }
+
     protected _checkInputType(inputType: string, neededType: string) {
       if (inputType && inputType !== 'NULL' && neededType && inputType !== neededType) {
         throw new Error(`${this.action} must have input of type ${neededType} (is ${inputType})`);

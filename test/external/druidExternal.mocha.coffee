@@ -27,7 +27,25 @@ context = {
       deleted: { type: 'NUMBER' }
       inserted: { type: 'NUMBER' }
     }
-    filter: timeFilter
+    filter: timeFilter,
+    customAggregations: {
+      crazy: {
+        accessType: 'getSomeCrazy'
+        aggregation: {
+          type: 'crazy'
+          the: 'borg will rise again'
+          activate: false
+        }
+      }
+      stupid: {
+        accessType: 'iAmWithStupid'
+        aggregation: {
+          type: 'stoopid'
+          onePlusOne: 3
+          globalWarming: 'hoax'
+        }
+      }
+    }
   })
 }
 
@@ -364,6 +382,63 @@ describe "DruidExternal", ->
           "type": "default"
         }
         "queryType": "groupBy"
+      })
+
+    it "a split with custom aggregations", ->
+      ex = $('wiki').split("$page", 'Page')
+        .apply('CrazyStupid', '$wiki.custom(crazy) * $wiki.custom(stupid)')
+        .sort('$CrazyStupid', 'descending')
+        .limit(5)
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('external')
+      druidExternal = ex.external
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "activate": false
+            "name": "_sd_0"
+            "the": "borg will rise again"
+            "type": "crazy"
+          }
+          {
+            "globalWarming": "hoax"
+            "name": "_sd_1"
+            "onePlusOne": 3
+            "type": "stoopid"
+          }
+        ]
+        "dataSource": "wikipedia"
+        "dimension": {
+          "dimension": "page"
+          "outputName": "Page"
+          "type": "default"
+        }
+        "granularity": "all"
+        "intervals": [
+          "2013-02-26/2013-02-27"
+        ]
+        "metric": "CrazyStupid"
+        "postAggregations": [
+          {
+            "fields": [
+              {
+                "fieldName": "_sd_0"
+                "type": "getSomeCrazy"
+              }
+              {
+                "fieldName": "_sd_1"
+                "type": "iAmWithStupid"
+              }
+            ]
+            "fn": "*"
+            "name": "CrazyStupid"
+            "type": "arithmetic"
+          }
+        ]
+        "queryType": "topN"
+        "threshold": 5
       })
 
     it "filters (in)", ->

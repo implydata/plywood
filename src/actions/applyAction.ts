@@ -1,13 +1,4 @@
 module Plywood {
-  var aggregateActions: Lookup<boolean> = {
-    count: true,
-    sum: true,
-    min: true,
-    max: true,
-    average: true,
-    countDistinct: true,
-    quantile: true
-  };
 
   export class ApplyAction extends Action {
     static fromJS(parameters: ActionJS): ApplyAction {
@@ -71,7 +62,7 @@ module Plywood {
       var expression = this.expression;
       if (expression instanceof ChainExpression) {
         var actions = expression.actions;
-        return actions.length === 1 && aggregateActions[actions[0].action];
+        return actions.length === 1 && actions[0].isAggregate();
       }
       return false;
     }

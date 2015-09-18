@@ -26,6 +26,10 @@ module Plywood {
       return 'MAX(' + expressionSQL + ')';
     }
 
+    public isAggregate(): boolean {
+      return true;
+    }
+
     public isNester(): boolean {
       return true;
     }

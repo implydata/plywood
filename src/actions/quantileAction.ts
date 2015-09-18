@@ -56,6 +56,10 @@ module Plywood {
         this.quantile === other.quantile;
     }
 
+    public isAggregate(): boolean {
+      return true;
+    }
+
     public isNester(): boolean {
       return true;
     }

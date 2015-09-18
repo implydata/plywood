@@ -31,6 +31,10 @@ module Plywood {
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return 'COUNT(*)';
     }
+
+    public isAggregate(): boolean {
+      return true;
+    }
   }
 
   Action.register(CountAction);

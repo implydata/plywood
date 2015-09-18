@@ -17,16 +17,6 @@ module Plywood {
     postProcess: IntrospectPostProcess;
   }
 
-  export var aggregateActions: Lookup<number> = {
-    count: 1,
-    sum: 1,
-    min: 1,
-    max: 1,
-    average: 1,
-    countDistinct: 1,
-    quantile: 1
-  };
-
   export function mergeExternals(externalGroups: External[][]): External[] {
     var seen: Lookup<External> = {};
     externalGroups.forEach(externalGroup => {
@@ -116,6 +106,7 @@ module Plywood {
     // Druid
     dataSource?: string | string[];
     timeAttribute?: string;
+    customAggregations?: CustomDruidAggregations;
     allowEternity?: boolean;
     allowSelectQueries?: boolean;
     exactResultsOnly?: boolean;
@@ -139,6 +130,7 @@ module Plywood {
     // Druid
     dataSource?: string | string[];
     timeAttribute?: string;
+    customAggregations?: CustomDruidAggregations;
     allowEternity?: boolean;
     allowSelectQueries?: boolean;
     exactResultsOnly?: boolean;
@@ -584,7 +576,7 @@ module Plywood {
       var applyExpression = apply.expression;
       if (applyExpression instanceof ChainExpression) {
         var actions = applyExpression.actions;
-        if (aggregateActions[actions[actions.length - 1].action]) {
+        if (actions[actions.length - 1].isAggregate()) {
           // This is a vanilla aggregate, just return it.
           return [apply];
         }
@@ -595,7 +587,7 @@ module Plywood {
 
       var newExpression = applyExpression.substituteAction(
         (action) => {
-          return Boolean(aggregateActions[action.action]);
+          return action.isAggregate();
         },
         (preEx: Expression, action: Action) => {
           var aggregateChain = preEx.performAction(action);
