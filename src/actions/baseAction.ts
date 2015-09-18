@@ -22,6 +22,7 @@ module Plywood {
     quantile?: number;
     selector?: string;
     prop?: Lookup<any>;
+    custom?: string;
     simple?: boolean;
   }
 
@@ -45,6 +46,7 @@ module Plywood {
     quantile?: number;
     selector?: string;
     prop?: Lookup<any>;
+    custom?: string;
   }
 
   export interface ExpressionTransformation {

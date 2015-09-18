@@ -27,8 +27,8 @@ module Plywood {
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'STRING');
-      return 'BOOLEAN';
+      this._checkInputType(inputType, 'DATASET');
+      return 'NUMBER';
     }
 
     public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {

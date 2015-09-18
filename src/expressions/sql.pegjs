@@ -42,6 +42,7 @@ var aggregates = {
   average: 1,
   countDistinct: 1,
   quantile: 1,
+  custom: 1,
   split: 1
 }
 
@@ -289,6 +290,8 @@ AggregateExpression
     { return dataRef[fn](ex); }
   / QuantileToken "(" _ ex:Expression _ "," _ value: Number ")"
     { return dataRef.quantile(ex, value); }
+  / CustomToken "(" _ value: String ")"
+    { return dataRef.custom(value); }
 
 AggregateFn
   = SumToken / AvgToken / MinToken / MaxToken / CountDistinctToken
@@ -385,6 +388,7 @@ AvgToken           = "AVG"i            !IdentifierPart { return 'average'; }
 MinToken           = "MIN"i            !IdentifierPart { return 'min'; }
 MaxToken           = "MAX"i            !IdentifierPart { return 'max'; }
 QuantileToken      = "QUANTILE"i       !IdentifierPart { return 'quantile'; }
+CustomToken        = "CUSTOM"i         !IdentifierPart { return 'custom'; }
 
 TimeBucketToken    = "TIME_BUCKET"i    !IdentifierPart
 NumberBucketToken  = "NUMBER_BUCKET"i  !IdentifierPart

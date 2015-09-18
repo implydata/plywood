@@ -29,6 +29,7 @@ var possibleCalls = {
   'limit': 1,
   'count': 1,
   'countDistinct': 1,
+  'custom': 1,
   'sum': 1,
   'max': 1,
   'min': 1,

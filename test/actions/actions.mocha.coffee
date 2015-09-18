@@ -39,6 +39,7 @@ describe "Actions", ->
       { action: 'average', expression: { op: 'ref', name: 'myVar' } }
       { action: 'countDistinct', expression: { op: 'ref', name: 'myVar' } }
       { action: 'quantile', expression: { op: 'ref', name: 'myVar' }, quantile: 0.5 }
+      { action: 'custom', custom: 'blah' }
     ], {
       newThrows: true
     })

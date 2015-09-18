@@ -53,7 +53,8 @@ describe "SQL parser", ->
       QUANTILE(added, 0.5) AS Median,
       COUNT_DISTINCT(visitor) AS 'Unique1',
       COUNT(DISTINCT visitor) AS 'Unique2',
-      COUNT(DISTINCT(visitor)) AS 'Unique3'
+      COUNT(DISTINCT(visitor)) AS 'Unique3',
+      CUSTOM('blah') AS 'Custom1'
       FROM `wiki`
       WHERE `language`="en"    -- This is just some comment
       GROUP BY ''
@@ -75,6 +76,7 @@ describe "SQL parser", ->
       .apply('Unique1', $('data').countDistinct('$visitor'))
       .apply('Unique2', $('data').countDistinct('$visitor'))
       .apply('Unique3', $('data').countDistinct('$visitor'))
+      .apply('Custom1', $('data').custom('blah'))
 
     expect(ex.toJS()).to.deep.equal(ex2.toJS())
 

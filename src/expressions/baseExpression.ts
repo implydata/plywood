@@ -781,6 +781,10 @@ module Plywood {
       return this.performAction(new QuantileAction({ expression: ex, quantile }));
     }
 
+    public custom(custom: string): ChainExpression {
+      return this.performAction(new CustomAction({ custom }));
+    }
+
     public split(ex: any, name: string, newDataName: string = null): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
       var dataName = getDataName(this);

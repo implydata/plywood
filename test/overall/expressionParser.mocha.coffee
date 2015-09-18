@@ -40,6 +40,7 @@ describe "expression parser", ->
         .apply('agg_min', "$data.min($price)")
         .apply('agg_max', "$data.max($price)")
         .apply('agg_quantile', "$data.quantile($price, 0.5)")
+        .apply('agg_custom', "$data.custom(blah)")
         .apply('agg_split', "$data.split($carat, 'Carat')")
         .apply('agg_filter_count', "$data.filter($country == 'USA').count()")
 
@@ -64,6 +65,7 @@ describe "expression parser", ->
         .apply('agg_min', $("data").min($('price')))
         .apply('agg_max', $("data").max($('price')))
         .apply('agg_quantile', $("data").quantile($('price'), 0.5))
+        .apply('agg_custom', $("data").custom('blah'))
         .apply('agg_split', $("data").split($('carat'), 'Carat'))
         .apply('agg_filter_count', $("data").filter($('country').is("USA")).count())
 
