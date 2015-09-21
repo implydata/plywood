@@ -46,7 +46,7 @@ function naryExpressionFactory(op, head, tail) {
 function naryExpressionWithAltFactory(op, head, tail, altToken, altOp) {
   if (!tail.length) return head;
   for (var i = 0; i < tail.length; i++) {
-    t = tail[i];
+    var t = tail[i];
     head = head[t[1] === altToken ? altOp : op].call(head, t[3]);
   }
   return head;
