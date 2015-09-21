@@ -326,7 +326,7 @@ module Plywood {
       var js: ExternalJS = super.toJS();
       js.dataSource = this.dataSource;
       js.timeAttribute = this.timeAttribute;
-      js.customAggregations = this.customAggregations;
+      if (Object.keys(this.customAggregations).length) js.customAggregations = this.customAggregations;
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
       if (this.exactResultsOnly) js.exactResultsOnly = true;
