@@ -545,20 +545,31 @@ describe "DruidExternal", ->
   describe "introspects", ->
     requester = ({query}) ->
       expect(query).to.deep.equal({
-        "dataSource": "wikipedia"
-        "queryType": "introspect"
+        queryType: 'segmentMetadata',
+        dataSource: 'wikipedia',
+        intervals: ['0000-01-01/9999-12-31'],
+        merge: true
       })
-      return Q({
-        dimensions: ['page', 'language']
-        metrics: ['added', 'deleted', 'uniques']
-      })
+      return Q([{
+        "id" : "some_id",
+        "intervals" : [ "0000-01-01T00:00:00.000Z/9999-12-31T00:00:00.000Z" ],
+        "columns" : {
+          "time" : { "type" : "LONG", "size" : 407240380, "cardinality" : null },
+          "page" : { "type" : "STRING", "size" : 100000, "cardinality" : 1944 },
+          "language" : { "type" : "STRING", "size" : 100000, "cardinality" : 1504 },
+          "added" : { "type" : "FLOAT", "size" : 100000, "cardinality" : null },
+          "deleted" : { "type" : "FLOAT", "size" : 100000, "cardinality" : null },
+          "uniques" : { "type" : "FLOAT", "size" : 100000, "cardinality" : null }
+        },
+        "size" : 300000
+      }])
 
     it "does a simple introspect", (testComplete) ->
       wikiExternal = External.fromJS({
         engine: 'druid',
         dataSource: 'wikipedia',
         timeAttribute: 'time',
-        requester
+        requester: requester,
         filter: timeFilter
       })
 
@@ -597,7 +608,7 @@ describe "DruidExternal", ->
         engine: 'druid',
         dataSource: 'wikipedia',
         timeAttribute: 'time',
-        requester
+        requester: requester,
         filter: timeFilter
         attributeOverrides: {
           uniques: { special: 'unique' }

@@ -14,17 +14,37 @@ describe "introspect", ->
   mockRequester = (request) ->
     return Q.fcall(->
       query = request.query
-      expect(query.queryType).to.equal('introspect')
+      expect(query.queryType).to.equal('segmentMetadata')
       if query.dataSource is 'diamonds'
-        return {
-          dimensions: ['color', 'cut', 'tags', 'carat']
-          metrics: ['price', 'tax', 'unique_view']
-        }
+        return [{
+          "id": "some_diamonds_id",
+          "intervals": ["0000-01-01T00:00:00.000Z/9999-12-31T00:00:00.000Z"],
+          "columns": {
+            "time": {"type": "LONG", "size": 407240380, "cardinality": null},
+            "color": {"type": "STRING", "size": 100000, "cardinality": 1944},
+            "cut": {"type": "STRING", "size": 100000, "cardinality": 1504},
+            "tags": {"type": "STRING", "size": 100000, "cardinality": 1504},
+            "carat": {"type": "STRING", "size": 100000, "cardinality": 1504},
+            "price": {"type": "FLOAT", "size": 100000, "cardinality": null},
+            "tax": {"type": "FLOAT", "size": 100000, "cardinality": null},
+            "unique_view": {"type": "FLOAT", "size": 100000, "cardinality": null}
+          },
+          "size": 300000
+        }]
       else if query.dataSource is 'wikipedia'
-        return {
-          dimensions: ['page', 'language', 'is_robot']
-          metrics: ['added', 'deleted']
-        }
+        return [{
+          "id": "some_wikipedia_id",
+          "intervals": ["0000-01-01T00:00:00.000Z/9999-12-31T00:00:00.000Z"],
+          "columns": {
+            "timestamp": {"type": "LONG", "size": 407240380, "cardinality": null},
+            "page": {"type": "STRING", "size": 100000, "cardinality": 1944},
+            "language": {"type": "STRING", "size": 100000, "cardinality": 1504},
+            "is_robot": {"type": "STRING", "size": 100000, "cardinality": 1504},
+            "added": {"type": "FLOAT", "size": 100000, "cardinality": null},
+            "deleted": {"type": "FLOAT", "size": 100000, "cardinality": null}
+          },
+          "size": 300000
+        }]
       else
         throw new Error("no such datasource: #{query.dataSource}");
     )
