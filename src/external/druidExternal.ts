@@ -490,7 +490,7 @@ module Plywood {
           if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
             attributeInfo = this.getAttributesInfo(lhs.name);
             var rhsType = rhs.type;
-            if (rhsType === 'SET/STRING') {
+            if (rhsType === 'SET/STRING' || rhsType === 'SET/NULL') {
               var fields = rhs.value.elements.map((value: string) => {
                 return {
                   type: "selector",

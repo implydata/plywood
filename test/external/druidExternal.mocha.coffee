@@ -473,6 +473,38 @@ describe "DruidExternal", ->
         "queryType": "timeseries"
       })
 
+    it "filters (in [null])", ->
+      ex = ply()
+        .apply("wiki",
+          $('wiki', 1)
+            .filter($("language").in([null]))
+        )
+        .apply('Count', '$wiki.count()')
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('external')
+      druidExternal = ex.external
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "name": "Count"
+            "type": "count"
+          }
+        ]
+        "dataSource": "wikipedia"
+        "filter": {
+          "dimension": "language"
+          "type": "selector"
+          "value": null
+        }
+        "granularity": "all"
+        "intervals": [
+          "2013-02-26/2013-02-27"
+        ]
+        "queryType": "timeseries"
+      })
+
     it "filters (contains)", ->
       ex = ply()
         .apply("wiki",
