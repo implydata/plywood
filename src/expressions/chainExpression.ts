@@ -417,8 +417,6 @@ module Plywood {
         included: Expression.and(includedExpressions).simplify(),
         excluded: Expression.and(excludedExpressions).simplify()
       };
-
-      return null;
     }
   }
 
