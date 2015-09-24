@@ -8,7 +8,7 @@ if not WallTime.rules
 { druidRequesterFactory } = require('plywood-druid-requester')
 
 plywood = require('../../build/plywood')
-{ Expression, External, TimeRange, $, basicExecutorFactory, helper } = plywood
+{ Expression, External, TimeRange, $, ply, basicExecutorFactory, helper } = plywood
 
 info = require('../info')
 
@@ -16,9 +16,9 @@ druidRequester = druidRequesterFactory({
   host: info.druidHost
 })
 
-druidRequester = helper.verboseRequesterFactory({
-  requester: druidRequester
-})
+#druidRequester = helper.verboseRequesterFactory({
+#  requester: druidRequester
+#})
 
 describe "DruidExternal", ->
   @timeout(10000);

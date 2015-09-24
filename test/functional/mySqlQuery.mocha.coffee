@@ -8,7 +8,7 @@ if not WallTime.rules
 { mySqlRequesterFactory } = require('plywood-mysql-requester')
 
 plywood = require('../../build/plywood')
-{ Expression, External, TimeRange, $, basicExecutorFactory } = plywood
+{ Expression, External, TimeRange, $, ply, basicExecutorFactory } = plywood
 
 info = require('../info')
 

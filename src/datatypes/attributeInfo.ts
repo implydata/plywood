@@ -52,7 +52,21 @@ module Plywood {
     }
 
     static fromJSs(attributeJSs: AttributeJSs): Attributes {
-      if (!Array.isArray(attributeJSs)) throw new TypeError("invalid attributeJSs");
+      if (!Array.isArray(attributeJSs)) {
+        if (attributeJSs && typeof attributeJSs === 'object') {
+          var newAttributeJSs: any[] = [];
+          for (var attributeName in attributeJSs) {
+            if (!hasOwnProperty(attributeJSs, attributeName)) continue;
+            var attributeJS = attributeJSs[attributeName];
+            attributeJS['name'] = attributeName;
+            newAttributeJSs.push(attributeJS);
+          }
+          console.warn('attributes now needs to be passed as an array like so: ' + JSON.stringify(newAttributeJSs, null, 2));
+          attributeJSs = newAttributeJSs;
+        } else {
+          throw new TypeError("invalid attributeJSs");
+        }
+      }
       return attributeJSs.map(attributeJS => AttributeInfo.fromJS(attributeJS));
     }
 
