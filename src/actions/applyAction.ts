@@ -81,7 +81,7 @@ module Plywood {
         } else {
           var externals = myExpression.getExternals();
           if (externals.length === 1) {
-            var newExternal = externals[0].makeTotal(this.name);
+            var newExternal = externals[0].makeTotal('main'); // ToDo: this 'main' is a hack
             if (!newExternal) return null;
             return this.performOnSimple(new ExternalExpression({
               external: newExternal

@@ -1,6 +1,6 @@
 module Plywood {
-  const UNIQUE_REGEXP = /^unique_/;
-  const HISTOGRAM_REGEXP = /_hist$/;
+  const UNIQUE_REGEXP = /^unique_|_unique$/;
+  const HISTOGRAM_REGEXP = /^hist_|_hist$/;
 
   const DUMMY_NAME = '!DUMMY';
 

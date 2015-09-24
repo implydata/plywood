@@ -114,25 +114,33 @@ module Plywood {
     }
 
     public foldIntoExternal(): Expression {
-      var { expression, actions } = this;
-      if (expression instanceof ExternalExpression) {
+      var externalExpression = this.expression;
+      var actions = this.actions;
+
+      if (externalExpression instanceof ExternalExpression) {
         var undigestedActions: Action[] = [];
         for (var action of actions) {
-          var newExternal = (<ExternalExpression>expression).addAction(action);
+          var newExternal = (<ExternalExpression>externalExpression).addAction(action);
           if (newExternal) {
-            expression = newExternal;
+            externalExpression = newExternal;
           } else {
             undigestedActions.push(action);
           }
         }
+
+        var emptyLiteral = (<ExternalExpression>externalExpression).getEmptyLiteral();
+        if (emptyLiteral) {
+          externalExpression = emptyLiteral;
+        }
+
         if (undigestedActions.length) {
           return new ChainExpression({
-            expression: expression,
+            expression: externalExpression,
             actions: undigestedActions,
             simple: true
           });
         } else {
-          return expression;
+          return externalExpression;
         }
       }
       return this;

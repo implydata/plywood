@@ -75,6 +75,13 @@ module Plywood {
       if (!newExternal) return null;
       return new ExternalExpression({ external: newExternal });
     }
+
+    public getEmptyLiteral(): LiteralExpression {
+      var external = this.external;
+      var emptyTotalDataset = external.getEmptyTotalDataset();
+      if (!emptyTotalDataset) return null;
+      return r(emptyTotalDataset);
+    }
   }
 
   Expression.register(ExternalExpression);

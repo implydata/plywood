@@ -272,7 +272,7 @@ describe "External", ->
     it "a total and a split", ->
       ex = ply()
         .apply("wiki",
-          $('wiki', 1)
+          $('wiki')
             .apply('addedTwice', '$added * 2')
             .filter($("language").is('en'))
         )
@@ -297,6 +297,23 @@ describe "External", ->
         { name: "Count", "type": "NUMBER" },
         { name: "TotalAdded", "type": "NUMBER" }
       ])
+
+    it "a blank total and a split", ->
+      ex = ply()
+        .apply("wiki", $('wiki').filter($("language").is('en')))
+        .apply('Pages',
+          $('wiki').split("$page", 'Page')
+            .apply('Count', '$wiki.count()')
+            .apply('Added', '$wiki.sum($added)')
+            .sort('$Count', 'descending')
+            .limit(5)
+        )
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('chain')
+      expect(ex.actions).to.have.length(1)
+      expect(ex.expression.op).to.equal('literal')
 
     it "a total and a split in a strange order", ->
       ex = ply()

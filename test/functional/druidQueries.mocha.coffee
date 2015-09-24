@@ -38,7 +38,7 @@ describe "DruidExternal", ->
             { name: 'user', type: 'STRING' }
             { name: 'added', type: 'NUMBER' }
             { name: 'count', type: 'NUMBER' }
-            { name: 'unique_users', special: 'unique' }
+            { name: 'user_unique', special: 'unique' }
           ]
           filter: $('time').in(TimeRange.fromJS({
             start: new Date("2015-08-14T00:00:00Z")
@@ -63,22 +63,22 @@ describe "DruidExternal", ->
 
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
-         {
-           "HoursOfDay": [
-             {
-               "HourOfDay": 17
-               "TotalAdded": 2780987
-             }
-             {
-               "HourOfDay": 18
-               "TotalAdded": 2398056
-             }
-             {
-               "HourOfDay": 21
-               "TotalAdded": 2357434
-             }
-           ]
-         }
+          {
+            "HoursOfDay": [
+              {
+                "HourOfDay": 0
+                "TotalAdded": 4381326
+              }
+              {
+                "HourOfDay": 3
+                "TotalAdded": 4159589
+              }
+              {
+                "HourOfDay": 1
+                "TotalAdded": 3888962
+              }
+            ]
+          }
         ])
         testComplete()
       ).done()
@@ -206,16 +206,16 @@ describe "DruidExternal", ->
       ex = ply()
         .apply('UniquePages', $('wiki').countDistinct("$page"))
         .apply('UniqueUsers1', $('wiki').countDistinct("$user"))
-        #.apply('UniqueUsers2', $('wiki').countDistinct("$unique_users"))
-        #.apply('Diff', '$UniqueUsers1 - $UniqueUsers2')
+        .apply('UniqueUsers2', $('wiki').countDistinct("$user_unique"))
+        .apply('Diff', '$UniqueUsers1 - $UniqueUsers2')
 
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
-            "UniquePages": 457035.7144048186
-            "UniqueUsers1": 49498.509337114636
-            #"UniqueUsers2": 47529.143858286734
-            #"Diff": 1969.3654788279018
+            "Diff": 24550.2655599543
+            "UniquePages": 102748.42464311104
+            "UniqueUsers1": 24550.2655599543
+            "UniqueUsers2": 0 # this is 0 because uniques did not exist yet
           }
         ])
         testComplete()
@@ -240,20 +240,20 @@ describe "DruidExternal", ->
           {
             "Pages": [
               {
-                "Page": "!Kheis_Local_Municipality"
+                "Page": "!distain"
                 "Users": [
                   {
                     "Count": 1
-                    "User": "Addbot"
+                    "User": "SteEis"
                   }
                 ]
               }
               {
-                "Page": "!_(disambiguation)"
+                "Page": "\"A\"_Is_for_Alibi"
                 "Users": [
                   {
                     "Count": 1
-                    "User": "Addbot"
+                    "User": "Fitnr"
                   }
                 ]
               }
@@ -283,52 +283,52 @@ describe "DruidExternal", ->
             "ByHour": [
               {
                 "TimeByHour": {
-                  "end": new Date("2013-02-26T01:00:00.000Z")
-                  "start": new Date("2013-02-26T00:00:00.000Z")
+                  "end": new Date('2015-08-14T01:00:00.000Z')
+                  "start": new Date('2015-08-14T00:00:00.000Z')
                   "type": "TIME_RANGE"
                 }
                 "Users": [
                   {
-                    "Count": 14
-                    "Page": "Marissa_Mayer"
+                    "Count": 34
+                    "Page": "Wikipedia:Administrator_intervention_against_vandalism"
                   }
                   {
-                    "Count": 14
-                    "Page": "Santa_Maria"
+                    "Count": 27
+                    "Page": "User_talk:Thine_Antique_Pen"
                   }
                 ]
               }
               {
                 "TimeByHour": {
-                  "end": new Date("2013-02-26T02:00:00.000Z")
-                  "start": new Date("2013-02-26T01:00:00.000Z")
+                  "end": new Date('2015-08-14T02:00:00.000Z')
+                  "start": new Date('2015-08-14T01:00:00.000Z')
+                  "type": "TIME_RANGE"
+                }
+                "Users": [
+                  {
+                    "Count": 40
+                    "Page": "User_talk:MherHzzor"
+                  }
+                  {
+                    "Count": 23
+                    "Page": "Patas_monkey"
+                  }
+                ]
+              }
+              {
+                "TimeByHour": {
+                  "end": new Date('2015-08-14T03:00:00.000Z')
+                  "start": new Date('2015-08-14T02:00:00.000Z')
                   "type": "TIME_RANGE"
                 }
                 "Users": [
                   {
                     "Count": 21
-                    "Page": "Avaya"
+                    "Page": "Olive_baboon"
                   }
                   {
-                    "Count": 18
-                    "Page": "Rachel_Carson"
-                  }
-                ]
-              }
-              {
-                "TimeByHour": {
-                  "end": new Date("2013-02-26T03:00:00.000Z")
-                  "start": new Date("2013-02-26T02:00:00.000Z")
-                  "type": "TIME_RANGE"
-                }
-                "Users": [
-                  {
-                    "Count": 18
-                    "Page": "Michael_Haneke"
-                  }
-                  {
-                    "Count": 15
-                    "Page": "Jean-Louis_Trintignant"
+                    "Count": 16
+                    "Page": "Blue_monkey"
                   }
                 ]
               }
@@ -348,8 +348,8 @@ describe "DruidExternal", ->
           timeAttribute: 'time',
           context: null
           filter: $('time').in(TimeRange.fromJS({
-            start: new Date("2013-02-26T00:00:00Z")
-            end: new Date("2013-02-27T00:00:00Z")
+            start: new Date("2015-09-14T00:00:00Z")
+            end: new Date("2015-09-15T00:00:00Z")
           }))
           requester: druidRequester
         })
@@ -377,64 +377,64 @@ describe "DruidExternal", ->
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
-            "Count": 334129
+            "Count": 124632
             "Time": [
               {
                 "Pages": [
                   {
-                    "Count": 130
-                    "Page": "User:Addbot/log/wikidata"
+                    "Count": 35
+                    "Page": "Moses_Malone"
                   }
                   {
-                    "Count": 31
-                    "Page": "Wikipedia:Categories_for_discussion/Speedy"
+                    "Count": 25
+                    "Page": "Wikipedia:Articles_for_deletion/Log/2015_September_14"
                   }
                 ]
                 "Timestamp": {
-                  "end": new Date("2013-02-26T01:00:00.000Z")
-                  "start": new Date("2013-02-26T00:00:00.000Z")
+                  "end": new Date('2015-09-14T01:00:00.000Z')
+                  "start": new Date('2015-09-14T00:00:00.000Z')
                   "type": "TIME_RANGE"
                 }
-                "TotalAdded": 2149342
+                "TotalAdded": 2550858
               }
               {
                 "Pages": [
                   {
-                    "Count": 121
-                    "Page": "User:Addbot/log/wikidata"
+                    "Count": 43
+                    "Page": "Edith_Wilmans"
                   }
                   {
-                    "Count": 34
-                    "Page": "Ahmed_Elkady"
+                    "Count": 21
+                    "Page": "Template:Quote/testcases2"
                   }
                 ]
                 "Timestamp": {
-                  "end": new Date("2013-02-26T02:00:00.000Z")
-                  "start": new Date("2013-02-26T01:00:00.000Z")
+                  "end": new Date('2015-09-14T02:00:00.000Z')
+                  "start": new Date('2015-09-14T01:00:00.000Z')
                   "type": "TIME_RANGE"
                 }
-                "TotalAdded": 1717907
+                "TotalAdded": 2090200
               }
               {
                 "Pages": [
                   {
-                    "Count": 22
-                    "Page": "User:Libsbml/sandbox"
+                    "Count": 58
+                    "Page": "Margie_Neal"
                   }
                   {
-                    "Count": 20
-                    "Page": "The_Biggest_Loser:_Challenge_America"
+                    "Count": 24
+                    "Page": "User:Curiocurio/sandbox"
                   }
                 ]
                 "Timestamp": {
-                  "end": new Date("2013-02-26T03:00:00.000Z")
-                  "start": new Date("2013-02-26T02:00:00.000Z")
+                  "end": new Date('2015-09-14T03:00:00.000Z')
+                  "start": new Date('2015-09-14T02:00:00.000Z')
                   "type": "TIME_RANGE"
                 }
-                "TotalAdded": 1258761
+                "TotalAdded": 3617079
               }
             ]
-            "TotalAdded": 41412583
+            "TotalAdded": 47744225
           }
         ])
         testComplete()

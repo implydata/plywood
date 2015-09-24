@@ -655,6 +655,14 @@ module Plywood {
 
     // -----------------
 
+    public getEmptyTotalDataset(): Dataset {
+      if (this.mode !== 'total' || this.applies.length) return null;
+      var dataName = this.dataName;
+      return new Dataset({ data: [{}] }).apply(dataName, () => {
+        return this.getRaw();
+      }, null);
+    }
+
     public addNextExternal(dataset: Dataset): Dataset {
       var dataName = this.dataName;
       switch (this.mode) {
