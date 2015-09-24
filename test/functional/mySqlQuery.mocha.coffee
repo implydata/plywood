@@ -28,13 +28,13 @@ describe "MySQLExternal", ->
         wiki: External.fromJS({
           engine: 'mysql'
           table: 'wiki_day_agg'
-          attributes: {
-            time: {type: 'TIME'}
-            language: {type: 'STRING'}
-            page: {type: 'STRING'}
-            added: {type: 'NUMBER'}
-            count: {type: 'NUMBER'}
-          }
+          attributes: [
+            { name: 'time', type: 'TIME' }
+            { name: 'language', type: 'STRING' }
+            { name: 'page', type: 'STRING' }
+            { name: 'added', type: 'NUMBER' }
+            { name: 'count', type: 'NUMBER' }
+          ]
           requester: mySqlRequester
         })
       }

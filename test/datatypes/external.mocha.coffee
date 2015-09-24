@@ -15,13 +15,13 @@ wikiDataset = External.fromJS({
   dataSource: 'wikipedia',
   timeAttribute: 'time',
   context: null
-  attributes: {
-    time: { type: 'TIME' }
-    language: { type: 'STRING' }
-    user: { type: 'STRING' }
-    page: { type: 'STRING' }
-    added: { type: 'NUMBER' }
-  }
+  attributes: [
+    { name: 'time', type: 'TIME' }
+    { name: 'language', type: 'STRING' }
+    { name: 'user', type: 'STRING' }
+    { name: 'page', type: 'STRING' }
+    { name: 'added', type: 'NUMBER' }
+  ]
 })
 
 context = {
@@ -43,12 +43,12 @@ describe "External", ->
         dataSource: 'moon_child',
         timeAttribute: 'time',
         context: null
-        attributes: {
-          color: { type: 'STRING' }
-          cut: { type: 'STRING' }
-          carat: { type: 'STRING' }
-          price: { type: 'NUMBER', filterable: false, splitable: false }
-        }
+        attributes: [
+          { name: 'color', type: 'STRING' }
+          { name: 'cut', type: 'STRING' }
+          { name: 'carat', type: 'STRING' }
+          { name: 'price', type: 'NUMBER', filterable: false, splitable: false }
+        ]
       }
 
       {
@@ -66,11 +66,11 @@ describe "External", ->
         dataSource: 'moon_child2', # ToDo: remove the 2 and fix the equality test
         timeAttribute: 'time',
         context: null
-        attributeOverrides: {
-          color: { type: 'STRING' }
-          cut: { type: 'STRING' }
-          unique: { type: "STRING", special: 'unique' }
-        }
+        attributeOverrides: [
+          { name: 'color', type: 'STRING' }
+          { name: 'cut', type: 'STRING' }
+          { name: 'unique', type: "STRING", special: 'unique' }
+        ]
       }
     ], {
       newThrows: true
@@ -130,10 +130,10 @@ describe "External", ->
       externalDataset = ex.external
       expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice'])
       expect(externalDataset.applies).to.have.length(2)
-      expect(externalDataset.toJS().attributes).to.deep.equal({
-        Count: { "type": "NUMBER" },
-        TotalAdded: { "type": "NUMBER" }
-      })
+      expect(externalDataset.toJS().attributes).to.deep.equal([
+        { name: "Count", "type": "NUMBER" },
+        { name: "TotalAdded", "type": "NUMBER" }
+      ])
 
       expect(externalDataset.simulate().toJS()).to.deep.equal([
         {
@@ -155,11 +155,11 @@ describe "External", ->
       externalDataset = ex.external
       expect(externalDataset.applies).to.have.length(2)
       expect(externalDataset.limit.limit).to.equal(5)
-      expect(externalDataset.toJS().attributes).to.deep.equal({
-        Page: { "type": "STRING" },
-        Count: { "type": "NUMBER" },
-        Added: { "type": "NUMBER" }
-      })
+      expect(externalDataset.toJS().attributes).to.deep.equal([
+        { name: "Page", "type": "STRING" },
+        { name: "Count", "type": "NUMBER" },
+        { name: "Added", "type": "NUMBER" }
+      ])
 
       expect(externalDataset.simulate().toJS()).to.deep.equal([
         "Added": 4
@@ -181,11 +181,11 @@ describe "External", ->
       externalDataset = ex.external
       expect(externalDataset.applies).to.have.length(2)
       expect(externalDataset.limit.limit).to.equal(5)
-      expect(externalDataset.toJS().attributes).to.deep.equal({
-        Page: { "type": "STRING" },
-        Count: { "type": "NUMBER" },
-        Added: { "type": "NUMBER" }
-      })
+      expect(externalDataset.toJS().attributes).to.deep.equal([
+        { name: "Page", "type": "STRING" },
+        { name: "Count", "type": "NUMBER" },
+        { name: "Added", "type": "NUMBER" }
+      ])
 
     it "a split on string with multiple limits in descending order", ->
       ex = $('wiki').split("$page", 'Page')
@@ -201,11 +201,11 @@ describe "External", ->
       externalDataset = ex.external
       expect(externalDataset.applies).to.have.length(2)
       expect(externalDataset.limit.limit).to.equal(5)
-      expect(externalDataset.toJS().attributes).to.deep.equal({
-        Page: { "type": "STRING" },
-        Count: { "type": "NUMBER" },
-        Added: { "type": "NUMBER" }
-      })
+      expect(externalDataset.toJS().attributes).to.deep.equal([
+        { name: "Page", "type": "STRING" },
+        { name: "Count", "type": "NUMBER" },
+        { name: "Added", "type": "NUMBER" }
+      ])
 
     it "a split on time", ->
       ex = $('wiki').split($("time").timeBucket('P1D', 'America/Los_Angeles'), 'Timestamp')
@@ -220,11 +220,11 @@ describe "External", ->
       expect(ex.actions).to.have.length(2)
       externalDataset = ex.expression.external
       expect(externalDataset.applies).to.have.length(2)
-      expect(externalDataset.toJS().attributes).to.deep.equal({
-        Timestamp: { "type": "TIME_RANGE" },
-        Count: { "type": "NUMBER" },
-        Added: { "type": "NUMBER" }
-      })
+      expect(externalDataset.toJS().attributes).to.deep.equal([
+        { name: "Timestamp", "type": "TIME_RANGE" },
+        { name: "Count", "type": "NUMBER" },
+        { name: "Added", "type": "NUMBER" }
+      ])
 
       expect(externalDataset.simulate().toJS()).to.deep.equal([
         {
@@ -257,11 +257,11 @@ describe "External", ->
       )
 
       expect(externalDataset.applies).to.have.length(2)
-      expect(externalDataset.toJS().attributes).to.deep.equal({
-        Page: { "type": "STRING" },
-        Count: { "type": "NUMBER" },
-        Added: { "type": "NUMBER" }
-      })
+      expect(externalDataset.toJS().attributes).to.deep.equal([
+        { name: "Page", "type": "STRING" },
+        { name: "Count", "type": "NUMBER" },
+        { name: "Added", "type": "NUMBER" }
+      ])
 
       expect(externalDataset.simulate().toJS()).to.deep.equal([
         "Added": 4
@@ -293,10 +293,10 @@ describe "External", ->
 
       externalDataset = ex.expression.external
       expect(externalDataset.applies).to.have.length(2)
-      expect(externalDataset.toJS().attributes).to.deep.equal({
-        Count: { "type": "NUMBER" },
-        TotalAdded: { "type": "NUMBER" }
-      })
+      expect(externalDataset.toJS().attributes).to.deep.equal([
+        { name: "Count", "type": "NUMBER" },
+        { name: "TotalAdded", "type": "NUMBER" }
+      ])
 
     it "a total and a split in a strange order", ->
       ex = ply()
@@ -322,10 +322,10 @@ describe "External", ->
 
       externalDataset = ex.expression.external
       expect(externalDataset.applies).to.have.length(2)
-      expect(externalDataset.toJS().attributes).to.deep.equal({
-        Count: { "type": "NUMBER" },
-        TotalAdded: { "type": "NUMBER" }
-      })
+      expect(externalDataset.toJS().attributes).to.deep.equal([
+        { name: "Count", "type": "NUMBER" },
+        { name: "TotalAdded", "type": "NUMBER" }
+      ])
 
     it "a split and another split in a strange order", ->
       ex = $('wiki').split("$page", 'Page')
@@ -348,11 +348,11 @@ describe "External", ->
       externalDataset = ex.expression.external
       expect(externalDataset.applies).to.have.length(2)
       expect(externalDataset.limit.limit).to.equal(5)
-      expect(externalDataset.toJS().attributes).to.deep.equal({
-        Page: { "type": "STRING" },
-        Count: { "type": "NUMBER" },
-        Added: { "type": "NUMBER" }
-      })
+      expect(externalDataset.toJS().attributes).to.deep.equal([
+        { name: "Page", "type": "STRING" },
+        { name: "Count", "type": "NUMBER" },
+        { name: "Added", "type": "NUMBER" }
+      ])
 
     it.skip "a join of two splits", ->
       ex = $('wiki').split('$page', 'Page').join($('wikiCmp').split('$page', 'Page'))
@@ -372,17 +372,17 @@ describe "External", ->
 
       externalDatasetMain = ex.operand.lhs.value
       expect(externalDatasetMain.applies).to.have.length(2)
-      expect(externalDatasetMain.toJS().attributes).to.deep.equal({
-        Count: { "type": "NUMBER" }
-        Page: { "type": "STRING" }
-        _br_0: { "type": "NUMBER" }
-      })
+      expect(externalDatasetMain.toJS().attributes).to.deep.equal([
+        { name: "Count", "type": "NUMBER" }
+        { name: "Page", "type": "STRING" }
+        { name: "_br_0", "type": "NUMBER" }
+      ])
 
       externalDatasetCmp = ex.operand.rhs.value
       expect(externalDatasetCmp.applies).to.have.length(1)
-      expect(externalDatasetCmp.toJS().attributes).to.deep.equal({
-        Page: { "type": "STRING" }
-        _br_1: { "type": "NUMBER" }
-      })
+      expect(externalDatasetCmp.toJS().attributes).to.deep.equal([
+        { name: "Page", "type": "STRING" }
+        { name: "_br_1", "type": "NUMBER" }
+      ])
 
       expect(ex.actions[0].toString()).to.equal('.apply(CountDiff, ($_br_0 + $_br_1))')

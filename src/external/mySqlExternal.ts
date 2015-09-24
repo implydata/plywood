@@ -44,21 +44,20 @@ module Plywood {
   }
 
   function postProcessIntrospect(columns: SQLDescribeRow[]): Attributes {
-    var attributes: Attributes = Object.create(null);
-    columns.forEach((column: SQLDescribeRow) => {
+    return columns.map((column: SQLDescribeRow) => {
+      var name = column.Field;
       var sqlType = column.Type;
       if (sqlType === "datetime") {
-        attributes[column.Field] = new AttributeInfo({ type: 'TIME' });
+        return new AttributeInfo({ name, type: 'TIME' });
       } else if (sqlType.indexOf("varchar(") === 0) {
-        attributes[column.Field] = new AttributeInfo({ type: 'STRING' });
+        return new AttributeInfo({ name, type: 'STRING' });
       } else if (sqlType.indexOf("int(") === 0 || sqlType.indexOf("bigint(") === 0) {
         // ToDo: make something special for integers
-        attributes[column.Field] = new AttributeInfo({ type: 'NUMBER' });
+        return new AttributeInfo({ name, type: 'NUMBER' });
       } else if (sqlType.indexOf("decimal(") === 0) {
-        attributes[column.Field] = new AttributeInfo({ type: 'NUMBER' });
+        return new AttributeInfo({ name, type: 'NUMBER' });
       }
     });
-    return attributes;
   }
 
   export class MySQLExternal extends External {

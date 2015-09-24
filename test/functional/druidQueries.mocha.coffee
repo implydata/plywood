@@ -31,15 +31,15 @@ describe "DruidExternal", ->
           dataSource: 'wikipedia',
           timeAttribute: 'time',
           context: null
-          attributes: {
-            time: { type: 'TIME' }
-            language: { type: 'STRING' }
-            page: { type: 'STRING' }
-            user: { type: 'STRING' }
-            added: { type: 'NUMBER' }
-            count: { type: 'NUMBER' }
-            unique_users: { special: 'unique' }
-          }
+          attributes: [
+            { name: 'time', type: 'TIME' }
+            { name: 'language', type: 'STRING' }
+            { name: 'page', type: 'STRING' }
+            { name: 'user', type: 'STRING' }
+            { name: 'added', type: 'NUMBER' }
+            { name: 'count', type: 'NUMBER' }
+            { name: 'unique_users', special: 'unique' }
+          ]
           filter: $('time').in(TimeRange.fromJS({
             start: new Date("2015-08-14T00:00:00Z")
             end: new Date("2015-08-15T00:00:00Z")

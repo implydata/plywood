@@ -1,5 +1,7 @@
 var $ = plywood.$;
+var ply = plywood.ply;
 var Expression = plywood.Expression;
+var External = plywood.External;
 var Dataset = plywood.Dataset;
 
 var inputField = d3.select('#input');
@@ -40,24 +42,24 @@ function saveToLocal() {
 }
 
 context = {
-  diamonds: Dataset.fromJS({
-    source: 'druid',
+  diamonds: External.fromJS({
+    engine: 'druid',
     dataSource: 'diamonds',
     timeAttribute: 'time',
     allowEternity: true,
     allowSelectQueries: true,
     context: null,
-    attributes: {
-      time: { type: 'TIME' },
-      color: { type: 'STRING' },
-      cut: { type: 'STRING' },
-      tags: { type: 'SET/STRING' },
-      carat: { type: 'NUMBER' },
-      height_bucket: { special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 },
-      price: { type: 'NUMBER', filterable: false, splitable: false },
-      tax: { type: 'NUMBER', filterable: false, splitable: false },
-      unique_views: { special: 'unique', filterable: false, splitable: false }
-    }
+    attributes: [
+      { name: 'time', type: 'TIME' },
+      { name: 'color', type: 'STRING' },
+      { name: 'cut', type: 'STRING' },
+      { name: 'tags', type: 'SET/STRING' },
+      { name: 'carat', type: 'NUMBER' },
+      { name: 'height_bucket', special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 },
+      { name: 'price', type: 'NUMBER', filterable: false, splitable: false },
+      { name: 'tax', type: 'NUMBER', filterable: false, splitable: false },
+      { name: 'unique_views', special: 'unique', filterable: false, splitable: false }
+    ]
   })
 };
 

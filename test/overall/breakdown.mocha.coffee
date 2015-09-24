@@ -12,24 +12,24 @@ describe.skip "breakdown", ->
       dataSource: 'diamonds',
       timeAttribute: 'time',
       context: null
-      attributes: {
-        time: { type: 'TIME' }
-        color: { type: 'STRING' }
-        cut: { type: 'STRING' }
-        carat: { type: 'NUMBER' }
-      }
+      attributes: [
+        { name: 'time', type: 'TIME' }
+        { name: 'color', type: 'STRING' }
+        { name: 'cut', type: 'STRING' }
+        { name: 'carat', type: 'NUMBER' }
+      ]
     })
     diamonds2: External.fromJS({
       engine: 'druid',
       dataSource: 'diamonds2',
       timeAttribute: 'time',
       context: null
-      attributes: {
-        time: { type: 'TIME' }
-        color: { type: 'STRING' }
-        cut: { type: 'STRING' }
-        carat: { type: 'NUMBER' }
-      }
+      attributes: [
+        { name: 'time', type: 'TIME' }
+        { name: 'color', type: 'STRING' }
+        { name: 'cut', type: 'STRING' }
+        { name: 'carat', type: 'NUMBER' }
+      ]
     })
   }
 

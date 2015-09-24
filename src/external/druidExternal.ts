@@ -1,4 +1,7 @@
 module Plywood {
+  const UNIQUE_REGEXP = /^unique_/;
+  const HISTOGRAM_REGEXP = /_hist$/;
+
   const DUMMY_NAME = '!DUMMY';
 
   const TIME_PART_TO_FORMAT: Lookup<string> = {
@@ -258,13 +261,20 @@ module Plywood {
 
   function postProcessIntrospectFactory(timeAttribute: string): IntrospectPostProcess {
     return (res: Druid.DatasourceIntrospectResult): Attributes => {
-      var attributes: Attributes = Object.create(null);
-      attributes[timeAttribute] = new AttributeInfo({ type: 'TIME' });
+      var attributes: Attributes = [
+        new AttributeInfo({ name: timeAttribute, type: 'TIME' })
+      ];
       res.dimensions.forEach(dimension => {
-        attributes[dimension] = new AttributeInfo({ type: 'STRING' });
+        attributes.push(new AttributeInfo({ name: dimension, type: 'STRING' }));
       });
       res.metrics.forEach(metric => {
-        attributes[metric] = new AttributeInfo({ type: 'NUMBER', filterable: false, splitable: false });
+        if (UNIQUE_REGEXP.test(metric)) {
+          attributes.push(new UniqueAttributeInfo({ name: metric }));
+        } else if (HISTOGRAM_REGEXP.test(metric)) {
+          attributes.push(new HistogramAttributeInfo({ name: metric }));
+        } else {
+          attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', filterable: false, splitable: false }));
+        }
       });
       return attributes;
     }

@@ -15,11 +15,11 @@ context = {
     timeAttribute: 'time',
     allowEternity: true,
     context: null
-    attributes: {
-      pageURL: { type: 'STRING' } # VARCHAR(300)
-      pageRank: { type: 'NUMBER' } # INT
-      avgDuration: { type: 'NUMBER' } # INT
-    }
+    attributes: [
+      { name: 'pageURL', type: 'STRING' } # VARCHAR(300)
+      { name: 'pageRank', type: 'NUMBER' } # INT
+      { name: 'avgDuration', type: 'NUMBER' } # INT
+    ]
   })
   uservisits: External.fromJS({
     engine: 'druid',
@@ -27,17 +27,17 @@ context = {
     timeAttribute: 'visitDate',
     allowEternity: true,
     context: null
-    attributes: {
-      sourceIP: { type: 'STRING' } # VARCHAR(116)
-      destURL: { type: 'STRING' } # VARCHAR(100)
-      visitDate: { type: 'TIME' } # DATE
-      adRevenue: { type: 'NUMBER' } # FLOAT
-      userAgent: { type: 'STRING' } # VARCHAR(256)
-      countryCode: { type: 'STRING' } # CHAR(3)
-      languageCode: { type: 'STRING' } # CHAR(6)
-      searchWord: { type: 'STRING' } # VARCHAR(32)
-      duration: { type: 'NUMBER' } # INT
-    }
+    attributes: [
+      { name: 'sourceIP', type: 'STRING' } # VARCHAR(116)
+      { name: 'destURL', type: 'STRING' } # VARCHAR(100)
+      { name: 'visitDate', type: 'TIME' } # DATE
+      { name: 'adRevenue', type: 'NUMBER' } # FLOAT
+      { name: 'userAgent', type: 'STRING' } # VARCHAR(256)
+      { name: 'countryCode', type: 'STRING' } # CHAR(3)
+      { name: 'languageCode', type: 'STRING' } # CHAR(6)
+      { name: 'searchWord', type: 'STRING' } # VARCHAR(32)
+      { name: 'duration', type: 'NUMBER' } # INT
+    ]
   })
 }
 

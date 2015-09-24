@@ -7,11 +7,12 @@ module Plywood {
     return isInteger(n) && 0 < n;
   }
 
-  export type Attributes = Lookup<AttributeInfo>;
-  export type AttributeJSs = Lookup<AttributeInfoJS>;
+  export type Attributes = AttributeInfo[];
+  export type AttributeJSs = AttributeInfoJS[];
 
   export interface AttributeInfoJS {
     special?: string;
+    name: string;
     type?: string;
     datasetType?: Lookup<FullType>;
     filterable?: boolean;
@@ -26,9 +27,6 @@ module Plywood {
 
   var check: Class<AttributeInfoJS, AttributeInfoJS>;
   export class AttributeInfo implements Instance<AttributeInfoJS, AttributeInfoJS> {
-    static UNIQUE: UniqueAttributeInfo;
-    static HISTOGRAM: HistogramAttributeInfo;
-
     static isAttributeInfo(candidate: any): boolean {
       return isInstanceOf(candidate, AttributeInfo);
     }
@@ -54,27 +52,36 @@ module Plywood {
     }
 
     static fromJSs(attributeJSs: AttributeJSs): Attributes {
-      if (typeof attributeJSs !== 'object') {
-        throw new TypeError("invalid attributeJSs");
-      } else {
-        var attributes: Attributes = Object.create(null);
-        for (let k in attributeJSs) {
-          if (!hasOwnProperty(attributeJSs, k)) continue;
-          attributes[k] = AttributeInfo.fromJS(attributeJSs[k]);
-        }
-        return attributes;
-      }
+      if (!Array.isArray(attributeJSs)) throw new TypeError("invalid attributeJSs");
+      return attributeJSs.map(attributeJS => AttributeInfo.fromJS(attributeJS));
     }
 
     static toJSs(attributes: Attributes): AttributeJSs {
-      var attributesJS: AttributeJSs = {};
-      for (let k in attributes) {
-        attributesJS[k] = attributes[k].toJS();
-      }
-      return attributesJS;
+      return attributes.map(attribute => attribute.toJS());
     }
 
+    static applyOverrides(attributes: Attributes, attributeOverrides: Attributes): Attributes {
+      attributeOverrides.forEach(attributeOverride => {
+        var attributeOverrideName = attributeOverride.name;
+        var added = false;
+        attributes = attributes.map(a => {
+          if (a.name === attributeOverrideName) {
+            added = true;
+            return attributeOverride;
+          } else {
+            return a;
+          }
+        });
+        if (!added) {
+          attributes = attributes.concat(attributeOverride);
+        }
+      });
+      return attributes;
+    }
+
+
     public special: string;
+    public name: string;
     public type: string;
     public datasetType: Lookup<FullType>;
     public filterable: boolean;
@@ -82,10 +89,17 @@ module Plywood {
 
     constructor(parameters: AttributeInfoJS) {
       if (parameters.special) this.special = parameters.special;
+
+      if (typeof parameters.name !== "string") {
+        throw new Error("name must be a string");
+      }
+      this.name = parameters.name;
+
       if (hasOwnProperty(parameters, 'type') && typeof parameters.type !== "string") {
         throw new Error("type must be a string");
       }
       this.type = parameters.type;
+
       this.datasetType = parameters.datasetType;
       this.filterable = hasOwnProperty(parameters, 'filterable') ? Boolean(parameters.filterable) : true;
       this.splitable = hasOwnProperty(parameters, 'splitable') ? Boolean(parameters.splitable) : true;
@@ -118,6 +132,7 @@ module Plywood {
 
     public valueOf(): AttributeInfoJS {
       var value: AttributeInfoJS = {
+        name: this.name,
         type: this.type,
         filterable: this.filterable,
         splitable: this.splitable
@@ -128,7 +143,10 @@ module Plywood {
     }
 
     public toJS(): AttributeInfoJS {
-      var js: AttributeInfoJS = { type: this.type };
+      var js: AttributeInfoJS = {
+        name: this.name,
+        type: this.type
+      };
       if (!this.filterable) js.filterable = false;
       if (!this.splitable) js.splitable = false;
       if (this.special) js.special = this.special;
@@ -143,6 +161,7 @@ module Plywood {
     public equals(other: AttributeInfo): boolean {
       return AttributeInfo.isAttributeInfo(other) &&
         this.special === other.special &&
+        this.name === other.name &&
         this.type === other.type;
     }
 
@@ -276,7 +295,7 @@ module Plywood {
       return new UniqueAttributeInfo(parameters);
     }
 
-    constructor(parameters = {}) {
+    constructor(parameters: AttributeInfoJS) {
       super(parameters);
       this._ensureSpecial("unique");
       this._ensureType('STRING');
@@ -293,7 +312,7 @@ module Plywood {
       return new HistogramAttributeInfo(parameters);
     }
 
-    constructor(parameters = {}) {
+    constructor(parameters: AttributeInfoJS) {
       super(parameters);
       this._ensureSpecial("histogram");
       this._ensureType('NUMBER');
@@ -304,7 +323,4 @@ module Plywood {
     }
   }
   AttributeInfo.register(HistogramAttributeInfo);
-
-  AttributeInfo.UNIQUE = new UniqueAttributeInfo();
-  AttributeInfo.HISTOGRAM = new HistogramAttributeInfo();
 }

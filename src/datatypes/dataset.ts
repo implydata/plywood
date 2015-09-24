@@ -162,19 +162,19 @@ module Plywood {
     return typeof str === "string";
   }
 
-  function getAttributeInfo(attributeValue: any): AttributeInfo {
+  function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
     if (isDate(attributeValue)) {
-      return new AttributeInfo({ type: 'TIME' });
+      return new AttributeInfo({ name, type: 'TIME' });
     } else if (isNumber(attributeValue)) {
-      return new AttributeInfo({ type: 'NUMBER' });
+      return new AttributeInfo({ name, type: 'NUMBER' });
     } else if (isString(attributeValue)) {
-      return new AttributeInfo({ type: 'STRING' });
+      return new AttributeInfo({ name, type: 'STRING' });
     } else if (NumberRange.isNumberRange(attributeValue)) {
-      return new AttributeInfo({ type: 'NUMBER_RANGE' });
+      return new AttributeInfo({ name, type: 'NUMBER_RANGE' });
     } else if (TimeRange.isTimeRange(attributeValue)) {
-      return new AttributeInfo({ type: 'TIME_RANGE' });
+      return new AttributeInfo({ name, type: 'TIME_RANGE' });
     } else if (attributeValue instanceof Dataset) {
-      return new AttributeInfo(attributeValue.getFullType());
+      return new AttributeInfo({ name, type: 'DATASET', datasetType: attributeValue.getFullType().datasetType });
     } else {
       throw new Error("Could not introspect");
     }
@@ -342,17 +342,16 @@ module Plywood {
       if (!attributes) throw new Error("dataset has not been introspected");
 
       var myDatasetType: Lookup<FullType> = {};
-      for (var attrName in attributes) {
-        if (!hasOwnProperty(attributes, attrName)) continue;
-        var attrType = attributes[attrName];
-        if (attrType.type === 'DATASET') {
+      for (var attribute of attributes) {
+        var attrName = attribute.name;
+        if (attribute.type === 'DATASET') {
           myDatasetType[attrName] = {
             type: 'DATASET',
-            datasetType: attrType.datasetType
+            datasetType: attribute.datasetType
           };
         } else {
           myDatasetType[attrName] = {
-            type: attrType.type
+            type: attribute.type
           };
         }
       }
@@ -502,26 +501,20 @@ module Plywood {
 
       var data = this.data;
       if (!data.length) {
-        this.attributes = {};
+        this.attributes = [];
         return;
       }
       var datum = data[0];
 
-      var attributes: Attributes = {};
-      Object.keys(datum).forEach(applyName => {
-        var applyValue = datum[applyName];
-        attributes[applyName] = getAttributeInfo(applyValue);
-      });
+      var attributes = Object.keys(datum).map(applyName => getAttributeInfo(applyName, datum[applyName]));
 
       var attributeOverrides = this.attributeOverrides;
       if (attributeOverrides) {
-        for (var k in attributeOverrides) {
-          attributes[k] = attributeOverrides[k];
-        }
+        attributes = AttributeInfo.applyOverrides(attributes, attributeOverrides);
         this.attributeOverrides = null;
       }
 
-      // ToDo: make this immutable so it matches the rest of the code
+      // ToDo: make this immutable so it matches the rest of the code   [+1]
       this.attributes = attributes;
     }
 
@@ -595,17 +588,15 @@ module Plywood {
       var attributes = this.attributes;
 
       var subDatasetAdded: boolean = false;
-      for (var attributeName in attributes) {
-        if (!hasOwnProperty(attributes, attributeName)) continue;
-        var attributeInfo = attributes[attributeName];
+      for (var attribute of attributes) {
         var column: Column = {
-          name: attributeName,
-          type: attributeInfo.type
+          name: attribute.name,
+          type: attribute.type
         };
-        if (attributeInfo.type === 'DATASET') {
+        if (attribute.type === 'DATASET') {
           if (!subDatasetAdded) {
             subDatasetAdded = true;
-            column.columns = this.data[0][attributeName].getNestedColumns();
+            column.columns = this.data[0][attribute.name].getNestedColumns();
             nestedColumns.push(column);
           }
         } else {

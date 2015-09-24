@@ -8,17 +8,17 @@ if not WallTime.rules
 plywood = require('../../build/plywood')
 { Expression, External, Dataset, TimeRange, $, ply, r } = plywood
 
-attributes = {
-  time: { type: 'TIME' }
-  color: { type: 'STRING' }
-  cut: { type: 'STRING' }
-  tags: { type: 'SET/STRING' }
-  carat: { type: 'NUMBER' }
-  height_bucket: { special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 }
-  price: { type: 'NUMBER', filterable: false, splitable: false }
-  tax: { type: 'NUMBER', filterable: false, splitable: false }
-  vendor_id: { special: 'unique', filterable: false, splitable: false }
-}
+attributes = [
+  { name: 'time', type: 'TIME' }
+  { name: 'color', type: 'STRING' }
+  { name: 'cut', type: 'STRING' }
+  { name: 'tags', type: 'SET/STRING' }
+  { name: 'carat', type: 'NUMBER' }
+  { name: 'height_bucket', special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 }
+  { name: 'price', type: 'NUMBER', filterable: false, splitable: false }
+  { name: 'tax', type: 'NUMBER', filterable: false, splitable: false }
+  { name: 'vendor_id', special: 'unique', filterable: false, splitable: false }
+]
 
 context = {
   'diamonds': External.fromJS({

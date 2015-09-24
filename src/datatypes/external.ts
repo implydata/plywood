@@ -353,7 +353,11 @@ module Plywood {
     }
 
     public getAttributesInfo(attributeName: string) {
-      return this.rawAttributes ? this.rawAttributes[attributeName] : this.attributes[attributeName];
+      var attributes = this.rawAttributes || this.attributes;
+      for (var attribute of attributes) {
+        if (attribute.name === attributeName) return attribute;
+      }
+      return null;
     }
 
     // -----------------
@@ -415,7 +419,7 @@ module Plywood {
       value.mode = 'total';
       value.dataName = dataName;
       value.rawAttributes = value.attributes;
-      value.attributes = {};
+      value.attributes = [];
 
       return <External>(new (External.classMap[this.engine])(value));
     }
@@ -478,8 +482,7 @@ module Plywood {
       value.split = expression;
       value.key = name;
       value.rawAttributes = value.attributes;
-      value.attributes = Object.create(null);
-      value.attributes[name] = new AttributeInfo({ type: expression.type });
+      value.attributes = [new AttributeInfo({ name, type: expression.type })];
 
       return <External>(new (External.classMap[this.engine])(value));
     }
@@ -494,9 +497,7 @@ module Plywood {
         value.derivedAttributes = immutableAdd(
           value.derivedAttributes, action.name, action.expression
         );
-        value.attributes = immutableAdd(
-          value.attributes, action.name, new AttributeInfo({ type: action.expression.type })
-        );
+        value.attributes = value.attributes.concat(new AttributeInfo({ name: action.name, type: action.expression.type }));
       } else {
         // Can not redefine index for now.
         if (action.name === this.key) return null;
@@ -505,9 +506,7 @@ module Plywood {
         for (let basicAction of basicActions) {
           if (basicAction instanceof ApplyAction) {
             value.applies = value.applies.concat(basicAction);
-            value.attributes = immutableAdd(
-              value.attributes, basicAction.name, new AttributeInfo({ type: basicAction.expression.type })
-            );
+            value.attributes = value.attributes.concat(new AttributeInfo({ name: basicAction.name, type: basicAction.expression.type }));
           } else {
             throw new Error('got something strange from breakUpApply');
           }
@@ -546,7 +545,11 @@ module Plywood {
     }
 
     public isKnownName(name: string): boolean {
-      return hasOwnProperty(this.attributes, name);
+      var attributes = this.attributes;
+      for (var attribute of attributes) {
+        if (attribute.name === name) return true;
+      }
+      return false;
     }
 
     public getTempName(namesTaken: string[] = []): string {
@@ -677,9 +680,8 @@ module Plywood {
 
       if (this.mode === 'raw') {
         var attributes = this.attributes;
-        for (let attributeName in attributes) {
-          if (!hasOwnProperty(attributes, attributeName)) continue;
-          datum[attributeName] = getSampleValue(attributes[attributeName].type, null);
+        for (let attribute of attributes) {
+          datum[attribute.name] = getSampleValue(attribute.type, null);
         }
       } else {
         if (this.mode === 'split') {
@@ -754,14 +756,11 @@ module Plywood {
       return this.requester({ query: queryAndPostProcess.query })
         .then(queryAndPostProcess.postProcess)
         .then((attributes: Attributes) => {
-          var attributeOverrides = value.attributeOverrides;
-          if (attributeOverrides) {
-            for (var k in attributeOverrides) {
-              attributes[k] = attributeOverrides[k];
-            }
+          if (value.attributeOverrides) {
+            attributes = AttributeInfo.applyOverrides(attributes, value.attributeOverrides);
           }
-
-          value.attributes = attributes; // Once attributes are set attributeOverrides will be ignored
+          value.attributes = attributes;
+          // Once attributes are set attributeOverrides will be ignored
           return <External>(new ClassFn(value));
         })
     }
@@ -773,11 +772,10 @@ module Plywood {
       var remote = [this.engine];
 
       var myDatasetType: Lookup<FullType> = {};
-      for (var attrName in attributes) {
-        if (!hasOwnProperty(attributes, attrName)) continue;
-        var attrType = attributes[attrName];
+      for (var attribute of attributes) {
+        var attrName = attribute.name;
         myDatasetType[attrName] = {
-          type: attrType.type,
+          type: attribute.type,
           remote
         };
       }

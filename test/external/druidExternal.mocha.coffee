@@ -19,14 +19,14 @@ context = {
     engine: 'druid',
     dataSource: 'wikipedia',
     timeAttribute: 'time',
-    attributes: {
-      time: { type: 'TIME' }
-      language: { type: 'STRING' }
-      page: { type: 'STRING' }
-      added: { type: 'NUMBER' }
-      deleted: { type: 'NUMBER' }
-      inserted: { type: 'NUMBER' }
-    }
+    attributes: [
+      { name: 'time', type: 'TIME' }
+      { name: 'language', type: 'STRING' }
+      { name: 'page', type: 'STRING' }
+      { name: 'added', type: 'NUMBER' }
+      { name: 'deleted', type: 'NUMBER' }
+      { name: 'inserted', type: 'NUMBER' }
+    ]
     filter: timeFilter,
     customAggregations: {
       crazy: {
@@ -55,14 +55,14 @@ contextNoApprox = {
     dataSource: 'wikipedia',
     timeAttribute: 'time',
     exactResultsOnly: true,
-    attributes: {
-      time: { type: 'TIME' }
-      language: { type: 'STRING' }
-      page: { type: 'STRING' }
-      added: { type: 'NUMBER' }
-      deleted: { type: 'NUMBER' }
-      inserted: { type: 'NUMBER' }
-    }
+    attributes: [
+      { name: 'time', type: 'TIME' }
+      { name: 'language', type: 'STRING' }
+      { name: 'page', type: 'STRING' }
+      { name: 'added', type: 'NUMBER' }
+      { name: 'deleted', type: 'NUMBER' }
+      { name: 'inserted', type: 'NUMBER' }
+    ]
     filter: timeFilter
   })
 }
@@ -563,32 +563,38 @@ describe "DruidExternal", ->
       })
 
       wikiExternal.introspect().then((introspectedExternal) ->
-        expect(introspectedExternal.toJS().attributes).to.deep.equal({
-          "added": {
-            "filterable": false
-            "splitable": false
-            "type": "NUMBER"
-          }
-          "deleted": {
-            "filterable": false
-            "splitable": false
-            "type": "NUMBER"
-          }
-          "language": {
-            "type": "STRING"
-          }
-          "page": {
-            "type": "STRING"
-          }
-          "time": {
+        expect(introspectedExternal.toJS().attributes).to.deep.equal([
+          {
+            "name": "time"
             "type": "TIME"
           }
-          "uniques": {
+          {
+            "name": "page"
+            "type": "STRING"
+          }
+          {
+            "name": "language"
+            "type": "STRING"
+          }
+          {
+            "name": "added"
             "filterable": false
             "splitable": false
             "type": "NUMBER"
           }
-        })
+          {
+            "name": "deleted"
+            "filterable": false
+            "splitable": false
+            "type": "NUMBER"
+          }
+          {
+            "name": "uniques"
+            "filterable": false
+            "splitable": false
+            "type": "NUMBER"
+          }
+        ])
         testComplete()
       ).done()
 
@@ -599,42 +605,49 @@ describe "DruidExternal", ->
         timeAttribute: 'time',
         requester
         filter: timeFilter
-        attributeOverrides: {
-          uniques: { special: 'unique' }
-          histo: { special: 'histogram' }
-        }
+        attributeOverrides: [
+          { name: "uniques", special: 'unique' }
+          { name: "histo", special: 'histogram' }
+        ]
       })
 
       wikiExternal.introspect().then((introspectedExternal) ->
-        expect(introspectedExternal.toJS().attributes).to.deep.equal({
-          "added": {
-            "filterable": false
-            "splitable": false
-            "type": "NUMBER"
-          }
-          "deleted": {
-            "filterable": false
-            "splitable": false
-            "type": "NUMBER"
-          }
-          "histo": {
-            "special": "histogram"
-            "type": "NUMBER"
-          }
-          "language": {
-            "type": "STRING"
-          }
-          "page": {
-            "type": "STRING"
-          }
-          "time": {
+        expect(introspectedExternal.toJS().attributes).to.deep.equal([
+          {
+            "name": "time"
             "type": "TIME"
           }
-          "uniques": {
+          {
+            "name": "page"
+            "type": "STRING"
+          }
+          {
+            "name": "language"
+            "type": "STRING"
+          }
+          {
+            "name": "added"
+            "filterable": false
+            "splitable": false
+            "type": "NUMBER"
+          }
+          {
+            "name": "deleted"
+            "filterable": false
+            "splitable": false
+            "type": "NUMBER"
+          }
+          {
+            "name": "uniques"
             "special": "unique"
             "type": "STRING"
           }
-        })
+          {
+            "name": "histo"
+            "special": "histogram"
+            "type": "NUMBER"
+          }
+        ])
         testComplete()
       ).done()
 
@@ -645,12 +658,12 @@ describe "DruidExternal", ->
       dataSource: 'wikipedia',
       timeAttribute: 'time',
       requester: (query) -> Q([]),
-      attributes: {
-        time: { type: 'TIME' }
-        language: { type: 'STRING' }
-        page: { type: 'STRING' }
-        added: { type: 'NUMBER' }
-      }
+      attributes: [
+        { name: 'time', type: 'TIME' }
+        { name: 'language', type: 'STRING' }
+        { name: 'page', type: 'STRING' }
+        { name: 'added', type: 'NUMBER' }
+      ]
       filter: timeFilter
     })
 
@@ -659,12 +672,12 @@ describe "DruidExternal", ->
       dataSource: 'wikipedia',
       timeAttribute: 'time',
       requester: (query) -> Q([{result:[]}]),
-      attributes: {
-        time: { type: 'TIME' }
-        language: { type: 'STRING' }
-        page: { type: 'STRING' }
-        added: { type: 'NUMBER' }
-      }
+      attributes: [
+        { name: 'time', type: 'TIME' }
+        { name: 'language', type: 'STRING' }
+        { name: 'page', type: 'STRING' }
+        { name: 'added', type: 'NUMBER' }
+      ]
       filter: timeFilter
     })
 
@@ -718,12 +731,12 @@ describe "DruidExternal", ->
       dataSource: 'wikipedia',
       timeAttribute: 'time',
       requester: (query) -> Q("[Does this look like data to you?")
-      attributes: {
-        time: { type: 'TIME' }
-        language: { type: 'STRING' }
-        page: { type: 'STRING' }
-        added: { type: 'NUMBER' }
-      }
+      attributes: [
+        { name: 'time', type: 'TIME' }
+        { name: 'language', type: 'STRING' }
+        { name: 'page', type: 'STRING' }
+        { name: 'added', type: 'NUMBER' }
+      ]
       filter: timeFilter
     })
 

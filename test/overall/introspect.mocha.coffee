@@ -49,63 +49,76 @@ describe "introspect", ->
 
   it "introspects", (testComplete) ->
     introspectDatum(context).then((newContext) ->
-      expect(newContext.diamonds.toJS().attributes).to.deep.equal({
-        "carat": {
-          "type": "STRING"
-        }
-        "color": {
-          "type": "STRING"
-        }
-        "cut": {
-          "type": "STRING"
-        }
-        "price": {
-          "filterable": false
-          "splitable": false
-          "type": "NUMBER"
-        }
-        "tags": {
-          "type": "STRING"
-        }
-        "tax": {
-          "filterable": false
-          "splitable": false
-          "type": "NUMBER"
-        }
-        "time": {
+      expect(newContext.diamonds.toJS().attributes).to.deep.equal([
+        {
+          "name": "time"
           "type": "TIME"
         }
-        "unique_view": {
+        {
+          "name": "color"
+          "type": "STRING"
+        }
+        {
+          "name": "cut"
+          "type": "STRING"
+        }
+        {
+          "name": "tags"
+          "type": "STRING"
+        }
+        {
+          "name": "carat"
+          "type": "STRING"
+        }
+        {
           "filterable": false
+          "name": "price"
           "splitable": false
           "type": "NUMBER"
         }
-      })
+        {
+          "filterable": false
+          "name": "tax"
+          "splitable": false
+          "type": "NUMBER"
+        }
+        {
+          "name": "unique_view"
+          "special": "unique"
+          "type": "STRING"
+        }
+      ])
 
-      expect(newContext.wiki.toJS().attributes).to.deep.equal({
-        "added": {
-          "filterable": false
-          "splitable": false
-          "type": "NUMBER"
-        }
-        "deleted": {
-          "filterable": false
-          "splitable": false
-          "type": "NUMBER"
-        }
-        "is_robot": {
-          "type": "STRING"
-        }
-        "language": {
-          "type": "STRING"
-        }
-        "page": {
-          "type": "STRING"
-        }
-        "timestamp": {
+      expect(newContext.wiki.toJS().attributes).to.deep.equal([
+        {
+          "name": "timestamp"
           "type": "TIME"
         }
-      })
+        {
+          "name": "page"
+          "type": "STRING"
+        }
+        {
+          "name": "language"
+          "type": "STRING"
+        }
+        {
+          "name": "is_robot"
+          "type": "STRING"
+        }
+        {
+          "filterable": false
+          "name": "added"
+          "splitable": false
+          "type": "NUMBER"
+        }
+        {
+          "filterable": false
+          "name": "deleted"
+          "splitable": false
+          "type": "NUMBER"
+        }
+      ])
 
       testComplete()
     ).done()

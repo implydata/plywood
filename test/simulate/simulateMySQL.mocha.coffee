@@ -12,16 +12,16 @@ context = {
   diamonds: External.fromJS({
     engine: 'mysql',
     table: 'diamonds',
-    attributes: {
-      time: { type: 'TIME' }
-      color: { type: 'STRING' }
-      cut: { type: 'STRING' }
-      tags: { type: 'SET/STRING' }
-      carat: { type: 'NUMBER' }
-      height_bucket: { special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 }
-      price: { type: 'NUMBER' }
-      tax: { type: 'NUMBER' }
-    }
+    attributes: [
+      { name: 'time', type: 'TIME' }
+      { name: 'color', type: 'STRING' }
+      { name: 'cut', type: 'STRING' }
+      { name: 'tags', type: 'SET/STRING' }
+      { name: 'carat', type: 'NUMBER' }
+      { name: 'height_bucket', special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 }
+      { name: 'price', type: 'NUMBER' }
+      { name: 'tax', type: 'NUMBER' }
+    ]
 #    filter: $("time").in(TimeRange.fromJS({
 #      start: new Date('2015-03-12T00:00:00')
 #      end:   new Date('2015-03-19T00:00:00')
