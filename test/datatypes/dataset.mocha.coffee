@@ -218,14 +218,14 @@ describe "Dataset", ->
         { "name": "regionIsoCode", "type": "STRING" }
         { "name": "regionName", "type": "STRING" }
         { "name": "user", "type": "STRING" }
+        { "name": "isAnonymous", "type": "BOOLEAN" }
+        { "name": "isMinor", "type": "BOOLEAN" }
+        { "name": "isNew", "type": "BOOLEAN" }
+        { "name": "isRobot", "type": "BOOLEAN" }
+        { "name": "isUnpatrolled", "type": "BOOLEAN" }
         { "name": "added", "type": "NUMBER" }
         { "name": "deleted", "type": "NUMBER" }
         { "name": "delta", "type": "NUMBER" }
-        { "name": "isAnonymous", "type": "NUMBER" }
-        { "name": "isMinor", "type": "NUMBER" }
-        { "name": "isNew", "type": "NUMBER" }
-        { "name": "isRobot", "type": "NUMBER" }
-        { "name": "isUnpatrolled", "type": "NUMBER" }
         { "name": "metroCode", "type": "NUMBER" }
       ])
 

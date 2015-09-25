@@ -154,6 +154,10 @@ module Plywood {
     return Boolean(dt && dt.toISOString);
   }
 
+  function isBoolean(b: any) {
+    return b === true || b === false;
+  }
+
   function isNumber(n: any) {
     return n !== null && !isNaN(Number(n));
   }
@@ -166,6 +170,8 @@ module Plywood {
     if (attributeValue == null) return null;
     if (isDate(attributeValue)) {
       return new AttributeInfo({ name, type: 'TIME' });
+    } else if (isBoolean(attributeValue)) {
+      return new AttributeInfo({ name, type: 'BOOLEAN' });
     } else if (isNumber(attributeValue)) {
       return new AttributeInfo({ name, type: 'NUMBER' });
     } else if (isString(attributeValue)) {
