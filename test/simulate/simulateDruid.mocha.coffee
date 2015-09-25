@@ -618,7 +618,7 @@ describe "simulate Druid", ->
       }
     ])
 
-  it.only "makes a filtered aggregate query", ->
+  it "makes a filtered aggregate query", ->
     ex = ply()
       .apply('BySegment',
         $('diamonds').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeSegment')
