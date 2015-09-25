@@ -155,7 +155,7 @@ module Plywood {
   }
 
   function isNumber(n: any) {
-    return !isNaN(Number(n));
+    return n !== null && !isNaN(Number(n));
   }
 
   function isString(str: string) {
@@ -163,6 +163,7 @@ module Plywood {
   }
 
   function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
+    if (attributeValue == null) return null;
     if (isDate(attributeValue)) {
       return new AttributeInfo({ name, type: 'TIME' });
     } else if (isNumber(attributeValue)) {
@@ -504,9 +505,35 @@ module Plywood {
         this.attributes = [];
         return;
       }
-      var datum = data[0];
 
-      var attributes = Object.keys(datum).map(applyName => getAttributeInfo(applyName, datum[applyName]));
+      var attributeNamesToIntrospect = Object.keys(data[0]);
+      var attributes: Attributes = [];
+
+      for (var datum of data) {
+        var attributeNamesStillToIntrospect: string[] = [];
+        for (var attributeNameToIntrospect of attributeNamesToIntrospect) {
+          var attributeInfo = getAttributeInfo(attributeNameToIntrospect, datum[attributeNameToIntrospect]);
+          if (attributeInfo) {
+            attributes.push(attributeInfo);
+          } else {
+            attributeNamesStillToIntrospect.push(attributeNameToIntrospect);
+          }
+        }
+
+        attributeNamesToIntrospect = attributeNamesStillToIntrospect;
+        if (!attributeNamesToIntrospect.length) break;
+      }
+
+      // Assume all the remaining nulls are strings
+      for (var attributeName of attributeNamesToIntrospect) {
+        attributes.push(new AttributeInfo({ name: attributeName, type: 'STRING' }));
+      }
+
+      attributes.sort((a, b) => {
+        var typeDiff = typeOrder[a.type] - typeOrder[b.type];
+        if (typeDiff) return typeDiff;
+        return a.name.localeCompare(b.name)
+      });
 
       var attributeOverrides = this.attributeOverrides;
       if (attributeOverrides) {

@@ -3,7 +3,7 @@
 { testImmutableClass } = require("immutable-class/build/tester")
 
 plywood = require('../../build/plywood')
-{ Dataset, $, ply, r } = plywood
+{ Dataset, AttributeInfo, $, ply, r } = plywood
 
 describe "Dataset", ->
   it "passes higher object tests", ->
@@ -154,6 +154,80 @@ describe "Dataset", ->
           "z": {type: "TIME"}
         }
       })
+
+
+  describe "introspects", ->
+    it "in real case", ->
+      ds = Dataset.fromJS([
+        {
+          "time": new Date("2015-09-12T00:46:58.771Z"),
+          "channel": "#en.wikipedia",
+          "cityName": "SF",
+          "comment": "added project",
+          "countryIsoCode": "US",
+          "countryName": "United States",
+          "isAnonymous": false,
+          "isMinor": false,
+          "isNew": false,
+          "isRobot": false,
+          "isUnpatrolled": false,
+          "metroCode": null,
+          "namespace": "Talk",
+          "page": "Talk:Oswald Tilghman",
+          "regionIsoCode": null,
+          "regionName": null,
+          "user": "GELongstreet",
+          "delta": 36,
+          "added": 36,
+          "deleted": 0
+        }
+        {
+          "time": new Date("2015-09-12T00:48:20.157Z"),
+          "channel": "#en.wikipedia",
+          "cityName": "Campbell",
+          "comment": "Rectifying someone's mischief",
+          "countryIsoCode": "US",
+          "countryName": "United States",
+          "isAnonymous": true,
+          "isMinor": false,
+          "isNew": false,
+          "isRobot": false,
+          "isUnpatrolled": false,
+          "metroCode": 807,
+          "namespace": "Main",
+          "page": "President of India",
+          "regionIsoCode": null,
+          "regionName": null,
+          "user": "73.162.114.225",
+          "delta": -26,
+          "added": 0,
+          "deleted": 26
+        }
+      ])
+
+      ds.introspect()
+      expect(AttributeInfo.toJSs(ds.attributes)).to.deep.equal([
+        { "name": "time", "type": "TIME" }
+        { "name": "channel", "type": "STRING" }
+        { "name": "cityName", "type": "STRING" }
+        { "name": "comment", "type": "STRING" }
+        { "name": "countryIsoCode", "type": "STRING" }
+        { "name": "countryName", "type": "STRING" }
+        { "name": "namespace", "type": "STRING" }
+        { "name": "page", "type": "STRING" }
+        { "name": "regionIsoCode", "type": "STRING" }
+        { "name": "regionName", "type": "STRING" }
+        { "name": "user", "type": "STRING" }
+        { "name": "added", "type": "NUMBER" }
+        { "name": "deleted", "type": "NUMBER" }
+        { "name": "delta", "type": "NUMBER" }
+        { "name": "isAnonymous", "type": "NUMBER" }
+        { "name": "isMinor", "type": "NUMBER" }
+        { "name": "isNew", "type": "NUMBER" }
+        { "name": "isRobot", "type": "NUMBER" }
+        { "name": "isUnpatrolled", "type": "NUMBER" }
+        { "name": "metroCode", "type": "NUMBER" }
+      ])
 
 
   describe "methods", ->
