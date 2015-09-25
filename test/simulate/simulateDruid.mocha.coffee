@@ -618,6 +618,19 @@ describe "simulate Druid", ->
       }
     ])
 
+  it.skip "makes a filtered aggregate query", ->
+    ex = ply()
+      .apply('BySegment',
+        $('diamonds').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeSegment')
+          .apply('Total', $('diamonds').sum('$price'))
+          .apply('GoodPrice', $('diamonds').filter($('cut').is('Good')).sum('$price'))
+          .apply('BadPrice', $('diamonds').filter($('cut').is('Bad')).sum('$price'))
+      )
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+
+    ])
+
   it.skip "makes a filter on timePart", ->
     ex = $("diamonds").filter(
       $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').in([3, 4, 10]).and($("time").in([
