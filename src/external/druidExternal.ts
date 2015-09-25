@@ -475,7 +475,10 @@ module Plywood {
       } else if (filter instanceof ChainExpression) {
         var prefix: Expression;
         if (prefix = filter.popAction('not')) {
-          return this.timelessFilterToDruid(prefix);
+          return {
+            type: 'not',
+            field: this.timelessFilterToDruid(prefix)
+          };
         }
 
         var lhs = filter.expression;
@@ -907,6 +910,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
           };
         }
+        throw new Error("can not convert chain to post agg: " + ex.toString());
 
       } else {
         throw new Error("can not convert expression to post agg: " + ex.toString());
@@ -919,9 +923,9 @@ return (start < 0 ?'-':'') + parts.join('.');
       return postAgg;
     }
 
-    public makeStandardAggregation(name: string, inputExpression: Expression, action: Action): Druid.Aggregation {
-      var fn = action.action;
-      var attribute = action.expression;
+    public makeStandardAggregation(name: string, filterAction: FilterAction, aggregateAction: Action): Druid.Aggregation {
+      var fn = aggregateAction.action;
+      var attribute = aggregateAction.expression;
       var aggregation: Druid.Aggregation = {
         name: name,
         type: fn === "sum" ? "doubleSum" : fn
@@ -935,12 +939,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
 
       // See if we want to do a filtered aggregate
-      if (inputExpression instanceof ChainExpression) {
-        var actions = inputExpression.actions;
-        if (actions.length !== 1) throw new Error(`can not filter on ${inputExpression.toString()}`);
-        var filterAction = <FilterAction>actions[0];
-        if (filterAction.action !== 'filter') throw new Error(`can not filter on ${inputExpression.toString()}`);
-
+      if (filterAction) {
         if (this.canUseNativeAggregateFilter(filterAction.expression)) {
           aggregation = {
             type: "filtered",
@@ -956,11 +955,11 @@ return (start < 0 ?'-':'') + parts.join('.');
       return aggregation;
     }
 
-    public makeCountDistinctAggregation(name: string, inputExpression: Expression, action: CountDistinctAction): Druid.Aggregation {
+    public makeCountDistinctAggregation(name: string, filterAction: FilterAction, action: CountDistinctAction): Druid.Aggregation {
       if (this.exactResultsOnly) {
         throw new Error("approximate query not allowed");
       }
-      if (inputExpression instanceof ChainExpression) {
+      if (filterAction) {
         throw new Error("filtering on countDistinct aggregator isn't supported");
       }
 
@@ -990,20 +989,29 @@ return (start < 0 ?'-':'') + parts.join('.');
     public applyToAggregation(action: ApplyAction): Druid.Aggregation {
       var applyExpression = <ChainExpression>action.expression;
       if (applyExpression.op !== 'chain') throw new Error(`can not convert apply: ${applyExpression.toString()}`);
-      var inputExpression = applyExpression.expression;
+
       var actions = applyExpression.actions;
-      if (actions.length !== 1) throw new Error(`can not convert strange apply: ${applyExpression.toString()}`);
-      var aggregateAction = actions[0];
+      var filterAction: FilterAction = null;
+      var aggregateAction: Action = null;
+      if (actions.length === 1) {
+        aggregateAction = actions[0];
+      } else if (actions.length === 2) {
+        filterAction = <FilterAction>actions[0];
+        aggregateAction = actions[1];
+      } else {
+        throw new Error(`can not convert strange apply: ${applyExpression.toString()}`);
+      }
+
 
       switch (aggregateAction.action) {
         case "count":
         case "sum":
         case "min":
         case "max":
-          return this.makeStandardAggregation(action.name, inputExpression, aggregateAction);
+          return this.makeStandardAggregation(action.name, filterAction, aggregateAction);
 
         case "countDistinct":
-          return this.makeCountDistinctAggregation(action.name, inputExpression, <CountDistinctAction>aggregateAction);
+          return this.makeCountDistinctAggregation(action.name, filterAction, <CountDistinctAction>aggregateAction);
 
         case "quantile":
           throw new Error(`ToDo: add quantile support`); // ToDo: add quantile support
@@ -1033,13 +1041,26 @@ return (start < 0 ?'-':'') + parts.join('.');
       }));
     }
 
+    public isAggregateExpression(expression: Expression): boolean {
+      if (expression instanceof ChainExpression) {
+        var { actions } = expression;
+        if (actions.length === 1) {
+          return actions[0].isAggregate();
+        } else if (actions.length === 2) {
+          return actions[0].action === 'filter' && actions[1].isAggregate();
+        } else {
+          return false;
+        }
+      }
+      return false;
+    }
+
     public getAggregationsAndPostAggregations(): AggregationsAndPostAggregations {
       var aggregations: Druid.Aggregation[] = [];
       var postAggregations: Druid.PostAggregation[] = [];
 
       this.applies.forEach(action => {
-        var expression = action.expression;
-        if (expression instanceof ChainExpression && expression.actions.length === 1 && expression.actions[0].isAggregate()) {
+        if (this.isAggregateExpression(action.expression)) {
           aggregations.push(this.applyToAggregation(action));
         } else {
           postAggregations.push(this.applyToPostAggregation(action, aggregations));

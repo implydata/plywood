@@ -618,17 +618,66 @@ describe "simulate Druid", ->
       }
     ])
 
-  it.skip "makes a filtered aggregate query", ->
+  it.only "makes a filtered aggregate query", ->
     ex = ply()
       .apply('BySegment',
         $('diamonds').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeSegment')
           .apply('Total', $('diamonds').sum('$price'))
           .apply('GoodPrice', $('diamonds').filter($('cut').is('Good')).sum('$price'))
-          .apply('BadPrice', $('diamonds').filter($('cut').is('Bad')).sum('$price'))
+          .apply('NotBadPrice', $('diamonds').filter($('cut').isnt('Bad')).sum('$price'))
       )
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
-
+      {
+        "aggregations": [
+          {
+            "fieldName": "price"
+            "name": "Total"
+            "type": "doubleSum"
+          }
+          {
+            "aggregator": {
+              "fieldName": "price"
+              "name": "GoodPrice"
+              "type": "doubleSum"
+            }
+            "filter": {
+              "dimension": "cut"
+              "type": "selector"
+              "value": "Good"
+            }
+            "name": "GoodPrice"
+            "type": "filtered"
+          }
+          {
+            "aggregator": {
+              "fieldName": "price"
+              "name": "NotBadPrice"
+              "type": "doubleSum"
+            }
+            "filter": {
+              "field": {
+                "dimension": "cut"
+                "type": "selector"
+                "value": "Bad"
+              }
+              "type": "not"
+            }
+            "name": "NotBadPrice"
+            "type": "filtered"
+          }
+        ]
+        "dataSource": "diamonds"
+        "granularity": {
+          "period": "PT1H"
+          "timeZone": "Etc/UTC"
+          "type": "period"
+        }
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ]
+        "queryType": "timeseries"
+      }
     ])
 
   it.skip "makes a filter on timePart", ->
