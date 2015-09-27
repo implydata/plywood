@@ -542,7 +542,7 @@ describe "DruidExternal", ->
         "queryType": "timeseries"
       })
 
-  describe "introspects", ->
+  describe "introspects with GET route", ->
     requester = ({query}) ->
       expect(query).to.deep.equal({
         "dataSource": "wikipedia"
@@ -651,6 +651,73 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
+  describe "introspects with segmentMetadata", ->
+    requester = ({query}) ->
+      expect(query).to.deep.equal({
+        queryType: 'segmentMetadata',
+        dataSource: 'wikipedia',
+        merge: true,
+        analysisTypes: []
+      })
+      return Q([{
+        "id": "some_id",
+        "intervals": [ "0000-01-01T00:00:00.000Z/9999-12-31T00:00:00.000Z" ],
+        "columns": {
+          "__time": { "type": "LONG" },
+          "page": { "type": "STRING" },
+          "language": { "type": "STRING" },
+          "added": { "type": "FLOAT" },
+          "deleted": { "type": "FLOAT" },
+          "uniques": { "type": "FLOAT" }
+        },
+        "size": 300000
+      }])
+
+    it "does a simple introspect", (testComplete) ->
+      wikiExternal = External.fromJS({
+        engine: 'druid',
+        dataSource: 'wikipedia',
+        timeAttribute: 'time',
+        requester
+        filter: timeFilter,
+        useSegmentMetadata: true
+      })
+
+      wikiExternal.introspect().then((introspectedExternal) ->
+        expect(introspectedExternal.toJS().attributes).to.deep.equal([
+          {
+            "name": "time"
+            "type": "TIME"
+          }
+          {
+            "name": "page"
+            "type": "STRING"
+          }
+          {
+            "name": "language"
+            "type": "STRING"
+          }
+          {
+            "name": "added"
+            "filterable": false
+            "splitable": false
+            "type": "NUMBER"
+          }
+          {
+            "name": "deleted"
+            "filterable": false
+            "splitable": false
+            "type": "NUMBER"
+          }
+          {
+            "name": "uniques"
+            "filterable": false
+            "splitable": false
+            "type": "NUMBER"
+          }
+        ])
+        testComplete()
+      ).done()
 
   describe "should work when getting back [] and [{result:[]}]", ->
     nullExternal = External.fromJS({

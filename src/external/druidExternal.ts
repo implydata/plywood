@@ -280,6 +280,35 @@ module Plywood {
     }
   }
 
+  function postProcessSegmentMetadataFactory(timeAttribute: string): IntrospectPostProcess {
+    return (res: Druid.SegmentMetadataResults): Attributes => {
+      var attributes: Attributes = [];
+
+      var columns = res[0].columns;
+      for (var name in columns) {
+        if (!hasOwnProperty(columns, name)) continue;
+
+        if (name === '__time') {
+          attributes.push(new AttributeInfo({ name: timeAttribute, type: 'TIME' }));
+        } else {
+          var columnData = columns[name];
+          if (columnData.type === "STRING") {
+            if (UNIQUE_REGEXP.test(name)) {
+              attributes.push(new UniqueAttributeInfo({ name }));
+            } else if (HISTOGRAM_REGEXP.test(name)) {
+              attributes.push(new HistogramAttributeInfo({ name }));
+            } else {
+              attributes.push(new AttributeInfo({ name, type: 'STRING' }));
+            }
+          } else {
+            attributes.push(new AttributeInfo({ name, type: 'NUMBER', filterable: false, splitable: false }));
+          }
+        }
+      }
+      return attributes;
+    }
+  }
+
   export class DruidExternal extends External {
     static type = 'DATASET';
 
@@ -294,6 +323,7 @@ module Plywood {
       value.allowEternity = Boolean(datasetJS.allowEternity);
       value.allowSelectQueries = Boolean(datasetJS.allowSelectQueries);
       value.exactResultsOnly = Boolean(datasetJS.exactResultsOnly);
+      value.useSegmentMetadata = Boolean(datasetJS.useSegmentMetadata);
       value.context = datasetJS.context;
       return new DruidExternal(value);
     }
@@ -305,6 +335,7 @@ module Plywood {
     public allowEternity: boolean;
     public allowSelectQueries: boolean;
     public exactResultsOnly: boolean;
+    public useSegmentMetadata: boolean;
     public context: Lookup<any>;
 
     constructor(parameters: ExternalValue) {
@@ -317,6 +348,7 @@ module Plywood {
       this.allowEternity = parameters.allowEternity;
       this.allowSelectQueries = parameters.allowSelectQueries;
       this.exactResultsOnly = parameters.exactResultsOnly;
+      this.useSegmentMetadata = parameters.useSegmentMetadata;
       this.context = parameters.context;
     }
 
@@ -328,6 +360,7 @@ module Plywood {
       value.allowEternity = this.allowEternity;
       value.allowSelectQueries = this.allowSelectQueries;
       value.exactResultsOnly = this.exactResultsOnly;
+      value.useSegmentMetadata = this.useSegmentMetadata;
       value.context = this.context;
       return value;
     }
@@ -340,6 +373,7 @@ module Plywood {
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
       if (this.exactResultsOnly) js.exactResultsOnly = true;
+      if (this.useSegmentMetadata) js.useSegmentMetadata = true;
       js.context = this.context;
       return js;
     }
@@ -352,6 +386,7 @@ module Plywood {
         this.allowEternity === other.allowEternity &&
         this.allowSelectQueries === other.allowSelectQueries &&
         this.exactResultsOnly === other.exactResultsOnly &&
+        this.useSegmentMetadata === other.useSegmentMetadata &&
         this.context === other.context;
     }
 
@@ -1357,13 +1392,25 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public getIntrospectQueryAndPostProcess(): IntrospectQueryAndPostProcess<Druid.Query> {
-      return {
-        query: {
-          queryType: 'introspect',
-          dataSource: this.getDruidDataSource()
-        },
-        postProcess: postProcessIntrospectFactory(this.timeAttribute)
-      };
+      if (this.useSegmentMetadata) {
+        return {
+          query: {
+            queryType: 'segmentMetadata',
+            dataSource: this.getDruidDataSource(),
+            merge: true,
+            analysisTypes: []
+          },
+          postProcess: postProcessSegmentMetadataFactory(this.timeAttribute)
+        };
+      } else {
+        return {
+          query: {
+            queryType: 'introspect',
+            dataSource: this.getDruidDataSource()
+          },
+          postProcess: postProcessIntrospectFactory(this.timeAttribute)
+        };
+      }
     }
   }
   External.register(DruidExternal);

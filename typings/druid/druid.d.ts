@@ -275,6 +275,7 @@ declare module Druid {
         // http://druid.io/docs/0.8.1/SegmentMetadataQuery.html
         toInclude?: ToInclude;
         merge?: boolean;
+        analysisTypes?: string[];
 
         // Specific to queryType: "timeBoundary"
         // http://druid.io/docs/0.8.1/TimeBoundaryQuery.html
@@ -350,8 +351,8 @@ declare module Druid {
     // http://druid.io/docs/0.8.1/SegmentMetadataQuery.html
     interface ColumnMetadata {
         type: string;
-        size: number;
-        cardinality: number;
+        size?: number;
+        cardinality?: number;
     }
 
     interface SegmentMetadataDatum {

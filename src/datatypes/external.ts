@@ -110,6 +110,7 @@ module Plywood {
     allowEternity?: boolean;
     allowSelectQueries?: boolean;
     exactResultsOnly?: boolean;
+    useSegmentMetadata?: boolean;
     context?: Lookup<any>;
 
     requester?: Requester.PlywoodRequester<any>;
@@ -134,6 +135,7 @@ module Plywood {
     allowEternity?: boolean;
     allowSelectQueries?: boolean;
     exactResultsOnly?: boolean;
+    useSegmentMetadata?: boolean;
     context?: Lookup<any>;
 
     requester?: Requester.PlywoodRequester<any>;

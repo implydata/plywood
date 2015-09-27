@@ -14,13 +14,25 @@ describe "introspect", ->
   mockRequester = (request) ->
     return Q.fcall(->
       query = request.query
-      expect(query.queryType).to.equal('introspect')
       if query.dataSource is 'diamonds'
-        return {
-          dimensions: ['color', 'cut', 'tags', 'carat']
-          metrics: ['price', 'tax', 'unique_view']
-        }
+        expect(query.queryType).to.equal('segmentMetadata')
+        return [{
+          "id": "some_id",
+          "intervals": [ "0000-01-01T00:00:00.000Z/9999-12-31T00:00:00.000Z" ],
+          "columns": {
+            "__time": { "type": "LONG" },
+            "color": { "type": "STRING" },
+            "cut": { "type": "STRING" },
+            "tags": { "type": "STRING" },
+            "carat": { "type": "STRING" },
+            "price": { "type": "FLOAT" },
+            "tax": { "type": "FLOAT" },
+            "unique_view": { "type": "STRING" }
+          },
+          "size": 300000
+        }]
       else if query.dataSource is 'wikipedia'
+        expect(query.queryType).to.equal('introspect')
         return {
           dimensions: ['page', 'language', 'is_robot']
           metrics: ['added', 'deleted']
@@ -36,6 +48,7 @@ describe "introspect", ->
       engine: 'druid',
       dataSource: 'diamonds',
       timeAttribute: 'time',
+      useSegmentMetadata: true
       context: null
     })
     wiki: External.fromJS({
