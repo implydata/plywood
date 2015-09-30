@@ -77,12 +77,6 @@ describe "expression parser", ->
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS())
 
-    it.skip "should not get confused with underscores", ->
-      ex1 = $('player').is('23_michael_jordan')
-      ex2 = $('player').is('"23_michael_jordan"')
-
-      expect(ex1.toJS()).to.deep.equal(ex2.toJS())
-
     it "should work with lots of keywords 1", ->
       ex1 = Expression.parse('$y and true and $z')
       ex2 = $('y').and(r(true), $('z'))
