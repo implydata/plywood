@@ -5,7 +5,13 @@ module Plywood {
         op: parameters.op
       };
       value.expression = Expression.fromJS(parameters.expression);
-      value.actions = parameters.actions.map(Action.fromJS);
+      if (hasOwnProperty(parameters, 'action')) {
+        value.actions = [Action.fromJS(parameters.action)];
+      } else {
+        if (!Array.isArray(parameters.actions)) throw new Error('chain `actions` must be an array');
+        value.actions = parameters.actions.map(Action.fromJS);
+      }
+
       return new ChainExpression(value);
     }
 
@@ -38,7 +44,13 @@ module Plywood {
     public toJS(): ExpressionJS {
       var js = super.toJS();
       js.expression = this.expression.toJS();
-      js.actions = this.actions.map(action => action.toJS());
+
+      var { actions } = this;
+      if (actions.length === 1) {
+        js.action = actions[0].toJS();
+      } else {
+        js.actions = actions.map(action => action.toJS());
+      }
       return js;
     }
 

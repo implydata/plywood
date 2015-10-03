@@ -56,8 +56,8 @@ module Plywood {
     name?: string;
     nest?: int;
     external?: ExternalJS;
-    action?: ActionJS;
     expression?: ExpressionJS;
+    action?: ActionJS;
     actions?: ActionJS[];
   }
 
@@ -676,6 +676,7 @@ module Plywood {
 
     // Action constructors
     public performAction(action: Action, markSimple?: boolean): ChainExpression {
+      if (!action) throw new Error('must have action');
       return new ChainExpression({
         op: 'chain',
         expression: this,

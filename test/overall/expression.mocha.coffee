@@ -37,49 +37,61 @@ describe "Expression", ->
       {
         op: 'chain'
         expression: { op: 'ref', name: 'diamonds' }
-        actions: [
-          {
-            action: 'apply'
-            name: 'five'
-            expression: { op: 'literal', value: 5 }
-          }
-        ]
+        action: {
+          action: 'apply'
+          name: 'five'
+          expression: { op: 'literal', value: 5 }
+        }
       }
 
       {
         "op": "chain", "expression": { "op": "ref", "name": "time" },
-        "actions": [{
+        "action": {
           "action": "in",
           "expression": {
             "op": "literal",
             "value": { "start": new Date("2013-02-26T19:00:00.000Z"), "end": new Date("2013-02-26T22:00:00.000Z") },
             "type": "TIME_RANGE"
           }
-        }]
+        }
       }
 
       {
         "op": "chain", "expression": { "op": "ref", "name": "language" },
-        "actions": [{
+        "action": {
           "action": "in",
           "expression": {
             "op": "literal",
             "value": { "setType": "STRING", "elements": ["en"] },
             "type": "SET"
           }
-        }]
+        }
       },
 
       {
         "op": "chain", "expression": { "op": "ref", "name": "language" },
-        "actions": [{
+        "action": {
           "action": "in",
           "expression": {
             "op": "literal",
             "value": { "setType": "STRING", "elements": ["he"] },
             "type": "SET"
           }
-        }]
+        }
+      }
+
+      {
+        "op": "chain", "expression": { "op": "ref", "name": "x" },
+        "actions": [
+          {
+            "action": "add",
+            "expression": { "op": "ref", "name": "y" }
+          }
+          {
+            "action": "add",
+            "expression": { "op": "ref", "name": "z" }
+          }
+        ]
       }
 
     ], {
@@ -120,6 +132,19 @@ describe "Expression", ->
         })
       ).to.throw("unsupported expression op 'this was once an empty file'")
 
+    it "does not like an expression with a unknown op", ->
+      expect(->
+        Expression.fromJS({
+          op: 'chain'
+          expression: { op: 'ref', name: 'diamonds' }
+          actions: {
+            action: 'apply'
+            name: 'five'
+            expression: { op: 'literal', value: 5 }
+          }
+        })
+      ).to.throw("chain `actions` must be an array")
+
 
   describe "fancy names", ->
     it "behaves corretly with spaces", ->
@@ -150,16 +175,14 @@ describe "Expression", ->
           "nest": 1
           "op": "ref"
         }
-        "actions": [
-          {
-            "action": "add"
-            "expression": {
-              "name": "how are you today?"
-              "op": "ref"
-              "type": "NUMBER"
-            }
+        "action": {
+          "action": "add"
+          "expression": {
+            "name": "how are you today?"
+            "op": "ref"
+            "type": "NUMBER"
           }
-        ]
+        }
       })
 
 

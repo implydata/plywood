@@ -18,9 +18,7 @@ describe "Actions", ->
         expression: {
           op: 'chain'
           expression: { op: 'ref', name: 'myVar' }
-          actions: [
-            { action: 'is', expression: { op: 'literal', value: 5 } }
-          ]
+          action: { action: 'is', expression: { op: 'literal', value: 5 } }
         }
       }
       {

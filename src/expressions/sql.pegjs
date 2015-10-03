@@ -365,8 +365,8 @@ OrderToken         = "ORDER"i          !IdentifierPart
 HavingToken        = "HAVING"i         !IdentifierPart
 LimitToken         = "LIMIT"i          !IdentifierPart
 
-AscToken           = "ASC"i            !IdentifierPart { return 'ascending';  }
-DescToken          = "DESC"i           !IdentifierPart { return 'descending'; }
+AscToken           = "ASC"i            !IdentifierPart { return SortAction.ASCENDING;  }
+DescToken          = "DESC"i           !IdentifierPart { return SortAction.DESCENDING; }
 
 BetweenToken       = "BETWEEN"i        !IdentifierPart
 InToken            = "IN"i             !IdentifierPart

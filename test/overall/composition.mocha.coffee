@@ -46,11 +46,9 @@ describe "composition", ->
     })
 
   it "works in semi-realistic case", ->
-    someDriver = {} # ToDo: fix this
-
     ex = ply()
       .apply("Diamonds",
-        ply() # someDriver)
+        ply()
           .filter($('color').is('D'))
           .apply("priceOver2", $("price").divide(2))
       )
@@ -66,15 +64,13 @@ describe "composition", ->
               {
                 "action": "filter"
                 "expression": {
-                  "actions": [
-                    {
-                      "action": "is"
-                      "expression": {
-                        "op": "literal"
-                        "value": "D"
-                      }
+                  "action": {
+                    "action": "is"
+                    "expression": {
+                      "op": "literal"
+                      "value": "D"
                     }
-                  ]
+                  }
                   "expression": {
                     "name": "color"
                     "op": "ref"
@@ -85,15 +81,13 @@ describe "composition", ->
               {
                 "action": "apply"
                 "expression": {
-                  "actions": [
-                    {
-                      "action": "divide"
-                      "expression": {
-                        "op": "literal"
-                        "value": 2
-                      }
+                  "action": {
+                    "action": "divide"
+                    "expression": {
+                      "op": "literal"
+                      "value": 2
                     }
-                  ]
+                  }
                   "expression": {
                     "name": "price"
                     "op": "ref"
@@ -117,11 +111,9 @@ describe "composition", ->
         {
           "action": "apply"
           "expression": {
-            "actions": [
-              {
-                "action": "count"
-              }
-            ]
+            "action": {
+              "action": "count"
+            }
             "expression": {
               "name": "Diamonds"
               "op": "ref"
@@ -133,15 +125,13 @@ describe "composition", ->
         {
           "action": "apply"
           "expression": {
-            "actions": [
-              {
-                "action": "sum"
-                "expression": {
-                  "name": "priceOver2"
-                  "op": "ref"
-                }
+            "action": {
+              "action": "sum"
+              "expression": {
+                "name": "priceOver2"
+                "op": "ref"
               }
-            ]
+            }
             "expression": {
               "name": "Diamonds"
               "op": "ref"
@@ -162,12 +152,10 @@ describe "composition", ->
     })
 
   it "works in semi-realistic case (using parser)", ->
-    someDriver = {} # ToDo: fix this
-
     ex = ply()
       .apply("Diamonds",
-        ply() #someDriver)
-          #.filter("$color == 'D'")
+        ply()
+          .filter("$color == 'D'")
           .apply("priceOver2", "$price/2")
       )
       .apply('Count', $('Diamonds').count())
@@ -180,17 +168,32 @@ describe "composition", ->
           "expression": {
             "actions": [
               {
+                "action": "filter"
+                "expression": {
+                  "action": {
+                    "action": "is"
+                    "expression": {
+                      "op": "literal"
+                      "value": "D"
+                    }
+                  }
+                  "expression": {
+                    "name": "color"
+                    "op": "ref"
+                  }
+                  "op": "chain"
+                }
+              }
+              {
                 "action": "apply"
                 "expression": {
-                  "actions": [
-                    {
-                      "action": "divide"
-                      "expression": {
-                        "op": "literal"
-                        "value": 2
-                      }
+                  "action": {
+                    "action": "divide"
+                    "expression": {
+                      "op": "literal"
+                      "value": 2
                     }
-                  ]
+                  }
                   "expression": {
                     "name": "price"
                     "op": "ref"
@@ -214,11 +217,9 @@ describe "composition", ->
         {
           "action": "apply"
           "expression": {
-            "actions": [
-              {
-                "action": "count"
-              }
-            ]
+            "action": {
+              "action": "count"
+            }
             "expression": {
               "name": "Diamonds"
               "op": "ref"
@@ -230,15 +231,13 @@ describe "composition", ->
         {
           "action": "apply"
           "expression": {
-            "actions": [
-              {
-                "action": "sum"
-                "expression": {
-                  "name": "priceOver2"
-                  "op": "ref"
-                }
+            "action": {
+              "action": "sum"
+              "expression": {
+                "name": "priceOver2"
+                "op": "ref"
               }
-            ]
+            }
             "expression": {
               "name": "Diamonds"
               "op": "ref"

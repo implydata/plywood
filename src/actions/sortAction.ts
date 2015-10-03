@@ -1,5 +1,8 @@
 module Plywood {
   export class SortAction extends Action {
+    static DESCENDING = 'descending';
+    static ASCENDING = 'ascending';
+
     static fromJS(parameters: ActionJS): SortAction {
       return new SortAction({
         action: parameters.action,
@@ -14,8 +17,8 @@ module Plywood {
       super(parameters, dummyObject);
       this.direction = parameters.direction;
       this._ensureAction("sort");
-      if (this.direction !== 'descending' && this.direction !== 'ascending') {
-        throw new Error("direction must be 'descending' or 'ascending'");
+      if (this.direction !== SortAction.DESCENDING && this.direction !== SortAction.ASCENDING) {
+        throw new Error(`direction must be '${SortAction.DESCENDING}' or '${SortAction.ASCENDING}'`);
       }
       if (!this.expression.isOp('ref')) {
         throw new Error("must be a reference expression (for now): " + this.toString());
@@ -57,7 +60,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      var dir = this.direction === 'descending' ? 'DESC' : 'ASC';
+      var dir = this.direction === SortAction.DESCENDING ? 'DESC' : 'ASC';
       return `ORDER BY ${expressionSQL} ${dir}`;
     }
 
@@ -68,6 +71,13 @@ module Plywood {
 
     public isNester(): boolean {
       return true;
+    }
+
+    public toggleDirection(): SortAction {
+      return new SortAction({
+        expression: this.expression,
+        direction: this.direction === SortAction.ASCENDING ? SortAction.DESCENDING : SortAction.ASCENDING
+      });
     }
   }
 
