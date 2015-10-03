@@ -1037,7 +1037,6 @@ return (start < 0 ?'-':'') + parts.join('.');
         throw new Error(`can not convert strange apply: ${applyExpression.toString()}`);
       }
 
-
       switch (aggregateAction.action) {
         case "count":
         case "sum":
@@ -1094,11 +1093,16 @@ return (start < 0 ?'-':'') + parts.join('.');
       var aggregations: Druid.Aggregation[] = [];
       var postAggregations: Druid.PostAggregation[] = [];
 
-      this.applies.forEach(action => {
-        if (this.isAggregateExpression(action.expression)) {
-          aggregations.push(this.applyToAggregation(action));
+      this.applies.forEach(apply => {
+        var applyName = apply.name;
+        if (this.isAggregateExpression(apply.expression)) {
+          var aggregation = this.applyToAggregation(apply);
+          aggregations = aggregations.filter(a => a.name !== applyName);
+          aggregations.push(aggregation);
         } else {
-          postAggregations.push(this.applyToPostAggregation(action, aggregations));
+          var postAggregation = this.applyToPostAggregation(apply, aggregations);
+          postAggregations = postAggregations.filter(a => a.name !== applyName);
+          postAggregations.push(postAggregation);
         }
       });
 

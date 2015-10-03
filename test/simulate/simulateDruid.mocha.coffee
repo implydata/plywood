@@ -1088,3 +1088,56 @@ describe "simulate Druid", ->
         "queryType": "timeseries"
       }
     ])
+
+  it "works with duplicate aggregates", ->
+    ex = ply()
+      .apply('Price', '$diamonds.sum($price)')
+      .apply('Price', '$diamonds.sum($price)')
+      .apply('M', '$diamonds.max($price)')
+      .apply('M', '$diamonds.min($price)')
+      .apply('Post', '$diamonds.count() * 2')
+      .apply('Post', '$diamonds.count() * 3')
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldName": "price"
+            "name": "Price"
+            "type": "doubleSum"
+          }
+          {
+            "fieldName": "price"
+            "name": "M"
+            "type": "min"
+          }
+          {
+            "name": "_sd_0"
+            "type": "count"
+          }
+        ]
+        "dataSource": "diamonds"
+        "granularity": "all"
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ]
+        "postAggregations": [
+          {
+            "fields": [
+              {
+                "fieldName": "_sd_0"
+                "type": "fieldAccess"
+              }
+              {
+                "type": "constant"
+                "value": 3
+              }
+            ]
+            "fn": "*"
+            "name": "Post"
+            "type": "arithmetic"
+          }
+        ]
+        "queryType": "timeseries"
+      }
+    ])
