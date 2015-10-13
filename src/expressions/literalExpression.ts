@@ -155,6 +155,7 @@ module Plywood {
   Expression.ONE = new LiteralExpression({ value: 1 });
   Expression.FALSE = new LiteralExpression({ value: false });
   Expression.TRUE = new LiteralExpression({ value: true });
+  Expression.EMPTY_STRING = new LiteralExpression({ value: '' });
 
   Expression.register(LiteralExpression);
 }

@@ -50,6 +50,11 @@ describe "Simplify", ->
       ex2 = $('x').add('2 * $y', '$z')
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
 
+    it.skip "works with literals", ->
+      ex = r(1).add('2 * $y + 1 + 2')
+      ex2 = r(3).add('$y', 3)
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
 
   describe 'multiply', ->
     it "collapses 0 in simple case", ->
@@ -332,5 +337,19 @@ describe "Simplify", ->
         .apply('Deleted', '$wiki.sum($deleted)')
         .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'concat', ->
+    it 'removes empty strings', ->
+      ex = r('').concat('$x', r(''))
+      ex2 = $('x')
+
+      expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it.skip 'concats literal', ->
+      ex = r('p_').concat('hello', '$x', 'i_', 'love')
+      ex2 = r('p_hello').concat('$x', 'i_love')
 
       expect(ex.simplify().toJS()).to.deep.equal(ex2.toJS())

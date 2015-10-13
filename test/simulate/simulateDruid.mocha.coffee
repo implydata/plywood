@@ -387,7 +387,6 @@ describe "simulate Druid", ->
 
   it "works with basic timePart", ->
     ex = ply()
-      .apply("diamonds", $('diamonds').filter($("cut").is('good')))
       .apply('HoursOfDay',
         $("diamonds").split("$time.timePart(HOUR_OF_DAY, 'Etc/UTC')", 'HourOfDay')
           .apply('TotalPrice', '$diamonds.sum($price)')
@@ -416,10 +415,43 @@ describe "simulate Druid", ->
           "outputName": "HourOfDay"
           "type": "extraction"
         }
-        "filter": {
-          "dimension": "cut"
-          "type": "selector"
-          "value": "good"
+        "granularity": "all"
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ]
+        "metric": "TotalPrice"
+        "queryType": "topN"
+        "threshold": 3
+      }
+    ])
+
+  it "works with basic concat", ->
+    ex = ply()
+      .apply('Colors',
+        $("diamonds").split("'!!!<' ++ $color ++ '>!!!'", 'Colors')
+          .apply('TotalPrice', '$diamonds.sum($price)')
+          .sort('$TotalPrice', 'descending')
+          .limit(3)
+      )
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldName": "price"
+            "name": "TotalPrice"
+            "type": "doubleSum"
+          }
+        ]
+        "dataSource": "diamonds"
+        "dimension": {
+          "dimension": "color"
+          "extractionFn": {
+            "function": "function(s){return \"!!!<\"+s+\">!!!\";}"
+            "type": "javascript"
+          }
+          "outputName": "Colors"
+          "type": "extraction"
         }
         "granularity": "all"
         "intervals": [

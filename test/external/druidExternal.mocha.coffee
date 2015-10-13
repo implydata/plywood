@@ -509,7 +509,7 @@ describe "DruidExternal", ->
       ex = ply()
         .apply("wiki",
           $('wiki', 1)
-            .filter($("language").contains('en'))
+            .filter($("language").contains('en', 'ignoreCase'))
         )
         .apply('Count', '$wiki.count()')
 

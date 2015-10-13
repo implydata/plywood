@@ -402,6 +402,37 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
+    it "works with concat split", (testComplete) ->
+      ex = ply()
+        .apply('Pages',
+          $('wiki').split("'!!!<' ++ $page ++ '>!!!'", 'Page')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(3)
+        )
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Pages": [
+              {
+                "Count": 262
+                "Page": "!!!<Wikipedia:Administrators'_noticeboard/Incidents>!!!"
+              }
+              {
+                "Count": 253
+                "Page": "!!!<User:Cyde/List_of_candidates_for_speedy_deletion/Subpage>!!!"
+              }
+              {
+                "Count": 243
+                "Page": "!!!<Wikipedia:Löschkandidaten/14._August_2015>!!!"
+              }
+            ]
+          }
+        ])
+        testComplete()
+      ).done()
+
 
   describe "introspection", ->
     basicExecutor = basicExecutorFactory({

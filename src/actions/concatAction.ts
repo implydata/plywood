@@ -28,6 +28,16 @@ module Plywood {
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return 'CONCAT(' + inputSQL + ',' + expressionSQL + ')';
     }
+
+    protected _removeAction(): boolean {
+      return this.expression.equals(Expression.EMPTY_STRING);
+    }
+
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+      if (literalExpression.equals(Expression.EMPTY_STRING)) {
+        return this.expression;
+      }
+    }
   }
 
   Action.register(ConcatAction);

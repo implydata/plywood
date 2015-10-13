@@ -434,6 +434,7 @@ module Plywood {
     public canHandleLimit(limitAction: LimitAction): boolean {
       var split = this.split;
       if (split instanceof ChainExpression) {
+        if (split.getExpressionPattern('concat')) return true;
         if (split.actions.length !== 1) return false;
         return split.actions[0].action !== 'timeBucket';
       } else {
@@ -741,118 +742,162 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
       } else if (splitExpression instanceof ChainExpression) {
-        var refExpression = <RefExpression>splitExpression.expression;
-        if (refExpression.op !== 'ref') throw new Error(`can not convert complex: ${refExpression.toString()}`);
-        var actions = splitExpression.actions;
-        if (actions.length !== 1) throw new Error('can not convert expression: ' + splitExpression.toString());
-        var splitAction = actions[0];
+        var pattern: Expression[];
+        if (pattern = splitExpression.getExpressionPattern('concat')) {
+          var prefix: string = '';
+          var concatRef: RefExpression = null;
+          var postfix: string = '';
 
-        if (splitAction instanceof SubstrAction) {
-          var substrDimension = {
+          for (var i = 0; i < pattern.length; i++) {
+            var p = pattern[i];
+            if (p instanceof RefExpression) {
+              if (concatRef) throw new Error(`can not currently have multiple references in a concat expression: ${splitExpression.toString()}`);
+              concatRef = p;
+            } else if (p instanceof LiteralExpression) {
+              if (concatRef) {
+                postfix = p.getLiteralValue();
+              } else {
+                prefix = p.getLiteralValue();
+              }
+            } else {
+              throw new Error(`can not have '${p.toString()}' inside a concat`);
+            }
+          }
+
+          var concatDimension = {
             type: "extraction",
-            dimension: refExpression.name,
+            dimension: concatRef.name,
             outputName: label,
             extractionFn: {
               type: "javascript",
-              'function': `function(s){return s.substr(${splitAction.position},${splitAction.length});}`
+              'function': `function(s){return ${JSON.stringify(prefix)}+s+${JSON.stringify(postfix)};}`
             }
           };
 
           if (this.havingFilter.equals(Expression.TRUE) && this.limit && !this.exactResultsOnly) {
             queryType = 'topN';
-            dimension = substrDimension;
+            dimension = concatDimension;
             postProcess = postProcessTopNFactory(null, null);
           } else {
             queryType = 'groupBy';
-            dimensions = [substrDimension];
+            dimensions = [concatDimension];
             postProcess = postProcessGroupBy;
           }
+        } else {
 
-        } else if (splitAction instanceof TimePartAction) {
-          queryType = 'topN';
-          var format = TIME_PART_TO_FORMAT[splitAction.part];
-          if (!format) throw new Error(`unsupported part in timePart expression ${splitAction.part}`);
-          dimension = {
-            type: "extraction",
-            dimension: refExpression.name === this.timeAttribute ? '__time' : refExpression.name,
-            outputName: label,
-            extractionFn: {
-              type: "timeFormat",
-              format: format,
-              timeZone: splitAction.timezone.toString(),
-              locale: "en-US"
-            }
-          };
-          postProcess = postProcessTopNFactory(simpleMath, label);
+          var refExpression = <RefExpression>splitExpression.expression;
+          if (refExpression.op !== 'ref') throw new Error(`can not convert complex: ${refExpression.toString()}`);
+          var actions = splitExpression.actions;
+          if (actions.length !== 1) throw new Error('can not convert expression: ' + splitExpression.toString());
+          var splitAction = actions[0];
 
-        } else if (splitAction instanceof TimeBucketAction) {
-          if (!this.isTimeRef(refExpression)) {
-            throw new Error(`can not convert complex time bucket: ${refExpression.toString()}`);
-          }
-          queryType = 'timeseries';
-          granularity = {
-            type: "period",
-            period: splitAction.duration.toString(),
-            timeZone: splitAction.timezone.toString()
-          };
-          postProcess = postProcessTimeseriesFactory(splitAction.duration, splitAction.timezone, label);
-
-        } else if (splitAction instanceof NumberBucketAction) {
-          var attributeInfo = this.getAttributesInfo(refExpression.name);
-          queryType = "topN";
-          if (attributeInfo.type === 'NUMBER') {
-            var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
-            dimension = {
+          if (splitAction instanceof SubstrAction) {
+            var substrDimension = {
               type: "extraction",
               dimension: refExpression.name,
               outputName: label,
               extractionFn: {
                 type: "javascript",
-                'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
+                'function': `function(s){return s.substr(${splitAction.position},${splitAction.length});}`
               }
             };
-            postProcess = postProcessTopNFactory(Number, label);
 
-          } else if (attributeInfo instanceof RangeAttributeInfo) {
+            if (this.havingFilter.equals(Expression.TRUE) && this.limit && !this.exactResultsOnly) {
+              queryType = 'topN';
+              dimension = substrDimension;
+              postProcess = postProcessTopNFactory(null, null);
+            } else {
+              queryType = 'groupBy';
+              dimensions = [substrDimension];
+              postProcess = postProcessGroupBy;
+            }
+
+          } else if (splitAction instanceof TimePartAction) {
+            queryType = 'topN';
+            var format = TIME_PART_TO_FORMAT[splitAction.part];
+            if (!format) throw new Error(`unsupported part in timePart expression ${splitAction.part}`);
             dimension = {
               type: "extraction",
-              dimension: refExpression.name,
+              dimension: refExpression.name === this.timeAttribute ? '__time' : refExpression.name,
               outputName: label,
-              extractionFn: this.getRangeBucketingDimension(<RangeAttributeInfo>attributeInfo, splitAction)
+              extractionFn: {
+                type: "timeFormat",
+                format: format,
+                timeZone: splitAction.timezone.toString(),
+                locale: "en-US"
+              }
             };
-            postProcess = postProcessTopNFactory(postProcessNumberBucketFactory(splitAction.size), label);
+            postProcess = postProcessTopNFactory(simpleMath, label);
 
-          } else if (attributeInfo instanceof HistogramAttributeInfo) {
-            if (this.exactResultsOnly) {
-              throw new Error("can not use approximate histograms in exactResultsOnly mode");
+          } else if (splitAction instanceof TimeBucketAction) {
+            if (!this.isTimeRef(refExpression)) {
+              throw new Error(`can not convert complex time bucket: ${refExpression.toString()}`);
             }
-            var aggregation: Druid.Aggregation = {
-              type: "approxHistogramFold",
-              fieldName: refExpression.name
+            queryType = 'timeseries';
+            granularity = {
+              type: "period",
+              period: splitAction.duration.toString(),
+              timeZone: splitAction.timezone.toString()
             };
-            if (splitAction.lowerLimit != null) {
-              aggregation.lowerLimit = splitAction.lowerLimit;
-            }
-            if (splitAction.upperLimit != null) {
-              aggregation.upperLimit = splitAction.upperLimit;
-            }
-            //var options = split.options || {};
-            //if (hasOwnProperty(options, 'druidResolution')) {
-            //  aggregation.resolution = options['druidResolution'];
-            //}
+            postProcess = postProcessTimeseriesFactory(splitAction.duration, splitAction.timezone, label);
 
-            aggregations = [aggregation];
-            postAggregations = [{
-              type: "buckets",
-              name: "histogram",
-              fieldName: "histogram",
-              bucketSize: splitAction.size,
-              offset: splitAction.offset
-            }];
+          } else if (splitAction instanceof NumberBucketAction) {
+            var attributeInfo = this.getAttributesInfo(refExpression.name);
+            queryType = "topN";
+            if (attributeInfo.type === 'NUMBER') {
+              var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
+              dimension = {
+                type: "extraction",
+                dimension: refExpression.name,
+                outputName: label,
+                extractionFn: {
+                  type: "javascript",
+                  'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
+                }
+              };
+              postProcess = postProcessTopNFactory(Number, label);
+
+            } else if (attributeInfo instanceof RangeAttributeInfo) {
+              dimension = {
+                type: "extraction",
+                dimension: refExpression.name,
+                outputName: label,
+                extractionFn: this.getRangeBucketingDimension(<RangeAttributeInfo>attributeInfo, splitAction)
+              };
+              postProcess = postProcessTopNFactory(postProcessNumberBucketFactory(splitAction.size), label);
+
+            } else if (attributeInfo instanceof HistogramAttributeInfo) {
+              if (this.exactResultsOnly) {
+                throw new Error("can not use approximate histograms in exactResultsOnly mode");
+              }
+              var aggregation: Druid.Aggregation = {
+                type: "approxHistogramFold",
+                fieldName: refExpression.name
+              };
+              if (splitAction.lowerLimit != null) {
+                aggregation.lowerLimit = splitAction.lowerLimit;
+              }
+              if (splitAction.upperLimit != null) {
+                aggregation.upperLimit = splitAction.upperLimit;
+              }
+              //var options = split.options || {};
+              //if (hasOwnProperty(options, 'druidResolution')) {
+              //  aggregation.resolution = options['druidResolution'];
+              //}
+
+              aggregations = [aggregation];
+              postAggregations = [{
+                type: "buckets",
+                name: "histogram",
+                fieldName: "histogram",
+                bucketSize: splitAction.size,
+                offset: splitAction.offset
+              }];
+            }
+
+          } else {
+            throw new Error('can not convert given split action: ' + splitExpression.toString());
           }
-
-        } else {
-          throw new Error('can not convert given split action: ' + splitExpression.toString());
         }
 
       } else {
