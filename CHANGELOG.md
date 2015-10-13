@@ -9,3 +9,8 @@
 - Misc bug fixes
 - Added SortAction DESCENDING, ASCENDING, toggleDirection
 - DruidExternal guards against duplicate aggs and postAggs
+
+# 0.5.2
+
+- Added support for case sensitive (`normal`) / case insensitive (`ignoreCase`) contains.
+- Improved concat action support in Druid
