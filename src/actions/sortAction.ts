@@ -15,14 +15,15 @@ module Plywood {
 
     constructor(parameters: ActionValue = {}) {
       super(parameters, dummyObject);
-      this.direction = parameters.direction;
-      this._ensureAction("sort");
-      if (this.direction !== SortAction.DESCENDING && this.direction !== SortAction.ASCENDING) {
+      var { direction } = parameters;
+      if (direction !== SortAction.DESCENDING && direction !== SortAction.ASCENDING) {
         throw new Error(`direction must be '${SortAction.DESCENDING}' or '${SortAction.ASCENDING}'`);
       }
+      this.direction = direction;
       if (!this.expression.isOp('ref')) {
         throw new Error("must be a reference expression (for now): " + this.toString());
       }
+      this._ensureAction("sort");
     }
 
     public valueOf(): ActionValue {

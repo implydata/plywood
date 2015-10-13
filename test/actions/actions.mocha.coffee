@@ -38,6 +38,9 @@ describe "Actions", ->
       { action: 'countDistinct', expression: { op: 'ref', name: 'myVar' } }
       { action: 'quantile', expression: { op: 'ref', name: 'myVar' }, quantile: 0.5 }
       { action: 'custom', custom: 'blah' }
+
+      { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'normal' }
+      { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'ignoreCase' }
     ], {
       newThrows: true
     })

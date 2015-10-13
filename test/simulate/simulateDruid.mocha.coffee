@@ -1141,3 +1141,28 @@ describe "simulate Druid", ->
         "queryType": "timeseries"
       }
     ])
+
+  it "works contains filter (case sensitive)", ->
+    ex = ply()
+      .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'))))
+      .apply('Count', '$diamonds.count()')
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color"
+      "function": 'function(v) { return v.indexOf("sup\\"yo")>-1 }'
+      "type": "javascript"
+    })
+
+  it "works contains filter (case insensitive)", ->
+    ex = ply()
+      .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'), 'ignoreCase')))
+      .apply('Count', '$diamonds.count()')
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color"
+      "query": {
+        "type": "fragment"
+        "values": ['sup"yo']
+      }
+      "type": "search"
+    })

@@ -708,7 +708,7 @@ module Plywood {
 
     public sort(ex: any, direction: string): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new SortAction({ expression: ex, direction: direction }));
+      return this.performAction(new SortAction({ expression: ex, direction }));
     }
 
     public limit(limit: int): ChainExpression {
@@ -824,9 +824,9 @@ module Plywood {
       return this.performAction(new GreaterThanOrEqualAction({ expression: ex }));
     }
 
-    public contains(ex: any): ChainExpression {
+    public contains(ex: any, compare: string): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new ContainsAction({ expression: ex }));
+      return this.performAction(new ContainsAction({ expression: ex, compare }));
     }
 
     public in(start: Date, end: Date): ChainExpression;

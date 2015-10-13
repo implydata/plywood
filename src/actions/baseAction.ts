@@ -23,6 +23,7 @@ module Plywood {
     selector?: string;
     prop?: Lookup<any>;
     custom?: string;
+    compare?: string;
     simple?: boolean;
   }
 
@@ -47,6 +48,7 @@ module Plywood {
     selector?: string;
     prop?: Lookup<any>;
     custom?: string;
+    compare?: string;
   }
 
   export interface ExpressionTransformation {

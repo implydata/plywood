@@ -338,6 +338,70 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
+    it "works with contains (case sensitive) filter", (testComplete) ->
+      ex = ply()
+        .apply('wiki', $('wiki').filter($('page').contains('wiki')))
+        .apply('Pages',
+          $('wiki').split($("page"), 'Page')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(3)
+        )
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Pages": [
+              {
+                "Count": 10
+                "Page": "User_talk:Trmwikifa"
+              }
+              {
+                "Count": 8
+                "Page": "User_talk:2015wiki"
+              }
+              {
+                "Count": 7
+                "Page": "Benutzer:Paddy1111~dewiki/test2"
+              }
+            ]
+          }
+        ])
+        testComplete()
+      ).done()
+
+    it "works with contains (case insensitive) filter", (testComplete) ->
+      ex = ply()
+        .apply('wiki', $('wiki').filter($('page').contains('wiki', 'ignoreCase')))
+        .apply('Pages',
+          $('wiki').split($("page"), 'Page')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(3)
+        )
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Pages": [
+              {
+                "Count": 266
+                "Page": "Wikipedia:Administrators'_noticeboard/Incidents"
+              }
+              {
+                "Count": 243
+                "Page": "Wikipedia:Löschkandidaten/14._August_2015"
+              }
+              {
+                "Count": 200
+                "Page": "Wikipedia:Administrator_intervention_against_vandalism"
+              }
+            ]
+          }
+        ])
+        testComplete()
+      ).done()
+
 
   describe "introspection", ->
     basicExecutor = basicExecutorFactory({

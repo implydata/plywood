@@ -580,16 +580,24 @@ module Plywood {
 
         } else if (filterAction instanceof ContainsAction) {
           if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-            return {
-              type: "search",
-              dimension: lhs.name,
-              query: {
-                type: "fragment",
-                values: [rhs.value]
-              }
-            };
+            if (filterAction.compare === ContainsAction.IGNORE_CASE) {
+              return {
+                type: "search",
+                dimension: lhs.name,
+                query: {
+                  type: "fragment",
+                  values: [rhs.value]
+                }
+              };
+            } else {
+              return {
+                type: "javascript",
+                dimension: lhs.name,
+                "function": `function(v) { return v.indexOf(${JSON.stringify(rhs.value)})>-1 }`
+              };
+            }
           } else {
-            throw new Error(`can not express ${rhs.toString()} in SQL`);
+            throw new Error("can not convert " + filter.toString() + " to Druid filter");
           }
 
         }
