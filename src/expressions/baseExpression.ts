@@ -35,6 +35,12 @@ module Plywood {
 
   export type Alterations = Lookup<Expression>;
 
+  export interface SQLParse {
+    verb: string;
+    expression: Expression;
+    table: string;
+  }
+
   export interface ExpressionValue {
     op?: string;
     type?: string;
@@ -181,7 +187,7 @@ module Plywood {
      * Parses SQL statements into a plywood expressions
      * @param str The SQL to parse
      */
-    static parseSQL(str: string): Expression {
+    static parseSQL(str: string): SQLParse {
       try {
         return sqlParser.parse(str);
       } catch (e) {

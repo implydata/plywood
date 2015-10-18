@@ -3,7 +3,17 @@
 plywood = require('../../build/plywood')
 { Expression, Dataset, $, ply, r } = plywood
 
+chronoshift = require("chronoshift");
+
+if not chronoshift.WallTime.rules
+  tzData = require("chronoshift/lib/walltime/walltime-data.js");
+  chronoshift.WallTime.init(tzData.rules, tzData.zones);
+
 wikiDayData = require('../../data/wikipedia')
+
+wikiDayData.forEach((d, i) ->
+  d['time'] = new Date(d['time'])
+)
 
 describe "compute native nontrivial data", ->
   ds = Dataset.fromJS(wikiDayData)
@@ -97,6 +107,35 @@ describe "compute native nontrivial data", ->
           "Count": 1
           "Page": "Pedro_Álvares_Cabral"
           "SumAdded": 68390
+        }
+      ])
+      testComplete()
+    ).done()
+
+  it "works in simple timeBucket case", (testComplete) ->
+    ex = $('data').split('$time.timeBucket(PT1H, "Asia/Kathmandu")', "Time") # America/Los_Angeles
+      .apply('Count', '$data.count()')
+      .sort('$Time', 'ascending')
+      .limit(2)
+
+    p = ex.compute({ data: ds })
+    p.then((v) ->
+      expect(v.toJS()).to.deep.equal([
+        {
+          "Count": 1350
+          "Time": {
+            "end": new Date('2013-02-26T00:15:00.000Z')
+            "start": new Date('2013-02-25T23:15:00.000Z')
+            "type": "TIME_RANGE"
+          }
+        }
+        {
+          "Count": 1590
+          "Time": {
+            "end": new Date('2013-02-26T01:15:00.000Z')
+            "start": new Date('2013-02-26T00:15:00.000Z')
+            "type": "TIME_RANGE"
+          }
         }
       ])
       testComplete()

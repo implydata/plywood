@@ -52,7 +52,7 @@ describe "simulate Druid for amplab benchmark", ->
   it "works for Query1 (modified to be GROUP BY)", ->
     #      SELECT pageURL, sum(pageRank) AS pageRank FROM rankings GROUP BY pageURL HAVING pageRank > X
     sql = 'SELECT pageURL, sum(pageRank) AS pageRank FROM rankings GROUP BY pageURL HAVING pageRank > 5'
-    ex = Expression.parseSQL(sql)
+    ex = Expression.parseSQL(sql).expression
 
     expect(ex.toJS()).to.deep.equal(
       $('rankings').split('$pageURL', 'pageURL', 'data')
@@ -97,7 +97,7 @@ describe "simulate Druid for amplab benchmark", ->
   it "works for Query2", ->
     #      SELECT SUBSTR(sourceIP, 1, X), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, X)
     sql = 'SELECT SUBSTR(sourceIP, 1, 5), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, 5)'
-    ex = Expression.parseSQL(sql)
+    ex = Expression.parseSQL(sql).expression
 
     expect(ex.toJS()).to.deep.equal(
       $('uservisits').split('$sourceIP.substr(1, 5)', 'SUBSTR_sourceIP_1_5', 'data')

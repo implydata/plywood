@@ -7,6 +7,7 @@ var FilterAction = plywood.FilterAction;
 var ApplyAction = plywood.ApplyAction;
 var SortAction = plywood.SortAction;
 var LimitAction = plywood.LimitAction;
+var Set = plywood.Set;
 
 var dataRef = $('data');
 var dateRegExp = /^\d\d\d\d-\d\d-\d\d(?:T(?:\d\d)?(?::\d\d)?(?::\d\d)?(?:.\d\d\d)?)?Z?$/;
@@ -72,22 +73,31 @@ function extractGroupByColumn(columns, groupBy) {
 
 function constructQuery(columns, from, where, groupBy, having, orderBy, limit) {
   if (!columns) error('Can not have empty column list');
-  from = from || dataRef;
+  from = from ? $(from) : dataRef;
 
   if (where) {
     from = from.filter(where);
   }
 
-  // Support for not having a group by clause is there are aggregates in the columns
-  // A redneck check for aggregate columns is the same as having "GROUP BY 1"
   if (!groupBy) {
+    // Support for not having a group by clause if there are aggregates in the columns
+    // A having an aggregate columns is the same as having "GROUP BY ''"
+
     var hasAggregate = columns.some(function(column) {
       var columnExpression = column.expression;
       return columnExpression.isOp('chain') &&
         columnExpression.actions.length &&
         aggregates[columnExpression.actions[0].action];
     })
-    if (hasAggregate) groupBy = Expression.ONE;
+    if (hasAggregate) groupBy = Expression.EMPTY_STRING;
+
+  } else if (groupBy.isOp('literal') && groupBy.type === 'NUMBER') {
+    // Support for not having a group by clause refer to a select column by index
+
+    var groupByColumn = columns[groupBy.value - 1];
+    if (!groupByColumn) error("Unknown column '" + groupBy.value + "' in group by statement");
+
+    groupBy = groupByColumn.expression;
   }
 
   var query = null;
@@ -139,8 +149,14 @@ start
   = _ query:SQLQuery _ { return query; }
 
 SQLQuery
-  = SelectToken columns:Columns? from:FromClause? where:WhereClause? groupBy:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
-    { return constructQuery(columns, from, where, groupBy, having, orderBy, limit); }
+  = SelectToken columns:Columns? from:FromClause? where:WhereClause? groupBy:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause? QueryTerminator? _
+    {
+      return {
+        verb: 'SELECT',
+        expression: constructQuery(columns, from, where, groupBy, having, orderBy, limit),
+        table: from
+      };
+    }
 
 SQLSubQuery
   = SelectToken columns:Columns? where:WhereClause? groupBy:GroupByClause having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
@@ -163,7 +179,7 @@ As
   = _ AsToken _ name:(String / Ref) { return name; }
 
 FromClause
-  = _ FromToken _ table:RefExpression
+  = _ FromToken _ table:NamespacedRef
     { return table; }
 
 WhereClause
@@ -194,6 +210,9 @@ Direction
 LimitClause
   = _ LimitToken _ limit:Number
     { return new LimitAction({ limit: limit }); }
+
+QueryTerminator
+  = _ ";"
 
 /*
 Expressions are defined below in acceding priority order
@@ -226,11 +245,19 @@ NotExpression
 
 
 ComparisonExpression
-  = lhs:AdditiveExpression __ BetweenToken __ start:AdditiveExpression __ AndToken __ end:AdditiveExpression
+  = lhs:AdditiveExpression not:(_ NotToken)? __ BetweenToken __ start:AdditiveExpression __ AndToken __ end:AdditiveExpression
     {
       if (start.op !== 'literal') error('between start must be a literal');
       if (end.op !== 'literal') error('between end must be a literal');
-      return lhs.in({ start: start.value, end: end.value, bounds: '[]' });
+      var ex = lhs.in({ start: start.value, end: end.value, bounds: '[]' });
+      if (not) ex = ex.not();
+      return ex;
+    }
+  / lhs:AdditiveExpression not:(_ NotToken)? __ InToken __ list:ListLiteral
+    {
+      var ex = lhs.in(list);
+      if (not) ex = ex.not();
+      return ex;
     }
   / lhs:AdditiveExpression rest:(_ ComparisonOp _ AdditiveExpression)?
     {
@@ -242,11 +269,17 @@ ComparisonOp
   = "="  { return 'is'; }
   / "<>" { return 'isnt'; }
   / "!=" { return 'isnt'; }
-  / "in" { return 'in'; }
   / "<=" { return 'lessThanOrEqual'; }
   / ">=" { return 'greaterThanOrEqual'; }
   / "<"  { return 'lessThan'; }
   / ">"  { return 'greaterThan'; }
+
+ListLiteral
+  = "(" head:StringOrNumber tail:(_ "," _ StringOrNumber)* ")"
+    {
+      var items = [head].concat(tail.map(function(t) { return t[3]; }));
+      return r(Set.fromJS(items));
+    }
 
 
 AdditiveExpression
@@ -309,7 +342,13 @@ FunctionCallExpression
 
 
 RefExpression
-  = ref:Ref { return $(ref); }
+  = ref:NamespacedRef { return $(ref); }
+
+NamespacedRef
+  = (Ref _ "." _)? name:Ref
+    {
+      return name; // ToDo: do not ignore namespace
+    }
 
 Ref
   = name:Name !{ return reserved(name); }
@@ -318,6 +357,8 @@ Ref
     { return name }
 
 NameOrString = Name / String
+
+StringOrNumber = String / Number
 
 
 LiteralExpression
