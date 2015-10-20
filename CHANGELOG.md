@@ -15,8 +15,13 @@
 - Added support for case sensitive (`normal`) / case insensitive (`ignoreCase`) contains.
 - Improved concat action support in Druid
 
-# 0.6
+# 0.6.1
 
 - Changed the return type of `Expression.parseSQL` to return and object with the keys `verb`, `expression`, and `table`
   `Expression.parseSQL(blah)` ==> `Expression.parseSQL(blah).expression`
 - In PlyQL changed the meaning of `GROUP BY <number>` to be a reference to a column (just like in MySQL and Postgres)
+
+# 0.6.2
+
+- Added more rules to the SQL parser: `IS`, `LIKE`, and awareness of `UPDATE`, `SET`, e.t.c
+ 

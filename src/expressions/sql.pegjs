@@ -146,9 +146,27 @@ function naryExpressionWithAltFactory(op, head, tail, altToken, altOp) {
 }// Start grammar
 
 start
-  = _ query:SQLQuery _ { return query; }
+  = _ queryParse:SelectQuery _ { return queryParse; }
+  / _ queryParse:OtherQuery _ { return queryParse; }
+  / _ ex:Expression _
+    {
+      return {
+        verb: null,
+        expression: ex
+      }
+    }
 
-SQLQuery
+OtherQuery
+  = verb:(UpdateToken / ShowToken / SetToken) rest:Rest
+    {
+      return {
+        verb: verb,
+        rest: rest
+      };
+    }
+
+
+SelectQuery
   = SelectToken columns:Columns? from:FromClause? where:WhereClause? groupBy:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause? QueryTerminator? _
     {
       return {
@@ -158,7 +176,7 @@ SQLQuery
       };
     }
 
-SQLSubQuery
+SelectSubQuery
   = SelectToken columns:Columns? where:WhereClause? groupBy:GroupByClause having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
     { return constructQuery(columns, null, where, groupBy, having, orderBy, limit); }
 
@@ -214,6 +232,10 @@ LimitClause
 QueryTerminator
   = _ ";"
 
+Rest
+  = __ rest:$(.*)
+    { return rest; }
+
 /*
 Expressions are defined below in acceding priority order
 
@@ -253,9 +275,21 @@ ComparisonExpression
       if (not) ex = ex.not();
       return ex;
     }
+  / lhs:AdditiveExpression __ IsToken not:(__ NotToken)? _ rhs:LiteralExpression
+    {
+      var ex = lhs.is(rhs);
+      if (not) ex = ex.not();
+      return ex;
+    }
   / lhs:AdditiveExpression not:(_ NotToken)? __ InToken __ list:ListLiteral
     {
       var ex = lhs.in(list);
+      if (not) ex = ex.not();
+      return ex;
+    }
+  / lhs:AdditiveExpression not:(_ NotToken)? __ LikeToken __ string:String
+    {
+      var ex = lhs.contains(string, 'ignoreCase');
       if (not) ex = ex.not();
       return ex;
     }
@@ -310,7 +344,7 @@ BasicExpression
   / AggregateExpression
   / FunctionCallExpression
   / "(" _ ex:Expression _ ")" { return ex; }
-  / "(" _ subQuery:SQLSubQuery _ ")" { return subQuery; }
+  / "(" _ selectSubQuery:SelectSubQuery _ ")" { return selectSubQuery; }
   / RefExpression
 
 
@@ -391,7 +425,11 @@ NullToken          = "NULL"i           !IdentifierPart { return null; }
 TrueToken          = "TRUE"i           !IdentifierPart { return true; }
 FalseToken         = "FALSE"i          !IdentifierPart { return false; }
 
-SelectToken        = "SELECT"i         !IdentifierPart
+SelectToken        = "SELECT"i         !IdentifierPart { return 'SELECT'; }
+UpdateToken        = "UPDATE"i         !IdentifierPart { return 'UPDATE'; }
+ShowToken          = "SHOW"i           !IdentifierPart { return 'SHOW'; }
+SetToken           = "SET"i            !IdentifierPart { return 'SET'; }
+
 FromToken          = "FROM"i           !IdentifierPart
 AsToken            = "AS"i             !IdentifierPart
 OnToken            = "ON"i             !IdentifierPart
