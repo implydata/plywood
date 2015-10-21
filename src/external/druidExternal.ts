@@ -594,7 +594,7 @@ module Plywood {
               return {
                 type: "javascript",
                 dimension: lhs.name,
-                "function": `function(v) { return v.indexOf(${JSON.stringify(rhs.value)})>-1 }`
+                "function": filter.getJSFn('d')
               };
             }
           } else {
@@ -744,22 +744,14 @@ return (start < 0 ?'-':'') + parts.join('.');
       } else if (splitExpression instanceof ChainExpression) {
         var pattern: Expression[];
         if (pattern = splitExpression.getExpressionPattern('concat')) {
-          var prefix: string = '';
           var concatRef: RefExpression = null;
-          var postfix: string = '';
 
           for (var i = 0; i < pattern.length; i++) {
             var p = pattern[i];
             if (p instanceof RefExpression) {
               if (concatRef) throw new Error(`can not currently have multiple references in a concat expression: ${splitExpression.toString()}`);
               concatRef = p;
-            } else if (p instanceof LiteralExpression) {
-              if (concatRef) {
-                postfix = p.getLiteralValue();
-              } else {
-                prefix = p.getLiteralValue();
-              }
-            } else {
+            } else if (!(p instanceof LiteralExpression)) {
               throw new Error(`can not have '${p.toString()}' inside a concat`);
             }
           }
@@ -770,7 +762,8 @@ return (start < 0 ?'-':'') + parts.join('.');
             outputName: label,
             extractionFn: {
               type: "javascript",
-              'function': `function(s){return ${JSON.stringify(prefix)}+s+${JSON.stringify(postfix)};}`
+              'function': splitExpression.getJSFn('d'),
+              injective: true
             }
           };
 
@@ -798,7 +791,7 @@ return (start < 0 ?'-':'') + parts.join('.');
               outputName: label,
               extractionFn: {
                 type: "javascript",
-                'function': `function(s){return s.substr(${splitAction.position},${splitAction.length});}`
+                'function': splitExpression.getJSFn('d')
               }
             };
 

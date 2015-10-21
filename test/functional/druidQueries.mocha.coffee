@@ -424,7 +424,7 @@ describe "DruidExternal", ->
                 "Page": "!!!<User:Cyde/List_of_candidates_for_speedy_deletion/Subpage>!!!"
               }
               {
-                "Count": 243
+                "Count": 242
                 "Page": "!!!<Wikipedia:Löschkandidaten/14._August_2015>!!!"
               }
             ]

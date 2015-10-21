@@ -119,7 +119,7 @@ describe "simulate Druid for amplab benchmark", ->
           {
             "dimension": "sourceIP"
             "extractionFn": {
-              "function": "function(s){return s.substr(1,5);}"
+              "function": "function(d){return (''+d).substr(1,5);}"
               "type": "javascript"
             }
             "outputName": "SUBSTR_sourceIP_1_5"

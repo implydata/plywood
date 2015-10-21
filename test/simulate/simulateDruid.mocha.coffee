@@ -434,33 +434,46 @@ describe "simulate Druid", ->
           .limit(3)
       )
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
-      {
-        "aggregations": [
-          {
-            "fieldName": "price"
-            "name": "TotalPrice"
-            "type": "doubleSum"
-          }
-        ]
-        "dataSource": "diamonds"
-        "dimension": {
-          "dimension": "color"
-          "extractionFn": {
-            "function": "function(s){return \"!!!<\"+s+\">!!!\";}"
-            "type": "javascript"
-          }
-          "outputName": "Colors"
-          "type": "extraction"
-        }
-        "granularity": "all"
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ]
-        "metric": "TotalPrice"
-        "queryType": "topN"
-        "threshold": 3
+    expect(ex.simulateQueryPlan(context)[0].dimension).to.deep.equal({
+      "dimension": "color"
+      "extractionFn": {
+        "function": "function(d){return ((\"!!!<\"+d)+\">!!!\");}"
+        "type": "javascript"
+        "injective": true
       }
+      "outputName": "Colors"
+      "type": "extraction"
+    })
+
+  it "works with basic substr", ->
+    ex = ply()
+      .apply('Colors',
+        $("diamonds").split("$color.substr(1, 2)", 'Colors')
+          .apply('TotalPrice', '$diamonds.sum($price)')
+          .sort('$TotalPrice', 'descending')
+          .limit(3)
+      )
+
+    expect(ex.simulateQueryPlan(context)[0].dimension).to.deep.equal({
+      "dimension": "color"
+      "extractionFn": {
+        "function": "function(d){return (''+d).substr(1,2);}"
+        "type": "javascript"
+      }
+      "outputName": "Colors"
+      "type": "extraction"
+    })
+
+  it.skip "works with basic boolean split", ->
+    ex = ply()
+      .apply('Colors',
+        $("diamonds").split("$color == $cut", 'IsA')
+          .apply('TotalPrice', '$diamonds.sum($price)')
+          .sort('$TotalPrice', 'descending')
+      )
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+
     ])
 
   it "works with having filter", ->
@@ -1181,7 +1194,7 @@ describe "simulate Druid", ->
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color"
-      "function": 'function(v) { return v.indexOf("sup\\"yo")>-1 }'
+      "function": "function(d){return (''+d).indexOf(\"sup\\\"yo\")>-1;}"
       "type": "javascript"
     })
 

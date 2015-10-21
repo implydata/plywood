@@ -47,8 +47,7 @@ module Plywood {
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
-      var position = this.position;
-      var length = this.length;
+      const { position, length } = this;
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (inV === null) return null;
@@ -57,11 +56,12 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string): string {
-      throw new Error("implement me");
+      const { position, length } = this;
+      return `(''+${inputJS}).substr(${position},${length})`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `SUBSTR(${inputSQL}, ${this.position + 1}, ${this.length})`;
+      return `SUBSTR(${inputSQL},${this.position + 1},${this.length})`;
     }
   }
 

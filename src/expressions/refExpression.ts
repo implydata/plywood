@@ -158,11 +158,7 @@ module Plywood {
       if (this.nest) throw new Error("can not call getJS on unresolved expression");
       var name = this.name;
       if (datumVar) {
-        if (RefExpression.SIMPLE_NAME_REGEXP.test(datumVar)) {
-          return datumVar + '.' + name;
-        } else {
-          return datumVar + "['" + name.replace(/'/g, "\\'") + "']";
-        }
+        return datumVar.replace('[]', "[" + JSON.stringify(name) + "]");
       } else {
         return RefExpression.toSimpleName(name);
       }

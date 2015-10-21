@@ -590,8 +590,8 @@ module Plywood {
       throw new Error('should never be called directly');
     }
 
-    public getJSFn(): string {
-      return `function(d){return ${this.getJS('d')};}`;
+    public getJSFn(datumVar: string = 'd[]'): string {
+      return `function(${datumVar.replace('[]', '')}){return ${this.getJS(datumVar)};}`;
     }
 
     public getSQL(dialect: SQLDialect): string {

@@ -64,9 +64,9 @@ module Plywood {
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
       if (this.compare === ContainsAction.NORMAL) {
-        return `String(${inputJS}).indexOf(${expressionJS}) > -1`;
+        return `(''+${inputJS}).indexOf(${expressionJS})>-1`;
       } else {
-        return `String(${inputJS}).toLowerCase().indexOf(String(${expressionJS}).toLowerCase()) > -1`;
+        return `(''+${inputJS}).toLowerCase().indexOf(String(${expressionJS}).toLowerCase())>-1`;
       }
     }
 
