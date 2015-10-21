@@ -1396,3 +1396,55 @@ describe "simulate Druid", ->
     expect(ex.simulateQueryPlan({ diamonds: ds })[0].context).to.deep.equal({priority: -1, queryId:'test'})
 
     testComplete()
+
+  it "uses alphaNumeric sorting for alphaNumeric attributes", (testComplete) ->
+    context = {}
+    ds = new External.fromJS({
+      engine: 'druid',
+      dataSource: 'some_data'
+      timeAttribute: 'time'
+      requester: (req) ->
+
+        Q(req)
+      attributes: [
+        { name: "price_range", type: 'STRING', special: 'alphaNumeric' }
+      ],
+      filter: $("time").in({
+        start: new Date('2015-03-12T00:00:00')
+        end:   new Date('2015-03-19T00:00:00')
+      })
+    })
+
+    ex = $('some_data').split("$price_range", 'price_range')
+    .sort('$price_range', 'descending')
+    .limit(5)
+
+    expect(ex.simulateQueryPlan({ some_data: ds })[0].metric).to.deep.equal({type: 'alphaNumeric'})
+
+    testComplete()
+
+  it "uses alphaNumeric sorting for alphaNumeric attributes and works inverted", (testComplete) ->
+    context = {}
+    ds = new External.fromJS({
+      engine: 'druid',
+      dataSource: 'some_data'
+      timeAttribute: 'time'
+      requester: (req) ->
+
+        Q(req)
+      attributes: [
+        { name: "price_range", type: 'STRING', special: 'alphaNumeric' }
+      ],
+      filter: $("time").in({
+        start: new Date('2015-03-12T00:00:00')
+        end:   new Date('2015-03-19T00:00:00')
+      })
+    })
+
+    ex = $('some_data').split("$price_range", 'PriceRange')
+    .sort('$PriceRange', 'ascending')
+    .limit(5)
+
+    expect(ex.simulateQueryPlan({ some_data: ds })[0].metric).to.deep.equal({ type: 'inverted', metric: {type: 'alphaNumeric'} })
+
+    testComplete()
