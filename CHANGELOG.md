@@ -25,3 +25,6 @@
 
 - Added more rules to the SQL parser: `IS`, `LIKE`, and awareness of `UPDATE`, `SET`, e.t.c
  
+# 0.6.3
+
+- Changed JS fallbacks in DruidExternal to use native code generators and removed some null bugs. 
