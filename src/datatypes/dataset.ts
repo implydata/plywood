@@ -150,7 +150,7 @@ module Plywood {
     formatter?: Formatter;
   }
 
-  function isDate(dt: any) {
+  export function isDate(dt: any) {
     return Boolean(dt && dt.toISOString);
   }
 

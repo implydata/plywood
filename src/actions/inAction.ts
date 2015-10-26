@@ -20,31 +20,18 @@ module Plywood {
         }
       } else {
         if (!(expression.canHaveType('NUMBER_RANGE') || expression.canHaveType('TIME_RANGE') || expression.canHaveType('SET'))) {
-          throw new TypeError(`in action has invalid expression  type ${expression.type}`);
+          throw new TypeError(`in action has invalid expression type ${expression.type}`);
         }
       }
       return 'BOOLEAN';
     }
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-      var expressionType = this.expression.type;
-      if (expressionType === 'SET/NUMBER_RANGE' || expressionType === 'SET/TIME_RANGE') {
-        return (d: Datum, c: Datum) => {
-          var inV = inputFn(d, c);
-          var exV = expressionFn(d, c);
-          if (inV instanceof NumberRange || inV instanceof TimeRange) {
-            return (<Set>exV).contains(inV);
-          } else {
-            return (<Set>exV).containsWithin(inV);
-          }
-        }
-      } else {
-        // Time range and set also have contains
-        return (d: Datum, c: Datum) => {
-          var inV = inputFn(d, c);
-          var exV = expressionFn(d, c);
-          return (<NumberRange>exV).contains(inV);
-        }
+      return (d: Datum, c: Datum) => {
+        var inV = inputFn(d, c);
+        var exV = expressionFn(d, c);
+        if (!exV) return null;
+        return (<any>exV).contains(inV);
       }
     }
 

@@ -296,7 +296,13 @@ module Plywood {
     }
 
     public contains(value: any): boolean {
+      const { setType } = this;
+      if ((setType === 'NUMBER_RANGE' && typeof value === 'number')
+        || (setType === 'TIME_RANGE' && isDate(value))) {
+        return this.containsWithin(value);
+      }
       return hasOwnProperty(this.hash, this.keyFn(value));
+
     }
 
     public containsWithin(value: any): boolean {
