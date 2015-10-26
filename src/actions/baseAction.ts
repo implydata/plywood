@@ -320,6 +320,14 @@ module Plywood {
     }
 
     /**
+     * Special logic to combine the previous action and this action together.
+     * @param prevAction the previous action
+     */
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      return null;
+    }
+
+    /**
      * Special logic to perform this action on a chain
      * @param chainExpression the expression on which to perform
      */
@@ -357,6 +365,13 @@ module Plywood {
         if (special) return special;
 
       } else if (simpleExpression instanceof ChainExpression) {
+        var actions = simpleExpression.actions;
+        var lastAction = actions[actions.length - 1];
+        var foldedAction = this._foldWithPrevAction(lastAction);
+        if (foldedAction) {
+          return foldedAction.performOnSimple(simpleExpression.popAction());
+        }
+
         var special = this._performOnChain(simpleExpression);
         if (special) return special;
 

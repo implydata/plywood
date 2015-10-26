@@ -38,6 +38,19 @@ module Plywood {
         return this.expression;
       }
     }
+
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      if (prevAction instanceof ConcatAction) {
+        var prevValue = prevAction.expression.getLiteralValue();
+        var myValue = this.expression.getLiteralValue();
+        if (typeof prevValue === 'string' && typeof myValue === 'string') {
+          return new ConcatAction({
+            expression: r(prevValue + myValue)
+          });
+        }
+      }
+      return null;
+    }
   }
 
   Action.register(ConcatAction);

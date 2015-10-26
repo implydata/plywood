@@ -26,6 +26,15 @@ module Plywood {
     public isNester(): boolean {
       return true;
     }
+
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      if (prevAction instanceof FilterAction) {
+        return new FilterAction({
+          expression: prevAction.expression.and(this.expression)
+        });
+      }
+      return null;
+    }
   }
 
   Action.register(FilterAction);

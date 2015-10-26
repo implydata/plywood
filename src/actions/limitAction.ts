@@ -53,6 +53,15 @@ module Plywood {
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `LIMIT ${this.limit}`;
     }
+
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      if (prevAction instanceof LimitAction) {
+        return new LimitAction({
+          limit: Math.min(prevAction.limit, this.limit)
+        });
+      }
+      return null;
+    }
   }
 
   Action.register(LimitAction);

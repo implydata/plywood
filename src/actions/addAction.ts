@@ -50,6 +50,19 @@ module Plywood {
         return this.expression;
       }
     }
+
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      if (prevAction instanceof AddAction) {
+        var prevValue = prevAction.expression.getLiteralValue();
+        var myValue = this.expression.getLiteralValue();
+        if (typeof prevValue === 'number' && typeof myValue === 'number') {
+          return new AddAction({
+            expression: r(prevValue + myValue)
+          });
+        }
+      }
+      return null;
+    }
   }
 
   Action.register(AddAction);
