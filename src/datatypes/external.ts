@@ -87,14 +87,13 @@ module Plywood {
     suppress?: boolean;
     attributes?: Attributes;
     attributeOverrides?: Attributes;
-    key?: string;
     mode?: string;
     dataName?: string;
 
     filter?: Expression;
     rawAttributes?: Attributes;
     derivedAttributes?: Lookup<Expression>;
-    split?: Expression;
+    split?: SplitAction;
     applies?: ApplyAction[];
     sort?: SortAction;
     limit?: LimitAction;
@@ -120,7 +119,6 @@ module Plywood {
     engine: string;
     attributes?: AttributeJSs;
     attributeOverrides?: AttributeJSs;
-    key?: string;
 
     filter?: ExpressionJS;
     rawAttributes?: AttributeJSs;
@@ -151,8 +149,7 @@ module Plywood {
     static jsToValue(parameters: ExternalJS): ExpressionValue {
       var value: ExternalValue = {
         engine: parameters.engine,
-        suppress: true,
-        key: parameters.key
+        suppress: true
       };
       if (parameters.attributes) {
         value.attributes = AttributeInfo.fromJSs(parameters.attributes);
@@ -191,15 +188,14 @@ module Plywood {
     public suppress: boolean;
     public attributes: Attributes = null;
     public attributeOverrides: Attributes = null;
-    public key: string = null;
 
     public rawAttributes: Attributes = null;
     public requester: Requester.PlywoodRequester<any>;
     public mode: string; // raw, total, split (potential aggregate mode)
     public derivedAttributes: Lookup<Expression>;
     public filter: Expression;
-    public split: Expression;
     public dataName: string;
+    public split: SplitAction;
     public applies: ApplyAction[];
     public sort: SortAction;
     public limit: LimitAction;
@@ -217,9 +213,6 @@ module Plywood {
       if (parameters.attributeOverrides) {
         this.attributeOverrides = parameters.attributeOverrides;
       }
-      if (parameters.key) {
-        this.key = parameters.key;
-      }
       this.rawAttributes = parameters.rawAttributes;
       this.requester = parameters.requester;
       this.mode = parameters.mode || 'raw';
@@ -236,8 +229,7 @@ module Plywood {
         this.applies = this.applies || [];
 
         if (this.mode === 'split') {
-          if (!this.split) throw new Error('must have split in split mode');
-          if (!this.key) throw new Error('must have key in split mode');
+          if (!this.split) throw new Error('must have split action in split mode');
           this.havingFilter = this.havingFilter || Expression.TRUE;
         }
       }
@@ -260,7 +252,6 @@ module Plywood {
       if (this.suppress) value.suppress = this.suppress;
       if (this.attributes) value.attributes = this.attributes;
       if (this.attributeOverrides) value.attributeOverrides = this.attributeOverrides;
-      if (this.key) value.key = this.key;
 
       if (this.rawAttributes) {
         value.rawAttributes = this.rawAttributes;
@@ -298,7 +289,6 @@ module Plywood {
       };
       if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
       if (this.attributeOverrides) js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
-      if (this.key) js.key = this.key;
 
       if (this.rawAttributes) js.rawAttributes = AttributeInfo.toJSs(this.rawAttributes);
       if (this.requester) {
@@ -471,20 +461,17 @@ module Plywood {
       return <External>(new (External.classMap[this.engine])(value));
     }
 
-    private _addSplitAction(action: SplitAction): External {
-      var expression = action.expression;
-      var name = action.name;
+    private _addSplitAction(splitAction: SplitAction): External {
       if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
-      if (!this.canHandleSplit(expression)) return null;
+      //if (!this.canHandleSplit(expression)) return null;
 
       var value = this.valueOf();
       value.suppress = false;
       value.mode = 'split';
-      value.dataName = action.dataName;
-      value.split = expression;
-      value.key = name;
+      value.dataName = splitAction.dataName;
+      value.split = splitAction;
       value.rawAttributes = value.attributes;
-      value.attributes = [new AttributeInfo({ name, type: expression.type })];
+      value.attributes = splitAction.mapSplits((name, expression) => new AttributeInfo({ name, type: expression.type }));
 
       return <External>(new (External.classMap[this.engine])(value));
     }
@@ -502,7 +489,7 @@ module Plywood {
         value.attributes = value.attributes.concat(new AttributeInfo({ name: action.name, type: action.expression.type }));
       } else {
         // Can not redefine index for now.
-        if (action.name === this.key) return null;
+        if (this.split && this.split.hasKey(action.name)) return null;
 
         var basicActions = this.processApply(action);
         for (let basicAction of basicActions) {
@@ -567,7 +554,7 @@ module Plywood {
       if (!sort) return false;
 
       var sortOn = (<RefExpression>sort.expression).name;
-      if (sortOn !== this.key) return false;
+      if (!this.split || !this.split.hasKey(sortOn)) return false;
 
       var applies = this.applies;
       for (let apply of applies) {
@@ -675,9 +662,8 @@ module Plywood {
 
         case 'split':
           var split = this.split;
-          var key = this.key;
           return dataset.apply(dataName, (d: Datum) => {
-            return this.getRaw().addFilter(split.is(new LiteralExpression({ value: d[key] })).simplify());
+            return this.getRaw().addFilter(split.filterFromDatum(d));
           }, null);
 
         default:
@@ -695,7 +681,9 @@ module Plywood {
         }
       } else {
         if (this.mode === 'split') {
-          datum[this.key] = getSampleValue(this.split.type, this.split);
+          this.split.mapSplits((name, expression) => {
+            datum[name] = getSampleValue(expression.type, expression);
+          });
         }
 
         var applies = this.applies;

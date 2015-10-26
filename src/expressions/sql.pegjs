@@ -52,26 +52,26 @@ function reserved(str) {
   return objectHasOwnProperty.call(reservedWords, str.toUpperCase());
 }
 
-function extractGroupByColumn(columns, groupBy) {
+function extractGroupByColumn(columns, groupBy, index) {
   var label = null;
-  var applyColumns = [];
+  var otherColumns = [];
   for (var i = 0; i < columns.length; i++) {
     var column = columns[i];
     if (groupBy.equals(column.expression)) {
       if (label) error('already have a label');
       label = column.name;
     } else {
-      applyColumns.push(column);
+      otherColumns.push(column);
     }
   }
-  if (!label) label = 'split';
+  if (!label) label = 'split' + index;
   return {
     label: label,
-    applyColumns: applyColumns
+    otherColumns: otherColumns
   };
 }
 
-function constructQuery(columns, from, where, groupBy, having, orderBy, limit) {
+function constructQuery(columns, from, where, groupBys, having, orderBy, limit) {
   if (!columns) error('Can not have empty column list');
   from = from ? $(from) : dataRef;
 
@@ -79,42 +79,58 @@ function constructQuery(columns, from, where, groupBy, having, orderBy, limit) {
     from = from.filter(where);
   }
 
-  if (!groupBy) {
-    // Support for not having a group by clause if there are aggregates in the columns
-    // A having an aggregate columns is the same as having "GROUP BY ''"
+  if (Array.isArray(columns)) { // Not *
+    if (!groupBys) {
+      // Support for not having a group by clause if there are aggregates in the columns
+      // A having an aggregate columns is the same as having "GROUP BY ''"
 
-    var hasAggregate = columns.some(function(column) {
-      var columnExpression = column.expression;
-      return columnExpression.isOp('chain') &&
-        columnExpression.actions.length &&
-        aggregates[columnExpression.actions[0].action];
-    })
-    if (hasAggregate) groupBy = Expression.EMPTY_STRING;
+      var hasAggregate = columns.some(function(column) {
+        var columnExpression = column.expression;
+        return columnExpression.isOp('chain') &&
+          columnExpression.actions.length &&
+          aggregates[columnExpression.actions[0].action];
+      })
+      if (hasAggregate) groupBys = [Expression.EMPTY_STRING];
 
-  } else if (groupBy.isOp('literal') && groupBy.type === 'NUMBER') {
-    // Support for not having a group by clause refer to a select column by index
-
-    var groupByColumn = columns[groupBy.value - 1];
-    if (!groupByColumn) error("Unknown column '" + groupBy.value + "' in group by statement");
-
-    groupBy = groupByColumn.expression;
-  }
-
-  var query = null;
-  if (!groupBy) {
-    query = from;
-  } else {
-    if (groupBy.isOp('literal')) {
-      query = ply().apply('data', from);
     } else {
-      var extract = extractGroupByColumn(columns, groupBy);
-      columns = extract.applyColumns;
-      query = from.split(groupBy, extract.label, 'data');
+      groupBys = groupBys.map(function(groupBy) {
+        if (groupBy.isOp('literal') && groupBy.type === 'NUMBER') {
+          // Support for not having a group by clause refer to a select column by index
+
+          var groupByColumn = columns[groupBy.value - 1];
+          if (!groupByColumn) error("Unknown column '" + groupBy.value + "' in group by statement");
+
+          return groupByColumn.expression;
+        } else {
+          return groupBy;
+        }
+      });
     }
   }
 
-  for (var i = 0; i < columns.length; i++) {
-    query = query.performAction(columns[i]);
+  var query = null;
+  if (!groupBys) {
+    query = from;
+  } else {
+    if (columns === '*') error('can not SELECT * with a group by');
+    if (groupBys.length === 1 && groupBys[0].isOp('literal')) {
+      query = ply().apply('data', from);
+    } else {
+      var splits = {};
+      for (var i = 0; i < groupBys.length; i++) {
+        var groupBy = groupBys[i];
+        var extract = extractGroupByColumn(columns, groupBy, i);
+        columns = extract.otherColumns;
+        splits[extract.label] = groupBy;
+      }
+      query = from.split(splits, 'data');
+    }
+  }
+
+  if (Array.isArray(columns)) {
+    for (var i = 0; i < columns.length; i++) {
+      query = query.performAction(columns[i]);
+    }
   }
   if (having) {
     query = query.performAction(having);
@@ -127,6 +143,10 @@ function constructQuery(columns, from, where, groupBy, having, orderBy, limit) {
   }
 
   return query;
+}
+
+function makeListMap3(head, tail) {
+  return [head].concat(tail.map(function(t) { return t[3] }));
 }
 
 function naryExpressionFactory(op, head, tail) {
@@ -167,22 +187,24 @@ OtherQuery
 
 
 SelectQuery
-  = SelectToken columns:Columns? from:FromClause? where:WhereClause? groupBy:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause? QueryTerminator? _
+  = SelectToken columns:Columns? from:FromClause? where:WhereClause? groupBys:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause? QueryTerminator? _
     {
       return {
         verb: 'SELECT',
-        expression: constructQuery(columns, from, where, groupBy, having, orderBy, limit),
+        expression: constructQuery(columns, from, where, groupBys, having, orderBy, limit),
         table: from
       };
     }
 
 SelectSubQuery
-  = SelectToken columns:Columns? where:WhereClause? groupBy:GroupByClause having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
-    { return constructQuery(columns, null, where, groupBy, having, orderBy, limit); }
+  = SelectToken columns:Columns? where:WhereClause? groupBys:GroupByClause having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
+    { return constructQuery(columns, null, where, groupBys, having, orderBy, limit); }
 
 Columns
-  = _ head:Column tail:(_ "," _ Column)*
-    { return [head].concat(tail.map(function(t) { return t[3] })); }
+  = _ StarToken
+    { return '*'; }
+  / _ head:Column tail:(_ "," _ Column)*
+    { return makeListMap3(head, tail); }
 
 Column
   = ex:Expression as:As?
@@ -205,11 +227,8 @@ WhereClause
     { return filter; }
 
 GroupByClause
-  = _ GroupToken __ ByToken _ groupBy:Expression tail:(_ "," _ Expression)*
-    {
-      if (tail.length) error('plywood does not currently support multi-dimensional GROUP BYs');
-      return groupBy;
-    }
+  = _ GroupToken __ ByToken _ head:Expression tail:(_ "," _ Expression)*
+    { return makeListMap3(head, tail); }
 
 HavingClause
   = _ HavingToken _ having:Expression
@@ -310,10 +329,7 @@ ComparisonOp
 
 ListLiteral
   = "(" head:StringOrNumber tail:(_ "," _ StringOrNumber)* ")"
-    {
-      var items = [head].concat(tail.map(function(t) { return t[3]; }));
-      return r(Set.fromJS(items));
-    }
+    { return r(Set.fromJS(makeListMap3(head, tail))); }
 
 
 AdditiveExpression
@@ -370,7 +386,7 @@ FunctionCallExpression
   / TimeBucketToken "(" _ operand:Expression _ "," _ duration:NameOrString _ "," _ timezone:NameOrString ")"
     { return operand.timeBucket(duration, timezone); }
   / TimePartToken "(" _ operand:Expression _ "," _ part:NameOrString _ "," _ timezone:NameOrString ")"
-      { return operand.timePart(part, timezone); }
+    { return operand.timePart(part, timezone); }
   / SubstrToken "(" _ operand:Expression _ "," _ position:Number _ "," _ length:Number ")"
     { return operand.substr(position, length); }
 

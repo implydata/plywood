@@ -54,11 +54,6 @@ describe "SQL parser", ->
         Expression.parseSQL("SELECT FROM wiki")
       ).to.throw('SQL parse error: Can not have empty column list on `SELECT FROM wiki`')
 
-    it "should fail gracefully on expressions with multi-dimensional GROUP BYs", ->
-      expect(->
-        Expression.parseSQL("SELECT page, user FROM wiki GROUP BY page, user")
-      ).to.throw('plywood does not currently support multi-dimensional GROUP BYs')
-
     it "should have a good error for incorrect numeric GROUP BYs", ->
       expect(->
         Expression.parseSQL("SELECT page, COUNT() AS 'Count' FROM wiki GROUP BY 12")
@@ -254,6 +249,15 @@ describe "SQL parser", ->
       ex2 = $('wiki').split('$page', 'Page', 'data')
         .apply('TotalAdded', '$data.sum($added)')
         .limit(5)
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
+    it "should work with multi-dimensional GROUP BYs", ->
+      parse = Expression.parseSQL("""
+        SELECT `page`, `user` FROM `wiki` GROUP BY `page`, `user`
+        """)
+
+      ex2 = $('wiki').split({ page: '$page', user: '$user' }, 'data')
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
 

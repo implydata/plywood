@@ -55,7 +55,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `${expressionSQL} AS '${this.name}'`;
+      return `${expressionSQL} AS ${JSON.stringify(this.name)}`;
     }
 
     public isSimpleAggregate(): boolean {

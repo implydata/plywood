@@ -75,6 +75,7 @@ describe "compute native", ->
     ds = Dataset.fromJS(data).hide()
 
     ex = ply()
+      .apply('Two', 2)
       .apply('Data', ply(ds))
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
@@ -88,6 +89,7 @@ describe "compute native", ->
     p.then((v) ->
       expect(v.toJS()).to.deep.equal([
         {
+          "Two": 2
           "Cuts": [
             {
               "Cut": "Good"

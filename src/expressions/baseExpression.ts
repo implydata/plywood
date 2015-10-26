@@ -793,13 +793,29 @@ module Plywood {
       return this.performAction(new CustomAction({ custom }));
     }
 
-    public split(ex: any, name: string, newDataName: string = null): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      var dataName = getDataName(this);
-      if (!dataName && !newDataName) {
-        throw new Error("could not guess data name in `split`, please provide one explicitly");
+    public split(splits: any, dataName?: string): ChainExpression;
+    public split(ex: any, name: string, dataName?: string): ChainExpression;
+    public split(splits: any, name?: string, dataName?: string): ChainExpression {
+      // Determine if use case #2
+      if (arguments.length === 3 ||
+        (arguments.length === 2 && splits && (typeof splits === 'string' || typeof splits.op === 'string'))) {
+        var realSplits = Object.create(null);
+        realSplits[name] = splits;
+        splits = realSplits;
+      } else {
+        dataName = name;
       }
-      return this.performAction(new SplitAction({ expression: ex, name, dataName: newDataName || dataName }));
+
+      var parsedSplits: Splits = Object.create(null);
+      for (var k in splits) {
+        if (!hasOwnProperty(splits, k)) continue;
+        var ex = splits[k];
+        parsedSplits[k] = Expression.isExpression(ex) ? ex : Expression.fromJSLoose(ex);
+      }
+
+      if (!dataName) dataName = getDataName(this);
+      if (!dataName) throw new Error("could not guess data name in `split`, please provide one explicitly");
+      return this.performAction(new SplitAction({ splits: parsedSplits, dataName: dataName }));
     }
 
     public is(ex: any): ChainExpression {

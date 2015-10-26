@@ -10,9 +10,12 @@ module Plywood {
     return Array.isArray(result) && (result.length === 0 || typeof result[0] === 'object');
   }
 
-  function postProcessFactory(split: Expression, label: string): PostProcess {
-    if (split instanceof ChainExpression) {
-      var firstAction = split.actions[0];
+  function postProcessFactory(split: SplitAction): PostProcess {
+    var splitExpression = split ? split.firstSplitExpression() : null; // ToDo: fix me
+    var label = split ? split.firstSplitName() : null;
+
+    if (splitExpression instanceof ChainExpression) {
+      var firstAction = splitExpression.actions[0];
       if (firstAction instanceof TimeBucketAction) {
         var duration = firstAction.duration;
         var timezone = firstAction.timezone;
@@ -153,14 +156,15 @@ module Plywood {
 
         case 'split':
           query.push(
-            [`${this.split.getSQL(mySQLDialect)} AS '${this.key}'`]
-              .concat(this.applies.map(apply => apply.getSQL('', mySQLDialect))).join(',\n')
+            this.split.getSelectSQL(mySQLDialect)
+              .concat(this.applies.map(apply => apply.getSQL('', mySQLDialect)))
+              .join(',\n')
           );
           query.push('FROM ' + table);
           if (!(this.filter.equals(Expression.TRUE))) {
             query.push('WHERE ' + this.filter.getSQL(mySQLDialect));
           }
-          query.push('GROUP BY ' + this.split.getSQL(mySQLDialect));
+          query.push(this.split.getShortGroupBySQL());
           if (!(this.havingFilter.equals(Expression.TRUE))) {
             query.push('HAVING ' + this.havingFilter.getSQL(mySQLDialect));
           }
@@ -178,7 +182,7 @@ module Plywood {
 
       return {
         query: query.join('\n'),
-        postProcess: postProcessFactory(this.split, this.key)
+        postProcess: postProcessFactory(this.split)
       };
     }
 

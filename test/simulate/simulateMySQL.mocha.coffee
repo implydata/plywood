@@ -65,12 +65,12 @@ describe "simulate MySQL", ->
 
     expect(queryPlan[0]).to.equal("""
       SELECT
-      COUNT(*) AS 'Count',
-      SUM(`price`) AS 'TotalPrice',
-      (SUM(`price`)*2) AS 'PriceTimes2',
-      (SUM(`price`)-SUM(`tax`)) AS 'PriceMinusTax',
-      (((SUM(`price`)-SUM(`tax`))+10)-SUM(`carat`)) AS 'Crazy',
-      (SUM(`price`)+SUM(`tax`)) AS 'PriceAndTax'
+      COUNT(*) AS "Count",
+      SUM(`price`) AS "TotalPrice",
+      (SUM(`price`)*2) AS "PriceTimes2",
+      (SUM(`price`)-SUM(`tax`)) AS "PriceMinusTax",
+      (((SUM(`price`)-SUM(`tax`))+10)-SUM(`carat`)) AS "Crazy",
+      (SUM(`price`)+SUM(`tax`)) AS "PriceAndTax"
       FROM `diamonds`
       WHERE (`color`="D")
       GROUP BY ''
@@ -78,33 +78,33 @@ describe "simulate MySQL", ->
 
     expect(queryPlan[1]).to.equal("""
       SELECT
-      `cut` AS 'Cut',
-      COUNT(*) AS 'Count',
-      (4/`Count`) AS 'PercentOfTotal'
+      `cut` AS "Cut",
+      COUNT(*) AS "Count",
+      (4/`Count`) AS "PercentOfTotal"
       FROM `diamonds`
       WHERE (`color`="D")
-      GROUP BY `cut`
+      GROUP BY 1
       ORDER BY `Count` DESC
       LIMIT 2
       """)
 
     expect(queryPlan[2]).to.equal("""
       SELECT
-      DATE_FORMAT(CONVERT_TZ(`time`, '+0:00', 'America/Los_Angeles'), '%Y-%m-%dT00:00:00Z') AS 'Timestamp',
-      SUM(`price`) AS 'TotalPrice'
+      DATE_FORMAT(CONVERT_TZ(`time`, '+0:00', 'America/Los_Angeles'), '%Y-%m-%dT00:00:00Z') AS "Timestamp",
+      SUM(`price`) AS "TotalPrice"
       FROM `diamonds`
       WHERE ((`color`="D") AND (`cut`="some_cut"))
-      GROUP BY DATE_FORMAT(CONVERT_TZ(`time`, '+0:00', 'America/Los_Angeles'), '%Y-%m-%dT00:00:00Z')
+      GROUP BY 1
       ORDER BY `Timestamp` ASC
       """)
 
     expect(queryPlan[3]).to.equal("""
       SELECT
-      FLOOR(`carat` / 0.25) * 0.25 AS 'Carat',
-      COUNT(*) AS 'Count'
+      FLOOR(`carat` / 0.25) * 0.25 AS "Carat",
+      COUNT(*) AS "Count"
       FROM `diamonds`
       WHERE (((`color`="D") AND (`cut`="some_cut")) AND ('2015-03-13 07:00:00'<=`time` AND `time`<'2015-03-14 07:00:00'))
-      GROUP BY FLOOR(`carat` / 0.25) * 0.25
+      GROUP BY 1
       ORDER BY `Count` DESC
       LIMIT 3
       """)
@@ -122,10 +122,10 @@ describe "simulate MySQL", ->
 
     expect(queryPlan[0]).to.equal("""
       SELECT
-      `cut` AS 'Cut',
-      COUNT(*) AS 'Count'
+      `cut` AS "Cut",
+      COUNT(*) AS "Count"
       FROM `diamonds`
-      GROUP BY `cut`
+      GROUP BY 1
       HAVING 100<`Count`
       ORDER BY `Count` DESC
       LIMIT 10
@@ -151,20 +151,20 @@ describe "simulate MySQL", ->
 
     expect(queryPlan[0]).to.equal("""
       SELECT
-      `height_bucket` AS 'HeightBucket',
-      COUNT(*) AS 'Count'
+      `height_bucket` AS "HeightBucket",
+      COUNT(*) AS "Count"
       FROM `diamonds`
-      GROUP BY `height_bucket`
+      GROUP BY 1
       ORDER BY `Count` DESC
       LIMIT 10
       """)
 
     expect(queryPlan[1]).to.equal("""
       SELECT
-      FLOOR((`height_bucket` - 0.5) / 2) * 2 + 0.5 AS 'HeightBucket',
-      COUNT(*) AS 'Count'
+      FLOOR((`height_bucket` - 0.5) / 2) * 2 + 0.5 AS "HeightBucket",
+      COUNT(*) AS "Count"
       FROM `diamonds`
-      GROUP BY FLOOR((`height_bucket` - 0.5) / 2) * 2 + 0.5
+      GROUP BY 1
       ORDER BY `Count` DESC
       LIMIT 10
       """)
