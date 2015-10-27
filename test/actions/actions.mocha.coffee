@@ -9,17 +9,31 @@ describe "Actions", ->
   it "passes higher object tests", ->
     testImmutableClass(Action, [
       {
-        action: 'apply'
-        name: 'Five'
-        expression: { op: 'literal', value: 5 }
-      }
-      {
         action: 'filter'
         expression: {
           op: 'chain'
           expression: { op: 'ref', name: 'myVar' }
           action: { action: 'is', expression: { op: 'literal', value: 5 } }
         }
+      }
+      {
+        action: 'split'
+        name: 'Page'
+        expression: { op: 'ref', name: 'page' }
+        dataName: 'myData'
+      }
+      {
+        action: 'split'
+        splits: {
+          'Page': { op: 'ref', name: 'page' }
+          'User': { op: 'ref', name: 'user' }
+        }
+        dataName: 'myData'
+      }
+      {
+        action: 'apply'
+        name: 'Five'
+        expression: { op: 'literal', value: 5 }
       }
       {
         action: 'sort'

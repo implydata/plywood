@@ -42,14 +42,14 @@ module Plywood {
         case 'NUMBER_RANGE':
           if (expression instanceof LiteralExpression) {
             var numberRange: NumberRange = expression.value;
-            return dialect.inExpression(inputSQL, numberToSQL(numberRange.start), numberToSQL(numberRange.end), numberRange.bounds);
+            return dialect.inExpression(inputSQL, dialect.numberToSQL(numberRange.start), dialect.numberToSQL(numberRange.end), numberRange.bounds);
           }
           throw new Error('not implemented yet');
 
         case 'TIME_RANGE':
           if (expression instanceof LiteralExpression) {
             var timeRange: TimeRange = expression.value;
-            return dialect.inExpression(inputSQL, timeToSQL(timeRange.start), timeToSQL(timeRange.end), timeRange.bounds);
+            return dialect.inExpression(inputSQL, dialect.timeToSQL(timeRange.start), dialect.timeToSQL(timeRange.end), timeRange.bounds);
           }
           throw new Error('not implemented yet');
 

@@ -2,11 +2,20 @@
 /// <reference path="../expressions/baseExpression.ts" />
 
 module Plywood {
+  export interface Splits {
+    [name: string]: Expression;
+  }
+
+  export interface SplitsJS {
+    [name: string]: ExpressionJS;
+  }
+
   export interface ActionValue {
     action?: string;
     name?: string;
     dataName?: string;
     expression?: Expression;
+    splits?: Splits;
     direction?: string;
     limit?: int;
     size?: number;
@@ -32,6 +41,7 @@ module Plywood {
     name?: string;
     dataName?: string;
     expression?: ExpressionJS;
+    splits?: SplitsJS;
     direction?: string;
     limit?: int;
     size?: number;
@@ -380,13 +390,21 @@ module Plywood {
       return simpleExpression.performAction(this, true);
     }
 
+    public getExpressions(): Expression[] {
+      return this.expression ? [this.expression] : [];
+    }
 
     public getFreeReferences(): string[] {
-      return this.expression ? this.expression.getFreeReferences() : [];
+      var freeReferences: string[] = [];
+      this.getExpressions().forEach((ex) => {
+        freeReferences = freeReferences.concat(ex.getFreeReferences());
+      });
+      return deduplicateSort(freeReferences);
     }
 
     public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {
-      return this.expression ? this.expression._everyHelper(iter, thisArg, indexer, depth, nestDiff + Number(this.isNester())) : true;
+      var nestDiffNext = nestDiff + Number(this.isNester());
+      return this.getExpressions().every((ex) => ex._everyHelper(iter, thisArg, indexer, depth, nestDiffNext));
     }
 
     /**

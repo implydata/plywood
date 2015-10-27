@@ -45,6 +45,78 @@ describe "composition", ->
       ]
     })
 
+  it "works in of a set", ->
+    ex = $("x").in(['A', 'B', 'C'])
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "in"
+        "expression": {
+          "op": "literal"
+          "type": "SET"
+          "value": {
+            "elements": [
+              "A"
+              "B"
+              "C"
+            ]
+            "setType": "STRING"
+          }
+        }
+      }
+      "expression": {
+        "name": "x"
+        "op": "ref"
+      }
+      "op": "chain"
+    })
+
+  it "works in single split case", ->
+    ex = $('data')
+      .split('$page', 'Page', 'd')
+
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "split"
+        "dataName": "d"
+        "expression": {
+          "name": "page"
+          "op": "ref"
+        }
+        "name": "Page"
+      }
+      "expression": {
+        "name": "data"
+        "op": "ref"
+      }
+      "op": "chain"
+    })
+
+  it "works in multi split case", ->
+    ex = $('data')
+      .split({ Page: '$page', User: '$page' }, 'd')
+
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "split"
+        "dataName": "d"
+        "splits": {
+          "Page": {
+            "name": "page"
+            "op": "ref"
+          }
+          "User": {
+            "name": "page"
+            "op": "ref"
+          }
+        }
+      }
+      "expression": {
+        "name": "data"
+        "op": "ref"
+      }
+      "op": "chain"
+    })
+
   it "works in semi-realistic case", ->
     ex = ply()
       .apply("Diamonds",

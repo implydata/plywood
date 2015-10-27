@@ -70,25 +70,25 @@ module Plywood {
       var value = this.value;
       switch (this.type) {
         case 'STRING':
-          return JSON.stringify(value);
+          return dialect.escapeLiteral(value);
 
         case 'BOOLEAN':
-          return String(value).toUpperCase();
+          return dialect.booleanToSQL(value);
 
         case 'NUMBER':
-          return String(value);
+          return dialect.numberToSQL(value);
 
         case 'NUMBER_RANGE':
-          return String(value.start) + '/' + String(value.end);
+          return `${dialect.numberToSQL(value.start)}/${dialect.numberToSQL(value.end)}`;
 
         case 'TIME':
-          return timeToSQL(<Date>value);
+          return dialect.timeToSQL(<Date>value);
 
         case 'TIME_RANGE':
-          return timeToSQL(value.start) + '/' + timeToSQL(value.end);
+          return `${dialect.timeToSQL(value.start)}/${dialect.timeToSQL(value.end)}`;
 
         case 'SET/STRING':
-          return '(' + (<Set>value).elements.map((v: string) => JSON.stringify(v)).join(',') + ')';
+          return '(' + (<Set>value).elements.map((v: string) => dialect.escapeLiteral(v)).join(',') + ')';
 
         default:
           throw new Error("currently unsupported type: " + this.type);

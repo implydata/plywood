@@ -414,12 +414,15 @@ module Plywood {
 
     public canHandleSort(sortAction: SortAction): boolean {
       var split = this.split;
-      if (split instanceof ChainExpression) {
-        if (split.actions.length === 1 && split.actions[0].action === 'timeBucket') {
+      if (!split || split.isMultiSplit()) return true;
+      var splitExpression = split.firstSplitExpression();
+      var label = split.firstSplitName();
+      if (splitExpression instanceof ChainExpression) {
+        if (splitExpression.actions.length === 1 && splitExpression.actions[0].action === 'timeBucket') {
           if (sortAction.direction !== 'ascending') return false;
           var sortExpression = sortAction.expression;
           if (sortExpression instanceof RefExpression) {
-            return sortExpression.name === this.key;
+            return sortExpression.name === label;
           } else {
             return false;
           }
@@ -433,10 +436,12 @@ module Plywood {
 
     public canHandleLimit(limitAction: LimitAction): boolean {
       var split = this.split;
-      if (split instanceof ChainExpression) {
-        if (split.getExpressionPattern('concat')) return true;
-        if (split.actions.length !== 1) return false;
-        return split.actions[0].action !== 'timeBucket';
+      if (!split || split.isMultiSplit()) return true;
+      var splitExpression = split.firstSplitExpression();
+      if (splitExpression instanceof ChainExpression) {
+        if (splitExpression.getExpressionPattern('concat')) return true;
+        if (splitExpression.actions.length !== 1) return false;
+        return splitExpression.actions[0].action !== 'timeBucket';
       } else {
         return true;
       }
@@ -703,9 +708,6 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public splitToDruid(): DruidSplit {
-      var splitExpression = this.split;
-      var label = this.key;
-
       var queryType: string;
       var dimension: string | Druid.DimensionSpec = null;
       var dimensions: any[] = null;
@@ -713,6 +715,14 @@ return (start < 0 ?'-':'') + parts.join('.');
       var aggregations: Druid.Aggregation[] = null;
       var postAggregations: Druid.PostAggregation[] = null;
       var postProcess: PostProcess = null;
+
+      var split = this.split;
+      if (split.isMultiSplit()) {
+        throw new Error('not implemented multi-dim split yet... but we are so very close');
+      }
+
+      var label = split.firstSplitName();
+      var splitExpression = split.firstSplitExpression();
 
       if (splitExpression instanceof RefExpression) {
         var dimensionSpec = (splitExpression.name === label) ?
@@ -1330,14 +1340,14 @@ return (start < 0 ?'-':'') + parts.join('.');
       switch (this.mode) {
         case 'raw':
           if (!this.allowSelectQueries) {
-            throw new Error("can issue make 'select' queries unless allowSelectQueries flag is set");
+            throw new Error("to issues 'select' queries allowSelectQueries flag must be set");
           }
           druidQuery.queryType = 'select';
           druidQuery.dimensions = [];
           druidQuery.metrics = [];
           druidQuery.pagingSpec = {
             "pagingIdentifiers": {},
-            "threshold": 10000
+            "threshold": this.limit ? this.limit.limit : 10000
           };
 
           return {
@@ -1383,7 +1393,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           // Combine
           switch (druidQuery.queryType) {
             case 'timeseries':
-              if (this.sort && (this.sort.direction !== 'ascending' || this.sort.refName() !== this.key)) {
+              if (this.sort && (this.sort.direction !== 'ascending' || !this.split.hasKey(this.sort.refName()))) {
                 throw new Error('can not sort within timeseries query');
               }
               if (this.limit) {
@@ -1419,7 +1429,7 @@ return (start < 0 ?'-':'') + parts.join('.');
                 columns: [
                   sortAction ?
                   { dimension: (<RefExpression>sortAction.expression).name, direction: sortAction.direction }
-                  : this.key
+                  : this.split.firstSplitName()
                 ]
               };
               if (this.limit) {

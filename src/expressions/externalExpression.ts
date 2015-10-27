@@ -21,7 +21,7 @@ module Plywood {
 
     public valueOf(): ExpressionValue {
       var value = super.valueOf();
-      value.value = this.external;
+      value.external = this.external;
       return value;
     }
 
@@ -62,6 +62,12 @@ module Plywood {
       var external = this.external;
       if (external.suppress) return Q(external);
       return external.queryValues();
+    }
+
+    public unsuppress(): ExternalExpression {
+      var value = this.valueOf();
+      value.external = this.external.show();
+      return new ExternalExpression(value);
     }
 
     public addAction(action: Action): ExternalExpression {

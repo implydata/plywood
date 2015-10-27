@@ -307,7 +307,7 @@ module Plywood {
           for (let action of actions) {
             if (action instanceof SplitAction) {
               nextData = applyName;
-              nextKey = action.name;
+              nextKey = action.firstSplitName();
               depth++;
             } else if (action instanceof ApplyAction) {
               action.expression._collectBindSpecs(bindSpecs, selectionDepth, depth, action.name, nextData, nextKey);

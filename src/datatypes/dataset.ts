@@ -11,6 +11,10 @@ module Plywood {
     (d: Datum, c: Datum): any;
   }
 
+  export interface SplitFns {
+    [name: string]: ComputeFn;
+  }
+
   export interface ComputePromiseFn {
     (d: Datum, c: Datum): Q.Promise<any>;
   }
@@ -232,7 +236,7 @@ module Plywood {
   export interface DatasetValue {
     attributes?: Attributes;
     attributeOverrides?: Attributes;
-    key?: string;
+    keys?: string[];
     data?: Datum[];
     suppress?: boolean;
   }
@@ -240,7 +244,7 @@ module Plywood {
   export interface DatasetJS {
     attributes?: AttributeJSs;
     attributeOverrides?: AttributeJSs;
-    key?: string;
+    keys?: string[];
     data?: Datum[];
   }
 
@@ -269,7 +273,7 @@ module Plywood {
         value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
       }
 
-      value.key = parameters.key;
+      value.keys = parameters.keys;
       value.data = parameters.data.map(datumFromJS);
       return new Dataset(value)
     }
@@ -277,7 +281,7 @@ module Plywood {
     public suppress: boolean;
     public attributes: Attributes = null;
     public attributeOverrides: Attributes = null;
-    public key: string = null;
+    public keys: string[] = null;
     public data: Datum[];
 
     constructor(parameters: DatasetValue) {
@@ -288,8 +292,8 @@ module Plywood {
       if (parameters.attributeOverrides) {
         this.attributeOverrides = parameters.attributeOverrides;
       }
-      if (parameters.key) {
-        this.key = parameters.key;
+      if (parameters.keys) {
+        this.keys = parameters.keys;
       }
       var data = parameters.data;
       if (Array.isArray(data)) {
@@ -304,7 +308,7 @@ module Plywood {
       if (this.suppress) value.suppress = true;
       if (this.attributes) value.attributes = this.attributes;
       if (this.attributeOverrides) value.attributeOverrides = this.attributeOverrides;
-      if (this.key) value.key = this.key;
+      if (this.keys) value.keys = this.keys;
       value.data = this.data;
       return value;
     }
@@ -467,39 +471,41 @@ module Plywood {
       return quantile; // ToDo fill this in
     }
 
-    public group(exFn: ComputeFn, context: Datum): Set {
+    public split(splitFns: SplitFns, datasetName: string, context: Datum): Dataset {
       var data = this.data;
-      var splits: Lookup<any> = {};
-      for (let datum of data) {
-        var v: any = exFn(datum, context);
-        splits[v] = v;
-      }
-      return Set.fromJS(Object.keys(splits).map(k => splits[k]));
-    }
 
-    public split(exFn: ComputeFn, splitAs: string, datasetName: string, context: Datum): Dataset {
-      var data = this.data;
-      var splits: Lookup<any> = {};
+      var keys = Object.keys(splitFns);
+      var numberOfKeys = keys.length;
+      var splitFnList = keys.map(k => splitFns[k]);
+
+      var splits: Lookup<Datum> = {};
       var datas: Lookup<Datum[]> = {};
-      for (let datum of data) {
-        var v: any = exFn(datum, context);
-        var key = String(v);
-        if (hasOwnProperty(splits, key)) {
+      var finalData: Datum[] = [];
+
+      for (var datum of data) {
+        var valueList = splitFnList.map(splitFn => splitFn(datum, context));
+        var key = valueList.join(';_PLYw00d_;');
+        if (hasOwnProperty(datas, key)) {
           datas[key].push(datum);
         } else {
-          splits[key] = v;
-          datas[key] = [datum];
+          var newDatum = Object.create(null);
+          for (var i = 0; i < numberOfKeys; i++) {
+            newDatum[keys[i]] = valueList[i];
+          }
+          newDatum[datasetName] = (datas[key] = [datum]);
+          splits[key] = newDatum;
+          finalData.push(newDatum)
         }
       }
+
+      for (var finalDatum of finalData) {
+        finalDatum[datasetName] = new Dataset({ suppress: true, data: finalDatum[datasetName] });
+      }
+
       return new Dataset({
-        key: splitAs,
-        data: Object.keys(splits).map(k => {
-          var datum: Datum = {};
-          datum[splitAs] = splits[k];
-          datum[datasetName] = new Dataset({ suppress: true, data: datas[k] });
-          return datum;
-        })
-      })
+        keys,
+        data: finalData
+      });
     }
 
     // Introspection
@@ -581,9 +587,9 @@ module Plywood {
     public join(other: Dataset): Dataset {
       if (!other) return this;
 
-      var thisKey = this.key;
+      var thisKey = this.keys[0]; // ToDo: temp fix
       if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
-      var otherKey = other.key;
+      var otherKey = other.keys[0]; // ToDo: temp fix
       if (!otherKey) throw new Error('join rhs must have a key (be a product of a split)');
 
       var thisData = this.data;
