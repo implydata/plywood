@@ -166,9 +166,7 @@ module Plywood {
 
     public getSQL(dialect: SQLDialect, minimal: boolean = false): string {
       if (this.nest) throw new Error(`can not call getSQL on unresolved expression: ${this.toString()}`);
-      var name = this.name;
-      if (name.indexOf('`') !== -1) throw new Error("can not convert to SQL");
-      return '`' + name + '`';
+      return dialect.escapeName(this.name);
     }
 
     public equals(other: RefExpression): boolean {

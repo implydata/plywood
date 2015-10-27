@@ -3,13 +3,40 @@ module Plywood {
     constructor() {
     }
 
+    public escapeName(name: string): string {
+      if (name.indexOf('`') !== -1) throw new Error("can not convert to SQL"); // ToDo: fix this
+      return '`' + name + '`';
+    }
+
+    public escapeLiteral(name: string): string {
+      return JSON.stringify(name);
+    }
+
+    public booleanToSQL(bool: boolean): string {
+      return ('' + bool).toUpperCase();
+    }
+
+    public numberToSQL(num: number): string {
+      if (num === null) return 'NULL';
+      return '' + num;
+    }
+
+    public timeToSQL(date: Date): string {
+      if (!date) return 'NULL';
+      var str = date.toISOString()
+        .replace("T", " ")
+        .replace(/\.\d\d\dZ$/, "")
+        .replace(" 00:00:00", "");
+      return "'" + str + "'";
+    }
+
     public inExpression(operand: string, start: string, end: string, bounds: string) {
       var startSQL: string = null;
-      if (start !== null) {
+      if (start !== 'NULL') {
         startSQL = start + (bounds[0] === '[' ? '<=' : '<') + operand;
       }
       var endSQL: string = null;
-      if (end !== null) {
+      if (end !== 'NULL') {
         endSQL = operand + (bounds[1] === ']' ? '<=' : '<') + end;
       }
       if (startSQL) {

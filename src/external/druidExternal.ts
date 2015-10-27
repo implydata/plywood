@@ -414,7 +414,7 @@ module Plywood {
 
     public canHandleSort(sortAction: SortAction): boolean {
       var split = this.split;
-      if (split.isMultiSplit()) return true;
+      if (!split || split.isMultiSplit()) return true;
       var splitExpression = split.firstSplitExpression();
       var label = split.firstSplitName();
       if (splitExpression instanceof ChainExpression) {
@@ -436,7 +436,7 @@ module Plywood {
 
     public canHandleLimit(limitAction: LimitAction): boolean {
       var split = this.split;
-      if (split.isMultiSplit()) return true;
+      if (!split || split.isMultiSplit()) return true;
       var splitExpression = split.firstSplitExpression();
       if (splitExpression instanceof ChainExpression) {
         if (splitExpression.getExpressionPattern('concat')) return true;
@@ -718,7 +718,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       var split = this.split;
       if (split.isMultiSplit()) {
-        throw new Error('not implemented multi-dim split yet');
+        throw new Error('not implemented multi-dim split yet... but we are so very close');
       }
 
       var label = split.firstSplitName();
@@ -1340,14 +1340,14 @@ return (start < 0 ?'-':'') + parts.join('.');
       switch (this.mode) {
         case 'raw':
           if (!this.allowSelectQueries) {
-            throw new Error("can issue make 'select' queries unless allowSelectQueries flag is set");
+            throw new Error("to issues 'select' queries allowSelectQueries flag must be set");
           }
           druidQuery.queryType = 'select';
           druidQuery.dimensions = [];
           druidQuery.metrics = [];
           druidQuery.pagingSpec = {
             "pagingIdentifiers": {},
-            "threshold": 10000
+            "threshold": this.limit ? this.limit.limit : 10000
           };
 
           return {

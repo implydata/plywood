@@ -59,6 +59,11 @@ describe "SQL parser", ->
         Expression.parseSQL("SELECT page, COUNT() AS 'Count' FROM wiki GROUP BY 12")
       ).to.throw("Unknown column '12' in group by statement")
 
+    it "should have a good error SELECT * ... GROUP BY ...", ->
+      expect(->
+        Expression.parseSQL("SELECT * FROM wiki GROUP BY 12")
+      ).to.throw("can not SELECT * with a GROUP BY")
+
     it "should fail gracefully on expressions with multi-column sort", ->
       expect(->
         Expression.parseSQL("SELECT page, COUNT() AS 'Count' FROM wiki GROUP BY page ORDER BY page DESC, `Count` ASC")
@@ -283,6 +288,43 @@ describe "SQL parser", ->
 
       ex2 = $('wiki').split($('time').timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour', 'data')
         .apply('TotalAdded', '$data.sum($added)')
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
+    it "should work with SELECT *", ->
+      parse = Expression.parseSQL("""
+        SELECT * FROM `wiki`
+        """)
+
+      ex2 = $('wiki')
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
+    it "should work with SELECT * WHERE ...", ->
+      parse = Expression.parseSQL("""
+        SELECT * FROM `wiki` WHERE language = 'en'
+        """)
+
+      ex2 = $('wiki')
+        .filter('$language == "en"')
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
+    it "should work with SELECT stuff", ->
+      parse = Expression.parseSQL("""
+        SELECT `page`, `added` -- these are completly ignored for now
+        FROM `wiki`
+        WHERE language = 'en'
+        HAVING added > 100
+        ORDER BY `page` DESC
+        LIMIT 10
+        """)
+
+      ex2 = $('wiki')
+        .filter('$language == "en"')
+        .filter('$added > 100')
+        .sort('$page', 'descending')
+        .limit(10)
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
 

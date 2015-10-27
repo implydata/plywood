@@ -28,3 +28,11 @@
 # 0.6.3
 
 - Changed JS fallbacks in DruidExternal to use native code generators and removed some null bugs. 
+
+# 0.7.1
+
+- Paving the road for multi-dimensional splits `.split({ Page: '$page', User: '$user' })`
+- Fixed problems with SELECT queries
+- Allow for SQL parsing of `SELECT *`
+- Fix support for `sort` and `limit` in SELECT queries
+- Better escaping in MySQL driver

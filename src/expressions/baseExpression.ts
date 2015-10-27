@@ -1062,7 +1062,12 @@ module Plywood {
       }
 
       var simulatedQueries: any[] = [];
-      this.referenceCheck(context).resolve(context).simplify()._computeResolvedSimulate(simulatedQueries);
+      var readyExpression = this.referenceCheck(context).resolve(context).simplify();
+      if (readyExpression instanceof ExternalExpression) {
+        // Top level externals need to be unsuppressed
+        readyExpression = (<ExternalExpression>readyExpression).unsuppress()
+      }
+      readyExpression._computeResolvedSimulate(simulatedQueries);
       return simulatedQueries;
     }
 
@@ -1089,7 +1094,12 @@ module Plywood {
       }
       var ex = this;
       return introspectDatum(context).then(introspectedContext => {
-        return ex.referenceCheck(introspectedContext).resolve(introspectedContext).simplify()._computeResolved();
+        var readyExpression = ex.referenceCheck(introspectedContext).resolve(introspectedContext).simplify();
+        if (readyExpression instanceof ExternalExpression) {
+          // Top level externals need to be unsuppressed
+          readyExpression = (<ExternalExpression>readyExpression).unsuppress()
+        }
+        return readyExpression._computeResolved();
       });
     }
   }

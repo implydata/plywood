@@ -45,6 +45,31 @@ describe "composition", ->
       ]
     })
 
+  it "works in of a set", ->
+    ex = $("x").in(['A', 'B', 'C'])
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "in"
+        "expression": {
+          "op": "literal"
+          "type": "SET"
+          "value": {
+            "elements": [
+              "A"
+              "B"
+              "C"
+            ]
+            "setType": "STRING"
+          }
+        }
+      }
+      "expression": {
+        "name": "x"
+        "op": "ref"
+      }
+      "op": "chain"
+    })
+
   it "works in single split case", ->
     ex = $('data')
       .split('$page', 'Page', 'd')

@@ -168,3 +168,61 @@ describe "simulate MySQL", ->
       ORDER BY `Count` DESC
       LIMIT 10
       """)
+
+  it "works with SELECT query", ->
+    ex = $('diamonds')
+      .filter('$color == "D"')
+      .sort('$cut', 'descending')
+      .limit(10)
+
+    queryPlan = ex.simulateQueryPlan(context)
+    expect(queryPlan).to.have.length(1)
+
+    expect(queryPlan[0]).to.equal("""
+      SELECT
+      `time`, `color`, `cut`, `tags`, `carat`, `height_bucket`, `price`, `tax`
+      FROM `diamonds`
+      WHERE (`color`="D")
+      ORDER BY `cut` DESC
+      LIMIT 10
+      """)
+
+  it "works multi-dimensional GROUP BYs", ->
+    ex = ply()
+      .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
+      .apply('Cuts',
+        $("diamonds").split({'Cut': "$cut", 'Color': '$color'})
+          .apply('Count', $('diamonds').count())
+          .limit(3)
+          .apply('Carats',
+            $("diamonds").split($("carat").numberBucket(0.25), 'Carat')
+              .apply('Count', $('diamonds').count())
+              .sort('$Count', 'descending')
+              .limit(3)
+          )
+      )
+
+    queryPlan = ex.simulateQueryPlan(context)
+    expect(queryPlan).to.have.length(2)
+
+    expect(queryPlan[0]).to.equal("""
+      SELECT
+      `color` AS "Color",
+      `cut` AS "Cut",
+      COUNT(*) AS "Count"
+      FROM `diamonds`
+      WHERE `color` IN ("A","B","some_color")
+      GROUP BY 1, 2
+      LIMIT 3
+      """)
+
+    expect(queryPlan[1]).to.equal("""
+      SELECT
+      FLOOR(`carat` / 0.25) * 0.25 AS "Carat",
+      COUNT(*) AS "Count"
+      FROM `diamonds`
+      WHERE ((`color`="some_color") AND (`cut`="some_cut"))
+      GROUP BY 1
+      ORDER BY `Count` DESC
+      LIMIT 3
+      """)

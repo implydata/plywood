@@ -138,10 +138,16 @@ module Plywood {
       var query = ['SELECT'];
       switch (this.mode) {
         case 'raw':
-          query.push('`' + Object.keys(this.attributes).join('`, `') + '`');
+          query.push(this.attributes.map(a => mySQLDialect.escapeName(a.name)).join(', '));
           query.push('FROM ' + table);
           if (!(this.filter.equals(Expression.TRUE))) {
             query.push('WHERE ' + this.filter.getSQL(mySQLDialect));
+          }
+          if (this.sort) {
+            query.push(this.sort.getSQL('', mySQLDialect));
+          }
+          if (this.limit) {
+            query.push(this.limit.getSQL('', mySQLDialect));
           }
           break;
 

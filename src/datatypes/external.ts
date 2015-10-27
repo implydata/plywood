@@ -70,6 +70,13 @@ module Plywood {
           return 'something';
         }
 
+      case 'SET/STRING':
+        if (ex instanceof RefExpression) {
+          return Set.fromJS([ex.name + '1']);
+        } else {
+          return Set.fromJS(['something']);
+        }
+
       default:
         throw new Error("unsupported simulation on: " + valueType);
     }
@@ -350,6 +357,12 @@ module Plywood {
         if (attribute.name === attributeName) return attribute;
       }
       return null;
+    }
+
+    public show(): External {
+      var value = this.valueOf();
+      value.suppress = false;
+      return <External>(new (External.classMap[this.engine])(value));
     }
 
     // -----------------

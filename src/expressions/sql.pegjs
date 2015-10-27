@@ -112,7 +112,8 @@ function constructQuery(columns, from, where, groupBys, having, orderBy, limit) 
   if (!groupBys) {
     query = from;
   } else {
-    if (columns === '*') error('can not SELECT * with a group by');
+    if (columns === '*') error('can not SELECT * with a GROUP BY');
+
     if (groupBys.length === 1 && groupBys[0].isOp('literal')) {
       query = ply().apply('data', from);
     } else {
@@ -125,13 +126,14 @@ function constructQuery(columns, from, where, groupBys, having, orderBy, limit) 
       }
       query = from.split(splits, 'data');
     }
-  }
 
-  if (Array.isArray(columns)) {
-    for (var i = 0; i < columns.length; i++) {
-      query = query.performAction(columns[i]);
+    if (Array.isArray(columns)) {
+      for (var i = 0; i < columns.length; i++) {
+        query = query.performAction(columns[i]);
+      }
     }
   }
+
   if (having) {
     query = query.performAction(having);
   }

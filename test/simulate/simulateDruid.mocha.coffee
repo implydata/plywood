@@ -26,6 +26,7 @@ context = {
     dataSource: 'diamonds',
     timeAttribute: 'time',
     attributes
+    allowSelectQueries: true
     filter: $("time").in({
       start: new Date('2015-03-12T00:00:00')
       end:   new Date('2015-03-19T00:00:00')
@@ -36,6 +37,7 @@ context = {
     dataSource: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes
+    allowSelectQueries: true
     filter: $("time").in({
       start: new Date('2015-03-12T00:00:00')
       end:   new Date('2015-03-19T00:00:00')
@@ -1211,3 +1213,54 @@ describe "simulate Druid", ->
       }
       "type": "search"
     })
+
+  it "works with SELECT query", ->
+    ex = $('diamonds')
+      .filter('$color == "D"')
+      .limit(10)
+
+    queryPlan = ex.simulateQueryPlan(context)
+
+    expect(queryPlan).to.deep.equal([
+      {
+        "dataSource": "diamonds"
+        "dimensions": []
+        "filter": {
+          "dimension": "color"
+          "type": "selector"
+          "value": "D"
+        }
+        "granularity": "all"
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ]
+        "metrics": []
+        "pagingSpec": {
+          "pagingIdentifiers": {}
+          "threshold": 10
+        }
+        "queryType": "select"
+      }
+    ])
+
+  it.skip "works multi-dimensional GROUP BYs", -> # ToDo: make this work soon
+    ex = ply()
+      .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
+      .apply('Cuts',
+        $("diamonds").split({'Cut': "$cut", 'Color': '$color'})
+          .apply('Count', $('diamonds').count())
+          .limit(3)
+          .apply('Carats',
+            $("diamonds").split($("carat").numberBucket(0.25), 'Carat')
+              .apply('Count', $('diamonds').count())
+              .sort('$Count', 'descending')
+              .limit(3)
+          )
+      )
+
+    queryPlan = ex.simulateQueryPlan(context)
+    expect(queryPlan).to.have.length(2)
+
+    expect(queryPlan).to.deep.equal([
+      # Fill me in :-p
+    ])
