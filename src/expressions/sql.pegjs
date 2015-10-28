@@ -391,7 +391,8 @@ FunctionCallExpression
     { return operand.timePart(part, timezone); }
   / SubstrToken "(" _ operand:Expression _ "," _ position:Number _ "," _ length:Number ")"
     { return operand.substr(position, length); }
-
+  / ConcatToken "(" head:Expression tail:(_ "," _ Expression)* ")"
+    { return Expression.concat(makeListMap3(head, tail)); }
 
 RefExpression
   = ref:NamespacedRef { return $(ref); }

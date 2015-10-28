@@ -356,6 +356,20 @@ describe "SQL parser", ->
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
 
+    it "should work with a SUBSTR and CONCAT function", ->
+      parse = Expression.parseSQL("""
+        SELECT
+        CONCAT('[', SUBSTR(`page`, 0, 3), ']') AS 'Crazy',
+        SUM(added) AS 'TotalAdded'
+        FROM `wiki`
+        GROUP BY 1
+        """)
+
+      ex2 = $('wiki').split("'[' ++ $page.substr(0, 3) ++ ']'", 'Crazy', 'data')
+        .apply('TotalAdded', '$data.sum($added)')
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
     it "should parse a complex filter", ->
       parse = Expression.parseSQL("""
         SELECT

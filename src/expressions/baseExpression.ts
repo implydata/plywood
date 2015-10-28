@@ -288,6 +288,10 @@ module Plywood {
       return chainVia('multiply', expressions, Expression.ONE);
     }
 
+    static concat(expressions: Expression[]): Expression {
+      return chainVia('concat', expressions, Expression.EMPTY_STRING);
+    }
+
     static classMap: Lookup<typeof Expression> = {};
     static register(ex: typeof Expression): void {
       var op = (<any>ex).name.replace('Expression', '').replace(/^\w/, (s: string) => s.toLowerCase());

@@ -1,6 +1,34 @@
-# 0.4
+# 0.7.2
 
-- Changed attribute definitions to be an array instead of an object and added deprecation message. 
+- added `Expression.concat`
+- added `CONCAT` to the PlyQL parser
+
+# 0.7.1
+
+- Paving the road for multi-dimensional splits `.split({ Page: '$page', User: '$user' })`
+- Fixed problems with SELECT queries
+- Allow for SQL parsing of `SELECT *`
+- Fix support for `sort` and `limit` in SELECT queries
+- Better escaping in MySQL driver
+
+# 0.6.3
+
+- Changed JS fallbacks in DruidExternal to use native code generators and removed some null bugs. 
+
+# 0.6.2
+
+- Added more rules to the SQL parser: `IS`, `LIKE`, and awareness of `UPDATE`, `SET`, e.t.c
+ 
+# 0.6.1
+
+- Changed the return type of `Expression.parseSQL` to return and object with the keys `verb`, `expression`, and `table`
+  `Expression.parseSQL(blah)` ==> `Expression.parseSQL(blah).expression`
+- In PlyQL changed the meaning of `GROUP BY <number>` to be a reference to a column (just like in MySQL and Postgres)
+
+# 0.5.2
+
+- Added support for case sensitive (`normal`) / case insensitive (`ignoreCase`) contains.
+- Improved concat action support in Druid
 
 # 0.5
 
@@ -10,29 +38,6 @@
 - Added SortAction DESCENDING, ASCENDING, toggleDirection
 - DruidExternal guards against duplicate aggs and postAggs
 
-# 0.5.2
+# 0.4
 
-- Added support for case sensitive (`normal`) / case insensitive (`ignoreCase`) contains.
-- Improved concat action support in Druid
-
-# 0.6.1
-
-- Changed the return type of `Expression.parseSQL` to return and object with the keys `verb`, `expression`, and `table`
-  `Expression.parseSQL(blah)` ==> `Expression.parseSQL(blah).expression`
-- In PlyQL changed the meaning of `GROUP BY <number>` to be a reference to a column (just like in MySQL and Postgres)
-
-# 0.6.2
-
-- Added more rules to the SQL parser: `IS`, `LIKE`, and awareness of `UPDATE`, `SET`, e.t.c
- 
-# 0.6.3
-
-- Changed JS fallbacks in DruidExternal to use native code generators and removed some null bugs. 
-
-# 0.7.1
-
-- Paving the road for multi-dimensional splits `.split({ Page: '$page', User: '$user' })`
-- Fixed problems with SELECT queries
-- Allow for SQL parsing of `SELECT *`
-- Fix support for `sort` and `limit` in SELECT queries
-- Better escaping in MySQL driver
+- Changed attribute definitions to be an array instead of an object and added deprecation message. 
