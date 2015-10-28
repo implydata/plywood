@@ -707,7 +707,8 @@ module Plywood {
         }).join(tabulatorOptions.separator || ','));
       }
 
-      return lines.join(tabulatorOptions.lineBreak || '\n');
+      var lineBreak = tabulatorOptions.lineBreak || '\n';
+      return lines.join(lineBreak) + (lines.length > 0 ? lineBreak : '');
     }
 
     public toCSV(tabulatorOptions: TabulatorOptions = {}): string {
