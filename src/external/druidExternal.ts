@@ -591,7 +591,7 @@ module Plywood {
                 type: "search",
                 dimension: lhs.name,
                 query: {
-                  type: "fragment",
+                  type: "fragment", // ToDo: change to 'insensitive_contains'
                   values: [rhs.value]
                 }
               };
