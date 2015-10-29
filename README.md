@@ -7,14 +7,12 @@ An ORM-like framework for OLAP.
 
 Plywood tries to simplify the task of building powerful, data driven interfaces and visualizations around OLAP databases.
 
-You might also want to have a look at [Pivot](https://github.com/implydata/pivot), a GUI for big data exploration built on top of Plywood. 
-
 
 ## Installation
 
 To use Plywood from npm simply run: `npm install plywood`.
 
-Plywood can be also used by the browser like [so]().
+Plywood can be also used by the browser like [so](TODO:example).
 
 ## Overview
 
@@ -23,7 +21,7 @@ connecting to databases, and a collection of useful helper functions.
  
 ### Expression Language
 
-At its core Plywood contains and expression language ([DSL]()) that is used to describe data queries.
+At its core Plywood contains an expression language ([DSL](https://en.wikipedia.org/wiki/Domain-specific_language)) that is used to describe data queries.
 
 Here is an example:
 
@@ -40,26 +38,26 @@ var ex = ply()
 ```
 
 Plywood's language (called *plywood*, with a lowercase "P") is heavily inspired by
-Hadley Wickham's [split-apply-combine](http://www.jstatsoft.org/v40/i01/paper) principle and the [D3]() API.
+Hadley Wickham's [split-apply-combine](http://vita.had.co.nz/papers/plyr.html) principle and the [D3](http://d3js.org/) API.
 
 Plywood expressions were designed with the following ideas in mind:
 
 - High level - certain key data operations can be expressed with ease.
 - Serializable - an expression can be converted to and from plain JSON to be saved in a file or transferred over the network.
-- Immutable - inspired by [immutable.js]() this immutability makes expressions very easy to work with and reason about.
+- Immutable - inspired by [immutable.js](https://facebook.github.io/immutable-js/), this immutability makes expressions very easy to work with and reason about.
 - Parsable - the plywood expression DSL is implemented in JavaScript and as a parser so: `Expression.parse('$wiki.sum($added)').equals($('wiki').sum($('added')))`  
-- Smart - expressions can perform complex internal rewriting to facilitate [query simplification]().  
+- Smart - expressions can perform complex internal rewriting to facilitate [query simplification](https://github.com/implydata/plywood/blob/master/test/overall/simplify.mocha.coffee).  
 
-For mor information about expressions check out the API reference.
+For more information about expressions check out the API reference.
 
 ### Externals
 
 While Plywood can crunch numbers internally using native JavaScript (this is useful for unit tests) its true utility is
 in being able to pass queries to databases.
-As of this writing only [Druid]() and [MySQL]() externals exist but more will be added.
+As of this writing only [Druid](http://druid.io/) and [MySQL](https://www.mysql.com/) externals exist but more will be added.
 
 The externals act as query planners and schedulers for their respective databases.
-In the case of the Druid External it also acts as a [Polyfill](), filling in key missing functionality in the native API. 
+In the case of the Druid External it also acts as a Polyfill, filling in key missing functionality in the native API. 
 
 Here is an example of a Druid external:
 
@@ -78,8 +76,9 @@ External.fromJS({
 A varied collection of helper functions are included with Plywood with the idea of making the task of building a query
 layer as simple as possible.
 
-One notable example of a helper is the SQL parser which parses [PlyQL](), a SQL-like language, into plywood expressions
-allowing those to be executed via the Plywood externals. This is how Plywood can provide a SQL-like interface to Druid.
+One notable example of a helper is the SQL parser which parses [PlyQL](https://github.com/implydata/plyql), 
+a SQL-like language, into plywood expressions allowing those to be executed via the Plywood externals. 
+This is how Plywood can provide a SQL-like interface to Druid.
 
 
 ## Learn by Example
@@ -100,9 +99,7 @@ var ex0 = ply() // Create an empty singleton dataset literal [{}]
   .apply("four", $("two").multiply(2))
 ```
 
-This query shows off the different ways of creating an expression.
-
-Calling ```ex0.compute()``` will return a [Q]() promise that will resolve to:
+Calling ```ex0.compute()``` will return a [Q](https://github.com/kriskowal/q) promise that will resolve to:
 
 ```javascript
 [
@@ -114,7 +111,7 @@ Calling ```ex0.compute()``` will return a [Q]() promise that will resolve to:
 ]
 ```
 
-This example employees three functions:
+This example employs three functions:
 
 * `ply()` creates a dataset with one empty datum inside of it. This is the base of many plywood operations.
 
@@ -124,7 +121,7 @@ This example employees three functions:
 ### Example 1
 
 First of all plywood and its component parts need to be imported into the project.
-This example will use Druid as the data store.
+This example will use Druid as the data store:
 
 ```javascript
 // Get the druid requester (which is a node specific module)
@@ -269,3 +266,5 @@ The output will look like so:
 ## Questions & Support
 
 Please direct all questions to our [user groups](https://groups.google.com/forum/#!forum/imply-user-group).
+
+You might want to have a look at [Pivot](https://github.com/implydata/pivot), a GUI for big data exploration being built on top of Plywood. 
