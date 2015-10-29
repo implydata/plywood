@@ -1,0 +1,43 @@
+#!/usr/bin/env coffee
+
+fs = require('fs')
+
+file = fs.readFileSync('./src/expressions/baseExpression.ts', 'utf8');
+
+lines = file.split('\n');
+
+inClass = null
+inDoc = null
+catchNextLine = false
+for line in lines
+  if catchNextLine
+    inDoc.nextLine = line.trim().replace(/public /, '').replace(/ \{$/, '')
+    console.log(inDoc)
+    catchNextLine = false
+    inDoc = null
+
+  if m = line.match(/^\s*export class (\w+)/)
+    inClass = m[1]
+    continue;
+
+  if m = line.match(/^(\s*)\/\*\*$/)
+    inDoc = {
+      inClass
+      description: ''
+      params: []
+      nextLine: null
+    }
+    continue;
+
+  if inDoc and m = line.match(/^(\s*)\* (.+)$/)
+    docLine = m[2]
+    if m = docLine.match(/^@param (\w+) (.+)$/)
+      inDoc.params.push([m[1], m[2]])
+    else
+      inDoc.description += '\n' if inDoc.description
+      inDoc.description += docLine
+    continue
+
+  if inDoc and m = line.match(/^(\s*)\*\/$/)
+    catchNextLine = true
+    continue

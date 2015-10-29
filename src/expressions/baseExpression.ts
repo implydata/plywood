@@ -269,17 +269,25 @@ module Plywood {
     }
 
     /**
-     * Composes the given expressions with an OR
+     * Composes the given expressions as E1 or E2 or ... or En
      * @param expressions the expressions to compose
      */
     static or(expressions: Expression[]): Expression {
       return chainVia('or', expressions, Expression.FALSE);
     }
 
+    /**
+     * Composes the given expressions as E1 + E2 + ... + En
+     * @param expressions the expressions to compose
+     */
     static add(expressions: Expression[]): Expression {
       return chainVia('add', expressions, Expression.ZERO);
     }
 
+    /**
+     * Composes the given expressions with E1 - E2 - ... - En
+     * @param expressions the expressions to compose
+     */
     static subtract(expressions: Expression[]): Expression {
       return chainVia('subtract', expressions, Expression.ZERO);
     }
@@ -965,7 +973,7 @@ module Plywood {
       return this.substitute((ex: Expression, index: int): Expression => alterations[index] || null);
     }
 
-    /**
+    /**!
      * Resolves one level of dependencies that refer outside of this expression.
      * @param context The context containing the values to resolve to
      * @param ifNotFound If the reference is not in the context what to do? "throw", "leave", "null"

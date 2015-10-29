@@ -95,7 +95,7 @@ describe "simulate Druid", ->
 
   it.skip "works in advanced case", ->
     ex = ply()
-      .apply("diamonds", $('diamonds').filter($("color").is('D')))
+      .apply("diamonds", $('diamonds').filter($("color").is('D').and($('cut').in(['Good', 'Bad', 'Ugly']))))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
       .apply('PriceTimes2', '$diamonds.sum($price) * 2')
