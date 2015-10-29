@@ -1264,3 +1264,30 @@ describe "simulate Druid", ->
     expect(queryPlan).to.deep.equal([
       # Fill me in :-p
     ])
+
+
+  it "adds context to query if set on External", (testComplete) ->
+    ds = External.fromJS({
+      engine: 'druid',
+      dataSource: 'diamonds',
+      timeAttribute: 'time',
+      attributes,
+      allowSelectQueries: true
+      filter: $("time").in({
+        start: new Date('2015-03-12T00:00:00')
+        end:   new Date('2015-03-19T00:00:00')
+      }),
+      context: {
+        priority: -1,
+        queryId: 'test'
+      }
+    })
+
+    ex = ply()
+      .apply("diamonds", $('diamonds').filter($("color").is('D')))
+      .apply('Count', '$diamonds.count()')
+      .apply('TotalPrice', '$diamonds.sum($price)')
+
+    expect(ex.simulateQueryPlan({ diamonds: ds })[0].context).to.deep.equal({priority: -1, queryId:'test'})
+
+    testComplete()
