@@ -652,6 +652,7 @@ describe "Dataset", ->
         time,make,model,price
         2015-01-04T12:32:43.000Z,Honda,Civic,10000
         2015-01-04T14:00:40.000Z,Toyota,Prius,20000
+
         """)
 
       it "works with sub-dataset", ->
@@ -661,4 +662,5 @@ describe "Dataset", ->
         2015-01-04T12:32:43.000Z,Honda,Civic,Door,10000,20
         2015-01-04T14:00:40.000Z,Toyota,Prius,Engine,20000,400
         2015-01-04T14:00:40.000Z,Toyota,Prius,Door,20000,25
+
         """)
