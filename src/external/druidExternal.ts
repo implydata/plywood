@@ -1331,6 +1331,10 @@ return (start < 0 ?'-':'') + parts.join('.');
         granularity: 'all'
       };
 
+      if(this.context) {
+        druidQuery.context = this.context;
+      }
+
       var filterAndIntervals = this.filterToDruid(this.filter);
       druidQuery.intervals = filterAndIntervals.intervals;
       if (filterAndIntervals.filter) {
