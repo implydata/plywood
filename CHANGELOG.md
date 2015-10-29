@@ -1,3 +1,8 @@
+# 0.7.3
+
+- better docs
+- context is now added passed along in a DruidExternal
+
 # 0.7.2
 
 - added `Expression.concat`
