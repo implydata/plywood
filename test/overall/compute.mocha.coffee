@@ -143,6 +143,9 @@ describe "compute native", ->
       .apply('Cuts'
         $('Data').split('$cut', 'Cut')
           .apply('CountPlusX', '$Data.count() + $x')
+          .apply('SumPrice', '$Data.sum($price)')
+          .apply('MinPrice', '$Data.min($price)')
+          .apply('MaxPrice', '$Data.max($price)')
       )
 
     p = ex.compute({ x: 13 })
@@ -153,14 +156,23 @@ describe "compute native", ->
             {
               "CountPlusX": 15
               "Cut": "Good"
+              "MaxPrice": 400
+              "MinPrice": 300
+              "SumPrice": 700
             }
             {
               "CountPlusX": 14
               "Cut": "Great"
+              "MaxPrice": 124
+              "MinPrice": 124
+              "SumPrice": 124
             }
             {
               "CountPlusX": 15
               "Cut": "Wow"
+              "MaxPrice": 160
+              "MinPrice": 100
+              "SumPrice": 260
             }
           ]
         }

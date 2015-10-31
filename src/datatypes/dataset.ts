@@ -450,7 +450,7 @@ module Plywood {
 
     public max(exFn: ComputeFn, context: Datum): number {
       var data = this.data;
-      var max = Infinity;
+      var max = -Infinity;
       for (let datum of data) {
         var v = exFn(datum, context);
         if (max < v) max = v;

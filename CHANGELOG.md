@@ -3,6 +3,7 @@
 - refactored DruidExternal
 - DruidExternal now supports multi-dim splits
 - timezone (2nd argument) in `timeBucket` is now optional, defaults to UTC
+- fixed native `dataset.max`
 
 # 0.7.3
 
