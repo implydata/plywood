@@ -746,7 +746,7 @@ module Plywood {
       return this.performAction(new NumberBucketAction({ size: size, offset: offset }));
     }
 
-    public timeBucket(duration: any, timezone: any): ChainExpression {
+    public timeBucket(duration: any, timezone: any = Timezone.UTC): ChainExpression {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(duration);
       if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(timezone);
       return this.performAction(new TimeBucketAction({ duration: duration, timezone: timezone }));

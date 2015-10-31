@@ -90,7 +90,7 @@ describe "simulate MySQL", ->
 
     expect(queryPlan[2]).to.equal("""
       SELECT
-      DATE_FORMAT(CONVERT_TZ(`time`, '+0:00', 'America/Los_Angeles'), '%Y-%m-%dT00:00:00Z') AS "Timestamp",
+      DATE_FORMAT(CONVERT_TZ(`time`,'+0:00','America/Los_Angeles'),'%Y-%m-%dZ') AS "Timestamp",
       SUM(`price`) AS "TotalPrice"
       FROM `diamonds`
       WHERE ((`color`="D") AND (`cut`="some_cut"))

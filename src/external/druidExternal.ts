@@ -31,6 +31,16 @@ module Plywood {
     WEEK_OF_YEAR: "w"
   };
 
+  const TIME_BUCKET_FORMAT: Lookup<string> = {
+    "PT1S": "yyyy-MM-dd'T'HH:mm:ss'Z",
+    "PT1M": "yyyy-MM-dd'T'HH:mm'Z",
+    "PT1H": "yyyy-MM-dd'T'HH':00Z",
+    "P1D":  "yyyy-MM-dd'Z",
+    //"P1W":  "yyyy-MM'-01Z",
+    "P1M":  "yyyy-MM'-01Z",
+    "P1Y":  "yyyy'-01-01Z"
+  };
+
   function simpleMath(exprStr: string): int {
     if (String(exprStr) === 'null') return null;
     var parts = exprStr.split(/(?=[*+])/);
@@ -63,11 +73,24 @@ module Plywood {
     postAggregations: Druid.PostAggregation[];
   }
 
-  export interface DruidSplit extends AggregationsAndPostAggregations {
+  export interface Normalizer {
+    (result: any): Datum[];
+  }
+
+  export interface Inflater {
+    (d: Datum, i: number, data: Datum[]): void;
+  }
+
+  export interface DimensionInflater {
+    dimension: Druid.DimensionSpec;
+    inflater?: Inflater;
+  }
+
+  export interface DruidSplit {
     queryType: string;
     granularity: any;
-    dimension?: string | Druid.DimensionSpec;
-    dimensions?: any[];
+    dimension?: Druid.DimensionSpec;
+    dimensions?: Druid.DimensionSpec[];
     postProcess: PostProcess;
   }
 
@@ -101,7 +124,7 @@ module Plywood {
     return Array.isArray(result) && (result.length === 0 || typeof result[0].result === 'object');
   }
 
-  function postProcessTimeBoundaryFactory(applies: ApplyAction[]): PostProcess {
+  function timeBoundaryPostProcessFactory(applies: ApplyAction[]): PostProcess {
     return (res: Druid.TimeBoundaryResults): Dataset => {
       if (!correctTimeBoundaryResult(res)) {
         var err = new Error("unexpected result from Druid (timeBoundary)");
@@ -139,7 +162,7 @@ module Plywood {
     return newDatum;
   }
 
-  function postProcessTotalFactory(applies: ApplyAction[]) {
+  function totalPostProcessFactory(applies: ApplyAction[]) {
     return (res: Druid.TimeseriesResults): Dataset => {
       if (!correctTimeseriesResult(res)) {
         var err = new Error("unexpected result from Druid (all)");
@@ -153,113 +176,136 @@ module Plywood {
     };
   }
 
-  function postProcessTimeseriesFactory(duration: Duration, timezone: Timezone, label: string): PostProcess {
-    return (res: Druid.TimeseriesResults): Dataset => {
+
+  // ==========================
+
+  function timeseriesNormalizerFactory(label: string): Normalizer {
+    return (res: Druid.TimeseriesResults): Datum[] => {
       if (!correctTimeseriesResult(res)) {
         var err = new Error("unexpected result from Druid (timeseries)");
         (<any>err).result = res; // ToDo: special error type
         throw err;
       }
-      //var warp = split.warp;
-      //var warpDirection = split.warpDirection;
-      var canonicalDurationLengthAndThenSome = duration.getCanonicalLength() * 1.5;
-      return new Dataset({
-        data: res.map((d: any, i: int) => {
-          var rangeStart = new Date(d.timestamp);
-          var next = res[i + 1];
-          var nextTimestamp: Date;
-          if (next) {
-            nextTimestamp = new Date(next.timestamp);
-          }
 
-          var rangeEnd = (nextTimestamp && rangeStart.valueOf() < nextTimestamp.valueOf() &&
-                          nextTimestamp.valueOf() - rangeStart.valueOf() < canonicalDurationLengthAndThenSome) ?
-                          nextTimestamp : duration.move(rangeStart, timezone, 1);
-
-          //if (warp) {
-          //  rangeStart = warp.move(rangeStart, timezone, warpDirection);
-          //  range//End = warp.move(rangeEnd, timezone, warpDirection);
-          //}
-
-          var datum: Datum = d.result;
-          cleanDatumInPlace(datum);
-          datum[label] = new TimeRange({ start: rangeStart, end: rangeEnd });
-          return datum;
-        })
-      });
+      return res.map((d: any) => {
+        var timestamp = d.timestamp;
+        var datum: Datum = d.result;
+        cleanDatumInPlace(datum);
+        datum[label] = timestamp;
+        return datum;
+      })
     }
   }
 
-  function postProcessNumberBucketFactory(rangeSize: number): LabelProcess {
-    return (v: any) => {
-      var start = Number(v);
-      return new NumberRange({
-        start: start,
-        end: safeAdd(start, rangeSize)
-      });
+  function topNNormalizer(res: Druid.DruidResults): Datum[] {
+    if (!correctTopNResult(res)) {
+      var err = new Error("unexpected result from Druid (topN)");
+      (<any>err).result = res; // ToDo: special error type
+      throw err;
     }
+    var data = res.length ? res[0].result : [];
+    for (var d of data) cleanDatumInPlace(d);
+    return data;
   }
 
-  function postProcessTopNFactory(labelProcess: LabelProcess, label: string): PostProcess {
-    return (res: Druid.DruidResults): Dataset => {
-      if (!correctTopNResult(res)) {
-        var err = new Error("unexpected result from Druid (topN)");
-        (<any>err).result = res; // ToDo: special error type
-        throw err;
-      }
-      var data = res.length ? res[0].result : [];
-      if (labelProcess) {
-        return new Dataset({
-          data: data.map((d: Datum) => {
-            cleanDatumInPlace(d);
-            var v: any = d[label];
-            if (String(v) === "null") {
-              v = null;
-            } else {
-              v = labelProcess(v);
-            }
-            d[label] = v;
-            return d;
-          })
-        });
-      } else {
-        return new Dataset({
-          data: data.map((d: Datum) => {
-            cleanDatumInPlace(d);
-            return d;
-          })
-        });
-      }
-    };
-  }
-
-  function postProcessGroupBy(res: Druid.GroupByResults): Dataset {
+  function groupByNormalizer(res: Druid.GroupByResults): Datum[] {
     if (!correctGroupByResult(res)) {
       var err = new Error("unexpected result from Druid (groupBy)");
       (<any>err).result = res; // ToDo: special error type
       throw err;
     }
-    return new Dataset({
-      data: res.map(r => {
-        var datum = r.event;
-        cleanDatumInPlace(datum);
-        return datum;
-      })
+    return res.map(r => {
+      var datum = r.event;
+      cleanDatumInPlace(datum);
+      return datum;
     });
   }
 
-  function postProcessSelect(res: Druid.SelectResults): Dataset {
+  function selectNormalizer(res: Druid.SelectResults): Datum[] {
     if (!correctSelectResult(res)) {
       var err = new Error("unexpected result from Druid (select)");
       (<any>err).result = res; // ToDo: special error type
       throw err;
     }
-    return new Dataset({
-      data: res[0].result.events.map(event => event.event)
-    });
+    return res[0].result.events.map(event => event.event)
   }
 
-  function postProcessIntrospectFactory(timeAttribute: string): IntrospectPostProcess {
+  function postProcessFactory(normalizer: Normalizer, inflaters: Inflater[]) {
+    return (res: any): Dataset => {
+      var data = normalizer(res);
+      var n = data.length;
+      for (var inflater of inflaters) {
+        for (var i = 0; i < n; i++) {
+          inflater(data[i], i, data);
+        }
+      }
+      return new Dataset({ data: data });
+    };
+  }
+
+  // ==== Inflaters
+
+  function timeRangeInflaterFactory(label: string, duration: Duration, timezone: Timezone): Inflater {
+    var canonicalDurationLengthAndThenSome = duration.getCanonicalLength() * 1.5;
+    return (d: any, i: int, data: Datum[]) => {
+      var start = new Date(d[label]);
+      var next = data[i + 1];
+      var nextTimestamp: Date;
+      if (next) {
+        nextTimestamp = new Date(next[label]);
+      }
+
+      var end = (
+        nextTimestamp &&
+        start.valueOf() < nextTimestamp.valueOf() &&
+        nextTimestamp.valueOf() - start.valueOf() < canonicalDurationLengthAndThenSome
+      ) ? nextTimestamp
+        : duration.move(start, timezone, 1);
+
+      d[label] = new TimeRange({ start, end });
+    };
+  }
+
+  function numberRangeInflaterFactory(label: string, rangeSize: number): Inflater  {
+    return (d: any) => {
+      var n = d[label];
+      if ('' + n === "null") {
+        d[label] = null;
+      } else {
+        var start = Number(n);
+        d[label] = new NumberRange({
+          start: start,
+          end: safeAdd(start, rangeSize)
+        });
+      }
+    }
+  }
+
+  function numberInflaterFactory(label: string): Inflater  {
+    return (d: any) => {
+      var n = d[label];
+      if ('' + n === "null") {
+        d[label] = null;
+      } else {
+        d[label] = Number(n)
+      }
+    }
+  }
+
+  function simpleMathInflaterFactory(label: string): Inflater  {
+    return (d: any) => {
+      var ex = d[label];
+      if ('' + ex === "null") {
+        d[label] = null;
+      } else {
+        d[label] = simpleMath(ex);
+      }
+    }
+  }
+
+  // Intorspect
+
+  function introspectPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
     return (res: Druid.DatasourceIntrospectResult): Attributes => {
       var attributes: Attributes = [
         new AttributeInfo({ name: timeAttribute, type: 'TIME' })
@@ -280,7 +326,7 @@ module Plywood {
     }
   }
 
-  function postProcessSegmentMetadataFactory(timeAttribute: string): IntrospectPostProcess {
+  function segmentMetadataPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
     return (res: Druid.SegmentMetadataResults): Attributes => {
       var attributes: Attributes = [];
 
@@ -707,121 +753,77 @@ return (start < 0 ?'-':'') + parts.join('.');
       return ex instanceof RefExpression && ex.name === this.timeAttribute;
     }
 
-    public splitToDruid(): DruidSplit {
-      var queryType: string;
-      var dimension: string | Druid.DimensionSpec = null;
-      var dimensions: any[] = null;
-      var granularity: any = 'all';
-      var aggregations: Druid.Aggregation[] = null;
-      var postAggregations: Druid.PostAggregation[] = null;
-      var postProcess: PostProcess = null;
-
-      var split = this.split;
-      if (split.isMultiSplit()) {
-        throw new Error('not implemented multi-dim split yet... but we are so very close');
-      }
-
-      var label = split.firstSplitName();
-      var splitExpression = split.firstSplitExpression();
-
+    public splitExpressionToDimensionInflater(splitExpression: Expression, label: string): DimensionInflater {
       if (splitExpression instanceof RefExpression) {
-        var dimensionSpec = (splitExpression.name === label) ?
-          label : {type: "default", dimension: splitExpression.name, outputName: label};
-
-        if (this.havingFilter.equals(Expression.TRUE) && this.limit && !this.exactResultsOnly) {
-          var attributeInfo = this.getAttributesInfo(splitExpression.name);
-          queryType = 'topN';
-          if (attributeInfo instanceof RangeAttributeInfo) {
-            dimension = {
+        var attributeInfo = this.getAttributesInfo(splitExpression.name);
+        if (attributeInfo instanceof RangeAttributeInfo) {
+          return {
+            dimension: {
               type: "extraction",
               dimension: splitExpression.name,
               outputName: label,
               extractionFn: this.getRangeBucketingDimension(attributeInfo, null)
-            };
-            postProcess = postProcessTopNFactory(postProcessNumberBucketFactory(attributeInfo.rangeSize), label);
-          } else {
-            dimension = dimensionSpec;
-            postProcess = postProcessTopNFactory(null, null);
-          }
-
-        } else {
-          queryType = 'groupBy';
-          dimensions = [dimensionSpec];
-          postProcess = postProcessGroupBy;
-
+            },
+            inflater: numberRangeInflaterFactory(label, attributeInfo.rangeSize)
+          };
         }
 
-      } else if (splitExpression instanceof ChainExpression) {
-        var pattern: Expression[];
-        if (pattern = splitExpression.getExpressionPattern('concat')) {
-          var concatRef: RefExpression = null;
+        return {
+          dimension: { type: "default", dimension: splitExpression.name, outputName: label },
+          inflater: splitExpression.type === 'NUMBER' ? numberInflaterFactory(label) : null
+        };
+      }
 
-          for (var i = 0; i < pattern.length; i++) {
-            var p = pattern[i];
-            if (p instanceof RefExpression) {
-              if (concatRef) throw new Error(`can not currently have multiple references in a concat expression: ${splitExpression.toString()}`);
-              concatRef = p;
-            } else if (!(p instanceof LiteralExpression)) {
-              throw new Error(`can not have '${p.toString()}' inside a concat`);
-            }
-          }
+      if (splitExpression instanceof ChainExpression) {
+        var freeReferences = splitExpression.getFreeReferences();
+        if (freeReferences.length !== 1) {
+          throw new Error(`must have a single reference: ${splitExpression.toString()}`);
+        }
+        var referenceName = freeReferences[0];
 
-          var concatDimension = {
-            type: "extraction",
-            dimension: concatRef.name,
-            outputName: label,
-            extractionFn: {
-              type: "javascript",
-              'function': splitExpression.getJSFn('d'),
-              injective: true
+        if (splitExpression.getExpressionPattern('concat')) {
+          return {
+            dimension: {
+              type: "extraction",
+              dimension: referenceName,
+              outputName: label,
+              extractionFn: {
+                type: "javascript",
+                'function': splitExpression.getJSFn('d'),
+                injective: true
+              }
             }
           };
+        }
 
-          if (this.havingFilter.equals(Expression.TRUE) && this.limit && !this.exactResultsOnly) {
-            queryType = 'topN';
-            dimension = concatDimension;
-            postProcess = postProcessTopNFactory(null, null);
-          } else {
-            queryType = 'groupBy';
-            dimensions = [concatDimension];
-            postProcess = postProcessGroupBy;
-          }
-        } else {
+        if (!splitExpression.expression.isOp('ref')) {
+          throw new Error(`can not convert complex: ${splitExpression.expression.toString()}`);
+        }
+        var actions = splitExpression.actions;
+        if (actions.length !== 1) throw new Error(`can not convert expression: ${splitExpression.toString()}`);
+        var splitAction = actions[0];
 
-          var refExpression = <RefExpression>splitExpression.expression;
-          if (refExpression.op !== 'ref') throw new Error(`can not convert complex: ${refExpression.toString()}`);
-          var actions = splitExpression.actions;
-          if (actions.length !== 1) throw new Error('can not convert expression: ' + splitExpression.toString());
-          var splitAction = actions[0];
-
-          if (splitAction instanceof SubstrAction) {
-            var substrDimension = {
+        if (splitAction instanceof SubstrAction) {
+          return {
+            dimension: {
               type: "extraction",
-              dimension: refExpression.name,
+              dimension: referenceName,
               outputName: label,
               extractionFn: {
                 type: "javascript",
                 'function': splitExpression.getJSFn('d')
               }
-            };
-
-            if (this.havingFilter.equals(Expression.TRUE) && this.limit && !this.exactResultsOnly) {
-              queryType = 'topN';
-              dimension = substrDimension;
-              postProcess = postProcessTopNFactory(null, null);
-            } else {
-              queryType = 'groupBy';
-              dimensions = [substrDimension];
-              postProcess = postProcessGroupBy;
             }
+          };
+        }
 
-          } else if (splitAction instanceof TimePartAction) {
-            queryType = 'topN';
-            var format = TIME_PART_TO_FORMAT[splitAction.part];
-            if (!format) throw new Error(`unsupported part in timePart expression ${splitAction.part}`);
-            dimension = {
+        if (splitAction instanceof TimeBucketAction) {
+          var format = TIME_BUCKET_FORMAT[splitAction.duration.toString()];
+          if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration.toString()}`);
+          return {
+            dimension: {
               type: "extraction",
-              dimension: refExpression.name === this.timeAttribute ? '__time' : refExpression.name,
+              dimension: referenceName === this.timeAttribute ? '__time' : referenceName,
               outputName: label,
               extractionFn: {
                 type: "timeFormat",
@@ -829,107 +831,127 @@ return (start < 0 ?'-':'') + parts.join('.');
                 timeZone: splitAction.timezone.toString(),
                 locale: "en-US"
               }
-            };
-            postProcess = postProcessTopNFactory(simpleMath, label);
+            },
+            inflater: timeRangeInflaterFactory(label, splitAction.duration, splitAction.timezone)
+          };
+        }
 
-          } else if (splitAction instanceof TimeBucketAction) {
-            if (!this.isTimeRef(refExpression)) {
-              throw new Error(`can not convert complex time bucket: ${refExpression.toString()}`);
-            }
-            queryType = 'timeseries';
-            granularity = {
-              type: "period",
-              period: splitAction.duration.toString(),
-              timeZone: splitAction.timezone.toString()
-            };
-            postProcess = postProcessTimeseriesFactory(splitAction.duration, splitAction.timezone, label);
+        if (splitAction instanceof TimePartAction) {
+          var format = TIME_PART_TO_FORMAT[splitAction.part];
+          if (!format) throw new Error(`unsupported part in timePart expression ${splitAction.part}`);
+          return {
+            dimension: {
+              type: "extraction",
+              dimension: referenceName === this.timeAttribute ? '__time' : referenceName,
+              outputName: label,
+              extractionFn: {
+                type: "timeFormat",
+                format: format,
+                timeZone: splitAction.timezone.toString(),
+                locale: "en-US"
+              }
+            },
+            inflater: simpleMathInflaterFactory(label)
+          };
+        }
 
-          } else if (splitAction instanceof NumberBucketAction) {
-            var attributeInfo = this.getAttributesInfo(refExpression.name);
-            queryType = "topN";
-            if (attributeInfo.type === 'NUMBER') {
-              var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
-              dimension = {
+        if (splitAction instanceof NumberBucketAction) {
+          var attributeInfo = this.getAttributesInfo(referenceName);
+          if (attributeInfo.type === 'NUMBER') {
+            var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
+            return {
+              dimension: {
                 type: "extraction",
-                dimension: refExpression.name,
+                dimension: referenceName,
                 outputName: label,
                 extractionFn: {
                   type: "javascript",
                   'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
                 }
-              };
-              postProcess = postProcessTopNFactory(Number, label);
+              },
+              inflater: numberRangeInflaterFactory(label, splitAction.size)
+            };
+          }
 
-            } else if (attributeInfo instanceof RangeAttributeInfo) {
-              dimension = {
+          if (attributeInfo instanceof RangeAttributeInfo) {
+            return {
+              dimension: {
                 type: "extraction",
-                dimension: refExpression.name,
+                dimension: referenceName,
                 outputName: label,
                 extractionFn: this.getRangeBucketingDimension(<RangeAttributeInfo>attributeInfo, splitAction)
-              };
-              postProcess = postProcessTopNFactory(postProcessNumberBucketFactory(splitAction.size), label);
-
-            } else if (attributeInfo instanceof HistogramAttributeInfo) {
-              if (this.exactResultsOnly) {
-                throw new Error("can not use approximate histograms in exactResultsOnly mode");
-              }
-              var aggregation: Druid.Aggregation = {
-                type: "approxHistogramFold",
-                fieldName: refExpression.name
-              };
-              if (splitAction.lowerLimit != null) {
-                aggregation.lowerLimit = splitAction.lowerLimit;
-              }
-              if (splitAction.upperLimit != null) {
-                aggregation.upperLimit = splitAction.upperLimit;
-              }
-              //var options = split.options || {};
-              //if (hasOwnProperty(options, 'druidResolution')) {
-              //  aggregation.resolution = options['druidResolution'];
-              //}
-
-              aggregations = [aggregation];
-              postAggregations = [{
-                type: "buckets",
-                name: "histogram",
-                fieldName: "histogram",
-                bucketSize: splitAction.size,
-                offset: splitAction.offset
-              }];
+              },
+              inflater: numberRangeInflaterFactory(label, splitAction.size)
             }
-
-          } else {
-            throw new Error('can not convert given split action: ' + splitExpression.toString());
           }
-        }
 
-      } else {
-        throw new Error('can not convert expression: ' + splitExpression.toString());
+          if (attributeInfo instanceof HistogramAttributeInfo) {
+            if (this.exactResultsOnly) {
+              throw new Error("can not use approximate histograms in exactResultsOnly mode");
+            }
+            throw new Error("histogram splits do not work right now");
+          }
+
+        }
+      }
+    }
+
+    public splitToDruid(): DruidSplit {
+      var split = this.split;
+      if (split.isMultiSplit()) {
+        var dimensionInflaters = split.mapSplits((name, expression) => this.splitExpressionToDimensionInflater(expression, name));
+        return {
+          queryType: 'groupBy',
+          dimensions: dimensionInflaters.map((di) => di.dimension),
+          granularity: 'all',
+          postProcess: postProcessFactory(
+            groupByNormalizer,
+            dimensionInflaters.map((di) => di.inflater).filter(Boolean)
+          )
+        };
+      }
+
+      var splitExpression = split.firstSplitExpression();
+      var label = split.firstSplitName();
+
+      // Can it be a time series?
+      if (splitExpression instanceof ChainExpression) {
+        var splitActions = splitExpression.actions;
+        if (this.isTimeRef(splitExpression.expression) && splitActions.length === 1 && splitActions[0].action === 'timeBucket') {
+
+          var { duration, timezone } = <TimeBucketAction>splitActions[0];
+          return {
+            queryType: 'timeseries',
+            granularity: {
+              type: "period",
+              period: duration.toString(),
+              timeZone: timezone.toString()
+            },
+            postProcess: postProcessFactory(
+              timeseriesNormalizerFactory(label),
+              [timeRangeInflaterFactory(label, duration, timezone)]
+            )
+          };
+        }
+      }
+
+      var dimensionInflater = this.splitExpressionToDimensionInflater(splitExpression, label);
+      var inflaters = [dimensionInflater.inflater].filter(Boolean);
+      if (this.havingFilter.equals(Expression.TRUE) && this.limit && !this.exactResultsOnly) {
+        return {
+          queryType: 'topN',
+          dimension: dimensionInflater.dimension,
+          granularity: 'all',
+          postProcess: postProcessFactory(topNNormalizer, inflaters)
+        };
       }
 
       return {
-        queryType: queryType,
-        granularity: granularity,
-        dimension: dimension,
-        dimensions: dimensions,
-        aggregations: aggregations,
-        postAggregations: postAggregations,
-        postProcess: postProcess
+        queryType: 'groupBy',
+        dimensions: [dimensionInflater.dimension],
+        granularity: 'all',
+        postProcess: postProcessFactory(groupByNormalizer, inflaters)
       };
-    }
-
-    public operandsToArithmetic(operands: Expression[], fn: string, aggregations: Druid.Aggregation[]): Druid.PostAggregation {
-      if (operands.length === 1) {
-        return this.expressionToPostAggregation(operands[0], aggregations);
-      } else {
-        return {
-          type: 'arithmetic',
-          fn: fn,
-          fields: operands.map(operand => {
-            return this.expressionToPostAggregation(operand, aggregations);
-          }, this)
-        };
-      }
     }
 
     public getAccessTypeForAggregation(aggregationType: string): string {
@@ -1314,7 +1336,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       return {
         query: druidQuery,
-        postProcess: postProcessTimeBoundaryFactory(this.applies)
+        postProcess: timeBoundaryPostProcessFactory(this.applies)
       };
     }
 
@@ -1356,7 +1378,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return {
             query: druidQuery,
-            postProcess: postProcessSelect
+            postProcess: postProcessFactory(selectNormalizer, [])
           };
 
         case 'total':
@@ -1370,7 +1392,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return {
             query: druidQuery,
-            postProcess: postProcessTotalFactory(this.applies)
+            postProcess: totalPostProcessFactory(this.applies)
           };
 
         case 'split':
@@ -1390,8 +1412,6 @@ return (start < 0 ?'-':'') + parts.join('.');
           druidQuery.granularity = splitSpec.granularity;
           if (splitSpec.dimension) druidQuery.dimension = splitSpec.dimension;
           if (splitSpec.dimensions) druidQuery.dimensions = splitSpec.dimensions;
-          if (splitSpec.aggregations) druidQuery.aggregations = splitSpec.aggregations;
-          if (splitSpec.postAggregations) druidQuery.postAggregations = splitSpec.postAggregations;
           var postProcess = splitSpec.postProcess;
 
           // Combine
@@ -1464,7 +1484,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             merge: true,
             analysisTypes: []
           },
-          postProcess: postProcessSegmentMetadataFactory(this.timeAttribute)
+          postProcess: segmentMetadataPostProcessFactory(this.timeAttribute)
         };
       } else {
         return {
@@ -1472,7 +1492,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             queryType: 'introspect',
             dataSource: this.getDruidDataSource()
           },
-          postProcess: postProcessIntrospectFactory(this.timeAttribute)
+          postProcess: introspectPostProcessFactory(this.timeAttribute)
         };
       }
     }

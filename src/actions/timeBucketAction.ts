@@ -1,14 +1,4 @@
 module Plywood {
-  var timeBucketing: Lookup<string> = {
-    "PT1S": "%Y-%m-%dT%H:%i:%SZ",
-    "PT1M": "%Y-%m-%dT%H:%i:00Z",
-    "PT1H": "%Y-%m-%dT%H:00:00Z",
-    "P1D":  "%Y-%m-%dT00:00:00Z",
-    "P1W":  "%Y-%m-%dT00:00:00Z",
-    "P1M":  "%Y-%m-00T00:00:00Z",
-    "P1Y":  "%Y-00-00T00:00:00Z"
-  };
-
   export class TimeBucketAction extends Action {
     static fromJS(parameters: ActionJS): TimeBucketAction {
       var value = Action.jsToValue(parameters);
@@ -76,16 +66,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      var bucketFormat = timeBucketing[this.duration.toString()];
-      if (!bucketFormat) throw new Error("unsupported duration '" + this.duration + "'");
-
-      var bucketTimezone = this.timezone.toString();
-      var expression = inputSQL;
-      if (bucketTimezone !== "Etc/UTC") {
-        expression = `CONVERT_TZ(${expression}, '+0:00', '${bucketTimezone}')`;
-      }
-
-      return `DATE_FORMAT(${expression}, '${bucketFormat}')`;
+      return dialect.timeBucketExpression(inputSQL, this.duration, this.timezone);
     }
   }
 

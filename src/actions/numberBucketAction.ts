@@ -84,7 +84,7 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string): string {
-      throw new Error("implement me");
+      return continuousFloorExpression(inputJS, "Math.floor", this.size, this.offset); // ToDo: lowerLimit, upperLimit
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

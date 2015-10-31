@@ -1,4 +1,14 @@
 module Plywood {
+  const TIME_BUCKETING: Lookup<string> = {
+    "PT1S": "%Y-%m-%dT%H:%i:%SZ",
+    "PT1M": "%Y-%m-%dT%H:%iZ",
+    "PT1H": "%Y-%m-%dT%H:00Z",
+    "P1D":  "%Y-%m-%dZ",
+    //"P1W":  "%Y-%m-%dZ",
+    "P1M":  "%Y-%m-01Z",
+    "P1Y":  "%Y-01-01Z"
+  };
+
   export class SQLDialect {
     constructor() {
     }
@@ -46,6 +56,10 @@ module Plywood {
       }
     }
 
+    public timeBucketExpression(operand: string, duration: Duration, timesone: Timezone): string {
+      throw new Error('Must implement timeBucketExpression');
+    }
+
     public offsetTimeExpression(operand: string, duration: Duration): string {
       throw new Error('Must implement offsetTimeExpression');
     }
@@ -54,6 +68,18 @@ module Plywood {
   export class MySQLDialect extends SQLDialect {
     constructor() {
       super();
+    }
+
+    public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
+      var bucketFormat = TIME_BUCKETING[duration.toString()];
+      if (!bucketFormat) throw new Error("unsupported duration '" + duration + "'");
+
+      var bucketTimezone = timezone.toString();
+      if (bucketTimezone !== "Etc/UTC") {
+        operand = `CONVERT_TZ(${operand},'+0:00','${bucketTimezone}')`;
+      }
+
+      return `DATE_FORMAT(${operand},'${bucketFormat}')`;
     }
 
     public offsetTimeExpression(operand: string, duration: Duration): string {

@@ -1243,11 +1243,15 @@ describe "simulate Druid", ->
       }
     ])
 
-  it.skip "works multi-dimensional GROUP BYs", -> # ToDo: make this work soon
+  it "works multi-dimensional GROUP BYs", ->
     ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
       .apply('Cuts',
-        $("diamonds").split({'Cut': "$cut", 'Color': '$color'})
+        $("diamonds").split({
+            'Cut': "$cut",
+            'Color': '$color',
+            'TimeByHour': '$time.timeBucket(PT1H)'
+          })
           .apply('Count', $('diamonds').count())
           .limit(3)
           .apply('Carats',
@@ -1262,7 +1266,108 @@ describe "simulate Druid", ->
     expect(queryPlan).to.have.length(2)
 
     expect(queryPlan).to.deep.equal([
-      # Fill me in :-p
+      {
+        "aggregations": [
+          {
+            "name": "Count"
+            "type": "count"
+          }
+        ]
+        "dataSource": "diamonds"
+        "dimensions": [
+          {
+            "dimension": "color"
+            "outputName": "Color"
+            "type": "default"
+          }
+          {
+            "dimension": "cut"
+            "outputName": "Cut"
+            "type": "default"
+          }
+          {
+            "dimension": "__time"
+            "extractionFn": {
+              "format": "yyyy-MM-dd'T'HH':00Z"
+              "locale": "en-US"
+              "timeZone": "Etc/UTC"
+              "type": "timeFormat"
+            }
+            "outputName": "TimeByHour"
+            "type": "extraction"
+          }
+        ]
+        "filter": {
+          "fields": [
+            {
+              "dimension": "color"
+              "type": "selector"
+              "value": "A"
+            }
+            {
+              "dimension": "color"
+              "type": "selector"
+              "value": "B"
+            }
+            {
+              "dimension": "color"
+              "type": "selector"
+              "value": "some_color"
+            }
+          ]
+          "type": "or"
+        }
+        "granularity": "all"
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ]
+        "limitSpec": {
+          "columns": [
+            "Color"
+          ]
+          "limit": 3
+          "type": "default"
+        }
+        "queryType": "groupBy"
+      }
+      {
+        "aggregations": [
+          {
+            "name": "Count"
+            "type": "count"
+          }
+        ]
+        "dataSource": "diamonds"
+        "dimension": {
+          "dimension": "carat"
+          "extractionFn": {
+            "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 0.25) * 0.25;}"
+            "type": "javascript"
+          }
+          "outputName": "Carat"
+          "type": "extraction"
+        }
+        "filter": {
+          "fields": [
+            {
+              "dimension": "color"
+              "type": "selector"
+              "value": "some_color"
+            }
+            {
+              "dimension": "cut"
+              "type": "selector"
+              "value": "some_cut"
+            }
+          ]
+          "type": "and"
+        }
+        "granularity": "all"
+        "intervals": ["2015-03-14/2015-03-14T01"]
+        "metric": "Count"
+        "queryType": "topN"
+        "threshold": 3
+      }
     ])
 
 

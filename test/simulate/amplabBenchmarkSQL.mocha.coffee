@@ -72,7 +72,11 @@ describe "simulate Druid for amplab benchmark", ->
         ]
         "dataSource": "rankings"
         "dimensions": [
-          "pageURL"
+          {
+            "dimension": "pageURL"
+            "outputName": "pageURL"
+            "type": "default"
+          }
         ]
         "granularity": "all"
         "having": {
