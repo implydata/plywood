@@ -5,11 +5,11 @@ plywood = require('../../build/plywood')
 
 describe "compute native", ->
   data = [
-    { cut: 'Good',  price: 400 }
-    { cut: 'Good',  price: 300 }
-    { cut: 'Great', price: 124 }
-    { cut: 'Wow',   price: 160 }
-    { cut: 'Wow',   price: 100 }
+    { cut: 'Good',  price: 400, time: new Date('2015-10-01T10:20:30Z') }
+    { cut: 'Good',  price: 300, time: new Date('2015-10-02T10:20:30Z') }
+    { cut: 'Great', price: 124, time: null }
+    { cut: 'Wow',   price: 160, time: new Date('2015-10-04T10:20:30Z') }
+    { cut: 'Wow',   price: 100, time: new Date('2015-10-05T10:20:30Z') }
   ]
 
   it "works in uber-basic case", (testComplete) ->
@@ -146,6 +146,8 @@ describe "compute native", ->
           .apply('SumPrice', '$Data.sum($price)')
           .apply('MinPrice', '$Data.min($price)')
           .apply('MaxPrice', '$Data.max($price)')
+          .apply('MinTime', '$Data.min($time)')
+          .apply('MaxTime', '$Data.max($time)')
       )
 
     p = ex.compute({ x: 13 })
@@ -159,6 +161,14 @@ describe "compute native", ->
               "MaxPrice": 400
               "MinPrice": 300
               "SumPrice": 700
+              "MaxTime": {
+                "type": "TIME"
+                "value": new Date('2015-10-02T10:20:30Z')
+              }
+              "MinTime": {
+                "type": "TIME"
+                "value": new Date('2015-10-01T10:20:30Z')
+              }
             }
             {
               "CountPlusX": 14
@@ -166,6 +176,8 @@ describe "compute native", ->
               "MaxPrice": 124
               "MinPrice": 124
               "SumPrice": 124
+              "MaxTime": null
+              "MinTime": null
             }
             {
               "CountPlusX": 15
@@ -173,6 +185,14 @@ describe "compute native", ->
               "MaxPrice": 160
               "MinPrice": 100
               "SumPrice": 260
+              "MaxTime": {
+                "type": "TIME"
+                "value": new Date('2015-10-05T10:20:30Z')
+              }
+              "MinTime": {
+                "type": "TIME"
+                "value": new Date('2015-10-04T10:20:30Z')
+              }
             }
           ]
         }

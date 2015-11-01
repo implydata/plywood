@@ -433,6 +433,65 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
+    it "works multi-dimensional GROUP BYs", (testComplete) ->
+      ex = ply()
+        .apply("wiki", $('wiki').filter($("language").isnt('en')))
+        .apply('Cuts',
+          $("wiki").split({
+              'Language': "$language",
+              'TimeByHour': '$time.timeBucket(PT1H)'
+            })
+            .apply('Count', $('wiki').count())
+            .sort('$Count', 'descending')
+            .limit(4)
+        )
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Cuts": [
+              {
+                "Count": 1487
+                "Language": "de"
+                "TimeByHour": {
+                  "end": new Date('2015-08-14T21:00:00Z')
+                  "start": new Date('2015-08-14T20:00:00Z')
+                  "type": "TIME_RANGE"
+                }
+              }
+              {
+                "Count": 1449
+                "Language": "de"
+                "TimeByHour": {
+                  "end": new Date('2015-08-14T14:00:00Z')
+                  "start": new Date('2015-08-14T13:00:00Z')
+                  "type": "TIME_RANGE"
+                }
+              }
+              {
+                "Count": 1430
+                "Language": "de"
+                "TimeByHour": {
+                  "end": new Date('2015-08-14T12:00:00Z')
+                  "start": new Date('2015-08-14T11:00:00Z')
+                  "type": "TIME_RANGE"
+                }
+              }
+              {
+                "Count": 1418
+                "Language": "fr"
+                "TimeByHour": {
+                  "end": new Date('2015-08-14T09:00:00Z')
+                  "start": new Date('2015-08-14T08:00:00Z')
+                  "type": "TIME_RANGE"
+                }
+              }
+            ]
+          }
+        ])
+        testComplete()
+      ).done()
+
 
   describe "introspection", ->
     basicExecutor = basicExecutorFactory({
