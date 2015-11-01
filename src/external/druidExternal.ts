@@ -77,10 +77,6 @@ module Plywood {
     (result: any): Datum[];
   }
 
-  export interface Inflater {
-    (d: Datum, i: number, data: Datum[]): void;
-  }
-
   export interface DimensionInflater {
     dimension: Druid.DimensionSpec;
     inflater?: Inflater;
@@ -243,67 +239,19 @@ module Plywood {
     };
   }
 
-  // ==== Inflaters
-
-  function timeRangeInflaterFactory(label: string, duration: Duration, timezone: Timezone): Inflater {
-    var canonicalDurationLengthAndThenSome = duration.getCanonicalLength() * 1.5;
-    return (d: any, i: int, data: Datum[]) => {
-      var start = new Date(d[label]);
-      var next = data[i + 1];
-      var nextTimestamp: Date;
-      if (next) {
-        nextTimestamp = new Date(next[label]);
-      }
-
-      var end = (
-        nextTimestamp &&
-        start.valueOf() < nextTimestamp.valueOf() &&
-        nextTimestamp.valueOf() - start.valueOf() < canonicalDurationLengthAndThenSome
-      ) ? nextTimestamp
-        : duration.move(start, timezone, 1);
-
-      d[label] = new TimeRange({ start, end });
-    };
-  }
-
-  function numberRangeInflaterFactory(label: string, rangeSize: number): Inflater  {
-    return (d: any) => {
-      var n = d[label];
-      if ('' + n === "null") {
-        d[label] = null;
-      } else {
-        var start = Number(n);
-        d[label] = new NumberRange({
-          start: start,
-          end: safeAdd(start, rangeSize)
-        });
-      }
-    }
-  }
-
-  function numberInflaterFactory(label: string): Inflater  {
-    return (d: any) => {
-      var n = d[label];
-      if ('' + n === "null") {
-        d[label] = null;
-      } else {
-        d[label] = Number(n)
-      }
-    }
-  }
-
   function simpleMathInflaterFactory(label: string): Inflater  {
     return (d: any) => {
-      var ex = d[label];
-      if ('' + ex === "null") {
+      var v = d[label];
+      if ('' + v === "null") {
         d[label] = null;
-      } else {
-        d[label] = simpleMath(ex);
+        return;
       }
+
+      d[label] = simpleMath(v);
     }
   }
 
-  // Intorspect
+  // Introspect
 
   function introspectPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
     return (res: Druid.DatasourceIntrospectResult): Attributes => {
@@ -764,13 +712,13 @@ return (start < 0 ?'-':'') + parts.join('.');
               outputName: label,
               extractionFn: this.getRangeBucketingDimension(attributeInfo, null)
             },
-            inflater: numberRangeInflaterFactory(label, attributeInfo.rangeSize)
+            inflater: External.numberRangeInflaterFactory(label, attributeInfo.rangeSize)
           };
         }
 
         return {
           dimension: { type: "default", dimension: splitExpression.name, outputName: label },
-          inflater: splitExpression.type === 'NUMBER' ? numberInflaterFactory(label) : null
+          inflater: splitExpression.type === 'NUMBER' ? External.numberInflaterFactory(label) : null
         };
       }
 
@@ -832,7 +780,7 @@ return (start < 0 ?'-':'') + parts.join('.');
                 locale: "en-US"
               }
             },
-            inflater: timeRangeInflaterFactory(label, splitAction.duration, splitAction.timezone)
+            inflater: External.timeRangeInflaterFactory(label, splitAction.duration, splitAction.timezone)
           };
         }
 
@@ -869,7 +817,7 @@ return (start < 0 ?'-':'') + parts.join('.');
                   'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
                 }
               },
-              inflater: numberRangeInflaterFactory(label, splitAction.size)
+              inflater: External.numberRangeInflaterFactory(label, splitAction.size)
             };
           }
 
@@ -881,7 +829,7 @@ return (start < 0 ?'-':'') + parts.join('.');
                 outputName: label,
                 extractionFn: this.getRangeBucketingDimension(<RangeAttributeInfo>attributeInfo, splitAction)
               },
-              inflater: numberRangeInflaterFactory(label, splitAction.size)
+              inflater: External.numberRangeInflaterFactory(label, splitAction.size)
             }
           }
 
@@ -929,7 +877,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             },
             postProcess: postProcessFactory(
               timeseriesNormalizerFactory(label),
-              [timeRangeInflaterFactory(label, duration, timezone)]
+              [External.timeRangeInflaterFactory(label, duration, timezone)]
             )
           };
         }

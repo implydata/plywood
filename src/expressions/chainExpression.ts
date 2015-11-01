@@ -286,6 +286,15 @@ module Plywood {
       ].concat(actions.slice(k));
     }
 
+    public firstAction(): Action {
+      return this.actions[0];
+    }
+
+    public lastAction(): Action {
+      var { actions } = this;
+      return actions[actions.length - 1];
+    }
+
     public popAction(actionType?: string): Expression {
       var actions = this.actions;
       var lastAction = actions[actions.length - 1];

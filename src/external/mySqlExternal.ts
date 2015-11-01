@@ -11,38 +11,35 @@ module Plywood {
   }
 
   function postProcessFactory(split: SplitAction): PostProcess {
-    var splitExpression = split ? split.firstSplitExpression() : null; // ToDo: fix me
-    var label = split ? split.firstSplitName() : null;
+    var inflaters = split ? split.mapSplits((label, splitExpression) => {
+      if (splitExpression instanceof ChainExpression) {
+        var lastAction = splitExpression.lastAction();
 
-    if (splitExpression instanceof ChainExpression) {
-      var firstAction = splitExpression.actions[0];
-      if (firstAction instanceof TimeBucketAction) {
-        var duration = firstAction.duration;
-        var timezone = firstAction.timezone;
-      } else if (firstAction instanceof NumberBucketAction) {
-        var size = firstAction.size;
+        if (lastAction instanceof TimeBucketAction) {
+          return External.timeRangeInflaterFactory(label, lastAction.duration, lastAction.timezone);
+        }
+
+        if (lastAction instanceof NumberBucketAction) {
+          return External.numberRangeInflaterFactory(label, lastAction.size);
+        }
       }
-    }
+    }) : [];
 
-    return (res: any[]): Dataset => {
-      if (!correctResult(res)) {
+    return (data: any[]): Dataset => {
+      if (!correctResult(data)) {
         var err = new Error("unexpected result from MySQL");
-        (<any>err).result = res; // ToDo: special error type
+        (<any>err).result = data; // ToDo: special error type
         throw err;
       }
-      if (duration || size) {
-        res.forEach((d: Datum) => {
-          var v = d[label];
-          if (duration) {
-            v = new Date(v);
-            d[label] = new TimeRange({ start: v, end: duration.move(v, timezone) })
-          } else {
-            d[label] = new NumberRange({ start: v, end: v + size })
-          }
-          return d;
-        })
+
+      var n = data.length;
+      for (var inflater of inflaters) {
+        for (var i = 0; i < n; i++) {
+          inflater(data[i], i, data);
+        }
       }
-      return new Dataset({ data: res });
+
+      return new Dataset({ data });
     }
   }
 

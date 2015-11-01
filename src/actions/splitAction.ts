@@ -197,7 +197,12 @@ module Plywood {
 
     public mapSplits<T>(fn: (name: string, expression?: Expression) => T): T[] {
       var { splits, keys } = this;
-      return keys.map((k) => fn(k, splits[k]));
+      var res: T[] = [];
+      for (var k of keys) {
+        var v = fn(k, splits[k]);
+        if (typeof v !== 'undefined') res.push(v);
+      }
+      return res;
     }
 
     public mapSplitExpressions<T>(fn: (expression: Expression, name?: string) => T): Lookup<T> {

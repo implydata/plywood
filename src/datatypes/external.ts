@@ -8,6 +8,10 @@ module Plywood {
     postProcess: PostProcess;
   }
 
+  export interface Inflater {
+    (d: Datum, i: number, data: Datum[]): void;
+  }
+
   export interface IntrospectPostProcess {
     (result: any): Attributes;
   }
@@ -151,6 +155,76 @@ module Plywood {
 
     static isExternal(candidate: any): boolean {
       return isInstanceOf(candidate, External);
+    }
+
+    // ==== Inflaters
+
+    static timeRangeInflaterFactory(label: string, duration: Duration, timezone: Timezone): Inflater {
+      return (d: any) => {
+        var v = d[label];
+        if ('' + v === "null") {
+          d[label] = null;
+          return;
+        }
+
+        var start = new Date(v);
+        d[label] = new TimeRange({ start, end: duration.move(start, timezone) })
+      };
+    }
+
+    static consecutiveTimeRangeInflaterFactory(label: string, duration: Duration, timezone: Timezone): Inflater {
+      var canonicalDurationLengthAndThenSome = duration.getCanonicalLength() * 1.5;
+      return (d: any, i: int, data: Datum[]) => {
+        var v = d[label];
+        if ('' + v === "null") {
+          d[label] = null;
+          return;
+        }
+
+        var start = new Date(v);
+        var next = data[i + 1];
+        var nextTimestamp: Date;
+        if (next) {
+          nextTimestamp = new Date(next[label]);
+        }
+
+        var end = (
+          nextTimestamp &&
+          start.valueOf() < nextTimestamp.valueOf() &&
+          nextTimestamp.valueOf() - start.valueOf() < canonicalDurationLengthAndThenSome
+        ) ? nextTimestamp
+          : duration.move(start, timezone, 1);
+
+        d[label] = new TimeRange({ start, end });
+      };
+    }
+
+    static numberRangeInflaterFactory(label: string, rangeSize: number): Inflater  {
+      return (d: any) => {
+        var v = d[label];
+        if ('' + v === "null") {
+          d[label] = null;
+          return;
+        }
+
+        var start = Number(v);
+        d[label] = new NumberRange({
+          start: start,
+          end: safeAdd(start, rangeSize)
+        });
+      }
+    }
+
+    static numberInflaterFactory(label: string): Inflater  {
+      return (d: any) => {
+        var v = d[label];
+        if ('' + v === "null") {
+          d[label] = null;
+          return;
+        }
+
+        d[label] = Number(v)
+      }
     }
 
     static jsToValue(parameters: ExternalJS): ExpressionValue {
