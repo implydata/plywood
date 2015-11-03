@@ -36,6 +36,8 @@ describe "DruidExternal", ->
             { name: 'language', type: 'STRING' }
             { name: 'page', type: 'STRING' }
             { name: 'user', type: 'STRING' }
+            { name: 'newPage', type: 'BOOLEAN' }
+            { name: 'anonymous', type: 'BOOLEAN' }
             { name: 'added', type: 'NUMBER' }
             { name: 'count', type: 'NUMBER' }
             { name: 'user_unique', special: 'unique' }
@@ -439,7 +441,9 @@ describe "DruidExternal", ->
         .apply('Cuts',
           $("wiki").split({
               'Language': "$language",
-              'TimeByHour': '$time.timeBucket(PT1H)'
+              'TimeByHour': '$time.timeBucket(PT1H)',
+              'NewPage': '$newPage',
+              'LanguageIsDE': "$language == 'de'"
             })
             .apply('Count', $('wiki').count())
             .sort('$Count', 'descending')
@@ -451,8 +455,10 @@ describe "DruidExternal", ->
           {
             "Cuts": [
               {
-                "Count": 1487
+                "Count": 1440
                 "Language": "de"
+                "LanguageIsDE": true
+                "NewPage": false
                 "TimeByHour": {
                   "end": new Date('2015-08-14T21:00:00Z')
                   "start": new Date('2015-08-14T20:00:00Z')
@@ -460,8 +466,10 @@ describe "DruidExternal", ->
                 }
               }
               {
-                "Count": 1449
+                "Count": 1386
                 "Language": "de"
+                "LanguageIsDE": true
+                "NewPage": false
                 "TimeByHour": {
                   "end": new Date('2015-08-14T14:00:00Z')
                   "start": new Date('2015-08-14T13:00:00Z')
@@ -469,8 +477,10 @@ describe "DruidExternal", ->
                 }
               }
               {
-                "Count": 1430
+                "Count": 1384
                 "Language": "de"
+                "LanguageIsDE": true
+                "NewPage": false
                 "TimeByHour": {
                   "end": new Date('2015-08-14T12:00:00Z')
                   "start": new Date('2015-08-14T11:00:00Z')
@@ -478,11 +488,13 @@ describe "DruidExternal", ->
                 }
               }
               {
-                "Count": 1418
-                "Language": "fr"
+                "Count": 1367
+                "Language": "de"
+                "LanguageIsDE": true
+                "NewPage": false
                 "TimeByHour": {
-                  "end": new Date('2015-08-14T09:00:00Z')
-                  "start": new Date('2015-08-14T08:00:00Z')
+                  "end": new Date('2015-08-14T20:00:00Z')
+                  "start": new Date('2015-08-14T19:00:00Z')
                   "type": "TIME_RANGE"
                 }
               }

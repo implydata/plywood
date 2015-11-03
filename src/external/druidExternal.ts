@@ -35,10 +35,10 @@ module Plywood {
     "PT1S": "yyyy-MM-dd'T'HH:mm:ss'Z",
     "PT1M": "yyyy-MM-dd'T'HH:mm'Z",
     "PT1H": "yyyy-MM-dd'T'HH':00Z",
-    "P1D":  "yyyy-MM-dd'Z",
+    "P1D": "yyyy-MM-dd'Z",
     //"P1W":  "yyyy-MM'-01Z",
-    "P1M":  "yyyy-MM'-01Z",
-    "P1Y":  "yyyy'-01-01Z"
+    "P1M": "yyyy-MM'-01Z",
+    "P1Y": "yyyy'-01-01Z"
   };
 
   function simpleMath(exprStr: string): int {
@@ -239,7 +239,7 @@ module Plywood {
     };
   }
 
-  function simpleMathInflaterFactory(label: string): Inflater  {
+  function simpleMathInflaterFactory(label: string): Inflater {
     return (d: any) => {
       var v = d[label];
       if ('' + v === "null") {
@@ -641,15 +641,15 @@ module Plywood {
           }
         }
         /*
-          else if (filter instanceof AndExpression) {
-          var mergedTimePart = AndExpression.mergeTimePart(filter);
-          if (mergedTimePart) {
-            return this.timeFilterToIntervals(mergedTimePart);
-          } else {
-            throw new Error(`can not convert ${filter.toString()} to Druid interval`);
-          }
-        }
-        */
+         else if (filter instanceof AndExpression) {
+         var mergedTimePart = AndExpression.mergeTimePart(filter);
+         if (mergedTimePart) {
+         return this.timeFilterToIntervals(mergedTimePart);
+         } else {
+         throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+         }
+         }
+         */
 
       } else {
         throw new Error(`can not convert ${filter.toString()} to Druid interval`);
@@ -684,8 +684,7 @@ module Plywood {
       }
       return {
         type: "javascript",
-        'function':
-`function(d) {
+        'function': `function(d) {
 var m = d.match(${regExp});
 if(!m) return 'null';
 var s = +m[1];
@@ -702,13 +701,21 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public splitExpressionToDimensionInflater(splitExpression: Expression, label: string): DimensionInflater {
+      var freeReferences = splitExpression.getFreeReferences();
+      if (freeReferences.length !== 1) {
+        throw new Error(`must have a single reference: ${splitExpression.toString()}`);
+      }
+      var referenceName = freeReferences[0];
+
+      var simpleInflater = External.getSimpleInflater(splitExpression, label);
+
       if (splitExpression instanceof RefExpression) {
-        var attributeInfo = this.getAttributesInfo(splitExpression.name);
+        var attributeInfo = this.getAttributesInfo(referenceName);
         if (attributeInfo instanceof RangeAttributeInfo) {
           return {
             dimension: {
               type: "extraction",
-              dimension: splitExpression.name,
+              dimension: referenceName,
               outputName: label,
               extractionFn: this.getRangeBucketingDimension(attributeInfo, null)
             },
@@ -716,19 +723,52 @@ return (start < 0 ?'-':'') + parts.join('.');
           };
         }
 
+        if (splitExpression.type === 'BOOLEAN') {
+          return {
+            dimension: {
+              type: "extraction",
+              dimension: referenceName,
+              outputName: label,
+              extractionFn: {
+                type: "lookup",
+                lookup: {
+                  type: "map",
+                  map: {
+                    "0": "false",
+                    "1": "true",
+                    "false": "false",
+                    "true": "true"
+                  }
+                },
+                injective: false
+              }
+            },
+            inflater: simpleInflater
+          };
+        }
+
         return {
-          dimension: { type: "default", dimension: splitExpression.name, outputName: label },
-          inflater: splitExpression.type === 'NUMBER' ? External.numberInflaterFactory(label) : null
+          dimension: { type: "default", dimension: referenceName, outputName: label },
+          inflater: simpleInflater
+        };
+      }
+
+      if (splitExpression.type === 'BOOLEAN') {
+        return {
+          dimension: {
+            type: "extraction",
+            dimension: referenceName,
+            outputName: label,
+            extractionFn: {
+              type: "javascript",
+              'function': splitExpression.getJSFn('d')
+            }
+          },
+          inflater: simpleInflater
         };
       }
 
       if (splitExpression instanceof ChainExpression) {
-        var freeReferences = splitExpression.getFreeReferences();
-        if (freeReferences.length !== 1) {
-          throw new Error(`must have a single reference: ${splitExpression.toString()}`);
-        }
-        var referenceName = freeReferences[0];
-
         if (splitExpression.getExpressionPattern('concat')) {
           return {
             dimension: {
@@ -842,6 +882,8 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         }
       }
+
+      throw new Error(`could not convert ${splitExpression.toString()} to a Druid Dimension`);
     }
 
     public splitToDruid(): DruidSplit {
@@ -1141,11 +1183,16 @@ return (start < 0 ?'-':'') + parts.join('.');
     public makeHavingComparison(agg: string, op: string, value: number): Druid.Having {
       // Druid does not support <= and >= filters so... improvise.
       switch (op) {
-        case '<':  return { type: "lessThan", aggregation: agg, value: value };
-        case '>':  return { type: "greaterThan", aggregation: agg, value: value };
-        case '<=': return { type: 'not', havingSpec: { type: "greaterThan", aggregation: agg, value: value } };
-        case '>=': return { type: 'not', havingSpec: { type: "lessThan", aggregation: agg, value: value } };
-        default:   throw new Error('unknown op: ' + op);
+        case '<':
+          return { type: "lessThan", aggregation: agg, value: value };
+        case '>':
+          return { type: "greaterThan", aggregation: agg, value: value };
+        case '<=':
+          return { type: 'not', havingSpec: { type: "greaterThan", aggregation: agg, value: value } };
+        case '>=':
+          return { type: 'not', havingSpec: { type: "lessThan", aggregation: agg, value: value } };
+        default:
+          throw new Error('unknown op: ' + op);
       }
     }
 
@@ -1301,7 +1348,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         granularity: 'all'
       };
 
-      if(this.context) {
+      if (this.context) {
         druidQuery.context = this.context;
       }
 
@@ -1401,7 +1448,7 @@ return (start < 0 ?'-':'') + parts.join('.');
                 columns: [
                   sortAction ?
                   { dimension: (<RefExpression>sortAction.expression).name, direction: sortAction.direction }
-                  : this.split.firstSplitName()
+                    : this.split.firstSplitName()
                 ]
               };
               if (this.limit) {

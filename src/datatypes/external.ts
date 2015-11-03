@@ -159,6 +159,37 @@ module Plywood {
 
     // ==== Inflaters
 
+    static getSimpleInflater(splitExpression: Expression, label: string): Inflater {
+      switch (splitExpression.type) {
+        case 'BOOLEAN': return External.booleanInflaterFactory(label);
+        case 'NUMBER': return External.numberInflaterFactory(label);
+        case 'TIME': return External.timeInflaterFactory(label);
+        default: return null;
+      }
+    }
+
+    static booleanInflaterFactory(label: string): Inflater {
+      return (d: any) => {
+        var v = '' + d[label];
+        switch (v) {
+          case 'null':
+            d[label] = null;
+            break;
+
+          case 'false':
+            d[label] = false;
+            break;
+
+          case 'true':
+            d[label] = true;
+            break;
+
+          default:
+            throw new Error("got strange result from boolean: " + v);
+        }
+      };
+    }
+
     static timeRangeInflaterFactory(label: string, duration: Duration, timezone: Timezone): Inflater {
       return (d: any) => {
         var v = d[label];
@@ -223,7 +254,19 @@ module Plywood {
           return;
         }
 
-        d[label] = Number(v)
+        d[label] = Number(v);
+      }
+    }
+
+    static timeInflaterFactory(label: string): Inflater  {
+      return (d: any) => {
+        var v = d[label];
+        if ('' + v === "null") {
+          d[label] = null;
+          return;
+        }
+
+        d[label] = new Date(v);
       }
     }
 
