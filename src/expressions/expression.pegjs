@@ -5,6 +5,7 @@ var r = plywood.r;
 var Expression = plywood.Expression;
 var LiteralExpression = plywood.LiteralExpression;
 var RefExpression = plywood.RefExpression;
+var Set = plywood.Set;
 
 var possibleCalls = {
   'is': 1,
@@ -37,6 +38,10 @@ var possibleCalls = {
   'quantile': 1,
   'split': 1
 };
+
+function makeListMap3(head, tail) {
+  return [head].concat(tail.map(function(t) { return t[3] }));
+}
 
 function naryExpressionFactory(op, head, tail) {
   if (!tail.length) return head;
@@ -150,7 +155,7 @@ CallChainExpression
 
 Params
   = head:Param tail:(_ "," _ Param)*
-    { return [head].concat(tail.map(function(t) { return t[3] })); }
+    { return makeListMap3(head, tail); }
 
 Param
   = Number / Name / String / Expression
@@ -174,6 +179,22 @@ LiteralExpression
   / value:Number { return r(value); }
   / value:Name { return r(value); }
   / value:String { return r(value); }
+  / value:StringSet { return r(value); }
+  / value:NumberSet { return r(value); }
+
+
+StringSet "StringSet"
+  = "[" head:StringOrNull tail:(_ "," _ StringOrNull)* "]"
+    { return Set.fromJS(makeListMap3(head, tail)); }
+
+StringOrNull = String / NullToken;
+
+
+NumberSet "NumberSet"
+  = "[" head:NumberOrNull tail:(_ "," _ NumberOrNull)* "]"
+    { return Set.fromJS(makeListMap3(head, tail)); }
+
+NumberOrNull = Number / NullToken;
 
 
 String "String"

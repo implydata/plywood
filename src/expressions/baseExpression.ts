@@ -129,7 +129,8 @@ module Plywood {
 
   export function r(value: any): LiteralExpression {
     if (External.isExternal(value)) throw new TypeError('r can not accept externals');
-    return new LiteralExpression({ value: value });
+    if (Array.isArray(value)) value = Set.fromJS(value);
+    return LiteralExpression.fromJS({ op: 'literal', value: value });
   }
 
   export function mark(selector: string, prop: Lookup<any> = {}): Mark {

@@ -1,6 +1,6 @@
 module Plywood {
   export class LiteralExpression extends Expression {
-    static fromJS(parameters: ExpressionJS): Expression {
+    static fromJS(parameters: ExpressionJS): LiteralExpression {
       var value: ExpressionValue = {
         op: parameters.op,
         type: parameters.type
