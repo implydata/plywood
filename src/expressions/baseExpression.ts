@@ -860,7 +860,7 @@ module Plywood {
       return this.performAction(new GreaterThanOrEqualAction({ expression: ex }));
     }
 
-    public contains(ex: any, compare: string): ChainExpression {
+    public contains(ex: any, compare?: string): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
       return this.performAction(new ContainsAction({ expression: ex, compare }));
     }
