@@ -24,6 +24,7 @@
   "scripts": {
     "prepublish": "./prepublish"
   },
+  "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
     "d3": "3.5.6",
     "immutable-class": "0.3.7",
