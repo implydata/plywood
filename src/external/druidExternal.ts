@@ -77,6 +77,11 @@ module Plywood {
     (result: any): Datum[];
   }
 
+  export interface GranularityInflater {
+    granularity: Druid.Granularity;
+    inflater: Inflater;
+  }
+
   export interface DimensionInflater {
     dimension: Druid.DimensionSpec;
     inflater?: Inflater;
@@ -84,7 +89,7 @@ module Plywood {
 
   export interface DruidSplit {
     queryType: string;
-    granularity: any;
+    granularity: Druid.Granularity | string;
     dimension?: Druid.DimensionSpec;
     dimensions?: Druid.DimensionSpec[];
     postProcess: PostProcess;
@@ -175,7 +180,7 @@ module Plywood {
 
   // ==========================
 
-  function timeseriesNormalizerFactory(label: string): Normalizer {
+  function timeseriesNormalizerFactory(timestampLabel: string = null): Normalizer {
     return (res: Druid.TimeseriesResults): Datum[] => {
       if (!correctTimeseriesResult(res)) {
         var err = new Error("unexpected result from Druid (timeseries)");
@@ -183,11 +188,10 @@ module Plywood {
         throw err;
       }
 
-      return res.map((d: any) => {
-        var timestamp = d.timestamp;
-        var datum: Datum = d.result;
+      return res.map(r => {
+        var datum: Datum = r.result;
         cleanDatumInPlace(datum);
-        datum[label] = timestamp;
+        if (timestampLabel) datum[timestampLabel] = r.timestamp;
         return datum;
       })
     }
@@ -204,17 +208,20 @@ module Plywood {
     return data;
   }
 
-  function groupByNormalizer(res: Druid.GroupByResults): Datum[] {
-    if (!correctGroupByResult(res)) {
-      var err = new Error("unexpected result from Druid (groupBy)");
-      (<any>err).result = res; // ToDo: special error type
-      throw err;
+  function groupByNormalizerFactory(timestampLabel: string = null): Normalizer {
+    return (res: Druid.GroupByResults): Datum[] => {
+      if (!correctGroupByResult(res)) {
+        var err = new Error("unexpected result from Druid (groupBy)");
+        (<any>err).result = res; // ToDo: special error type
+        throw err;
+      }
+      return res.map(r => {
+        var datum: Datum = r.event;
+        cleanDatumInPlace(datum);
+        if (timestampLabel) datum[timestampLabel] = r.timestamp;
+        return datum;
+      });
     }
-    return res.map(r => {
-      var datum = r.event;
-      cleanDatumInPlace(datum);
-      return datum;
-    });
   }
 
   function selectNormalizer(res: Druid.SelectResults): Datum[] {
@@ -700,6 +707,26 @@ return (start < 0 ?'-':'') + parts.join('.');
       return ex instanceof RefExpression && ex.name === this.timeAttribute;
     }
 
+    public splitExpressionToGranularityInflater(splitExpression: Expression, label: string): GranularityInflater {
+      if (splitExpression instanceof ChainExpression) {
+        var splitActions = splitExpression.actions;
+        if (this.isTimeRef(splitExpression.expression) && splitActions.length === 1 && splitActions[0].action === 'timeBucket') {
+
+          var { duration, timezone } = <TimeBucketAction>splitActions[0];
+          return {
+            granularity: {
+              type: "period",
+              period: duration.toString(),
+              timeZone: timezone.toString()
+            },
+            inflater: External.timeRangeInflaterFactory(label, duration, timezone)
+          };
+        }
+      }
+
+      return null;
+    }
+
     public splitExpressionToDimensionInflater(splitExpression: Expression, label: string): DimensionInflater {
       var freeReferences = splitExpression.getFreeReferences();
       if (freeReferences.length !== 1) {
@@ -889,14 +916,36 @@ return (start < 0 ?'-':'') + parts.join('.');
     public splitToDruid(): DruidSplit {
       var split = this.split;
       if (split.isMultiSplit()) {
-        var dimensionInflaters = split.mapSplits((name, expression) => this.splitExpressionToDimensionInflater(expression, name));
+        var timestampLabel: string = null;
+        var granularity: Druid.Granularity = null;
+        var dimensions: Druid.DimensionSpec[] = [];
+        var inflaters: Inflater[] = [];
+        split.mapSplits((name, expression) => {
+          if (!granularity && !this.limit && !this.sort) {
+            // We have to add !this.limit && !this.sort because of a bug in groupBy sorting
+            // Remove it when fixed https://github.com/druid-io/druid/issues/1926
+            var granularityInflater = this.splitExpressionToGranularityInflater(expression, name);
+            if (granularityInflater) {
+              timestampLabel = name;
+              granularity = granularityInflater.granularity;
+              inflaters.push(granularityInflater.inflater);
+              return;
+            }
+          }
+
+          var { dimension, inflater } = this.splitExpressionToDimensionInflater(expression, name);
+          dimensions.push(dimension);
+          if (inflater) {
+            inflaters.push(inflater);
+          }
+        });
         return {
           queryType: 'groupBy',
-          dimensions: dimensionInflaters.map((di) => di.dimension),
-          granularity: 'all',
+          dimensions: dimensions,
+          granularity: granularity || 'all',
           postProcess: postProcessFactory(
-            groupByNormalizer,
-            dimensionInflaters.map((di) => di.inflater).filter(Boolean)
+            groupByNormalizerFactory(timestampLabel),
+            inflaters
           )
         };
       }
@@ -905,24 +954,16 @@ return (start < 0 ?'-':'') + parts.join('.');
       var label = split.firstSplitName();
 
       // Can it be a time series?
-      if (splitExpression instanceof ChainExpression) {
-        var splitActions = splitExpression.actions;
-        if (this.isTimeRef(splitExpression.expression) && splitActions.length === 1 && splitActions[0].action === 'timeBucket') {
-
-          var { duration, timezone } = <TimeBucketAction>splitActions[0];
-          return {
-            queryType: 'timeseries',
-            granularity: {
-              type: "period",
-              period: duration.toString(),
-              timeZone: timezone.toString()
-            },
-            postProcess: postProcessFactory(
-              timeseriesNormalizerFactory(label),
-              [External.timeRangeInflaterFactory(label, duration, timezone)]
-            )
-          };
-        }
+      var granularityInflater = this.splitExpressionToGranularityInflater(splitExpression, label);
+      if (granularityInflater) {
+        return {
+          queryType: 'timeseries',
+          granularity: granularityInflater.granularity,
+          postProcess: postProcessFactory(
+            timeseriesNormalizerFactory(label),
+            [granularityInflater.inflater]
+          )
+        };
       }
 
       var dimensionInflater = this.splitExpressionToDimensionInflater(splitExpression, label);
@@ -940,9 +981,10 @@ return (start < 0 ?'-':'') + parts.join('.');
         queryType: 'groupBy',
         dimensions: [dimensionInflater.dimension],
         granularity: 'all',
-        postProcess: postProcessFactory(groupByNormalizer, inflaters)
+        postProcess: postProcessFactory(groupByNormalizerFactory(), inflaters)
       };
     }
+
 
     public getAccessTypeForAggregation(aggregationType: string): string {
       if (aggregationType === 'hyperUnique' || aggregationType === 'cardinality') return 'hyperUniqueCardinality';

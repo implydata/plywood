@@ -1263,7 +1263,6 @@ describe "simulate Druid", ->
       )
 
     queryPlan = ex.simulateQueryPlan(context)
-    expect(queryPlan).to.have.length(2)
 
     expect(queryPlan).to.deep.equal([
       {
@@ -1370,6 +1369,79 @@ describe "simulate Druid", ->
       }
     ])
 
+  it "works multi-dimensional GROUP BYs (no limit)", ->
+    ex = ply()
+      .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
+      .apply('Cuts',
+        $("diamonds").split({
+            'Cut': "$cut",
+            'Color': '$color',
+            'TimeByHour': '$time.timeBucket(PT1H)'
+          })
+          .apply('Count', $('diamonds').count())
+      )
+
+    queryPlan = ex.simulateQueryPlan(context)
+
+    expect(queryPlan).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "Count"
+            "type": "count"
+          }
+        ]
+        "dataSource": "diamonds"
+        "dimensions": [
+          {
+            "dimension": "color"
+            "outputName": "Color"
+            "type": "default"
+          }
+          {
+            "dimension": "cut"
+            "outputName": "Cut"
+            "type": "default"
+          }
+        ]
+        "filter": {
+          "fields": [
+            {
+              "dimension": "color"
+              "type": "selector"
+              "value": "A"
+            }
+            {
+              "dimension": "color"
+              "type": "selector"
+              "value": "B"
+            }
+            {
+              "dimension": "color"
+              "type": "selector"
+              "value": "some_color"
+            }
+          ]
+          "type": "or"
+        }
+        "granularity": {
+          "period": "PT1H"
+          "timeZone": "Etc/UTC"
+          "type": "period"
+        }
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ]
+        "limitSpec": {
+          "columns": [
+            "Color"
+          ]
+          "limit": 500000
+          "type": "default"
+        }
+        "queryType": "groupBy"
+      }
+    ])
 
   it "adds context to query if set on External", (testComplete) ->
     ds = External.fromJS({

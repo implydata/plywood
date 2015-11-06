@@ -1,3 +1,7 @@
+# 0.7.9
+
+- Multi-dim group dy uses granularity when it can. 
+
 # 0.7.8
 
 - fixed bug in `Set#add` 
