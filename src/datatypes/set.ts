@@ -318,7 +318,7 @@ module Plywood {
       var setType = this.setType;
       var valueType = getValueType(value);
       if (setType === 'NULL') setType = valueType;
-      if (setType !== valueType) throw new Error('value type must match');
+      if (valueType !== 'NULL' && setType !== valueType) throw new Error('value type must match');
 
       if (this.contains(value)) return this;
       return new Set({

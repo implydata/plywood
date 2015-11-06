@@ -170,6 +170,14 @@ describe "Set", ->
         elements: ['A']
       })
 
+    it 'works with null', ->
+      expect(
+        Set.fromJS(['A']).add(null).toJS()
+      ).to.deep.equal({
+        setType: 'STRING'
+        elements: ['A', null]
+      })
+
 
   describe "#remove()", ->
     it 'works correctly', ->
@@ -187,6 +195,13 @@ describe "Set", ->
         Set.EMPTY.toJS()
       )
 
+    it 'works with null', ->
+      expect(
+        Set.fromJS(['A', null]).remove(null).toJS()
+      ).to.deep.equal({
+        setType: 'STRING'
+        elements: ['A']
+      })
 
   describe "#union()", ->
     it 'works correctly', ->
