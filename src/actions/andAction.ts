@@ -55,6 +55,11 @@ module Plywood {
       return this.expression.equals(Expression.TRUE);
     }
 
+    protected _nukeExpression(): Expression {
+      if (this.expression.equals(Expression.FALSE)) return Expression.FALSE;
+      return null;
+    }
+
     protected _distributeAction(): Action[] {
       return this.expression.actionize(this.action);
     }
@@ -62,16 +67,8 @@ module Plywood {
     protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
       if (literalExpression.equals(Expression.TRUE)) {
         return this.expression;
-
-      } else if (literalExpression.equals(Expression.FALSE)) {
-        return Expression.FALSE;
-
       }
-      return null;
-    }
-
-    protected _performOnRef(refExpression: RefExpression): Expression {
-      if (this.expression.equals(Expression.FALSE)) {
+      if (literalExpression.equals(Expression.FALSE)) {
         return Expression.FALSE;
       }
       return null;
@@ -79,7 +76,6 @@ module Plywood {
 
     protected _performOnChain(chainExpression: ChainExpression): Expression {
       var { expression } = this;
-      if (expression.equals(Expression.FALSE)) return Expression.FALSE;
 
       var andExpressions = chainExpression.getExpressionPattern('and');
       if (andExpressions) {

@@ -61,17 +61,7 @@ module Plywood {
       }
     }
 
-    protected _performOnRef(refExpression: RefExpression): Expression {
-      var expression = this.expression;
-      if (
-        expression instanceof LiteralExpression &&
-        expression.type.indexOf('SET/') === 0 &&
-        expression.value.empty()
-      ) return Expression.FALSE;
-      return null;
-    }
-
-    protected _performOnChain(chainExpression: ChainExpression): Expression {
+    protected _nukeExpression(): Expression {
       var expression = this.expression;
       if (
         expression instanceof LiteralExpression &&

@@ -41,6 +41,11 @@ module Plywood {
       return this.expression.equals(Expression.ONE);
     }
 
+    protected _nukeExpression(): Expression {
+      if (this.expression.equals(Expression.ZERO)) return Expression.ZERO;
+      return null;
+    }
+
     protected _distributeAction(): Action[] {
       return this.expression.actionize(this.action);
     }
@@ -49,20 +54,6 @@ module Plywood {
       if (literalExpression.equals(Expression.ONE)) {
         return this.expression;
       } else if (literalExpression.equals(Expression.ZERO)) {
-        return Expression.ZERO;
-      }
-      return null;
-    }
-
-    protected _performOnRef(refExpression: RefExpression): Expression {
-      if (this.expression.equals(Expression.ZERO)) {
-        return Expression.ZERO;
-      }
-      return null;
-    }
-
-    protected _performOnChain(chainExpression: ChainExpression): Expression {
-      if (this.expression.equals(Expression.ZERO)) {
         return Expression.ZERO;
       }
       return null;

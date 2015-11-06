@@ -306,6 +306,14 @@ module Plywood {
     }
 
     /**
+     * Wope out all if possible
+     * For example *0
+     */
+    protected _nukeExpression(): Expression {
+      return null;
+    }
+
+    /**
      * Distribute this action over the inner expression if needed
      * For example +(x +y +z) => +x +y +z
      */
@@ -350,6 +358,9 @@ module Plywood {
       if (!simpleExpression.simple) throw new Error('must get a simple expression');
 
       if (this._removeAction()) return simpleExpression;
+
+      var nukedExpression = this._nukeExpression();
+      if (nukedExpression) return nukedExpression;
 
       var distributedActions = this._distributeAction();
       if (distributedActions) {
