@@ -1,3 +1,11 @@
+# 0.7.8
+
+- fixed bug in `Set#add` 
+
+# 0.7.7
+
+- added tonic example: https://tonicdev.com/npm/plywood
+
 # 0.7.4
 
 - refactored DruidExternal
