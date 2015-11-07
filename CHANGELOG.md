@@ -1,9 +1,6 @@
-# 0.7.10
-
-- Better apply, filter, limit sorting 
-
 # 0.7.9
 
+- Better apply, filter, limit sorting 
 - Multi-dim group dy uses granularity when it can. 
 
 # 0.7.8
