@@ -62,6 +62,13 @@ module Plywood {
       }
       return null;
     }
+
+    protected _putBeforeAction(lastAction: Action): Action {
+      if (lastAction instanceof ApplyAction) {
+        return this;
+      }
+      return null;
+    }
   }
 
   Action.register(LimitAction);

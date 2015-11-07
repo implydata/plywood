@@ -35,6 +35,22 @@ module Plywood {
       }
       return null;
     }
+
+    protected _putBeforeAction(lastAction: Action): Action {
+      if (lastAction instanceof ApplyAction) {
+        var freeReferences = this.getFreeReferences();
+        return freeReferences.indexOf(lastAction.name) === -1 ? this : null;
+      }
+      if (lastAction instanceof SplitAction) {
+        var splits = lastAction.splits;
+        return new FilterAction({
+          expression: this.expression.substitute((ex) => {
+            if (ex instanceof RefExpression && splits[ex.name]) return splits[ex.name];
+          })
+        });
+      }
+      return null;
+    }
   }
 
   Action.register(FilterAction);

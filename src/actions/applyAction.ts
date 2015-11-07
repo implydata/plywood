@@ -71,6 +71,13 @@ module Plywood {
       return true;
     }
 
+    protected _putBeforeAction(lastAction: Action): Action {
+      if (this.isSimpleAggregate() && lastAction instanceof ApplyAction && !lastAction.isSimpleAggregate()) {
+        return this;
+      }
+      return null;
+    }
+
     protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
       var dataset: Dataset = literalExpression.value;
       var myExpression = this.expression;
@@ -92,25 +99,6 @@ module Plywood {
         }
       }
       return null;
-    }
-
-    protected _performOnChain(chainExpression: ChainExpression): Expression {
-      if (!this.isSimpleAggregate()) return null;
-      var actions = chainExpression.actions;
-      var i = actions.length;
-      while (i > 0) {
-        let action = actions[i - 1];
-        if (action.action !== 'apply') break;
-        if ((<ApplyAction>action).isSimpleAggregate()) break;
-        i--;
-      }
-      actions = actions.slice();
-      actions.splice(i, 0, this);
-      return new ChainExpression({
-        expression: chainExpression.expression,
-        actions: actions,
-        simple: true
-      })
     }
   }
 

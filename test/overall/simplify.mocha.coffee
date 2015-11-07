@@ -354,6 +354,70 @@ describe "Simplify", ->
 
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
+    it 'moves filter before applies', ->
+      ex1 = ply()
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .filter('$x == "en"')
+
+      ex2 = ply()
+        .filter('$x == "en"')
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'does not change the meaning', ->
+      ex1 = ply()
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .filter('$AddedByDeleted == 1')
+
+      ex2 = ply()
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .filter('$AddedByDeleted == 1')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'it can move past a split', ->
+      ex1 = $('wiki')
+        .split('$page', 'Page')
+          .apply('Deleted', '$wiki.sum($deleted)')
+          .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+          .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+          .filter('$Page == "hello world"')
+
+      ex2 = $('wiki')
+        .filter('$page == "hello world"')
+        .split('$page', 'Page')
+          .apply('Deleted', '$wiki.sum($deleted)')
+          .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+          .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'it can move past a fancy split', ->
+      ex1 = $('wiki')
+        .split('$time.timeBucket(P1D)', 'TimeByDay')
+          .apply('Deleted', '$wiki.sum($deleted)')
+          .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+          .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+          .filter('$TimeByDay != null')
+
+      ex2 = $('wiki')
+        .filter('$time.timeBucket(P1D) != null')
+        .split('$time.timeBucket(P1D)', 'TimeByDay')
+          .apply('Deleted', '$wiki.sum($deleted)')
+          .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+          .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
 
   describe 'limit', ->
     it 'consecutive limits fold together', ->
@@ -363,6 +427,21 @@ describe "Simplify", ->
 
       ex2 = $('main')
         .limit(10)
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'moves past apply', ->
+      ex1 = $('main')
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .limit(10)
+
+      ex2 = $('main')
+        .limit(10)
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
 
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 

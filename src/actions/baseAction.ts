@@ -346,6 +346,14 @@ module Plywood {
     }
 
     /**
+     * Special logic to move this action before the previous one.
+     * @param lastAction the previous action
+     */
+    protected _putBeforeAction(lastAction: Action): Action {
+      return null;
+    }
+
+    /**
      * Special logic to perform this action on a chain
      * @param chainExpression the expression on which to perform
      */
@@ -388,9 +396,15 @@ module Plywood {
       } else if (simpleExpression instanceof ChainExpression) {
         var actions = simpleExpression.actions;
         var lastAction = actions[actions.length - 1];
+
         var foldedAction = this._foldWithPrevAction(lastAction);
         if (foldedAction) {
           return foldedAction.performOnSimple(simpleExpression.popAction());
+        }
+
+        var beforeAction = this._putBeforeAction(lastAction);
+        if (beforeAction) {
+          return lastAction.performOnSimple(beforeAction.performOnSimple(simpleExpression.popAction()));
         }
 
         var special = this._performOnChain(simpleExpression);
