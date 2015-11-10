@@ -58,7 +58,7 @@ module Plywood {
         var start = literalValue.start;
         var end = literalValue.end;
 
-        if (duration.isSimple()) {
+        if (duration.isFloorable()) {
           if (duration.floor(start, timezone).valueOf() === start.valueOf() &&
             duration.move(start, timezone, 1).valueOf() === end.valueOf()) {
 

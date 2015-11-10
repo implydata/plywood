@@ -80,6 +80,10 @@ module Plywood {
     public equals(other: NumberRange): boolean {
       return NumberRange.isNumberRange(other) && this._equalsHelper(other);
     }
+
+    public midpoint(): number {
+      return (this.start + this.end) / 2;
+    }
   }
   check = NumberRange;
 }

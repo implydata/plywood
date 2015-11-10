@@ -43,11 +43,16 @@ declare module Chronoshift {
     interface MoveFn {
         (dt: Date, tz: Timezone, step: number): Date;
     }
+    interface RoundFn {
+        (dt: Date, roundTo: number, tz: Timezone): Date;
+    }
     interface TimeMover {
         canonicalLength: number;
+        siblings?: number;
         floor: AlignFn;
+        round?: RoundFn;
         move: MoveFn;
-        ceil: AlignFn;
+        ceil?: AlignFn;
     }
     var second: TimeMover;
     var minute: TimeMover;
@@ -88,6 +93,7 @@ declare module Chronoshift {
         toJSON(): string;
         equals(other: Duration): boolean;
         isSimple(): boolean;
+        isFloorable(): boolean;
         /**
          * Floors the date according to this duration.
          * @param date The date to floor

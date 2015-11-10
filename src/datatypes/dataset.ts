@@ -435,7 +435,8 @@ module Plywood {
     }
 
     public average(exFn: ComputeFn, context: Datum): number {
-      return this.sum(exFn, context) / this.count();
+      var count = this.count();
+      return count ? (this.sum(exFn, context) / count) : null;
     }
 
     public min(exFn: ComputeFn, context: Datum): number {

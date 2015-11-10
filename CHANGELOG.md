@@ -1,3 +1,8 @@
+# 0.7.10
+
+- Fixed `Dataset#average`
+- Latest Chronoshift allows for PT15M bucketing, e.t.c. 
+
 # 0.7.9
 
 - Better apply, filter, limit sorting 

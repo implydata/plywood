@@ -121,6 +121,10 @@ module Plywood {
       if (bounds[1] === ']') end = new Date(end.valueOf() + 1000); // add a sec
       return dateToIntervalPart(start) + "/" + dateToIntervalPart(end);
     }
+
+    public midpoint(): Date {
+      return new Date((this.start.valueOf() + this.end.valueOf()) / 2);
+    }
   }
   check = TimeRange;
 }

@@ -71,6 +71,29 @@ describe "compute native", ->
       testComplete()
     ).done()
 
+  it "works with empty", (testComplete) ->
+    ds = Dataset.fromJS(data).hide()
+
+    ex = ply()
+      .apply('Two', 2)
+      .apply('EmptyData', ply(ds).filter('false'))
+      .apply('SumPrice', '$EmptyData.sum($price)')
+      .apply('AvgPrice1', '$EmptyData.average($price)')
+      .apply('AvgPrice2', '$EmptyData.sum($price) / $EmptyData.count()')
+
+    p = ex.compute()
+    p.then((v) ->
+      expect(v.toJS()).to.deep.equal([
+        {
+          "AvgPrice1": null
+          "AvgPrice2": null
+          "SumPrice": 0
+          "Two": 2
+        }
+      ])
+      testComplete()
+    ).done()
+
   it "works with simple split followed by some simple applies", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
