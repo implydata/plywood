@@ -1,3 +1,7 @@
+# 0.7.11
+
+- Added `External#updateAttribute`
+
 # 0.7.10
 
 - Fixed `Dataset#average`

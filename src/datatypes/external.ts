@@ -476,10 +476,34 @@ module Plywood {
       return null;
     }
 
+    public updateAttribute(newAttribute: AttributeInfo): External {
+      if (!this.attributes) return this;
+      var newAttributeName = newAttribute.name;
+      var added = false;
+
+      var value = this.valueOf();
+
+      value.attributes = value.attributes.map((attribute) => {
+        if (attribute.name === newAttributeName) {
+          added = true;
+          return newAttribute;
+        } else {
+          return attribute;
+        }
+      });
+
+      if (!added) {
+        // At this point map already made a copy of the list
+        value.attributes.push(newAttribute);
+      }
+
+      return new (External.classMap[this.engine])(value);
+    }
+
     public show(): External {
       var value = this.valueOf();
       value.suppress = false;
-      return <External>(new (External.classMap[this.engine])(value));
+      return new (External.classMap[this.engine])(value);
     }
 
     // -----------------

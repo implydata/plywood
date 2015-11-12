@@ -20,7 +20,6 @@
         </array>
       </option>
       <option name="outputFromStdout" value="false" />
-      <option name="passParentEnvs" value="true" />
       <option name="program" value="$ProjectFileDir$/compile-tsc" />
       <option name="scopeName" value="Source Files" />
       <option name="trackOnlyRoot" value="true" />

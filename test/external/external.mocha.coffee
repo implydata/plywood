@@ -8,7 +8,7 @@ if not WallTime.rules
   WallTime.init(tzData.rules, tzData.zones)
 
 plywood = require('../../build/plywood')
-{ Expression, Dataset, External, TimeRange, $, ply, r } = plywood
+{ Expression, Dataset, External, TimeRange, AttributeInfo, $, ply, r } = plywood
 
 wikiDataset = External.fromJS({
   engine: 'druid',
@@ -76,6 +76,7 @@ describe "External", ->
       newThrows: true
     })
 
+
   describe "does not die with hasOwnProperty", ->
     it "survives", ->
       expect(External.fromJS({
@@ -90,6 +91,31 @@ describe "External", ->
         timeAttribute: 'time',
         context: null
       })
+
+
+  describe "#updateAttribute", ->
+    it "works", ->
+      external = External.fromJS({
+        engine: 'druid',
+        dataSource: 'moon_child',
+        timeAttribute: 'time',
+        context: null
+        attributes: [
+          { name: 'color', type: 'STRING' }
+          { name: 'cut', type: 'STRING' }
+          { name: 'carat', type: 'STRING' }
+          { name: 'unique_thing', type: 'NUMBER', filterable: false, splitable: false }
+        ]
+      })
+
+      external = external.updateAttribute(AttributeInfo.fromJS({ name: 'unique_thing', special: 'unique' }));
+
+      expect(external.toJS().attributes).to.deep.equal([
+        { "name": "color", "type": "STRING" }
+        { "name": "cut", "type": "STRING" }
+        { "name": "carat", "type": "STRING" }
+        { "name": "unique_thing", "special": "unique", "type": "STRING" }
+      ])
 
 
   describe "simplifies / digests", ->

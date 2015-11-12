@@ -1,7 +1,4 @@
 module Plywood {
-  const UNIQUE_REGEXP = /^unique_|_unique$/;
-  const HISTOGRAM_REGEXP = /^hist_|_hist$/;
-
   const DUMMY_NAME = '!DUMMY';
 
   const TIME_PART_TO_FORMAT: Lookup<string> = {
@@ -269,13 +266,7 @@ module Plywood {
         attributes.push(new AttributeInfo({ name: dimension, type: 'STRING' }));
       });
       res.metrics.forEach(metric => {
-        if (UNIQUE_REGEXP.test(metric)) {
-          attributes.push(new UniqueAttributeInfo({ name: metric }));
-        } else if (HISTOGRAM_REGEXP.test(metric)) {
-          attributes.push(new HistogramAttributeInfo({ name: metric }));
-        } else {
-          attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', filterable: false, splitable: false }));
-        }
+        attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', filterable: false, splitable: false }));
       });
       return attributes;
     }
@@ -294,13 +285,7 @@ module Plywood {
         } else {
           var columnData = columns[name];
           if (columnData.type === "STRING") {
-            if (UNIQUE_REGEXP.test(name)) {
-              attributes.push(new UniqueAttributeInfo({ name }));
-            } else if (HISTOGRAM_REGEXP.test(name)) {
-              attributes.push(new HistogramAttributeInfo({ name }));
-            } else {
-              attributes.push(new AttributeInfo({ name, type: 'STRING' }));
-            }
+            attributes.push(new AttributeInfo({ name, type: 'STRING' }));
           } else {
             attributes.push(new AttributeInfo({ name, type: 'NUMBER', filterable: false, splitable: false }));
           }
