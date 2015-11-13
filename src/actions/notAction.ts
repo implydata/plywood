@@ -28,14 +28,12 @@ module Plywood {
       return 'NOT(' + inputSQL  + ')';
     }
 
-    /*
-    protected _specialSimplify(simpleOperand: Expression): Expression {
-      if (simpleOperand instanceof NotExpression) {
-        return simpleOperand.operand;
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      if (prevAction instanceof NotAction) {
+        return new AndAction({ expression: Expression.TRUE }); // Boolean noop
       }
       return null;
     }
-    */
   }
 
   Action.register(NotAction);

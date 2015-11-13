@@ -306,7 +306,7 @@ module Plywood {
     }
 
     /**
-     * Wope out all if possible
+     * Wipe out all if possible
      * For example *0
      */
     protected _nukeExpression(): Expression {

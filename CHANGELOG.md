@@ -1,3 +1,7 @@
+# 0.7.12
+
+- Added simplification rule for `.not().not() => nothing`
+
 # 0.7.11
 
 - Added `External#updateAttribute`
@@ -14,7 +18,7 @@
 
 # 0.7.8
 
-- fixed bug in `Set#add` 
+- Fixed bug in `Set#add` 
 
 # 0.7.7
 
@@ -22,20 +26,20 @@
 
 # 0.7.4
 
-- refactored DruidExternal
+- Refactored DruidExternal
 - DruidExternal now supports multi-dim splits
-- timezone (2nd argument) in `timeBucket` is now optional, defaults to UTC
-- fixed native `dataset.max`
+- Timezone (2nd argument) in `timeBucket` is now optional, defaults to UTC
+- Fixed native `dataset.max`
 
 # 0.7.3
 
-- better docs
-- context is now added passed along in a DruidExternal
+- Better docs
+- Context is now added passed along in a DruidExternal
 
 # 0.7.2
 
-- added `Expression.concat`
-- added `CONCAT` to the PlyQL parser
+- Added `Expression.concat`
+- Added `CONCAT` to the PlyQL parser
 
 # 0.7.1
 

@@ -57,6 +57,18 @@ describe "Simplify", ->
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
+  describe.skip 'negate', ->
+    it "collapses double", ->
+      ex1 = $('x').negate().negate()
+      ex2 = $('x')
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "collapses long chain", ->
+      ex1 = $('x').negate().negate().negate().negate().negate().negate().negate()
+      ex2 = $('x').negate()
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
   describe 'multiply', ->
     it "collapses 0 in simple case", ->
       ex1 = $('x').multiply(0)
@@ -230,6 +242,18 @@ describe "Simplify", ->
     it "re-arranges filters 2", ->
       ex1 = $('flight').is(5).or($('x').is(1)).or($('flight').is(5))
       ex2 = $('flight').is(5).or($('x').is(1))
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'not', ->
+    it "collapses double", ->
+      ex1 = $('x').not().not()
+      ex2 = $('x')
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "collapses long chain", ->
+      ex1 = $('x').not().not().not().not().not().not().not()
+      ex2 = $('x').not()
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
