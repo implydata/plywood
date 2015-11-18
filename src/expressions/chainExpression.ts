@@ -233,6 +233,7 @@ module Plywood {
     }
 
     public performAction(action: Action, markSimple?: boolean): ChainExpression {
+      if (!action) throw new Error('must have action');
       return new ChainExpression({
         expression: this.expression,
         actions: this.actions.concat(action),

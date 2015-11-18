@@ -1,3 +1,7 @@
+# 0.7.15
+
+- Added `Dataset#flatten` works with empty datasets
+
 # 0.7.14
 
 - Added `Set#toggle`

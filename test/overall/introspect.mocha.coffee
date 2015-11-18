@@ -97,7 +97,6 @@ describe "introspect", ->
         }
         {
           "name": "unique_view"
-          "special": "unique"
           "type": "STRING"
         }
       ])

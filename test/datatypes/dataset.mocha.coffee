@@ -231,6 +231,8 @@ describe "Dataset", ->
 
 
   describe "methods", ->
+    emptyDataset = Dataset.fromJS([])
+
     carDataset = Dataset.fromJS([
       {
         time: new Date('2015-01-04T12:32:43')
@@ -349,6 +351,9 @@ describe "Dataset", ->
     ])
 
     describe "#getColumns", ->
+      it "works with empty dataset", ->
+        expect(emptyDataset.getColumns()).to.deep.equal([])
+
       it "works with basic dataset", ->
         expect(carDataset.getColumns()).to.deep.equal([
           {
@@ -447,6 +452,9 @@ describe "Dataset", ->
 
 
     describe "#flatten", ->
+      it "works with empty dataset", ->
+        expect(emptyDataset.flatten()).to.deep.equal([])
+
       it "works with basic dataset", ->
         expect(carDataset.flatten()).to.deep.equal([
           {

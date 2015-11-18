@@ -689,7 +689,9 @@ module Plywood {
       var parentName = options.parentName;
       var nestedColumns = this.getNestedColumns();
       var flatData: Datum[] = [];
-      this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, parentName, 0, null, flatData);
+      if (nestedColumns.length) {
+        this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, parentName, 0, null, flatData);
+      }
       return flatData;
     }
 
