@@ -74,6 +74,13 @@ module Plywood {
       return true;
     }
 
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      if (prevAction instanceof SortAction && this.expression.equals(prevAction.expression)) {
+        return this;
+      }
+      return null;
+    }
+
     public toggleDirection(): SortAction {
       return new SortAction({
         expression: this.expression,

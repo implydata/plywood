@@ -1,3 +1,8 @@
+# 0.7.13
+
+- Added simplification rule for `.sort(X).filter(Y) => .filter(Y).sort(X)`
+- Added simplification rule for `.sort(X).sort(X) => .sort(X)`
+
 # 0.7.12
 
 - Added simplification rule for `.not().not() => nothing`

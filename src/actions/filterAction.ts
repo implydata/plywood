@@ -41,6 +41,7 @@ module Plywood {
         var freeReferences = this.getFreeReferences();
         return freeReferences.indexOf(lastAction.name) === -1 ? this : null;
       }
+
       if (lastAction instanceof SplitAction) {
         var splits = lastAction.splits;
         return new FilterAction({
@@ -49,6 +50,11 @@ module Plywood {
           })
         });
       }
+
+      if (lastAction instanceof SortAction) {
+        return this;
+      }
+
       return null;
     }
   }

@@ -442,6 +442,29 @@ describe "Simplify", ->
 
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
+    it 'it can move past a sort', ->
+      ex1 = ply()
+        .sort('$deleted', 'ascending')
+        .filter('$AddedByDeleted == 1')
+
+      ex2 = ply()
+        .filter('$AddedByDeleted == 1')
+        .sort('$deleted', 'ascending')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'sort', ->
+    it 'consecutive identical sorts fold together', ->
+      ex1 = $('main')
+        .sort('$x', 'descending')
+        .sort('$x', 'ascending')
+
+      ex2 = $('main')
+        .sort('$x', 'ascending')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
 
   describe 'limit', ->
     it 'consecutive limits fold together', ->
