@@ -153,7 +153,7 @@ describe "Set", ->
       })
 
 
-  describe "#add()", ->
+  describe "#add", ->
     it 'works correctly', ->
       expect(
         Set.fromJS(['A', 'B']).add('C').toJS()
@@ -179,7 +179,7 @@ describe "Set", ->
       })
 
 
-  describe "#remove()", ->
+  describe "#remove", ->
     it 'works correctly', ->
       expect(
         Set.fromJS(['A', 'B']).remove('B').toJS()
@@ -203,7 +203,34 @@ describe "Set", ->
         elements: ['A']
       })
 
-  describe "#union()", ->
+
+  describe "#toggle", ->
+    it 'works correctly', ->
+      expect(
+        Set.fromJS(['A', 'B']).toggle('B').toJS()
+      ).to.deep.equal({
+        setType: 'STRING'
+        elements: ['A']
+      })
+
+    it 'works with empty', ->
+      expect(
+        Set.EMPTY.toggle('A').toJS()
+      ).to.deep.equal({
+        setType: 'STRING'
+        elements: ['A']
+      })
+
+    it 'works with null', ->
+      expect(
+        Set.fromJS(['A', null]).toggle(null).toJS()
+      ).to.deep.equal({
+        setType: 'STRING'
+        elements: ['A']
+      })
+
+
+  describe "#union", ->
     it 'works correctly', ->
       expect(
         Set.fromJS(['A', 'B']).union(Set.fromJS(['B', 'C'])).toJS()
@@ -266,7 +293,7 @@ describe "Set", ->
       })
 
 
-  describe "#intersect()", ->
+  describe "#intersect", ->
     it 'works correctly', ->
       expect(
         Set.fromJS(['A', 'B']).intersect(Set.fromJS(['B', 'C'])).toJS()

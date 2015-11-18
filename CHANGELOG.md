@@ -1,3 +1,7 @@
+# 0.7.14
+
+- Added `Set#toggle`
+
 # 0.7.13
 
 - Added simplification rule for `.sort(X).filter(Y) => .filter(Y).sort(X)`

@@ -336,6 +336,10 @@ module Plywood {
         elements: this.elements.filter(element => keyFn(element) !== key)
       });
     }
+
+    public toggle(value: any): Set {
+      return this.contains(value) ? this.remove(value) : this.add(value);
+    }
   }
   check = Set;
 
