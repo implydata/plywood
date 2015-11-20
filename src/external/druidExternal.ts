@@ -5,23 +5,23 @@ module Plywood {
     SECOND_OF_MINUTE: "s",
     SECOND_OF_HOUR: "m'*60+'s",
     SECOND_OF_DAY: "H'*60+'m'*60+'s",
-    SECOND_OF_WEEK: "e'*24+H'*60+'m'*60+'s",
-    SECOND_OF_MONTH: "d'*24+H'*60+'m'*60+'s", // Off by one on d
+    SECOND_OF_WEEK: "e'~*24+H'*60+'m'*60+'s",
+    SECOND_OF_MONTH: "d'~*24+H'*60+'m'*60+'s",
     SECOND_OF_YEAR: "D'*24+H'*60+'m'*60+'s",
 
     MINUTE_OF_HOUR: "m",
     MINUTE_OF_DAY: "H'*60+'m",
-    MINUTE_OF_WEEK: "e'*24+H'*60+'m",
-    MINUTE_OF_MONTH: "d'*24+H'*60+'m", // Off by one on d
+    MINUTE_OF_WEEK: "e'~*24+H'*60+'m",
+    MINUTE_OF_MONTH: "d'~*24+H'*60+'m",
     MINUTE_OF_YEAR: "D'*24+H'*60+'m",
 
     HOUR_OF_DAY: "H",
-    HOUR_OF_WEEK: "e'*24+H",
-    HOUR_OF_MONTH: "d'*24+H", // Off by one on d
+    HOUR_OF_WEEK: "e'~*24+H",
+    HOUR_OF_MONTH: "d'~*24+H",
     HOUR_OF_YEAR: "D'*24+H",
 
-    DAY_OF_WEEK: "e",
-    DAY_OF_MONTH: "d", // Off by one on d
+    DAY_OF_WEEK: "e'~",
+    DAY_OF_MONTH: "d'~",
     DAY_OF_YEAR: "D",
 
     WEEK_OF_MONTH: null,
@@ -40,11 +40,23 @@ module Plywood {
 
   function simpleMath(exprStr: string): int {
     if (String(exprStr) === 'null') return null;
-    var parts = exprStr.split(/(?=[*+])/);
+    var parts = exprStr.split(/(?=[*+~])/);
     var acc = parseInt(parts.shift(), 10);
     for (let part of parts) {
       var v = parseInt(part.substring(1), 10);
-      acc = part[0] === '*' ? acc * v : acc + v;
+      switch (part[0]) {
+        case '+':
+          acc += v;
+          break;
+
+        case '*':
+          acc *= v;
+          break;
+
+        case '~':
+          acc--;
+          break;
+      }
     }
     return acc;
   }

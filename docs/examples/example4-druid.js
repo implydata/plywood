@@ -4,9 +4,9 @@ var ply = plywood.ply;
 var $ = plywood.$;
 var External = plywood.External;
 
-WallTime = require('chronology').WallTime;
+WallTime = require('chronoshift').WallTime;
 if (!WallTime.rules) {
-  tzData = require("chronology/lib/walltime/walltime-data.js");
+  tzData = require("chronoshift/lib/walltime/walltime-data.js");
   WallTime.init(tzData.rules, tzData.zones);
 }
 

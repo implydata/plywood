@@ -56,7 +56,7 @@ module Plywood {
       }
     }
 
-    public timeBucketExpression(operand: string, duration: Duration, timesone: Timezone): string {
+    public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
       throw new Error('Must implement timeBucketExpression');
     }
 
@@ -100,4 +100,6 @@ module Plywood {
       return operand
     }
   }
+
+  // todo: Look into: WEEKDAY ( https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html )
 }
