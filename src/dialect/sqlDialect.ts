@@ -60,26 +60,64 @@ module Plywood {
       throw new Error('Must implement timeBucketExpression');
     }
 
+    public timePartExpression(operand: string, part: string, timezone: Timezone): string {
+      throw new Error('Must implement timePartExpression');
+    }
+
     public offsetTimeExpression(operand: string, duration: Duration): string {
       throw new Error('Must implement offsetTimeExpression');
     }
   }
 
   export class MySQLDialect extends SQLDialect {
+    static TIME_PART_TO_FUNCTION: Lookup<string> = {
+      SECOND_OF_MINUTE: 'SECOND($$)',
+      SECOND_OF_HOUR: '(MINUTE($$)*60+SECOND($$))',
+      SECOND_OF_DAY: '((HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
+      SECOND_OF_WEEK: '(((WEEKDAY($$)*24)+HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
+      SECOND_OF_MONTH: '((((DAYOFMONTH($$)-1)*24)+HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
+      SECOND_OF_YEAR: '((((DAYOFYEAR($$)-1)*24)+HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
+
+      MINUTE_OF_HOUR: 'MINUTE($$)',
+      MINUTE_OF_DAY: 'HOUR($$)*60+MINUTE($$)',
+      MINUTE_OF_WEEK: '(WEEKDAY($$)*24)+HOUR($$)*60+MINUTE($$)',
+      MINUTE_OF_MONTH: '((DAYOFMONTH($$)-1)*24)+HOUR($$)*60+MINUTE($$)',
+      MINUTE_OF_YEAR: '((DAYOFYEAR($$)-1)*24)+HOUR($$)*60+MINUTE($$)',
+
+      HOUR_OF_DAY: 'HOUR($$)',
+      HOUR_OF_WEEK: '(WEEKDAY($$)*24+HOUR($$))',
+      HOUR_OF_MONTH: '((DAYOFMONTH($$)-1)*24+HOUR($$))',
+      HOUR_OF_YEAR: '((DAYOFYEAR($$)-1)*24+HOUR($$))',
+
+      DAY_OF_WEEK: 'WEEKDAY($$)',
+      DAY_OF_MONTH: '(DAYOFMONTH($$)-1)',
+      DAY_OF_YEAR: '(DAYOFYEAR($$)-1)',
+
+      WEEK_OF_MONTH: null,
+      WEEK_OF_YEAR: 'WEEK($$)', // ToDo: look into mode (https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_week)
+
+      MONTH_OF_YEAR: 'MONTH($$)'
+    };
+
     constructor() {
       super();
     }
 
+    public timezoneConvert(operand: string, timezone: Timezone): string {
+      if (timezone.isUTC()) return operand;
+      return `CONVERT_TZ(${operand},'+0:00','${timezone.toString()}')`;
+    }
+
     public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
       var bucketFormat = TIME_BUCKETING[duration.toString()];
-      if (!bucketFormat) throw new Error("unsupported duration '" + duration + "'");
+      if (!bucketFormat) throw new Error(`unsupported duration '${duration}'`);
+      return `DATE_FORMAT(${this.timezoneConvert(operand, timezone)},'${bucketFormat}')`;
+    }
 
-      var bucketTimezone = timezone.toString();
-      if (bucketTimezone !== "Etc/UTC") {
-        operand = `CONVERT_TZ(${operand},'+0:00','${bucketTimezone}')`;
-      }
-
-      return `DATE_FORMAT(${operand},'${bucketFormat}')`;
+    public timePartExpression(operand: string, part: string, timezone: Timezone): string {
+      var timePartFunction = MySQLDialect.TIME_PART_TO_FUNCTION[part];
+      if (!timePartFunction) throw new Error(`unsupported part ${part} in MySQL dialect`);
+      return timePartFunction.replace(/\$\$/g, this.timezoneConvert(operand, timezone));
     }
 
     public offsetTimeExpression(operand: string, duration: Duration): string {
@@ -101,5 +139,4 @@ module Plywood {
     }
   }
 
-  // todo: Look into: WEEKDAY ( https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html )
 }

@@ -25,7 +25,9 @@ module Plywood {
     DAY_OF_YEAR: "D",
 
     WEEK_OF_MONTH: null,
-    WEEK_OF_YEAR: "w"
+    WEEK_OF_YEAR: "w",
+
+    MONTH_OF_YEAR: "M~"
   };
 
   const TIME_BUCKET_FORMAT: Lookup<string> = {

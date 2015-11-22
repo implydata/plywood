@@ -1,3 +1,8 @@
+# 0.7.16
+
+- Added timePart to MySQL dialect
+- Added time port option for `MONTH_OF_YEAR`
+
 # 0.7.15
 
 - Added `Dataset#flatten` works with empty datasets

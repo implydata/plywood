@@ -52,8 +52,7 @@ module Plywood {
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
-      var part = this.part;
-      var timezone = this.timezone;
+      const { part, timezone } = this;
       return (d: Datum, c: Datum) => {
         // ToDo: make this work
       }
@@ -64,8 +63,8 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      // ToDo: make this work
-      throw new Error("Vad, srsly make this work")
+      const { part, timezone } = this;
+      return dialect.timePartExpression(inputSQL, part, timezone);
     }
 
     public materializeWithinRange(extentRange: TimeRange, values: int[]): Set {
