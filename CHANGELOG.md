@@ -1,3 +1,7 @@
+# 0.7.17
+
+- Added `contains` to expression parsing grammar
+
 # 0.7.16
 
 - Added timePart to MySQL dialect
