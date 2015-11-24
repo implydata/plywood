@@ -159,8 +159,10 @@ Params
     { return makeListMap3(head, tail); }
 
 Param
-  = Number / Name / String / Expression
-
+  = v:(Name / String)
+    { return r(v); }
+  / Number
+  / Expression
 
 BasicExpression
   = "(" _ ex:Expression _ ")" { return ex; }

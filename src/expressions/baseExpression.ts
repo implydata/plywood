@@ -94,6 +94,14 @@ module Plywood {
     return merged.length ? merged.sort() : null;
   }
 
+  function getString(param: string | Expression): string {
+    if (typeof param === 'string') return param;
+    if (param instanceof LiteralExpression && param.type === 'STRING') {
+      return param.value;
+    }
+    throw new Error('could not extract a string out of ' + String(param));
+  }
+
   // -----------------------------
 
   /**
@@ -711,9 +719,8 @@ module Plywood {
      * @param ex The expression to evaluate
      */
     public apply(name: string, ex: any): ChainExpression {
-      if (typeof name !== 'string') throw new TypeError('apply name must be a string');
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new ApplyAction({ name: name, expression: ex }));
+      return this.performAction(new ApplyAction({ name: getString(name), expression: ex }));
     }
 
     /**
@@ -728,7 +735,7 @@ module Plywood {
 
     public sort(ex: any, direction: string): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new SortAction({ expression: ex, direction }));
+      return this.performAction(new SortAction({ expression: ex, direction: getString(direction) }));
     }
 
     public limit(limit: int): ChainExpression {
@@ -748,20 +755,20 @@ module Plywood {
     }
 
     public timeBucket(duration: any, timezone: any = Timezone.UTC): ChainExpression {
-      if (!Duration.isDuration(duration)) duration = Duration.fromJS(duration);
-      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(timezone);
+      if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
+      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
       return this.performAction(new TimeBucketAction({ duration: duration, timezone: timezone }));
     }
 
     public timeOffset(duration: any, timezone: any): ChainExpression {
-      if (!Duration.isDuration(duration)) duration = Duration.fromJS(duration);
-      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(timezone);
+      if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
+      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
       return this.performAction(new TimeOffsetAction({ duration: duration, timezone: timezone }));
     }
 
-    public timePart(part: any, timezone: any): ChainExpression {
-      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(timezone);
-      return this.performAction(new TimePartAction({ part: part, timezone: timezone }));
+    public timePart(part: string, timezone: any): ChainExpression {
+      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+      return this.performAction(new TimePartAction({ part: getString(part), timezone: timezone }));
     }
 
     public substr(position: number, length: number): ChainExpression {
@@ -803,7 +810,7 @@ module Plywood {
     }
 
     public custom(custom: string): ChainExpression {
-      return this.performAction(new CustomAction({ custom }));
+      return this.performAction(new CustomAction({ custom: getString(custom) }));
     }
 
     public split(splits: any, dataName?: string): ChainExpression;
@@ -812,6 +819,7 @@ module Plywood {
       // Determine if use case #2
       if (arguments.length === 3 ||
         (arguments.length === 2 && splits && (typeof splits === 'string' || typeof splits.op === 'string'))) {
+        name = getString(name);
         var realSplits = Object.create(null);
         realSplits[name] = splits;
         splits = realSplits;
@@ -826,7 +834,7 @@ module Plywood {
         parsedSplits[k] = Expression.isExpression(ex) ? ex : Expression.fromJSLoose(ex);
       }
 
-      if (!dataName) dataName = getDataName(this);
+      dataName = dataName ? getString(dataName) : getDataName(this);
       if (!dataName) throw new Error("could not guess data name in `split`, please provide one explicitly");
       return this.performAction(new SplitAction({ splits: parsedSplits, dataName: dataName }));
     }
@@ -862,6 +870,7 @@ module Plywood {
 
     public contains(ex: any, compare?: string): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      if (compare) compare = getString(compare);
       return this.performAction(new ContainsAction({ expression: ex, compare }));
     }
 

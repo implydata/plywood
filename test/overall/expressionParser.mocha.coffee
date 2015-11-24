@@ -14,7 +14,7 @@ describe "expression parser", ->
     it "should not get confused with parsable expressions in strange places", ->
       expect(->
         Expression.parse("ply().apply($x + 1, $x + 1)")
-      ).to.throw('apply name must be a string')
+      ).to.throw('could not extract a string out of')
 
 
   describe "parses", ->
@@ -93,9 +93,15 @@ describe "expression parser", ->
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS())
 
-    it.skip "should work with lots of keywords 2", ->
+    it "should work with lots of keywords 2", ->
       ex1 = Expression.parse('true and $y and true and $z')
-      ex2 = r('true').and($('y'), r(true), $('z'))
+      ex2 = r(true).and($('y'), r(true), $('z'))
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS())
+
+    it "should work with : in is", ->
+      ex1 = Expression.parse('$x.is(":hello")')
+      ex2 = $('x').is(r(":hello"))
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS())
 
@@ -131,8 +137,14 @@ describe "expression parser", ->
               .apply(Count, $wiki.sum($count))
               .sort($Count, descending)
               .limit(2)
-              .apply(Time,
+              .apply(TimeBucket,
                 $wiki.split($time.timeBucket(PT1H, 'Etc/UTC'), Timestamp)
+                  .apply(TotalAdded, $wiki.sum($added))
+                  .sort($TotalAdded, descending)
+                  .limit(3)
+              )
+              .apply(TimePart,
+                $wiki.split($time.timePart(DAY_OF_YEAR, 'Etc/UTC'), Timestamp)
                   .apply(TotalAdded, $wiki.sum($added))
                   .sort($TotalAdded, descending)
                   .limit(3)
@@ -149,8 +161,14 @@ describe "expression parser", ->
             .apply('Count', '$wiki.sum($count)')
             .sort('$Count', 'descending')
             .limit(2)
-            .apply('Time',
+            .apply('TimeBucket',
               $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
+                .apply('TotalAdded', '$wiki.sum($added)')
+                .sort('$TotalAdded', 'descending')
+                .limit(3)
+            )
+            .apply('TimePart',
+              $("wiki").split($("time").timePart('DAY_OF_YEAR', 'Etc/UTC'), 'Timestamp')
                 .apply('TotalAdded', '$wiki.sum($added)')
                 .sort('$TotalAdded', 'descending')
                 .limit(3)

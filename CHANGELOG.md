@@ -1,3 +1,7 @@
+# 0.7.18
+
+- Fixed string handling in parser arguments
+
 # 0.7.17
 
 - Added `contains` to expression parsing grammar
