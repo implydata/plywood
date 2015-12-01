@@ -45,6 +45,16 @@ context = {
   })
 }
 
+contextUnfiltered = {
+  'diamonds': External.fromJS({
+    engine: 'druid',
+    dataSource: 'diamonds',
+    timeAttribute: 'time',
+    attributes
+    allowSelectQueries: true
+  })
+}
+
 describe "simulate Druid", ->
   it "works in basic case", ->
     ex = ply()
@@ -522,6 +532,24 @@ describe "simulate Druid", ->
         }
         "queryType": "groupBy"
       }
+    ])
+
+  it "works with lower bound only time filter", ->
+    ex = ply()
+      .apply('diamonds', $("diamonds").filter($("time").in({ start: new Date('2015-03-12T00:00:00'), end: null })))
+      .apply('Count', $('diamonds').count())
+
+    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.deep.equal([
+      "2015-03-12/3000-01-01"
+    ])
+
+  it "works with upper bound only time filter", ->
+    ex = ply()
+      .apply('diamonds', $("diamonds").filter($("time").in({ start: null, end: new Date('2015-03-12T00:00:00') })))
+      .apply('Count', $('diamonds').count())
+
+    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.deep.equal([
+      "1000-01-01/2015-03-12"
     ])
 
   it "works with range bucket", ->

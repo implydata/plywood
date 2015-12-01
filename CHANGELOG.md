@@ -1,3 +1,7 @@
+# 0.7.18
+
+- DruidExternal now works with upper/lower time bound only
+
 # 0.7.17
 
 - Fixed string handling in parser arguments

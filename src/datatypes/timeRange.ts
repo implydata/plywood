@@ -19,6 +19,9 @@ module Plywood {
     return date;
   }
 
+  const START_OF_TIME = "1000-01-01";
+  const END_OF_TIME = "3000-01-01";
+
   function dateToIntervalPart(date: Date): string {
     return date.toISOString()
       .replace('Z', '')
@@ -114,12 +117,17 @@ module Plywood {
      * @returns {string}
      */
     public toInterval(): string {
-      var start = this.start;
-      var end = this.end;
-      var bounds = this.bounds;
-      if (bounds[0] === '(') start = new Date(start.valueOf() + 1000); // add a sec
-      if (bounds[1] === ']') end = new Date(end.valueOf() + 1000); // add a sec
-      return dateToIntervalPart(start) + "/" + dateToIntervalPart(end);
+      var { start, end, bounds } = this;
+      var interval: string[] = [START_OF_TIME, END_OF_TIME];
+      if (start) {
+        if (bounds[0] === '(') start = new Date(start.valueOf() + 1000); // add a sec
+        interval[0] = dateToIntervalPart(start);
+      }
+      if (end) {
+        if (bounds[1] === ']') end = new Date(end.valueOf() + 1000); // add a sec
+        interval[1] = dateToIntervalPart(end);
+      }
+      return interval.join("/");
     }
 
     public midpoint(): Date {
