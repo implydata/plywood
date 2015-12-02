@@ -686,13 +686,27 @@ module Plywood {
     }
 
     /**
-     * Returns an expression without the last action.
-     * Return null if an action can not be poped
-     * An optional action type can be supplied to indicate that the last action must have that type (or else return null)
-     * @param actionType
+     * Returns the first action
+     * Returns null there are no actions
      */
-    public popAction(actionType?: string): Expression {
-      return null
+    public firstAction(): Action {
+      return null;
+    }
+
+    /**
+     * Returns the last action
+     * Returns null there are no actions
+     */
+    public lastAction(): Action {
+      return null;
+    }
+
+    /**
+     * Returns an expression without the last action.
+     * Returns null if an action can not be poped
+     */
+    public popAction(): Expression {
+      return null;
     }
 
     public getLiteralValue(): any {

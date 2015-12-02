@@ -6,15 +6,16 @@ file = fs.readFileSync('./src/expressions/baseExpression.ts', 'utf8');
 
 lines = file.split('\n');
 
+docs = []
 inClass = null
 inDoc = null
 catchNextLine = false
 for line in lines
   if catchNextLine
     inDoc.nextLine = line.trim().replace(/public /, '').replace(/ \{$/, '')
-    console.log(inDoc)
-    catchNextLine = false
+    docs.push(inDoc)
     inDoc = null
+    catchNextLine = false
 
   if m = line.match(/^\s*export class (\w+)/)
     inClass = m[1]
@@ -22,7 +23,6 @@ for line in lines
 
   if m = line.match(/^(\s*)\/\*\*$/)
     inDoc = {
-      inClass
       description: ''
       params: []
       nextLine: null
@@ -41,3 +41,5 @@ for line in lines
   if inDoc and m = line.match(/^(\s*)\*\/$/)
     catchNextLine = true
     continue
+
+console.log(JSON.stringify(docs, null, 2));

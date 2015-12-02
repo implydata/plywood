@@ -288,18 +288,20 @@ module Plywood {
     }
 
     public firstAction(): Action {
-      return this.actions[0];
+      return this.actions[0] || null;
     }
 
     public lastAction(): Action {
       var { actions } = this;
-      return actions[actions.length - 1];
+      return actions[actions.length - 1] || null;
     }
 
-    public popAction(actionType?: string): Expression {
+    public popAction(): Expression {
+      if (arguments.length) {
+        console.error('popAction no longer takes any arguments, check lastAction instead');
+      }
       var actions = this.actions;
-      var lastAction = actions[actions.length - 1];
-      if (actionType && lastAction.action !== actionType) return null;
+      if (!actions.length) return null;
       actions = actions.slice(0, -1);
       if (!actions.length) return this.expression;
       var value = this.valueOf();

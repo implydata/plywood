@@ -1,3 +1,8 @@
+# 0.7.19
+
+- Added `firstAction` and `lastAction` to all expressions
+- `popAction` no longer takes an optional action type (warning added)
+
 # 0.7.18
 
 - DruidExternal now works with upper/lower time bound only

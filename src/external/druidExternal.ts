@@ -474,9 +474,8 @@ module Plywood {
           }, this);
         }
 
-        var prefix: Expression;
-        if (prefix = filter.popAction('not')) {
-          return this.canUseNativeAggregateFilter(prefix);
+        if (filter.lastAction() instanceof NotAction) {
+          return this.canUseNativeAggregateFilter(filter.popAction());
         }
 
         var actions = filter.actions;
@@ -514,11 +513,10 @@ module Plywood {
           throw new Error("should never get here");
         }
       } else if (filter instanceof ChainExpression) {
-        var prefix: Expression;
-        if (prefix = filter.popAction('not')) {
+        if (filter.lastAction() instanceof NotAction) {
           return {
             type: 'not',
-            field: this.timelessFilterToDruid(prefix)
+            field: this.timelessFilterToDruid(filter.popAction())
           };
         }
 
@@ -1271,9 +1269,8 @@ return (start < 0 ?'-':'') + parts.join('.');
           };
         }
 
-        var prefix: Expression;
-        if (prefix = filter.popAction('not')) {
-          return this.havingFilterToDruid(prefix);
+        if (filter.lastAction() instanceof NotAction) {
+          return this.havingFilterToDruid(filter.popAction());
         }
 
         var lhs = filter.expression;
