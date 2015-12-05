@@ -5,7 +5,49 @@ An ORM-like framework for OLAP.
 
 ## Introduction
 
-Plywood tries to simplify the task of building powerful, data driven interfaces and visualizations around OLAP databases.
+Plywood is a JavaScript library that tries to simplify the task of building powerful, data driven interfaces and visualizations around OLAP databases.
+
+Plywood comes with it's own [expression language]() that is architected around the principles of nested Split-Apply-Combine.
+A single Plywood expression can translate to multiple queries to the underlying database and the resulting output is a nested data structure similar to the output of [`d3.nest`](http://bl.ocks.org/hubgit/raw/9133448/) that is meant to be consumed by tools like [D3.js](http://d3js.org/). 
+You can Plywood in the browser and/or in node.js.
+
+## Should you use Plywood?
+ 
+Here are some possible usage scenarios for Plywood:
+
+### You are building a web based, data driven application with a node.js backend
+ 
+Plywood primitives can serve as the 'models' for the web application.
+The frontend can send JSON serialized Plywood queries to the backend. 
+The backend uses Plywood to translate Plywood queries to database queries as well as doing permission management and access control by utilizing Plywood heleprs.
+
+![web app, node.js](docs/images/web-app-nodejs.png)
+
+[Pivot](https://github.com/implydata/pivot) is an example of a Project that uses Plywood in this way.
+
+### You are building a web based, data driven application with a backend that is not node.js
+
+Plywood can run entirely from the browser as long as there is a way for it to issue queries from the browser.
+
+![web app, not node.js](docs/images/web-app-not-nodejs.png)
+
+You could also use the [Plywood proxy]() like so:
+
+![web app, not node.js, proxy](docs/images/web-app-not-nodejs-proxy.png)
+
+### You are building a data driven application and you are allergic to JavaScript
+
+If you think that JavaScript is "literally gluten" you can still benefit from Plywood by utilizing the Plywood proxy.
+Your application could ether generate Plywood queries in their JSON form or as PlyQL strings that it sends over to the Plywood proxy.
+The Plywood proxy will send back nested JSON results.
+   
+![app, proxy](docs/images/app-proxy.png)
+   
+### You know SQL and want to query a DB that does not use SQL (like Druid)   
+   
+Maybe all you want is to have a SQL-like interface to Druid. You can use the [PlyQL](https://github.com/implydata/plyql) command line utility to talk to Druid.
+
+![plyql](docs/images/plyql.png)
 
 
 ## Installation
