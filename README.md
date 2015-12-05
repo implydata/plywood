@@ -37,7 +37,7 @@ You could also use the [Plywood proxy]() like so:
 
 ### You are building a data-driven application and you are allergic to JavaScript
 
-If you think that JavaScript is "literally gluten" you can still benefit from Plywood by utilizing the Plywood proxy.
+If JavaScript does not fit into your stack you can still benefit from Plywood by utilizing the Plywood proxy.
 Your application could ether generate Plywood queries in their JSON form or as PlyQL strings that it sends over to the Plywood proxy.
 The Plywood proxy will send back nested JSON results.
    
