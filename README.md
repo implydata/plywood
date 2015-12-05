@@ -5,7 +5,7 @@ An ORM-like framework for OLAP.
 
 ## Introduction
 
-Plywood is a JavaScript library that tries to simplify the task of building powerful, data driven interfaces and visualizations around OLAP databases.
+Plywood is a JavaScript library that tries to simplify the task of building powerful, data-driven interfaces and visualizations around OLAP databases.
 
 Plywood comes with it's own [expression language]() that is architected around the principles of nested Split-Apply-Combine.
 A single Plywood expression can translate to multiple queries to the underlying database and the resulting output is a nested data structure similar to the output of [`d3.nest`](http://bl.ocks.org/hubgit/raw/9133448/) that is meant to be consumed by tools like [D3.js](http://d3js.org/). 
@@ -15,7 +15,7 @@ You can Plywood in the browser and/or in node.js.
  
 Here are some possible usage scenarios for Plywood:
 
-### You are building a web based, data driven application with a node.js backend
+### You are building a web-based, data-driven application, node.js backend
  
 Plywood primitives can serve as the 'models' for the web application.
 The frontend can send JSON serialized Plywood queries to the backend. 
@@ -25,7 +25,7 @@ The backend uses Plywood to translate Plywood queries to database queries as wel
 
 [Pivot](https://github.com/implydata/pivot) is an example of a Project that uses Plywood in this way.
 
-### You are building a web based, data driven application with a backend that is not node.js
+### You are building a web-based, data-driven application, backend not node.js
 
 Plywood can run entirely from the browser as long as there is a way for it to issue queries from the browser.
 
@@ -35,7 +35,7 @@ You could also use the [Plywood proxy]() like so:
 
 ![web app, not node.js, proxy](docs/images/web-app-not-nodejs-proxy.png)
 
-### You are building a data driven application and you are allergic to JavaScript
+### You are building a data-driven application and you are allergic to JavaScript
 
 If you think that JavaScript is "literally gluten" you can still benefit from Plywood by utilizing the Plywood proxy.
 Your application could ether generate Plywood queries in their JSON form or as PlyQL strings that it sends over to the Plywood proxy.
