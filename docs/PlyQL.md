@@ -52,7 +52,7 @@ This query is like the first example except that for every repository we are als
 ## Operators
 
 Name                    | Description
---------------------------------------------------------------
+------------------------|-------------------------------------
 +                       | Addition operator
 -                       | Minus operator / Unary negation
 *                       | Multiplication operator
@@ -105,26 +105,12 @@ This will part the `$time` variable into the (integer) number that represents wh
 
 The possible part values are:
 
-* `SECOND_OF_MINUTE`
-* `SECOND_OF_HOUR`
-* `SECOND_OF_DAY`
-* `SECOND_OF_WEEK`
-* `SECOND_OF_MONTH`
-* `SECOND_OF_YEAR`
-* `MINUTE_OF_HOUR`
-* `MINUTE_OF_DAY`
-* `MINUTE_OF_WEEK`
-* `MINUTE_OF_MONTH`
-* `MINUTE_OF_YEAR`
-* `HOUR_OF_DAY`
-* `HOUR_OF_WEEK`
-* `HOUR_OF_MONTH`
-* `HOUR_OF_YEAR`
-* `DAY_OF_WEEK`
-* `DAY_OF_MONTH`
-* `DAY_OF_YEAR`
-* `WEEK_OF_MONTH`
-* `WEEK_OF_YEAR`
+* `SECOND_OF_MINUTE`, `SECOND_OF_HOUR`, `SECOND_OF_DAY`, `SECOND_OF_WEEK`, `SECOND_OF_MONTH`, `SECOND_OF_YEAR`
+* `MINUTE_OF_HOUR`, `MINUTE_OF_DAY`, `MINUTE_OF_WEEK`, `MINUTE_OF_MONTH`, `MINUTE_OF_YEAR`
+* `HOUR_OF_DAY`, `HOUR_OF_WEEK`, `HOUR_OF_MONTH`, `HOUR_OF_YEAR`
+* `DAY_OF_WEEK`, `DAY_OF_MONTH`, `DAY_OF_YEAR`
+* `WEEK_OF_MONTH`, `WEEK_OF_YEAR`
+* `MONTH_OF_YEAR`
 
 
 <a name="substr" href="#substr">#</a> **SUBSTR**(operand: Expression, position: Number, length: Number)
