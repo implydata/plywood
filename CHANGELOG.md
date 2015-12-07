@@ -1,3 +1,11 @@
+# 0.7.20
+
+- Added docs
+- Added wrapper for Plywood proxy
+- PlyQL `LIKE` now works to SQL spec (added `ESCAPE` clause)
+- Added `CONTAINS` clause to PlyQL
+- Added `REGEXP` clause to PlyQL
+
 # 0.7.19
 
 - Added `firstAction` and `lastAction` to all expressions

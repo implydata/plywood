@@ -31,7 +31,7 @@ Plywood can run entirely from the browser as long as there is a way for it to is
 
 ![web app, not node.js](docs/images/web-app-not-nodejs.png)
 
-You could also use the [Plywood proxy]() like so:
+It might be undesirable to have the web app communicate with the DB in which case you could also use the [Plywood proxy]() like so:
 
 ![web app, not node.js, proxy](docs/images/web-app-not-nodejs-proxy.png)
 

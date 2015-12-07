@@ -3,7 +3,7 @@
 { testImmutableClass } = require("immutable-class/build/tester")
 
 plywood = require('../../build/plywood')
-{ Action, $, ply, r } = plywood
+{ Action, $, ply, r, MatchAction } = plywood
 
 describe "Actions", ->
   it "passes higher object tests", ->
@@ -70,3 +70,10 @@ describe "Actions", ->
       name: 'Five'
       expression: { op: 'literal', value: 5 }
     })
+
+
+  describe "MatchAction", ->
+    it ".likeToRegExp", ->
+      expect(MatchAction.likeToRegExp('%David\\_R_ss%')).to.equal('^.*David_R.ss.*$')
+
+      expect(MatchAction.likeToRegExp('%David|_R_ss||%', '|')).to.equal('^.*David_R.ss\\|.*$')

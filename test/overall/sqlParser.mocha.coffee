@@ -381,7 +381,10 @@ describe "SQL parser", ->
           `wiki`.`language` IN ('ca', 'cs', 'da', 'el') AND
           `namespace` NOT IN ('simple', 'dict') AND
           geo IS NOT NULL AND
-          page LIKE 'World'
+          page CONTAINS 'World' AND
+          page LIKE '%Hello\\_World%' AND
+          page LIKE '%Hello!_World%' ESCAPE '!' AND
+          page REGEXP 'W[od]'
         """)
 
       ex2 = ply()
@@ -394,6 +397,9 @@ describe "SQL parser", ->
               .and($('namespace').in(['simple', 'dict']).not())
               .and($('geo').isnt(null))
               .and($('page').contains('World', 'ignoreCase'))
+              .and($('page').match('^.*Hello_World.*$'))
+              .and($('page').match('^.*Hello_World.*$'))
+              .and($('page').match('W[od]'))
           )
         )
         .apply('TotalAdded', '$data.sum($added)')

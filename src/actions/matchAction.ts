@@ -1,5 +1,34 @@
 module Plywood {
+  const REGEXP_SPECIAL = "\\^$.|?*+()[{";
+
   export class MatchAction extends Action {
+
+    static likeToRegExp(like: string, escapeChar: string = '\\'): string {
+      var regExp: string[] = ['^'];
+      for (var i = 0; i < like.length; i++) {
+        var char = like[i];
+        if (char === escapeChar) {
+          var nextChar = like[i + 1];
+          if (!nextChar) throw new Error(`invalid LIKE string '${like}'`);
+          char = nextChar;
+          i++;
+        } else if (char === '%') {
+          regExp.push('.*');
+          continue;
+        } else if (char === '_') {
+          regExp.push('.');
+          continue;
+        }
+
+        if (REGEXP_SPECIAL.indexOf(char) !== -1) {
+          regExp.push('\\');
+        }
+        regExp.push(char);
+      }
+      regExp.push('$');
+      return regExp.join('');
+    }
+
     static fromJS(parameters: ActionJS): MatchAction {
       var value = Action.jsToValue(parameters);
       value.regexp = parameters.regexp;
