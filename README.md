@@ -7,8 +7,9 @@ An ORM-like framework for OLAP.
 
 Plywood is a JavaScript library that tries to simplify the task of building powerful, data-driven interfaces and visualizations around OLAP databases.
 
-Plywood comes with it's own [expression language]() that is architected around the principles of nested Split-Apply-Combine.
-A single Plywood expression can translate to multiple queries to the underlying database and the resulting output is a nested data structure similar to the output of [`d3.nest`](http://bl.ocks.org/hubgit/raw/9133448/) that is meant to be consumed by tools like [D3.js](http://d3js.org/). 
+Plywood comes with it's own [expression language](docs/expressions.md) that is architected around the principles of nested Split-Apply-Combine.
+A single Plywood expression can translate to multiple queries to the underlying database and the resulting output is a nested data structure that is meant to be consumed by tools like [D3.js](http://d3js.org/). 
+
 You can Plywood in the browser and/or in node.js.
 
 ## Should you use Plywood?
@@ -31,7 +32,7 @@ Plywood can run entirely from the browser as long as there is a way for it to is
 
 ![web app, not node.js](docs/images/web-app-not-nodejs.png)
 
-It might be undesirable to have the web app communicate with the DB in which case you could also use the [Plywood proxy]() like so:
+It might be undesirable to have the web app communicate with the DB in which case you could also use the [Plywood proxy](https://github.com/implydata/plywood-proxy) like so:
 
 ![web app, not node.js, proxy](docs/images/web-app-not-nodejs-proxy.png)
 
@@ -54,7 +55,7 @@ Maybe all you want is to have a SQL-like interface to Druid. You can use the [Pl
 
 To use Plywood from npm simply run: `npm install plywood`.
 
-Plywood can be also used by the browser like [so](TODO:example).
+Plywood can be also used by the browser.
 
 ## Overview
 
