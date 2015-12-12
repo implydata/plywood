@@ -7,6 +7,7 @@ var FilterAction = plywood.FilterAction;
 var ApplyAction = plywood.ApplyAction;
 var SortAction = plywood.SortAction;
 var LimitAction = plywood.LimitAction;
+var MatchAction = plywood.MatchAction;
 var Set = plywood.Set;
 
 var dataRef = $('data');
@@ -18,7 +19,7 @@ var reservedWords = {
   BETWEEN: 1, BY: 1,
   CONTAINS: 1, CREATE: 1,
   DELETE: 1, DESC: 1, DISTINCT: 1, DROP: 1,
-  EXISTS: 1, EXPLAIN: 1,
+  EXISTS: 1, EXPLAIN: 1, ESCAPE: 1,
   FALSE: 1, FROM: 1,
   GROUP: 1,
   HAVING: 1,
@@ -29,7 +30,7 @@ var reservedWords = {
   NOT: 1, NULL: 1, NUMBER_BUCKET: 1,
   ON: 1, OR: 1, ORDER: 1,
   QUANTILE: 1,
-  REPLACE: 1,
+  REPLACE: 1, REGEXP: 1,
   SELECT: 1, SET: 1, SHOW: 1, SUM: 1,
   TABLE: 1, TIME_BUCKET: 1, TRUE: 1,
   UNION: 1, UPDATE: 1,
@@ -263,7 +264,7 @@ Expressions are defined below in acceding priority order
   Or (OR)
   And (AND)
   Not (NOT)
-  Comparison (=, <, >, <=, >=, <>, !=, IS, LIKE, BETWEEN, IN, CONTAINS)
+  Comparison (=, <, >, <=, >=, <>, !=, IS, LIKE, BETWEEN, IN, CONTAINS, REGEXP)
   Additive (+, -)
   Multiplicative (*), Division (/)
   Unary identity (+), negation (-)
@@ -296,21 +297,35 @@ ComparisonExpression
       if (not) ex = ex.not();
       return ex;
     }
-  / lhs:AdditiveExpression __ IsToken not:(__ NotToken)? _ rhs:LiteralExpression
+  / lhs:AdditiveExpression _ IsToken not:(_ NotToken)? _ rhs:LiteralExpression
     {
       var ex = lhs.is(rhs);
       if (not) ex = ex.not();
       return ex;
     }
-  / lhs:AdditiveExpression not:(_ NotToken)? __ InToken __ list:ListLiteral
+  / lhs:AdditiveExpression not:(_ NotToken)? _ InToken _ list:ListLiteral
     {
       var ex = lhs.in(list);
       if (not) ex = ex.not();
       return ex;
     }
-  / lhs:AdditiveExpression not:(_ NotToken)? __ LikeToken __ string:String
+  / lhs:AdditiveExpression not:(_ NotToken)? _ ContainsToken _ string:String
     {
       var ex = lhs.contains(string, 'ignoreCase');
+      if (not) ex = ex.not();
+      return ex;
+    }
+  / lhs:AdditiveExpression not:(_ NotToken)? _ LikeToken _ string:String escape:(_ EscapeToken _ String)?
+    {
+      var escapeStr = escape ? escape[3] : '\\';
+      if (escapeStr.length > 1) error('Invalid escape string: ' + escapeStr);
+      var ex = lhs.match(MatchAction.likeToRegExp(string, escapeStr));
+      if (not) ex = ex.not();
+      return ex;
+    }
+  / lhs:AdditiveExpression not:(_ NotToken)? _ RegExpToken _ string:String
+    {
+      var ex = lhs.match(string);
       if (not) ex = ex.not();
       return ex;
     }
@@ -471,6 +486,8 @@ InToken            = "IN"i             !IdentifierPart
 IsToken            = "IS"i             !IdentifierPart
 LikeToken          = "LIKE"i           !IdentifierPart
 ContainsToken      = "CONTAINS"i       !IdentifierPart
+RegExpToken        = "REGEXP"i         !IdentifierPart
+EscapeToken        = "ESCAPE"i         !IdentifierPart
 
 NotToken           = "NOT"i            !IdentifierPart
 AndToken           = "AND"i            !IdentifierPart

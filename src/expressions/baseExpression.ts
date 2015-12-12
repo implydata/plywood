@@ -271,31 +271,31 @@ module Plywood {
 
     /**
      * Composes the given expressions with an AND
-     * @param expressions the expressions to compose
+     * @param expressions the array of expressions to compose
      */
     static and(expressions: Expression[]): Expression {
       return chainVia('and', expressions, Expression.TRUE);
     }
 
     /**
-     * Composes the given expressions as E1 or E2 or ... or En
-     * @param expressions the expressions to compose
+     * Composes the given expressions as E0 or E1 or ... or En
+     * @param expressions the array of expressions to compose
      */
     static or(expressions: Expression[]): Expression {
       return chainVia('or', expressions, Expression.FALSE);
     }
 
     /**
-     * Composes the given expressions as E1 + E2 + ... + En
-     * @param expressions the expressions to compose
+     * Composes the given expressions as E0 + E1+ ... + En
+     * @param expressions the array of expressions to compose
      */
     static add(expressions: Expression[]): Expression {
       return chainVia('add', expressions, Expression.ZERO);
     }
 
     /**
-     * Composes the given expressions with E1 - E2 - ... - En
-     * @param expressions the expressions to compose
+     * Composes the given expressions as E0 - E1- ... - En
+     * @param expressions the array of expressions to compose
      */
     static subtract(expressions: Expression[]): Expression {
       return chainVia('subtract', expressions, Expression.ZERO);
