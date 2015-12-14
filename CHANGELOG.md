@@ -1,5 +1,11 @@
 # Change log
 
+## 0.7.21
+
+- DruidExternal supports extractionFn filters such as `.filter($x.substr(0, 1) === 'D')`
+- added `druidVersion` to DruidExternal to support feature differentiation
+- added native Druid substring filter support or druidVersion >= 0.9.0
+
 ## 0.7.20
 
 - Added some docs
