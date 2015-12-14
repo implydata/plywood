@@ -122,6 +122,7 @@ module Plywood {
     exactResultsOnly?: boolean;
     useSegmentMetadata?: boolean;
     context?: Lookup<any>;
+    druidVersion?: string;
 
     requester?: Requester.PlywoodRequester<any>;
   }
@@ -146,6 +147,7 @@ module Plywood {
     exactResultsOnly?: boolean;
     useSegmentMetadata?: boolean;
     context?: Lookup<any>;
+    druidVersion?: string;
 
     requester?: Requester.PlywoodRequester<any>;
   }

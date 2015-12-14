@@ -31,7 +31,7 @@ module Plywood {
 
     protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
       var expression = this.expression;
-      if (expression instanceof RefExpression) {
+      if (!expression.isOp('literal')) {
         return expression.is(literalExpression);
       }
       return null;

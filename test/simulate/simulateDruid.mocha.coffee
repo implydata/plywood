@@ -31,6 +31,7 @@ context = {
       start: new Date('2015-03-12T00:00:00')
       end:   new Date('2015-03-19T00:00:00')
     })
+    druidVersion: '0.9.0'
   })
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
@@ -42,6 +43,7 @@ context = {
       start: new Date('2015-03-12T00:00:00')
       end:   new Date('2015-03-19T00:00:00')
     })
+    druidVersion: '0.9.0'
   })
 }
 
@@ -95,7 +97,7 @@ describe "simulate Druid", ->
       { col: 'E' }
     ])
 
-    ex = $(dataset)
+    ex = ply(dataset)
       .apply("diamonds", $('diamonds').filter($("color").is('$col')))
       .apply('Count', '$diamonds.count()')
 
@@ -397,6 +399,53 @@ describe "simulate Druid", ->
       }
     ])
 
+  it "works on fancy filter dataset (IS)", ->
+    ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.substr(0, 1) == 'D'"))
+      .apply('Count', '$diamonds.count()')
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color"
+      "extractionFn": {
+        "type": "substring"
+        "index": 0
+        "length": 1
+      }
+      "type": "extraction"
+      "value": "D"
+    })
+
+  it "works on fancy filter dataset (IN)", ->
+    ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.substr(0, 1).in(['D', 'C'])"))
+      .apply('Count', '$diamonds.count()')
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "type": "or"
+      "fields": [
+        {
+          "dimension": "color"
+          "extractionFn": {
+            "type": "substring"
+            "index": 0
+            "length": 1
+          }
+          "type": "extraction"
+          "value": "D"
+        }
+        {
+          "dimension": "color"
+          "extractionFn": {
+            "type": "substring"
+            "index": 0
+            "length": 1
+          }
+          "type": "extraction"
+          "value": "C"
+        }
+      ]
+    })
+
   it "works with basic timePart", ->
     ex = ply()
       .apply('HoursOfDay',
@@ -469,8 +518,9 @@ describe "simulate Druid", ->
     expect(ex.simulateQueryPlan(context)[0].dimension).to.deep.equal({
       "dimension": "color"
       "extractionFn": {
-        "function": "function(d){return (''+d).substr(1,2);}"
-        "type": "javascript"
+        "type": "substring"
+        "index": 1
+        "length": 2
       }
       "outputName": "Colors"
       "type": "extraction"

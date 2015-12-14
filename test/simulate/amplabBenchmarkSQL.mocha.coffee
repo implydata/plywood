@@ -20,6 +20,7 @@ context = {
       { name: 'pageRank', type: 'NUMBER' } # INT
       { name: 'avgDuration', type: 'NUMBER' } # INT
     ]
+    druidVersion: '0.9.0'
   })
   uservisits: External.fromJS({
     engine: 'druid',
@@ -38,6 +39,7 @@ context = {
       { name: 'searchWord', type: 'STRING' } # VARCHAR(32)
       { name: 'duration', type: 'NUMBER' } # INT
     ]
+    druidVersion: '0.9.0'
   })
 }
 
@@ -123,8 +125,9 @@ describe "simulate Druid for amplab benchmark", ->
           {
             "dimension": "sourceIP"
             "extractionFn": {
-              "function": "function(d){return (''+d).substr(1,5);}"
-              "type": "javascript"
+              "type": "substring"
+              "index": 1
+              "length": 5
             }
             "outputName": "SUBSTR_sourceIP_1_5"
             "type": "extraction"

@@ -325,6 +325,7 @@ module Plywood {
       value.exactResultsOnly = Boolean(datasetJS.exactResultsOnly);
       value.useSegmentMetadata = Boolean(datasetJS.useSegmentMetadata);
       value.context = datasetJS.context;
+      value.druidVersion = datasetJS.druidVersion;
       return new DruidExternal(value);
     }
 
@@ -337,6 +338,7 @@ module Plywood {
     public exactResultsOnly: boolean;
     public useSegmentMetadata: boolean;
     public context: Lookup<any>;
+    public druidVersion: string;
 
     constructor(parameters: ExternalValue) {
       super(parameters, dummyObject);
@@ -350,6 +352,11 @@ module Plywood {
       this.exactResultsOnly = parameters.exactResultsOnly;
       this.useSegmentMetadata = parameters.useSegmentMetadata;
       this.context = parameters.context;
+
+      var druidVersion = parameters.druidVersion || '0.8.0';
+      if (druidVersion.length !== 5) throw new Error('druidVersion length must be 5');
+      if (druidVersion < '0.8.0') throw new Error('only druidVersions >= 0.8.0 are supported');
+      this.druidVersion = druidVersion;
     }
 
     public valueOf(): ExternalValue {
@@ -362,6 +369,7 @@ module Plywood {
       value.exactResultsOnly = this.exactResultsOnly;
       value.useSegmentMetadata = this.useSegmentMetadata;
       value.context = this.context;
+      value.druidVersion = this.druidVersion;
       return value;
     }
 
@@ -375,6 +383,7 @@ module Plywood {
       if (this.exactResultsOnly) js.exactResultsOnly = true;
       if (this.useSegmentMetadata) js.useSegmentMetadata = true;
       js.context = this.context;
+      js.druidVersion = this.druidVersion;
       return js;
     }
 
@@ -387,7 +396,8 @@ module Plywood {
         this.allowSelectQueries === other.allowSelectQueries &&
         this.exactResultsOnly === other.exactResultsOnly &&
         this.useSegmentMetadata === other.useSegmentMetadata &&
-        this.context === other.context;
+        dictEqual(this.context, other.context) &&
+        this.druidVersion === other.druidVersion;
     }
 
     public getId(): string {
@@ -453,6 +463,10 @@ module Plywood {
 
     // -----------------
 
+    public meets(neededVersion: string): boolean {
+      return this.druidVersion <= neededVersion;
+    }
+
     public getDruidDataSource(): string | Druid.DataSource {
       var dataSource = this.dataSource;
       if (Array.isArray(dataSource)) {
@@ -488,6 +502,14 @@ module Plywood {
       return false;
     }
 
+    public javascriptDruidFilter(referenceName: string, filter: Expression): Druid.Filter {
+      return {
+        type: "javascript",
+        dimension: referenceName,
+        "function": filter.getJSFn('d')
+      };
+    }
+
     public timelessFilterToDruid(filter: Expression): Druid.Filter {
       if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
 
@@ -505,105 +527,124 @@ module Plywood {
         };
       }
 
-      var attributeInfo: AttributeInfo;
       if (filter instanceof LiteralExpression) {
         if (filter.value === true) {
           return null;
         } else {
           throw new Error("should never get here");
         }
+
       } else if (filter instanceof ChainExpression) {
-        if (filter.lastAction() instanceof NotAction) {
+        var filterAction = filter.lastAction();
+        var rhs = filterAction.expression;
+        var lhs = filter.popAction();
+        var extractionFn = this.expressionToExtractionFn(lhs);
+        var referenceName = lhs.getFreeReferences()[0];
+        var attributeInfo = this.getAttributesInfo(referenceName);
+
+        if (filterAction instanceof NotAction) {
           return {
             type: 'not',
-            field: this.timelessFilterToDruid(filter.popAction())
+            field: this.timelessFilterToDruid(lhs)
           };
         }
 
-        var lhs = filter.expression;
-        var actions = filter.actions;
-        if (actions.length !== 1) throw new Error(`can not convert ${filter.toString()} to Druid interval`);
-        var filterAction = actions[0];
-        var rhs = filterAction.expression;
-
         if (filterAction instanceof IsAction) {
-          if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-            attributeInfo = this.getAttributesInfo(lhs.name);
-            return {
+          if (rhs instanceof LiteralExpression) {
+            var druidFilter: Druid.Filter = {
               type: "selector",
-              dimension: lhs.name,
+              dimension: referenceName,
               value: attributeInfo.serialize(rhs.value)
             };
+            if (extractionFn) {
+              //if (extractionFn.type === 'javascript') {
+              //  // Might as well just do a full on javascript filter
+              //  return this.javascriptDruidFilter(referenceName, filter);
+              //}
+              druidFilter.type = "extraction";
+              druidFilter.extractionFn = extractionFn;
+            }
+            return druidFilter;
           } else {
             throw new Error("can not convert " + filter.toString() + " to Druid filter");
           }
+        }
 
-        } else if (filterAction instanceof InAction) {
-          if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-            attributeInfo = this.getAttributesInfo(lhs.name);
+        if (filterAction instanceof InAction) {
+          if (rhs instanceof LiteralExpression) {
             var rhsType = rhs.type;
             if (rhsType === 'SET/STRING' || rhsType === 'SET/NULL') {
               var fields = rhs.value.elements.map((value: string) => {
-                return {
+                var druidFilter: Druid.Filter = {
                   type: "selector",
-                  dimension: lhs.name,
+                  dimension: referenceName,
                   value: attributeInfo.serialize(value)
+                };
+                if (extractionFn) {
+                  if (extractionFn.type === 'javascript') {
+                    // Might as well just do a full on javascript filter
+                    return this.javascriptDruidFilter(referenceName, filter);
+                  }
+                  druidFilter.type = "extraction";
+                  druidFilter.extractionFn = extractionFn;
                 }
+                return druidFilter;
               });
 
               if (fields.length === 1) return fields[0];
               return { type: "or", fields };
+
             } else if (rhsType === 'NUMBER_RANGE') {
               var range: NumberRange = rhs.value;
               var r0 = range.start;
               var r1 = range.end;
               return {
                 type: "javascript",
-                dimension: lhs.name,
-                "function": "function(a) { a = Number(a); return " + r0 + " <= a && a < " + r1 + "; }"
+                dimension: referenceName,
+                "function": `function(a) { a = Number(a); return ${r0} <= a && a < ${r1}; }`
               };
+
             } else if (rhsType === 'TIME_RANGE') {
               throw new Error("can not time filter on non-primary time dimension");
+
             } else {
               throw new Error("not supported " + rhsType);
+
             }
           } else {
             throw new Error("can not convert " + filter.toString() + " to Druid filter");
           }
+        }
 
-        } else if (filterAction instanceof MatchAction) {
+        if (filterAction instanceof MatchAction) {
           if (lhs instanceof RefExpression) {
             return {
               type: "regex",
-              dimension: lhs.name,
+              dimension: referenceName,
               pattern: filterAction.regexp
             };
           } else {
             throw new Error("can not convert " + filter.toString() + " to Druid filter");
           }
+        }
 
-        } else if (filterAction instanceof ContainsAction) {
+        if (filterAction instanceof ContainsAction) {
           if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
             if (filterAction.compare === ContainsAction.IGNORE_CASE) {
               return {
                 type: "search",
-                dimension: lhs.name,
+                dimension: referenceName,
                 query: {
                   type: "fragment", // ToDo: change to 'insensitive_contains'
                   values: [rhs.value]
                 }
               };
             } else {
-              return {
-                type: "javascript",
-                dimension: lhs.name,
-                "function": filter.getJSFn('d')
-              };
+              return this.javascriptDruidFilter(referenceName, filter);
             }
           } else {
             throw new Error("can not convert " + filter.toString() + " to Druid filter");
           }
-
         }
 
       } else {
@@ -679,7 +720,7 @@ module Plywood {
       }
     }
 
-    public getRangeBucketingDimension(attributeInfo: RangeAttributeInfo, numberBucket: NumberBucketAction): Druid.ExtractionFn {
+    public getRangeBucketingExtractionFn(attributeInfo: RangeAttributeInfo, numberBucket: NumberBucketAction): Druid.ExtractionFn {
       var regExp = attributeInfo.getMatchingRegExpString();
       if (numberBucket && numberBucket.offset === 0 && numberBucket.size === attributeInfo.rangeSize) numberBucket = null;
       var bucketing = '';
@@ -724,70 +765,162 @@ return (start < 0 ?'-':'') + parts.join('.');
       return null;
     }
 
-    public splitExpressionToDimensionInflater(splitExpression: Expression, label: string): DimensionInflater {
-      var freeReferences = splitExpression.getFreeReferences();
+    public expressionToExtractionFn(expression: Expression): Druid.ExtractionFn {
+      var freeReferences = expression.getFreeReferences();
       if (freeReferences.length !== 1) {
-        throw new Error(`must have a single reference: ${splitExpression.toString()}`);
+        throw new Error(`must have a single reference: ${expression.toString()}`);
       }
       var referenceName = freeReferences[0];
 
+      if (expression instanceof RefExpression) {
+        var attributeInfo = this.getAttributesInfo(referenceName);
+
+        if (attributeInfo instanceof RangeAttributeInfo) {
+          return this.getRangeBucketingExtractionFn(attributeInfo, null)
+        }
+
+        if (expression.type === 'BOOLEAN') {
+          return {
+            type: "lookup",
+            lookup: {
+              type: "map",
+              map: {
+                "0": "false",
+                "1": "true",
+                "false": "false",
+                "true": "true"
+              }
+            },
+            injective: false
+          };
+        }
+
+        return null; // A valid return for no extractionFn needed
+      }
+
+      if (expression.type === 'BOOLEAN') {
+        return {
+          type: "javascript",
+          'function': expression.getJSFn('d')
+        };
+      }
+
+      if (expression instanceof ChainExpression) {
+        if (expression.getExpressionPattern('concat')) {
+          return {
+            type: "javascript",
+            'function': expression.getJSFn('d'),
+            injective: true
+          };
+        }
+
+        // Concat is the only thing allowed to have a non leading ref, the rest must be $ref.someFunction
+        if (!expression.expression.isOp('ref')) {
+          throw new Error(`can not convert complex: ${expression.expression.toString()}`);
+        }
+
+        var actions = expression.actions;
+        if (actions.length !== 1) throw new Error(`can not convert expression: ${expression.toString()}`);
+        var splitAction = actions[0];
+
+        if (splitAction instanceof SubstrAction) {
+          if (!this.meets('0.9.0')) {
+            return {
+              type: "javascript",
+              'function': expression.getJSFn('d')
+            };
+          }
+
+          return {
+            type: "substring",
+            index: splitAction.position,
+            length: splitAction.length
+          };
+        }
+
+        if (splitAction instanceof TimeBucketAction) {
+          var format = TIME_BUCKET_FORMAT[splitAction.duration.toString()];
+          if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration.toString()}`);
+          return {
+            type: "timeFormat",
+            format: format,
+            timeZone: splitAction.timezone.toString(),
+            locale: "en-US"
+          };
+        }
+
+        if (splitAction instanceof TimePartAction) {
+          var format = TIME_PART_TO_FORMAT[splitAction.part];
+          if (!format) throw new Error(`unsupported part in timePart expression ${splitAction.part}`);
+          return {
+            type: "timeFormat",
+            format: format,
+            timeZone: splitAction.timezone.toString(),
+            locale: "en-US"
+          };
+        }
+
+        if (splitAction instanceof NumberBucketAction) {
+          var attributeInfo = this.getAttributesInfo(referenceName);
+          if (attributeInfo.type === 'NUMBER') {
+            var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
+            return {
+              type: "javascript",
+              'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
+            };
+          }
+
+          if (attributeInfo instanceof RangeAttributeInfo) {
+            return this.getRangeBucketingExtractionFn(<RangeAttributeInfo>attributeInfo, splitAction);
+          }
+
+          if (attributeInfo instanceof HistogramAttributeInfo) {
+            if (this.exactResultsOnly) {
+              throw new Error("can not use approximate histograms in exactResultsOnly mode");
+            }
+            throw new Error("histogram splits do not work right now");
+          }
+        }
+      }
+
+      throw new Error(`could not convert ${expression.toString()} to a Druid extractionFn`);
+    }
+
+    public splitExpressionToDimensionInflater(splitExpression: Expression, label: string): DimensionInflater {
+      var extractionFn = this.expressionToExtractionFn(splitExpression);
+      // expressionToExtractionFn already checked that there is only one ref name
+      var referenceName = splitExpression.getFreeReferences()[0];
+
       var simpleInflater = External.getSimpleInflater(splitExpression, label);
+
+      var dimension: Druid.DimensionSpec = {
+        type: "default",
+        dimension: referenceName === this.timeAttribute ? '__time' : referenceName,
+        outputName: label
+      };
+      if (extractionFn) {
+        dimension.type = "extraction";
+        dimension.extractionFn = extractionFn;
+      }
 
       if (splitExpression instanceof RefExpression) {
         var attributeInfo = this.getAttributesInfo(referenceName);
         if (attributeInfo instanceof RangeAttributeInfo) {
           return {
-            dimension: {
-              type: "extraction",
-              dimension: referenceName,
-              outputName: label,
-              extractionFn: this.getRangeBucketingDimension(attributeInfo, null)
-            },
+            dimension,
             inflater: External.numberRangeInflaterFactory(label, attributeInfo.rangeSize)
           };
         }
 
-        if (splitExpression.type === 'BOOLEAN') {
-          return {
-            dimension: {
-              type: "extraction",
-              dimension: referenceName,
-              outputName: label,
-              extractionFn: {
-                type: "lookup",
-                lookup: {
-                  type: "map",
-                  map: {
-                    "0": "false",
-                    "1": "true",
-                    "false": "false",
-                    "true": "true"
-                  }
-                },
-                injective: false
-              }
-            },
-            inflater: simpleInflater
-          };
-        }
-
         return {
-          dimension: { type: "default", dimension: referenceName, outputName: label },
+          dimension,
           inflater: simpleInflater
         };
       }
 
       if (splitExpression.type === 'BOOLEAN') {
         return {
-          dimension: {
-            type: "extraction",
-            dimension: referenceName,
-            outputName: label,
-            extractionFn: {
-              type: "javascript",
-              'function': splitExpression.getJSFn('d')
-            }
-          },
+          dimension,
           inflater: simpleInflater
         };
       }
@@ -795,16 +928,8 @@ return (start < 0 ?'-':'') + parts.join('.');
       if (splitExpression instanceof ChainExpression) {
         if (splitExpression.getExpressionPattern('concat')) {
           return {
-            dimension: {
-              type: "extraction",
-              dimension: referenceName,
-              outputName: label,
-              extractionFn: {
-                type: "javascript",
-                'function': splitExpression.getJSFn('d'),
-                injective: true
-              }
-            }
+            dimension,
+            inflater: simpleInflater
           };
         }
 
@@ -817,15 +942,8 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         if (splitAction instanceof SubstrAction) {
           return {
-            dimension: {
-              type: "extraction",
-              dimension: referenceName,
-              outputName: label,
-              extractionFn: {
-                type: "javascript",
-                'function': splitExpression.getJSFn('d')
-              }
-            }
+            dimension,
+            inflater: simpleInflater
           };
         }
 
@@ -833,17 +951,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           var format = TIME_BUCKET_FORMAT[splitAction.duration.toString()];
           if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration.toString()}`);
           return {
-            dimension: {
-              type: "extraction",
-              dimension: referenceName === this.timeAttribute ? '__time' : referenceName,
-              outputName: label,
-              extractionFn: {
-                type: "timeFormat",
-                format: format,
-                timeZone: splitAction.timezone.toString(),
-                locale: "en-US"
-              }
-            },
+            dimension,
             inflater: External.timeRangeInflaterFactory(label, splitAction.duration, splitAction.timezone)
           };
         }
@@ -852,17 +960,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           var format = TIME_PART_TO_FORMAT[splitAction.part];
           if (!format) throw new Error(`unsupported part in timePart expression ${splitAction.part}`);
           return {
-            dimension: {
-              type: "extraction",
-              dimension: referenceName === this.timeAttribute ? '__time' : referenceName,
-              outputName: label,
-              extractionFn: {
-                type: "timeFormat",
-                format: format,
-                timeZone: splitAction.timezone.toString(),
-                locale: "en-US"
-              }
-            },
+            dimension,
             inflater: simpleMathInflaterFactory(label)
           };
         }
@@ -872,36 +970,16 @@ return (start < 0 ?'-':'') + parts.join('.');
           if (attributeInfo.type === 'NUMBER') {
             var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
             return {
-              dimension: {
-                type: "extraction",
-                dimension: referenceName,
-                outputName: label,
-                extractionFn: {
-                  type: "javascript",
-                  'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
-                }
-              },
+              dimension,
               inflater: External.numberRangeInflaterFactory(label, splitAction.size)
             };
           }
 
           if (attributeInfo instanceof RangeAttributeInfo) {
             return {
-              dimension: {
-                type: "extraction",
-                dimension: referenceName,
-                outputName: label,
-                extractionFn: this.getRangeBucketingDimension(<RangeAttributeInfo>attributeInfo, splitAction)
-              },
+              dimension,
               inflater: External.numberRangeInflaterFactory(label, splitAction.size)
             }
-          }
-
-          if (attributeInfo instanceof HistogramAttributeInfo) {
-            if (this.exactResultsOnly) {
-              throw new Error("can not use approximate histograms in exactResultsOnly mode");
-            }
-            throw new Error("histogram splits do not work right now");
           }
 
         }

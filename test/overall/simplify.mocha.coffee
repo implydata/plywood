@@ -279,9 +279,14 @@ describe "Simplify", ->
         value: true
       })
 
-    it 'swaps literal', ->
+    it 'swaps yoda literal (with ref)', ->
       ex1 = r("Honda").is('$x')
       ex2 = $('x').is('Honda')
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'swaps yoda literal (with complex)', ->
+      ex1 = r("Dhello").is($('color').concat(r('hello')))
+      ex2 = $('color').concat(r('hello')).is(r("Dhello"))
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 

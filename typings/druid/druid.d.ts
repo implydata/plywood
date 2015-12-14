@@ -1,4 +1,4 @@
-// Type definitions for druid.io (version 0.8.0)
+// Type definitions for druid.io (version 0.8.2)
 // Project: http://druid.io/
 // Definitions by: Vadim Ogievetsky <https://github.com/vogievetsky/>
 // Definitions: https://github.com/implyio/druid.d.ts
@@ -17,6 +17,7 @@ declare module Druid {
         populateCache?: boolean;
         bySegment?: boolean;
         finalize?: boolean;
+        chunkPeriod?: number;
 
         // Undocumented:
         doAggregateTopNMetricFirst?: boolean;
@@ -49,6 +50,14 @@ declare module Druid {
         // Specific to type: "selector"
         value?: string;
 
+        // Specific to type: "in"
+        values?: string[];
+
+        // Specific to type: "between"
+        lower?: number | string;
+        upper?: number | string;
+        numerically?: boolean;
+
         // Specific to type: "regex"
         pattern?: string;
 
@@ -60,6 +69,9 @@ declare module Druid {
 
         // Specific to type: "spatial"
         bound?: SpatialBound;
+
+        // Specific to type: "extraction"
+        extractionFn?: ExtractionFn;
 
         // Specific to type: "not"
         field?: Filter;
@@ -211,6 +223,10 @@ declare module Druid {
         // Specific to type: "javascript"
         "function"?: string;
         injective?: boolean;
+
+        // Specific to type: "substring"
+        index?: number;
+        length?: number;
 
         // Specific to type: "timeFormat"
         format?: string;

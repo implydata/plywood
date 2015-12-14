@@ -39,6 +39,17 @@ describe "External", ->
   it "passes higher object tests", ->
     testImmutableClass(External, [
       {
+        engine: 'mysql',
+        table: 'diamonds',
+        attributes: [
+          { name: 'time', type: 'TIME' }
+          { name: 'color', type: 'STRING' }
+          { name: 'cut', type: 'STRING' }
+          { name: 'tags', type: 'SET/STRING' }
+        ]
+      }
+
+      {
         engine: 'druid',
         dataSource: 'moon_child',
         timeAttribute: 'time',
@@ -49,6 +60,7 @@ describe "External", ->
           { name: 'carat', type: 'STRING' }
           { name: 'price', type: 'NUMBER', filterable: false, splitable: false }
         ]
+        druidVersion: '0.8.1'
       }
 
       {
@@ -58,7 +70,10 @@ describe "External", ->
         allowEternity: true,
         allowSelectQueries: true,
         exactResultsOnly: true,
-        context: null
+        context: {
+          timeout: 10000
+        }
+        druidVersion: '0.9.0'
       }
 
       {
@@ -71,6 +86,7 @@ describe "External", ->
           { name: 'cut', type: 'STRING' }
           { name: 'unique', type: "STRING", special: 'unique' }
         ]
+        druidVersion: '0.8.0'
       }
     ], {
       newThrows: true
@@ -84,13 +100,28 @@ describe "External", ->
         dataSource: 'wiki',
         timeAttribute: 'time',
         context: null,
+        druidVersion: '0.8.2',
         hasOwnProperty: 'troll'
       }).toJS()).to.deep.equal({
         engine: 'druid',
         dataSource: 'wiki',
         timeAttribute: 'time',
+        druidVersion: '0.8.2',
         context: null
       })
+
+
+  describe "fails on version too low", ->
+    it "survives", ->
+      expect(->
+        External.fromJS({
+          engine: 'druid',
+          dataSource: 'wiki',
+          timeAttribute: 'time',
+          druidVersion: '0.7.3',
+          hasOwnProperty: 'troll'
+        })
+      ).to.throw('only druidVersions >= 0.8.0 are supported')
 
 
   describe "#updateAttribute", ->

@@ -86,10 +86,22 @@ function multiMerge<T>(elements: T[], mergeFn: (a: T, b: T) => T): T[] {
 }
 
 function arraysEqual<T>(a: Array<T>, b: Array<T>): boolean {
+  if (a === b) return true;
   var length = a.length;
   if (length !== b.length) return false;
   for (var i = 0; i < length; i++) {
     if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+function dictEqual(dictA: Lookup<any>, dictB: Lookup<any>): boolean {
+  if (dictA === dictB) return true;
+  if (!dictA !== !dictB) return false;
+  var keys = Object.keys(dictA);
+  if (keys.length !== Object.keys(dictB).length) return false;
+  for (var key of keys) {
+    if (dictA[key] !== dictB[key]) return false;
   }
   return true;
 }
