@@ -18,11 +18,27 @@ ex.compute({ x: 10 }).then(console.log); // => 10
 
 **r**(*value*)
 
-Will create a literal value expression out of the givven value.
+Will create a literal value expression out of the given value.
 
 ```javascript
 var ex = r('$x');
 ex.compute().then(console.log); // => '$x'
+```
+
+There are a number of basic literal expressions that are provided as static members on the `Expression` class.
+
+```javascript
+Expression.NULL.equals(r(null));
+
+Expression.ZERO.equals(r(0));
+
+Expression.ONE.equals(r(1));
+
+Expression.FALSE.equals(r(false));
+
+Expression.TRUE.equals(r(true));
+
+Expression.EMPTY_STRING.equals(r(''));
 ```
 
 
@@ -70,108 +86,201 @@ ex.compute({ x: 10 }).then(console.log); // => -10
 
 *operand*.**multiply**(...exs: any[])
     
-Blah 
+Multiplies the operator by the arguments.
+Writing `$('x').multiply(3)` is the same as parsing `$x * 3`
+
+```javascript
+var ex = $('x').multiply('$y', 3);
+ex.compute({ x: 10, y: 2 }).then(console.log); // => 60
+```
     
 *operand*.**divide**(...exs: any[])
 
-Blah
+Divides the operator by the arguments.
+Writing `$('x').divide(3)` is the same as parsing `$x / 3`
+
+```javascript
+var ex = $('x').divide('$y');
+ex.compute({ x: 10, y: 2 }).then(console.log); // => 5
+```
 
 *operand*.**reciprocate**()
 
-Blah
+Reciprocates the operand.
+Writing `$('x').reciprocate()` is the same as parsing `1 / $x`
+    
+```javascript
+var ex = $('x').reciprocate();
+ex.compute({ x: 10 }).then(console.log); // => 0.1
+```
 
 
 ## Boolean predicates
 
 *operand*.**is**(ex: any)
 
-Blah
+Checks that the operand and the given expression are equal.
+Writing `$('x').is(5)` is the same as parsing `$x == 5`
 
 ```javascript
 var ex = $('x').is(5);
+ex.compute({ x: 10 }).then(console.log); // => false
 ```
 
 *operand*.**isnt**(ex: any)
 
-Blah
+Checks that the operand and the given expression are not equal.
+Writing `$('x').isnt(5)` is the same as parsing `$x != 5`
 
 ```javascript
-var ex = $('x').is(5);
+var ex = $('x').isnt(5);
+ex.compute({ x: 10 }).then(console.log); // => true
 ```
 
 *operand*.**lessThan**(ex: any)
 
-Blah
+Checks that the operand is less than the given expression.
+Writing `$('x').lessThan(5)` is the same as parsing `$x < 5`
 
 ```javascript
-var ex = $('x').is(5);
+var ex = $('x').lessThan(5);
+ex.compute({ x: 10 }).then(console.log); // => false
 ```
 
 *operand*.**lessThanOrEqual**(ex: any)
 
-Blah
+Checks that the operand is less than or equal the given expression.
+Writing `$('x').lessThanOrEqual(5)` is the same as parsing `$x <= 5`
 
 ```javascript
-var ex = $('x').is(5);
+var ex = $('x').lessThanOrEqual(5);
+ex.compute({ x: 10 }).then(console.log); // => false
 ```
 
 *operand*.**greaterThan**(ex: any)
 
-Blah
+Checks that the operand is greater than the given expression.
+Writing `$('x').greaterThan(5)` is the same as parsing `$x > 5`
 
 ```javascript
-var ex = $('x').is(5);
+var ex = $('x').greaterThan(5);
+ex.compute({ x: 10 }).then(console.log); // => true
 ```
 
 *operand*.**greaterThanOrEqual**(ex: any)
 
-Blah
+Checks that the operand is greater than the given expression.
+Writing `$('x').greaterThanOrEqual(5)` is the same as parsing `$x >= 5`
 
 ```javascript
-var ex = $('x').is(5);
+var ex = $('x').greaterThanOrEqual(5);
+ex.compute({ x: 10 }).then(console.log); // => true
 ```
 
 *operand*.**contains**(ex: any, compare?: string)
 
-Blah
-
+Checks whether the operand contains the given expression.
+An optional argument specifying weather the check should be case sensitive is provided. 
+ 
 ```javascript
-var ex = $('x').is(5);
+var ex = $('str').contains('ello');
+ex.compute({ str: 'Hello World' }).then(console.log); // => true
 ```
 
 *operand*.**match**(re: string)
 
-Blah
-
+Checks whether the operand matches the given RegExp that is provided as a string.
+  
 ```javascript
-var ex = $('x').is(5);
+var ex = $('str').match('^Hell.*d$');
+ex.compute({ str: 'Hello World' }).then(console.log); // => true
 ```
 
 *operand*.**in**(ex: any)
 
-Blah
+Checks whether the operand is in the provided set.
 
 ```javascript
-var ex = $('x').is(5);
+var ex = $('x').in([5, 8]);
+ex.compute({ x: 10 }).then(console.log); // => false
+
+var ex = $('str').in(['hello', 'world']);
+ex.compute({ str: 'hello' }).then(console.log); // => true
 ```
 
 *operand*.**not**()
 
-Blah
+Inverts the truth value of the operand.
+Writing `$('x').not()` is the same as parsing `not $x`
 
 ```javascript
-var ex = $('x').is(5);
+var ex = $('x').not();
+ex.compute({ x: true }).then(console.log); // => false
 ```
 
 *operand*.**and**(...exs: any[])
 
+Performs a boolean AND operation on the operand and the given expressions.
+Writing `$('x').and($('y'))` is the same as parsing `$x and $y`
+
+```javascript
+var ex = $('x').and($('y'));
+ex.compute({ x: true, y: false }).then(console.log); // => false
+```
+
+*operand*.**or**(...exs: any[])
+
+Performs a boolean OR operation on the operand and the given expressions.
+Writing `$('x').or($('y'))` is the same as parsing `$x or $y`
+
+```javascript
+var ex = $('x').or($('y'));
+ex.compute({ x: true, y: false }).then(console.log); // => true
+```
+
+
+## String manipulation
+
+*operand*.**substr**(position: number, length: number)
+
+Extracts the substring from the operand.
+
+```javascript
+var ex = $('str').substr(1, 5);
+ex.compute({ str: 'Hello World' }).then(console.log); // => 'ello '
+```
+
+*operand*.**concat**(...exs: any[])
+
+Performs a string concatenation operation on the operand and the given expressions.
+Writing `$('str').concat(r('hello'))` is the same as parsing `$str ++ 'hello'`
+
+```javascript
+var ex = r('[').concat($('str'), r(']'));
+ex.compute({ str: 'Hello World' }).then(console.log); // => '[Hello World]'
+```
+
+
+## Bucketing
+
+*operand*.**numberBucket**(size: number, offset: number = 0)
+
+Buckets the numeric operand to buckets defined by the `size` and `offset`.
+
+```javascript
+var ex = $('x').numberBucket(5);
+ex.compute({ x: 7 }).then(console.log); // => [5, 10)
+```
+
+*operand*.**timeBucket**(duration: any, timezone: any = Timezone.UTC)
+
 Blah
 
 ```javascript
 var ex = $('x').is(5);
 ```
 
-*operand*.**or**(...exs: any[])
+*operand*.**timePart**(part: string, timezone: any)
 
 Blah
 

@@ -65,10 +65,10 @@ Name                    | Description
 <                       | Less than operator
 BETWEEN ... AND ...     | Check whether a value is within a range of values
 NOT BETWEEN ... AND ... | Check whether a value is not within a range of values
-LIKE, CONTAINS          | Simple pattern matching *
-NOT LIKE, CONTAINS      | Negation of simple pattern matching *
-REGEXP                  | Pattern matching using regular expressions *
-NOT REGEXP              | Negation of REGEXP *
+LIKE, CONTAINS          | Simple pattern matching
+NOT LIKE, CONTAINS      | Negation of simple pattern matching
+REGEXP                  | Pattern matching using regular expressions
+NOT REGEXP              | Negation of REGEXP
 NOT, !                  | Negates value
 AND                     | Logical AND
 OR                      | Logical OR
