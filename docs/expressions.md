@@ -370,6 +370,7 @@ Dataset.fromJS([
 
 Sort the operand dataset according to the given expression.
 
+```javascript
 var ex = $('data').sort('$price', 'ascending');
 ex.compute({ data: someDataset }).then(console.log);
 // =>
@@ -386,6 +387,7 @@ Dataset.fromJS([
 
 Limit the operand dataset to the given positive integer.
 
+```javascript
 var ex = $('data').limit(3);
 ex.compute({ data: someDataset }).then(console.log);
 // =>
@@ -394,6 +396,7 @@ Dataset.fromJS([
   { cut: 'Good',  price: 300, DoublePrice: 600, time: new Date('2015-10-02T10:20:30Z') },
   { cut: 'Great', price: 124, DoublePrice: 248, time: null }
 ])
+```
 
 ## Aggregate expressions
 
