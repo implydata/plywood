@@ -6,10 +6,10 @@ Expressions can be expressed as JSON or composed via the provided operands.
 ## Creating expressions
 
 There are many ways of creating expressions to account for all the different ways in which Plywood can be used.
- 
+
 **$**(*name*)
 
-Will create a reference expression that refers to the given name. 
+Will create a reference expression that refers to the given name.
 
 ```javascript
 var ex = $('x');
@@ -51,8 +51,8 @@ All of the functions below operate on an expression and produce an expression in
 
 Perform a specific action on an expression
 
- 
-### Basic arithmetic 
+
+### Basic arithmetic
 
 *operand*.**add**(...exs: any[])
 
@@ -68,24 +68,24 @@ ex.compute({ x: 10, y: 2 }).then(console.log); // => 13
 
 Subtracts the arguments from the operand.
 Writing `$('x').subtract(1)` is the same as parsing `$x - 1`
-    
+
 ```javascript
 var ex = $('x').subtract('$y', 1);
 ex.compute({ x: 10, y: 2 }).then(console.log); // => 7
 ```
 
 *operand*.**negate**()
-    
+
 Negates the operand.
 Writing `$('x').negate()` is the same as parsing `-$x`
-    
+
 ```javascript
 var ex = $('x').negate();
 ex.compute({ x: 10 }).then(console.log); // => -10
 ```
 
 *operand*.**multiply**(...exs: any[])
-    
+
 Multiplies the operator by the arguments.
 Writing `$('x').multiply(3)` is the same as parsing `$x * 3`
 
@@ -93,7 +93,7 @@ Writing `$('x').multiply(3)` is the same as parsing `$x * 3`
 var ex = $('x').multiply('$y', 3);
 ex.compute({ x: 10, y: 2 }).then(console.log); // => 60
 ```
-    
+
 *operand*.**divide**(...exs: any[])
 
 Divides the operator by the arguments.
@@ -108,7 +108,7 @@ ex.compute({ x: 10, y: 2 }).then(console.log); // => 5
 
 Reciprocates the operand.
 Writing `$('x').reciprocate()` is the same as parsing `1 / $x`
-    
+
 ```javascript
 var ex = $('x').reciprocate();
 ex.compute({ x: 10 }).then(console.log); // => 0.1
@@ -180,8 +180,8 @@ ex.compute({ x: 10 }).then(console.log); // => true
 *operand*.**contains**(ex: any, compare?: string)
 
 Checks whether the operand contains the given expression.
-An optional argument specifying weather the check should be case sensitive is provided. 
- 
+An optional argument specifying weather the check should be case sensitive is provided.
+
 ```javascript
 var ex = $('str').contains('ello');
 ex.compute({ str: 'Hello World' }).then(console.log); // => true
@@ -190,7 +190,7 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => true
 *operand*.**match**(re: string)
 
 Checks whether the operand matches the given RegExp that is provided as a string.
-  
+
 ```javascript
 var ex = $('str').match('^Hell.*d$');
 ex.compute({ str: 'Hello World' }).then(console.log); // => true
@@ -289,32 +289,111 @@ var ex = $('x').is(5);
 ```
 
 
-## Split Apply Combine based transformations 
+## Split Apply Combine based transformations
+
+Let's pretend we have this simple dataset:
+
+```javascript
+var someDataset = Dataset.fromJS([
+  { cut: 'Good',  price: 400, time: new Date('2015-10-01T10:20:30Z') },
+  { cut: 'Good',  price: 300, time: new Date('2015-10-02T10:20:30Z') },
+  { cut: 'Great', price: 124, time: null },
+  { cut: 'Wow',   price: 160, time: new Date('2015-10-04T10:20:30Z') },
+  { cut: 'Wow',   price: 100, time: new Date('2015-10-05T10:20:30Z') }
+]);
+```
 
 *operand*.**filter**(ex: any)
 
 Filter the given dataset using the given boolean expression leave only the items for which the expression returned `true`.
 
+```javascript
+var ex = $('data').filter('$cut == "Good"');
+ex.compute({ data: someDataset }).then(console.log);
+// =>
+Dataset.fromJS([
+  { cut: 'Good',  price: 400, time: new Date('2015-10-01T10:20:30Z') },
+  { cut: 'Good',  price: 300, time: new Date('2015-10-02T10:20:30Z') }
+])
+```
 
 *operand*.**split**(splits: any, name?: string, dataName?: string)
 
 Split the data based on the given expression
 
+```javascript
+var ex = $('data').split('$cut', 'Cut');
+ex.compute({ data: someDataset }).then(console.log);
+// =>
+Dataset.fromJS([
+  {
+    Cut: 'Good',
+    data: [
+      { cut: 'Good',  price: 400, time: new Date('2015-10-01T10:20:30Z') },
+      { cut: 'Good',  price: 300, time: new Date('2015-10-02T10:20:30Z') }
+    ]
+  },
+  {
+    Cut: 'Great',
+    data: [
+      { cut: 'Great', price: 124, time: null }
+    ]
+  },
+  {
+    Cut: 'Wow',
+    data: [
+      { cut: 'Wow',   price: 160, time: new Date('2015-10-04T10:20:30Z') },
+      { cut: 'Wow',   price: 100, time: new Date('2015-10-05T10:20:30Z') }
+    ]
+  }
+])
+```
 
 *operand*.**apply**(name: string, ex: any)
 
 Apply the given expression to every datum in the dataset saving the result as `name`.
 
+```javascript
+var ex = $('data').apply('DoublePrice', '$price * 2');
+ex.compute({ data: someDataset }).then(console.log);
+// =>
+Dataset.fromJS([
+  { cut: 'Good',  price: 400, DoublePrice: 800, time: new Date('2015-10-01T10:20:30Z') },
+  { cut: 'Good',  price: 300, DoublePrice: 600, time: new Date('2015-10-02T10:20:30Z') },
+  { cut: 'Great', price: 124, DoublePrice: 248, time: null },
+  { cut: 'Wow',   price: 160, DoublePrice: 320, time: new Date('2015-10-04T10:20:30Z') },
+  { cut: 'Wow',   price: 100, DoublePrice: 200, time: new Date('2015-10-05T10:20:30Z') }
+])
+```
 
 *operand*.**sort**(ex: any, direction: string)
 
 Sort the operand dataset according to the given expression.
 
+var ex = $('data').sort('$price', 'ascending');
+ex.compute({ data: someDataset }).then(console.log);
+// =>
+Dataset.fromJS([
+  { cut: 'Wow',   price: 100, time: new Date('2015-10-05T10:20:30Z') },
+  { cut: 'Great', price: 124, time: null },
+  { cut: 'Wow',   price: 160, time: new Date('2015-10-04T10:20:30Z') },
+  { cut: 'Good',  price: 300, time: new Date('2015-10-02T10:20:30Z') },
+  { cut: 'Good',  price: 400, time: new Date('2015-10-01T10:20:30Z') }
+])
+```
 
 *operand*.**limit**(limit: int)
 
 Limit the operand dataset to the given positive integer.
 
+var ex = $('data').limit(3);
+ex.compute({ data: someDataset }).then(console.log);
+// =>
+Dataset.fromJS([
+  { cut: 'Good',  price: 400, DoublePrice: 800, time: new Date('2015-10-01T10:20:30Z') },
+  { cut: 'Good',  price: 300, DoublePrice: 600, time: new Date('2015-10-02T10:20:30Z') },
+  { cut: 'Great', price: 124, DoublePrice: 248, time: null }
+])
 
 ## Aggregate expressions
 
