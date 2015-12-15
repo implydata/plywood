@@ -727,42 +727,123 @@ module Plywood {
       });
     }
 
-    /**
-     * Evaluate some expression on every datum in the dataset. Record the result as `name`
-     * @param name The name of where to store the results
-     * @param ex The expression to evaluate
-     */
-    public apply(name: string, ex: any): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new ApplyAction({ name: getString(name), expression: ex }));
+    private _performMultiAction(action: string, exs: any[]) {
+      if (!exs.length) throw new Error(`${action} action must have at least one argument`);
+      var ret = <ChainExpression>this; // A slight type hack but it works because we know that we will go through the loop
+      for (var ex of exs) {
+        if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+        ret = ret.performAction(new Action.classMap[action]({ expression: ex }));
+      }
+      return ret;
     }
 
-    /**
-     * Filter the dataset with a boolean expression
-     * Only works on expressions that return DATASET
-     * @param ex A boolean expression to filter on
-     */
-    public filter(ex: any): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new FilterAction({ expression: ex }));
+    // Basic arithmetic
+
+    public add(...exs: any[]): ChainExpression {
+      return this._performMultiAction('add', exs);
     }
 
-    public sort(ex: any, direction: string): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new SortAction({ expression: ex, direction: getString(direction) }));
+    public subtract(...exs: any[]): ChainExpression {
+      return this._performMultiAction('subtract', exs);
     }
 
-    public limit(limit: int): ChainExpression {
-      return this.performAction(new LimitAction({ limit: limit }));
+    public negate(): ChainExpression {
+      return Expression.ZERO.subtract(this);
+    }
+
+    public multiply(...exs: any[]): ChainExpression {
+      return this._performMultiAction('multiply', exs);
+    }
+
+    public divide(...exs: any[]): ChainExpression {
+      return this._performMultiAction('divide', exs);
+    }
+
+    public reciprocate(): ChainExpression {
+      return Expression.ONE.divide(this);
+    }
+
+    // Boolean predicates
+
+    public is(ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new IsAction({ expression: ex }));
+    }
+
+    public isnt(ex: any): ChainExpression {
+      return this.is(ex).not();
+    }
+
+    public lessThan(ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new LessThanAction({ expression: ex }));
+    }
+
+    public lessThanOrEqual(ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new LessThanOrEqualAction({ expression: ex }));
+    }
+
+    public greaterThan(ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new GreaterThanAction({ expression: ex }));
+    }
+
+    public greaterThanOrEqual(ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new GreaterThanOrEqualAction({ expression: ex }));
+    }
+
+    public contains(ex: any, compare?: string): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      if (compare) compare = getString(compare);
+      return this.performAction(new ContainsAction({ expression: ex, compare }));
+    }
+
+    public match(re: string): ChainExpression {
+      return this.performAction(new MatchAction({ regexp: re }));
+    }
+
+    public in(start: Date, end: Date): ChainExpression;
+    public in(start: number, end: number): ChainExpression;
+    public in(ex: any): ChainExpression;
+    public in(ex: any, snd?: any): ChainExpression {
+      if (arguments.length === 2) {
+        if (typeof ex === 'number' && typeof snd === 'number') {
+          ex = new NumberRange({ start: ex, end: snd });
+        } else if (ex.toISOString && snd.toISOString) {
+          ex = new TimeRange({ start: ex, end: snd });
+        } else {
+          throw new Error('uninterpretable IN parameters');
+        }
+      }
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new InAction({ expression: ex }));
     }
 
     public not(): ChainExpression {
       return this.performAction(new NotAction({}));
     }
 
-    public match(re: string): ChainExpression {
-      return this.performAction(new MatchAction({ regexp: re }));
+    public and(...exs: any[]): ChainExpression {
+      return this._performMultiAction('and', exs);
     }
+
+    public or(...exs: any[]): ChainExpression {
+      return this._performMultiAction('or', exs);
+    }
+
+    // String manipulation
+
+    public substr(position: number, length: number): ChainExpression {
+      return this.performAction(new SubstrAction({ position: position, length: length }));
+    }
+
+    public concat(...exs: any[]): ChainExpression {
+      return this._performMultiAction('concat', exs);
+    }
+
+    // Bucketing
 
     public numberBucket(size: number, offset: number = 0): ChainExpression {
       return this.performAction(new NumberBucketAction({ size: size, offset: offset }));
@@ -774,20 +855,75 @@ module Plywood {
       return this.performAction(new TimeBucketAction({ duration: duration, timezone: timezone }));
     }
 
+    public timePart(part: string, timezone: any): ChainExpression {
+      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+      return this.performAction(new TimePartAction({ part: getString(part), timezone: timezone }));
+    }
+
     public timeOffset(duration: any, timezone: any): ChainExpression {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
       if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
       return this.performAction(new TimeOffsetAction({ duration: duration, timezone: timezone }));
     }
 
-    public timePart(part: string, timezone: any): ChainExpression {
-      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-      return this.performAction(new TimePartAction({ part: getString(part), timezone: timezone }));
+    // Split Apply Combine based transformations
+
+    /**
+     * Filter the dataset with a boolean expression
+     * Only works on expressions that return DATASET
+     * @param ex A boolean expression to filter on
+     */
+    public filter(ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new FilterAction({ expression: ex }));
     }
 
-    public substr(position: number, length: number): ChainExpression {
-      return this.performAction(new SubstrAction({ position: position, length: length }));
+    public split(splits: any, dataName?: string): ChainExpression;
+    public split(ex: any, name: string, dataName?: string): ChainExpression;
+    public split(splits: any, name?: string, dataName?: string): ChainExpression {
+      // Determine if use case #2
+      if (arguments.length === 3 ||
+        (arguments.length === 2 && splits && (typeof splits === 'string' || typeof splits.op === 'string'))) {
+        name = getString(name);
+        var realSplits = Object.create(null);
+        realSplits[name] = splits;
+        splits = realSplits;
+      } else {
+        dataName = name;
+      }
+
+      var parsedSplits: Splits = Object.create(null);
+      for (var k in splits) {
+        if (!hasOwnProperty(splits, k)) continue;
+        var ex = splits[k];
+        parsedSplits[k] = Expression.isExpression(ex) ? ex : Expression.fromJSLoose(ex);
+      }
+
+      dataName = dataName ? getString(dataName) : getDataName(this);
+      if (!dataName) throw new Error("could not guess data name in `split`, please provide one explicitly");
+      return this.performAction(new SplitAction({ splits: parsedSplits, dataName: dataName }));
     }
+
+    /**
+     * Evaluate some expression on every datum in the dataset. Record the result as `name`
+     * @param name The name of where to store the results
+     * @param ex The expression to evaluate
+     */
+    public apply(name: string, ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new ApplyAction({ name: getString(name), expression: ex }));
+    }
+
+    public sort(ex: any, direction: string): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new SortAction({ expression: ex, direction: getString(direction) }));
+    }
+
+    public limit(limit: int): ChainExpression {
+      return this.performAction(new LimitAction({ limit: limit }));
+    }
+
+    // Aggregate expressions
 
     public count(): ChainExpression {
       return this.performAction(new CountAction({}));
@@ -827,83 +963,7 @@ module Plywood {
       return this.performAction(new CustomAction({ custom: getString(custom) }));
     }
 
-    public split(splits: any, dataName?: string): ChainExpression;
-    public split(ex: any, name: string, dataName?: string): ChainExpression;
-    public split(splits: any, name?: string, dataName?: string): ChainExpression {
-      // Determine if use case #2
-      if (arguments.length === 3 ||
-        (arguments.length === 2 && splits && (typeof splits === 'string' || typeof splits.op === 'string'))) {
-        name = getString(name);
-        var realSplits = Object.create(null);
-        realSplits[name] = splits;
-        splits = realSplits;
-      } else {
-        dataName = name;
-      }
-
-      var parsedSplits: Splits = Object.create(null);
-      for (var k in splits) {
-        if (!hasOwnProperty(splits, k)) continue;
-        var ex = splits[k];
-        parsedSplits[k] = Expression.isExpression(ex) ? ex : Expression.fromJSLoose(ex);
-      }
-
-      dataName = dataName ? getString(dataName) : getDataName(this);
-      if (!dataName) throw new Error("could not guess data name in `split`, please provide one explicitly");
-      return this.performAction(new SplitAction({ splits: parsedSplits, dataName: dataName }));
-    }
-
-    public is(ex: any): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new IsAction({ expression: ex }));
-    }
-
-    public isnt(ex: any): ChainExpression {
-      return this.is(ex).not();
-    }
-
-    public lessThan(ex: any): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new LessThanAction({ expression: ex }));
-    }
-
-    public lessThanOrEqual(ex: any): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new LessThanOrEqualAction({ expression: ex }));
-    }
-
-    public greaterThan(ex: any): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new GreaterThanAction({ expression: ex }));
-    }
-
-    public greaterThanOrEqual(ex: any): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new GreaterThanOrEqualAction({ expression: ex }));
-    }
-
-    public contains(ex: any, compare?: string): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      if (compare) compare = getString(compare);
-      return this.performAction(new ContainsAction({ expression: ex, compare }));
-    }
-
-    public in(start: Date, end: Date): ChainExpression;
-    public in(start: number, end: number): ChainExpression;
-    public in(ex: any): ChainExpression;
-    public in(ex: any, snd?: any): ChainExpression {
-      if (arguments.length === 2) {
-        if (typeof ex === 'number' && typeof snd === 'number') {
-          ex = new NumberRange({ start: ex, end: snd });
-        } else if (ex.toISOString && snd.toISOString) {
-          ex = new TimeRange({ start: ex, end: snd });
-        } else {
-          throw new Error('uninterpretable IN parameters');
-        }
-      }
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new InAction({ expression: ex }));
-    }
+    // Undocumented (for now)
 
     public join(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
@@ -915,52 +975,6 @@ module Plywood {
         selector,
         prop
       }));
-    }
-
-    private _performMultiAction(action: string, exs: any[]) {
-      if (!exs.length) throw new Error(`${action} action must have at least one argument`);
-      var ret = <ChainExpression>this; // A slight type hack but it works because we know that we will go through the loop
-      for (var ex of exs) {
-        if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-        ret = ret.performAction(new Action.classMap[action]({ expression: ex }));
-      }
-      return ret;
-    }
-
-    public add(...exs: any[]): ChainExpression {
-      return this._performMultiAction('add', exs);
-    }
-
-    public subtract(...exs: any[]): ChainExpression {
-      return this._performMultiAction('subtract', exs);
-    }
-
-    public negate(): ChainExpression {
-      return Expression.ZERO.subtract(this);
-    }
-
-    public multiply(...exs: any[]): ChainExpression {
-      return this._performMultiAction('multiply', exs);
-    }
-
-    public divide(...exs: any[]): ChainExpression {
-      return this._performMultiAction('divide', exs);
-    }
-
-    public reciprocate(): ChainExpression {
-      return Expression.ONE.divide(this);
-    }
-
-    public and(...exs: any[]): ChainExpression {
-      return this._performMultiAction('and', exs);
-    }
-
-    public or(...exs: any[]): ChainExpression {
-      return this._performMultiAction('or', exs);
-    }
-
-    public concat(...exs: any[]): ChainExpression {
-      return this._performMultiAction('concat', exs);
     }
 
     /**
