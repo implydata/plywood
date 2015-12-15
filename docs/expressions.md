@@ -6,27 +6,39 @@ Expressions can be expressed as JSON or composed via the provided operands.
 ## Creating expressions
 
 There are many ways of creating expressions to account for all the different ways in which Plywood can be used.
-
-- Calling the basic functions provided by Plywood.
-- 
-
+ 
 **$**(*name*)
 
-Will create a reference expression to name
+Will create a reference expression that refers to the given name. 
+
+```javascript
+var ex = $('x');
+ex.compute({ x: 10 }).then(console.log); // => 10
+```
+
+**r**(*value*)
+
+Will create a literal value expression out of the givven value.
+
+```javascript
+var ex = r('$x');
+ex.compute().then(console.log); // => '$x'
+```
+
 
 ## Composing expressions
 
 Expressions are designed to be composed by method chaining.
 All of the functions below operate on an expression and produce an expression in turn.
 
-**performAction**(action: Action, markSimple?: boolean)
+*operand*.**performAction**(action: Action, markSimple?: boolean)
 
 Perform a specific action on an expression
 
  
 ### Basic arithmetic 
 
-**add**(...exs: any[])
+*operand*.**add**(...exs: any[])
 
 Adds the arguments to the operand.
 Writing `$('x').add(1)` is the same as parsing `$x + 1`
@@ -36,7 +48,7 @@ var ex = $('x').add('$y', 1);
 ex.compute({ x: 10, y: 2 }).then(console.log); // => 13
 ```
 
-**subtract**(...exs: any[])
+*operand*.**subtract**(...exs: any[])
 
 Subtracts the arguments from the operand.
 Writing `$('x').subtract(1)` is the same as parsing `$x - 1`
@@ -46,7 +58,7 @@ var ex = $('x').subtract('$y', 1);
 ex.compute({ x: 10, y: 2 }).then(console.log); // => 7
 ```
 
-**negate**()
+*operand*.**negate**()
     
 Negates the operand.
 Writing `$('x').negate()` is the same as parsing `-$x`
@@ -56,22 +68,22 @@ var ex = $('x').negate();
 ex.compute({ x: 10 }).then(console.log); // => -10
 ```
 
-**multiply**(...exs: any[])
+*operand*.**multiply**(...exs: any[])
     
 Blah 
     
-**divide**(...exs: any[])
+*operand*.**divide**(...exs: any[])
 
 Blah
 
-**reciprocate**()
+*operand*.**reciprocate**()
 
 Blah
 
 
 ## Boolean predicates
 
-**is**(ex: any)
+*operand*.**is**(ex: any)
 
 Blah
 
@@ -79,7 +91,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**isnt**(ex: any)
+*operand*.**isnt**(ex: any)
 
 Blah
 
@@ -87,7 +99,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**lessThan**(ex: any)
+*operand*.**lessThan**(ex: any)
 
 Blah
 
@@ -95,7 +107,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**lessThanOrEqual**(ex: any)
+*operand*.**lessThanOrEqual**(ex: any)
 
 Blah
 
@@ -103,7 +115,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**greaterThan**(ex: any)
+*operand*.**greaterThan**(ex: any)
 
 Blah
 
@@ -111,7 +123,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**greaterThanOrEqual**(ex: any)
+*operand*.**greaterThanOrEqual**(ex: any)
 
 Blah
 
@@ -119,7 +131,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**contains**(ex: any, compare?: string)
+*operand*.**contains**(ex: any, compare?: string)
 
 Blah
 
@@ -127,7 +139,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**match**(re: string)
+*operand*.**match**(re: string)
 
 Blah
 
@@ -135,7 +147,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**in**(ex: any)
+*operand*.**in**(ex: any)
 
 Blah
 
@@ -143,7 +155,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**not**()
+*operand*.**not**()
 
 Blah
 
@@ -151,7 +163,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**and**(...exs: any[])
+*operand*.**and**(...exs: any[])
 
 Blah
 
@@ -159,7 +171,7 @@ Blah
 var ex = $('x').is(5);
 ```
 
-**or**(...exs: any[])
+*operand*.**or**(...exs: any[])
 
 Blah
 
@@ -170,34 +182,34 @@ var ex = $('x').is(5);
 
 ## Split Apply Combine based transformations 
 
-**filter**(ex: any)
+*operand*.**filter**(ex: any)
 
 Filter the given dataset using the given boolean expression leave only the items for which the expression returned `true`.
 
 
-**split**(splits: any, name?: string, dataName?: string)
+*operand*.**split**(splits: any, name?: string, dataName?: string)
 
 Split the data based on the given expression
 
 
-**apply**(name: string, ex: any)
+*operand*.**apply**(name: string, ex: any)
 
 Apply the given expression to every datum in the dataset saving the result as `name`.
 
 
-**sort**(ex: any, direction: string)
+*operand*.**sort**(ex: any, direction: string)
 
 Sort the operand dataset according to the given expression.
 
 
-**limit**(limit: int)
+*operand*.**limit**(limit: int)
 
 Limit the operand dataset to the given positive integer.
 
 
 ## Aggregate expressions
 
-**count**()
+*operand*.**count**()
 
 Counts the datums in the operand dataset
 
@@ -206,7 +218,7 @@ var ex = $('data').count();
 ex.compute({ data: someDataset }).then(console.log); // 5
 ```
 
-**sum**(ex: any)
+*operand*.**sum**(ex: any)
 
 Counts the datums in the operand dataset
 
@@ -215,7 +227,7 @@ var ex = $('data').count();
 ex.compute({ data: someDataset }).then(console.log); // 5
 ```
 
-**min**(ex: any)
+*operand*.**min**(ex: any)
 
 Counts the datums in the operand dataset
 
@@ -224,7 +236,7 @@ var ex = $('data').count();
 ex.compute({ data: someDataset }).then(console.log); // 5
 ```
 
-**max**(ex: any)
+*operand*.**max**(ex: any)
 
 Counts the datums in the operand dataset
 
@@ -233,7 +245,7 @@ var ex = $('data').count();
 ex.compute({ data: someDataset }).then(console.log); // 5
 ```
 
-**average**(ex: any)
+*operand*.**average**(ex: any)
 
 Counts the datums in the operand dataset
 
@@ -242,7 +254,7 @@ var ex = $('data').count();
 ex.compute({ data: someDataset }).then(console.log); // 5
 ```
 
-**countDistinct**(ex: any)
+*operand*.**countDistinct**(ex: any)
 
 Counts the datums in the operand dataset
 
@@ -251,7 +263,7 @@ var ex = $('data').count();
 ex.compute({ data: someDataset }).then(console.log); // 5
 ```
 
-**quantile**(ex: any, quantile: number)
+*operand*.**quantile**(ex: any, quantile: number)
 
 Counts the datums in the operand dataset
 
@@ -260,7 +272,7 @@ var ex = $('data').count();
 ex.compute({ data: someDataset }).then(console.log); // 5
 ```
 
-**custom**(custom: string)
+*operand*.**custom**(custom: string)
 
 Counts the datums in the operand dataset
 
