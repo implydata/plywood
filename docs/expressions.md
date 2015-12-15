@@ -318,74 +318,84 @@ Limit the operand dataset to the given positive integer.
 
 ## Aggregate expressions
 
+Let's pretend we have this simple dataset:
+
+```javascript
+var someDataset = Dataset.fromJS([
+  { cut: 'Good',  price: 400, time: new Date('2015-10-01T10:20:30Z') }
+  { cut: 'Good',  price: 300, time: new Date('2015-10-02T10:20:30Z') }
+  { cut: 'Great', price: 124, time: null }
+  { cut: 'Wow',   price: 160, time: new Date('2015-10-04T10:20:30Z') }
+  { cut: 'Wow',   price: 100, time: new Date('2015-10-05T10:20:30Z') }
+]);
+```
+
 *operand*.**count**()
 
-Counts the datums in the operand dataset
+Computes the count of the datums in the operand dataset
 
 ```javascript
 var ex = $('data').count();
-ex.compute({ data: someDataset }).then(console.log); // 5
+ex.compute({ data: someDataset }).then(console.log); // => 5
 ```
 
 *operand*.**sum**(ex: any)
 
-Counts the datums in the operand dataset
+Computes the sum of the given expression in the operand dataset
 
 ```javascript
-var ex = $('data').count();
-ex.compute({ data: someDataset }).then(console.log); // 5
+var ex = $('data').sum($('price'));
+ex.compute({ data: someDataset }).then(console.log); // => 1084
 ```
 
 *operand*.**min**(ex: any)
 
-Counts the datums in the operand dataset
+Computes the min of the given expression in the operand dataset
 
 ```javascript
-var ex = $('data').count();
-ex.compute({ data: someDataset }).then(console.log); // 5
+var ex = $('data').min($('price'));
+ex.compute({ data: someDataset }).then(console.log); // => 100
 ```
 
 *operand*.**max**(ex: any)
 
-Counts the datums in the operand dataset
+Computes the max of the given expression in the operand dataset
 
 ```javascript
-var ex = $('data').count();
-ex.compute({ data: someDataset }).then(console.log); // 5
+var ex = $('data').max($('price'));
+ex.compute({ data: someDataset }).then(console.log); // => 400
 ```
 
 *operand*.**average**(ex: any)
 
-Counts the datums in the operand dataset
+Computes the average of the given expression in the operand dataset
 
 ```javascript
-var ex = $('data').count();
-ex.compute({ data: someDataset }).then(console.log); // 5
+var ex = $('data').average($('price'));
+ex.compute({ data: someDataset }).then(console.log); // => 216.8
 ```
 
 *operand*.**countDistinct**(ex: any)
 
-Counts the datums in the operand dataset
+Computes the count of the distinct items of the given expression in the operand dataset
 
 ```javascript
-var ex = $('data').count();
-ex.compute({ data: someDataset }).then(console.log); // 5
+var ex = $('data').countDistinct($('cut'));
+ex.compute({ data: someDataset }).then(console.log); // => 3
 ```
 
 *operand*.**quantile**(ex: any, quantile: number)
 
-Counts the datums in the operand dataset
+Computes the quantile of the given expression in the operand dataset
 
 ```javascript
-var ex = $('data').count();
-ex.compute({ data: someDataset }).then(console.log); // 5
+var ex = $('data').quantile($('price'), 0.95);
 ```
 
 *operand*.**custom**(custom: string)
 
-Counts the datums in the operand dataset
+Computes the custom of the given expression in the operand dataset
 
 ```javascript
-var ex = $('data').count();
-ex.compute({ data: someDataset }).then(console.log); // 5
+var ex = $('data').custom('customAggregator');
 ```

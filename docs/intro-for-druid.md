@@ -1,8 +1,6 @@
-# plywood <3 Druid
+# Plywood <3 Druid
 
-**Note this section is being written right now**
-
-This section is devoted to explaining plywood with the assumption you are coming from the Druid world.
+This section is devoted to explaining Plywood with the assumption you are coming from the Druid world.
 A familiarity with the Druid query language is expected here.
 
 There are many Druid [libraries](http://druid.io/docs/0.6.171/Libraries.html) out there but they are 1-1 wrappers of
