@@ -10,6 +10,7 @@ There are many ways of creating expressions to account for all the different way
 **$**(*name*)
 
 Will create a reference expression that refers to the given name.
+Writing `$('x')` is the same as parsing `$x`
 
 ```javascript
 var ex = $('x');

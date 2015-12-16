@@ -91,7 +91,7 @@ Plywood expressions were designed with the following ideas in mind:
 - Parsable - the plywood expression DSL is implemented in JavaScript and as a parser so: `Expression.parse('$wiki.sum($added)').equals($('wiki').sum($('added')))`  
 - Smart - expressions can perform complex internal rewriting to facilitate [query simplification](https://github.com/implydata/plywood/blob/master/test/overall/simplify.mocha.coffee).  
 
-For more information about expressions check out the API reference.
+For more information about expressions check out the [API reference](https://github.com/implydata/plywood/blob/master/docs/expressions.md).
 
 ### Externals
 

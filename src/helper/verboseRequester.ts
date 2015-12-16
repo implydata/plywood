@@ -15,35 +15,38 @@ module Plywood {
           console['log'](line);
         });
 
-      var preQuery = parameters.preQuery || ((query: any): void => {
+      var preQuery = parameters.preQuery || ((query: any, queryNumber: int): void => {
           printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
-          printLine("Sending query:");
+          printLine(`Sending query ${queryNumber}:`);
           printLine(JSON.stringify(query, null, 2));
           printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
         });
 
-      var onSuccess = parameters.onSuccess || ((data: any, time: number, query: any): void => {
+      var onSuccess = parameters.onSuccess || ((data: any, time: number, query: any, queryNumber: int): void => {
           printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
-          printLine(`Got result: (in ${time}ms)`);
+          printLine(`Got result from query ${queryNumber}: (in ${time}ms)`);
           printLine(JSON.stringify(data, null, 2));
           printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
         });
 
-      var onError = parameters.onError || ((error: Error, time: number, query: any): void => {
+      var onError = parameters.onError || ((error: Error, time: number, query: any, queryNumber: int): void => {
           printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
-          printLine(`Got error: ${error.message} (in ${time}ms)`);
+          printLine(`Got error in query ${queryNumber}: ${error.message} (in ${time}ms)`);
           printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
         });
 
+      var queryNumber: int = 0;
       return (request: Requester.DatabaseRequest<any>): Q.Promise<any> => {
-        preQuery(request.query);
+        queryNumber++;
+        var myQueryNumber = queryNumber;
+        preQuery(request.query, myQueryNumber);
         var startTime = Date.now();
         return requester(request)
           .then(data => {
-            onSuccess(data, Date.now() - startTime, request.query);
+            onSuccess(data, Date.now() - startTime, request.query, myQueryNumber);
             return data;
           }, (error) => {
-            onError(error, Date.now() - startTime, request.query);
+            onError(error, Date.now() - startTime, request.query, myQueryNumber);
             throw error;
           });
       }
