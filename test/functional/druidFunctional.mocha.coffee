@@ -30,7 +30,9 @@ describe "DruidExternal", ->
           engine: 'druid',
           dataSource: 'wikipedia',
           timeAttribute: 'time',
-          context: null
+          context: {
+            timeout: 10000
+          }
           attributes: [
             { name: 'time', type: 'TIME' }
             { name: 'language', type: 'STRING' }
@@ -46,6 +48,7 @@ describe "DruidExternal", ->
             start: new Date("2015-08-14T00:00:00Z")
             end: new Date("2015-08-15T00:00:00Z")
           }))
+          druidVersion: info.druidVersion
           requester: druidRequester
         })
       }
@@ -435,6 +438,68 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
+    it "works with substr split", (testComplete) ->
+      ex = ply()
+        .apply('Pages',
+          $('wiki').split("$page.substr(0,2)", 'Page')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(3)
+        )
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Pages": [
+              {
+                "Count": 16026
+                "Page": "Us"
+              }
+              {
+                "Count": 13045
+                "Page": "Wi"
+              }
+              {
+                "Count": 6816
+                "Page": "Ta"
+              }
+            ]
+          }
+        ])
+        testComplete()
+      ).done()
+
+    it "works with extract split", (testComplete) ->
+      ex = ply()
+        .apply('Pages',
+          $('wiki').split($('page').extract('([0-9]+\\.[0-9]+\\.[0-9]+)'), 'Page')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(3)
+        )
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Pages": [
+              {
+                "Count": 173011
+                "Page": null
+              }
+              {
+                "Count": 19
+                "Page": "75.108.94"
+              }
+              {
+                "Count": 12
+                "Page": "151.224.127"
+              }
+            ]
+          }
+        ])
+        testComplete()
+      ).done()
+
     it "works multi-dimensional GROUP BYs", (testComplete) ->
       ex = ply()
         .apply("wiki", $('wiki').filter($("language").isnt('en')))
@@ -517,6 +582,7 @@ describe "DruidExternal", ->
             start: new Date("2015-09-14T00:00:00Z")
             end: new Date("2015-09-15T00:00:00Z")
           }))
+          druidVersion: info.druidVersion
           requester: druidRequester
         })
       }

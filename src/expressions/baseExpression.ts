@@ -801,7 +801,7 @@ module Plywood {
     }
 
     public match(re: string): ChainExpression {
-      return this.performAction(new MatchAction({ regexp: re }));
+      return this.performAction(new MatchAction({ regexp: getString(re) }));
     }
 
     public in(start: Date, end: Date): ChainExpression;
@@ -837,6 +837,10 @@ module Plywood {
 
     public substr(position: number, length: number): ChainExpression {
       return this.performAction(new SubstrAction({ position: position, length: length }));
+    }
+
+    public extract(re: string): ChainExpression {
+      return this.performAction(new ExtractAction({ regexp: getString(re) }));
     }
 
     public concat(...exs: any[]): ChainExpression {

@@ -1,5 +1,12 @@
 # Change log
 
+## 0.7.22
+
+- Added `.extract()` function
+- Added `EXTRACT` function to PlyQL
+- Fixed bug in PlyQL where a space before the trailing ) would cause a parse error
+- More docs :-)
+
 ## 0.7.21
 
 - DruidExternal supports extractionFn filters such as `.filter($x.substr(0, 1) === 'D')`

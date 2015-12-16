@@ -243,11 +243,21 @@ ex.compute({ x: true, y: false }).then(console.log); // => true
 
 *operand*.**substr**(position: number, length: number)
 
-Extracts the substring from the operand.
+Extracts a substring from the operand.
 
 ```javascript
 var ex = $('str').substr(1, 5);
 ex.compute({ str: 'Hello World' }).then(console.log); // => 'ello '
+```
+
+*operand*.**extract**(re: string)
+  
+Extracts a substring from the operand.
+
+```javascript
+var ex = $('str').extract("([0-9]+\\.[0-9]+\\.[0-9]+)");
+ex.compute({ str: 'kafka-0.7.2' }).then(console.log); // => '0.7.2'
+ex.compute({ str: 'Web 2.0' }).then(console.log); // => null
 ```
 
 *operand*.**concat**(...exs: any[])
