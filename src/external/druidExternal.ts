@@ -463,8 +463,8 @@ module Plywood {
 
     // -----------------
 
-    public meets(neededVersion: string): boolean {
-      return this.druidVersion <= neededVersion;
+    public versionBefore(neededVersion: string): boolean {
+      return this.druidVersion < neededVersion;
     }
 
     public getDruidDataSource(): string | Druid.DataSource {
@@ -821,10 +821,10 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         var actions = expression.actions;
         if (actions.length !== 1) throw new Error(`can not convert expression: ${expression.toString()}`);
-        var splitAction = actions[0];
+        var action = actions[0];
 
-        if (splitAction instanceof SubstrAction) {
-          if (!this.meets('0.9.0')) {
+        if (action instanceof SubstrAction) {
+          if (this.versionBefore('0.9.0')) {
             return {
               type: "javascript",
               'function': expression.getJSFn('d')
@@ -833,37 +833,52 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return {
             type: "substring",
-            index: splitAction.position,
-            length: splitAction.length
+            index: action.position,
+            length: action.length
           };
         }
 
-        if (splitAction instanceof TimeBucketAction) {
-          var format = TIME_BUCKET_FORMAT[splitAction.duration.toString()];
-          if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration.toString()}`);
+        if (action instanceof ExtractAction) {
+          if (this.versionBefore('0.9.1')) {
+            return {
+              type: "javascript",
+              'function': expression.getJSFn('d')
+            };
+          }
+
+          return {
+            type: "regex",
+            expr: action.regexp,
+            replaceMissingValue: true
+          };
+        }
+
+        if (action instanceof TimeBucketAction) {
+          var format = TIME_BUCKET_FORMAT[action.duration.toString()];
+          if (!format) throw new Error(`unsupported part in timeBucket expression ${action.duration.toString()}`);
           return {
             type: "timeFormat",
             format: format,
-            timeZone: splitAction.timezone.toString(),
+            timeZone: action.timezone.toString(),
             locale: "en-US"
           };
         }
 
-        if (splitAction instanceof TimePartAction) {
-          var format = TIME_PART_TO_FORMAT[splitAction.part];
-          if (!format) throw new Error(`unsupported part in timePart expression ${splitAction.part}`);
+        if (action instanceof TimePartAction) {
+          var format = TIME_PART_TO_FORMAT[action.part];
+          if (!format) throw new Error(`unsupported part in timePart expression ${action.part}`);
           return {
             type: "timeFormat",
             format: format,
-            timeZone: splitAction.timezone.toString(),
+            timeZone: action.timezone.toString(),
             locale: "en-US"
           };
         }
 
-        if (splitAction instanceof NumberBucketAction) {
+        if (action instanceof NumberBucketAction) {
           var attributeInfo = this.getAttributesInfo(referenceName);
           if (attributeInfo.type === 'NUMBER') {
-            var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
+            var floorExpression = continuousFloorExpression("d", "Math.floor", action.size, action.offset);
             return {
               type: "javascript",
               'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
@@ -871,7 +886,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           }
 
           if (attributeInfo instanceof RangeAttributeInfo) {
-            return this.getRangeBucketingExtractionFn(<RangeAttributeInfo>attributeInfo, splitAction);
+            return this.getRangeBucketingExtractionFn(<RangeAttributeInfo>attributeInfo, action);
           }
 
           if (attributeInfo instanceof HistogramAttributeInfo) {
@@ -918,7 +933,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
       }
 
-      if (splitExpression.type === 'BOOLEAN') {
+      if (splitExpression.type === 'BOOLEAN' || splitExpression.type === 'STRING') {
         return {
           dimension,
           inflater: simpleInflater

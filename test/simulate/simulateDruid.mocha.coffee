@@ -31,7 +31,7 @@ context = {
       start: new Date('2015-03-12T00:00:00')
       end:   new Date('2015-03-19T00:00:00')
     })
-    druidVersion: '0.9.0'
+    druidVersion: '0.9.1'
   })
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
@@ -43,7 +43,7 @@ context = {
       start: new Date('2015-03-12T00:00:00')
       end:   new Date('2015-03-19T00:00:00')
     })
-    druidVersion: '0.9.0'
+    druidVersion: '0.9.1'
   })
 }
 
@@ -399,7 +399,23 @@ describe "simulate Druid", ->
       }
     ])
 
-  it "works on fancy filter dataset (IS)", ->
+  it "works on fancy filter dataset (EXTRACT / IS)", ->
+    ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.extract('^(.)') == 'D'"))
+      .apply('Count', '$diamonds.count()')
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color"
+      "extractionFn": {
+        "expr": "^(.)"
+        "replaceMissingValue": true
+        "type": "regex"
+      }
+      "type": "extraction"
+      "value": "D"
+    })
+
+  it "works on fancy filter dataset (SUBSET / IS)", ->
     ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1) == 'D'"))
       .apply('Count', '$diamonds.count()')
@@ -415,7 +431,7 @@ describe "simulate Druid", ->
       "value": "D"
     })
 
-  it "works on fancy filter dataset (IN)", ->
+  it "works on fancy filter dataset (SUBSET / IN)", ->
     ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1).in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()')

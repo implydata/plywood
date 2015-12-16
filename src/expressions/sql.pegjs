@@ -19,7 +19,7 @@ var reservedWords = {
   BETWEEN: 1, BY: 1,
   CONTAINS: 1, CREATE: 1,
   DELETE: 1, DESC: 1, DISTINCT: 1, DROP: 1,
-  EXISTS: 1, EXPLAIN: 1, ESCAPE: 1,
+  EXISTS: 1, EXPLAIN: 1, ESCAPE: 1, EXTRACT: 1,
   FALSE: 1, FROM: 1,
   GROUP: 1,
   HAVING: 1,
@@ -31,7 +31,7 @@ var reservedWords = {
   ON: 1, OR: 1, ORDER: 1,
   QUANTILE: 1,
   REPLACE: 1, REGEXP: 1,
-  SELECT: 1, SET: 1, SHOW: 1, SUM: 1,
+  SELECT: 1, SET: 1, SHOW: 1, SUM: 1, SUBSTR: 1, SUBSTRING: 1,
   TABLE: 1, TIME_BUCKET: 1, TRUE: 1,
   UNION: 1, UPDATE: 1,
   VALUES: 1,
@@ -376,21 +376,21 @@ BasicExpression
   = LiteralExpression
   / AggregateExpression
   / FunctionCallExpression
-  / "(" _ ex:Expression _ ")" { return ex; }
-  / "(" _ selectSubQuery:SelectSubQuery _ ")" { return selectSubQuery; }
+  / OpenParen _ ex:Expression CloseParen { return ex; }
+  / OpenParen _ selectSubQuery:SelectSubQuery CloseParen { return selectSubQuery; }
   / RefExpression
 
 
 AggregateExpression
-  = CountToken "(" _ (StarToken / Expression)? _ ")"
+  = CountToken OpenParen _ (StarToken / Expression)? CloseParen
     { return dataRef.count(); }
-  / CountToken "(" _ DistinctToken _ ex:Expression _ ")"
+  / CountToken OpenParen _ DistinctToken _ ex:Expression CloseParen
     { return dataRef.countDistinct(ex); }
-  / fn:AggregateFn "(" _ ex:Expression _ ")"
+  / fn:AggregateFn OpenParen _ ex:Expression CloseParen
     { return dataRef[fn](ex); }
-  / QuantileToken "(" _ ex:Expression _ "," _ value: Number ")"
+  / QuantileToken OpenParen _ ex:Expression _ "," _ value: Number CloseParen
     { return dataRef.quantile(ex, value); }
-  / CustomToken "(" _ value: String ")"
+  / CustomToken OpenParen _ value: String CloseParen
     { return dataRef.custom(value); }
 
 AggregateFn
@@ -398,15 +398,17 @@ AggregateFn
 
 
 FunctionCallExpression
-  = NumberBucketToken "(" _ operand:Expression _ "," _ size:Number _ "," _ offset:Number ")"
+  = NumberBucketToken OpenParen _ operand:Expression _ "," _ size:Number _ "," _ offset:Number CloseParen
     { return operand.numberBucket(size, offset); }
-  / TimeBucketToken "(" _ operand:Expression _ "," _ duration:NameOrString _ "," _ timezone:NameOrString ")"
+  / TimeBucketToken OpenParen _ operand:Expression _ "," _ duration:NameOrString _ "," _ timezone:NameOrString CloseParen
     { return operand.timeBucket(duration, timezone); }
-  / TimePartToken "(" _ operand:Expression _ "," _ part:NameOrString _ "," _ timezone:NameOrString ")"
+  / TimePartToken OpenParen _ operand:Expression _ "," _ part:NameOrString _ "," _ timezone:NameOrString CloseParen
     { return operand.timePart(part, timezone); }
-  / SubstrToken "(" _ operand:Expression _ "," _ position:Number _ "," _ length:Number ")"
+  / SubstrToken OpenParen _ operand:Expression _ "," _ position:Number _ "," _ length:Number CloseParen
     { return operand.substr(position, length); }
-  / ConcatToken "(" head:Expression tail:(_ "," _ Expression)* ")"
+  / ExtractToken OpenParen _ operand:Expression _ "," _ regexp:String CloseParen
+    { return operand.extract(regexp); }
+  / ConcatToken OpenParen head:Expression tail:(_ "," _ Expression)* CloseParen
     { return Expression.concat(makeListMap3(head, tail)); }
 
 RefExpression
@@ -508,7 +510,8 @@ CustomToken        = "CUSTOM"i         !IdentifierPart { return 'custom'; }
 TimeBucketToken    = "TIME_BUCKET"i    !IdentifierPart
 NumberBucketToken  = "NUMBER_BUCKET"i  !IdentifierPart
 TimePartToken      = "TIME_PART"i      !IdentifierPart
-SubstrToken        = "SUBSTR"i         !IdentifierPart
+SubstrToken        = "SUBSTR"i "ING"i? !IdentifierPart
+ExtractToken       = "EXTRACT"i        !IdentifierPart
 ConcatToken        = "CONCAT"i         !IdentifierPart
 
 IdentifierPart = [A-Za-z_]
@@ -536,6 +539,12 @@ Digit
 
 
 /* Extra */
+
+OpenParen "("
+  = "("
+
+CloseParen ")"
+  = _ ")"
 
 Name "Name"
   = $([a-zA-Z_] [a-z0-9A-Z_]*)

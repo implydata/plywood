@@ -58,6 +58,7 @@ module Plywood {
     protected _getJSHelper(inputJS: string): string {
       const { position, length } = this;
       return `(''+${inputJS}).substr(${position},${length})`;
+      //return `(_=''+${inputJS},_.length>${position}?null:_.substr(${position},${length}))`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

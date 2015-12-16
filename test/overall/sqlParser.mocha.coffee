@@ -331,7 +331,7 @@ describe "SQL parser", ->
     it "should work with a NUMBER_BUCKET function", ->
       parse = Expression.parseSQL("""
         SELECT
-        NUMBER_BUCKET(added, 10, 1) AS 'AddedBucket',
+        NUMBER_BUCKET(added, 10, 1 ) AS 'AddedBucket',
         SUM(added) AS 'TotalAdded'
         FROM `wiki`
         GROUP BY 1
@@ -345,7 +345,7 @@ describe "SQL parser", ->
     it "should work with a TIME_PART function", ->
       parse = Expression.parseSQL("""
         SELECT
-        TIME_PART(`time`, DAY_OF_WEEK, 'Etc/UTC') AS 'DayOfWeek',
+        TIME_PART(`time`, DAY_OF_WEEK, 'Etc/UTC' ) AS 'DayOfWeek',
         SUM(added) AS 'TotalAdded'
         FROM `wiki`
         GROUP BY 1
@@ -359,13 +359,27 @@ describe "SQL parser", ->
     it "should work with a SUBSTR and CONCAT function", ->
       parse = Expression.parseSQL("""
         SELECT
-        CONCAT('[', SUBSTR(`page`, 0, 3), ']') AS 'Crazy',
+        CONCAT('[', SUBSTRING(SUBSTR(`page`, 0, 3 ), 1, 2), ']') AS 'Crazy',
         SUM(added) AS 'TotalAdded'
         FROM `wiki`
         GROUP BY 1
         """)
 
-      ex2 = $('wiki').split("'[' ++ $page.substr(0, 3) ++ ']'", 'Crazy', 'data')
+      ex2 = $('wiki').split("'[' ++ $page.substr(0, 3).substr(1, 2) ++ ']'", 'Crazy', 'data')
+        .apply('TotalAdded', '$data.sum($added)')
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
+    it "should work with EXTRACT function", ->
+      parse = Expression.parseSQL("""
+        SELECT
+        EXTRACT(`page`, '^Wiki(.+)$') AS 'Extract',
+        SUM(added) AS 'TotalAdded'
+        FROM `wiki`
+        GROUP BY 1
+        """)
+
+      ex2 = $('wiki').split("$page.extract('^Wiki(.+)$')", 'Extract', 'data')
         .apply('TotalAdded', '$data.sum($added)')
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())

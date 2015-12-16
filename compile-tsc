@@ -42,6 +42,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/actions/countDistinctAction.ts \
   src/actions/customAction.ts \
   src/actions/divideAction.ts \
+  src/actions/extractAction.ts \
   src/actions/filterAction.ts \
   src/actions/greaterThanAction.ts \
   src/actions/greaterThanOrEqualAction.ts \

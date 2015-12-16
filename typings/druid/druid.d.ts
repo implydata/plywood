@@ -210,8 +210,9 @@ declare module Druid {
     interface ExtractionFn {
         type: string;
 
-        // Specific to type: "regex" | "partial"
+        // Specific to type: "regex"
         expr?: string;
+        replaceMissingValue?: boolean;
 
         // Specific to type: "searchQuery"
         query?: string;
