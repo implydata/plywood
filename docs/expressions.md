@@ -50,7 +50,9 @@ All of the functions below operate on an expression and produce an expression in
 
 *operand*.**performAction**(action: Action, markSimple?: boolean)
 
-Perform a specific action on an expression
+Perform a specific action on an expression.
+This method is useful if you are creating actions as action objects.
+All the methods below create the appropriate action and then call this method.
 
 
 ### Basic arithmetic

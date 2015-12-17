@@ -24,11 +24,11 @@ describe "Verbose requester", ->
         expect(res).to.be.an('array')
         expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal("""
         vvvvvvvvvvvvvvvvvvvvvvvvvv
-        Sending query:
+        Sending query 1:
         "Query1"
         ^^^^^^^^^^^^^^^^^^^^^^^^^^
         vvvvvvvvvvvvvvvvvvvvvvvvvv
-        Got result: (in Xms)
+        Got result from query 1: (in Xms)
         [
           1,
           2,
@@ -51,11 +51,11 @@ describe "Verbose requester", ->
       .catch((error) ->
         expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal("""
         vvvvvvvvvvvvvvvvvvvvvvvvvv
-        Sending query:
+        Sending query 1:
         "failThis"
         ^^^^^^^^^^^^^^^^^^^^^^^^^^
         vvvvvvvvvvvvvvvvvvvvvvvvvv
-        Got error: some error (in Xms)
+        Got error in query 1: some error (in Xms)
         ^^^^^^^^^^^^^^^^^^^^^^^^^^
         """)
         testComplete()

@@ -76,7 +76,7 @@ OR                      | Logical OR
 
 ## Functions
 
-<a name="number_bucket" href="#number_bucket">#</a> **NUMBER_BUCKET**(operand, size, offset)
+**NUMBER_BUCKET**(operand, size, offset)
 
 Bucket the numeric dimension into a buckets of size `size` with the given offset.
 
@@ -86,7 +86,7 @@ This will bucket the `$revenue` into buckets like: [1, 6), [6, 11), [11, 16), e.
 Note that the buckets are open closed (start <= x < end).
 
 
-<a name="time_bucket" href="#time_bucket">#</a> **TIME_BUCKET**(operand: Expression, duration: String, timezone: String)
+**TIME_BUCKET**(operand, duration, timezone)
 
 Bucket the time into a bucket of size `duration` in the given `timezone`.
 
@@ -95,7 +95,7 @@ Example: `TIME_BUCKET($time, 'P1D', 'America/Los_Angeles')`
 This will bucket the `$time` variable into day chunks where days are defined in the `America/Los_Angeles` timezone.
 
 
-<a name="time_part" href="#time_part">#</a> **TIME_PART**`(operand: Expression, part: String, timezone: String)`
+**TIME_PART**(operand, part, timezone)
 
 Part the time into the given repeating buckets.
 
@@ -113,10 +113,49 @@ The possible part values are:
 * `MONTH_OF_YEAR`
 
 
-<a name="substr" href="#substr">#</a> **SUBSTR**(operand: Expression, position: Number, length: Number)
+**SUBSTR**(*str*, *pos*, *len*)
 
-Returns the specified number of characters from a particular position of a given string expresion.
+Returns a substring *len* characters long from string *str*, starting at position *pos*.
 
-<a name="concat" href="#concat">#</a> **CONCAT**(op1)
+**CONCAT**(*str1*, *str2*, ...)
 
-Concatenates expressions
+Returns the string that results from concatenating the arguments. May have one or more arguments. 
+
+**EXTRACT**(*str*, *regexp*)
+
+Returns the first matching group that results form matching *regexp* to *str*.
+
+## Aggregations
+
+**COUNT**(*expr?*)
+
+If used without an expression (or as `COUNT(*)`) returns the count of the number of rows.
+When an expression is provided returns a count of the rows where *expr* is not null.
+ 
+**COUNT**(**DISTINCT** *expr*), **COUNT_DISTINCT**(*expr*) 
+
+Returns the count of the number of rows with different *expr* values.
+
+**SUM**(*expr*) 
+
+Returns the sum of all *expr* values.
+
+**MIN**(*expr*) 
+
+Returns the min of all *expr* values.
+
+**MAX**(*expr*) 
+
+Returns the max of all *expr* values.
+
+**AVG**(*expr*)
+
+Returns the average of all *expr* values.
+
+**QUANTILE**(*expr*, *quantile*)
+
+Returns the upper *quantile* of all *expr* values.
+
+**CUSTOM**(*custom_name*)
+
+Returns the user defined aggregation named *custom_name*.

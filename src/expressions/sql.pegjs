@@ -382,12 +382,20 @@ BasicExpression
 
 
 AggregateExpression
-  = CountToken OpenParen _ (StarToken / Expression)? CloseParen
-    { return dataRef.count(); }
-  / CountToken OpenParen _ DistinctToken _ ex:Expression CloseParen
-    { return dataRef.countDistinct(ex); }
-  / fn:AggregateFn OpenParen _ ex:Expression CloseParen
-    { return dataRef[fn](ex); }
+  = CountToken OpenParen distinct:(_ DistinctToken)? _ ex:(StarToken / Expression)? CloseParen
+    {
+      if (!ex || ex === '*') {
+        if (distinct) error('COUNT DISTINCT must have expression');
+        return dataRef.count();
+      } else {
+        return distinct ? dataRef.countDistinct(ex) : dataRef.filter(ex.isnt(null)).count()
+      }
+    }
+  / fn:AggregateFn OpenParen distinct:(_ DistinctToken)? _ ex:Expression CloseParen
+    {
+      if (distinct) error('can not use DISTINCT for ' + fn + ' aggregator');
+      return dataRef[fn](ex);
+    }
   / QuantileToken OpenParen _ ex:Expression _ "," _ value: Number CloseParen
     { return dataRef.quantile(ex, value); }
   / CustomToken OpenParen _ value: String CloseParen
@@ -496,7 +504,7 @@ AndToken           = "AND"i            !IdentifierPart
 OrToken            = "OR"i             !IdentifierPart
 
 DistinctToken      = "DISTINCT"i       !IdentifierPart
-StarToken          = "*"               !IdentifierPart
+StarToken          = "*"               !IdentifierPart { return '*'; }
 
 CountToken         = "COUNT"i          !IdentifierPart { return 'count'; }
 CountDistinctToken = "COUNT_DISTINCT"i !IdentifierPart { return 'countDistinct'; }

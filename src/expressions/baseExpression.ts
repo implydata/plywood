@@ -102,6 +102,14 @@ module Plywood {
     throw new Error('could not extract a string out of ' + String(param));
   }
 
+  function getNumber(param: number | Expression): number {
+    if (typeof param === 'number') return param;
+    if (param instanceof LiteralExpression && param.type === 'NUMBER') {
+      return param.value;
+    }
+    throw new Error('could not extract a number out of ' + String(param));
+  }
+
   // -----------------------------
 
   /**
@@ -836,7 +844,7 @@ module Plywood {
     // String manipulation
 
     public substr(position: number, length: number): ChainExpression {
-      return this.performAction(new SubstrAction({ position: position, length: length }));
+      return this.performAction(new SubstrAction({ position: getNumber(position), length: getNumber(length) }));
     }
 
     public extract(re: string): ChainExpression {
@@ -850,7 +858,7 @@ module Plywood {
     // Bucketing
 
     public numberBucket(size: number, offset: number = 0): ChainExpression {
-      return this.performAction(new NumberBucketAction({ size: size, offset: offset }));
+      return this.performAction(new NumberBucketAction({ size: getNumber(size), offset: getNumber(offset) }));
     }
 
     public timeBucket(duration: any, timezone: any = Timezone.UTC): ChainExpression {
@@ -923,8 +931,8 @@ module Plywood {
       return this.performAction(new SortAction({ expression: ex, direction: getString(direction) }));
     }
 
-    public limit(limit: int): ChainExpression {
-      return this.performAction(new LimitAction({ limit: limit }));
+    public limit(limit: number): ChainExpression {
+      return this.performAction(new LimitAction({ limit: getNumber(limit) }));
     }
 
     // Aggregate expressions
@@ -960,7 +968,7 @@ module Plywood {
 
     public quantile(ex: any, quantile: number): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new QuantileAction({ expression: ex, quantile }));
+      return this.performAction(new QuantileAction({ expression: ex, quantile: getNumber(quantile) }));
     }
 
     public custom(custom: string): ChainExpression {

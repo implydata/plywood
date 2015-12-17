@@ -69,6 +69,16 @@ describe "SQL parser", ->
         Expression.parseSQL("SELECT page, COUNT() AS 'Count' FROM wiki GROUP BY page ORDER BY page DESC, `Count` ASC")
       ).to.throw('plywood does not currently support multi-column ORDER BYs')
 
+    it "should fail gracefully on COUNT(DISTINCT)", ->
+      expect(->
+        Expression.parseSQL("COUNT(DISTINCT)")
+      ).to.throw('COUNT DISTINCT must have expression')
+
+    it "should fail gracefully on SUM(DISTINCT blah)", ->
+      expect(->
+        Expression.parseSQL("SUM(DISTINCT blah)")
+      ).to.throw('can not use DISTINCT for sum aggregator')
+
     it "should parse a simple expression", ->
       parse = Expression.parseSQL("""
         SELECT
@@ -110,8 +120,8 @@ describe "SQL parser", ->
         .apply('data', '$wiki.filter($language == "en")')
         .apply('Count1', '$data.count()')
         .apply('Count2', '$data.count()')
-        .apply('Count3', '$data.count()')
-        .apply('Count4', '$data.count()')
+        .apply('Count3', '$data.filter(1 != null).count()')
+        .apply('Count4', '$data.filter($visitor != null).count()')
         .apply('TotalAdded', '$data.sum($added)')
         .apply('Date', new Date('2014-01-02T00:00:00.000Z'))
         .apply('TotalAddedOver4', '$data.sum($added) / 4')

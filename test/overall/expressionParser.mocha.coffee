@@ -187,3 +187,10 @@ describe "expression parser", ->
       expect(->
         Expression.parse("+'poo'")
       ).to.throw("Expression parse error: subtract must have expression of type NUMBER (is STRING) on `+\'poo\'`")
+
+    it "should parse leading number in param", ->
+      ex1 = Expression.parse('$data.filter(1 != null)')
+      ex2 = $('data').filter(r(1).isnt(null))
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS())
+

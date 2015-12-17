@@ -1,5 +1,12 @@
 # Change log
 
+## 0.7.23
+
+- In PlyQL `COUNT(blah)` returns the count where blah is not `null` in accordance with SQL standard.
+- Added query IDs to `verboseRequester`
+- Flashed out PlyQL docs
+- Fixed bug in parameter parsing with leading numbers 
+
 ## 0.7.22
 
 - Added `.extract()` function

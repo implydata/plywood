@@ -156,14 +156,8 @@ CallChainExpression
     }
 
 Params
-  = head:Param tail:(_ "," _ Param)*
+  = head:Expression tail:(_ "," _ Expression)*
     { return makeListMap3(head, tail); }
-
-Param
-  = v:(Name / String)
-    { return r(v); }
-  / Number
-  / Expression
 
 BasicExpression
   = "(" _ ex:Expression _ ")" { return ex; }
