@@ -853,6 +853,17 @@ return (start < 0 ?'-':'') + parts.join('.');
           };
         }
 
+        if (action instanceof LookupAction) {
+          return {
+            type: "lookup",
+            lookup: {
+              type: "namespace",
+              "namespace": action.lookup
+            },
+            injective: false
+          };
+        }
+
         if (action instanceof TimeBucketAction) {
           var format = TIME_BUCKET_FORMAT[action.duration.toString()];
           if (!format) throw new Error(`unsupported part in timeBucket expression ${action.duration.toString()}`);

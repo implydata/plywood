@@ -1,5 +1,11 @@
 # Change log
 
+## 0.7.24
+
+- Added the `.lookup('my_lookup')` expression that translates to a query time lookup in Druid
+- Added the corresponding `LOOKUP` function to PlyQL
+- Fixed split simplification
+
 ## 0.7.23
 
 - In PlyQL `COUNT(blah)` returns the count where blah is not `null` in accordance with SQL standard.

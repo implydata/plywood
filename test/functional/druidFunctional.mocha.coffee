@@ -500,6 +500,37 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
+    it "works with lookup split", (testComplete) ->
+      ex = ply()
+        .apply('Languages',
+          $('wiki').split($('language').lookup('wikipedia-language-lookup'), 'Language')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(3)
+        )
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Languages": [
+              {
+                "Count": 122857
+                "Language": "English"
+              }
+              {
+                "Count": 22862
+                "Language": "German"
+              }
+              {
+                "Count": 22140
+                "Language": "French"
+              }
+            ]
+          }
+        ])
+        testComplete()
+      ).done()
+
     it "works multi-dimensional GROUP BYs", (testComplete) ->
       ex = ply()
         .apply("wiki", $('wiki').filter($("language").isnt('en')))

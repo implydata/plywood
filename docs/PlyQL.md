@@ -125,6 +125,10 @@ Returns the string that results from concatenating the arguments. May have one o
 
 Returns the first matching group that results form matching *regexp* to *str*.
 
+**LOOKUP**(*str*, *lookup-namespace*)
+
+Returns the value for the key *str* withing the *lookup-namespace*.
+
 ## Aggregations
 
 **COUNT**(*expr?*)

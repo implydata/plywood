@@ -51,6 +51,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/actions/joinAction.ts \
   src/actions/lessThanAction.ts \
   src/actions/lessThanOrEqualAction.ts \
+  src/actions/lookupAction.ts \
   src/actions/limitAction.ts \
   src/actions/matchAction.ts \
   src/actions/maxAction.ts \

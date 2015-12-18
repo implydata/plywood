@@ -273,6 +273,10 @@ var ex = r('[').concat($('str'), r(']'));
 ex.compute({ str: 'Hello World' }).then(console.log); // => '[Hello World]'
 ```
 
+*operand*.**lookup**(lookup: string)
+
+Performs a lookup within the specified namespace.
+
 
 ## Bucketing
 

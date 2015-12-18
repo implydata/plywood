@@ -141,6 +141,10 @@ module Plywood {
       return count;
     }
 
+    public fullyDefined(): boolean {
+      return false; // Do not try to simplify for now
+    }
+
     public simplify(): Action {
       if (this.simple) return this;
 

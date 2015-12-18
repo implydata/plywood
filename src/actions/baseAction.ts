@@ -33,6 +33,7 @@ module Plywood {
     prop?: Lookup<any>;
     custom?: string;
     compare?: string;
+    lookup?: string;
     simple?: boolean;
   }
 
@@ -59,6 +60,7 @@ module Plywood {
     prop?: Lookup<any>;
     custom?: string;
     compare?: string;
+    lookup?: string;
   }
 
   export interface ExpressionTransformation {
@@ -276,6 +278,11 @@ module Plywood {
       return this.expression ? this.expression.expressionCount() : 0;
     }
 
+    public fullyDefined(): boolean {
+      var { expression } = this;
+      return !expression || expression.isOp('literal');
+    }
+
     // Simplification
     protected _specialSimplify(simpleExpression: Expression): Action {
       return null;
@@ -379,8 +386,7 @@ module Plywood {
       }
 
       if (simpleExpression instanceof LiteralExpression) {
-        var myExpression = this.expression;
-        if (!myExpression || myExpression.isOp('literal')) {
+        if (this.fullyDefined()) {
           return new LiteralExpression({
             value: this.getFn(simpleExpression.getFn())(null, null)
           });

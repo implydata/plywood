@@ -855,6 +855,10 @@ module Plywood {
       return this._performMultiAction('concat', exs);
     }
 
+    public lookup(lookup: string): ChainExpression {
+      return this.performAction(new LookupAction({ lookup: getString(lookup) }));
+    }
+
     // Bucketing
 
     public numberBucket(size: number, offset: number = 0): ChainExpression {

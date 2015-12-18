@@ -415,7 +415,7 @@ describe "simulate Druid", ->
       "value": "D"
     })
 
-  it "works on fancy filter dataset (SUBSET / IS)", ->
+  it "works on fancy filter (SUBSET / IS)", ->
     ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1) == 'D'"))
       .apply('Count', '$diamonds.count()')
@@ -431,7 +431,7 @@ describe "simulate Druid", ->
       "value": "D"
     })
 
-  it "works on fancy filter dataset (SUBSET / IN)", ->
+  it "works on fancy filter (SUBSET / IN)", ->
     ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1).in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()')
@@ -460,6 +460,43 @@ describe "simulate Druid", ->
           "value": "C"
         }
       ]
+    })
+
+  it "works on fancy filter (LOOKUP / IN)", ->
+    ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').in(['D', 'C'])"))
+      .apply('Count', '$diamonds.count()')
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "fields": [
+        {
+          "dimension": "color"
+          "extractionFn": {
+            "injective": false
+            "lookup": {
+              "namespace": 'some_lookup'
+              "type": "namespace"
+            }
+            "type": "lookup"
+          }
+          "type": "extraction"
+          "value": "D"
+        }
+        {
+          "dimension": "color"
+          "extractionFn": {
+            "injective": false
+            "lookup": {
+              "namespace": 'some_lookup'
+              "type": "namespace"
+            }
+            "type": "lookup"
+          }
+          "type": "extraction"
+          "value": "C"
+        }
+      ]
+      "type": "or"
     })
 
   it "works with basic timePart", ->

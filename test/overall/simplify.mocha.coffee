@@ -334,44 +334,6 @@ describe "Simplify", ->
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
-  describe 'apply', ->
-    it 'sorts applies does not mess with sort if all are simple 1', ->
-      ex1 = ply()
-        .apply('Count', '$wiki.count()')
-        .apply('Deleted', '$wiki.sum($deleted)')
-
-      ex2 = ply()
-        .apply('Count', '$wiki.count()')
-        .apply('Deleted', '$wiki.sum($deleted)')
-
-      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
-
-
-    it 'sorts applies does not mess with sort if all are simple 2', ->
-      ex1 = ply()
-        .apply('Deleted', '$wiki.sum($deleted)')
-        .apply('Count', '$wiki.count()')
-
-      ex2 = ply()
-        .apply('Deleted', '$wiki.sum($deleted)')
-        .apply('Count', '$wiki.count()')
-
-      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
-
-    it 'sorts applies 2', ->
-      ex1 = ply()
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-        .apply('Deleted', '$wiki.sum($deleted)')
-
-      ex2 = ply()
-        .apply('Deleted', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-
-      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
-
-
   describe 'filter', ->
     it 'consecutive filters fold together', ->
       ex1 = ply()
@@ -459,6 +421,55 @@ describe "Simplify", ->
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
+  describe 'split', ->
+    it 'does not touch a split on a literal', ->
+      ex1 = ply()
+        .split('$page', 'Page', 'data')
+
+      ex2 = ply()
+        .split('$page', 'Page', 'data')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'apply', ->
+    it 'sorts applies does not mess with sort if all are simple 1', ->
+      ex1 = ply()
+        .apply('Count', '$wiki.count()')
+        .apply('Deleted', '$wiki.sum($deleted)')
+
+      ex2 = ply()
+        .apply('Count', '$wiki.count()')
+        .apply('Deleted', '$wiki.sum($deleted)')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+    it 'sorts applies does not mess with sort if all are simple 2', ->
+      ex1 = ply()
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('Count', '$wiki.count()')
+
+      ex2 = ply()
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('Count', '$wiki.count()')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'sorts applies 2', ->
+      ex1 = ply()
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .apply('Deleted', '$wiki.sum($deleted)')
+
+      ex2 = ply()
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
   describe 'sort', ->
     it 'consecutive identical sorts fold together', ->
       ex1 = $('main')
@@ -508,5 +519,16 @@ describe "Simplify", ->
     it 'concatenates literal', ->
       ex1 = r('p_').concat('hello', '$x', 'i_', 'love')
       ex2 = r('p_hello').concat('$x', 'i_love')
+
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'lookup', ->
+    it 'does not touch a lookup on a literal', ->
+      ex1 = r('hello')
+        .lookup('hello_lookup')
+
+      ex2 = r('hello')
+        .lookup('hello_lookup')
 
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())

@@ -394,6 +394,20 @@ describe "SQL parser", ->
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
 
+    it "should work with LOOKUP function", ->
+      parse = Expression.parseSQL("""
+        SELECT
+        LOOKUP(`language`, 'language-lookup') AS 'Lookup',
+        SUM(added) AS 'TotalAdded'
+        FROM `wiki`
+        GROUP BY 1
+        """)
+
+      ex2 = $('wiki').split("$language.lookup('language-lookup')", 'Lookup', 'data')
+        .apply('TotalAdded', '$data.sum($added)')
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
     it "should parse a complex filter", ->
       parse = Expression.parseSQL("""
         SELECT

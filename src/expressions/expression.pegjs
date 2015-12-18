@@ -25,6 +25,7 @@ var possibleCalls = {
   'lessThan': 1,
   'lessThanOrEqual': 1,
   'limit': 1,
+  'lookup': 1,
   'match': 1,
   'max': 1,
   'min': 1,
