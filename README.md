@@ -311,6 +311,8 @@ Vadim Ogievetsky talks about the [inspiration behind Plywood](https://www.youtub
 
 ## Questions & Support
 
-Please direct all questions to our [user groups](https://groups.google.com/forum/#!forum/imply-user-group).
+For updates about new and upcoming features follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-You might want to have a look at [Pivot](https://github.com/implydata/pivot), a GUI for big data exploration being built on top of Plywood. 
+Please file bugs and feature requests by opening and issue on GitHub and direct all questions to our [user groups](https://groups.google.com/forum/#!forum/imply-user-group).
+
+You might want to have a look at [Pivot](https://github.com/implydata/pivot), a UI for big data exploration being built on top of Plywood. 
