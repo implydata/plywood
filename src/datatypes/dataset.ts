@@ -25,11 +25,21 @@ module Plywood {
 
   var directionFns: Lookup<DirectionFn> = {
     ascending: (a: any, b: any): number => {
-      if (a.compare) return a.comapre(b);
+      if (a == null) {
+        return b == null ? 0 : -1;
+      } else {
+        if (a.compare) return a.compare(b);
+        if (b == null) return 1;
+      }
       return a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
     },
     descending: (a: any, b: any): number => {
-      if (b.compare) return b.comapre(a);
+      if (b == null) {
+        return a == null ? 0 : -1;
+      } else {
+        if (b.compare) return b.compare(a);
+        if (a == null) return 1;
+      }
       return b < a ? -1 : b > a ? 1 : b >= a ? 0 : NaN;
     }
   };

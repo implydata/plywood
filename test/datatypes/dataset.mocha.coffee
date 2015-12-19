@@ -230,6 +230,30 @@ describe "Dataset", ->
       ])
 
 
+  describe "actions", ->
+    it "sorts", ->
+      someDataset = Dataset.fromJS([
+        { time: new Date('2015-01-04T12:32:43'), resource: 'A',  value: 7 }
+        { time: null,                            resource: 'B',  value: 2 }
+        { time: new Date('2015-01-03T12:32:43'), resource: null, value: null }
+      ])
+
+      expect(someDataset.sort($('resource').getFn(), 'ascending', {}).toJS().map((d) -> d.resource)).to.deep.equal([
+        null, 'A', 'B'
+      ])
+
+      expect(someDataset.sort($('resource').getFn(), 'descending', {}).toJS().map((d) -> d.resource)).to.deep.equal([
+        'B', 'A', null
+      ])
+
+      expect(someDataset.sort($('value').getFn(), 'ascending', {}).toJS().map((d) -> d.value)).to.deep.equal([
+        null, 2, 7
+      ])
+
+      expect(someDataset.sort($('value').getFn(), 'descending', {}).toJS().map((d) -> d.value)).to.deep.equal([
+        7, 2, null
+      ])
+
   describe "methods", ->
     emptyDataset = Dataset.fromJS([])
 

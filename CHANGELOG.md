@@ -1,5 +1,10 @@
 # Change log
 
+## 0.7.25
+
+- Fixed bug in sorting with `null` in the list
+- Updated to latest typescript (1.7.5)
+
 ## 0.7.24
 
 - Added the `.lookup('my_lookup')` expression that translates to a query time lookup in Druid

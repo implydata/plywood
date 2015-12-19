@@ -735,9 +735,9 @@ module Plywood {
       });
     }
 
-    private _performMultiAction(action: string, exs: any[]) {
+    private _performMultiAction(action: string, exs: any[]): ChainExpression {
       if (!exs.length) throw new Error(`${action} action must have at least one argument`);
-      var ret = <ChainExpression>this; // A slight type hack but it works because we know that we will go through the loop
+      var ret: any = this; // A slight type hack but it works because we know that we will go through the loop
       for (var ex of exs) {
         if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
         ret = ret.performAction(new Action.classMap[action]({ expression: ex }));
