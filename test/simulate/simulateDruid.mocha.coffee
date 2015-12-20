@@ -1287,7 +1287,7 @@ describe "simulate Druid", ->
           {
             "fieldName": "price"
             "name": "M"
-            "type": "min"
+            "type": "doubleMin"
           }
           {
             "name": "_sd_0"

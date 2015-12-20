@@ -1,5 +1,9 @@
 # Change log
 
+## 0.7.26
+
+- Updated Druid External to use `doubleMin` and `doubleMax`.
+
 ## 0.7.25
 
 - Fixed bug in sorting with `null` in the list

@@ -1,6 +1,13 @@
 module Plywood {
   const DUMMY_NAME = '!DUMMY';
 
+  const AGGREGATE_TO_DRUID: Lookup<string> = {
+    count: "count",
+    sum: "doubleSum",
+    min: "doubleMin",
+    max: "doubleMax"
+  };
+
   const TIME_PART_TO_FORMAT: Lookup<string> = {
     SECOND_OF_MINUTE: "s",
     SECOND_OF_HOUR: "m'*60+'s",
@@ -1174,7 +1181,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       var attribute = aggregateAction.expression;
       var aggregation: Druid.Aggregation = {
         name: name,
-        type: fn === "sum" ? "doubleSum" : fn
+        type: AGGREGATE_TO_DRUID[fn]
       };
       if (fn !== 'count') {
         if (attribute instanceof RefExpression) {
