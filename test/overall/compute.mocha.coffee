@@ -1,15 +1,20 @@
 { expect } = require("chai")
 
+{ WallTime } = require('chronoshift')
+if not WallTime.rules
+  tzData = require("chronoshift/lib/walltime/walltime-data.js")
+  WallTime.init(tzData.rules, tzData.zones)
+
 plywood = require('../../build/plywood')
 { Expression, Dataset, $, ply, r } = plywood
 
 describe "compute native", ->
   data = [
-    { cut: 'Good',  price: 400, time: new Date('2015-10-01T10:20:30Z') }
-    { cut: 'Good',  price: 300, time: new Date('2015-10-02T10:20:30Z') }
+    { cut: 'Good',  price: 400, time: new Date('2015-10-01T09:20:30Z') }
+    { cut: 'Good',  price: 300, time: new Date('2015-10-02T08:20:30Z') }
     { cut: 'Great', price: 124, time: null }
-    { cut: 'Wow',   price: 160, time: new Date('2015-10-04T10:20:30Z') }
-    { cut: 'Wow',   price: 100, time: new Date('2015-10-05T10:20:30Z') }
+    { cut: 'Wow',   price: 160, time: new Date('2015-10-04T06:20:30Z') }
+    { cut: 'Wow',   price: 100, time: new Date('2015-10-05T05:20:30Z') }
   ]
 
   it "works in uber-basic case", (testComplete) ->
@@ -141,6 +146,62 @@ describe "compute native", ->
       testComplete()
     ).done()
 
+  it "works with timePart split (non-UTC timezone)", (testComplete) ->
+    ds = Dataset.fromJS(data).hide()
+
+    ex = ply()
+      .apply('Data', ply(ds))
+      .apply('Count', '$Data.count()')
+      .apply('TimeParts'
+        $('Data').split("$time.timePart('HOUR_OF_DAY', 'Etc/UTC')", 'Part')
+          .apply('Count', '$Data.count()')
+      )
+
+    p = ex.compute()
+    p.then((v) ->
+      expect(v.toJS()).to.deep.equal([
+        {
+          "Count": 5
+          "TimeParts": [
+            { "Count": 1, "Part": 9 }
+            { "Count": 1, "Part": 8 }
+            { "Count": 1, "Part": null }
+            { "Count": 1, "Part": 6 }
+            { "Count": 1, "Part": 5 }
+          ]
+        }
+      ])
+      testComplete()
+    ).done()
+
+  it "works with timePart split (other timezone)", (testComplete) ->
+    ds = Dataset.fromJS(data).hide()
+
+    ex = ply()
+      .apply('Data', ply(ds))
+      .apply('Count', '$Data.count()')
+      .apply('TimeParts'
+        $('Data').split("$time.timePart('HOUR_OF_DAY', 'America/New_York')", 'Part')
+          .apply('Count', '$Data.count()')
+      )
+
+    p = ex.compute()
+    p.then((v) ->
+      expect(v.toJS()).to.deep.equal([
+        {
+          "Count": 5
+          "TimeParts": [
+            { "Count": 1, "Part": 5 }
+            { "Count": 1, "Part": 4 }
+            { "Count": 1, "Part": null }
+            { "Count": 1, "Part": 2 }
+            { "Count": 1, "Part": 1 }
+          ]
+        }
+      ])
+      testComplete()
+    ).done()
+
   it "works with context", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
@@ -186,11 +247,11 @@ describe "compute native", ->
               "SumPrice": 700
               "MaxTime": {
                 "type": "TIME"
-                "value": new Date('2015-10-02T10:20:30Z')
+                "value": new Date('2015-10-02T08:20:30Z')
               }
               "MinTime": {
                 "type": "TIME"
-                "value": new Date('2015-10-01T10:20:30Z')
+                "value": new Date('2015-10-01T09:20:30Z')
               }
             }
             {
@@ -210,11 +271,11 @@ describe "compute native", ->
               "SumPrice": 260
               "MaxTime": {
                 "type": "TIME"
-                "value": new Date('2015-10-05T10:20:30Z')
+                "value": new Date('2015-10-05T05:20:30Z')
               }
               "MinTime": {
                 "type": "TIME"
-                "value": new Date('2015-10-04T10:20:30Z')
+                "value": new Date('2015-10-04T06:20:30Z')
               }
             }
           ]

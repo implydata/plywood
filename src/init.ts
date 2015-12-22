@@ -132,6 +132,8 @@ module Plywood {
   export import Timezone = Chronoshift.Timezone;
   export import Duration = Chronoshift.Duration;
 
+  export import WallTime = Chronoshift.WallTime;
+
   export interface Datum {
     [attribute: string]: any;
   }

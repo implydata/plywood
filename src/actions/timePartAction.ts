@@ -1,5 +1,36 @@
 module Plywood {
-  //var possiblePartings = 'SECOND_OF_DAY';
+  interface Parter {
+    (d: Date): number;
+  }
+
+  const PART_TO_FUNCTION: Lookup<Parter> = {
+    SECOND_OF_MINUTE: d => d.getSeconds(),
+    SECOND_OF_HOUR: d => d.getMinutes() * 60 + d.getSeconds(),
+    SECOND_OF_DAY: d => (d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds(),
+    SECOND_OF_WEEK: d => ((d.getDay() * 24) + d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds(),
+    SECOND_OF_MONTH: d => (((d.getDate() - 1) * 24) + d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds(),
+    SECOND_OF_YEAR: null,
+
+    MINUTE_OF_HOUR: d => d.getMinutes(),
+    MINUTE_OF_DAY: d => d.getHours() * 60 + d.getMinutes(),
+    MINUTE_OF_WEEK: d => (d.getDay() * 24) + d.getHours() * 60 + d.getMinutes(),
+    MINUTE_OF_MONTH: d => ((d.getDate() - 1) * 24) + d.getHours() * 60 + d.getMinutes(),
+    MINUTE_OF_YEAR: null,
+
+    HOUR_OF_DAY: d => d.getHours(),
+    HOUR_OF_WEEK: d => d.getDay() * 24 + d.getHours(),
+    HOUR_OF_MONTH: d => (d.getDate() - 1) * 24 + d.getHours(),
+    HOUR_OF_YEAR: null,
+
+    DAY_OF_WEEK: d => d.getDay(),
+    DAY_OF_MONTH: d => d.getDate() - 1,
+    DAY_OF_YEAR: null,
+
+    WEEK_OF_MONTH: null,
+    WEEK_OF_YEAR: null,
+
+    MONTH_OF_YEAR: d => d.getMonth()
+  };
 
   export class TimePartAction extends Action {
     static fromJS(parameters: ActionJS): TimePartAction {
@@ -53,8 +84,13 @@ module Plywood {
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
       const { part, timezone } = this;
+      var parter = PART_TO_FUNCTION[part];
+      if (!parter) throw new Error(`unsupported part '${part}'`);
       return (d: Datum, c: Datum) => {
-        // ToDo: make this work
+        var inV = inputFn(d, c);
+        if (!inV) return null;
+        inV = WallTime.UTCToWallTime(inV, timezone.toString());
+        return parter(inV);
       }
     }
 
