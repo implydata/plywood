@@ -1,5 +1,9 @@
 # Change log
 
+## 0.7.27
+
+- Native `timePart` now works
+
 ## 0.7.26
 
 - Updated Druid External to use `doubleMin` and `doubleMax`.

@@ -230,29 +230,43 @@ describe "Dataset", ->
       ])
 
 
-  describe "actions", ->
-    it "sorts", ->
-      someDataset = Dataset.fromJS([
-        { time: new Date('2015-01-04T12:32:43'), resource: 'A',  value: 7 }
-        { time: null,                            resource: 'B',  value: 2 }
-        { time: new Date('2015-01-03T12:32:43'), resource: null, value: null }
-      ])
+  describe "sorts", ->
+    someDataset = Dataset.fromJS([
+      { time: new Date('2015-01-04T12:32:43'), resource: 'A',  value: 7,    nice: false }
+      { time: null,                            resource: 'B',  value: 2,    nice: true  }
+      { time: new Date('2015-01-03T12:32:43'), resource: null, value: null, nice: null  }
+    ])
 
+    it "STRING, ascending", ->
       expect(someDataset.sort($('resource').getFn(), 'ascending', {}).toJS().map((d) -> d.resource)).to.deep.equal([
         null, 'A', 'B'
       ])
 
+    it "STRING, descending", ->
       expect(someDataset.sort($('resource').getFn(), 'descending', {}).toJS().map((d) -> d.resource)).to.deep.equal([
         'B', 'A', null
       ])
 
+    it "NUMBER, ascending", ->
       expect(someDataset.sort($('value').getFn(), 'ascending', {}).toJS().map((d) -> d.value)).to.deep.equal([
         null, 2, 7
       ])
 
+    it "NUMBER, descending", ->
       expect(someDataset.sort($('value').getFn(), 'descending', {}).toJS().map((d) -> d.value)).to.deep.equal([
         7, 2, null
       ])
+
+    it "BOOLEAN, ascending", ->
+      expect(someDataset.sort($('nice').getFn(), 'ascending', {}).toJS().map((d) -> d.nice)).to.deep.equal([
+        null, false, true
+      ])
+
+    it "BOOLEAN, descending", ->
+      expect(someDataset.sort($('nice').getFn(), 'descending', {}).toJS().map((d) -> d.nice)).to.deep.equal([
+        true, false, null
+      ])
+
 
   describe "methods", ->
     emptyDataset = Dataset.fromJS([])
