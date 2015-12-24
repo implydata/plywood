@@ -1,4 +1,4 @@
-# plywood
+# Plywood
 
 ## Introduction
 
