@@ -7,7 +7,7 @@ An ORM-like framework for OLAP.
 
 Plywood is a JavaScript library that tries to simplify the task of building powerful, data-driven interfaces and visualizations around OLAP databases.
 
-Plywood comes with it's own [expression language](docs/expressions.md) that is architected around the principles of nested Split-Apply-Combine.
+Plywood comes with it's own [expression language](docs/docs/expressions.md) that is architected around the principles of nested Split-Apply-Combine.
 A single Plywood expression can translate to multiple queries to the underlying database and the resulting output is a nested data structure that is meant to be consumed by tools like [D3.js](http://d3js.org/). 
 
 You can Plywood in the browser and/or in node.js.
@@ -89,9 +89,9 @@ Plywood expressions were designed with the following ideas in mind:
 - Serializable - an expression can be converted to and from plain JSON to be saved in a file or transferred over the network.
 - Immutable - inspired by [immutable.js](https://facebook.github.io/immutable-js/), this immutability makes expressions very easy to work with and reason about.
 - Parsable - the plywood expression DSL is implemented in JavaScript and as a parser so: `Expression.parse('$wiki.sum($added)').equals($('wiki').sum($('added')))`  
-- Smart - expressions can perform complex internal rewriting to facilitate [query simplification](https://github.com/implydata/plywood/blob/master/test/overall/simplify.mocha.coffee).  
+- Smart - expressions can perform complex internal rewriting to facilitate [query simplification](test/overall/simplify.mocha.coffee).  
 
-For more information about expressions check out the [API reference](https://github.com/implydata/plywood/blob/master/docs/expressions.md).
+For more information about expressions check out the [API reference](docs/docs/expressions.md).
 
 ### Externals
 
