@@ -7,11 +7,11 @@ middle-layer between data visualizations and data stores.
 Plywood is architected around the principles of nested
 [Split-Apply-Combine](http://www.jstatsoft.org/article/view/v040i01/v40i01.pdf),
 a powerful divide-and-conquer algorithm that can be used to construct all types
-of data visualizations.  Plywood comes with it's own [expression
+of data visualizations. Plywood comes with it's own [expression
 language](docs/docs/expressions.md) where a single Plywood expression can
 translate to multiple database queries, and where results are returned in a
 nested data structure so they can be easily consumed by visualizaton libraries
-such [D3.js](http://d3js.org/). 
+such as [D3.js](http://d3js.org/). 
 
 You can use Plywood in the browser and/or in node.js to easily create your own
 visualizations and applications. For an example application built using
