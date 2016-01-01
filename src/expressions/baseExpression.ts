@@ -94,6 +94,11 @@ module Plywood {
     return merged.length ? merged.sort() : null;
   }
 
+  function getValue(param: any): any {
+    if (param instanceof LiteralExpression) return param.value;
+    return param;
+  }
+
   function getString(param: string | Expression): string {
     if (typeof param === 'string') return param;
     if (param instanceof LiteralExpression && param.type === 'STRING') {
@@ -814,9 +819,23 @@ module Plywood {
 
     public in(start: Date, end: Date): ChainExpression;
     public in(start: number, end: number): ChainExpression;
+    public in(start: string, end: string): ChainExpression;
     public in(ex: any): ChainExpression;
     public in(ex: any, snd?: any): ChainExpression {
       if (arguments.length === 2) {
+        ex = getValue(ex);
+        snd = getValue(snd);
+
+        if (typeof ex === 'string') {
+          ex = new Date(ex);
+          if (isNaN(ex.valueOf())) throw new Error('can not convert start to date');
+        }
+
+        if (typeof snd === 'string') {
+          snd = new Date(snd);
+          if (isNaN(snd.valueOf())) throw new Error('can not convert end to date');
+        }
+
         if (typeof ex === 'number' && typeof snd === 'number') {
           ex = new NumberRange({ start: ex, end: snd });
         } else if (ex.toISOString && snd.toISOString) {

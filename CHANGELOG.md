@@ -1,5 +1,11 @@
 # Change log
 
+## 0.7.28
+
+- Added ability to write `$('time').in('2015-03-03Z', '2015-10-10Z')`
+- Added ability to parse `$time.in('2015-03-03Z', '2015-10-10Z')`
+- Fixed bug in `$number.in(1, 2)` syntax
+
 ## 0.7.27
 
 - Native `timePart` now works

@@ -45,7 +45,7 @@ describe "composition", ->
       ]
     })
 
-  it "works in of a set", ->
+  it "works IN of a set", ->
     ex = $("x").in(['A', 'B', 'C'])
     expect(ex.toJS()).to.deep.equal({
       "action": {
@@ -60,6 +60,69 @@ describe "composition", ->
               "C"
             ]
             "setType": "STRING"
+          }
+        }
+      }
+      "expression": {
+        "name": "x"
+        "op": "ref"
+      }
+      "op": "chain"
+    })
+
+  it "works IN of NumberRange", ->
+    ex = $("x").in(3, 10)
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "in"
+        "expression": {
+          "op": "literal"
+          "type": "NUMBER_RANGE"
+          "value": {
+            "end": 10
+            "start": 3
+          }
+        }
+      }
+      "expression": {
+        "name": "x"
+        "op": "ref"
+      }
+      "op": "chain"
+    })
+
+  it "works IN of TimeRange", ->
+    ex = $("x").in(new Date('2015-03-03Z'), new Date('2015-10-10Z'))
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "in"
+        "expression": {
+          "op": "literal"
+          "type": "TIME_RANGE"
+          "value": {
+            "end": new Date('2015-10-10Z')
+            "start": new Date('2015-03-03Z')
+          }
+        }
+      }
+      "expression": {
+        "name": "x"
+        "op": "ref"
+      }
+      "op": "chain"
+    })
+
+  it "works IN of TimeRange (as strings)", ->
+    ex = $("x").in('2015-03-03Z', '2015-10-10Z')
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "in"
+        "expression": {
+          "op": "literal"
+          "type": "TIME_RANGE"
+          "value": {
+            "end": new Date('2015-10-10Z')
+            "start": new Date('2015-03-03Z')
           }
         }
       }
