@@ -1,16 +1,21 @@
 # Plywood
 
-An ORM-like framework for OLAP.
+Plywood is a JavaScript library that simplifies building interactive
+visualizations and applications for large data sets. Plywood acts as a
+middle-layer between data visualizations and data stores.
 
+Plywood is architected around the principles of nested
+[Split-Apply-Combine](http://www.jstatsoft.org/article/view/v040i01/v40i01.pdf),
+a powerful divide-and-conquer algorithm that can be used to construct all types
+of data visualizations. Plywood comes with its own [expression
+language](docs/docs/expressions.md) where a single Plywood expression can
+translate to multiple database queries, and where results are returned in a
+nested data structure so they can be easily consumed by visualizaton libraries
+such as [D3.js](http://d3js.org/). 
 
-## Introduction
-
-Plywood is a JavaScript library that tries to simplify the task of building powerful, data-driven interfaces and visualizations around OLAP databases.
-
-Plywood comes with it's own [expression language](docs/docs/expressions.md) that is architected around the principles of nested Split-Apply-Combine.
-A single Plywood expression can translate to multiple queries to the underlying database and the resulting output is a nested data structure that is meant to be consumed by tools like [D3.js](http://d3js.org/). 
-
-You can Plywood in the browser and/or in node.js.
+You can use Plywood in the browser and/or in node.js to easily create your own
+visualizations and applications. For an example application built using
+Plywood, please see [Pivot](https://github.com/implydata/pivot).
 
 ## Should you use Plywood?
  
