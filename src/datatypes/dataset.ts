@@ -139,6 +139,7 @@ module Plywood {
     'SET/TIME': (v: Set) => { return String(v); },
     'SET/TIME_RANGE': (v: Set) => { return String(v); },
     'STRING': (v: string) => {
+      v = '' + v;
       if (v.indexOf('"') === -1) return v;
       return '"' + v.replace(/"/g, '""') + '"';
     },

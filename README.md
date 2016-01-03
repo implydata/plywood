@@ -8,7 +8,7 @@ Plywood is architected around the principles of nested
 [Split-Apply-Combine](http://www.jstatsoft.org/article/view/v040i01/v40i01.pdf),
 a powerful divide-and-conquer algorithm that can be used to construct all types
 of data visualizations. Plywood comes with its own [expression
-language](docs/docs/expressions.md) where a single Plywood expression can
+language](docs/expressions.md) where a single Plywood expression can
 translate to multiple database queries, and where results are returned in a
 nested data structure so they can be easily consumed by visualizaton libraries
 such as [D3.js](http://d3js.org/). 
@@ -96,7 +96,7 @@ Plywood expressions were designed with the following ideas in mind:
 - Parsable - the plywood expression DSL is implemented in JavaScript and as a parser so: `Expression.parse('$wiki.sum($added)').equals($('wiki').sum($('added')))`  
 - Smart - expressions can perform complex internal rewriting to facilitate [query simplification](test/overall/simplify.mocha.coffee).  
 
-For more information about expressions check out the [API reference](docs/docs/expressions.md).
+For more information about expressions check out the [API reference](docs/expressions.md).
 
 ### Externals
 
