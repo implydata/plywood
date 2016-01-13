@@ -118,7 +118,7 @@ ex.compute({ x: 10 }).then(console.log); // => 0.1
 ```
 
 
-## Boolean predicates
+### Boolean predicates
 
 *operand*.**is**(ex: any)
 
@@ -242,7 +242,7 @@ ex.compute({ x: true, y: false }).then(console.log); // => true
 ```
 
 
-## String manipulation
+### String manipulation
 
 *operand*.**substr**(position: number, length: number)
 
@@ -278,7 +278,7 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => '[Hello World]'
 Performs a lookup within the specified namespace.
 
 
-## Bucketing
+### Bucketing
 
 *operand*.**numberBucket**(size: number, offset: number = 0)
 
@@ -306,7 +306,7 @@ var ex = $('x').is(5);
 ```
 
 
-## Split Apply Combine based transformations
+### Split Apply Combine based transformations
 
 Let's pretend we have this simple dataset:
 
@@ -415,7 +415,7 @@ Dataset.fromJS([
 ])
 ```
 
-## Aggregate expressions
+### Aggregate expressions
 
 Let's pretend we have this simple dataset:
 
