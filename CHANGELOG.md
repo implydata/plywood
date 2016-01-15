@@ -1,5 +1,9 @@
 # Change log
 
+## 0.7.29
+
+- In DruidExternal a time attribute will no longer collide with an existing attribute 
+
 ## 0.7.28
 
 - Added ability to write `$('time').in('2015-03-03Z', '2015-10-10Z')`

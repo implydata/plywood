@@ -23,6 +23,7 @@ describe "introspect", ->
             "__time": { "type": "LONG" },
             "color": { "type": "STRING" },
             "cut": { "type": "STRING" },
+            "time": { "type": "STRING" },
             "tags": { "type": "STRING" },
             "carat": { "type": "STRING" },
             "price": { "type": "FLOAT" },

@@ -284,9 +284,11 @@ module Plywood {
         new AttributeInfo({ name: timeAttribute, type: 'TIME' })
       ];
       res.dimensions.forEach(dimension => {
+        if (dimension === timeAttribute) return; // Ignore dimensions that clash with the timeAttribute name
         attributes.push(new AttributeInfo({ name: dimension, type: 'STRING' }));
       });
       res.metrics.forEach(metric => {
+        if (metric === timeAttribute) return; // Ignore metrics that clash with the timeAttribute name
         attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', filterable: false, splitable: false }));
       });
       return attributes;
@@ -304,6 +306,7 @@ module Plywood {
         if (name === '__time') {
           attributes.push(new AttributeInfo({ name: timeAttribute, type: 'TIME' }));
         } else {
+          if (name === timeAttribute) continue; // Ignore dimensions and metrics that clash with the timeAttribute name
           var columnData = columns[name];
           if (columnData.type === "STRING") {
             attributes.push(new AttributeInfo({ name, type: 'STRING' }));
