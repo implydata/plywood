@@ -1,5 +1,11 @@
 # Change log
 
+## 0.7.30
+
+- Fixed interval conversion to add a millisecond and not a second  
+- Allow for filtering on exact date in DruidExternal
+- Fixed missing error message when invalid interval is given
+
 ## 0.7.29
 
 - In DruidExternal a time attribute will no longer collide with an existing attribute 

@@ -39,6 +39,10 @@ module Plywood {
       return isInstanceOf(candidate, TimeRange);
     }
 
+    static intervalFromDate(date: Date): string {
+      return dateToIntervalPart(date) + '/' + dateToIntervalPart(new Date(date.valueOf() + 1));
+    }
+
     static timeBucket(date: Date, duration: Duration, timezone: Timezone): TimeRange {
       if (!date) return null;
       var start = duration.floor(date, timezone);
@@ -120,11 +124,11 @@ module Plywood {
       var { start, end, bounds } = this;
       var interval: string[] = [START_OF_TIME, END_OF_TIME];
       if (start) {
-        if (bounds[0] === '(') start = new Date(start.valueOf() + 1000); // add a sec
+        if (bounds[0] === '(') start = new Date(start.valueOf() + 1); // add a m.sec
         interval[0] = dateToIntervalPart(start);
       }
       if (end) {
-        if (bounds[1] === ']') end = new Date(end.valueOf() + 1000); // add a sec
+        if (bounds[1] === ']') end = new Date(end.valueOf() + 1); // add a m.sec
         interval[1] = dateToIntervalPart(end);
       }
       return interval.join("/");

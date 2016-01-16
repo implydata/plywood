@@ -675,10 +675,16 @@ module Plywood {
         var actions = filter.actions;
         if (actions.length !== 1) throw new Error(`can not convert ${filter.toString()} to Druid interval`);
         var filterAction = actions[0];
+        var rhs = filterAction.expression;
 
-        if (filterAction instanceof InAction) {
-          var rhs = filterAction.expression;
+        if (filterAction instanceof IsAction) {
+          if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
+            return [TimeRange.intervalFromDate(rhs.value)];
+          } else {
+            throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+          }
 
+        } else if (filterAction instanceof InAction) {
           if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
             var timeRanges: TimeRange[];
             var rhsType = rhs.type;
@@ -694,17 +700,18 @@ module Plywood {
           } else {
             throw new Error(`can not convert ${filter.toString()} to Druid interval`);
           }
+
+        } else {
+          throw new Error(`can not convert ${filter.toString()} to Druid interval`);
         }
+
         /*
-         else if (filter instanceof AndExpression) {
-         var mergedTimePart = AndExpression.mergeTimePart(filter);
-         if (mergedTimePart) {
-         return this.timeFilterToIntervals(mergedTimePart);
-         } else {
-         throw new Error(`can not convert ${filter.toString()} to Druid interval`);
-         }
-         }
-         */
+        else if (filter instanceof AndExpression) {
+          var mergedTimePart = AndExpression.mergeTimePart(filter);
+          if (mergedTimePart) {
+          return this.timeFilterToIntervals(mergedTimePart);
+        }
+        */
 
       } else {
         throw new Error(`can not convert ${filter.toString()} to Druid interval`);

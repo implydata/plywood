@@ -1320,6 +1320,24 @@ describe "simulate Druid", ->
       }
     ])
 
+  it "works on exact time filter (is)", ->
+    ex = ply()
+      .apply('diamonds', $('diamonds').filter($('time').is(new Date('2015-03-12T01:00:00.123Z'))))
+      .apply('Count', '$diamonds.count()')
+
+    expect(ex.simulateQueryPlan(context)[0].intervals).to.deep.equal([
+      "2015-03-12T01:00:00.123/2015-03-12T01:00:00.124"
+    ])
+
+  it "works on exact time filter (in interval)", ->
+    ex = ply()
+      .apply('diamonds', $('diamonds').filter($('time').in(new Date('2015-03-12T01:00:00.123Z'), new Date('2015-03-12T01:00:00.124Z'))))
+      .apply('Count', '$diamonds.count()')
+
+    expect(ex.simulateQueryPlan(context)[0].intervals).to.deep.equal([
+      "2015-03-12T01:00:00.123/2015-03-12T01:00:00.124"
+    ])
+
   it "works contains filter (case sensitive)", ->
     ex = ply()
       .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'))))
