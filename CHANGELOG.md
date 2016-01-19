@@ -1,5 +1,9 @@
 # Change log
 
+## 0.8.1
+
+- Removing d3 dependency and minimizing code size
+
 ## 0.7.30
 
 - Fixed interval conversion to add a millisecond and not a second  

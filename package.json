@@ -1,6 +1,6 @@
 {
   "name": "plywood",
-  "version": "0.7.30",
+  "version": "0.8.0",
   "description": "split-apply-combine; unify data and vis; with single language",
   "keywords": [
     "split",
@@ -26,7 +26,6 @@
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
-    "d3": "3.5.12",
     "immutable-class": "0.3.8",
     "q": "1.4.1"
   },

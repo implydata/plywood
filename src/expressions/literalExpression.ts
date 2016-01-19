@@ -110,21 +110,6 @@ module Plywood {
       }
     }
 
-    public _collectBindSpecs(bindSpecs: BindSpec[], selectionDepth: Lookup<number>, depth: number, applyName: string, data: string, key: string): void {
-      if (this.type === 'MARK') {
-        if (depth !== 0) throw new Error('can not have a mark that is not in the base context');
-        var mark = <Mark>this.value;
-        var bindSpec = {
-          selectionInput: '__base__',
-          selector: mark.selector,
-          selectionName: applyName
-        };
-        fillMethods(mark.prop, bindSpec);
-        bindSpecs.push(bindSpec);
-        selectionDepth[applyName] = 0;
-      }
-    }
-
     public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
       indexer.index++;
       if (this.type == 'DATASET') {

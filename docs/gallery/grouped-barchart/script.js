@@ -1,15 +1,3 @@
-<!DOCTYPE html>
-<head>
-  <meta charset="utf-8">
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <title>plywood</title>
-</head>
-
-<body>
-<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<script src="../plywood.js"></script>
-<script>
-
 var Dataset = plywood.Dataset;
 var $ = plywood.$;
 
@@ -37,17 +25,17 @@ d3.xhr('http://localhost:9091/plywood')
   .header("Content-Type", "application/json")
   .response(function(request) { return Dataset.fromJS(JSON.parse(request.responseText)); })
   .post(
-      JSON.stringify({
-        dataSource: 'wiki',
-        expression: stateByDayOfWeek
-      }),
-      function(err, dataset) {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        render(dataset);
+    JSON.stringify({
+      dataSource: 'wiki',
+      expression: stateByDayOfWeek
+    }),
+    function(err, dataset) {
+      if (err) {
+        console.log(err);
+        return;
       }
+      render(dataset);
+    }
   );
 
 
@@ -55,34 +43,34 @@ d3.xhr('http://localhost:9091/plywood')
 
 
 var margin = {top: 20, right: 20, bottom: 30, left: 40},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+  width = 960 - margin.left - margin.right,
+  height = 500 - margin.top - margin.bottom;
 
 var x0 = d3.scale.ordinal()
-    .rangeRoundBands([0, width], .1);
+  .rangeRoundBands([0, width], .1);
 
 var x1 = d3.scale.ordinal();
 
 var y = d3.scale.linear()
-    .range([height, 0]);
+  .range([height, 0]);
 
 var color = d3.scale.ordinal()
-    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+  .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
 
 var xAxis = d3.svg.axis()
-    .scale(x0)
-    .orient("bottom");
+  .scale(x0)
+  .orient("bottom");
 
 var yAxis = d3.svg.axis()
-    .scale(y)
-    .orient("left")
-    .tickFormat(d3.format(".2s"));
+  .scale(y)
+  .orient("left")
+  .tickFormat(d3.format(".2s"));
 
 var svg = d3.select("body").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
   .append("g")
-    .attr("transform", translate(margin.left, margin.top));
+  .attr("transform", translate(margin.left, margin.top));
 
 var days = [0, 1, 2, 3, 4, 5, 6];
 
@@ -100,13 +88,13 @@ function render(dataset) {
   ]);
 
   svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", translate(0, height))
-      .call(xAxis);
+    .attr("class", "x axis")
+    .attr("transform", translate(0, height))
+    .call(xAxis);
 
   svg.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
+    .attr("class", "y axis")
+    .call(yAxis)
     .append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", 6)
@@ -160,5 +148,3 @@ function render(dataset) {
     .style("text-anchor", "end")
     .text(function(d) { return dayOfWeekLabels[d]; });
 }
-
-</script>

@@ -52,9 +52,6 @@ module Plywood {
         case 'TIME_RANGE':
           return TimeRange.fromJS(v);
 
-        case 'SHAPE':
-          return Shape.fromJS(v);
-
         case 'SET':
           return Set.fromJS(v);
 

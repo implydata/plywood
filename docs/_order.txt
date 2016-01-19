@@ -1,4 +1,5 @@
 index
+gallery
 expressions
 datatypes
 plyql

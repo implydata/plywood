@@ -1,5 +1,4 @@
 /// <reference path="../typings/q/Q.d.ts" />
-/// <reference path="../typings/d3/d3.d.ts" />
 /// <reference path="../typings/immutable-class.d.ts" />
 /// <reference path="../typings/chronoshift.d.ts" />
 /// <reference path="../typings/locator.d.ts" />
@@ -19,8 +18,6 @@ declare var module: { exports: any; };
 var ImmutableClass = <ImmutableClass.Base>require("immutable-class");
 var q = <typeof Q>require("q");
 var Q_delete_me_ = q;
-var D3 = <typeof d3>require("d3");
-var d3_delete_me_ = D3;
 var chronoshift = <typeof Chronoshift>require("chronoshift");
 var Chronoshift_delete_me_ = chronoshift;
 

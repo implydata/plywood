@@ -154,13 +154,6 @@ module Plywood {
     return LiteralExpression.fromJS({ op: 'literal', value: value });
   }
 
-  export function mark(selector: string, prop: Lookup<any> = {}): Mark {
-    return new Mark({
-      selector,
-      prop
-    })
-  }
-
   function chainVia(op: string, expressions: Expression[], zero: Expression): Expression {
     switch (expressions.length) {
       case 0: return zero;
@@ -1124,16 +1117,6 @@ module Plywood {
       );
     }
 
-
-    public _collectBindSpecs(bindSpecs: BindSpec[], selectionDepth: Lookup<number>, depth: number, applyName: string, data: string, key: string): void {
-    }
-
-    public getBindSpecs(): BindSpec[] {
-      var bindSpecs: BindSpec[] = [];
-      this._collectBindSpecs(bindSpecs, {}, 0, null, null, null);
-      return bindSpecs;
-    }
-
     // ---------------------------------------------------------
     // Evaluation
 
@@ -1163,18 +1146,12 @@ module Plywood {
     /**
      * Computes a general asynchronous expression
      * @param context The context within which to compute the expression
-     * @param selector The selector where to attach the visualization
      */
-    public compute(context: Datum = {}, selector: string = null): Q.Promise<any> {
+    public compute(context: Datum = {}): Q.Promise<any> {
       if (!datumHasExternal(context) && !this.hasExternal()) {
         return Q.fcall(() => {
           var referenceChecked = this.referenceCheck(context);
-          var value = referenceChecked.getFn()(context, null);
-          if (selector && value instanceof Dataset) {
-            var selection = d3.select(selector);
-            binder(selection, value, referenceChecked.getBindSpecs());
-          }
-          return value;
+          return referenceChecked.getFn()(context, null);
         });
       }
       var ex = this;

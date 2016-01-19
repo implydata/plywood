@@ -12,16 +12,12 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/datatypes/range.ts \
   src/datatypes/numberRange.ts \
   src/datatypes/set.ts \
-  src/datatypes/shape.ts \
   src/datatypes/timeRange.ts \
-  src/datatypes/mark.ts \
   src/datatypes/dataset.ts \
   src/datatypes/external.ts \
   \
   src/external/druidExternal.ts \
   src/external/mySqlExternal.ts \
-  \
-  src/render/binder.ts \
   \
   src/expressions/baseExpression.ts \
   src/expressions/literalExpression.ts \

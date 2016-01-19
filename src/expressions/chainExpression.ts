@@ -309,50 +309,6 @@ module Plywood {
       return new ChainExpression(value);
     }
 
-    public _collectBindSpecs(bindSpecs: BindSpec[], selectionDepth: Lookup<number>, depth: number, applyName: string, data: string, key: string): void {
-      var expression = this.expression;
-      var actions = this.actions;
-      switch (expression.type) {
-        case 'DATASET':
-          var nextData: string = null;
-          var nextKey: string = null;
-          for (let action of actions) {
-            if (action instanceof SplitAction) {
-              nextData = applyName;
-              nextKey = action.firstSplitName();
-              depth++;
-            } else if (action instanceof ApplyAction) {
-              action.expression._collectBindSpecs(bindSpecs, selectionDepth, depth, action.name, nextData, nextKey);
-            }
-          }
-          break;
-
-        case 'MARK':
-          var selectionInput = (<RefExpression>expression).name;
-          for (let action of actions) {
-            if (action instanceof AttachAction) {
-              var bindSpec: BindSpec = {
-                selectionInput,
-                selector: action.selector,
-                selectionName: applyName
-              };
-              if (!hasOwnProperty(selectionDepth, selectionInput)) throw new Error('something terrible has happened');
-              if (data && depth > selectionDepth[selectionInput]) {
-                bindSpec.data = data;
-                bindSpec.key = key;
-              }
-              fillMethods(action.prop, bindSpec);
-              bindSpecs.push(bindSpec);
-              selectionDepth[applyName] = depth;
-            } else {
-              throw new Error('unknown action ' + action.action);
-            }
-          }
-
-          break;
-      }
-    }
-
     public _computeResolvedSimulate(simulatedQueries: any[]): any {
       var actions = this.actions;
 
