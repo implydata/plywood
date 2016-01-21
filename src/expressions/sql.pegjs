@@ -567,13 +567,19 @@ NotDQuote "NotDQuote"
   = $([^"]*)
 
 _ "Whitespace"
-  = $ ([ \t\r\n] / SingleLineComment)*
+  = $ ([ \t\r\n] / SingleLineComment / InlineComment)*
 
 __ "Mandatory Whitespace"
-  = $ ([ \t\r\n] / SingleLineComment)+
+  = $ ([ \t\r\n] / SingleLineComment / InlineComment)+
+
+InlineComment
+  = "/*" (!CommentTerminator .)* CommentTerminator
 
 SingleLineComment
-  = "--" (!LineTerminator .)*
+  = ("-- " / "#") (!LineTerminator .)*
+
+CommentTerminator
+  = "*/"
 
 LineTerminator
   = [\n\r]

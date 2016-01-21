@@ -21,7 +21,7 @@ var stateByDayOfWeek = $('main')
         .sort('$DayOfWeek', 'ascending')
     );
 
-d3.xhr('http://localhost:9091/plywood')
+d3.xhr('http://172.31.0.165:9090/plywood')
   .header("Content-Type", "application/json")
   .response(function(request) { return Dataset.fromJS(JSON.parse(request.responseText)); })
   .post(
@@ -37,9 +37,6 @@ d3.xhr('http://localhost:9091/plywood')
       render(dataset);
     }
   );
-
-
-
 
 
 var margin = {top: 20, right: 20, bottom: 30, left: 40},

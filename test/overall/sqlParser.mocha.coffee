@@ -141,12 +141,39 @@ describe "SQL parser", ->
         SELECT
         SUM(added) AS TotalAdded
         FROM `wiki`
-        WHERE `language`="en"    -- This is just some comment
+        WHERE `language`="en"
+        """)
+
+      ex2 = ply()
+      .apply('data', '$wiki.filter($language == "en")')
+      .apply('TotalAdded', '$data.sum($added)')
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
+    it "should work with all sorts of comments", ->
+      parse = Expression.parseSQL("""
+        /*
+        Multiline comments
+        can exist
+        at the start ...
+        */
+        SELECT
+        SUM(added)--1 AS /* Inline comment */ TotalAdded -- This is just some comment
+        FROM `wiki` # Another comment
+        /*
+        ... and in the
+        middle...
+        */
+        WHERE `language`="en"
+        /*
+        ... and at the
+        end.
+        */
         """)
 
       ex2 = ply()
         .apply('data', '$wiki.filter($language == "en")')
-        .apply('TotalAdded', '$data.sum($added)')
+        .apply('TotalAdded', '$data.sum($added) - -1')
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
 

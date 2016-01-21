@@ -1,3 +1,3 @@
 # Gallery
 
-coming soon
+[Grouped Bar Chart](../showcase/grouped-barchart/vis)

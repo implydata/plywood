@@ -824,6 +824,8 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       if (expression instanceof ChainExpression) {
         if (expression.getExpressionPattern('concat')) {
+          // https://github.com/druid-io/druid/commit/3459a202ce751cb60884519ef902e35280550895
+          // Also https://github.com/druid-io/druid/pull/2209/files
           return {
             type: "javascript",
             'function': expression.getJSFn('d'),

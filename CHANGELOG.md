@@ -1,5 +1,10 @@
 # Change log
 
+## 0.8.2
+
+- PlyQL comments are treated like they are in MySQL: `--` needs to be followed by a space, `#` starts a comment,
+  and `/* ... */` inline and multiline comments are supported
+
 ## 0.8.1
 
 - Removing d3 dependency and minimizing code size
