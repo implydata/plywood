@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+if [ "$(git status --porcelain)" != "" ]
+then
+  echo "pivot git status not clean!" >&2
+  exit 1
+fi
+
+aws s3 cp package/plywood.js s3://static.imply.io/plywood/plywood.js
+aws s3 cp package/plywood.js s3://static.imply.io/plywood/plywood.0.8.1.js
