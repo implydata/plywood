@@ -35,6 +35,7 @@
   "devDependencies": {
     "browserify": "12.0.1",
     "chai": "3.4.1",
+    "chronoshift": "0.3.x",
     "coffee-script": "1.10.0",
     "plywood-druid-requester": "1.2.4",
     "plywood-mysql-requester": "1.1.4",
