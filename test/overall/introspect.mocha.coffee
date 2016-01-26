@@ -85,15 +85,13 @@ describe "introspect", ->
           "type": "STRING"
         }
         {
-          "filterable": false
           "name": "price"
-          "splitable": false
+          "unsplitable": true
           "type": "NUMBER"
         }
         {
-          "filterable": false
           "name": "tax"
-          "splitable": false
+          "unsplitable": true
           "type": "NUMBER"
         }
         {
@@ -120,15 +118,13 @@ describe "introspect", ->
           "type": "STRING"
         }
         {
-          "filterable": false
           "name": "added"
-          "splitable": false
+          "unsplitable": true
           "type": "NUMBER"
         }
         {
-          "filterable": false
           "name": "deleted"
-          "splitable": false
+          "unsplitable": true
           "type": "NUMBER"
         }
       ])

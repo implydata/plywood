@@ -6,7 +6,7 @@ plywood = require('../../build/plywood')
 { Set, $, ply, r } = plywood
 
 describe "Set", ->
-  it "passes higher object tests", ->
+  it "is immutable class", ->
     testImmutableClass(Set, [
       {
         setType: 'NULL'

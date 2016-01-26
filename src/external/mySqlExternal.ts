@@ -189,11 +189,8 @@ module Plywood {
       };
     }
 
-    public getIntrospectQueryAndPostProcess(): IntrospectQueryAndPostProcess<string> {
-      return {
-        query: "DESCRIBE `" + this.table + "`",
-        postProcess: postProcessIntrospect
-      };
+    public getIntrospectAttributes(): Q.Promise<Attributes> {
+      return this.requester({ query: "DESCRIBE `" + this.table + "`", }).then(postProcessIntrospect);
     }
   }
 

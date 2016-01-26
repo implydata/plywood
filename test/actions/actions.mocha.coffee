@@ -6,7 +6,7 @@ plywood = require('../../build/plywood')
 { Action, $, ply, r, MatchAction } = plywood
 
 describe "Actions", ->
-  it "passes higher object tests", ->
+  it "is immutable class", ->
     testImmutableClass(Action, [
       {
         action: 'filter'

@@ -56,9 +56,9 @@ context = {
       { name: 'tags', type: 'SET/STRING' },
       { name: 'carat', type: 'NUMBER' },
       { name: 'height_bucket', special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 },
-      { name: 'price', type: 'NUMBER', filterable: false, splitable: false },
-      { name: 'tax', type: 'NUMBER', filterable: false, splitable: false },
-      { name: 'unique_views', special: 'unique', filterable: false, splitable: false }
+      { name: 'price', type: 'NUMBER', unsplitable: true },
+      { name: 'tax', type: 'NUMBER', unsplitable: true },
+      { name: 'unique_views', special: 'unique', unsplitable: true }
     ]
   })
 };

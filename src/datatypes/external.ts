@@ -12,15 +12,6 @@ module Plywood {
     (d: Datum, i: number, data: Datum[]): void;
   }
 
-  export interface IntrospectPostProcess {
-    (result: any): Attributes;
-  }
-
-  export interface IntrospectQueryAndPostProcess<T> {
-    query: T;
-    postProcess: IntrospectPostProcess;
-  }
-
   export function mergeExternals(externalGroups: External[][]): External[] {
     var seen: Lookup<External> = {};
     externalGroups.forEach(externalGroup => {
@@ -120,7 +111,6 @@ module Plywood {
     allowEternity?: boolean;
     allowSelectQueries?: boolean;
     exactResultsOnly?: boolean;
-    useSegmentMetadata?: boolean;
     context?: Lookup<any>;
     druidVersion?: string;
 
@@ -145,7 +135,6 @@ module Plywood {
     allowEternity?: boolean;
     allowSelectQueries?: boolean;
     exactResultsOnly?: boolean;
-    useSegmentMetadata?: boolean;
     context?: Lookup<any>;
     druidVersion?: string;
 
@@ -272,7 +261,7 @@ module Plywood {
       }
     }
 
-    static jsToValue(parameters: ExternalJS): ExpressionValue {
+    static jsToValue(parameters: ExternalJS): ExternalValue {
       var value: ExternalValue = {
         engine: parameters.engine,
         suppress: true
@@ -885,8 +874,8 @@ module Plywood {
       return !this.attributes;
     }
 
-    public getIntrospectQueryAndPostProcess(): IntrospectQueryAndPostProcess<any> {
-      throw new Error("can not call getIntrospectQueryAndPostProcess directly");
+    public getIntrospectAttributes(): Q.Promise<Attributes> {
+      throw new Error("can not call getIntrospectAttributes directly");
     }
 
     public introspect(): Q.Promise<External> {
@@ -897,18 +886,10 @@ module Plywood {
       if (!this.requester) {
         return <Q.Promise<External>>Q.reject(new Error('must have a requester to introspect'));
       }
-      try {
-        var queryAndPostProcess = this.getIntrospectQueryAndPostProcess();
-      } catch (e) {
-        return <Q.Promise<External>>Q.reject(e);
-      }
-      if (!hasOwnProperty(queryAndPostProcess, 'query') || typeof queryAndPostProcess.postProcess !== 'function') {
-        return <Q.Promise<External>>Q.reject(new Error('no error query or postProcess'));
-      }
+
       var value = this.valueOf();
       var ClassFn = External.classMap[this.engine];
-      return this.requester({ query: queryAndPostProcess.query })
-        .then(queryAndPostProcess.postProcess)
+      return this.getIntrospectAttributes()
         .then((attributes: Attributes) => {
           if (value.attributeOverrides) {
             attributes = AttributeInfo.applyOverrides(attributes, value.attributeOverrides);

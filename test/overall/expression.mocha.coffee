@@ -11,7 +11,7 @@ plywood = require('../../build/plywood')
 { Expression, $, RefExpression } = plywood
 
 describe "Expression", ->
-  it "passes higher object tests", ->
+  it "is immutable class", ->
     testImmutableClass(Expression, [
       { op: 'literal', value: null }
       { op: 'literal', value: false }
