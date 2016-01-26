@@ -1,5 +1,9 @@
 # Change log
 
+## 0.8.3
+
+- Brand new introspection code for `druidExternal` no more `useSegmentMetadata` flag
+
 ## 0.8.2
 
 - PlyQL comments are treated like they are in MySQL: `--` needs to be followed by a space, `#` starts a comment,

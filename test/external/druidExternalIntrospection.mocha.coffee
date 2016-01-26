@@ -84,6 +84,38 @@ describe "DruidExternal Introspection", ->
 
     return Q([merged])
 
+  requesterDruid_0_8_2 = ({query}) ->
+    expect(query.queryType).to.equal('segmentMetadata')
+    expect(query.dataSource).to.equal('wikipedia')
+    expect(query.merge).to.equal(true)
+    expect(query.analysisTypes).to.be.an('array')
+    expect(query.lenientAggregatorMerge).to.equal(true)
+
+    merged = {
+      "id": "merged",
+      "intervals": null,
+      "size": 0,
+      "numRows": 654321,
+      "columns": {
+        "__time": { "type": "LONG", "size": 0, "cardinality": null, "errorMessage": null },
+        "added": { "type": "FLOAT", "size": 0, "cardinality": null, "errorMessage": null },
+        "anonymous": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": null },
+        "count": { "type": "LONG", "size": 0, "cardinality": null, "errorMessage": null },
+        "delta_hist": { "type": "COMPLEX", "size": 0, "cardinality": null, "errorMessage": null },
+        "language": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": null },
+        "namespace": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": null },
+        "newPage": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": "lol wtf" },
+        "page": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": null },
+        "time": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": null },
+        "user_unique": { "type": "COMPLEX", "size": 0, "cardinality": null, "errorMessage": null }
+      }
+    }
+
+    if query.analysisTypes.indexOf("aggregators") isnt -1
+      return Q.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'))
+
+    return Q([merged])
+
   requesterDruid_0_8_0 = ({query}) ->
     if query.queryType is 'segmentMetadata'
       return Q.reject(new Error('segmentMetadata failed'))
@@ -229,6 +261,50 @@ describe "DruidExternal Introspection", ->
         {
           "name": "user_unique"
           "special": "unique"
+          "type": "STRING"
+        }
+      ])
+      testComplete()
+    ).done()
+
+  it "does an introspect with segmentMetadata (old style)", (testComplete) ->
+    wikiExternal = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      requester: requesterDruid_0_8_2
+    })
+
+    wikiExternal.introspect().then((introspectedExternal) ->
+      expect(introspectedExternal.toJS().attributes).to.deep.equal([
+        {
+          "name": "time"
+          "type": "TIME"
+        }
+        {
+          "name": "added"
+          "type": "NUMBER"
+          "unsplitable": true
+        }
+        {
+          "name": "anonymous"
+          "type": "STRING"
+        }
+        {
+          "name": "count"
+          "type": "NUMBER"
+          "unsplitable": true
+        }
+        {
+          "name": "language"
+          "type": "STRING"
+        }
+        {
+          "name": "namespace"
+          "type": "STRING"
+        }
+        {
+          "name": "page"
           "type": "STRING"
         }
       ])
