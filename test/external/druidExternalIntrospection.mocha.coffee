@@ -118,7 +118,7 @@ describe "DruidExternal Introspection", ->
 
   requesterDruid_0_8_0 = ({query}) ->
     if query.queryType is 'segmentMetadata'
-      return Q.reject(new Error('segmentMetadata failed'))
+      return Q.reject(new Error('Timeout'))
 
     expect(query).to.deep.equal({
       "dataSource": "wikipedia"
