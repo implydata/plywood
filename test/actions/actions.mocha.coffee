@@ -41,6 +41,10 @@ describe "Actions", ->
         direction: 'ascending'
       }
       {
+        action: 'fallback',
+        fallbackValue: 'none'
+      }
+      {
         action: 'limit'
         limit: 10
       }

@@ -951,6 +951,9 @@ module Plywood {
       return this.performAction(new LimitAction({ limit: getNumber(limit) }));
     }
 
+    public fallback(fallbackValue: string): ChainExpression {
+      return this.performAction(new FallbackAction({ fallbackValue: getString(fallbackValue) }));
+    }
     // Aggregate expressions
 
     public count(): ChainExpression {
