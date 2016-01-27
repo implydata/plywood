@@ -20,11 +20,6 @@ module Plywood {
       this._ensureAction("fallback");
     }
 
-    public getOutputType(inputType: string): string {
-      this._checkInputTypes(inputType, 'DATASET');
-      return 'DATASET';
-    }
-
     public valueOf(): ActionValue {
       var value = super.valueOf();
       value.fallbackValue = this.fallbackValue;
@@ -37,8 +32,13 @@ module Plywood {
       return js;
     }
 
+    public getOutputType(inputType: string): string {
+      this._checkInputTypes(inputType, 'DATASET');
+      return 'DATASET';
+    }
+
     protected _toStringParameters(expressionString: string): string[] {
-      return [String(this.fallbackValue)];
+      return [expressionString, String(this.fallbackValue)];
     }
 
     public equals(other: FallbackAction): boolean {
