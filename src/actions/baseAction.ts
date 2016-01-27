@@ -35,6 +35,7 @@ module Plywood {
     compare?: string;
     lookup?: string;
     simple?: boolean;
+    fallbackValue?: string;
   }
 
   export interface ActionJS {
@@ -61,6 +62,7 @@ module Plywood {
     custom?: string;
     compare?: string;
     lookup?: string;
+    fallbackValue?: string;
   }
 
   export interface ExpressionTransformation {
