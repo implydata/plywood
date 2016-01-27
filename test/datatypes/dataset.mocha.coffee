@@ -6,7 +6,7 @@ plywood = require('../../build/plywood')
 { Dataset, AttributeInfo, $, ply, r } = plywood
 
 describe "Dataset", ->
-  it "passes higher object tests", ->
+  it "is immutable class", ->
     testImmutableClass(Dataset, [
       [
         { x: 1, y: 2 }

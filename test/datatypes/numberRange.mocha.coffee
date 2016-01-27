@@ -6,7 +6,7 @@ plywood = require('../../build/plywood')
 { NumberRange, $, ply, r } = plywood
 
 describe "NumberRange", ->
-  it "passes higher object tests", ->
+  it "is immutable class", ->
     testImmutableClass(NumberRange, [
       {
         start: 0

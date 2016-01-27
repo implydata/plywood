@@ -32,7 +32,7 @@ module Plywood {
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      return [expressionString, String(this.lookup)];
+      return [String(this.lookup)];
     }
 
     public equals(other: LookupAction): boolean {

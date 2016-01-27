@@ -6,7 +6,7 @@ plywood = require('../../build/plywood')
 { TimeRange, $, ply, r } = plywood
 
 describe "TimeRange", ->
-  it "passes higher object tests", ->
+  it "is immutable class", ->
     testImmutableClass(TimeRange, [
       {
         start: new Date('2015-01-26T04:54:10Z')

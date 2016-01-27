@@ -387,13 +387,17 @@ declare module Druid {
         type: string;
         size?: number;
         cardinality?: number;
+        hasMultipleValues?: boolean;
+        errorMessage?: string;
     }
 
     interface SegmentMetadataDatum {
         id: string;
         intervals: Intervals;
-        columns: { [columnName: string]: ColumnMetadata };
         size: number;
+        numRows?: number;
+        columns: { [columnName: string]: ColumnMetadata };
+        aggregators?: { [columnName: string]: Aggregation };
     }
 
     type SegmentMetadataResults = Array<SegmentMetadataDatum>;

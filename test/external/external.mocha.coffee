@@ -36,7 +36,7 @@ context = {
 }
 
 describe "External", ->
-  it "passes higher object tests", ->
+  it "is immutable class", ->
     testImmutableClass(External, [
       {
         engine: 'mysql',
@@ -58,7 +58,7 @@ describe "External", ->
           { name: 'color', type: 'STRING' }
           { name: 'cut', type: 'STRING' }
           { name: 'carat', type: 'STRING' }
-          { name: 'price', type: 'NUMBER', filterable: false, splitable: false }
+          { name: 'price', type: 'NUMBER', unsplitable: true }
         ]
         druidVersion: '0.8.1'
       }
@@ -69,6 +69,7 @@ describe "External", ->
         timeAttribute: 'time',
         allowEternity: true,
         allowSelectQueries: true,
+        avoidSegmentMetadata: true,
         exactResultsOnly: true,
         context: {
           timeout: 10000
@@ -135,7 +136,7 @@ describe "External", ->
           { name: 'color', type: 'STRING' }
           { name: 'cut', type: 'STRING' }
           { name: 'carat', type: 'STRING' }
-          { name: 'unique_thing', type: 'NUMBER', filterable: false, splitable: false }
+          { name: 'unique_thing', type: 'NUMBER', unsplitable: true }
         ]
       })
 

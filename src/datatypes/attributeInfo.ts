@@ -10,13 +10,13 @@ module Plywood {
   export type Attributes = AttributeInfo[];
   export type AttributeJSs = AttributeInfoJS[];
 
-  export interface AttributeInfoJS {
+  export interface AttributeInfoValue {
     special?: string;
     name: string;
     type?: string;
     datasetType?: Lookup<FullType>;
-    filterable?: boolean;
-    splitable?: boolean;
+    unsplitable?: boolean;
+    makerAction?: Action;
 
     // range
     separator?: string;
@@ -25,10 +25,37 @@ module Plywood {
     digitsAfterDecimal?: int;
   }
 
-  var check: Class<AttributeInfoJS, AttributeInfoJS>;
-  export class AttributeInfo implements Instance<AttributeInfoJS, AttributeInfoJS> {
+  export interface AttributeInfoJS {
+    special?: string;
+    name: string;
+    type?: string;
+    datasetType?: Lookup<FullType>;
+    unsplitable?: boolean;
+    makerAction?: ActionJS;
+
+    // range
+    separator?: string;
+    rangeSize?: number;
+    digitsBeforeDecimal?: int;
+    digitsAfterDecimal?: int;
+  }
+
+  var check: Class<AttributeInfoValue, AttributeInfoJS>;
+  export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfoJS> {
     static isAttributeInfo(candidate: any): boolean {
       return isInstanceOf(candidate, AttributeInfo);
+    }
+
+    static jsToValue(parameters: AttributeInfoJS): AttributeInfoValue {
+      var value: AttributeInfoValue = {
+        special: parameters.special,
+        name: parameters.name
+      };
+      if (parameters.type) value.type = parameters.type;
+      if (parameters.datasetType) value.datasetType = parameters.datasetType;
+      if (parameters.unsplitable) value.unsplitable = true;
+      if (parameters.makerAction) value.makerAction = Action.fromJS(parameters.makerAction);
+      return value;
     }
 
     static classMap: Lookup<typeof AttributeInfo> = {};
@@ -42,7 +69,7 @@ module Plywood {
         throw new Error("unrecognizable attributeMeta");
       }
       if (!hasOwnProperty(parameters, 'special')) {
-        return new AttributeInfo(parameters);
+        return new AttributeInfo(AttributeInfo.jsToValue(parameters));
       }
       var Class = AttributeInfo.classMap[parameters.special];
       if (!Class) {
@@ -98,10 +125,10 @@ module Plywood {
     public name: string;
     public type: string;
     public datasetType: Lookup<FullType>;
-    public filterable: boolean;
-    public splitable: boolean;
+    public unsplitable: boolean;
+    public makerAction: Action;
 
-    constructor(parameters: AttributeInfoJS) {
+    constructor(parameters: AttributeInfoValue) {
       if (parameters.special) this.special = parameters.special;
 
       if (typeof parameters.name !== "string") {
@@ -115,8 +142,8 @@ module Plywood {
       this.type = parameters.type;
 
       this.datasetType = parameters.datasetType;
-      this.filterable = hasOwnProperty(parameters, 'filterable') ? Boolean(parameters.filterable) : true;
-      this.splitable = hasOwnProperty(parameters, 'splitable') ? Boolean(parameters.splitable) : true;
+      this.unsplitable = Boolean(parameters.unsplitable);
+      this.makerAction = parameters.makerAction;
     }
 
     public _ensureSpecial(special: string) {
@@ -144,15 +171,15 @@ module Plywood {
       return `${special}(${this.type})`;
     }
 
-    public valueOf(): AttributeInfoJS {
-      var value: AttributeInfoJS = {
+    public valueOf(): AttributeInfoValue {
+      var value: AttributeInfoValue = {
         name: this.name,
         type: this.type,
-        filterable: this.filterable,
-        splitable: this.splitable
+        unsplitable: this.unsplitable
       };
       if (this.special) value.special = this.special;
       if (this.datasetType) value.datasetType = this.datasetType;
+      if (this.makerAction) value.makerAction = this.makerAction;
       return value;
     }
 
@@ -161,10 +188,10 @@ module Plywood {
         name: this.name,
         type: this.type
       };
-      if (!this.filterable) js.filterable = false;
-      if (!this.splitable) js.splitable = false;
+      if (this.unsplitable) js.unsplitable = true;
       if (this.special) js.special = this.special;
       if (this.datasetType) js.datasetType = this.datasetType;
+      if (this.makerAction) js.makerAction = this.makerAction.toJS();
       return js;
     }
 
@@ -176,7 +203,9 @@ module Plywood {
       return AttributeInfo.isAttributeInfo(other) &&
         this.special === other.special &&
         this.name === other.name &&
-        this.type === other.type;
+        this.type === other.type &&
+        Boolean(this.makerAction) === Boolean(other.makerAction) &&
+        (!this.makerAction || this.makerAction.equals(other.makerAction));
     }
 
     public serialize(value: any): any {
@@ -188,7 +217,12 @@ module Plywood {
 
   export class RangeAttributeInfo extends AttributeInfo {
     static fromJS(parameters: AttributeInfoJS): RangeAttributeInfo {
-      return new RangeAttributeInfo(parameters);
+      var value = AttributeInfo.jsToValue(parameters);
+      value.separator = parameters.separator;
+      value.rangeSize = parameters.rangeSize;
+      value.digitsBeforeDecimal = parameters.digitsBeforeDecimal;
+      value.digitsAfterDecimal = parameters.digitsAfterDecimal;
+      return new RangeAttributeInfo(value);
     }
 
     public separator: string;
@@ -196,15 +230,14 @@ module Plywood {
     public digitsBeforeDecimal: int;
     public digitsAfterDecimal: int;
 
-    constructor(parameters: AttributeInfoJS) {
+    constructor(parameters: AttributeInfoValue) {
       super(parameters);
-      this.separator = parameters.separator;
+      this.separator = parameters.separator || ';';
       this.rangeSize = parameters.rangeSize;
       this.digitsBeforeDecimal = parameters.digitsBeforeDecimal;
       this.digitsAfterDecimal = parameters.digitsAfterDecimal;
       this._ensureSpecial("range");
       this._ensureType('NUMBER_RANGE');
-      this.separator || (this.separator = ";");
       if (!(typeof this.separator === "string" && this.separator.length)) {
         throw new TypeError("`separator` must be a non-empty string");
       }
@@ -243,18 +276,21 @@ module Plywood {
     }
 
     public valueOf() {
-      var attributeMetaSpec = super.valueOf();
-      if (this.separator !== ";") {
-        attributeMetaSpec.separator = this.separator;
-      }
-      attributeMetaSpec.rangeSize = this.rangeSize;
-      if (this.digitsBeforeDecimal !== null) {
-        attributeMetaSpec.digitsBeforeDecimal = this.digitsBeforeDecimal;
-      }
-      if (this.digitsAfterDecimal !== null) {
-        attributeMetaSpec.digitsAfterDecimal = this.digitsAfterDecimal;
-      }
-      return attributeMetaSpec;
+      var value = super.valueOf();
+      value.separator = this.separator;
+      value.rangeSize = this.rangeSize;
+      if (this.digitsBeforeDecimal !== null) value.digitsBeforeDecimal = this.digitsBeforeDecimal;
+      if (this.digitsAfterDecimal !== null) value.digitsAfterDecimal = this.digitsAfterDecimal;
+      return value;
+    }
+
+    public toJS(): AttributeInfoJS {
+      var js = super.toJS();
+      js.separator = this.separator;
+      js.rangeSize = this.rangeSize;
+      if (this.digitsBeforeDecimal !== null) js.digitsBeforeDecimal = this.digitsBeforeDecimal;
+      if (this.digitsAfterDecimal !== null) js.digitsAfterDecimal = this.digitsAfterDecimal;
+      return js;
     }
 
     public equals(other: RangeAttributeInfo): boolean {
@@ -306,10 +342,10 @@ module Plywood {
 
   export class UniqueAttributeInfo extends AttributeInfo {
     static fromJS(parameters: AttributeInfoJS): UniqueAttributeInfo {
-      return new UniqueAttributeInfo(parameters);
+      return new UniqueAttributeInfo(AttributeInfo.jsToValue(parameters));
     }
 
-    constructor(parameters: AttributeInfoJS) {
+    constructor(parameters: AttributeInfoValue) {
       super(parameters);
       this._ensureSpecial("unique");
       this._ensureType('STRING');
@@ -323,10 +359,10 @@ module Plywood {
 
   export class HistogramAttributeInfo extends AttributeInfo {
     static fromJS(parameters: AttributeInfoJS): HistogramAttributeInfo {
-      return new HistogramAttributeInfo(parameters);
+      return new HistogramAttributeInfo(AttributeInfo.jsToValue(parameters));
     }
 
-    constructor(parameters: AttributeInfoJS) {
+    constructor(parameters: AttributeInfoValue) {
       super(parameters);
       this._ensureSpecial("histogram");
       this._ensureType('NUMBER');

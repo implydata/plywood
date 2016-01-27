@@ -4,8 +4,8 @@ plywood = require('../../build/plywood')
 { Expression, Dataset, $, ply, r } = plywood
 
 describe "stringification", ->
-  it "works in advanced case", ->
 
+  it "works in advanced case", ->
     ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', $('diamonds').count())
@@ -58,3 +58,8 @@ describe "stringification", ->
             )
         )
     """)
+
+  it "works with lookup", ->
+    ex = $('diamonds').split("$cut.lookup('hello_lookup')", 'CutLookup')
+
+    expect(ex.toString(2)).to.equal("$diamonds.split($cut.lookup(hello_lookup),CutLookup,diamonds)")

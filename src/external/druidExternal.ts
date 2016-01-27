@@ -278,8 +278,95 @@ module Plywood {
 
   // Introspect
 
+  export interface IntrospectPostProcess {
+    (result: any): Attributes;
+  }
+
+  function generateMakerAction(aggregation: Druid.Aggregation): Action {
+    if (!aggregation) return null;
+
+    var expression = $(aggregation.fieldName);
+
+    switch (aggregation.type) {
+      case "count":
+        return new CountAction({});
+
+      case "doubleSum":
+      case "longSum":
+        return new SumAction({ expression });
+
+      case "doubleMin":
+      case "longMin":
+        return new MinAction({ expression });
+
+      case "doubleMax":
+      case "longMax":
+        return new MaxAction({ expression });
+
+      default:
+        return null;
+    }
+  }
+
+  function segmentMetadataPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
+    return (res: Druid.SegmentMetadataResults): Attributes => {
+      var res0 = res[0];
+      if (!res0 || !res0.columns) throw new Error('malformed segmentMetadata response');
+      var columns = res0.columns;
+      var aggregators = res0.aggregators || {};
+
+      var foundTime = false;
+      var attributes: Attributes = [];
+      for (var name in columns) {
+        if (!hasOwnProperty(columns, name)) continue;
+        var columnData = columns[name];
+        if (columnData.errorMessage) continue;
+
+        if (name === '__time') {
+          attributes.push(new AttributeInfo({ name: timeAttribute, type: 'TIME' }));
+          foundTime = true;
+        } else {
+          if (name === timeAttribute) continue; // Ignore dimensions and metrics that clash with the timeAttribute name
+          switch (columnData.type) {
+            case 'FLOAT':
+            case 'LONG':
+              attributes.push(new AttributeInfo({
+                name,
+                type: 'NUMBER',
+                unsplitable: true,
+                makerAction: generateMakerAction(aggregators[name])
+              }));
+              break;
+
+            case 'STRING':
+              attributes.push(new AttributeInfo({
+                name,
+                type: columnData.hasMultipleValues ? 'SET/STRING' : 'STRING'
+              }));
+              break;
+
+            case 'hyperUnique':
+              attributes.push(new UniqueAttributeInfo({ name }));
+              break;
+
+            case 'approximateHistogram':
+              attributes.push(new HistogramAttributeInfo({ name }));
+              break;
+          }
+        }
+      }
+
+      if (!foundTime) throw new Error('no valid __time in segmentMetadata response');
+      return attributes;
+    }
+  }
+
   function introspectPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
     return (res: Druid.DatasourceIntrospectResult): Attributes => {
+      if (!Array.isArray(res.dimensions) || !Array.isArray(res.metrics)) {
+        throw new Error('malformed GET introspect response');
+      }
+
       var attributes: Attributes = [
         new AttributeInfo({ name: timeAttribute, type: 'TIME' })
       ];
@@ -289,32 +376,8 @@ module Plywood {
       });
       res.metrics.forEach(metric => {
         if (metric === timeAttribute) return; // Ignore metrics that clash with the timeAttribute name
-        attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', filterable: false, splitable: false }));
+        attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', unsplitable: true }));
       });
-      return attributes;
-    }
-  }
-
-  function segmentMetadataPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
-    return (res: Druid.SegmentMetadataResults): Attributes => {
-      var attributes: Attributes = [];
-
-      var columns = res[0].columns;
-      for (var name in columns) {
-        if (!hasOwnProperty(columns, name)) continue;
-
-        if (name === '__time') {
-          attributes.push(new AttributeInfo({ name: timeAttribute, type: 'TIME' }));
-        } else {
-          if (name === timeAttribute) continue; // Ignore dimensions and metrics that clash with the timeAttribute name
-          var columnData = columns[name];
-          if (columnData.type === "STRING") {
-            attributes.push(new AttributeInfo({ name, type: 'STRING' }));
-          } else {
-            attributes.push(new AttributeInfo({ name, type: 'NUMBER', filterable: false, splitable: false }));
-          }
-        }
-      }
       return attributes;
     }
   }
@@ -332,8 +395,8 @@ module Plywood {
       value.customAggregations = datasetJS.customAggregations || {};
       value.allowEternity = Boolean(datasetJS.allowEternity);
       value.allowSelectQueries = Boolean(datasetJS.allowSelectQueries);
+      value.avoidSegmentMetadata = Boolean(datasetJS.avoidSegmentMetadata);
       value.exactResultsOnly = Boolean(datasetJS.exactResultsOnly);
-      value.useSegmentMetadata = Boolean(datasetJS.useSegmentMetadata);
       value.context = datasetJS.context;
       value.druidVersion = datasetJS.druidVersion;
       return new DruidExternal(value);
@@ -345,8 +408,8 @@ module Plywood {
     public customAggregations: CustomDruidAggregations;
     public allowEternity: boolean;
     public allowSelectQueries: boolean;
+    public avoidSegmentMetadata: boolean;
     public exactResultsOnly: boolean;
-    public useSegmentMetadata: boolean;
     public context: Lookup<any>;
     public druidVersion: string;
 
@@ -359,8 +422,8 @@ module Plywood {
       if (typeof this.timeAttribute !== 'string') throw new Error("must have a timeAttribute");
       this.allowEternity = parameters.allowEternity;
       this.allowSelectQueries = parameters.allowSelectQueries;
+      this.avoidSegmentMetadata = parameters.avoidSegmentMetadata;
       this.exactResultsOnly = parameters.exactResultsOnly;
-      this.useSegmentMetadata = parameters.useSegmentMetadata;
       this.context = parameters.context;
 
       var druidVersion = parameters.druidVersion || '0.8.0';
@@ -376,8 +439,8 @@ module Plywood {
       value.customAggregations = this.customAggregations;
       value.allowEternity = this.allowEternity;
       value.allowSelectQueries = this.allowSelectQueries;
+      value.avoidSegmentMetadata = this.avoidSegmentMetadata;
       value.exactResultsOnly = this.exactResultsOnly;
-      value.useSegmentMetadata = this.useSegmentMetadata;
       value.context = this.context;
       value.druidVersion = this.druidVersion;
       return value;
@@ -390,8 +453,8 @@ module Plywood {
       if (Object.keys(this.customAggregations).length) js.customAggregations = this.customAggregations;
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
+      if (this.avoidSegmentMetadata) js.avoidSegmentMetadata = true;
       if (this.exactResultsOnly) js.exactResultsOnly = true;
-      if (this.useSegmentMetadata) js.useSegmentMetadata = true;
       js.context = this.context;
       js.druidVersion = this.druidVersion;
       return js;
@@ -404,8 +467,8 @@ module Plywood {
         customAggregationsEqual(this.customAggregations, other.customAggregations) &&
         this.allowEternity === other.allowEternity &&
         this.allowSelectQueries === other.allowSelectQueries &&
+        this.avoidSegmentMetadata === other.avoidSegmentMetadata &&
         this.exactResultsOnly === other.exactResultsOnly &&
-        this.useSegmentMetadata === other.useSegmentMetadata &&
         dictEqual(this.context, other.context) &&
         this.druidVersion === other.druidVersion;
     }
@@ -1631,25 +1694,51 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
-    public getIntrospectQueryAndPostProcess(): IntrospectQueryAndPostProcess<Druid.Query> {
-      if (this.useSegmentMetadata) {
-        return {
+    public getIntrospectAttributesWithSegmentMetadata(): Q.Promise<Attributes> {
+      var { requester, timeAttribute } = this;
+
+      return requester({
+        query: {
+          queryType: 'segmentMetadata',
+          dataSource: this.getDruidDataSource(),
+          merge: true,
+          analysisTypes: ["aggregators"],
+          lenientAggregatorMerge: true
+        }
+      }).catch((err: Error) => {
+        if (err.message.indexOf('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType') === -1) throw err;
+
+        return requester({
           query: {
             queryType: 'segmentMetadata',
             dataSource: this.getDruidDataSource(),
             merge: true,
             analysisTypes: []
-          },
-          postProcess: segmentMetadataPostProcessFactory(this.timeAttribute)
-        };
+          }
+        })
+      }).then(segmentMetadataPostProcessFactory(timeAttribute));
+    }
+
+    public getIntrospectAttributesWithGet(): Q.Promise<Attributes> {
+      var { requester, timeAttribute } = this;
+
+      return requester({
+        query: {
+          queryType: 'introspect',
+          dataSource: this.getDruidDataSource()
+        }
+      }).then(introspectPostProcessFactory(timeAttribute))
+    }
+
+    public getIntrospectAttributes(): Q.Promise<Attributes> {
+      if (this.avoidSegmentMetadata) {
+        return this.getIntrospectAttributesWithGet();
       } else {
-        return {
-          query: {
-            queryType: 'introspect',
-            dataSource: this.getDruidDataSource()
-          },
-          postProcess: introspectPostProcessFactory(this.timeAttribute)
-        };
+        return this.getIntrospectAttributesWithSegmentMetadata()
+          .catch((err: Error) => {
+            if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
+            return this.getIntrospectAttributesWithGet();
+          });
       }
     }
   }
