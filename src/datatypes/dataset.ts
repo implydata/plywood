@@ -431,6 +431,18 @@ module Plywood {
       return new Dataset(value);
     }
 
+    public fallback(fallbackValue: string, expressionName : string): Dataset {
+      var data = this.data;
+      var value = this.valueOf();
+      for (var datum of data) {
+        if (datum[expressionName] === null) {
+          datum[expressionName] = fallbackValue;
+        }
+      }
+      value.data = data;
+      return new Dataset(value);
+    }
+
     // Aggregators
     public count(): int {
       return this.data.length;

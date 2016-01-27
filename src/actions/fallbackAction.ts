@@ -3,22 +3,25 @@ module Plywood {
     static fromJS(parameters: ActionJS): FallbackAction {
       return new FallbackAction({
         action: parameters.action,
+        expression: Expression.fromJS(parameters.expression),
         fallbackValue: parameters.fallbackValue
       });
     }
 
     public fallbackValue: string;
-    public fallbackCondition: string;
 
     constructor(parameters: ActionValue = {}) {
       super(parameters, dummyObject);
       this.fallbackValue = parameters.fallbackValue;
+      if (!this.expression.isOp('ref')) {
+        throw new Error("must be a reference expression (for now): " + this.toString());
+      }
+
       this._ensureAction("fallback");
     }
 
     public getOutputType(inputType: string): string {
-      var expression = this.expression;
-      this._checkInputType(inputType, 'DATASET');
+      this._checkInputTypes(inputType, 'DATASET');
       return 'DATASET';
     }
 
@@ -43,15 +46,13 @@ module Plywood {
         this.fallbackValue === other.fallbackValue;
     }
 
-
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       var fallbackValue = this.fallbackValue;
-      var fallbackCondition = this.fallbackCondition ? this.fallbackCondition : null;
-
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
-        if (inV === fallbackCondition) return fallbackValue;
-        return inV;
+        var expression : any = this.expression;
+        var name = expression['name'];
+        return inV.fallback(fallbackValue, name);
       }
     }
 
