@@ -34,42 +34,30 @@ describe "compute native", ->
     ).done()
     
   it "fallback works in null case", (testComplete) ->
-    ds = Dataset.fromJS(data).hide()
-
-    ex = ply()
-    .apply('Two', 2)
-    .apply('EmptyData', ply(ds).filter('false'))
-    .apply('SumPrice', '$EmptyData.sum($price)')
-    .apply('AvgPrice1', '$EmptyData.average($price)')
-    .fallback('$AvgPrice1', 'none')
-
-    p = ex.compute()
+    ex = $('x').fallback(5);
+    p = ex.compute({x:null})
     p.then((v) ->
-      expect(v.toJS()).to.deep.equal([
-        {
-          "AvgPrice1": "none"
-          "SumPrice": 0
-          "Two": 2
-        }
-      ])
+      expect(v).to.deep.equal(5);
       testComplete()
     ).done()
 
-  it "fallback doesnt happen in not null case", (testComplete) ->
+
+  it "fallback works with datasets", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
     ex = ply()
     .apply('Two', 2)
     .apply('EmptyData', ply(ds).filter('false'))
     .apply('SumPrice', '$EmptyData.sum($price)')
-    .apply('AvgPrice1', '$EmptyData.average($price)')
-    .fallback('$SumPrice', 'none')
+    .apply('AvgPrice1', $('EmptyData').average($('price')).fallback(2))
+    .apply('AvgPrice2', '$EmptyData.sum($price) / $EmptyData.count()')
 
     p = ex.compute()
     p.then((v) ->
       expect(v.toJS()).to.deep.equal([
         {
-          "AvgPrice1": null,
+          "AvgPrice1": 2
+          "AvgPrice2": null
           "SumPrice": 0
           "Two": 2
         }

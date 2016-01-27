@@ -951,10 +951,11 @@ module Plywood {
       return this.performAction(new LimitAction({ limit: getNumber(limit) }));
     }
 
-    public fallback(ex: any, fallbackValue: string): ChainExpression {
+    public fallback(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new FallbackAction({ expression: ex, fallbackValue: getString(fallbackValue) }));
+      return this.performAction(new FallbackAction({ fallbackValue: ex }));
     }
+
     // Aggregate expressions
 
     public count(): ChainExpression {
