@@ -42,8 +42,7 @@ describe "Actions", ->
       }
       {
         action: 'fallback',
-        expression: { op: 'ref', name: 'myVar' },
-        fallbackValue: 'none'
+        fallbackValue: { op: 'ref', name: 'myVar2' }
       }
       {
         action: 'limit'
