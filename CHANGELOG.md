@@ -2,7 +2,8 @@
 
 ## 0.8.3
 
-- Brand new introspection code for `druidExternal` no more `useSegmentMetadata` flag
+- Brand new introspection code for `druidExternal` no more `useSegmentMetadata` flag instead there is a `avoidSegmentMetadata` flag
+- Fix `.lookup()` stringification
 
 ## 0.8.2
 

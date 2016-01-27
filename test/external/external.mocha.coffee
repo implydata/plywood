@@ -69,6 +69,7 @@ describe "External", ->
         timeAttribute: 'time',
         allowEternity: true,
         allowSelectQueries: true,
+        avoidSegmentMetadata: true,
         exactResultsOnly: true,
         context: {
           timeout: 10000

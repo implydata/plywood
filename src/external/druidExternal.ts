@@ -395,6 +395,7 @@ module Plywood {
       value.customAggregations = datasetJS.customAggregations || {};
       value.allowEternity = Boolean(datasetJS.allowEternity);
       value.allowSelectQueries = Boolean(datasetJS.allowSelectQueries);
+      value.avoidSegmentMetadata = Boolean(datasetJS.avoidSegmentMetadata);
       value.exactResultsOnly = Boolean(datasetJS.exactResultsOnly);
       value.context = datasetJS.context;
       value.druidVersion = datasetJS.druidVersion;
@@ -407,6 +408,7 @@ module Plywood {
     public customAggregations: CustomDruidAggregations;
     public allowEternity: boolean;
     public allowSelectQueries: boolean;
+    public avoidSegmentMetadata: boolean;
     public exactResultsOnly: boolean;
     public context: Lookup<any>;
     public druidVersion: string;
@@ -420,6 +422,7 @@ module Plywood {
       if (typeof this.timeAttribute !== 'string') throw new Error("must have a timeAttribute");
       this.allowEternity = parameters.allowEternity;
       this.allowSelectQueries = parameters.allowSelectQueries;
+      this.avoidSegmentMetadata = parameters.avoidSegmentMetadata;
       this.exactResultsOnly = parameters.exactResultsOnly;
       this.context = parameters.context;
 
@@ -436,6 +439,7 @@ module Plywood {
       value.customAggregations = this.customAggregations;
       value.allowEternity = this.allowEternity;
       value.allowSelectQueries = this.allowSelectQueries;
+      value.avoidSegmentMetadata = this.avoidSegmentMetadata;
       value.exactResultsOnly = this.exactResultsOnly;
       value.context = this.context;
       value.druidVersion = this.druidVersion;
@@ -449,6 +453,7 @@ module Plywood {
       if (Object.keys(this.customAggregations).length) js.customAggregations = this.customAggregations;
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
+      if (this.avoidSegmentMetadata) js.avoidSegmentMetadata = true;
       if (this.exactResultsOnly) js.exactResultsOnly = true;
       js.context = this.context;
       js.druidVersion = this.druidVersion;
@@ -462,6 +467,7 @@ module Plywood {
         customAggregationsEqual(this.customAggregations, other.customAggregations) &&
         this.allowEternity === other.allowEternity &&
         this.allowSelectQueries === other.allowSelectQueries &&
+        this.avoidSegmentMetadata === other.avoidSegmentMetadata &&
         this.exactResultsOnly === other.exactResultsOnly &&
         dictEqual(this.context, other.context) &&
         this.druidVersion === other.druidVersion;
@@ -1707,8 +1713,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             queryType: 'segmentMetadata',
             dataSource: this.getDruidDataSource(),
             merge: true,
-            analysisTypes: [],
-            lenientAggregatorMerge: true
+            analysisTypes: []
           }
         })
       }).then(segmentMetadataPostProcessFactory(timeAttribute));
@@ -1726,8 +1731,15 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public getIntrospectAttributes(): Q.Promise<Attributes> {
-      return this.getIntrospectAttributesWithSegmentMetadata()
-        .catch((err: Error) => this.getIntrospectAttributesWithGet());
+      if (this.avoidSegmentMetadata) {
+        return this.getIntrospectAttributesWithGet();
+      } else {
+        return this.getIntrospectAttributesWithSegmentMetadata()
+          .catch((err: Error) => {
+            if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
+            return this.getIntrospectAttributesWithGet();
+          });
+      }
     }
   }
   External.register(DruidExternal);
