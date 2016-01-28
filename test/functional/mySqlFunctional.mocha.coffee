@@ -290,6 +290,16 @@ describe "MySQLExternal", ->
         ])
         testComplete()
       ).done()
+  describe "fallback", ->
+    basicExecutor = basicExecutorFactory({
+      datasets: {
+        wiki: External.fromJS({
+          engine: 'mysql'
+          table: 'wiki_day_agg'
+          requester: mySqlRequester
+        })
+      }
+    })
 
 
     it "fallback doesnt happen if not null", (testComplete) ->
@@ -308,7 +318,7 @@ describe "MySQLExternal", ->
 
       ### INSERT INTO wiki_day_agg (page) values ('page'); ###
 
-      it "fallback happens if null", (testComplete) ->
+    it "fallback happens if null", (testComplete) ->
       ex = ply()
         .apply("wiki", $('wiki').filter($("page").is('page')))
         .apply('TotalAdded', $('wiki').sum($('added')).fallback(0))
