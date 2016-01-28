@@ -57,6 +57,13 @@ describe "SQL parser", ->
         table: 'wikipedia'
       })
 
+    it "works with another DESCRIBE query", ->
+      parse = Expression.parseSQL("DESCRIBE `my-table` ; ")
+
+      expect(parse).to.deep.equal({
+        verb: 'DESCRIBE'
+        table: 'my-table'
+      })
 
   describe "SELECT", ->
     it "should fail on a expression with no columns", ->

@@ -190,7 +190,7 @@ OtherQuery
     }
 
 DescribeQuery
-  = DescribeToken _ table:NamespacedRef
+  = DescribeToken _ table:NamespacedRef _ QueryTerminator? _
     {
       return {
         verb: 'DESCRIBE',
