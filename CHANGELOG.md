@@ -2,6 +2,10 @@
 
 ## 0.8.3
 
+- Allow parsing of DESCRIBE verb for PlyQL
+
+## 0.8.3
+
 - Changed `avoidSegmentMetadata` to `introspectionStrategy: 'datasource-get'` defaults to `'segment-metadata-fallback'`
 
 ## 0.8.2
