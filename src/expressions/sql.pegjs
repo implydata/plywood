@@ -18,7 +18,7 @@ var reservedWords = {
   ALL: 1, AND: 1,  AS: 1, ASC: 1, AVG: 1,
   BETWEEN: 1, BY: 1,
   CONTAINS: 1, CREATE: 1,
-  DELETE: 1, DESC: 1, DISTINCT: 1, DROP: 1,
+  DELETE: 1, DESC: 1, DESCRIBE: 1, DISTINCT: 1, DROP: 1,
   EXISTS: 1, EXPLAIN: 1, ESCAPE: 1, EXTRACT: 1,
   FALSE: 1, FROM: 1,
   GROUP: 1,
@@ -170,6 +170,7 @@ function naryExpressionWithAltFactory(op, head, tail, altToken, altOp) {
 
 start
   = _ queryParse:SelectQuery _ { return queryParse; }
+  / _ queryParse:DescribeQuery _ { return queryParse; }
   / _ queryParse:OtherQuery _ { return queryParse; }
   / _ ex:Expression _
     {
@@ -188,6 +189,14 @@ OtherQuery
       };
     }
 
+DescribeQuery
+  = DescribeToken _ table:NamespacedRef _ QueryTerminator? _
+    {
+      return {
+        verb: 'DESCRIBE',
+        table: table
+      };
+    }
 
 SelectQuery
   = SelectToken columns:Columns? from:FromClause? where:WhereClause? groupBys:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause? QueryTerminator? _
@@ -472,6 +481,7 @@ TrueToken          = "TRUE"i           !IdentifierPart { return true; }
 FalseToken         = "FALSE"i          !IdentifierPart { return false; }
 
 SelectToken        = "SELECT"i         !IdentifierPart { return 'SELECT'; }
+DescribeToken      = "DESCRIBE"i       !IdentifierPart { return 'DESCRIBE'; }
 UpdateToken        = "UPDATE"i         !IdentifierPart { return 'UPDATE'; }
 ShowToken          = "SHOW"i           !IdentifierPart { return 'SHOW'; }
 SetToken           = "SET"i            !IdentifierPart { return 'SET'; }
