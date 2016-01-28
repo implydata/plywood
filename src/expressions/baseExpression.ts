@@ -953,7 +953,7 @@ module Plywood {
 
     public fallback(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new FallbackAction({ fallbackValue: ex }));
+      return this.performAction(new FallbackAction({ expression: ex }));
     }
 
     // Aggregate expressions

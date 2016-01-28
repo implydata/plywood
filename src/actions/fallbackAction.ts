@@ -1,23 +1,13 @@
 module Plywood {
   export class FallbackAction extends Action {
     static fromJS(parameters: ActionJS): FallbackAction {
-      return new FallbackAction({
-        action: parameters.action,
-        fallbackValue: Expression.fromJS(parameters.fallbackValue)
-      });
+      return new FallbackAction(Action.jsToValue(parameters));
     }
 
     public fallbackValue: Expression;
     constructor(parameters: ActionValue = {}) {
       super(parameters, dummyObject);
       this._ensureAction("fallback");
-      this.fallbackValue = parameters.fallbackValue;
-    }
-
-    public toJS(): ActionJS {
-      var js = super.toJS();
-      js.fallbackValue = this.fallbackValue.toJS();
-      return js;
     }
 
     public getOutputType(inputType: string): string {
@@ -29,7 +19,9 @@ module Plywood {
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         var val = inputFn(d, c);
-        if (val === null) return expressionFn(d, c);
+        if (val === null) {
+          return expressionFn(d, c);
+        }
         return val;
       }
     }
@@ -39,7 +31,9 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `COALESCE(" + inputSQL + "," + ${expressionSQL} + ")`;
+      console.log();
+      return `COALESCE( ${inputSQL}, ${expressionSQL})`;
+
     }
   }
 
