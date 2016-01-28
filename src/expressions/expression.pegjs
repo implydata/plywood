@@ -17,6 +17,7 @@ var possibleCalls = {
   'custom': 1,
   'divide': 1,
   'extract': 1,
+  'fallback': 1,
   'filter': 1,
   'greaterThan': 1,
   'greaterThanOrEqual': 1,

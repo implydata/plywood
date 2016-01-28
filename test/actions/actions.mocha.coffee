@@ -41,6 +41,10 @@ describe "Actions", ->
         direction: 'ascending'
       }
       {
+        action: 'fallback',
+        expression: { op: 'ref', name: 'myVar2' }
+      }
+      {
         action: 'limit'
         limit: 10
       }

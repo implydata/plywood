@@ -32,6 +32,38 @@ describe "compute native", ->
       ])
       testComplete()
     ).done()
+    
+  it "fallback works in null case", (testComplete) ->
+    ex = $('x').fallback(5);
+    p = ex.compute({x:null})
+    p.then((v) ->
+      expect(v).to.deep.equal(5);
+      testComplete()
+    ).done()
+
+
+  it "fallback works with datasets", (testComplete) ->
+    ds = Dataset.fromJS(data).hide()
+
+    ex = ply()
+    .apply('Two', 2)
+    .apply('EmptyData', ply(ds).filter('false'))
+    .apply('SumPrice', '$EmptyData.sum($price)')
+    .apply('AvgPrice1', $('EmptyData').average($('price')).fallback(2))
+    .apply('AvgPrice2', '$EmptyData.sum($price) / $EmptyData.count()')
+
+    p = ex.compute()
+    p.then((v) ->
+      expect(v.toJS()).to.deep.equal([
+        {
+          "AvgPrice1": 2
+          "AvgPrice2": null
+          "SumPrice": 0
+          "Two": 2
+        }
+      ])
+      testComplete()
+    ).done()
 
   it "works in existing dataset case", (testComplete) ->
     ds = Dataset.fromJS([

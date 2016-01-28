@@ -290,3 +290,45 @@ describe "MySQLExternal", ->
         ])
         testComplete()
       ).done()
+  describe "fallback", ->
+    basicExecutor = basicExecutorFactory({
+      datasets: {
+        wiki: External.fromJS({
+          engine: 'mysql'
+          table: 'wiki_day_agg'
+          requester: mySqlRequester
+        })
+      }
+    })
+
+
+    it "fallback doesnt happen if not null", (testComplete) ->
+      ex = ply()
+      .apply("wiki", $('wiki'))
+      .apply('AvgPrice1', $('wiki').average($('added')).fallback(2))
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "AvgPrice1": 216.5617
+          }
+        ])
+        testComplete()
+      ).done()
+
+      ### INSERT INTO wiki_day_agg (page) values ('page'); ###
+
+    it "fallback happens if null", (testComplete) ->
+      ex = ply()
+        .apply("wiki", $('wiki').filter($("page").is('page')))
+        .apply('TotalAdded', $('wiki').sum($('added')).fallback(0))
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "TotalAdded": 0
+          }
+        ])
+        testComplete()
+      ).done()
+
