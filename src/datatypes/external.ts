@@ -110,7 +110,7 @@ module Plywood {
     customAggregations?: CustomDruidAggregations;
     allowEternity?: boolean;
     allowSelectQueries?: boolean;
-    avoidSegmentMetadata?: boolean;
+    introspectionStrategy?: string;
     exactResultsOnly?: boolean;
     context?: Lookup<any>;
     druidVersion?: string;
@@ -135,7 +135,7 @@ module Plywood {
     customAggregations?: CustomDruidAggregations;
     allowEternity?: boolean;
     allowSelectQueries?: boolean;
-    avoidSegmentMetadata?: boolean;
+    introspectionStrategy?: string;
     exactResultsOnly?: boolean;
     context?: Lookup<any>;
     druidVersion?: string;

@@ -1,4 +1,6 @@
 module Plywood {
+  const VALID_INTROSPECTION_STRATEGIES = ['segment-metadata-fallback', 'segment-metadata-only', 'datasource-get'];
+  const DEFUALT_INTROSPECTION_STRATEGY = VALID_INTROSPECTION_STRATEGIES[0];
   const DUMMY_NAME = '!DUMMY';
 
   const AGGREGATE_TO_DRUID: Lookup<string> = {
@@ -395,7 +397,7 @@ module Plywood {
       value.customAggregations = datasetJS.customAggregations || {};
       value.allowEternity = Boolean(datasetJS.allowEternity);
       value.allowSelectQueries = Boolean(datasetJS.allowSelectQueries);
-      value.avoidSegmentMetadata = Boolean(datasetJS.avoidSegmentMetadata);
+      value.introspectionStrategy = datasetJS.introspectionStrategy;
       value.exactResultsOnly = Boolean(datasetJS.exactResultsOnly);
       value.context = datasetJS.context;
       value.druidVersion = datasetJS.druidVersion;
@@ -408,7 +410,7 @@ module Plywood {
     public customAggregations: CustomDruidAggregations;
     public allowEternity: boolean;
     public allowSelectQueries: boolean;
-    public avoidSegmentMetadata: boolean;
+    public introspectionStrategy: string;
     public exactResultsOnly: boolean;
     public context: Lookup<any>;
     public druidVersion: string;
@@ -422,7 +424,13 @@ module Plywood {
       if (typeof this.timeAttribute !== 'string') throw new Error("must have a timeAttribute");
       this.allowEternity = parameters.allowEternity;
       this.allowSelectQueries = parameters.allowSelectQueries;
-      this.avoidSegmentMetadata = parameters.avoidSegmentMetadata;
+
+      var introspectionStrategy = parameters.introspectionStrategy || DEFUALT_INTROSPECTION_STRATEGY;
+      if (VALID_INTROSPECTION_STRATEGIES.indexOf(introspectionStrategy) === -1) {
+        throw new Error(`Invalid introspectionStrategy '${introspectionStrategy}'`);
+      }
+      this.introspectionStrategy = introspectionStrategy;
+
       this.exactResultsOnly = parameters.exactResultsOnly;
       this.context = parameters.context;
 
@@ -439,7 +447,7 @@ module Plywood {
       value.customAggregations = this.customAggregations;
       value.allowEternity = this.allowEternity;
       value.allowSelectQueries = this.allowSelectQueries;
-      value.avoidSegmentMetadata = this.avoidSegmentMetadata;
+      value.introspectionStrategy = this.introspectionStrategy;
       value.exactResultsOnly = this.exactResultsOnly;
       value.context = this.context;
       value.druidVersion = this.druidVersion;
@@ -453,7 +461,7 @@ module Plywood {
       if (Object.keys(this.customAggregations).length) js.customAggregations = this.customAggregations;
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
-      if (this.avoidSegmentMetadata) js.avoidSegmentMetadata = true;
+      if (this.introspectionStrategy !== DEFUALT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
       if (this.exactResultsOnly) js.exactResultsOnly = true;
       js.context = this.context;
       js.druidVersion = this.druidVersion;
@@ -467,7 +475,7 @@ module Plywood {
         customAggregationsEqual(this.customAggregations, other.customAggregations) &&
         this.allowEternity === other.allowEternity &&
         this.allowSelectQueries === other.allowSelectQueries &&
-        this.avoidSegmentMetadata === other.avoidSegmentMetadata &&
+        this.introspectionStrategy === other.introspectionStrategy &&
         this.exactResultsOnly === other.exactResultsOnly &&
         dictEqual(this.context, other.context) &&
         this.druidVersion === other.druidVersion;
@@ -1731,14 +1739,22 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public getIntrospectAttributes(): Q.Promise<Attributes> {
-      if (this.avoidSegmentMetadata) {
-        return this.getIntrospectAttributesWithGet();
-      } else {
-        return this.getIntrospectAttributesWithSegmentMetadata()
-          .catch((err: Error) => {
-            if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
-            return this.getIntrospectAttributesWithGet();
-          });
+      switch (this.introspectionStrategy) {
+        case 'segment-metadata-fallback':
+          return this.getIntrospectAttributesWithSegmentMetadata()
+            .catch((err: Error) => {
+              if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
+              return this.getIntrospectAttributesWithGet();
+            });
+
+        case 'segment-metadata-only':
+          return this.getIntrospectAttributesWithSegmentMetadata();
+
+        case 'datasource-get':
+          return this.getIntrospectAttributesWithGet();
+
+        default:
+          throw new Error('invalid params');
       }
     }
   }

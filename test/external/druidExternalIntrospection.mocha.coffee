@@ -164,6 +164,18 @@ describe "DruidExternal Introspection", ->
     else
       throw new Error('non introspection query')
 
+
+  it "errors on bad introspectionStrategy", ->
+    expect(->
+      External.fromJS({
+        engine: 'druid',
+        dataSource: 'wikipedia',
+        timeAttribute: 'time',
+        introspectionStrategy: 'crowd-source'
+        requester: requesterFail
+      })
+    ).to.throw("Invalid introspectionStrategy 'crowd-source'")
+
   it "does an introspect with general failure", (testComplete) ->
     wikiExternal = External.fromJS({
       engine: 'druid',
@@ -403,12 +415,12 @@ describe "DruidExternal Introspection", ->
       testComplete()
     ).done()
 
-  it "respects the avoidSegmentMetadata flag", (testComplete) ->
+  it "respects the introspectionStrategy flag", (testComplete) ->
     wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      avoidSegmentMetadata: true
+      introspectionStrategy: 'datasource-get'
       requester: requesterDruid_0_9_0
     })
 
