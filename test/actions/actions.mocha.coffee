@@ -42,7 +42,7 @@ describe "Actions", ->
       }
       {
         action: 'fallback',
-        fallbackValue: { op: 'ref', name: 'myVar2' }
+        expression: { op: 'ref', name: 'myVar2' }
       }
       {
         action: 'limit'
