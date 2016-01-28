@@ -291,11 +291,11 @@ describe "MySQLExternal", ->
         testComplete()
       ).done()
 
+
     it "fallback doesnt happen if not null", (testComplete) ->
       ex = ply()
       .apply("wiki", $('wiki'))
       .apply('AvgPrice1', $('wiki').average($('added')).fallback(2))
-
 
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
@@ -305,6 +305,8 @@ describe "MySQLExternal", ->
         ])
         testComplete()
       ).done()
+
+      ### INSERT INTO wiki_day_agg (page) values ('page'); ###
 
       it "fallback happens if null", (testComplete) ->
       ex = ply()
