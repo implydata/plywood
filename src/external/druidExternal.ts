@@ -1,6 +1,4 @@
 module Plywood {
-  const VALID_INTROSPECTION_STRATEGIES = ['segment-metadata-fallback', 'segment-metadata-only', 'datasource-get'];
-  const DEFUALT_INTROSPECTION_STRATEGY = VALID_INTROSPECTION_STRATEGIES[0];
   const DUMMY_NAME = '!DUMMY';
 
   const AGGREGATE_TO_DRUID: Lookup<string> = {
@@ -390,6 +388,9 @@ module Plywood {
     static TRUE_INTERVAL = ["1000-01-01/3000-01-01"];
     static FALSE_INTERVAL = ["1000-01-01/1000-01-02"];
 
+    static VALID_INTROSPECTION_STRATEGIES = ['segment-metadata-fallback', 'segment-metadata-only', 'datasource-get'];
+    static DEFAULT_INTROSPECTION_STRATEGY = 'segment-metadata-fallback';
+
     static fromJS(datasetJS: any): DruidExternal {
       var value: ExternalValue = External.jsToValue(datasetJS);
       value.dataSource = datasetJS.dataSource;
@@ -425,8 +426,8 @@ module Plywood {
       this.allowEternity = parameters.allowEternity;
       this.allowSelectQueries = parameters.allowSelectQueries;
 
-      var introspectionStrategy = parameters.introspectionStrategy || DEFUALT_INTROSPECTION_STRATEGY;
-      if (VALID_INTROSPECTION_STRATEGIES.indexOf(introspectionStrategy) === -1) {
+      var introspectionStrategy = parameters.introspectionStrategy || DruidExternal.DEFAULT_INTROSPECTION_STRATEGY;
+      if (DruidExternal.VALID_INTROSPECTION_STRATEGIES.indexOf(introspectionStrategy) === -1) {
         throw new Error(`Invalid introspectionStrategy '${introspectionStrategy}'`);
       }
       this.introspectionStrategy = introspectionStrategy;
@@ -461,7 +462,7 @@ module Plywood {
       if (Object.keys(this.customAggregations).length) js.customAggregations = this.customAggregations;
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
-      if (this.introspectionStrategy !== DEFUALT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
+      if (this.introspectionStrategy !== DruidExternal.DEFAULT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
       if (this.exactResultsOnly) js.exactResultsOnly = true;
       js.context = this.context;
       js.druidVersion = this.druidVersion;

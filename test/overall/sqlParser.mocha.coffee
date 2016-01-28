@@ -30,7 +30,7 @@ describe "SQL parser", ->
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
 
 
-  describe "non SELECT expression", ->
+  describe "other query types", ->
     it "works with UPDATE expression", ->
       parse = Expression.parseSQL("UPDATE this is the end of the road")
 
@@ -39,12 +39,22 @@ describe "SQL parser", ->
         rest: 'this is the end of the road'
       })
 
-    it "works with SET expression", ->
+    it "works with SET query", ->
       parse = Expression.parseSQL("SET this is the end of the road")
 
       expect(parse).to.deep.equal({
         verb: 'SET'
         rest: 'this is the end of the road'
+      })
+
+
+  describe "DESCRIBE", ->
+    it "works with DESCRIBE query", ->
+      parse = Expression.parseSQL("DESCRIBE wikipedia")
+
+      expect(parse).to.deep.equal({
+        verb: 'DESCRIBE'
+        table: 'wikipedia'
       })
 
 
