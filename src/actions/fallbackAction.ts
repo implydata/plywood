@@ -31,7 +31,6 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      console.log();
       return `COALESCE( ${inputSQL}, ${expressionSQL})`;
 
     }
