@@ -1247,6 +1247,31 @@ return (start < 0 ?'-':'') + parts.join('.');
             fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
           };
         }
+        if (pattern = ex.getExpressionPattern('abs')) {
+          return {
+            type: "javascript",
+            name: 'abs',
+            'fieldNames': aggregations.map((agg => agg.name)),
+            'function': ex.getJSFn('d')
+          };
+        }
+        if (pattern = ex.getExpressionPattern('power')) {
+          return {
+            type: "javascript",
+            name: 'power',
+            'fieldNames': aggregations.map((agg => agg.name)),
+            'function': ex.getJSFn('d')
+          };
+        }
+        if (pattern = ex.getExpressionPattern('fallback')) {
+          return {
+            type: "javascript",
+            name: 'fallback',
+            'fieldNames': aggregations.map((agg => agg.name)),
+            'function': ex.getJSFn('d')
+          };
+        }
+
         throw new Error("can not convert chain to post agg: " + ex.toString());
 
       } else {
@@ -1344,6 +1369,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         case "sum":
         case "min":
         case "max":
+        case "abs":
           return this.makeStandardAggregation(action.name, filterAction, aggregateAction);
 
         case "countDistinct":

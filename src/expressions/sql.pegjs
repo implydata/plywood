@@ -15,7 +15,7 @@ var dateRegExp = /^\d\d\d\d-\d\d-\d\d(?:T(?:\d\d)?(?::\d\d)?(?::\d\d)?(?:.\d\d\d
 
 // See here: https://www.drupal.org/node/141051
 var reservedWords = {
-  ALL: 1, AND: 1,  AS: 1, ASC: 1, AVG: 1,
+  ABS: 1, ALL: 1, AND: 1, AS: 1, ASC: 1, AVG: 1,
   BETWEEN: 1, BY: 1,
   CONTAINS: 1, CREATE: 1,
   DELETE: 1, DESC: 1, DESCRIBE: 1, DISTINCT: 1, DROP: 1,
@@ -23,12 +23,13 @@ var reservedWords = {
   FALSE: 1, FROM: 1,
   GROUP: 1,
   HAVING: 1,
-  IN: 1, INNER: 1,  INSERT: 1, INTO: 1, IS: 1,
+  IN: 1, INNER: 1, INSERT: 1, INTO: 1, IS: 1,
   JOIN: 1,
   LEFT: 1, LIKE: 1, LIMIT: 1, LOOKUP: 1,
   MAX: 1, MIN: 1,
   NOT: 1, NULL: 1, NUMBER_BUCKET: 1,
   ON: 1, OR: 1, ORDER: 1,
+  POWER: 1,
   QUANTILE: 1,
   REPLACE: 1, REGEXP: 1,
   SELECT: 1, SET: 1, SHOW: 1, SUM: 1, SUBSTR: 1, SUBSTRING: 1,
@@ -429,6 +430,8 @@ FunctionCallExpression
     { return operand.lookup(lookup); }
   / ConcatToken OpenParen head:Expression tail:(_ "," _ Expression)* CloseParen
     { return Expression.concat(makeListMap3(head, tail)); }
+  / AbsToken OpenParen _ operand:Expression _ CloseParen
+    { return operand.abs(); }
 
 RefExpression
   = ref:NamespacedRef { return $(ref); }
@@ -524,6 +527,7 @@ SumToken           = "SUM"i            !IdentifierPart { return 'sum'; }
 AvgToken           = "AVG"i            !IdentifierPart { return 'average'; }
 MinToken           = "MIN"i            !IdentifierPart { return 'min'; }
 MaxToken           = "MAX"i            !IdentifierPart { return 'max'; }
+AbsToken           = "ABS"i            !IdentifierPart { return 'abs'; }
 QuantileToken      = "QUANTILE"i       !IdentifierPart { return 'quantile'; }
 CustomToken        = "CUSTOM"i         !IdentifierPart { return 'custom'; }
 

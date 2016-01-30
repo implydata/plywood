@@ -56,6 +56,46 @@ describe "Simplify", ->
       ex2 = r(3).add('$y', 7)
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
+  describe 'abs', ->
+    it "removes self if 1", ->
+      ex1 = r(3).power(1);
+      ex2 = r(3)
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "removes self if 0", ->
+      ex1 = r(3).power(0);
+      ex2 = r(1)
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "removes self if reciprocal chains ", ->
+      ex1 = r(4).power(0.5).power(2);
+      ex2 = r(4)
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'fallback', ->
+    it "removes self if fallbackVal is null", ->
+      ex1 = $('x').fallback(null);
+      ex2 = $('x')
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'abs', ->
+    it "removes self if 1", ->
+      ex1 = r(3).power(1);
+      ex2 = r(3)
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "removes self if 0", ->
+      ex1 = r(3).power(0);
+      ex2 = r(1)
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "removes self if reciprocal chains ", ->
+      ex1 = r(4).power(0.5).power(2);
+      ex2 = r(4)
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
 
   describe.skip 'negate', ->
     it "collapses double", ->

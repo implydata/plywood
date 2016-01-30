@@ -89,6 +89,24 @@ describe "DruidExternal", ->
         apply(Volatile,$_sd_0:NUMBER.subtract($_sd_1:NUMBER))
         """)
 
+    it "breaks up correctly in abs", ->
+      ex = ply()
+      .apply('wiki', '$wiki') # for now
+      .apply('Count', '$wiki.count()')
+      .apply('negative', -4)
+      .apply('abs', $('negative').abs())
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('external')
+      druidExternal = ex.external
+
+      expect(druidExternal.applies.join('\n')).to.equal("""
+        apply(Count,$wiki:DATASET.count())
+        apply(negative,-4)
+        apply(abs,$negative:NUMBER.abs())
+        """)
+
     it "breaks up correctly in case of duplicate name", ->
       ex = ply()
         .apply('wiki', '$wiki') # for now

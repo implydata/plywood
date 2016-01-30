@@ -8,6 +8,7 @@ var RefExpression = plywood.RefExpression;
 var Set = plywood.Set;
 
 var possibleCalls = {
+  'abs': 1,
   'add': 1,
   'apply': 1,
   'average': 1,
@@ -17,6 +18,7 @@ var possibleCalls = {
   'custom': 1,
   'divide': 1,
   'extract': 1,
+  'fallback': 1,
   'filter': 1,
   'greaterThan': 1,
   'greaterThanOrEqual': 1,
@@ -32,6 +34,7 @@ var possibleCalls = {
   'multiply': 1,
   'not': 1,
   'numberBucket': 1,
+  'power': 1,
   'quantile': 1,
   'sort': 1,
   'split': 1,
