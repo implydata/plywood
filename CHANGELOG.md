@@ -1,6 +1,6 @@
 # Change log
 
-## 0.8.4
+## 0.8.5
 
 - Add `timeFloor` action (`TIME_FLOOR` in PlyQL) - not supported by DruidExternal yet
 - Rename unused `offsetTime` action to `timeShift` (`TIME_SHIFT` in PlyQL) and add `step` parameter - not supported by DruidExternal yet
@@ -11,7 +11,7 @@
 - Added `NOW()` to PlyQL
 - Better DruidExternal column introspection error detection
 
-## 0.8.3
+## 0.8.4
 
 - Allow parsing of `DESCRIBE` verb for PlyQL
 
