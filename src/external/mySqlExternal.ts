@@ -1,6 +1,8 @@
 module Plywood {
   var mySQLDialect = new MySQLDialect();
 
+  const DEFAULT_TIMEZONE = Timezone.UTC;
+
   interface SQLDescribeRow {
     Field: string;
     Type: string;
@@ -16,7 +18,7 @@ module Plywood {
         var lastAction = splitExpression.lastAction();
 
         if (lastAction instanceof TimeBucketAction) {
-          return External.timeRangeInflaterFactory(label, lastAction.duration, lastAction.timezone);
+          return External.timeRangeInflaterFactory(label, lastAction.duration, lastAction.timezone || DEFAULT_TIMEZONE);
         }
 
         if (lastAction instanceof NumberBucketAction) {

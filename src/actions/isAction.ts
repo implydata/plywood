@@ -49,10 +49,9 @@ module Plywood {
         return Expression.TRUE;
       }
 
-      var actions = chainExpression.actions;
-      var lastAction = actions[actions.length - 1];
+      var lastAction = chainExpression.lastAction();
       var literalValue = this.getLiteralValue();
-      if (lastAction instanceof TimeBucketAction && literalValue instanceof TimeRange) {
+      if (lastAction instanceof TimeBucketAction && literalValue instanceof TimeRange && lastAction.timezone) {
         var duration = lastAction.duration;
         var timezone = lastAction.timezone;
         var start = literalValue.start;
@@ -62,14 +61,7 @@ module Plywood {
           if (duration.floor(start, timezone).valueOf() === start.valueOf() &&
             duration.move(start, timezone, 1).valueOf() === end.valueOf()) {
 
-            actions = actions.slice(0, -1);
-            actions.push(new InAction({
-              expression: this.expression
-            }));
-
-            var chainExpressionValue = chainExpression.valueOf();
-            chainExpressionValue.actions = actions;
-            return new ChainExpression(chainExpressionValue);
+            return chainExpression.popAction().performAction(new InAction({ expression: this.expression }));
           } else {
             return Expression.FALSE;
           }

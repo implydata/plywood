@@ -108,7 +108,7 @@ module Plywood {
     }
 
     public timezoneConvert(operand: string, timezone: Timezone): string {
-      if (timezone.isUTC()) return operand;
+      if (!timezone || timezone.isUTC()) return operand;
       return `CONVERT_TZ(${operand},'+0:00','${timezone.toString()}')`;
     }
 

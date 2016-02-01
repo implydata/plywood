@@ -49,10 +49,11 @@ module Plywood {
       case 'TIME_RANGE':
         var timeBucketAction: TimeBucketAction;
         if (ex instanceof ChainExpression && (timeBucketAction = <TimeBucketAction>ex.getSingleAction('timeBucket'))) {
-          var start = timeBucketAction.duration.floor(new Date('2015-03-14T00:00:00'), timeBucketAction.timezone);
+          var timezone = timeBucketAction.timezone || Timezone.UTC;
+          var start = timeBucketAction.duration.floor(new Date('2015-03-14T00:00:00'), timezone);
           return new TimeRange({
             start,
-            end: timeBucketAction.duration.move(start, timeBucketAction.timezone, 1)
+            end: timeBucketAction.duration.move(start, timezone, 1)
           });
         } else {
           return new TimeRange({ start: new Date('2015-03-14T00:00:00'), end: new Date('2015-03-15T00:00:00') });

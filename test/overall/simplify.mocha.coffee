@@ -329,6 +329,23 @@ describe "Simplify", ->
       ex2 = $('color').concat(r('hello')).is(r("Dhello"))
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
+    it 'removes a timeBucket', ->
+      interval = TimeRange.fromJS({
+        start: new Date('2016-01-02Z')
+        end: new Date('2016-01-03Z')
+      })
+      ex1 = $('time').timeBucket('P1D', 'Etc/UTC').is(interval)
+      ex2 = $('time').in(interval)
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'does not remove a timeBucket with no timezone', ->
+      interval = TimeRange.fromJS({
+        start: new Date('2016-01-02Z')
+        end: new Date('2016-01-03Z')
+      })
+      ex = $('time').timeBucket('P1D').is(interval)
+      expect(ex.simplify().toJS()).to.deep.equal(ex.toJS())
+
 
   describe 'match', ->
     it 'with false value', ->

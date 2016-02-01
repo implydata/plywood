@@ -1399,7 +1399,7 @@ describe "simulate Druid", ->
         $("diamonds").split({
             'Cut': "$cut",
             'Color': '$color',
-            'TimeByHour': '$time.timeBucket(PT1H)'
+            'TimeByHour': '$time.timeBucket(PT1H, "Etc/UTC")'
           })
           .apply('Count', $('diamonds').count())
           .limit(3)
@@ -1525,7 +1525,7 @@ describe "simulate Druid", ->
         $("diamonds").split({
             'Cut': "$cut",
             'Color': '$color',
-            'TimeByHour': '$time.timeBucket(PT1H)'
+            'TimeByHour': '$time.timeBucket(PT1H, "Etc/UTC")'
           })
           .apply('Count', $('diamonds').count())
       )
