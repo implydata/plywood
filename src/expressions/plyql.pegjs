@@ -26,7 +26,7 @@ var reservedWords = {
   IN: 1, INNER: 1,  INSERT: 1, INTO: 1, IS: 1,
   JOIN: 1,
   LEFT: 1, LIKE: 1, LIMIT: 1, LOOKUP: 1,
-  MAX: 1, MIN: 1,
+  MATCH: 1, MAX: 1, MIN: 1,
   NOT: 1, NULL: 1, NUMBER_BUCKET: 1,
   ON: 1, OR: 1, ORDER: 1,
   QUANTILE: 1,
@@ -432,6 +432,8 @@ FunctionCallExpression
     { return operand.lookup(lookup); }
   / ConcatToken OpenParen head:Expression tail:(Comma Expression)* CloseParen
     { return Expression.concat(makeListMap1(head, tail)); }
+  / MatchToken OpenParen operand:Expression Comma regexp:String CloseParen
+    { return operand.match(regexp); }
 
 TimezoneParameter
   = Comma timezone:NameOrString { return timezone }
@@ -542,6 +544,7 @@ SubstrToken        = "SUBSTR"i "ING"i? !IdentifierPart { return 'substr'; }
 ExtractToken       = "EXTRACT"i        !IdentifierPart { return 'extract'; }
 ConcatToken        = "CONCAT"i         !IdentifierPart { return 'concat'; }
 LookupToken        = "LOOKUP"i         !IdentifierPart { return 'lookup'; }
+MatchToken         = "MATCH"i          !IdentifierPart { return 'match'; }
 
 IdentifierPart = [A-Za-z_]
 

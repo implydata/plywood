@@ -126,6 +126,7 @@ describe "SQL parser", ->
         COUNT(*) AS Count2,
         COUNT(1) AS Count3,
         COUNT(`visitor`) AS Count4,
+        MATCH(`visitor`, "[0-9A-F]") AS 'Match',
         SUM(added) AS 'TotalAdded',
         '2014-01-02' AS 'Date',
         SUM(`wiki`.`added`) / 4 AS TotalAddedOver4,
@@ -151,6 +152,7 @@ describe "SQL parser", ->
         .apply('Count2', '$data.count()')
         .apply('Count3', '$data.filter(1 != null).count()')
         .apply('Count4', '$data.filter($visitor != null).count()')
+        .apply('Match', $('visitor').match("[0-9A-F]"))
         .apply('TotalAdded', '$data.sum($added)')
         .apply('Date', new Date('2014-01-02T00:00:00.000Z'))
         .apply('TotalAddedOver4', '$data.sum($added) / 4')

@@ -24,7 +24,7 @@ module Plywood {
     upperLimit?: number;
     duration?: Duration;
     timezone?: Timezone;
-    part?: string
+    part?: string;
     step?: number;
     position?: int;
     length?: int;
