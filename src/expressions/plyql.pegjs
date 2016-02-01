@@ -15,24 +15,23 @@ var dateRegExp = /^\d\d\d\d-\d\d-\d\d(?:T(?:\d\d)?(?::\d\d)?(?::\d\d)?(?:.\d\d\d
 
 // See here: https://www.drupal.org/node/141051
 var reservedWords = {
-  ALL: 1, AND: 1,  AS: 1, ASC: 1, AVG: 1,
+  ALL: 1, AND: 1, AS: 1, ASC: 1,
   BETWEEN: 1, BY: 1,
   CONTAINS: 1, CREATE: 1,
   DELETE: 1, DESC: 1, DESCRIBE: 1, DISTINCT: 1, DROP: 1,
-  EXISTS: 1, EXPLAIN: 1, ESCAPE: 1, EXTRACT: 1,
+  EXISTS: 1, EXPLAIN: 1, ESCAPE: 1,
   FALSE: 1, FROM: 1,
   GROUP: 1,
   HAVING: 1,
-  IN: 1, INNER: 1,  INSERT: 1, INTO: 1, IS: 1,
+  IN: 1, INNER: 1, INSERT: 1, INTO: 1, IS: 1,
   JOIN: 1,
   LEFT: 1, LIKE: 1, LIMIT: 1, LOOKUP: 1,
-  MATCH: 1, MAX: 1, MIN: 1,
-  NOT: 1, NULL: 1, NUMBER_BUCKET: 1,
+  MATCH: 1,
+  NOT: 1, NULL: 1,
   ON: 1, OR: 1, ORDER: 1,
-  QUANTILE: 1,
   REPLACE: 1, REGEXP: 1,
-  SELECT: 1, SET: 1, SHOW: 1, SUM: 1, SUBSTR: 1, SUBSTRING: 1,
-  TABLE: 1, TIME_SHIFT: 1, TIME_FLOOR: 1, TIME_BUCKET: 1, TIME_PART: 1, TRUE: 1,
+  SELECT: 1, SET: 1, SHOW: 1,
+  TABLE: 1, TRUE: 1,
   UNION: 1, UPDATE: 1,
   VALUES: 1,
   WHERE: 1
@@ -434,6 +433,8 @@ FunctionCallExpression
     { return Expression.concat(makeListMap1(head, tail)); }
   / MatchToken OpenParen operand:Expression Comma regexp:String CloseParen
     { return operand.match(regexp); }
+  / NowToken OpenParen CloseParen
+    { return r(new Date()); }
 
 TimezoneParameter
   = Comma timezone:NameOrString { return timezone }
@@ -545,6 +546,8 @@ ExtractToken       = "EXTRACT"i        !IdentifierPart { return 'extract'; }
 ConcatToken        = "CONCAT"i         !IdentifierPart { return 'concat'; }
 LookupToken        = "LOOKUP"i         !IdentifierPart { return 'lookup'; }
 MatchToken         = "MATCH"i          !IdentifierPart { return 'match'; }
+
+NowToken           = "NOW"i            !IdentifierPart
 
 IdentifierPart = [A-Za-z_]
 

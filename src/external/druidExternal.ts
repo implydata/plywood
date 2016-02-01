@@ -320,7 +320,9 @@ module Plywood {
       for (var name in columns) {
         if (!hasOwnProperty(columns, name)) continue;
         var columnData = columns[name];
-        if (columnData.errorMessage) continue;
+
+        // Error conditions
+        if (columnData.errorMessage || columnData.size < 0) continue;
 
         if (name === '__time') {
           attributes.push(new AttributeInfo({ name: timeAttribute, type: 'TIME' }));

@@ -37,6 +37,13 @@ describe "SQL parser", ->
       expect(parse.verb).to.equal(null)
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
 
+    it "works with NOW()", ->
+      parse = Expression.parseSQL("NOW( )")
+
+      js = parse.expression.toJS();
+      expect(js.op).to.equal('literal')
+      expect(Math.abs(js.value.valueOf() - Date.now())).to.be.lessThan(1000)
+
 
   describe "other query types", ->
     it "works with UPDATE expression", ->
