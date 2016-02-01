@@ -7,6 +7,9 @@
 - Fixed how `concat` works on nulls to return null
 - Added `.isnt` and `.negate` to expression parsing grammar (they were mistakenly excluded) 
 - Added `MATCH` function to PlyQL 
+- Timezone parameter is now optional in all the `time*` functions in Plywood and PlyQL
+- Added `NOW()` to PlyQL
+- Better DruidExternal column introspection error detection
 
 ## 0.8.3
 

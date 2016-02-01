@@ -54,4 +54,6 @@ Let's assume that you are adding an action called `foo bar`
 1. Add tests for `FOO_BAR` and all the other functions in the PlyQL parser.
    The tests go in [plyqlParser.mocha.coffee](test/overall/plyqlParser.mocha.coffee).
    
-1. More to come... 
+1. All actions should (preferably) be supported by all Externals. Add the functionality and tests accordingly. 
+  * MySQL External: [code](src/external/mySqlExternal.ts), [test](test/external/mySqlExternal.mocha.coffee)
+  * Druid External: [code](src/external/druidExternal.ts), [test](test/external/druidExternal.mocha.coffee)
