@@ -29,7 +29,6 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/actions/addAction.ts \
   src/actions/andAction.ts \
   src/actions/applyAction.ts \
-  src/actions/attachAction.ts \
   src/actions/averageAction.ts \
   src/actions/baseAction.ts \
   src/actions/concatAction.ts \
@@ -63,8 +62,9 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/actions/subtractAction.ts \
   src/actions/sumAction.ts \
   src/actions/timeBucketAction.ts \
-  src/actions/timeOffsetAction.ts \
+  src/actions/timeFloorAction.ts \
   src/actions/timePartAction.ts \
+  src/actions/timeShiftAction.ts \
   \
   src/executor/basicExecutor.ts \
   \

@@ -278,7 +278,7 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => '[Hello World]'
 Performs a lookup within the specified namespace.
 
 
-### Bucketing
+### Number manipulation
 
 *operand*.**numberBucket**(size: number, offset: number = 0)
 
@@ -289,20 +289,39 @@ var ex = $('x').numberBucket(5);
 ex.compute({ x: 7 }).then(console.log); // => [5, 10)
 ```
 
-*operand*.**timeBucket**(duration: any, timezone: any = Timezone.UTC)
+
+### Time manipulation
+
+*operand*.**timeBucket**(duration: any, timezone?: string)
 
 Blah
 
 ```javascript
-var ex = $('x').is(5);
+var ex = $('time').timeBucket('P1D');
 ```
 
-*operand*.**timePart**(part: string, timezone: any)
+*operand*.**timeFloor**(duration: any, timezone?: string)
 
 Blah
 
 ```javascript
-var ex = $('x').is(5);
+var ex = $('time').timeFloor('P1D');
+```
+
+*operand*.**timeShift**(duration: any, step: number, timezone?: string)
+
+Blah
+
+```javascript
+var ex = $('time').timeShift('P1D', -2);
+```
+
+*operand*.**timePart**(part: string, timezone?: string)
+
+Blah
+
+```javascript
+var ex = $('time').timePart('DAY_OF_WEEK');
 ```
 
 

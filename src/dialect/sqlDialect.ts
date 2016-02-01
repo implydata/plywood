@@ -56,16 +56,20 @@ module Plywood {
       }
     }
 
+    public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
+      throw new Error('Dialect must implement timeFloorExpression');
+    }
+
     public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
-      throw new Error('Must implement timeBucketExpression');
+      throw new Error('Dialect must implement timeBucketExpression');
     }
 
     public timePartExpression(operand: string, part: string, timezone: Timezone): string {
-      throw new Error('Must implement timePartExpression');
+      throw new Error('Dialect must implement timePartExpression');
     }
 
-    public offsetTimeExpression(operand: string, duration: Duration): string {
-      throw new Error('Must implement offsetTimeExpression');
+    public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string {
+      throw new Error('Dialect must implement timeShiftExpression');
     }
   }
 
@@ -104,14 +108,18 @@ module Plywood {
     }
 
     public timezoneConvert(operand: string, timezone: Timezone): string {
-      if (timezone.isUTC()) return operand;
+      if (!timezone || timezone.isUTC()) return operand;
       return `CONVERT_TZ(${operand},'+0:00','${timezone.toString()}')`;
     }
 
-    public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
+    public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
       var bucketFormat = TIME_BUCKETING[duration.toString()];
       if (!bucketFormat) throw new Error(`unsupported duration '${duration}'`);
       return `DATE_FORMAT(${this.timezoneConvert(operand, timezone)},'${bucketFormat}')`;
+    }
+
+    public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
+      return this.timeFloorExpression(operand, duration, timezone);
     }
 
     public timePartExpression(operand: string, part: string, timezone: Timezone): string {
@@ -120,7 +128,7 @@ module Plywood {
       return timePartFunction.replace(/\$\$/g, this.timezoneConvert(operand, timezone));
     }
 
-    public offsetTimeExpression(operand: string, duration: Duration): string {
+    public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone  ): string {
       // https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_date-add
       var sqlFn = "DATE_ADD("; //warpDirection > 0 ? "DATE_ADD(" : "DATE_SUB(";
       var spans = duration.valueOf();

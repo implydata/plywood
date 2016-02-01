@@ -1,10 +1,10 @@
 module Plywood {
-  export class TimeOffsetAction extends Action {
-    static fromJS(parameters: ActionJS): TimeOffsetAction {
+  export class TimeFloorAction extends Action {
+    static fromJS(parameters: ActionJS): TimeFloorAction {
       var value = Action.jsToValue(parameters);
       value.duration = Duration.fromJS(parameters.duration);
-      value.timezone = Timezone.fromJS(parameters.timezone);
-      return new TimeOffsetAction(value);
+      if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
+      return new TimeFloorAction(value);
     }
 
     public duration: Duration;
@@ -14,7 +14,7 @@ module Plywood {
       super(parameters, dummyObject);
       this.duration = parameters.duration;
       this.timezone = parameters.timezone;
-      this._ensureAction("timeOffset");
+      this._ensureAction("timeFloor");
       if (!Duration.isDuration(this.duration)) {
         throw new Error("`duration` must be a Duration");
       }
@@ -23,14 +23,14 @@ module Plywood {
     public valueOf(): ActionValue {
       var value = super.valueOf();
       value.duration = this.duration;
-      value.timezone = this.timezone;
+      if (this.timezone) value.timezone = this.timezone;
       return value;
     }
 
     public toJS(): ActionJS {
       var js = super.toJS();
       js.duration = this.duration.toJS();
-      js.timezone = this.timezone.toJS();
+      if (this.timezone) js.timezone = this.timezone.toJS();
       return js;
     }
 
@@ -40,13 +40,16 @@ module Plywood {
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      return [expressionString, this.duration.toString(), this.timezone.toString()];
+      var ret = [this.duration.toString()];
+      if (this.timezone) ret.push(this.timezone.toString());
+      return ret;
     }
 
     public equals(other: TimeBucketAction): boolean {
       return super.equals(other) &&
         this.duration.equals(other.duration) &&
-        this.timezone.equals(other.timezone);
+        Boolean(this.timezone) === Boolean(other.timezone) &&
+        (!this.timezone || this.timezone.equals(other.timezone));
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
@@ -55,7 +58,8 @@ module Plywood {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (inV === null) return null;
-        return duration.move(inV, timezone, 1); // ToDo: generalize direction
+        timezone = timezone || (c['timezone'] ? Timezone.fromJS(c['timezone']) : Timezone.UTC);
+        return duration.floor(inV, timezone);
       }
     }
 
@@ -64,9 +68,16 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.offsetTimeExpression(inputSQL, this.duration);
+      return dialect.timeFloorExpression(inputSQL, this.duration, this.timezone);
+    }
+
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      if (prevAction.equals(this)) {
+        return this;
+      }
+      return null;
     }
   }
 
-  Action.register(TimeOffsetAction);
+  Action.register(TimeFloorAction);
 }

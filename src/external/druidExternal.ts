@@ -1,6 +1,8 @@
 module Plywood {
   const DUMMY_NAME = '!DUMMY';
 
+  const DEFAULT_TIMEZONE = Timezone.UTC;
+
   const AGGREGATE_TO_DRUID: Lookup<string> = {
     count: "count",
     sum: "doubleSum",
@@ -320,7 +322,9 @@ module Plywood {
       for (var name in columns) {
         if (!hasOwnProperty(columns, name)) continue;
         var columnData = columns[name];
-        if (columnData.errorMessage) continue;
+
+        // Error conditions
+        if (columnData.errorMessage || columnData.size < 0) continue;
 
         if (name === '__time') {
           attributes.push(new AttributeInfo({ name: timeAttribute, type: 'TIME' }));
@@ -961,7 +965,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           return {
             type: "timeFormat",
             format: format,
-            timeZone: action.timezone.toString(),
+            timeZone: (action.timezone || DEFAULT_TIMEZONE).toString(),
             locale: "en-US"
           };
         }
@@ -972,7 +976,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           return {
             type: "timeFormat",
             format: format,
-            timeZone: action.timezone.toString(),
+            timeZone: (action.timezone || DEFAULT_TIMEZONE).toString(),
             locale: "en-US"
           };
         }
@@ -1069,7 +1073,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration.toString()}`);
           return {
             dimension,
-            inflater: External.timeRangeInflaterFactory(label, splitAction.duration, splitAction.timezone)
+            inflater: External.timeRangeInflaterFactory(label, splitAction.duration, splitAction.timezone || DEFAULT_TIMEZONE)
           };
         }
 

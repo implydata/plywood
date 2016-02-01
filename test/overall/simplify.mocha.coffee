@@ -289,6 +289,23 @@ describe "Simplify", ->
       ex2 = $('color').concat(r('hello')).is(r("Dhello"))
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
+    it 'removes a timeBucket', ->
+      interval = TimeRange.fromJS({
+        start: new Date('2016-01-02Z')
+        end: new Date('2016-01-03Z')
+      })
+      ex1 = $('time').timeBucket('P1D', 'Etc/UTC').is(interval)
+      ex2 = $('time').in(interval)
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'does not remove a timeBucket with no timezone', ->
+      interval = TimeRange.fromJS({
+        start: new Date('2016-01-02Z')
+        end: new Date('2016-01-03Z')
+      })
+      ex = $('time').timeBucket('P1D').is(interval)
+      expect(ex.simplify().toJS()).to.deep.equal(ex.toJS())
+
 
   describe 'match', ->
     it 'with false value', ->
@@ -307,10 +324,27 @@ describe "Simplify", ->
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
-  describe 'timeOffset', ->
+  describe 'timeFloor', ->
     it 'with simple expression', ->
-      ex1 = r(new Date('2015-02-20T15:41:12')).timeOffset('P1D', 'Etc/UTC')
+      ex1 = r(new Date('2015-02-20T15:41:12')).timeFloor('P1D', 'Etc/UTC')
+      ex2 = r(new Date('2015-02-20T00:00:00'))
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'wipes out itself', ->
+      ex1 = $('x').timeFloor('P1D', 'Etc/UTC').timeFloor('P1D', 'Etc/UTC')
+      ex2 = $('x').timeFloor('P1D', 'Etc/UTC')
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'timeShift', ->
+    it 'with simple expression', ->
+      ex1 = r(new Date('2015-02-20T15:41:12')).timeShift('P1D', 1, 'Etc/UTC')
       ex2 = r(new Date('2015-02-21T15:41:12'))
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'combines with itself', ->
+      ex1 = $('x').timeShift('P1D', 10, 'Etc/UTC').timeShift('P1D', -7, 'Etc/UTC')
+      ex2 = $('x').timeShift('P1D', 3, 'Etc/UTC')
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 

@@ -29,6 +29,21 @@ describe "SQL parser", ->
       expect(parse.verb).to.equal(null)
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
 
+    it "should handle --", ->
+      parse = Expression.parseSQL("x--3")
+
+      ex2 = $('x').subtract(-3)
+
+      expect(parse.verb).to.equal(null)
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
+    it "works with NOW()", ->
+      parse = Expression.parseSQL("NOW( )")
+
+      js = parse.expression.toJS();
+      expect(js.op).to.equal('literal')
+      expect(Math.abs(js.value.valueOf() - Date.now())).to.be.lessThan(1000)
+
 
   describe "other query types", ->
     it "works with UPDATE expression", ->
@@ -118,6 +133,7 @@ describe "SQL parser", ->
         COUNT(*) AS Count2,
         COUNT(1) AS Count3,
         COUNT(`visitor`) AS Count4,
+        MATCH(`visitor`, "[0-9A-F]") AS 'Match',
         SUM(added) AS 'TotalAdded',
         '2014-01-02' AS 'Date',
         SUM(`wiki`.`added`) / 4 AS TotalAddedOver4,
@@ -128,6 +144,9 @@ describe "SQL parser", ->
         COUNT_DISTINCT(visitor) AS 'Unique1',
         COUNT(DISTINCT visitor) AS 'Unique2',
         COUNT(DISTINCT(visitor)) AS 'Unique3',
+        TIME_BUCKET(time, PT1H) AS 'TimeBucket',
+        TIME_FLOOR(time, PT1H) AS 'TimeFloor',
+        TIME_SHIFT(time, PT1H, 3) AS 'TimeShift3',
         CUSTOM('blah') AS 'Custom1'
         FROM `wiki`
         WHERE `language`="en"  ;  -- This is just some comment
@@ -139,6 +158,7 @@ describe "SQL parser", ->
         .apply('Count2', '$data.count()')
         .apply('Count3', '$data.filter(1 != null).count()')
         .apply('Count4', '$data.filter($visitor != null).count()')
+        .apply('Match', $('visitor').match("[0-9A-F]"))
         .apply('TotalAdded', '$data.sum($added)')
         .apply('Date', new Date('2014-01-02T00:00:00.000Z'))
         .apply('TotalAddedOver4', '$data.sum($added) / 4')
@@ -149,6 +169,9 @@ describe "SQL parser", ->
         .apply('Unique1', $('data').countDistinct('$visitor'))
         .apply('Unique2', $('data').countDistinct('$visitor'))
         .apply('Unique3', $('data').countDistinct('$visitor'))
+        .apply('TimeBucket', $('time').timeBucket('PT1H'))
+        .apply('TimeFloor', $('time').timeFloor('PT1H'))
+        .apply('TimeShift3', $('time').timeShift('PT1H', 3))
         .apply('Custom1', $('data').custom('blah'))
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())

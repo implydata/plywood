@@ -113,6 +113,25 @@ The possible part values are:
 * `MONTH_OF_YEAR`
 
 
+**TIME_FLOOR**(operand, duration, timezone)
+
+Floor the time to the nearest `duration` in the given `timezone`.
+
+Example: `TIME_FLOOR($time, 'P1D', 'America/Los_Angeles')`
+
+This will floor the `$time` variable to the start of day, where days are defined in the `America/Los_Angeles` timezone.
+
+
+**TIME_SHIFT**(operand, duration, step, timezone)
+
+Shift the time forwards by `duration` * `step` in the given `timezone`.
+`step` may be negative.
+
+Example: `TIME_SHIFT($time, 'P1D', -2, 'America/Los_Angeles')`
+
+This will shift the `$time` variable two days back in time, where days are defined in the `America/Los_Angeles` timezone.
+
+
 **SUBSTR**(*str*, *pos*, *len*)
 
 Returns a substring *len* characters long from string *str*, starting at position *pos*.

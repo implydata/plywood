@@ -204,7 +204,7 @@ module Plywood {
      */
     static parseSQL(str: string): SQLParse {
       try {
-        return sqlParser.parse(str);
+        return plyqlParser.parse(str);
       } catch (e) {
         // Re-throw to add the stacktrace
         throw new Error('SQL parse error: ' + e.message + ' on `' + str + '`');
@@ -871,27 +871,36 @@ module Plywood {
       return this.performAction(new LookupAction({ lookup: getString(lookup) }));
     }
 
-    // Bucketing
+    // Number manipulation
 
     public numberBucket(size: number, offset: number = 0): ChainExpression {
       return this.performAction(new NumberBucketAction({ size: getNumber(size), offset: getNumber(offset) }));
     }
 
-    public timeBucket(duration: any, timezone: any = Timezone.UTC): ChainExpression {
+    // Time manipulation
+
+    public timeBucket(duration: any, timezone?: any): ChainExpression {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
-      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-      return this.performAction(new TimeBucketAction({ duration: duration, timezone: timezone }));
+      if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+      return this.performAction(new TimeBucketAction({ duration, timezone }));
     }
 
-    public timePart(part: string, timezone: any): ChainExpression {
-      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-      return this.performAction(new TimePartAction({ part: getString(part), timezone: timezone }));
+    public timeFloor(duration: any, timezone?: any): ChainExpression {
+      if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
+      if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+      return this.performAction(new TimeFloorAction({ duration, timezone }));
     }
 
-    public timeOffset(duration: any, timezone: any): ChainExpression {
+    public timeShift(duration: any, step: number, timezone?: any): ChainExpression {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
-      if (!Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-      return this.performAction(new TimeOffsetAction({ duration: duration, timezone: timezone }));
+      step = getNumber(step);
+      if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+      return this.performAction(new TimeShiftAction({ duration, step, timezone }));
+    }
+
+    public timePart(part: string, timezone?: any): ChainExpression {
+      if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+      return this.performAction(new TimePartAction({ part: getString(part), timezone }));
     }
 
     // Split Apply Combine based transformations
@@ -996,13 +1005,6 @@ module Plywood {
     public join(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
       return this.performAction(new JoinAction({ expression: ex }));
-    }
-
-    public attach(selector: string, prop: Lookup<any>) {
-      return this.performAction(new AttachAction({
-        selector,
-        prop
-      }));
     }
 
     /**

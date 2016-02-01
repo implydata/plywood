@@ -37,6 +37,7 @@ describe "DruidExternal Introspection", ->
           "language": { "type": "STRING", "hasMultipleValues": false, "size": 0, "cardinality": 0, "errorMessage": null },
           "namespace": { "type": "STRING", "hasMultipleValues": true, "size": 0, "cardinality": 0, "errorMessage": null },
           "newPage": { "type": "STRING", "hasMultipleValues": false, "size": 0, "cardinality": 0, "errorMessage": "lol wtf" },
+          "newUser": { "type": "STRING", "hasMultipleValues": false, "size": -1, "cardinality": 0, "errorMessage": null },
           "page": { "type": "STRING", "hasMultipleValues": false, "size": 0, "cardinality": 0, "errorMessage": null },
           "time": { "type": "STRING", "hasMultipleValues": false, "size": 0, "cardinality": 0, "errorMessage": null },
           "user_unique": { "type": "hyperUnique", "hasMultipleValues": false, "size": 0, "cardinality": null, "errorMessage": null }
@@ -85,6 +86,7 @@ describe "DruidExternal Introspection", ->
           "language": { "type": "STRING", "hasMultipleValues": false, "size": 0, "cardinality": 0, "errorMessage": null },
           "namespace": { "type": "STRING", "hasMultipleValues": true, "size": 0, "cardinality": 0, "errorMessage": null },
           "newPage": { "type": "STRING", "hasMultipleValues": false, "size": 0, "cardinality": 0, "errorMessage": "lol wtf" },
+          "newUser": { "type": "STRING", "hasMultipleValues": false, "size": -1, "cardinality": 0, "errorMessage": null },
           "page": { "type": "STRING", "hasMultipleValues": false, "size": 0, "cardinality": 0, "errorMessage": null },
           "time": { "type": "STRING", "hasMultipleValues": false, "size": 0, "cardinality": 0, "errorMessage": null },
           "user_unique": { "type": "hyperUnique", "hasMultipleValues": false, "size": 0, "cardinality": null, "errorMessage": null }
@@ -127,6 +129,7 @@ describe "DruidExternal Introspection", ->
           "language": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": null },
           "namespace": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": null },
           "newPage": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": "lol wtf" },
+          "newUser": { "type": "STRING", "size": -1, "cardinality": 0, "errorMessage": null },
           "page": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": null },
           "time": { "type": "STRING", "size": 0, "cardinality": 0, "errorMessage": null },
           "user_unique": { "type": "COMPLEX", "size": 0, "cardinality": null, "errorMessage": null }

@@ -113,7 +113,7 @@ function higherArraysEqual(a: Array<any>, b: Array<any>): boolean {
 }
 
 var expressionParser: PEGParser;
-var sqlParser: PEGParser;
+var plyqlParser: PEGParser;
 
 interface DELETE_END {} // This is just a marker for the declaration post processor
 

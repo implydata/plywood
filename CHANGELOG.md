@@ -1,8 +1,19 @@
 # Change log
 
+## 0.8.4
+
+- Add `timeFloor` action (`TIME_FLOOR` in PlyQL) - not supported by DruidExternal yet
+- Rename unused `offsetTime` action to `timeShift` (`TIME_SHIFT` in PlyQL) and add `step` parameter - not supported by DruidExternal yet
+- Fixed how `concat` works on nulls to return null
+- Added `.isnt` and `.negate` to expression parsing grammar (they were mistakenly excluded) 
+- Added `MATCH` function to PlyQL 
+- Timezone parameter is now optional in all the `time*` functions in Plywood and PlyQL
+- Added `NOW()` to PlyQL
+- Better DruidExternal column introspection error detection
+
 ## 0.8.3
 
-- Allow parsing of DESCRIBE verb for PlyQL
+- Allow parsing of `DESCRIBE` verb for PlyQL
 
 ## 0.8.3
 
