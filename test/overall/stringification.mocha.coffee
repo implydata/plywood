@@ -63,3 +63,8 @@ describe "stringification", ->
     ex = $('diamonds').split("$cut.lookup('hello_lookup')", 'CutLookup')
 
     expect(ex.toString(2)).to.equal("$diamonds.split($cut.lookup(hello_lookup),CutLookup,diamonds)")
+
+  it "works with timePart", ->
+    ex = $('time').timePart('DAY_OF_WEEK')
+
+    expect(ex.toString(2)).to.equal("$time.timePart(DAY_OF_WEEK)")

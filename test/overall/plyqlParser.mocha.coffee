@@ -29,6 +29,14 @@ describe "SQL parser", ->
       expect(parse.verb).to.equal(null)
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
 
+    it "should handle --", ->
+      parse = Expression.parseSQL("x--3")
+
+      ex2 = $('x').subtract(-3)
+
+      expect(parse.verb).to.equal(null)
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
 
   describe "other query types", ->
     it "works with UPDATE expression", ->
@@ -128,6 +136,9 @@ describe "SQL parser", ->
         COUNT_DISTINCT(visitor) AS 'Unique1',
         COUNT(DISTINCT visitor) AS 'Unique2',
         COUNT(DISTINCT(visitor)) AS 'Unique3',
+        TIME_BUCKET(time, PT1H) AS 'TimeBucket',
+        TIME_FLOOR(time, PT1H) AS 'TimeFloor',
+        TIME_SHIFT(time, PT1H, 3) AS 'TimeShift3',
         CUSTOM('blah') AS 'Custom1'
         FROM `wiki`
         WHERE `language`="en"  ;  -- This is just some comment
@@ -149,6 +160,9 @@ describe "SQL parser", ->
         .apply('Unique1', $('data').countDistinct('$visitor'))
         .apply('Unique2', $('data').countDistinct('$visitor'))
         .apply('Unique3', $('data').countDistinct('$visitor'))
+        .apply('TimeBucket', $('time').timeBucket('PT1H'))
+        .apply('TimeFloor', $('time').timeFloor('PT1H'))
+        .apply('TimeShift3', $('time').timeShift('PT1H', 3))
         .apply('Custom1', $('data').custom('blah'))
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())

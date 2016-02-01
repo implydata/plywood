@@ -17,7 +17,11 @@ module Plywood {
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
-        return (inputFn(d, c) || '') + (expressionFn(d, c) || '');
+        var inV = inputFn(d, c);
+        if (inV === null) return null;
+        var exV = expressionFn(d, c);
+        if (exV === null) return null;
+        return '' + inV + exV;
       }
     }
 

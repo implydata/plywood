@@ -32,7 +32,7 @@ var reservedWords = {
   QUANTILE: 1,
   REPLACE: 1, REGEXP: 1,
   SELECT: 1, SET: 1, SHOW: 1, SUM: 1, SUBSTR: 1, SUBSTRING: 1,
-  TABLE: 1, TIME_BUCKET: 1, TRUE: 1,
+  TABLE: 1, TIME_SHIFT: 1, TIME_FLOOR: 1, TIME_BUCKET: 1, TIME_PART: 1, TRUE: 1,
   UNION: 1, UPDATE: 1,
   VALUES: 1,
   WHERE: 1
@@ -148,8 +148,8 @@ function constructQuery(columns, from, where, groupBys, having, orderBy, limit) 
   return query;
 }
 
-function makeListMap3(head, tail) {
-  return [head].concat(tail.map(function(t) { return t[3] }));
+function makeListMap1(head, tail) {
+  return [head].concat(tail.map(function(t) { return t[1] }));
 }
 
 function naryExpressionFactory(op, head, tail) {
@@ -215,8 +215,8 @@ SelectSubQuery
 Columns
   = _ StarToken
     { return '*'; }
-  / _ head:Column tail:(_ "," _ Column)*
-    { return makeListMap3(head, tail); }
+  / _ head:Column tail:(Comma Column)*
+    { return makeListMap1(head, tail); }
 
 Column
   = ex:Expression as:As?
@@ -239,15 +239,15 @@ WhereClause
     { return filter; }
 
 GroupByClause
-  = _ GroupToken __ ByToken _ head:Expression tail:(_ "," _ Expression)*
-    { return makeListMap3(head, tail); }
+  = _ GroupToken __ ByToken _ head:Expression tail:(Comma Expression)*
+    { return makeListMap1(head, tail); }
 
 HavingClause
   = _ HavingToken _ having:Expression
     { return new FilterAction({ expression: having }); }
 
 OrderByClause
-  = _ OrderToken __ ByToken _ orderBy:Expression direction:Direction? tail:(_ "," _ Expression Direction?)*
+  = _ OrderToken __ ByToken _ orderBy:Expression direction:Direction? tail:(Comma Expression Direction?)*
     {
       if (tail.length) error('plywood does not currently support multi-column ORDER BYs');
       return new SortAction({ expression: orderBy, direction: direction || 'ascending' });
@@ -354,8 +354,8 @@ ComparisonOp
   / ">"  { return 'greaterThan'; }
 
 ListLiteral
-  = "(" head:StringOrNumber tail:(_ "," _ StringOrNumber)* ")"
-    { return r(Set.fromJS(makeListMap3(head, tail))); }
+  = "(" head:StringOrNumber tail:(Comma StringOrNumber)* ")"
+    { return r(Set.fromJS(makeListMap1(head, tail))); }
 
 
 AdditiveExpression
@@ -373,8 +373,9 @@ MultiplicativeOp = [*/]
 
 
 UnaryExpression
-  = op:AdditiveOp _ ex:BasicExpression
+  = op:AdditiveOp _ !Number ex:BasicExpression
     {
+      // !Number is to make sure that -3 parses as literal(-3) and not literal(3).negate()
       var negEx = ex.negate(); // Always negate (even with +) just to make sure it is possible
       return op === '-' ? negEx : ex;
     }
@@ -405,7 +406,7 @@ AggregateExpression
       if (distinct) error('can not use DISTINCT for ' + fn + ' aggregator');
       return dataRef[fn](ex);
     }
-  / QuantileToken OpenParen _ ex:Expression _ "," _ value: Number CloseParen
+  / QuantileToken OpenParen _ ex:Expression Comma value: Number CloseParen
     { return dataRef.quantile(ex, value); }
   / CustomToken OpenParen _ value: String CloseParen
     { return dataRef.custom(value); }
@@ -415,20 +416,25 @@ AggregateFn
 
 
 FunctionCallExpression
-  = NumberBucketToken OpenParen _ operand:Expression _ "," _ size:Number _ "," _ offset:Number CloseParen
+  = NumberBucketToken OpenParen _ operand:Expression Comma size:Number Comma offset:Number CloseParen
     { return operand.numberBucket(size, offset); }
-  / TimeBucketToken OpenParen _ operand:Expression _ "," _ duration:NameOrString _ "," _ timezone:NameOrString CloseParen
-    { return operand.timeBucket(duration, timezone); }
-  / TimePartToken OpenParen _ operand:Expression _ "," _ part:NameOrString _ "," _ timezone:NameOrString CloseParen
+  / fn:(TimeBucketToken / TimeFloorToken) OpenParen _ operand:Expression Comma duration:NameOrString timezone:TimezoneParameter? CloseParen
+    { return operand[fn](duration, timezone); }
+  / TimePartToken OpenParen _ operand:Expression Comma part:NameOrString timezone:TimezoneParameter? CloseParen
     { return operand.timePart(part, timezone); }
-  / SubstrToken OpenParen _ operand:Expression _ "," _ position:Number _ "," _ length:Number CloseParen
+  / TimeShiftToken OpenParen _ operand:Expression Comma duration:NameOrString Comma step:Number timezone:TimezoneParameter? CloseParen
+    { return operand.timeShift(duration, step, timezone); }
+  / SubstrToken OpenParen _ operand:Expression Comma position:Number Comma length:Number CloseParen
     { return operand.substr(position, length); }
-  / ExtractToken OpenParen _ operand:Expression _ "," _ regexp:String CloseParen
+  / ExtractToken OpenParen _ operand:Expression Comma regexp:String CloseParen
     { return operand.extract(regexp); }
-  / LookupToken OpenParen _ operand:Expression _ "," _ lookup:String CloseParen
+  / LookupToken OpenParen _ operand:Expression Comma lookup:String CloseParen
     { return operand.lookup(lookup); }
-  / ConcatToken OpenParen head:Expression tail:(_ "," _ Expression)* CloseParen
-    { return Expression.concat(makeListMap3(head, tail)); }
+  / ConcatToken OpenParen head:Expression tail:(Comma Expression)* CloseParen
+    { return Expression.concat(makeListMap1(head, tail)); }
+
+TimezoneParameter
+  = Comma timezone:NameOrString { return timezone }
 
 RefExpression
   = ref:NamespacedRef { return $(ref); }
@@ -527,13 +533,15 @@ MaxToken           = "MAX"i            !IdentifierPart { return 'max'; }
 QuantileToken      = "QUANTILE"i       !IdentifierPart { return 'quantile'; }
 CustomToken        = "CUSTOM"i         !IdentifierPart { return 'custom'; }
 
-TimeBucketToken    = "TIME_BUCKET"i    !IdentifierPart
-NumberBucketToken  = "NUMBER_BUCKET"i  !IdentifierPart
-TimePartToken      = "TIME_PART"i      !IdentifierPart
-SubstrToken        = "SUBSTR"i "ING"i? !IdentifierPart
-ExtractToken       = "EXTRACT"i        !IdentifierPart
-ConcatToken        = "CONCAT"i         !IdentifierPart
-LookupToken        = "LOOKUP"i         !IdentifierPart
+TimeFloorToken     = "TIME_FLOOR"i     !IdentifierPart { return 'timeFloor'; }
+TimeShiftToken     = "TIME_SHIFT"i     !IdentifierPart { return 'timeShift'; }
+TimeBucketToken    = "TIME_BUCKET"i    !IdentifierPart { return 'timeBucket'; }
+NumberBucketToken  = "NUMBER_BUCKET"i  !IdentifierPart { return 'numberBucket'; }
+TimePartToken      = "TIME_PART"i      !IdentifierPart { return 'timePart'; }
+SubstrToken        = "SUBSTR"i "ING"i? !IdentifierPart { return 'substr'; }
+ExtractToken       = "EXTRACT"i        !IdentifierPart { return 'extract'; }
+ConcatToken        = "CONCAT"i         !IdentifierPart { return 'concat'; }
+LookupToken        = "LOOKUP"i         !IdentifierPart { return 'lookup'; }
 
 IdentifierPart = [A-Za-z_]
 
@@ -566,6 +574,9 @@ OpenParen "("
 
 CloseParen ")"
   = _ ")"
+
+Comma
+  = _ "," _
 
 Name "Name"
   = $([a-zA-Z_] [a-z0-9A-Z_]*)
