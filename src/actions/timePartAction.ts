@@ -36,7 +36,7 @@ module Plywood {
     static fromJS(parameters: ActionJS): TimePartAction {
       var value = Action.jsToValue(parameters);
       value.part = parameters.part;
-      value.timezone = Timezone.fromJS(parameters.timezone);
+      if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
       return new TimePartAction(value);
     }
 
@@ -56,14 +56,14 @@ module Plywood {
     public valueOf(): ActionValue {
       var value = super.valueOf();
       value.part = this.part;
-      value.timezone = this.timezone;
+      if (this.timezone) value.timezone = this.timezone;
       return value;
     }
 
     public toJS(): ActionJS {
       var js = super.toJS();
       js.part = this.part;
-      js.timezone = this.timezone.toJS();
+      if (this.timezone) js.timezone = this.timezone.toJS();
       return js;
     }
 
@@ -73,13 +73,16 @@ module Plywood {
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      return [expressionString, this.part.toString(), this.timezone.toString()];
+      var ret = [this.part];
+      if (this.timezone) ret.push(this.timezone.toString());
+      return ret;
     }
 
     public equals(other: TimePartAction): boolean {
       return super.equals(other) &&
         this.part === other.part &&
-        this.timezone.equals(other.timezone);
+        Boolean(this.timezone) === Boolean(other.timezone) &&
+        (!this.timezone || this.timezone.equals(other.timezone));
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {

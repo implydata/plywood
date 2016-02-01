@@ -347,10 +347,27 @@ describe "Simplify", ->
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
-  describe 'timeOffset', ->
+  describe 'timeFloor', ->
     it 'with simple expression', ->
-      ex1 = r(new Date('2015-02-20T15:41:12')).timeOffset('P1D', 'Etc/UTC')
+      ex1 = r(new Date('2015-02-20T15:41:12')).timeFloor('P1D', 'Etc/UTC')
+      ex2 = r(new Date('2015-02-20T00:00:00'))
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'wipes out itself', ->
+      ex1 = $('x').timeFloor('P1D', 'Etc/UTC').timeFloor('P1D', 'Etc/UTC')
+      ex2 = $('x').timeFloor('P1D', 'Etc/UTC')
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'timeShift', ->
+    it 'with simple expression', ->
+      ex1 = r(new Date('2015-02-20T15:41:12')).timeShift('P1D', 1, 'Etc/UTC')
       ex2 = r(new Date('2015-02-21T15:41:12'))
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it 'combines with itself', ->
+      ex1 = $('x').timeShift('P1D', 10, 'Etc/UTC').timeShift('P1D', -7, 'Etc/UTC')
+      ex2 = $('x').timeShift('P1D', 3, 'Etc/UTC')
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 

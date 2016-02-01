@@ -10,11 +10,12 @@ plywood = require('../../build/plywood')
 
 describe "compute native", ->
   data = [
-    { cut: 'Good',  price: 400, time: new Date('2015-10-01T09:20:30Z') }
-    { cut: 'Good',  price: 300, time: new Date('2015-10-02T08:20:30Z') }
-    { cut: 'Great', price: 124, time: null }
-    { cut: 'Wow',   price: 160, time: new Date('2015-10-04T06:20:30Z') }
-    { cut: 'Wow',   price: 100, time: new Date('2015-10-05T05:20:30Z') }
+    { cut: 'Good',  price: 400,  time: new Date('2015-10-01T09:20:30Z') }
+    { cut: 'Good',  price: 300,  time: new Date('2015-10-02T08:20:30Z') }
+    { cut: 'Great', price: 124,  time: null                             }
+    { cut: 'Wow',   price: 160,  time: new Date('2015-10-04T06:20:30Z') }
+    { cut: 'Wow',   price: 100,  time: new Date('2015-10-05T05:20:30Z') }
+    { cut: null,    price: null, time: new Date('2015-10-06T04:20:30Z') }
   ]
 
   it "works in uber-basic case", (testComplete) ->
@@ -112,6 +113,69 @@ describe "compute native", ->
       testComplete()
     ).done()
 
+  it "works with various applies", (testComplete) ->
+    ds = Dataset.fromJS(data)
+
+    ex = ply(ds)
+      .apply('cutConcat', '"[" ++ $cut ++ "]"')
+      .apply('timeFloorDay', $('time').timeFloor('P1D'))
+      .apply('timeShiftDay2', $('time').timeShift('P1D', 2))
+
+    p = ex.compute()
+    p.then((v) ->
+      expect(v.toJS()).to.deep.equal([
+        {
+          cut: 'Good',
+          cutConcat: '[Good]',
+          price: 400,
+          time: { type: "TIME", value: new Date('2015-10-01T09:20:30Z') }
+          timeFloorDay: { type: "TIME", value: new Date('2015-10-01T00:00:00Z') }
+          timeShiftDay2: { type: "TIME", value: new Date('2015-10-03T09:20:30Z') }
+        }
+        {
+          cut: 'Good',
+          cutConcat: '[Good]',
+          price: 300,
+          time: { type: "TIME", value: new Date('2015-10-02T08:20:30Z') }
+          timeFloorDay: { type: "TIME", value: new Date('2015-10-02T00:00:00Z') }
+          timeShiftDay2: { type: "TIME", value: new Date('2015-10-04T08:20:30Z') }
+        }
+        {
+          cut: 'Great',
+          cutConcat: '[Great]',
+          price: 124,
+          time: null
+          timeFloorDay: null
+          timeShiftDay2: null
+        }
+        {
+          cut: 'Wow',
+          cutConcat: '[Wow]',
+          price: 160,
+          time: { type: "TIME", value: new Date('2015-10-04T06:20:30Z') }
+          timeFloorDay: { type: "TIME", value: new Date('2015-10-04T00:00:00Z') }
+          timeShiftDay2: { type: "TIME", value: new Date('2015-10-06T06:20:30Z') }
+        }
+        {
+          cut: 'Wow',
+          cutConcat: '[Wow]',
+          price: 100,
+          time: { type: "TIME", value: new Date('2015-10-05T05:20:30Z') }
+          timeFloorDay: { type: "TIME", value: new Date('2015-10-05T00:00:00Z') }
+          timeShiftDay2: { type: "TIME", value: new Date('2015-10-07T05:20:30Z') }
+        }
+        {
+          cut: null,
+          cutConcat: null,
+          price: null,
+          time: { type: "TIME", value: new Date('2015-10-06T04:20:30Z') }
+          timeFloorDay: { type: "TIME", value: new Date('2015-10-06T00:00:00Z') }
+          timeShiftDay2: { type: "TIME", value: new Date('2015-10-08T04:20:30Z') }
+        }
+      ])
+      testComplete()
+    ).done()
+
   it "works with simple split aggregator", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
@@ -129,13 +193,14 @@ describe "compute native", ->
             { "Cut": "Good" }
             { "Cut": "Great" }
             { "Cut": "Wow" }
+            { "Cut": null }
           ]
         }
       ])
       testComplete()
     ).done()
 
-  it "works with empty", (testComplete) ->
+  it "works with singleton dataset", (testComplete) ->
     ds = Dataset.fromJS(data).hide()
 
     ex = ply()
@@ -199,6 +264,13 @@ describe "compute native", ->
               "EightByZero": { "type": "NUMBER", "value": "Infinity" }
               "ZeroByZero": null
             }
+            {
+              "Cut": null
+              "Six": 6
+              "Seven": 7
+              "EightByZero": { "type": "NUMBER", "value": "Infinity" }
+              "ZeroByZero": null
+            }
           ]
         }
       ])
@@ -220,13 +292,14 @@ describe "compute native", ->
     p.then((v) ->
       expect(v.toJS()).to.deep.equal([
         {
-          "Count": 5
+          "Count": 6
           "TimeParts": [
             { "Count": 1, "Part": 9 }
             { "Count": 1, "Part": 8 }
             { "Count": 1, "Part": null }
             { "Count": 1, "Part": 6 }
             { "Count": 1, "Part": 5 }
+            { "Count": 1, "Part": 4 }
           ]
         }
       ])
@@ -248,13 +321,14 @@ describe "compute native", ->
     p.then((v) ->
       expect(v.toJS()).to.deep.equal([
         {
-          "Count": 5
+          "Count": 6
           "TimeParts": [
             { "Count": 1, "Part": 5 }
             { "Count": 1, "Part": 4 }
             { "Count": 1, "Part": null }
             { "Count": 1, "Part": 2 }
             { "Count": 1, "Part": 1 }
+            { "Count": 1, "Part": 0 }
           ]
         }
       ])
@@ -272,7 +346,7 @@ describe "compute native", ->
     p.then((v) ->
       expect(v.toJS()).to.deep.equal([
         {
-          "CountPlusX": 18
+          "CountPlusX": 19
         }
       ])
       testComplete()
@@ -337,6 +411,21 @@ describe "compute native", ->
                 "value": new Date('2015-10-04T06:20:30Z')
               }
             }
+            {
+              "CountPlusX": 14
+              "Cut": null
+              "MaxPrice": null
+              "MinPrice": null
+              "SumPrice": 0
+              "MaxTime": {
+                "type": "TIME"
+                "value": new Date('2015-10-06T04:20:30Z')
+              }
+              "MinTime": {
+                "type": "TIME"
+                "value": new Date('2015-10-06T04:20:30Z')
+              }
+            }
           ]
         }
       ])
@@ -373,6 +462,11 @@ describe "compute native", ->
               "Count": 2
               "Cut": "Wow"
               "AvgPrice": 130
+            }
+            {
+              "Count": 1
+              "Cut": null
+              "AvgPrice": 0
             }
           ]
         }
@@ -449,7 +543,7 @@ describe "compute native", ->
         midData = v
         expect(midData.toJS()).to.deep.equal([
           {
-            "Count": 5
+            "Count": 6
             "Price": 1084
             "Cuts": [
               {
@@ -466,6 +560,11 @@ describe "compute native", ->
                 "Cut": "Wow"
                 "Count": 2
                 "Price": 260
+              }
+              {
+                "Cut": null
+                "Count": 1
+                "Price": 0
               }
             ]
           }
@@ -485,8 +584,8 @@ describe "compute native", ->
       p.then((v) ->
         expect(v.toJS()).to.deep.equal([
           {
-            "Count": 5
-            "CountOver2": 2.5
+            "Count": 6
+            "CountOver2": 3
             "Cuts": [
               {
                 "AvgPrice": 350
@@ -505,6 +604,12 @@ describe "compute native", ->
                 "Count": 2
                 "Cut": "Wow"
                 "Price": 260
+              }
+              {
+                "AvgPrice": 0
+                "Count": 1
+                "Cut": null
+                "Price": 0
               }
             ]
             "Price": 1084
@@ -533,7 +638,7 @@ describe "compute native", ->
         expect(v.toJS()).to.deep.equal([
           {
             "Count1": 3
-            "Count2": 2
+            "Count2": 3
             "Cuts": [
               {
                 "Counts": 101
@@ -546,6 +651,10 @@ describe "compute native", ->
               {
                 "Counts": 101
                 "Cut": "Wow"
+              }
+              {
+                "Counts": 1
+                "Cut": null
               }
             ]
           }

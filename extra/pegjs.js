@@ -22,16 +22,16 @@ fs.writeFileSync('./parser/expression.js', expressionParser, 'utf8');
 
 // SQL
 
-var sqlGrammarFilename = './src/expressions/sql.pegjs';
-var sqlGrammar = fs.readFileSync(sqlGrammarFilename, 'utf8');
+var plyqlGrammarFilename = './src/expressions/plyql.pegjs';
+var plyqlGrammar = fs.readFileSync(plyqlGrammarFilename, 'utf8');
 
-var sqlParser = PEG.buildParser(sqlGrammar, {
+var plyqlParser = PEG.buildParser(plyqlGrammar, {
   output: 'source',
   optimize: "speed" // or "size"
 });
 
-sqlParser = sqlParser.substring(prefixToRemove.length, sqlParser.length - postfixToRemove.length);
+plyqlParser = plyqlParser.substring(prefixToRemove.length, plyqlParser.length - postfixToRemove.length);
 
-sqlParser = 'module.exports = function(plywood) {' + sqlParser + '};\n';
+plyqlParser = 'module.exports = function(plywood) {' + plyqlParser + '};\n';
 
-fs.writeFileSync('./parser/sql.js', sqlParser, 'utf8');
+fs.writeFileSync('./parser/plyql.js', plyqlParser, 'utf8');

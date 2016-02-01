@@ -1,5 +1,5 @@
 expressionParser = (<PEGParserFactory>require("../parser/expression"))(Plywood);
-sqlParser = (<PEGParserFactory>require("../parser/sql"))(Plywood);
+plyqlParser = (<PEGParserFactory>require("../parser/plyql"))(Plywood);
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
   module.exports = Plywood;

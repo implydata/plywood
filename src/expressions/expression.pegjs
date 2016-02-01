@@ -6,47 +6,15 @@ var Expression = plywood.Expression;
 var LiteralExpression = plywood.LiteralExpression;
 var RefExpression = plywood.RefExpression;
 var Set = plywood.Set;
+var Action = plywood.Action;
 
-var possibleCalls = {
-  'abs': 1,
-  'add': 1,
-  'apply': 1,
-  'average': 1,
-  'contains': 1,
-  'count': 1,
-  'countDistinct': 1,
-  'custom': 1,
-  'divide': 1,
-  'extract': 1,
-  'fallback': 1,
-  'filter': 1,
-  'greaterThan': 1,
-  'greaterThanOrEqual': 1,
-  'in': 1,
-  'is': 1,
-  'lessThan': 1,
-  'lessThanOrEqual': 1,
-  'limit': 1,
-  'lookup': 1,
-  'match': 1,
-  'max': 1,
-  'min': 1,
-  'multiply': 1,
-  'not': 1,
-  'numberBucket': 1,
-  'power': 1,
-  'quantile': 1,
-  'sort': 1,
-  'split': 1,
-  'substr': 1,
-  'subtract': 1,
-  'sum': 1,
-  'timeBucket': 1,
-  'timePart': 1
-};
+var possibleCalls = {};
+for (var key in Action.classMap) possibleCalls[key] = 1;
+possibleCalls['negate'] = 1;
+possibleCalls['isnt'] = 1;
 
-function makeListMap3(head, tail) {
-  return [head].concat(tail.map(function(t) { return t[3] }));
+function makeListMap1(head, tail) {
+  return [head].concat(tail.map(function(t) { return t[1] }));
 }
 
 function naryExpressionFactory(op, head, tail) {
@@ -136,8 +104,9 @@ MultiplicativeOp = [*/]
 
 
 UnaryExpression
-  = op:AdditiveOp _ ex:CallChainExpression
+  = op:AdditiveOp _ !Number ex:CallChainExpression
     {
+      // !Number is to make sure that -3 parses as literal(-3) and not literal(3).negate()
       var negEx = ex.negate(); // Always negate (even with +) just to make sure it is possible
       return op === '-' ? negEx : ex;
     }
@@ -145,7 +114,7 @@ UnaryExpression
 
 
 CallChainExpression
-  = lhs:BasicExpression tail:(_ "." _ CallFn "(" _ Params? _ ")")*
+  = lhs:BasicExpression tail:(_ "." _ CallFn OpenParen _ Params? CloseParen)*
     {
       if (!tail.length) return lhs;
       var operand = lhs;
@@ -160,12 +129,12 @@ CallChainExpression
     }
 
 Params
-  = head:Expression tail:(_ "," _ Expression)*
-    { return makeListMap3(head, tail); }
+  = head:Expression tail:(Comma Expression)*
+    { return makeListMap1(head, tail); }
 
 BasicExpression
-  = "(" _ ex:Expression _ ")" { return ex; }
-  / "ply(" _ ")" { return ply(); }
+  = OpenParen _ ex:Expression CloseParen { return ex; }
+  / "ply" OpenParen CloseParen { return ply(); }
   / RefExpression
   / LiteralExpression
 
@@ -186,15 +155,15 @@ LiteralExpression
 
 
 StringSet "StringSet"
-  = "[" head:StringOrNull tail:(_ "," _ StringOrNull)* "]"
-    { return Set.fromJS(makeListMap3(head, tail)); }
+  = "[" head:StringOrNull tail:(Comma StringOrNull)* "]"
+    { return Set.fromJS(makeListMap1(head, tail)); }
 
 StringOrNull = String / NullToken;
 
 
 NumberSet "NumberSet"
-  = "[" head:NumberOrNull tail:(_ "," _ NumberOrNull)* "]"
-    { return Set.fromJS(makeListMap3(head, tail)); }
+  = "[" head:NumberOrNull tail:(Comma NumberOrNull)* "]"
+    { return Set.fromJS(makeListMap1(head, tail)); }
 
 NumberOrNull = Number / NullToken;
 
@@ -242,6 +211,15 @@ Digit
 
 
 /* Extra */
+
+OpenParen "("
+  = "("
+
+CloseParen ")"
+  = _ ")"
+
+Comma
+  = _ "," _
 
 ReservedWord
   = ( "ply" / "false" / "true" ) ![A-Za-z_]

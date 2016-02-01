@@ -1,5 +1,10 @@
 { expect } = require("chai")
 
+{ WallTime } = require('chronoshift')
+if not WallTime.rules
+  tzData = require("chronoshift/lib/walltime/walltime-data.js")
+  WallTime.init(tzData.rules, tzData.zones)
+
 { testImmutableClass } = require("immutable-class/build/tester")
 
 plywood = require('../../build/plywood')
@@ -61,6 +66,19 @@ describe "Actions", ->
 
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'normal' }
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'ignoreCase' }
+
+      { action: 'timeBucket', duration: 'P1D' }
+      { action: 'timeBucket', duration: 'P2D', timezone: 'Etc/UTC' }
+      { action: 'timeBucket', duration: 'P2D', timezone: 'America/Los_Angeles' }
+
+      { action: 'timePart', part: 'DAY_OF_WEEK' }
+      { action: 'timePart', part: 'DAY_OF_MONTH', timezone: 'Etc/UTC' }
+      { action: 'timePart', part: 'DAY_OF_MONTH', timezone: 'America/Los_Angeles' }
+
+      { action: 'timeShift', duration: 'P1D', step: 1 }
+      { action: 'timeShift', duration: 'P1D', step: -2 }
+      { action: 'timeShift', duration: 'P2D', step: 3, timezone: 'Etc/UTC' }
+      { action: 'timeShift', duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' }
     ], {
       newThrows: true
     })
