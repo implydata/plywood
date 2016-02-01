@@ -6,6 +6,7 @@
 - Rename unused `offsetTime` action to `timeShift` (`TIME_SHIFT` in PlyQL) and add `step` parameter - not supported by DruidExternal yet
 - Fixed how `concat` works on nulls to return null
 - Added `.isnt` and `.negate` to expression parsing grammar (they were mistakenly excluded) 
+- Added `MATCH` function to PlyQL 
 
 ## 0.8.3
 

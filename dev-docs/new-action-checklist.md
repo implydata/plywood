@@ -13,8 +13,8 @@ Let's assume that you are adding an action called `foo bar`
 1. Add the newly created file `src/actions/fooBarAction.ts` to [compile-tsc](/compile-tsc).
 
 1. Edit `src/actions/fooBarAction.ts` to implement the action as best you can.
-  * Ensure you implement a class `FooBarAction` that has the *action* type of `"fooBar"`  
-  * Ensure that any special properties are added to `ActionValue` and `ActionJS` in [baseAction.ts](src/actions/baseAction.ts)
+  * Ensure you implement a `class FooBarAction` that has the *action* type of `"fooBar"`  
+  * Ensure that any special properties are added to `ActionValue` and `ActionJS` interfaces in [baseAction.ts](src/actions/baseAction.ts)
 
 1. Add a immutable class test of to [actions.ts](test/overall/actions.ts). Something that looks like `{ action: 'fooBar', ... }`. Ensure it works.
 
@@ -44,10 +44,10 @@ Let's assume that you are adding an action called `foo bar`
       
 1. Add this function to the PlyQL grammar in [plyql.pegjs](src/expressions/plyql.pegjs).
   * Figure out what names you will give this function.
-    You should allow both `'FOO_BAR'` and whatever is standard to call it in general SQL dialogs.
+    You should allow both `'FOO_BAR'` and whatever is standard to call it in general SQL dialects.
     In general PlyQL tries to be MySQL compliant so have a look if a similar function is implemented by MySQL.
     It is also possible that by adding this function you will facilitate some other function to be implemented
-    (for example when `RegExp` was added it allowed for `LIKE` to be implemented as well as `REGEXP`).
+    (for example when `MatchAction` was added it allowed for `LIKE` and `REGEXP` to be implemented as well as `MATCH`).
   * Add all the names to the `reservedWords` list.  
   * Create tokens for these names.
 
