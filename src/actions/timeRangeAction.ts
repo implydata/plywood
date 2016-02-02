@@ -1,13 +1,13 @@
 module Plywood {
-  export class TimeShiftAction extends Action {
+  export class TimeRangeAction extends Action {
     static DEFAULT_STEP = 1;
 
-    static fromJS(parameters: ActionJS): TimeShiftAction {
+    static fromJS(parameters: ActionJS): TimeRangeAction {
       var value = Action.jsToValue(parameters);
       value.duration = Duration.fromJS(parameters.duration);
       value.step = parameters.step;
       if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
-      return new TimeShiftAction(value);
+      return new TimeRangeAction(value);
     }
 
     public duration: Duration;
@@ -17,9 +17,9 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       this.duration = parameters.duration;
-      this.step = parameters.step || TimeShiftAction.DEFAULT_STEP;
+      this.step = parameters.step || TimeRangeAction.DEFAULT_STEP;
       this.timezone = parameters.timezone;
-      this._ensureAction("timeShift");
+      this._ensureAction("timeRange");
       if (!Duration.isDuration(this.duration)) {
         throw new Error("`duration` must be a Duration");
       }
@@ -43,7 +43,7 @@ module Plywood {
 
     public getOutputType(inputType: string): string {
       this._checkInputType(inputType, 'TIME');
-      return 'TIME';
+      return 'TIME_RANGE';
     }
 
     protected _toStringParameters(expressionString: string): string[] {
@@ -52,7 +52,7 @@ module Plywood {
       return ret;
     }
 
-    public equals(other: TimeShiftAction): boolean {
+    public equals(other: TimeRangeAction): boolean {
       return super.equals(other) &&
         this.duration.equals(other.duration) &&
         this.step === other.step &&
@@ -68,7 +68,12 @@ module Plywood {
         var inV = inputFn(d, c);
         if (inV === null) return null;
         timezone = timezone || (c['timezone'] ? Timezone.fromJS(c['timezone']) : Timezone.UTC);
-        return duration.move(inV, timezone, step);
+        var other = duration.move(inV, timezone, step);
+        if (step > 0) {
+          return new TimeRange({ start: inV, end: other });
+        } else {
+          return new TimeRange({ start: other, end: inV });
+        }
       }
     }
 
@@ -77,24 +82,9 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.timeShiftExpression(inputSQL, this.duration, this.timezone);
-    }
-
-    protected _foldWithPrevAction(prevAction: Action): Action {
-      if (prevAction instanceof TimeShiftAction) {
-        if (
-          this.duration.equals(prevAction.duration) &&
-          Boolean(this.timezone) === Boolean(prevAction.timezone) &&
-          (!this.timezone || this.timezone.equals(prevAction.timezone))
-        ) {
-          var value = this.valueOf();
-          value.step += prevAction.step;
-          return new TimeShiftAction(value);
-        }
-      }
-      return null;
+      throw new Error("implement me");
     }
   }
 
-  Action.register(TimeShiftAction);
+  Action.register(TimeRangeAction);
 }

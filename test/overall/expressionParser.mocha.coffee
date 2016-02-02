@@ -66,6 +66,8 @@ describe "expression parser", ->
         .apply('time_part_timezone', "$time.timePart(DAY_OF_WEEK, 'America/Los_Angeles')")
         .apply('time_shift', "$time.timeShift(P1D, -3)")
         .apply('time_shift_timezone', "$time.timeShift(P1D, -3, 'America/Los_Angeles')")
+        .apply('time_range', "$time.timeRange(P1D, -3)")
+        .apply('time_range_timezone', "$time.timeRange(P1D, -3, 'America/Los_Angeles')")
 
       ex2 = ply()
         .apply('is1', $('color').is("Red"))
@@ -114,6 +116,8 @@ describe "expression parser", ->
         .apply('time_part_timezone', $("time").timePart("DAY_OF_WEEK", 'America/Los_Angeles'))
         .apply('time_shift', $("time").timeShift("P1D", -3))
         .apply('time_shift_timezone', $("time").timeShift("P1D", -3, 'America/Los_Angeles'))
+        .apply('time_range', $("time").timeRange("P1D", -3))
+        .apply('time_range_timezone', $("time").timeRange("P1D", -3, 'America/Los_Angeles'))
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS())
 

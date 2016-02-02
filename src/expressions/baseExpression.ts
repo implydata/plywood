@@ -901,9 +901,14 @@ module Plywood {
 
     public timeShift(duration: any, step: number, timezone?: any): ChainExpression {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
-      step = getNumber(step);
       if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-      return this.performAction(new TimeShiftAction({ duration, step, timezone }));
+      return this.performAction(new TimeShiftAction({ duration, step: getNumber(step), timezone }));
+    }
+
+    public timeRange(duration: any, step: number, timezone?: any): ChainExpression {
+      if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
+      if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+      return this.performAction(new TimeRangeAction({ duration, step: getNumber(step), timezone }));
     }
 
     public timePart(part: string, timezone?: any): ChainExpression {

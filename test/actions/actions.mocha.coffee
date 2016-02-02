@@ -79,6 +79,11 @@ describe "Actions", ->
       { action: 'timeShift', duration: 'P1D', step: -2 }
       { action: 'timeShift', duration: 'P2D', step: 3, timezone: 'Etc/UTC' }
       { action: 'timeShift', duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' }
+
+      { action: 'timeRange', duration: 'P1D', step: 1 }
+      { action: 'timeRange', duration: 'P1D', step: -2 }
+      { action: 'timeRange', duration: 'P2D', step: 3, timezone: 'Etc/UTC' }
+      { action: 'timeRange', duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' }
     ], {
       newThrows: true
     })

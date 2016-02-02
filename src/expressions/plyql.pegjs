@@ -421,8 +421,8 @@ FunctionCallExpression
     { return operand[fn](duration, timezone); }
   / TimePartToken OpenParen _ operand:Expression Comma part:NameOrString timezone:TimezoneParameter? CloseParen
     { return operand.timePart(part, timezone); }
-  / TimeShiftToken OpenParen _ operand:Expression Comma duration:NameOrString Comma step:Number timezone:TimezoneParameter? CloseParen
-    { return operand.timeShift(duration, step, timezone); }
+  / fn:(TimeShiftToken / TimeRangeToken) OpenParen _ operand:Expression Comma duration:NameOrString Comma step:Number timezone:TimezoneParameter? CloseParen
+    { return operand[fn](duration, step, timezone); }
   / SubstrToken OpenParen _ operand:Expression Comma position:Number Comma length:Number CloseParen
     { return operand.substr(position, length); }
   / ExtractToken OpenParen _ operand:Expression Comma regexp:String CloseParen
@@ -538,6 +538,7 @@ CustomToken        = "CUSTOM"i         !IdentifierPart { return 'custom'; }
 
 TimeFloorToken     = "TIME_FLOOR"i     !IdentifierPart { return 'timeFloor'; }
 TimeShiftToken     = "TIME_SHIFT"i     !IdentifierPart { return 'timeShift'; }
+TimeRangeToken     = "TIME_RANGE"i     !IdentifierPart { return 'timeRange'; }
 TimeBucketToken    = "TIME_BUCKET"i    !IdentifierPart { return 'timeBucket'; }
 NumberBucketToken  = "NUMBER_BUCKET"i  !IdentifierPart { return 'numberBucket'; }
 TimePartToken      = "TIME_PART"i      !IdentifierPart { return 'timePart'; }
