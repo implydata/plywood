@@ -57,3 +57,5 @@ Let's assume that you are adding an action called `foo bar`
 1. All actions should (preferably) be supported by all Externals. Add the functionality and tests accordingly. 
   * MySQL External: [code](src/external/mySqlExternal.ts), [test](test/external/mySqlExternal.mocha.coffee)
   * Druid External: [code](src/external/druidExternal.ts), [test](test/external/druidExternal.mocha.coffee)
+
+1. Lastly update the [CHANGELOG](CHANGELOG.md) and make a Pull Request!

@@ -61,6 +61,7 @@ describe "compute native", ->
       .apply('cutConcat', '"[" ++ $cut ++ "]"')
       .apply('timeFloorDay', $('time').timeFloor('P1D'))
       .apply('timeShiftDay2', $('time').timeShift('P1D', 2))
+      .apply('timeRangeHours', $('time').timeRange('PT2H', -1))
 
     p = ex.compute()
     p.then((v) ->
@@ -72,6 +73,7 @@ describe "compute native", ->
           time: { type: "TIME", value: new Date('2015-10-01T09:20:30Z') }
           timeFloorDay: { type: "TIME", value: new Date('2015-10-01T00:00:00Z') }
           timeShiftDay2: { type: "TIME", value: new Date('2015-10-03T09:20:30Z') }
+          timeRangeHours: { type: "TIME_RANGE", start: new Date('2015-10-01T07:20:30Z'), end: new Date('2015-10-01T09:20:30Z') }
         }
         {
           cut: 'Good',
@@ -80,6 +82,7 @@ describe "compute native", ->
           time: { type: "TIME", value: new Date('2015-10-02T08:20:30Z') }
           timeFloorDay: { type: "TIME", value: new Date('2015-10-02T00:00:00Z') }
           timeShiftDay2: { type: "TIME", value: new Date('2015-10-04T08:20:30Z') }
+          timeRangeHours: { type: "TIME_RANGE", start: new Date('2015-10-02T06:20:30Z'), end: new Date('2015-10-02T08:20:30Z') }
         }
         {
           cut: 'Great',
@@ -88,6 +91,7 @@ describe "compute native", ->
           time: null
           timeFloorDay: null
           timeShiftDay2: null
+          timeRangeHours: null
         }
         {
           cut: 'Wow',
@@ -96,6 +100,7 @@ describe "compute native", ->
           time: { type: "TIME", value: new Date('2015-10-04T06:20:30Z') }
           timeFloorDay: { type: "TIME", value: new Date('2015-10-04T00:00:00Z') }
           timeShiftDay2: { type: "TIME", value: new Date('2015-10-06T06:20:30Z') }
+          timeRangeHours: { type: "TIME_RANGE", start: new Date('2015-10-04T04:20:30Z'), end: new Date('2015-10-04T06:20:30Z') }
         }
         {
           cut: 'Wow',
@@ -104,6 +109,7 @@ describe "compute native", ->
           time: { type: "TIME", value: new Date('2015-10-05T05:20:30Z') }
           timeFloorDay: { type: "TIME", value: new Date('2015-10-05T00:00:00Z') }
           timeShiftDay2: { type: "TIME", value: new Date('2015-10-07T05:20:30Z') }
+          timeRangeHours: { type: "TIME_RANGE", start: new Date('2015-10-05T03:20:30Z'), end: new Date('2015-10-05T05:20:30Z') }
         }
         {
           cut: null,
@@ -112,6 +118,7 @@ describe "compute native", ->
           time: { type: "TIME", value: new Date('2015-10-06T04:20:30Z') }
           timeFloorDay: { type: "TIME", value: new Date('2015-10-06T00:00:00Z') }
           timeShiftDay2: { type: "TIME", value: new Date('2015-10-08T04:20:30Z') }
+          timeRangeHours: { type: "TIME_RANGE", start: new Date('2015-10-06T02:20:30Z'), end: new Date('2015-10-06T04:20:30Z') }
         }
       ])
       testComplete()
