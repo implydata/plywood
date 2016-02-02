@@ -1,5 +1,9 @@
 # Change log
 
+## 0.8.6
+
+- Add `timeRange` action (`TIME_RANGE` in PlyQL) - not supported by DruidExternal yet
+
 ## 0.8.5
 
 - Add `timeFloor` action (`TIME_FLOOR` in PlyQL) - not supported by DruidExternal yet

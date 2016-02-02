@@ -147,6 +147,7 @@ describe "SQL parser", ->
         TIME_BUCKET(time, PT1H) AS 'TimeBucket',
         TIME_FLOOR(time, PT1H) AS 'TimeFloor',
         TIME_SHIFT(time, PT1H, 3) AS 'TimeShift3',
+        TIME_RANGE(time, PT1H, 3) AS 'TimeRange3',
         CUSTOM('blah') AS 'Custom1'
         FROM `wiki`
         WHERE `language`="en"  ;  -- This is just some comment
@@ -172,6 +173,7 @@ describe "SQL parser", ->
         .apply('TimeBucket', $('time').timeBucket('PT1H'))
         .apply('TimeFloor', $('time').timeFloor('PT1H'))
         .apply('TimeShift3', $('time').timeShift('PT1H', 3))
+        .apply('TimeRange3', $('time').timeRange('PT1H', 3))
         .apply('Custom1', $('data').custom('blah'))
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
