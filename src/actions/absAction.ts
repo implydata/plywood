@@ -21,6 +21,19 @@ module Plywood {
       }
     }
 
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+      if (literalExpression.equals(Expression.ZERO)) {
+        return Expression.ZERO;
+      }
+    }
+
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      if (prevAction.equals(this)) {
+        return this;
+      }
+      return null;
+    }
+
     protected _getJSHelper(inputJS: string): string {
       return 'Math.abs(' + inputJS + ')';
     }

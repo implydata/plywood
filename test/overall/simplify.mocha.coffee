@@ -57,19 +57,9 @@ describe "Simplify", ->
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
   describe 'abs', ->
-    it "removes self if 1", ->
-      ex1 = r(3).power(1);
-      ex2 = r(3)
-      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
-
     it "removes self if 0", ->
-      ex1 = r(3).power(0);
-      ex2 = r(1)
-      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
-
-    it "removes self if reciprocal chains ", ->
-      ex1 = r(4).power(0.5).power(2);
-      ex2 = r(4)
+      ex1 = r(0).abs();
+      ex2 = r(0)
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
@@ -80,7 +70,7 @@ describe "Simplify", ->
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
 
-  describe 'abs', ->
+  describe 'power', ->
     it "removes self if 1", ->
       ex1 = r(3).power(1);
       ex2 = r(3)
@@ -90,12 +80,6 @@ describe "Simplify", ->
       ex1 = r(3).power(0);
       ex2 = r(1)
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
-
-    it "removes self if reciprocal chains ", ->
-      ex1 = r(4).power(0.5).power(2);
-      ex2 = r(4)
-      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
-
 
   describe.skip 'negate', ->
     it "collapses double", ->
