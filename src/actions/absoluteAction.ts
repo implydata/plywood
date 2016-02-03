@@ -1,12 +1,12 @@
 module Plywood {
-  export class AbsAction extends Action {
-    static fromJS(parameters: ActionJS): AbsAction {
-      return new AbsAction(Action.jsToValue(parameters));
+  export class AbsoluteAction extends Action {
+    static fromJS(parameters: ActionJS): AbsoluteAction {
+      return new AbsoluteAction(Action.jsToValue(parameters));
     }
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
-      this._ensureAction("abs");
+      this._ensureAction("absolute");
     }
 
     public getOutputType(inputType: string): string {
@@ -43,5 +43,5 @@ module Plywood {
     }
   }
 
-  Action.register(AbsAction);
+  Action.register(AbsoluteAction);
 }

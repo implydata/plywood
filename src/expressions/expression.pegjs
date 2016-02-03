@@ -12,6 +12,7 @@ var possibleCalls = {};
 for (var key in Action.classMap) possibleCalls[key] = 1;
 possibleCalls['negate'] = 1;
 possibleCalls['isnt'] = 1;
+possibleCalls['abs'] = 1;
 
 function makeListMap1(head, tail) {
   return [head].concat(tail.map(function(t) { return t[1] }));
@@ -82,6 +83,7 @@ ComparisonOp
   / ">=" { return 'greaterThanOrEqual'; }
   / "<"  { return 'lessThan'; }
   / ">"  { return 'greaterThan'; }
+  / "//" { return 'fallback'; }
 
 
 ConcatenationExpression
@@ -97,10 +99,17 @@ AdditiveOp = op:[+-] ![+] { return op; }
 
 
 MultiplicativeExpression
-  = head:UnaryExpression tail:(_ MultiplicativeOp _ UnaryExpression)*
+  = head:ExponentialExpression tail:(_ MultiplicativeOp _ ExponentialExpression)*
     { return naryExpressionWithAltFactory('multiply', head, tail, '/', 'divide'); }
 
 MultiplicativeOp = [*/]
+
+
+ExponentialExpression
+  = head:UnaryExpression tail:(_ ExponentialOp _ UnaryExpression)*
+    { return naryExpressionFactory('power', head, tail); }
+
+ExponentialOp = [\^]
 
 
 UnaryExpression
@@ -111,6 +120,7 @@ UnaryExpression
       return op === '-' ? negEx : ex;
     }
   / CallChainExpression
+  / Pipe _ ex:Expression _ Pipe { return ex.abs(); }
 
 
 CallChainExpression
@@ -238,6 +248,9 @@ NotSQuote "NotSQuote"
 
 NotDQuote "NotDQuote"
   = $([^"]*)
+
+Pipe
+  = "|"
 
 _ "Whitespace"
   = $([ \t\r\n]*)

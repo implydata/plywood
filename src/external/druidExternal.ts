@@ -1225,7 +1225,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       } else if (ex instanceof ChainExpression) {
         var lastAction = ex.lastAction();
 
-        if (lastAction instanceof AbsAction) {
+        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction) {
           var fieldNameRefs = ex.getFreeReferences();
           return {
             type: 'javascript',
@@ -1261,14 +1261,6 @@ return (start < 0 ?'-':'') + parts.join('.');
             type: 'arithmetic',
             fn: '/',
             fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
-          };
-        }
-        if (pattern = ex.getExpressionPattern('power')) {
-          return {
-            type: "javascript",
-            name: 'power',
-            'fieldNames': aggregations.map((agg => agg.name)),
-            'function': ex.getJSFn('d')
           };
         }
         if (pattern = ex.getExpressionPattern('fallback')) {

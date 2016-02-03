@@ -970,7 +970,11 @@ module Plywood {
     }
 
     public abs(): ChainExpression {
-      return this.performAction(new AbsAction({}));
+      return this.performAction(new AbsoluteAction({}));
+    }
+
+    public absolute(): ChainExpression {
+      return this.performAction(new AbsoluteAction({}));
     }
 
     public limit(limit: number): ChainExpression {
