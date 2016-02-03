@@ -139,6 +139,8 @@ describe "SQL parser", ->
         SUM(`wiki`.`added`) / 4 AS TotalAddedOver4,
         NOT(true) AS 'False',
         -SUM(added) AS MinusAdded,
+        ABS(MinusAdded) AS AbsAdded,
+        ABSOLUTE(MinusAdded) AS AbsoluteAdded,
         +SUM(added) AS SimplyAdded,
         QUANTILE(added, 0.5) AS Median,
         COUNT_DISTINCT(visitor) AS 'Unique1',
@@ -165,6 +167,8 @@ describe "SQL parser", ->
         .apply('TotalAddedOver4', '$data.sum($added) / 4')
         .apply('False', r(true).not())
         .apply('MinusAdded', '-$data.sum($added)')
+        .apply('AbsAdded', '$MinusAdded.abs()')
+        .apply('AbsoluteAdded', '$MinusAdded.abs()')
         .apply('SimplyAdded', '$data.sum($added)')
         .apply('Median', $('data').quantile('$added', 0.5))
         .apply('Unique1', $('data').countDistinct('$visitor'))

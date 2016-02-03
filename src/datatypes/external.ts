@@ -639,14 +639,10 @@ module Plywood {
         // Can not redefine index for now.
         if (this.split && this.split.hasKey(action.name)) return null;
 
-        var basicActions = this.processApply(action);
-        for (let basicAction of basicActions) {
-          if (basicAction instanceof ApplyAction) {
-            value.applies = value.applies.concat(basicAction);
-            value.attributes = value.attributes.concat(new AttributeInfo({ name: basicAction.name, type: basicAction.expression.type }));
-          } else {
-            throw new Error('got something strange from breakUpApply');
-          }
+        var basicApplyActions = this.processApply(action);
+        for (let basicApplyAction of basicApplyActions) {
+          value.applies = value.applies.concat(basicApplyAction);
+          value.attributes = value.attributes.concat(new AttributeInfo({ name: basicApplyAction.name, type: basicApplyAction.expression.type }));
         }
       }
       return <External>(new (External.classMap[this.engine])(value));
@@ -786,7 +782,7 @@ module Plywood {
       })
     }
 
-    public processApply(action: ApplyAction): Action[] {
+    public processApply(action: ApplyAction): ApplyAction[] {
       return [action];
     }
 
