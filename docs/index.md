@@ -213,7 +213,7 @@ The output will look like so:
   {
     "Count": 573775,
     "TotalAdded": 124184252,
-    "Page": [
+    "Pages": [
       {
         "Page": "Wikipedia:Vandalismusmeldung",
         "Count": 177
