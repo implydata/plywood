@@ -335,7 +335,7 @@ describe "MySQLExternal", ->
       ex = ply()
       .apply("wiki", $('wiki').filter($("page").is('Lojban')))
       .apply('Delta', $('wiki').min($('delta')))
-      .apply('AbsDelta', $('wiki').min($('delta')).abs())
+      .apply('AbsDelta', $('wiki').min($('delta')).absolute())
       .apply('SquareDelta', $('wiki').sum($('delta')).power(2))
 
       basicExecutor(ex).then((result) ->

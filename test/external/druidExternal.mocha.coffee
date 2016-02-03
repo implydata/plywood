@@ -94,7 +94,7 @@ describe "DruidExternal", ->
       .apply('wiki', '$wiki') # for now
       .apply('Count', '$wiki.count()')
       .apply('negative', -4)
-      .apply('abs', $('negative').abs())
+      .apply('abs', $('negative').absolute())
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
