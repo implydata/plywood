@@ -617,10 +617,10 @@ describe "DruidExternal", ->
         "threshold": 5
       })
 
-    it "should work with complex absolute expressions", ->
+    it "should work with complex absolute and power expressions", ->
       ex = $('wiki').split("$page", 'Page')
       .apply('Count', '$wiki.count()')
-      .apply('Abs', '($wiki.sum($added)/$wiki.min($deleted) + 100 * $wiki.countDistinct($page)).abs()')
+      .apply('Abs', '(($wiki.sum($added)/$wiki.min($deleted).power(0.5) + 100 * $wiki.countDistinct($page)).abs()).power(2)')
       .sort('$Abs', 'descending')
       .limit(5)
 
@@ -671,7 +671,7 @@ describe "DruidExternal", ->
               "_sd_1"
               "_sd_2"
             ]
-            "function": "function(_sd_0,_sd_1,_sd_2) { return Math.abs(((_sd_0/_sd_1)+(100*_sd_2))); }"
+            "function": "function(_sd_0,_sd_1,_sd_2) { return Math.pow(Math.abs(((_sd_0/Math.pow(_sd_1,0.5))+(100*_sd_2))),2); }"
             "name": "Abs"
             "type": "javascript"
           }
