@@ -1207,6 +1207,7 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public expressionToPostAggregation(ex: Expression, aggregations: Druid.Aggregation[]): Druid.PostAggregation {
+
       if (ex instanceof RefExpression) {
         var refName = ex.name;
         return {
@@ -1222,6 +1223,17 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
 
       } else if (ex instanceof ChainExpression) {
+        var lastAction = ex.lastAction();
+
+        if (lastAction instanceof AbsAction) {
+          var fieldNameRefs = ex.getFreeReferences();
+          return {
+            type: 'javascript',
+            fieldNames: fieldNameRefs,
+            function: `function(${fieldNameRefs.toString()}) { return ${ex.getJS(null)}; }`
+          };
+        }
+
         var pattern: Expression[];
         if (pattern = ex.getExpressionPattern('add')) {
           return {
@@ -1249,14 +1261,6 @@ return (start < 0 ?'-':'') + parts.join('.');
             type: 'arithmetic',
             fn: '/',
             fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
-          };
-        }
-        if (pattern = ex.getExpressionPattern('abs')) {
-          return {
-            type: "javascript",
-            name: 'abs',
-            'fieldNames': aggregations.map((agg => agg.name)),
-            'function': ex.getJSFn('d')
           };
         }
         if (pattern = ex.getExpressionPattern('power')) {
@@ -1401,7 +1405,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
-    public processApply(apply: ApplyAction): Action[] {
+    public processApply(apply: ApplyAction): ApplyAction[] {
       return this.separateAggregates(<ApplyAction>apply.applyToExpression(ex => {
         return this.inlineDerivedAttributes(ex).decomposeAverage().distribute();
       }));

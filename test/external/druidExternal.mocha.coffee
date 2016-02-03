@@ -560,6 +560,35 @@ describe "DruidExternal", ->
         "queryType": "timeseries"
       })
 
+    it "an absolute ", ->
+      ex = $('wiki').split("$page", 'Page')
+      .apply('Count', '$wiki.count()')
+      .apply('Abs', '$wiki.sum($added).abs()')
+      .sort('$Abs', 'descending')
+      .limit(5)
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('external')
+      druidExternal = ex.external
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      })
+
+    it "should work with complex absolute expressions", ->
+      ex = $('wiki').split("$page", 'Page')
+      .apply('Count', '$wiki.count()')
+      .apply('Abs', '($wiki.sum($added)/$wiki.min($deleted) + 100 * $wiki.countDistinct($page)).abs()')
+      .sort('$Abs', 'descending')
+      .limit(5)
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('external')
+      druidExternal = ex.external
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      })
+
+
   describe "should work when getting back [] and [{result:[]}]", ->
     nullExternal = External.fromJS({
       engine: 'druid',
