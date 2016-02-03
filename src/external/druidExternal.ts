@@ -1222,6 +1222,17 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
 
       } else if (ex instanceof ChainExpression) {
+        var lastAction = ex.lastAction();
+
+        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction) {
+          var fieldNameRefs = ex.getFreeReferences();
+          return {
+            type: 'javascript',
+            fieldNames: fieldNameRefs,
+            function: `function(${fieldNameRefs.toString()}) { return ${ex.getJS(null)}; }`
+          };
+        }
+
         var pattern: Expression[];
         if (pattern = ex.getExpressionPattern('add')) {
           return {
@@ -1348,6 +1359,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         case "sum":
         case "min":
         case "max":
+        case "abs":
           return this.makeStandardAggregation(action.name, filterAction, aggregateAction);
 
         case "countDistinct":
@@ -1375,7 +1387,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
-    public processApply(apply: ApplyAction): Action[] {
+    public processApply(apply: ApplyAction): ApplyAction[] {
       return this.separateAggregates(<ApplyAction>apply.applyToExpression(ex => {
         return this.inlineDerivedAttributes(ex).decomposeAverage().distribute();
       }));

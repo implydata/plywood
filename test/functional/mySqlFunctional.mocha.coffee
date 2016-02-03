@@ -290,3 +290,61 @@ describe "MySQLExternal", ->
         ])
         testComplete()
       ).done()
+
+  describe "fallback", ->
+    basicExecutor = basicExecutorFactory({
+      datasets: {
+        wiki: External.fromJS({
+          engine: 'mysql'
+          table: 'wiki_day_agg'
+          requester: mySqlRequester
+        })
+      }
+    })
+
+
+    it "fallback doesnt happen if not null", (testComplete) ->
+      ex = ply()
+      .apply("wiki", $('wiki'))
+      .apply('added', $('wiki').average($('added')).fallback(2))
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "added": 216.5613
+          }
+        ])
+        testComplete()
+      ).done()
+
+    it "fallback happens if null", (testComplete) ->
+      ex = ply()
+        .apply("wiki", $('wiki').filter($("page").is('Bieberswalde')))
+        .apply('TotalAdded', $('wiki').sum($('added')).fallback(0))
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "TotalAdded": 0
+          }
+        ])
+        testComplete()
+      ).done()
+
+    it "power of and abs", (testComplete) ->
+      ex = ply()
+      .apply("wiki", $('wiki').filter($("page").is('Lojban')))
+      .apply('Delta', $('wiki').min($('delta')))
+      .apply('AbsDelta', $('wiki').min($('delta')).absolute())
+      .apply('SquareDelta', $('wiki').sum($('delta')).power(2))
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Delta": -3,
+            "AbsDelta": 3,
+            "SquareDelta": 9
+          }
+        ])
+        testComplete()
+      ).done()

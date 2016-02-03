@@ -268,6 +268,42 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
+    it "works with abs", (testComplete) ->
+      ex = ply()
+      .apply("Count", $('wiki').filter($("language").is('en')).count())
+      .apply('Negate', $('count').negate())
+      .apply('Abs', $('count').negate().abs().negate().abs())
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Count": 122857
+            "Negate": -122857
+            "Abs": 122857
+          }
+        ])
+        testComplete()
+      ).done()
+
+    it "works with power", (testComplete) ->
+      ex = ply()
+      .apply("Count", $('wiki').filter($("language").is('en')).count())
+      .apply('Square Root', $('Count').power(0.5))
+      .apply('Squared', $('Count').power(2))
+      .apply('One', $('Count').power(0))
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Count" : 122857,
+            "Squared" : 15093842449,
+            "Square Root": 350.509628969,
+            "One": 1
+          }
+        ])
+        testComplete()
+      ).done()
+
     it "works with no applies in time split dataset", (testComplete) ->
       ex = ply()
         .apply('ByHour',
