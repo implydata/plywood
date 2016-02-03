@@ -104,7 +104,7 @@ describe "DruidExternal", ->
       expect(druidExternal.applies.join('\n')).to.equal("""
         apply(Count,$wiki:DATASET.count())
         apply(negative,-4)
-        apply(abs,$negative:NUMBER.abs())
+        apply(abs,$negative:NUMBER.absolute())
         """)
 
     it "breaks up correctly in case of duplicate name", ->
@@ -560,10 +560,11 @@ describe "DruidExternal", ->
         "queryType": "timeseries"
       })
 
-    it "an absolute ", ->
+    it "should work in simple cases ", ->
       ex = $('wiki').split("$page", 'Page')
       .apply('Count', '$wiki.count()')
       .apply('Abs', '$wiki.sum($added).abs()')
+      .apply('Abs2', '$wiki.sum($added).power(2)')
       .sort('$Abs', 'descending')
       .limit(5)
 
@@ -572,6 +573,48 @@ describe "DruidExternal", ->
       expect(ex.op).to.equal('external')
       druidExternal = ex.external
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "name": "Count"
+            "type": "count"
+          }
+          {
+            "fieldName": "added"
+            "name": "_sd_0"
+            "type": "doubleSum"
+          }
+        ]
+        "dataSource": "wikipedia"
+        "dimension": {
+          "dimension": "page"
+          "outputName": "Page"
+          "type": "default"
+        }
+        "granularity": "all"
+        "intervals": [
+          "2013-02-26/2013-02-27"
+        ]
+        "metric": "Abs"
+        "postAggregations": [
+          {
+            "fieldNames": [
+              "_sd_0"
+            ]
+            "function": "function(_sd_0) { return Math.abs(_sd_0); }"
+            "name": "Abs"
+            "type": "javascript"
+          }
+          {
+            "fieldNames": [
+              "_sd_0"
+            ]
+            "function": "function(_sd_0) { return Math.pow(_sd_0,2); }"
+            "name": "Abs2"
+            "type": "javascript"
+          }
+        ]
+        "queryType": "topN"
+        "threshold": 5
       })
 
     it "should work with complex absolute expressions", ->
@@ -586,6 +629,55 @@ describe "DruidExternal", ->
       expect(ex.op).to.equal('external')
       druidExternal = ex.external
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "name": "Count"
+            "type": "count"
+          }
+          {
+            "fieldName": "added"
+            "name": "_sd_0"
+            "type": "doubleSum"
+          }
+          {
+            "fieldName": "deleted"
+            "name": "_sd_1"
+            "type": "doubleMin"
+          }
+          {
+            "byRow": true
+            "fieldNames": [
+              "page"
+            ]
+            "name": "_sd_2"
+            "type": "cardinality"
+          }
+        ]
+        "dataSource": "wikipedia"
+        "dimension": {
+          "dimension": "page"
+          "outputName": "Page"
+          "type": "default"
+        }
+        "granularity": "all"
+        "intervals": [
+          "2013-02-26/2013-02-27"
+        ]
+        "metric": "Abs"
+        "postAggregations": [
+          {
+            "fieldNames": [
+              "_sd_0"
+              "_sd_1"
+              "_sd_2"
+            ]
+            "function": "function(_sd_0,_sd_1,_sd_2) { return Math.abs(((_sd_0/_sd_1)+(100*_sd_2))); }"
+            "name": "Abs"
+            "type": "javascript"
+          }
+        ]
+        "queryType": "topN"
+        "threshold": 5
       })
 
 
