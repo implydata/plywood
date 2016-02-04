@@ -345,6 +345,15 @@ describe "SQL parser", ->
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
 
+    it "should work with SELECT DISTINCT", ->
+      parse = Expression.parseSQL("""
+        SELECT DISTINCT `page`, `user` FROM `wiki`
+        """)
+
+      ex2 = $('wiki').split({ page: '$page', user: '$user' }, 'data')
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS())
+
     it "should work with few spaces", ->
       parse = Expression.parseSQL("""
         SELECT`page`AS'Page'FROM`wiki`GROUP BY`page`ORDER BY`Page`LIMIT 5

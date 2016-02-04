@@ -1,5 +1,9 @@
 # Change log
 
+## 0.8.7
+
+- Support `SELECT DISTINCT` syntax in PlyQL
+
 ## 0.8.6
 
 - Add `timeRange` action (`TIME_RANGE` in PlyQL) - not supported by DruidExternal yet

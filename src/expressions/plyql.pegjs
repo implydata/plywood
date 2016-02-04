@@ -71,7 +71,7 @@ function extractGroupByColumn(columns, groupBy, index) {
   };
 }
 
-function constructQuery(columns, from, where, groupBys, having, orderBy, limit) {
+function constructQuery(distinct, columns, from, where, groupBys, having, orderBy, limit) {
   if (!columns) error('Can not have empty column list');
   from = from ? $(from) : dataRef;
 
@@ -90,7 +90,11 @@ function constructQuery(columns, from, where, groupBys, having, orderBy, limit) 
           columnExpression.actions.length &&
           aggregates[columnExpression.actions[0].action];
       })
-      if (hasAggregate) groupBys = [Expression.EMPTY_STRING];
+      if (hasAggregate) {
+        groupBys = [Expression.EMPTY_STRING];
+      } else if (distinct) {
+        groupBys = columns.map(function(column) { return column.expression });
+      }
 
     } else {
       groupBys = groupBys.map(function(groupBy) {
@@ -198,18 +202,18 @@ DescribeQuery
     }
 
 SelectQuery
-  = SelectToken columns:Columns? from:FromClause? where:WhereClause? groupBys:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause? QueryTerminator? _
+  = SelectToken distinct:Distinct? columns:Columns? from:FromClause? where:WhereClause? groupBys:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause? QueryTerminator? _
     {
       return {
         verb: 'SELECT',
-        expression: constructQuery(columns, from, where, groupBys, having, orderBy, limit),
+        expression: constructQuery(distinct, columns, from, where, groupBys, having, orderBy, limit),
         table: from
       };
     }
 
 SelectSubQuery
-  = SelectToken columns:Columns? where:WhereClause? groupBys:GroupByClause having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
-    { return constructQuery(columns, null, where, groupBys, having, orderBy, limit); }
+  = SelectToken distinct:Distinct? columns:Columns? where:WhereClause? groupBys:GroupByClause having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
+    { return constructQuery(distinct, columns, null, where, groupBys, having, orderBy, limit); }
 
 Columns
   = _ StarToken
@@ -228,6 +232,9 @@ Column
 
 As
   = _ AsToken _ name:(String / Ref) { return name; }
+
+Distinct
+  = _ DistinctToken
 
 FromClause
   = _ FromToken _ table:NamespacedRef
@@ -391,7 +398,7 @@ BasicExpression
 
 
 AggregateExpression
-  = CountToken OpenParen distinct:(_ DistinctToken)? _ ex:(StarToken / Expression)? CloseParen
+  = CountToken OpenParen distinct:Distinct? _ ex:(StarToken / Expression)? CloseParen
     {
       if (!ex || ex === '*') {
         if (distinct) error('COUNT DISTINCT must have expression');
@@ -400,7 +407,7 @@ AggregateExpression
         return distinct ? dataRef.countDistinct(ex) : dataRef.filter(ex.isnt(null)).count()
       }
     }
-  / fn:AggregateFn OpenParen distinct:(_ DistinctToken)? _ ex:Expression CloseParen
+  / fn:AggregateFn OpenParen distinct:Distinct? _ ex:Expression CloseParen
     {
       if (distinct) error('can not use DISTINCT for ' + fn + ' aggregator');
       return dataRef[fn](ex);
