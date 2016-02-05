@@ -15,7 +15,8 @@ module Plywood {
 
     var firstActionExpression1 = ex1Actions[0].expression;
     var firstActionExpression2 = ex2Actions[0].expression;
-    if (!firstActionExpression1.isOp('literal') || !firstActionExpression2.isOp('literal')) return null;
+
+    if (!firstActionExpression1 || !firstActionExpression2 || !firstActionExpression1.isOp('literal') || !firstActionExpression2.isOp('literal')) return null;
 
     var intersect = Set.generalIntersect(firstActionExpression1.getLiteralValue(), firstActionExpression2.getLiteralValue());
     if (intersect === null) return null;

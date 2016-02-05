@@ -407,6 +407,38 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
+    it "works with match filter", (testComplete) ->
+      ex = ply()
+        .apply('wiki', $('wiki').filter($('page').match('^.*Bot.*$')))
+        .apply('Pages',
+          $('wiki').split($("page"), 'Page')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(3)
+        )
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "Pages": [
+              {
+                "Count": 71,
+                "Page": "Wikipedia:Usernames_for_administrator_attention/Bot"
+              },
+              {
+                "Count": 11,
+                "Page": "User:VeblenBot/C/Good_article_nominees"
+              },
+              {
+                "Count": 11,
+                "Page": "User:VeblenBot/C/Good_article_nominees_awaiting_review"
+              }
+            ]
+          }
+        ])
+        testComplete()
+      ).done()
+
     it "works with concat split", (testComplete) ->
       ex = ply()
         .apply('Pages',

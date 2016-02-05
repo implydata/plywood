@@ -1,5 +1,9 @@
 # Change log
 
+## 0.8.8
+
+- Fixed `match` on nulls to return `null`
+
 ## 0.8.7
 
 - Support `SELECT DISTINCT` syntax in PlyQL
