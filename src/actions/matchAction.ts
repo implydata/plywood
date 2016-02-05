@@ -79,7 +79,10 @@ module Plywood {
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
       var re = new RegExp(this.regexp);
       return (d: Datum, c: Datum) => {
-        return re.test(inputFn(d, c));
+        var inV = inputFn(d, c);
+        if (!inV) return null;
+        if (inV === null) return null;
+        return re.test(inV);
       }
     }
 

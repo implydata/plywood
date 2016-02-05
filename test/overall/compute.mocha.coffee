@@ -59,6 +59,7 @@ describe "compute native", ->
 
     ex = ply(ds)
       .apply('cutConcat', '"[" ++ $cut ++ "]"')
+      .apply('cutMatch', $('cut').match('^G.+'))
       .apply('timeFloorDay', $('time').timeFloor('P1D'))
       .apply('timeShiftDay2', $('time').timeShift('P1D', 2))
       .apply('timeRangeHours', $('time').timeRange('PT2H', -1))
@@ -69,6 +70,7 @@ describe "compute native", ->
         {
           cut: 'Good',
           cutConcat: '[Good]',
+          cutMatch: true,
           price: 400,
           time: { type: "TIME", value: new Date('2015-10-01T09:20:30Z') }
           timeFloorDay: { type: "TIME", value: new Date('2015-10-01T00:00:00Z') }
@@ -78,6 +80,7 @@ describe "compute native", ->
         {
           cut: 'Good',
           cutConcat: '[Good]',
+          cutMatch: true,
           price: 300,
           time: { type: "TIME", value: new Date('2015-10-02T08:20:30Z') }
           timeFloorDay: { type: "TIME", value: new Date('2015-10-02T00:00:00Z') }
@@ -87,6 +90,7 @@ describe "compute native", ->
         {
           cut: 'Great',
           cutConcat: '[Great]',
+          cutMatch: true,
           price: 124,
           time: null
           timeFloorDay: null
@@ -96,6 +100,7 @@ describe "compute native", ->
         {
           cut: 'Wow',
           cutConcat: '[Wow]',
+          cutMatch: false,
           price: 160,
           time: { type: "TIME", value: new Date('2015-10-04T06:20:30Z') }
           timeFloorDay: { type: "TIME", value: new Date('2015-10-04T00:00:00Z') }
@@ -105,6 +110,7 @@ describe "compute native", ->
         {
           cut: 'Wow',
           cutConcat: '[Wow]',
+          cutMatch: false,
           price: 100,
           time: { type: "TIME", value: new Date('2015-10-05T05:20:30Z') }
           timeFloorDay: { type: "TIME", value: new Date('2015-10-05T00:00:00Z') }
@@ -114,6 +120,7 @@ describe "compute native", ->
         {
           cut: null,
           cutConcat: null,
+          cutMatch: null,
           price: null,
           time: { type: "TIME", value: new Date('2015-10-06T04:20:30Z') }
           timeFloorDay: { type: "TIME", value: new Date('2015-10-06T00:00:00Z') }
