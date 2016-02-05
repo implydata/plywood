@@ -419,6 +419,7 @@ module Plywood {
     public exactResultsOnly: boolean;
     public context: Lookup<any>;
     public druidVersion: string;
+    public finalizers: Druid.PostAggregation[];
 
     constructor(parameters: ExternalValue) {
       super(parameters, dummyObject);
@@ -443,6 +444,8 @@ module Plywood {
       if (druidVersion.length !== 5) throw new Error('druidVersion length must be 5');
       if (druidVersion < '0.8.0') throw new Error('only druidVersions >= 0.8.0 are supported');
       this.druidVersion = druidVersion;
+
+      this.finalizers = parameters.finalizers || [];
     }
 
     public valueOf(): ExternalValue {
@@ -456,6 +459,7 @@ module Plywood {
       value.exactResultsOnly = this.exactResultsOnly;
       value.context = this.context;
       value.druidVersion = this.druidVersion;
+      value.finalizers = this.finalizers;
       return value;
     }
 
@@ -1181,36 +1185,11 @@ return (start < 0 ?'-':'') + parts.join('.');
       };
     }
 
-
-    public getAccessTypeForAggregation(aggregationType: string): string {
-      if (aggregationType === 'hyperUnique' || aggregationType === 'cardinality') return 'hyperUniqueCardinality';
-
-      var customAggregations = this.customAggregations;
-      for (var customName in customAggregations) {
-        if (!hasOwnProperty(customAggregations, customName)) continue;
-        var customAggregation = customAggregations[customName];
-        if (customAggregation.aggregation.type === aggregationType) {
-          return customAggregation.accessType || 'fieldAccess';
-        }
-      }
-
-      return 'fieldAccess';
-    }
-
-    public getAccessType(aggregations: Druid.Aggregation[], aggregationName: string): string {
-      for (let aggregation of aggregations) {
-        if (aggregation.name === aggregationName) {
-          return this.getAccessTypeForAggregation(aggregation.type);
-        }
-      }
-      throw new Error(`aggregation '${aggregationName}' not found`);
-    }
-
-    public expressionToPostAggregation(ex: Expression, aggregations: Druid.Aggregation[]): Druid.PostAggregation {
+    public expressionToPostAggregation(ex: Expression): Druid.PostAggregation {
       if (ex instanceof RefExpression) {
         var refName = ex.name;
         return {
-          type: this.getAccessType(aggregations, refName),
+          type: 'fieldAccess',
           fieldName: refName
         };
 
@@ -1238,28 +1217,28 @@ return (start < 0 ?'-':'') + parts.join('.');
           return {
             type: 'arithmetic',
             fn: '+',
-            fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
+            fields: pattern.map(e => this.expressionToPostAggregation(e))
           };
         }
         if (pattern = ex.getExpressionPattern('subtract')) {
           return {
             type: 'arithmetic',
             fn: '-',
-            fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
+            fields: pattern.map(e => this.expressionToPostAggregation(e))
           };
         }
         if (pattern = ex.getExpressionPattern('multiply')) {
           return {
             type: 'arithmetic',
             fn: '*',
-            fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
+            fields: pattern.map(e => this.expressionToPostAggregation(e))
           };
         }
         if (pattern = ex.getExpressionPattern('divide')) {
           return {
             type: 'arithmetic',
             fn: '/',
-            fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
+            fields: pattern.map(e => this.expressionToPostAggregation(e))
           };
         }
         throw new Error("can not convert chain to post agg: " + ex.toString());
@@ -1269,8 +1248,8 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
-    public applyToPostAggregation(action: ApplyAction, aggregations: Druid.Aggregation[]): Druid.PostAggregation {
-      var postAgg = this.expressionToPostAggregation(action.expression, aggregations);
+    public applyToPostAggregation(action: ApplyAction): Druid.PostAggregation {
+      var postAgg = this.expressionToPostAggregation(action.expression);
       postAgg.name = action.name;
       return postAgg;
     }
@@ -1359,7 +1338,6 @@ return (start < 0 ?'-':'') + parts.join('.');
         case "sum":
         case "min":
         case "max":
-        case "abs":
           return this.makeStandardAggregation(action.name, filterAction, aggregateAction);
 
         case "countDistinct":
@@ -1393,6 +1371,36 @@ return (start < 0 ?'-':'') + parts.join('.');
       }));
     }
 
+    public getFinalizedName(aggregateApply: ApplyAction): string {
+      var finalizerType = this.getFinalizerTypeForAggregateApply(aggregateApply);
+      if ( finalizerType ) {
+        var finalizer: Druid.PostAggregation = {
+          type: finalizerType,
+          fieldName: aggregateApply.name,
+          name: aggregateApply.name + "_fin"
+        };
+        this.finalizers.push(finalizer);
+        return finalizer.name;
+      }
+      return aggregateApply.name;
+    }
+
+    public getFinalizerTypeForAggregateApply(aggregateApply: ApplyAction): string {
+      var aggregateAction = aggregateApply.expression.lastAction();
+      if (aggregateAction instanceof CountDistinctAction) {
+        return "hyperUniqueCardinality";
+      }
+      if (aggregateAction instanceof CustomAction) {
+        var customAggregation = this.customAggregations[aggregateAction.custom];
+        if (!customAggregation) {
+          throw new Error("custom aggregation is not defined " + aggregateAction.custom);
+        }
+        return customAggregation.accessType || null;
+      }
+      // todo, handle custom action as well
+      return null;
+    }
+
     public isAggregateExpression(expression: Expression): boolean {
       if (expression instanceof ChainExpression) {
         var { actions } = expression;
@@ -1418,7 +1426,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           aggregations = aggregations.filter(a => a.name !== applyName);
           aggregations.push(aggregation);
         } else {
-          var postAggregation = this.applyToPostAggregation(apply, aggregations);
+          var postAggregation = this.applyToPostAggregation(apply);
           postAggregations = postAggregations.filter(a => a.name !== applyName);
           postAggregations.push(postAggregation);
         }
@@ -1426,7 +1434,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       return {
         aggregations: aggregations,
-        postAggregations: postAggregations
+        postAggregations: this.finalizers.concat(postAggregations)
       };
     }
 
