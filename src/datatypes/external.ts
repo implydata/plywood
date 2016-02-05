@@ -115,6 +115,7 @@ module Plywood {
     exactResultsOnly?: boolean;
     context?: Lookup<any>;
     druidVersion?: string;
+    finalizers? : Druid.PostAggregation[];
 
     requester?: Requester.PlywoodRequester<any>;
   }
@@ -708,6 +709,10 @@ module Plywood {
       return true;
     }
 
+    public getFinalizedName(aggregateApply: ApplyAction): string {
+      return aggregateApply.name;
+    }
+
     public separateAggregates(apply: ApplyAction): ApplyAction[] {
       var applyExpression = apply.expression;
       if (applyExpression instanceof ChainExpression) {
@@ -730,20 +735,23 @@ module Plywood {
           var existingApply = this.getExistingApplyForExpression(aggregateChain);
           if (existingApply) {
             return new RefExpression({
-              name: existingApply.name,
+              name: this.getFinalizedName(existingApply),
               nest: 0,
               type: existingApply.expression.type
             });
           } else {
             var name = this.getTempName(namesUsed);
             namesUsed.push(name);
-            applies.push(new ApplyAction({
+            var newApply = new ApplyAction({
               action: 'apply',
               name: name,
               expression: aggregateChain
-            }));
+            });
+            var finalName = this.getFinalizedName(newApply);
+            if (finalName !== name) namesUsed.push(finalName);
+            applies.push(newApply);
             return new RefExpression({
-              name: name,
+              name: finalName,
               nest: 0,
               type: aggregateChain.type
             });

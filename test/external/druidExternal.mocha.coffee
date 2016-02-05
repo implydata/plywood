@@ -620,65 +620,88 @@ describe "DruidExternal", ->
     it "should work with complex absolute and power expressions", ->
       ex = $('wiki').split("$page", 'Page')
       .apply('Count', '$wiki.count()')
-      .apply('Abs', '(($wiki.sum($added)/$wiki.min($deleted).power(0.5) + 100 * $wiki.countDistinct($page)).abs()).power(2)')
-      .sort('$Abs', 'descending')
+      .apply('Abs', '(($wiki.sum($added)/$wiki.count().abs().power(0.5) + 100 * $wiki.countDistinct($page)).abs()).power(2) + $wiki.custom(crazy)')
+      .sort('$Count', 'descending')
       .limit(5)
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
       expect(ex.op).to.equal('external')
       druidExternal = ex.external
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "Count"
-            "type": "count"
-          }
-          {
-            "fieldName": "added"
-            "name": "_sd_0"
-            "type": "doubleSum"
-          }
-          {
-            "fieldName": "deleted"
-            "name": "_sd_1"
-            "type": "doubleMin"
-          }
-          {
-            "byRow": true
-            "fieldNames": [
-              "page"
-            ]
-            "name": "_sd_2"
-            "type": "cardinality"
-          }
-        ]
-        "dataSource": "wikipedia"
-        "dimension": {
-          "dimension": "page"
-          "outputName": "Page"
-          "type": "default"
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal(
+        {
+          "aggregations": [
+            {
+              "name": "Count",
+              "type": "count"
+            },
+            {
+              "fieldName": "added",
+              "name": "_sd_0",
+              "type": "doubleSum"
+            },
+            {
+              "byRow": true,
+              "fieldNames": [
+                "page"
+              ],
+              "name": "_sd_1",
+              "type": "cardinality"
+            },
+            {
+              "activate": false,
+              "name": "_sd_2",
+              "the": "borg will rise again",
+              "type": "crazy"
+            }
+          ],
+          "dataSource": "wikipedia",
+          "dimension": {
+            "dimension": "page",
+            "outputName": "Page",
+            "type": "default"
+          },
+          "granularity": "all",
+          "intervals": [
+            "2013-02-26/2013-02-27"
+          ],
+          "metric": "Count",
+          "postAggregations": [
+            {
+              "fieldName": "_sd_1",
+              "name": "_sd_1_fin",
+              "type": "hyperUniqueCardinality"
+            },
+            {
+              "fieldName": "_sd_2",
+              "name": "_sd_2_fin",
+              "type": "getSomeCrazy"
+            },
+            {
+              "fields": [
+                {
+                  "fieldNames": [
+                    "Count",
+                    "_sd_0",
+                    "_sd_1_fin"
+                  ],
+                  "function": "function(Count,_sd_0,_sd_1_fin) { return Math.pow(Math.abs(((_sd_0/Math.pow(Math.abs(Count),0.5))+(100*_sd_1_fin))),2); }",
+                  "type": "javascript"
+                },
+                {
+                  "fieldName": "_sd_2_fin",
+                  "type": "fieldAccess"
+                }
+              ],
+              "fn": "+",
+              "name": "Abs",
+              "type": "arithmetic"
+            }
+          ],
+          "queryType": "topN",
+          "threshold": 5
         }
-        "granularity": "all"
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ]
-        "metric": "Abs"
-        "postAggregations": [
-          {
-            "fieldNames": [
-              "_sd_0"
-              "_sd_1"
-              "_sd_2"
-            ]
-            "function": "function(_sd_0,_sd_1,_sd_2) { return Math.pow(Math.abs(((_sd_0/Math.pow(_sd_1,0.5))+(100*_sd_2))),2); }"
-            "name": "Abs"
-            "type": "javascript"
-          }
-        ]
-        "queryType": "topN"
-        "threshold": 5
-      })
+      )
 
 
   describe "should work when getting back [] and [{result:[]}]", ->
