@@ -106,7 +106,7 @@ MultiplicativeOp = [*/]
 
 
 ExponentialExpression
-  = head:UnaryExpression tail:(_ ExponentialOp _ ExponentialExpression)*
+  = head:UnaryExpression tail:(_ ExponentialOp _ UnaryExpression)*
     { return naryExpressionFactory('power', head, tail); }
 
 ExponentialOp = [\^]

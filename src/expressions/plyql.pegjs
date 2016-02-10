@@ -439,20 +439,20 @@ FunctionCallExpression
     { return operand.lookup(lookup); }
   / ConcatToken OpenParen head:Expression tail:(Comma Expression)* CloseParen
     { return Expression.concat(makeListMap1(head, tail)); }
-  / ( IfNullToken/FallbackToken) OpenParen _ operand:Expression Comma _ fallbackValue:Expression CloseParen
+  / (IfNullToken/FallbackToken) OpenParen _ operand:Expression Comma _ fallbackValue:Expression CloseParen
     { return operand.fallback(fallbackValue);}
   / MatchToken OpenParen operand:Expression Comma regexp:String CloseParen
     { return operand.match(regexp); }
   / NowToken OpenParen CloseParen
     { return r(new Date()); }
-  / ( AbsToken/AbsoluteToken ) OpenParen _ operand:Expression _ CloseParen
+  / (AbsToken/AbsoluteToken ) OpenParen _ operand:Expression _ CloseParen
     { return operand.absolute(); }
-  / ( PowToken/PowerToken) OpenParen _ operand:Expression Comma exponent:Number CloseParen
+  / (PowToken/PowerToken) OpenParen _ operand:Expression Comma exponent:Number CloseParen
     { return operand.power(exponent); }
-  / ( ExpToken) OpenParen _ exponent:Expression CloseParen
+  / ExpToken OpenParen _ exponent:Expression CloseParen
     { return r(Math.E).power(exponent); }
   / SqrtToken OpenParen _ operand:Expression CloseParen
-     { return operand.power(0.5); }
+    { return operand.power(0.5); }
 
 TimezoneParameter
   = Comma timezone:NameOrString { return timezone }
