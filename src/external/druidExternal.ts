@@ -10,6 +10,24 @@ module Plywood {
     max: "doubleMax"
   };
 
+  const AGGREGATE_TO_FUNCTION: Lookup<Function> = {
+    sum: function(a: string, b:string) {
+      return `${a}+${b}`
+    },
+    min: function(a: string, b:string) {
+      return `Math.min(${a},${b})`
+    },
+    max: function(a: string, b:string) {
+      return `Math.max(${a},${b})`
+    }
+  };
+
+  const AGGREGATE_TO_ZERO: Lookup<string> = {
+    sum: "0",
+    min: "Infinity",
+    max: "-Infinity"
+  };
+
   const TIME_PART_TO_FORMAT: Lookup<string> = {
     SECOND_OF_MINUTE: "s",
     SECOND_OF_HOUR: "m'*60+'s",
@@ -587,7 +605,8 @@ module Plywood {
         var firstAction = actions[0];
         return filter.expression.isOp('ref') &&
           (firstAction.action === 'is' || firstAction.action === 'in') &&
-          firstAction.expression.isOp('literal');
+          firstAction.expression.isOp('literal') &&
+          filter.expression.type === "STRING";
       }
       return false;
     }
@@ -919,10 +938,32 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         var actions = expression.actions;
-        if (actions.length !== 1) throw new Error(`can not convert expression: ${expression.toString()}`);
-        var action = actions[0];
+        var mainAction = actions[0];
+        var retainMissingValue = false;
+        var replaceMissingValueWith: any = null;
+        var fallbackAction : FallbackAction = null;
 
-        if (action instanceof SubstrAction) {
+        if (actions.length === 2) {
+          fallbackAction = <FallbackAction>actions[1];
+          if (!(fallbackAction instanceof FallbackAction)) {
+            throw new Error(`can not convert expression: ${expression.toString()}`);
+          }
+          var fallbackExpression = fallbackAction.expression;
+          if (fallbackExpression.isOp("ref")) {
+            // the ref has to be the same as the argument beacause we can't refer to other dimensions
+            // so the only option would be for it to be equal to original dimension
+            retainMissingValue = true;
+          } else if (fallbackExpression.isOp("literal")) {
+            replaceMissingValueWith = fallbackExpression.getLiteralValue();
+          } else {
+            // TODO: would be cool to support $foo.extract(...).fallback($foo ++ 'something')
+            throw new Error(`unsupported fallback action: ${expression.toString()}`);
+          }
+        } else if (actions.length !== 1) {
+          throw new Error(`can not convert expression: ${expression.toString()}`);
+        }
+
+        if (mainAction instanceof SubstrAction) {
           if (this.versionBefore('0.9.0')) {
             return {
               type: "javascript",
@@ -932,63 +973,88 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return {
             type: "substring",
-            index: action.position,
-            length: action.length
+            index: mainAction.position,
+            length: mainAction.length
           };
         }
 
-        if (action instanceof ExtractAction) {
-          if (this.versionBefore('0.9.1')) {
+        if (mainAction instanceof ExtractAction) {
+          // retainMissingValue === false is not supported in old druid nor is replaceMissingValueWith in regex extractionFn
+          // we want to use a js function if we are using an old version of druid and want to use this functionality
+          if (this.versionBefore('0.9.0') && (retainMissingValue === false || replaceMissingValueWith !== null)) {
             return {
               type: "javascript",
               'function': expression.getJSFn('d')
             };
           }
 
-          return {
+          var regexExtractionFn: Druid.ExtractionFn = {
             type: "regex",
-            expr: action.regexp,
-            replaceMissingValue: true
+            expr: mainAction.regexp
           };
+
+          if (!retainMissingValue) {
+            regexExtractionFn.replaceMissingValue = true;
+          }
+
+          if (replaceMissingValueWith !== null) {
+            regexExtractionFn.replaceMissingValueWith = replaceMissingValueWith;
+          }
+
+          return regexExtractionFn;
         }
 
-        if (action instanceof LookupAction) {
-          return {
+        if (mainAction instanceof LookupAction) {
+
+          var lookupExtractionFn: Druid.ExtractionFn = {
             type: "lookup",
             lookup: {
               type: "namespace",
-              "namespace": action.lookup
+              "namespace": mainAction.lookup
             },
             injective: false
           };
+
+          if (retainMissingValue) {
+            lookupExtractionFn.retainMissingValue = true;
+          }
+
+          if (replaceMissingValueWith !== null) {
+            lookupExtractionFn.replaceMissingValueWith = replaceMissingValueWith;
+          }
+
+          return lookupExtractionFn;
         }
 
-        if (action instanceof TimeBucketAction) {
-          var format = TIME_BUCKET_FORMAT[action.duration.toString()];
-          if (!format) throw new Error(`unsupported part in timeBucket expression ${action.duration.toString()}`);
+        if (mainAction instanceof TimeBucketAction) {
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in timeBucket expression ${mainAction.expression.toString()}`);
+          var format = TIME_BUCKET_FORMAT[mainAction.duration.toString()];
+          if (!format) throw new Error(`unsupported part in timeBucket expression ${mainAction.duration.toString()}`);
           return {
             type: "timeFormat",
             format: format,
-            timeZone: (action.timezone || DEFAULT_TIMEZONE).toString(),
+            timeZone: (mainAction.timezone || DEFAULT_TIMEZONE).toString(),
             locale: "en-US"
           };
         }
 
-        if (action instanceof TimePartAction) {
-          var format = TIME_PART_TO_FORMAT[action.part];
-          if (!format) throw new Error(`unsupported part in timePart expression ${action.part}`);
+        if (mainAction instanceof TimePartAction) {
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in timePart expression ${mainAction.expression.toString()}`);
+          var format = TIME_PART_TO_FORMAT[mainAction.part];
+          if (!format) throw new Error(`unsupported part in timePart expression ${mainAction.part}`);
           return {
             type: "timeFormat",
             format: format,
-            timeZone: (action.timezone || DEFAULT_TIMEZONE).toString(),
+            timeZone: (mainAction.timezone || DEFAULT_TIMEZONE).toString(),
             locale: "en-US"
           };
         }
 
-        if (action instanceof NumberBucketAction) {
+        if (mainAction instanceof NumberBucketAction) {
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in numberBucket expression ${mainAction.expression.toString()}`);
           var attributeInfo = this.getAttributesInfo(referenceName);
           if (attributeInfo.type === 'NUMBER') {
-            var floorExpression = continuousFloorExpression("d", "Math.floor", action.size, action.offset);
+            var floorExpression = continuousFloorExpression("d", "Math.floor", mainAction.size, mainAction.offset);
             return {
               type: "javascript",
               'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
@@ -996,7 +1062,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           }
 
           if (attributeInfo instanceof RangeAttributeInfo) {
-            return this.getRangeBucketingExtractionFn(<RangeAttributeInfo>attributeInfo, action);
+            return this.getRangeBucketingExtractionFn(<RangeAttributeInfo>attributeInfo, mainAction);
           }
 
           if (attributeInfo instanceof HistogramAttributeInfo) {
@@ -1005,6 +1071,13 @@ return (start < 0 ?'-':'') + parts.join('.');
             }
             throw new Error("histogram splits do not work right now");
           }
+        }
+
+        if (mainAction instanceof AbsoluteAction) {
+          return {
+            type: "javascript",
+            'function': `function(d){d=Number(d); return Math.abs(d);}`
+          };
         }
       }
 
@@ -1066,6 +1139,13 @@ return (start < 0 ?'-':'') + parts.join('.');
         var splitAction = actions[0];
 
         if (splitAction instanceof SubstrAction) {
+          return {
+            dimension,
+            inflater: simpleInflater
+          };
+        }
+
+        if (splitAction instanceof AbsoluteAction) {
           return {
             dimension,
             inflater: simpleInflater
@@ -1256,16 +1336,16 @@ return (start < 0 ?'-':'') + parts.join('.');
 
     public makeStandardAggregation(name: string, filterAction: FilterAction, aggregateAction: Action): Druid.Aggregation {
       var fn = aggregateAction.action;
-      var attribute = aggregateAction.expression;
+      var aggregateExpression = aggregateAction.expression;
       var aggregation: Druid.Aggregation = {
         name: name,
         type: AGGREGATE_TO_DRUID[fn]
       };
       if (fn !== 'count') {
-        if (attribute instanceof RefExpression) {
-          aggregation.fieldName = attribute.name;
+        if (aggregateExpression instanceof RefExpression) {
+          aggregation.fieldName = aggregateExpression.name;
         } else {
-          throw new Error('can not support complex derived attributes (yet)');
+          return this.makeJavaScriptAggregation(name, filterAction, aggregateAction);
         }
       }
 
@@ -1279,7 +1359,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             aggregator: aggregation
           };
         } else {
-          throw new Error(`no support for JS filters (yet)`);
+          return this.makeJavaScriptAggregation(name, filterAction, aggregateAction);
         }
       }
 
@@ -1317,6 +1397,41 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
+    public makeJavaScriptAggregation(name: string, filterAction: FilterAction, aggregateAction: Action): Druid.Aggregation {
+
+      var aggregateActionType = aggregateAction.action;
+      var aggregateExpression = aggregateAction.expression;
+
+      if (aggregateActionType === "count") {
+        // special handling for count() == sum(1)
+        aggregateActionType = "sum";
+        aggregateExpression = r(1);
+      }
+
+      var zero =  AGGREGATE_TO_ZERO[aggregateActionType];
+      var aggregateFunction = AGGREGATE_TO_FUNCTION[aggregateActionType];
+      var fieldNames = aggregateExpression.getFreeReferences();
+
+      var aggregateExpressionJS = aggregateExpression.getJS(null);
+
+      if (filterAction) {
+        var filterExpression = filterAction.expression;
+        fieldNames = deduplicateSort(fieldNames.concat(filterExpression.getFreeReferences()));
+       // fieldNames = deduplicateSort(fieldNames);
+        aggregateExpressionJS = `(${filterExpression.getJS(null)} ? ${aggregateExpressionJS} : ${zero})`
+      }
+
+      return {
+        name,
+        type: "javascript",
+        fieldNames: fieldNames,
+        fnAggregate: `function(_c,${fieldNames}) { return ${aggregateFunction('_c', aggregateExpressionJS)}; }`,
+        fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
+        fnReset: `function() { return ${zero}; }`
+      }
+
+    }
+
     public applyToAggregation(action: ApplyAction): Druid.Aggregation {
       var applyExpression = <ChainExpression>action.expression;
       if (applyExpression.op !== 'chain') throw new Error(`can not convert apply: ${applyExpression.toString()}`);
@@ -1328,6 +1443,9 @@ return (start < 0 ?'-':'') + parts.join('.');
         aggregateAction = actions[0];
       } else if (actions.length === 2) {
         filterAction = <FilterAction>actions[0];
+        if (!(filterAction instanceof FilterAction)) {
+          throw new Error(`first action not a filter in: ${applyExpression.toString()}`);
+        }
         aggregateAction = actions[1];
       } else {
         throw new Error(`can not convert strange apply: ${applyExpression.toString()}`);
@@ -1379,7 +1497,8 @@ return (start < 0 ?'-':'') + parts.join('.');
           fieldName: aggregateApply.name,
           name: aggregateApply.name + "_fin"
         };
-        this.finalizers.push(finalizer);
+        this.finalizers = this.finalizers.concat(finalizer);
+
         return finalizer.name;
       }
       return aggregateApply.name;
@@ -1397,7 +1516,6 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
         return customAggregation.accessType || null;
       }
-      // todo, handle custom action as well
       return null;
     }
 
@@ -1658,6 +1776,8 @@ return (start < 0 ?'-':'') + parts.join('.');
           if (aggregationsAndPostAggregations.postAggregations.length) {
             druidQuery.postAggregations = aggregationsAndPostAggregations.postAggregations;
           }
+
+
 
           var splitSpec = this.splitToDruid();
           druidQuery.queryType = splitSpec.queryType;

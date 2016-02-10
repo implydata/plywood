@@ -969,10 +969,6 @@ module Plywood {
       return this.performAction(new SortAction({ expression: ex, direction: getString(direction) }));
     }
 
-    public abs(): ChainExpression {
-      return this.performAction(new AbsoluteAction({}));
-    }
-
     public absolute(): ChainExpression {
       return this.performAction(new AbsoluteAction({}));
     }

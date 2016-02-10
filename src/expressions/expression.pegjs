@@ -12,7 +12,6 @@ var possibleCalls = {};
 for (var key in Action.classMap) possibleCalls[key] = 1;
 possibleCalls['negate'] = 1;
 possibleCalls['isnt'] = 1;
-possibleCalls['abs'] = 1;
 
 function makeListMap1(head, tail) {
   return [head].concat(tail.map(function(t) { return t[1] }));
@@ -120,7 +119,7 @@ UnaryExpression
       return op === '-' ? negEx : ex;
     }
   / CallChainExpression
-  / Pipe _ ex:Expression _ Pipe { return ex.abs(); }
+  / Pipe _ ex:Expression _ Pipe { return ex.absolute(); }
 
 
 CallChainExpression

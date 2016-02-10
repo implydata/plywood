@@ -26,13 +26,11 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
-      if (inputJS === null) return expressionJS;
-      return inputJS;
+      return `(_ = ${inputJS}, (_ === null ? ${expressionJS} : _))`
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `COALESCE( ${inputSQL}, ${expressionSQL})`;
-
+      return `COALESCE(${inputSQL}, ${expressionSQL})`;
     }
 
     protected _removeAction(): boolean {

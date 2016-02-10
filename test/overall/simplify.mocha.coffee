@@ -58,7 +58,7 @@ describe "Simplify", ->
 
   describe 'abs', ->
     it "removes self if 0", ->
-      ex1 = r(0).abs();
+      ex1 = r(0).absolute();
       ex2 = r(0)
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
