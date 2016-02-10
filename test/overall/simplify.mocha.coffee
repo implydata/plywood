@@ -56,13 +56,6 @@ describe "Simplify", ->
       ex2 = r(3).add('$y', 7)
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
-  describe 'abs', ->
-    it "removes self if 0", ->
-      ex1 = r(0).absolute();
-      ex2 = r(0)
-      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
-
-
   describe 'fallback', ->
     it "removes self if fallbackVal is null", ->
       ex1 = $('x').fallback(null);

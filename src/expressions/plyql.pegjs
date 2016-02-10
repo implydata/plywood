@@ -18,7 +18,7 @@ var dateRegExp = /^\d\d\d\d-\d\d-\d\d(?:T(?:\d\d)?(?::\d\d)?(?::\d\d)?(?:.\d\d\d
 var reservedWords = {
   ABS: 1, ABSOLUTE: 1, ALL: 1, AND: 1, AS: 1, ASC: 1,
   BETWEEN: 1, BY: 1,
-  COALESCE: 1, CONTAINS: 1, CREATE: 1,
+  CONTAINS: 1, CREATE: 1,
   DELETE: 1, DESC: 1, DESCRIBE: 1, DISTINCT: 1, DROP: 1,
   EXISTS: 1, EXPLAIN: 1, ESCAPE: 1,
   FALSE: 1, FROM: 1,

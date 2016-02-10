@@ -126,6 +126,24 @@ var ex = $('x').reciprocate();
 ex.compute({ x: 10 }).then(console.log); // => 0.1
 ```
 
+*operand*.**absolute**()
+
+Applies absolute value to the operand.
+
+```javascript
+var ex = $('x').absolute();
+ex.compute({ x: -10 }).then(console.log); // => 10
+```
+
+*operand*.**power**(ex: number)
+
+Raises the operand to the power of the expression value.
+
+```javascript
+var ex = $('x').power(0.5);
+ex.compute({ x: 4 }).then(console.log); // => 2
+```
+
 
 ### Boolean predicates
 
@@ -302,6 +320,15 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => '[Hello World]'
 
 Performs a lookup within the specified namespace.
 
+*operand*.**fallback**(...exs: typeof operand)
+
+Returns value of given expression if operand is null. 
+
+```javascript
+var ex = $('str').extract("([0-9]+\\.[0-9]+\\.[0-9]+)").fallback("missing");
+ex.compute({ str: 'kafka-0.7.2' }).then(console.log); // => '0.7.2'
+ex.compute({ str: 'Web 2.0' }).then(console.log); // => 'missing'
+```
 
 ### Number manipulation
 
