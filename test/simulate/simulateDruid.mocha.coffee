@@ -1218,9 +1218,10 @@ describe "simulate Druid", ->
       }
     ])
 
-  # in adding finalizers we assume refs are of type field access. In the future, druid will support finalize field access
-  # and potentially finalization of javascript post aggs. In the meantime, it shouldnt be something that we try to implement
+  # In the future, druid will support finalize field access
+  # ( and potentially finalization of javascript post aggs.) In the meantime, it shouldnt be something that we try to implement
   # in the plywood layer
+  # https://github.com/druid-io/druid/issues/2433
 
   it.skip "makes a query with countDistinct", ->
     ex = ply()
