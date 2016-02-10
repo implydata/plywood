@@ -16,7 +16,7 @@ var dateRegExp = /^\d\d\d\d-\d\d-\d\d(?:T(?:\d\d)?(?::\d\d)?(?::\d\d)?(?:.\d\d\d
 
 // See here: https://www.drupal.org/node/141051
 var reservedWords = {
-  ABS: 1, ABSOLUTE: 1, ALL: 1, AND: 1, AS: 1, ASC: 1,
+  ALL: 1, AND: 1, AS: 1, ASC: 1,
   BETWEEN: 1, BY: 1,
   CONTAINS: 1, CREATE: 1,
   DELETE: 1, DESC: 1, DESCRIBE: 1, DISTINCT: 1, DROP: 1,
@@ -24,7 +24,7 @@ var reservedWords = {
   FALSE: 1, FROM: 1,
   GROUP: 1,
   HAVING: 1,
-  IFNULL: 1, IN: 1, INNER: 1, INSERT: 1, INTO: 1, IS: 1,
+  IN: 1, INNER: 1, INSERT: 1, INTO: 1, IS: 1,
   JOIN: 1,
   LEFT: 1, LIKE: 1, LIMIT: 1, LOOKUP: 1,
   MATCH: 1,
@@ -448,10 +448,9 @@ FunctionCallExpression
     { return operand.match(regexp); }
   / NowToken OpenParen CloseParen
     { return r(new Date()); }
-  / AbsToken OpenParen _ operand:Expression _ CloseParen
+  / AbsToken/AbsoluteToken OpenParen _ operand:Expression _ CloseParen
     { return operand.absolute(); }
-  / AbsoluteToken OpenParen _ operand:Expression _ CloseParen
-    { return operand.absolute(); }
+
 
 TimezoneParameter
   = Comma timezone:NameOrString { return timezone }
@@ -544,8 +543,8 @@ OrToken            = "OR"i             !IdentifierPart
 DistinctToken      = "DISTINCT"i       !IdentifierPart
 StarToken          = "*"               !IdentifierPart { return '*'; }
 
-AbsToken           = "ABS"i            !IdentifierPart { return 'abs'; }
-AbsoluteToken      = "ABSOLUTE"i       !IdentifierPart { return 'abs'; }
+AbsToken           = "ABS"i            !IdentifierPart { return 'absolute'; }
+AbsoluteToken      = "ABSOLUTE"i       !IdentifierPart { return 'absolute'; }
 CountToken         = "COUNT"i          !IdentifierPart { return 'count'; }
 CountDistinctToken = "COUNT_DISTINCT"i !IdentifierPart { return 'countDistinct'; }
 SumToken           = "SUM"i            !IdentifierPart { return 'sum'; }
