@@ -92,9 +92,8 @@ describe "DruidExternal", ->
     it "breaks up correctly in absolute cases", ->
       ex = ply()
         .apply('wiki', '$wiki') # for now
-        .apply('Count', '$wiki.count()')
-        .apply('negative', -4)
-        .apply('abs', $('negative').absolute())
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('abs', $('AddedByDeleted').absolute())
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
@@ -102,9 +101,10 @@ describe "DruidExternal", ->
       druidExternal = ex.external
 
       expect(druidExternal.applies.join('\n')).to.equal("""
-        apply(Count,$wiki:DATASET.count())
-        apply(negative,-4)
-        apply(abs,$negative:NUMBER.absolute())
+        apply(_sd_0,$wiki:DATASET.sum($added:NUMBER))
+        apply(_sd_1,$wiki:DATASET.sum($deleted:NUMBER))
+        apply(AddedByDeleted,$_sd_0:NUMBER.divide($_sd_1:NUMBER))
+        apply(abs,$AddedByDeleted:NUMBER.absolute())
         """)
 
     it "breaks up correctly in case of duplicate name", ->
