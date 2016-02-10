@@ -448,7 +448,8 @@ FunctionCallExpression
     { return operand.absolute(); }
   / ( PowToken/PowerToken) OpenParen _ operand:Expression Comma exponent:Number CloseParen
     { return operand.power(exponent); }
-
+  / ( ExpToken) OpenParen _ exponent:Expression CloseParen
+    { return r(Math.E).power(exponent); }
 
 TimezoneParameter
   = Comma timezone:NameOrString { return timezone }
@@ -550,7 +551,8 @@ AvgToken           = "AVG"i            !IdentifierPart { return 'average'; }
 MinToken           = "MIN"i            !IdentifierPart { return 'min'; }
 MaxToken           = "MAX"i            !IdentifierPart { return 'max'; }
 PowerToken         = "POWER"i          !IdentifierPart { return 'power'; }
-PowToken           = "POW"i          !IdentifierPart { return 'power'; }
+PowToken           = "POW"i            !IdentifierPart { return 'power'; }
+ExpToken           = "EXP"i            !IdentifierPart { return 'power'; }
 QuantileToken      = "QUANTILE"i       !IdentifierPart { return 'quantile'; }
 CustomToken        = "CUSTOM"i         !IdentifierPart { return 'custom'; }
 
