@@ -446,6 +446,8 @@ FunctionCallExpression
     { return r(new Date()); }
   / ( AbsToken/AbsoluteToken ) OpenParen _ operand:Expression _ CloseParen
     { return operand.absolute(); }
+  / ( PowToken/PowerToken) OpenParen _ operand:Expression Comma exponent:Number CloseParen
+    { return operand.power(exponent); }
 
 
 TimezoneParameter
@@ -547,6 +549,8 @@ SumToken           = "SUM"i            !IdentifierPart { return 'sum'; }
 AvgToken           = "AVG"i            !IdentifierPart { return 'average'; }
 MinToken           = "MIN"i            !IdentifierPart { return 'min'; }
 MaxToken           = "MAX"i            !IdentifierPart { return 'max'; }
+PowerToken         = "POWER"i          !IdentifierPart { return 'power'; }
+PowToken           = "POW"i          !IdentifierPart { return 'power'; }
 QuantileToken      = "QUANTILE"i       !IdentifierPart { return 'quantile'; }
 CustomToken        = "CUSTOM"i         !IdentifierPart { return 'custom'; }
 
