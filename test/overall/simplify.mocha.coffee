@@ -65,13 +65,13 @@ describe "Simplify", ->
 
   describe 'power', ->
     it "removes self if 1", ->
-      ex1 = r(3).power(1);
-      ex2 = r(3)
+      ex1 = $('x').power(1);
+      ex2 = $('x')
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
     it "removes self if 0", ->
-      ex1 = r(3).power(0);
-      ex2 = r(1)
+      ex1 = $('x').power(0);
+      ex2 = $('x')
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
   describe.skip 'negate', ->
