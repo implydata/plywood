@@ -156,6 +156,8 @@ describe "SQL parser", ->
         -SUM(added) AS MinusAdded,
         ABS(MinusAdded) AS AbsAdded,
         ABSOLUTE(MinusAdded) AS AbsoluteAdded,
+        POWER(MinusAdded, 0.5) AS SqRtAdded,
+        POW(MinusAdded, 0.5) AS SqRtAdded2,
         +SUM(added) AS SimplyAdded,
         QUANTILE(added, 0.5) AS Median,
         COUNT_DISTINCT(visitor) AS 'Unique1',
@@ -184,6 +186,8 @@ describe "SQL parser", ->
         .apply('MinusAdded', '-$data.sum($added)')
         .apply('AbsAdded', '$MinusAdded.absolute()')
         .apply('AbsoluteAdded', '$MinusAdded.absolute()')
+        .apply('SqRtAdded', '$MinusAdded.power(0.5)')
+        .apply('SqRtAdded2', '$MinusAdded.power(0.5)')
         .apply('SimplyAdded', '$data.sum($added)')
         .apply('Median', $('data').quantile('$added', 0.5))
         .apply('Unique1', $('data').countDistinct('$visitor'))
