@@ -12,16 +12,9 @@ module Plywood {
 
   const AGGREGATE_TO_FUNCTION: Lookup<Function> = {
     // count is handled before this and set as a "sum" action with arguments of literals with value 1
-
-    sum: function(a: string, b:string) {
-      return `${a}+${b}`
-    },
-    min: function(a: string, b:string) {
-      return `Math.min(${a},${b})`
-    },
-    max: function(a: string, b:string) {
-      return `Math.max(${a},${b})`
-    }
+    sum: (a: string, b:string) => `${a}+${b}`,
+    min: (a: string, b:string) => `Math.min(${a},${b})`,
+    max: (a: string, b:string) => `Math.max(${a},${b})`
   };
 
   const AGGREGATE_TO_ZERO: Lookup<string> = {
