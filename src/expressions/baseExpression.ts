@@ -773,6 +773,10 @@ module Plywood {
       return Expression.ONE.divide(this);
     }
 
+    public sqrt(): ChainExpression {
+      return this.power(0.5);
+    }
+
     public power(...exs: any[]): ChainExpression {
       return this._performMultiAction('power', exs);
     }
