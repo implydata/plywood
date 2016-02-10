@@ -41,14 +41,9 @@ module Plywood {
       return this.expression.equals(Expression.ONE);
     }
 
-    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
-      if (literalExpression.equals(Expression.ZERO)) {
-        return Expression.ZERO;
-      }
-      if (literalExpression.equals(Expression.ONE)) {
-        return Expression.ONE;
-      }
-
+    protected _performOnRef(simpleExpression: RefExpression): Expression {
+      if (this.expression.equals(Expression.ZERO)) return simpleExpression;
+      return null;
     }
 
   }
