@@ -323,6 +323,7 @@ Performs a lookup within the specified namespace.
 *operand*.**fallback**(...exs: typeof operand)
 
 Returns value of given expression if operand is null. 
+Writing `$('str').fallback(r('hello'))` is the same as parsing `$str === null ? 'hello' : $str`
 
 ```javascript
 var ex = $('str').extract("([0-9]+\\.[0-9]+\\.[0-9]+)").fallback("missing");
