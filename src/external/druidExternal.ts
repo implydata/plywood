@@ -11,6 +11,8 @@ module Plywood {
   };
 
   const AGGREGATE_TO_FUNCTION: Lookup<Function> = {
+    // count is handled before this and set as a "sum" action with arguments of literals with value 1
+
     sum: function(a: string, b:string) {
       return `${a}+${b}`
     },
@@ -1403,7 +1405,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       var aggregateExpression = aggregateAction.expression;
 
       if (aggregateActionType === "count") {
-        // special handling for count() == sum(1)
+        // special handling for count() == sum(1) -- a count can be thought of as a sum of literals with value 1
         aggregateActionType = "sum";
         aggregateExpression = r(1);
       }

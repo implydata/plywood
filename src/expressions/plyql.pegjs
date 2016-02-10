@@ -351,11 +351,6 @@ ComparisonExpression
       return lhs[rest[1]](rest[3]);
     }
 
-  / IfNullToken OpenParen _ operand:Expression Comma _ fallbackValue:Expression CloseParen
-    {
-      return operand.fallback(fallbackValue);
-    }
-
 ComparisonOp
   = "="  { return 'is'; }
   / "<>" { return 'isnt'; }
@@ -368,7 +363,6 @@ ComparisonOp
 ListLiteral
   = "(" head:StringOrNumber tail:(Comma StringOrNumber)* ")"
     { return r(Set.fromJS(makeListMap1(head, tail))); }
-
 
 AdditiveExpression
   = head:MultiplicativeExpression tail:(_ AdditiveOp _ MultiplicativeExpression)*
@@ -444,11 +438,13 @@ FunctionCallExpression
     { return operand.lookup(lookup); }
   / ConcatToken OpenParen head:Expression tail:(Comma Expression)* CloseParen
     { return Expression.concat(makeListMap1(head, tail)); }
+  / ( IfNullToken/FallbackToken) OpenParen _ operand:Expression Comma _ fallbackValue:Expression CloseParen
+    { return operand.fallback(fallbackValue);}
   / MatchToken OpenParen operand:Expression Comma regexp:String CloseParen
     { return operand.match(regexp); }
   / NowToken OpenParen CloseParen
     { return r(new Date()); }
-  / AbsToken/AbsoluteToken OpenParen _ operand:Expression _ CloseParen
+  / ( AbsToken/AbsoluteToken ) OpenParen _ operand:Expression _ CloseParen
     { return operand.absolute(); }
 
 
@@ -565,6 +561,7 @@ ExtractToken       = "EXTRACT"i        !IdentifierPart { return 'extract'; }
 ConcatToken        = "CONCAT"i         !IdentifierPart { return 'concat'; }
 LookupToken        = "LOOKUP"i         !IdentifierPart { return 'lookup'; }
 IfNullToken        = "IFNULL"i         !IdentifierPart { return 'fallback'; }
+FallbackToken      = "FALLBACK"i       !IdentifierPart { return 'fallback'; }
 MatchToken         = "MATCH"i          !IdentifierPart { return 'match'; }
 
 NowToken           = "NOW"i            !IdentifierPart

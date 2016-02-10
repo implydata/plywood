@@ -48,6 +48,7 @@ describe "SQL parser", ->
       parse = Expression.parseSQL("IFNULL(null,'fallback')")
       parse2 = Expression.parseSQL("IFNULL(null, SUM(deleted))")
       parse3 = Expression.parseSQL("IFNULL(SUM(`added`), SUM(deleted))")
+      parse4 = Expression.parseSQL("FALLBACK(SUM(`added`), SUM(deleted))")
 
       ex = r(null).fallback('fallback')
       ex2 = r(null).fallback('$data.sum($deleted)')
@@ -57,6 +58,7 @@ describe "SQL parser", ->
       expect(parse.expression.toJS()).to.deep.equal(ex.toJS())
       expect(parse2.expression.toJS()).to.deep.equal(ex2.toJS())
       expect(parse3.expression.toJS()).to.deep.equal(ex3.toJS())
+      expect(parse4.expression.toJS()).to.deep.equal(ex3.toJS())
 
   describe "other query types", ->
     it "works with UPDATE expression", ->

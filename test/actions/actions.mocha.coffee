@@ -56,7 +56,7 @@ describe "Actions", ->
       { action: 'count' }
       { action: 'sum', expression: { op: 'ref', name: 'myVar' } }
       { action: 'power', expression: { op: 'ref', name: 'myVar' } }
-      { action: 'absolute', expression: { op: 'ref', name: 'myVar' } }
+      { action: 'absolute'}
       { action: 'min', expression: { op: 'ref', name: 'myVar' } }
       { action: 'max', expression: { op: 'ref', name: 'myVar' } }
       { action: 'average', expression: { op: 'ref', name: 'myVar' } }
