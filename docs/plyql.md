@@ -166,7 +166,7 @@ Returns the *expr* if it's not null, otherwise returns *expr2*
 
 This is a synonym for **IFNULL**(*expr1*, *expr2*)
 
-## Mathematical Functions
+### Mathematical Functions
 
 **ABS**(*expr*)
 
