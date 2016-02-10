@@ -44,6 +44,19 @@ describe "SQL parser", ->
       expect(js.op).to.equal('literal')
       expect(Math.abs(js.value.valueOf() - Date.now())).to.be.lessThan(1000)
 
+    it "should handle fallback --", ->
+      parse = Expression.parseSQL("IFNULL(null,'fallback')")
+      parse2 = Expression.parseSQL("IFNULL(null, SUM(deleted))")
+      parse3 = Expression.parseSQL("IFNULL(SUM(`added`), SUM(deleted))")
+
+      ex = r(null).fallback('fallback')
+      ex2 = r(null).fallback('$data.sum($deleted)')
+      ex3 = $data.sum('$added').fallback('$data.sum($deleted)')
+
+      expect(parse.verb).to.equal(null)
+      expect(parse.expression.toJS()).to.deep.equal(ex.toJS())
+      expect(parse2.expression.toJS()).to.deep.equal(ex2.toJS())
+      expect(parse3.expression.toJS()).to.deep.equal(ex3.toJS())
 
   describe "other query types", ->
     it "works with UPDATE expression", ->
@@ -167,8 +180,8 @@ describe "SQL parser", ->
         .apply('TotalAddedOver4', '$data.sum($added) / 4')
         .apply('False', r(true).not())
         .apply('MinusAdded', '-$data.sum($added)')
-        .apply('AbsAdded', '$MinusAdded.abs()')
-        .apply('AbsoluteAdded', '$MinusAdded.abs()')
+        .apply('AbsAdded', '$MinusAdded.absolute()')
+        .apply('AbsoluteAdded', '$MinusAdded.absolute()')
         .apply('SimplyAdded', '$data.sum($added)')
         .apply('Median', $('data').quantile('$added', 0.5))
         .apply('Unique1', $('data').countDistinct('$visitor'))
