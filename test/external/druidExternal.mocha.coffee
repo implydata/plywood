@@ -940,7 +940,6 @@ describe "DruidExternal", ->
           testComplete()
         ).done()
 
-
     describe "should return null correctly on a timeseries query", ->
       ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
@@ -951,7 +950,6 @@ describe "DruidExternal", ->
           expect(result.toJS()).to.deep.equal([])
           testComplete()
         ).done()
-
 
     describe "should return null correctly on a topN query", ->
       ex = $('wiki').split("$page", 'Page')
@@ -1011,5 +1009,3 @@ describe "DruidExternal", ->
           expect(err.message).to.equal('unexpected result from Druid (timeseries)')
           testComplete()
         ).done()
-
-
