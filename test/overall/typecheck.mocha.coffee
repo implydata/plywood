@@ -28,3 +28,8 @@ describe "typecheck", ->
     expect(->
       r(5).in('hello')
     ).to.throw('in action has a bad type combination NUMBER in STRING')
+
+  it "should throw on mismatching fallback type", ->
+    expect(->
+      r(5).fallback('hello')
+    ).to.throw('fallback must have input of type STRING (is NUMBER)')

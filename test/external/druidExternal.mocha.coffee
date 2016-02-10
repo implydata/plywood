@@ -89,12 +89,12 @@ describe "DruidExternal", ->
         apply(Volatile,$_sd_0:NUMBER.subtract($_sd_1:NUMBER))
         """)
 
-    it "breaks up correctly in abs", ->
+    it "breaks up correctly in absolute cases", ->
       ex = ply()
-      .apply('wiki', '$wiki') # for now
-      .apply('Count', '$wiki.count()')
-      .apply('negative', -4)
-      .apply('abs', $('negative').absolute())
+        .apply('wiki', '$wiki') # for now
+        .apply('Count', '$wiki.count()')
+        .apply('negative', -4)
+        .apply('abs', $('negative').absolute())
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
@@ -220,7 +220,7 @@ describe "DruidExternal", ->
         "queryType": "timeBoundary"
       })
 
-    it "a total", ->
+    it "should properly process a total", ->
       ex = ply()
         .apply("wiki",
           $('wiki', 1)
@@ -316,7 +316,7 @@ describe "DruidExternal", ->
         }
       ])
 
-    it "a split", ->
+    it "processes a simple split", ->
       ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -354,7 +354,7 @@ describe "DruidExternal", ->
         "threshold": 5
       })
 
-    it "a split (no approximate)", ->
+    it "processes a split (no approximate)", ->
       ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -402,7 +402,7 @@ describe "DruidExternal", ->
         "queryType": "groupBy"
       })
 
-    it "a split with custom aggregations", ->
+    it "processes a split with custom aggregations", ->
       ex = $('wiki').split("$page", 'Page')
         .apply('CrazyStupid', '$wiki.custom(crazy) * $wiki.custom(stupid)')
         .sort('$CrazyStupid', 'descending')
@@ -415,47 +415,57 @@ describe "DruidExternal", ->
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
-            "activate": false
-            "name": "_sd_0"
-            "the": "borg will rise again"
+            "activate": false,
+            "name": "_sd_0",
+            "the": "borg will rise again",
             "type": "crazy"
-          }
+          },
           {
-            "globalWarming": "hoax"
-            "name": "_sd_1"
-            "onePlusOne": 3
+            "globalWarming": "hoax",
+            "name": "_sd_1",
+            "onePlusOne": 3,
             "type": "stoopid"
           }
-        ]
-        "dataSource": "wikipedia"
+        ],
+        "dataSource": "wikipedia",
         "dimension": {
-          "dimension": "page"
-          "outputName": "Page"
+          "dimension": "page",
+          "outputName": "Page",
           "type": "default"
-        }
-        "granularity": "all"
+        },
+        "granularity": "all",
         "intervals": [
           "2013-02-26/2013-02-27"
-        ]
-        "metric": "CrazyStupid"
+        ],
+        "metric": "CrazyStupid",
         "postAggregations": [
+          {
+            "fieldName": "_sd_0",
+            "name": "_sd_0_fin",
+            "type": "getSomeCrazy"
+          },
+          {
+            "fieldName": "_sd_1",
+            "name": "_sd_1_fin",
+            "type": "iAmWithStupid"
+          },
           {
             "fields": [
               {
-                "fieldName": "_sd_0"
-                "type": "getSomeCrazy"
-              }
+                "fieldName": "_sd_0_fin",
+                "type": "fieldAccess"
+              },
               {
-                "fieldName": "_sd_1"
-                "type": "iAmWithStupid"
+                "fieldName": "_sd_1_fin",
+                "type": "fieldAccess"
               }
-            ]
-            "fn": "*"
-            "name": "CrazyStupid"
+            ],
+            "fn": "*",
+            "name": "CrazyStupid",
             "type": "arithmetic"
           }
-        ]
-        "queryType": "topN"
+        ],
+        "queryType": "topN",
         "threshold": 5
       })
 
@@ -560,13 +570,199 @@ describe "DruidExternal", ->
         "queryType": "timeseries"
       })
 
-    it "should work in simple cases ", ->
+    it "should work with complex aggregate expressions", ->
       ex = $('wiki').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .apply('Abs', '$wiki.sum($added).abs()')
-      .apply('Abs2', '$wiki.sum($added).power(2)')
-      .sort('$Abs', 'descending')
-      .limit(5)
+        .apply('SumAbs', '$wiki.sum($added.absolute())')
+        .apply('SumComplex', '$wiki.sum($added.power(2) * $deleted / $added.absolute())')
+        .sort('$SumAbs', 'descending')
+        .limit(5)
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('external')
+      druidExternal = ex.external
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "fieldNames": [
+              "added"
+            ]
+            "fnAggregate": "function(_c,added) { return _c+Math.abs(added); }"
+            "fnCombine": "function(a,b) { return a+b; }"
+            "fnReset": "function() { return 0; }"
+            "name": "SumAbs"
+            "type": "javascript"
+          }
+          {
+            "fieldNames": [
+              "added"
+              "deleted"
+            ]
+            "fnAggregate": "function(_c,added,deleted) { return _c+((Math.pow(added,2)*deleted)/Math.abs(added)); }"
+            "fnCombine": "function(a,b) { return a+b; }"
+            "fnReset": "function() { return 0; }"
+            "name": "SumComplex"
+            "type": "javascript"
+          }
+        ]
+        "dataSource": "wikipedia"
+        "dimension": {
+          "dimension": "page"
+          "outputName": "Page"
+          "type": "default"
+        }
+        "granularity": "all"
+        "intervals": [
+          "2013-02-26/2013-02-27"
+        ]
+        "metric": "SumAbs"
+        "queryType": "topN"
+        "threshold": 5
+      })
+
+    it "should work with filtered complex aggregate expressions", ->
+      ex = $('wiki').split("$page", 'Page')
+        .apply('FilteredSumDeleted', '$wiki.filter($page.contains("wikipedia")).sum($deleted)')
+        .apply('Filtered2', '$wiki.filter($deleted != 100).sum($deleted)')
+        .sort('$FilteredSumDeleted', 'descending')
+        .limit(5)
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('external')
+      druidExternal = ex.external
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "fieldNames": [
+              "deleted",
+              "page"
+            ],
+            "fnAggregate": "function(_c,deleted,page) { return _c+((''+page).indexOf(\"wikipedia\")>-1 ? deleted : 0); }",
+            "fnCombine": "function(a,b) { return a+b; }",
+            "fnReset": "function() { return 0; }",
+            "name": "FilteredSumDeleted",
+            "type": "javascript"
+          },
+          {
+            "fieldNames": [
+              "deleted"
+            ],
+            "fnAggregate": "function(_c,deleted) { return _c+(!((deleted===100)) ? deleted : 0); }",
+            "fnCombine": "function(a,b) { return a+b; }",
+            "fnReset": "function() { return 0; }",
+            "name": "Filtered2",
+            "type": "javascript"
+          }
+        ],
+        "dataSource": "wikipedia",
+        "dimension": {
+          "dimension": "page",
+          "outputName": "Page",
+          "type": "default"
+        },
+        "granularity": "all",
+        "intervals": [
+          "2013-02-26/2013-02-27"
+        ],
+        "metric": "FilteredSumDeleted",
+        "queryType": "topN",
+        "threshold": 5
+      })
+
+    it "processes an expression function fallback", ->
+      ex = $('wiki').split($('page').extract('^Cat(.+)$').fallback("noMatch"), 'Page')
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('external')
+      druidExternal = ex.external
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+          "aggregations": [
+            {
+              "name": "!DUMMY",
+              "type": "count"
+            }
+          ],
+          "dataSource": "wikipedia",
+          "dimensions": [
+            {
+              "dimension": "page",
+              "extractionFn": {
+                "function": "function(d){return (_ = ((''+d).match(/^Cat(.+)$/) || [])[1] || null, (_ === null ? \"noMatch\" : _));}",
+                "type": "javascript"
+              },
+              "outputName": "Page",
+              "type": "extraction"
+            }
+          ],
+          "granularity": "all",
+          "intervals": [
+            "2013-02-26/2013-02-27"
+          ],
+          "limitSpec": {
+            "columns": [
+              "Page"
+            ],
+            "limit": 500000,
+            "type": "default"
+          },
+          "queryType": "groupBy"
+        }
+      )
+
+    it "processes a lookup function fallback", ->
+      ex = $('wiki').split($('page').lookup('wikipedia-language-lookup').fallback('missing'), 'Language')
+
+      ex = ex.referenceCheck(context).resolve(context).simplify()
+
+      expect(ex.op).to.equal('external')
+      druidExternal = ex.external
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "name": "!DUMMY"
+            "type": "count"
+          }
+        ]
+        "dataSource": "wikipedia"
+        "dimensions": [
+          {
+            "dimension": "page"
+            "extractionFn": {
+              "injective": false
+              "lookup": {
+                "namespace": "wikipedia-language-lookup"
+                "type": "namespace"
+              }
+              "replaceMissingValueWith": "missing"
+              "type": "lookup"
+            }
+            "outputName": "Language"
+            "type": "extraction"
+          }
+        ]
+        "granularity": "all"
+        "intervals": [
+          "2013-02-26/2013-02-27"
+        ]
+        "limitSpec": {
+          "columns": [
+            "Language"
+          ]
+          "limit": 500000
+          "type": "default"
+        }
+        "queryType": "groupBy"
+      })
+
+    it "should work in simple cases with power and absolute", ->
+      ex = $('wiki').split("$page", 'Page')
+        .apply('Count', '$wiki.count()')
+        .apply('Abs', '$wiki.sum($added).absolute()')
+        .apply('Abs2', '$wiki.sum($added).power(2)')
+        .sort('$Abs', 'descending')
+        .limit(5)
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
@@ -619,17 +815,16 @@ describe "DruidExternal", ->
 
     it "should work with complex absolute and power expressions", ->
       ex = $('wiki').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .apply('Abs', '(($wiki.sum($added)/$wiki.count().abs().power(0.5) + 100 * $wiki.countDistinct($page)).abs()).power(2) + $wiki.custom(crazy)')
-      .sort('$Count', 'descending')
-      .limit(5)
+        .apply('Count', '$wiki.count()')
+        .apply('Abs', '(($wiki.sum($added)/$wiki.count().absolute().power(0.5) + 100 * $wiki.countDistinct($page)).absolute()).power(2) + $wiki.custom(crazy)')
+        .sort('$Count', 'descending')
+        .limit(5)
 
       ex = ex.referenceCheck(context).resolve(context).simplify()
 
       expect(ex.op).to.equal('external')
       druidExternal = ex.external
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal(
-        {
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
           "aggregations": [
             {
               "name": "Count",
@@ -700,8 +895,7 @@ describe "DruidExternal", ->
           ],
           "queryType": "topN",
           "threshold": 5
-        }
-      )
+        })
 
 
   describe "should work when getting back [] and [{result:[]}]", ->
@@ -746,6 +940,7 @@ describe "DruidExternal", ->
           testComplete()
         ).done()
 
+
     describe "should return null correctly on a timeseries query", ->
       ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
@@ -756,6 +951,7 @@ describe "DruidExternal", ->
           expect(result.toJS()).to.deep.equal([])
           testComplete()
         ).done()
+
 
     describe "should return null correctly on a topN query", ->
       ex = $('wiki').split("$page", 'Page')
@@ -815,3 +1011,5 @@ describe "DruidExternal", ->
           expect(err.message).to.equal('unexpected result from Druid (timeseries)')
           testComplete()
         ).done()
+
+

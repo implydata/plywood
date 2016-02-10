@@ -42,8 +42,8 @@ describe "compute native", ->
     .apply('reciprocal', $('four').power(-1))
     .apply('negative', -4)
     .apply('positive', 4)
-    .apply('abs', $('negative').abs())
-    .apply('abs', $('positive').abs())
+    .apply('abs', $('negative').absolute())
+    .apply('abs', $('positive').absolute())
 
     p = ex.compute()
     p.then((v) ->
@@ -92,6 +92,7 @@ describe "compute native", ->
       ])
       testComplete()
     ).done()
+
 
   it "works in existing dataset case", (testComplete) ->
     ds = Dataset.fromJS([

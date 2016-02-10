@@ -8,6 +8,7 @@ var ApplyAction = plywood.ApplyAction;
 var SortAction = plywood.SortAction;
 var LimitAction = plywood.LimitAction;
 var MatchAction = plywood.MatchAction;
+
 var Set = plywood.Set;
 
 var dataRef = $('data');
@@ -17,13 +18,13 @@ var dateRegExp = /^\d\d\d\d-\d\d-\d\d(?:T(?:\d\d)?(?::\d\d)?(?::\d\d)?(?:.\d\d\d
 var reservedWords = {
   ABS: 1, ABSOLUTE: 1, ALL: 1, AND: 1, AS: 1, ASC: 1,
   BETWEEN: 1, BY: 1,
-  CONTAINS: 1, CREATE: 1,
+  COALESCE: 1, CONTAINS: 1, CREATE: 1,
   DELETE: 1, DESC: 1, DESCRIBE: 1, DISTINCT: 1, DROP: 1,
   EXISTS: 1, EXPLAIN: 1, ESCAPE: 1,
   FALSE: 1, FROM: 1,
   GROUP: 1,
   HAVING: 1,
-  IN: 1, INNER: 1, INSERT: 1, INTO: 1, IS: 1,
+  IFNULL: 1, IN: 1, INNER: 1, INSERT: 1, INTO: 1, IS: 1,
   JOIN: 1,
   LEFT: 1, LIKE: 1, LIMIT: 1, LOOKUP: 1,
   MATCH: 1,
@@ -343,6 +344,11 @@ ComparisonExpression
       return lhs[rest[1]](rest[3]);
     }
 
+  / IfNullToken OpenParen _ operand:Expression Comma _ fallbackValue:Expression CloseParen
+    {
+      return operand.fallback(fallbackValue);
+    }
+
 ComparisonOp
   = "="  { return 'is'; }
   / "<>" { return 'isnt'; }
@@ -436,9 +442,9 @@ FunctionCallExpression
   / NowToken OpenParen CloseParen
     { return r(new Date()); }
   / AbsToken OpenParen _ operand:Expression _ CloseParen
-    { return operand.abs(); }
+    { return operand.absolute(); }
   / AbsoluteToken OpenParen _ operand:Expression _ CloseParen
-    { return operand.abs(); }
+    { return operand.absolute(); }
 
 TimezoneParameter
   = Comma timezone:NameOrString { return timezone }
@@ -552,6 +558,7 @@ SubstrToken        = "SUBSTR"i "ING"i? !IdentifierPart { return 'substr'; }
 ExtractToken       = "EXTRACT"i        !IdentifierPart { return 'extract'; }
 ConcatToken        = "CONCAT"i         !IdentifierPart { return 'concat'; }
 LookupToken        = "LOOKUP"i         !IdentifierPart { return 'lookup'; }
+IfNullToken        = "IFNULL"i         !IdentifierPart { return 'fallback'; }
 MatchToken         = "MATCH"i          !IdentifierPart { return 'match'; }
 
 NowToken           = "NOW"i            !IdentifierPart

@@ -16,14 +16,9 @@ module Plywood {
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
-        var v = Math.abs(inputFn(d, c));
-        return v;
-      }
-    }
-
-    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
-      if (literalExpression.equals(Expression.ZERO)) {
-        return Expression.ZERO;
+        var inV = inputFn(d, c);
+        if (inV === null) return null;
+        return inV;
       }
     }
 
@@ -35,11 +30,11 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string): string {
-      return 'Math.abs(' + inputJS + ')';
+      return `Math.abs(${inputJS})`
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return 'ABS(' + inputSQL + ')';
+      return `ABS(${inputSQL})`
     }
   }
 

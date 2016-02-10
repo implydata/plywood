@@ -630,8 +630,8 @@ module Plywood {
       if (expression.type !== 'NUMBER' && expression.type !== 'TIME') return null;
       if (!this.canHandleApply(action.expression)) return null;
 
-      var value = this.valueOf();
       if (this.mode === 'raw') {
+        var value = this.valueOf();
         value.derivedAttributes = immutableAdd(
           value.derivedAttributes, action.name, action.expression
         );
@@ -640,7 +640,11 @@ module Plywood {
         // Can not redefine index for now.
         if (this.split && this.split.hasKey(action.name)) return null;
 
+        // process applies mutates value so we need to set value again after its called...
+
         var basicApplyActions = this.processApply(action);
+        var value = this.valueOf();
+
         for (let basicApplyAction of basicApplyActions) {
           value.applies = value.applies.concat(basicApplyAction);
           value.attributes = value.attributes.concat(new AttributeInfo({ name: basicApplyAction.name, type: basicApplyAction.expression.type }));

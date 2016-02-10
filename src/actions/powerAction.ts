@@ -30,19 +30,15 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
-      return 'Math.pow(' + inputJS + ',' + expressionJS + ')';
+      return `Math.pow(${inputJS},${expressionJS})`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return 'POW(' + inputSQL + ',' + expressionSQL + ')';
+      return `POW(${inputSQL},${expressionSQL})`;
     }
 
     protected _removeAction(): boolean {
       return this.expression.equals(Expression.ONE);
-    }
-
-    protected _distributeAction(): Action[] {
-      return this.expression.actionize(this.action);
     }
 
     protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
