@@ -443,6 +443,8 @@ FunctionCallExpression
     { return operand.power(exponent); }
   / ( ExpToken) OpenParen _ exponent:Expression CloseParen
     { return r(Math.E).power(exponent); }
+  / SqrtToken OpenParen _ operand:Expression CloseParen
+     { return operand.power(0.5); }
 
 TimezoneParameter
   = Comma timezone:NameOrString { return timezone }
@@ -546,6 +548,7 @@ MaxToken           = "MAX"i            !IdentifierPart { return 'max'; }
 PowerToken         = "POWER"i          !IdentifierPart { return 'power'; }
 PowToken           = "POW"i            !IdentifierPart { return 'power'; }
 ExpToken           = "EXP"i            !IdentifierPart { return 'power'; }
+SqrtToken          = "SQRT"i           !IdentifierPart { return 'power'; }
 QuantileToken      = "QUANTILE"i       !IdentifierPart { return 'quantile'; }
 CustomToken        = "CUSTOM"i         !IdentifierPart { return 'custom'; }
 

@@ -205,6 +205,10 @@ Returns *expr1* raised to the power of *expr2*.
 
 This is a synonym for **POW**(*expr1*, *expr2*)
 
+**SQRT**(*expr1*)
+
+Returns the square root of *expr1*
+
 **EXP**(*expr1*)
 
 Returns the value of e (base of natural logs) raised to the power of *expr1*.
