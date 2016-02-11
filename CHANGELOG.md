@@ -1,5 +1,12 @@
 # Change log
 
+## 0.8.7
+
+- Add `absolute`, `power`, `sqrt`, `fallback` action
+- Corresponding `ABS`, `POW/POWER`,`EXP`, `SQRT` `IFNULL/FALLBACK`to PlyQL
+- Add finalizers to druidExternal 
+   
+
 ## 0.8.6
 
 - Add `timeRange` action (`TIME_RANGE` in PlyQL) - not supported by DruidExternal yet

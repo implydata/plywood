@@ -104,10 +104,12 @@ MultiplicativeExpression
 
 MultiplicativeOp = [*/]
 
-
 ExponentialExpression
-  = head:UnaryExpression tail:(_ ExponentialOp _ UnaryExpression)*
-    { return naryExpressionFactory('power', head, tail); }
+  = lhs:UnaryExpression rhs:(_ ExponentialOp _ ExponentialExpression)?
+    {
+      if (rhs) return lhs.power(rhs[3])
+      return lhs;
+    }
 
 ExponentialOp = [\^]
 
