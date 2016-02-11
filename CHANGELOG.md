@@ -1,5 +1,10 @@
 # Change log
 
+## 0.8.9
+- Add `absolute`, `power`, `sqrt`, `fallback` action
+- Corresponding `ABS`, `POW/POWER`,`EXP`, `SQRT` `IFNULL/FALLBACK`to PlyQL
+- Add finalizers to druidExternal 
+
 ## 0.8.8
 
 - Fixed `match` on nulls to return `null`
