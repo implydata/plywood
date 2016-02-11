@@ -39,7 +39,8 @@
               "page",
               "regionIsoCode",
               "regionName",
-              "user"
+              "user",
+              "userChars"
             ]
           },
           "timestampSpec" : {
