@@ -1024,7 +1024,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (mainAction instanceof TimeBucketAction) {
           if (fallbackAction !== null) throw new Error(`unsupported fallback in timeBucket expression ${mainAction.expression.toString()}`);
           var format = TIME_BUCKET_FORMAT[mainAction.duration.toString()];
-          if (!format) throw new Error(`unsupported part in timeBucket expression ${mainAction.duration.toString()}`);
+          if (!format) throw new Error(`unsupported duration in timeBucket expression ${mainAction.duration.toString()}`);
           return {
             type: "timeFormat",
             format: format,

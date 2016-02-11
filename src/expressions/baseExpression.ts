@@ -409,11 +409,12 @@ module Plywood {
      * @param wantedType The type that is wanted
      */
     public canHaveType(wantedType: string): boolean {
-      if (!this.type) return true;
+      var { type } =  this;
+      if (!type) return true;
       if (wantedType === 'SET') {
-        return this.type.indexOf('SET/') === 0;
+        return type.indexOf('SET/') === 0;
       } else {
-        return this.type === wantedType;
+        return type === wantedType;
       }
     }
 

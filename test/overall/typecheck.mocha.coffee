@@ -24,10 +24,15 @@ describe "typecheck", ->
       r(5).lessThan('hello')
     ).to.throw('lessThan must have expression of type NUMBER or TIME (is STRING)')
 
-  it "should throw on bad in", ->
+  it "should throw on bad IN", ->
     expect(->
       r(5).in('hello')
-    ).to.throw('in action has a bad type combination NUMBER in STRING')
+    ).to.throw('in action has a bad type combination NUMBER IN STRING')
+
+  it "should throw on SET IN", ->
+    expect(->
+      $('tags', 'SET/STRING').in('$more_tags')
+    ).to.throw('in action has a bad type combination SET/STRING IN *')
 
   it "should throw on mismatching fallback type", ->
     expect(->
