@@ -1,9 +1,10 @@
 # Change log
 
 ## 0.8.9
+
 - Add `absolute`, `power`, `sqrt`, `fallback` action
-- Corresponding `ABS`, `POW/POWER`,`EXP`, `SQRT` `IFNULL/FALLBACK`to PlyQL
-- Add finalizers to druidExternal 
+- Corresponding `ABS`, `POW/POWER`, `EXP`, `SQRT`, and `IFNULL/FALLBACK` to PlyQL
+- Fixed type checking in `InAction` 
 
 ## 0.8.8
 
