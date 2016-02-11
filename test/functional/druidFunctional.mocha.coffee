@@ -35,6 +35,7 @@ describe "DruidExternal", ->
           }
           attributes: [
             { name: 'time', type: 'TIME' }
+            { name: 'sometimeLater', type: 'TIME' }
             { name: 'channel', type: 'STRING' }
             { name: 'page', type: 'STRING' }
             { name: 'page_unique', special: 'unique' }
@@ -624,6 +625,92 @@ describe "DruidExternal", ->
             ]
           }
         ])
+        testComplete()
+      ).done()
+
+    it "can timebucket a time column that is the timeAttribute one", (testComplete) ->
+    ex = ply()
+    .apply('Time',
+      $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeCol')
+      .sort('$TimeCol', 'descending')
+      .limit(2)
+
+    )
+
+    basicExecutor(ex).then((result) ->
+      expect(result.toJS()).to.deep.equal([
+        {
+          "Time": [
+            {
+              "TimeCol": {
+                "end": "new Date('2015-09-13T00:00:00.000Z')",
+                "start": "new Date('2015-09-12T23:00:00.000Z')",
+                "type": "TIME_RANGE"
+              }
+            },
+            {
+              "TimeCol": {
+                "end": "new Date('2015-09-12T23:00:00.000Z')",
+                "start": "new Date('2015-09-12T22:00:00.000Z')",
+                "type": "TIME_RANGE"
+              }
+            }
+          ]
+        }
+      ])
+      testComplete()
+    ).done()
+
+    it "can timebucket a time column thats not the timeAttribute one", (testComplete) ->
+      ex = ply()
+      .apply('TimeLater',
+        $("wiki").split($("sometimeLater").timeBucket('PT1H', 'Etc/UTC'), 'SometimeLater')
+        .limit(5)
+      )
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "TimeLater": [
+              {
+                "SometimeLater": {
+                  "end": new Date('2016-09-12T01:00:00.000Z'),
+                  "start": new Date('2016-09-12T00:00:00.000Z'),
+                  "type": "TIME_RANGE"
+                }
+              },
+              {
+                "SometimeLater": {
+                  "end": new Date('2016-09-12T02:00:00.000Z'),
+                  "start": new Date('2016-09-12T01:00:00.000Z'),
+                  "type": "TIME_RANGE"
+                }
+              },
+              {
+                "SometimeLater": {
+                  "end": new Date('2016-09-12T03:00:00.000Z'),
+                  "start": new Date('2016-09-12T02:00:00.000Z'),
+                  "type": "TIME_RANGE"
+                }
+              },
+              {
+                "SometimeLater": {
+                  "end": new Date('2016-09-12T04:00:00.000Z'),
+                  "start": new Date('2016-09-12T03:00:00.000Z'),
+                  "type": "TIME_RANGE"
+                }
+              },
+              {
+                "SometimeLater": {
+                  "end": new Date('2016-09-12T05:00:00.000Z'),
+                  "start": new Date('2016-09-12T04:00:00.000Z'),
+                  "type": "TIME_RANGE"
+                }
+              }
+            ]
+          }
+          ]
+        )
         testComplete()
       ).done()
 
