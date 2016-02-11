@@ -43,6 +43,9 @@ describe "DruidExternal", ->
             { name: 'anonymous', type: 'BOOLEAN' }
             { name: 'added', type: 'NUMBER' }
             { name: 'count', type: 'NUMBER' }
+            { name: 'commentLength', type: 'NUMBER' }
+            { name: 'metroCode', type: 'STRING' }
+            { name: 'cityName', type: 'STRING' }
             { name: 'user_unique', special: 'unique' }
           ]
           filter: $('time').in(TimeRange.fromJS({
@@ -590,6 +593,33 @@ describe "DruidExternal", ->
               {
                 "Count": 22140
                 "Channel": "French"
+              }
+            ]
+          }
+        ])
+        testComplete()
+      ).done()
+
+    it "works with absolute value split", (testComplete) ->
+      ex = ply()
+      .apply('AbsSplit',
+        $('wiki').split($('commentLength').absolute(), 'AbsCommentLength')
+        .sort('$AbsCommentLength', 'descending')
+        .limit(3)
+      )
+
+      basicExecutor(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+          {
+            "AbsSplit": [
+              {
+                "AbsCommentLength": 1
+              }
+              {
+                "AbsCommentLength": 10
+              }
+              {
+                "AbsCommentLength": 100
               }
             ]
           }
