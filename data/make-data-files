@@ -28,6 +28,7 @@ gzcat wikipedia-2015-09-12.gz \
       regionIsoCode,
       regionName,
       user,
+      userChars: .user | split(""),
       delta,
       added: [.delta, 0] | max,
       deleted: [-.delta, 0] | max,
