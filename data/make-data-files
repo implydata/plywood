@@ -1,0 +1,38 @@
+#!/bin/bash -eu
+
+# Force this to the working directory
+cd "$(dirname "$0")"
+
+gzcat wikipedia-2015-09-12.gz \
+  | jq -c '
+    select("2015-09-12" < .timestamp and .timestamp < "2015-09-13") |
+    {
+      time: .timestamp | sub(":[0-9]{2}.[0-9]{3}Z"; ":00Z"),
+      sometimeLater: .timestamp | sub("2015-"; "2016-") | sub(":[0-9]{2}.[0-9]{3}Z"; ":00Z"),
+      channel,
+      cityName,
+      comment,
+      commentLength: .comment | length,
+      countryIsoCode,
+      countryName,
+      isAnonymous: (.countryName != null),
+      isMinor,
+      isNew,
+      isRobot,
+      isUnpatrolled,
+      metroCode,
+      namespace,
+      page,
+      regionIsoCode,
+      regionName,
+      user,
+      delta,
+      added: [.delta, 0] | max,
+      deleted: [-.delta, 0] | max,
+      deltaByTen: (.delta / 10)
+    }' \
+  > wikipedia.json
+
+perl -ne'print if $. % 10 == 0' wikipedia.json \
+  > wikipedia-sampled.json
+
