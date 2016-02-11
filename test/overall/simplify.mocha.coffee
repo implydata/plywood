@@ -56,6 +56,23 @@ describe "Simplify", ->
       ex2 = r(3).add('$y', 7)
       expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
+  describe 'fallback', ->
+    it "removes self if fallbackVal is null", ->
+      ex1 = $('x').fallback(null);
+      ex2 = $('x')
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+
+  describe 'power', ->
+    it "removes self if 1", ->
+      ex1 = $('x').power(1);
+      ex2 = $('x')
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
+
+    it "removes self if 0", ->
+      ex1 = $('x').power(0);
+      ex2 = $('x')
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS())
 
   describe.skip 'negate', ->
     it "collapses double", ->

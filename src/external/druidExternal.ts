@@ -10,6 +10,19 @@ module Plywood {
     max: "doubleMax"
   };
 
+  const AGGREGATE_TO_FUNCTION: Lookup<Function> = {
+    // count is handled before this and set as a "sum" action with arguments of literals with value 1
+    sum: (a: string, b:string) => `${a}+${b}`,
+    min: (a: string, b:string) => `Math.min(${a},${b})`,
+    max: (a: string, b:string) => `Math.max(${a},${b})`
+  };
+
+  const AGGREGATE_TO_ZERO: Lookup<string> = {
+    sum: "0",
+    min: "Infinity",
+    max: "-Infinity"
+  };
+
   const TIME_PART_TO_FORMAT: Lookup<string> = {
     SECOND_OF_MINUTE: "s",
     SECOND_OF_HOUR: "m'*60+'s",
@@ -419,6 +432,7 @@ module Plywood {
     public exactResultsOnly: boolean;
     public context: Lookup<any>;
     public druidVersion: string;
+    public finalizers: Druid.PostAggregation[];
 
     constructor(parameters: ExternalValue) {
       super(parameters, dummyObject);
@@ -443,6 +457,8 @@ module Plywood {
       if (druidVersion.length !== 5) throw new Error('druidVersion length must be 5');
       if (druidVersion < '0.8.0') throw new Error('only druidVersions >= 0.8.0 are supported');
       this.druidVersion = druidVersion;
+
+      this.finalizers = parameters.finalizers || [];
     }
 
     public valueOf(): ExternalValue {
@@ -456,6 +472,7 @@ module Plywood {
       value.exactResultsOnly = this.exactResultsOnly;
       value.context = this.context;
       value.druidVersion = this.druidVersion;
+      value.finalizers = this.finalizers;
       return value;
     }
 
@@ -583,7 +600,8 @@ module Plywood {
         var firstAction = actions[0];
         return filter.expression.isOp('ref') &&
           (firstAction.action === 'is' || firstAction.action === 'in') &&
-          firstAction.expression.isOp('literal');
+          firstAction.expression.isOp('literal') &&
+          filter.expression.type === "STRING";
       }
       return false;
     }
@@ -915,10 +933,32 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         var actions = expression.actions;
-        if (actions.length !== 1) throw new Error(`can not convert expression: ${expression.toString()}`);
-        var action = actions[0];
+        var mainAction = actions[0];
+        var retainMissingValue = false;
+        var replaceMissingValueWith: any = null;
+        var fallbackAction : FallbackAction = null;
 
-        if (action instanceof SubstrAction) {
+        if (actions.length === 2) {
+          fallbackAction = <FallbackAction>actions[1];
+          if (!(fallbackAction instanceof FallbackAction)) {
+            throw new Error(`can not convert expression: ${expression.toString()}`);
+          }
+          var fallbackExpression = fallbackAction.expression;
+          if (fallbackExpression.isOp("ref")) {
+            // the ref has to be the same as the argument beacause we can't refer to other dimensions
+            // so the only option would be for it to be equal to original dimension
+            retainMissingValue = true;
+          } else if (fallbackExpression.isOp("literal")) {
+            replaceMissingValueWith = fallbackExpression.getLiteralValue();
+          } else {
+            // TODO: would be cool to support $foo.extract(...).fallback($foo ++ 'something')
+            throw new Error(`unsupported fallback action: ${expression.toString()}`);
+          }
+        } else if (actions.length !== 1) {
+          throw new Error(`can not convert expression: ${expression.toString()}`);
+        }
+
+        if (mainAction instanceof SubstrAction) {
           if (this.versionBefore('0.9.0')) {
             return {
               type: "javascript",
@@ -928,63 +968,88 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return {
             type: "substring",
-            index: action.position,
-            length: action.length
+            index: mainAction.position,
+            length: mainAction.length
           };
         }
 
-        if (action instanceof ExtractAction) {
-          if (this.versionBefore('0.9.1')) {
+        if (mainAction instanceof ExtractAction) {
+          // retainMissingValue === false is not supported in old druid nor is replaceMissingValueWith in regex extractionFn
+          // we want to use a js function if we are using an old version of druid and want to use this functionality
+          if (this.versionBefore('0.9.0') && (retainMissingValue === false || replaceMissingValueWith !== null)) {
             return {
               type: "javascript",
               'function': expression.getJSFn('d')
             };
           }
 
-          return {
+          var regexExtractionFn: Druid.ExtractionFn = {
             type: "regex",
-            expr: action.regexp,
-            replaceMissingValue: true
+            expr: mainAction.regexp
           };
+
+          if (!retainMissingValue) {
+            regexExtractionFn.replaceMissingValue = true;
+          }
+
+          if (replaceMissingValueWith !== null) {
+            regexExtractionFn.replaceMissingValueWith = replaceMissingValueWith;
+          }
+
+          return regexExtractionFn;
         }
 
-        if (action instanceof LookupAction) {
-          return {
+        if (mainAction instanceof LookupAction) {
+
+          var lookupExtractionFn: Druid.ExtractionFn = {
             type: "lookup",
             lookup: {
               type: "namespace",
-              "namespace": action.lookup
+              "namespace": mainAction.lookup
             },
             injective: false
           };
+
+          if (retainMissingValue) {
+            lookupExtractionFn.retainMissingValue = true;
+          }
+
+          if (replaceMissingValueWith !== null) {
+            lookupExtractionFn.replaceMissingValueWith = replaceMissingValueWith;
+          }
+
+          return lookupExtractionFn;
         }
 
-        if (action instanceof TimeBucketAction) {
-          var format = TIME_BUCKET_FORMAT[action.duration.toString()];
-          if (!format) throw new Error(`unsupported part in timeBucket expression ${action.duration.toString()}`);
+        if (mainAction instanceof TimeBucketAction) {
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in timeBucket expression ${mainAction.expression.toString()}`);
+          var format = TIME_BUCKET_FORMAT[mainAction.duration.toString()];
+          if (!format) throw new Error(`unsupported part in timeBucket expression ${mainAction.duration.toString()}`);
           return {
             type: "timeFormat",
             format: format,
-            timeZone: (action.timezone || DEFAULT_TIMEZONE).toString(),
+            timeZone: (mainAction.timezone || DEFAULT_TIMEZONE).toString(),
             locale: "en-US"
           };
         }
 
-        if (action instanceof TimePartAction) {
-          var format = TIME_PART_TO_FORMAT[action.part];
-          if (!format) throw new Error(`unsupported part in timePart expression ${action.part}`);
+        if (mainAction instanceof TimePartAction) {
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in timePart expression ${mainAction.expression.toString()}`);
+          var format = TIME_PART_TO_FORMAT[mainAction.part];
+          if (!format) throw new Error(`unsupported part in timePart expression ${mainAction.part}`);
           return {
             type: "timeFormat",
             format: format,
-            timeZone: (action.timezone || DEFAULT_TIMEZONE).toString(),
+            timeZone: (mainAction.timezone || DEFAULT_TIMEZONE).toString(),
             locale: "en-US"
           };
         }
 
-        if (action instanceof NumberBucketAction) {
+        if (mainAction instanceof NumberBucketAction) {
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in numberBucket expression ${mainAction.expression.toString()}`);
           var attributeInfo = this.getAttributesInfo(referenceName);
           if (attributeInfo.type === 'NUMBER') {
-            var floorExpression = continuousFloorExpression("d", "Math.floor", action.size, action.offset);
+            var floorExpression = continuousFloorExpression("d", "Math.floor", mainAction.size, mainAction.offset);
             return {
               type: "javascript",
               'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
@@ -992,7 +1057,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           }
 
           if (attributeInfo instanceof RangeAttributeInfo) {
-            return this.getRangeBucketingExtractionFn(<RangeAttributeInfo>attributeInfo, action);
+            return this.getRangeBucketingExtractionFn(<RangeAttributeInfo>attributeInfo, mainAction);
           }
 
           if (attributeInfo instanceof HistogramAttributeInfo) {
@@ -1001,6 +1066,13 @@ return (start < 0 ?'-':'') + parts.join('.');
             }
             throw new Error("histogram splits do not work right now");
           }
+        }
+
+        if (mainAction instanceof AbsoluteAction) {
+          return {
+            type: "javascript",
+            'function': `function(d){d=Number(d); return Math.abs(d);}`
+          };
         }
       }
 
@@ -1062,6 +1134,13 @@ return (start < 0 ?'-':'') + parts.join('.');
         var splitAction = actions[0];
 
         if (splitAction instanceof SubstrAction) {
+          return {
+            dimension,
+            inflater: simpleInflater
+          };
+        }
+
+        if (splitAction instanceof AbsoluteAction) {
           return {
             dimension,
             inflater: simpleInflater
@@ -1181,36 +1260,11 @@ return (start < 0 ?'-':'') + parts.join('.');
       };
     }
 
-
-    public getAccessTypeForAggregation(aggregationType: string): string {
-      if (aggregationType === 'hyperUnique' || aggregationType === 'cardinality') return 'hyperUniqueCardinality';
-
-      var customAggregations = this.customAggregations;
-      for (var customName in customAggregations) {
-        if (!hasOwnProperty(customAggregations, customName)) continue;
-        var customAggregation = customAggregations[customName];
-        if (customAggregation.aggregation.type === aggregationType) {
-          return customAggregation.accessType || 'fieldAccess';
-        }
-      }
-
-      return 'fieldAccess';
-    }
-
-    public getAccessType(aggregations: Druid.Aggregation[], aggregationName: string): string {
-      for (let aggregation of aggregations) {
-        if (aggregation.name === aggregationName) {
-          return this.getAccessTypeForAggregation(aggregation.type);
-        }
-      }
-      throw new Error(`aggregation '${aggregationName}' not found`);
-    }
-
-    public expressionToPostAggregation(ex: Expression, aggregations: Druid.Aggregation[]): Druid.PostAggregation {
+    public expressionToPostAggregation(ex: Expression): Druid.PostAggregation {
       if (ex instanceof RefExpression) {
         var refName = ex.name;
         return {
-          type: this.getAccessType(aggregations, refName),
+          type: 'fieldAccess',
           fieldName: refName
         };
 
@@ -1222,33 +1276,44 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
 
       } else if (ex instanceof ChainExpression) {
+        var lastAction = ex.lastAction();
+
+        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction) {
+          var fieldNameRefs = ex.getFreeReferences();
+          return {
+            type: 'javascript',
+            fieldNames: fieldNameRefs,
+            function: `function(${fieldNameRefs.toString()}) { return ${ex.getJS(null)}; }`
+          };
+        }
+
         var pattern: Expression[];
         if (pattern = ex.getExpressionPattern('add')) {
           return {
             type: 'arithmetic',
             fn: '+',
-            fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
+            fields: pattern.map(e => this.expressionToPostAggregation(e))
           };
         }
         if (pattern = ex.getExpressionPattern('subtract')) {
           return {
             type: 'arithmetic',
             fn: '-',
-            fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
+            fields: pattern.map(e => this.expressionToPostAggregation(e))
           };
         }
         if (pattern = ex.getExpressionPattern('multiply')) {
           return {
             type: 'arithmetic',
             fn: '*',
-            fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
+            fields: pattern.map(e => this.expressionToPostAggregation(e))
           };
         }
         if (pattern = ex.getExpressionPattern('divide')) {
           return {
             type: 'arithmetic',
             fn: '/',
-            fields: pattern.map((e => this.expressionToPostAggregation(e, aggregations)), this)
+            fields: pattern.map(e => this.expressionToPostAggregation(e))
           };
         }
         throw new Error("can not convert chain to post agg: " + ex.toString());
@@ -1258,24 +1323,24 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
-    public applyToPostAggregation(action: ApplyAction, aggregations: Druid.Aggregation[]): Druid.PostAggregation {
-      var postAgg = this.expressionToPostAggregation(action.expression, aggregations);
+    public applyToPostAggregation(action: ApplyAction): Druid.PostAggregation {
+      var postAgg = this.expressionToPostAggregation(action.expression);
       postAgg.name = action.name;
       return postAgg;
     }
 
     public makeStandardAggregation(name: string, filterAction: FilterAction, aggregateAction: Action): Druid.Aggregation {
       var fn = aggregateAction.action;
-      var attribute = aggregateAction.expression;
+      var aggregateExpression = aggregateAction.expression;
       var aggregation: Druid.Aggregation = {
         name: name,
         type: AGGREGATE_TO_DRUID[fn]
       };
       if (fn !== 'count') {
-        if (attribute instanceof RefExpression) {
-          aggregation.fieldName = attribute.name;
+        if (aggregateExpression instanceof RefExpression) {
+          aggregation.fieldName = aggregateExpression.name;
         } else {
-          throw new Error('can not support complex derived attributes (yet)');
+          return this.makeJavaScriptAggregation(name, filterAction, aggregateAction);
         }
       }
 
@@ -1289,7 +1354,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             aggregator: aggregation
           };
         } else {
-          throw new Error(`no support for JS filters (yet)`);
+          return this.makeJavaScriptAggregation(name, filterAction, aggregateAction);
         }
       }
 
@@ -1327,6 +1392,41 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
+    public makeJavaScriptAggregation(name: string, filterAction: FilterAction, aggregateAction: Action): Druid.Aggregation {
+
+      var aggregateActionType = aggregateAction.action;
+      var aggregateExpression = aggregateAction.expression;
+
+      if (aggregateActionType === "count") {
+        // special handling for count() == sum(1) -- a count can be thought of as a sum of literals with value 1
+        aggregateActionType = "sum";
+        aggregateExpression = r(1);
+      }
+
+      var zero =  AGGREGATE_TO_ZERO[aggregateActionType];
+      var aggregateFunction = AGGREGATE_TO_FUNCTION[aggregateActionType];
+      var fieldNames = aggregateExpression.getFreeReferences();
+
+      var aggregateExpressionJS = aggregateExpression.getJS(null);
+
+      if (filterAction) {
+        var filterExpression = filterAction.expression;
+        fieldNames = deduplicateSort(fieldNames.concat(filterExpression.getFreeReferences()));
+       // fieldNames = deduplicateSort(fieldNames);
+        aggregateExpressionJS = `(${filterExpression.getJS(null)} ? ${aggregateExpressionJS} : ${zero})`
+      }
+
+      return {
+        name,
+        type: "javascript",
+        fieldNames: fieldNames,
+        fnAggregate: `function(_c,${fieldNames}) { return ${aggregateFunction('_c', aggregateExpressionJS)}; }`,
+        fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
+        fnReset: `function() { return ${zero}; }`
+      }
+
+    }
+
     public applyToAggregation(action: ApplyAction): Druid.Aggregation {
       var applyExpression = <ChainExpression>action.expression;
       if (applyExpression.op !== 'chain') throw new Error(`can not convert apply: ${applyExpression.toString()}`);
@@ -1338,6 +1438,9 @@ return (start < 0 ?'-':'') + parts.join('.');
         aggregateAction = actions[0];
       } else if (actions.length === 2) {
         filterAction = <FilterAction>actions[0];
+        if (!(filterAction instanceof FilterAction)) {
+          throw new Error(`first action not a filter in: ${applyExpression.toString()}`);
+        }
         aggregateAction = actions[1];
       } else {
         throw new Error(`can not convert strange apply: ${applyExpression.toString()}`);
@@ -1375,10 +1478,40 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
-    public processApply(apply: ApplyAction): Action[] {
+    public processApply(apply: ApplyAction): ApplyAction[] {
       return this.separateAggregates(<ApplyAction>apply.applyToExpression(ex => {
         return this.inlineDerivedAttributes(ex).decomposeAverage().distribute();
       }));
+    }
+
+    public getFinalizedName(aggregateApply: ApplyAction): string {
+      var finalizerType = this.getFinalizerTypeForAggregateApply(aggregateApply);
+      if ( finalizerType ) {
+        var finalizer: Druid.PostAggregation = {
+          type: finalizerType,
+          fieldName: aggregateApply.name,
+          name: aggregateApply.name + "_fin"
+        };
+        this.finalizers = this.finalizers.concat(finalizer);
+
+        return finalizer.name;
+      }
+      return aggregateApply.name;
+    }
+
+    public getFinalizerTypeForAggregateApply(aggregateApply: ApplyAction): string {
+      var aggregateAction = aggregateApply.expression.lastAction();
+      if (aggregateAction instanceof CountDistinctAction) {
+        return "hyperUniqueCardinality";
+      }
+      if (aggregateAction instanceof CustomAction) {
+        var customAggregation = this.customAggregations[aggregateAction.custom];
+        if (!customAggregation) {
+          throw new Error("custom aggregation is not defined " + aggregateAction.custom);
+        }
+        return customAggregation.accessType || null;
+      }
+      return null;
     }
 
     public isAggregateExpression(expression: Expression): boolean {
@@ -1406,7 +1539,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           aggregations = aggregations.filter(a => a.name !== applyName);
           aggregations.push(aggregation);
         } else {
-          var postAggregation = this.applyToPostAggregation(apply, aggregations);
+          var postAggregation = this.applyToPostAggregation(apply);
           postAggregations = postAggregations.filter(a => a.name !== applyName);
           postAggregations.push(postAggregation);
         }
@@ -1414,7 +1547,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       return {
         aggregations: aggregations,
-        postAggregations: postAggregations
+        postAggregations: this.finalizers.concat(postAggregations)
       };
     }
 
@@ -1638,6 +1771,8 @@ return (start < 0 ?'-':'') + parts.join('.');
           if (aggregationsAndPostAggregations.postAggregations.length) {
             druidQuery.postAggregations = aggregationsAndPostAggregations.postAggregations;
           }
+
+
 
           var splitSpec = this.splitToDruid();
           druidQuery.queryType = splitSpec.queryType;

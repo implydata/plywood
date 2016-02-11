@@ -158,6 +158,37 @@ Returns the first matching group that results form matching *regexp* to *str*.
 
 Returns the value for the key *str* withing the *lookup-namespace*.
 
+**IFNULL**(*expr1*, *expr2*)
+
+Returns the *expr* if it's not null, otherwise returns *expr2* 
+
+**FALLBACK**(*expr1*, *expr2*)
+
+This is a synonym for **IFNULL**(*expr1*, *expr2*)
+
+### Mathematical Functions
+
+**ABS**(*expr*)
+
+  Returns the absolute value of *expr* value.  
+
+**POW**(*expr1*, *expr2*)
+
+  Returns *expr1* raised to the power of *expr2*.  
+
+**POWER**(*expr1*, *expr2*)  
+
+This is a synonym for **POW**(*expr1*, *expr2*)  
+
+**SQRT**(*expr*)
+
+  Returns the square root of *expr*
+
+  **EXP**(*expr*)
+
+Returns the value of e (base of natural logs) raised to the power of *expr*.
+
+
 ## Aggregations
 
 **COUNT**(*expr?*)

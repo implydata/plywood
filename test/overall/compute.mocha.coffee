@@ -34,6 +34,66 @@ describe "compute native", ->
       testComplete()
     ).done()
 
+  it "works with power and abs", (testComplete) ->
+    ex = ply()
+    .apply('number', 256)
+    .apply('four', $('number').power(0.5).power(0.5))
+    .apply('one', $('four').power(0))
+    .apply('reciprocal', $('four').power(-1))
+    .apply('negative', -4)
+    .apply('positive', 4)
+    .apply('abs', $('negative').absolute())
+    .apply('abs', $('positive').absolute())
+
+    p = ex.compute()
+    p.then((v) ->
+      expect(v.toJS()).to.deep.equal([
+        {
+          'number': 256,
+          'four': 4,
+          'one': 1,
+          "reciprocal": 0.25
+          'negative': -4,
+          'positive': 4,
+          'abs': 4,
+          'abs': 4,
+        }
+      ])
+      testComplete()
+    ).done()
+
+  it "doesnt fallback if not null ", (testComplete) ->
+    ex = $('x').fallback(5);
+    p = ex.compute({x:2})
+    p.then((v) ->
+      expect(v).to.deep.equal(2);
+      testComplete()
+    ).done()
+
+  it "fallback works with datasets", (testComplete) ->
+    ds = Dataset.fromJS(data).hide()
+
+    ex = ply()
+    .apply('Two', 2)
+    .apply('EmptyData', ply(ds).filter('false'))
+    .apply('SumPrice', '$EmptyData.sum($price)')
+    .apply('AvgPrice1', $('EmptyData').average($('price')).fallback(2))
+    .apply('AvgPrice2', '$EmptyData.sum($price) / $EmptyData.count()')
+
+    p = ex.compute()
+    p.then((v) ->
+      expect(v.toJS()).to.deep.equal([
+        {
+          "AvgPrice1": 2
+          "AvgPrice2": null
+          "SumPrice": 0
+          "Two": 2
+        }
+      ])
+      testComplete()
+    ).done()
+
+
   it "works in existing dataset case", (testComplete) ->
     ds = Dataset.fromJS([
       { cut: 'Good',  price: 400 }

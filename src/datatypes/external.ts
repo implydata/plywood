@@ -115,6 +115,7 @@ module Plywood {
     exactResultsOnly?: boolean;
     context?: Lookup<any>;
     druidVersion?: string;
+    finalizers? : Druid.PostAggregation[];
 
     requester?: Requester.PlywoodRequester<any>;
   }
@@ -629,8 +630,8 @@ module Plywood {
       if (expression.type !== 'NUMBER' && expression.type !== 'TIME') return null;
       if (!this.canHandleApply(action.expression)) return null;
 
-      var value = this.valueOf();
       if (this.mode === 'raw') {
+        var value = this.valueOf();
         value.derivedAttributes = immutableAdd(
           value.derivedAttributes, action.name, action.expression
         );
@@ -639,14 +640,14 @@ module Plywood {
         // Can not redefine index for now.
         if (this.split && this.split.hasKey(action.name)) return null;
 
-        var basicActions = this.processApply(action);
-        for (let basicAction of basicActions) {
-          if (basicAction instanceof ApplyAction) {
-            value.applies = value.applies.concat(basicAction);
-            value.attributes = value.attributes.concat(new AttributeInfo({ name: basicAction.name, type: basicAction.expression.type }));
-          } else {
-            throw new Error('got something strange from breakUpApply');
-          }
+        // process applies mutates value so we need to set value again after its called...
+
+        var basicApplyActions = this.processApply(action);
+        var value = this.valueOf();
+
+        for (let basicApplyAction of basicApplyActions) {
+          value.applies = value.applies.concat(basicApplyAction);
+          value.attributes = value.attributes.concat(new AttributeInfo({ name: basicApplyAction.name, type: basicApplyAction.expression.type }));
         }
       }
       return <External>(new (External.classMap[this.engine])(value));
@@ -712,6 +713,10 @@ module Plywood {
       return true;
     }
 
+    public getFinalizedName(aggregateApply: ApplyAction): string {
+      return aggregateApply.name;
+    }
+
     public separateAggregates(apply: ApplyAction): ApplyAction[] {
       var applyExpression = apply.expression;
       if (applyExpression instanceof ChainExpression) {
@@ -734,20 +739,23 @@ module Plywood {
           var existingApply = this.getExistingApplyForExpression(aggregateChain);
           if (existingApply) {
             return new RefExpression({
-              name: existingApply.name,
+              name: this.getFinalizedName(existingApply),
               nest: 0,
               type: existingApply.expression.type
             });
           } else {
             var name = this.getTempName(namesUsed);
             namesUsed.push(name);
-            applies.push(new ApplyAction({
+            var newApply = new ApplyAction({
               action: 'apply',
               name: name,
               expression: aggregateChain
-            }));
+            });
+            var finalName = this.getFinalizedName(newApply);
+            if (finalName !== name) namesUsed.push(finalName);
+            applies.push(newApply);
             return new RefExpression({
-              name: name,
+              name: finalName,
               nest: 0,
               type: aggregateChain.type
             });
@@ -786,7 +794,7 @@ module Plywood {
       })
     }
 
-    public processApply(action: ApplyAction): Action[] {
+    public processApply(action: ApplyAction): ApplyAction[] {
       return [action];
     }
 

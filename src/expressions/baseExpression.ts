@@ -311,6 +311,10 @@ module Plywood {
       return chainVia('multiply', expressions, Expression.ONE);
     }
 
+    static power(expressions: Expression[]): Expression {
+      return chainVia('power', expressions, Expression.ZERO);
+    }
+
     static concat(expressions: Expression[]): Expression {
       return chainVia('concat', expressions, Expression.EMPTY_STRING);
     }
@@ -769,6 +773,14 @@ module Plywood {
       return Expression.ONE.divide(this);
     }
 
+    public sqrt(): ChainExpression {
+      return this.power(0.5);
+    }
+
+    public power(...exs: any[]): ChainExpression {
+      return this._performMultiAction('power', exs);
+    }
+
     // Boolean predicates
 
     public is(ex: any): ChainExpression {
@@ -961,8 +973,17 @@ module Plywood {
       return this.performAction(new SortAction({ expression: ex, direction: getString(direction) }));
     }
 
+    public absolute(): ChainExpression {
+      return this.performAction(new AbsoluteAction({}));
+    }
+
     public limit(limit: number): ChainExpression {
       return this.performAction(new LimitAction({ limit: getNumber(limit) }));
+    }
+
+    public fallback(ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new FallbackAction({ expression: ex }));
     }
 
     // Aggregate expressions

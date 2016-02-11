@@ -44,6 +44,21 @@ describe "SQL parser", ->
       expect(js.op).to.equal('literal')
       expect(Math.abs(js.value.valueOf() - Date.now())).to.be.lessThan(1000)
 
+    it "should handle fallback --", ->
+      parse = Expression.parseSQL("IFNULL(null,'fallback')")
+      parse2 = Expression.parseSQL("IFNULL(null, SUM(deleted))")
+      parse3 = Expression.parseSQL("IFNULL(SUM(`added`), SUM(deleted))")
+      parse4 = Expression.parseSQL("FALLBACK(SUM(`added`), SUM(deleted))")
+
+      ex = r(null).fallback('fallback')
+      ex2 = r(null).fallback('$data.sum($deleted)')
+      ex3 = $data.sum('$added').fallback('$data.sum($deleted)')
+
+      expect(parse.verb).to.equal(null)
+      expect(parse.expression.toJS()).to.deep.equal(ex.toJS())
+      expect(parse2.expression.toJS()).to.deep.equal(ex2.toJS())
+      expect(parse3.expression.toJS()).to.deep.equal(ex3.toJS())
+      expect(parse4.expression.toJS()).to.deep.equal(ex3.toJS())
 
   describe "other query types", ->
     it "works with UPDATE expression", ->
@@ -139,6 +154,12 @@ describe "SQL parser", ->
         SUM(`wiki`.`added`) / 4 AS TotalAddedOver4,
         NOT(true) AS 'False',
         -SUM(added) AS MinusAdded,
+        ABS(MinusAdded) AS AbsAdded,
+        ABSOLUTE(MinusAdded) AS AbsoluteAdded,
+        POWER(MinusAdded, 0.5) AS SqRtAdded,
+        POW(MinusAdded, 0.5) AS SqRtAdded2,
+        SQRT(TotalAddedOver4) AS SquareRoot,
+        EXP(0) AS One,
         +SUM(added) AS SimplyAdded,
         QUANTILE(added, 0.5) AS Median,
         COUNT_DISTINCT(visitor) AS 'Unique1',
@@ -165,6 +186,12 @@ describe "SQL parser", ->
         .apply('TotalAddedOver4', '$data.sum($added) / 4')
         .apply('False', r(true).not())
         .apply('MinusAdded', '-$data.sum($added)')
+        .apply('AbsAdded', '$MinusAdded.absolute()')
+        .apply('AbsoluteAdded', '$MinusAdded.absolute()')
+        .apply('SqRtAdded', '$MinusAdded.power(0.5)')
+        .apply('SqRtAdded2', '$MinusAdded.power(0.5)')
+        .apply('SquareRoot', '$TotalAddedOver4.power(0.5)')
+        .apply('One', r(Math.E).power(0))
         .apply('SimplyAdded', '$data.sum($added)')
         .apply('Median', $('data').quantile('$added', 0.5))
         .apply('Unique1', $('data').countDistinct('$visitor'))

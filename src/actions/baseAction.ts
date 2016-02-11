@@ -255,7 +255,7 @@ module Plywood {
 
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
-      return inputJS + '.' + this.action + '(' + (expressionJS || '') + ')';
+      throw new Error('can not call this directly');
     }
 
     public getJS(inputJS: string, datumVar: string): string {

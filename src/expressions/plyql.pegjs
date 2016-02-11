@@ -8,6 +8,7 @@ var ApplyAction = plywood.ApplyAction;
 var SortAction = plywood.SortAction;
 var LimitAction = plywood.LimitAction;
 var MatchAction = plywood.MatchAction;
+
 var Set = plywood.Set;
 
 var dataRef = $('data');
@@ -438,10 +439,20 @@ FunctionCallExpression
     { return operand.lookup(lookup); }
   / ConcatToken OpenParen head:Expression tail:(Comma Expression)* CloseParen
     { return Expression.concat(makeListMap1(head, tail)); }
+  / (IfNullToken/FallbackToken) OpenParen _ operand:Expression Comma _ fallbackValue:Expression CloseParen
+    { return operand.fallback(fallbackValue);}
   / MatchToken OpenParen operand:Expression Comma regexp:String CloseParen
     { return operand.match(regexp); }
   / NowToken OpenParen CloseParen
     { return r(new Date()); }
+  / (AbsToken/AbsoluteToken ) OpenParen _ operand:Expression _ CloseParen
+    { return operand.absolute(); }
+  / (PowToken/PowerToken) OpenParen _ operand:Expression Comma exponent:Number CloseParen
+    { return operand.power(exponent); }
+  / ExpToken OpenParen _ exponent:Expression CloseParen
+    { return r(Math.E).power(exponent); }
+  / SqrtToken OpenParen _ operand:Expression CloseParen
+    { return operand.power(0.5); }
 
 TimezoneParameter
   = Comma timezone:NameOrString { return timezone }
@@ -534,12 +545,18 @@ OrToken            = "OR"i             !IdentifierPart
 DistinctToken      = "DISTINCT"i       !IdentifierPart
 StarToken          = "*"               !IdentifierPart { return '*'; }
 
+AbsToken           = "ABS"i            !IdentifierPart { return 'absolute'; }
+AbsoluteToken      = "ABSOLUTE"i       !IdentifierPart { return 'absolute'; }
 CountToken         = "COUNT"i          !IdentifierPart { return 'count'; }
 CountDistinctToken = "COUNT_DISTINCT"i !IdentifierPart { return 'countDistinct'; }
 SumToken           = "SUM"i            !IdentifierPart { return 'sum'; }
 AvgToken           = "AVG"i            !IdentifierPart { return 'average'; }
 MinToken           = "MIN"i            !IdentifierPart { return 'min'; }
 MaxToken           = "MAX"i            !IdentifierPart { return 'max'; }
+PowerToken         = "POWER"i          !IdentifierPart { return 'power'; }
+PowToken           = "POW"i            !IdentifierPart { return 'power'; }
+ExpToken           = "EXP"i            !IdentifierPart { return 'power'; }
+SqrtToken          = "SQRT"i           !IdentifierPart { return 'power'; }
 QuantileToken      = "QUANTILE"i       !IdentifierPart { return 'quantile'; }
 CustomToken        = "CUSTOM"i         !IdentifierPart { return 'custom'; }
 
@@ -553,6 +570,8 @@ SubstrToken        = "SUBSTR"i "ING"i? !IdentifierPart { return 'substr'; }
 ExtractToken       = "EXTRACT"i        !IdentifierPart { return 'extract'; }
 ConcatToken        = "CONCAT"i         !IdentifierPart { return 'concat'; }
 LookupToken        = "LOOKUP"i         !IdentifierPart { return 'lookup'; }
+IfNullToken        = "IFNULL"i         !IdentifierPart { return 'fallback'; }
+FallbackToken      = "FALLBACK"i       !IdentifierPart { return 'fallback'; }
 MatchToken         = "MATCH"i          !IdentifierPart { return 'match'; }
 
 NowToken           = "NOW"i            !IdentifierPart

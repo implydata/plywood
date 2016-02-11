@@ -53,7 +53,7 @@ describe "simulate MySQL", ->
               #.limit(10)
               .apply('Carats',
                 $("diamonds").split($("carat").numberBucket(0.25), 'Carat')
-                  .apply('Count', $('diamonds').count())
+                  .apply('Count', $('diamonds').count().fallback(0))
                   .sort('$Count', 'descending')
                   .limit(3)
               )
@@ -101,7 +101,7 @@ describe "simulate MySQL", ->
     expect(queryPlan[3]).to.equal("""
       SELECT
       FLOOR(`carat` / 0.25) * 0.25 AS "Carat",
-      COUNT(*) AS "Count"
+      COALESCE(COUNT(*), 0) AS "Count"
       FROM `diamonds`
       WHERE (((`color`="D") AND (`cut`="some_cut")) AND ('2015-03-13 07:00:00'<=`time` AND `time`<'2015-03-14 07:00:00'))
       GROUP BY 1
