@@ -105,11 +105,9 @@ MultiplicativeExpression
 MultiplicativeOp = [*/]
 
 ExponentialExpression
-  = lhs:UnaryExpression rhs:(_ ExponentialOp _ ExponentialExpression)?
-    {
-      if (rhs) return lhs.power(rhs[3])
-      return lhs;
-    }
+ = lhs:UnaryExpression _ ExponentialOp _ rhs:ExponentialExpression
+   { return lhs.power(rhs) }
+ / UnaryExpression
 
 ExponentialOp = [\^]
 
