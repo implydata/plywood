@@ -13,10 +13,12 @@ module Plywood {
     public getOutputType(inputType: string): string {
       var expression = this.expression;
       if (inputType) {
-        if (!(expression.canHaveType('SET')
-          || (inputType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE'))
-          || (inputType === 'TIME' && expression.canHaveType('TIME_RANGE')))) {
-          throw new TypeError(`in action has a bad type combination ${inputType} in ${expression.type}`);
+        if (!(
+          (inputType.indexOf('SET/') === -1 && expression.canHaveType('SET')) ||
+          (inputType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE')) ||
+          (inputType === 'TIME' && expression.canHaveType('TIME_RANGE'))
+        )) {
+          throw new TypeError(`in action has a bad type combination ${inputType} IN ${expression.type || '*'}`);
         }
       } else {
         if (!(expression.canHaveType('NUMBER_RANGE') || expression.canHaveType('TIME_RANGE') || expression.canHaveType('SET'))) {

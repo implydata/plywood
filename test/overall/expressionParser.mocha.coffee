@@ -153,6 +153,24 @@ describe "expression parser", ->
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS())
 
+    it "should work with NUMBER type", ->
+      ex1 = Expression.parse("$x:NUMBER")
+      ex2 = $("x", "NUMBER")
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS())
+
+    it "should work with SET/STRING type", ->
+      ex1 = Expression.parse("$tags:SET/STRING")
+      ex2 = $("tags", "SET/STRING")
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS())
+
+    it "should work with SET/STRING type within IN", ->
+      ex1 = Expression.parse("$tag.in($tags:SET/STRING)")
+      ex2 = $('tag').in($("tags", "SET/STRING"))
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS())
+
     it "should handle --", ->
       ex1 = Expression.parse("$x--3")
       ex2 = $("x").subtract(-3)
