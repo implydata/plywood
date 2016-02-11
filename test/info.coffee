@@ -1,4 +1,4 @@
-exports.druidHost = 'localhost:8082'
+exports.druidHost = '192.168.99.100:8082'
 exports.druidVersion = '0.8.3'
 
 exports.mySqlHost = 'localhost'

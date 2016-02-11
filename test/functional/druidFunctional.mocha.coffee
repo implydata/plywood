@@ -35,8 +35,9 @@ describe "DruidExternal", ->
           }
           attributes: [
             { name: 'time', type: 'TIME' }
-            { name: 'language', type: 'STRING' }
+            { name: 'channel', type: 'STRING' }
             { name: 'page', type: 'STRING' }
+            { name: 'page_unique', special: 'unique' }
             { name: 'user', type: 'STRING' }
             { name: 'newPage', type: 'BOOLEAN' }
             { name: 'anonymous', type: 'BOOLEAN' }
@@ -45,8 +46,8 @@ describe "DruidExternal", ->
             { name: 'user_unique', special: 'unique' }
           ]
           filter: $('time').in(TimeRange.fromJS({
-            start: new Date("2015-08-14T00:00:00Z")
-            end: new Date("2015-08-15T00:00:00Z")
+            start: new Date("2015-09-12T00:00:00Z")
+            end: new Date("2015-09-13T00:00:00Z")
           }))
           druidVersion: info.druidVersion
           requester: druidRequester
@@ -56,7 +57,7 @@ describe "DruidExternal", ->
 
     it "works timePart case", (testComplete) ->
       ex = ply()
-        .apply("wiki", $('wiki').filter($("language").is('en')))
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('HoursOfDay',
           $("wiki").split("$time.timePart(HOUR_OF_DAY, 'Etc/UTC')", 'HourOfDay')
             .apply('TotalAdded', '$wiki.sum($added)')
@@ -71,16 +72,16 @@ describe "DruidExternal", ->
           {
             "HoursOfDay": [
               {
-                "HourOfDay": 0
-                "TotalAdded": 4381326
-              }
+                "HourOfDay": 2,
+                "TotalAdded": 3045966
+              },
               {
-                "HourOfDay": 3
-                "TotalAdded": 4159589
-              }
+                "HourOfDay": 17,
+                "TotalAdded": 1883290
+              },
               {
-                "HourOfDay": 1
-                "TotalAdded": 3888962
+                "HourOfDay": 3,
+                "TotalAdded": 1825954
               }
             ]
           }
@@ -90,7 +91,7 @@ describe "DruidExternal", ->
 
     it "works in advanced case", (testComplete) ->
       ex = ply()
-        .apply("wiki", $('wiki').filter($("language").is('en')))
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply('Pages',
@@ -110,98 +111,94 @@ describe "DruidExternal", ->
             .apply('Count', '$wiki.sum($count)')
             .sort('$Count', 'descending')
             .filter($('Count').lessThan(300))
-            .limit(5)
+            .limit(4)
         )
 
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
-            "Count": 122857
+            "Count": 114711,
             "Pages": [
               {
-                "Count": 262
-                "Page": "Wikipedia:Administrators'_noticeboard/Incidents"
+                "Count": 255,
+                "Page": "User:Cyde/List of candidates for speedy deletion/Subpage",
                 "Time": [
                   {
                     "Timestamp": {
-                      "end": new Date('2015-08-14T03:00:00.000Z')
-                      "start": new Date('2015-08-14T02:00:00.000Z')
+                      "end": new Date('2015-09-12T13:00:00.000Z'),
+                      "start": new Date('2015-09-12T12:00:00.000Z'),
                       "type": "TIME_RANGE"
-                    }
-                    "TotalAdded": 100304
-                  }
+                    },
+                    "TotalAdded": 9231
+                  },
                   {
                     "Timestamp": {
-                      "end": new Date('2015-08-14T20:00:00.000Z')
-                      "start": new Date('2015-08-14T19:00:00.000Z')
+                      "end": new Date('2015-09-13T00:00:00.000Z'),
+                      "start": new Date('2015-09-12T23:00:00.000Z'),
                       "type": "TIME_RANGE"
-                    }
-                    "TotalAdded": 18856
-                  }
+                    },
+                    "TotalAdded": 3956
+                  },
                   {
                     "Timestamp": {
-                      "end": new Date('2015-08-14T22:00:00.000Z')
-                      "start": new Date('2015-08-14T21:00:00.000Z')
+                      "end": new Date('2015-09-12T02:00:00.000Z'),
+                      "start": new Date('2015-09-12T01:00:00.000Z'),
                       "type": "TIME_RANGE"
-                    }
-                    "TotalAdded": 11550
+                    },
+                    "TotalAdded": 3363
                   }
                 ]
-              }
+              },
               {
-                "Count": 253
-                "Page": "User:Cyde/List_of_candidates_for_speedy_deletion/Subpage"
+                "Count": 240,
+                "Page": "Jeremy Corbyn",
                 "Time": [
                   {
                     "Timestamp": {
-                      "end": new Date('2015-08-14T07:00:00.000Z')
-                      "start": new Date('2015-08-14T06:00:00.000Z')
+                      "end": new Date('2015-09-12T16:00:00.000Z'),
+                      "start": new Date('2015-09-12T15:00:00.000Z'),
                       "type": "TIME_RANGE"
-                    }
-                    "TotalAdded": 3416
-                  }
+                    },
+                    "TotalAdded": 28193
+                  },
                   {
                     "Timestamp": {
-                      "end": new Date('2015-08-14T02:00:00.000Z')
-                      "start": new Date('2015-08-14T01:00:00.000Z')
+                      "end": new Date('2015-09-12T19:00:00.000Z'),
+                      "start": new Date('2015-09-12T18:00:00.000Z'),
                       "type": "TIME_RANGE"
-                    }
-                    "TotalAdded": 2400
-                  }
+                    },
+                    "TotalAdded": 2419
+                  },
                   {
                     "Timestamp": {
-                      "end": new Date('2015-08-14T16:00:00.000Z')
-                      "start": new Date('2015-08-14T15:00:00.000Z')
+                      "end": new Date('2015-09-12T11:00:00.000Z'),
+                      "start": new Date('2015-09-12T10:00:00.000Z'),
                       "type": "TIME_RANGE"
-                    }
-                    "TotalAdded": 2213
+                    },
+                    "TotalAdded": 2041
                   }
                 ]
               }
-            ]
+            ],
             "PagesHaving": [
               {
-                "Count": 266
-                "Page": "Wikipedia:Administrators'_noticeboard/Incidents"
-              }
+                "Count": 255,
+                "Page": "User:Cyde/List of candidates for speedy deletion/Subpage"
+              },
               {
-                "Count": 253
-                "Page": "User:Cyde/List_of_candidates_for_speedy_deletion/Subpage"
-              }
+                "Count": 241,
+                "Page": "Jeremy Corbyn"
+              },
               {
-                "Count": 200
-                "Page": "Wikipedia:Administrator_intervention_against_vandalism"
-              }
+                "Count": 228,
+                "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+              },
               {
-                "Count": 140
-                "Page": "2015_Tianjin_explosions"
+                "Count": 146,
+                "Page": "Wikipedia:Administrator intervention against vandalism"
               }
-              {
-                "Count": 130
-                "Page": "Indoor_Football_League_(1999–2000)"
-              }
-            ]
-            "TotalAdded": 45268530
+            ],
+            "TotalAdded": 32553107
           }
         ])
         testComplete()
@@ -209,18 +206,19 @@ describe "DruidExternal", ->
 
     it "works with uniques", (testComplete) ->
       ex = ply()
-        .apply('UniquePages', $('wiki').countDistinct("$page"))
+        .apply('UniquePages1', $('wiki').countDistinct("$page"))
+        .apply('UniquePages2', $('wiki').countDistinct("$page_unique"))
         .apply('UniqueUsers1', $('wiki').countDistinct("$user"))
         .apply('UniqueUsers2', $('wiki').countDistinct("$user_unique"))
-        .apply('Diff', '$UniqueUsers1 - $UniqueUsers2')
+        #.apply('UniqueDiff', '$UniqueUsers1 - $UniqueUsers2')
 
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
-            "Diff": 24550.2655599543
-            "UniquePages": 102748.42464311104
-            "UniqueUsers1": 24550.2655599543
-            "UniqueUsers2": 0 # this is 0 because uniques did not exist yet
+            "UniquePages1": 278906.2678236051,
+            "UniquePages2": 281588.11316378025,
+            "UniqueUsers1": 39220.49269175933,
+            "UniqueUsers2": 37712.65497107271
           }
         ])
         testComplete()
@@ -245,20 +243,20 @@ describe "DruidExternal", ->
           {
             "Pages": [
               {
-                "Page": "!distain"
+                "Page": "!T.O.O.H.!",
                 "Users": [
                   {
-                    "Count": 1
-                    "User": "SteEis"
+                    "Count": 1,
+                    "User": "Cameronsmiley2345qwerty"
                   }
                 ]
-              }
+              },
               {
-                "Page": "\"A\"_Is_for_Alibi"
+                "Page": "\"The Secret Life of...\"",
                 "Users": [
                   {
-                    "Count": 1
-                    "User": "Fitnr"
+                    "Count": 2,
+                    "User": "Vikiçizer"
                   }
                 ]
               }
@@ -268,18 +266,18 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
-    it "works with abs", (testComplete) ->
+    it "works with absolute", (testComplete) ->
       ex = ply()
-      .apply("Count", $('wiki').filter($("language").is('en')).count())
-      .apply('Negate', $('count').negate())
-      .apply('Abs', $('count').negate().abs().negate().abs())
+        .apply("Count", $('wiki').filter($("channel").is('en')).count())
+        .apply('Negate', $('Count').negate())
+        .apply('Abs', $('Count').negate().absolute().negate().absolute())
 
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
-            "Count": 122857
-            "Negate": -122857
-            "Abs": 122857
+            "Abs": 113240,
+            "Count": 113240,
+            "Negate": -113240
           }
         ])
         testComplete()
@@ -287,18 +285,18 @@ describe "DruidExternal", ->
 
     it "works with power", (testComplete) ->
       ex = ply()
-      .apply("Count", $('wiki').filter($("language").is('en')).count())
-      .apply('Square Root', $('Count').power(0.5))
-      .apply('Squared', $('Count').power(2))
-      .apply('One', $('Count').power(0))
+        .apply("Count", $('wiki').filter($("channel").is('en')).count())
+        .apply('Square Root', $('Count').power(0.5))
+        .apply('Squared', $('Count').power(2))
+        .apply('One', $('Count').power(0))
 
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
-            "Count" : 122857,
-            "Squared" : 15093842449,
-            "Square Root": 350.509628969,
-            "One": 1
+            "Count": 113240,
+            "One": 113240,
+            "Square Root": 336.5115154047481,
+            "Squared": 12823297600
           }
         ])
         testComplete()
@@ -324,52 +322,52 @@ describe "DruidExternal", ->
             "ByHour": [
               {
                 "TimeByHour": {
-                  "end": new Date('2015-08-14T01:00:00.000Z')
-                  "start": new Date('2015-08-14T00:00:00.000Z')
+                  "end": new Date('2015-09-12T01:00:00.000Z'),
+                  "start": new Date('2015-09-12T00:00:00.000Z'),
                   "type": "TIME_RANGE"
-                }
+                },
                 "Users": [
                   {
-                    "Count": 34
-                    "Page": "Wikipedia:Administrator_intervention_against_vandalism"
-                  }
+                    "Count": 10,
+                    "Page": "POOP"
+                  },
                   {
-                    "Count": 27
-                    "Page": "User_talk:Thine_Antique_Pen"
+                    "Count": 9,
+                    "Page": "Israel Ballet"
                   }
                 ]
-              }
+              },
               {
                 "TimeByHour": {
-                  "end": new Date('2015-08-14T02:00:00.000Z')
-                  "start": new Date('2015-08-14T01:00:00.000Z')
+                  "end": new Date('2015-09-12T02:00:00.000Z'),
+                  "start": new Date('2015-09-12T01:00:00.000Z'),
                   "type": "TIME_RANGE"
-                }
+                },
                 "Users": [
                   {
-                    "Count": 40
-                    "Page": "User_talk:MherHzzor"
-                  }
+                    "Count": 26,
+                    "Page": "Campeonato Mundial de Voleibol Femenino Sub-20 de 2015"
+                  },
                   {
-                    "Count": 23
-                    "Page": "Patas_monkey"
+                    "Count": 22,
+                    "Page": "Flüchtlingskrise in Europa 2015"
                   }
                 ]
-              }
+              },
               {
                 "TimeByHour": {
-                  "end": new Date('2015-08-14T03:00:00.000Z')
-                  "start": new Date('2015-08-14T02:00:00.000Z')
+                  "end": new Date('2015-09-12T03:00:00.000Z'),
+                  "start": new Date('2015-09-12T02:00:00.000Z'),
                   "type": "TIME_RANGE"
-                }
+                },
                 "Users": [
                   {
-                    "Count": 21
-                    "Page": "Olive_baboon"
-                  }
+                    "Count": 28,
+                    "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+                  },
                   {
-                    "Count": 16
-                    "Page": "Blue_monkey"
+                    "Count": 16,
+                    "Page": "2015 World Wrestling Championships"
                   }
                 ]
               }
@@ -394,16 +392,16 @@ describe "DruidExternal", ->
           {
             "Pages": [
               {
-                "Count": 10
-                "Page": "User_talk:Trmwikifa"
-              }
+                "Count": 25,
+                "Page": "Wikipedia:Checklijst langdurig structureel vandalisme/1wikideb1"
+              },
               {
-                "Count": 8
-                "Page": "User_talk:2015wiki"
-              }
+                "Count": 12,
+                "Page": "Diskuse s wikipedistou:Zdenekk2"
+              },
               {
-                "Count": 7
-                "Page": "Benutzer:Paddy1111~dewiki/test2"
+                "Count": 11,
+                "Page": "Overleg gebruiker:Wwikix"
               }
             ]
           }
@@ -426,16 +424,16 @@ describe "DruidExternal", ->
           {
             "Pages": [
               {
-                "Count": 266
-                "Page": "Wikipedia:Administrators'_noticeboard/Incidents"
-              }
+                "Count": 228,
+                "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+              },
               {
-                "Count": 243
-                "Page": "Wikipedia:Löschkandidaten/14._August_2015"
-              }
+                "Count": 186,
+                "Page": "Wikipedia:Vandalismusmeldung"
+              },
               {
-                "Count": 200
-                "Page": "Wikipedia:Administrator_intervention_against_vandalism"
+                "Count": 146,
+                "Page": "Wikipedia:Administrator intervention against vandalism"
               }
             ]
           }
@@ -458,16 +456,16 @@ describe "DruidExternal", ->
           {
             "Pages": [
               {
-                "Count": 71,
-                "Page": "Wikipedia:Usernames_for_administrator_attention/Bot"
+                "Count": 54,
+                "Page": "Wikipedia:Usernames for administrator attention/Bot"
               },
               {
-                "Count": 11,
-                "Page": "User:VeblenBot/C/Good_article_nominees"
+                "Count": 23,
+                "Page": "Usuari:TronaBot/log:Activitat reversors per hores"
               },
               {
-                "Count": 11,
-                "Page": "User:VeblenBot/C/Good_article_nominees_awaiting_review"
+                "Count": 23,
+                "Page": "Usuari:TronaBot/log:Reversions i patrullatge"
               }
             ]
           }
@@ -489,16 +487,16 @@ describe "DruidExternal", ->
           {
             "Pages": [
               {
-                "Count": 262
-                "Page": "!!!<Wikipedia:Administrators'_noticeboard/Incidents>!!!"
-              }
+                "Count": 316,
+                "Page": "!!!<Jeremy Corbyn>!!!"
+              },
               {
-                "Count": 253
-                "Page": "!!!<User:Cyde/List_of_candidates_for_speedy_deletion/Subpage>!!!"
-              }
+                "Count": 255,
+                "Page": "!!!<User:Cyde/List of candidates for speedy deletion/Subpage>!!!"
+              },
               {
-                "Count": 242
-                "Page": "!!!<Wikipedia:Löschkandidaten/14._August_2015>!!!"
+                "Count": 223,
+                "Page": "!!!<Wikipedia:Administrators' noticeboard/Incidents>!!!"
               }
             ]
           }
@@ -520,16 +518,16 @@ describe "DruidExternal", ->
           {
             "Pages": [
               {
-                "Count": 16026
+                "Count": 22503,
+                "Page": "Ca"
+              },
+              {
+                "Count": 20338,
                 "Page": "Us"
-              }
+              },
               {
-                "Count": 13045
+                "Count": 15332,
                 "Page": "Wi"
-              }
-              {
-                "Count": 6816
-                "Page": "Ta"
               }
             ]
           }
@@ -551,16 +549,16 @@ describe "DruidExternal", ->
           {
             "Pages": [
               {
-                "Count": 173011
+                "Count": 387184,
                 "Page": null
-              }
+              },
               {
-                "Count": 19
+                "Count": 21,
                 "Page": "75.108.94"
-              }
+              },
               {
-                "Count": 12
-                "Page": "151.224.127"
+                "Count": 14,
+                "Page": "120.29.65"
               }
             ]
           }
@@ -568,10 +566,10 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
-    it "works with lookup split", (testComplete) ->
+    it.skip "works with lookup split", (testComplete) ->
       ex = ply()
-        .apply('Languages',
-          $('wiki').split($('language').lookup('wikipedia-language-lookup'), 'Language')
+        .apply('Channels',
+          $('wiki').split($('channel').lookup('wikipedia-channel-lookup'), 'Channel')
             .apply('Count', '$wiki.sum($count)')
             .sort('$Count', 'descending')
             .limit(3)
@@ -580,18 +578,18 @@ describe "DruidExternal", ->
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
-            "Languages": [
+            "Channels": [
               {
                 "Count": 122857
-                "Language": "English"
+                "Channel": "English"
               }
               {
                 "Count": 22862
-                "Language": "German"
+                "Channel": "German"
               }
               {
                 "Count": 22140
-                "Language": "French"
+                "Channel": "French"
               }
             ]
           }
@@ -601,13 +599,13 @@ describe "DruidExternal", ->
 
     it "works multi-dimensional GROUP BYs", (testComplete) ->
       ex = ply()
-        .apply("wiki", $('wiki').filter($("language").isnt('en')))
+        .apply("wiki", $('wiki').filter($("channel").isnt('en')))
         .apply('Cuts',
           $("wiki").split({
-              'Language': "$language",
+              'Channel': "$channel",
               'TimeByHour': '$time.timeBucket(PT1H)',
               'NewPage': '$newPage',
-              'LanguageIsDE': "$language == 'de'"
+              'ChannelIsDE': "$channel == 'de'"
             })
             .apply('Count', $('wiki').count())
             .sort('$Count', 'descending')
@@ -619,46 +617,46 @@ describe "DruidExternal", ->
           {
             "Cuts": [
               {
-                "Count": 1440
-                "Language": "de"
-                "LanguageIsDE": true
-                "NewPage": false
+                "Channel": "vi",
+                "ChannelIsDE": false,
+                "Count": 12441,
+                "NewPage": null,
                 "TimeByHour": {
-                  "end": new Date('2015-08-14T21:00:00Z')
-                  "start": new Date('2015-08-14T20:00:00Z')
+                  "end": new Date('2015-09-12T07:00:00.000Z'),
+                  "start": new Date('2015-09-12T06:00:00.000Z'),
                   "type": "TIME_RANGE"
                 }
-              }
+              },
               {
-                "Count": 1386
-                "Language": "de"
-                "LanguageIsDE": true
-                "NewPage": false
+                "Channel": "vi",
+                "ChannelIsDE": false,
+                "Count": 11833,
+                "NewPage": null,
                 "TimeByHour": {
-                  "end": new Date('2015-08-14T14:00:00Z')
-                  "start": new Date('2015-08-14T13:00:00Z')
+                  "end": new Date('2015-09-12T08:00:00.000Z'),
+                  "start": new Date('2015-09-12T07:00:00.000Z'),
                   "type": "TIME_RANGE"
                 }
-              }
+              },
               {
-                "Count": 1384
-                "Language": "de"
-                "LanguageIsDE": true
-                "NewPage": false
+                "Channel": "vi",
+                "ChannelIsDE": false,
+                "Count": 6411,
+                "NewPage": null,
                 "TimeByHour": {
-                  "end": new Date('2015-08-14T12:00:00Z')
-                  "start": new Date('2015-08-14T11:00:00Z')
+                  "end": new Date('2015-09-12T18:00:00.000Z'),
+                  "start": new Date('2015-09-12T17:00:00.000Z'),
                   "type": "TIME_RANGE"
                 }
-              }
+              },
               {
-                "Count": 1367
-                "Language": "de"
-                "LanguageIsDE": true
-                "NewPage": false
+                "Channel": "vi",
+                "ChannelIsDE": false,
+                "Count": 4942,
+                "NewPage": null,
                 "TimeByHour": {
-                  "end": new Date('2015-08-14T20:00:00Z')
-                  "start": new Date('2015-08-14T19:00:00Z')
+                  "end": new Date('2015-09-12T16:00:00.000Z'),
+                  "start": new Date('2015-09-12T15:00:00.000Z'),
                   "type": "TIME_RANGE"
                 }
               }
@@ -678,8 +676,8 @@ describe "DruidExternal", ->
           timeAttribute: 'time',
           context: null
           filter: $('time').in(TimeRange.fromJS({
-            start: new Date("2015-09-14T00:00:00Z")
-            end: new Date("2015-09-15T00:00:00Z")
+            start: new Date("2015-09-12T00:00:00Z")
+            end: new Date("2015-09-13T00:00:00Z")
           }))
           druidVersion: info.druidVersion
           requester: druidRequester
@@ -689,7 +687,7 @@ describe "DruidExternal", ->
 
     it "works with introspection", (testComplete) ->
       ex = ply()
-        .apply("wiki", $('wiki').filter($("language").is('en')))
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply('Time',
@@ -708,64 +706,64 @@ describe "DruidExternal", ->
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
           {
-            "Count": 124632
+            "Count": 114711,
             "Time": [
               {
                 "Pages": [
                   {
-                    "Count": 35
-                    "Page": "Moses_Malone"
-                  }
+                    "Count": 12,
+                    "Page": "User talk:Dudeperson176123"
+                  },
                   {
-                    "Count": 25
-                    "Page": "Wikipedia:Articles_for_deletion/Log/2015_September_14"
+                    "Count": 8,
+                    "Page": "User:Attar-Aram syria/sandbox"
                   }
-                ]
+                ],
                 "Timestamp": {
-                  "end": new Date('2015-09-14T01:00:00.000Z')
-                  "start": new Date('2015-09-14T00:00:00.000Z')
+                  "end": new Date('2015-09-12T01:00:00.000Z'),
+                  "start": new Date('2015-09-12T00:00:00.000Z'),
                   "type": "TIME_RANGE"
-                }
-                "TotalAdded": 2550858
-              }
+                },
+                "TotalAdded": 331925
+              },
               {
                 "Pages": [
                   {
-                    "Count": 43
-                    "Page": "Edith_Wilmans"
-                  }
+                    "Count": 17,
+                    "Page": "John Adams"
+                  },
                   {
-                    "Count": 21
-                    "Page": "Template:Quote/testcases2"
+                    "Count": 17,
+                    "Page": "User:King Lui"
                   }
-                ]
+                ],
                 "Timestamp": {
-                  "end": new Date('2015-09-14T02:00:00.000Z')
-                  "start": new Date('2015-09-14T01:00:00.000Z')
+                  "end": new Date('2015-09-12T02:00:00.000Z'),
+                  "start": new Date('2015-09-12T01:00:00.000Z'),
                   "type": "TIME_RANGE"
-                }
-                "TotalAdded": 2090200
-              }
+                },
+                "TotalAdded": 1418072
+              },
               {
                 "Pages": [
                   {
-                    "Count": 58
-                    "Page": "Margie_Neal"
-                  }
+                    "Count": 28,
+                    "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+                  },
                   {
-                    "Count": 24
-                    "Page": "User:Curiocurio/sandbox"
+                    "Count": 18,
+                    "Page": "2015 World Wrestling Championships"
                   }
-                ]
+                ],
                 "Timestamp": {
-                  "end": new Date('2015-09-14T03:00:00.000Z')
-                  "start": new Date('2015-09-14T02:00:00.000Z')
+                  "end": new Date('2015-09-12T03:00:00.000Z'),
+                  "start": new Date('2015-09-12T02:00:00.000Z'),
                   "type": "TIME_RANGE"
-                }
-                "TotalAdded": 3617079
+                },
+                "TotalAdded": 3045966
               }
-            ]
-            "TotalAdded": 47744225
+            ],
+            "TotalAdded": 32553107
           }
         ])
         testComplete()
