@@ -1772,8 +1772,6 @@ return (start < 0 ?'-':'') + parts.join('.');
             druidQuery.postAggregations = aggregationsAndPostAggregations.postAggregations;
           }
 
-
-
           var splitSpec = this.splitToDruid();
           druidQuery.queryType = splitSpec.queryType;
           druidQuery.granularity = splitSpec.granularity;
@@ -1796,13 +1794,26 @@ return (start < 0 ?'-':'') + parts.join('.');
               var sortAction = this.sort;
               var metric: string | Druid.TopNMetricSpec;
               if (sortAction) {
-                metric = (<RefExpression>sortAction.expression).name;
+
+                var inverted: boolean;
                 if (this.sortOnLabel()) {
-                  metric = { type: 'lexicographic' };
+                  var splitType = this.split.firstSplitExpression().type;
+                  if (splitType === 'NUMBER' || splitType === 'NUMBER_RANGE') {
+                    metric = { type: 'alphaNumeric' };
+                    inverted = sortAction.direction === 'descending';
+                  } else {
+                    metric = { type: 'lexicographic' };
+                    inverted = sortAction.direction === 'ascending';
+                  }
+                } else {
+                  metric = (<RefExpression>sortAction.expression).name;
+                  inverted = sortAction.direction === 'ascending';
                 }
-                if (sortAction.direction === 'ascending') {
+
+                if (inverted) {
                   metric = { type: "inverted", metric: metric };
                 }
+
               } else {
                 metric = { type: 'lexicographic' };
               }

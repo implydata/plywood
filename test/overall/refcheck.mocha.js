@@ -3,7 +3,7 @@ var { expect } = require("chai");
 var plywood = require('../../build/plywood');
 var { Expression, Dataset, $, ply, r } = plywood;
 
-describe("reference check", function() {
+describe("reference check", () => {
   var context = {
     seventy: 70,
     diamonds: Dataset.fromJS([
@@ -11,8 +11,8 @@ describe("reference check", function() {
     ])
   };
 
-  describe("errors", function() {
-    it("fails to resolve a variable that does not exist", function() {
+  describe("errors", () => {
+    it("fails to resolve a variable that does not exist", () => {
       var ex = ply()
         .apply('num', 5)
         .apply(
@@ -22,13 +22,13 @@ describe("reference check", function() {
             .apply('y', '$foo * 2')
         );
 
-      expect(function() {
+      expect(() => {
           return ex.referenceCheck({});
         }
       ).to.throw('could not resolve $foo');
     });
 
-    it("fails to resolve a variable that does not exist (in scope)", function() {
+    it("fails to resolve a variable that does not exist (in scope)", () => {
       var ex = ply()
         .apply('num', 5)
         .apply(
@@ -38,13 +38,13 @@ describe("reference check", function() {
             .apply('y', '$^x * 2')
         );
 
-      expect(function() {
+      expect(() => {
           return ex.referenceCheck({});
         }
       ).to.throw('could not resolve $^x');
     });
 
-    it("fails to when a variable goes too deep", function() {
+    it("fails to when a variable goes too deep", () => {
       var ex = ply()
         .apply('num', 5)
         .apply(
@@ -54,13 +54,13 @@ describe("reference check", function() {
             .apply('y', '$^^^x * 2')
         );
 
-      expect(function() {
+      expect(() => {
           return ex.referenceCheck({ x: 5 });
         }
       ).to.throw('went too deep on $^^^x');
     });
 
-    it("fails when discovering that the types mismatch", function() {
+    it("fails when discovering that the types mismatch", () => {
       var ex = ply()
         .apply('str', 'Hello')
         .apply(
@@ -69,13 +69,13 @@ describe("reference check", function() {
             .apply('x', '$str + 1')
         );
 
-      expect(function() {
+      expect(() => {
           return ex.referenceCheck({ str: 'Hello World' });
         }
       ).to.throw('add must have input of type NUMBER');
     });
 
-    it("fails when discovering that the types mismatch via split", function() {
+    it("fails when discovering that the types mismatch via split", () => {
       var ex = ply()
         .apply("diamonds", $("diamonds").filter($('color').is('D')))
         .apply(
@@ -84,7 +84,7 @@ describe("reference check", function() {
             .apply('TotalPrice', '$Cut * 10')
         );
 
-      expect(function() {
+      expect(() => {
           return ex.referenceCheck(context);
         }
       ).to.throw('multiply must have input of type NUMBER');
@@ -92,8 +92,8 @@ describe("reference check", function() {
   });
 
 
-  describe("resolves", function() {
-    it("works in a basic case", function() {
+  describe("resolves", () => {
+    it("works in a basic case", () => {
       var ex = ply()
         .apply('num', 5)
         .apply(
@@ -115,7 +115,7 @@ describe("reference check", function() {
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works with simple context", function() {
+    it("works with simple context", () => {
       var ex = ply()
         .apply('xPlusOne', '$x + 1');
 
@@ -125,7 +125,7 @@ describe("reference check", function() {
       expect(ex.referenceCheck({ x: 70 }).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works from context 1", function() {
+    it("works from context 1", () => {
       var ex = $('diamonds')
         .apply('priceOver2', '$price / 2');
 
@@ -135,7 +135,7 @@ describe("reference check", function() {
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works from context 2", function() {
+    it("works from context 2", () => {
       var ex = ply()
         .apply('Diamonds', $('diamonds'))
         .apply('countPlusSeventy', '$Diamonds.count() + $seventy');
@@ -147,7 +147,7 @@ describe("reference check", function() {
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works with countDistinct", function() {
+    it("works with countDistinct", () => {
       var ex = ply()
         .apply('DistinctColors', '$diamonds.countDistinct($color)')
         .apply('DistinctCuts', '$diamonds.countDistinct($cut)')
@@ -161,7 +161,7 @@ describe("reference check", function() {
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("a total", function() {
+    it("a total", () => {
       var ex = ply()
         .apply("diamonds", $("diamonds").filter($('color').is('D')))
         .apply('Count', '$diamonds.count()')
@@ -175,7 +175,7 @@ describe("reference check", function() {
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("a split", function() {
+    it("a split", () => {
       var ex = ply()
         .apply("diamonds", $("diamonds").filter($('color').is('D')))
         .apply('Count', '$diamonds.count()')
@@ -207,7 +207,7 @@ describe("reference check", function() {
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("a base split", function() {
+    it("a base split", () => {
       var ex = $("diamonds").split("$cut", 'Cut')
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)');
@@ -219,7 +219,7 @@ describe("reference check", function() {
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("a base split + filter", function() {
+    it("a base split + filter", () => {
       var ex = $("diamonds").filter($('color').is('D')).split("$cut", 'Cut')
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)');
@@ -231,7 +231,7 @@ describe("reference check", function() {
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("two splits", function() {
+    it("two splits", () => {
       var ex = ply()
         .apply("diamonds", $('diamonds').filter($("color").is('D')))
         .apply('Count', $('diamonds').count())
@@ -275,7 +275,7 @@ describe("reference check", function() {
       expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("a join", function() {
+    it("a join", () => {
       var ex = ply()
         .apply('Data1', $('diamonds').filter($('price').in(105, 305)))
         .apply('Data2', $('diamonds').filter($('price').in(105, 305).not()))

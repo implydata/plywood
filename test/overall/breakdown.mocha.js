@@ -3,7 +3,7 @@ var { expect } = require("chai");
 var plywood = require('../../build/plywood');
 var { Expression, External, $, ply, r } = plywood;
 
-describe.skip("breakdown", function() {
+describe.skip("breakdown", () => {
   var context = {
     x: 1,
     y: 2,
@@ -33,26 +33,26 @@ describe.skip("breakdown", function() {
     })
   };
 
-  it("errors on breakdown zero datasets", function() {
+  it("errors on breakdown zero datasets", () => {
     var ex = Expression.parse('$x * $y + 2');
 
     ex = ex.referenceCheck(context);
-    expect(function() {
+    expect(() => {
       return ex.breakdownByDataset('b');
     }).to.throw();
   });
 
-  it("errors on breakdown one datasets", function() {
+  it("errors on breakdown one datasets", () => {
     var ex = Expression.parse('$diamonds.count() * 2');
 
     ex = ex.referenceCheck(context);
-    expect(function() {
+    expect(() => {
       return ex.breakdownByDataset('b');
     }).to.throw();
   });
 
 
-  it("breakdown two datasets correctly", function() {
+  it("breakdown two datasets correctly", () => {
     var ex = Expression.parse('$diamonds.count() * $diamonds2.count() + $diamonds.sum($carat)');
 
     ex = ex.referenceCheck(context);
@@ -63,7 +63,7 @@ describe.skip("breakdown", function() {
     expect(breakdown.combineExpression.toString()).to.equal('(($b0 * $b1) + $b2)');
   });
 
-  it("breakdown two datasets correctly (and de-duplicates expression)", function() {
+  it("breakdown two datasets correctly (and de-duplicates expression)", () => {
     var ex = Expression.parse('$diamonds.count() * $diamonds2.sum($carat) + $diamonds.count()');
 
     ex = ex.referenceCheck(context);

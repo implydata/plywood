@@ -32,9 +32,9 @@ var ex = ply()
   .apply("wiki",
     $('wiki').filter(
       $("time").in({
-        start: new Date("2015-08-26T00:00:00Z"),
-        end: new Date("2015-08-27T00:00:00Z")
-      })
+          start: new Date("2015-08-26T00:00:00Z"),
+          end: new Date("2015-08-27T00:00:00Z")
+        })
         .and($('language').in(['English', 'Spanish']))
     )
   )

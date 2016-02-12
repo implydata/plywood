@@ -5,9 +5,9 @@ var { testImmutableClass } = require("immutable-class/build/tester");
 var plywood = require('../../build/plywood');
 var { AttributeInfo, $, ply, r } = plywood;
 
-describe("NumberRange", function() {
-  it("is immutable class", function() {
-    return testImmutableClass(AttributeInfo, [
+describe("NumberRange", () => {
+  it("is immutable class", () => {
+    testImmutableClass(AttributeInfo, [
       { name: 'time', type: 'TIME' },
       { name: 'color', type: 'STRING' },
       { name: 'cut', type: 'STRING' },

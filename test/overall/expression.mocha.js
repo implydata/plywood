@@ -11,9 +11,9 @@ if (!WallTime.rules) {
 var plywood = require('../../build/plywood');
 var { Expression, $, RefExpression } = plywood;
 
-describe("Expression", function() {
-  it("is immutable class", function() {
-    return testImmutableClass(Expression, [
+describe("Expression", () => {
+  it("is immutable class", () => {
+    testImmutableClass(Expression, [
       { op: 'literal', value: null },
       { op: 'literal', value: false },
       { op: 'literal', value: true },
@@ -100,8 +100,8 @@ describe("Expression", function() {
     });
   });
 
-  describe("does not die with hasOwnProperty", function() {
-    it("survives", function() {
+  describe("does not die with hasOwnProperty", () => {
+    it("survives", () => {
       expect(Expression.fromJS({
         op: 'literal',
         value: 'Honda',
@@ -114,9 +114,9 @@ describe("Expression", function() {
   });
 
 
-  describe("errors", function() {
-    it("does not like an expression without op", function() {
-      expect(function() {
+  describe("errors", () => {
+    it("does not like an expression without op", () => {
+      expect(() => {
           return Expression.fromJS({
             name: 'hello'
           });
@@ -124,8 +124,8 @@ describe("Expression", function() {
       ).to.throw('op must be defined');
     });
 
-    it("does not like an expression with a bad op", function() {
-      expect(function() {
+    it("does not like an expression with a bad op", () => {
+      expect(() => {
           return Expression.fromJS({
             op: 42
           });
@@ -133,8 +133,8 @@ describe("Expression", function() {
       ).to.throw('op must be a string');
     });
 
-    it("does not like an expression with a unknown op", function() {
-      expect(function() {
+    it("does not like an expression with a unknown op", () => {
+      expect(() => {
           return Expression.fromJS({
             op: 'this was once an empty file'
           });
@@ -142,8 +142,8 @@ describe("Expression", function() {
       ).to.throw("unsupported expression op 'this was once an empty file'");
     });
 
-    it("does not like an expression with a unknown op", function() {
-      expect(function() {
+    it("does not like an expression with a unknown op", () => {
+      expect(() => {
           return Expression.fromJS({
             op: 'chain',
             expression: { op: 'ref', name: 'diamonds' },
@@ -159,15 +159,15 @@ describe("Expression", function() {
   });
 
 
-  describe("fancy names", function() {
-    it("behaves corretly with spaces", function() {
+  describe("fancy names", () => {
+    it("behaves corretly with spaces", () => {
       expect($("I blame your mother").toJS()).to.deep.equal({
         "op": "ref",
         "name": "I blame your mother"
       });
     });
 
-    it("works with fromJSLoose", function() {
+    it("works with fromJSLoose", () => {
       expect(Expression.fromJSLoose("$^^{and do don't call me shirley}").toJS()).to.deep.equal({
         "op": "ref",
         "name": "and do don't call me shirley",
@@ -175,7 +175,7 @@ describe("Expression", function() {
       });
     });
 
-    it("works with ref expression parse", function() {
+    it("works with ref expression parse", () => {
       expect(RefExpression.parse("{how are you today?}:NUMBER").toJS()).to.deep.equal({
         "op": "ref",
         "name": "how are you today?",
@@ -183,7 +183,7 @@ describe("Expression", function() {
       });
     });
 
-    it("parses", function() {
+    it("parses", () => {
       expect(Expression.parse("$^{hello 'james'} + ${how are you today?}:NUMBER").toJS()).to.deep.equal({
         "op": "chain",
         "expression": {
@@ -204,15 +204,15 @@ describe("Expression", function() {
   });
 
 
-  describe("#getFn", function() {
-    it("works in a simple case of IS", function() {
+  describe("#getFn", () => {
+    it("works in a simple case of IS", () => {
       var ex = $('x').is(8);
       var exFn = ex.getFn();
       expect(exFn({ x: 5 })).to.equal(false);
       expect(exFn({ x: 8 })).to.equal(true);
     });
 
-    it("works in a simple case of addition", function() {
+    it("works in a simple case of addition", () => {
       var ex = $('x').add('$y', 5);
       var exFn = ex.getFn();
       expect(exFn({ x: 5, y: 1 })).to.equal(11);
@@ -221,14 +221,14 @@ describe("Expression", function() {
   });
 
 
-  describe('#decomposeAverage', function() {
-    it('works in simple case', function() {
+  describe('#decomposeAverage', () => {
+    it('works in simple case', () => {
       var ex1 = $('data').average('$x');
       var ex2 = $('data').sum('$x').divide($('data').count());
       expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it('works in more nested case', function() {
+    it('works in more nested case', () => {
       var ex1 = $('w').add(
         $('data').average('$x'),
         $('data').average('$y + $z')
@@ -240,7 +240,7 @@ describe("Expression", function() {
       expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it('works in custom count case', function() {
+    it('works in custom count case', () => {
       var ex1 = $('data').average('$x');
       var ex2 = $('data').sum('$x').divide($('data').sum('$count'));
       expect(ex1.decomposeAverage($('count')).toJS()).to.deep.equal(ex2.toJS());
@@ -248,32 +248,32 @@ describe("Expression", function() {
   });
 
 
-  describe('#distribute', function() {
-    it('works in simple - case', function() {
+  describe('#distribute', () => {
+    it('works in simple - case', () => {
       var ex1 = $('data').sum('-$x');
       var ex2 = $('data').sum('$x').negate();
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it('works in simple + case', function() {
+    it('works in simple + case', () => {
       var ex1 = $('data').sum('$x + $y');
       var ex2 = $('data').sum('$x').add('$data.sum($y)');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it.skip('works in constant * case', function() {
+    it.skip('works in constant * case', () => {
       var ex1 = $('data').sum('$x * 6');
       var ex2 = r(6).multiply('$data.sum($x)');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it.skip('works in constant * case (multiple operands)', function() {
+    it.skip('works in constant * case (multiple operands)', () => {
       var ex1 = $('data').sum('$x * 6 * $y');
       var ex2 = r(6).multiply('$data.sum($x * $y)');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    return it.skip('works in complex case', function() {
+    return it.skip('works in complex case', () => {
       var ex1 = $('data').sum('$x + $y - $z * 5 + 6');
       var ex2 = $('data').sum($x).add('$data.sum($y)', '(5 * $data.sum($z)).negate()', '6 * $data.count()');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());

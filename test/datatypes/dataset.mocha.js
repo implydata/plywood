@@ -5,9 +5,9 @@ var { testImmutableClass } = require("immutable-class/build/tester");
 var plywood = require('../../build/plywood');
 var { Dataset, AttributeInfo, $, ply, r } = plywood;
 
-describe("Dataset", function() {
-  it("is immutable class", function() {
-    return testImmutableClass(Dataset, [
+describe("Dataset", () => {
+  it("is immutable class", () => {
+    testImmutableClass(Dataset, [
       [
         { x: 1, y: 2 },
         { x: 2, y: 3 }
@@ -94,22 +94,22 @@ describe("Dataset", function() {
   });
 
 
-  describe("getFullType", function() {
-    it("works in empty case", function() {
+  describe("getFullType", () => {
+    it("works in empty case", () => {
       expect(Dataset.fromJS([]).getFullType()).to.deep.equal({
         type: "DATASET",
         datasetType: {}
       });
     });
 
-    it("works in singleton case", function() {
+    it("works in singleton case", () => {
       expect(Dataset.fromJS([{}]).getFullType()).to.deep.equal({
         type: "DATASET",
         datasetType: {}
       });
     });
 
-    it("works in basic case", function() {
+    it("works in basic case", () => {
       expect(Dataset.fromJS([
         { x: 1, y: "hello", z: new Date(1000) },
         { x: 2, y: "world", z: new Date(1001) }
@@ -123,7 +123,7 @@ describe("Dataset", function() {
       });
     });
 
-    it("works in nested case", function() {
+    it("works in nested case", () => {
       expect(Dataset.fromJS([
         {
           x: 1,
@@ -162,8 +162,8 @@ describe("Dataset", function() {
   });
 
 
-  describe("introspects", function() {
-    it("in real case", function() {
+  describe("introspects", () => {
+    it("in real case", () => {
       var ds = Dataset.fromJS([
         {
           "time": new Date("2015-09-12T00:46:58.771Z"),
@@ -238,55 +238,55 @@ describe("Dataset", function() {
   });
 
 
-  describe("sorts", function() {
+  describe("sorts", () => {
     var someDataset = Dataset.fromJS([
       { time: new Date('2015-01-04T12:32:43'), resource: 'A', value: 7, nice: false },
       { time: null, resource: 'B', value: 2, nice: true },
       { time: new Date('2015-01-03T12:32:43'), resource: null, value: null, nice: null }
     ]);
 
-    it("STRING, ascending", function() {
-      expect(someDataset.sort($('resource').getFn(), 'ascending', {}).toJS().map(function(d) {
+    it("STRING, ascending", () => {
+      expect(someDataset.sort($('resource').getFn(), 'ascending', {}).toJS().map((d) => {
         return d.resource;
       })).to.deep.equal([
         null, 'A', 'B'
       ]);
     });
 
-    it("STRING, descending", function() {
-      expect(someDataset.sort($('resource').getFn(), 'descending', {}).toJS().map(function(d) {
+    it("STRING, descending", () => {
+      expect(someDataset.sort($('resource').getFn(), 'descending', {}).toJS().map((d) => {
         return d.resource;
       })).to.deep.equal([
         'B', 'A', null
       ]);
     });
 
-    it("NUMBER, ascending", function() {
-      expect(someDataset.sort($('value').getFn(), 'ascending', {}).toJS().map(function(d) {
+    it("NUMBER, ascending", () => {
+      expect(someDataset.sort($('value').getFn(), 'ascending', {}).toJS().map((d) => {
         return d.value;
       })).to.deep.equal([
         null, 2, 7
       ]);
     });
 
-    it("NUMBER, descending", function() {
-      expect(someDataset.sort($('value').getFn(), 'descending', {}).toJS().map(function(d) {
+    it("NUMBER, descending", () => {
+      expect(someDataset.sort($('value').getFn(), 'descending', {}).toJS().map((d) => {
         return d.value;
       })).to.deep.equal([
         7, 2, null
       ]);
     });
 
-    it("BOOLEAN, ascending", function() {
-      expect(someDataset.sort($('nice').getFn(), 'ascending', {}).toJS().map(function(d) {
+    it("BOOLEAN, ascending", () => {
+      expect(someDataset.sort($('nice').getFn(), 'ascending', {}).toJS().map((d) => {
         return d.nice;
       })).to.deep.equal([
         null, false, true
       ]);
     });
 
-    it("BOOLEAN, descending", function() {
-      expect(someDataset.sort($('nice').getFn(), 'descending', {}).toJS().map(function(d) {
+    it("BOOLEAN, descending", () => {
+      expect(someDataset.sort($('nice').getFn(), 'descending', {}).toJS().map((d) => {
         return d.nice;
       })).to.deep.equal([
         true, false, null
@@ -295,7 +295,7 @@ describe("Dataset", function() {
   });
 
 
-  describe("methods", function() {
+  describe("methods", () => {
     var emptyDataset = Dataset.fromJS([]);
 
     var carDataset = Dataset.fromJS([
@@ -415,12 +415,12 @@ describe("Dataset", function() {
       }
     ]);
 
-    describe("#getColumns", function() {
-      it("works with empty dataset", function() {
+    describe("#getColumns", () => {
+      it("works with empty dataset", () => {
         expect(emptyDataset.getColumns()).to.deep.equal([]);
       });
 
-      it("works with basic dataset", function() {
+      it("works with basic dataset", () => {
         expect(carDataset.getColumns()).to.deep.equal([
           {
             "name": "time",
@@ -441,7 +441,7 @@ describe("Dataset", function() {
         ]);
       });
 
-      it("works with sub-dataset without prefix", function() {
+      it("works with sub-dataset without prefix", () => {
         expect(carAndPartsDataset.getColumns()).to.deep.equal([
           {
             "name": "time",
@@ -470,7 +470,7 @@ describe("Dataset", function() {
         ]);
       });
 
-      it("works with sub-dataset with prefix", function() {
+      it("works with sub-dataset with prefix", () => {
         expect(carAndPartsDataset.getColumns({ prefixColumns: true })).to.deep.equal([
           {
             "name": "time",
@@ -499,7 +499,7 @@ describe("Dataset", function() {
         ]);
       });
 
-      it("works with total and sub-split", function() {
+      it("works with total and sub-split", () => {
         expect(carTotalAndSubSplitDataset.getColumns()).to.deep.equal([
           {
             "name": "make",
@@ -522,12 +522,12 @@ describe("Dataset", function() {
     });
 
 
-    describe("#flatten", function() {
-      it("works with empty dataset", function() {
+    describe("#flatten", () => {
+      it("works with empty dataset", () => {
         expect(emptyDataset.flatten()).to.deep.equal([]);
       });
 
-      it("works with basic dataset", function() {
+      it("works with basic dataset", () => {
         expect(carDataset.flatten()).to.deep.equal([
           {
             "make": "Honda",
@@ -544,7 +544,7 @@ describe("Dataset", function() {
         ]);
       });
 
-      it("works with sub-dataset with prefix", function() {
+      it("works with sub-dataset with prefix", () => {
         expect(carAndPartsDataset.flatten({ prefixColumns: true })).to.deep.equal([
           {
             "make": "Honda",
@@ -581,7 +581,7 @@ describe("Dataset", function() {
         ]);
       });
 
-      it("works with total and sub-split", function() {
+      it("works with total and sub-split", () => {
         expect(carTotalAndSubSplitDataset.flatten()).to.deep.equal([
           {
             "make": "Honda",
@@ -610,7 +610,7 @@ describe("Dataset", function() {
         ]);
       });
 
-      it("works with total and sub-split with postorder", function() {
+      it("works with total and sub-split with postorder", () => {
         expect(carTotalAndSubSplitDataset.flatten({ order: 'postorder' })).to.deep.equal([
           {
             "make": "Honda",
@@ -653,7 +653,7 @@ describe("Dataset", function() {
         ]);
       });
 
-      it("works with total and sub-split with preorder and nesting indicator", function() {
+      it("works with total and sub-split with preorder and nesting indicator", () => {
         expect(carTotalAndSubSplitDataset.flatten({ order: 'preorder', nestingName: 'nest' })).to.deep.equal([
           {
             "nest": 0,
@@ -703,7 +703,7 @@ describe("Dataset", function() {
         ]);
       });
 
-      it("works with total and sub-split with preorder and parent indicator", function() {
+      it("works with total and sub-split with preorder and parent indicator", () => {
         expect(carTotalAndSubSplitDataset.flatten({ order: 'preorder', parentName: 'p' })[3]).to.deep.equal({
           "make": "Honda",
           "model": "Accord",
@@ -722,7 +722,7 @@ describe("Dataset", function() {
         });
       });
 
-      it("works with timeseries with preorder and nesting indicator", function() {
+      it("works with timeseries with preorder and nesting indicator", () => {
         expect(timeSeriesResult.flatten({ order: 'preorder', nestingName: 'nest' })[0]).to.deep.equal(
           {
             "added": 6686857,
@@ -734,15 +734,15 @@ describe("Dataset", function() {
     });
 
 
-    describe("#toCSV", function() {
-      it("works with basic dataset", function() {
+    describe("#toCSV", () => {
+      it("works with basic dataset", () => {
         expect(carDataset.toTabular({})).to.equal(`time,make,model,price
 2015-01-04T12:32:43.000Z,Honda,Civic,10000
 2015-01-04T14:00:40.000Z,Toyota,Prius,20000
 `);
       });
 
-      it("works with sub-dataset", function() {
+      it("works with sub-dataset", () => {
         expect(carAndPartsDataset.toTabular({})).to.equal(`time,make,model,part,price,weight
 2015-01-04T12:32:43.000Z,Honda,Civic,Engine,10000,500
 2015-01-04T12:32:43.000Z,Honda,Civic,Door,10000,20

@@ -11,9 +11,9 @@ var { testImmutableClass } = require("immutable-class/build/tester");
 var plywood = require('../../build/plywood');
 var { Action, $, ply, r, MatchAction } = plywood;
 
-describe("Actions", function() {
-  it("is immutable class", function() {
-    return testImmutableClass(Action, [
+describe("Actions", () => {
+  it("is immutable class", () => {
+    testImmutableClass(Action, [
       {
         action: 'filter',
         expression: {
@@ -90,7 +90,7 @@ describe("Actions", function() {
     });
   });
 
-  it("does not die with hasOwnProperty", function() {
+  it("does not die with hasOwnProperty", () => {
     expect(Action.fromJS({
       action: 'apply',
       name: 'Five',
@@ -104,8 +104,8 @@ describe("Actions", function() {
   });
 
 
-  describe("MatchAction", function() {
-    it(".likeToRegExp", function() {
+  describe("MatchAction", () => {
+    it(".likeToRegExp", () => {
       expect(MatchAction.likeToRegExp('%David\\_R_ss%')).to.equal('^.*David_R.ss.*$');
 
       expect(MatchAction.likeToRegExp('%David|_R_ss||%', '|')).to.equal('^.*David_R.ss\\|.*$');

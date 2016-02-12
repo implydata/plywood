@@ -45,8 +45,8 @@ var context = {
 };
 
 // https://amplab.cs.berkeley.edu/benchmark/
-describe("simulate Druid for amplab benchmark", function() {
-  it.skip("works for Query1", function() {
+describe("simulate Druid for amplab benchmark", () => {
+  it.skip("works for Query1", () => {
 //      SELECT pageURL, pageRank FROM rankings WHERE pageRank > X
     var sql;
     return sql = 'SELECT pageURL, pageRank FROM rankings WHERE pageRank > 5';
@@ -54,7 +54,7 @@ describe("simulate Druid for amplab benchmark", function() {
 
   // ToDo: make it so that selects such as these are automatically turned into groupBys within druid
 
-  it("works for Query1 (modified to be GROUP BY)", function() {
+  it("works for Query1 (modified to be GROUP BY)", () => {
 //      SELECT pageURL, sum(pageRank) AS pageRank FROM rankings GROUP BY pageURL HAVING pageRank > X
     var sql = 'SELECT pageURL, sum(pageRank) AS pageRank FROM rankings GROUP BY pageURL HAVING pageRank > 5';
     var ex = Expression.parseSQL(sql).expression;
@@ -104,7 +104,7 @@ describe("simulate Druid for amplab benchmark", function() {
     ]);
   });
 
-  it("works for Query2", function() {
+  it("works for Query2", () => {
 //      SELECT SUBSTR(sourceIP, 1, X), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, X)
     var sql = 'SELECT SUBSTR(sourceIP, 1, 5), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, 5)';
     var ex = Expression.parseSQL(sql).expression;

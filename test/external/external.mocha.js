@@ -36,9 +36,9 @@ var context = {
   })))
 };
 
-describe("External", function() {
-  it("is immutable class", function() {
-    return testImmutableClass(External, [
+describe("External", () => {
+  it("is immutable class", () => {
+    testImmutableClass(External, [
       {
         engine: 'mysql',
         table: 'diamonds',
@@ -96,8 +96,8 @@ describe("External", function() {
   });
 
 
-  describe("does not die with hasOwnProperty", function() {
-    it("survives", function() {
+  describe("does not die with hasOwnProperty", () => {
+    it("survives", () => {
       expect(External.fromJS({
         engine: 'druid',
         dataSource: 'wiki',
@@ -116,9 +116,9 @@ describe("External", function() {
   });
 
 
-  describe("fails on version too low", function() {
-    it("survives", function() {
-      expect(function() {
+  describe("fails on version too low", () => {
+    it("survives", () => {
+      expect(() => {
           return External.fromJS({
             engine: 'druid',
             dataSource: 'wiki',
@@ -132,8 +132,8 @@ describe("External", function() {
   });
 
 
-  describe("#updateAttribute", function() {
-    it("works", function() {
+  describe("#updateAttribute", () => {
+    it("works", () => {
       var external = External.fromJS({
         engine: 'druid',
         dataSource: 'moon_child',
@@ -159,15 +159,15 @@ describe("External", function() {
   });
 
 
-  describe("simplifies / digests", function() {
-    it("a simple select", function() {
+  describe("simplifies / digests", () => {
+    it("a simple select", () => {
       var ex = $('wiki');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
       expect(ex.op).to.equal('external');
     });
 
-    it("select, apply, filter", function() {
+    it("select, apply, filter", () => {
       var ex = $('wiki')
         .apply('addedTwice', '$added * 2')
         .filter($("language").is('en'));
@@ -183,7 +183,7 @@ describe("External", function() {
       );
     });
 
-    it("a total", function() {
+    it("a total", () => {
       var ex = ply()
         .apply(
           "wiki",
@@ -213,7 +213,7 @@ describe("External", function() {
       ]);
     });
 
-    it("a split on string", function() {
+    it("a split on string", () => {
       var ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -241,7 +241,7 @@ describe("External", function() {
       ]);
     });
 
-    it("a split on string with multiple limits in ascending order", function() {
+    it("a split on string with multiple limits in ascending order", () => {
       var ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .sort('$Count', 'descending')
@@ -262,7 +262,7 @@ describe("External", function() {
       ]);
     });
 
-    it("a split on string with multiple limits in descending order", function() {
+    it("a split on string with multiple limits in descending order", () => {
       var ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .sort('$Count', 'descending')
@@ -283,7 +283,7 @@ describe("External", function() {
       ]);
     });
 
-    it("a split on time", function() {
+    it("a split on time", () => {
       var ex = $('wiki').split($("time").timeBucket('P1D', 'America/Los_Angeles'), 'Timestamp')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -315,7 +315,7 @@ describe("External", function() {
       ]);
     });
 
-    it("a filtered split on string", function() {
+    it("a filtered split on string", () => {
       var ex = $('wiki').filter('$language == "en"').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -349,7 +349,7 @@ describe("External", function() {
       ]);
     });
 
-    it("a total and a split", function() {
+    it("a total and a split", () => {
       var ex = ply()
         .apply(
           "wiki",
@@ -381,7 +381,7 @@ describe("External", function() {
       ]);
     });
 
-    it("a blank total and a split", function() {
+    it("a blank total and a split", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("language").is('en')))
         .apply(
@@ -400,7 +400,7 @@ describe("External", function() {
       expect(ex.expression.op).to.equal('literal');
     });
 
-    it("a total and a split in a strange order", function() {
+    it("a total and a split in a strange order", () => {
       var ex = ply()
         .apply(
           "wiki",
@@ -432,7 +432,7 @@ describe("External", function() {
       ]);
     });
 
-    it("a split and another split in a strange order", function() {
+    it("a split and another split in a strange order", () => {
       var ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .sort('$Count', 'descending')
@@ -461,7 +461,7 @@ describe("External", function() {
       ]);
     });
 
-    return it.skip("a join of two splits", function() {
+    return it.skip("a join of two splits", () => {
       var ex = $('wiki').split('$page', 'Page').join($('wikiCmp').split('$page', 'Page'))
         .apply('wiki', '$wiki.filter($page = $^Page)')
         .apply('wikiCmp', '$wikiCmp.filter($page = $^Page)')

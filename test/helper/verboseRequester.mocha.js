@@ -5,8 +5,8 @@ var Q = require('q');
 var plywood = require("../../build/plywood");
 var { verboseRequesterFactory } = plywood.helper;
 
-describe("Verbose requester", function() {
-  var requester = function(request) {
+describe("Verbose requester", () => {
+  var requester = (request) => {
     if (/^fail/.test(request.query)) {
       return Q.reject(new Error('some error'));
     } else {
@@ -14,7 +14,7 @@ describe("Verbose requester", function() {
     }
   };
 
-  it("works on success", function(testComplete) {
+  it("works on success", (testComplete) => {
     var lines = [];
     var verboseRequester = verboseRequesterFactory({
       requester: requester,
@@ -23,9 +23,11 @@ describe("Verbose requester", function() {
       }
     });
 
-    return verboseRequester({ query: 'Query1' }).then(function(res) {
+    return verboseRequester({ query: 'Query1' })
+      .then((res) => {
         expect(res).to.be.an('array');
-        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(`vvvvvvvvvvvvvvvvvvvvvvvvvv
+        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
+`vvvvvvvvvvvvvvvvvvvvvvvvvv
 Sending query 1:
 "Query1"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -37,12 +39,12 @@ Got result from query 1: (in Xms)
   3
 ]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
-        return testComplete();
-      }
-    ).done();
+        testComplete();
+      })
+      .done();
   });
 
-  it("works on failure", function(testComplete) {
+  it("works on failure", (testComplete) => {
     var lines = [];
     var verboseRequester = verboseRequesterFactory({
       requester: requester,
@@ -51,18 +53,21 @@ Got result from query 1: (in Xms)
       }
     });
 
-    return verboseRequester({ query: 'failThis' }).then(function() {
-      throw new Error('did not fail');
-    }).catch(function(error) {
-        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(`vvvvvvvvvvvvvvvvvvvvvvvvvv
+    return verboseRequester({ query: 'failThis' })
+      .then(() => {
+        throw new Error('did not fail');
+      })
+      .catch((error) => {
+        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
+`vvvvvvvvvvvvvvvvvvvvvvvvvv
 Sending query 1:
 "failThis"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 vvvvvvvvvvvvvvvvvvvvvvvvvv
 Got error in query 1: some error (in Xms)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
-        return testComplete();
-      }
-    ).done();
+        testComplete();
+      })
+      .done();
   });
 });

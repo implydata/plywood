@@ -3,8 +3,8 @@ var { expect } = require("chai");
 var plywood = require('../../build/plywood');
 var { Expression, Dataset, $, ply, r } = plywood;
 
-describe("stringification", function() {
-  it("works in advanced case", function() {
+describe("stringification", () => {
+  it("works in advanced case", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', $('diamonds').count())
@@ -59,23 +59,23 @@ describe("stringification", function() {
     )`);
   });
 
-  it("works with lookup", function() {
+  it("works with lookup", () => {
     var ex = $('diamonds').split("$cut.lookup('hello_lookup')", 'CutLookup');
 
     expect(ex.toString(2)).to.equal("$diamonds.split($cut.lookup(hello_lookup),CutLookup,diamonds)");
   });
 
-  it("works with timePart", function() {
+  it("works with timePart", () => {
     var ex = $('time').timePart('DAY_OF_WEEK');
     expect(ex.toString(2)).to.equal("$time.timePart(DAY_OF_WEEK)");
   });
 
-  it("works with timeShift", function() {
+  it("works with timeShift", () => {
     var ex = $('time').timeShift('P1D', 2);
     expect(ex.toString(2)).to.equal("$time.timeShift(P1D,2)");
   });
 
-  it("works with timeRange", function() {
+  it("works with timeRange", () => {
     var ex = $('time').timeRange('P1D', 2);
     expect(ex.toString(2)).to.equal("$time.timeRange(P1D,2)");
   });

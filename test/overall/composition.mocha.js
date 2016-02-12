@@ -3,8 +3,8 @@ var { expect } = require("chai");
 var plywood = require('../../build/plywood');
 var { $, ply, r } = plywood;
 
-describe("composition", function() {
-  it("works in blank case", function() {
+describe("composition", () => {
+  it("works in blank case", () => {
     var ex = ply();
     expect(ex.toJS()).to.deep.equal({
       "op": "literal",
@@ -13,7 +13,7 @@ describe("composition", function() {
     });
   });
 
-  it("works in ref case", function() {
+  it("works in ref case", () => {
     var ex = $("diamonds");
     expect(ex.toJS()).to.deep.equal({
       "op": "ref",
@@ -21,7 +21,7 @@ describe("composition", function() {
     });
   });
 
-  it("works in uber-basic case", function() {
+  it("works in uber-basic case", () => {
     var ex = ply()
       .apply('five', 5)
       .apply('nine', 9);
@@ -48,7 +48,7 @@ describe("composition", function() {
     });
   });
 
-  it("works IN of a set", function() {
+  it("works IN of a set", () => {
     var ex = $("x").in(['A', 'B', 'C']);
     expect(ex.toJS()).to.deep.equal({
       "action": {
@@ -74,7 +74,7 @@ describe("composition", function() {
     });
   });
 
-  it("works IN of NumberRange", function() {
+  it("works IN of NumberRange", () => {
     var ex = $("x").in(3, 10);
     expect(ex.toJS()).to.deep.equal({
       "action": {
@@ -96,7 +96,7 @@ describe("composition", function() {
     });
   });
 
-  it("works IN of TimeRange", function() {
+  it("works IN of TimeRange", () => {
     var ex = $("x").in(new Date('2015-03-03Z'), new Date('2015-10-10Z'));
     expect(ex.toJS()).to.deep.equal({
       "action": {
@@ -118,7 +118,7 @@ describe("composition", function() {
     });
   });
 
-  it("works IN of TimeRange (as strings)", function() {
+  it("works IN of TimeRange (as strings)", () => {
     var ex = $("x").in('2015-03-03Z', '2015-10-10Z');
     expect(ex.toJS()).to.deep.equal({
       "action": {
@@ -140,7 +140,7 @@ describe("composition", function() {
     });
   });
 
-  it("works in single split case", function() {
+  it("works in single split case", () => {
     var ex = $('data')
       .split('$page', 'Page', 'd');
 
@@ -162,7 +162,7 @@ describe("composition", function() {
     });
   });
 
-  it("works in multi split case", function() {
+  it("works in multi split case", () => {
     var ex = $('data')
       .split({ Page: '$page', User: '$page' }, 'd');
 
@@ -189,7 +189,7 @@ describe("composition", function() {
     });
   });
 
-  it("works in semi-realistic case", function() {
+  it("works in semi-realistic case", () => {
     var ex = ply()
       .apply(
         "Diamonds",
@@ -297,7 +297,7 @@ describe("composition", function() {
     });
   });
 
-  it("works in semi-realistic case (using parser)", function() {
+  it("works in semi-realistic case (using parser)", () => {
     var ex = ply()
       .apply("Diamonds", ply().filter("$color == 'D'").apply("priceOver2", "$price/2"))
       .apply('Count', $('Diamonds').count())

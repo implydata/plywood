@@ -2,38 +2,38 @@ var { expect } = require("chai");
 
 var plywood = require('../../build/plywood');
 
-describe("utils", function() {
-  describe("safeAdd", function() {
-    it("works on 0.2 + 0.1", function() {
+describe("utils", () => {
+  describe("safeAdd", () => {
+    it("works on 0.2 + 0.1", () => {
       expect(plywood.safeAdd(0.2, 0.1)).to.equal(0.3);
       expect(plywood.safeAdd(0.2, 0.1)).to.not.equal(0.2 + 0.1);
     });
 
-    it("works on 0.7 + 0.1", function() {
+    it("works on 0.7 + 0.1", () => {
       expect(plywood.safeAdd(0.7, 0.1)).to.equal(0.8);
       expect(plywood.safeAdd(0.7, 0.1)).to.not.equal(0.7 + 0.1);
     });
 
-    it("works on unrepresentable", function() {
+    it("works on unrepresentable", () => {
       expect(plywood.safeAdd(1, 1 / 3)).to.equal(1 + 1 / 3);
     });
   });
 
 
-  describe("continuousFloorExpression", function() {
-    it("should be minimalistic (no size / no offset)", function() {
+  describe("continuousFloorExpression", () => {
+    it("should be minimalistic (no size / no offset)", () => {
       expect(plywood.continuousFloorExpression("x", "Math.floor", 1, 0)).to.equal('Math.floor(x)');
     });
 
-    it("should be minimalistic (no size)", function() {
+    it("should be minimalistic (no size)", () => {
       expect(plywood.continuousFloorExpression("x", "Math.floor", 1, 0.3)).to.equal('Math.floor(x - 0.3) + 0.3');
     });
 
-    it("should be minimalistic (no offset)", function() {
+    it("should be minimalistic (no offset)", () => {
       expect(plywood.continuousFloorExpression("x", "Math.floor", 5, 0)).to.equal('Math.floor(x / 5) * 5');
     });
 
-    it("should be work in general", function() {
+    it("should be work in general", () => {
       expect(plywood.continuousFloorExpression("x", "Math.floor", 5, 3)).to.equal('Math.floor((x - 3) / 5) * 5 + 3');
     });
   });

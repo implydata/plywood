@@ -3,8 +3,8 @@ var { expect } = require("chai");
 var plywood = require('../../build/plywood');
 var { Expression, Dataset, $, ply, r } = plywood;
 
-describe("traversal", function() {
-  var subs = function(ex, index, depth, nestDiff) {
+describe("traversal", () => {
+  var subs = (ex, index, depth, nestDiff) => {
     var repNum = index * 1e6 + depth * 1e3 + nestDiff;
     if (ex.op === 'literal' && ex.type === 'NUMBER') {
       expect(ex.value).to.equal(repNum);
@@ -12,7 +12,7 @@ describe("traversal", function() {
     return null;
   };
 
-  describe("has the right parameters", function() {
+  describe("has the right parameters", () => {
     var ex = ply()
       .apply('num', 2001001)
       .apply(
@@ -29,17 +29,17 @@ describe("traversal", function() {
           .apply('w', '34003002 + $data:DATASET.sum(37004003)')
       );
 
-    it("on substitute", function() {
+    it("on substitute", () => {
       return ex.substitute(subs);
     });
 
-    it("on every", function() {
+    it("on every", () => {
       return ex.every(subs);
     });
   });
 
 
-  describe("has the right parameters with dataset", function() {
+  describe("has the right parameters with dataset", () => {
     var data = [
       { cut: 'Good', price: 400 },
       { cut: 'Good', price: 300 },
@@ -53,11 +53,11 @@ describe("traversal", function() {
       .apply('FooPlusCount', '4002001 + $Data.count()')
       .apply('CountPlusBar', '$Data.count() + 9002001');
 
-    it("on substitute", function() {
+    it("on substitute", () => {
       return ex.substitute(subs);
     });
 
-    it("on every", function() {
+    it("on every", () => {
       return ex.every(subs);
     });
   });

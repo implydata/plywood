@@ -3,9 +3,9 @@ var { expect } = require("chai");
 var plywood = require('../../build/plywood');
 var { Expression, Dataset, External, $, ply, r } = plywood;
 
-describe("resolve", function() {
-  describe("errors if", function() {
-    it("went too deep", function() {
+describe("resolve", () => {
+  describe("errors if", () => {
+    it("went too deep", () => {
       var ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
@@ -15,13 +15,13 @@ describe("resolve", function() {
             .apply('y', '$^^^foo * 10')
         );
 
-      expect(function() {
+      expect(() => {
           return ex.resolve({ foo: 7 });
         }
       ).to.throw('went too deep during resolve on: $^^^foo');
     });
 
-    it("could not find something in context", function() {
+    it("could not find something in context", () => {
       var ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
@@ -31,13 +31,13 @@ describe("resolve", function() {
             .apply('y', '$^^foobar * 10')
         );
 
-      expect(function() {
+      expect(() => {
           return ex.resolve({ foo: 7 });
         }
       ).to.throw('could not resolve $^^foobar because is was not in the context');
     });
 
-    it("ended up with bad types", function() {
+    it("ended up with bad types", () => {
       var ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
@@ -47,7 +47,7 @@ describe("resolve", function() {
             .apply('y', '$^^foo * 10')
         );
 
-      expect(function() {
+      expect(() => {
           return ex.resolve({ foo: 'bar' });
         }
       ).to.throw('add must have input of type NUMBER (is STRING)');
@@ -55,8 +55,8 @@ describe("resolve", function() {
   });
 
 
-  describe("resolves", function() {
-    it("works in a basic case", function() {
+  describe("resolves", () => {
+    it("works in a basic case", () => {
       var ex = $('foo').add('$bar');
 
       var context = {
@@ -69,7 +69,7 @@ describe("resolve", function() {
       );
     });
 
-    it("works with null", function() {
+    it("works with null", () => {
       var ex = $('foo').add('$bar');
 
       var context = {
@@ -82,7 +82,7 @@ describe("resolve", function() {
       );
     });
 
-    it("works with null with is", function() {
+    it("works with null with is", () => {
       var ex = $('bar', 'STRING').is('$foo');
 
       var context = {
@@ -95,7 +95,7 @@ describe("resolve", function() {
       );
     });
 
-    it("works in a basic case (and simplifies)", function() {
+    it("works in a basic case (and simplifies)", () => {
       var ex = $('foo').add(3);
 
       var context = {
@@ -108,7 +108,7 @@ describe("resolve", function() {
       );
     });
 
-    it("works in a nested case", function() {
+    it("works in a nested case", () => {
       var ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
@@ -148,7 +148,7 @@ describe("resolve", function() {
       );
     });
 
-    it("works with dataset", function() {
+    it("works with dataset", () => {
       var data = [
         { cut: 'Good', price: 400 },
         { cut: 'Good', price: 300 },
@@ -177,7 +177,7 @@ describe("resolve", function() {
       );
     });
 
-    return it.skip("works with sub-expressions", function() {
+    return it.skip("works with sub-expressions", () => {
       var datum = {
         Count: 5,
         diamonds: External.fromJS({
@@ -204,7 +204,7 @@ describe("resolve", function() {
   });
 
 
-  return describe.skip("resolves remotes", function() {
+  return describe.skip("resolves remotes", () => {
     var context = {
       diamonds: External.fromJS({
         engine: 'druid',
@@ -232,7 +232,7 @@ describe("resolve", function() {
       })
     };
 
-    it("resolves all remotes correctly", function() {
+    it("resolves all remotes correctly", () => {
       var ex = ply()
         .apply(
           'Cuts',
@@ -251,7 +251,7 @@ describe("resolve", function() {
 
       ex = ex.referenceCheck(context);
 
-      expect(ex.every(function(e) {
+      expect(ex.every((e) => {
           if (!e.isOp('ref')) {
             return null;
           }
@@ -260,7 +260,7 @@ describe("resolve", function() {
       )).to.equal(true);
     });
 
-    it("resolves two dataset remotes", function() {
+    it("resolves two dataset remotes", () => {
       var ex = ply()
         .apply(
           'Cuts',
@@ -279,7 +279,7 @@ describe("resolve", function() {
 
       ex = ex.referenceCheck(context);
 
-      expect(ex.actions[0].expression.every(function(e) {
+      expect(ex.actions[0].expression.every((e) => {
           if (!e.isOp('ref')) {
             return null;
           }
@@ -287,7 +287,7 @@ describe("resolve", function() {
         }
       )).to.equal(true);
 
-      expect(ex.actions[1].expression.every(function(e) {
+      expect(ex.actions[1].expression.every((e) => {
           if (!e.isOp('ref')) {
             return null;
           }

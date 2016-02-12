@@ -9,10 +9,10 @@ if (!WallTime.rules) {
 var plywood = require('../../build/plywood');
 var { Expression, $, ply, r } = plywood;
 
-describe("expression parser", function() {
-  describe("errors", function() {
-    it("should not get confused with parsable expressions in strange places", function() {
-      expect(function() {
+describe("expression parser", () => {
+  describe("errors", () => {
+    it("should not get confused with parsable expressions in strange places", () => {
+      expect(() => {
           return Expression.parse("ply().apply($x + 1, $x + 1)");
         }
       ).to.throw('could not extract a string out of');
@@ -20,8 +20,8 @@ describe("expression parser", function() {
   });
 
 
-  describe("parses", function() {
-    it("should parse the mega definition", function() {
+  describe("parses", () => {
+    it("should parse the mega definition", () => {
       var ex1 = ply()
         .apply('is1', '$color == "Red"')
         .apply('is2', '$country.is("USA")')
@@ -151,63 +151,63 @@ describe("expression parser", function() {
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should not get confused with parsable strings in strange places", function() {
+    it("should not get confused with parsable strings in strange places", () => {
       var ex1 = Expression.parse("ply().apply('$x + 1', $x + 1)");
       var ex2 = ply().apply('$x + 1', $("x").add(1));
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with NUMBER type", function() {
+    it("should work with NUMBER type", () => {
       var ex1 = Expression.parse("$x:NUMBER");
       var ex2 = $("x", "NUMBER");
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with SET/STRING type", function() {
+    it("should work with SET/STRING type", () => {
       var ex1 = Expression.parse("$tags:SET/STRING");
       var ex2 = $("tags", "SET/STRING");
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with SET/STRING type within IN", function() {
+    it("should work with SET/STRING type within IN", () => {
       var ex1 = Expression.parse("$tag.in($tags:SET/STRING)");
       var ex2 = $('tag').in($("tags", "SET/STRING"));
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should handle --", function() {
+    it("should handle --", () => {
       var ex1 = Expression.parse("$x--3");
       var ex2 = $("x").subtract(-3);
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with lots of keywords 1", function() {
+    it("should work with lots of keywords 1", () => {
       var ex1 = Expression.parse('$y and true and $z');
       var ex2 = $('y').and(r(true), $('z'));
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with lots of keywords 2", function() {
+    it("should work with lots of keywords 2", () => {
       var ex1 = Expression.parse('true and $y and true and $z');
       var ex2 = r(true).and($('y'), r(true), $('z'));
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with : in is", function() {
+    it("should work with : in is", () => {
       var ex1 = Expression.parse('$x.is(":hello")');
       var ex2 = $('x').is(r(":hello"));
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should parse a whole expression", function() {
+    it("should parse a whole expression", () => {
       var ex1 = Expression.parse(`ply()
   .apply(num, 5)
   .apply(subData,
@@ -228,7 +228,7 @@ describe("expression parser", function() {
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should parse a whole complex expression", function() {
+    it("should parse a whole complex expression", () => {
       var ex1 = Expression.parse(`ply()
   .apply(wiki, $wiki.filter($language == 'en'))
   .apply(Count, $wiki.sum($count))
@@ -281,14 +281,14 @@ describe("expression parser", function() {
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should complain on identity misuse (on non numbers)", function() {
-      expect(function() {
+    it("should complain on identity misuse (on non numbers)", () => {
+      expect(() => {
           return Expression.parse("+'poo'");
         }
       ).to.throw("Expression parse error: subtract must have expression of type NUMBER (is STRING) on `+\'poo\'`");
     });
 
-    it("should parse leading number in param", function() {
+    it("should parse leading number in param", () => {
       var ex1 = Expression.parse('$data.filter(1 != null)');
       var ex2 = $('data').filter(r(1).isnt(null));
 
