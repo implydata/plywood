@@ -603,11 +603,11 @@ describe "DruidExternal", ->
 
     it.skip "works with absolute value split", (testComplete) ->
       ex = ply()
-      .apply('AbsSplit',
-        $('wiki').split($('commentLength').absolute(), 'AbsCommentLength')
-        .sort('$AbsCommentLength', 'descending')
-        .limit(3)
-      )
+        .apply('AbsSplit',
+          $('wiki').split($('commentLength').absolute(), 'AbsCommentLength')
+          .sort('$AbsCommentLength', 'descending')
+          .limit(4)
+        )
 
       basicExecutor(ex).then((result) ->
         expect(result.toJS()).to.deep.equal([
@@ -622,13 +622,16 @@ describe "DruidExternal", ->
               {
                 "AbsCommentLength": 100
               }
+              {
+                "AbsCommentLength": 101
+              }
             ]
           }
         ])
         testComplete()
       ).done()
 
-    it "can timebucket a time column that is the timeAttribute one", (testComplete) ->
+    it "can timeBucket a time column that is the timeAttribute one", (testComplete) ->
       ex = ply()
         .apply('Time',
           $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeCol')
@@ -660,7 +663,7 @@ describe "DruidExternal", ->
         testComplete()
       ).done()
 
-    it "can timebucket a time column thats not the timeAttribute one", (testComplete) ->
+    it "can timeBucket a time column that's not the timeAttribute one", (testComplete) ->
       ex = ply()
       .apply('TimeLater',
         $("wiki").split($("sometimeLater").timeBucket('PT1H', 'Etc/UTC'), 'SometimeLater')
