@@ -5,29 +5,29 @@ var Q = require('q');
 var plywood = require("../../build/plywood");
 var { concurrentLimitRequesterFactory } = plywood.helper;
 
-describe("Retry requester", function() {
-  var makeRequester = function() {
+describe("Retry requester", () => {
+  var makeRequester = () => {
     var deferreds = {};
 
-    var requester = function(request) {
+    var requester = (request) => {
       var deferred = Q.defer();
       deferreds[request.query] = deferred;
       return deferred.promise;
     };
 
-    requester.hasQuery = function(query) {
+    requester.hasQuery = (query) => {
       return Boolean(deferreds[query]);
     };
-    requester.resolve = function(query) {
+    requester.resolve = (query) => {
       return deferreds[query].resolve([1, 2, 3]);
     };
-    requester.reject = function(query) {
+    requester.reject = (query) => {
       return deferreds[query].reject(new Error('fail'));
     };
     return requester;
   };
 
-  it("basic works", function(testComplete) {
+  it("basic works", (testComplete) => {
     var requester = makeRequester();
     var concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,
@@ -35,7 +35,7 @@ describe("Retry requester", function() {
     });
 
     concurrentLimitRequester({ query: 'a' })
-      .then(function(res) {
+      .then((res) => {
         expect(res).to.be.an('array');
         testComplete();
       })
@@ -44,7 +44,7 @@ describe("Retry requester", function() {
     return requester.resolve('a');
   });
 
-  it("limit works", function(testComplete) {
+  it("limit works", (testComplete) => {
     var requester = makeRequester();
     var concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,
@@ -53,7 +53,7 @@ describe("Retry requester", function() {
 
     var nextQuery = 'a';
     concurrentLimitRequester({ query: 'a' })
-      .then(function(res) {
+      .then((res) => {
         expect(res).to.be.an('array');
         expect(nextQuery).to.equal('a');
         return nextQuery = 'b';
@@ -61,7 +61,7 @@ describe("Retry requester", function() {
       .done();
 
     concurrentLimitRequester({ query: 'b' })
-      .then(function(res) {
+      .then((res) => {
         expect(res).to.be.an('array');
         expect(nextQuery).to.equal('b');
         nextQuery = 'c';
@@ -71,7 +71,7 @@ describe("Retry requester", function() {
       .done();
 
     concurrentLimitRequester({ query: 'c' })
-      .then(function(res) {
+      .then((res) => {
         expect(res).to.be.an('array');
         expect(nextQuery).to.equal('c');
         testComplete();

@@ -58,8 +58,8 @@ var contextUnfiltered = {
   })
 };
 
-describe("simulate Druid", function() {
-  it("works in basic case", function() {
+describe("simulate Druid", () => {
+  it("works in basic case", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
@@ -93,7 +93,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it.skip("works on initial dataset", function() {
+  it.skip("works on initial dataset", () => {
     var dataset = Dataset.fromJS([
       { col: 'D' },
       { col: 'E' }
@@ -106,7 +106,7 @@ describe("simulate Druid", function() {
     expect(ex.simulateQueryPlan(context)).to.deep.equal([]);
   });
 
-  it.skip("works in advanced case", function() {
+  it.skip("works in advanced case", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D').and($('cut').in(['Good', 'Bad', 'Ugly']))))
       .apply('Count', '$diamonds.count()')
@@ -404,7 +404,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works on fancy filter dataset (EXTRACT / IS)", function() {
+  it("works on fancy filter dataset (EXTRACT / IS)", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.extract('^(.)') == 'D'"))
       .apply('Count', '$diamonds.count()');
@@ -421,7 +421,7 @@ describe("simulate Druid", function() {
     });
   });
 
-  it("works on fancy filter (SUBSET / IS)", function() {
+  it("works on fancy filter (SUBSET / IS)", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1) == 'D'"))
       .apply('Count', '$diamonds.count()');
@@ -438,7 +438,7 @@ describe("simulate Druid", function() {
     });
   });
 
-  it("works on fancy filter (SUBSET / IN)", function() {
+  it("works on fancy filter (SUBSET / IN)", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1).in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');
@@ -470,7 +470,7 @@ describe("simulate Druid", function() {
     });
   });
 
-  it("works on fancy filter (LOOKUP / IN)", function() {
+  it("works on fancy filter (LOOKUP / IN)", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');
@@ -508,7 +508,7 @@ describe("simulate Druid", function() {
     });
   });
 
-  it("works with basic timePart", function() {
+  it("works with basic timePart", () => {
     var ex = ply()
       .apply(
         'HoursOfDay',
@@ -550,7 +550,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works with basic concat", function() {
+  it("works with basic concat", () => {
     var ex = ply()
       .apply(
         'Colors',
@@ -572,7 +572,7 @@ describe("simulate Druid", function() {
     });
   });
 
-  it("works with basic substr", function() {
+  it("works with basic substr", () => {
     var ex = ply()
       .apply(
         'Colors',
@@ -594,7 +594,7 @@ describe("simulate Druid", function() {
     });
   });
 
-  it("works with basic boolean split", function() {
+  it("works with basic boolean split", () => {
     var ex = ply()
       .apply(
         'Colors',
@@ -634,7 +634,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works with having filter", function() {
+  it("works with having filter", () => {
     var ex = $("diamonds").split("$cut", 'Cut')
       .apply('Count', $('diamonds').count())
       .sort('$Count', 'descending')
@@ -681,7 +681,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works with lower bound only time filter", function() {
+  it("works with lower bound only time filter", () => {
     var ex = ply()
       .apply('diamonds', $("diamonds").filter($("time").in({ start: new Date('2015-03-12T00:00:00'), end: null })))
       .apply('Count', $('diamonds').count());
@@ -691,7 +691,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works with upper bound only time filter", function() {
+  it("works with upper bound only time filter", () => {
     var ex = ply()
       .apply('diamonds', $("diamonds").filter($("time").in({ start: null, end: new Date('2015-03-12T00:00:00') })))
       .apply('Count', $('diamonds').count());
@@ -701,7 +701,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works with numeric split", function() {
+  it("works with numeric split", () => {
     var ex = ply()
       .apply(
         'CaratSplit',
@@ -740,7 +740,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works with range bucket", function() {
+  it("works with range bucket", () => {
     var ex = ply()
       .apply(
         'HeightBuckets',
@@ -812,7 +812,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("makes a timeBoundary query", function() {
+  it("makes a timeBoundary query", () => {
     var ex = ply()
       .apply('maximumTime', '$diamonds.max($time)')
       .apply('minimumTime', '$diamonds.min($time)');
@@ -825,7 +825,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("makes a timeBoundary query (maxTime only)", function() {
+  it("makes a timeBoundary query (maxTime only)", () => {
     var ex = ply()
       .apply('maximumTime', '$diamonds.max($time)');
 
@@ -838,7 +838,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("makes a timeBoundary query (minTime only)", function() {
+  it("makes a timeBoundary query (minTime only)", () => {
     var ex = ply()
       .apply('minimumTime', '$diamonds.min($time)');
 
@@ -851,7 +851,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("makes a topN with a timePart dim extraction fn", function() {
+  it("makes a topN with a timePart dim extraction fn", () => {
     var ex = $("diamonds").split($("time").timePart('SECOND_OF_DAY', 'Etc/UTC'), 'Time')
       .apply('Count', $('diamonds').count())
       .sort('$Count', 'descending')
@@ -888,7 +888,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("makes a filtered aggregate query", function() {
+  it("makes a filtered aggregate query", () => {
     var ex = ply()
       .apply(
         'BySegment',
@@ -952,7 +952,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it.skip("makes a filter on timePart", function() {
+  it.skip("makes a filter on timePart", () => {
     var ex = $("diamonds").filter(
       $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').in([3, 4, 10]).and($("time").in([
         TimeRange.fromJS({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-15T00:00:00') }),
@@ -998,7 +998,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it.skip("splits on timePart with sub split", function() {
+  it.skip("splits on timePart with sub split", () => {
     var ex = $("diamonds").split($("time").timePart('HOUR_OF_DAY', 'Etc/UTC'), 'hourOfDay')
       .apply('Count', '$diamonds.count()')
       .sort('$Count', 'descending')
@@ -1069,7 +1069,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works without a sort defined", function() {
+  it("works without a sort defined", () => {
     var ex = ply()
       .apply(
         'topN',
@@ -1129,7 +1129,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works with no attributes in dimension split dataset", function() {
+  it("works with no attributes in dimension split dataset", () => {
     var ex = ply()
       .apply(
         'Cuts',
@@ -1201,7 +1201,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works with no attributes in time split dataset", function() {
+  it("works with no attributes in time split dataset", () => {
     var ex = ply()
       .apply(
         'ByHour',
@@ -1259,7 +1259,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it.skip("inlines a defined derived attribute", function() {
+  it.skip("inlines a defined derived attribute", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').apply('sale_price', '$price + $tax'))
       .apply(
@@ -1313,7 +1313,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("makes a query on a dataset with a fancy name", function() {
+  it("makes a query on a dataset with a fancy name", () => {
     var ex = ply()
       .apply('maximumTime', '${diamonds-alt:;<>}.max($time)')
       .apply('minimumTime', '${diamonds-alt:;<>}.min($time)');
@@ -1331,7 +1331,7 @@ describe("simulate Druid", function() {
   // in the plywood layer
   // https://github.com/druid-io/druid/issues/2433
 
-  it.skip("makes a query with countDistinct", function() {
+  it.skip("makes a query with countDistinct", () => {
     var ex = ply()
       .apply('NumColors', '$diamonds.countDistinct($color)')
       .apply('NumVendors', '$diamonds.countDistinct($vendor_id)')
@@ -1381,7 +1381,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works with duplicate aggregates", function() {
+  it("works with duplicate aggregates", () => {
     var ex = ply()
       .apply('Price', '$diamonds.sum($price)')
       .apply('Price', '$diamonds.sum($price)')
@@ -1435,7 +1435,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works on exact time filter (is)", function() {
+  it("works on exact time filter (is)", () => {
     var ex = ply()
       .apply('diamonds', $('diamonds').filter($('time').is(new Date('2015-03-12T01:00:00.123Z'))))
       .apply('Count', '$diamonds.count()');
@@ -1445,7 +1445,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works on exact time filter (in interval)", function() {
+  it("works on exact time filter (in interval)", () => {
     var ex = ply()
       .apply('diamonds', $('diamonds').filter($('time').in(new Date('2015-03-12T01:00:00.123Z'), new Date('2015-03-12T01:00:00.124Z'))))
       .apply('Count', '$diamonds.count()');
@@ -1455,7 +1455,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works contains filter (case sensitive)", function() {
+  it("works contains filter (case sensitive)", () => {
     var ex = ply()
       .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'))))
       .apply('Count', '$diamonds.count()');
@@ -1467,7 +1467,7 @@ describe("simulate Druid", function() {
     });
   });
 
-  it("works contains filter (case insensitive)", function() {
+  it("works contains filter (case insensitive)", () => {
     var ex = ply()
       .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'), 'ignoreCase')))
       .apply('Count', '$diamonds.count()');
@@ -1482,7 +1482,7 @@ describe("simulate Druid", function() {
     });
   });
 
-  it("works with SELECT query", function() {
+  it("works with SELECT query", () => {
     var ex = $('diamonds')
       .filter('$color == "D"')
       .limit(10);
@@ -1512,7 +1512,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works multi-dimensional GROUP BYs", function() {
+  it("works multi-dimensional GROUP BYs", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
       .apply(
@@ -1641,7 +1641,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("works multi-dimensional GROUP BYs (no limit)", function() {
+  it("works multi-dimensional GROUP BYs (no limit)", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
       .apply(
@@ -1717,7 +1717,7 @@ describe("simulate Druid", function() {
     ]);
   });
 
-  it("adds context to query if set on External", function(testComplete) {
+  it("adds context to query if set on External", (testComplete) => {
     var ds = External.fromJS({
       engine: 'druid',
       dataSource: 'diamonds',

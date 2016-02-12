@@ -3,7 +3,7 @@ var { expect } = require("chai");
 var plywood = require('../../build/plywood');
 var { Expression, $, ply, r } = plywood;
 
-var toJS = function(sep) {
+var toJS = (sep) => {
   if (!sep) {
     return sep;
   }
@@ -13,15 +13,15 @@ var toJS = function(sep) {
   };
 };
 
-describe("separate", function() {
-  it('throws on bad input', function() {
-    expect(function() {
+describe("separate", () => {
+  it('throws on bad input', () => {
+    expect(() => {
         return Expression.TRUE.separateViaAnd();
       }
     ).to.throw('must have refName');
   });
 
-  it('works with TRUE expression', function() {
+  it('works with TRUE expression', () => {
     var ex = Expression.TRUE;
 
     expect(toJS(ex.separateViaAnd('venue'))).to.deep.equal(toJS({
@@ -30,7 +30,7 @@ describe("separate", function() {
     }));
   });
 
-  it('works with FALSE expression', function() {
+  it('works with FALSE expression', () => {
     var ex = Expression.FALSE;
 
     expect(toJS(ex.separateViaAnd('venue'))).to.deep.equal(toJS({
@@ -39,7 +39,7 @@ describe("separate", function() {
     }));
   });
 
-  it('works on a single included expression', function() {
+  it('works on a single included expression', () => {
     var ex = $('venue').is('Google');
 
     expect(toJS(ex.separateViaAnd('venue'))).to.deep.equal(toJS({
@@ -48,7 +48,7 @@ describe("separate", function() {
     }));
   });
 
-  it('works on a single excluded expression', function() {
+  it('works on a single excluded expression', () => {
     var ex = $('venue').is('Google');
 
     expect(toJS(ex.separateViaAnd('make'))).to.deep.equal(toJS({
@@ -57,7 +57,7 @@ describe("separate", function() {
     }));
   });
 
-  it('works on a small AND expression', function() {
+  it('works on a small AND expression', () => {
     var ex = $('venue').is('Google').and($('country').is('USA'));
 
     expect(toJS(ex.separateViaAnd('country'))).to.deep.equal(toJS({
@@ -66,7 +66,7 @@ describe("separate", function() {
     }));
   });
 
-  it('works on an AND expression', function() {
+  it('works on an AND expression', () => {
     var ex = $('venue').is('Google').and($('country').is('USA'), $('state').is('California'));
 
     expect(toJS(ex.separateViaAnd('country'))).to.deep.equal(toJS({
@@ -75,7 +75,7 @@ describe("separate", function() {
     }));
   });
 
-  it('extracts a NOT expression', function() {
+  it('extracts a NOT expression', () => {
     var ex = $('venue').is('Google').and($('country').is('USA').not(), $('state').is('California'));
 
     expect(toJS(ex.separateViaAnd('country'))).to.deep.equal(toJS({
@@ -84,13 +84,13 @@ describe("separate", function() {
     }));
   });
 
-  it('does not work on mixed OR expression', function() {
+  it('does not work on mixed OR expression', () => {
     var ex = $('venue').is('Google').or($('country').is('USA'), $('state').is('California'));
 
     expect(toJS(ex.separateViaAnd('country'))).to.deep.equal(null);
   });
 
-  it('works on mixed OR filter (all in)', function() {
+  it('works on mixed OR filter (all in)', () => {
     var ex = $('venue').is('Apple').or($('venue').is('Google').not());
 
     expect(toJS(ex.separateViaAnd('venue'))).to.deep.equal(toJS({
@@ -99,7 +99,7 @@ describe("separate", function() {
     }));
   });
 
-  it('works on mixed OR filter (all out)', function() {
+  it('works on mixed OR filter (all out)', () => {
     var ex = $('venue').is('Google').or($('country').is('USA'), $('state').is('California'));
 
     expect(toJS(ex.separateViaAnd('model'))).to.deep.equal(toJS({

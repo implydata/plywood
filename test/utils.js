@@ -3,7 +3,7 @@ var Q = require('q');
 
 var plywood = require('../build/plywood');
 
-var uniformizeResults = function(result) {
+var uniformizeResults = (result) => {
   if (!((typeof result !== "undefined" && result !== null) ? result.prop : undefined)) {
     return result;
   }
@@ -57,17 +57,17 @@ var uniformizeResults = function(result) {
   return ret;
 };
 
-exports.wrapVerbose = function(requester, name) {
-  return function(request) {
+exports.wrapVerbose = (requester, name) => {
+  return (request) => {
     console.log(`Requesting ${name}:`);
     console.log('', JSON.stringify(request.query, null, 2));
     var startTime = Date.now();
     return requester(request).then(
-      function(result) {
+      (result) => {
         console.log(`GOT RESULT FROM ${name} (took ${Date.now() - startTime}ms)`);
         return result;
       },
-      function(err) {
+      (err) => {
         console.log(`GOT ${name} ERROR`, err);
         throw err;
       }
@@ -75,14 +75,14 @@ exports.wrapVerbose = function(requester, name) {
   };
 };
 
-exports.makeEqualityTest = function(driverFnMap) {
-  return function({drivers, query, verbose, before, after}) {
+exports.makeEqualityTest = (driverFnMap) => {
+  return ({drivers, query, verbose, before, after}) => {
     if (drivers.length < 2) {
       throw new Error("must have at least two drivers");
     }
     query = FacetQuery.isFacetQuery(query) ? query : new FacetQuery(query);
 
-    var driverFns = drivers.map(function(driverName) {
+    var driverFns = drivers.map((driverName) => {
       var driverFn = driverFnMap[driverName];
       if (!driverFn) {
         throw new Error(`no such driver ${driverName}`);
@@ -90,12 +90,12 @@ exports.makeEqualityTest = function(driverFnMap) {
       return driverFn;
     });
 
-    return function(testComplete) {
+    return (testComplete) => {
       if (typeof before === "function") {
         before();
       }
       return Q.all(
-        driverFns.map(function(driverFn) {
+        driverFns.map((driverFn) => {
             return driverFn({
               query,
               context: { priority: -3 }
@@ -103,12 +103,12 @@ exports.makeEqualityTest = function(driverFnMap) {
           }
         )
       ).then(
-        function(results) {
+        (results) => {
           if (typeof after === "function") {
             after(null, results[0], results);
           }
 
-          results = results.map(function(result) {
+          results = results.map((result) => {
               expect(result).to.be.instanceof(SegmentTree);
               return uniformizeResults(result.toJS());
             }
@@ -135,7 +135,7 @@ exports.makeEqualityTest = function(driverFnMap) {
           testComplete(null, results[0]);
           return;
         },
-        function(err) {
+        (err) => {
           if (typeof after === "function") {
             after(err);
           }
@@ -148,13 +148,13 @@ exports.makeEqualityTest = function(driverFnMap) {
   };
 };
 
-exports.makeErrorTest = function(driverFnMap) {
-  return function({drivers, request, error, verbose}) {
+exports.makeErrorTest = (driverFnMap) => {
+  return ({drivers, request, error, verbose}) => {
     if (drivers.length < 1) {
       throw new Error("must have at least one driver");
     }
 
-    var driverFns = drivers.map(function(driverName) {
+    var driverFns = drivers.map((driverName) => {
       var driverFn = driverFnMap[driverName];
       if (!driverFn) {
         throw new Error(`no such driver ${driverName}`);
@@ -162,11 +162,11 @@ exports.makeErrorTest = function(driverFnMap) {
       return driverFn;
     });
 
-    return function(testComplete) {
-      return Q.allSettled(driverFns.map(function(driverFn) {
+    return (testComplete) => {
+      return Q.allSettled(driverFns.map((driverFn) => {
           return driverFn(request);
         }))
-        .then(function(results) {
+        .then((results) => {
             for (var i = 0, result; i < results.length; i++) {
               result = results[i];
               if (result.state === "fulfilled") {

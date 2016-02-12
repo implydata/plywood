@@ -20,10 +20,10 @@ var mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 });
 
-describe("MySQLExternal", function() {
+describe("MySQL Functional", function() {
   this.timeout(10000);
 
-  describe("defined attributes in datasource", function() {
+  describe("defined attributes in datasource", () => {
     var basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
@@ -41,7 +41,7 @@ describe("MySQLExternal", function() {
       }
     });
 
-    it("works in advanced case", function(testComplete) {
+    it("works in advanced case", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("language").is('en')))
         .apply('Count', '$wiki.sum($count)')
@@ -70,7 +70,7 @@ describe("MySQLExternal", function() {
       //      )
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Count": 334129,
@@ -144,7 +144,7 @@ describe("MySQLExternal", function() {
         .done();
     });
 
-    it("works multi-dimensional GROUP BYs", function(testComplete) {
+    it("works multi-dimensional GROUP BYs", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("language").isnt('en')))
         .apply(
@@ -159,7 +159,7 @@ describe("MySQLExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Cuts": [
@@ -208,7 +208,7 @@ describe("MySQLExternal", function() {
     });
   });
 
-  describe("introspection", function() {
+  describe("introspection", () => {
     var basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
@@ -219,7 +219,7 @@ describe("MySQLExternal", function() {
       }
     });
 
-    it("works with introspection", function(testComplete) {
+    it("works with introspection", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("language").is('en')))
         .apply('Count', '$wiki.sum($count)')
@@ -240,7 +240,7 @@ describe("MySQLExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Count": 334129,
@@ -309,7 +309,7 @@ describe("MySQLExternal", function() {
     });
   });
 
-  describe("fallback", function() {
+  describe("fallback", () => {
     var basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
@@ -321,13 +321,13 @@ describe("MySQLExternal", function() {
     });
 
 
-    it("fallback doesn't happen if not null", function(testComplete) {
+    it("fallback doesn't happen if not null", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki'))
         .apply('added', $('wiki').average($('added')).fallback(2));
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "added": 216.5613
@@ -338,13 +338,13 @@ describe("MySQLExternal", function() {
         .done();
     });
 
-    it("fallback happens if null", function(testComplete) {
+    it("fallback happens if null", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("page").is('Bieberswalde')))
         .apply('TotalAdded', $('wiki').sum($('added')).fallback(0));
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "TotalAdded": 0
@@ -355,7 +355,7 @@ describe("MySQLExternal", function() {
         .done();
     });
 
-    it("power of and abs", function(testComplete) {
+    it("power of and abs", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("page").is('Lojban')))
         .apply('Delta', $('wiki').min($('delta')))
@@ -363,7 +363,7 @@ describe("MySQLExternal", function() {
         .apply('SquareDelta', $('wiki').sum($('delta')).power(2));
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Delta": -3,

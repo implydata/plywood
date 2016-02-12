@@ -3,11 +3,11 @@ var { expect } = require("chai");
 var plywood = require('../../build/plywood');
 var { Expression, $, ply, r } = plywood;
 
-describe("substitute", function() {
-  it("should substitute on IS", function() {
+describe("substitute", () => {
+  it("should substitute on IS", () => {
     var ex = r(5).is('$hello');
 
-    var subs = function(ex) {
+    var subs = (ex) => {
       if (ex.op === 'literal' && ex.type === 'NUMBER') {
         return Expression.fromJSLoose(ex.value + 10);
       } else {
@@ -20,7 +20,7 @@ describe("substitute", function() {
     );
   });
 
-  it("should substitute on complex expression", function() {
+  it("should substitute on complex expression", () => {
     var ex = ply()
       .apply('num', 5)
       .apply(
@@ -32,7 +32,7 @@ describe("substitute", function() {
           .apply('w', ply().sum('$a + 4 + $b'))
       );
 
-    var subs = function(ex) {
+    var subs = (ex) => {
       if (ex.op === 'literal' && ex.type === 'NUMBER') {
         return Expression.fromJSLoose(ex.value + 10);
       } else {
@@ -55,7 +55,7 @@ describe("substitute", function() {
     );
   });
 
-  it("has sequential indexes", function() {
+  it("has sequential indexes", () => {
     var ex = ply()
       .apply('num', 5)
       .apply(
@@ -68,7 +68,7 @@ describe("substitute", function() {
       );
 
     var indexes = [];
-    var subs = function(ex, index) {
+    var subs = (ex, index) => {
       indexes.push(index);
       return null;
     };
@@ -76,7 +76,7 @@ describe("substitute", function() {
     var expressionCount = ex.expressionCount();
     ex.substitute(subs);
     expect(expressionCount).to.equal(22);
-    expect(indexes).to.deep.equal(((function() {
+    expect(indexes).to.deep.equal(((() => {
       var result = [];
       var i = 0;
       if (0 <= expressionCount) {

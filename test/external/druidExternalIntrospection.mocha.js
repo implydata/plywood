@@ -10,13 +10,13 @@ if (!WallTime.rules) {
 var plywood = require('../../build/plywood');
 var { Expression, External, TimeRange, $, ply, r } = plywood;
 
-describe("DruidExternal Introspection", function() {
-  var requesterFail = function({query}) {
+describe("DruidExternal Introspection", () => {
+  var requesterFail = ({query}) => {
     return Q.reject(new Error('Bad status code'));
   };
 
 
-  var requesterDruid_0_9_0 = function({query}) {
+  var requesterDruid_0_9_0 = ({query}) => {
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -131,7 +131,7 @@ describe("DruidExternal Introspection", function() {
   };
 
 
-  var requesterDruid_0_8_3 = function({query}) {
+  var requesterDruid_0_8_3 = ({query}) => {
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -231,7 +231,7 @@ describe("DruidExternal Introspection", function() {
   };
 
 
-  var requesterDruid_0_8_2 = function({query}) {
+  var requesterDruid_0_8_2 = ({query}) => {
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -277,7 +277,7 @@ describe("DruidExternal Introspection", function() {
   };
 
 
-  var requesterDruid_0_8_1 = function({query}) {
+  var requesterDruid_0_8_1 = ({query}) => {
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -296,8 +296,8 @@ describe("DruidExternal Introspection", function() {
   };
 
 
-  it("errors on bad introspectionStrategy", function() {
-    expect(function() {
+  it("errors on bad introspectionStrategy", () => {
+    expect(() => {
         return External.fromJS({
           engine: 'druid',
           dataSource: 'wikipedia',
@@ -309,7 +309,7 @@ describe("DruidExternal Introspection", function() {
     ).to.throw("Invalid introspectionStrategy 'crowd-source'");
   });
 
-  it("does an introspect with general failure", function(testComplete) {
+  it("does an introspect with general failure", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
@@ -318,17 +318,17 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect()
-      .then(function() {
+      .then(() => {
         throw new Error('DID_NOT_ERROR');
       })
-      .fail(function(err) {
+      .fail((err) => {
         expect(err.message).to.equal('Bad status code');
         testComplete();
       })
       .done();
   });
 
-  it("does an introspect with segmentMetadata (with aggregators)", function(testComplete) {
+  it("does an introspect with segmentMetadata (with aggregators)", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
@@ -337,7 +337,7 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect()
-      .then(function(introspectedExternal) {
+      .then((introspectedExternal) => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -399,7 +399,7 @@ describe("DruidExternal Introspection", function() {
       .done();
   });
 
-  it("does an introspect with segmentMetadata (without aggregators)", function(testComplete) {
+  it("does an introspect with segmentMetadata (without aggregators)", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
@@ -408,7 +408,7 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect()
-      .then(function(introspectedExternal) {
+      .then((introspectedExternal) => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -456,7 +456,7 @@ describe("DruidExternal Introspection", function() {
       .done();
   });
 
-  it("does an introspect with segmentMetadata (with old style COMPLEX columns)", function(testComplete) {
+  it("does an introspect with segmentMetadata (with old style COMPLEX columns)", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
@@ -465,7 +465,7 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect()
-      .then(function(introspectedExternal) {
+      .then((introspectedExternal) => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -503,7 +503,7 @@ describe("DruidExternal Introspection", function() {
       .done();
   });
 
-  it("does a simple introspect with GET", function(testComplete) {
+  it("does a simple introspect with GET", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
@@ -512,7 +512,7 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect()
-      .then(function(introspectedExternal) {
+      .then((introspectedExternal) => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -564,7 +564,7 @@ describe("DruidExternal Introspection", function() {
       .done();
   });
 
-  it("respects the introspectionStrategy flag", function(testComplete) {
+  it("respects the introspectionStrategy flag", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
@@ -574,7 +574,7 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect()
-      .then(function(introspectedExternal) {
+      .then((introspectedExternal) => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -626,7 +626,7 @@ describe("DruidExternal Introspection", function() {
       .done();
   });
 
-  it("does an introspect with overrides", function(testComplete) {
+  it("does an introspect with overrides", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
@@ -639,7 +639,7 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect()
-      .then(function(introspectedExternal) {
+      .then((introspectedExternal) => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",

@@ -15,22 +15,22 @@ if (!chronoshift.WallTime.rules) {
 var rawData = fs.readFileSync(path.join(__dirname, '../../data/wikipedia-sampled.json'), 'utf-8');
 var wikiDayData = helper.parseJSON(rawData);
 
-wikiDayData.forEach(function(d, i) {
+wikiDayData.forEach((d, i) => {
   d['time'] = new Date(d['time']);
   d['sometimeLater'] = new Date(d['sometimeLater']);
   delete d['userChars'];
 });
 
-describe("compute native nontrivial data", function() {
+describe("compute native nontrivial data", () => {
   var ds = Dataset.fromJS(wikiDayData);
 
-  it("works in simple agg case", function(testComplete) {
+  it("works in simple agg case", (testComplete) => {
     var ex = ply()
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)');
 
     return ex.compute({ data: ds })
-      .then(function(v) {
+      .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
             "Count": 39244,
@@ -42,7 +42,7 @@ describe("compute native nontrivial data", function() {
       .done();
   });
 
-  it("works in simple split case (small dimension)", function(testComplete) {
+  it("works in simple split case (small dimension)", (testComplete) => {
     var ex = $('data').split('$countryName', 'CountryName')
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)')
@@ -50,7 +50,7 @@ describe("compute native nontrivial data", function() {
       .limit(5);
 
     ex.compute({ data: ds })
-      .then(function(v) {
+      .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
             "Count": 35445,
@@ -83,7 +83,7 @@ describe("compute native nontrivial data", function() {
       .done();
   });
 
-  it("works in simple split case (large dimension)", function(testComplete) {
+  it("works in simple split case (large dimension)", (testComplete) => {
     var ex = $('data').split('$page', 'Page')
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)')
@@ -91,7 +91,7 @@ describe("compute native nontrivial data", function() {
       .limit(5);
 
     ex.compute({ data: ds })
-      .then(function(v) {
+      .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
             "Count": 1,
@@ -124,14 +124,14 @@ describe("compute native nontrivial data", function() {
       .done();
   });
 
-  it("works in simple timeBucket case", function(testComplete) {
+  it("works in simple timeBucket case", (testComplete) => {
     var ex = $('data').split('$time.timeBucket(PT1H, "Asia/Kathmandu")', "Time")// America/Los_Angeles
       .apply('Count', '$data.count()')
       .sort('$Time', 'ascending')
       .limit(2);
 
     ex.compute({ data: ds })
-      .then(function(v) {
+      .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
             "Count": 556,
@@ -155,7 +155,7 @@ describe("compute native nontrivial data", function() {
       .done();
   });
 
-  it("works in with funny aggregates", function(testComplete) {
+  it("works in with funny aggregates", (testComplete) => {
     var ex = $('data').split('$countryName', 'CountryName')
       .apply('Language', '"[" ++ $CountryName ++ "]"')
       .apply('Count', '$data.count()')
@@ -169,7 +169,7 @@ describe("compute native nontrivial data", function() {
       .limit(5);
 
     ex.compute({ data: ds })
-      .then(function(v) {
+      .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
             "Count": 35445,

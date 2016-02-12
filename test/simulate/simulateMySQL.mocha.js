@@ -30,8 +30,8 @@ var context = {
   })
 };
 
-describe("simulate MySQL", function() {
-  it("works in advanced case", function() {
+describe("simulate MySQL", () => {
+  it("works in advanced case", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
@@ -107,7 +107,7 @@ LIMIT 3`);
   });
 
 
-  it("works with having filter", function() {
+  it("works with having filter", () => {
     var ex = $("diamonds").split("$cut", 'Cut')
       .apply('Count', $('diamonds').count())
       .sort('$Count', 'descending')
@@ -127,7 +127,7 @@ ORDER BY \`Count\` DESC
 LIMIT 10`);
   });
 
-  it("works with range bucket", function() {
+  it("works with range bucket", () => {
     var ex = ply()
       .apply(
         'HeightBuckets',
@@ -164,7 +164,7 @@ ORDER BY \`Count\` DESC
 LIMIT 10`);
   });
 
-  it("works with SELECT query", function() {
+  it("works with SELECT query", () => {
     var ex = $('diamonds')
       .filter('$color == "D"')
       .sort('$cut', 'descending')
@@ -181,7 +181,7 @@ ORDER BY \`cut\` DESC
 LIMIT 10`);
   });
 
-  it("works multi-dimensional GROUP BYs", function() {
+  it("works multi-dimensional GROUP BYs", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
       .apply(

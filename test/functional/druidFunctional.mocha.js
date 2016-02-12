@@ -21,10 +21,10 @@ var druidRequester = druidRequesterFactory({
 //  requester: druidRequester
 //});
 
-describe("DruidExternal", function() {
+describe("Druid Functional", function() {
   this.timeout(10000);
 
-  describe("defined attributes in datasource", function() {
+  describe("defined attributes in datasource", () => {
     var basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
@@ -64,7 +64,7 @@ describe("DruidExternal", function() {
       }
     });
 
-    it("works timePart case", function(testComplete) {
+    it("works timePart case", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply(
@@ -76,7 +76,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "HoursOfDay": [
@@ -100,7 +100,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works in advanced case", function(testComplete) {
+    it("works in advanced case", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
@@ -129,7 +129,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Count": 114711,
@@ -221,7 +221,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with uniques", function(testComplete) {
+    it("works with uniques", (testComplete) => {
       var ex = ply()
         .apply('UniquePages1', $('wiki').countDistinct("$page"))
         .apply('UniquePages2', $('wiki').countDistinct("$page_unique"))
@@ -230,7 +230,7 @@ describe("DruidExternal", function() {
       //.apply('UniqueDiff', '$UniqueUsers1 - $UniqueUsers2')
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "UniquePages1": 278906.2678236051,
@@ -244,7 +244,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with no applies in dimensions split dataset", function(testComplete) {
+    it("works with no applies in dimensions split dataset", (testComplete) => {
       var ex = ply()
         .apply(
           'Pages',
@@ -261,7 +261,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Pages": [
@@ -291,14 +291,14 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with absolute", function(testComplete) {
+    it("works with absolute", (testComplete) => {
       var ex = ply()
         .apply("Count", $('wiki').filter($("channel").is('en')).count())
         .apply('Negate', $('Count').negate())
         .apply('Abs', $('Count').negate().absolute().negate().absolute());
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Abs": 113240,
@@ -311,7 +311,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with power", function(testComplete) {
+    it("works with power", (testComplete) => {
       var ex = ply()
         .apply("Count", $('wiki').filter($("channel").is('en')).count())
         .apply('Square Root', $('Count').power(0.5))
@@ -319,7 +319,7 @@ describe("DruidExternal", function() {
         .apply('One', $('Count').power(0));
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Count": 113240,
@@ -333,7 +333,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with no applies in time split dataset", function(testComplete) {
+    it("works with no applies in time split dataset", (testComplete) => {
       var ex = ply()
         .apply(
           'ByHour',
@@ -350,7 +350,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "ByHour": [
@@ -413,7 +413,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with contains (case sensitive) filter", function(testComplete) {
+    it("works with contains (case sensitive) filter", (testComplete) => {
       var ex = ply()
         .apply('wiki', $('wiki').filter($('page').contains('wiki')))
         .apply(
@@ -425,7 +425,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Pages": [
@@ -449,7 +449,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with contains (case insensitive) filter", function(testComplete) {
+    it("works with contains (case insensitive) filter", (testComplete) => {
       var ex = ply()
         .apply('wiki', $('wiki').filter($('page').contains('wiki', 'ignoreCase')))
         .apply(
@@ -461,7 +461,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Pages": [
@@ -485,7 +485,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with match filter", function(testComplete) {
+    it("works with match filter", (testComplete) => {
       var ex = ply()
         .apply('wiki', $('wiki').filter($('page').match('^.*Bot.*$')))
         .apply(
@@ -497,7 +497,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Pages": [
@@ -521,7 +521,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with concat split", function(testComplete) {
+    it("works with concat split", (testComplete) => {
       var ex = ply()
         .apply(
           'Pages',
@@ -532,7 +532,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Pages": [
@@ -556,7 +556,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with substr split", function(testComplete) {
+    it("works with substr split", (testComplete) => {
       var ex = ply()
         .apply(
           'Pages',
@@ -567,7 +567,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Pages": [
@@ -591,7 +591,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with extract split", function(testComplete) {
+    it("works with extract split", (testComplete) => {
       var ex = ply()
         .apply(
           'Pages',
@@ -602,7 +602,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Pages": [
@@ -626,7 +626,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it.skip("works with lookup split", function(testComplete) {
+    it.skip("works with lookup split", (testComplete) => {
       var ex = ply()
         .apply(
           'Channels',
@@ -637,7 +637,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Channels": [
@@ -661,7 +661,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with absolute number split", function(testComplete) {
+    it("works with absolute number split", (testComplete) => {
       var ex = ply()
         .apply(
           'AbsSplitAsc',
@@ -679,7 +679,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "AbsSplitAsc": [
@@ -717,7 +717,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works with bucketed number split", function(testComplete) {
+    it("works with bucketed number split", (testComplete) => {
       var ex = ply()
         .apply(
           'BucketSplitAsc',
@@ -735,7 +735,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "BucketSplitAsc": [
@@ -797,7 +797,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("can timeBucket a time column that is the timeAttribute one", function(testComplete) {
+    it("can timeBucket a time column that is the timeAttribute one", (testComplete) => {
       var ex = ply()
         .apply(
           'Time',
@@ -807,7 +807,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([{
             "Time": [
               {
@@ -833,7 +833,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("can timeBucket a time column that's not the timeAttribute one", function(testComplete) {
+    it("can timeBucket a time column that's not the timeAttribute one", (testComplete) => {
       var ex = ply()
         .apply(
           'TimeLater',
@@ -842,7 +842,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "TimeLater": [
@@ -889,7 +889,7 @@ describe("DruidExternal", function() {
         .done();
     });
 
-    it("works multi-dimensional GROUP BYs", function(testComplete) {
+    it("works multi-dimensional GROUP BYs", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").isnt('en')))
         .apply(
@@ -906,7 +906,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Cuts": [
@@ -964,7 +964,7 @@ describe("DruidExternal", function() {
   });
 
 
-  describe("introspection", function() {
+  describe("introspection", () => {
     var basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
@@ -982,7 +982,7 @@ describe("DruidExternal", function() {
       }
     });
 
-    it("works with introspection", function(testComplete) {
+    it("works with introspection", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
@@ -1003,7 +1003,7 @@ describe("DruidExternal", function() {
         );
 
       basicExecutor(ex)
-        .then(function(result) {
+        .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Count": 114711,

@@ -3,8 +3,8 @@ var { expect } = require("chai");
 var plywood = require('../../build/plywood');
 var { Expression, $, ply, r } = plywood;
 
-describe("every", function() {
-  it("has sequential indexes", function() {
+describe("every", () => {
+  it("has sequential indexes", () => {
     var ex = ply()
       .apply('num', 5)
       .apply(
@@ -17,7 +17,7 @@ describe("every", function() {
       );
 
     var indexes = [];
-    var everyFn = function(ex, index) {
+    var everyFn = (ex, index) => {
       indexes.push(index);
       return null;
     };
@@ -25,7 +25,7 @@ describe("every", function() {
     var expressionCount = ex.expressionCount();
     ex.every(everyFn);
     expect(expressionCount).to.equal(22);
-    expect(indexes).to.deep.equal(((function() {
+    expect(indexes).to.deep.equal(((() => {
       var result = [];
       var i = 0;
       if (0 <= expressionCount) {
@@ -41,7 +41,7 @@ describe("every", function() {
     })()));
   });
 
-  it("has the right parameters", function() {
+  it("has the right parameters", () => {
     var ex = ply()
       .apply('num', 2001001)
       .apply(
@@ -58,7 +58,7 @@ describe("every", function() {
           .apply('w', '34003002 + $data:DATASET.sum(37004003) + 38003002 + 39003002 == 40003002')
       );
 
-    var everyFn = function(ex, index, depth, nestDiff) {
+    var everyFn = (ex, index, depth, nestDiff) => {
       if (ex.op === 'literal' && ex.type === 'NUMBER') {
         expect(ex.value).to.equal(index * 1e6 + depth * 1e3 + nestDiff);
       }

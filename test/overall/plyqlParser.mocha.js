@@ -9,11 +9,11 @@ if (!WallTime.rules) {
 var plywood = require('../../build/plywood');
 var { Expression, $, ply, r } = plywood;
 
-describe("SQL parser", function() {
-  describe("basic expression", function() {
+describe("SQL parser", () => {
+  describe("basic expression", () => {
     var $data = $('data');
 
-    it("works with a COUNT expression", function() {
+    it("works with a COUNT expression", () => {
       var parse = Expression.parseSQL("COUNT()");
 
       var ex2 = $('data').count();
@@ -22,7 +22,7 @@ describe("SQL parser", function() {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works with an arithmetic expression", function() {
+    it("works with an arithmetic expression", () => {
       var parse = Expression.parseSQL("SUM(`added`) + 5 + SUM(deleted) / 2");
 
       var ex2 = $data.sum('$added').add(5, '$data.sum($deleted) / 2');
@@ -31,7 +31,7 @@ describe("SQL parser", function() {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should handle --", function() {
+    it("should handle --", () => {
       var parse = Expression.parseSQL("x--3");
 
       var ex2 = $('x').subtract(-3);
@@ -40,7 +40,7 @@ describe("SQL parser", function() {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works with NOW()", function() {
+    it("works with NOW()", () => {
       var parse = Expression.parseSQL("NOW( )");
 
       var js = parse.expression.toJS();
@@ -48,7 +48,7 @@ describe("SQL parser", function() {
       expect(Math.abs(js.value.valueOf() - Date.now())).to.be.lessThan(1000);
     });
 
-    it("should handle fallback --", function() {
+    it("should handle fallback --", () => {
       var parse = Expression.parseSQL("IFNULL(null,'fallback')");
       var parse2 = Expression.parseSQL("IFNULL(null, SUM(deleted))");
       var parse3 = Expression.parseSQL("IFNULL(SUM(`added`), SUM(deleted))");
@@ -66,8 +66,8 @@ describe("SQL parser", function() {
     });
   });
 
-  describe("other query types", function() {
-    it("works with UPDATE expression", function() {
+  describe("other query types", () => {
+    it("works with UPDATE expression", () => {
       var parse = Expression.parseSQL("UPDATE this is the end of the road");
 
       expect(parse).to.deep.equal({
@@ -76,7 +76,7 @@ describe("SQL parser", function() {
       });
     });
 
-    it("works with SET query", function() {
+    it("works with SET query", () => {
       var parse = Expression.parseSQL("SET this is the end of the road");
 
       expect(parse).to.deep.equal({
@@ -87,8 +87,8 @@ describe("SQL parser", function() {
   });
 
 
-  describe("DESCRIBE", function() {
-    it("works with DESCRIBE query", function() {
+  describe("DESCRIBE", () => {
+    it("works with DESCRIBE query", () => {
       var parse = Expression.parseSQL("DESCRIBE wikipedia");
 
       expect(parse).to.deep.equal({
@@ -97,7 +97,7 @@ describe("SQL parser", function() {
       });
     });
 
-    it("works with another DESCRIBE query", function() {
+    it("works with another DESCRIBE query", () => {
       var parse = Expression.parseSQL("DESCRIBE `my-table` ; ");
 
       expect(parse).to.deep.equal({
@@ -107,50 +107,50 @@ describe("SQL parser", function() {
     });
   });
 
-  describe("SELECT", function() {
-    it("should fail on a expression with no columns", function() {
-      expect(function() {
+  describe("SELECT", () => {
+    it("should fail on a expression with no columns", () => {
+      expect(() => {
           return Expression.parseSQL("SELECT FROM wiki");
         }
       ).to.throw('SQL parse error: Can not have empty column list on `SELECT FROM wiki`');
     });
 
-    it("should have a good error for incorrect numeric GROUP BYs", function() {
-      expect(function() {
+    it("should have a good error for incorrect numeric GROUP BYs", () => {
+      expect(() => {
           return Expression.parseSQL("SELECT page, COUNT() AS 'Count' FROM wiki GROUP BY 12");
         }
       ).to.throw("Unknown column '12' in group by statement");
     });
 
-    it("should have a good error SELECT * ... GROUP BY ...", function() {
-      expect(function() {
+    it("should have a good error SELECT * ... GROUP BY ...", () => {
+      expect(() => {
           return Expression.parseSQL("SELECT * FROM wiki GROUP BY 12");
         }
       ).to.throw("can not SELECT * with a GROUP BY");
     });
 
-    it("should fail gracefully on expressions with multi-column sort", function() {
-      expect(function() {
+    it("should fail gracefully on expressions with multi-column sort", () => {
+      expect(() => {
           return Expression.parseSQL("SELECT page, COUNT() AS 'Count' FROM wiki GROUP BY page ORDER BY page DESC, `Count` ASC");
         }
       ).to.throw('plywood does not currently support multi-column ORDER BYs');
     });
 
-    it("should fail gracefully on COUNT(DISTINCT)", function() {
-      expect(function() {
+    it("should fail gracefully on COUNT(DISTINCT)", () => {
+      expect(() => {
           return Expression.parseSQL("COUNT(DISTINCT)");
         }
       ).to.throw('COUNT DISTINCT must have expression');
     });
 
-    it("should fail gracefully on SUM(DISTINCT blah)", function() {
-      expect(function() {
+    it("should fail gracefully on SUM(DISTINCT blah)", () => {
+      expect(() => {
           return Expression.parseSQL("SUM(DISTINCT blah)");
         }
       ).to.throw('can not use DISTINCT for sum aggregator');
     });
 
-    it("should parse a simple expression", function() {
+    it("should parse a simple expression", () => {
       var parse = Expression.parseSQL(`SELECT
 COUNT() AS 'Count'
 FROM \`wiki\``);
@@ -164,7 +164,7 @@ FROM \`wiki\``);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should parse a total expression with all sorts of applies", function() {
+    it("should parse a total expression with all sorts of applies", () => {
       var parse = Expression.parseSQL(`SELECT
 COUNT()  AS Count1,
 COUNT(*) AS Count2,
@@ -227,7 +227,7 @@ WHERE \`language\`="en"  ;  -- This is just some comment`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should parse a total expression without group by clause", function() {
+    it("should parse a total expression without group by clause", () => {
       var parse = Expression.parseSQL(`SELECT
 SUM(added) AS TotalAdded
 FROM \`wiki\`
@@ -240,7 +240,7 @@ WHERE \`language\`="en"`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with all sorts of comments", function() {
+    it("should work with all sorts of comments", () => {
       var parse = Expression.parseSQL(`/*
 Multiline comments
 can exist
@@ -266,7 +266,7 @@ end.
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work without a FROM", function() {
+    it("should work without a FROM", () => {
       var parse = Expression.parseSQL(`SELECT
 SUM(added) AS 'TotalAdded'
 WHERE \`language\`="en"`);
@@ -278,7 +278,7 @@ WHERE \`language\`="en"`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with a BETWEEN", function() {
+    it("should work with a BETWEEN", () => {
       var parse = Expression.parseSQL(`SELECT
 SUM(added) AS 'TotalAdded'
 WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'`);
@@ -296,7 +296,7 @@ WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with <= <", function() {
+    it("should work with <= <", () => {
       var parse = Expression.parseSQL(`SELECT
 SUM(added) AS 'TotalAdded'
 WHERE \`language\`="en" AND '2015-01-01T10:30:00' <= \`time\` AND \`time\` < '2015-01-02T12:30:00'`);
@@ -325,7 +325,7 @@ WHERE \`language\`="en" AND '2015-01-01T10:30:00' <= \`time\` AND \`time\` < '20
       expect(parse.expression.simplify().toJS()).to.deep.equal(ex2s.toJS());
     });
 
-    it("should work without top level GROUP BY", function() {
+    it("should work without top level GROUP BY", () => {
       var parse = Expression.parseSQL(`SELECT
 \`page\` AS 'Page',
 SUM(added) AS 'TotalAdded'
@@ -345,7 +345,7 @@ GROUP BY 1`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work without top level GROUP BY with ORDER BY and LIMIT", function() {
+    it("should work without top level GROUP BY with ORDER BY and LIMIT", () => {
       var parse = Expression.parseSQL(`SELECT
 \`page\` AS 'Page',
 SUM(added) AS 'TotalAdded'
@@ -362,7 +362,7 @@ LIMIT 5`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work without top level GROUP BY with LIMIT only", function() {
+    it("should work without top level GROUP BY with LIMIT only", () => {
       var parse = Expression.parseSQL(`SELECT
 \`page\` AS 'Page',
 SUM(added) AS 'TotalAdded'
@@ -377,7 +377,7 @@ LIMIT 5`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with multi-dimensional GROUP BYs", function() {
+    it("should work with multi-dimensional GROUP BYs", () => {
       var parse = Expression.parseSQL(`SELECT \`page\`, \`user\` FROM \`wiki\` GROUP BY \`page\`, \`user\``);
 
       var ex2 = $('wiki').split({ page: '$page', user: '$user' }, 'data');
@@ -385,7 +385,7 @@ LIMIT 5`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with SELECT DISTINCT", function() {
+    it("should work with SELECT DISTINCT", () => {
       var parse = Expression.parseSQL(`SELECT DISTINCT \`page\`, \`user\` FROM \`wiki\``);
 
       var ex2 = $('wiki').split({ page: '$page', user: '$user' }, 'data');
@@ -393,7 +393,7 @@ LIMIT 5`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with few spaces", function() {
+    it("should work with few spaces", () => {
       var parse = Expression.parseSQL(`SELECT\`page\`AS'Page'FROM\`wiki\`GROUP BY\`page\`ORDER BY\`Page\`LIMIT 5`);
 
       var ex2 = $('wiki').split('$page', 'Page', 'data')
@@ -403,7 +403,7 @@ LIMIT 5`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with a TIME_BUCKET function", function() {
+    it("should work with a TIME_BUCKET function", () => {
       var parse = Expression.parseSQL(`SELECT
 TIME_BUCKET(\`time\`, 'PT1H', 'Etc/UTC') AS 'TimeByHour',
 SUM(added) AS 'TotalAdded'
@@ -416,7 +416,7 @@ GROUP BY 1`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with SELECT *", function() {
+    it("should work with SELECT *", () => {
       var parse = Expression.parseSQL(`SELECT * FROM \`wiki\``);
 
       var ex2 = $('wiki');
@@ -424,7 +424,7 @@ GROUP BY 1`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with SELECT * WHERE ...", function() {
+    it("should work with SELECT * WHERE ...", () => {
       var parse = Expression.parseSQL(`SELECT * FROM \`wiki\` WHERE language = 'en'`);
 
       var ex2 = $('wiki')
@@ -433,7 +433,7 @@ GROUP BY 1`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with SELECT stuff", function() {
+    it("should work with SELECT stuff", () => {
       var parse = Expression.parseSQL(`SELECT \`page\`, \`added\` -- these are completly ignored for now
 FROM \`wiki\`
 WHERE language = 'en'
@@ -450,7 +450,7 @@ LIMIT 10`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with a NUMBER_BUCKET function", function() {
+    it("should work with a NUMBER_BUCKET function", () => {
       var parse = Expression.parseSQL(`SELECT
 NUMBER_BUCKET(added, 10, 1 ) AS 'AddedBucket',
 SUM(added) AS 'TotalAdded'
@@ -463,7 +463,7 @@ GROUP BY 1`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with a TIME_PART function", function() {
+    it("should work with a TIME_PART function", () => {
       var parse = Expression.parseSQL(`SELECT
 TIME_PART(\`time\`, DAY_OF_WEEK, 'Etc/UTC' ) AS 'DayOfWeek',
 SUM(added) AS 'TotalAdded'
@@ -476,7 +476,7 @@ GROUP BY 1`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with a SUBSTR and CONCAT function", function() {
+    it("should work with a SUBSTR and CONCAT function", () => {
       var parse = Expression.parseSQL(`SELECT
 CONCAT('[', SUBSTRING(SUBSTR(\`page\`, 0, 3 ), 1, 2), ']') AS 'Crazy',
 SUM(added) AS 'TotalAdded'
@@ -489,7 +489,7 @@ GROUP BY 1`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with EXTRACT function", function() {
+    it("should work with EXTRACT function", () => {
       var parse = Expression.parseSQL(`SELECT
 EXTRACT(\`page\`, '^Wiki(.+)$') AS 'Extract',
 SUM(added) AS 'TotalAdded'
@@ -502,7 +502,7 @@ GROUP BY 1`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with LOOKUP function", function() {
+    it("should work with LOOKUP function", () => {
       var parse = Expression.parseSQL(`SELECT
 LOOKUP(\`language\`, 'language-lookup') AS 'Lookup',
 SUM(added) AS 'TotalAdded'
@@ -515,7 +515,7 @@ GROUP BY 1`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should parse a complex filter", function() {
+    it("should parse a complex filter", () => {
       var parse = Expression.parseSQL(`SELECT
 SUM(added) AS 'TotalAdded'
 FROM \`wiki\`    -- Filters can have ANDs and all sorts of stuff!
@@ -551,7 +551,7 @@ WHERE user="Bot Master 1" AND
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should parse a total + split expression", function() {
+    it("should parse a total + split expression", () => {
       var parse = Expression.parseSQL(`SELECT
 SUM(\`added\`) AS 'TotalAdded',
 (
@@ -587,7 +587,7 @@ WHERE \`language\`="en"`);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with fancy names", function() {
+    it("should work with fancy names", () => {
       var parse = Expression.parseSQL(`SELECT
 \`page or else?\` AS 'Page',
 SUM(added) AS 'TotalAdded'
