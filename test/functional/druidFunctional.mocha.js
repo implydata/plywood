@@ -42,8 +42,8 @@ describe("Druid Functional", function() {
             { name: 'page_unique', special: 'unique' },
             { name: 'user', type: 'STRING' },
             { name: 'userChars', type: 'SET/STRING' },
-            { name: 'newPage', type: 'BOOLEAN' },
-            { name: 'anonymous', type: 'BOOLEAN' },
+            { name: 'isNew', type: 'BOOLEAN' },
+            { name: 'isAnonymous', type: 'BOOLEAN' },
             { name: 'commentLength', type: 'NUMBER' },
             { name: 'metroCode', type: 'STRING' },
             { name: 'cityName', type: 'STRING' },
@@ -311,21 +311,67 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it("works with power", (testComplete) => {
+    it.skip("works with all kinds of cool aggregates on totals level", (testComplete) => {
       var ex = ply()
-        .apply("Count", $('wiki').filter($("channel").is('en')).count())
-        .apply('Square Root', $('Count').power(0.5))
-        .apply('Squared', $('Count').power(2))
-        .apply('One', $('Count').power(0));
+        .apply("NumPages", $('wiki').countDistinct('$page'))
+        .apply("NumEnPages", $('wiki').filter($("channel").is('en')).countDistinct('$page'))
+        .apply("ChannelAdded", $('wiki').sum('$added'))
+        .apply("ChannelENAdded", $('wiki').filter($("channel").is('en')).sum('$added'))
+        .apply("ChannelENishAdded", $('wiki').filter($("channel").contains('en')).sum('$added'))
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('CountSquareRoot', $('wiki').sum('$count').power(0.5))
+        .apply('CountSquared', $('wiki').sum('$count').power(2))
+        .apply('One', $('wiki').sum('$count').power(0));
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with all kinds of cool aggregates on split level", (testComplete) => {
+      var ex = $('wiki').split('$isNew', 'isNew')
+        .apply("NumPages", $('wiki').countDistinct('$page'))
+        .apply("NumEnPages", $('wiki').filter($("channel").is('en')).countDistinct('$page'))
+        .apply("ChannelAdded", $('wiki').sum('$added'))
+        .apply("ChannelENAdded", $('wiki').filter($("channel").is('en')).sum('$added'))
+        .apply("ChannelENishAdded", $('wiki').filter($("channel").contains('en')).sum('$added'))
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('CountSquareRoot', $('wiki').sum('$count').power(0.5))
+        .apply('CountSquared', $('wiki').sum('$count').power(2))
+        .apply('One', $('wiki').sum('$count').power(0))
+        .limit(3);
 
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Count": 113240,
-              "One": 113240,
-              "Square Root": 336.5115154047481,
-              "Squared": 12823297600
+              "ChannelAdded": 53750772,
+              "ChannelENAdded": 23136956,
+              "ChannelENishAdded": 23136956,
+              "Count": 368841,
+              "CountSquareRoot": 607.3228136666694,
+              "CountSquared": 136043683281,
+              "NumEnPages": 57395.11747644384,
+              "NumPages": 262261.948514021,
+              "One": 1,
+              "isNew": false
+            },
+            {
+              "ChannelAdded": 43642971,
+              "ChannelENAdded": 9416151,
+              "ChannelENishAdded": 9416151,
+              "Count": 23602,
+              "CountSquareRoot": 153.62942426501507,
+              "CountSquared": 557054404,
+              "NumEnPages": 8166.062824215849,
+              "NumPages": 22270.407985514667,
+              "One": 1,
+              "isNew": true
             }
           ]);
           testComplete();
@@ -897,7 +943,7 @@ describe("Druid Functional", function() {
           $("wiki").split({
               'Channel': "$channel",
               'TimeByHour': '$time.timeBucket(PT1H)',
-              'NewPage': '$newPage',
+              'IsNew': '$isNew',
               'ChannelIsDE': "$channel == 'de'"
             })
             .apply('Count', $('wiki').count())
@@ -913,8 +959,8 @@ describe("Druid Functional", function() {
                 {
                   "Channel": "vi",
                   "ChannelIsDE": false,
-                  "Count": 12441,
-                  "NewPage": null,
+                  "Count": 12431,
+                  "IsNew": false,
                   "TimeByHour": {
                     "end": new Date('2015-09-12T07:00:00.000Z'),
                     "start": new Date('2015-09-12T06:00:00.000Z'),
@@ -924,8 +970,8 @@ describe("Druid Functional", function() {
                 {
                   "Channel": "vi",
                   "ChannelIsDE": false,
-                  "Count": 11833,
-                  "NewPage": null,
+                  "Count": 11825,
+                  "IsNew": false,
                   "TimeByHour": {
                     "end": new Date('2015-09-12T08:00:00.000Z'),
                     "start": new Date('2015-09-12T07:00:00.000Z'),
@@ -935,8 +981,8 @@ describe("Druid Functional", function() {
                 {
                   "Channel": "vi",
                   "ChannelIsDE": false,
-                  "Count": 6411,
-                  "NewPage": null,
+                  "Count": 6409,
+                  "IsNew": false,
                   "TimeByHour": {
                     "end": new Date('2015-09-12T18:00:00.000Z'),
                     "start": new Date('2015-09-12T17:00:00.000Z'),
@@ -946,8 +992,8 @@ describe("Druid Functional", function() {
                 {
                   "Channel": "vi",
                   "ChannelIsDE": false,
-                  "Count": 4942,
-                  "NewPage": null,
+                  "Count": 4938,
+                  "IsNew": false,
                   "TimeByHour": {
                     "end": new Date('2015-09-12T16:00:00.000Z'),
                     "start": new Date('2015-09-12T15:00:00.000Z'),

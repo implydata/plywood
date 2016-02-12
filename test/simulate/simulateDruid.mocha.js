@@ -895,7 +895,9 @@ describe("simulate Druid", () => {
         $('diamonds').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeSegment')
           .apply('Total', $('diamonds').sum('$price'))
           .apply('GoodPrice', $('diamonds').filter($('cut').is('Good')).sum('$price'))
-          .apply('NotBadPrice', $('diamonds').filter($('cut').isnt('Bad')).sum('$price'))
+          .apply('GoodPrice2', $('diamonds').filter($('cut').is('Good')).sum('$price.power(2)'))
+          .apply('GoodishPrice', $('diamonds').filter($('cut').contains('Good')).sum('$price'))
+          .apply('NotBadColors', $('diamonds').filter($('cut').isnt('Bad')).countDistinct('$color'))
       );
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
@@ -922,9 +924,42 @@ describe("simulate Druid", () => {
           },
           {
             "aggregator": {
-              "fieldName": "price",
-              "name": "NotBadPrice",
-              "type": "doubleSum"
+              "fieldNames": [
+                "price"
+              ],
+              "fnAggregate": "function(_c,price) { return _c+Math.pow(price,2); }",
+              "fnCombine": "function(a,b) { return a+b; }",
+              "fnReset": "function() { return 0; }",
+              "name": "GoodPrice2",
+              "type": "javascript"
+            },
+            "filter": {
+              "dimension": "cut",
+              "type": "selector",
+              "value": "Good"
+            },
+            "name": "GoodPrice2",
+            "type": "filtered"
+          },
+          {
+            "fieldNames": [
+              "cut",
+              "price"
+            ],
+            "fnAggregate": "function(_c,cut,price) { return _c+((''+cut).indexOf(\"Good\")>-1 ? price : 0); }",
+            "fnCombine": "function(a,b) { return a+b; }",
+            "fnReset": "function() { return 0; }",
+            "name": "GoodishPrice",
+            "type": "javascript"
+          },
+          {
+            "aggregator": {
+              "byRow": true,
+              "fieldNames": [
+                "color"
+              ],
+              "name": "NotBadColors",
+              "type": "cardinality"
             },
             "filter": {
               "field": {
@@ -934,7 +969,7 @@ describe("simulate Druid", () => {
               },
               "type": "not"
             },
-            "name": "NotBadPrice",
+            "name": "NotBadColors",
             "type": "filtered"
           }
         ],
