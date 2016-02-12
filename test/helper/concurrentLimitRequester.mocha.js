@@ -34,11 +34,12 @@ describe("Retry requester", function() {
       concurrentLimit: 2
     });
 
-    concurrentLimitRequester({ query: 'a' }).then(function(res) {
+    concurrentLimitRequester({ query: 'a' })
+      .then(function(res) {
         expect(res).to.be.an('array');
         testComplete();
-      }
-    ).done();
+      })
+      .done();
 
     return requester.resolve('a');
   });
@@ -51,28 +52,31 @@ describe("Retry requester", function() {
     });
 
     var nextQuery = 'a';
-    concurrentLimitRequester({ query: 'a' }).then(function(res) {
+    concurrentLimitRequester({ query: 'a' })
+      .then(function(res) {
         expect(res).to.be.an('array');
         expect(nextQuery).to.equal('a');
         return nextQuery = 'b';
-      }
-    ).done();
+      })
+      .done();
 
-    concurrentLimitRequester({ query: 'b' }).then(function(res) {
+    concurrentLimitRequester({ query: 'b' })
+      .then(function(res) {
         expect(res).to.be.an('array');
         expect(nextQuery).to.equal('b');
         nextQuery = 'c';
         expect(requester.hasQuery('c', 'has c')).to.equal(true);
         return requester.resolve('c');
-      }
-    ).done();
+      })
+      .done();
 
-    concurrentLimitRequester({ query: 'c' }).then(function(res) {
+    concurrentLimitRequester({ query: 'c' })
+      .then(function(res) {
         expect(res).to.be.an('array');
         expect(nextQuery).to.equal('c');
         testComplete();
-      }
-    ).done();
+      })
+      .done();
 
     expect(requester.hasQuery('a'), 'has a').to.equal(true);
     expect(requester.hasQuery('b'), 'has b').to.equal(true);

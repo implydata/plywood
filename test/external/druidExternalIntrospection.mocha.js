@@ -322,10 +322,10 @@ describe("DruidExternal Introspection", function() {
         throw new Error('DID_NOT_ERROR');
       })
       .fail(function(err) {
-          expect(err.message).to.equal('Bad status code');
-          testComplete();
-        }
-      ).done();
+        expect(err.message).to.equal('Bad status code');
+        testComplete();
+      })
+      .done();
   });
 
   it("does an introspect with segmentMetadata (with aggregators)", function(testComplete) {
@@ -336,7 +336,8 @@ describe("DruidExternal Introspection", function() {
       requester: requesterDruid_0_9_0
     });
 
-    return wikiExternal.introspect().then(function(introspectedExternal) {
+    return wikiExternal.introspect()
+      .then(function(introspectedExternal) {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -394,8 +395,8 @@ describe("DruidExternal Introspection", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("does an introspect with segmentMetadata (without aggregators)", function(testComplete) {
@@ -406,7 +407,8 @@ describe("DruidExternal Introspection", function() {
       requester: requesterDruid_0_8_3
     });
 
-    return wikiExternal.introspect().then(function(introspectedExternal) {
+    return wikiExternal.introspect()
+      .then(function(introspectedExternal) {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -450,8 +452,8 @@ describe("DruidExternal Introspection", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("does an introspect with segmentMetadata (with old style COMPLEX columns)", function(testComplete) {
@@ -462,7 +464,8 @@ describe("DruidExternal Introspection", function() {
       requester: requesterDruid_0_8_2
     });
 
-    return wikiExternal.introspect().then(function(introspectedExternal) {
+    return wikiExternal.introspect()
+      .then(function(introspectedExternal) {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -496,8 +499,8 @@ describe("DruidExternal Introspection", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("does a simple introspect with GET", function(testComplete) {
@@ -508,7 +511,8 @@ describe("DruidExternal Introspection", function() {
       requester: requesterDruid_0_8_1
     });
 
-    return wikiExternal.introspect().then(function(introspectedExternal) {
+    return wikiExternal.introspect()
+      .then(function(introspectedExternal) {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -556,8 +560,8 @@ describe("DruidExternal Introspection", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("respects the introspectionStrategy flag", function(testComplete) {
@@ -569,7 +573,8 @@ describe("DruidExternal Introspection", function() {
       requester: requesterDruid_0_9_0
     });
 
-    return wikiExternal.introspect().then(function(introspectedExternal) {
+    return wikiExternal.introspect()
+      .then(function(introspectedExternal) {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -617,8 +622,8 @@ describe("DruidExternal Introspection", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("does an introspect with overrides", function(testComplete) {
@@ -633,7 +638,8 @@ describe("DruidExternal Introspection", function() {
       ]
     });
 
-    return wikiExternal.introspect().then(function(introspectedExternal) {
+    return wikiExternal.introspect()
+      .then(function(introspectedExternal) {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -681,7 +687,7 @@ describe("DruidExternal Introspection", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 });

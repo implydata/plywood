@@ -25,11 +25,12 @@ describe("Retry requester", function() {
       retry: 2
     });
 
-    return retryRequester({}).then(function(res) {
+    return retryRequester({})
+      .then(function(res) {
         expect(res).to.be.an('array');
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("one fail", function(testComplete) {
@@ -39,11 +40,12 @@ describe("Retry requester", function() {
       retry: 2
     });
 
-    return retryRequester({}).then(function(res) {
+    return retryRequester({})
+      .then(function(res) {
         expect(res).to.be.an('array');
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("two fails", function(testComplete) {
@@ -53,11 +55,12 @@ describe("Retry requester", function() {
       retry: 2
     });
 
-    return retryRequester({}).then(function(res) {
+    return retryRequester({})
+      .then(function(res) {
         expect(res).to.be.an('array');
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("three fails", function(testComplete) {
@@ -67,13 +70,15 @@ describe("Retry requester", function() {
       retry: 2
     });
 
-    return retryRequester({}).then(function() {
-      throw new Error('DID_NOT_THROW');
-    }).catch(function(err) {
+    return retryRequester({})
+      .then(function() {
+        throw new Error('DID_NOT_THROW');
+      })
+      .catch(function(err) {
         expect(err.message).to.equal('some error');
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("timeout", function(testComplete) {
@@ -83,12 +88,14 @@ describe("Retry requester", function() {
       retry: 2
     });
 
-    return retryRequester({}).then(function() {
-      throw new Error('DID_NOT_THROW');
-    }).catch(function(err) {
+    return retryRequester({})
+      .then(function() {
+        throw new Error('DID_NOT_THROW');
+      })
+      .catch(function(err) {
         expect(err.message).to.equal('timeout');
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 });

@@ -10,13 +10,13 @@ describe('Simple locator', function() {
     it("works", function(testComplete) {
       return locator()
         .then(function(location) {
-            expect(location).to.deep.equal({
-              hostname: 'localhost',
-              port: 8080
-            });
-            testComplete();
-          }
-        ).done();
+          expect(location).to.deep.equal({
+            hostname: 'localhost',
+            port: 8080
+          });
+          testComplete();
+        })
+        .done();
     });
   });
 
@@ -29,22 +29,22 @@ describe('Simple locator', function() {
     it("works", function(testComplete) {
       return locator()
         .then(function(location) {
-            for (var i = 1; i <= 20; i++) {
-              if (location.hostname === 'localhost') {
-                expect(location).to.deep.equal({
-                  hostname: 'localhost',
-                  port: 8181
-                });
-              } else {
-                expect(location).to.deep.equal({
-                  hostname: 'koalastothemax.com',
-                  port: 80
-                });
-              }
+          for (var i = 1; i <= 20; i++) {
+            if (location.hostname === 'localhost') {
+              expect(location).to.deep.equal({
+                hostname: 'localhost',
+                port: 8181
+              });
+            } else {
+              expect(location).to.deep.equal({
+                hostname: 'koalastothemax.com',
+                port: 80
+              });
             }
-            testComplete();
           }
-        ).done();
+          testComplete();
+        })
+        .done();
     });
   });
 });

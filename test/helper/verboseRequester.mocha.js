@@ -23,9 +23,11 @@ describe("Verbose requester", function() {
       }
     });
 
-    return verboseRequester({ query: 'Query1' }).then(function(res) {
+    return verboseRequester({ query: 'Query1' })
+      .then(function(res) {
         expect(res).to.be.an('array');
-        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(`vvvvvvvvvvvvvvvvvvvvvvvvvv
+        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
+`vvvvvvvvvvvvvvvvvvvvvvvvvv
 Sending query 1:
 "Query1"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -38,8 +40,8 @@ Got result from query 1: (in Xms)
 ]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works on failure", function(testComplete) {
@@ -51,10 +53,13 @@ Got result from query 1: (in Xms)
       }
     });
 
-    return verboseRequester({ query: 'failThis' }).then(function() {
-      throw new Error('did not fail');
-    }).catch(function(error) {
-        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(`vvvvvvvvvvvvvvvvvvvvvvvvvv
+    return verboseRequester({ query: 'failThis' })
+      .then(function() {
+        throw new Error('did not fail');
+      })
+      .catch(function(error) {
+        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
+`vvvvvvvvvvvvvvvvvvvvvvvvvv
 Sending query 1:
 "failThis"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -62,7 +67,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvv
 Got error in query 1: some error (in Xms)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 });

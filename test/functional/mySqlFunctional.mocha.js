@@ -69,7 +69,8 @@ describe("MySQLExternal", function() {
         //          .limit(100)
         //      )
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Count": 334129,
@@ -139,8 +140,8 @@ describe("MySQLExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works multi-dimensional GROUP BYs", function(testComplete) {
@@ -157,7 +158,8 @@ describe("MySQLExternal", function() {
               .limit(4)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Cuts": [
@@ -201,8 +203,8 @@ describe("MySQLExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
     });
 
@@ -237,7 +239,8 @@ describe("MySQLExternal", function() {
             )
         );
 
-      basicExecutor(ex).then(function(result) {
+      basicExecutor(ex)
+        .then(function(result) {
           expect(result.toJS()).to.deep.equal([
             {
               "Count": 334129,
@@ -301,8 +304,8 @@ describe("MySQLExternal", function() {
             }
           ]);
           testComplete();
-        }
-      ).done();
+        })
+        .done();
     });
   });
 
@@ -323,15 +326,16 @@ describe("MySQLExternal", function() {
         .apply("wiki", $('wiki'))
         .apply('added', $('wiki').average($('added')).fallback(2));
 
-      basicExecutor(ex).then(function(result) {
+      basicExecutor(ex)
+        .then(function(result) {
           expect(result.toJS()).to.deep.equal([
             {
               "added": 216.5613
             }
           ]);
           testComplete();
-        }
-      ).done();
+        })
+        .done();
     });
 
     it("fallback happens if null", function(testComplete) {
@@ -339,15 +343,16 @@ describe("MySQLExternal", function() {
         .apply("wiki", $('wiki').filter($("page").is('Bieberswalde')))
         .apply('TotalAdded', $('wiki').sum($('added')).fallback(0));
 
-      basicExecutor(ex).then(function(result) {
+      basicExecutor(ex)
+        .then(function(result) {
           expect(result.toJS()).to.deep.equal([
             {
               "TotalAdded": 0
             }
           ]);
           testComplete();
-        }
-      ).done();
+        })
+        .done();
     });
 
     it("power of and abs", function(testComplete) {
@@ -357,7 +362,8 @@ describe("MySQLExternal", function() {
         .apply('AbsDelta', $('wiki').min($('delta')).absolute())
         .apply('SquareDelta', $('wiki').sum($('delta')).power(2));
 
-      basicExecutor(ex).then(function(result) {
+      basicExecutor(ex)
+        .then(function(result) {
           expect(result.toJS()).to.deep.equal([
             {
               "Delta": -3,
@@ -366,8 +372,8 @@ describe("MySQLExternal", function() {
             }
           ]);
           testComplete();
-        }
-      ).done();
+        })
+        .done();
     });
   });
 });

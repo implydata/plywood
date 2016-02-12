@@ -142,8 +142,8 @@ exports.makeEqualityTest = function(driverFnMap) {
           console.log("got error from driver");
           console.log(err);
           throw err;
-        }
-      ).done();
+        })
+        .done();
     };
   };
 };

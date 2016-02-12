@@ -33,8 +33,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with power and abs", function(testComplete) {
@@ -63,8 +63,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("doesnt fallback if not null ", function(testComplete) {
@@ -73,8 +73,8 @@ describe("compute native", function() {
     return p.then(function(v) {
         expect(v).to.deep.equal(2);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("fallback works with datasets", function(testComplete) {
@@ -98,8 +98,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
 
@@ -121,8 +121,8 @@ describe("compute native", function() {
           { cut: 'Wow', price: 160, priceX2: 320 }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with various applies", function(testComplete) {
@@ -220,8 +220,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with simple split aggregator", function(testComplete) {
@@ -247,8 +247,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with singleton dataset", function(testComplete) {
@@ -272,8 +272,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with simple split followed by some simple applies", function(testComplete) {
@@ -329,8 +329,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with timePart split (non-UTC timezone)", function(testComplete) {
@@ -361,8 +361,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with timePart split (other timezone)", function(testComplete) {
@@ -393,8 +393,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with context", function(testComplete) {
@@ -412,8 +412,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with context and split", function(testComplete) {
@@ -495,8 +495,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with simple split and sub apply", function(testComplete) {
@@ -540,8 +540,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with simple split and sub apply + sort + limit", function(testComplete) {
@@ -574,8 +574,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works with simple filter", function(testComplete) {
@@ -593,8 +593,8 @@ describe("compute native", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
 
@@ -646,8 +646,8 @@ describe("compute native", function() {
             }
           ]);
           testComplete();
-        }
-      ).done();
+        })
+        .done();
     });
 
     it("re-selects", function(testComplete) {
@@ -695,8 +695,8 @@ describe("compute native", function() {
             }
           ]);
           testComplete();
-        }
-      ).done();
+        })
+        .done();
     });
   });
 
@@ -743,8 +743,8 @@ describe("compute native", function() {
             }
           ]);
           testComplete();
-        }
-      ).done();
+        })
+        .done();
     });
   });
 });

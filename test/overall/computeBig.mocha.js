@@ -29,16 +29,17 @@ describe("compute native nontrivial data", function() {
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)');
 
-    var p = ex.compute({ data: ds });
-    return p.then(function(v) {
-      expect(v.toJS()).to.deep.equal([
-        {
-          "Count": 39244,
-          "SumAdded": 9385573
-        }
-      ]);
-      testComplete();
-    }).done();
+    return ex.compute({ data: ds })
+      .then(function(v) {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "Count": 39244,
+            "SumAdded": 9385573
+          }
+        ]);
+        testComplete();
+      })
+      .done();
   });
 
   it("works in simple split case (small dimension)", function(testComplete) {
@@ -48,8 +49,8 @@ describe("compute native nontrivial data", function() {
       .sort('$SumAdded', 'descending')
       .limit(5);
 
-    var p = ex.compute({ data: ds });
-    return p.then(function(v) {
+    ex.compute({ data: ds })
+      .then(function(v) {
         expect(v.toJS()).to.deep.equal([
           {
             "Count": 35445,
@@ -78,8 +79,8 @@ describe("compute native nontrivial data", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works in simple split case (large dimension)", function(testComplete) {
@@ -89,8 +90,8 @@ describe("compute native nontrivial data", function() {
       .sort('$SumAdded', 'descending')
       .limit(5);
 
-    var p = ex.compute({ data: ds });
-    return p.then(function(v) {
+    ex.compute({ data: ds })
+      .then(function(v) {
         expect(v.toJS()).to.deep.equal([
           {
             "Count": 1,
@@ -119,8 +120,8 @@ describe("compute native nontrivial data", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works in simple timeBucket case", function(testComplete) {
@@ -129,8 +130,8 @@ describe("compute native nontrivial data", function() {
       .sort('$Time', 'ascending')
       .limit(2);
 
-    var p = ex.compute({ data: ds });
-    return p.then(function(v) {
+    ex.compute({ data: ds })
+      .then(function(v) {
         expect(v.toJS()).to.deep.equal([
           {
             "Count": 556,
@@ -150,8 +151,8 @@ describe("compute native nontrivial data", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 
   it("works in with funny aggregates", function(testComplete) {
@@ -167,8 +168,8 @@ describe("compute native nontrivial data", function() {
       .sort('$SumAdded', 'descending')
       .limit(5);
 
-    var p = ex.compute({ data: ds });
-    return p.then(function(v) {
+    ex.compute({ data: ds })
+      .then(function(v) {
         expect(v.toJS()).to.deep.equal([
           {
             "Count": 35445,
@@ -227,7 +228,7 @@ describe("compute native nontrivial data", function() {
           }
         ]);
         testComplete();
-      }
-    ).done();
+      })
+      .done();
   });
 });

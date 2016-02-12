@@ -75,7 +75,8 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "HoursOfDay": [
@@ -95,8 +96,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works in advanced case", function(testComplete) {
@@ -127,7 +128,8 @@ describe("DruidExternal", function() {
               .limit(4)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Count": 114711,
@@ -215,8 +217,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with uniques", function(testComplete) {
@@ -227,7 +229,8 @@ describe("DruidExternal", function() {
           .apply('UniqueUsers2', $('wiki').countDistinct("$user_unique"));
         //.apply('UniqueDiff', '$UniqueUsers1 - $UniqueUsers2')
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "UniquePages1": 278906.2678236051,
@@ -237,8 +240,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with no applies in dimensions split dataset", function(testComplete) {
@@ -257,7 +260,8 @@ describe("DruidExternal", function() {
               )
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -283,8 +287,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with absolute", function(testComplete) {
@@ -293,7 +297,8 @@ describe("DruidExternal", function() {
           .apply('Negate', $('Count').negate())
           .apply('Abs', $('Count').negate().absolute().negate().absolute());
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Abs": 113240,
@@ -302,8 +307,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with power", function(testComplete) {
@@ -313,7 +318,8 @@ describe("DruidExternal", function() {
           .apply('Squared', $('Count').power(2))
           .apply('One', $('Count').power(0));
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Count": 113240,
@@ -323,8 +329,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with no applies in time split dataset", function(testComplete) {
@@ -343,7 +349,8 @@ describe("DruidExternal", function() {
               )
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "ByHour": [
@@ -402,8 +409,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with contains (case sensitive) filter", function(testComplete) {
@@ -417,7 +424,8 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -437,8 +445,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with contains (case insensitive) filter", function(testComplete) {
@@ -452,7 +460,8 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -472,8 +481,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with match filter", function(testComplete) {
@@ -487,7 +496,8 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -507,8 +517,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with concat split", function(testComplete) {
@@ -521,7 +531,8 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -541,8 +552,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with substr split", function(testComplete) {
@@ -555,7 +566,8 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -575,8 +587,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with extract split", function(testComplete) {
@@ -589,7 +601,8 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -609,8 +622,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it.skip("works with lookup split", function(testComplete) {
@@ -623,7 +636,8 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Channels": [
@@ -643,8 +657,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works with absolute value split", function(testComplete) {
@@ -710,7 +724,8 @@ describe("DruidExternal", function() {
               .limit(2)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([{
               "Time": [
                 {
@@ -732,8 +747,8 @@ describe("DruidExternal", function() {
 
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("can timeBucket a time column that's not the timeAttribute one", function(testComplete) {
@@ -744,7 +759,8 @@ describe("DruidExternal", function() {
               .limit(5)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "TimeLater": [
@@ -787,8 +803,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("works multi-dimensional GROUP BYs", function(testComplete) {
@@ -807,7 +823,8 @@ describe("DruidExternal", function() {
               .limit(4)
           );
 
-        basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Cuts": [
@@ -859,8 +876,8 @@ describe("DruidExternal", function() {
               }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
     });
 
@@ -903,7 +920,8 @@ describe("DruidExternal", function() {
             )
         );
 
-      basicExecutor(ex).then(function(result) {
+      basicExecutor(ex)
+        .then(function(result) {
           expect(result.toJS()).to.deep.equal([
             {
               "Count": 114711,
@@ -967,8 +985,8 @@ describe("DruidExternal", function() {
             }
           ]);
           testComplete();
-        }
-      ).done();
+        })
+        .done();
     });
   });
 });

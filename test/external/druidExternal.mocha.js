@@ -932,13 +932,14 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         .apply('Count', '$wiki.count()');
 
       it("should work with [] return", function(testComplete) {
-        return ex.compute({ wiki: nullExternal }).then(function(result) {
+        return ex.compute({ wiki: nullExternal })
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               { Count: 0 }
             ]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
     });
 
@@ -948,11 +949,12 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         .sort('$Time', 'ascending');
 
       it("should work with [] return", function(testComplete) {
-        return ex.compute({ wiki: nullExternal }).then(function(result) {
+        return ex.compute({ wiki: nullExternal })
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
     });
 
@@ -964,19 +966,21 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         .limit(5);
 
       it("should work with [] return", function(testComplete) {
-        return ex.compute({ wiki: nullExternal }).then(function(result) {
+        return ex.compute({ wiki: nullExternal })
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
 
       it("should work with [{result:[]}] return", function(testComplete) {
-        return ex.compute({ wiki: emptyExternal }).then(function(result) {
+        return ex.compute({ wiki: emptyExternal })
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([]);
             testComplete();
-          }
-        ).done();
+          })
+          .done();
       });
     });
   });
@@ -1009,10 +1013,10 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
           throw new Error('DID_NOT_ERROR');
         })
         .fail(function(err) {
-            expect(err.message).to.equal('unexpected result from Druid (all)');
-            testComplete();
-          }
-        ).done();
+          expect(err.message).to.equal('unexpected result from Druid (all)');
+          testComplete();
+        })
+        .done();
     });
 
     it("should work with timeseries query", function(testComplete) {
@@ -1025,10 +1029,10 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
           throw new Error('DID_NOT_ERROR');
         })
         .fail(function(err) {
-            expect(err.message).to.equal('unexpected result from Druid (timeseries)');
-            testComplete();
-          }
-        ).done();
+          expect(err.message).to.equal('unexpected result from Druid (timeseries)');
+          testComplete();
+        })
+        .done();
     });
   });
 });
