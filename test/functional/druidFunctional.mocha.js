@@ -19,7 +19,7 @@ var druidRequester = druidRequesterFactory({
 
 //druidRequester = helper.verboseRequesterFactory({
 //  requester: druidRequester
-//})
+//});
 
 describe("DruidExternal", function() {
   this.timeout(10000),
@@ -661,19 +661,21 @@ describe("DruidExternal", function() {
           .done();
       });
 
-      it("works with absolute value split", function(testComplete) {
+      it("works with absolute number split", function(testComplete) {
         var ex = ply()
           .apply(
             'AbsSplitAsc',
             $('wiki').split($('commentLength').absolute(), 'AbsCommentLength')
+              .apply('Count', '$wiki.sum($count)')
               .sort('$AbsCommentLength', 'ascending')
-              .limit(4)
+              .limit(3)
           )
           .apply(
             'AbsSplitDesc',
             $('wiki').split($('commentLength').absolute(), 'AbsCommentLength')
+              .apply('Count', '$wiki.sum($count)')
               .sort('$AbsCommentLength', 'descending')
-              .limit(4)
+              .limit(3)
           );
 
         basicExecutor(ex)
@@ -682,30 +684,110 @@ describe("DruidExternal", function() {
               {
                 "AbsSplitAsc": [
                   {
-                    "AbsCommentLength": 1
+                    "AbsCommentLength": 1,
+                    "Count": 734
                   },
                   {
-                    "AbsCommentLength": 2
+                    "AbsCommentLength": 2,
+                    "Count": 1456
                   },
                   {
-                    "AbsCommentLength": 3
-                  },
-                  {
-                    "AbsCommentLength": 4
+                    "AbsCommentLength": 3,
+                    "Count": 1976
                   }
                 ],
                 "AbsSplitDesc": [
                   {
-                    "AbsCommentLength": 255
+                    "AbsCommentLength": 255,
+                    "Count": 193
                   },
                   {
-                    "AbsCommentLength": 254
+                    "AbsCommentLength": 254,
+                    "Count": 59
                   },
                   {
-                    "AbsCommentLength": 253
+                    "AbsCommentLength": 253,
+                    "Count": 243
+                  }
+                ]
+              }
+            ]);
+            testComplete();
+          })
+          .done();
+      });
+
+      it("works with bucketed number split", function(testComplete) {
+        var ex = ply()
+          .apply(
+            'BucketSplitAsc',
+            $('wiki').split($('commentLength').numberBucket(5), 'Bucket')
+              .apply('Count', '$wiki.sum($count)')
+              .sort('$Bucket', 'ascending')
+              .limit(3)
+          )
+          .apply(
+            'BucketSplitDesc',
+            $('wiki').split($('commentLength').numberBucket(5), 'Bucket')
+              .apply('Count', '$wiki.sum($count)')
+              .sort('$Bucket', 'descending')
+              .limit(3)
+          );
+
+        basicExecutor(ex)
+          .then(function(result) {
+            expect(result.toJS()).to.deep.equal([
+              {
+                "BucketSplitAsc": [
+                  {
+                    "Bucket": {
+                      "end": 5,
+                      "start": 0,
+                      "type": "NUMBER_RANGE"
+                    },
+                    "Count": 6522
                   },
                   {
-                    "AbsCommentLength": 252
+                    "Bucket": {
+                      "end": 10,
+                      "start": 5,
+                      "type": "NUMBER_RANGE"
+                    },
+                    "Count": 15003
+                  },
+                  {
+                    "Bucket": {
+                      "end": 15,
+                      "start": 10,
+                      "type": "NUMBER_RANGE"
+                    },
+                    "Count": 70628
+                  }
+                ],
+                "BucketSplitDesc": [
+                  {
+                    "Bucket": {
+                      "end": 260,
+                      "start": 255,
+                      "type": "NUMBER_RANGE"
+                    },
+                    "Count": 193
+                  },
+                  {
+                    "Bucket": {
+                      "end": 255,
+                      "start": 250,
+                      "type": "NUMBER_RANGE"
+                    },
+                    "Count": 556
+                  },
+                  {
+                    "Bucket": {
+                      "end": 250,
+                      "start": 245,
+                      "type": "NUMBER_RANGE"
+                    },
+                    "Count": 1687
                   }
                 ]
               }

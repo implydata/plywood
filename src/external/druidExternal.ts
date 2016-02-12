@@ -1797,7 +1797,8 @@ return (start < 0 ?'-':'') + parts.join('.');
 
                 var inverted: boolean;
                 if (this.sortOnLabel()) {
-                  if (this.split.firstSplitExpression().type === 'NUMBER') {
+                  var splitType = this.split.firstSplitExpression().type;
+                  if (splitType === 'NUMBER' || splitType === 'NUMBER_RANGE') {
                     metric = { type: 'alphaNumeric' };
                     inverted = sortAction.direction === 'descending';
                   } else {
