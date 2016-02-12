@@ -1,2 +1,2 @@
---compilers coffee:coffee-script/register
 --reporter spec
+--harmony_destructuring
