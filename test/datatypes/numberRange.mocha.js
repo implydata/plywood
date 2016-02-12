@@ -7,7 +7,7 @@ var { NumberRange, $, ply, r } = plywood;
 
 describe("NumberRange", () => {
   it("is immutable class", () => {
-    return testImmutableClass(NumberRange, [
+    testImmutableClass(NumberRange, [
       {
         start: 0,
         end: 0

@@ -7,7 +7,7 @@ var { TimeRange, $, ply, r } = plywood;
 
 describe("TimeRange", () => {
   it("is immutable class", () => {
-    return testImmutableClass(TimeRange, [
+    testImmutableClass(TimeRange, [
       {
         start: new Date('2015-01-26T04:54:10Z'),
         end: new Date('2015-01-26T05:54:10Z')

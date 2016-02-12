@@ -7,7 +7,7 @@ var { Dataset, AttributeInfo, $, ply, r } = plywood;
 
 describe("Dataset", () => {
   it("is immutable class", () => {
-    return testImmutableClass(Dataset, [
+    testImmutableClass(Dataset, [
       [
         { x: 1, y: 2 },
         { x: 2, y: 3 }

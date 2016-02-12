@@ -38,7 +38,7 @@ var context = {
 
 describe("External", () => {
   it("is immutable class", () => {
-    return testImmutableClass(External, [
+    testImmutableClass(External, [
       {
         engine: 'mysql',
         table: 'diamonds',

@@ -13,7 +13,7 @@ var { Action, $, ply, r, MatchAction } = plywood;
 
 describe("Actions", () => {
   it("is immutable class", () => {
-    return testImmutableClass(Action, [
+    testImmutableClass(Action, [
       {
         action: 'filter',
         expression: {

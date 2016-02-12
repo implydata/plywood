@@ -13,7 +13,7 @@ var { Expression, $, RefExpression } = plywood;
 
 describe("Expression", () => {
   it("is immutable class", () => {
-    return testImmutableClass(Expression, [
+    testImmutableClass(Expression, [
       { op: 'literal', value: null },
       { op: 'literal', value: false },
       { op: 'literal', value: true },

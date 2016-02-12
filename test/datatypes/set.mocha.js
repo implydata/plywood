@@ -7,7 +7,7 @@ var { Set, $, ply, r } = plywood;
 
 describe("Set", () => {
   it("is immutable class", () => {
-    return testImmutableClass(Set, [
+    testImmutableClass(Set, [
       {
         setType: 'NULL',
         elements: []

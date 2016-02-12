@@ -7,7 +7,7 @@ var { AttributeInfo, $, ply, r } = plywood;
 
 describe("NumberRange", () => {
   it("is immutable class", () => {
-    return testImmutableClass(AttributeInfo, [
+    testImmutableClass(AttributeInfo, [
       { name: 'time', type: 'TIME' },
       { name: 'color', type: 'STRING' },
       { name: 'cut', type: 'STRING' },
