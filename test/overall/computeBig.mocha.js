@@ -33,8 +33,8 @@ describe("compute native nontrivial data", function() {
     return p.then(function(v) {
       expect(v.toJS()).to.deep.equal([
         {
-          "Count": 28673,
-          "SumAdded": 6686857
+          "Count": 39244,
+          "SumAdded": 9385573
         }
       ]);
       return testComplete();
@@ -42,7 +42,7 @@ describe("compute native nontrivial data", function() {
   });
 
   it("works in simple split case (small dimension)", function(testComplete) {
-    var ex = $('data').split('$language', 'Language')
+    var ex = $('data').split('$countryName', 'CountryName')
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)')
       .sort('$SumAdded', 'descending')
@@ -52,29 +52,29 @@ describe("compute native nontrivial data", function() {
     return p.then(function(v) {
         expect(v.toJS()).to.deep.equal([
           {
-            "Count": 15316,
-            "Language": "en",
-            "SumAdded": 2086462
+            "Count": 35445,
+            "CountryName": null,
+            "SumAdded": 8761516
           },
           {
-            "Count": 397,
-            "Language": "pl",
-            "SumAdded": 784245
+            "Count": 69,
+            "CountryName": "Colombia",
+            "SumAdded": 60398
           },
           {
-            "Count": 1512,
-            "Language": "sv",
-            "SumAdded": 573478
+            "Count": 194,
+            "CountryName": "Russia",
+            "SumAdded": 50561
           },
           {
-            "Count": 1201,
-            "Language": "fr",
-            "SumAdded": 458503
+            "Count": 528,
+            "CountryName": "United States",
+            "SumAdded": 44433
           },
           {
-            "Count": 687,
-            "Language": "ru",
-            "SumAdded": 412581
+            "Count": 256,
+            "CountryName": "Italy",
+            "SumAdded": 41073
           }
         ]);
         return testComplete();
@@ -93,29 +93,29 @@ describe("compute native nontrivial data", function() {
     return p.then(function(v) {
         expect(v.toJS()).to.deep.equal([
           {
-            "Count": 3,
-            "Page": "Wikipedysta:Malarz_pl/szablony/Miasto_zagranica_infobox",
-            "SumAdded": 617145
+            "Count": 1,
+            "Page": "User:QuackGuru/Electronic cigarettes 1",
+            "SumAdded": 199818
           },
           {
             "Count": 1,
-            "Page": "User:Tim.landscheidt/Sandbox/Unusually_long_IP_blocks",
-            "SumAdded": 164225
+            "Page": "Обсуждение участника:पाणिनि/Архив-5",
+            "SumAdded": 102719
           },
           {
             "Count": 1,
-            "Page": "Demographics_of_the_United_States",
-            "SumAdded": 119910
+            "Page": "Campeche",
+            "SumAdded": 94187
           },
           {
             "Count": 1,
-            "Page": "Usuario:Adolfobrigido/Pruebas",
-            "SumAdded": 77338
+            "Page": "Équipe de Pologne de football à la Coupe du monde 1986",
+            "SumAdded": 92182
           },
           {
             "Count": 1,
-            "Page": "Pedro_Álvares_Cabral",
-            "SumAdded": 68390
+            "Page": "Адвокат",
+            "SumAdded": 89385
           }
         ]);
         return testComplete();
@@ -133,18 +133,18 @@ describe("compute native nontrivial data", function() {
     return p.then(function(v) {
         expect(v.toJS()).to.deep.equal([
           {
-            "Count": 1350,
+            "Count": 556,
             "Time": {
-              "end": new Date('2013-02-26T00:15:00.000Z'),
-              "start": new Date('2013-02-25T23:15:00.000Z'),
+              "end": new Date('2015-09-12T01:15:00.000Z'),
+              "start": new Date('2015-09-12T00:15:00.000Z'),
               "type": "TIME_RANGE"
             }
           },
           {
-            "Count": 1590,
+            "Count": 1129,
             "Time": {
-              "end": new Date('2013-02-26T01:15:00.000Z'),
-              "start": new Date('2013-02-26T00:15:00.000Z'),
+              "end": new Date('2015-09-12T02:15:00.000Z'),
+              "start": new Date('2015-09-12T01:15:00.000Z'),
               "type": "TIME_RANGE"
             }
           }
@@ -155,8 +155,8 @@ describe("compute native nontrivial data", function() {
   });
 
   return it("works in with funny aggregates", function(testComplete) {
-    var ex = $('data').split('$language', 'Language')
-      .apply('Language', '"[" ++ $Language ++ "]"')
+    var ex = $('data').split('$countryName', 'CountryName')
+      .apply('Language', '"[" ++ $CountryName ++ "]"')
       .apply('Count', '$data.count()')
       .apply('CountLT1000', '$Count < 1000')
       .apply('CountGT1000', '$Count > 1000')
@@ -171,54 +171,59 @@ describe("compute native nontrivial data", function() {
     return p.then(function(v) {
         expect(v.toJS()).to.deep.equal([
           {
-            "Count": 15316,
+            "Count": 35445,
             "CountGT1000": true,
             "CountGTE397": true,
             "CountLT1000": false,
             "CountLTE397": false,
-            "Language": "[en]",
-            "NegSumAdded": -2086462,
-            "SumAdded": 2086462
+            "CountryName": null,
+            "Language": null,
+            "NegSumAdded": -8761516,
+            "SumAdded": 8761516
           },
           {
-            "Count": 397,
+            "Count": 69,
             "CountGT1000": false,
-            "CountGTE397": true,
+            "CountGTE397": false,
             "CountLT1000": true,
             "CountLTE397": true,
-            "Language": "[pl]",
-            "NegSumAdded": -784245,
-            "SumAdded": 784245
+            "CountryName": "Colombia",
+            "Language": "[Colombia]",
+            "NegSumAdded": -60398,
+            "SumAdded": 60398
           },
           {
-            "Count": 1512,
-            "CountGT1000": true,
-            "CountGTE397": true,
-            "CountLT1000": false,
-            "CountLTE397": false,
-            "Language": "[sv]",
-            "NegSumAdded": -573478,
-            "SumAdded": 573478
+            "Count": 194,
+            "CountGT1000": false,
+            "CountGTE397": false,
+            "CountLT1000": true,
+            "CountLTE397": true,
+            "CountryName": "Russia",
+            "Language": "[Russia]",
+            "NegSumAdded": -50561,
+            "SumAdded": 50561
           },
           {
-            "Count": 1201,
-            "CountGT1000": true,
-            "CountGTE397": true,
-            "CountLT1000": false,
-            "CountLTE397": false,
-            "Language": "[fr]",
-            "NegSumAdded": -458503,
-            "SumAdded": 458503
-          },
-          {
-            "Count": 687,
+            "Count": 528,
             "CountGT1000": false,
             "CountGTE397": true,
             "CountLT1000": true,
             "CountLTE397": false,
-            "Language": "[ru]",
-            "NegSumAdded": -412581,
-            "SumAdded": 412581
+            "CountryName": "United States",
+            "Language": "[United States]",
+            "NegSumAdded": -44433,
+            "SumAdded": 44433
+          },
+          {
+            "Count": 256,
+            "CountGT1000": false,
+            "CountGTE397": false,
+            "CountLT1000": true,
+            "CountLTE397": true,
+            "CountryName": "Italy",
+            "Language": "[Italy]",
+            "NegSumAdded": -41073,
+            "SumAdded": 41073
           }
         ]);
         return testComplete();
