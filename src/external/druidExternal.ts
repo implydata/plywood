@@ -1329,7 +1329,16 @@ return (start < 0 ?'-':'') + parts.join('.');
       return postAgg;
     }
 
-    public makeStandardAggregation(name: string, filterAction: FilterAction, aggregateAction: Action): Druid.Aggregation {
+    public makeNativeAggregateFilter(name: string, filterExpression: Expression, aggregator: Druid.Aggregation): Druid.Aggregation {
+      return {
+        type: "filtered",
+        name: name,
+        filter: this.timelessFilterToDruid(filterExpression),
+        aggregator
+      };
+    }
+
+    public makeStandardAggregation(name: string, aggregateAction: Action): Druid.Aggregation {
       var fn = aggregateAction.action;
       var aggregateExpression = aggregateAction.expression;
       var aggregation: Druid.Aggregation = {
@@ -1340,60 +1349,58 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (aggregateExpression instanceof RefExpression) {
           aggregation.fieldName = aggregateExpression.name;
         } else {
-          return this.makeJavaScriptAggregation(name, filterAction, aggregateAction);
-        }
-      }
-
-      // See if we want to do a filtered aggregate
-      if (filterAction) {
-        if (this.canUseNativeAggregateFilter(filterAction.expression)) {
-          aggregation = {
-            type: "filtered",
-            name: name,
-            filter: this.timelessFilterToDruid(filterAction.expression),
-            aggregator: aggregation
-          };
-        } else {
-          return this.makeJavaScriptAggregation(name, filterAction, aggregateAction);
+          return this.makeJavaScriptAggregation(name, null, aggregateAction);
         }
       }
 
       return aggregation;
     }
 
-    public makeCountDistinctAggregation(name: string, filterAction: FilterAction, action: CountDistinctAction): Druid.Aggregation {
+    public makeCountDistinctAggregation(name: string, action: CountDistinctAction): Druid.Aggregation {
       if (this.exactResultsOnly) {
         throw new Error("approximate query not allowed");
-      }
-      if (filterAction) {
-        throw new Error("filtering on countDistinct aggregator isn't supported");
       }
 
       var attribute = action.expression;
       if (attribute instanceof RefExpression) {
-        var attributeInfo = this.getAttributesInfo(attribute.name);
-        if (attributeInfo instanceof UniqueAttributeInfo) {
-          return {
-            name: name,
-            type: "hyperUnique",
-            fieldName: attribute.name
-          };
-        } else {
-          return {
-            name: name,
-            type: "cardinality",
-            fieldNames: [attribute.name],
-            byRow: true
-          };
-        }
-
+        var attributeName = attribute.name;
       } else {
-        throw new Error('can not compute distinctCount on derived attribute');
+        throw new Error(`can not compute countDistinct on derived attribute: ${attribute.toString()}`);
+      }
+
+      var attributeInfo = this.getAttributesInfo(attributeName);
+      if (attributeInfo instanceof UniqueAttributeInfo) {
+        return {
+          name: name,
+          type: "hyperUnique",
+          fieldName: attributeName
+        };
+      } else {
+        return {
+          name: name,
+          type: "cardinality",
+          fieldNames: [attributeName],
+          byRow: true
+        };
       }
     }
 
-    public makeJavaScriptAggregation(name: string, filterAction: FilterAction, aggregateAction: Action): Druid.Aggregation {
+    public makeCustomAggregation(name: string, action: CustomAction): Druid.Aggregation {
+      var customAggregationName = action.custom;
+      var customAggregation = this.customAggregations[customAggregationName];
+      if (!customAggregation) throw new Error(`could not find '${customAggregationName}'`);
+      var aggregationObj = customAggregation.aggregation;
+      if (typeof aggregationObj.type !== 'string') throw new Error(`must have type in custom aggregation '${customAggregationName}'`);
+      try {
+        aggregationObj = JSON.parse(JSON.stringify(aggregationObj));
+      } catch (e) {
+        throw new Error(`must have JSON custom aggregation '${customAggregationName}'`);
+      }
+      aggregationObj.name = name;
+      return aggregationObj;
+    }
 
+    public makeJavaScriptAggregation(name: string, filterExpression: Expression, aggregateAction: Action): Druid.Aggregation {
       var aggregateActionType = aggregateAction.action;
       var aggregateExpression = aggregateAction.expression;
 
@@ -1409,10 +1416,8 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       var aggregateExpressionJS = aggregateExpression.getJS(null);
 
-      if (filterAction) {
-        var filterExpression = filterAction.expression;
+      if (filterExpression) {
         fieldNames = deduplicateSort(fieldNames.concat(filterExpression.getFreeReferences()));
-       // fieldNames = deduplicateSort(fieldNames);
         aggregateExpressionJS = `(${filterExpression.getJS(null)} ? ${aggregateExpressionJS} : ${zero})`
       }
 
@@ -1424,7 +1429,6 @@ return (start < 0 ?'-':'') + parts.join('.');
         fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
         fnReset: `function() { return ${zero}; }`
       }
-
     }
 
     public applyToAggregation(action: ApplyAction): Druid.Aggregation {
@@ -1432,13 +1436,15 @@ return (start < 0 ?'-':'') + parts.join('.');
       if (applyExpression.op !== 'chain') throw new Error(`can not convert apply: ${applyExpression.toString()}`);
 
       var actions = applyExpression.actions;
-      var filterAction: FilterAction = null;
+      var filterExpression: Expression = null;
       var aggregateAction: Action = null;
       if (actions.length === 1) {
         aggregateAction = actions[0];
       } else if (actions.length === 2) {
-        filterAction = <FilterAction>actions[0];
-        if (!(filterAction instanceof FilterAction)) {
+        var filterAction = actions[0];
+        if (filterAction instanceof FilterAction) {
+          filterExpression = filterAction.expression;
+        } else {
           throw new Error(`first action not a filter in: ${applyExpression.toString()}`);
         }
         aggregateAction = actions[1];
@@ -1451,27 +1457,40 @@ return (start < 0 ?'-':'') + parts.join('.');
         case "sum":
         case "min":
         case "max":
-          return this.makeStandardAggregation(action.name, filterAction, aggregateAction);
+          if (filterExpression) {
+            if (this.canUseNativeAggregateFilter(filterExpression)) {
+              return this.makeNativeAggregateFilter(action.name, filterExpression, this.makeStandardAggregation(action.name, aggregateAction));
+            } else {
+              return this.makeJavaScriptAggregation(action.name, filterExpression, aggregateAction);
+            }
+          } else {
+            return this.makeStandardAggregation(action.name, aggregateAction);
+          }
 
         case "countDistinct":
-          return this.makeCountDistinctAggregation(action.name, filterAction, <CountDistinctAction>aggregateAction);
+          if (filterExpression) {
+            if (this.canUseNativeAggregateFilter(filterExpression)) {
+              return this.makeNativeAggregateFilter(action.name, filterExpression, this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction));
+            } else {
+              throw new Error(`can not use complex filter with countDistinct aggregation: ${filterExpression.toString()}`);
+            }
+          } else {
+            return this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction);
+          }
 
         case "quantile":
           throw new Error(`ToDo: add quantile support`); // ToDo: add quantile support
 
         case "custom":
-          var customAggregationName = (<CustomAction>aggregateAction).custom;
-          var customAggregation = this.customAggregations[customAggregationName];
-          if (!customAggregation) throw new Error(`could not find '${customAggregationName}'`);
-          var aggregationObj = customAggregation.aggregation;
-          if (typeof aggregationObj.type !== 'string') throw new Error(`must have type in custom aggregation '${customAggregationName}'`);
-          try {
-            aggregationObj = JSON.parse(JSON.stringify(aggregationObj));
-          } catch (e) {
-            throw new Error(`must have JSON custom aggregation '${customAggregationName}'`);
+          if (filterExpression) {
+            if (this.canUseNativeAggregateFilter(filterExpression)) {
+              return this.makeNativeAggregateFilter(action.name, filterExpression, this.makeCustomAggregation(action.name, <CustomAction>aggregateAction));
+            } else {
+              throw new Error(`can not use complex filter with custom aggregation: ${filterExpression.toString()}`);
+            }
+          } else {
+            return this.makeCustomAggregation(action.name, <CustomAction>aggregateAction);
           }
-          aggregationObj.name = action.name;
-          return aggregationObj;
 
         default:
           throw new Error(`unsupported aggregate action ${aggregateAction.action}`);
