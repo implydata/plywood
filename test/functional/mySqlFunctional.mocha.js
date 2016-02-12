@@ -21,192 +21,192 @@ var mySqlRequester = mySqlRequesterFactory({
 });
 
 describe("MySQLExternal", function() {
-  this.timeout(10000),
+  this.timeout(10000);
 
-    describe("defined attributes in datasource", function() {
-      var basicExecutor = basicExecutorFactory({
-        datasets: {
-          wiki: External.fromJS({
-            engine: 'mysql',
-            table: 'wiki_day_agg',
-            attributes: [
-              { name: 'time', type: 'TIME' },
-              { name: 'language', type: 'STRING' },
-              { name: 'page', type: 'STRING' },
-              { name: 'added', type: 'NUMBER' },
-              { name: 'count', type: 'NUMBER' }
-            ],
-            requester: mySqlRequester
-          })
-        }
-      });
-
-      it("works in advanced case", function(testComplete) {
-        var ex = ply()
-          .apply("wiki", $('wiki').filter($("language").is('en')))
-          .apply('Count', '$wiki.sum($count)')
-          .apply('TotalAdded', '$wiki.sum($added)')
-          .apply(
-            'Pages',
-            $("wiki").split("$page", 'Page')
-              .apply('Count', '$wiki.sum($count)')
-              .sort('$Count', 'descending')
-              .limit(2)
-              .apply(
-                'Time',
-                $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
-                  .apply('TotalAdded', '$wiki.sum($added)')
-                  .sort('$TotalAdded', 'descending')
-                  .limit(3)
-              )
-          );
-        //      .apply(
-        'PagesHaving';
-        //        $("wiki").split("$page", 'Page')
-        //          .apply('Count', '$wiki.sum($count)')
-        //          .sort('$Count', 'descending')
-        //          .filter($('Count').lessThan(30))
-        //          .limit(100)
-        //      )
-
-        basicExecutor(ex)
-          .then(function(result) {
-            expect(result.toJS()).to.deep.equal([
-              {
-                "Count": 334129,
-                "Pages": [
-                  {
-                    "Count": 626,
-                    "Page": "User:Addbot/log/wikidata",
-                    "Time": [
-                      {
-                        "Timestamp": {
-                          "end": new Date("2013-02-26T20:00:00.000Z"),
-                          "start": new Date("2013-02-26T19:00:00.000Z"),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 180454
-                      },
-                      {
-                        "Timestamp": {
-                          "end": new Date("2013-02-26T13:00:00.000Z"),
-                          "start": new Date("2013-02-26T12:00:00.000Z"),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 178939
-                      },
-                      {
-                        "Timestamp": {
-                          "end": new Date("2013-02-26T01:00:00.000Z"),
-                          "start": new Date("2013-02-26T00:00:00.000Z"),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 159582
-                      }
-                    ]
-                  },
-                  {
-                    "Count": 329,
-                    "Page": "User:Legobot/Wikidata/General",
-                    "Time": [
-                      {
-                        "Timestamp": {
-                          "end": new Date("2013-02-26T16:00:00.000Z"),
-                          "start": new Date("2013-02-26T15:00:00.000Z"),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 7609
-                      },
-                      {
-                        "Timestamp": {
-                          "end": new Date("2013-02-26T22:00:00.000Z"),
-                          "start": new Date("2013-02-26T21:00:00.000Z"),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 6919
-                      },
-                      {
-                        "Timestamp": {
-                          "end": new Date("2013-02-26T17:00:00.000Z"),
-                          "start": new Date("2013-02-26T16:00:00.000Z"),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 5717
-                      }
-                    ]
-                  }
-                ],
-                "TotalAdded": 41412583
-              }
-            ]);
-            testComplete();
-          })
-          .done();
-      });
-
-      it("works multi-dimensional GROUP BYs", function(testComplete) {
-        var ex = ply()
-          .apply("wiki", $('wiki').filter($("language").isnt('en')))
-          .apply(
-            'Cuts',
-            $("wiki").split({
-                'Language': "$language",
-                'TimeByHour': '$time.timeBucket(PT1H)'
-              })
-              .apply('Count', $('wiki').count())
-              .sort('$Count', 'descending')
-              .limit(4)
-          );
-
-        basicExecutor(ex)
-          .then(function(result) {
-            expect(result.toJS()).to.deep.equal([
-              {
-                "Cuts": [
-                  {
-                    "Count": 1904,
-                    "Language": "he",
-                    "TimeByHour": {
-                      "end": new Date('2013-02-26T21:00:00Z'),
-                      "start": new Date('2013-02-26T20:00:00Z'),
-                      "type": "TIME_RANGE"
-                    }
-                  },
-                  {
-                    "Count": 1823,
-                    "Language": "de",
-                    "TimeByHour": {
-                      "end": new Date('2013-02-26T18:00:00Z'),
-                      "start": new Date('2013-02-26T17:00:00Z'),
-                      "type": "TIME_RANGE"
-                    }
-                  },
-                  {
-                    "Count": 1788,
-                    "Language": "sv",
-                    "TimeByHour": {
-                      "end": new Date('2013-02-26T17:00:00Z'),
-                      "start": new Date('2013-02-26T16:00:00Z'),
-                      "type": "TIME_RANGE"
-                    }
-                  },
-                  {
-                    "Count": 1776,
-                    "Language": "nl",
-                    "TimeByHour": {
-                      "end": new Date('2013-02-26T22:00:00Z'),
-                      "start": new Date('2013-02-26T21:00:00Z'),
-                      "type": "TIME_RANGE"
-                    }
-                  }
-                ]
-              }
-            ]);
-            testComplete();
-          })
-          .done();
-      });
+  describe("defined attributes in datasource", function() {
+    var basicExecutor = basicExecutorFactory({
+      datasets: {
+        wiki: External.fromJS({
+          engine: 'mysql',
+          table: 'wiki_day_agg',
+          attributes: [
+            { name: 'time', type: 'TIME' },
+            { name: 'language', type: 'STRING' },
+            { name: 'page', type: 'STRING' },
+            { name: 'added', type: 'NUMBER' },
+            { name: 'count', type: 'NUMBER' }
+          ],
+          requester: mySqlRequester
+        })
+      }
     });
+
+    it("works in advanced case", function(testComplete) {
+      var ex = ply()
+        .apply("wiki", $('wiki').filter($("language").is('en')))
+        .apply('Count', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .apply(
+          'Pages',
+          $("wiki").split("$page", 'Page')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(2)
+            .apply(
+              'Time',
+              $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
+                .apply('TotalAdded', '$wiki.sum($added)')
+                .sort('$TotalAdded', 'descending')
+                .limit(3)
+            )
+        );
+      //      .apply(
+      //        'PagesHaving',
+      //        $("wiki").split("$page", 'Page')
+      //          .apply('Count', '$wiki.sum($count)')
+      //          .sort('$Count', 'descending')
+      //          .filter($('Count').lessThan(30))
+      //          .limit(100)
+      //      )
+
+      basicExecutor(ex)
+        .then(function(result) {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Count": 334129,
+              "Pages": [
+                {
+                  "Count": 626,
+                  "Page": "User:Addbot/log/wikidata",
+                  "Time": [
+                    {
+                      "Timestamp": {
+                        "end": new Date("2013-02-26T20:00:00.000Z"),
+                        "start": new Date("2013-02-26T19:00:00.000Z"),
+                        "type": "TIME_RANGE"
+                      },
+                      "TotalAdded": 180454
+                    },
+                    {
+                      "Timestamp": {
+                        "end": new Date("2013-02-26T13:00:00.000Z"),
+                        "start": new Date("2013-02-26T12:00:00.000Z"),
+                        "type": "TIME_RANGE"
+                      },
+                      "TotalAdded": 178939
+                    },
+                    {
+                      "Timestamp": {
+                        "end": new Date("2013-02-26T01:00:00.000Z"),
+                        "start": new Date("2013-02-26T00:00:00.000Z"),
+                        "type": "TIME_RANGE"
+                      },
+                      "TotalAdded": 159582
+                    }
+                  ]
+                },
+                {
+                  "Count": 329,
+                  "Page": "User:Legobot/Wikidata/General",
+                  "Time": [
+                    {
+                      "Timestamp": {
+                        "end": new Date("2013-02-26T16:00:00.000Z"),
+                        "start": new Date("2013-02-26T15:00:00.000Z"),
+                        "type": "TIME_RANGE"
+                      },
+                      "TotalAdded": 7609
+                    },
+                    {
+                      "Timestamp": {
+                        "end": new Date("2013-02-26T22:00:00.000Z"),
+                        "start": new Date("2013-02-26T21:00:00.000Z"),
+                        "type": "TIME_RANGE"
+                      },
+                      "TotalAdded": 6919
+                    },
+                    {
+                      "Timestamp": {
+                        "end": new Date("2013-02-26T17:00:00.000Z"),
+                        "start": new Date("2013-02-26T16:00:00.000Z"),
+                        "type": "TIME_RANGE"
+                      },
+                      "TotalAdded": 5717
+                    }
+                  ]
+                }
+              ],
+              "TotalAdded": 41412583
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works multi-dimensional GROUP BYs", function(testComplete) {
+      var ex = ply()
+        .apply("wiki", $('wiki').filter($("language").isnt('en')))
+        .apply(
+          'Cuts',
+          $("wiki").split({
+              'Language': "$language",
+              'TimeByHour': '$time.timeBucket(PT1H)'
+            })
+            .apply('Count', $('wiki').count())
+            .sort('$Count', 'descending')
+            .limit(4)
+        );
+
+      basicExecutor(ex)
+        .then(function(result) {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Cuts": [
+                {
+                  "Count": 1904,
+                  "Language": "he",
+                  "TimeByHour": {
+                    "end": new Date('2013-02-26T21:00:00Z'),
+                    "start": new Date('2013-02-26T20:00:00Z'),
+                    "type": "TIME_RANGE"
+                  }
+                },
+                {
+                  "Count": 1823,
+                  "Language": "de",
+                  "TimeByHour": {
+                    "end": new Date('2013-02-26T18:00:00Z'),
+                    "start": new Date('2013-02-26T17:00:00Z'),
+                    "type": "TIME_RANGE"
+                  }
+                },
+                {
+                  "Count": 1788,
+                  "Language": "sv",
+                  "TimeByHour": {
+                    "end": new Date('2013-02-26T17:00:00Z'),
+                    "start": new Date('2013-02-26T16:00:00Z'),
+                    "type": "TIME_RANGE"
+                  }
+                },
+                {
+                  "Count": 1776,
+                  "Language": "nl",
+                  "TimeByHour": {
+                    "end": new Date('2013-02-26T22:00:00Z'),
+                    "start": new Date('2013-02-26T21:00:00Z'),
+                    "type": "TIME_RANGE"
+                  }
+                }
+              ]
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+  });
 
   describe("introspection", function() {
     var basicExecutor = basicExecutorFactory({
@@ -321,7 +321,7 @@ describe("MySQLExternal", function() {
     });
 
 
-    it("fallback doesnt happen if not null", function(testComplete) {
+    it("fallback doesn't happen if not null", function(testComplete) {
       var ex = ply()
         .apply("wiki", $('wiki'))
         .apply('added', $('wiki').average($('added')).fallback(2));
