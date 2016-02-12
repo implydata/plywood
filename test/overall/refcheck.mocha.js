@@ -22,7 +22,7 @@ describe("reference check", function() {
             .apply('y', '$foo * 2')
         );
 
-      return expect(function() {
+      expect(function() {
           return ex.referenceCheck({});
         }
       ).to.throw('could not resolve $foo');
@@ -38,7 +38,7 @@ describe("reference check", function() {
             .apply('y', '$^x * 2')
         );
 
-      return expect(function() {
+      expect(function() {
           return ex.referenceCheck({});
         }
       ).to.throw('could not resolve $^x');
@@ -54,7 +54,7 @@ describe("reference check", function() {
             .apply('y', '$^^^x * 2')
         );
 
-      return expect(function() {
+      expect(function() {
           return ex.referenceCheck({ x: 5 });
         }
       ).to.throw('went too deep on $^^^x');
@@ -69,13 +69,13 @@ describe("reference check", function() {
             .apply('x', '$str + 1')
         );
 
-      return expect(function() {
+      expect(function() {
           return ex.referenceCheck({ str: 'Hello World' });
         }
       ).to.throw('add must have input of type NUMBER');
     });
 
-    return it("fails when discovering that the types mismatch via split", function() {
+    it("fails when discovering that the types mismatch via split", function() {
       var ex = ply()
         .apply("diamonds", $("diamonds").filter($('color').is('D')))
         .apply(
@@ -84,7 +84,7 @@ describe("reference check", function() {
             .apply('TotalPrice', '$Cut * 10')
         );
 
-      return expect(function() {
+      expect(function() {
           return ex.referenceCheck(context);
         }
       ).to.throw('multiply must have input of type NUMBER');
@@ -92,7 +92,7 @@ describe("reference check", function() {
   });
 
 
-  return describe("resolves", function() {
+  describe("resolves", function() {
     it("works in a basic case", function() {
       var ex = ply()
         .apply('num', 5)
@@ -112,7 +112,7 @@ describe("reference check", function() {
             .apply('y', '$x:NUMBER * 2')
         );
 
-      return expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("works with simple context", function() {
@@ -122,7 +122,7 @@ describe("reference check", function() {
       var ex2 = ply()
         .apply('xPlusOne', '$^x:NUMBER + 1');
 
-      return expect(ex.referenceCheck({ x: 70 }).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck({ x: 70 }).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("works from context 1", function() {
@@ -132,7 +132,7 @@ describe("reference check", function() {
       var ex2 = $('diamonds', 'DATASET')
         .apply('priceOver2', '$price:NUMBER / 2');
 
-      return expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("works from context 2", function() {
@@ -144,7 +144,7 @@ describe("reference check", function() {
         .apply('Diamonds', $('diamonds', 1, 'DATASET'))
         .apply('countPlusSeventy', '$Diamonds:DATASET.count() + $^seventy:NUMBER');
 
-      return expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("works with countDistinct", function() {
@@ -158,7 +158,7 @@ describe("reference check", function() {
         .apply('DistinctCuts', '$^diamonds:DATASET.countDistinct($cut:STRING)')
         .apply('Diff', '$DistinctColors:NUMBER - $DistinctCuts:NUMBER');
 
-      return expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("a total", function() {
@@ -172,7 +172,7 @@ describe("reference check", function() {
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)');
 
-      return expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("a split", function() {
@@ -204,7 +204,7 @@ describe("reference check", function() {
             .limit(10)
         );
 
-      return expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("a base split", function() {
@@ -216,7 +216,7 @@ describe("reference check", function() {
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)');
 
-      return expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("a base split + filter", function() {
@@ -228,7 +228,7 @@ describe("reference check", function() {
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)');
 
-      return expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("two splits", function() {
@@ -272,10 +272,10 @@ describe("reference check", function() {
             )
         );
 
-      return expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    return it("a join", function() {
+    it("a join", function() {
       var ex = ply()
         .apply('Data1', $('diamonds').filter($('price').in(105, 305)))
         .apply('Data2', $('diamonds').filter($('price').in(105, 305).not()))
@@ -296,7 +296,7 @@ describe("reference check", function() {
             .apply('Count2', '$K2:DATASET.count()')
         );
 
-      return expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
   });
 });

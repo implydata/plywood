@@ -33,13 +33,13 @@ describe("traversal", function() {
       return ex.substitute(subs);
     });
 
-    return it("on every", function() {
+    it("on every", function() {
       return ex.every(subs);
     });
   });
 
 
-  return describe("has the right parameters with dataset", function() {
+  describe("has the right parameters with dataset", function() {
     var data = [
       { cut: 'Good', price: 400 },
       { cut: 'Good', price: 300 },
@@ -57,7 +57,7 @@ describe("traversal", function() {
       return ex.substitute(subs);
     });
 
-    return it("on every", function() {
+    it("on every", function() {
       return ex.every(subs);
     });
   });

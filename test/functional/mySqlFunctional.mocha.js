@@ -143,7 +143,7 @@ describe("MySQLExternal", function() {
         ).done();
       });
 
-      return it("works multi-dimensional GROUP BYs", function(testComplete) {
+      it("works multi-dimensional GROUP BYs", function(testComplete) {
         var ex = ply()
           .apply("wiki", $('wiki').filter($("language").isnt('en')))
           .apply(
@@ -217,7 +217,7 @@ describe("MySQLExternal", function() {
       }
     });
 
-    return it("works with introspection", function(testComplete) {
+    it("works with introspection", function(testComplete) {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("language").is('en')))
         .apply('Count', '$wiki.sum($count)')
@@ -306,7 +306,7 @@ describe("MySQLExternal", function() {
     });
   });
 
-  return describe("fallback", function() {
+  describe("fallback", function() {
     var basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
@@ -350,7 +350,7 @@ describe("MySQLExternal", function() {
       ).done();
     });
 
-    return it("power of and abs", function(testComplete) {
+    it("power of and abs", function(testComplete) {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("page").is('Lojban')))
         .apply('Delta', $('wiki').min($('delta')))

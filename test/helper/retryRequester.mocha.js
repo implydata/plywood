@@ -76,7 +76,7 @@ describe("Retry requester", function() {
     ).done();
   });
 
-  return it("timeout", function(testComplete) {
+  it("timeout", function(testComplete) {
     var retryRequester = retryRequesterFactory({
       requester: makeRequester(1, true),
       delay: 20,

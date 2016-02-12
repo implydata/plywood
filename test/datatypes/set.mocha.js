@@ -68,7 +68,7 @@ describe("Set", function() {
 
   describe("general", function() {
     it("does not die with hasOwnProperty", function() {
-      return expect(Set.fromJS({
+      expect(Set.fromJS({
         setType: 'NUMBER',
         elements: [1, 2],
         hasOwnProperty: 'troll'
@@ -78,15 +78,15 @@ describe("Set", function() {
       });
     });
 
-    return it("has EMPTY", function() {
-      return expect(Set.EMPTY.empty()).to.equal(true);
+    it("has EMPTY", function() {
+      expect(Set.EMPTY.empty()).to.equal(true);
     });
   });
 
 
   describe("unifies", function() {
     it("works for booleans", function() {
-      return expect(Set.fromJS({
+      expect(Set.fromJS({
         setType: 'BOOLEAN',
         elements: [true, true, true]
       }).toJS()).to.deep.equal({
@@ -96,7 +96,7 @@ describe("Set", function() {
     });
 
     it("works for numbers", function() {
-      return expect(Set.fromJS({
+      expect(Set.fromJS({
         setType: 'NUMBER',
         elements: [1, 2, 1, 2, 1, 2, 1, 2]
       }).toJS()).to.deep.equal({
@@ -106,7 +106,7 @@ describe("Set", function() {
     });
 
     it("works for strings", function() {
-      return expect(Set.fromJS({
+      expect(Set.fromJS({
         setType: 'STRING',
         elements: ['A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C']
       }).toJS()).to.deep.equal({
@@ -116,7 +116,7 @@ describe("Set", function() {
     });
 
     it("works for number range", function() {
-      return expect(Set.fromJS({
+      expect(Set.fromJS({
         setType: 'NUMBER_RANGE',
         elements: [
           { start: 1, end: 2 },
@@ -138,8 +138,8 @@ describe("Set", function() {
       });
     });
 
-    return it("works for time range", function() {
-      return expect(Set.fromJS({
+    it("works for time range", function() {
+      expect(Set.fromJS({
         setType: 'TIME_RANGE',
         elements: [
           { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-21T00:00:00") },
@@ -165,7 +165,7 @@ describe("Set", function() {
 
   describe("#add", function() {
     it('works correctly', function() {
-      return expect(
+      expect(
         Set.fromJS(['A', 'B']).add('C').toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -174,7 +174,7 @@ describe("Set", function() {
     });
 
     it('works with empty', function() {
-      return expect(
+      expect(
         Set.EMPTY.add('A').toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -182,8 +182,8 @@ describe("Set", function() {
       });
     });
 
-    return it('works with null', function() {
-      return expect(
+    it('works with null', function() {
+      expect(
         Set.fromJS(['A']).add(null).toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -195,7 +195,7 @@ describe("Set", function() {
 
   describe("#remove", function() {
     it('works correctly', function() {
-      return expect(
+      expect(
         Set.fromJS(['A', 'B']).remove('B').toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -204,15 +204,15 @@ describe("Set", function() {
     });
 
     it('works with empty', function() {
-      return expect(
+      expect(
         Set.EMPTY.remove('A').toJS()
       ).to.deep.equal(
         Set.EMPTY.toJS()
       );
     });
 
-    return it('works with null', function() {
-      return expect(
+    it('works with null', function() {
+      expect(
         Set.fromJS(['A', null]).remove(null).toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -224,7 +224,7 @@ describe("Set", function() {
 
   describe("#toggle", function() {
     it('works correctly', function() {
-      return expect(
+      expect(
         Set.fromJS(['A', 'B']).toggle('B').toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -233,7 +233,7 @@ describe("Set", function() {
     });
 
     it('works with empty', function() {
-      return expect(
+      expect(
         Set.EMPTY.toggle('A').toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -241,8 +241,8 @@ describe("Set", function() {
       });
     });
 
-    return it('works with null', function() {
-      return expect(
+    it('works with null', function() {
+      expect(
         Set.fromJS(['A', null]).toggle(null).toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -254,7 +254,7 @@ describe("Set", function() {
 
   describe("#union", function() {
     it('works correctly', function() {
-      return expect(
+      expect(
         Set.fromJS(['A', 'B']).union(Set.fromJS(['B', 'C'])).toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -263,7 +263,7 @@ describe("Set", function() {
     });
 
     it('works with troll', function() {
-      return expect(
+      expect(
         Set.fromJS(['A', 'B']).union(Set.fromJS(['B', 'C', 'hasOwnProperty'])).toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -272,7 +272,7 @@ describe("Set", function() {
     });
 
     it('works with time ranges', function() {
-      return expect(Set.fromJS({
+      expect(Set.fromJS({
         setType: 'NUMBER_RANGE',
         elements: [
           { start: 1, end: 2 },
@@ -300,21 +300,21 @@ describe("Set", function() {
     });
 
     it('works with empty set as lhs', function() {
-      return expect(Set.EMPTY.union(Set.fromJS(['A', 'B'])).toJS()).to.deep.equal({
+      expect(Set.EMPTY.union(Set.fromJS(['A', 'B'])).toJS()).to.deep.equal({
         setType: "STRING",
         elements: ["A", "B"]
       });
     });
 
     it('works with empty set as rhs', function() {
-      return expect(Set.fromJS(['A', 'B']).union(Set.EMPTY).toJS()).to.deep.equal({
+      expect(Set.fromJS(['A', 'B']).union(Set.EMPTY).toJS()).to.deep.equal({
         setType: "STRING",
         elements: ["A", "B"]
       });
     });
 
-    return it('works with empty set as lhs & rhs', function() {
-      return expect(Set.EMPTY.union(Set.EMPTY).toJS()).to.deep.equal({
+    it('works with empty set as lhs & rhs', function() {
+      expect(Set.EMPTY.union(Set.EMPTY).toJS()).to.deep.equal({
         setType: "NULL",
         elements: []
       });
@@ -322,9 +322,9 @@ describe("Set", function() {
   });
 
 
-  return describe("#intersect", function() {
+  describe("#intersect", function() {
     it('works correctly', function() {
-      return expect(
+      expect(
         Set.fromJS(['A', 'B']).intersect(Set.fromJS(['B', 'C'])).toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -333,7 +333,7 @@ describe("Set", function() {
     });
 
     it('works with troll', function() {
-      return expect(
+      expect(
         Set.fromJS(['A', 'B', 'hasOwnProperty']).intersect(Set.fromJS(['B', 'C', 'hasOwnProperty'])).toJS()
       ).to.deep.equal({
         setType: 'STRING',
@@ -341,7 +341,7 @@ describe("Set", function() {
       });
     });
 
-    return it('works with NUMBER_RANGEs', function() {
+    it('works with NUMBER_RANGEs', function() {
       var a = Set.fromJS({
         setType: 'NUMBER_RANGE',
         elements: [
@@ -356,7 +356,7 @@ describe("Set", function() {
           { start: 10, end: 11 }
         ]
       });
-      return expect(a.intersect(b).toJS()).to.deep.equal({
+      expect(a.intersect(b).toJS()).to.deep.equal({
         "setType": "NUMBER_RANGE",
         "elements": [
           {

@@ -91,7 +91,7 @@ describe("Actions", function() {
   });
 
   it("does not die with hasOwnProperty", function() {
-    return expect(Action.fromJS({
+    expect(Action.fromJS({
       action: 'apply',
       name: 'Five',
       expression: { op: 'literal', value: 5 },
@@ -104,11 +104,11 @@ describe("Actions", function() {
   });
 
 
-  return describe("MatchAction", function() {
-    return it(".likeToRegExp", function() {
+  describe("MatchAction", function() {
+    it(".likeToRegExp", function() {
       expect(MatchAction.likeToRegExp('%David\\_R_ss%')).to.equal('^.*David_R.ss.*$');
 
-      return expect(MatchAction.likeToRegExp('%David|_R_ss||%', '|')).to.equal('^.*David_R.ss\\|.*$');
+      expect(MatchAction.likeToRegExp('%David|_R_ss||%', '|')).to.equal('^.*David_R.ss\\|.*$');
     });
   });
 });

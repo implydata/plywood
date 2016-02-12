@@ -42,7 +42,7 @@ Got result from query 1: (in Xms)
     ).done();
   });
 
-  return it("works on failure", function(testComplete) {
+  it("works on failure", function(testComplete) {
     var lines = [];
     var verboseRequester = verboseRequesterFactory({
       requester: requester,

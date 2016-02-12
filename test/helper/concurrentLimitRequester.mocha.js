@@ -43,7 +43,7 @@ describe("Retry requester", function() {
     return requester.resolve('a');
   });
 
-  return it("limit works", function(testComplete) {
+  it("limit works", function(testComplete) {
     var requester = makeRequester();
     var concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,

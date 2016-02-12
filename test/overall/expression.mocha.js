@@ -101,8 +101,8 @@ describe("Expression", function() {
   });
 
   describe("does not die with hasOwnProperty", function() {
-    return it("survives", function() {
-      return expect(Expression.fromJS({
+    it("survives", function() {
+      expect(Expression.fromJS({
         op: 'literal',
         value: 'Honda',
         hasOwnProperty: 'troll'
@@ -116,7 +116,7 @@ describe("Expression", function() {
 
   describe("errors", function() {
     it("does not like an expression without op", function() {
-      return expect(function() {
+      expect(function() {
           return Expression.fromJS({
             name: 'hello'
           });
@@ -125,7 +125,7 @@ describe("Expression", function() {
     });
 
     it("does not like an expression with a bad op", function() {
-      return expect(function() {
+      expect(function() {
           return Expression.fromJS({
             op: 42
           });
@@ -134,7 +134,7 @@ describe("Expression", function() {
     });
 
     it("does not like an expression with a unknown op", function() {
-      return expect(function() {
+      expect(function() {
           return Expression.fromJS({
             op: 'this was once an empty file'
           });
@@ -142,8 +142,8 @@ describe("Expression", function() {
       ).to.throw("unsupported expression op 'this was once an empty file'");
     });
 
-    return it("does not like an expression with a unknown op", function() {
-      return expect(function() {
+    it("does not like an expression with a unknown op", function() {
+      expect(function() {
           return Expression.fromJS({
             op: 'chain',
             expression: { op: 'ref', name: 'diamonds' },
@@ -161,14 +161,14 @@ describe("Expression", function() {
 
   describe("fancy names", function() {
     it("behaves corretly with spaces", function() {
-      return expect($("I blame your mother").toJS()).to.deep.equal({
+      expect($("I blame your mother").toJS()).to.deep.equal({
         "op": "ref",
         "name": "I blame your mother"
       });
     });
 
     it("works with fromJSLoose", function() {
-      return expect(Expression.fromJSLoose("$^^{and do don't call me shirley}").toJS()).to.deep.equal({
+      expect(Expression.fromJSLoose("$^^{and do don't call me shirley}").toJS()).to.deep.equal({
         "op": "ref",
         "name": "and do don't call me shirley",
         "nest": 2
@@ -176,15 +176,15 @@ describe("Expression", function() {
     });
 
     it("works with ref expression parse", function() {
-      return expect(RefExpression.parse("{how are you today?}:NUMBER").toJS()).to.deep.equal({
+      expect(RefExpression.parse("{how are you today?}:NUMBER").toJS()).to.deep.equal({
         "op": "ref",
         "name": "how are you today?",
         "type": "NUMBER"
       });
     });
 
-    return it("parses", function() {
-      return expect(Expression.parse("$^{hello 'james'} + ${how are you today?}:NUMBER").toJS()).to.deep.equal({
+    it("parses", function() {
+      expect(Expression.parse("$^{hello 'james'} + ${how are you today?}:NUMBER").toJS()).to.deep.equal({
         "op": "chain",
         "expression": {
           "name": "hello 'james'",
@@ -209,14 +209,14 @@ describe("Expression", function() {
       var ex = $('x').is(8);
       var exFn = ex.getFn();
       expect(exFn({ x: 5 })).to.equal(false);
-      return expect(exFn({ x: 8 })).to.equal(true);
+      expect(exFn({ x: 8 })).to.equal(true);
     });
 
-    return it("works in a simple case of addition", function() {
+    it("works in a simple case of addition", function() {
       var ex = $('x').add('$y', 5);
       var exFn = ex.getFn();
       expect(exFn({ x: 5, y: 1 })).to.equal(11);
-      return expect(exFn({ x: 8, y: -3 })).to.equal(10);
+      expect(exFn({ x: 8, y: -3 })).to.equal(10);
     });
   });
 
@@ -225,7 +225,7 @@ describe("Expression", function() {
     it('works in simple case', function() {
       var ex1 = $('data').average('$x');
       var ex2 = $('data').sum('$x').divide($('data').count());
-      return expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in more nested case', function() {
@@ -237,46 +237,46 @@ describe("Expression", function() {
         $('data').sum('$x').divide($('data').count()),
         $('data').sum('$y + $z').divide($('data').count())
       );
-      return expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    return it('works in custom count case', function() {
+    it('works in custom count case', function() {
       var ex1 = $('data').average('$x');
       var ex2 = $('data').sum('$x').divide($('data').sum('$count'));
-      return expect(ex1.decomposeAverage($('count')).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.decomposeAverage($('count')).toJS()).to.deep.equal(ex2.toJS());
     });
   });
 
 
-  return describe('#distribute', function() {
+  describe('#distribute', function() {
     it('works in simple - case', function() {
       var ex1 = $('data').sum('-$x');
       var ex2 = $('data').sum('$x').negate();
-      return expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in simple + case', function() {
       var ex1 = $('data').sum('$x + $y');
       var ex2 = $('data').sum('$x').add('$data.sum($y)');
-      return expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it.skip('works in constant * case', function() {
       var ex1 = $('data').sum('$x * 6');
       var ex2 = r(6).multiply('$data.sum($x)');
-      return expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it.skip('works in constant * case (multiple operands)', function() {
       var ex1 = $('data').sum('$x * 6 * $y');
       var ex2 = r(6).multiply('$data.sum($x * $y)');
-      return expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     return it.skip('works in complex case', function() {
       var ex1 = $('data').sum('$x + $y - $z * 5 + 6');
       var ex2 = $('data').sum($x).add('$data.sum($y)', '(5 * $data.sum($z)).negate()', '6 * $data.count()');
-      return expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
   });
 });

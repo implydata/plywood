@@ -297,7 +297,7 @@ describe("DruidExternal Introspection", function() {
 
 
   it("errors on bad introspectionStrategy", function() {
-    return expect(function() {
+    expect(function() {
         return External.fromJS({
           engine: 'druid',
           dataSource: 'wikipedia',
@@ -621,7 +621,7 @@ describe("DruidExternal Introspection", function() {
     ).done();
   });
 
-  return it("does an introspect with overrides", function(testComplete) {
+  it("does an introspect with overrides", function(testComplete) {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',

@@ -15,7 +15,7 @@ describe("resolve", function() {
             .apply('y', '$^^^foo * 10')
         );
 
-      return expect(function() {
+      expect(function() {
           return ex.resolve({ foo: 7 });
         }
       ).to.throw('went too deep during resolve on: $^^^foo');
@@ -31,13 +31,13 @@ describe("resolve", function() {
             .apply('y', '$^^foobar * 10')
         );
 
-      return expect(function() {
+      expect(function() {
           return ex.resolve({ foo: 7 });
         }
       ).to.throw('could not resolve $^^foobar because is was not in the context');
     });
 
-    return it("ended up with bad types", function() {
+    it("ended up with bad types", function() {
       var ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
@@ -47,7 +47,7 @@ describe("resolve", function() {
             .apply('y', '$^^foo * 10')
         );
 
-      return expect(function() {
+      expect(function() {
           return ex.resolve({ foo: 'bar' });
         }
       ).to.throw('add must have input of type NUMBER (is STRING)');
@@ -64,7 +64,7 @@ describe("resolve", function() {
       };
 
       ex = ex.resolve(context, 'leave');
-      return expect(ex.toJS()).to.deep.equal(
+      expect(ex.toJS()).to.deep.equal(
         r(7).add('$bar').toJS()
       );
     });
@@ -77,7 +77,7 @@ describe("resolve", function() {
       };
 
       ex = ex.resolve(context, 'leave');
-      return expect(ex.toJS()).to.deep.equal(
+      expect(ex.toJS()).to.deep.equal(
         r(null).add('$bar').toJS()
       );
     });
@@ -90,7 +90,7 @@ describe("resolve", function() {
       };
 
       ex = ex.resolve(context, 'leave');
-      return expect(ex.toJS()).to.deep.equal(
+      expect(ex.toJS()).to.deep.equal(
         $('bar', 'STRING').is(null).toJS()
       );
     });
@@ -103,7 +103,7 @@ describe("resolve", function() {
       };
 
       ex = ex.resolve(context).simplify();
-      return expect(ex.toJS()).to.deep.equal(
+      expect(ex.toJS()).to.deep.equal(
         r(10).toJS()
       );
     });
@@ -136,7 +136,7 @@ describe("resolve", function() {
       );
 
       ex = ex.simplify();
-      return expect(ex.toJS()).to.deep.equal(
+      expect(ex.toJS()).to.deep.equal(
         r(Dataset.fromJS([{ num: 8 }]))
           .apply(
             'subData',
@@ -168,7 +168,7 @@ describe("resolve", function() {
       };
 
       ex = ex.resolve(context);
-      return expect(ex.toJS()).to.deep.equal(
+      expect(ex.toJS()).to.deep.equal(
         ply()
           .apply('Data', Dataset.fromJS(data))
           .apply('FooPlusCount', '7 + $Data.count()')
@@ -251,7 +251,7 @@ describe("resolve", function() {
 
       ex = ex.referenceCheck(context);
 
-      return expect(ex.every(function(e) {
+      expect(ex.every(function(e) {
           if (!e.isOp('ref')) {
             return null;
           }
@@ -260,7 +260,7 @@ describe("resolve", function() {
       )).to.equal(true);
     });
 
-    return it("resolves two dataset remotes", function() {
+    it("resolves two dataset remotes", function() {
       var ex = ply()
         .apply(
           'Cuts',
@@ -287,7 +287,7 @@ describe("resolve", function() {
         }
       )).to.equal(true);
 
-      return expect(ex.actions[1].expression.every(function(e) {
+      expect(ex.actions[1].expression.every(function(e) {
           if (!e.isOp('ref')) {
             return null;
           }

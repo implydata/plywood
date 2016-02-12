@@ -15,7 +15,7 @@ describe("substitute", function() {
       }
     };
 
-    return expect(ex.substitute(subs).toJS()).to.deep.equal(
+    expect(ex.substitute(subs).toJS()).to.deep.equal(
       r(15).is('$hello').toJS()
     );
   });
@@ -40,7 +40,7 @@ describe("substitute", function() {
       }
     };
 
-    return expect(ex.substitute(subs).toJS()).to.deep.equal(
+    expect(ex.substitute(subs).toJS()).to.deep.equal(
       ply()
         .apply('num', 15)
         .apply(
@@ -55,7 +55,7 @@ describe("substitute", function() {
     );
   });
 
-  return it("has sequential indexes", function() {
+  it("has sequential indexes", function() {
     var ex = ply()
       .apply('num', 5)
       .apply(
@@ -76,7 +76,7 @@ describe("substitute", function() {
     var expressionCount = ex.expressionCount();
     ex.substitute(subs);
     expect(expressionCount).to.equal(22);
-    return expect(indexes).to.deep.equal(((function() {
+    expect(indexes).to.deep.equal(((function() {
       var result = [];
       var i = 0;
       if (0 <= expressionCount) {

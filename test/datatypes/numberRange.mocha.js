@@ -59,8 +59,8 @@ describe("NumberRange", function() {
 
 
   describe("does not die with hasOwnProperty", function() {
-    return it("survives", function() {
-      return expect(NumberRange.fromJS({
+    it("survives", function() {
+      expect(NumberRange.fromJS({
         start: 7,
         end: 9,
         hasOwnProperty: 'troll'
@@ -73,8 +73,8 @@ describe("NumberRange", function() {
 
 
   describe("errors", function() {
-    return it("throws on bad numbers", function() {
-      return expect(function() {
+    it("throws on bad numbers", function() {
+      expect(function() {
           return NumberRange.fromJS({
             start: 'lol',
             end: 'wat'
@@ -87,13 +87,13 @@ describe("NumberRange", function() {
 
   describe("#extend()", function() {
     it('works correctly with two bounded sets', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 2 }).extend(NumberRange.fromJS({ start: 5, end: 6 })).toJS()
       ).to.deep.equal({ start: 0, end: 6 });
     });
 
     it('works correctly with a fancy bounds', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 2, bounds: '(]' }).extend(NumberRange.fromJS({
           start: 5,
           end: 6,
@@ -102,8 +102,8 @@ describe("NumberRange", function() {
       ).to.deep.equal({ start: 0, end: 6, bounds: '(]' });
     });
 
-    return it('works correctly with infinite bounds on different sides', function() {
-      return expect(
+    it('works correctly with infinite bounds on different sides', function() {
+      expect(
         NumberRange.fromJS({ start: null, end: 2 }).extend(NumberRange.fromJS({ start: 6, end: null })).toJS()
       ).to.deep.equal({ start: null, end: null, bounds: '()' });
     });
@@ -112,25 +112,25 @@ describe("NumberRange", function() {
 
   describe("#union()", function() {
     it('works correctly with a non-disjoint set', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 2 }).union(NumberRange.fromJS({ start: 1, end: 3 })).toJS()
       ).to.deep.equal({ start: 0, end: 3 });
     });
 
     it('works correctly with a disjoint range', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 1 }).union(NumberRange.fromJS({ start: 2, end: 3 }))
       ).to.deep.equal(null);
     });
 
     it('works correctly with a adjacent range', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 1 }).union(NumberRange.fromJS({ start: 1, end: 2 })).toJS()
       ).to.deep.equal({ start: 0, end: 2 });
     });
 
     it('works correctly with a fancy bounds', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 2, bounds: '(]' }).union(NumberRange.fromJS({
           start: 1,
           end: 3,
@@ -140,7 +140,7 @@ describe("NumberRange", function() {
     });
 
     it('works with itself when open', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 1, bounds: '()' }).union(NumberRange.fromJS({
           start: 0,
           end: 1,
@@ -150,13 +150,13 @@ describe("NumberRange", function() {
     });
 
     it('works correctly with infinite bounds on different sides', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: null, end: 2 }).union(NumberRange.fromJS({ start: 1, end: null })).toJS()
       ).to.deep.equal({ start: null, end: null, bounds: '()' });
     });
 
-    return it('works correctly with infinite non intersecting bounds', function() {
-      return expect(
+    it('works correctly with infinite non intersecting bounds', function() {
+      expect(
         NumberRange.fromJS({ start: 1, end: null, bounds: '()' }).union(NumberRange.fromJS({
           start: null,
           end: 0,
@@ -167,27 +167,27 @@ describe("NumberRange", function() {
   });
 
 
-  return describe("#intersect()", function() {
+  describe("#intersect()", function() {
     it('works correctly with a non-disjoint range', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 2 }).intersect(NumberRange.fromJS({ start: 1, end: 3 })).toJS()
       ).to.deep.equal({ start: 1, end: 2 });
     });
 
     it('works correctly with a disjoint range', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 1 }).intersect(NumberRange.fromJS({ start: 2, end: 3 }))
       ).to.deep.equal(null);
     });
 
     it('works correctly with a adjacent range', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 1 }).intersect(NumberRange.fromJS({ start: 1, end: 2 })).toJS()
       ).to.deep.equal({ start: 0, end: 0 });
     });
 
     it('works correctly with a fancy bounds', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 2, bounds: '(]' }).intersect(NumberRange.fromJS({
           start: 1,
           end: 3,
@@ -197,7 +197,7 @@ describe("NumberRange", function() {
     });
 
     it('works with itself when open', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: 0, end: 1, bounds: '()' }).intersect(NumberRange.fromJS({
           start: 0,
           end: 1,
@@ -207,13 +207,13 @@ describe("NumberRange", function() {
     });
 
     it('works correctly with infinite bounds', function() {
-      return expect(
+      expect(
         NumberRange.fromJS({ start: null, end: 2 }).intersect(NumberRange.fromJS({ start: 1, end: null })).toJS()
       ).to.deep.equal({ start: 1, end: 2 });
     });
 
-    return it('works correctly with infinite non intersecting bounds', function() {
-      return expect(
+    it('works correctly with infinite non intersecting bounds', function() {
+      expect(
         NumberRange.fromJS({ start: 1, end: null, bounds: '()' }).intersect(NumberRange.fromJS({
           start: null,
           end: 0,

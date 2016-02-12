@@ -82,7 +82,7 @@ describe("DruidExternal", function() {
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      return expect(druidExternal.applies.join('\n')).to.equal(`apply(Count,$wiki:DATASET.count())
+      expect(druidExternal.applies.join('\n')).to.equal(`apply(Count,$wiki:DATASET.count())
 apply(Added,$wiki:DATASET.sum($added:NUMBER))
 apply(_sd_0,$wiki:DATASET.max($added:NUMBER))
 apply(_sd_1,$wiki:DATASET.min($deleted:NUMBER))
@@ -100,7 +100,7 @@ apply(Volatile,$_sd_0:NUMBER.subtract($_sd_1:NUMBER))`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      return expect(druidExternal.applies.join('\n')).to.equal(`apply(_sd_0,$wiki:DATASET.sum($added:NUMBER))
+      expect(druidExternal.applies.join('\n')).to.equal(`apply(_sd_0,$wiki:DATASET.sum($added:NUMBER))
 apply(_sd_1,$wiki:DATASET.sum($deleted:NUMBER))
 apply(AddedByDeleted,$_sd_0:NUMBER.divide($_sd_1:NUMBER))
 apply(abs,$AddedByDeleted:NUMBER.absolute())`);
@@ -118,7 +118,7 @@ apply(abs,$AddedByDeleted:NUMBER.absolute())`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      return expect(druidExternal.applies.join('\n')).to.equal(`apply(Count,$wiki:DATASET.count())
+      expect(druidExternal.applies.join('\n')).to.equal(`apply(Count,$wiki:DATASET.count())
 apply(Added,$wiki:DATASET.sum($added:NUMBER))
 apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
 apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
@@ -136,7 +136,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      return expect(druidExternal.applies.join('\n')).to.equal(`apply(Count,$wiki:DATASET.count())
+      expect(druidExternal.applies.join('\n')).to.equal(`apply(Count,$wiki:DATASET.count())
 apply(Added,$wiki:DATASET.sum($added:NUMBER))
 apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
 apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
@@ -154,7 +154,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      return expect(druidExternal.applies.join('\n')).to.equal(`apply(Deleted,$wiki:DATASET.sum($deleted:NUMBER))
+      expect(druidExternal.applies.join('\n')).to.equal(`apply(Deleted,$wiki:DATASET.sum($deleted:NUMBER))
 apply(_sd_0,$wiki:DATASET.sum($added:NUMBER))
 apply(AddedByDeleted,$_sd_0:NUMBER.divide($Deleted:NUMBER))
 apply(_sd_1,$wiki:DATASET.sum($inserted:NUMBER))
@@ -173,7 +173,7 @@ apply(DeletedByInserted,$Deleted:NUMBER.divide($_sd_1:NUMBER))`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      return expect(druidExternal.applies.join('\n')).to.equal(`apply(Added,$wiki:DATASET.sum($added:NUMBER))
+      expect(druidExternal.applies.join('\n')).to.equal(`apply(Added,$wiki:DATASET.sum($added:NUMBER))
 apply(Added2,$Added:NUMBER)
 apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
 apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
@@ -193,7 +193,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(druidExternal.defs.join('\n')).to.equal(`.apply('_sd_0',$wiki:DATASET.sum($deleted:NUMBER))`);
 
-      return expect(druidExternal.applies.join('\n')).to.equal(`.apply(Added,$wiki:DATASET.sum($added:NUMBER))
+      expect(druidExternal.applies.join('\n')).to.equal(`.apply(Added,$wiki:DATASET.sum($added:NUMBER))
 .apply(Volatile,$Added:NUMBER.add($_sd_0:NUMBER.negate()))`);
     });
   });
@@ -208,7 +208,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       ex = ex.referenceCheck(context).resolve(context).simplify();
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "dataSource": "wikipedia",
         "queryType": "timeBoundary"
       });
@@ -224,7 +224,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "name": "Count",
@@ -293,7 +293,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         "queryType": "timeseries"
       });
 
-      return expect(queryAndPostProcess.postProcess([
+      expect(queryAndPostProcess.postProcess([
         {
           result: {
             TotalAdded: 5,
@@ -319,7 +319,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "name": "Count",
@@ -358,7 +358,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "name": "Count",
@@ -406,7 +406,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "activate": false,
@@ -473,7 +473,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "name": "Count",
@@ -503,7 +503,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "name": "Count",
@@ -533,7 +533,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "name": "Count",
@@ -570,7 +570,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "fieldNames": [
@@ -621,7 +621,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "fieldNames": [
@@ -668,7 +668,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "name": "!DUMMY",
@@ -709,7 +709,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "name": "!DUMMY",
@@ -760,7 +760,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "name": "Count",
@@ -806,7 +806,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       });
     });
 
-    return it("should work with complex absolute and power expressions", function() {
+    it("should work with complex absolute and power expressions", function() {
       var ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Abs', '(($wiki.sum($added)/$wiki.count().absolute().power(0.5) + 100 * $wiki.countDistinct($page)).absolute()).power(2) + $wiki.custom(crazy)')
@@ -817,7 +817,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      return expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
             "name": "Count",
@@ -931,7 +931,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         .apply('wiki', '$wiki')// for now
         .apply('Count', '$wiki.count()');
 
-      return it("should work with [] return", function(testComplete) {
+      it("should work with [] return", function(testComplete) {
         return ex.compute({ wiki: nullExternal }).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               { Count: 0 }
@@ -947,7 +947,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');
 
-      return it("should work with [] return", function(testComplete) {
+      it("should work with [] return", function(testComplete) {
         return ex.compute({ wiki: nullExternal }).then(function(result) {
             expect(result.toJS()).to.deep.equal([]);
             return testComplete();
@@ -956,7 +956,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       });
     });
 
-    return describe("should return null correctly on a topN query", function() {
+    describe("should return null correctly on a topN query", function() {
       var ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -971,7 +971,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         ).done();
       });
 
-      return it("should work with [{result:[]}] return", function(testComplete) {
+      it("should work with [{result:[]}] return", function(testComplete) {
         return ex.compute({ wiki: emptyExternal }).then(function(result) {
             expect(result.toJS()).to.deep.equal([]);
             return testComplete();
@@ -982,7 +982,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
   });
 
 
-  return describe("should work when getting back crap data", function() {
+  describe("should work when getting back crap data", function() {
     var crapExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
@@ -1015,7 +1015,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         ).done();
     });
 
-    return it("should work with timeseries query", function(testComplete) {
+    it("should work with timeseries query", function(testComplete) {
       var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');

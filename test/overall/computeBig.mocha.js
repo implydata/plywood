@@ -154,7 +154,7 @@ describe("compute native nontrivial data", function() {
     ).done();
   });
 
-  return it("works in with funny aggregates", function(testComplete) {
+  it("works in with funny aggregates", function(testComplete) {
     var ex = $('data').split('$countryName', 'CountryName')
       .apply('Language', '"[" ++ $CountryName ++ "]"')
       .apply('Count', '$data.count()')

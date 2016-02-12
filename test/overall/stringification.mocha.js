@@ -26,7 +26,7 @@ describe("stringification", function() {
           )
       );
 
-    return expect(ex.toString(2)).to.equal(`ply()
+    expect(ex.toString(2)).to.equal(`ply()
   .apply(
     diamonds,
     $diamonds.filter($color.is("D"))
@@ -62,21 +62,21 @@ describe("stringification", function() {
   it("works with lookup", function() {
     var ex = $('diamonds').split("$cut.lookup('hello_lookup')", 'CutLookup');
 
-    return expect(ex.toString(2)).to.equal("$diamonds.split($cut.lookup(hello_lookup),CutLookup,diamonds)");
+    expect(ex.toString(2)).to.equal("$diamonds.split($cut.lookup(hello_lookup),CutLookup,diamonds)");
   });
 
   it("works with timePart", function() {
     var ex = $('time').timePart('DAY_OF_WEEK');
-    return expect(ex.toString(2)).to.equal("$time.timePart(DAY_OF_WEEK)");
+    expect(ex.toString(2)).to.equal("$time.timePart(DAY_OF_WEEK)");
   });
 
   it("works with timeShift", function() {
     var ex = $('time').timeShift('P1D', 2);
-    return expect(ex.toString(2)).to.equal("$time.timeShift(P1D,2)");
+    expect(ex.toString(2)).to.equal("$time.timeShift(P1D,2)");
   });
 
-  return it("works with timeRange", function() {
+  it("works with timeRange", function() {
     var ex = $('time').timeRange('P1D', 2);
-    return expect(ex.toString(2)).to.equal("$time.timeRange(P1D,2)");
+    expect(ex.toString(2)).to.equal("$time.timeRange(P1D,2)");
   });
 });

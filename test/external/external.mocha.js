@@ -97,8 +97,8 @@ describe("External", function() {
 
 
   describe("does not die with hasOwnProperty", function() {
-    return it("survives", function() {
-      return expect(External.fromJS({
+    it("survives", function() {
+      expect(External.fromJS({
         engine: 'druid',
         dataSource: 'wiki',
         timeAttribute: 'time',
@@ -117,8 +117,8 @@ describe("External", function() {
 
 
   describe("fails on version too low", function() {
-    return it("survives", function() {
-      return expect(function() {
+    it("survives", function() {
+      expect(function() {
           return External.fromJS({
             engine: 'druid',
             dataSource: 'wiki',
@@ -133,7 +133,7 @@ describe("External", function() {
 
 
   describe("#updateAttribute", function() {
-    return it("works", function() {
+    it("works", function() {
       var external = External.fromJS({
         engine: 'druid',
         dataSource: 'moon_child',
@@ -159,12 +159,12 @@ describe("External", function() {
   });
 
 
-  return describe("simplifies / digests", function() {
+  describe("simplifies / digests", function() {
     it("a simple select", function() {
       var ex = $('wiki');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
-      return expect(ex.op).to.equal('external');
+      expect(ex.op).to.equal('external');
     });
 
     it("select, apply, filter", function() {
@@ -176,7 +176,7 @@ describe("External", function() {
       expect(ex.op).to.equal('external');
       var externalDataset = ex.external;
       expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice']);
-      return expect(
+      expect(
         externalDataset.filter.toJS()
       ).to.deep.equal(
         context.wiki.filter.and($("language", "STRING").is('en')).toJS()
@@ -205,7 +205,7 @@ describe("External", function() {
         { name: "TotalAdded", "type": "NUMBER" }
       ]);
 
-      return expect(externalDataset.simulate().toJS()).to.deep.equal([
+      expect(externalDataset.simulate().toJS()).to.deep.equal([
         {
           "Count": 4,
           "TotalAdded": 4
@@ -232,7 +232,7 @@ describe("External", function() {
         { name: "Added", "type": "NUMBER" }
       ]);
 
-      return expect(externalDataset.simulate().toJS()).to.deep.equal([
+      expect(externalDataset.simulate().toJS()).to.deep.equal([
         {
           "Added": 4,
           "Count": 4,
@@ -255,7 +255,7 @@ describe("External", function() {
       var externalDataset = ex.external;
       expect(externalDataset.applies).to.have.length(2);
       expect(externalDataset.limit.limit).to.equal(5);
-      return expect(externalDataset.toJS().attributes).to.deep.equal([
+      expect(externalDataset.toJS().attributes).to.deep.equal([
         { name: "Page", "type": "STRING" },
         { name: "Count", "type": "NUMBER" },
         { name: "Added", "type": "NUMBER" }
@@ -276,7 +276,7 @@ describe("External", function() {
       var externalDataset = ex.external;
       expect(externalDataset.applies).to.have.length(2);
       expect(externalDataset.limit.limit).to.equal(5);
-      return expect(externalDataset.toJS().attributes).to.deep.equal([
+      expect(externalDataset.toJS().attributes).to.deep.equal([
         { name: "Page", "type": "STRING" },
         { name: "Count", "type": "NUMBER" },
         { name: "Added", "type": "NUMBER" }
@@ -302,7 +302,7 @@ describe("External", function() {
         { name: "Added", "type": "NUMBER" }
       ]);
 
-      return expect(externalDataset.simulate().toJS()).to.deep.equal([
+      expect(externalDataset.simulate().toJS()).to.deep.equal([
         {
           "Added": 4,
           "Count": 4,
@@ -340,7 +340,7 @@ describe("External", function() {
         { name: "Added", "type": "NUMBER" }
       ]);
 
-      return expect(externalDataset.simulate().toJS()).to.deep.equal([
+      expect(externalDataset.simulate().toJS()).to.deep.equal([
         {
           "Added": 4,
           "Count": 4,
@@ -375,7 +375,7 @@ describe("External", function() {
 
       var externalDataset = ex.expression.external;
       expect(externalDataset.applies).to.have.length(2);
-      return expect(externalDataset.toJS().attributes).to.deep.equal([
+      expect(externalDataset.toJS().attributes).to.deep.equal([
         { name: "Count", "type": "NUMBER" },
         { name: "TotalAdded", "type": "NUMBER" }
       ]);
@@ -397,7 +397,7 @@ describe("External", function() {
 
       expect(ex.op).to.equal('chain');
       expect(ex.actions).to.have.length(1);
-      return expect(ex.expression.op).to.equal('literal');
+      expect(ex.expression.op).to.equal('literal');
     });
 
     it("a total and a split in a strange order", function() {
@@ -426,7 +426,7 @@ describe("External", function() {
 
       var externalDataset = ex.expression.external;
       expect(externalDataset.applies).to.have.length(2);
-      return expect(externalDataset.toJS().attributes).to.deep.equal([
+      expect(externalDataset.toJS().attributes).to.deep.equal([
         { name: "Count", "type": "NUMBER" },
         { name: "TotalAdded", "type": "NUMBER" }
       ]);
@@ -454,7 +454,7 @@ describe("External", function() {
       var externalDataset = ex.expression.external;
       expect(externalDataset.applies).to.have.length(2);
       expect(externalDataset.limit.limit).to.equal(5);
-      return expect(externalDataset.toJS().attributes).to.deep.equal([
+      expect(externalDataset.toJS().attributes).to.deep.equal([
         { name: "Page", "type": "STRING" },
         { name: "Count", "type": "NUMBER" },
         { name: "Added", "type": "NUMBER" }
@@ -492,7 +492,7 @@ describe("External", function() {
         { name: "_br_1", "type": "NUMBER" }
       ]);
 
-      return expect(ex.actions[0].toString()).to.equal('.apply(CountDiff, ($_br_0 + $_br_1))');
+      expect(ex.actions[0].toString()).to.equal('.apply(CountDiff, ($_br_0 + $_br_1))');
     });
   });
 });

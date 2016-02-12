@@ -6,7 +6,7 @@ var plywood = require('../../build/plywood');
 var { AttributeInfo, $, ply, r } = plywood;
 
 describe("NumberRange", function() {
-  return it("is immutable class", function() {
+  it("is immutable class", function() {
     return testImmutableClass(AttributeInfo, [
       { name: 'time', type: 'TIME' },
       { name: 'color', type: 'STRING' },

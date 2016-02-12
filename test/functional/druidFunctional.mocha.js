@@ -768,7 +768,7 @@ describe("DruidExternal", function() {
         ).done();
       });
 
-      return it("works multi-dimensional GROUP BYs", function(testComplete) {
+      it("works multi-dimensional GROUP BYs", function(testComplete) {
         var ex = ply()
           .apply("wiki", $('wiki').filter($("channel").isnt('en')))
           .apply(
@@ -842,7 +842,7 @@ describe("DruidExternal", function() {
     });
 
 
-  return describe("introspection", function() {
+  describe("introspection", function() {
     var basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
@@ -860,7 +860,7 @@ describe("DruidExternal", function() {
       }
     });
 
-    return it("works with introspection", function(testComplete) {
+    it("works with introspection", function(testComplete) {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')

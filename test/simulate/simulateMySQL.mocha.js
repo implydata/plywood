@@ -96,7 +96,7 @@ WHERE ((\`color\`="D") AND (\`cut\`="some_cut"))
 GROUP BY 1
 ORDER BY \`Timestamp\` ASC`);
 
-    return expect(queryPlan[3]).to.equal(`SELECT
+    expect(queryPlan[3]).to.equal(`SELECT
 FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
 COALESCE(COUNT(*), 0) AS "Count"
 FROM \`diamonds\`
@@ -117,7 +117,7 @@ LIMIT 3`);
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    return expect(queryPlan[0]).to.equal(`SELECT
+    expect(queryPlan[0]).to.equal(`SELECT
 \`cut\` AS "Cut",
 COUNT(*) AS "Count"
 FROM \`diamonds\`
@@ -155,7 +155,7 @@ GROUP BY 1
 ORDER BY \`Count\` DESC
 LIMIT 10`);
 
-    return expect(queryPlan[1]).to.equal(`SELECT
+    expect(queryPlan[1]).to.equal(`SELECT
 FLOOR((\`height_bucket\` - 0.5) / 2) * 2 + 0.5 AS "HeightBucket",
 COUNT(*) AS "Count"
 FROM \`diamonds\`
@@ -173,7 +173,7 @@ LIMIT 10`);
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    return expect(queryPlan[0]).to.equal(`SELECT
+    expect(queryPlan[0]).to.equal(`SELECT
 \`time\`, \`color\`, \`cut\`, \`tags\`, \`carat\`, \`height_bucket\`, \`price\`, \`tax\`
 FROM \`diamonds\`
 WHERE (\`color\`="D")
@@ -181,7 +181,7 @@ ORDER BY \`cut\` DESC
 LIMIT 10`);
   });
 
-  return it("works multi-dimensional GROUP BYs", function() {
+  it("works multi-dimensional GROUP BYs", function() {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
       .apply(
@@ -210,7 +210,7 @@ WHERE \`color\` IN ("A","B","some_color")
 GROUP BY 1, 2
 LIMIT 3`);
 
-    return expect(queryPlan[1]).to.equal(`SELECT
+    expect(queryPlan[1]).to.equal(`SELECT
 FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
 COUNT(*) AS "Count"
 FROM \`diamonds\`

@@ -6,7 +6,7 @@ var { $, ply, r } = plywood;
 describe("composition", function() {
   it("works in blank case", function() {
     var ex = ply();
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "op": "literal",
       "type": "DATASET",
       "value": [{}]
@@ -15,7 +15,7 @@ describe("composition", function() {
 
   it("works in ref case", function() {
     var ex = $("diamonds");
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "op": "ref",
       "name": "diamonds"
     });
@@ -26,7 +26,7 @@ describe("composition", function() {
       .apply('five', 5)
       .apply('nine', 9);
 
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "op": "chain",
       "expression": {
         "op": "literal",
@@ -50,7 +50,7 @@ describe("composition", function() {
 
   it("works IN of a set", function() {
     var ex = $("x").in(['A', 'B', 'C']);
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "action": {
         "action": "in",
         "expression": {
@@ -76,7 +76,7 @@ describe("composition", function() {
 
   it("works IN of NumberRange", function() {
     var ex = $("x").in(3, 10);
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "action": {
         "action": "in",
         "expression": {
@@ -98,7 +98,7 @@ describe("composition", function() {
 
   it("works IN of TimeRange", function() {
     var ex = $("x").in(new Date('2015-03-03Z'), new Date('2015-10-10Z'));
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "action": {
         "action": "in",
         "expression": {
@@ -120,7 +120,7 @@ describe("composition", function() {
 
   it("works IN of TimeRange (as strings)", function() {
     var ex = $("x").in('2015-03-03Z', '2015-10-10Z');
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "action": {
         "action": "in",
         "expression": {
@@ -144,7 +144,7 @@ describe("composition", function() {
     var ex = $('data')
       .split('$page', 'Page', 'd');
 
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "action": {
         "action": "split",
         "dataName": "d",
@@ -166,7 +166,7 @@ describe("composition", function() {
     var ex = $('data')
       .split({ Page: '$page', User: '$page' }, 'd');
 
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "action": {
         "action": "split",
         "dataName": "d",
@@ -200,7 +200,7 @@ describe("composition", function() {
       .apply('Count', $('Diamonds').count())
       .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
 
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "actions": [
         {
           "action": "apply",
@@ -297,13 +297,13 @@ describe("composition", function() {
     });
   });
 
-  return it("works in semi-realistic case (using parser)", function() {
+  it("works in semi-realistic case (using parser)", function() {
     var ex = ply()
       .apply("Diamonds", ply().filter("$color == 'D'").apply("priceOver2", "$price/2"))
       .apply('Count', $('Diamonds').count())
       .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
 
-    return expect(ex.toJS()).to.deep.equal({
+    expect(ex.toJS()).to.deep.equal({
       "actions": [
         {
           "action": "apply",

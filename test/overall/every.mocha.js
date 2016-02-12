@@ -25,7 +25,7 @@ describe("every", function() {
     var expressionCount = ex.expressionCount();
     ex.every(everyFn);
     expect(expressionCount).to.equal(22);
-    return expect(indexes).to.deep.equal(((function() {
+    expect(indexes).to.deep.equal(((function() {
       var result = [];
       var i = 0;
       if (0 <= expressionCount) {
@@ -41,7 +41,7 @@ describe("every", function() {
     })()));
   });
 
-  return it("has the right parameters", function() {
+  it("has the right parameters", function() {
     var ex = ply()
       .apply('num', 2001001)
       .apply(

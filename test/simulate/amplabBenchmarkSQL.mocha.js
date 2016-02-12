@@ -66,7 +66,7 @@ describe("simulate Druid for amplab benchmark", function() {
         .toJS()
     );
 
-    return expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
       {
         "aggregations": [
           {
@@ -104,7 +104,7 @@ describe("simulate Druid for amplab benchmark", function() {
     ]);
   });
 
-  return it("works for Query2", function() {
+  it("works for Query2", function() {
 //      SELECT SUBSTR(sourceIP, 1, X), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, X)
     var sql = 'SELECT SUBSTR(sourceIP, 1, 5), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, 5)';
     var ex = Expression.parseSQL(sql).expression;
@@ -115,7 +115,7 @@ describe("simulate Druid for amplab benchmark", function() {
         .toJS()
     );
 
-    return expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
       {
         "aggregations": [
           {

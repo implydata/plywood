@@ -650,7 +650,7 @@ describe("compute native", function() {
       ).done();
     });
 
-    return it("re-selects", function(testComplete) {
+    it("re-selects", function(testComplete) {
       var ex = ply(midData)
         .apply('CountOver2', '$Count / 2')
         .apply(
@@ -701,8 +701,8 @@ describe("compute native", function() {
   });
 
 
-  return describe("joins", function() {
-    return it("does a join on split", function(testComplete) {
+  describe("joins", function() {
+    it("does a join on split", function(testComplete) {
       var ds = Dataset.fromJS(data).hide();
 
       var ex = ply()
