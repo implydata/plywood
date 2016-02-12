@@ -117,43 +117,43 @@ describe("Expression", function() {
   describe("errors", function() {
     it("does not like an expression without op", function() {
       return expect(function() {
-        return Expression.fromJS({
-          name: 'hello'
-        });
-      }
+          return Expression.fromJS({
+            name: 'hello'
+          });
+        }
       ).to.throw('op must be defined');
     });
 
     it("does not like an expression with a bad op", function() {
       return expect(function() {
-        return Expression.fromJS({
-          op: 42
-        });
-      }
+          return Expression.fromJS({
+            op: 42
+          });
+        }
       ).to.throw('op must be a string');
     });
 
     it("does not like an expression with a unknown op", function() {
       return expect(function() {
-        return Expression.fromJS({
-          op: 'this was once an empty file'
-        });
-      }
+          return Expression.fromJS({
+            op: 'this was once an empty file'
+          });
+        }
       ).to.throw("unsupported expression op 'this was once an empty file'");
     });
 
     return it("does not like an expression with a unknown op", function() {
       return expect(function() {
-        return Expression.fromJS({
-          op: 'chain',
-          expression: { op: 'ref', name: 'diamonds' },
-          actions: {
-            action: 'apply',
-            name: 'five',
-            expression: { op: 'literal', value: 5 }
-          }
-        });
-      }
+          return Expression.fromJS({
+            op: 'chain',
+            expression: { op: 'ref', name: 'diamonds' },
+            actions: {
+              action: 'apply',
+              name: 'five',
+              expression: { op: 'literal', value: 5 }
+            }
+          });
+        }
       ).to.throw("chain `actions` must be an array");
     });
   });

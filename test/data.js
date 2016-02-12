@@ -3,7 +3,12 @@ exports.diamond = {};
 exports.diamond.query = [
   { operation: 'split', name: 'Carat', bucket: 'continuous', size: 0.1, offset: 0.005, attribute: 'carat' },
   { operation: 'apply', name: 'Count', aggregate: 'count' },
-  { operation: 'combine', method: 'slice', sort: { prop: 'Count', compare: 'natural', direction: 'descending' }, limit: 5 },
+  {
+    operation: 'combine',
+    method: 'slice',
+    sort: { prop: 'Count', compare: 'natural', direction: 'descending' },
+    limit: 5
+  },
   { operation: 'split', name: 'Cut', bucket: 'identity', attribute: 'cut' },
   { operation: 'apply', name: 'Count', aggregate: 'count' },
   { operation: 'combine', method: 'slice', sort: { prop: 'Cut', compare: 'natural', direction: 'descending' } }
@@ -220,31 +225,31 @@ exports.diamond.data = {
 };
 
 exports.diamond.tabular = [
-  { Carat: [ 0.295, 0.395 ], Count: 1885, Cut: 'Very Good' },
-  { Carat: [ 0.295, 0.395 ], Count: 2745, Cut: 'Premium' },
-  { Carat: [ 0.295, 0.395 ], Count: 6117, Cut: 'Ideal' },
-  { Carat: [ 0.295, 0.395 ], Count: 694, Cut: 'Good' },
-  { Carat: [ 0.295, 0.395 ], Count: 52, Cut: 'Fair' },
-  { Carat: [ 0.995, 1.095 ], Count: 1771, Cut: 'Very Good' },
-  { Carat: [ 0.995, 1.095 ], Count: 2121, Cut: 'Premium' },
-  { Carat: [ 0.995, 1.095 ], Count: 2057, Cut: 'Ideal' },
-  { Carat: [ 0.995, 1.095 ], Count: 965, Cut: 'Good' },
-  { Carat: [ 0.995, 1.095 ], Count: 376, Cut: 'Fair' },
-  { Carat: [ 0.495, 0.595 ], Count: 1349, Cut: 'Very Good' },
-  { Carat: [ 0.495, 0.595 ], Count: 1207, Cut: 'Premium' },
-  { Carat: [ 0.495, 0.595 ], Count: 3348, Cut: 'Ideal' },
-  { Carat: [ 0.495, 0.595 ], Count: 509, Cut: 'Good' },
-  { Carat: [ 0.495, 0.595 ], Count: 133, Cut: 'Fair' },
-  { Carat: [ 0.695, 0.795 ], Count: 1579, Cut: 'Very Good' },
-  { Carat: [ 0.695, 0.795 ], Count: 1258, Cut: 'Premium' },
-  { Carat: [ 0.695, 0.795 ], Count: 2255, Cut: 'Ideal' },
-  { Carat: [ 0.695, 0.795 ], Count: 593, Cut: 'Good' },
-  { Carat: [ 0.695, 0.795 ], Count: 261, Cut: 'Fair' },
-  { Carat: [ 0.395, 0.495 ], Count: 869, Cut: 'Very Good' },
-  { Carat: [ 0.395, 0.495 ], Count: 1141, Cut: 'Premium' },
-  { Carat: [ 0.395, 0.495 ], Count: 2112, Cut: 'Ideal' },
-  { Carat: [ 0.395, 0.495 ], Count: 407, Cut: 'Good' },
-  { Carat: [ 0.395, 0.495 ], Count: 53, Cut: 'Fair' }
+  { Carat: [0.295, 0.395], Count: 1885, Cut: 'Very Good' },
+  { Carat: [0.295, 0.395], Count: 2745, Cut: 'Premium' },
+  { Carat: [0.295, 0.395], Count: 6117, Cut: 'Ideal' },
+  { Carat: [0.295, 0.395], Count: 694, Cut: 'Good' },
+  { Carat: [0.295, 0.395], Count: 52, Cut: 'Fair' },
+  { Carat: [0.995, 1.095], Count: 1771, Cut: 'Very Good' },
+  { Carat: [0.995, 1.095], Count: 2121, Cut: 'Premium' },
+  { Carat: [0.995, 1.095], Count: 2057, Cut: 'Ideal' },
+  { Carat: [0.995, 1.095], Count: 965, Cut: 'Good' },
+  { Carat: [0.995, 1.095], Count: 376, Cut: 'Fair' },
+  { Carat: [0.495, 0.595], Count: 1349, Cut: 'Very Good' },
+  { Carat: [0.495, 0.595], Count: 1207, Cut: 'Premium' },
+  { Carat: [0.495, 0.595], Count: 3348, Cut: 'Ideal' },
+  { Carat: [0.495, 0.595], Count: 509, Cut: 'Good' },
+  { Carat: [0.495, 0.595], Count: 133, Cut: 'Fair' },
+  { Carat: [0.695, 0.795], Count: 1579, Cut: 'Very Good' },
+  { Carat: [0.695, 0.795], Count: 1258, Cut: 'Premium' },
+  { Carat: [0.695, 0.795], Count: 2255, Cut: 'Ideal' },
+  { Carat: [0.695, 0.795], Count: 593, Cut: 'Good' },
+  { Carat: [0.695, 0.795], Count: 261, Cut: 'Fair' },
+  { Carat: [0.395, 0.495], Count: 869, Cut: 'Very Good' },
+  { Carat: [0.395, 0.495], Count: 1141, Cut: 'Premium' },
+  { Carat: [0.395, 0.495], Count: 2112, Cut: 'Ideal' },
+  { Carat: [0.395, 0.495], Count: 407, Cut: 'Good' },
+  { Carat: [0.395, 0.495], Count: 53, Cut: 'Fair' }
 ];
 
 exports.diamond.csv =

@@ -4,7 +4,9 @@ var plywood = require('../../build/plywood');
 var { Expression, $, ply, r } = plywood;
 
 var toJS = function(sep) {
-  if (!sep) { return sep; }
+  if (!sep) {
+    return sep;
+  }
   return {
     included: sep.included.toJS(),
     excluded: sep.excluded.toJS()
@@ -14,8 +16,8 @@ var toJS = function(sep) {
 describe("separate", function() {
   it('throws on bad input', function() {
     return expect(function() {
-      return Expression.TRUE.separateViaAnd();
-    }
+        return Expression.TRUE.separateViaAnd();
+      }
     ).to.throw('must have refName');
   });
 

@@ -23,8 +23,8 @@ describe("composition", function() {
 
   it("works in uber-basic case", function() {
     var ex = ply()
-    .apply('five', 5)
-    .apply('nine', 9);
+      .apply('five', 5)
+      .apply('nine', 9);
 
     return expect(ex.toJS()).to.deep.equal({
       "op": "chain",
@@ -142,7 +142,7 @@ describe("composition", function() {
 
   it("works in single split case", function() {
     var ex = $('data')
-    .split('$page', 'Page', 'd');
+      .split('$page', 'Page', 'd');
 
     return expect(ex.toJS()).to.deep.equal({
       "action": {
@@ -164,7 +164,7 @@ describe("composition", function() {
 
   it("works in multi split case", function() {
     var ex = $('data')
-    .split({ Page: '$page', User: '$page' }, 'd');
+      .split({ Page: '$page', User: '$page' }, 'd');
 
     return expect(ex.toJS()).to.deep.equal({
       "action": {
@@ -191,14 +191,14 @@ describe("composition", function() {
 
   it("works in semi-realistic case", function() {
     var ex = ply()
-    .apply(
-      "Diamonds",
-      ply()
-      .filter($('color').is('D'))
-      .apply("priceOver2", $("price").divide(2))
-    )
-    .apply('Count', $('Diamonds').count())
-    .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
+      .apply(
+        "Diamonds",
+        ply()
+          .filter($('color').is('D'))
+          .apply("priceOver2", $("price").divide(2))
+      )
+      .apply('Count', $('Diamonds').count())
+      .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
 
     return expect(ex.toJS()).to.deep.equal({
       "actions": [
@@ -299,9 +299,9 @@ describe("composition", function() {
 
   return it("works in semi-realistic case (using parser)", function() {
     var ex = ply()
-    .apply("Diamonds", ply().filter("$color == 'D'").apply("priceOver2", "$price/2"))
-    .apply('Count', $('Diamonds').count())
-    .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
+      .apply("Diamonds", ply().filter("$color == 'D'").apply("priceOver2", "$price/2"))
+      .apply('Count', $('Diamonds').count())
+      .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
 
     return expect(ex.toJS()).to.deep.equal({
       "actions": [

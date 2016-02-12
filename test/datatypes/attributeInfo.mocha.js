@@ -16,7 +16,12 @@ describe("NumberRange", function() {
       //{ name: 'height_bucket', special: 'range', type: 'NUMBER_RANGE', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 }
       //{ name: 'height_bucket', special: 'range', type: 'NUMBER_RANGE', separator: '|', rangeSize: 0.05, digitsAfterDecimal: 2 }
       { name: 'count', type: 'NUMBER', unsplitable: true, makerAction: { action: 'count' } },
-      { name: 'price', type: 'NUMBER', unsplitable: true, makerAction: { action: 'sum', expression: { op: 'ref', name: 'price' } } },
+      {
+        name: 'price',
+        type: 'NUMBER',
+        unsplitable: true,
+        makerAction: { action: 'sum', expression: { op: 'ref', name: 'price' } }
+      },
       { name: 'tax', type: 'NUMBER', unsplitable: true },
       { name: 'vendor_id', special: 'unique', type: "STRING", unsplitable: true }
     ]);

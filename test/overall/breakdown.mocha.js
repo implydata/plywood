@@ -37,14 +37,18 @@ describe.skip("breakdown", function() {
     var ex = Expression.parse('$x * $y + 2');
 
     ex = ex.referenceCheck(context);
-    return expect(function() { return ex.breakdownByDataset('b'); }).to.throw();
+    return expect(function() {
+      return ex.breakdownByDataset('b');
+    }).to.throw();
   });
 
   it("errors on breakdown one datasets", function() {
     var ex = Expression.parse('$diamonds.count() * 2');
 
     ex = ex.referenceCheck(context);
-    return expect(function() { return ex.breakdownByDataset('b'); }).to.throw();
+    return expect(function() {
+      return ex.breakdownByDataset('b');
+    }).to.throw();
   });
 
 

@@ -13,13 +13,13 @@ describe("reference check", function() {
   describe("works as expected", function() {
     it("works when there are no free references", function() {
       var ex = ply()
-      .apply('num', 5)
-      .apply(
-        'subData',
-        ply()
-        .apply('x', '$num + 1')
-        .apply('y', '$x * 2')
-      );
+        .apply('num', 5)
+        .apply(
+          'subData',
+          ply()
+            .apply('x', '$num + 1')
+            .apply('y', '$x * 2')
+        );
 
       ex = ex.referenceCheck({});
       return expect(ex.getFreeReferences()).to.deep.equal([]);
@@ -33,14 +33,14 @@ describe("reference check", function() {
 
     it("works in a actions case", function() {
       var ex = ply()
-      .apply('num', 5)
-      .apply(
-        'subData',
-        ply()
-        .apply('x', '$num + 1')
-        .apply('y', '$x * 2')
-        .apply('z', '$diamonds.sum($price)')
-      );
+        .apply('num', 5)
+        .apply(
+          'subData',
+          ply()
+            .apply('x', '$num + 1')
+            .apply('y', '$x * 2')
+            .apply('z', '$diamonds.sum($price)')
+        );
 
       ex = ex.referenceCheck(context);
       expect(ex.getFreeReferences()).to.deep.equal(['diamonds']);
@@ -50,10 +50,10 @@ describe("reference check", function() {
 
     return it("works in a consecutive actions case", function() {
       var ex = ply()
-      .apply('one', 1)
-      .apply('two', '$one + 1')
-      .apply('three', '$two + 1')
-      .apply('four', '$three + 1');
+        .apply('one', 1)
+        .apply('two', '$one + 1')
+        .apply('three', '$two + 1')
+        .apply('four', '$three + 1');
 
 
       ex = ex.referenceCheck({});
@@ -64,9 +64,9 @@ describe("reference check", function() {
 
   return describe('checks action decencies', function() {
     var ex = ply()
-    .apply('two', '$one + 1')
-    .apply('three', '$two + 1')
-    .apply('four', '$three + 1');
+      .apply('two', '$one + 1')
+      .apply('three', '$two + 1')
+      .apply('four', '$three + 1');
 
     it("finds something that is needed", function() {
       return expect(Action.actionsDependOn(ex.actions, 'one')).to.be.true;

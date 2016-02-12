@@ -7,49 +7,49 @@ describe("resolve", function() {
   describe("errors if", function() {
     it("went too deep", function() {
       var ex = ply()
-      .apply('num', '$^foo + 1')
-      .apply(
-        'subData',
-        ply()
-        .apply('x', '$^num * 3')
-        .apply('y', '$^^^foo * 10')
-      );
+        .apply('num', '$^foo + 1')
+        .apply(
+          'subData',
+          ply()
+            .apply('x', '$^num * 3')
+            .apply('y', '$^^^foo * 10')
+        );
 
       return expect(function() {
-        return ex.resolve({ foo: 7 });
-      }
+          return ex.resolve({ foo: 7 });
+        }
       ).to.throw('went too deep during resolve on: $^^^foo');
     });
 
     it("could not find something in context", function() {
       var ex = ply()
-      .apply('num', '$^foo + 1')
-      .apply(
-        'subData',
-        ply()
-        .apply('x', '$^num * 3')
-        .apply('y', '$^^foobar * 10')
-      );
+        .apply('num', '$^foo + 1')
+        .apply(
+          'subData',
+          ply()
+            .apply('x', '$^num * 3')
+            .apply('y', '$^^foobar * 10')
+        );
 
       return expect(function() {
-        return ex.resolve({ foo: 7 });
-      }
+          return ex.resolve({ foo: 7 });
+        }
       ).to.throw('could not resolve $^^foobar because is was not in the context');
     });
 
     return it("ended up with bad types", function() {
       var ex = ply()
-      .apply('num', '$^foo + 1')
-      .apply(
-        'subData',
-        ply()
-        .apply('x', '$^num * 3')
-        .apply('y', '$^^foo * 10')
-      );
+        .apply('num', '$^foo + 1')
+        .apply(
+          'subData',
+          ply()
+            .apply('x', '$^num * 3')
+            .apply('y', '$^^foo * 10')
+        );
 
       return expect(function() {
-        return ex.resolve({ foo: 'bar' });
-      }
+          return ex.resolve({ foo: 'bar' });
+        }
       ).to.throw('add must have input of type NUMBER (is STRING)');
     });
   });
@@ -110,13 +110,13 @@ describe("resolve", function() {
 
     it("works in a nested case", function() {
       var ex = ply()
-      .apply('num', '$^foo + 1')
-      .apply(
-        'subData',
-        ply()
-        .apply('x', '$^num * 3')
-        .apply('y', '$^^foo * 10')
-      );
+        .apply('num', '$^foo + 1')
+        .apply(
+          'subData',
+          ply()
+            .apply('x', '$^num * 3')
+            .apply('y', '$^^foo * 10')
+        );
 
       var context = {
         foo: 7
@@ -125,26 +125,26 @@ describe("resolve", function() {
       ex = ex.resolve(context);
       expect(ex.toJS()).to.deep.equal(
         ply()
-        .apply('num', '7 + 1')
-        .apply(
-          'subData',
-          ply()
-          .apply('x', '$^num * 3')
-          .apply('y', '7 * 10')
-        )
-        .toJS()
+          .apply('num', '7 + 1')
+          .apply(
+            'subData',
+            ply()
+              .apply('x', '$^num * 3')
+              .apply('y', '7 * 10')
+          )
+          .toJS()
       );
 
       ex = ex.simplify();
       return expect(ex.toJS()).to.deep.equal(
         r(Dataset.fromJS([{ num: 8 }]))
-        .apply(
-          'subData',
-          ply()
-          .apply('x', '$^num * 3')
-          .apply('y', 70)
-        )
-        .toJS()
+          .apply(
+            'subData',
+            ply()
+              .apply('x', '$^num * 3')
+              .apply('y', 70)
+          )
+          .toJS()
       );
     });
 
@@ -158,9 +158,9 @@ describe("resolve", function() {
       ];
 
       var ex = ply()
-      .apply('Data', Dataset.fromJS(data))
-      .apply('FooPlusCount', '$^foo + $Data.count()')
-      .apply('CountPlusBar', '$Data.count() + $^bar');
+        .apply('Data', Dataset.fromJS(data))
+        .apply('FooPlusCount', '$^foo + $Data.count()')
+        .apply('CountPlusBar', '$Data.count() + $^bar');
 
       var context = {
         foo: 7,
@@ -170,10 +170,10 @@ describe("resolve", function() {
       ex = ex.resolve(context);
       return expect(ex.toJS()).to.deep.equal(
         ply()
-        .apply('Data', Dataset.fromJS(data))
-        .apply('FooPlusCount', '7 + $Data.count()')
-        .apply('CountPlusBar', '$Data.count() + 8')
-        .toJS()
+          .apply('Data', Dataset.fromJS(data))
+          .apply('FooPlusCount', '7 + $Data.count()')
+          .apply('CountPlusBar', '$Data.count() + 8')
+          .toJS()
       );
     });
 
@@ -195,8 +195,8 @@ describe("resolve", function() {
       };
 
       var ex = $("diamonds").split("$cut", 'Cut')
-      .apply('Count', $('diamonds').count())
-      .apply('PercentOfTotal', '$^Count / $Count');
+        .apply('Count', $('diamonds').count())
+        .apply('PercentOfTotal', '$^Count / $Count');
 
       ex = ex.resolve(datum);
       return console.log('ex.toString(2)', ex.toString(2));
@@ -234,59 +234,65 @@ describe("resolve", function() {
 
     it("resolves all remotes correctly", function() {
       var ex = ply()
-      .apply(
-        'Cuts',
-        $("diamonds").split("$cut", 'Cut')
-        .apply('Count', $('diamonds').count())
-        .sort('$Count', 'descending')
-        .limit(10)
-      )
-      .apply(
-        'Carats',
-        $("diamonds").split($('carat').numberBucket(0.5), 'Carat')
-        .apply('Count', $('diamonds').count())
-        .sort('$Count', 'descending')
-        .limit(10)
-      );
+        .apply(
+          'Cuts',
+          $("diamonds").split("$cut", 'Cut')
+            .apply('Count', $('diamonds').count())
+            .sort('$Count', 'descending')
+            .limit(10)
+        )
+        .apply(
+          'Carats',
+          $("diamonds").split($('carat').numberBucket(0.5), 'Carat')
+            .apply('Count', $('diamonds').count())
+            .sort('$Count', 'descending')
+            .limit(10)
+        );
 
       ex = ex.referenceCheck(context);
 
       return expect(ex.every(function(e) {
-        if (!e.isOp('ref')) { return null; }
-        return (String(e.remote) === 'druid:true:diamonds');
-      }
+          if (!e.isOp('ref')) {
+            return null;
+          }
+          return (String(e.remote) === 'druid:true:diamonds');
+        }
       )).to.equal(true);
     });
 
     return it("resolves two dataset remotes", function() {
       var ex = ply()
-      .apply(
-        'Cuts',
-        $("diamonds").split("$cut", 'Cut')
-        .apply('Count', $('diamonds').count())
-        .sort('$Count', 'descending')
-        .limit(10)
-      )
-      .apply(
-        'Carats',
-        $("diamonds2").split($('carat').numberBucket(0.5), 'Carat')
-        .apply('Count', $('diamonds2').count())
-        .sort('$Count', 'descending')
-        .limit(10)
-      );
+        .apply(
+          'Cuts',
+          $("diamonds").split("$cut", 'Cut')
+            .apply('Count', $('diamonds').count())
+            .sort('$Count', 'descending')
+            .limit(10)
+        )
+        .apply(
+          'Carats',
+          $("diamonds2").split($('carat').numberBucket(0.5), 'Carat')
+            .apply('Count', $('diamonds2').count())
+            .sort('$Count', 'descending')
+            .limit(10)
+        );
 
       ex = ex.referenceCheck(context);
 
       expect(ex.actions[0].expression.every(function(e) {
-        if (!e.isOp('ref')) { return null; }
-        return (String(e.remote) === 'druid:true:diamonds');
-      }
+          if (!e.isOp('ref')) {
+            return null;
+          }
+          return (String(e.remote) === 'druid:true:diamonds');
+        }
       )).to.equal(true);
 
       return expect(ex.actions[1].expression.every(function(e) {
-        if (!e.isOp('ref')) { return null; }
-        return (String(e.remote) === 'druid:true:diamonds2');
-      }
+          if (!e.isOp('ref')) {
+            return null;
+          }
+          return (String(e.remote) === 'druid:true:diamonds2');
+        }
       )).to.equal(true);
     });
   });
