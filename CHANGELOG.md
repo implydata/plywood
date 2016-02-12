@@ -1,5 +1,10 @@
 # Change log
 
+## 0.8.10
+
+- Better handling for filtered attributes now allows filtered attributes on `countDistinct` and `custom`
+- Fixed sorting for numeric columns in DruidExternal
+
 ## 0.8.9
 
 - Add `absolute`, `power`, `sqrt`, `fallback` action
