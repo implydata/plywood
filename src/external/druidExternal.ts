@@ -1798,7 +1798,8 @@ return (start < 0 ?'-':'') + parts.join('.');
               if (sortAction) {
                 metric = (<RefExpression>sortAction.expression).name;
                 if (this.sortOnLabel()) {
-                  metric = { type: 'lexicographic' };
+                  var attributeInfo = this.getAttributesInfo((<RefExpression>this.split.firstSplitExpression()).name);
+                  metric = { type: attributeInfo && attributeInfo.special == 'alphaNumeric' ? 'alphaNumeric' : 'lexicographic' };
                 }
                 if (sortAction.direction === 'ascending') {
                   metric = { type: "inverted", metric: metric };

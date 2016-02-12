@@ -373,4 +373,17 @@ module Plywood {
     }
   }
   AttributeInfo.register(HistogramAttributeInfo);
+
+  export class AlphaNumericAttributeInfo extends AttributeInfo {
+    static fromJS(parameters: AttributeInfoJS): AlphaNumericAttributeInfo {
+      return new AlphaNumericAttributeInfo(parameters);
+    }
+
+    constructor(parameters: AttributeInfoJS) {
+      super(parameters);
+      this._ensureSpecial("alphaNumeric");
+      this._ensureType('STRING');
+    }
+  }
+  AttributeInfo.register(AlphaNumericAttributeInfo);
 }
