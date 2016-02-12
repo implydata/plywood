@@ -594,16 +594,44 @@ describe("simulate Druid", function() {
     });
   });
 
-  it.skip("works with basic boolean split", function() {
+  it("works with basic boolean split", function() {
     var ex = ply()
       .apply(
         'Colors',
-        $("diamonds").split("$color == $cut", 'IsA')
+        $("diamonds").split("$color == A", 'IsA')
           .apply('TotalPrice', '$diamonds.sum($price)')
           .sort('$TotalPrice', 'descending')
+          .limit(10)
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([]);
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldName": "price",
+            "name": "TotalPrice",
+            "type": "doubleSum"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "color",
+          "extractionFn": {
+            "function": "function(d){return (d===\"A\");}",
+            "type": "javascript"
+          },
+          "outputName": "IsA",
+          "type": "extraction"
+        },
+        "granularity": "all",
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ],
+        "metric": "TotalPrice",
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
   });
 
   it("works with having filter", function() {
@@ -670,6 +698,45 @@ describe("simulate Druid", function() {
 
     expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.deep.equal([
       "1000-01-01/2015-03-12"
+    ]);
+  });
+
+  it("works with numeric split", function() {
+    var ex = ply()
+      .apply(
+        'CaratSplit',
+        $("diamonds").split("$carat", 'Carat')
+          .sort('$Carat', 'descending')
+          .limit(10)
+      );
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "carat",
+          "outputName": "Carat",
+          "type": "default"
+        },
+        "granularity": "all",
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ],
+        "metric": {
+          "metric": {
+            "type": "alphaNumeric"
+          },
+          "type": "inverted"
+        },
+        "queryType": "topN",
+        "threshold": 10
+      }
     ]);
   });
 
