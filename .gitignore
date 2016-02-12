@@ -11,3 +11,6 @@ build/
 notes/
 docs/examples/play.js
 docs/gallery/plywood.js
+
+# You have to make this one yourself by running data/make-data-files
+data/wikipedia.json
