@@ -323,7 +323,7 @@ describe("DruidExternal Introspection", function() {
       })
       .fail(function(err) {
           expect(err.message).to.equal('Bad status code');
-          return testComplete();
+          testComplete();
         }
       ).done();
   });
@@ -393,7 +393,7 @@ describe("DruidExternal Introspection", function() {
             "type": "STRING"
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -449,7 +449,7 @@ describe("DruidExternal Introspection", function() {
             "type": "STRING"
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -495,7 +495,7 @@ describe("DruidExternal Introspection", function() {
             "type": "STRING"
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -555,7 +555,7 @@ describe("DruidExternal Introspection", function() {
             "unsplitable": true
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -616,7 +616,7 @@ describe("DruidExternal Introspection", function() {
             "unsplitable": true
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -680,7 +680,7 @@ describe("DruidExternal Introspection", function() {
             "type": "STRING"
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });

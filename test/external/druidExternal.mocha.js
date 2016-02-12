@@ -179,7 +179,7 @@ apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
 apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
     });
 
-    return it.skip("breaks up correctly in case of duplicate apply (same name)", function() {
+    it.skip("breaks up correctly in case of duplicate apply (same name)", function() {
       var ex = ply()
         .apply('wiki', '$wiki')// for now
         .apply('Added', '$wiki.sum($added)')
@@ -936,7 +936,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
             expect(result.toJS()).to.deep.equal([
               { Count: 0 }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -950,7 +950,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       it("should work with [] return", function(testComplete) {
         return ex.compute({ wiki: nullExternal }).then(function(result) {
             expect(result.toJS()).to.deep.equal([]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -966,7 +966,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       it("should work with [] return", function(testComplete) {
         return ex.compute({ wiki: nullExternal }).then(function(result) {
             expect(result.toJS()).to.deep.equal([]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -974,7 +974,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       it("should work with [{result:[]}] return", function(testComplete) {
         return ex.compute({ wiki: emptyExternal }).then(function(result) {
             expect(result.toJS()).to.deep.equal([]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -1010,7 +1010,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         })
         .fail(function(err) {
             expect(err.message).to.equal('unexpected result from Druid (all)');
-            return testComplete();
+            testComplete();
           }
         ).done();
     });
@@ -1026,7 +1026,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         })
         .fail(function(err) {
             expect(err.message).to.equal('unexpected result from Druid (timeseries)');
-            return testComplete();
+            testComplete();
           }
         ).done();
     });

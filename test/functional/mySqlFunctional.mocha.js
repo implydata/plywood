@@ -69,7 +69,7 @@ describe("MySQLExternal", function() {
         //          .limit(100)
         //      )
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Count": 334129,
@@ -138,7 +138,7 @@ describe("MySQLExternal", function() {
                 "TotalAdded": 41412583
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -157,7 +157,7 @@ describe("MySQLExternal", function() {
               .limit(4)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Cuts": [
@@ -200,7 +200,7 @@ describe("MySQLExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -237,7 +237,7 @@ describe("MySQLExternal", function() {
             )
         );
 
-      return basicExecutor(ex).then(function(result) {
+      basicExecutor(ex).then(function(result) {
           expect(result.toJS()).to.deep.equal([
             {
               "Count": 334129,
@@ -300,7 +300,7 @@ describe("MySQLExternal", function() {
               "TotalAdded": 41412583
             }
           ]);
-          return testComplete();
+          testComplete();
         }
       ).done();
     });
@@ -323,13 +323,13 @@ describe("MySQLExternal", function() {
         .apply("wiki", $('wiki'))
         .apply('added', $('wiki').average($('added')).fallback(2));
 
-      return basicExecutor(ex).then(function(result) {
+      basicExecutor(ex).then(function(result) {
           expect(result.toJS()).to.deep.equal([
             {
               "added": 216.5613
             }
           ]);
-          return testComplete();
+          testComplete();
         }
       ).done();
     });
@@ -339,13 +339,13 @@ describe("MySQLExternal", function() {
         .apply("wiki", $('wiki').filter($("page").is('Bieberswalde')))
         .apply('TotalAdded', $('wiki').sum($('added')).fallback(0));
 
-      return basicExecutor(ex).then(function(result) {
+      basicExecutor(ex).then(function(result) {
           expect(result.toJS()).to.deep.equal([
             {
               "TotalAdded": 0
             }
           ]);
-          return testComplete();
+          testComplete();
         }
       ).done();
     });
@@ -357,7 +357,7 @@ describe("MySQLExternal", function() {
         .apply('AbsDelta', $('wiki').min($('delta')).absolute())
         .apply('SquareDelta', $('wiki').sum($('delta')).power(2));
 
-      return basicExecutor(ex).then(function(result) {
+      basicExecutor(ex).then(function(result) {
           expect(result.toJS()).to.deep.equal([
             {
               "Delta": -3,
@@ -365,7 +365,7 @@ describe("MySQLExternal", function() {
               "SquareDelta": 9
             }
           ]);
-          return testComplete();
+          testComplete();
         }
       ).done();
     });

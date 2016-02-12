@@ -32,7 +32,7 @@ describe("compute native", function() {
             nine: 9
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -62,7 +62,7 @@ describe("compute native", function() {
             'abs': 4,
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -72,7 +72,7 @@ describe("compute native", function() {
     var p = ex.compute({ x: 2 });
     return p.then(function(v) {
         expect(v).to.deep.equal(2);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -97,7 +97,7 @@ describe("compute native", function() {
             "Two": 2
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -120,7 +120,7 @@ describe("compute native", function() {
           { cut: 'Great', price: 124, priceX2: 248 },
           { cut: 'Wow', price: 160, priceX2: 320 }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -219,7 +219,7 @@ describe("compute native", function() {
             }
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -246,7 +246,7 @@ describe("compute native", function() {
             ]
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -271,7 +271,7 @@ describe("compute native", function() {
             "Two": 2
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -328,7 +328,7 @@ describe("compute native", function() {
             ]
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -360,7 +360,7 @@ describe("compute native", function() {
             ]
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -392,7 +392,7 @@ describe("compute native", function() {
             ]
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -411,7 +411,7 @@ describe("compute native", function() {
             "CountPlusX": 19
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -494,7 +494,7 @@ describe("compute native", function() {
             ]
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -539,7 +539,7 @@ describe("compute native", function() {
             ]
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -573,7 +573,7 @@ describe("compute native", function() {
             ]
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -592,7 +592,7 @@ describe("compute native", function() {
             "Count": 3
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -645,7 +645,7 @@ describe("compute native", function() {
               ]
             }
           ]);
-          return testComplete();
+          testComplete();
         }
       ).done();
     });
@@ -694,7 +694,7 @@ describe("compute native", function() {
               "Price": 1084
             }
           ]);
-          return testComplete();
+          testComplete();
         }
       ).done();
     });
@@ -742,7 +742,7 @@ describe("compute native", function() {
               ]
             }
           ]);
-          return testComplete();
+          testComplete();
         }
       ).done();
     });

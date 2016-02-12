@@ -1674,6 +1674,6 @@ describe("simulate Druid", function() {
 
     expect(ex.simulateQueryPlan({ diamonds: ds })[0].context).to.deep.equal({ priority: -1, queryId: 'test' });
 
-    return testComplete();
+    testComplete();
   });
 });

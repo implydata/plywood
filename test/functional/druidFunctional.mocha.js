@@ -41,14 +41,18 @@ describe("DruidExternal", function() {
               { name: 'page', type: 'STRING' },
               { name: 'page_unique', special: 'unique' },
               { name: 'user', type: 'STRING' },
+              { name: 'userChars', type: 'SET/STRING' },
               { name: 'newPage', type: 'BOOLEAN' },
               { name: 'anonymous', type: 'BOOLEAN' },
-              { name: 'added', type: 'NUMBER' },
-              { name: 'count', type: 'NUMBER' },
               { name: 'commentLength', type: 'NUMBER' },
               { name: 'metroCode', type: 'STRING' },
               { name: 'cityName', type: 'STRING' },
-              { name: 'user_unique', special: 'unique' }
+              { name: 'user_unique', special: 'unique' },
+              { name: 'count', type: 'NUMBER' },
+              { name: 'delta', type: 'NUMBER' },
+              { name: 'deltaByTen', type: 'NUMBER' },
+              { name: 'added', type: 'NUMBER' },
+              { name: 'deleted', type: 'NUMBER' }
             ],
             filter: $('time').in(TimeRange.fromJS({
               start: new Date("2015-09-12T00:00:00Z"),
@@ -71,9 +75,7 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        // console.log("ex.simulateQueryPlan(context)", JSON.stringify(ex.simulateQueryPlan(context), null, 2));
-
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "HoursOfDay": [
@@ -92,7 +94,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -125,7 +127,7 @@ describe("DruidExternal", function() {
               .limit(4)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Count": 114711,
@@ -212,7 +214,7 @@ describe("DruidExternal", function() {
                 "TotalAdded": 32553107
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -225,7 +227,7 @@ describe("DruidExternal", function() {
           .apply('UniqueUsers2', $('wiki').countDistinct("$user_unique"));
         //.apply('UniqueDiff', '$UniqueUsers1 - $UniqueUsers2')
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "UniquePages1": 278906.2678236051,
@@ -234,7 +236,7 @@ describe("DruidExternal", function() {
                 "UniqueUsers2": 37712.65497107271
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -255,7 +257,7 @@ describe("DruidExternal", function() {
               )
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -280,7 +282,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -291,7 +293,7 @@ describe("DruidExternal", function() {
           .apply('Negate', $('Count').negate())
           .apply('Abs', $('Count').negate().absolute().negate().absolute());
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Abs": 113240,
@@ -299,7 +301,7 @@ describe("DruidExternal", function() {
                 "Negate": -113240
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -311,7 +313,7 @@ describe("DruidExternal", function() {
           .apply('Squared', $('Count').power(2))
           .apply('One', $('Count').power(0));
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Count": 113240,
@@ -320,7 +322,7 @@ describe("DruidExternal", function() {
                 "Squared": 12823297600
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -341,7 +343,7 @@ describe("DruidExternal", function() {
               )
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "ByHour": [
@@ -399,7 +401,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -415,7 +417,7 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -434,7 +436,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -450,7 +452,7 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -469,7 +471,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -485,7 +487,7 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -504,7 +506,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -519,7 +521,7 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -538,7 +540,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -553,7 +555,7 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -572,7 +574,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -587,7 +589,7 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Pages": [
@@ -606,7 +608,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -621,7 +623,7 @@ describe("DruidExternal", function() {
               .limit(3)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Channels": [
@@ -640,42 +642,63 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
 
-      it.skip("works with absolute value split", function(testComplete) {
+      it("works with absolute value split", function(testComplete) {
         var ex = ply()
           .apply(
-            'AbsSplit',
+            'AbsSplitAsc',
+            $('wiki').split($('commentLength').absolute(), 'AbsCommentLength')
+              .sort('$AbsCommentLength', 'ascending')
+              .limit(4)
+          )
+          .apply(
+            'AbsSplitDesc',
             $('wiki').split($('commentLength').absolute(), 'AbsCommentLength')
               .sort('$AbsCommentLength', 'descending')
               .limit(4)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex)
+          .then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
-                "AbsSplit": [
+                "AbsSplitAsc": [
                   {
                     "AbsCommentLength": 1
                   },
                   {
-                    "AbsCommentLength": 10
+                    "AbsCommentLength": 2
                   },
                   {
-                    "AbsCommentLength": 100
+                    "AbsCommentLength": 3
                   },
                   {
-                    "AbsCommentLength": 101
+                    "AbsCommentLength": 4
+                  }
+                ],
+                "AbsSplitDesc": [
+                  {
+                    "AbsCommentLength": 255
+                  },
+                  {
+                    "AbsCommentLength": 254
+                  },
+                  {
+                    "AbsCommentLength": 253
+                  },
+                  {
+                    "AbsCommentLength": 252
                   }
                 ]
               }
             ]);
-            return testComplete();
-          }
-        ).done();
+            testComplete();
+          })
+          .done();
       });
 
       it("can timeBucket a time column that is the timeAttribute one", function(testComplete) {
@@ -687,7 +710,7 @@ describe("DruidExternal", function() {
               .limit(2)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([{
               "Time": [
                 {
@@ -708,7 +731,7 @@ describe("DruidExternal", function() {
             }
 
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -721,7 +744,7 @@ describe("DruidExternal", function() {
               .limit(5)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "TimeLater": [
@@ -763,7 +786,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -784,7 +807,7 @@ describe("DruidExternal", function() {
               .limit(4)
           );
 
-        return basicExecutor(ex).then(function(result) {
+        basicExecutor(ex).then(function(result) {
             expect(result.toJS()).to.deep.equal([
               {
                 "Cuts": [
@@ -835,7 +858,7 @@ describe("DruidExternal", function() {
                 ]
               }
             ]);
-            return testComplete();
+            testComplete();
           }
         ).done();
       });
@@ -880,7 +903,7 @@ describe("DruidExternal", function() {
             )
         );
 
-      return basicExecutor(ex).then(function(result) {
+      basicExecutor(ex).then(function(result) {
           expect(result.toJS()).to.deep.equal([
             {
               "Count": 114711,
@@ -943,7 +966,7 @@ describe("DruidExternal", function() {
               "TotalAdded": 32553107
             }
           ]);
-          return testComplete();
+          testComplete();
         }
       ).done();
     });

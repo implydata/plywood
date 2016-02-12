@@ -14,7 +14,7 @@ describe('Simple locator', function() {
               hostname: 'localhost',
               port: 8080
             });
-            return testComplete();
+            testComplete();
           }
         ).done();
     });
@@ -42,7 +42,7 @@ describe('Simple locator', function() {
                 });
               }
             }
-            return testComplete();
+            testComplete();
           }
         ).done();
     });

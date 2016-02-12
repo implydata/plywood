@@ -37,7 +37,7 @@ describe("compute native nontrivial data", function() {
           "SumAdded": 9385573
         }
       ]);
-      return testComplete();
+      testComplete();
     }).done();
   });
 
@@ -77,7 +77,7 @@ describe("compute native nontrivial data", function() {
             "SumAdded": 41073
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -118,7 +118,7 @@ describe("compute native nontrivial data", function() {
             "SumAdded": 89385
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -149,7 +149,7 @@ describe("compute native nontrivial data", function() {
             }
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -226,7 +226,7 @@ describe("compute native nontrivial data", function() {
             "SumAdded": 41073
           }
         ]);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });

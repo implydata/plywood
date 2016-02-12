@@ -37,7 +37,7 @@ Got result from query 1: (in Xms)
   3
 ]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });
@@ -61,7 +61,7 @@ Sending query 1:
 vvvvvvvvvvvvvvvvvvvvvvvvvv
 Got error in query 1: some error (in Xms)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
-        return testComplete();
+        testComplete();
       }
     ).done();
   });

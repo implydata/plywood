@@ -175,7 +175,7 @@ exports.makeErrorTest = function(driverFnMap) {
                 expect(result.reason.message).to.equal(error, `${drivers[i]} did not conform to error`);
               }
             }
-            return testComplete();
+            testComplete();
           }
         )
         .done();

@@ -36,7 +36,7 @@ describe("Retry requester", function() {
 
     concurrentLimitRequester({ query: 'a' }).then(function(res) {
         expect(res).to.be.an('array');
-        return testComplete();
+        testComplete();
       }
     ).done();
 
@@ -70,7 +70,7 @@ describe("Retry requester", function() {
     concurrentLimitRequester({ query: 'c' }).then(function(res) {
         expect(res).to.be.an('array');
         expect(nextQuery).to.equal('c');
-        return testComplete();
+        testComplete();
       }
     ).done();
 
