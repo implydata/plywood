@@ -1,7 +1,9 @@
 var { expect } = require("chai");
+var fs = require('fs');
+var path = require('path');
 
 var plywood = require('../../build/plywood');
-var { Expression, Dataset, $, ply, r } = plywood;
+var { Expression, Dataset, $, ply, r, helper } = plywood;
 
 var chronoshift = require("chronoshift");
 
@@ -10,14 +12,16 @@ if (!chronoshift.WallTime.rules) {
   chronoshift.WallTime.init(tzData.rules, tzData.zones);
 }
 
-var wikiDayData = [{}]; //require('../../data/wikipedia');
+var rawData = fs.readFileSync(path.join(__dirname, '../../data/wikipedia-sampled.json'), 'utf-8');
+var wikiDayData = helper.parseJSON(rawData);
 
 wikiDayData.forEach(function(d, i) {
-    return d['time'] = new Date(d['time']);
-  }
-);
+  d['time'] = new Date(d['time']);
+  d['sometimeLater'] = new Date(d['sometimeLater']);
+  delete d['userChars'];
+});
 
-describe.skip("compute native nontrivial data", function() {
+describe("compute native nontrivial data", function() {
   var ds = Dataset.fromJS(wikiDayData);
 
   it("works in simple agg case", function(testComplete) {
