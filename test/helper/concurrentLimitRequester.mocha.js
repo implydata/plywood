@@ -15,9 +15,15 @@ describe("Retry requester", function() {
       return deferred.promise;
     };
 
-    requester.hasQuery = function(query) { return Boolean(deferreds[query]); };
-    requester.resolve =  function(query) { return deferreds[query].resolve([1, 2, 3]); };
-    requester.reject =   function(query) { return deferreds[query].reject(new Error('fail')); };
+    requester.hasQuery = function(query) {
+      return Boolean(deferreds[query]);
+    };
+    requester.resolve = function(query) {
+      return deferreds[query].resolve([1, 2, 3]);
+    };
+    requester.reject = function(query) {
+      return deferreds[query].reject(new Error('fail'));
+    };
     return requester;
   };
 
@@ -29,9 +35,9 @@ describe("Retry requester", function() {
     });
 
     concurrentLimitRequester({ query: 'a' }).then(function(res) {
-      expect(res).to.be.an('array');
-      return testComplete();
-    }
+        expect(res).to.be.an('array');
+        return testComplete();
+      }
     ).done();
 
     return requester.resolve('a');
@@ -46,26 +52,26 @@ describe("Retry requester", function() {
 
     var nextQuery = 'a';
     concurrentLimitRequester({ query: 'a' }).then(function(res) {
-      expect(res).to.be.an('array');
-      expect(nextQuery).to.equal('a');
-      return nextQuery = 'b';
-    }
+        expect(res).to.be.an('array');
+        expect(nextQuery).to.equal('a');
+        return nextQuery = 'b';
+      }
     ).done();
 
     concurrentLimitRequester({ query: 'b' }).then(function(res) {
-      expect(res).to.be.an('array');
-      expect(nextQuery).to.equal('b');
-      nextQuery = 'c';
-      expect(requester.hasQuery('c', 'has c')).to.equal(true);
-      return requester.resolve('c');
-    }
+        expect(res).to.be.an('array');
+        expect(nextQuery).to.equal('b');
+        nextQuery = 'c';
+        expect(requester.hasQuery('c', 'has c')).to.equal(true);
+        return requester.resolve('c');
+      }
     ).done();
 
     concurrentLimitRequester({ query: 'c' }).then(function(res) {
-      expect(res).to.be.an('array');
-      expect(nextQuery).to.equal('c');
-      return testComplete();
-    }
+        expect(res).to.be.an('array');
+        expect(nextQuery).to.equal('c');
+        return testComplete();
+      }
     ).done();
 
     expect(requester.hasQuery('a'), 'has a').to.equal(true);

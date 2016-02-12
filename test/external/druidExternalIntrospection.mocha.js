@@ -298,14 +298,14 @@ describe("DruidExternal Introspection", function() {
 
   it("errors on bad introspectionStrategy", function() {
     return expect(function() {
-      return External.fromJS({
-        engine: 'druid',
-        dataSource: 'wikipedia',
-        timeAttribute: 'time',
-        introspectionStrategy: 'crowd-source',
-        requester: requesterFail
-      });
-    }
+        return External.fromJS({
+          engine: 'druid',
+          dataSource: 'wikipedia',
+          timeAttribute: 'time',
+          introspectionStrategy: 'crowd-source',
+          requester: requesterFail
+        });
+      }
     ).to.throw("Invalid introspectionStrategy 'crowd-source'");
   });
 
@@ -318,12 +318,14 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect()
-    .then(function() { throw new Error('DID_NOT_ERROR'); })
-    .fail(function(err) {
-      expect(err.message).to.equal('Bad status code');
-      return testComplete();
-    }
-    ).done();
+      .then(function() {
+        throw new Error('DID_NOT_ERROR');
+      })
+      .fail(function(err) {
+          expect(err.message).to.equal('Bad status code');
+          return testComplete();
+        }
+      ).done();
   });
 
   it("does an introspect with segmentMetadata (with aggregators)", function(testComplete) {
@@ -335,64 +337,64 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect().then(function(introspectedExternal) {
-      expect(introspectedExternal.toJS().attributes).to.deep.equal([
-        {
-          "name": "time",
-          "type": "TIME"
-        },
-        {
-          "makerAction": {
-            "action": "sum",
-            "expression": {
-              "name": "added",
-              "op": "ref"
-            }
+        expect(introspectedExternal.toJS().attributes).to.deep.equal([
+          {
+            "name": "time",
+            "type": "TIME"
           },
-          "name": "added",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "anonymous",
-          "type": "STRING"
-        },
-        {
-          "makerAction": {
-            "action": "sum",
-            "expression": {
-              "name": "count",
-              "op": "ref"
-            }
+          {
+            "makerAction": {
+              "action": "sum",
+              "expression": {
+                "name": "added",
+                "op": "ref"
+              }
+            },
+            "name": "added",
+            "type": "NUMBER",
+            "unsplitable": true
           },
-          "name": "count",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "delta_hist",
-          "special": "histogram",
-          "type": "NUMBER"
-        },
-        {
-          "name": "language",
-          "type": "STRING"
-        },
-        {
-          "name": "namespace",
-          "type": "SET/STRING"
-        },
-        {
-          "name": "page",
-          "type": "STRING"
-        },
-        {
-          "name": "user_unique",
-          "special": "unique",
-          "type": "STRING"
-        }
-      ]);
-      return testComplete();
-    }
+          {
+            "name": "anonymous",
+            "type": "STRING"
+          },
+          {
+            "makerAction": {
+              "action": "sum",
+              "expression": {
+                "name": "count",
+                "op": "ref"
+              }
+            },
+            "name": "count",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "delta_hist",
+            "special": "histogram",
+            "type": "NUMBER"
+          },
+          {
+            "name": "language",
+            "type": "STRING"
+          },
+          {
+            "name": "namespace",
+            "type": "SET/STRING"
+          },
+          {
+            "name": "page",
+            "type": "STRING"
+          },
+          {
+            "name": "user_unique",
+            "special": "unique",
+            "type": "STRING"
+          }
+        ]);
+        return testComplete();
+      }
     ).done();
   });
 
@@ -405,50 +407,50 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect().then(function(introspectedExternal) {
-      expect(introspectedExternal.toJS().attributes).to.deep.equal([
-        {
-          "name": "time",
-          "type": "TIME"
-        },
-        {
-          "name": "added",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "anonymous",
-          "type": "STRING"
-        },
-        {
-          "name": "count",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "delta_hist",
-          "special": "histogram",
-          "type": "NUMBER"
-        },
-        {
-          "name": "language",
-          "type": "STRING"
-        },
-        {
-          "name": "namespace",
-          "type": "SET/STRING"
-        },
-        {
-          "name": "page",
-          "type": "STRING"
-        },
-        {
-          "name": "user_unique",
-          "special": "unique",
-          "type": "STRING"
-        }
-      ]);
-      return testComplete();
-    }
+        expect(introspectedExternal.toJS().attributes).to.deep.equal([
+          {
+            "name": "time",
+            "type": "TIME"
+          },
+          {
+            "name": "added",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "anonymous",
+            "type": "STRING"
+          },
+          {
+            "name": "count",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "delta_hist",
+            "special": "histogram",
+            "type": "NUMBER"
+          },
+          {
+            "name": "language",
+            "type": "STRING"
+          },
+          {
+            "name": "namespace",
+            "type": "SET/STRING"
+          },
+          {
+            "name": "page",
+            "type": "STRING"
+          },
+          {
+            "name": "user_unique",
+            "special": "unique",
+            "type": "STRING"
+          }
+        ]);
+        return testComplete();
+      }
     ).done();
   });
 
@@ -461,40 +463,40 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect().then(function(introspectedExternal) {
-      expect(introspectedExternal.toJS().attributes).to.deep.equal([
-        {
-          "name": "time",
-          "type": "TIME"
-        },
-        {
-          "name": "added",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "anonymous",
-          "type": "STRING"
-        },
-        {
-          "name": "count",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "language",
-          "type": "STRING"
-        },
-        {
-          "name": "namespace",
-          "type": "STRING"
-        },
-        {
-          "name": "page",
-          "type": "STRING"
-        }
-      ]);
-      return testComplete();
-    }
+        expect(introspectedExternal.toJS().attributes).to.deep.equal([
+          {
+            "name": "time",
+            "type": "TIME"
+          },
+          {
+            "name": "added",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "anonymous",
+            "type": "STRING"
+          },
+          {
+            "name": "count",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "language",
+            "type": "STRING"
+          },
+          {
+            "name": "namespace",
+            "type": "STRING"
+          },
+          {
+            "name": "page",
+            "type": "STRING"
+          }
+        ]);
+        return testComplete();
+      }
     ).done();
   });
 
@@ -507,54 +509,54 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect().then(function(introspectedExternal) {
-      expect(introspectedExternal.toJS().attributes).to.deep.equal([
-        {
-          "name": "time",
-          "type": "TIME"
-        },
-        {
-          "name": "anonymous",
-          "type": "STRING"
-        },
-        {
-          "name": "language",
-          "type": "STRING"
-        },
-        {
-          "name": "namespace",
-          "type": "STRING"
-        },
-        {
-          "name": "newPage",
-          "type": "STRING"
-        },
-        {
-          "name": "page",
-          "type": "STRING"
-        },
-        {
-          "name": "added",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "count",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "delta_hist",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "user_unique",
-          "type": "NUMBER",
-          "unsplitable": true
-        }
-      ]);
-      return testComplete();
-    }
+        expect(introspectedExternal.toJS().attributes).to.deep.equal([
+          {
+            "name": "time",
+            "type": "TIME"
+          },
+          {
+            "name": "anonymous",
+            "type": "STRING"
+          },
+          {
+            "name": "language",
+            "type": "STRING"
+          },
+          {
+            "name": "namespace",
+            "type": "STRING"
+          },
+          {
+            "name": "newPage",
+            "type": "STRING"
+          },
+          {
+            "name": "page",
+            "type": "STRING"
+          },
+          {
+            "name": "added",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "count",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "delta_hist",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "user_unique",
+            "type": "NUMBER",
+            "unsplitable": true
+          }
+        ]);
+        return testComplete();
+      }
     ).done();
   });
 
@@ -568,54 +570,54 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect().then(function(introspectedExternal) {
-      expect(introspectedExternal.toJS().attributes).to.deep.equal([
-        {
-          "name": "time",
-          "type": "TIME"
-        },
-        {
-          "name": "anonymous",
-          "type": "STRING"
-        },
-        {
-          "name": "language",
-          "type": "STRING"
-        },
-        {
-          "name": "namespace",
-          "type": "STRING"
-        },
-        {
-          "name": "newPage",
-          "type": "STRING"
-        },
-        {
-          "name": "page",
-          "type": "STRING"
-        },
-        {
-          "name": "added",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "count",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "delta_hist",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "user_unique",
-          "type": "NUMBER",
-          "unsplitable": true
-        }
-      ]);
-      return testComplete();
-    }
+        expect(introspectedExternal.toJS().attributes).to.deep.equal([
+          {
+            "name": "time",
+            "type": "TIME"
+          },
+          {
+            "name": "anonymous",
+            "type": "STRING"
+          },
+          {
+            "name": "language",
+            "type": "STRING"
+          },
+          {
+            "name": "namespace",
+            "type": "STRING"
+          },
+          {
+            "name": "newPage",
+            "type": "STRING"
+          },
+          {
+            "name": "page",
+            "type": "STRING"
+          },
+          {
+            "name": "added",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "count",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "delta_hist",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "user_unique",
+            "type": "NUMBER",
+            "unsplitable": true
+          }
+        ]);
+        return testComplete();
+      }
     ).done();
   });
 
@@ -632,54 +634,54 @@ describe("DruidExternal Introspection", function() {
     });
 
     return wikiExternal.introspect().then(function(introspectedExternal) {
-      expect(introspectedExternal.toJS().attributes).to.deep.equal([
-        {
-          "name": "time",
-          "type": "TIME"
-        },
-        {
-          "name": "anonymous",
-          "type": "STRING"
-        },
-        {
-          "name": "language",
-          "type": "STRING"
-        },
-        {
-          "name": "namespace",
-          "type": "STRING"
-        },
-        {
-          "name": "newPage",
-          "type": "STRING"
-        },
-        {
-          "name": "page",
-          "type": "STRING"
-        },
-        {
-          "name": "added",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "count",
-          "type": "NUMBER",
-          "unsplitable": true
-        },
-        {
-          "name": "delta_hist",
-          "special": "histogram",
-          "type": "NUMBER"
-        },
-        {
-          "name": "user_unique",
-          "special": "unique",
-          "type": "STRING"
-        }
-      ]);
-      return testComplete();
-    }
+        expect(introspectedExternal.toJS().attributes).to.deep.equal([
+          {
+            "name": "time",
+            "type": "TIME"
+          },
+          {
+            "name": "anonymous",
+            "type": "STRING"
+          },
+          {
+            "name": "language",
+            "type": "STRING"
+          },
+          {
+            "name": "namespace",
+            "type": "STRING"
+          },
+          {
+            "name": "newPage",
+            "type": "STRING"
+          },
+          {
+            "name": "page",
+            "type": "STRING"
+          },
+          {
+            "name": "added",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "count",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "delta_hist",
+            "special": "histogram",
+            "type": "NUMBER"
+          },
+          {
+            "name": "user_unique",
+            "special": "unique",
+            "type": "STRING"
+          }
+        ]);
+        return testComplete();
+      }
     ).done();
   });
 });

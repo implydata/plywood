@@ -72,10 +72,10 @@ describe("DruidExternal", function() {
   describe("processApply", function() {
     it("breaks up correctly in simple case", function() {
       var ex = ply()
-      .apply('wiki', '$wiki')// for now
-      .apply('Count', '$wiki.count()')
-      .apply('Added', '$wiki.sum($added)')
-      .apply('Volatile', '$wiki.max($added) - $wiki.min($deleted)');
+        .apply('wiki', '$wiki')// for now
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .apply('Volatile', '$wiki.max($added) - $wiki.min($deleted)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -91,9 +91,9 @@ apply(Volatile,$_sd_0:NUMBER.subtract($_sd_1:NUMBER))`);
 
     it("breaks up correctly in absolute cases", function() {
       var ex = ply()
-      .apply('wiki', '$wiki')// for now
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('abs', $('AddedByDeleted').absolute());
+        .apply('wiki', '$wiki')// for now
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('abs', $('AddedByDeleted').absolute());
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -108,10 +108,10 @@ apply(abs,$AddedByDeleted:NUMBER.absolute())`);
 
     it("breaks up correctly in case of duplicate name", function() {
       var ex = ply()
-      .apply('wiki', '$wiki')// for now
-      .apply('Count', '$wiki.count()')
-      .apply('Added', '$wiki.sum($added)')
-      .apply('Volatile', '$wiki.sum($added) - $wiki.sum($deleted)');
+        .apply('wiki', '$wiki')// for now
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .apply('Volatile', '$wiki.sum($added) - $wiki.sum($deleted)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -126,10 +126,10 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("breaks up correctly in case of variable reference", function() {
       var ex = ply()
-      .apply('wiki', '$wiki')// for now
-      .apply('Count', '$wiki.count()')
-      .apply('Added', '$wiki.sum($added)')
-      .apply('Volatile', '$Added - $wiki.sum($deleted)');
+        .apply('wiki', '$wiki')// for now
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .apply('Volatile', '$Added - $wiki.sum($deleted)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -144,10 +144,10 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("breaks up correctly in complex case", function() {
       var ex = ply()
-      .apply('wiki', '$wiki')// for now
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-      .apply('Deleted', '$wiki.sum($deleted)');
+        .apply('wiki', '$wiki')// for now
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .apply('Deleted', '$wiki.sum($deleted)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -163,10 +163,10 @@ apply(DeletedByInserted,$Deleted:NUMBER.divide($_sd_1:NUMBER))`);
 
     it.skip("breaks up correctly in case of duplicate apply", function() {
       var ex = ply()
-      .apply('wiki', '$wiki')// for now
-      .apply('Added', '$wiki.sum($added)')
-      .apply('Added2', '$wiki.sum($added)')
-      .apply('Volatile', '$Added - $wiki.sum($deleted)');
+        .apply('wiki', '$wiki')// for now
+        .apply('Added', '$wiki.sum($added)')
+        .apply('Added2', '$wiki.sum($added)')
+        .apply('Volatile', '$Added - $wiki.sum($deleted)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -181,10 +181,10 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     return it.skip("breaks up correctly in case of duplicate apply (same name)", function() {
       var ex = ply()
-      .apply('wiki', '$wiki')// for now
-      .apply('Added', '$wiki.sum($added)')
-      .apply('Added', '$wiki.sum($added)')
-      .apply('Volatile', '$Added - $wiki.sum($deleted)');
+        .apply('wiki', '$wiki')// for now
+        .apply('Added', '$wiki.sum($added)')
+        .apply('Added', '$wiki.sum($added)')
+        .apply('Volatile', '$Added - $wiki.sum($deleted)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -202,8 +202,8 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
   describe("simplifies / digests", function() {
     it("a (timeBoundary) total", function() {
       var ex = ply()
-      .apply('maximumTime', '$wiki.max($time)')
-      .apply('minimumTime', '$wiki.min($time)');
+        .apply('maximumTime', '$wiki.max($time)')
+        .apply('minimumTime', '$wiki.min($time)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
       expect(ex.op).to.equal('external');
@@ -216,9 +216,9 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("should properly process a total", function() {
       var ex = ply()
-      .apply("wiki", $('wiki', 1).apply('addedTwice', '$added * 2').filter($("language").is('en')))
-      .apply('Count', '$wiki.count()')
-      .apply('TotalAdded', '$wiki.sum($added)');
+        .apply("wiki", $('wiki', 1).apply('addedTwice', '$added * 2').filter($("language").is('en')))
+        .apply('Count', '$wiki.count()')
+        .apply('TotalAdded', '$wiki.sum($added)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -252,8 +252,8 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("inlines a total with no explicit dataset apply", function() {
       var ex = ply()
-      .apply('TotalAdded', '$wiki.sum($added)')
-      .apply('TotalAddedX2', '$TotalAdded * 2');
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .apply('TotalAddedX2', '$TotalAdded * 2');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -310,10 +310,10 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("processes a simple split", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .apply('Added', '$wiki.sum($added)')
-      .sort('$Count', 'descending')
-      .limit(5);
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -349,10 +349,10 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("processes a split (no approximate)", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .apply('Added', '$wiki.sum($added)')
-      .sort('$Count', 'descending')
-      .limit(5);
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5);
 
       ex = ex.referenceCheck(contextNoApprox).resolve(contextNoApprox).simplify();
 
@@ -398,9 +398,9 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("processes a split with custom aggregations", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('CrazyStupid', '$wiki.custom(crazy) * $wiki.custom(stupid)')
-      .sort('$CrazyStupid', 'descending')
-      .limit(5);
+        .apply('CrazyStupid', '$wiki.custom(crazy) * $wiki.custom(stupid)')
+        .sort('$CrazyStupid', 'descending')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -466,8 +466,8 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("filters (in)", function() {
       var ex = ply()
-      .apply("wiki", $('wiki', 1).filter($("language").in(['en'])))
-      .apply('Count', '$wiki.count()');
+        .apply("wiki", $('wiki', 1).filter($("language").in(['en'])))
+        .apply('Count', '$wiki.count()');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -496,8 +496,8 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("filters (in [null])", function() {
       var ex = ply()
-      .apply("wiki", $('wiki', 1).filter($("language").in([null])))
-      .apply('Count', '$wiki.count()');
+        .apply("wiki", $('wiki', 1).filter($("language").in([null])))
+        .apply('Count', '$wiki.count()');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -526,8 +526,8 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("filters (contains)", function() {
       var ex = ply()
-      .apply("wiki", $('wiki', 1).filter($("language").contains('en', 'ignoreCase')))
-      .apply('Count', '$wiki.count()');
+        .apply("wiki", $('wiki', 1).filter($("language").contains('en', 'ignoreCase')))
+        .apply('Count', '$wiki.count()');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -561,10 +561,10 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("should work with complex aggregate expressions", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('SumAbs', '$wiki.sum($added.absolute())')
-      .apply('SumComplex', '$wiki.sum($added.power(2) * $deleted / $added.absolute())')
-      .sort('$SumAbs', 'descending')
-      .limit(5);
+        .apply('SumAbs', '$wiki.sum($added.absolute())')
+        .apply('SumComplex', '$wiki.sum($added.power(2) * $deleted / $added.absolute())')
+        .sort('$SumAbs', 'descending')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -612,10 +612,10 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("should work with filtered complex aggregate expressions", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('FilteredSumDeleted', '$wiki.filter($page.contains("wikipedia")).sum($deleted)')
-      .apply('Filtered2', '$wiki.filter($deleted != 100).sum($deleted)')
-      .sort('$FilteredSumDeleted', 'descending')
-      .limit(5);
+        .apply('FilteredSumDeleted', '$wiki.filter($page.contains("wikipedia")).sum($deleted)')
+        .apply('Filtered2', '$wiki.filter($deleted != 100).sum($deleted)')
+        .sort('$FilteredSumDeleted', 'descending')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -750,11 +750,11 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("should work in simple cases with power and absolute", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .apply('Abs', '$wiki.sum($added).absolute()')
-      .apply('Abs2', '$wiki.sum($added).power(2)')
-      .sort('$Abs', 'descending')
-      .limit(5);
+        .apply('Count', '$wiki.count()')
+        .apply('Abs', '$wiki.sum($added).absolute()')
+        .apply('Abs2', '$wiki.sum($added).power(2)')
+        .sort('$Abs', 'descending')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -808,10 +808,10 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     return it("should work with complex absolute and power expressions", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .apply('Abs', '(($wiki.sum($added)/$wiki.count().absolute().power(0.5) + 100 * $wiki.countDistinct($page)).absolute()).power(2) + $wiki.custom(crazy)')
-      .sort('$Count', 'descending')
-      .limit(5);
+        .apply('Count', '$wiki.count()')
+        .apply('Abs', '(($wiki.sum($added)/$wiki.count().absolute().power(0.5) + 100 * $wiki.countDistinct($page)).absolute()).power(2) + $wiki.custom(crazy)')
+        .sort('$Count', 'descending')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -898,7 +898,9 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      requester(query) { return Q([]); },
+      requester(query) {
+        return Q([]);
+      },
       attributes: [
         { name: 'time', type: 'TIME' },
         { name: 'language', type: 'STRING' },
@@ -912,7 +914,9 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      requester(query) { return Q([{ result: [] }]); },
+      requester(query) {
+        return Q([{ result: [] }]);
+      },
       attributes: [
         { name: 'time', type: 'TIME' },
         { name: 'language', type: 'STRING' },
@@ -924,54 +928,54 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     describe("should return null correctly on a totals query", function() {
       var ex = ply()
-      .apply('wiki', '$wiki')// for now
-      .apply('Count', '$wiki.count()');
+        .apply('wiki', '$wiki')// for now
+        .apply('Count', '$wiki.count()');
 
       return it("should work with [] return", function(testComplete) {
         return ex.compute({ wiki: nullExternal }).then(function(result) {
-          expect(result.toJS()).to.deep.equal([
-            { Count: 0 }
-          ]);
-          return testComplete();
-        }
+            expect(result.toJS()).to.deep.equal([
+              { Count: 0 }
+            ]);
+            return testComplete();
+          }
         ).done();
       });
     });
 
     describe("should return null correctly on a timeseries query", function() {
       var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
-      .apply('Count', '$wiki.count()')
-      .sort('$Time', 'ascending');
+        .apply('Count', '$wiki.count()')
+        .sort('$Time', 'ascending');
 
       return it("should work with [] return", function(testComplete) {
         return ex.compute({ wiki: nullExternal }).then(function(result) {
-          expect(result.toJS()).to.deep.equal([]);
-          return testComplete();
-        }
+            expect(result.toJS()).to.deep.equal([]);
+            return testComplete();
+          }
         ).done();
       });
     });
 
     return describe("should return null correctly on a topN query", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .apply('Added', '$wiki.sum($added)')
-      .sort('$Count', 'descending')
-      .limit(5);
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5);
 
       it("should work with [] return", function(testComplete) {
         return ex.compute({ wiki: nullExternal }).then(function(result) {
-          expect(result.toJS()).to.deep.equal([]);
-          return testComplete();
-        }
+            expect(result.toJS()).to.deep.equal([]);
+            return testComplete();
+          }
         ).done();
       });
 
       return it("should work with [{result:[]}] return", function(testComplete) {
         return ex.compute({ wiki: emptyExternal }).then(function(result) {
-          expect(result.toJS()).to.deep.equal([]);
-          return testComplete();
-        }
+            expect(result.toJS()).to.deep.equal([]);
+            return testComplete();
+          }
         ).done();
       });
     });
@@ -983,7 +987,9 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      requester(query) { return Q("[Does this look like data to you?"); },
+      requester(query) {
+        return Q("[Does this look like data to you?");
+      },
       attributes: [
         { name: 'time', type: 'TIME' },
         { name: 'language', type: 'STRING' },
@@ -995,30 +1001,34 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
 
     it("should work with all query", function(testComplete) {
       var ex = ply()
-      .apply('wiki', '$wiki')// for now
-      .apply('Count', '$wiki.count()');
+        .apply('wiki', '$wiki')// for now
+        .apply('Count', '$wiki.count()');
 
       return ex.compute({ wiki: crapExternal })
-      .then(function() { throw new Error('DID_NOT_ERROR'); })
-      .fail(function(err) {
-        expect(err.message).to.equal('unexpected result from Druid (all)');
-        return testComplete();
-      }
-      ).done();
+        .then(function() {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .fail(function(err) {
+            expect(err.message).to.equal('unexpected result from Druid (all)');
+            return testComplete();
+          }
+        ).done();
     });
 
     return it("should work with timeseries query", function(testComplete) {
       var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
-      .apply('Count', '$wiki.count()')
-      .sort('$Time', 'ascending');
+        .apply('Count', '$wiki.count()')
+        .sort('$Time', 'ascending');
 
       return ex.compute({ wiki: crapExternal })
-      .then(function() { throw new Error('DID_NOT_ERROR'); })
-      .fail(function(err) {
-        expect(err.message).to.equal('unexpected result from Druid (timeseries)');
-        return testComplete();
-      }
-      ).done();
+        .then(function() {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .fail(function(err) {
+            expect(err.message).to.equal('unexpected result from Druid (timeseries)');
+            return testComplete();
+          }
+        ).done();
     });
   });
 });

@@ -10,48 +10,48 @@ describe("NumberRange", function() {
     return testImmutableClass(NumberRange, [
       {
         start: 0,
-        end:   0
+        end: 0
       },
       {
         start: 1,
-        end:   1,
+        end: 1,
         bounds: '[]'
       },
       {
         start: 0,
-        end:   1
+        end: 1
       },
       {
         start: 7,
-        end:   9
+        end: 9
       },
       {
         start: 7,
-        end:   9,
+        end: 9,
         bounds: '()'
       },
       {
         start: 7,
-        end:   9,
+        end: 9,
         bounds: '[]'
       },
       {
         start: 7,
-        end:   9,
+        end: 9,
         bounds: '(]'
       },
       {
         start: 7,
-        end:   null
+        end: null
       },
       {
         start: 7,
-        end:   null,
+        end: null,
         bounds: '()'
       },
       {
         start: null,
-        end:   null,
+        end: null,
         bounds: '()'
       }
     ]);
@@ -62,11 +62,11 @@ describe("NumberRange", function() {
     return it("survives", function() {
       return expect(NumberRange.fromJS({
         start: 7,
-        end:   9,
+        end: 9,
         hasOwnProperty: 'troll'
       }).toJS()).to.deep.equal({
         start: 7,
-        end:   9
+        end: 9
       });
     });
   });
@@ -75,11 +75,11 @@ describe("NumberRange", function() {
   describe("errors", function() {
     return it("throws on bad numbers", function() {
       return expect(function() {
-        return NumberRange.fromJS({
-          start: 'lol',
-          end:   'wat'
-        });
-      }
+          return NumberRange.fromJS({
+            start: 'lol',
+            end: 'wat'
+          });
+        }
       ).to.throw('`start` must be a number');
     });
   });
@@ -94,7 +94,11 @@ describe("NumberRange", function() {
 
     it('works correctly with a fancy bounds', function() {
       return expect(
-        NumberRange.fromJS({ start: 0, end: 2, bounds: '(]' }).extend(NumberRange.fromJS({ start: 5, end: 6, bounds: '(]' })).toJS()
+        NumberRange.fromJS({ start: 0, end: 2, bounds: '(]' }).extend(NumberRange.fromJS({
+          start: 5,
+          end: 6,
+          bounds: '(]'
+        })).toJS()
       ).to.deep.equal({ start: 0, end: 6, bounds: '(]' });
     });
 
@@ -127,13 +131,21 @@ describe("NumberRange", function() {
 
     it('works correctly with a fancy bounds', function() {
       return expect(
-        NumberRange.fromJS({ start: 0, end: 2, bounds: '(]' }).union(NumberRange.fromJS({ start: 1, end: 3, bounds: '(]' })).toJS()
+        NumberRange.fromJS({ start: 0, end: 2, bounds: '(]' }).union(NumberRange.fromJS({
+          start: 1,
+          end: 3,
+          bounds: '(]'
+        })).toJS()
       ).to.deep.equal({ start: 0, end: 3, bounds: '(]' });
     });
 
     it('works with itself when open', function() {
       return expect(
-        NumberRange.fromJS({ start: 0, end: 1, bounds: '()' }).union(NumberRange.fromJS({ start: 0, end: 1, bounds: '()' })).toJS()
+        NumberRange.fromJS({ start: 0, end: 1, bounds: '()' }).union(NumberRange.fromJS({
+          start: 0,
+          end: 1,
+          bounds: '()'
+        })).toJS()
       ).to.deep.equal({ start: 0, end: 1, bounds: '()' });
     });
 
@@ -145,7 +157,11 @@ describe("NumberRange", function() {
 
     return it('works correctly with infinite non intersecting bounds', function() {
       return expect(
-        NumberRange.fromJS({ start: 1, end: null, bounds: '()' }).union(NumberRange.fromJS({ start: null, end: 0, bounds: '(]' }))
+        NumberRange.fromJS({ start: 1, end: null, bounds: '()' }).union(NumberRange.fromJS({
+          start: null,
+          end: 0,
+          bounds: '(]'
+        }))
       ).to.deep.equal(null);
     });
   });
@@ -172,13 +188,21 @@ describe("NumberRange", function() {
 
     it('works correctly with a fancy bounds', function() {
       return expect(
-        NumberRange.fromJS({ start: 0, end: 2, bounds: '(]' }).intersect(NumberRange.fromJS({ start: 1, end: 3, bounds: '(]' })).toJS()
+        NumberRange.fromJS({ start: 0, end: 2, bounds: '(]' }).intersect(NumberRange.fromJS({
+          start: 1,
+          end: 3,
+          bounds: '(]'
+        })).toJS()
       ).to.deep.equal({ start: 1, end: 2, bounds: '(]' });
     });
 
     it('works with itself when open', function() {
       return expect(
-        NumberRange.fromJS({ start: 0, end: 1, bounds: '()' }).intersect(NumberRange.fromJS({ start: 0, end: 1, bounds: '()' })).toJS()
+        NumberRange.fromJS({ start: 0, end: 1, bounds: '()' }).intersect(NumberRange.fromJS({
+          start: 0,
+          end: 1,
+          bounds: '()'
+        })).toJS()
       ).to.deep.equal({ start: 0, end: 1, bounds: '()' });
     });
 
@@ -190,7 +214,11 @@ describe("NumberRange", function() {
 
     return it('works correctly with infinite non intersecting bounds', function() {
       return expect(
-        NumberRange.fromJS({ start: 1, end: null, bounds: '()' }).intersect(NumberRange.fromJS({ start: null, end: 0, bounds: '(]' }))
+        NumberRange.fromJS({ start: 1, end: null, bounds: '()' }).intersect(NumberRange.fromJS({
+          start: null,
+          end: 0,
+          bounds: '(]'
+        }))
       ).to.deep.equal(null);
     });
   });

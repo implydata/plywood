@@ -33,36 +33,36 @@ var context = {
 describe("simulate MySQL", function() {
   it("works in advanced case", function() {
     var ex = ply()
-    .apply("diamonds", $('diamonds').filter($("color").is('D')))
-    .apply('Count', '$diamonds.count()')
-    .apply('TotalPrice', '$diamonds.sum($price)')
-    .apply('PriceTimes2', '$diamonds.sum($price) * 2')
-    .apply('PriceMinusTax', '$diamonds.sum($price) - $diamonds.sum($tax)')
-    .apply('Crazy', '$diamonds.sum($price) - $diamonds.sum($tax) + 10 - $diamonds.sum($carat)')
-    .apply('PriceAndTax', '$diamonds.sum($price) + $diamonds.sum($tax)')
-//.apply('PriceGoodCut', $('diamonds').filter($('cut').is('good')).sum('$price'))
-    .apply(
-      'Cuts',
-      $("diamonds").split("$cut", 'Cut')
-      .apply('Count', $('diamonds').count())
-      .apply('PercentOfTotal', '$^Count / $Count')
-      .sort('$Count', 'descending')
-      .limit(2)
+      .apply("diamonds", $('diamonds').filter($("color").is('D')))
+      .apply('Count', '$diamonds.count()')
+      .apply('TotalPrice', '$diamonds.sum($price)')
+      .apply('PriceTimes2', '$diamonds.sum($price) * 2')
+      .apply('PriceMinusTax', '$diamonds.sum($price) - $diamonds.sum($tax)')
+      .apply('Crazy', '$diamonds.sum($price) - $diamonds.sum($tax) + 10 - $diamonds.sum($carat)')
+      .apply('PriceAndTax', '$diamonds.sum($price) + $diamonds.sum($tax)')
+      //.apply('PriceGoodCut', $('diamonds').filter($('cut').is('good')).sum('$price'))
       .apply(
-        'Time',
-        $("diamonds").split($("time").timeBucket('P1D', 'America/Los_Angeles'), 'Timestamp')
-        .apply('TotalPrice', $('diamonds').sum('$price'))
-        .sort('$Timestamp', 'ascending')
-//.limit(10)
-        .apply(
-          'Carats',
-          $("diamonds").split($("carat").numberBucket(0.25), 'Carat')
-          .apply('Count', $('diamonds').count().fallback(0))
+        'Cuts',
+        $("diamonds").split("$cut", 'Cut')
+          .apply('Count', $('diamonds').count())
+          .apply('PercentOfTotal', '$^Count / $Count')
           .sort('$Count', 'descending')
-          .limit(3)
-        )
-      )
-    );
+          .limit(2)
+          .apply(
+            'Time',
+            $("diamonds").split($("time").timeBucket('P1D', 'America/Los_Angeles'), 'Timestamp')
+              .apply('TotalPrice', $('diamonds').sum('$price'))
+              .sort('$Timestamp', 'ascending')
+              //.limit(10)
+              .apply(
+                'Carats',
+                $("diamonds").split($("carat").numberBucket(0.25), 'Carat')
+                  .apply('Count', $('diamonds').count().fallback(0))
+                  .sort('$Count', 'descending')
+                  .limit(3)
+              )
+          )
+      );
 
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(4);
@@ -109,10 +109,10 @@ LIMIT 3`);
 
   it("works with having filter", function() {
     var ex = $("diamonds").split("$cut", 'Cut')
-    .apply('Count', $('diamonds').count())
-    .sort('$Count', 'descending')
-    .filter($('Count').greaterThan(100))
-    .limit(10);
+      .apply('Count', $('diamonds').count())
+      .sort('$Count', 'descending')
+      .filter($('Count').greaterThan(100))
+      .limit(10);
 
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
@@ -129,20 +129,20 @@ LIMIT 10`);
 
   it("works with range bucket", function() {
     var ex = ply()
-    .apply(
-      'HeightBuckets',
-      $("diamonds").split("$height_bucket", 'HeightBucket')
-      .apply('Count', $('diamonds').count())
-      .sort('$Count', 'descending')
-      .limit(10)
-    )
-    .apply(
-      'HeightUpBuckets',
-      $("diamonds").split($('height_bucket').numberBucket(2, 0.5), 'HeightBucket')
-      .apply('Count', $('diamonds').count())
-      .sort('$Count', 'descending')
-      .limit(10)
-    );
+      .apply(
+        'HeightBuckets',
+        $("diamonds").split("$height_bucket", 'HeightBucket')
+          .apply('Count', $('diamonds').count())
+          .sort('$Count', 'descending')
+          .limit(10)
+      )
+      .apply(
+        'HeightUpBuckets',
+        $("diamonds").split($('height_bucket').numberBucket(2, 0.5), 'HeightBucket')
+          .apply('Count', $('diamonds').count())
+          .sort('$Count', 'descending')
+          .limit(10)
+      );
 
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(2);
@@ -166,9 +166,9 @@ LIMIT 10`);
 
   it("works with SELECT query", function() {
     var ex = $('diamonds')
-    .filter('$color == "D"')
-    .sort('$cut', 'descending')
-    .limit(10);
+      .filter('$color == "D"')
+      .sort('$cut', 'descending')
+      .limit(10);
 
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
@@ -183,20 +183,20 @@ LIMIT 10`);
 
   return it("works multi-dimensional GROUP BYs", function() {
     var ex = ply()
-    .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
-    .apply(
-      'Cuts',
-      $("diamonds").split({ 'Cut': "$cut", 'Color': '$color' })
-      .apply('Count', $('diamonds').count())
-      .limit(3)
+      .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
       .apply(
-        'Carats',
-        $("diamonds").split($("carat").numberBucket(0.25), 'Carat')
-        .apply('Count', $('diamonds').count())
-        .sort('$Count', 'descending')
-        .limit(3)
-      )
-    );
+        'Cuts',
+        $("diamonds").split({ 'Cut': "$cut", 'Color': '$color' })
+          .apply('Count', $('diamonds').count())
+          .limit(3)
+          .apply(
+            'Carats',
+            $("diamonds").split($("carat").numberBucket(0.25), 'Carat')
+              .apply('Count', $('diamonds').count())
+              .sort('$Count', 'descending')
+              .limit(3)
+          )
+      );
 
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(2);

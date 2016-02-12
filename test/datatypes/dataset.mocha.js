@@ -40,7 +40,7 @@ describe("Dataset", function() {
           SomeTimeRange: {
             type: 'TIME_RANGE',
             start: new Date('2015-01-26T04:54:10Z'),
-            end:   new Date('2015-01-26T05:00:00Z')
+            end: new Date('2015-01-26T05:00:00Z')
           },
           BestCity: 'San Francisco',
           Vegetables: {
@@ -149,13 +149,13 @@ describe("Dataset", function() {
           "subData": {
             type: "DATASET",
             datasetType: {
-              "a": {type: "NUMBER"},
-              "b": {type: "STRING"}
+              "a": { type: "NUMBER" },
+              "b": { type: "STRING" }
             }
           },
-          "x": {type: "NUMBER"},
-          "y": {type: "STRING"},
-          "z": {type: "TIME"}
+          "x": { type: "NUMBER" },
+          "y": { type: "STRING" },
+          "z": { type: "TIME" }
         }
       });
     });
@@ -240,43 +240,55 @@ describe("Dataset", function() {
 
   describe("sorts", function() {
     var someDataset = Dataset.fromJS([
-      { time: new Date('2015-01-04T12:32:43'), resource: 'A',  value: 7,    nice: false },
-      { time: null,                            resource: 'B',  value: 2,    nice: true  },
-      { time: new Date('2015-01-03T12:32:43'), resource: null, value: null, nice: null  }
+      { time: new Date('2015-01-04T12:32:43'), resource: 'A', value: 7, nice: false },
+      { time: null, resource: 'B', value: 2, nice: true },
+      { time: new Date('2015-01-03T12:32:43'), resource: null, value: null, nice: null }
     ]);
 
     it("STRING, ascending", function() {
-      return expect(someDataset.sort($('resource').getFn(), 'ascending', {}).toJS().map(function(d) { return d.resource; })).to.deep.equal([
+      return expect(someDataset.sort($('resource').getFn(), 'ascending', {}).toJS().map(function(d) {
+        return d.resource;
+      })).to.deep.equal([
         null, 'A', 'B'
       ]);
     });
 
     it("STRING, descending", function() {
-      return expect(someDataset.sort($('resource').getFn(), 'descending', {}).toJS().map(function(d) { return d.resource; })).to.deep.equal([
+      return expect(someDataset.sort($('resource').getFn(), 'descending', {}).toJS().map(function(d) {
+        return d.resource;
+      })).to.deep.equal([
         'B', 'A', null
       ]);
     });
 
     it("NUMBER, ascending", function() {
-      return expect(someDataset.sort($('value').getFn(), 'ascending', {}).toJS().map(function(d) { return d.value; })).to.deep.equal([
+      return expect(someDataset.sort($('value').getFn(), 'ascending', {}).toJS().map(function(d) {
+        return d.value;
+      })).to.deep.equal([
         null, 2, 7
       ]);
     });
 
     it("NUMBER, descending", function() {
-      return expect(someDataset.sort($('value').getFn(), 'descending', {}).toJS().map(function(d) { return d.value; })).to.deep.equal([
+      return expect(someDataset.sort($('value').getFn(), 'descending', {}).toJS().map(function(d) {
+        return d.value;
+      })).to.deep.equal([
         7, 2, null
       ]);
     });
 
     it("BOOLEAN, ascending", function() {
-      return expect(someDataset.sort($('nice').getFn(), 'ascending', {}).toJS().map(function(d) { return d.nice; })).to.deep.equal([
+      return expect(someDataset.sort($('nice').getFn(), 'ascending', {}).toJS().map(function(d) {
+        return d.nice;
+      })).to.deep.equal([
         null, false, true
       ]);
     });
 
     return it("BOOLEAN, descending", function() {
-      return expect(someDataset.sort($('nice').getFn(), 'descending', {}).toJS().map(function(d) { return d.nice; })).to.deep.equal([
+      return expect(someDataset.sort($('nice').getFn(), 'descending', {}).toJS().map(function(d) {
+        return d.nice;
+      })).to.deep.equal([
         true, false, null
       ]);
     });

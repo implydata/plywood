@@ -26,9 +26,9 @@ describe("Retry requester", function() {
     });
 
     return retryRequester({}).then(function(res) {
-      expect(res).to.be.an('array');
-      return testComplete();
-    }
+        expect(res).to.be.an('array');
+        return testComplete();
+      }
     ).done();
   });
 
@@ -40,9 +40,9 @@ describe("Retry requester", function() {
     });
 
     return retryRequester({}).then(function(res) {
-      expect(res).to.be.an('array');
-      return testComplete();
-    }
+        expect(res).to.be.an('array');
+        return testComplete();
+      }
     ).done();
   });
 
@@ -54,9 +54,9 @@ describe("Retry requester", function() {
     });
 
     return retryRequester({}).then(function(res) {
-      expect(res).to.be.an('array');
-      return testComplete();
-    }
+        expect(res).to.be.an('array');
+        return testComplete();
+      }
     ).done();
   });
 
@@ -67,10 +67,12 @@ describe("Retry requester", function() {
       retry: 2
     });
 
-    return retryRequester({}).then(function() { throw new Error('DID_NOT_THROW'); }).catch(function(err) {
-      expect(err.message).to.equal('some error');
-      return testComplete();
-    }
+    return retryRequester({}).then(function() {
+      throw new Error('DID_NOT_THROW');
+    }).catch(function(err) {
+        expect(err.message).to.equal('some error');
+        return testComplete();
+      }
     ).done();
   });
 
@@ -81,10 +83,12 @@ describe("Retry requester", function() {
       retry: 2
     });
 
-    return retryRequester({}).then(function() { throw new Error('DID_NOT_THROW'); }).catch(function(err) {
-      expect(err.message).to.equal('timeout');
-      return testComplete();
-    }
+    return retryRequester({}).then(function() {
+      throw new Error('DID_NOT_THROW');
+    }).catch(function(err) {
+        expect(err.message).to.equal('timeout');
+        return testComplete();
+      }
     ).done();
   });
 });

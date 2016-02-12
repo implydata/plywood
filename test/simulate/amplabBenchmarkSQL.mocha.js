@@ -61,9 +61,9 @@ describe("simulate Druid for amplab benchmark", function() {
 
     expect(ex.toJS()).to.deep.equal(
       $('rankings').split('$pageURL', 'pageURL', 'data')
-      .apply('pageRank', '$data.sum($pageRank)')
-      .filter('$pageRank > 5')
-      .toJS()
+        .apply('pageRank', '$data.sum($pageRank)')
+        .filter('$pageRank > 5')
+        .toJS()
     );
 
     return expect(ex.simulateQueryPlan(context)).to.deep.equal([
@@ -111,8 +111,8 @@ describe("simulate Druid for amplab benchmark", function() {
 
     expect(ex.toJS()).to.deep.equal(
       $('uservisits').split('$sourceIP.substr(1, 5)', 'SUBSTR_sourceIP_1_5', 'data')
-      .apply('SUM_adRevenue', '$data.sum($adRevenue)')
-      .toJS()
+        .apply('SUM_adRevenue', '$data.sum($adRevenue)')
+        .toJS()
     );
 
     return expect(ex.simulateQueryPlan(context)).to.deep.equal([

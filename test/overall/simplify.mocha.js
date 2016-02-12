@@ -467,91 +467,91 @@ describe("Simplify", function() {
   describe('filter', function() {
     it('consecutive filters fold together', function() {
       var ex1 = ply()
-      .filter('$x == 1')
-      .filter('$y == 2');
+        .filter('$x == 1')
+        .filter('$y == 2');
 
       var ex2 = ply()
-      .filter('$x == 1 and $y == 2');
+        .filter('$x == 1 and $y == 2');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('moves filter before applies', function() {
       var ex1 = ply()
-      .apply('Wiki', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-      .filter('$x == "en"');
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .filter('$x == "en"');
 
       var ex2 = ply()
-      .filter('$x == "en"')
-      .apply('Wiki', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .filter('$x == "en"')
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('does not change the meaning', function() {
       var ex1 = ply()
-      .apply('Wiki', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-      .filter('$AddedByDeleted == 1');
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .filter('$AddedByDeleted == 1');
 
       var ex2 = ply()
-      .apply('Wiki', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .filter('$AddedByDeleted == 1')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .filter('$AddedByDeleted == 1')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('it can move past a split', function() {
       var ex1 = $('wiki')
-      .split('$page', 'Page')
-      .apply('Deleted', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-      .filter('$Page == "hello world"');
+        .split('$page', 'Page')
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .filter('$Page == "hello world"');
 
       var ex2 = $('wiki')
-      .filter('$page == "hello world"')
-      .split('$page', 'Page')
-      .apply('Deleted', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .filter('$page == "hello world"')
+        .split('$page', 'Page')
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('it can move past a fancy split', function() {
       var ex1 = $('wiki')
-      .split('$time.timeBucket(P1D)', 'TimeByDay')
-      .apply('Deleted', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-      .filter('$TimeByDay != null');
+        .split('$time.timeBucket(P1D)', 'TimeByDay')
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .filter('$TimeByDay != null');
 
       var ex2 = $('wiki')
-      .filter('$time.timeBucket(P1D) != null')
-      .split('$time.timeBucket(P1D)', 'TimeByDay')
-      .apply('Deleted', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .filter('$time.timeBucket(P1D) != null')
+        .split('$time.timeBucket(P1D)', 'TimeByDay')
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
 
     return it('it can move past a sort', function() {
       var ex1 = ply()
-      .sort('$deleted', 'ascending')
-      .filter('$AddedByDeleted == 1');
+        .sort('$deleted', 'ascending')
+        .filter('$AddedByDeleted == 1');
 
       var ex2 = ply()
-      .filter('$AddedByDeleted == 1')
-      .sort('$deleted', 'ascending');
+        .filter('$AddedByDeleted == 1')
+        .sort('$deleted', 'ascending');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
@@ -561,10 +561,10 @@ describe("Simplify", function() {
   describe('split', function() {
     return it('does not touch a split on a literal', function() {
       var ex1 = ply()
-      .split('$page', 'Page', 'data');
+        .split('$page', 'Page', 'data');
 
       var ex2 = ply()
-      .split('$page', 'Page', 'data');
+        .split('$page', 'Page', 'data');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
@@ -574,12 +574,12 @@ describe("Simplify", function() {
   describe('apply', function() {
     it('sorts applies does not mess with sort if all are simple 1', function() {
       var ex1 = ply()
-      .apply('Count', '$wiki.count()')
-      .apply('Deleted', '$wiki.sum($deleted)');
+        .apply('Count', '$wiki.count()')
+        .apply('Deleted', '$wiki.sum($deleted)');
 
       var ex2 = ply()
-      .apply('Count', '$wiki.count()')
-      .apply('Deleted', '$wiki.sum($deleted)');
+        .apply('Count', '$wiki.count()')
+        .apply('Deleted', '$wiki.sum($deleted)');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
@@ -587,26 +587,26 @@ describe("Simplify", function() {
 
     it('sorts applies does not mess with sort if all are simple 2', function() {
       var ex1 = ply()
-      .apply('Deleted', '$wiki.sum($deleted)')
-      .apply('Count', '$wiki.count()');
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('Count', '$wiki.count()');
 
       var ex2 = ply()
-      .apply('Deleted', '$wiki.sum($deleted)')
-      .apply('Count', '$wiki.count()');
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('Count', '$wiki.count()');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
 
     return it('sorts applies 2', function() {
       var ex1 = ply()
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-      .apply('Deleted', '$wiki.sum($deleted)');
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .apply('Deleted', '$wiki.sum($deleted)');
 
       var ex2 = ply()
-      .apply('Deleted', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
@@ -616,11 +616,11 @@ describe("Simplify", function() {
   describe('sort', function() {
     return it('consecutive identical sorts fold together', function() {
       var ex1 = $('main')
-      .sort('$x', 'descending')
-      .sort('$x', 'ascending');
+        .sort('$x', 'descending')
+        .sort('$x', 'ascending');
 
       var ex2 = $('main')
-      .sort('$x', 'ascending');
+        .sort('$x', 'ascending');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
@@ -630,27 +630,27 @@ describe("Simplify", function() {
   describe('limit', function() {
     it('consecutive limits fold together', function() {
       var ex1 = $('main')
-      .limit(10)
-      .limit(20);
+        .limit(10)
+        .limit(20);
 
       var ex2 = $('main')
-      .limit(10);
+        .limit(10);
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
 
     return it('moves past apply', function() {
       var ex1 = $('main')
-      .apply('Wiki', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-      .limit(10);
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .limit(10);
 
       var ex2 = $('main')
-      .limit(10)
-      .apply('Wiki', '$wiki.sum($deleted)')
-      .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-      .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .limit(10)
+        .apply('Wiki', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
@@ -677,10 +677,10 @@ describe("Simplify", function() {
   return describe('lookup', function() {
     return it('does not touch a lookup on a literal', function() {
       var ex1 = r('hello')
-      .lookup('hello_lookup');
+        .lookup('hello_lookup');
 
       var ex2 = r('hello')
-      .lookup('hello_lookup');
+        .lookup('hello_lookup');
 
       return expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });

@@ -119,14 +119,14 @@ describe("External", function() {
   describe("fails on version too low", function() {
     return it("survives", function() {
       return expect(function() {
-        return External.fromJS({
-          engine: 'druid',
-          dataSource: 'wiki',
-          timeAttribute: 'time',
-          druidVersion: '0.7.3',
-          hasOwnProperty: 'troll'
-        });
-      }
+          return External.fromJS({
+            engine: 'druid',
+            dataSource: 'wiki',
+            timeAttribute: 'time',
+            druidVersion: '0.7.3',
+            hasOwnProperty: 'troll'
+          });
+        }
       ).to.throw('only druidVersions >= 0.8.0 are supported');
     });
   });
@@ -149,12 +149,12 @@ describe("External", function() {
 
       return external = external.updateAttribute(AttributeInfo.fromJS({ name: 'unique_thing', special: 'unique' })),
 
-      expect(external.toJS().attributes).to.deep.equal([
-        { "name": "color", "type": "STRING" },
-        { "name": "cut", "type": "STRING" },
-        { "name": "carat", "type": "STRING" },
-        { "name": "unique_thing", "special": "unique", "type": "STRING" }
-      ]);
+        expect(external.toJS().attributes).to.deep.equal([
+          { "name": "color", "type": "STRING" },
+          { "name": "cut", "type": "STRING" },
+          { "name": "carat", "type": "STRING" },
+          { "name": "unique_thing", "special": "unique", "type": "STRING" }
+        ]);
     });
   });
 
@@ -169,8 +169,8 @@ describe("External", function() {
 
     it("select, apply, filter", function() {
       var ex = $('wiki')
-      .apply('addedTwice', '$added * 2')
-      .filter($("language").is('en'));
+        .apply('addedTwice', '$added * 2')
+        .filter($("language").is('en'));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
       expect(ex.op).to.equal('external');
@@ -185,14 +185,14 @@ describe("External", function() {
 
     it("a total", function() {
       var ex = ply()
-      .apply(
-        "wiki",
-        $('wiki', 1)
-        .apply('addedTwice', '$added * 2')
-        .filter($("language").is('en'))
-      )
-      .apply('Count', '$wiki.count()')
-      .apply('TotalAdded', '$wiki.sum($added)');
+        .apply(
+          "wiki",
+          $('wiki', 1)
+            .apply('addedTwice', '$added * 2')
+            .filter($("language").is('en'))
+        )
+        .apply('Count', '$wiki.count()')
+        .apply('TotalAdded', '$wiki.sum($added)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -233,20 +233,21 @@ describe("External", function() {
       ]);
 
       return expect(externalDataset.simulate().toJS()).to.deep.equal([
-        {"Added": 4,
-        "Count": 4,
-        "Page": "some_page"
+        {
+          "Added": 4,
+          "Count": 4,
+          "Page": "some_page"
         }
       ]);
     });
 
     it("a split on string with multiple limits in ascending order", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .sort('$Count', 'descending')
-      .limit(5)
-      .apply('Added', '$wiki.sum($added)')
-      .limit(9);
+        .apply('Count', '$wiki.count()')
+        .sort('$Count', 'descending')
+        .limit(5)
+        .apply('Added', '$wiki.sum($added)')
+        .limit(9);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -263,11 +264,11 @@ describe("External", function() {
 
     it("a split on string with multiple limits in descending order", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .sort('$Count', 'descending')
-      .limit(9)
-      .apply('Added', '$wiki.sum($added)')
-      .limit(5);
+        .apply('Count', '$wiki.count()')
+        .sort('$Count', 'descending')
+        .limit(9)
+        .apply('Added', '$wiki.sum($added)')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -284,10 +285,10 @@ describe("External", function() {
 
     it("a split on time", function() {
       var ex = $('wiki').split($("time").timeBucket('P1D', 'America/Los_Angeles'), 'Timestamp')
-      .apply('Count', '$wiki.count()')
-      .apply('Added', '$wiki.sum($added)')
-      .sort('$Count', 'descending')
-      .limit(5);
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -316,10 +317,10 @@ describe("External", function() {
 
     it("a filtered split on string", function() {
       var ex = $('wiki').filter('$language == "en"').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .apply('Added', '$wiki.sum($added)')
-      .sort('$Count', 'descending')
-      .limit(5);
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -340,31 +341,32 @@ describe("External", function() {
       ]);
 
       return expect(externalDataset.simulate().toJS()).to.deep.equal([
-        {"Added": 4,
-        "Count": 4,
-        "Page": "some_page"
+        {
+          "Added": 4,
+          "Count": 4,
+          "Page": "some_page"
         }
       ]);
     });
 
     it("a total and a split", function() {
       var ex = ply()
-      .apply(
-        "wiki",
-        $('wiki')
-        .apply('addedTwice', '$added * 2')
-        .filter($("language").is('en'))
-      )
-      .apply('Count', '$wiki.count()')
-      .apply('TotalAdded', '$wiki.sum($added)')
-      .apply(
-        'Pages',
-        $('wiki').split("$page", 'Page')
+        .apply(
+          "wiki",
+          $('wiki')
+            .apply('addedTwice', '$added * 2')
+            .filter($("language").is('en'))
+        )
         .apply('Count', '$wiki.count()')
-        .apply('Added', '$wiki.sum($added)')
-        .sort('$Count', 'descending')
-        .limit(5)
-      );
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .apply(
+          'Pages',
+          $('wiki').split("$page", 'Page')
+            .apply('Count', '$wiki.count()')
+            .apply('Added', '$wiki.sum($added)')
+            .sort('$Count', 'descending')
+            .limit(5)
+        );
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -381,15 +383,15 @@ describe("External", function() {
 
     it("a blank total and a split", function() {
       var ex = ply()
-      .apply("wiki", $('wiki').filter($("language").is('en')))
-      .apply(
-        'Pages',
-        $('wiki').split("$page", 'Page')
-        .apply('Count', '$wiki.count()')
-        .apply('Added', '$wiki.sum($added)')
-        .sort('$Count', 'descending')
-        .limit(5)
-      );
+        .apply("wiki", $('wiki').filter($("language").is('en')))
+        .apply(
+          'Pages',
+          $('wiki').split("$page", 'Page')
+            .apply('Count', '$wiki.count()')
+            .apply('Added', '$wiki.sum($added)')
+            .sort('$Count', 'descending')
+            .limit(5)
+        );
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -400,22 +402,22 @@ describe("External", function() {
 
     it("a total and a split in a strange order", function() {
       var ex = ply()
-      .apply(
-        "wiki",
-        $('wiki', 1)
-        .apply('addedTwice', '$added * 2')
-        .filter($("language").is('en'))
-      )
-      .apply('Count', '$wiki.count()')
-      .apply(
-        'Pages',
-        $('wiki').split("$page", 'Page')
+        .apply(
+          "wiki",
+          $('wiki', 1)
+            .apply('addedTwice', '$added * 2')
+            .filter($("language").is('en'))
+        )
         .apply('Count', '$wiki.count()')
-        .apply('Added', '$wiki.sum($added)')
-        .sort('$Count', 'descending')
-        .limit(5)
-      )
-      .apply('TotalAdded', '$wiki.sum($added)');
+        .apply(
+          'Pages',
+          $('wiki').split("$page", 'Page')
+            .apply('Count', '$wiki.count()')
+            .apply('Added', '$wiki.sum($added)')
+            .sort('$Count', 'descending')
+            .limit(5)
+        )
+        .apply('TotalAdded', '$wiki.sum($added)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -432,17 +434,17 @@ describe("External", function() {
 
     it("a split and another split in a strange order", function() {
       var ex = $('wiki').split("$page", 'Page')
-      .apply('Count', '$wiki.count()')
-      .sort('$Count', 'descending')
-      .apply(
-        'Users',
-        $('wiki').split("$user", 'User')
         .apply('Count', '$wiki.count()')
         .sort('$Count', 'descending')
-        .limit(3)
-      )
-      .apply('Added', '$wiki.sum($added)')
-      .limit(5);
+        .apply(
+          'Users',
+          $('wiki').split("$user", 'User')
+            .apply('Count', '$wiki.count()')
+            .sort('$Count', 'descending')
+            .limit(3)
+        )
+        .apply('Added', '$wiki.sum($added)')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -461,12 +463,12 @@ describe("External", function() {
 
     return it.skip("a join of two splits", function() {
       var ex = $('wiki').split('$page', 'Page').join($('wikiCmp').split('$page', 'Page'))
-      .apply('wiki', '$wiki.filter($page = $^Page)')
-      .apply('wikiCmp', '$wikiCmp.filter($page = $^Page)')
-      .apply('Count', '$wiki.count()')
-      .apply('CountDiff', '$wiki.count() - $wikiCmp.count()')
-      .sort('$CountDiff', 'descending')
-      .limit(5);
+        .apply('wiki', '$wiki.filter($page = $^Page)')
+        .apply('wikiCmp', '$wikiCmp.filter($page = $^Page)')
+        .apply('Count', '$wiki.count()')
+        .apply('CountDiff', '$wiki.count() - $wikiCmp.count()')
+        .sort('$CountDiff', 'descending')
+        .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 

@@ -18,12 +18,14 @@ describe("Verbose requester", function() {
     var lines = [];
     var verboseRequester = verboseRequesterFactory({
       requester: requester,
-      printLine(line) { return lines.push(line); }
+      printLine(line) {
+        return lines.push(line);
+      }
     });
 
     return verboseRequester({ query: 'Query1' }).then(function(res) {
-      expect(res).to.be.an('array');
-      expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(`vvvvvvvvvvvvvvvvvvvvvvvvvv
+        expect(res).to.be.an('array');
+        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(`vvvvvvvvvvvvvvvvvvvvvvvvvv
 Sending query 1:
 "Query1"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -35,8 +37,8 @@ Got result from query 1: (in Xms)
   3
 ]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
-      return testComplete();
-    }
+        return testComplete();
+      }
     ).done();
   });
 
@@ -44,19 +46,23 @@ Got result from query 1: (in Xms)
     var lines = [];
     var verboseRequester = verboseRequesterFactory({
       requester: requester,
-      printLine(line) { return lines.push(line); }
+      printLine(line) {
+        return lines.push(line);
+      }
     });
 
-    return verboseRequester({ query: 'failThis' }).then(function() { throw new Error('did not fail'); }).catch(function(error) {
-      expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(`vvvvvvvvvvvvvvvvvvvvvvvvvv
+    return verboseRequester({ query: 'failThis' }).then(function() {
+      throw new Error('did not fail');
+    }).catch(function(error) {
+        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(`vvvvvvvvvvvvvvvvvvvvvvvvvv
 Sending query 1:
 "failThis"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 vvvvvvvvvvvvvvvvvvvvvvvvvv
 Got error in query 1: some error (in Xms)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
-      return testComplete();
-    }
+        return testComplete();
+      }
     ).done();
   });
 });

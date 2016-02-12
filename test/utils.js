@@ -11,8 +11,12 @@ var uniformizeResults = function(result) {
   var ret = {};
   for (var k in result) {
     var p = result[k];
-    if (!result.hasOwnProperty(k)) { continue; }
-    if (k === 'split') { continue; }
+    if (!result.hasOwnProperty(k)) {
+      continue;
+    }
+    if (k === 'split') {
+      continue;
+    }
     if (k === 'prop') {
       var propNames = [];
       for (var name in p) {
@@ -25,7 +29,9 @@ var uniformizeResults = function(result) {
       for (var i = 0, name; i < propNames.length; i++) {
         name = propNames[i];
         value = p[name];
-        if (!p.hasOwnProperty(name)) { continue; }
+        if (!p.hasOwnProperty(name)) {
+          continue;
+        }
         if (typeof value === 'number' && value !== Math.floor(value)) {
           prop[name] = Number(value.toPrecision(5));
         } else if (Array.isArray(value) && typeof value[0] === 'number' && typeof value[1] === 'number' && (value[0] !== Math.floor(value[0]) || value[1] !== Math.floor(value[1]))) {
@@ -71,33 +77,41 @@ exports.wrapVerbose = function(requester, name) {
 
 exports.makeEqualityTest = function(driverFnMap) {
   return function({drivers, query, verbose, before, after}) {
-    if (drivers.length < 2) { throw new Error("must have at least two drivers"); }
+    if (drivers.length < 2) {
+      throw new Error("must have at least two drivers");
+    }
     query = FacetQuery.isFacetQuery(query) ? query : new FacetQuery(query);
 
     var driverFns = drivers.map(function(driverName) {
       var driverFn = driverFnMap[driverName];
-      if (!driverFn) { throw new Error(`no such driver ${driverName}`); }
+      if (!driverFn) {
+        throw new Error(`no such driver ${driverName}`);
+      }
       return driverFn;
     });
 
     return function(testComplete) {
-      if (typeof before === "function") { before(); }
+      if (typeof before === "function") {
+        before();
+      }
       return Q.all(
         driverFns.map(function(driverFn) {
-          return driverFn({
-            query,
-            context: { priority: -3 }
-          });
-        }
+            return driverFn({
+              query,
+              context: { priority: -3 }
+            });
+          }
         )
       ).then(
         function(results) {
-          if (typeof after === "function") { after(null, results[0], results); }
+          if (typeof after === "function") {
+            after(null, results[0], results);
+          }
 
           results = results.map(function(result) {
-            expect(result).to.be.instanceof(SegmentTree);
-            return uniformizeResults(result.toJS());
-          }
+              expect(result).to.be.instanceof(SegmentTree);
+              return uniformizeResults(result.toJS());
+            }
           );
 
           if (verbose) {
@@ -122,7 +136,9 @@ exports.makeEqualityTest = function(driverFnMap) {
           return;
         },
         function(err) {
-          if (typeof after === "function") { after(err); }
+          if (typeof after === "function") {
+            after(err);
+          }
           console.log("got error from driver");
           console.log(err);
           throw err;
@@ -134,29 +150,35 @@ exports.makeEqualityTest = function(driverFnMap) {
 
 exports.makeErrorTest = function(driverFnMap) {
   return function({drivers, request, error, verbose}) {
-    if (drivers.length < 1) { throw new Error("must have at least one driver"); }
+    if (drivers.length < 1) {
+      throw new Error("must have at least one driver");
+    }
 
     var driverFns = drivers.map(function(driverName) {
       var driverFn = driverFnMap[driverName];
-      if (!driverFn) { throw new Error(`no such driver ${driverName}`); }
+      if (!driverFn) {
+        throw new Error(`no such driver ${driverName}`);
+      }
       return driverFn;
     });
 
     return function(testComplete) {
-      return Q.allSettled(driverFns.map(function(driverFn) { return driverFn(request); }))
-      .then(function(results) {
-        for (var i = 0, result; i < results.length; i++) {
-          result = results[i];
-          if (result.state === "fulfilled") {
-            throw new Error(`${drivers[i]} did not error`);
-          } else {
-            expect(result.reason.message).to.equal(error, `${drivers[i]} did not conform to error`);
+      return Q.allSettled(driverFns.map(function(driverFn) {
+          return driverFn(request);
+        }))
+        .then(function(results) {
+            for (var i = 0, result; i < results.length; i++) {
+              result = results[i];
+              if (result.state === "fulfilled") {
+                throw new Error(`${drivers[i]} did not error`);
+              } else {
+                expect(result.reason.message).to.equal(error, `${drivers[i]} did not conform to error`);
+              }
+            }
+            return testComplete();
           }
-        }
-        return testComplete();
-      }
-      )
-      .done();
+        )
+        .done();
     };
   };
 };

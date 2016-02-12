@@ -22,15 +22,15 @@ describe("substitute", function() {
 
   it("should substitute on complex expression", function() {
     var ex = ply()
-    .apply('num', 5)
-    .apply(
-      'subData',
-      ply()
-      .apply('x', '$num + 1')
-      .apply('y', '$foo * 2')
-      .apply('z', ply().sum('$a + 3'))
-      .apply('w', ply().sum('$a + 4 + $b'))
-    );
+      .apply('num', 5)
+      .apply(
+        'subData',
+        ply()
+          .apply('x', '$num + 1')
+          .apply('y', '$foo * 2')
+          .apply('z', ply().sum('$a + 3'))
+          .apply('w', ply().sum('$a + 4 + $b'))
+      );
 
     var subs = function(ex) {
       if (ex.op === 'literal' && ex.type === 'NUMBER') {
@@ -42,30 +42,30 @@ describe("substitute", function() {
 
     return expect(ex.substitute(subs).toJS()).to.deep.equal(
       ply()
-      .apply('num', 15)
-      .apply(
-        'subData',
-        ply()
-        .apply('x', '$num + 11')
-        .apply('y', '$foo * 12')
-        .apply('z', ply().sum('$a + 13'))
-        .apply('w', ply().sum('$a + 14 + $b'))
-      )
-      .toJS()
+        .apply('num', 15)
+        .apply(
+          'subData',
+          ply()
+            .apply('x', '$num + 11')
+            .apply('y', '$foo * 12')
+            .apply('z', ply().sum('$a + 13'))
+            .apply('w', ply().sum('$a + 14 + $b'))
+        )
+        .toJS()
     );
   });
 
   return it("has sequential indexes", function() {
     var ex = ply()
-    .apply('num', 5)
-    .apply(
-      'subData',
-      ply()
-      .apply('x', '$num + 1')
-      .apply('y', '$foo * 2')
-      .apply('z', ply().sum('$a + 3'))
-      .apply('w', ply().sum('$a + 4 + $b'))
-    );
+      .apply('num', 5)
+      .apply(
+        'subData',
+        ply()
+          .apply('x', '$num + 1')
+          .apply('y', '$foo * 2')
+          .apply('z', ply().sum('$a + 3'))
+          .apply('w', ply().sum('$a + 4 + $b'))
+      );
 
     var indexes = [];
     var subs = function(ex, index) {
