@@ -11,7 +11,8 @@ module Plywood {
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputTypes(inputType, this.expression.type);
+      var expressionType = this.expression.type;
+      if (expressionType) this._checkInputTypes(inputType, expressionType);
       return 'BOOLEAN';
     }
 
