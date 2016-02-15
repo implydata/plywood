@@ -7,10 +7,11 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       this._ensureAction("sum");
+      this._checkExpressionTypes('NUMBER');
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'DATASET');
+      this._checkInputTypes(inputType, 'DATASET');
       return 'NUMBER';
     }
 

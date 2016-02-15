@@ -7,10 +7,11 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       this._ensureAction("absolute");
+      this._checkNoExpression();
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'NUMBER');
+      this._checkInputTypes(inputType, 'NUMBER');
       return 'NUMBER';
     }
 

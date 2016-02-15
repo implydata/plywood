@@ -7,11 +7,11 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       this._ensureAction("concat");
-      this._checkExpressionType('STRING');
+      this._checkExpressionTypes('STRING');
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'STRING');
+      this._checkInputTypes(inputType, 'STRING');
       return 'STRING';
     }
 

@@ -203,29 +203,30 @@ module Plywood {
       return false;
     }
 
-    protected _checkInputType(inputType: string, neededType: string) {
-      if (inputType && inputType !== 'NULL' && neededType && inputType !== neededType) {
-        throw new Error(`${this.action} must have input of type ${neededType} (is ${inputType})`);
-      }
-    }
-
     protected _checkInputTypes(inputType: string, ...neededTypes: string[]) {
       if (inputType && inputType !== 'NULL' && neededTypes.indexOf(inputType) === -1) {
-        throw new Error(`${this.action} must have input of type ${neededTypes.join(' or ')} (is ${inputType})`);
+        if (neededTypes.length === 1) {
+          throw new Error(`${this.action} must have input of type ${neededTypes[0]} (is ${inputType})`);
+        } else {
+          throw new Error(`${this.action} must have input of type ${neededTypes.join(' or ')} (is ${inputType})`);
+        }
       }
     }
 
-    protected _checkExpressionType(neededType: string) {
-      var expressionType = this.expression.type;
-      if (expressionType && expressionType !== 'NULL' && expressionType !== neededType) {
-        throw new Error(`${this.action} must have expression of type ${neededType} (is ${expressionType})`);
+    protected _checkNoExpression() {
+      if (this.expression) {
+        throw new Error(`${this.action} must no have an expression (is ${this.expression.toString()})`);
       }
     }
 
     protected _checkExpressionTypes(...neededTypes: string[]) {
       var expressionType = this.expression.type;
       if (expressionType && expressionType !== 'NULL' && neededTypes.indexOf(expressionType) === -1) {
-        throw new Error(`${this.action} must have expression of type ${neededTypes.join(' or ')} (is ${expressionType})`);
+        if (neededTypes.length === 1) {
+          throw new Error(`${this.action} must have expression of type ${neededTypes[0]} (is ${expressionType})`);
+        } else {
+          throw new Error(`${this.action} must have expression of type ${neededTypes.join(' or ')} (is ${expressionType})`);
+        }
       }
     }
 

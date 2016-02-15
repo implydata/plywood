@@ -21,7 +21,7 @@ module Plywood {
       }
       this.compare = compare;
       this._ensureAction("contains");
-      this._checkExpressionType('STRING');
+      this._checkExpressionTypes('STRING');
     }
 
     public valueOf(): ActionValue {

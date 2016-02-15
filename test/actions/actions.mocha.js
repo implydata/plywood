@@ -111,4 +111,20 @@ describe("Actions", () => {
       expect(MatchAction.likeToRegExp('%David|_R_ss||%', '|')).to.equal('^.*David_R.ss\\|.*$');
     });
   });
+
+
+  describe('ensure no action', () => {
+    it('makes sure there is no action on the correct actions', () => {
+      var actionsWithNoExpression = [
+        'absolute',
+        'not'
+      ];
+
+      for (var action of actionsWithNoExpression) {
+        expect(() => {
+          Action.fromJS({ action, expression: { op: 'ref', name: 'myVar' } })
+        }, `works with ${action}`).to.throw(`${action} must no have an expression (is $myVar)`);
+      }
+    });
+  })
 });
