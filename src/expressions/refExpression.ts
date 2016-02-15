@@ -7,7 +7,6 @@ module Plywood {
     'STRING': 1,
     'NUMBER_RANGE': 1,
     'TIME_RANGE': 1,
-    'MARK': 1,
     'SET': 1,
     'SET/NULL': 1,
     'SET/BOOLEAN': 1,

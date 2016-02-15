@@ -91,10 +91,25 @@ describe("reference check", () => {
     });
   });
 
-
-  describe("resolves", () => {
+  describe("resolves in type context", () => {
     it("works in a basic case", () => {
-      var ex = ply()
+      var ex1 = $('x');
+      var ex2 = $('x', 'NUMBER');
+
+      var typeContext = {
+        type: 'DATASET',
+        datasetType: {
+          x: { type: 'NUMBER' }
+        }
+      };
+
+      expect(ex1.referenceCheckInTypeContext(typeContext).toJS()).to.deep.equal(ex2.toJS());
+    });
+  });
+
+  describe("resolves in context", () => {
+    it("works in a basic case", () => {
+      var ex1 = ply()
         .apply('num', 5)
         .apply(
           'subData',
@@ -112,31 +127,31 @@ describe("reference check", () => {
             .apply('y', '$x:NUMBER * 2')
         );
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("works with simple context", () => {
-      var ex = ply()
+      var ex1 = ply()
         .apply('xPlusOne', '$x + 1');
 
       var ex2 = ply()
         .apply('xPlusOne', '$^x:NUMBER + 1');
 
-      expect(ex.referenceCheck({ x: 70 }).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck({ x: 70 }).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("works from context 1", () => {
-      var ex = $('diamonds')
+      var ex1 = $('diamonds')
         .apply('priceOver2', '$price / 2');
 
       var ex2 = $('diamonds', 'DATASET')
         .apply('priceOver2', '$price:NUMBER / 2');
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("works from context 2", () => {
-      var ex = ply()
+      var ex1 = ply()
         .apply('Diamonds', $('diamonds'))
         .apply('countPlusSeventy', '$Diamonds.count() + $seventy');
 
@@ -144,11 +159,11 @@ describe("reference check", () => {
         .apply('Diamonds', $('diamonds', 1, 'DATASET'))
         .apply('countPlusSeventy', '$Diamonds:DATASET.count() + $^seventy:NUMBER');
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("works with countDistinct", () => {
-      var ex = ply()
+      var ex1 = ply()
         .apply('DistinctColors', '$diamonds.countDistinct($color)')
         .apply('DistinctCuts', '$diamonds.countDistinct($cut)')
         .apply('Diff', '$DistinctColors - $DistinctCuts');
@@ -158,11 +173,11 @@ describe("reference check", () => {
         .apply('DistinctCuts', '$^diamonds:DATASET.countDistinct($cut:STRING)')
         .apply('Diff', '$DistinctColors:NUMBER - $DistinctCuts:NUMBER');
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("a total", () => {
-      var ex = ply()
+      var ex1 = ply()
         .apply("diamonds", $("diamonds").filter($('color').is('D')))
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)');
@@ -172,11 +187,11 @@ describe("reference check", () => {
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)');
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("a split", () => {
-      var ex = ply()
+      var ex1 = ply()
         .apply("diamonds", $("diamonds").filter($('color').is('D')))
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)')
@@ -204,11 +219,11 @@ describe("reference check", () => {
             .limit(10)
         );
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("a base split", () => {
-      var ex = $("diamonds").split("$cut", 'Cut')
+      var ex1 = $("diamonds").split("$cut", 'Cut')
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)');
 
@@ -216,11 +231,11 @@ describe("reference check", () => {
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)');
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("a base split + filter", () => {
-      var ex = $("diamonds").filter($('color').is('D')).split("$cut", 'Cut')
+      var ex1 = $("diamonds").filter($('color').is('D')).split("$cut", 'Cut')
         .apply('Count', '$diamonds.count()')
         .apply('TotalPrice', '$diamonds.sum($price)');
 
@@ -228,11 +243,11 @@ describe("reference check", () => {
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)');
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("two splits", () => {
-      var ex = ply()
+      var ex1 = ply()
         .apply("diamonds", $('diamonds').filter($("color").is('D')))
         .apply('Count', $('diamonds').count())
         .apply('TotalPrice', $('diamonds').sum('$price'))
@@ -272,11 +287,11 @@ describe("reference check", () => {
             )
         );
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("a join", () => {
-      var ex = ply()
+      var ex1 = ply()
         .apply('Data1', $('diamonds').filter($('price').in(105, 305)))
         .apply('Data2', $('diamonds').filter($('price').in(105, 305).not()))
         .apply(
@@ -296,7 +311,7 @@ describe("reference check", () => {
             .apply('Count2', '$K2:DATASET.count()')
         );
 
-      expect(ex.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
   });
 });
