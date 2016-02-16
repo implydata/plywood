@@ -26,11 +26,11 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
-      return '(' + inputJS + '+' + expressionJS + ')';
+      return `(${inputJS}+${expressionJS})`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return 'CONCAT(' + inputSQL + ',' + expressionSQL + ')';
+      return `CONCAT(${inputSQL},${expressionSQL})`;
     }
 
     protected _removeAction(): boolean {

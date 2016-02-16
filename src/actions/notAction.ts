@@ -22,11 +22,11 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string): string {
-      return "!(" + inputJS + ")"
+      return `!(${inputJS})`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return 'NOT(' + inputSQL  + ')';
+      return `NOT(${inputSQL})`;
     }
 
     protected _foldWithPrevAction(prevAction: Action): Action {

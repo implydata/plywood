@@ -22,11 +22,11 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
-      return '(' + inputJS + '-' + expressionJS + ')';
+      return `(${inputJS}-${expressionJS})`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return '(' + inputSQL + '-' + expressionSQL + ')';
+      return `(${inputSQL}-${expressionSQL})`;
     }
 
     protected _removeAction(): boolean {

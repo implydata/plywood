@@ -1070,7 +1070,6 @@ module Plywood {
      * @param indexer the index along the tree to maintain
      * @param alterations the accumulation of the alterations to be made (output)
      * @returns the resolved type of the expression
-     * @private
      */
     public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
       indexer.index++;
