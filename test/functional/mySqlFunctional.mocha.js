@@ -20,6 +20,8 @@ var mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 });
 
+const DEFAULT_TABLE = "wikipedia";
+
 describe("MySQL Functional", function() {
   this.timeout(10000);
 
@@ -28,13 +30,17 @@ describe("MySQL Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
-          table: 'wiki_day_agg',
+          table: DEFAULT_TABLE,
           attributes: [
             { name: 'time', type: 'TIME' },
             { name: 'language', type: 'STRING' },
             { name: 'page', type: 'STRING' },
+            { name: 'namespace', type: 'STRING' },
             { name: 'added', type: 'NUMBER' },
-            { name: 'count', type: 'NUMBER' }
+            { name: 'regionName', type: 'STRING' },
+            { name: 'countryName', type: 'STRING' },
+            { name: 'channel', type: 'STRING' },
+            { name: 'added', type: 'NUMBER' }
           ],
           requester: mySqlRequester
         })
@@ -43,22 +49,20 @@ describe("MySQL Functional", function() {
 
     it("works in advanced case", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki').filter($("language").is('en')))
-        .apply('Count', '$wiki.sum($count)')
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')
-        .apply(
-          'Pages',
-          $("wiki").split("$page", 'Page')
-            .apply('Count', '$wiki.sum($count)')
-            .sort('$Count', 'descending')
-            .limit(2)
-            .apply(
-              'Time',
-              $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
-                .apply('TotalAdded', '$wiki.sum($added)')
-                .sort('$TotalAdded', 'descending')
-                .limit(3)
-            )
+        .apply('Namespaces',
+              $("wiki").split("$namespace", 'Namespace')
+                .apply('Added', '$wiki.sum($added)')
+                .sort('$Added', 'descending')
+                .limit(2)
+                .apply(
+                  'Time',
+                  $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
+                    .apply('TotalAdded', '$wiki.sum($added)')
+                    .sort('$TotalAdded', 'descending')
+                    .limit(3)
+                )
         );
       //      .apply(
       //        'PagesHaving',
@@ -72,73 +76,73 @@ describe("MySQL Functional", function() {
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
-            {
-              "Count": 334129,
-              "Pages": [
-                {
-                  "Count": 626,
-                  "Page": "User:Addbot/log/wikidata",
-                  "Time": [
-                    {
-                      "Timestamp": {
-                        "end": new Date("2013-02-26T20:00:00.000Z"),
-                        "start": new Date("2013-02-26T19:00:00.000Z"),
-                        "type": "TIME_RANGE"
+              {
+                "Namespaces": [
+                  {
+                    "Added": 11594002,
+                    "Namespace": "Main",
+                    "Time": [
+                      {
+                        "Timestamp": {
+                          "end": new Date('2015-09-12T15:00:00.000Z'),
+                          "start": new Date('2015-09-12T14:00:00.000Z'),
+                          "type": "TIME_RANGE"
+                        },
+                        "TotalAdded": 740968
                       },
-                      "TotalAdded": 180454
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date("2013-02-26T13:00:00.000Z"),
-                        "start": new Date("2013-02-26T12:00:00.000Z"),
-                        "type": "TIME_RANGE"
+                      {
+                        "Timestamp": {
+                          "end": new Date('2015-09-12T19:00:00.000Z'),
+                          "start": new Date('2015-09-12T18:00:00.000Z'),
+                          "type": "TIME_RANGE"
+                        },
+                        "TotalAdded": 739956
                       },
-                      "TotalAdded": 178939
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date("2013-02-26T01:00:00.000Z"),
-                        "start": new Date("2013-02-26T00:00:00.000Z"),
-                        "type": "TIME_RANGE"
+                      {
+                        "Timestamp": {
+                          "end": new Date('2015-09-12T23:00:00.000Z'),
+                          "start": new Date('2015-09-12T22:00:00.000Z'),
+                          "type": "TIME_RANGE"
+                        },
+                        "TotalAdded": 708543
+                      }
+                    ]
+                  },
+                  {
+                    "Added": 9210976,
+                    "Namespace": "User talk",
+                    "Time": [
+                      {
+                        "Timestamp": {
+                          "end": new Date('2015-09-12T13:00:00.000Z'),
+                          "start": new Date('2015-09-12T12:00:00.000Z'),
+                          "type": "TIME_RANGE"
+                        },
+                        "TotalAdded": 693571
                       },
-                      "TotalAdded": 159582
-                    }
-                  ]
-                },
-                {
-                  "Count": 329,
-                  "Page": "User:Legobot/Wikidata/General",
-                  "Time": [
-                    {
-                      "Timestamp": {
-                        "end": new Date("2013-02-26T16:00:00.000Z"),
-                        "start": new Date("2013-02-26T15:00:00.000Z"),
-                        "type": "TIME_RANGE"
+                      {
+                        "Timestamp": {
+                          "end": new Date('2015-09-12T18:00:00.000Z'),
+                          "start": new Date('2015-09-12T17:00:00.000Z'),
+                          "type": "TIME_RANGE"
+                        },
+                        "TotalAdded": 634804
                       },
-                      "TotalAdded": 7609
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date("2013-02-26T22:00:00.000Z"),
-                        "start": new Date("2013-02-26T21:00:00.000Z"),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 6919
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date("2013-02-26T17:00:00.000Z"),
-                        "start": new Date("2013-02-26T16:00:00.000Z"),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 5717
-                    }
-                  ]
-                }
-              ],
-              "TotalAdded": 41412583
-            }
-          ]);
+                      {
+                        "Timestamp": {
+                          "end": new Date('2015-09-12T03:00:00.000Z'),
+                          "start": new Date('2015-09-12T02:00:00.000Z'),
+                          "type": "TIME_RANGE"
+                        },
+                        "TotalAdded": 573768
+                      }
+                    ]
+                  }
+                ],
+                "TotalAdded": 32553107
+              }
+            ]
+          );
           testComplete();
         })
         .done();
@@ -146,11 +150,11 @@ describe("MySQL Functional", function() {
 
     it("works multi-dimensional GROUP BYs", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki').filter($("language").isnt('en')))
+        .apply("wiki", $('wiki').filter($("channel").isnt("en")))
         .apply(
           'Cuts',
           $("wiki").split({
-              'Language': "$language",
+              'Channel': "$channel",
               'TimeByHour': '$time.timeBucket(PT1H)'
             })
             .apply('Count', $('wiki').count())
@@ -160,48 +164,50 @@ describe("MySQL Functional", function() {
 
       basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "Cuts": [
-                {
-                  "Count": 1904,
-                  "Language": "he",
-                  "TimeByHour": {
-                    "end": new Date('2013-02-26T21:00:00Z'),
-                    "start": new Date('2013-02-26T20:00:00Z'),
-                    "type": "TIME_RANGE"
+          expect(result.toJS()).to.deep.equal(
+            [
+              {
+                "Cuts": [
+                  {
+                    "Channel": "vi",
+                    "Count": 12443,
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T07:00:00.000Z'),
+                      "start": new Date('2015-09-12T06:00:00.000Z'),
+                      "type": "TIME_RANGE"
+                    }
+                  },
+                  {
+                    "Channel": "vi",
+                    "Count": 11833,
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T08:00:00.000Z'),
+                      "start": new Date('2015-09-12T07:00:00.000Z'),
+                      "type": "TIME_RANGE"
+                    }
+                  },
+                  {
+                    "Channel": "vi",
+                    "Count": 6411,
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T18:00:00.000Z'),
+                      "start": new Date('2015-09-12T17:00:00.000Z'),
+                      "type": "TIME_RANGE"
+                    }
+                  },
+                  {
+                    "Channel": "vi",
+                    "Count": 4943,
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T16:00:00.000Z'),
+                      "start": new Date('2015-09-12T15:00:00.000Z'),
+                      "type": "TIME_RANGE"
+                    }
                   }
-                },
-                {
-                  "Count": 1823,
-                  "Language": "de",
-                  "TimeByHour": {
-                    "end": new Date('2013-02-26T18:00:00Z'),
-                    "start": new Date('2013-02-26T17:00:00Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "Count": 1788,
-                  "Language": "sv",
-                  "TimeByHour": {
-                    "end": new Date('2013-02-26T17:00:00Z'),
-                    "start": new Date('2013-02-26T16:00:00Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "Count": 1776,
-                  "Language": "nl",
-                  "TimeByHour": {
-                    "end": new Date('2013-02-26T22:00:00Z'),
-                    "start": new Date('2013-02-26T21:00:00Z'),
-                    "type": "TIME_RANGE"
-                  }
-                }
-              ]
-            }
-          ]);
+                ]
+              }
+            ]
+          );
           testComplete();
         })
         .done();
@@ -213,7 +219,7 @@ describe("MySQL Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
-          table: 'wiki_day_agg',
+          table: DEFAULT_TABLE,
           requester: mySqlRequester
         })
       }
@@ -221,20 +227,19 @@ describe("MySQL Functional", function() {
 
     it("works with introspection", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki').filter($("language").is('en')))
-        .apply('Count', '$wiki.sum($count)')
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply(
           'Time',
           $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
             .apply('TotalAdded', '$wiki.sum($added)')
-            .sort('$Timestamp', 'ascending')
+            .sort('$time', 'ascending')
             .limit(3)
             .apply(
               'Pages',
-              $("wiki").split("$page", 'Page')
-                .apply('Count', '$wiki.sum($count)')
-                .sort('$Count', 'descending')
+              $("wiki").split("$regionName", 'RegionName')
+                .apply('Deleted', '$wiki.sum($deleted)')
+                .sort('$Deleted', 'descending')
                 .limit(2)
             )
         );
@@ -314,7 +319,7 @@ describe("MySQL Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
-          table: 'wiki_day_agg',
+          table: DEFAULT_TABLE,
           requester: mySqlRequester
         })
       }
