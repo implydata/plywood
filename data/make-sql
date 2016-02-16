@@ -1,72 +1,64 @@
 #!/bin/bash -eu
-echo "json to values list"
+echo "json to SQL"
+
+echo "SELECT 'Do this' AS Lets" > wikipedia.sql;
 
 cat wikipedia.json \
-| jq -c -r ' 
-. | { 
-	time: .time | sub(":00Z"; ":00"), 
-	sometimeLater: .sometimeLater | sub(":00Z"; ":00"),
-	channel,
-	cityName,
-	comment,
-	commentLength,
-	countryIsoCode,
-	countryName,
-	isAnonymous,
-	isMinor,
-	isNew,
-	isRobot,
-	isUnpatrolled,
-	metroCode,
-	namespace,
-	page,
-	regionIsoCode,
-	regionName,
-	user,
-	userChars: .userChars | map(. | sub("'\''"; "\\''")),
-	delta,
-	added,
-	deleted,
-	deltaByTen
-	} 
-| [
-	.time, 
-	.sometimeLater, 
-	.channel,
-	.cityName,
-	.comment,
-	.commentLength,
-	.countryIsoCode,
-	.countryName,
-	.isAnonymous,
-	.isMinor,
-	.isNew,
-	.isRobot,
-	.isUnpatrolled,
-	.metroCode,
-	.namespace,
-	.page,
-	.regionIsoCode,
-	.regionName,
-	.user,
-	.userChars,
-	.delta,
-	.added,
-	.deleted,
-	.deltaByTen 
-	] ' \
-  > wikipedia.txt
+| jq -c -r '
+  {
+    time: .time | sub(":00Z"; ":00"),
+    sometimeLater: .sometimeLater | sub(":00Z"; ":00"),
+    channel,
+    cityName,
+    comment,
+    commentLength,
+    countryIsoCode,
+    countryName,
+    isAnonymous,
+    isMinor,
+    isNew,
+    isRobot,
+    isUnpatrolled,
+    metroCode,
+    namespace,
+    page,
+    regionIsoCode,
+    regionName,
+    user,
+    delta,
+    added,
+    deleted,
+    deltaByTen
+	}
+  |
+  [
+    .time,
+    .sometimeLater,
+    .channel,
+    .cityName,
+    .comment,
+    .commentLength,
+    .countryIsoCode,
+    .countryName,
+    .isAnonymous,
+    .isMinor,
+    .isNew,
+    .isRobot,
+    .isUnpatrolled,
+    .metroCode,
+    .namespace,
+    .page,
+    .regionIsoCode,
+    .regionName,
+    .user,
+    .delta,
+    .added,
+    .deleted,
+    .deltaByTen
+	]
+	| tostring
+	| .[1:-1]
+	| ((if (input_line_number - 1) % 100 == 0 then "; INSERT INTO wikipedia VALUES (" else ", (" end) + . + ")")
+' >> wikipedia.sql
 
-echo "values list to sql statements";
-# breaking up insert statements becuase mysql server seems to 'go away' otherwise
-
-sed -e 's/^\[/(/g' \
- 	-e "s/,\[\"/,\'\[\"/g" \
- 	-e "s/\"\],/\"\]\',/g" \
- 	-e 's/]$/),/g' \
- 	-e '$s/),/);/' \
-	-e '0~10 s/,$/; INSERT INTO wikipedia values/g' \
-	-e '1iINSERT INTO wikipedia values' \
- 	wikipedia.txt > wikipedia.sql
-
-
+echo ";" >> wikipedia.sql;

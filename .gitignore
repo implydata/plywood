@@ -12,9 +12,6 @@ notes/
 docs/examples/play.js
 docs/gallery/plywood.js
 
-# You have to make this one yourself by running data/make-data-files
-data/wikipedia.json
-
 # You have to make these yourself by running data/make-data-files
-data/wikipedia.txt
+data/wikipedia.json
 data/wikipedia.sql
