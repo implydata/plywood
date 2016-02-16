@@ -7,10 +7,11 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       this._ensureAction("not");
+      this._checkNoExpression();
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'BOOLEAN');
+      this._checkInputTypes(inputType, 'BOOLEAN');
       return 'BOOLEAN';
     }
 
@@ -21,11 +22,11 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string): string {
-      return "!(" + inputJS + ")"
+      return `!(${inputJS})`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return 'NOT(' + inputSQL  + ')';
+      return `NOT(${inputSQL})`;
     }
 
     protected _foldWithPrevAction(prevAction: Action): Action {

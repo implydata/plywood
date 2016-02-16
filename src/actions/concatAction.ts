@@ -7,11 +7,11 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       this._ensureAction("concat");
-      this._checkExpressionType('STRING');
+      this._checkExpressionTypes('STRING');
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'STRING');
+      this._checkInputTypes(inputType, 'STRING');
       return 'STRING';
     }
 
@@ -26,11 +26,11 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
-      return '(' + inputJS + '+' + expressionJS + ')';
+      return `(${inputJS}+${expressionJS})`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return 'CONCAT(' + inputSQL + ',' + expressionSQL + ')';
+      return `CONCAT(${inputSQL},${expressionSQL})`;
     }
 
     protected _removeAction(): boolean {

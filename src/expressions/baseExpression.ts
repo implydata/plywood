@@ -1034,24 +1034,12 @@ module Plywood {
       return this.performAction(new JoinAction({ expression: ex }));
     }
 
-    /**
-     * Checks for references and returns the list of alterations that need to be made to the expression
-     * @param typeContext the context inherited from the parent
-     * @param indexer the index along the tree to maintain
-     * @param alterations the accumulation of the alterations to be made (output)
-     * @returns the resolved type of the expression
-     * @private
-     */
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      indexer.index++;
-      return typeContext;
-    }
 
     /**
      * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
      * @param context The datum within which the check is happening
      */
-    public referenceCheck(context: Datum) {
+    public referenceCheck(context: Datum): Expression {
       var datasetType: Lookup<FullType> = {};
       for (var k in context) {
         if (!hasOwnProperty(context, k)) continue;
@@ -1062,11 +1050,32 @@ module Plywood {
         datasetType: datasetType
       };
 
+      return this.referenceCheckInTypeContext(typeContext);
+    }
+
+    /**
+     * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
+     * @param typeContext The FullType context within which to resolve
+     */
+    public referenceCheckInTypeContext(typeContext: FullType): Expression {
       var alterations: Alterations = {};
-      this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This return the final type
+      this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This returns the final type
       if (!Object.keys(alterations).length) return this;
       return this.substitute((ex: Expression, index: int): Expression => alterations[index] || null);
     }
+
+    /**
+     * Checks for references and returns the list of alterations that need to be made to the expression
+     * @param typeContext the context inherited from the parent
+     * @param indexer the index along the tree to maintain
+     * @param alterations the accumulation of the alterations to be made (output)
+     * @returns the resolved type of the expression
+     */
+    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      indexer.index++;
+      return typeContext;
+    }
+
 
     /**!
      * Resolves one level of dependencies that refer outside of this expression.
@@ -1149,10 +1158,6 @@ module Plywood {
     // ---------------------------------------------------------
     // Evaluation
 
-    public _computeResolvedSimulate(simulatedQueries: any[]): any {
-      throw new Error("can not call this directly");
-    }
-
     public simulateQueryPlan(context: Datum = {}): any[] {
       if (!datumHasExternal(context) && !this.hasExternal()) {
         return [];
@@ -1168,9 +1173,10 @@ module Plywood {
       return simulatedQueries;
     }
 
-    public _computeResolved(): Q.Promise<any> {
+    public _computeResolvedSimulate(simulatedQueries: any[]): any {
       throw new Error("can not call this directly");
     }
+
 
     /**
      * Computes a general asynchronous expression
@@ -1192,6 +1198,10 @@ module Plywood {
         }
         return readyExpression._computeResolved();
       });
+    }
+
+    public _computeResolved(): Q.Promise<any> {
+      throw new Error("can not call this directly");
     }
   }
   check = Expression;

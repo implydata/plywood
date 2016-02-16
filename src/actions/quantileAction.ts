@@ -12,6 +12,7 @@ module Plywood {
       super(parameters, dummyObject);
       this.quantile = parameters.quantile;
       this._ensureAction("quantile");
+      this._checkExpressionTypes('NUMBER');
     }
 
     public valueOf(): ActionValue {
@@ -27,7 +28,7 @@ module Plywood {
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'DATASET');
+      this._checkInputTypes(inputType, 'DATASET');
       return 'NUMBER';
     }
 

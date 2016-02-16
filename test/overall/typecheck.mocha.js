@@ -51,4 +51,11 @@ describe("typecheck", () => {
       }
     ).to.throw('fallback must have input of type STRING (is NUMBER)');
   });
+
+  it("should throw on bad aggregate (SUM)", () => {
+    expect(() => {
+        return ply().sum($('x', 'STRING'));
+      }
+    ).to.throw('sum must have expression of type NUMBER (is STRING)');
+  });
 });

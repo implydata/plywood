@@ -15,7 +15,7 @@ module Plywood {
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'STRING');
+      this._checkInputTypes(inputType, 'STRING');
       return 'STRING';
     }
 

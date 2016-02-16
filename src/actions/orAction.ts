@@ -35,7 +35,7 @@ module Plywood {
     }
 
     public getOutputType(inputType: string): string {
-      this._checkInputType(inputType, 'BOOLEAN');
+      this._checkInputTypes(inputType, 'BOOLEAN');
       return 'BOOLEAN';
     }
 
@@ -46,11 +46,11 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
-      return '(' + inputJS + '||' + expressionJS + ')';
+      return `(${inputJS}||${expressionJS})`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return '(' + inputSQL + ' OR ' + expressionSQL + ')';
+      return `(${inputSQL} OR ${expressionSQL})`;
     }
 
     protected _removeAction(): boolean {
