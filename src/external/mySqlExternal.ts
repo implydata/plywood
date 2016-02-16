@@ -51,16 +51,18 @@ module Plywood {
       var sqlType = column.Type;
       if (sqlType === "datetime") {
         return new AttributeInfo({ name, type: 'TIME' });
-      } else if (sqlType.indexOf("varchar(") === 0) {
+      } else if (sqlType.indexOf("varchar(") === 0 || sqlType.indexOf("blob") === 0) {
         return new AttributeInfo({ name, type: 'STRING' });
       } else if (sqlType.indexOf("int(") === 0 || sqlType.indexOf("bigint(") === 0) {
         // ToDo: make something special for integers
         return new AttributeInfo({ name, type: 'NUMBER' });
-      } else if (sqlType.indexOf("decimal(") === 0) {
+      } else if (sqlType.indexOf("decimal(") === 0 || sqlType.indexOf("float") === 0)  {
         return new AttributeInfo({ name, type: 'NUMBER' });
-      }
+      } else if (sqlType.indexOf("tinyint(") === 0) {
+        return new AttributeInfo({ name, type: 'BOOLEAN' });
+      };
     });
-  }
+  };
 
   export class MySQLExternal extends External {
     static type = 'DATASET';

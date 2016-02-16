@@ -335,7 +335,7 @@ describe("MySQL Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "added": 216.5613
+              "added": 248.173
             }
           ]);
           testComplete();
@@ -345,14 +345,14 @@ describe("MySQL Functional", function() {
 
     it("fallback happens if null", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki').filter($("page").is('Bieberswalde')))
-        .apply('TotalAdded', $('wiki').sum($('added')).fallback(0));
+        .apply("wiki", $('wiki').filter($("page").is('Rallicula')))
+        .apply('MetroCode', $('wiki').sum($('metroCode')).fallback(0));
 
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "TotalAdded": 0
+              "MetroCode": 0
             }
           ]);
           testComplete();
@@ -362,7 +362,7 @@ describe("MySQL Functional", function() {
 
     it("power of and abs", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki').filter($("page").is('Lojban')))
+        .apply("wiki", $('wiki').filter($("page").is('Kosowo')))
         .apply('Delta', $('wiki').min($('delta')))
         .apply('AbsDelta', $('wiki').min($('delta')).absolute())
         .apply('SquareDelta', $('wiki').sum($('delta')).power(2));
@@ -370,12 +370,13 @@ describe("MySQL Functional", function() {
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
-            {
-              "Delta": -3,
-              "AbsDelta": 3,
-              "SquareDelta": 9
-            }
-          ]);
+              {
+                "AbsDelta": 2,
+                "Delta": -2,
+                "SquareDelta": 4
+              }
+            ]
+          );
           testComplete();
         })
         .done();

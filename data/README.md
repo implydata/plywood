@@ -2,6 +2,7 @@
 General Setup
 1. Install Docker
 1. run ./make-data-files
+
 ## MySQL
 
 1. run ./make-sql (make sure you run make-data-files first)
