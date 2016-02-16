@@ -1,11 +1,11 @@
 # Loading test data
-General Setup
+## General Setup
 1. Install Docker
-1. run ./make-data-files
+1. run `./make-data-files`
 
 ## MySQL
 
-1. run ./make-sql (make sure you run make-data-files first)
+1. run `./make-sql` (make sure you run make-data-files first)
 
 1. `docker pull mysql/mysql-server:5.7`
 
