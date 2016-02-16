@@ -20,6 +20,8 @@ var mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 });
 
+const DEFAULT_TABLE = "wikipedia";
+
 describe("MySQL Functional", function() {
   this.timeout(10000);
 
@@ -28,13 +30,17 @@ describe("MySQL Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
-          table: 'wiki_day_agg',
+          table: DEFAULT_TABLE,
           attributes: [
             { name: 'time', type: 'TIME' },
             { name: 'language', type: 'STRING' },
             { name: 'page', type: 'STRING' },
+            { name: 'namespace', type: 'STRING' },
             { name: 'added', type: 'NUMBER' },
-            { name: 'count', type: 'NUMBER' }
+            { name: 'regionName', type: 'STRING' },
+            { name: 'countryName', type: 'STRING' },
+            { name: 'channel', type: 'STRING' },
+            { name: 'added', type: 'NUMBER' }
           ],
           requester: mySqlRequester
         })
@@ -43,22 +49,20 @@ describe("MySQL Functional", function() {
 
     it("works in advanced case", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki').filter($("language").is('en')))
-        .apply('Count', '$wiki.sum($count)')
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')
-        .apply(
-          'Pages',
-          $("wiki").split("$page", 'Page')
-            .apply('Count', '$wiki.sum($count)')
-            .sort('$Count', 'descending')
-            .limit(2)
-            .apply(
-              'Time',
-              $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
-                .apply('TotalAdded', '$wiki.sum($added)')
-                .sort('$TotalAdded', 'descending')
-                .limit(3)
-            )
+        .apply('Namespaces',
+              $("wiki").split("$namespace", 'Namespace')
+                .apply('Added', '$wiki.sum($added)')
+                .sort('$Added', 'descending')
+                .limit(2)
+                .apply(
+                  'Time',
+                  $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
+                    .apply('TotalAdded', '$wiki.sum($added)')
+                    .sort('$TotalAdded', 'descending')
+                    .limit(3)
+                )
         );
       //      .apply(
       //        'PagesHaving',
@@ -73,70 +77,69 @@ describe("MySQL Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Count": 334129,
-              "Pages": [
+              "Namespaces": [
                 {
-                  "Count": 626,
-                  "Page": "User:Addbot/log/wikidata",
+                  "Added": 11594002,
+                  "Namespace": "Main",
                   "Time": [
                     {
                       "Timestamp": {
-                        "end": new Date("2013-02-26T20:00:00.000Z"),
-                        "start": new Date("2013-02-26T19:00:00.000Z"),
+                        "end": new Date('2015-09-12T15:00:00.000Z'),
+                        "start": new Date('2015-09-12T14:00:00.000Z'),
                         "type": "TIME_RANGE"
                       },
-                      "TotalAdded": 180454
+                      "TotalAdded": 740968
                     },
                     {
                       "Timestamp": {
-                        "end": new Date("2013-02-26T13:00:00.000Z"),
-                        "start": new Date("2013-02-26T12:00:00.000Z"),
+                        "end": new Date('2015-09-12T19:00:00.000Z'),
+                        "start": new Date('2015-09-12T18:00:00.000Z'),
                         "type": "TIME_RANGE"
                       },
-                      "TotalAdded": 178939
+                      "TotalAdded": 739956
                     },
                     {
                       "Timestamp": {
-                        "end": new Date("2013-02-26T01:00:00.000Z"),
-                        "start": new Date("2013-02-26T00:00:00.000Z"),
+                        "end": new Date('2015-09-12T23:00:00.000Z'),
+                        "start": new Date('2015-09-12T22:00:00.000Z'),
                         "type": "TIME_RANGE"
                       },
-                      "TotalAdded": 159582
+                      "TotalAdded": 708543
                     }
                   ]
                 },
                 {
-                  "Count": 329,
-                  "Page": "User:Legobot/Wikidata/General",
+                  "Added": 9210976,
+                  "Namespace": "User talk",
                   "Time": [
                     {
                       "Timestamp": {
-                        "end": new Date("2013-02-26T16:00:00.000Z"),
-                        "start": new Date("2013-02-26T15:00:00.000Z"),
+                        "end": new Date('2015-09-12T13:00:00.000Z'),
+                        "start": new Date('2015-09-12T12:00:00.000Z'),
                         "type": "TIME_RANGE"
                       },
-                      "TotalAdded": 7609
+                      "TotalAdded": 693571
                     },
                     {
                       "Timestamp": {
-                        "end": new Date("2013-02-26T22:00:00.000Z"),
-                        "start": new Date("2013-02-26T21:00:00.000Z"),
+                        "end": new Date('2015-09-12T18:00:00.000Z'),
+                        "start": new Date('2015-09-12T17:00:00.000Z'),
                         "type": "TIME_RANGE"
                       },
-                      "TotalAdded": 6919
+                      "TotalAdded": 634804
                     },
                     {
                       "Timestamp": {
-                        "end": new Date("2013-02-26T17:00:00.000Z"),
-                        "start": new Date("2013-02-26T16:00:00.000Z"),
+                        "end": new Date('2015-09-12T03:00:00.000Z'),
+                        "start": new Date('2015-09-12T02:00:00.000Z'),
                         "type": "TIME_RANGE"
                       },
-                      "TotalAdded": 5717
+                      "TotalAdded": 573768
                     }
                   ]
                 }
               ],
-              "TotalAdded": 41412583
+              "TotalAdded": 32553107
             }
           ]);
           testComplete();
@@ -146,11 +149,11 @@ describe("MySQL Functional", function() {
 
     it("works multi-dimensional GROUP BYs", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki').filter($("language").isnt('en')))
+        .apply("wiki", $('wiki').filter($("channel").isnt("en")))
         .apply(
           'Cuts',
           $("wiki").split({
-              'Language': "$language",
+              'Channel': "$channel",
               'TimeByHour': '$time.timeBucket(PT1H)'
             })
             .apply('Count', $('wiki').count())
@@ -164,38 +167,38 @@ describe("MySQL Functional", function() {
             {
               "Cuts": [
                 {
-                  "Count": 1904,
-                  "Language": "he",
+                  "Channel": "vi",
+                  "Count": 12443,
                   "TimeByHour": {
-                    "end": new Date('2013-02-26T21:00:00Z'),
-                    "start": new Date('2013-02-26T20:00:00Z'),
+                    "end": new Date('2015-09-12T07:00:00.000Z'),
+                    "start": new Date('2015-09-12T06:00:00.000Z'),
                     "type": "TIME_RANGE"
                   }
                 },
                 {
-                  "Count": 1823,
-                  "Language": "de",
+                  "Channel": "vi",
+                  "Count": 11833,
                   "TimeByHour": {
-                    "end": new Date('2013-02-26T18:00:00Z'),
-                    "start": new Date('2013-02-26T17:00:00Z'),
+                    "end": new Date('2015-09-12T08:00:00.000Z'),
+                    "start": new Date('2015-09-12T07:00:00.000Z'),
                     "type": "TIME_RANGE"
                   }
                 },
                 {
-                  "Count": 1788,
-                  "Language": "sv",
+                  "Channel": "vi",
+                  "Count": 6411,
                   "TimeByHour": {
-                    "end": new Date('2013-02-26T17:00:00Z'),
-                    "start": new Date('2013-02-26T16:00:00Z'),
+                    "end": new Date('2015-09-12T18:00:00.000Z'),
+                    "start": new Date('2015-09-12T17:00:00.000Z'),
                     "type": "TIME_RANGE"
                   }
                 },
                 {
-                  "Count": 1776,
-                  "Language": "nl",
+                  "Channel": "vi",
+                  "Count": 4943,
                   "TimeByHour": {
-                    "end": new Date('2013-02-26T22:00:00Z'),
-                    "start": new Date('2013-02-26T21:00:00Z'),
+                    "end": new Date('2015-09-12T16:00:00.000Z'),
+                    "start": new Date('2015-09-12T15:00:00.000Z'),
                     "type": "TIME_RANGE"
                   }
                 }
@@ -213,7 +216,7 @@ describe("MySQL Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
-          table: 'wiki_day_agg',
+          table: DEFAULT_TABLE,
           requester: mySqlRequester
         })
       }
@@ -221,8 +224,7 @@ describe("MySQL Functional", function() {
 
     it("works with introspection", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki').filter($("language").is('en')))
-        .apply('Count', '$wiki.sum($count)')
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply(
           'Time',
@@ -232,9 +234,9 @@ describe("MySQL Functional", function() {
             .limit(3)
             .apply(
               'Pages',
-              $("wiki").split("$page", 'Page')
-                .apply('Count', '$wiki.sum($count)')
-                .sort('$Count', 'descending')
+              $("wiki").split("$regionName", 'RegionName')
+                .apply('Deleted', '$wiki.sum($deleted)')
+                .sort('$Deleted', 'descending')
                 .limit(2)
             )
         );
@@ -243,64 +245,63 @@ describe("MySQL Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Count": 334129,
               "Time": [
                 {
                   "Pages": [
                     {
-                      "Count": 130,
-                      "Page": "User:Addbot/log/wikidata"
+                      "Deleted": 11807,
+                      "RegionName": null
                     },
                     {
-                      "Count": 31,
-                      "Page": "Wikipedia:Categories_for_discussion/Speedy"
+                      "Deleted": 848,
+                      "RegionName": "Ontario"
                     }
                   ],
                   "Timestamp": {
-                    "end": new Date("2013-02-26T01:00:00.000Z"),
-                    "start": new Date("2013-02-26T00:00:00.000Z"),
+                    "end": new Date('2015-09-12T01:00:00.000Z'),
+                    "start": new Date('2015-09-12T00:00:00.000Z'),
                     "type": "TIME_RANGE"
                   },
-                  "TotalAdded": 2149342
+                  "TotalAdded": 331925
                 },
                 {
                   "Pages": [
                     {
-                      "Count": 121,
-                      "Page": "User:Addbot/log/wikidata"
+                      "Deleted": 109934,
+                      "RegionName": null
                     },
                     {
-                      "Count": 34,
-                      "Page": "Ahmed_Elkady"
+                      "Deleted": 474,
+                      "RegionName": "Indiana"
                     }
                   ],
                   "Timestamp": {
-                    "end": new Date("2013-02-26T02:00:00.000Z"),
-                    "start": new Date("2013-02-26T01:00:00.000Z"),
+                    "end": new Date('2015-09-12T02:00:00.000Z'),
+                    "start": new Date('2015-09-12T01:00:00.000Z'),
                     "type": "TIME_RANGE"
                   },
-                  "TotalAdded": 1717907
+                  "TotalAdded": 1418072
                 },
                 {
                   "Pages": [
                     {
-                      "Count": 22,
-                      "Page": "User:Libsbml/sandbox"
+                      "Deleted": 124999,
+                      "RegionName": null
                     },
                     {
-                      "Count": 20,
-                      "Page": "The_Biggest_Loser:_Challenge_America"
+                      "Deleted": 449,
+                      "RegionName": "Georgia"
                     }
                   ],
                   "Timestamp": {
-                    "end": new Date("2013-02-26T03:00:00.000Z"),
-                    "start": new Date("2013-02-26T02:00:00.000Z"),
+                    "end": new Date('2015-09-12T03:00:00.000Z'),
+                    "start": new Date('2015-09-12T02:00:00.000Z'),
                     "type": "TIME_RANGE"
                   },
-                  "TotalAdded": 1258761
+                  "TotalAdded": 3045966
                 }
               ],
-              "TotalAdded": 41412583
+              "TotalAdded": 32553107
             }
           ]);
           testComplete();
@@ -314,7 +315,7 @@ describe("MySQL Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
-          table: 'wiki_day_agg',
+          table: DEFAULT_TABLE,
           requester: mySqlRequester
         })
       }
@@ -330,7 +331,7 @@ describe("MySQL Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "added": 216.5613
+              "added": 248.173
             }
           ]);
           testComplete();
@@ -340,24 +341,24 @@ describe("MySQL Functional", function() {
 
     it("fallback happens if null", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki').filter($("page").is('Bieberswalde')))
-        .apply('TotalAdded', $('wiki').sum($('added')).fallback(0));
+        .apply("wiki", $('wiki').filter($("page").is('Rallicula')))
+        .apply('MetroCode', $('wiki').sum($('metroCode')).fallback(0));
 
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
-            {
-              "TotalAdded": 0
-            }
-          ]);
-          testComplete();
+          {
+            "MetroCode": 0
+          }
+        ]);
+        testComplete();
         })
         .done();
     });
 
     it("power of and abs", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki').filter($("page").is('Lojban')))
+        .apply("wiki", $('wiki').filter($("page").is('Kosowo')))
         .apply('Delta', $('wiki').min($('delta')))
         .apply('AbsDelta', $('wiki').min($('delta')).absolute())
         .apply('SquareDelta', $('wiki').sum($('delta')).power(2));
@@ -366,9 +367,9 @@ describe("MySQL Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Delta": -3,
-              "AbsDelta": 3,
-              "SquareDelta": 9
+              "AbsDelta": 2,
+              "Delta": -2,
+              "SquareDelta": 4
             }
           ]);
           testComplete();
