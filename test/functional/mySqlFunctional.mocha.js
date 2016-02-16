@@ -76,73 +76,72 @@ describe("MySQL Functional", function() {
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
-              {
-                "Namespaces": [
-                  {
-                    "Added": 11594002,
-                    "Namespace": "Main",
-                    "Time": [
-                      {
-                        "Timestamp": {
-                          "end": new Date('2015-09-12T15:00:00.000Z'),
-                          "start": new Date('2015-09-12T14:00:00.000Z'),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 740968
+            {
+              "Namespaces": [
+                {
+                  "Added": 11594002,
+                  "Namespace": "Main",
+                  "Time": [
+                    {
+                      "Timestamp": {
+                        "end": new Date('2015-09-12T15:00:00.000Z'),
+                        "start": new Date('2015-09-12T14:00:00.000Z'),
+                        "type": "TIME_RANGE"
                       },
-                      {
-                        "Timestamp": {
-                          "end": new Date('2015-09-12T19:00:00.000Z'),
-                          "start": new Date('2015-09-12T18:00:00.000Z'),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 739956
+                      "TotalAdded": 740968
+                    },
+                    {
+                      "Timestamp": {
+                        "end": new Date('2015-09-12T19:00:00.000Z'),
+                        "start": new Date('2015-09-12T18:00:00.000Z'),
+                        "type": "TIME_RANGE"
                       },
-                      {
-                        "Timestamp": {
-                          "end": new Date('2015-09-12T23:00:00.000Z'),
-                          "start": new Date('2015-09-12T22:00:00.000Z'),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 708543
-                      }
-                    ]
-                  },
-                  {
-                    "Added": 9210976,
-                    "Namespace": "User talk",
-                    "Time": [
-                      {
-                        "Timestamp": {
-                          "end": new Date('2015-09-12T13:00:00.000Z'),
-                          "start": new Date('2015-09-12T12:00:00.000Z'),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 693571
+                      "TotalAdded": 739956
+                    },
+                    {
+                      "Timestamp": {
+                        "end": new Date('2015-09-12T23:00:00.000Z'),
+                        "start": new Date('2015-09-12T22:00:00.000Z'),
+                        "type": "TIME_RANGE"
                       },
-                      {
-                        "Timestamp": {
-                          "end": new Date('2015-09-12T18:00:00.000Z'),
-                          "start": new Date('2015-09-12T17:00:00.000Z'),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 634804
+                      "TotalAdded": 708543
+                    }
+                  ]
+                },
+                {
+                  "Added": 9210976,
+                  "Namespace": "User talk",
+                  "Time": [
+                    {
+                      "Timestamp": {
+                        "end": new Date('2015-09-12T13:00:00.000Z'),
+                        "start": new Date('2015-09-12T12:00:00.000Z'),
+                        "type": "TIME_RANGE"
                       },
-                      {
-                        "Timestamp": {
-                          "end": new Date('2015-09-12T03:00:00.000Z'),
-                          "start": new Date('2015-09-12T02:00:00.000Z'),
-                          "type": "TIME_RANGE"
-                        },
-                        "TotalAdded": 573768
-                      }
-                    ]
-                  }
-                ],
-                "TotalAdded": 32553107
-              }
-            ]
-          );
+                      "TotalAdded": 693571
+                    },
+                    {
+                      "Timestamp": {
+                        "end": new Date('2015-09-12T18:00:00.000Z'),
+                        "start": new Date('2015-09-12T17:00:00.000Z'),
+                        "type": "TIME_RANGE"
+                      },
+                      "TotalAdded": 634804
+                    },
+                    {
+                      "Timestamp": {
+                        "end": new Date('2015-09-12T03:00:00.000Z'),
+                        "start": new Date('2015-09-12T02:00:00.000Z'),
+                        "type": "TIME_RANGE"
+                      },
+                      "TotalAdded": 573768
+                    }
+                  ]
+                }
+              ],
+              "TotalAdded": 32553107
+            }
+          ]);
           testComplete();
         })
         .done();
@@ -164,50 +163,48 @@ describe("MySQL Functional", function() {
 
       basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal(
-            [
-              {
-                "Cuts": [
-                  {
-                    "Channel": "vi",
-                    "Count": 12443,
-                    "TimeByHour": {
-                      "end": new Date('2015-09-12T07:00:00.000Z'),
-                      "start": new Date('2015-09-12T06:00:00.000Z'),
-                      "type": "TIME_RANGE"
-                    }
-                  },
-                  {
-                    "Channel": "vi",
-                    "Count": 11833,
-                    "TimeByHour": {
-                      "end": new Date('2015-09-12T08:00:00.000Z'),
-                      "start": new Date('2015-09-12T07:00:00.000Z'),
-                      "type": "TIME_RANGE"
-                    }
-                  },
-                  {
-                    "Channel": "vi",
-                    "Count": 6411,
-                    "TimeByHour": {
-                      "end": new Date('2015-09-12T18:00:00.000Z'),
-                      "start": new Date('2015-09-12T17:00:00.000Z'),
-                      "type": "TIME_RANGE"
-                    }
-                  },
-                  {
-                    "Channel": "vi",
-                    "Count": 4943,
-                    "TimeByHour": {
-                      "end": new Date('2015-09-12T16:00:00.000Z'),
-                      "start": new Date('2015-09-12T15:00:00.000Z'),
-                      "type": "TIME_RANGE"
-                    }
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Cuts": [
+                {
+                  "Channel": "vi",
+                  "Count": 12443,
+                  "TimeByHour": {
+                    "end": new Date('2015-09-12T07:00:00.000Z'),
+                    "start": new Date('2015-09-12T06:00:00.000Z'),
+                    "type": "TIME_RANGE"
                   }
-                ]
-              }
-            ]
-          );
+                },
+                {
+                  "Channel": "vi",
+                  "Count": 11833,
+                  "TimeByHour": {
+                    "end": new Date('2015-09-12T08:00:00.000Z'),
+                    "start": new Date('2015-09-12T07:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  }
+                },
+                {
+                  "Channel": "vi",
+                  "Count": 6411,
+                  "TimeByHour": {
+                    "end": new Date('2015-09-12T18:00:00.000Z'),
+                    "start": new Date('2015-09-12T17:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  }
+                },
+                {
+                  "Channel": "vi",
+                  "Count": 4943,
+                  "TimeByHour": {
+                    "end": new Date('2015-09-12T16:00:00.000Z'),
+                    "start": new Date('2015-09-12T15:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  }
+                }
+              ]
+            }
+          ]);
           testComplete();
         })
         .done();
@@ -233,7 +230,7 @@ describe("MySQL Functional", function() {
           'Time',
           $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
             .apply('TotalAdded', '$wiki.sum($added)')
-            .sort('$time', 'ascending')
+            .sort('$Timestamp', 'ascending')
             .limit(3)
             .apply(
               'Pages',
@@ -248,64 +245,63 @@ describe("MySQL Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Count": 334129,
               "Time": [
                 {
                   "Pages": [
                     {
-                      "Count": 130,
-                      "Page": "User:Addbot/log/wikidata"
+                      "Deleted": 11807,
+                      "RegionName": null
                     },
                     {
-                      "Count": 31,
-                      "Page": "Wikipedia:Categories_for_discussion/Speedy"
+                      "Deleted": 848,
+                      "RegionName": "Ontario"
                     }
                   ],
                   "Timestamp": {
-                    "end": new Date("2013-02-26T01:00:00.000Z"),
-                    "start": new Date("2013-02-26T00:00:00.000Z"),
+                    "end": new Date('2015-09-12T01:00:00.000Z'),
+                    "start": new Date('2015-09-12T00:00:00.000Z'),
                     "type": "TIME_RANGE"
                   },
-                  "TotalAdded": 2149342
+                  "TotalAdded": 331925
                 },
                 {
                   "Pages": [
                     {
-                      "Count": 121,
-                      "Page": "User:Addbot/log/wikidata"
+                      "Deleted": 109934,
+                      "RegionName": null
                     },
                     {
-                      "Count": 34,
-                      "Page": "Ahmed_Elkady"
+                      "Deleted": 474,
+                      "RegionName": "Indiana"
                     }
                   ],
                   "Timestamp": {
-                    "end": new Date("2013-02-26T02:00:00.000Z"),
-                    "start": new Date("2013-02-26T01:00:00.000Z"),
+                    "end": new Date('2015-09-12T02:00:00.000Z'),
+                    "start": new Date('2015-09-12T01:00:00.000Z'),
                     "type": "TIME_RANGE"
                   },
-                  "TotalAdded": 1717907
+                  "TotalAdded": 1418072
                 },
                 {
                   "Pages": [
                     {
-                      "Count": 22,
-                      "Page": "User:Libsbml/sandbox"
+                      "Deleted": 124999,
+                      "RegionName": null
                     },
                     {
-                      "Count": 20,
-                      "Page": "The_Biggest_Loser:_Challenge_America"
+                      "Deleted": 449,
+                      "RegionName": "Georgia"
                     }
                   ],
                   "Timestamp": {
-                    "end": new Date("2013-02-26T03:00:00.000Z"),
-                    "start": new Date("2013-02-26T02:00:00.000Z"),
+                    "end": new Date('2015-09-12T03:00:00.000Z'),
+                    "start": new Date('2015-09-12T02:00:00.000Z'),
                     "type": "TIME_RANGE"
                   },
-                  "TotalAdded": 1258761
+                  "TotalAdded": 3045966
                 }
               ],
-              "TotalAdded": 41412583
+              "TotalAdded": 32553107
             }
           ]);
           testComplete();
@@ -351,11 +347,11 @@ describe("MySQL Functional", function() {
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
-            {
-              "MetroCode": 0
-            }
-          ]);
-          testComplete();
+          {
+            "MetroCode": 0
+          }
+        ]);
+        testComplete();
         })
         .done();
     });
@@ -370,13 +366,12 @@ describe("MySQL Functional", function() {
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
-              {
-                "AbsDelta": 2,
-                "Delta": -2,
-                "SquareDelta": 4
-              }
-            ]
-          );
+            {
+              "AbsDelta": 2,
+              "Delta": -2,
+              "SquareDelta": 4
+            }
+          ]);
           testComplete();
         })
         .done();
