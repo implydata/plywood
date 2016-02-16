@@ -2,7 +2,7 @@
 ## General Setup
 1. Install Docker
 1. Run `./make-data-files`
-1. If you've not set ${IMPLY_PROJECTS} in your path, replace it with the path to where imply projects live
+1. If you've not set the IMPLY_PROJECTS environment variable, replace it with the path to where imply projects live
 
 ## Druid 
 
