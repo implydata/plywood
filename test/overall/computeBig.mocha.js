@@ -21,7 +21,9 @@ wikiDayData.forEach((d, i) => {
   delete d['userChars'];
 });
 
-describe("compute native nontrivial data", () => {
+describe("compute native nontrivial data", function() {
+  this.timeout(5000);
+
   var ds = Dataset.fromJS(wikiDayData);
 
   it("works in simple agg case", (testComplete) => {
