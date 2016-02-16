@@ -3,16 +3,6 @@
 1. Install Docker
 1. run `./make-data-files`
 
-## MySQL
-
-1. run `./make-sql` (make sure you run make-data-files first)
-
-1. `docker pull mysql/mysql-server:5.7`
-
-2. `docker run -v /Users/eva/Projects/plywood/data:/opt/data -p 8081-8110:8081-8110 -p 8200:8200 -p 6603:3306 -d --name plywood-test-mysql -e MYSQL_ALLOW_EMPTY_PASSWORD='true' -d mysql/mysql-server:5.7`
-
-3. `docker exec -it plywood-test-mysql /opt/data/import-sql`
-
 ## Druid
 
 ### Setup
@@ -29,4 +19,14 @@
 ### Regular use
 
 1. `docker start plywood-test`
+
+## MySQL
+
+1. run `./make-sql` (make sure you run make-data-files first)
+1. `docker pull mysql/mysql-server:5.7`
+2. `docker run -v /Users/eva/Projects/plywood/data:/opt/data -p 8081-8110:8081-8110 -p 8200:8200 -p 6603:3306 -d --name plywood-test-mysql -e MYSQL_ALLOW_EMPTY_PASSWORD='true' -d mysql/mysql-server:5.7`
+3. `docker exec -it plywood-test-mysql /opt/data/import-sql`
+
+### Regular use
 2. `docker start plywood-test-mysql`
+
