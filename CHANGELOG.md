@@ -1,5 +1,10 @@
 # Change log
 
+## 0.8.11
+
+- MySQL functional tests can now run in docker
+- Better checks for expression types in aggregates
+
 ## 0.8.10
 
 - Better handling for filtered attributes now allows filtered attributes on `countDistinct` and `custom`

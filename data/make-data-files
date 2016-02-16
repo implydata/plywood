@@ -43,5 +43,5 @@ perl -ne'print if $. % 10 == 0' wikipedia.json \
 
 echo "Done...";
 
-echo "Starting with mysql...";
+echo "Starting with MySQL...";
 ./make-sql
