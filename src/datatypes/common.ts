@@ -43,7 +43,11 @@ module Plywood {
     if (v == null) {
       return null;
     } else if (Array.isArray(v)) {
-      return Dataset.fromJS(v);
+      if (v.length && typeof v[0] !== 'object') {
+        return Set.fromJS(v);
+      } else {
+        return Dataset.fromJS(v);
+      }
     } else if (typeof v === 'object') {
       switch (typeOverride || v.type) {
         case 'NUMBER':

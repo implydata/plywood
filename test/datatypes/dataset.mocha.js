@@ -123,6 +123,19 @@ describe("Dataset", () => {
       });
     });
 
+    it("works in set case", () => {
+      expect(Dataset.fromJS([
+        { x: 1, y: ["hello", "moon"] },
+        { x: 2, y: ["world", "moon"] }
+      ]).getFullType()).to.deep.equal({
+        "type": "DATASET",
+        "datasetType": {
+          "x": { type: "NUMBER" },
+          "y": { type: "SET/STRING" }
+        }
+      });
+    });
+
     it("works in nested case", () => {
       expect(Dataset.fromJS([
         {

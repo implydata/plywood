@@ -199,6 +199,10 @@ module Plywood {
       return simpleSetElements.length === 1 ? simpleSetElements[0] : simpleSet;
     }
 
+    public getType(): string {
+      return 'SET/' + this.setType;
+    }
+
     public upgradeType(): Set {
       if (this.setType === 'NUMBER') {
         return Set.fromJS({

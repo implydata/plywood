@@ -642,9 +642,30 @@ module Plywood {
         var filterAction = filter.lastAction();
         var rhs = filterAction.expression;
         var lhs = filter.popAction();
+        var referenceName: string;
+        var attributeInfo: AttributeInfo;
+
+        if (lhs instanceof LiteralExpression) {
+          if (rhs instanceof RefExpression) {
+            referenceName = rhs.name;
+          } else {
+            throw new Error(`unsupported literal lhs must have ref rhs: ${rhs.toString()}`);
+          }
+
+          if (filterAction instanceof InAction) {
+            attributeInfo = this.getAttributesInfo(referenceName);
+            return {
+              type: "selector",
+              dimension: referenceName,
+              value: attributeInfo.serialize(lhs.value)
+            }
+          }
+          throw new Error(`unsupported rhs action for literal lhs: ${filterAction.toString()}`);
+        }
+
         var extractionFn = this.expressionToExtractionFn(lhs);
-        var referenceName = lhs.getFreeReferences()[0];
-        var attributeInfo = this.getAttributesInfo(referenceName);
+        referenceName = lhs.getFreeReferences()[0];
+        attributeInfo = this.getAttributesInfo(referenceName);
 
         if (filterAction instanceof NotAction) {
           return {
@@ -661,10 +682,6 @@ module Plywood {
               value: attributeInfo.serialize(rhs.value)
             };
             if (extractionFn) {
-              //if (extractionFn.type === 'javascript') {
-              //  // Might as well just do a full on javascript filter
-              //  return this.javascriptDruidFilter(referenceName, filter);
-              //}
               druidFilter.type = "extraction";
               druidFilter.extractionFn = extractionFn;
             }

@@ -740,6 +740,75 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("works with set split (and subsplit)", () => {
+    var ex = ply()
+      .apply(
+        'Tags',
+        $("diamonds").split("$tags", 'Tag')
+          .sort('$Tag', 'descending')
+          .limit(10)
+          .apply(
+            'Cuts',
+            $("diamonds").split("$cut", 'Cut')
+              .apply('Count', $('diamonds').count())
+              .sort('$Count', 'descending')
+              .limit(10)
+          )
+      );
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "tags",
+          "outputName": "Tag",
+          "type": "default"
+        },
+        "granularity": "all",
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ],
+        "metric": {
+          "type": "lexicographic"
+        },
+        "queryType": "topN",
+        "threshold": 10
+      },
+      {
+        "aggregations": [
+          {
+            "name": "Count",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "cut",
+          "outputName": "Cut",
+          "type": "default"
+        },
+        "filter": {
+          "dimension": "tags",
+          "type": "selector",
+          "value": "some_tags"
+        },
+        "granularity": "all",
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ],
+        "metric": "Count",
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
+  });
+
   it("works with range bucket", () => {
     var ex = ply()
       .apply(

@@ -311,6 +311,45 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works with split on a SET/STRING dimension", (testComplete) => {
+      var ex = ply()
+        .apply(
+          'UserChars',
+          $('wiki').split("$userChars", 'UserChar')
+            .apply("Count", $('wiki').count())
+            .sort('$Count', 'descending')
+            .limit(4)
+        );
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "UserChars": [
+                {
+                  "Count": 279884,
+                  "UserChar": "o"
+                },
+                {
+                  "Count": 255163,
+                  "UserChar": "t"
+                },
+                {
+                  "Count": 227403,
+                  "UserChar": "i"
+                },
+                {
+                  "Count": 226241,
+                  "UserChar": "a"
+                }
+              ]
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
     it.skip("works with all kinds of cool aggregates on totals level", (testComplete) => {
       var ex = ply()
         .apply("NumPages", $('wiki').countDistinct('$page'))
