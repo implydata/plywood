@@ -775,7 +775,10 @@ describe("simulate Druid", () => {
           "2015-03-12/2015-03-19"
         ],
         "metric": {
-          "type": "lexicographic"
+          "type": "inverted",
+          "metric": {
+            "type": "lexicographic"
+          }
         },
         "queryType": "topN",
         "threshold": 10
@@ -1268,10 +1271,7 @@ describe("simulate Druid", () => {
           "2015-03-12/2015-03-19"
         ],
         "metric": {
-          "metric": {
-            "type": "lexicographic"
-          },
-          "type": "inverted"
+          "type": "lexicographic"
         },
         "queryType": "topN",
         "threshold": 5
