@@ -1836,11 +1836,10 @@ return (start < 0 ?'-':'') + parts.join('.');
                   var splitType = this.split.firstSplitExpression().type;
                   if (splitType === 'NUMBER' || splitType === 'NUMBER_RANGE') {
                     metric = { type: 'alphaNumeric' };
-                    inverted = sortAction.direction === 'descending';
                   } else {
                     metric = { type: 'lexicographic' };
-                    inverted = sortAction.direction === 'ascending';
                   }
+                  inverted = sortAction.direction === 'descending';
                 } else {
                   metric = (<RefExpression>sortAction.expression).name;
                   inverted = sortAction.direction === 'ascending';

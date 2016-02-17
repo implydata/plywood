@@ -24,7 +24,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return 'AVG(' + expressionSQL + ')';
+      return `AVG(${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL)})`;
     }
 
     public isAggregate(): boolean {

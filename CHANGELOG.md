@@ -1,5 +1,11 @@
 # Change log
 
+## 0.8.12
+
+- Fixed sorting direction when sorting on a split in Druid
+- Ability to do filtered aggregations on SQL drivers
+- `== NULL` works correctly with SQL drivers
+
 ## 0.8.11
 
 - MySQL functional tests can now run in docker

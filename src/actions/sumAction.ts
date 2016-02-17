@@ -24,7 +24,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return 'SUM(' + expressionSQL + ')';
+      return `SUM(${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL)})`;
     }
 
     public isAggregate(): boolean {

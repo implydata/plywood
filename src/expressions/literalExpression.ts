@@ -68,6 +68,8 @@ module Plywood {
 
     public getSQL(dialect: SQLDialect): string {
       var value = this.value;
+      if (value === null) return 'NULL';
+
       switch (this.type) {
         case 'STRING':
           return dialect.escapeLiteral(value);

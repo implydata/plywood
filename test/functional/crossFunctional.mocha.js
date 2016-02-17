@@ -26,6 +26,25 @@ var mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 });
 
+var attributes = [
+  { name: 'time', type: 'TIME' },
+  { name: 'sometimeLater', type: 'TIME' },
+  { name: 'channel', type: 'STRING' },
+  { name: 'page', type: 'STRING' },
+  { name: 'page_unique', special: 'unique' },
+  { name: 'user', type: 'STRING' },
+  { name: 'isNew', type: 'BOOLEAN' },
+  { name: 'isAnonymous', type: 'BOOLEAN' },
+  { name: 'commentLength', type: 'NUMBER' },
+  { name: 'metroCode', type: 'STRING' },
+  { name: 'cityName', type: 'STRING' },
+  { name: 'count', type: 'NUMBER' },
+  { name: 'delta', type: 'NUMBER' },
+  { name: 'deltaByTen', type: 'NUMBER' },
+  { name: 'added', type: 'NUMBER' },
+  { name: 'deleted', type: 'NUMBER' }
+];
+
 var druidExecutor = basicExecutorFactory({
   datasets: {
     wiki: External.fromJS({
@@ -35,26 +54,7 @@ var druidExecutor = basicExecutorFactory({
       context: {
         timeout: 10000
       },
-      attributes: [
-        { name: 'time', type: 'TIME' },
-        { name: 'sometimeLater', type: 'TIME' },
-        { name: 'channel', type: 'STRING' },
-        { name: 'page', type: 'STRING' },
-        { name: 'page_unique', special: 'unique' },
-        { name: 'user', type: 'STRING' },
-        { name: 'userChars', type: 'SET/STRING' },
-        { name: 'isNew', type: 'BOOLEAN' },
-        { name: 'isAnonymous', type: 'BOOLEAN' },
-        { name: 'commentLength', type: 'NUMBER' },
-        { name: 'metroCode', type: 'STRING' },
-        { name: 'cityName', type: 'STRING' },
-        { name: 'user_unique', special: 'unique' },
-        { name: 'count', type: 'NUMBER' },
-        { name: 'delta', type: 'NUMBER' },
-        { name: 'deltaByTen', type: 'NUMBER' },
-        { name: 'added', type: 'NUMBER' },
-        { name: 'deleted', type: 'NUMBER' }
-      ],
+      attributes,
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
@@ -70,18 +70,7 @@ var mysqlExecutor = basicExecutorFactory({
     wiki: External.fromJS({
       engine: 'mysql',
       table: 'wikipedia',
-      attributes: [
-        { name: 'time', type: 'TIME' },
-        { name: 'language', type: 'STRING' },
-        { name: 'page', type: 'STRING' },
-        { name: 'namespace', type: 'STRING' },
-        { name: 'added', type: 'NUMBER' },
-        { name: 'regionName', type: 'STRING' },
-        { name: 'countryName', type: 'STRING' },
-        { name: 'channel', type: 'STRING' },
-        { name: 'count', type: 'NUMBER' },
-        { name: 'added', type: 'NUMBER' }
-      ],
+      attributes,
       requester: mySqlRequester
     })
   }
@@ -95,27 +84,75 @@ var equalityTest = utils.makeEqualityTest({
 describe("Cross Functional", function() {
   this.timeout(10000);
 
-  it('works with total', equalityTest({
-    executorNames: ['druid', 'mysql'],
-    expression: ply()
-      .apply('wiki', '$wiki')
-      //.apply('RowCount', '$wiki.count()') // ToDo: make wikipedia data in MySQL rolled up
-      .apply('TotalAdded', '$wiki.sum($added)')
-  }));
+  describe("filters", () => {
+    it('works with a simple filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($channel == en)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
 
-  it('works with split (sort on split)', equalityTest({
-    executorNames: ['druid', 'mysql'],
-    expression: $('wiki')
-      .split('$channel', 'Channel')
-      .limit(5)
-  }));
+    it('works with an IS NULL filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($cityName == null)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
 
-  it('works with split (sort on apply)', equalityTest({
-    executorNames: ['druid', 'mysql'],
-    expression: $('wiki')
-      .split('$channel', 'Channel')
+    it('works with contains filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($cityName.contains("San"))')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+  });
+
+  describe("splits", () => {
+    it('works with total', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki')
+        //.apply('RowCount', '$wiki.count()') // ToDo: make wikipedia data in MySQL rolled up
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with STRING split (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki')
+        .split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+        .limit(5)
+    }));
+
+    it('works with STRING split (sort on apply)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki')
+        .split('$channel', 'Channel')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
         .limit(5)
-  }));
+    }));
+
+    it('works with TIME split (timeBucket) (sort on split)');
+
+    it('works with TIME split (timeBucket) (sort on apply)');
+
+    it('works with TIME split (timePart) (sort on split)');
+
+    it('works with TIME split (timePart) (sort on apply)');
+
+    it('works with multi-dimensional split');
+  });
+
+  describe("applies", () => {
+    it('works with all sorts of applies', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki')
+        .split('$channel', 'Channel')
+          .apply('TotalAdded', '$wiki.sum($added)')
+          .apply('TokyoAdded', '$wiki.filter($cityName == Tokyo).sum($added)')
+          .sort('$Channel', 'descending')
+          .limit(50)
+    }));
+  });
 });

@@ -30,7 +30,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return 'COUNT(*)';
+      return `COUNT(${dialect.aggregateFilterIfNeeded(inputSQL, '1')})`;
     }
 
     public isAggregate(): boolean {

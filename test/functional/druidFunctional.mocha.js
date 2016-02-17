@@ -247,9 +247,9 @@ describe("Druid Functional", function() {
     it("works with no applies in dimensions split dataset", (testComplete) => {
       var ex = ply()
         .apply(
-          'Pages',
-          $('wiki').split("$page", 'Page')
-            .sort('$Page', 'descending')
+          'Channels',
+          $('wiki').split("$channel", 'Channel')
+            .sort('$Channel', 'descending')
             .limit(2)
             .apply(
               'Users',
@@ -264,22 +264,30 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Pages": [
+              "Channels": [
                 {
-                  "Page": "!T.O.O.H.!",
+                  "Channel": "zh",
                   "Users": [
                     {
-                      "Count": 1,
-                      "User": "Cameronsmiley2345qwerty"
+                      "Count": 3698,
+                      "User": "Antigng-bot"
+                    },
+                    {
+                      "Count": 503,
+                      "User": "和平-bot"
                     }
                   ]
                 },
                 {
-                  "Page": "\"The Secret Life of...\"",
+                  "Channel": "war",
                   "Users": [
                     {
-                      "Count": 2,
-                      "User": "Vikiçizer"
+                      "Count": 4,
+                      "User": "JinJian"
+                    },
+                    {
+                      "Count": 3,
+                      "User": "Xqbot"
                     }
                   ]
                 }
@@ -597,6 +605,37 @@ describe("Druid Functional", function() {
                 {
                   "Count": 23,
                   "Page": "Usuari:TronaBot/log:Reversions i patrullatge"
+                }
+              ]
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with split sort on string", (testComplete) => {
+      var ex = ply()
+        .apply(
+          'Channels',
+          $('wiki').split("$channel", 'Channel')
+            .sort('$Channel', 'ascending')
+            .limit(3)
+        );
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Channels": [
+                {
+                  "Channel": "ar"
+                },
+                {
+                  "Channel": "be"
+                },
+                {
+                  "Channel": "bg"
                 }
               ]
             }
