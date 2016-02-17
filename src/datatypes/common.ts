@@ -1,11 +1,19 @@
 module Plywood {
+  export function isDate(dt: any) {
+    return Boolean(dt && dt.toISOString);
+  }
+
   export function getValueType(value: any): string {
     var typeofValue = typeof value;
     if (typeofValue === 'object') {
       if (value === null) {
         return 'NULL';
-      } else if (value.toISOString) {
+      } else if (isDate(value)) {
         return 'TIME';
+      } else if (hasOwnProperty(value, 'start') && hasOwnProperty(value, 'end')) {
+        if (isDate(value.start) || isDate(value.end)) return 'TIME_RANGE';
+        if (typeof value.start === 'number' || typeof value.end === 'number') return 'NUMBER_RANGE';
+        throw new Error("unrecognizable range");
       } else {
         var ctrType = value.constructor.type;
         if (!ctrType) {
@@ -40,7 +48,7 @@ module Plywood {
       switch (typeOverride || v.type) {
         case 'NUMBER':
           var n = Number(v.value);
-          if (isNaN(n)) throw new Error("bad number value '" + String(v.value) + "'");
+          if (isNaN(n)) throw new Error(`bad number value '${v.value}'`);
           return n;
 
         case 'NUMBER_RANGE':

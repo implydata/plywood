@@ -165,10 +165,6 @@ module Plywood {
     formatter?: Formatter;
   }
 
-  export function isDate(dt: any) {
-    return Boolean(dt && dt.toISOString);
-  }
-
   function isBoolean(b: any) {
     return b === true || b === false;
   }
