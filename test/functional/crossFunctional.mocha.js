@@ -92,10 +92,17 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with an IS NULL filter', equalityTest({
+    it('works with == NULL filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter($cityName == null)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with != NULL filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($cityName != null)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
