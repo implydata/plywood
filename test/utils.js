@@ -75,109 +75,56 @@ exports.wrapVerbose = (requester, name) => {
   };
 };
 
-exports.makeEqualityTest = (driverFnMap) => {
-  return ({drivers, query, verbose, before, after}) => {
-    if (drivers.length < 2) {
-      throw new Error("must have at least two drivers");
+exports.makeEqualityTest = (executorMap) => {
+  return ({executorNames, expression, verbose, before, after}) => {
+    if (executorNames.length < 2) {
+      throw new Error("must have at least two executorNames");
     }
-    query = FacetQuery.isFacetQuery(query) ? query : new FacetQuery(query);
 
-    var driverFns = drivers.map((driverName) => {
-      var driverFn = driverFnMap[driverName];
-      if (!driverFn) {
-        throw new Error(`no such driver ${driverName}`);
-      }
-      return driverFn;
+    var executors = executorNames.map((executorName) => {
+      var executor = executorMap[executorName];
+      if (!executor) throw new Error(`no such executor ${executorName}`);
+      return executor;
     });
 
     return (testComplete) => {
-      if (typeof before === "function") {
-        before();
-      }
-      return Q.all(
-        driverFns.map((driverFn) => {
-            return driverFn({
-              query,
-              context: { priority: -3 }
-            });
-          }
-        )
-      ).then(
-        (results) => {
-          if (typeof after === "function") {
-            after(null, results[0], results);
-          }
+      if (typeof before === "function") before();
+
+      return Q.all(executors.map((executor) => executor(expression)))
+        .then((results) => {
+          if (typeof after === "function") after(null, results[0], results);
 
           results = results.map((result) => {
-              expect(result).to.be.instanceof(SegmentTree);
-              return uniformizeResults(result.toJS());
-            }
-          );
+            //return uniformizeResults(result.toJS());
+            return result.toJS();
+          });
 
           if (verbose) {
             console.log('vvvvvvvvvvvvvvvvvvvvvvv');
-            console.log(`From ${drivers[0]} I got:`);
+            console.log(`From ${executorNames[0]} I got:`);
             console.log(JSON.stringify(results[0], null, 2));
             console.log('^^^^^^^^^^^^^^^^^^^^^^^');
           }
 
-          var i = 1;
-          while (i < drivers.length) {
+          for (var i = 1; i < executorNames.length; i++) {
             try {
-              expect(results[0]).to.deep.equal(results[i], `results of '${drivers[0]}' and '${drivers[i]}' must match`);
+              expect(results[0]).to.deep.equal(results[i], `results of '${executorNames[0]}' and '${executorNames[i]}' must match`);
             } catch (e) {
-              console.log(`results of '${drivers[0]}' and '${drivers[i]}' (expected) must match`);
+              console.log(`results of '${executorNames[0]}' and '${executorNames[i]}' (expected) must match`);
               throw e;
             }
-            i++;
           }
 
           testComplete(null, results[0]);
-          return;
         },
         (err) => {
           if (typeof after === "function") {
             after(err);
           }
-          console.log("got error from driver");
+          console.log("got error from executor");
           console.log(err);
           throw err;
         })
-        .done();
-    };
-  };
-};
-
-exports.makeErrorTest = (driverFnMap) => {
-  return ({drivers, request, error, verbose}) => {
-    if (drivers.length < 1) {
-      throw new Error("must have at least one driver");
-    }
-
-    var driverFns = drivers.map((driverName) => {
-      var driverFn = driverFnMap[driverName];
-      if (!driverFn) {
-        throw new Error(`no such driver ${driverName}`);
-      }
-      return driverFn;
-    });
-
-    return (testComplete) => {
-      return Q.allSettled(driverFns.map((driverFn) => {
-          return driverFn(request);
-        }))
-        .then((results) => {
-            for (var i = 0, result; i < results.length; i++) {
-              result = results[i];
-              if (result.state === "fulfilled") {
-                throw new Error(`${drivers[i]} did not error`);
-              } else {
-                expect(result.reason.message).to.equal(error, `${drivers[i]} did not conform to error`);
-              }
-            }
-            testComplete();
-          }
-        )
         .done();
     };
   };

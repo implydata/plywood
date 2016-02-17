@@ -117,7 +117,8 @@ describe("Actions", () => {
     it('makes sure there is no action on the correct actions', () => {
       var actionsWithNoExpression = [
         'absolute',
-        'not'
+        'not',
+        'count'
       ];
 
       for (var action of actionsWithNoExpression) {

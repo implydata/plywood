@@ -9,7 +9,7 @@ if (!WallTime.rules) {
 var { druidRequesterFactory } = require('plywood-druid-requester');
 
 var plywood = require('../../build/plywood');
-var { Expression, External, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
+var { External, TimeRange, $, ply, basicExecutorFactory } = plywood;
 
 var info = require('../info');
 
