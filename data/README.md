@@ -1,9 +1,10 @@
 # Loading test data
+
 ## General Setup
 
-1. Install Docker
-1. Run `./make-data-files`
-1. If you've not set the IMPLY_PROJECTS environment variable, replace it with the path to where imply projects live
+1. [Install Docker](https://docs.docker.com/engine/installation/)
+2. Run `./make-data-files`
+3. If you've not set the IMPLY_PROJECTS environment variable, replace it with the path to where imply projects live
 
 ## Druid 
 

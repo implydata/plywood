@@ -7,6 +7,7 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       this._ensureAction("count");
+      this._checkNoExpression();
     }
 
     public getOutputType(inputType: string): string {

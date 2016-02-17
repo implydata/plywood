@@ -20,8 +20,6 @@ var mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 });
 
-const DEFAULT_TABLE = "wikipedia";
-
 describe("MySQL Functional", function() {
   this.timeout(10000);
 
@@ -30,7 +28,7 @@ describe("MySQL Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
-          table: DEFAULT_TABLE,
+          table: 'wikipedia',
           attributes: [
             { name: 'time', type: 'TIME' },
             { name: 'language', type: 'STRING' },
@@ -216,7 +214,7 @@ describe("MySQL Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
-          table: DEFAULT_TABLE,
+          table: 'wikipedia',
           requester: mySqlRequester
         })
       }
@@ -315,7 +313,7 @@ describe("MySQL Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
-          table: DEFAULT_TABLE,
+          table: 'wikipedia',
           requester: mySqlRequester
         })
       }
