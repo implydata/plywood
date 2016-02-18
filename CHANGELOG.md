@@ -1,5 +1,10 @@
 # Change log
 
+## 0.8.13
+
+- Added `overlap` action
+- Added multi-database query test / example
+
 ## 0.8.12
 
 - Fixed sorting direction when sorting on a split in Druid

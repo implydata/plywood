@@ -9,7 +9,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Expression, TimeRange, NumberRange, $, r, ply } = plywood;
+var { Expression, TimeRange, NumberRange, $, r, ply, Set } = plywood;
 
 describe("Simplify", () => {
   it("simplifies to number", () => {
@@ -385,6 +385,37 @@ describe("Simplify", () => {
       });
       var ex = $('time').timeBucket('P1D').is(interval);
       expect(ex.simplify().toJS()).to.deep.equal(ex.toJS());
+    });
+  });
+
+
+  describe('in', () => {
+    it('simplifies when empty set', () => {
+      var ex1 = $('x').in([]);
+      var ex2 = r(false);
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
+    });
+  });
+
+
+  describe('overlap', () => {
+    it('swaps yoda literal (with ref)', () => {
+      var someSet = Set.fromJS(['A', 'B', 'C']);
+      var ex1 = r(someSet).overlap('$x');
+      var ex2 = $('x').overlap(someSet);
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it('simplifies when empty set (lhs)', () => {
+      var ex1 = r([]).overlap('$x');
+      var ex2 = r(false);
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it('simplifies when empty set (rhs)', () => {
+      var ex1 = $('x').overlap([]);
+      var ex2 = r(false);
+      expect(ex1.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
   });
 

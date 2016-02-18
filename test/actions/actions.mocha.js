@@ -68,6 +68,9 @@ describe("Actions", () => {
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'normal' },
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'ignoreCase' },
 
+      { action: 'overlap', expression: { op: 'ref', name: 'myVar' } },
+      { action: 'overlap', expression: { op: 'literal', value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] }, type: 'SET' } },
+
       { action: 'timeBucket', duration: 'P1D' },
       { action: 'timeBucket', duration: 'P2D', timezone: 'Etc/UTC' },
       { action: 'timeBucket', duration: 'P2D', timezone: 'America/Los_Angeles' },

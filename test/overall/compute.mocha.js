@@ -133,7 +133,8 @@ describe("compute native", () => {
       .apply('cutMatch', $('cut').match('^G.+'))
       .apply('timeFloorDay', $('time').timeFloor('P1D'))
       .apply('timeShiftDay2', $('time').timeShift('P1D', 2))
-      .apply('timeRangeHours', $('time').timeRange('PT2H', -1));
+      .apply('timeRangeHours', $('time').timeRange('PT2H', -1))
+      .apply('overlapSuperCool', $('tags').overlap(['super', 'cool']));
 
     ex.compute()
       .then((v) => {
@@ -144,6 +145,7 @@ describe("compute native", () => {
             cutMatch: true,
             price: 400,
             tags: { type: "SET", setType: "STRING", elements: ['super', 'cool'] },
+            overlapSuperCool: true,
             time: { type: "TIME", value: new Date('2015-10-01T09:20:30Z') },
             timeFloorDay: { type: "TIME", value: new Date('2015-10-01T00:00:00Z') },
             timeShiftDay2: { type: "TIME", value: new Date('2015-10-03T09:20:30Z') },
@@ -159,6 +161,7 @@ describe("compute native", () => {
             cutMatch: true,
             price: 300,
             tags: { type: "SET", setType: "STRING", elements: ['super'] },
+            overlapSuperCool: true,
             time: { type: "TIME", value: new Date('2015-10-02T08:20:30Z') },
             timeFloorDay: { type: "TIME", value: new Date('2015-10-02T00:00:00Z') },
             timeShiftDay2: { type: "TIME", value: new Date('2015-10-04T08:20:30Z') },
@@ -174,6 +177,7 @@ describe("compute native", () => {
             cutMatch: true,
             price: 124,
             tags: { type: "SET", setType: "STRING", elements: ['cool'] },
+            overlapSuperCool: true,
             time: null,
             timeFloorDay: null,
             timeShiftDay2: null,
@@ -185,6 +189,7 @@ describe("compute native", () => {
             cutMatch: false,
             price: 160,
             tags: { type: "SET", setType: "STRING", elements: ['sweet'] },
+            overlapSuperCool: false,
             time: { type: "TIME", value: new Date('2015-10-04T06:20:30Z') },
             timeFloorDay: { type: "TIME", value: new Date('2015-10-04T00:00:00Z') },
             timeShiftDay2: { type: "TIME", value: new Date('2015-10-06T06:20:30Z') },
@@ -200,6 +205,7 @@ describe("compute native", () => {
             cutMatch: false,
             price: 100,
             tags: null,
+            overlapSuperCool: null,
             time: { type: "TIME", value: new Date('2015-10-05T05:20:30Z') },
             timeFloorDay: { type: "TIME", value: new Date('2015-10-05T00:00:00Z') },
             timeShiftDay2: { type: "TIME", value: new Date('2015-10-07T05:20:30Z') },
@@ -215,6 +221,7 @@ describe("compute native", () => {
             cutMatch: null,
             price: null,
             tags: { type: "SET", setType: "STRING", elements: ['super', 'sweet', 'cool'] },
+            overlapSuperCool: true,
             time: { type: "TIME", value: new Date('2015-10-06T04:20:30Z') },
             timeFloorDay: { type: "TIME", value: new Date('2015-10-06T00:00:00Z') },
             timeShiftDay2: { type: "TIME", value: new Date('2015-10-08T04:20:30Z') },

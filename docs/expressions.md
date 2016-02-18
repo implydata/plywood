@@ -248,6 +248,19 @@ ex.compute({ str: 'hello' }).then(console.log); // => true
 ```
 
 
+*operand*.**overlap**(ex: any)
+
+Checks whether the operand and the provided set overlap.
+
+```javascript
+var ex = $('xs').in([5, 8]);
+ex.compute({ xs: Set.fromJS([6, 10]) }).then(console.log); // => false
+
+var ex = $('strs').in(['hello', 'world']);
+ex.compute({ strs: Set.fromJS(['hello', 'moon']) }).then(console.log); // => true
+```
+
+
 *operand*.**not**()
 
 Inverts the truth value of the operand.
