@@ -695,7 +695,7 @@ module Plywood {
         if (filterAction instanceof InAction || filterAction instanceof OverlapAction) {
           if (rhs instanceof LiteralExpression) {
             var rhsType = rhs.type;
-            if (rhsType === 'SET/STRING') {
+            if (rhsType === 'SET/STRING' || rhsType === 'SET/NULL') {
               var fields = rhs.value.elements.map((value: string) => {
                 var druidFilter: Druid.Filter = {
                   type: "selector",
