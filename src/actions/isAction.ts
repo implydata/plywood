@@ -26,6 +26,8 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+      if (inputSQL === 'NULL') return `ISNULL(${expressionSQL})`;
+      if (expressionSQL === 'NULL') return `ISNULL(${inputSQL})`;
       return `(${inputSQL}=${expressionSQL})`;
     }
 

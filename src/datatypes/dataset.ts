@@ -165,10 +165,6 @@ module Plywood {
     formatter?: Formatter;
   }
 
-  export function isDate(dt: any) {
-    return Boolean(dt && dt.toISOString);
-  }
-
   function isBoolean(b: any) {
     return b === true || b === false;
   }
@@ -195,7 +191,9 @@ module Plywood {
       return new AttributeInfo({ name, type: 'NUMBER_RANGE' });
     } else if (TimeRange.isTimeRange(attributeValue)) {
       return new AttributeInfo({ name, type: 'TIME_RANGE' });
-    } else if (attributeValue instanceof Dataset) {
+    } else if (Set.isSet(attributeValue)) {
+      return new AttributeInfo({ name, type: attributeValue.getType() });
+    } else if (Dataset.isDataset(attributeValue)) {
       return new AttributeInfo({ name, type: 'DATASET', datasetType: attributeValue.getFullType().datasetType });
     } else {
       throw new Error("Could not introspect");
@@ -494,8 +492,7 @@ module Plywood {
       var datas: Lookup<Datum[]> = {};
       var finalData: Datum[] = [];
 
-      for (var datum of data) {
-        var valueList = splitFnList.map(splitFn => splitFn(datum, context));
+      function addDatum(datum: Datum, valueList: any): void {
         var key = valueList.join(';_PLYw00d_;');
         if (hasOwnProperty(datas, key)) {
           datas[key].push(datum);
@@ -507,6 +504,19 @@ module Plywood {
           newDatum[datasetName] = (datas[key] = [datum]);
           splits[key] = newDatum;
           finalData.push(newDatum)
+        }
+      }
+
+      for (var datum of data) {
+        var valueList = splitFnList.map(splitFn => splitFn(datum, context));
+        if (Set.isSet(valueList[0])) {
+          if (valueList.length > 1) throw new Error('multi-dimensional set split is not implemented');
+          var elements = valueList[0].elements;
+          for (var element of elements) {
+            addDatum(datum, [element]);
+          }
+        } else {
+          addDatum(datum, valueList);
         }
       }
 

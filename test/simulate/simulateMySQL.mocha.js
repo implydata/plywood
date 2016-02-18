@@ -40,7 +40,7 @@ describe("simulate MySQL", () => {
       .apply('PriceMinusTax', '$diamonds.sum($price) - $diamonds.sum($tax)')
       .apply('Crazy', '$diamonds.sum($price) - $diamonds.sum($tax) + 10 - $diamonds.sum($carat)')
       .apply('PriceAndTax', '$diamonds.sum($price) + $diamonds.sum($tax)')
-      //.apply('PriceGoodCut', $('diamonds').filter($('cut').is('good')).sum('$price'))
+      .apply('PriceGoodCut', '$diamonds.filter($cut == good).sum($price)')
       .apply(
         'Cuts',
         $("diamonds").split("$cut", 'Cut')
@@ -67,20 +67,23 @@ describe("simulate MySQL", () => {
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(4);
 
-    expect(queryPlan[0]).to.equal(`SELECT
-COUNT(*) AS "Count",
+    expect(queryPlan[0]).to.equal(
+`SELECT
+COUNT(1) AS "Count",
 SUM(\`price\`) AS "TotalPrice",
 (SUM(\`price\`)*2) AS "PriceTimes2",
 (SUM(\`price\`)-SUM(\`tax\`)) AS "PriceMinusTax",
 (((SUM(\`price\`)-SUM(\`tax\`))+10)-SUM(\`carat\`)) AS "Crazy",
-(SUM(\`price\`)+SUM(\`tax\`)) AS "PriceAndTax"
+(SUM(\`price\`)+SUM(\`tax\`)) AS "PriceAndTax",
+SUM(IF((\`cut\`="good"),\`price\`,0)) AS "PriceGoodCut"
 FROM \`diamonds\`
 WHERE (\`color\`="D")
 GROUP BY ''`);
 
-    expect(queryPlan[1]).to.equal(`SELECT
+    expect(queryPlan[1]).to.equal(
+`SELECT
 \`cut\` AS "Cut",
-COUNT(*) AS "Count",
+COUNT(1) AS "Count",
 (4/\`Count\`) AS "PercentOfTotal"
 FROM \`diamonds\`
 WHERE (\`color\`="D")
@@ -88,7 +91,8 @@ GROUP BY 1
 ORDER BY \`Count\` DESC
 LIMIT 2`);
 
-    expect(queryPlan[2]).to.equal(`SELECT
+    expect(queryPlan[2]).to.equal(
+`SELECT
 DATE_FORMAT(CONVERT_TZ(\`time\`,'+0:00','America/Los_Angeles'),'%Y-%m-%dZ') AS "Timestamp",
 SUM(\`price\`) AS "TotalPrice"
 FROM \`diamonds\`
@@ -96,9 +100,10 @@ WHERE ((\`color\`="D") AND (\`cut\`="some_cut"))
 GROUP BY 1
 ORDER BY \`Timestamp\` ASC`);
 
-    expect(queryPlan[3]).to.equal(`SELECT
+    expect(queryPlan[3]).to.equal(
+`SELECT
 FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
-COALESCE(COUNT(*), 0) AS "Count"
+COALESCE(COUNT(1), 0) AS "Count"
 FROM \`diamonds\`
 WHERE (((\`color\`="D") AND (\`cut\`="some_cut")) AND ('2015-03-13 07:00:00'<=\`time\` AND \`time\`<'2015-03-14 07:00:00'))
 GROUP BY 1
@@ -117,9 +122,10 @@ LIMIT 3`);
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    expect(queryPlan[0]).to.equal(`SELECT
+    expect(queryPlan[0]).to.equal(
+`SELECT
 \`cut\` AS "Cut",
-COUNT(*) AS "Count"
+COUNT(1) AS "Count"
 FROM \`diamonds\`
 GROUP BY 1
 HAVING 100<\`Count\`
@@ -147,17 +153,19 @@ LIMIT 10`);
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(2);
 
-    expect(queryPlan[0]).to.equal(`SELECT
+    expect(queryPlan[0]).to.equal(
+`SELECT
 \`height_bucket\` AS "HeightBucket",
-COUNT(*) AS "Count"
+COUNT(1) AS "Count"
 FROM \`diamonds\`
 GROUP BY 1
 ORDER BY \`Count\` DESC
 LIMIT 10`);
 
-    expect(queryPlan[1]).to.equal(`SELECT
+    expect(queryPlan[1]).to.equal(
+`SELECT
 FLOOR((\`height_bucket\` - 0.5) / 2) * 2 + 0.5 AS "HeightBucket",
-COUNT(*) AS "Count"
+COUNT(1) AS "Count"
 FROM \`diamonds\`
 GROUP BY 1
 ORDER BY \`Count\` DESC
@@ -173,7 +181,8 @@ LIMIT 10`);
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    expect(queryPlan[0]).to.equal(`SELECT
+    expect(queryPlan[0]).to.equal(
+`SELECT
 \`time\`, \`color\`, \`cut\`, \`tags\`, \`carat\`, \`height_bucket\`, \`price\`, \`tax\`
 FROM \`diamonds\`
 WHERE (\`color\`="D")
@@ -201,18 +210,20 @@ LIMIT 10`);
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(2);
 
-    expect(queryPlan[0]).to.equal(`SELECT
+    expect(queryPlan[0]).to.equal(
+`SELECT
 \`color\` AS "Color",
 \`cut\` AS "Cut",
-COUNT(*) AS "Count"
+COUNT(1) AS "Count"
 FROM \`diamonds\`
 WHERE \`color\` IN ("A","B","some_color")
 GROUP BY 1, 2
 LIMIT 3`);
 
-    expect(queryPlan[1]).to.equal(`SELECT
+    expect(queryPlan[1]).to.equal(
+`SELECT
 FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
-COUNT(*) AS "Count"
+COUNT(1) AS "Count"
 FROM \`diamonds\`
 WHERE ((\`color\`="some_color") AND (\`cut\`="some_cut"))
 GROUP BY 1

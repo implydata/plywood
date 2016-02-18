@@ -107,12 +107,7 @@ exports.makeEqualityTest = (executorMap) => {
           }
 
           for (var i = 1; i < executorNames.length; i++) {
-            try {
-              expect(results[0]).to.deep.equal(results[i], `results of '${executorNames[0]}' and '${executorNames[i]}' must match`);
-            } catch (e) {
-              console.log(`results of '${executorNames[0]}' and '${executorNames[i]}' (expected) must match`);
-              throw e;
-            }
+            expect(results[i]).to.deep.equal(results[0], `results of '${executorNames[0]}' (expected) and '${executorNames[i]}' (actual) must match`);
           }
 
           testComplete(null, results[0]);

@@ -140,6 +140,40 @@ describe("composition", () => {
     });
   });
 
+  it("works IN of TimeRange SET", () => {
+    var ex = $("x").in([
+      { type: 'TIME_RANGE', start: new Date('2015-03-03Z'), end: new Date('2015-10-10Z') },
+      { type: 'TIME_RANGE', start: new Date('2015-11-20Z'), end: new Date('2015-11-25Z') }
+    ]);
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "in",
+        "expression": {
+          "op": "literal",
+          "type": "SET",
+          "value": {
+            "elements": [
+              {
+                "end": new Date('2015-10-10T00:00:00.000Z'),
+                "start": new Date('2015-03-03T00:00:00.000Z')
+              },
+              {
+                "end": new Date('2015-11-25T00:00:00.000Z'),
+                "start": new Date('2015-11-20T00:00:00.000Z')
+              }
+            ],
+            "setType": "TIME_RANGE"
+          }
+        }
+      },
+      "expression": {
+        "name": "x",
+        "op": "ref"
+      },
+      "op": "chain"
+    });
+  });
+
   it("works in single split case", () => {
     var ex = $('data')
       .split('$page', 'Page', 'd');

@@ -60,9 +60,9 @@ module Plywood {
         return new AttributeInfo({ name, type: 'NUMBER' });
       } else if (sqlType.indexOf("tinyint(") === 0) {
         return new AttributeInfo({ name, type: 'BOOLEAN' });
-      };
+      }
     });
-  };
+  }
 
   export class MySQLExternal extends External {
     static type = 'DATASET';

@@ -23,9 +23,8 @@ describe("reference check", () => {
         );
 
       expect(() => {
-          return ex.referenceCheck({});
-        }
-      ).to.throw('could not resolve $foo');
+        ex.referenceCheck({});
+      }).to.throw('could not resolve $foo');
     });
 
     it("fails to resolve a variable that does not exist (in scope)", () => {
@@ -39,9 +38,8 @@ describe("reference check", () => {
         );
 
       expect(() => {
-          return ex.referenceCheck({});
-        }
-      ).to.throw('could not resolve $^x');
+        ex.referenceCheck({});
+      }).to.throw('could not resolve $^x');
     });
 
     it("fails to when a variable goes too deep", () => {
@@ -55,9 +53,8 @@ describe("reference check", () => {
         );
 
       expect(() => {
-          return ex.referenceCheck({ x: 5 });
-        }
-      ).to.throw('went too deep on $^^^x');
+        ex.referenceCheck({ x: 5 });
+      }).to.throw('went too deep on $^^^x');
     });
 
     it("fails when discovering that the types mismatch", () => {
@@ -70,9 +67,8 @@ describe("reference check", () => {
         );
 
       expect(() => {
-          return ex.referenceCheck({ str: 'Hello World' });
-        }
-      ).to.throw('add must have input of type NUMBER');
+        ex.referenceCheck({ str: 'Hello World' });
+      }).to.throw('add must have input of type NUMBER');
     });
 
     it("fails when discovering that the types mismatch via split", () => {
@@ -85,9 +81,8 @@ describe("reference check", () => {
         );
 
       expect(() => {
-          return ex.referenceCheck(context);
-        }
-      ).to.throw('multiply must have input of type NUMBER');
+        ex.referenceCheck(context);
+      }).to.throw('multiply must have input of type NUMBER');
     });
   });
 

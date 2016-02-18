@@ -24,7 +24,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return 'MAX(' + expressionSQL + ')';
+      return `MAX(${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL)})`;
     }
 
     public isAggregate(): boolean {

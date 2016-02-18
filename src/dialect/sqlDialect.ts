@@ -40,6 +40,13 @@ module Plywood {
       return "'" + str + "'";
     }
 
+    public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, zeroSQL: string = '0'): string {
+      var whereIndex = inputSQL.indexOf(' WHERE ');
+      if (whereIndex === -1) return expressionSQL;
+      var filterSQL = inputSQL.substr(whereIndex + 7);
+      return `IF(${filterSQL},${expressionSQL},${zeroSQL})`
+    }
+
     public inExpression(operand: string, start: string, end: string, bounds: string) {
       var startSQL: string = null;
       if (start !== 'NULL') {
