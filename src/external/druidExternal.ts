@@ -645,6 +645,7 @@ module Plywood {
         var referenceName: string;
         var attributeInfo: AttributeInfo;
 
+        // Special handling for r('some_tag').in($tags)
         if (lhs instanceof LiteralExpression) {
           if (rhs instanceof RefExpression) {
             referenceName = rhs.name;
@@ -691,7 +692,7 @@ module Plywood {
           }
         }
 
-        if (filterAction instanceof InAction) {
+        if (filterAction instanceof InAction || filterAction instanceof OverlapAction) {
           if (rhs instanceof LiteralExpression) {
             var rhsType = rhs.type;
             if (rhsType === 'SET/STRING' || rhsType === 'SET/NULL') {

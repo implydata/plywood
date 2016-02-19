@@ -299,6 +299,22 @@ module Plywood {
       });
     }
 
+    public overlap(other: Set): boolean {
+      if (this.empty() || other.empty()) return false;
+
+      if (this.setType !== other.setType) {
+        throw new TypeError("can determine overlap sets of different types");
+      }
+
+      var thisElements = this.elements;
+      for (var el of thisElements) {
+        if (!other.contains(el)) continue;
+        return true;
+      }
+
+      return false;
+    }
+
     public contains(value: any): boolean {
       const { setType } = this;
       if ((setType === 'NUMBER_RANGE' && typeof value === 'number')

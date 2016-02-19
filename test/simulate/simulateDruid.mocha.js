@@ -740,8 +740,9 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it("works with set split (and subsplit)", () => {
+  it("works with set filter and split (and subsplit)", () => {
     var ex = ply()
+      .apply("diamonds", $("diamonds").filter('$tags.overlap(["tagA", "tagB"])'))
       .apply(
         'Tags',
         $("diamonds").split("$tags", 'Tag')
@@ -770,15 +771,30 @@ describe("simulate Druid", () => {
           "outputName": "Tag",
           "type": "default"
         },
+        "filter": {
+          "fields": [
+            {
+              "dimension": "tags",
+              "type": "selector",
+              "value": "tagA"
+            },
+            {
+              "dimension": "tags",
+              "type": "selector",
+              "value": "tagB"
+            }
+          ],
+          "type": "or"
+        },
         "granularity": "all",
         "intervals": [
           "2015-03-12/2015-03-19"
         ],
         "metric": {
-          "type": "inverted",
           "metric": {
             "type": "lexicographic"
-          }
+          },
+          "type": "inverted"
         },
         "queryType": "topN",
         "threshold": 10
@@ -797,9 +813,29 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "filter": {
-          "dimension": "tags",
-          "type": "selector",
-          "value": "some_tags"
+          "fields": [
+            {
+              "fields": [
+                {
+                  "dimension": "tags",
+                  "type": "selector",
+                  "value": "tagA"
+                },
+                {
+                  "dimension": "tags",
+                  "type": "selector",
+                  "value": "tagB"
+                }
+              ],
+              "type": "or"
+            },
+            {
+              "dimension": "tags",
+              "type": "selector",
+              "value": "some_tags"
+            }
+          ],
+          "type": "and"
         },
         "granularity": "all",
         "intervals": [

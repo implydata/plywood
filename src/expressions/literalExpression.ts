@@ -143,6 +143,7 @@ module Plywood {
   Expression.FALSE = new LiteralExpression({ value: false });
   Expression.TRUE = new LiteralExpression({ value: true });
   Expression.EMPTY_STRING = new LiteralExpression({ value: '' });
+  Expression.EMPTY_SET = new LiteralExpression({ value: Set.fromJS([]) });
 
   Expression.register(LiteralExpression);
 }

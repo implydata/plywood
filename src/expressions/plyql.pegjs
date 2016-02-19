@@ -453,6 +453,8 @@ FunctionCallExpression
     { return r(Math.E).power(exponent); }
   / SqrtToken OpenParen _ operand:Expression CloseParen
     { return operand.power(0.5); }
+  / OverlapToken OpenParen _ lhs:Expression Comma rhs:Expression CloseParen
+    { return lhs.overlap(rhs); }
 
 TimezoneParameter
   = Comma timezone:NameOrString { return timezone }
@@ -573,6 +575,7 @@ LookupToken        = "LOOKUP"i         !IdentifierPart { return 'lookup'; }
 IfNullToken        = "IFNULL"i         !IdentifierPart { return 'fallback'; }
 FallbackToken      = "FALLBACK"i       !IdentifierPart { return 'fallback'; }
 MatchToken         = "MATCH"i          !IdentifierPart { return 'match'; }
+OverlapToken       = "OVERLAP"i        !IdentifierPart { return 'overlap'; }
 
 NowToken           = "NOW"i            !IdentifierPart
 

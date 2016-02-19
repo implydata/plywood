@@ -20,6 +20,10 @@ var mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 });
 
+//mySqlRequester = helper.verboseRequesterFactory({
+//  requester: mySqlRequester
+//});
+
 describe("MySQL Functional", function() {
   this.timeout(10000);
 

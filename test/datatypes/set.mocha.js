@@ -371,4 +371,25 @@ describe("Set", () => {
       });
     });
   });
+
+  describe("#overlap", () => {
+    it('works correctly', () => {
+      expect(
+        Set.fromJS(['A', 'B']).overlap(Set.fromJS(['B', 'C']))
+      ).to.equal(true);
+    });
+
+    it('works correctly when false', () => {
+      expect(
+        Set.fromJS(['A', 'B']).overlap(Set.fromJS(['D', 'E']))
+      ).to.equal(false);
+    });
+
+    it('works with troll', () => {
+      expect(
+        Set.fromJS(['A', 'B', 'hasOwnProperty']).overlap(Set.fromJS(['B', 'C', 'hasOwnProperty']))
+      ).to.equal(true);
+    });
+  });
+
 });

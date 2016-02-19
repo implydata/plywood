@@ -180,6 +180,7 @@ module Plywood {
     static FALSE: LiteralExpression;
     static TRUE: LiteralExpression;
     static EMPTY_STRING: LiteralExpression;
+    static EMPTY_SET: LiteralExpression;
 
     static isExpression(candidate: any): boolean {
       return isInstanceOf(candidate, Expression);
@@ -852,6 +853,11 @@ module Plywood {
       }
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
       return this.performAction(new InAction({ expression: ex }));
+    }
+
+    public overlap(ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new OverlapAction({ expression: ex }));
     }
 
     public not(): ChainExpression {
