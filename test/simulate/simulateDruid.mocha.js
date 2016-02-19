@@ -13,6 +13,7 @@ var attributes = [
   { name: 'time', type: 'TIME' },
   { name: 'color', type: 'STRING' },
   { name: 'cut', type: 'STRING' },
+  { name: 'isNice', type: 'BOOLEAN' },
   { name: 'tags', type: 'SET/STRING' },
   { name: 'carat', type: 'NUMBER' },
   { name: 'height_bucket', special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 },
@@ -836,6 +837,49 @@ describe("simulate Druid", () => {
             }
           ],
           "type": "and"
+        },
+        "granularity": "all",
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ],
+        "metric": "Count",
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
+  });
+
+  it("works with BOOLEAN split", () => {
+    var ex = $("diamonds").split("$isNice", 'IsNice')
+      .apply('Count', $('diamonds').count())
+      .sort('$Count', 'descending');
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "Count",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "isNice",
+          "extractionFn": {
+            "injective": false,
+            "lookup": {
+              "map": {
+                "0": "false",
+                "1": "true",
+                "false": "false",
+                "true": "true"
+              },
+              "type": "map"
+            },
+            "type": "lookup"
+          },
+          "outputName": "IsNice",
+          "type": "extraction"
         },
         "granularity": "all",
         "intervals": [

@@ -171,10 +171,12 @@ module Plywood {
             d[label] = null;
             break;
 
+          case '0':
           case 'false':
             d[label] = false;
             break;
 
+          case '1':
           case 'true':
             d[label] = true;
             break;

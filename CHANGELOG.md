@@ -1,5 +1,10 @@
 # Change log
 
+## 0.8.14
+
+- DruidExternal will use topNs for BOOLEAN splits even when there is no limit set
+- Fixed bug for MySQLExternal not dealing well with BOOLEAN splits 
+
 ## 0.8.13
 
 - Added `overlap` action

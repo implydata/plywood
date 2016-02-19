@@ -149,7 +149,29 @@ describe("MySQL Functional", function() {
         .done();
     });
 
-    it("works multi-dimensional GROUP BYs", (testComplete) => {
+    it("works with boolean GROUP BYs", (testComplete) => {
+      var ex = $("wiki").split($("channel").is("en"), 'ChannelIsEn')
+        .apply('Count', $('wiki').count())
+        .sort('$Count', 'descending');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "ChannelIsEn": false,
+              "Count": 277732
+            },
+            {
+              "ChannelIsEn": true,
+              "Count": 114711
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with multi-dimensional GROUP BYs", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").isnt("en")))
         .apply(
@@ -211,6 +233,7 @@ describe("MySQL Functional", function() {
         })
         .done();
     });
+
   });
 
   describe("introspection", () => {

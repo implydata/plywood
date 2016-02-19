@@ -1261,7 +1261,11 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       var dimensionInflater = this.splitExpressionToDimensionInflater(splitExpression, label);
       var inflaters = [dimensionInflater.inflater].filter(Boolean);
-      if (this.havingFilter.equals(Expression.TRUE) && this.limit && !this.exactResultsOnly) {
+      if (
+        this.havingFilter.equals(Expression.TRUE) && // There is no having filter
+        (this.limit || splitExpression.type === 'BOOLEAN') && // There is a limit (or the split domain is limited)
+        !this.exactResultsOnly // We do not care about exact results
+      ) {
         return {
           queryType: 'topN',
           dimension: dimensionInflater.dimension,
@@ -1854,9 +1858,7 @@ return (start < 0 ?'-':'') + parts.join('.');
                 metric = { type: 'lexicographic' };
               }
               druidQuery.metric = metric;
-              if (this.limit) {
-                druidQuery.threshold = this.limit.limit;
-              }
+              druidQuery.threshold = this.limit ? this.limit.limit : 10;
               break;
 
             case 'groupBy':
