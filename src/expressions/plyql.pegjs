@@ -575,7 +575,7 @@ LookupToken        = "LOOKUP"i         !IdentifierPart { return 'lookup'; }
 IfNullToken        = "IFNULL"i         !IdentifierPart { return 'fallback'; }
 FallbackToken      = "FALLBACK"i       !IdentifierPart { return 'fallback'; }
 MatchToken         = "MATCH"i          !IdentifierPart { return 'match'; }
-OverlapToken       = "Overlap"i        !IdentifierPart { return 'overlap'; }
+OverlapToken       = "OVERLAP"i        !IdentifierPart { return 'overlap'; }
 
 NowToken           = "NOW"i            !IdentifierPart
 
