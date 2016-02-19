@@ -88,6 +88,10 @@ module Plywood {
       if (!emptyTotalDataset) return null;
       return r(emptyTotalDataset);
     }
+
+    public maxPossibleSplitValues(): number {
+      return Infinity;
+    }
   }
 
   Expression.register(ExternalExpression);

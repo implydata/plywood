@@ -1161,6 +1161,13 @@ module Plywood {
       );
     }
 
+    /**
+     * Returns the maximum number of possible values this expression can return in a split context
+     */
+    public maxPossibleSplitValues(): number {
+      throw new Error('must be implemented by sub class');
+    }
+
     // ---------------------------------------------------------
     // Evaluation
 

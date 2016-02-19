@@ -509,14 +509,14 @@ describe("simulate Druid", () => {
     });
   });
 
-  it("works with basic timePart", () => {
+  it("works with timePart (with limit)", () => {
     var ex = ply()
       .apply(
         'HoursOfDay',
         $("diamonds").split("$time.timePart(HOUR_OF_DAY, 'Etc/UTC')", 'HourOfDay')
           .apply('TotalPrice', '$diamonds.sum($price)')
-          .sort('$TotalPrice', 'descending')
-          .limit(3)
+          .sort('$HourOfDay', 'ascending')
+          .limit(20)
       );
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
@@ -544,9 +544,95 @@ describe("simulate Druid", () => {
         "intervals": [
           "2015-03-12/2015-03-19"
         ],
-        "metric": "TotalPrice",
+        "metric": {
+          "type": "alphaNumeric"
+        },
         "queryType": "topN",
-        "threshold": 3
+        "threshold": 20
+      }
+    ]);
+  });
+
+  it("works with timePart (no limit)", () => {
+    var ex = ply()
+      .apply(
+        'HoursOfDay',
+        $("diamonds").split("$time.timePart(HOUR_OF_DAY, 'Etc/UTC')", 'HourOfDay')
+          .sort('$HourOfDay', 'ascending')
+      )
+      .apply(
+        'SecondOfDay',
+        $("diamonds").split("$time.timePart(SECOND_OF_DAY, 'Etc/UTC')", 'HourOfDay')
+          .sort('$HourOfDay', 'ascending')
+      );
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "__time",
+          "extractionFn": {
+            "format": "H",
+            "locale": "en-US",
+            "timeZone": "Etc/UTC",
+            "type": "timeFormat"
+          },
+          "outputName": "HourOfDay",
+          "type": "extraction"
+        },
+        "granularity": "all",
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ],
+        "metric": {
+          "type": "alphaNumeric"
+        },
+        "queryType": "topN",
+        "threshold": 1000
+      },
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimensions": [
+          {
+            "dimension": "__time",
+            "extractionFn": {
+              "format": "H'*60+'m'*60+'s",
+              "locale": "en-US",
+              "timeZone": "Etc/UTC",
+              "type": "timeFormat"
+            },
+            "outputName": "HourOfDay",
+            "type": "extraction"
+          }
+        ],
+        "granularity": "all",
+        "intervals": [
+          "2015-03-12/2015-03-19"
+        ],
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "HourOfDay",
+              "dimensionOrder": "alphaNumeric",
+              "direction": "ascending"
+            }
+          ],
+          "limit": 500000,
+          "type": "default"
+        },
+        "queryType": "groupBy"
       }
     ]);
   });
@@ -887,7 +973,7 @@ describe("simulate Druid", () => {
         ],
         "metric": "Count",
         "queryType": "topN",
-        "threshold": 10
+        "threshold": 1000
       }
     ]);
   });

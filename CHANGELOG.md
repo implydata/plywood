@@ -2,7 +2,7 @@
 
 ## 0.8.14
 
-- DruidExternal will use topNs for BOOLEAN splits even when there is no limit set
+- DruidExternal will use topNs for defined small splits even when there is no limit set (like `BOOLEAN`, `timeBucket(HOUR_OF_DAY)`)
 - Fixed bug for MySQLExternal not dealing well with BOOLEAN splits 
 
 ## 0.8.13

@@ -236,6 +236,10 @@ module Plywood {
       value.nest = by + value.nest;
       return new RefExpression(value);
     }
+
+    public maxPossibleSplitValues(): number {
+      return this.type === 'BOOLEAN' ? 3 : Infinity;
+    }
   }
 
   Expression.register(RefExpression);

@@ -240,6 +240,14 @@ module Plywood {
       return hasOwnProperty(this.splits, key);
     }
 
+    public maxBucketNumber(): number {
+      var { splits, keys } = this;
+      var num = 1;
+      for (var key of keys) {
+        num *= splits[key].maxPossibleSplitValues();
+      }
+      return num;
+    }
   }
 
   Action.register(SplitAction);

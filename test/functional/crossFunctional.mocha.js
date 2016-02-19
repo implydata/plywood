@@ -173,7 +173,6 @@ describe("Cross Functional", function() {
       expression: $('wiki').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TimeByHour', 'ascending')
-        .limit(5)
     }));
 
     it('works with TIME split (timeBucket) (sort on apply)', equalityTest({
@@ -181,7 +180,7 @@ describe("Cross Functional", function() {
       expression: $('wiki').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
-        .limit(5)
+        .limit(10)
     }));
 
     it('works with TIME split (timePart) (sort on split)', equalityTest({
@@ -189,7 +188,6 @@ describe("Cross Functional", function() {
       expression: $('wiki').split($("time").timePart('HOUR_OF_DAY', 'Etc/UTC'), 'HourOfDay')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$HourOfDay', 'ascending')
-        .limit(5)
     }));
 
     it('works with TIME split (timePart) (sort on apply)', equalityTest({
@@ -197,7 +195,37 @@ describe("Cross Functional", function() {
       expression: $('wiki').split($("time").timePart('HOUR_OF_DAY', 'Etc/UTC'), 'HourOfDay')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
-        .limit(5)
+        .limit(10)
+    }));
+
+    it('works with secondary TIME split (timeBucket PT1M) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("sometimeLater").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TimeByHour', 'ascending')
+    }));
+
+    it('works with secondary TIME split (timeBucket PT1M) (sort on apply)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("sometimeLater").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
+    it('works with secondary TIME split (timePart) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("sometimeLater").timePart('MINUTE_OF_HOUR', 'Etc/UTC'), 'HourOfDay')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$HourOfDay', 'ascending')
+    }));
+
+    it('works with secondary TIME split (timePart) (sort on apply)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("sometimeLater").timePart('MINUTE_OF_HOUR', 'Etc/UTC'), 'HourOfDay')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
     }));
 
     it('works with BOOLEAN multi-dim-split', equalityTest({
