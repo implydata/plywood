@@ -135,6 +135,10 @@ module Plywood {
       return Q(this.value);
     }
 
+    public maxPossibleSplitValues(): number {
+      const { value } = this;
+      return Set.isSet(value) ? value.size() : 1;
+    }
   }
 
   Expression.NULL = new LiteralExpression({ value: null });

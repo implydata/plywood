@@ -106,16 +106,6 @@ describe("Actions", () => {
     });
   });
 
-
-  describe("MatchAction", () => {
-    it(".likeToRegExp", () => {
-      expect(MatchAction.likeToRegExp('%David\\_R_ss%')).to.equal('^.*David_R.ss.*$');
-
-      expect(MatchAction.likeToRegExp('%David|_R_ss||%', '|')).to.equal('^.*David_R.ss\\|.*$');
-    });
-  });
-
-
   describe('ensure no action', () => {
     it('makes sure there is no action on the correct actions', () => {
       var actionsWithNoExpression = [

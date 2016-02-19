@@ -406,6 +406,10 @@ module Plywood {
         excluded: Expression.and(excludedExpressions).simplify()
       };
     }
+
+    public maxPossibleSplitValues(): number {
+      return this.type === 'BOOLEAN' ? 3 : this.lastAction().maxPossibleSplitValues();
+    }
   }
 
   Expression.register(ChainExpression);

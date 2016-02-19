@@ -1,4 +1,5 @@
 var { expect } = require("chai");
+var { sane } = require('../utils');
 
 var { WallTime } = require('chronoshift');
 if (!WallTime.rules) {
@@ -7,7 +8,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Expression, External, TimeRange, $, ply, r } = plywood;
+var { External, $, ply, r } = plywood;
 
 var context = {
   diamonds: External.fromJS({
@@ -23,10 +24,6 @@ var context = {
       { name: 'price', type: 'NUMBER' },
       { name: 'tax', type: 'NUMBER' }
     ]
-//    filter: $("time").in(TimeRange.fromJS({
-//      start: new Date('2015-03-12T00:00:00')
-//      end:   new Date('2015-03-19T00:00:00')
-//    }))
   })
 };
 
@@ -67,48 +64,52 @@ describe("simulate MySQL", () => {
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(4);
 
-    expect(queryPlan[0]).to.equal(
-`SELECT
-COUNT(1) AS "Count",
-SUM(\`price\`) AS "TotalPrice",
-(SUM(\`price\`)*2) AS "PriceTimes2",
-(SUM(\`price\`)-SUM(\`tax\`)) AS "PriceMinusTax",
-(((SUM(\`price\`)-SUM(\`tax\`))+10)-SUM(\`carat\`)) AS "Crazy",
-(SUM(\`price\`)+SUM(\`tax\`)) AS "PriceAndTax",
-SUM(IF((\`cut\`="good"),\`price\`,0)) AS "PriceGoodCut"
-FROM \`diamonds\`
-WHERE (\`color\`="D")
-GROUP BY ''`);
+    expect(queryPlan[0]).to.equal(sane`
+      SELECT
+      COUNT(1) AS "Count",
+      SUM(\`price\`) AS "TotalPrice",
+      (SUM(\`price\`)*2) AS "PriceTimes2",
+      (SUM(\`price\`)-SUM(\`tax\`)) AS "PriceMinusTax",
+      (((SUM(\`price\`)-SUM(\`tax\`))+10)-SUM(\`carat\`)) AS "Crazy",
+      (SUM(\`price\`)+SUM(\`tax\`)) AS "PriceAndTax",
+      SUM(IF((\`cut\`="good"),\`price\`,0)) AS "PriceGoodCut"
+      FROM \`diamonds\`
+      WHERE (\`color\`="D")
+      GROUP BY ''
+    `);
 
-    expect(queryPlan[1]).to.equal(
-`SELECT
-\`cut\` AS "Cut",
-COUNT(1) AS "Count",
-(4/\`Count\`) AS "PercentOfTotal"
-FROM \`diamonds\`
-WHERE (\`color\`="D")
-GROUP BY 1
-ORDER BY \`Count\` DESC
-LIMIT 2`);
+    expect(queryPlan[1]).to.equal(sane`
+      SELECT
+      \`cut\` AS "Cut",
+      COUNT(1) AS "Count",
+      (4/\`Count\`) AS "PercentOfTotal"
+      FROM \`diamonds\`
+      WHERE (\`color\`="D")
+      GROUP BY 1
+      ORDER BY \`Count\` DESC
+      LIMIT 2
+    `);
 
-    expect(queryPlan[2]).to.equal(
-`SELECT
-DATE_FORMAT(CONVERT_TZ(\`time\`,'+0:00','America/Los_Angeles'),'%Y-%m-%dZ') AS "Timestamp",
-SUM(\`price\`) AS "TotalPrice"
-FROM \`diamonds\`
-WHERE ((\`color\`="D") AND (\`cut\`="some_cut"))
-GROUP BY 1
-ORDER BY \`Timestamp\` ASC`);
+    expect(queryPlan[2]).to.equal(sane`
+      SELECT
+      DATE_FORMAT(CONVERT_TZ(\`time\`,'+0:00','America/Los_Angeles'),'%Y-%m-%dZ') AS "Timestamp",
+      SUM(\`price\`) AS "TotalPrice"
+      FROM \`diamonds\`
+      WHERE ((\`color\`="D") AND (\`cut\`="some_cut"))
+      GROUP BY 1
+      ORDER BY \`Timestamp\` ASC
+    `);
 
-    expect(queryPlan[3]).to.equal(
-`SELECT
-FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
-COALESCE(COUNT(1), 0) AS "Count"
-FROM \`diamonds\`
-WHERE (((\`color\`="D") AND (\`cut\`="some_cut")) AND ('2015-03-13 07:00:00'<=\`time\` AND \`time\`<'2015-03-14 07:00:00'))
-GROUP BY 1
-ORDER BY \`Count\` DESC
-LIMIT 3`);
+    expect(queryPlan[3]).to.equal(sane`
+      SELECT
+      FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
+      COALESCE(COUNT(1), 0) AS "Count"
+      FROM \`diamonds\`
+      WHERE (((\`color\`="D") AND (\`cut\`="some_cut")) AND ('2015-03-13 07:00:00'<=\`time\` AND \`time\`<'2015-03-14 07:00:00'))
+      GROUP BY 1
+      ORDER BY \`Count\` DESC
+      LIMIT 3
+    `);
   });
 
 
@@ -122,15 +123,16 @@ LIMIT 3`);
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    expect(queryPlan[0]).to.equal(
-`SELECT
-\`cut\` AS "Cut",
-COUNT(1) AS "Count"
-FROM \`diamonds\`
-GROUP BY 1
-HAVING 100<\`Count\`
-ORDER BY \`Count\` DESC
-LIMIT 10`);
+    expect(queryPlan[0]).to.equal(sane`
+      SELECT
+      \`cut\` AS "Cut",
+      COUNT(1) AS "Count"
+      FROM \`diamonds\`
+      GROUP BY 1
+      HAVING 100<\`Count\`
+      ORDER BY \`Count\` DESC
+      LIMIT 10
+    `);
   });
 
   it("works with range bucket", () => {
@@ -153,23 +155,25 @@ LIMIT 10`);
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(2);
 
-    expect(queryPlan[0]).to.equal(
-`SELECT
-\`height_bucket\` AS "HeightBucket",
-COUNT(1) AS "Count"
-FROM \`diamonds\`
-GROUP BY 1
-ORDER BY \`Count\` DESC
-LIMIT 10`);
+    expect(queryPlan[0]).to.equal(sane`
+      SELECT
+      \`height_bucket\` AS "HeightBucket",
+      COUNT(1) AS "Count"
+      FROM \`diamonds\`
+      GROUP BY 1
+      ORDER BY \`Count\` DESC
+      LIMIT 10
+    `);
 
-    expect(queryPlan[1]).to.equal(
-`SELECT
-FLOOR((\`height_bucket\` - 0.5) / 2) * 2 + 0.5 AS "HeightBucket",
-COUNT(1) AS "Count"
-FROM \`diamonds\`
-GROUP BY 1
-ORDER BY \`Count\` DESC
-LIMIT 10`);
+    expect(queryPlan[1]).to.equal(sane`
+      SELECT
+      FLOOR((\`height_bucket\` - 0.5) / 2) * 2 + 0.5 AS "HeightBucket",
+      COUNT(1) AS "Count"
+      FROM \`diamonds\`
+      GROUP BY 1
+      ORDER BY \`Count\` DESC
+      LIMIT 10
+    `);
   });
 
   it("works with SELECT query", () => {
@@ -181,13 +185,32 @@ LIMIT 10`);
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    expect(queryPlan[0]).to.equal(
-`SELECT
-\`time\`, \`color\`, \`cut\`, \`tags\`, \`carat\`, \`height_bucket\`, \`price\`, \`tax\`
-FROM \`diamonds\`
-WHERE (\`color\`="D")
-ORDER BY \`cut\` DESC
-LIMIT 10`);
+    expect(queryPlan[0]).to.equal(sane`
+      SELECT
+      \`time\`, \`color\`, \`cut\`, \`tags\`, \`carat\`, \`height_bucket\`, \`price\`, \`tax\`
+      FROM \`diamonds\`
+      WHERE (\`color\`="D")
+      ORDER BY \`cut\` DESC
+      LIMIT 10
+    `);
+  });
+
+  it("works with BOOLEAN bucket", () => {
+    var ex = $("diamonds").split("$color == A", 'ColorIsA')
+      .apply('Count', $('diamonds').count())
+      .sort('$Count', 'descending');
+
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan).to.have.length(1);
+
+    expect(queryPlan[0]).to.equal(sane`
+      SELECT
+      (\`color\`="A") AS "ColorIsA",
+      COUNT(1) AS "Count"
+      FROM \`diamonds\`
+      GROUP BY 1
+      ORDER BY \`Count\` DESC
+    `);
   });
 
   it("works multi-dimensional GROUP BYs", () => {
@@ -210,24 +233,26 @@ LIMIT 10`);
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(2);
 
-    expect(queryPlan[0]).to.equal(
-`SELECT
-\`color\` AS "Color",
-\`cut\` AS "Cut",
-COUNT(1) AS "Count"
-FROM \`diamonds\`
-WHERE \`color\` IN ("A","B","some_color")
-GROUP BY 1, 2
-LIMIT 3`);
+    expect(queryPlan[0]).to.equal(sane`
+      SELECT
+      \`color\` AS "Color",
+      \`cut\` AS "Cut",
+      COUNT(1) AS "Count"
+      FROM \`diamonds\`
+      WHERE \`color\` IN ("A","B","some_color")
+      GROUP BY 1, 2
+      LIMIT 3
+    `);
 
-    expect(queryPlan[1]).to.equal(
-`SELECT
-FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
-COUNT(1) AS "Count"
-FROM \`diamonds\`
-WHERE ((\`color\`="some_color") AND (\`cut\`="some_cut"))
-GROUP BY 1
-ORDER BY \`Count\` DESC
-LIMIT 3`);
+    expect(queryPlan[1]).to.equal(sane`
+      SELECT
+      FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
+      COUNT(1) AS "Count"
+      FROM \`diamonds\`
+      WHERE ((\`color\`="some_color") AND (\`cut\`="some_cut"))
+      GROUP BY 1
+      ORDER BY \`Count\` DESC
+      LIMIT 3
+    `);
   });
 });

@@ -492,6 +492,10 @@ module Plywood {
       }
       return null;
     }
+
+    public maxPossibleSplitValues(): number {
+      return Infinity;
+    }
   }
   checkAction = Action;
 }

@@ -14,6 +14,10 @@ module Plywood {
 
   function postProcessFactory(split: SplitAction): PostProcess {
     var inflaters = split ? split.mapSplits((label, splitExpression) => {
+      if (splitExpression.type === 'BOOLEAN') {
+        return External.booleanInflaterFactory(label);
+      }
+
       if (splitExpression instanceof ChainExpression) {
         var lastAction = splitExpression.lastAction();
 
@@ -58,7 +62,7 @@ module Plywood {
         return new AttributeInfo({ name, type: 'NUMBER' });
       } else if (sqlType.indexOf("decimal(") === 0 || sqlType.indexOf("float") === 0)  {
         return new AttributeInfo({ name, type: 'NUMBER' });
-      } else if (sqlType.indexOf("tinyint(") === 0) {
+      } else if (sqlType.indexOf("tinyint(1)") === 0) {
         return new AttributeInfo({ name, type: 'BOOLEAN' });
       }
     });

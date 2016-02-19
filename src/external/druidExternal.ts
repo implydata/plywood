@@ -1261,7 +1261,11 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       var dimensionInflater = this.splitExpressionToDimensionInflater(splitExpression, label);
       var inflaters = [dimensionInflater.inflater].filter(Boolean);
-      if (this.havingFilter.equals(Expression.TRUE) && this.limit && !this.exactResultsOnly) {
+      if (
+        this.havingFilter.equals(Expression.TRUE) && // There is no having filter
+        (this.limit || split.maxBucketNumber() < 1000) && // There is a limit (or the split range is limited)
+        !this.exactResultsOnly // We do not care about exact results
+      ) {
         return {
           queryType: 'topN',
           dimension: dimensionInflater.dimension,
@@ -1842,7 +1846,7 @@ return (start < 0 ?'-':'') + parts.join('.');
                   }
                   inverted = sortAction.direction === 'descending';
                 } else {
-                  metric = (<RefExpression>sortAction.expression).name;
+                  metric = sortAction.refName();
                   inverted = sortAction.direction === 'ascending';
                 }
 
@@ -1854,21 +1858,32 @@ return (start < 0 ?'-':'') + parts.join('.');
                 metric = { type: 'lexicographic' };
               }
               druidQuery.metric = metric;
-              if (this.limit) {
-                druidQuery.threshold = this.limit.limit;
-              }
+              druidQuery.threshold = this.limit ? this.limit.limit : 1000;
               break;
 
             case 'groupBy':
               var sortAction = this.sort;
+
+              var column: Druid.OrderByColumnSpec = null;
+              if (sortAction) {
+                var col = sortAction.refName();
+                column = {
+                  dimension: col,
+                  direction: sortAction.direction
+                };
+                if (this.sortOnLabel()) {
+                  var sortSplitExpression = this.split.splits[col];
+                  var sortSplitExpressionType = sortSplitExpression.type;
+                  if (sortSplitExpressionType === 'NUMBER' || sortSplitExpressionType === 'NUMBER_RANGE') {
+                    (column as any).dimensionOrder = 'alphaNumeric';
+                  }
+                }
+              }
+
               druidQuery.limitSpec = {
                 type: "default",
                 limit: 500000,
-                columns: [
-                  sortAction ?
-                  { dimension: (<RefExpression>sortAction.expression).name, direction: sortAction.direction }
-                    : this.split.firstSplitName()
-                ]
+                columns: [column || this.split.firstSplitName()]
               };
               if (this.limit) {
                 druidQuery.limitSpec.limit = this.limit.limit;

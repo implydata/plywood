@@ -1017,8 +1017,9 @@ describe("Druid Functional", function() {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").isnt('en')))
         .apply(
-          'Cuts',
-          $("wiki").split({
+          'Groups',
+          $("wiki")
+            .split({
               'Channel': "$channel",
               'TimeByHour': '$time.timeBucket(PT1H)',
               'IsNew': '$isNew',
@@ -1033,7 +1034,7 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Cuts": [
+              "Groups": [
                 {
                   "Channel": "vi",
                   "ChannelIsDE": false,

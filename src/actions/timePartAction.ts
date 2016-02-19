@@ -32,6 +32,35 @@ module Plywood {
     MONTH_OF_YEAR: d => d.getMonth()
   };
 
+  const PART_TO_MAX_VALUES: Lookup<number> = {
+    SECOND_OF_MINUTE: 61, // Leap seconds
+    SECOND_OF_HOUR: 3601,
+    SECOND_OF_DAY: 93601,
+    SECOND_OF_WEEK: null,
+    SECOND_OF_MONTH: null,
+    SECOND_OF_YEAR: null,
+
+    MINUTE_OF_HOUR: 60,
+    MINUTE_OF_DAY: 26 * 60,
+    MINUTE_OF_WEEK: null,
+    MINUTE_OF_MONTH: null,
+    MINUTE_OF_YEAR: null,
+
+    HOUR_OF_DAY: 26, // Timezones
+    HOUR_OF_WEEK: null,
+    HOUR_OF_MONTH: null,
+    HOUR_OF_YEAR: null,
+
+    DAY_OF_WEEK: 7,
+    DAY_OF_MONTH: 31,
+    DAY_OF_YEAR: 366,
+
+    WEEK_OF_MONTH: 5,
+    WEEK_OF_YEAR: 53,
+
+    MONTH_OF_YEAR: 12
+  };
+
   export class TimePartAction extends Action {
     static fromJS(parameters: ActionJS): TimePartAction {
       var value = Action.jsToValue(parameters);
@@ -134,6 +163,12 @@ module Plywood {
         setType: 'TIME_RANGE',
         elements: ranges
       })
+    }
+
+    public maxPossibleSplitValues(): number {
+      var maxValue = PART_TO_MAX_VALUES[this.part];
+      if (!maxValue) return Infinity;
+      return maxValue + 1; // +1 for null
     }
   }
 
