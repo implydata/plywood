@@ -134,7 +134,7 @@ describe("Cross Functional", function() {
     it('works with total', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
-        .apply('wiki', '$wiki')
+        .apply('wiki', '$wiki') // needed for now
         //.apply('RowCount', '$wiki.count()') // ToDo: make wikipedia data in MySQL rolled up
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -267,5 +267,14 @@ describe("Cross Functional", function() {
         .sort('$Channel', 'descending')
         .limit(50)
     }));
+
+    it('works with max time (total)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki') // needed for now
+        .apply('MaxTime', '$wiki.max($time)')
+        .apply('MinTime', '$wiki.min($time)')
+    }));
+
   });
 });
