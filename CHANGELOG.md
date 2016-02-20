@@ -1,5 +1,9 @@
 # Change log
 
+## 0.8.15
+
+- `overlap` now allows STRING arguments, simplifies to `in`
+
 ## 0.8.14
 
 - DruidExternal will use topNs for defined small splits even when there is no limit set (like `BOOLEAN`, `timeBucket(HOUR_OF_DAY)`)
