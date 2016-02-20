@@ -3,58 +3,38 @@ var Q = require('q');
 
 var plywood = require('../build/plywood');
 
-var uniformizeResults = (result) => {
-  if (!((typeof result !== "undefined" && result !== null) ? result.prop : undefined)) {
-    return result;
-  }
+var hasOwnProperty = Object.prototype.hasOwnProperty;
 
-  var ret = {};
-  for (var k in result) {
-    var p = result[k];
-    if (!result.hasOwnProperty(k)) {
-      continue;
+var uniformizeDoubles = (v) => {
+  var t = typeof v;
+  if (t === 'number') {
+    if (v !== Math.floor(v)) {
+      return Number(v.toPrecision(4));
+    } else {
+      return v;
     }
-    if (k === 'split') {
-      continue;
-    }
-    if (k === 'prop') {
-      var propNames = [];
-      for (var name in p) {
-        var value = p[name];
-        propNames.push(name);
+  } else if (t === 'object') {
+    if (!v) { // null
+      return v;
+    } else if (Array.isArray(v)) {
+      return v.map(uniformizeDoubles);
+    } else if (v.toISOString) {
+      return v;
+    } else {
+      var needNew = false;
+      var newV = {};
+      for (var k in v) {
+        if (!hasOwnProperty.call(v, k)) continue;
+        var oldValue = v[k];
+        var newValue = uniformizeDoubles(oldValue);
+        newV[k] = newValue;
+        if (newValue !== oldValue) needNew = true;
       }
-      propNames.sort();
-
-      var prop = {};
-      for (var i = 0, name; i < propNames.length; i++) {
-        name = propNames[i];
-        value = p[name];
-        if (!p.hasOwnProperty(name)) {
-          continue;
-        }
-        if (typeof value === 'number' && value !== Math.floor(value)) {
-          prop[name] = Number(value.toPrecision(5));
-        } else if (Array.isArray(value) && typeof value[0] === 'number' && typeof value[1] === 'number' && (value[0] !== Math.floor(value[0]) || value[1] !== Math.floor(value[1]))) {
-          prop[name] = [value[0].toFixed(3), value[1].toFixed(3)];
-        } else {
-          prop[name] = value;
-        }
-      }
-      p = prop;
+      return needNew ? newV : v;
     }
-
-    ret[k] = p;
+  } else {
+    return v;
   }
-
-  if (result.splits) {
-    ret.splits = result.splits.map(uniformizeResults);
-  }
-
-  if (result.loading) {
-    ret.loading = true;
-  }
-
-  return ret;
 };
 
 exports.wrapVerbose = (requester, name) => {
@@ -95,8 +75,7 @@ exports.makeEqualityTest = (executorMap) => {
           if (typeof after === "function") after(null, results[0], results);
 
           results = results.map((result) => {
-            //return uniformizeResults(result.toJS());
-            return result.toJS();
+            return uniformizeDoubles(result.toJS());
           });
 
           if (verbose) {
@@ -138,5 +117,7 @@ exports.sane = function() {
   lines = lines.map((line) => line.substr(spaces)); // Remove indentation
   if (lines[lines.length - 1] === '') lines.pop(); // Remove last line if empty
 
-  return lines.join('\n').replace(/\\`/g, '`'); // Fix \` that should be `
+  return lines.join('\n')
+    .replace(/\\`/g, '`') // Fix \` that should be `
+    .replace(/\\\{/g, '{'); // Fix \{ that should be {
 };

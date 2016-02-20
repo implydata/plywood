@@ -335,20 +335,20 @@ describe("Druid Functional", function() {
             {
               "UserChars": [
                 {
-                  "Count": 279884,
-                  "UserChar": "o"
+                  "Count": 222292,
+                  "UserChar": "O"
                 },
                 {
-                  "Count": 255163,
-                  "UserChar": "t"
+                  "Count": 221424,
+                  "UserChar": "A"
                 },
                 {
-                  "Count": 227403,
-                  "UserChar": "i"
+                  "Count": 215526,
+                  "UserChar": "T"
                 },
                 {
-                  "Count": 226241,
-                  "UserChar": "a"
+                  "Count": 176567,
+                  "UserChar": "B"
                 }
               ]
             }

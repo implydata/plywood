@@ -33,7 +33,9 @@ module Plywood {
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      return [this.name, expressionString];
+      var name = this.name;
+      if (!RefExpression.SIMPLE_NAME_REGEXP.test(name)) name = JSON.stringify(name);
+      return [name, expressionString];
     }
 
     public equals(other: ApplyAction): boolean {

@@ -67,7 +67,9 @@ module Plywood {
     }
 
     static toSimpleName(variableName: string): string {
-      if (!RefExpression.SIMPLE_NAME_REGEXP.test(variableName)) throw new Error('fail'); // ToDo: fix this
+      if (!RefExpression.SIMPLE_NAME_REGEXP.test(variableName)) {
+        variableName = variableName.replace(/\W/g, '');
+      }
       return variableName
     }
 

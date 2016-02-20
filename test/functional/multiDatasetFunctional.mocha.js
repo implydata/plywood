@@ -56,6 +56,8 @@ var attributes = [
   //{ name: "userChars", type: 'SET/STRING' },
   { name: 'count', type: 'NUMBER' },
   { name: 'delta', type: 'NUMBER' },
+  { name: 'min_delta', type: 'NUMBER' },
+  { name: 'max_delta', type: 'NUMBER' },
   { name: 'deltaByTen', type: 'NUMBER' },
   { name: 'added', type: 'NUMBER' },
   { name: 'deleted', type: 'NUMBER' }

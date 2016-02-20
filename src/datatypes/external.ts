@@ -694,7 +694,7 @@ module Plywood {
 
     public getTempName(namesTaken: string[] = []): string {
       for (let i = 0; i < 1e6; i++) {
-        var name = '_sd_' + i;
+        var name = '!T_' + i;
         if (namesTaken.indexOf(name) === -1 && !this.isKnownName(name)) return name;
       }
       throw new Error('could not find available name');

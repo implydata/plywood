@@ -1,0 +1,15 @@
+#!/bin/bash -eu
+
+echo "Setting up MySQL...";
+mysql -u root -e "create database plywood_test;"
+
+echo "Creating table...";
+mysql -u root plywood_test < /opt/data/mysql/wikipedia-create-raw-table.sql;
+
+echo "Importing data...";
+mysql -u root plywood_test < /opt/data/tmp/wikipedia-raw.sql;
+
+echo "Rolling up...";
+mysql -u root plywood_test < /opt/data/mysql/wikipedia-rollup.sql;
+
+echo "Done";

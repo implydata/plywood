@@ -12,6 +12,5 @@ notes/
 docs/examples/play.js
 docs/gallery/plywood.js
 
-# You have to make these yourself by running data/make-data-files
-data/wikipedia.json
-data/wikipedia.sql
+# You have to make the files in 'tmp' yourself by running data/make-data-files
+data/tmp/

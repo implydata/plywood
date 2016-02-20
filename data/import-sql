@@ -1,6 +1,0 @@
-#!/bin/bash -eu
-echo "setting up mysql";
-mysql -uroot -e "create database plywood_test;"
-echo "importing data";
-mysql -u root plywood_test < /opt/data/wikipedia-defs.sql;
-mysql -u root plywood_test < /opt/data/wikipedia.sql;

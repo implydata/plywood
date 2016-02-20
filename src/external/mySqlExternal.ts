@@ -52,7 +52,7 @@ module Plywood {
   function postProcessIntrospect(columns: SQLDescribeRow[]): Attributes {
     return columns.map((column: SQLDescribeRow) => {
       var name = column.Field;
-      var sqlType = column.Type;
+      var sqlType = column.Type.toLowerCase();
       if (sqlType === "datetime") {
         return new AttributeInfo({ name, type: 'TIME' });
       } else if (sqlType.indexOf("varchar(") === 0 || sqlType.indexOf("blob") === 0) {
@@ -60,12 +60,13 @@ module Plywood {
       } else if (sqlType.indexOf("int(") === 0 || sqlType.indexOf("bigint(") === 0) {
         // ToDo: make something special for integers
         return new AttributeInfo({ name, type: 'NUMBER' });
-      } else if (sqlType.indexOf("decimal(") === 0 || sqlType.indexOf("float") === 0)  {
+      } else if (sqlType.indexOf("decimal(") === 0 || sqlType.indexOf("float") === 0 || sqlType.indexOf("double") === 0) {
         return new AttributeInfo({ name, type: 'NUMBER' });
       } else if (sqlType.indexOf("tinyint(1)") === 0) {
         return new AttributeInfo({ name, type: 'BOOLEAN' });
       }
-    });
+      return null;
+    }).filter(Boolean);
   }
 
   export class MySQLExternal extends External {

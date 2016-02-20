@@ -133,8 +133,8 @@ module Plywood {
   }
 
   function cleanDatumInPlace(datum: Datum): void {
-    if (hasOwnProperty(datum, DUMMY_NAME)) {
-      delete datum[DUMMY_NAME];
+    for (var k in datum) {
+      if (k[0] === '!' && hasOwnProperty(datum, k)) delete datum[k];
     }
   }
 
@@ -606,7 +606,7 @@ module Plywood {
       return false;
     }
 
-    public javascriptDruidFilter(referenceName: string, filter: Expression): Druid.Filter {
+    public javaScriptDruidFilter(referenceName: string, filter: Expression): Druid.Filter {
       return {
         type: "javascript",
         dimension: referenceName,
@@ -705,7 +705,7 @@ module Plywood {
                 if (extractionFn) {
                   if (extractionFn.type === 'javascript') {
                     // Might as well just do a full on javascript filter
-                    return this.javascriptDruidFilter(referenceName, filter);
+                    return this.javaScriptDruidFilter(referenceName, filter);
                   }
                   druidFilter.type = "extraction";
                   druidFilter.extractionFn = extractionFn;
@@ -762,7 +762,7 @@ module Plywood {
                 }
               };
             } else {
-              return this.javascriptDruidFilter(referenceName, filter);
+              return this.javaScriptDruidFilter(referenceName, filter);
             }
           } else {
             throw new Error("can not convert " + filter.toString() + " to Druid filter");
@@ -1303,7 +1303,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           return {
             type: 'javascript',
             fieldNames: fieldNameRefs,
-            function: `function(${fieldNameRefs.toString()}) { return ${ex.getJS(null)}; }`
+            function: `function(${fieldNameRefs.map(RefExpression.toSimpleName)}) { return ${ex.getJS(null)}; }`
           };
         }
 
@@ -1873,7 +1873,7 @@ return (start < 0 ?'-':'') + parts.join('.');
                   var sortSplitExpression = this.split.splits[col];
                   var sortSplitExpressionType = sortSplitExpression.type;
                   if (sortSplitExpressionType === 'NUMBER' || sortSplitExpressionType === 'NUMBER_RANGE') {
-                    (column as any).dimensionOrder = 'alphaNumeric';
+                    column.dimensionOrder = 'alphaNumeric';
                   }
                 }
               }
