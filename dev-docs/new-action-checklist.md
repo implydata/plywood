@@ -37,10 +37,12 @@ Let's assume that you are adding an action called `foo bar`
    Some ideas of what to consider:
   * Is this action idempotent (`$x.fooBar(blah).fooBar(blah)` => `$x.fooBar(blah)`) or does it generally combine well with itself?
     Implement `_foldWithPrevAction`.
-  * Is there a special 'zero' literal that, when acted upon, this action is irrelevant (e.g. `r(0).multiply($x)` => `r(0)`)?
-    Implement `_performOnLiteral`.  
-  * Is there a special 'zero' literal that, when in the action, does something special (e.g. `$x.multiply(0)` => `r(0)`)?
-    Implement `_removeAction` and/or `_nukeExpression`.
+  * Is there a special 'zero' literal that, when acted upon, renders this action is irrelevant (e.g. `r(0).multiply(...whatever...)` => `r(0)`)?
+    Implement `_performOnSimpleLiteral`.
+  * Is there a special 'zero' condition that, when in the action, nukes the expression (e.g. `(...whatever...).multiply(0)` => `r(0)`)?
+    Implement `_nukeExpression`.
+  * Is there a special 'one' condition that, when in the action, renders the action useless (e.g. `(...whatever...).multiply(1)` => `(...whatever...)`)?
+    Implement `_removeAction`.
       
 1. Add this function to the PlyQL grammar in [plyql.pegjs](src/expressions/plyql.pegjs).
   * Figure out what names you will give this function.
