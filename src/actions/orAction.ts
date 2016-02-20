@@ -66,7 +66,7 @@ module Plywood {
       return this.expression.actionize(this.action);
     }
 
-    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    protected _performOnSimpleLiteral(literalExpression: LiteralExpression): Expression {
       if (literalExpression.equals(Expression.FALSE)) {
         return this.expression;
       }
@@ -76,7 +76,7 @@ module Plywood {
       return null;
     }
 
-    protected _performOnChain(chainExpression: ChainExpression): Expression {
+    protected _performOnSimpleChain(chainExpression: ChainExpression): Expression {
       var { expression } = this;
 
       var orExpressions = chainExpression.getExpressionPattern('or');

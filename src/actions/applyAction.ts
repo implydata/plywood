@@ -78,7 +78,7 @@ module Plywood {
       return null;
     }
 
-    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    protected _performOnSimpleLiteral(literalExpression: LiteralExpression): Expression {
       var dataset: Dataset = literalExpression.value;
       var myExpression = this.expression;
       if (dataset.basis()) {

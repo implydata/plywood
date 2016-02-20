@@ -31,22 +31,22 @@ module Plywood {
       return `(${inputSQL}=${expressionSQL})`;
     }
 
-    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    protected _performOnSimpleLiteral(literalExpression: LiteralExpression): Expression {
       var expression = this.expression;
       if (!expression.isOp('literal')) {
-        return expression.is(literalExpression);
+        return new IsAction({ expression: literalExpression }).performOnSimple(expression);
       }
       return null;
     }
 
-    protected _performOnRef(refExpression: RefExpression): Expression {
+    protected _performOnSimpleRef(refExpression: RefExpression): Expression {
       if (this.expression.equals(refExpression)) {
         return Expression.TRUE;
       }
       return null;
     }
 
-    protected _performOnChain(chainExpression: ChainExpression): Expression {
+    protected _performOnSimpleChain(chainExpression: ChainExpression): Expression {
       if (this.expression.equals(chainExpression)) {
         return Expression.TRUE;
       }
@@ -63,7 +63,7 @@ module Plywood {
           if (duration.floor(start, timezone).valueOf() === start.valueOf() &&
             duration.move(start, timezone, 1).valueOf() === end.valueOf()) {
 
-            return chainExpression.popAction().performAction(new InAction({ expression: this.expression }));
+            return new InAction({ expression: this.expression }).performOnSimple(chainExpression.popAction());
           } else {
             return Expression.FALSE;
           }

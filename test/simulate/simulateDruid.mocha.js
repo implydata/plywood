@@ -405,6 +405,40 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("works on OVERLAP (single value) filter", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.overlap(['D'])"))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color",
+      "type": "selector",
+      "value": "D"
+    });
+  });
+
+  it("works on OVERLAP (multi value) filter", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.overlap(['C', 'D'])"))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "fields": [
+        {
+          "dimension": "color",
+          "type": "selector",
+          "value": "C"
+        },
+        {
+          "dimension": "color",
+          "type": "selector",
+          "value": "D"
+        }
+      ],
+      "type": "or"
+    });
+  });
+
   it("works on fancy filter dataset (EXTRACT / IS)", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.extract('^(.)') == 'D'"))
@@ -422,7 +456,7 @@ describe("simulate Druid", () => {
     });
   });
 
-  it("works on fancy filter (SUBSET / IS)", () => {
+  it("works on fancy filter (SUBSTR / IS)", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1) == 'D'"))
       .apply('Count', '$diamonds.count()');
@@ -439,7 +473,7 @@ describe("simulate Druid", () => {
     });
   });
 
-  it("works on fancy filter (SUBSET / IN)", () => {
+  it("works on fancy filter (SUBSTR / IN)", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1).in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');

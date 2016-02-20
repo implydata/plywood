@@ -6,37 +6,32 @@ var { Expression, $, ply, r } = plywood;
 describe("typecheck", () => {
   it("should throw silly ref type", () => {
     expect(() => {
-        return Expression.fromJS({ op: 'ref', type: 'Corn', name: 'str' });
-      }
-    ).to.throw("unsupported type 'Corn'");
+      Expression.fromJS({ op: 'ref', type: 'Corn', name: 'str' });
+    }).to.throw("unsupported type 'Corn'");
   });
 
   it("should throw on unbalanced IS", () => {
     expect(() => {
-        return r(5).is('hello');
-      }
-    ).to.throw('is must have input of type STRING (is NUMBER)');
+      r(5).is('hello');
+    }).to.throw('is must have input of type STRING (is NUMBER)');
   });
 
   it("should throw on unbalanced IS (via explicit type)", () => {
     expect(() => {
-        return r(5).is('$hello:STRING');
-      }
-    ).to.throw('is must have input of type STRING (is NUMBER)');
+      r(5).is('$hello:STRING');
+    }).to.throw('is must have input of type STRING (is NUMBER)');
   });
 
   it("should throw on non numeric lessThan", () => {
     expect(() => {
-        return r(5).lessThan('hello');
-      }
-    ).to.throw('lessThan must have expression of type NUMBER or TIME (is STRING)');
+      r(5).lessThan('hello');
+    }).to.throw('lessThan must have expression of type NUMBER or TIME (is STRING)');
   });
 
   it("should throw on bad IN", () => {
     expect(() => {
-        return r(5).in('hello');
-      }
-    ).to.throw('in action has a bad type combination NUMBER IN STRING');
+      r(5).in('hello');
+    }).to.throw('in action has a bad type combination NUMBER IN STRING');
   });
 
   it("should throw on SET IN", () => {
@@ -47,15 +42,19 @@ describe("typecheck", () => {
 
   it("should throw on mismatching fallback type", () => {
     expect(() => {
-        return r(5).fallback('hello');
-      }
-    ).to.throw('fallback must have input of type STRING (is NUMBER)');
+      r(5).fallback('hello');
+    }).to.throw('fallback must have input of type STRING (is NUMBER)');
   });
 
   it("should throw on bad aggregate (SUM)", () => {
     expect(() => {
-        return ply().sum($('x', 'STRING'));
-      }
-    ).to.throw('sum must have expression of type NUMBER (is STRING)');
+      ply().sum($('x', 'STRING'));
+    }).to.throw('sum must have expression of type NUMBER (is STRING)');
+  });
+
+  it("should throw on overlay type mismatch", () => {
+    expect(() => {
+      $('x', 'NUMBER').overlap($('y', 'SET/STRING'));
+    }).to.throw('type mismatch in overlap action: NUMBER is incompatible with SET/STRING');
   });
 });
