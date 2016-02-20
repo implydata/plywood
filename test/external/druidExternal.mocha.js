@@ -721,7 +721,6 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
           {
             "dimension": "page",
             "extractionFn": {
-              "injective": false,
               "lookup": {
                 "namespace": "wikipedia-language-lookup",
                 "type": "namespace"

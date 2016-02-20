@@ -664,16 +664,16 @@ module Plywood {
           throw new Error(`unsupported rhs action for literal lhs: ${filterAction.toString()}`);
         }
 
-        var extractionFn = this.expressionToExtractionFn(lhs);
-        referenceName = lhs.getFreeReferences()[0];
-        attributeInfo = this.getAttributesInfo(referenceName);
-
         if (filterAction instanceof NotAction) {
           return {
             type: 'not',
             field: this.timelessFilterToDruid(lhs)
           };
         }
+
+        var extractionFn = this.expressionToExtractionFn(lhs);
+        referenceName = lhs.getFreeReferences()[0];
+        attributeInfo = this.getAttributesInfo(referenceName);
 
         if (filterAction instanceof IsAction) {
           if (rhs instanceof LiteralExpression) {
@@ -919,8 +919,7 @@ return (start < 0 ?'-':'') + parts.join('.');
                 "false": "false",
                 "true": "true"
               }
-            },
-            injective: false
+            }
           };
         }
 
@@ -1024,8 +1023,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             lookup: {
               type: "namespace",
               "namespace": mainAction.lookup
-            },
-            injective: false
+            }
           };
 
           if (retainMissingValue) {

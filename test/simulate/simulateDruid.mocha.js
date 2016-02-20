@@ -515,7 +515,6 @@ describe("simulate Druid", () => {
         {
           "dimension": "color",
           "extractionFn": {
-            "injective": false,
             "lookup": {
               "namespace": 'some_lookup',
               "type": "namespace"
@@ -528,7 +527,6 @@ describe("simulate Druid", () => {
         {
           "dimension": "color",
           "extractionFn": {
-            "injective": false,
             "lookup": {
               "namespace": 'some_lookup',
               "type": "namespace"
@@ -540,6 +538,39 @@ describe("simulate Druid", () => {
         }
       ],
       "type": "or"
+    });
+  });
+
+  it("works on fancy filter [.in(...).not()]", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.in(['D', 'C']).not()"));
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "field": {
+        "fields": [
+          {
+            "dimension": "color",
+            "type": "selector",
+            "value": "D"
+          },
+          {
+            "dimension": "color",
+            "type": "selector",
+            "value": "C"
+          }
+        ],
+        "type": "or"
+      },
+      "type": "not"
+    });
+  });
+
+  it.skip("works on fancy filter (IN IS)", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.in(['D', 'C']) == true"));
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+
     });
   });
 
@@ -986,7 +1017,6 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "isNice",
           "extractionFn": {
-            "injective": false,
             "lookup": {
               "map": {
                 "0": "false",
