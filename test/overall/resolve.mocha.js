@@ -16,9 +16,8 @@ describe("resolve", () => {
         );
 
       expect(() => {
-          return ex.resolve({ foo: 7 });
-        }
-      ).to.throw('went too deep during resolve on: $^^^foo');
+        ex.resolve({ foo: 7 });
+      }).to.throw('went too deep during resolve on: $^^^foo');
     });
 
     it("could not find something in context", () => {
@@ -32,9 +31,8 @@ describe("resolve", () => {
         );
 
       expect(() => {
-          return ex.resolve({ foo: 7 });
-        }
-      ).to.throw('could not resolve $^^foobar because is was not in the context');
+        ex.resolve({ foo: 7 });
+      }).to.throw('could not resolve $^^foobar because is was not in the context');
     });
 
     it("ended up with bad types", () => {
@@ -48,9 +46,8 @@ describe("resolve", () => {
         );
 
       expect(() => {
-          return ex.resolve({ foo: 'bar' });
-        }
-      ).to.throw('add must have input of type NUMBER (is STRING)');
+        ex.resolve({ foo: 'bar' });
+      }).to.throw('add must have input of type NUMBER (is STRING)');
     });
   });
 
@@ -177,7 +174,7 @@ describe("resolve", () => {
       );
     });
 
-    return it.skip("works with sub-expressions", () => {
+    it.skip("works with sub-expressions", () => {
       var datum = {
         Count: 5,
         diamonds: External.fromJS({
@@ -199,12 +196,11 @@ describe("resolve", () => {
         .apply('PercentOfTotal', '$^Count / $Count');
 
       ex = ex.resolve(datum);
-      return console.log('ex.toString(2)', ex.toString(2));
     });
   });
 
 
-  return describe.skip("resolves remotes", () => {
+  describe.skip("resolves remotes", () => {
     var context = {
       diamonds: External.fromJS({
         engine: 'druid',

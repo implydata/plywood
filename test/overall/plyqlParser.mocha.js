@@ -110,44 +110,38 @@ describe("SQL parser", () => {
   describe("SELECT", () => {
     it("should fail on a expression with no columns", () => {
       expect(() => {
-          return Expression.parseSQL("SELECT FROM wiki");
-        }
-      ).to.throw('SQL parse error: Can not have empty column list on `SELECT FROM wiki`');
+        Expression.parseSQL("SELECT FROM wiki");
+      }).to.throw('SQL parse error: Can not have empty column list on `SELECT FROM wiki`');
     });
 
     it("should have a good error for incorrect numeric GROUP BYs", () => {
       expect(() => {
-          return Expression.parseSQL("SELECT page, COUNT() AS 'Count' FROM wiki GROUP BY 12");
-        }
-      ).to.throw("Unknown column '12' in group by statement");
+        Expression.parseSQL("SELECT page, COUNT() AS 'Count' FROM wiki GROUP BY 12");
+      }).to.throw("Unknown column '12' in group by statement");
     });
 
     it("should have a good error SELECT * ... GROUP BY ...", () => {
       expect(() => {
-          return Expression.parseSQL("SELECT * FROM wiki GROUP BY 12");
-        }
-      ).to.throw("can not SELECT * with a GROUP BY");
+        Expression.parseSQL("SELECT * FROM wiki GROUP BY 12");
+      }).to.throw("can not SELECT * with a GROUP BY");
     });
 
     it("should fail gracefully on expressions with multi-column sort", () => {
       expect(() => {
-          return Expression.parseSQL("SELECT page, COUNT() AS 'Count' FROM wiki GROUP BY page ORDER BY page DESC, `Count` ASC");
-        }
-      ).to.throw('plywood does not currently support multi-column ORDER BYs');
+        Expression.parseSQL("SELECT page, COUNT() AS 'Count' FROM wiki GROUP BY page ORDER BY page DESC, `Count` ASC");
+      }).to.throw('plywood does not currently support multi-column ORDER BYs');
     });
 
     it("should fail gracefully on COUNT(DISTINCT)", () => {
       expect(() => {
-          return Expression.parseSQL("COUNT(DISTINCT)");
-        }
-      ).to.throw('COUNT DISTINCT must have expression');
+        Expression.parseSQL("COUNT(DISTINCT)");
+      }).to.throw('COUNT DISTINCT must have expression');
     });
 
     it("should fail gracefully on SUM(DISTINCT blah)", () => {
       expect(() => {
-          return Expression.parseSQL("SUM(DISTINCT blah)");
-        }
-      ).to.throw('can not use DISTINCT for sum aggregator');
+        Expression.parseSQL("SUM(DISTINCT blah)");
+      }).to.throw('can not use DISTINCT for sum aggregator');
     });
 
     it("should parse a simple expression", () => {

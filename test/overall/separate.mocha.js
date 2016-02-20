@@ -16,9 +16,8 @@ var toJS = (sep) => {
 describe("separate", () => {
   it('throws on bad input', () => {
     expect(() => {
-        return Expression.TRUE.separateViaAnd();
-      }
-    ).to.throw('must have refName');
+      Expression.TRUE.separateViaAnd();
+    }).to.throw('must have refName');
   });
 
   it('works with TRUE expression', () => {

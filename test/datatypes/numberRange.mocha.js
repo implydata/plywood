@@ -75,12 +75,11 @@ describe("NumberRange", () => {
   describe("errors", () => {
     it("throws on bad numbers", () => {
       expect(() => {
-          return NumberRange.fromJS({
-            start: 'lol',
-            end: 'wat'
-          });
-        }
-      ).to.throw('`start` must be a number');
+        NumberRange.fromJS({
+          start: 'lol',
+          end: 'wat'
+        });
+      }).to.throw('`start` must be a number');
     });
   });
 
