@@ -37,7 +37,7 @@ module Plywood {
       return this.expression.equals(Expression.EMPTY_STRING);
     }
 
-    protected _performOnSimpleLiteral(literalExpression: LiteralExpression): Expression {
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
       if (literalExpression.equals(Expression.EMPTY_STRING)) {
         return this.expression;
       }

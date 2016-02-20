@@ -82,11 +82,11 @@ module Plywood {
       return null;
     }
 
-    protected _performOnSimpleLiteral(literalExpression: LiteralExpression): Expression {
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
       return this._performOnSimpleWhatever(literalExpression);
     }
 
-    protected _performOnSimpleRef(refExpression: RefExpression): Expression {
+    protected _performOnRef(refExpression: RefExpression): Expression {
       return this._performOnSimpleWhatever(refExpression);
     }
 

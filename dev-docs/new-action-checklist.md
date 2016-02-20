@@ -38,7 +38,7 @@ Let's assume that you are adding an action called `foo bar`
   * Is this action idempotent (`$x.fooBar(blah).fooBar(blah)` => `$x.fooBar(blah)`) or does it generally combine well with itself?
     Implement `_foldWithPrevAction`.
   * Is there a special 'zero' literal that, when acted upon, renders this action is irrelevant (e.g. `r(0).multiply(...whatever...)` => `r(0)`)?
-    Implement `_performOnSimpleLiteral`.
+    Implement `_performOnLiteral`.
   * Is there a special 'zero' condition that, when in the action, nukes the expression (e.g. `(...whatever...).multiply(0)` => `r(0)`)?
     Implement `_nukeExpression`.
   * Is there a special 'one' condition that, when in the action, renders the action useless (e.g. `(...whatever...).multiply(1)` => `(...whatever...)`)?

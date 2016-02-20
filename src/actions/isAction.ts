@@ -31,7 +31,7 @@ module Plywood {
       return `(${inputSQL}=${expressionSQL})`;
     }
 
-    protected _performOnSimpleLiteral(literalExpression: LiteralExpression): Expression {
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
       var expression = this.expression;
       if (!expression.isOp('literal')) {
         return new IsAction({ expression: literalExpression }).performOnSimple(expression);
@@ -39,7 +39,7 @@ module Plywood {
       return null;
     }
 
-    protected _performOnSimpleRef(refExpression: RefExpression): Expression {
+    protected _performOnRef(refExpression: RefExpression): Expression {
       if (this.expression.equals(refExpression)) {
         return Expression.TRUE;
       }

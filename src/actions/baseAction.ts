@@ -335,7 +335,7 @@ module Plywood {
      * Special logic to perform this action on a literal
      * @param literalExpression the expression on which to perform
      */
-    protected _performOnSimpleLiteral(literalExpression: LiteralExpression): Expression {
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
       return null;
     }
 
@@ -343,7 +343,7 @@ module Plywood {
      * Special logic to perform this action on a reference
      * @param refExpression the expression on which to perform
      */
-    protected _performOnSimpleRef(refExpression: RefExpression): Expression {
+    protected _performOnRef(refExpression: RefExpression): Expression {
       return null;
     }
 
@@ -395,11 +395,11 @@ module Plywood {
           });
         }
 
-        var special = this._performOnSimpleLiteral(simpleExpression);
+        var special = this._performOnLiteral(simpleExpression);
         if (special) return special;
 
       } else if (simpleExpression instanceof RefExpression) {
-        var special = this._performOnSimpleRef(simpleExpression);
+        var special = this._performOnRef(simpleExpression);
         if (special) return special;
 
       } else if (simpleExpression instanceof ChainExpression) {

@@ -65,7 +65,7 @@ module Plywood {
       return this.expression.actionize(this.action);
     }
 
-    protected _performOnSimpleLiteral(literalExpression: LiteralExpression): Expression {
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
       if (literalExpression.equals(Expression.TRUE)) {
         return this.expression;
       }

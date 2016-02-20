@@ -42,7 +42,7 @@ module Plywood {
       return null;
     }
 
-    protected _performOnSimpleLiteral(literalExpression: LiteralExpression): Expression {
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
       // 5 >= x
       return (new InAction({
         expression: new LiteralExpression({

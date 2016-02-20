@@ -41,7 +41,7 @@ module Plywood {
       return this.expression.equals(Expression.ONE);
     }
 
-    protected _performOnSimpleRef(simpleExpression: RefExpression): Expression {
+    protected _performOnRef(simpleExpression: RefExpression): Expression {
       if (this.expression.equals(Expression.ZERO)) return simpleExpression;
       return null;
     }
