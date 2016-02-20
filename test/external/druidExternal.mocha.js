@@ -932,7 +932,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         .apply('Count', '$wiki.count()');
 
       it("should work with [] return", (testComplete) => {
-        return ex.compute({ wiki: nullExternal })
+        ex.compute({ wiki: nullExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([
               { Count: 0 }
@@ -949,7 +949,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         .sort('$Time', 'ascending');
 
       it("should work with [] return", (testComplete) => {
-        return ex.compute({ wiki: nullExternal })
+        ex.compute({ wiki: nullExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([]);
             testComplete();
@@ -966,7 +966,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         .limit(5);
 
       it("should work with [] return", (testComplete) => {
-        return ex.compute({ wiki: nullExternal })
+        ex.compute({ wiki: nullExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([]);
             testComplete();
@@ -975,7 +975,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       });
 
       it("should work with [{result:[]}] return", (testComplete) => {
-        return ex.compute({ wiki: emptyExternal })
+        ex.compute({ wiki: emptyExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([]);
             testComplete();
@@ -1008,7 +1008,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         .apply('wiki', '$wiki')// for now
         .apply('Count', '$wiki.count()');
 
-      return ex.compute({ wiki: crapExternal })
+      ex.compute({ wiki: crapExternal })
         .then(() => {
           throw new Error('DID_NOT_ERROR');
         })
@@ -1024,7 +1024,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');
 
-      return ex.compute({ wiki: crapExternal })
+      ex.compute({ wiki: crapExternal })
         .then(() => {
           throw new Error('DID_NOT_ERROR');
         })

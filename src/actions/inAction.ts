@@ -72,6 +72,27 @@ module Plywood {
       ) return Expression.FALSE;
       return null;
     }
+
+    private _performOnSimpleWhatever(ex: Expression): Expression {
+      var expression = this.expression;
+      var setValue: Set = expression.getLiteralValue();
+      if (setValue && 'SET/' + ex.type === expression.type && setValue.size() === 1) {
+        return new IsAction({ expression: r(setValue.elements[0]) }).performOnSimple(ex);
+      }
+      return null;
+    }
+
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+      return this._performOnSimpleWhatever(literalExpression);
+    }
+
+    protected _performOnRef(refExpression: RefExpression): Expression {
+      return this._performOnSimpleWhatever(refExpression);
+    }
+
+    protected _performOnSimpleChain(chainExpression: ChainExpression): Expression {
+      return this._performOnSimpleWhatever(chainExpression);
+    }
   }
 
   Action.register(InAction);

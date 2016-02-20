@@ -75,7 +75,7 @@ module Plywood {
       return null;
     }
 
-    protected _performOnChain(chainExpression: ChainExpression): Expression {
+    protected _performOnSimpleChain(chainExpression: ChainExpression): Expression {
       var { expression } = this;
 
       var andExpressions = chainExpression.getExpressionPattern('and');

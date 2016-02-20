@@ -31,7 +31,7 @@ describe("compute native nontrivial data", function() {
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)');
 
-    return ex.compute({ data: ds })
+    ex.compute({ data: ds })
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {

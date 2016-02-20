@@ -298,15 +298,14 @@ describe("DruidExternal Introspection", () => {
 
   it("errors on bad introspectionStrategy", () => {
     expect(() => {
-        return External.fromJS({
-          engine: 'druid',
-          dataSource: 'wikipedia',
-          timeAttribute: 'time',
-          introspectionStrategy: 'crowd-source',
-          requester: requesterFail
-        });
-      }
-    ).to.throw("Invalid introspectionStrategy 'crowd-source'");
+      External.fromJS({
+        engine: 'druid',
+        dataSource: 'wikipedia',
+        timeAttribute: 'time',
+        introspectionStrategy: 'crowd-source',
+        requester: requesterFail
+      });
+    }).to.throw("Invalid introspectionStrategy 'crowd-source'");
   });
 
   it("does an introspect with general failure", (testComplete) => {

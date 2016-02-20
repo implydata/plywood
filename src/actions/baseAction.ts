@@ -367,7 +367,7 @@ module Plywood {
      * Special logic to perform this action on a chain
      * @param chainExpression the expression on which to perform
      */
-    protected _performOnChain(chainExpression: ChainExpression): Expression {
+    protected _performOnSimpleChain(chainExpression: ChainExpression): Expression {
       return null;
     }
 
@@ -416,7 +416,7 @@ module Plywood {
           return lastAction.performOnSimple(beforeAction.performOnSimple(simpleExpression.popAction()));
         }
 
-        var special = this._performOnChain(simpleExpression);
+        var special = this._performOnSimpleChain(simpleExpression);
         if (special) return special;
 
       }

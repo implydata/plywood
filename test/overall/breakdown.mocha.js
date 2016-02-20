@@ -38,7 +38,7 @@ describe.skip("breakdown", () => {
 
     ex = ex.referenceCheck(context);
     expect(() => {
-      return ex.breakdownByDataset('b');
+      ex.breakdownByDataset('b');
     }).to.throw();
   });
 
@@ -47,7 +47,7 @@ describe.skip("breakdown", () => {
 
     ex = ex.referenceCheck(context);
     expect(() => {
-      return ex.breakdownByDataset('b');
+      ex.breakdownByDataset('b');
     }).to.throw();
   });
 

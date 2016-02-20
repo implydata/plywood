@@ -14,10 +14,12 @@ module Plywood {
 
     public getOutputType(inputType: string): string {
       var expressionType = this.expression.type;
-      if (expressionType && expressionType !== 'NULL') {
-        this._checkInputTypes(inputType, expressionType);
-      } else if (inputType && inputType !== 'NULL' && inputType.indexOf('SET/') !== 0) {
-        throw new Error(`${this.action} must have input of type 'SET/*' (is ${inputType})`);
+      if (expressionType && expressionType !== 'NULL' && inputType && inputType !== 'NULL') {
+        var setInputType = inputType.indexOf('SET/') === 0 ? inputType : ('SET/' + inputType);
+        var setExpressionType = expressionType.indexOf('SET/') === 0 ? expressionType : ('SET/' + expressionType);
+        if (setInputType !== setExpressionType) {
+          throw new Error(`type mismatch in overlap action: ${inputType} is incompatible with ${expressionType}`);
+        }
       }
       return 'BOOLEAN';
     }
@@ -39,23 +41,32 @@ module Plywood {
     //  return `(${inputSQL}=${expressionSQL})`;
     //}
 
-    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
-      if (literalExpression.equals(Expression.EMPTY_SET)) return Expression.FALSE;
-
-      var { expression } = this;
-      if (!expression.isOp('literal')) return expression.overlap(literalExpression);
-
+    protected _nukeExpression(): Expression {
+      if (this.expression.equals(Expression.EMPTY_SET)) return Expression.FALSE;
       return null;
+    }
+
+    private _performOnSimpleWhatever(ex: Expression): Expression {
+      var expression = this.expression;
+      if ('SET/' + ex.type === expression.type) {
+        return new InAction({ expression }).performOnSimple(ex);
+      }
+      return null;
+    }
+
+    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+      var { expression } = this;
+      if (!expression.isOp('literal')) return new OverlapAction({ expression: literalExpression }).performOnSimple(expression);
+
+      return this._performOnSimpleWhatever(literalExpression);
     }
 
     protected _performOnRef(refExpression: RefExpression): Expression {
-      if (this.expression.equals(Expression.EMPTY_SET)) return Expression.FALSE;
-      return null;
+      return this._performOnSimpleWhatever(refExpression);
     }
 
-    protected _performOnChain(chainExpression: ChainExpression): Expression {
-      if (this.expression.equals(Expression.EMPTY_SET)) return Expression.FALSE;
-      return null;
+    protected _performOnSimpleChain(chainExpression: ChainExpression): Expression {
+      return this._performOnSimpleWhatever(chainExpression);
     }
   }
 

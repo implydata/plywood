@@ -117,44 +117,40 @@ describe("Expression", () => {
   describe("errors", () => {
     it("does not like an expression without op", () => {
       expect(() => {
-          return Expression.fromJS({
-            name: 'hello'
-          });
-        }
-      ).to.throw('op must be defined');
+        Expression.fromJS({
+          name: 'hello'
+        });
+      }).to.throw('op must be defined');
     });
 
     it("does not like an expression with a bad op", () => {
       expect(() => {
-          return Expression.fromJS({
-            op: 42
-          });
-        }
-      ).to.throw('op must be a string');
+        Expression.fromJS({
+          op: 42
+        });
+      }).to.throw('op must be a string');
     });
 
     it("does not like an expression with a unknown op", () => {
       expect(() => {
-          return Expression.fromJS({
-            op: 'this was once an empty file'
-          });
-        }
-      ).to.throw("unsupported expression op 'this was once an empty file'");
+        Expression.fromJS({
+          op: 'this was once an empty file'
+        });
+      }).to.throw("unsupported expression op 'this was once an empty file'");
     });
 
     it("does not like an expression with a unknown op", () => {
       expect(() => {
-          return Expression.fromJS({
-            op: 'chain',
-            expression: { op: 'ref', name: 'diamonds' },
-            actions: {
-              action: 'apply',
-              name: 'five',
-              expression: { op: 'literal', value: 5 }
-            }
-          });
-        }
-      ).to.throw("chain `actions` must be an array");
+        Expression.fromJS({
+          op: 'chain',
+          expression: { op: 'ref', name: 'diamonds' },
+          actions: {
+            action: 'apply',
+            name: 'five',
+            expression: { op: 'literal', value: 5 }
+          }
+        });
+      }).to.throw("chain `actions` must be an array");
     });
   });
 
@@ -273,7 +269,7 @@ describe("Expression", () => {
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    return it.skip('works in complex case', () => {
+    it.skip('works in complex case', () => {
       var ex1 = $('data').sum('$x + $y - $z * 5 + 6');
       var ex2 = $('data').sum($x).add('$data.sum($y)', '(5 * $data.sum($z)).negate()', '6 * $data.count()');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());

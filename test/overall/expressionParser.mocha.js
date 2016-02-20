@@ -13,9 +13,8 @@ describe("expression parser", () => {
   describe("errors", () => {
     it("should not get confused with parsable expressions in strange places", () => {
       expect(() => {
-          return Expression.parse("ply().apply($x + 1, $x + 1)");
-        }
-      ).to.throw('could not extract a string out of');
+        Expression.parse("ply().apply($x + 1, $x + 1)");
+      }).to.throw('could not extract a string out of');
     });
   });
 
@@ -285,9 +284,8 @@ describe("expression parser", () => {
 
     it("should complain on identity misuse (on non numbers)", () => {
       expect(() => {
-          return Expression.parse("+'poo'");
-        }
-      ).to.throw("Expression parse error: subtract must have expression of type NUMBER (is STRING) on `+\'poo\'`");
+        Expression.parse("+'poo'");
+      }).to.throw("Expression parse error: subtract must have expression of type NUMBER (is STRING) on `+\'poo\'`");
     });
 
     it("should parse leading number in param", () => {

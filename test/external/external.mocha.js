@@ -119,15 +119,14 @@ describe("External", () => {
   describe("fails on version too low", () => {
     it("survives", () => {
       expect(() => {
-          return External.fromJS({
-            engine: 'druid',
-            dataSource: 'wiki',
-            timeAttribute: 'time',
-            druidVersion: '0.7.3',
-            hasOwnProperty: 'troll'
-          });
-        }
-      ).to.throw('only druidVersions >= 0.8.0 are supported');
+        External.fromJS({
+          engine: 'druid',
+          dataSource: 'wiki',
+          timeAttribute: 'time',
+          druidVersion: '0.7.3',
+          hasOwnProperty: 'troll'
+        });
+      }).to.throw('only druidVersions >= 0.8.0 are supported');
     });
   });
 
@@ -461,7 +460,7 @@ describe("External", () => {
       ]);
     });
 
-    return it.skip("a join of two splits", () => {
+    it.skip("a join of two splits", () => {
       var ex = $('wiki').split('$page', 'Page').join($('wikiCmp').split('$page', 'Page'))
         .apply('wiki', '$wiki.filter($page = $^Page)')
         .apply('wikiCmp', '$wikiCmp.filter($page = $^Page)')
