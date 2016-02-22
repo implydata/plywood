@@ -3,6 +3,9 @@
 ## General Setup
 
 1. [Install Docker](https://docs.docker.com/engine/installation/)
+1. Increase docker machine memory to 4GB 
+  a. Open Oracle VM VirtualBox Manager (installed with docker)
+  b. Under default machine -> Settings -> System -> Base Memory -> 4096MB
 2. Run `./make-data-files`
 3. If you've not set the IMPLY_PROJECTS environment variable, set it to the path to where Imply projects live
 
