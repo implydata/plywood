@@ -176,6 +176,7 @@ describe("Cross Functional", function() {
     }));
   });
 
+
   describe("splits", () => {
     it('works with total', equalityTest({
       executorNames: ['druid', 'mysql'],
@@ -352,6 +353,7 @@ describe("Cross Functional", function() {
 
   });
 
+
   describe("applies", () => {
     it('works with all sorts of applies', equalityTest({
       executorNames: ['druid', 'mysql'],
@@ -365,6 +367,8 @@ describe("Cross Functional", function() {
         .apply('MinDelta', '$wiki.min($min_delta)')
         .apply('MaxDelta', '$wiki.max($max_delta)')
         .apply('AbsDeltaX2', '$wiki.sum($delta.absolute()) * 2')
+        .apply('SumAdded^0.6', '$wiki.sum($added) ^ 0.6')
+        .apply('Sum(Added^0.6)', '$wiki.sum($added ^ 0.6)') // This is meaningless since added is aggregated
         .sort('$Channel', 'descending')
         .limit(50)
     }));
@@ -385,6 +389,7 @@ describe("Cross Functional", function() {
     }));
 
   });
+
 
   describe("having filter", () => {
     it('works with greaterThan', equalityTest({

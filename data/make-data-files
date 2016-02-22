@@ -3,6 +3,8 @@
 # Force this to the working directory
 cd "$(dirname "$0")"
 
+mkdir tmp
+
 # Trim milliseconds for time and seconds for some time later
 echo "Extracting and transforming...";
 gzcat wikipedia-2015-09-12.gz \
