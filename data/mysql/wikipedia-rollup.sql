@@ -1,7 +1,11 @@
+DROP TABLE IF EXISTS `wikipedia`;
+
 CREATE TABLE `wikipedia`
 SELECT
-  /* Dimensions */
+  /* Time Spec :-) */
   CONVERT(DATE_FORMAT(`time`, "%Y-%m-%d %H:%i:00"), DATETIME) AS "time", /* Rollup queryGranularity: minute */
+
+  /* Dimensions */
   `sometimeLater`,
   `channel`,
   `cityName`,

@@ -66,6 +66,10 @@ module Plywood {
       return new RefExpression(refValue);
     }
 
+    static validType(typeName: string): boolean {
+      return hasOwnProperty(POSSIBLE_TYPES, typeName);
+    }
+
     static toSimpleName(variableName: string): string {
       if (!RefExpression.SIMPLE_NAME_REGEXP.test(variableName)) {
         variableName = variableName.replace(/\W/g, '');
@@ -98,7 +102,7 @@ module Plywood {
 
       var myType = parameters.type;
       if (myType) {
-        if (!hasOwnProperty(POSSIBLE_TYPES, myType)) {
+        if (!RefExpression.validType(myType)) {
           throw new TypeError(`unsupported type '${myType}'`);
         }
         this.type = myType;

@@ -9,38 +9,34 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
---
--- Table structure for table `WIKIPEDIA`
---
-
 DROP TABLE IF EXISTS `wikipedia_raw`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `wikipedia_raw` (
   `time` datetime NOT NULL,
   `sometimeLater` timestamp NOT NULL,
-  `channel` varchar(6) NOT NULL,
-  `cityName` blob,
-  `comment` blob,
+  `channel` varchar(255) NOT NULL,
+  `cityName` varchar(255) DEFAULT NULL,
+  `comment` varchar(300) NOT NULL,
   `commentLength` int(11) NOT NULL,
-  `countryIsoCode` varchar(4) DEFAULT NULL,
-  `countryName` varchar(27) DEFAULT NULL,
+  `countryIsoCode` varchar(255) DEFAULT NULL,
+  `countryName` varchar(255) DEFAULT NULL,
   `isAnonymous` tinyint(1) NOT NULL,
   `isMinor` tinyint(1) NOT NULL,
   `isNew` tinyint(1) NOT NULL,
   `isRobot` tinyint(1) NOT NULL,
   `isUnpatrolled` tinyint(1) NOT NULL,
   `metroCode` int(11) DEFAULT NULL,
-  `namespace` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `page` blob,
-  `regionIsoCode` varchar(4) DEFAULT NULL,
-  `regionName` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `user` blob,
+  `namespace` varchar(255) DEFAULT NULL,
+  `page` varchar(255) DEFAULT NULL,
+  `regionIsoCode` varchar(255) DEFAULT NULL,
+  `regionName` varchar(255) DEFAULT NULL,
+  `user` varchar(255) DEFAULT NULL,
   `delta` int(11) NOT NULL,
   `added` int(11) NOT NULL,
   `deleted` int(11) NOT NULL,
   `deltaByTen` float NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

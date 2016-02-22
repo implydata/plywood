@@ -136,8 +136,8 @@ module Plywood {
       }
       this.name = parameters.name;
 
-      if (hasOwnProperty(parameters, 'type') && typeof parameters.type !== "string") {
-        throw new Error("type must be a string");
+      if (hasOwnProperty(parameters, 'type') && !RefExpression.validType(parameters.type)) {
+        throw new Error(`invalid type: ${parameters.type}`);
       }
       this.type = parameters.type;
 

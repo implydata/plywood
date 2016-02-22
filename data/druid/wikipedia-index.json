@@ -12,7 +12,7 @@
       "dataSource" : "wikipedia",
       "granularitySpec" : {
         "type" : "uniform",
-        "segmentGranularity" : "hour",
+        "segmentGranularity" : "day",
         "queryGranularity" : "minute",
         "intervals" : ["2015-09-12/2015-09-13"]
       },

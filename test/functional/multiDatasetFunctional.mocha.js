@@ -39,7 +39,7 @@ var attributes = [
   { name: "channel", type: 'STRING' },
   { name: "cityName", type: 'STRING' },
   { name: "comment", type: 'STRING' },
-  { name: "commentLength", type: 'Number' },
+  { name: "commentLength", type: 'NUMBER' },
   { name: "countryIsoCode", type: 'STRING' },
   { name: "countryName", type: 'STRING' },
   { name: "isAnonymous", type: 'BOOLEAN' },

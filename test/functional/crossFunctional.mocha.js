@@ -39,7 +39,7 @@ var attributes = [
   { name: "channel", type: 'STRING' },
   { name: "cityName", type: 'STRING' },
   { name: "comment", type: 'STRING' },
-  { name: "commentLength", type: 'Number' },
+  { name: "commentLength", type: 'NUMBER' },
   { name: "countryIsoCode", type: 'STRING' },
   { name: "countryName", type: 'STRING' },
   { name: "isAnonymous", type: 'BOOLEAN' },
@@ -166,6 +166,14 @@ describe("Cross Functional", function() {
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
+
+    it('works with match filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression:  ply()
+        .apply('wiki', '$wiki.filter($cityName.match("^S[ab]n .{3,6}$"))')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
   });
 
   describe("splits", () => {
@@ -212,6 +220,33 @@ describe("Cross Functional", function() {
     it('works with STRING split (sort on apply)', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').split('$channel', 'Channel')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(20)
+    }));
+
+    it('works with STRING split (nullable dimension)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split('$cityName', 'City')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(20)
+    }));
+
+    it('works with NUMBER split (numberBucket) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("commentLength").numberBucket(10), 'CommentLength10')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$CommentLength10', 'ascending')
+        .limit(20) // To force a topN (for now)
+    }));
+
+    it('works with NUMBER split (numberBucket) (sort on apply)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("commentLength").numberBucket(10), 'CommentLength10')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
