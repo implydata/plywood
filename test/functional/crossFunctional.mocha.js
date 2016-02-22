@@ -159,6 +159,14 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with .overlap() filter [dimension without NULLs]', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($channel.overlap(["en", "simple"]))')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with contains filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
@@ -171,6 +179,22 @@ describe("Cross Functional", function() {
       executorNames: ['druid', 'mysql'],
       expression:  ply()
         .apply('wiki', '$wiki.filter($cityName.match("^S[ab]n .{3,6}$"))')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with lessThan filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($commentLength < 50)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with numeric range', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(20 <= $commentLength and $commentLength < 50)')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
