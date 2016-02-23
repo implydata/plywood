@@ -278,6 +278,15 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
+    it.skip('works with NUMBER split (expression: ^ 2) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split("$commentLength ^ 2", 'CommentLengthSq')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$CommentLengthSq', 'descending')
+        .limit(20) // To force a topN (for now)
+    }));
+
     it('works with TIME split (timeBucket) (sort on split)', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
