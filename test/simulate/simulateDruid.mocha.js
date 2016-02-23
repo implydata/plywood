@@ -146,12 +146,12 @@ describe("simulate Druid", () => {
         "aggregations": [
           {
             "fieldName": "tax",
-            "name": "_sd_0",
+            "name": "!T_0",
             "type": "doubleSum"
           },
           {
             "fieldName": "carat",
-            "name": "_sd_1",
+            "name": "!T_1",
             "type": "doubleSum"
           },
           {
@@ -211,7 +211,7 @@ describe("simulate Druid", () => {
                 "type": "fieldAccess"
               },
               {
-                "fieldName": "_sd_0",
+                "fieldName": "!T_0",
                 "type": "fieldAccess"
               }
             ],
@@ -226,7 +226,7 @@ describe("simulate Druid", () => {
                 "type": "fieldAccess"
               },
               {
-                "fieldName": "_sd_0",
+                "fieldName": "!T_0",
                 "type": "fieldAccess"
               }
             ],
@@ -253,11 +253,11 @@ describe("simulate Druid", () => {
               {
                 "fields": [
                   {
-                    "fieldName": "_sd_0",
+                    "fieldName": "!T_0",
                     "type": "fieldAccess"
                   },
                   {
-                    "fieldName": "_sd_1",
+                    "fieldName": "!T_1",
                     "type": "fieldAccess"
                   }
                 ],
@@ -276,7 +276,7 @@ describe("simulate Druid", () => {
                 "type": "fieldAccess"
               },
               {
-                "fieldName": "_sd_0",
+                "fieldName": "!T_0",
                 "type": "fieldAccess"
               }
             ],
@@ -1607,12 +1607,12 @@ describe("simulate Druid", () => {
         "aggregations": [
           {
             "fieldName": "price",
-            "name": "_sd_0",
+            "name": "!T_0",
             "type": "doubleSum"
           },
           {
             "fieldName": "tax",
-            "name": "_sd_1",
+            "name": "!T_1",
             "type": "doubleSum"
           }
         ],
@@ -1629,11 +1629,11 @@ describe("simulate Druid", () => {
           {
             "fields": [
               {
-                "fieldName": "_sd_0",
+                "fieldName": "!T_0",
                 "type": "fieldAccess"
               },
               {
-                "fieldName": "_sd_1",
+                "fieldName": "!T_1",
                 "type": "fieldAccess"
               }
             ],
@@ -1738,7 +1738,7 @@ describe("simulate Druid", () => {
             "type": "doubleMin"
           },
           {
-            "name": "_sd_0",
+            "name": "!T_0",
             "type": "count"
           }
         ],
@@ -1751,7 +1751,7 @@ describe("simulate Druid", () => {
           {
             "fields": [
               {
-                "fieldName": "_sd_0",
+                "fieldName": "!T_0",
                 "type": "fieldAccess"
               },
               {

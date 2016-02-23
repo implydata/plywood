@@ -1,13 +1,17 @@
 #!/bin/bash -eu
-echo "json to SQL"
 
-echo "SELECT 'Do this' AS Lets" > wikipedia.sql;
+# Force this to the working directory
+cd "$(dirname "$0")"
 
-cat wikipedia.json \
+echo "Converting JSON to SQL inserts"
+
+echo "SELECT 'Do this' AS Lets" > tmp/wikipedia-raw.sql;
+
+cat tmp/wikipedia.json \
 | jq -c -r '
   {
-    time: .time | sub(":00Z"; ":00"),
-    sometimeLater: .sometimeLater | sub(":00Z"; ":00"),
+    time: .time | sub("Z"; ""),
+    sometimeLater: .sometimeLater | sub("Z"; ""),
     channel,
     cityName,
     comment,
@@ -55,10 +59,10 @@ cat wikipedia.json \
     .added,
     .deleted,
     .deltaByTen
-	]
-	| tostring
-	| .[1:-1]
-	| ((if (input_line_number - 1) % 100 == 0 then "; INSERT INTO wikipedia VALUES (" else ", (" end) + . + ")")
-' >> wikipedia.sql
+  ]
+  | tostring
+  | .[1:-1]
+  | ((if (input_line_number - 1) % 100 == 0 then "; INSERT INTO wikipedia_raw VALUES (" else ", (" end) + . + ")")
+' >> tmp/wikipedia-raw.sql
 
-echo ";" >> wikipedia.sql;
+echo ";" >> tmp/wikipedia-raw.sql;

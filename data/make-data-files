@@ -3,13 +3,15 @@
 # Force this to the working directory
 cd "$(dirname "$0")"
 
-echo "Extracting and making schema...";
+mkdir -p tmp
 
+# Trim milliseconds for time and seconds for some time later
+echo "Extracting and transforming...";
 gzcat wikipedia-2015-09-12.gz \
   | jq -c '
     select("2015-09-12" < .timestamp and .timestamp < "2015-09-13") |
     {
-      time: .timestamp | sub(":[0-9]{2}.[0-9]{3}Z"; ":00Z"),
+      time: .timestamp | sub(".[0-9]{3}Z"; "Z"),
       sometimeLater: .timestamp | sub("2015-"; "2016-") | sub(":[0-9]{2}.[0-9]{3}Z"; ":00Z"),
       channel: .channel | sub("#"; "") | sub(".wikipedia"; ""),
       cityName,
@@ -28,20 +30,15 @@ gzcat wikipedia-2015-09-12.gz \
       regionIsoCode,
       regionName,
       user,
-      userChars: .user | split(""),
+      userChars: .user | ascii_upcase | split("") | unique,
       delta,
       added: [.delta, 0] | max,
       deleted: [-.delta, 0] | max,
       deltaByTen: (.delta / 10)
     }' \
-  > wikipedia.json
+  > tmp/wikipedia.json
 
 echo "Sampling...";
+perl -ne'print if $. % 10 == 0' tmp/wikipedia.json > tmp/wikipedia-sampled.json
 
-perl -ne'print if $. % 10 == 0' wikipedia.json \
-  > wikipedia-sampled.json
-
-echo "Done...";
-
-echo "Starting with MySQL...";
 ./make-sql

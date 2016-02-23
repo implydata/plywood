@@ -38,6 +38,7 @@ describe("MySQL Functional", function() {
             { name: 'language', type: 'STRING' },
             { name: 'page', type: 'STRING' },
             { name: 'namespace', type: 'STRING' },
+            { name: 'count', type: 'NUMBER' },
             { name: 'added', type: 'NUMBER' },
             { name: 'regionName', type: 'STRING' },
             { name: 'countryName', type: 'STRING' },
@@ -151,7 +152,7 @@ describe("MySQL Functional", function() {
 
     it("works with boolean GROUP BYs", (testComplete) => {
       var ex = $("wiki").split($("channel").is("en"), 'ChannelIsEn')
-        .apply('Count', $('wiki').count())
+        .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending');
 
       basicExecutor(ex)
@@ -180,7 +181,7 @@ describe("MySQL Functional", function() {
               'Channel': "$channel",
               'TimeByHour': '$time.timeBucket(PT1H)'
             })
-            .apply('Count', $('wiki').count())
+            .apply('Count', $('wiki').sum('$count'))
             .sort('$Count', 'descending')
             .limit(4)
         );
@@ -346,17 +347,16 @@ describe("MySQL Functional", function() {
       }
     });
 
-
     it("fallback doesn't happen if not null", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki'))
-        .apply('added', $('wiki').average($('added')).fallback(2));
+        .apply('added', $('wiki').sum($('added')).fallback(2));
 
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "added": 248.173
+              "added": 97393743
             }
           ]);
           testComplete();

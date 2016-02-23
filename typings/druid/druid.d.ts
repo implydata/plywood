@@ -155,7 +155,8 @@ declare module Druid {
     // http://druid.io/docs/latest/LimitSpec.html
     interface OrderByColumnSpec {
         dimension: string;
-        direction: string;
+        direction?: string;
+        dimensionOrder?: string;
     }
     interface LimitSpec {
         type: string;

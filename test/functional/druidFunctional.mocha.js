@@ -165,7 +165,7 @@ describe("Druid Functional", function() {
                   ]
                 },
                 {
-                  "Count": 240,
+                  "Count": 241,
                   "Page": "Jeremy Corbyn",
                   "Time": [
                     {
@@ -233,7 +233,7 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "UniquePages1": 278906.2678236051,
+              "UniquePages1": 279107.1992807899,
               "UniquePages2": 281588.11316378025,
               "UniqueUsers1": 39220.49269175933,
               "UniqueUsers2": 37712.65497107271
@@ -335,20 +335,20 @@ describe("Druid Functional", function() {
             {
               "UserChars": [
                 {
-                  "Count": 279884,
-                  "UserChar": "o"
+                  "Count": 222292,
+                  "UserChar": "O"
                 },
                 {
-                  "Count": 255163,
-                  "UserChar": "t"
+                  "Count": 221424,
+                  "UserChar": "A"
                 },
                 {
-                  "Count": 227403,
-                  "UserChar": "i"
+                  "Count": 215526,
+                  "UserChar": "T"
                 },
                 {
-                  "Count": 226241,
-                  "UserChar": "a"
+                  "Count": 176567,
+                  "UserChar": "B"
                 }
               ]
             }
@@ -404,7 +404,7 @@ describe("Druid Functional", function() {
               "CountSquareRoot": 607.3228136666694,
               "CountSquared": 136043683281,
               "NumEnPages": 57395.11747644384,
-              "NumPages": 262261.948514021,
+              "NumPages": 262439.60590555385,
               "One": 1,
               "isNew": false
             },
@@ -661,7 +661,7 @@ describe("Druid Functional", function() {
             {
               "Pages": [
                 {
-                  "Count": 316,
+                  "Count": 318,
                   "Page": "!!!<Jeremy Corbyn>!!!"
                 },
                 {
@@ -669,7 +669,7 @@ describe("Druid Functional", function() {
                   "Page": "!!!<User:Cyde/List of candidates for speedy deletion/Subpage>!!!"
                 },
                 {
-                  "Count": 223,
+                  "Count": 228,
                   "Page": "!!!<Wikipedia:Administrators' noticeboard/Incidents>!!!"
                 }
               ]
@@ -735,7 +735,7 @@ describe("Druid Functional", function() {
                   "Page": null
                 },
                 {
-                  "Count": 21,
+                  "Count": 22,
                   "Page": "75.108.94"
                 },
                 {

@@ -1,0 +1,4 @@
+#!/bin/bash -eu
+
+echo "Sending index job";
+bin/post-index-task -f /opt/data/druid/wikipedia-index.json

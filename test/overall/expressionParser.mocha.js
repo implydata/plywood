@@ -159,6 +159,13 @@ describe("expression parser", () => {
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should work with fancy ref name type", () => {
+      var ex1 = Expression.parse("${!T_0}");
+      var ex2 = $("!T_0");
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("should work with NUMBER type", () => {
       var ex1 = Expression.parse("$x:NUMBER");
       var ex2 = $("x", "NUMBER");

@@ -1,5 +1,6 @@
 var { expect } = require("chai");
 var Q = require('q');
+var { sane } = require('../utils');
 
 var { WallTime } = require('chronoshift');
 if (!WallTime.rules) {
@@ -82,11 +83,13 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      expect(druidExternal.applies.join('\n')).to.equal(`apply(Count,$wiki:DATASET.count())
-apply(Added,$wiki:DATASET.sum($added:NUMBER))
-apply(_sd_0,$wiki:DATASET.max($added:NUMBER))
-apply(_sd_1,$wiki:DATASET.min($deleted:NUMBER))
-apply(Volatile,$_sd_0:NUMBER.subtract($_sd_1:NUMBER))`);
+      expect(druidExternal.applies.join('\n')).to.equal(sane`
+        apply(Count,$wiki:DATASET.count())
+        apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        apply("!T_0",$wiki:DATASET.max($added:NUMBER))
+        apply("!T_1",$wiki:DATASET.min($deleted:NUMBER))
+        apply(Volatile,$\{!T_0}:NUMBER.subtract($\{!T_1}:NUMBER))
+      `);
     });
 
     it("breaks up correctly in absolute cases", () => {
@@ -100,10 +103,12 @@ apply(Volatile,$_sd_0:NUMBER.subtract($_sd_1:NUMBER))`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      expect(druidExternal.applies.join('\n')).to.equal(`apply(_sd_0,$wiki:DATASET.sum($added:NUMBER))
-apply(_sd_1,$wiki:DATASET.sum($deleted:NUMBER))
-apply(AddedByDeleted,$_sd_0:NUMBER.divide($_sd_1:NUMBER))
-apply(abs,$AddedByDeleted:NUMBER.absolute())`);
+      expect(druidExternal.applies.join('\n')).to.equal(sane`
+        apply("!T_0",$wiki:DATASET.sum($added:NUMBER))
+        apply("!T_1",$wiki:DATASET.sum($deleted:NUMBER))
+        apply(AddedByDeleted,$\{!T_0}:NUMBER.divide($\{!T_1}:NUMBER))
+        apply(abs,$AddedByDeleted:NUMBER.absolute())
+      `);
     });
 
     it("breaks up correctly in case of duplicate name", () => {
@@ -118,10 +123,12 @@ apply(abs,$AddedByDeleted:NUMBER.absolute())`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      expect(druidExternal.applies.join('\n')).to.equal(`apply(Count,$wiki:DATASET.count())
-apply(Added,$wiki:DATASET.sum($added:NUMBER))
-apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
-apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
+      expect(druidExternal.applies.join('\n')).to.equal(sane`
+        apply(Count,$wiki:DATASET.count())
+        apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        apply("!T_0",$wiki:DATASET.sum($deleted:NUMBER))
+        apply(Volatile,$Added:NUMBER.subtract($\{!T_0}:NUMBER))
+      `);
     });
 
     it("breaks up correctly in case of variable reference", () => {
@@ -136,10 +143,12 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      expect(druidExternal.applies.join('\n')).to.equal(`apply(Count,$wiki:DATASET.count())
-apply(Added,$wiki:DATASET.sum($added:NUMBER))
-apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
-apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
+      expect(druidExternal.applies.join('\n')).to.equal(sane`
+        apply(Count,$wiki:DATASET.count())
+        apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        apply("!T_0",$wiki:DATASET.sum($deleted:NUMBER))
+        apply(Volatile,$Added:NUMBER.subtract($\{!T_0}:NUMBER))
+      `);
     });
 
     it("breaks up correctly in complex case", () => {
@@ -154,11 +163,13 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      expect(druidExternal.applies.join('\n')).to.equal(`apply(Deleted,$wiki:DATASET.sum($deleted:NUMBER))
-apply(_sd_0,$wiki:DATASET.sum($added:NUMBER))
-apply(AddedByDeleted,$_sd_0:NUMBER.divide($Deleted:NUMBER))
-apply(_sd_1,$wiki:DATASET.sum($inserted:NUMBER))
-apply(DeletedByInserted,$Deleted:NUMBER.divide($_sd_1:NUMBER))`);
+      expect(druidExternal.applies.join('\n')).to.equal(sane`
+        apply(Deleted,$wiki:DATASET.sum($deleted:NUMBER))
+        apply("!T_0",$wiki:DATASET.sum($added:NUMBER))
+        apply(AddedByDeleted,$\{!T_0}:NUMBER.divide($Deleted:NUMBER))
+        apply("!T_1",$wiki:DATASET.sum($inserted:NUMBER))
+        apply(DeletedByInserted,$Deleted:NUMBER.divide($\{!T_1}:NUMBER))
+      `);
     });
 
     it.skip("breaks up correctly in case of duplicate apply", () => {
@@ -173,10 +184,12 @@ apply(DeletedByInserted,$Deleted:NUMBER.divide($_sd_1:NUMBER))`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      expect(druidExternal.applies.join('\n')).to.equal(`apply(Added,$wiki:DATASET.sum($added:NUMBER))
-apply(Added2,$Added:NUMBER)
-apply(_sd_0,$wiki:DATASET.sum($deleted:NUMBER))
-apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
+      expect(druidExternal.applies.join('\n')).to.equal(sane`
+        apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        apply(Added2,$Added:NUMBER)
+        apply("!T_0",$wiki:DATASET.sum($deleted:NUMBER))
+        apply(Volatile,$Added:NUMBER.subtract($\{!T_0}:NUMBER))
+      `);
     });
 
     it.skip("breaks up correctly in case of duplicate apply (same name)", () => {
@@ -191,10 +204,9 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
 
-      expect(druidExternal.defs.join('\n')).to.equal(`.apply('_sd_0',$wiki:DATASET.sum($deleted:NUMBER))`);
-
       expect(druidExternal.applies.join('\n')).to.equal(`.apply(Added,$wiki:DATASET.sum($added:NUMBER))
-.apply(Volatile,$Added:NUMBER.add($_sd_0:NUMBER.negate()))`);
+        apply(Volatile,$Added:NUMBER.add($\{!T_0}:NUMBER.negate()))
+      `);
     });
   });
 
@@ -410,13 +422,13 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         "aggregations": [
           {
             "activate": false,
-            "name": "_sd_0",
+            "name": "!T_0",
             "the": "borg will rise again",
             "type": "crazy"
           },
           {
             "globalWarming": "hoax",
-            "name": "_sd_1",
+            "name": "!T_1",
             "onePlusOne": 3,
             "type": "stoopid"
           }
@@ -434,23 +446,23 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         "metric": "CrazyStupid",
         "postAggregations": [
           {
-            "fieldName": "_sd_0",
-            "name": "_sd_0_fin",
+            "fieldName": "!T_0",
+            "name": "!T_0_fin",
             "type": "getSomeCrazy"
           },
           {
-            "fieldName": "_sd_1",
-            "name": "_sd_1_fin",
+            "fieldName": "!T_1",
+            "name": "!T_1_fin",
             "type": "iAmWithStupid"
           },
           {
             "fields": [
               {
-                "fieldName": "_sd_0_fin",
+                "fieldName": "!T_0_fin",
                 "type": "fieldAccess"
               },
               {
-                "fieldName": "_sd_1_fin",
+                "fieldName": "!T_1_fin",
                 "type": "fieldAccess"
               }
             ],
@@ -767,7 +779,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
           },
           {
             "fieldName": "added",
-            "name": "_sd_0",
+            "name": "!T_0",
             "type": "doubleSum"
           }
         ],
@@ -785,17 +797,17 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         "postAggregations": [
           {
             "fieldNames": [
-              "_sd_0"
+              "!T_0"
             ],
-            "function": "function(_sd_0) { return Math.abs(_sd_0); }",
+            "function": "function(T_0) { return Math.abs(T_0); }",
             "name": "Abs",
             "type": "javascript"
           },
           {
             "fieldNames": [
-              "_sd_0"
+              "!T_0"
             ],
-            "function": "function(_sd_0) { return Math.pow(_sd_0,2); }",
+            "function": "function(T_0) { return Math.pow(T_0,2); }",
             "name": "Abs2",
             "type": "javascript"
           }
@@ -824,7 +836,7 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
           },
           {
             "fieldName": "added",
-            "name": "_sd_0",
+            "name": "!T_0",
             "type": "doubleSum"
           },
           {
@@ -832,12 +844,12 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
             "fieldNames": [
               "page"
             ],
-            "name": "_sd_1",
+            "name": "!T_1",
             "type": "cardinality"
           },
           {
             "activate": false,
-            "name": "_sd_2",
+            "name": "!T_2",
             "the": "borg will rise again",
             "type": "crazy"
           }
@@ -855,28 +867,28 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         "metric": "Count",
         "postAggregations": [
           {
-            "fieldName": "_sd_1",
-            "name": "_sd_1_fin",
+            "fieldName": "!T_1",
+            "name": "!T_1_fin",
             "type": "hyperUniqueCardinality"
           },
           {
-            "fieldName": "_sd_2",
-            "name": "_sd_2_fin",
+            "fieldName": "!T_2",
+            "name": "!T_2_fin",
             "type": "getSomeCrazy"
           },
           {
             "fields": [
               {
                 "fieldNames": [
-                  "Count",
-                  "_sd_0",
-                  "_sd_1_fin"
+                  "!T_0",
+                  "!T_1_fin",
+                  "Count"
                 ],
-                "function": "function(Count,_sd_0,_sd_1_fin) { return Math.pow(Math.abs(((_sd_0/Math.pow(Math.abs(Count),0.5))+(100*_sd_1_fin))),2); }",
+                "function": "function(T_0,T_1_fin,Count) { return Math.pow(Math.abs(((T_0/Math.pow(Math.abs(Count),0.5))+(100*T_1_fin))),2); }",
                 "type": "javascript"
               },
               {
-                "fieldName": "_sd_2_fin",
+                "fieldName": "!T_2_fin",
                 "type": "fieldAccess"
               }
             ],
@@ -889,6 +901,24 @@ apply(Volatile,$Added:NUMBER.subtract($_sd_0:NUMBER))`);
         "threshold": 5
       });
     });
+
+    it.skip("should work with error bound calculation", () => {
+      var ex = ply()
+        .apply('wiki', '$wiki') // needed for now
+        .apply('DistPagesWithinLimits', '($wiki.countDistinct($page) - 279893).absolute()');
+        //.apply('DistPagesWithinLimits', '($wiki.countDistinct($page) - 279893).absolute() < 10');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      console.log('ex.toString()', ex.toString());
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+
+      });
+    });
+
   });
 
 
