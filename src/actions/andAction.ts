@@ -88,9 +88,9 @@ module Plywood {
             return Expression.and(andExpressions).simplify();
           }
         }
-      } else {
-        return mergeAnd(chainExpression, expression);
       }
+
+      return mergeAnd(chainExpression, expression);
     }
   }
 
