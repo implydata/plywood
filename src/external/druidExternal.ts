@@ -62,6 +62,11 @@ module Plywood {
     "P1Y": "yyyy'-01-01Z"
   };
 
+  function expressionNeedsAlphaNumericSort(ex: Expression): boolean {
+    var type = ex.type;
+    return (type === 'NUMBER' || type === 'NUMBER_RANGE');
+  }
+
   function simpleMath(exprStr: string): int {
     if (String(exprStr) === 'null') return null;
     var parts = exprStr.split(/(?=[*+~])/);
@@ -257,13 +262,20 @@ module Plywood {
     }
   }
 
-  function selectNormalizer(res: Druid.SelectResults): Datum[] {
-    if (!correctSelectResult(res)) {
-      var err = new Error("unexpected result from Druid (select)");
-      (<any>err).result = res; // ToDo: special error type
-      throw err;
+  function selectNormalizerFactory(timestampLabel: string): Normalizer {
+    return (res: Druid.SelectResults): Datum[] => {
+      if (!correctSelectResult(res)) {
+        var err = new Error("unexpected result from Druid (select)");
+        (<any>err).result = res; // ToDo: special error type
+        throw err;
+      }
+      return res[0].result.events.map(event => {
+        var datum: Datum = event.event;
+        datum[timestampLabel] = datum['timestamp']; // The __time dimension always returns as 'timestamp' for some reason
+        delete datum['timestamp'];
+        return datum;
+      })
     }
-    return res[0].result.events.map(event => event.event)
   }
 
   function postProcessFactory(normalizer: Normalizer, inflaters: Inflater[]) {
@@ -953,7 +965,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         var mainAction = actions[0];
         var retainMissingValue = false;
         var replaceMissingValueWith: any = null;
-        var fallbackAction : FallbackAction = null;
+        var fallbackAction: FallbackAction = null;
 
         if (actions.length === 2) {
           fallbackAction = <FallbackAction>actions[1];
@@ -1006,11 +1018,11 @@ return (start < 0 ?'-':'') + parts.join('.');
           };
 
           if (!retainMissingValue) {
-            regexExtractionFn.replaceMissingValue = true;
+            regexExtractionFn.replaceMissingValues = true; // Note the 's' in 'Values'
           }
 
           if (replaceMissingValueWith !== null) {
-            regexExtractionFn.replaceMissingValueWith = replaceMissingValueWith;
+            regexExtractionFn.replaceMissingValuesWith = replaceMissingValueWith; // Note the 's' in 'Values'
           }
 
           return regexExtractionFn;
@@ -1038,7 +1050,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (mainAction instanceof TimeBucketAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in timeBucket expression ${mainAction.expression.toString()}`);
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in timeBucket expression ${expression.toString()}`);
           var format = TIME_BUCKET_FORMAT[mainAction.duration.toString()];
           if (!format) throw new Error(`unsupported duration in timeBucket expression ${mainAction.duration.toString()}`);
           return {
@@ -1050,7 +1062,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (mainAction instanceof TimePartAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in timePart expression ${mainAction.expression.toString()}`);
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in timePart expression ${expression.toString()}`);
           var format = TIME_PART_TO_FORMAT[mainAction.part];
           if (!format) throw new Error(`unsupported part in timePart expression ${mainAction.part}`);
           return {
@@ -1062,7 +1074,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (mainAction instanceof NumberBucketAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in numberBucket expression ${mainAction.expression.toString()}`);
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in numberBucket expression ${expression.toString()}`);
           var attributeInfo = this.getAttributesInfo(referenceName);
           if (attributeInfo.type === 'NUMBER') {
             var floorExpression = continuousFloorExpression("d", "Math.floor", mainAction.size, mainAction.offset);
@@ -1084,10 +1096,10 @@ return (start < 0 ?'-':'') + parts.join('.');
           }
         }
 
-        if (mainAction instanceof AbsoluteAction) {
+        if (mainAction instanceof AbsoluteAction || mainAction instanceof PowerAction) {
           return {
             type: "javascript",
-            'function': `function(d){d=Number(d); return Math.abs(d);}`
+            'function': expression.getJSFn('d')
           };
         }
       }
@@ -1102,7 +1114,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       var simpleInflater = External.getSimpleInflater(splitExpression, label);
 
-      var dimension: Druid.DimensionSpec = {
+      var dimension: Druid.DimensionSpecFull = {
         type: "default",
         dimension: referenceName === this.timeAttribute ? '__time' : referenceName,
         outputName: label
@@ -1149,14 +1161,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (actions.length !== 1) throw new Error(`can not convert expression: ${splitExpression.toString()}`);
         var splitAction = actions[0];
 
-        if (splitAction instanceof SubstrAction) {
-          return {
-            dimension,
-            inflater: simpleInflater
-          };
-        }
-
-        if (splitAction instanceof AbsoluteAction) {
+        if (splitAction instanceof SubstrAction || splitAction instanceof AbsoluteAction || splitAction instanceof PowerAction) {
           return {
             dimension,
             inflater: simpleInflater
@@ -1745,7 +1750,7 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public getQueryAndPostProcess(): QueryAndPostProcess<Druid.Query> {
-      var applies = this.applies;
+      const { mode, filter, split, applies, sort, limit, context } = this;
       if (applies && applies.length && applies.every(this.isMinMaxTimeApply, this)) {
         return this.getTimeBoundaryQueryAndPostProcess();
       }
@@ -1757,32 +1762,68 @@ return (start < 0 ?'-':'') + parts.join('.');
         granularity: 'all'
       };
 
-      if (this.context) {
-        druidQuery.context = this.context;
+      if (context) {
+        druidQuery.context = context;
       }
 
-      var filterAndIntervals = this.filterToDruid(this.filter);
+      var filterAndIntervals = this.filterToDruid(filter);
       druidQuery.intervals = filterAndIntervals.intervals;
       if (filterAndIntervals.filter) {
         druidQuery.filter = filterAndIntervals.filter;
       }
 
-      switch (this.mode) {
+      switch (mode) {
         case 'raw':
           if (!this.allowSelectQueries) {
             throw new Error("to issues 'select' queries allowSelectQueries flag must be set");
           }
+
+          var selectDimensions: string[] = [];
+          var selectMetrics: string[] = [];
+          var inflaters: Inflater[] = [];
+
+          var timeAttribute = this.timeAttribute;
+          this.attributes.forEach((attribute) => {
+            var { name, type, unsplitable } = attribute;
+
+            if (name !== timeAttribute) {
+              if (unsplitable) {
+                selectMetrics.push(name);
+              } else {
+                selectDimensions.push(name);
+              }
+            }
+
+            switch (type) {
+              case 'BOOLEAN':
+                inflaters.push(External.booleanInflaterFactory(name));
+                break;
+
+              case 'NUMBER':
+                inflaters.push(External.numberInflaterFactory(name));
+                break;
+
+              case 'TIME':
+                inflaters.push(External.timeInflaterFactory(name));
+                break;
+
+              case 'SET/STRING':
+                inflaters.push(External.setStringInflaterFactory(name));
+                break;
+            }
+          });
+
           druidQuery.queryType = 'select';
-          druidQuery.dimensions = [];
-          druidQuery.metrics = [];
+          druidQuery.dimensions = selectDimensions;
+          druidQuery.metrics = selectMetrics;
           druidQuery.pagingSpec = {
             "pagingIdentifiers": {},
-            "threshold": this.limit ? this.limit.limit : 10000
+            "threshold": limit ? limit.limit : 10000
           };
 
           return {
             query: druidQuery,
-            postProcess: postProcessFactory(selectNormalizer, [])
+            postProcess: postProcessFactory(selectNormalizerFactory(timeAttribute), inflaters)
           };
 
         case 'total':
@@ -1796,7 +1837,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return {
             query: druidQuery,
-            postProcess: totalPostProcessFactory(this.applies)
+            postProcess: totalPostProcessFactory(applies)
           };
 
         case 'split':
@@ -1821,31 +1862,28 @@ return (start < 0 ?'-':'') + parts.join('.');
           // Combine
           switch (druidQuery.queryType) {
             case 'timeseries':
-              if (this.sort && (this.sort.direction !== 'ascending' || !this.split.hasKey(this.sort.refName()))) {
+              if (sort && (sort.direction !== 'ascending' || !split.hasKey(sort.refName()))) {
                 throw new Error('can not sort within timeseries query');
               }
-              if (this.limit) {
+              if (limit) {
                 throw new Error('can not limit within timeseries query');
               }
               break;
 
             case 'topN':
-              var sortAction = this.sort;
-              var metric: string | Druid.TopNMetricSpec;
-              if (sortAction) {
-
+              var metric: Druid.TopNMetricSpec;
+              if (sort) {
                 var inverted: boolean;
                 if (this.sortOnLabel()) {
-                  var splitType = this.split.firstSplitExpression().type;
-                  if (splitType === 'NUMBER' || splitType === 'NUMBER_RANGE') {
+                  if (expressionNeedsAlphaNumericSort(split.firstSplitExpression())) {
                     metric = { type: 'alphaNumeric' };
                   } else {
                     metric = { type: 'lexicographic' };
                   }
-                  inverted = sortAction.direction === 'descending';
+                  inverted = sort.direction === 'descending';
                 } else {
-                  metric = sortAction.refName();
-                  inverted = sortAction.direction === 'ascending';
+                  metric = sort.refName();
+                  inverted = sort.direction === 'ascending';
                 }
 
                 if (inverted) {
@@ -1856,35 +1894,38 @@ return (start < 0 ?'-':'') + parts.join('.');
                 metric = { type: 'lexicographic' };
               }
               druidQuery.metric = metric;
-              druidQuery.threshold = this.limit ? this.limit.limit : 1000;
+              druidQuery.threshold = limit ? limit.limit : 1000;
               break;
 
             case 'groupBy':
-              var sortAction = this.sort;
-
-              var column: Druid.OrderByColumnSpec = null;
-              if (sortAction) {
-                var col = sortAction.refName();
-                column = {
+              var orderByColumn: Druid.OrderByColumnSpecFull = null;
+              if (sort) {
+                var col = sort.refName();
+                orderByColumn = {
                   dimension: col,
-                  direction: sortAction.direction
+                  direction: sort.direction
                 };
                 if (this.sortOnLabel()) {
-                  var sortSplitExpression = this.split.splits[col];
-                  var sortSplitExpressionType = sortSplitExpression.type;
-                  if (sortSplitExpressionType === 'NUMBER' || sortSplitExpressionType === 'NUMBER_RANGE') {
-                    column.dimensionOrder = 'alphaNumeric';
+                  if (expressionNeedsAlphaNumericSort(split.splits[col])) {
+                    orderByColumn.dimensionOrder = 'alphaNumeric';
                   }
+                }
+              } else { // Going to sortOnLabel implicitly
+                if (expressionNeedsAlphaNumericSort(split.firstSplitExpression())) {
+                  orderByColumn = {
+                    dimension: split.firstSplitName(),
+                    dimensionOrder: 'alphaNumeric'
+                  };
                 }
               }
 
               druidQuery.limitSpec = {
                 type: "default",
                 limit: 500000,
-                columns: [column || this.split.firstSplitName()]
+                columns: [orderByColumn || split.firstSplitName()]
               };
-              if (this.limit) {
-                druidQuery.limitSpec.limit = this.limit.limit;
+              if (limit) {
+                druidQuery.limitSpec.limit = limit.limit;
               }
               if (!this.havingFilter.equals(Expression.TRUE)) {
                 druidQuery.having = this.havingFilterToDruid(this.havingFilter);

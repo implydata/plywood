@@ -448,7 +448,25 @@ describe("simulate Druid", () => {
       "dimension": "color",
       "extractionFn": {
         "expr": "^(.)",
-        "replaceMissingValue": true,
+        "replaceMissingValues": true,
+        "type": "regex"
+      },
+      "type": "extraction",
+      "value": "D"
+    });
+  });
+
+  it("works on fancy filter dataset (EXTRACT + FALLBACK / IS)", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.extract('^(.)').fallback('lol') == 'D'"))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color",
+      "extractionFn": {
+        "expr": "^(.)",
+        "replaceMissingValues": true,
+        "replaceMissingValuesWith": "lol",
         "type": "regex"
       },
       "type": "extraction",
@@ -1826,7 +1844,14 @@ describe("simulate Druid", () => {
     expect(queryPlan).to.deep.equal([
       {
         "dataSource": "diamonds",
-        "dimensions": [],
+        "dimensions": [
+          "color",
+          "cut",
+          "isNice",
+          "tags",
+          "carat",
+          "height_bucket"
+        ],
         "filter": {
           "dimension": "color",
           "type": "selector",
@@ -1836,7 +1861,11 @@ describe("simulate Druid", () => {
         "intervals": [
           "2015-03-12/2015-03-19"
         ],
-        "metrics": [],
+        "metrics": [
+          "price",
+          "tax",
+          "vendor_id"
+        ],
         "pagingSpec": {
           "pagingIdentifiers": {},
           "threshold": 10

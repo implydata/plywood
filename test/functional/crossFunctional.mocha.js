@@ -47,20 +47,20 @@ var attributes = [
   { name: "isNew", type: 'BOOLEAN' },
   { name: "isRobot", type: 'BOOLEAN' },
   { name: "isUnpatrolled", type: 'BOOLEAN' },
-  { name: "metroCode", type: 'STRING' },
+  { name: "metroCode", type: 'NUMBER' },
   { name: "namespace", type: 'STRING' },
   { name: "page", type: 'STRING' },
   { name: "regionIsoCode", type: 'STRING' },
   { name: "regionName", type: 'STRING' },
   { name: "user", type: 'STRING' },
-  //{ name: "userChars", type: 'SET/STRING' },
-  { name: 'count', type: 'NUMBER' },
-  { name: 'delta', type: 'NUMBER' },
-  { name: 'min_delta', type: 'NUMBER' },
-  { name: 'max_delta', type: 'NUMBER' },
-  { name: 'deltaByTen', type: 'NUMBER' },
-  { name: 'added', type: 'NUMBER' },
-  { name: 'deleted', type: 'NUMBER' }
+
+  { name: 'count', type: 'NUMBER', unsplitable: true },
+  { name: 'delta', type: 'NUMBER', unsplitable: true },
+  { name: 'min_delta', type: 'NUMBER', unsplitable: true },
+  { name: 'max_delta', type: 'NUMBER', unsplitable: true },
+  { name: 'deltaByTen', type: 'NUMBER', unsplitable: true },
+  { name: 'added', type: 'NUMBER', unsplitable: true },
+  { name: 'deleted', type: 'NUMBER', unsplitable: true }
 ];
 
 var druidExecutor = basicExecutorFactory({
@@ -78,6 +78,7 @@ var druidExecutor = basicExecutorFactory({
         end: new Date("2015-09-13T00:00:00Z")
       })),
       druidVersion: info.druidVersion,
+      allowSelectQueries: true,
       requester: druidRequester
     })
   }
@@ -442,6 +443,21 @@ describe("Cross Functional", function() {
         .filter('$TotalEdits < 5000')
         .limit(20)
     }));
+  });
+
+  describe("select", () => {
+    it('works with basic select', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').filter('$cityName == "El Paso"')
+    }));
+
+    it.skip('works with extra columns', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki')
+        .filter('$cityName == "El Paso"')
+        .apply('AddedX2', '$added * 2')
+    }));
+
   });
 
 });

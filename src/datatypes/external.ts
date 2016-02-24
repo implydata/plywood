@@ -267,6 +267,21 @@ module Plywood {
       }
     }
 
+    static setStringInflaterFactory(label: string): Inflater  {
+      return (d: any) => {
+        var v = d[label];
+        if ('' + v === "null") {
+          d[label] = null;
+          return;
+        }
+
+        d[label] = Set.fromJS({
+          setType: 'STRING',
+          elements: v
+        });
+      }
+    }
+
     static jsToValue(parameters: ExternalJS): ExternalValue {
       var value: ExternalValue = {
         engine: parameters.engine,

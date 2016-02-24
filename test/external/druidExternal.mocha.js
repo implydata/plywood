@@ -9,7 +9,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Expression, External, TimeRange, $, ply, r } = plywood;
+var { External, TimeRange, $, ply, r } = plywood;
 
 var timeFilter = $('time').in(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
@@ -25,6 +25,7 @@ var context = {
       { name: 'time', type: 'TIME' },
       { name: 'language', type: 'STRING' },
       { name: 'page', type: 'STRING' },
+      { name: 'commentLength', type: 'NUMBER' },
       { name: 'added', type: 'NUMBER' },
       { name: 'deleted', type: 'NUMBER' },
       { name: 'inserted', type: 'NUMBER' }
@@ -814,6 +815,94 @@ describe("DruidExternal", () => {
         ],
         "queryType": "topN",
         "threshold": 5
+      });
+    });
+
+    it("should work with ABSOLUTE in split expression", () => {
+      var ex = $('wiki').split("$commentLength.absolute()", 'AbsCommentLength');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "wikipedia",
+        "dimensions": [
+          {
+            "dimension": "commentLength",
+            "extractionFn": {
+              "function": "function(d){return Math.abs(d);}",
+              "type": "javascript"
+            },
+            "outputName": "AbsCommentLength",
+            "type": "extraction"
+          }
+        ],
+        "granularity": "all",
+        "intervals": [
+          "2013-02-26/2013-02-27"
+        ],
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "AbsCommentLength",
+              "dimensionOrder": "alphaNumeric"
+            }
+          ],
+          "limit": 500000,
+          "type": "default"
+        },
+        "queryType": "groupBy"
+      });
+    });
+
+    it("should work with POWER in split expression", () => {
+      var ex = $('wiki').split("$commentLength.power(2)", 'AbsCommentLength');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "wikipedia",
+        "dimensions": [
+          {
+            "dimension": "commentLength",
+            "extractionFn": {
+              "function": "function(d){return Math.pow(d,2);}",
+              "type": "javascript"
+            },
+            "outputName": "AbsCommentLength",
+            "type": "extraction"
+          }
+        ],
+        "granularity": "all",
+        "intervals": [
+          "2013-02-26/2013-02-27"
+        ],
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "AbsCommentLength",
+              "dimensionOrder": "alphaNumeric"
+            }
+          ],
+          "limit": 500000,
+          "type": "default"
+        },
+        "queryType": "groupBy"
       });
     });
 

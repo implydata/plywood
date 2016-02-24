@@ -1,5 +1,9 @@
 # Change log
 
+## 0.8.16
+
+- SELECT queries in Druid are now mindful of the attributes and inflate values correctly.
+
 ## 0.8.15
 
 - `overlap` now allows STRING arguments, simplifies to `in`
