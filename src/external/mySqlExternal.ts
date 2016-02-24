@@ -12,8 +12,16 @@ module Plywood {
     return Array.isArray(result) && (result.length === 0 || typeof result[0] === 'object');
   }
 
-  function postProcessFactory(split: SplitAction): PostProcess {
-    var inflaters = split ? split.mapSplits((label, splitExpression) => {
+  function getSelectInflaters(attributes: Attributes): Inflater[] {
+    return attributes.map(attribute => {
+      if (attribute.type === 'BOOLEAN') {
+        return External.booleanInflaterFactory(attribute.name);
+      }
+    }).filter(Boolean);
+  }
+
+  function getSplitInflaters(split: SplitAction): Inflater[] {
+    return split.mapSplits((label, splitExpression) => {
       if (splitExpression.type === 'BOOLEAN') {
         return External.booleanInflaterFactory(label);
       }
@@ -29,8 +37,10 @@ module Plywood {
           return External.numberRangeInflaterFactory(label, lastAction.size);
         }
       }
-    }) : [];
+    })
+  }
 
+  function postProcessFactory(inflaters: Inflater[]): PostProcess {
     return (data: any[]): Dataset => {
       if (!correctResult(data)) {
         var err = new Error("unexpected result from MySQL");
@@ -140,61 +150,66 @@ module Plywood {
     // -----------------
 
     public getQueryAndPostProcess(): QueryAndPostProcess<string> {
-      var table = "`" + this.table + "`";
+      const { table, mode, filter, split, applies, sort, limit, attributes } = this;
+
       var query = ['SELECT'];
-      switch (this.mode) {
+      var inflaters: Inflater[] = [];
+
+      var from = "FROM `" + table + "`";
+      if (!filter.equals(Expression.TRUE)) {
+        from += '\nWHERE ' + filter.getSQL(mySQLDialect);
+      }
+
+      switch (mode) {
         case 'raw':
-          query.push(this.attributes.map(a => mySQLDialect.escapeName(a.name)).join(', '));
-          query.push('FROM ' + table);
-          if (!(this.filter.equals(Expression.TRUE))) {
-            query.push('WHERE ' + this.filter.getSQL(mySQLDialect));
+          query.push(
+            attributes.map(a => mySQLDialect.escapeName(a.name)).join(', '),
+            from
+          );
+          if (sort) {
+            query.push(sort.getSQL('', mySQLDialect));
           }
-          if (this.sort) {
-            query.push(this.sort.getSQL('', mySQLDialect));
+          if (limit) {
+            query.push(limit.getSQL('', mySQLDialect));
           }
-          if (this.limit) {
-            query.push(this.limit.getSQL('', mySQLDialect));
-          }
+          inflaters = getSelectInflaters(attributes);
           break;
 
         case 'total':
-          query.push(this.applies.map(apply => apply.getSQL('', mySQLDialect)).join(',\n'));
-          query.push('FROM ' + table);
-          if (!(this.filter.equals(Expression.TRUE))) {
-            query.push('WHERE ' + this.filter.getSQL(mySQLDialect));
-          }
-          query.push("GROUP BY ''");
+          query.push(
+            applies.map(apply => apply.getSQL('', mySQLDialect)).join(',\n'),
+            from,
+            "GROUP BY ''"
+          );
           break;
 
         case 'split':
           query.push(
-            this.split.getSelectSQL(mySQLDialect)
-              .concat(this.applies.map(apply => apply.getSQL('', mySQLDialect)))
-              .join(',\n')
+            split.getSelectSQL(mySQLDialect)
+              .concat(applies.map(apply => apply.getSQL('', mySQLDialect)))
+              .join(',\n'),
+            from,
+            split.getShortGroupBySQL()
           );
-          query.push('FROM ' + table);
-          if (!(this.filter.equals(Expression.TRUE))) {
-            query.push('WHERE ' + this.filter.getSQL(mySQLDialect));
-          }
-          query.push(this.split.getShortGroupBySQL());
           if (!(this.havingFilter.equals(Expression.TRUE))) {
             query.push('HAVING ' + this.havingFilter.getSQL(mySQLDialect));
           }
-          if (this.sort) {
-            query.push(this.sort.getSQL('', mySQLDialect));
+          if (sort) {
+            query.push(sort.getSQL('', mySQLDialect));
           }
-          if (this.limit) {
-            query.push(this.limit.getSQL('', mySQLDialect));
+          if (limit) {
+            query.push(limit.getSQL('', mySQLDialect));
           }
+          inflaters = getSplitInflaters(split);
           break;
 
         default:
-          throw new Error("can not get query for: " + this.mode);
+          throw new Error(`can not get query for mode: ${mode}`);
       }
 
       return {
         query: query.join('\n'),
-        postProcess: postProcessFactory(this.split)
+        postProcess: postProcessFactory(inflaters)
       };
     }
 

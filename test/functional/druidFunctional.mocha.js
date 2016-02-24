@@ -39,7 +39,6 @@ describe("Druid Functional", function() {
             { name: 'sometimeLater', type: 'TIME' },
             { name: 'channel', type: 'STRING' },
             { name: 'page', type: 'STRING' },
-            { name: 'page_unique', special: 'unique' },
             { name: 'user', type: 'STRING' },
             { name: 'userChars', type: 'SET/STRING' },
             { name: 'isNew', type: 'BOOLEAN' },
@@ -47,18 +46,21 @@ describe("Druid Functional", function() {
             { name: 'commentLength', type: 'NUMBER' },
             { name: 'metroCode', type: 'STRING' },
             { name: 'cityName', type: 'STRING' },
-            { name: 'user_unique', special: 'unique' },
-            { name: 'count', type: 'NUMBER' },
-            { name: 'delta', type: 'NUMBER' },
-            { name: 'deltaByTen', type: 'NUMBER' },
-            { name: 'added', type: 'NUMBER' },
-            { name: 'deleted', type: 'NUMBER' }
+
+            { name: 'count', type: 'NUMBER', unsplitable: true },
+            { name: 'delta', type: 'NUMBER', unsplitable: true },
+            { name: 'deltaByTen', type: 'NUMBER', unsplitable: true },
+            { name: 'added', type: 'NUMBER', unsplitable: true },
+            { name: 'deleted', type: 'NUMBER', unsplitable: true },
+            { name: 'user_unique', special: 'unique', unsplitable: true },
+            { name: 'page_unique', special: 'unique', unsplitable: true }
           ],
           filter: $('time').in(TimeRange.fromJS({
             start: new Date("2015-09-12T00:00:00Z"),
             end: new Date("2015-09-13T00:00:00Z")
           })),
           druidVersion: info.druidVersion,
+          allowSelectQueries: true,
           requester: druidRequester
         })
       }
@@ -1086,6 +1088,79 @@ describe("Druid Functional", function() {
         })
         .done();
     });
+
+    it("works with SELECT", (testComplete) => {
+      var ex = $('wiki').filter('$cityName == "El Paso"');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "added": 0,
+              "channel": "en",
+              "cityName": "El Paso",
+              "commentLength": 29,
+              "count": 1,
+              "deleted": 39,
+              "delta": -39,
+              "deltaByTen": -3.9000000953674316,
+              "isAnonymous": true,
+              "isNew": false,
+              "metroCode": "765",
+              "page": "Clint High School",
+              "page_unique": "AQAAAQAAAADYAQ==",
+              "sometimeLater": {
+                "type": "TIME",
+                "value": new Date('2016-09-12T06:05:00.000Z')
+              },
+              "time": {
+                "type": "TIME",
+                "value": new Date('2015-09-12T06:05:00.000Z')
+              },
+              "user": "104.58.160.128",
+              "userChars": {
+                "elements": [".", "0", "1", "2", "4", "5", "6", "8"],
+                "setType": "STRING",
+                "type": "SET"
+              },
+              "user_unique": "AQAAAQAAAAFzBQ=="
+            },
+            {
+              "added": 0,
+              "channel": "en",
+              "cityName": "El Paso",
+              "commentLength": 25,
+              "count": 1,
+              "deleted": 0,
+              "delta": 0,
+              "deltaByTen": 0,
+              "isAnonymous": true,
+              "isNew": false,
+              "metroCode": "765",
+              "page": "Reggie Williams (linebacker)",
+              "page_unique": "AQAAAQAAAAOhEA==",
+              "sometimeLater": {
+                "type": "TIME",
+                "value": new Date('2016-09-12T16:14:00.000Z')
+              },
+              "time": {
+                "type": "TIME",
+                "value": new Date('2015-09-12T16:14:00.000Z')
+              },
+              "user": "67.10.203.15",
+              "userChars": {
+                "elements": [".", "0", "1", "2", "3", "5", "6", "7"],
+                "setType": "STRING",
+                "type": "SET"
+              },
+              "user_unique": "AQAAAQAAAAOIQA=="
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
   });
 
 
