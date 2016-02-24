@@ -317,7 +317,7 @@ module Plywood {
         var actionExpression = action.expression;
 
         if (action instanceof FilterAction) {
-          return dataset.filter(action.expression.getFn(), null);
+          return dataset.filter(actionExpression.getFn(), null);
 
         } else if (action instanceof ApplyAction) {
           if (actionExpression.hasExternal()) {
@@ -337,6 +337,8 @@ module Plywood {
           return dataset.limit(action.limit);
 
         }
+
+        throw new Error(`could not execute ${action.toString()}`);
       }
 
       var value = this.expression._computeResolvedSimulate(simulatedQueries);
@@ -355,7 +357,7 @@ module Plywood {
           var actionExpression = action.expression;
 
           if (action instanceof FilterAction) {
-            return dataset.filter(action.expression.getFn(), null);
+            return dataset.filter(actionExpression.getFn(), null);
 
           } else if (action instanceof ApplyAction) {
             if (actionExpression.hasExternal()) {
@@ -373,6 +375,8 @@ module Plywood {
             return dataset.limit(action.limit);
 
           }
+
+          throw new Error(`could not execute ${action.toString()}`);
         }
       }
 

@@ -17,6 +17,7 @@ module Plywood {
       if (attribute.type === 'BOOLEAN') {
         return External.booleanInflaterFactory(attribute.name);
       }
+      return;
     }).filter(Boolean);
   }
 
@@ -37,6 +38,8 @@ module Plywood {
           return External.numberRangeInflaterFactory(label, lastAction.size);
         }
       }
+
+      return;
     })
   }
 

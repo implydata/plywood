@@ -1,5 +1,9 @@
 # Change log
 
+## 0.8.19
+
+- Upgraded to TypeScript 1.8
+
 ## 0.8.18
 
 - SELECT queries in Druid are now mindful of the attributes and inflate values correctly.

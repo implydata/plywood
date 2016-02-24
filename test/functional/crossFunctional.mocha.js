@@ -279,9 +279,9 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it.skip('works with NUMBER split (expression: ^ 2) (sort on split)', equalityTest({
+    it('works with NUMBER split (expression^2) (sort on split)', equalityTest({
       executorNames: ['druid', 'mysql'],
-      expression: $('wiki').split("$commentLength ^ 2", 'CommentLengthSq')
+      expression: $('wiki').split("$commentLength^2", 'CommentLengthSq')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$CommentLengthSq', 'descending')

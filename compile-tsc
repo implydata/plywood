@@ -3,7 +3,7 @@
 rm -rf build/*
 mkdir -p build
 
-node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComments --noFallthroughCasesInSwitch --out build/plywood.js \
+node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComments --noFallthroughCasesInSwitch --noImplicitReturns --out build/plywood.js \
   src/init.ts \
   \
   src/dialect/sqlDialect.ts \

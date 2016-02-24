@@ -781,9 +781,9 @@ module Plywood {
           }
         }
 
-      } else {
-        throw new Error("could not convert filter " + filter.toString() + " to Druid filter");
       }
+
+      throw new Error("could not convert filter " + filter.toString() + " to Druid filter");
     }
 
     public timeFilterToIntervals(filter: Expression): string[] {
@@ -1705,9 +1705,9 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         }
 
-      } else {
-        throw new Error(`could not convert filter ${filter.toString()} to Druid filter`);
       }
+
+      throw new Error(`could not convert filter ${filter.toString()} to Druid filter`);
     }
 
     public isMinMaxTimeApply(apply: ApplyAction): boolean {

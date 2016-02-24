@@ -47,6 +47,7 @@ module Plywood {
         return new FilterAction({
           expression: this.expression.substitute((ex) => {
             if (ex instanceof RefExpression && splits[ex.name]) return splits[ex.name];
+            return null;
           })
         });
       }

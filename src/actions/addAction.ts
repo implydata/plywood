@@ -49,6 +49,7 @@ module Plywood {
       if (literalExpression.equals(Expression.ZERO)) {
         return this.expression;
       }
+      return null;
     }
 
     protected _foldWithPrevAction(prevAction: Action): Action {

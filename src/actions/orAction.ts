@@ -89,9 +89,9 @@ module Plywood {
             return Expression.or(orExpressions).simplify();
           }
         }
-      } else {
-        return mergeOr(chainExpression, expression);
       }
+
+      return mergeOr(chainExpression, expression);
     }
   }
 
