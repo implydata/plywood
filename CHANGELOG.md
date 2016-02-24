@@ -1,8 +1,17 @@
 # Change log
 
-## 0.8.16
+## 0.8.18
 
 - SELECT queries in Druid are now mindful of the attributes and inflate values correctly.
+
+## 0.8.17
+
+- All cross functional tests now running with rollup.
+- Temporary columns are no longer being returned by Druid.
+
+## 0.8.16
+
+- Fixed issue with `.in(...).not()` in the DruidExternal
 
 ## 0.8.15
 
