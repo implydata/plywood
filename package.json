@@ -39,9 +39,9 @@
     "mocha": "2.4.5",
     "pegjs": "0.9.0",
     "plywood-druid-requester": "1.2.8",
-    "plywood-mysql-requester": "1.2.1",
-    "tslint": "3.3.0",
-    "typescript": "1.7.5",
+    "plywood-mysql-requester": "1.2.2",
+    "tslint": "3.5.0",
+    "typescript": "1.8.2",
     "underscore": "1.8.3",
     "walltime-js": "0.1.2"
   }
