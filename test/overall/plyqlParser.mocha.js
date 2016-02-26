@@ -1,4 +1,5 @@
 var { expect } = require("chai");
+var { sane } = require('../utils');
 
 var { WallTime } = require('chronoshift');
 if (!WallTime.rules) {
@@ -12,6 +13,14 @@ var { Expression, $, ply, r } = plywood;
 describe("SQL parser", () => {
   describe("basic expression", () => {
     var $data = $('data');
+
+    it("works with a literal expression", () => {
+      var parse = Expression.parseSQL("1");
+      var ex2 = r(1);
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
 
     it("works with a COUNT expression", () => {
       var parse = Expression.parseSQL("COUNT()");
@@ -40,14 +49,6 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works with NOW()", () => {
-      var parse = Expression.parseSQL("NOW( )");
-
-      var js = parse.expression.toJS();
-      expect(js.op).to.equal('literal');
-      expect(Math.abs(js.value.valueOf() - Date.now())).to.be.lessThan(1000);
-    });
-
     it("should handle fallback --", () => {
       var parse = Expression.parseSQL("IFNULL(null,'fallback')");
       var parse2 = Expression.parseSQL("IFNULL(null, SUM(deleted))");
@@ -64,6 +65,88 @@ describe("SQL parser", () => {
       expect(parse3.expression.toJS()).to.deep.equal(ex3.toJS());
       expect(parse4.expression.toJS()).to.deep.equal(ex3.toJS());
     });
+
+    it("works with NOW()", () => {
+      var parse = Expression.parseSQL("NOW( )");
+
+      var js = parse.expression.toJS();
+      expect(js.op).to.equal('literal');
+      expect(Math.abs(js.value.valueOf() - Date.now())).to.be.lessThan(1000);
+    });
+
+    describe("date literals", () => {
+      it('works with DATE', () => {
+        var dateLiterals = sane`
+          DATE "2016-02-09"
+          DATE "20160209"
+          DATE "160209"
+          DATE "2016/02$09"
+          DATE'2016/02$09'
+          {d'2016-02-09'}
+          { d '2016-02-09' }
+          { d "2016-02-09" }
+          { d "2016/02/09" }
+          { d "2016/02$09"}
+          { D "2016/02$09" }
+        `;
+
+        dateLiterals.split('\n').forEach(dateLiteral => {
+          var parse = Expression.parseSQL(dateLiteral);
+          var js = parse.expression.toJS();
+          expect(js.op).to.equal('literal');
+          expect(js.value).to.deep.equal(new Date('2016-02-09Z'));
+        });
+      });
+
+      it('works with TIMESTAMP', () => {
+        var timestampLiterals = sane`
+          TIMESTAMP "20160209010203"
+          TIMESTAMP "160209010203"
+          TIMESTAMP "2016-02-09 01:02:03"
+          TIMESTAMP "2016/02$09 01:02:03"
+          TIMESTAMP'2016/02$09 01:02:03'
+          {ts'2016-02-09 01:02:03'}
+          { ts '2016-2-9 1:2:3' }
+          { Ts "2016-02-09T01:02:03" }
+          { tS "16/02/09 01:02:03" }
+          { ts "2016/02$09 01:02:03"}
+          { TS "2016/02$09 01:02:03" }
+        `;
+
+        timestampLiterals.split('\n').forEach(timestampLiteral => {
+          var parse = Expression.parseSQL(timestampLiteral);
+          var js = parse.expression.toJS();
+          expect(js.op).to.equal('literal');
+          expect(js.value).to.deep.equal(new Date('2016-02-09T01:02:03Z'));
+        });
+      });
+
+      it('works with TIMESTAMP.ms', () => {
+        var timestampLiterals = sane`
+          TIMESTAMP "2016-02-09 01:02:03.456"
+          TIMESTAMP "2016/02$09 01:02:03.456789"
+        `;
+
+        timestampLiterals.split('\n').forEach(timestampLiteral => {
+          var parse = Expression.parseSQL(timestampLiteral);
+          var js = parse.expression.toJS();
+          expect(js.op).to.equal('literal');
+          expect(js.value).to.deep.equal(new Date('2016-02-09T01:02:03.456Z'));
+        });
+      });
+
+      it('errors on TIME', () => {
+        expect(() => {
+          Expression.parseSQL("{t '01:02:03'}");
+        }).to.throw('time literals are not supported');
+
+        expect(() => {
+          Expression.parseSQL("TIME '01:02:03'");
+        }).to.throw('time literals are not supported');
+      });
+
+    });
+
   });
 
   describe("other query types", () => {
@@ -145,9 +228,11 @@ describe("SQL parser", () => {
     });
 
     it("should parse a simple expression", () => {
-      var parse = Expression.parseSQL(`SELECT
-COUNT() AS 'Count'
-FROM \`wiki\``);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        COUNT() AS 'Count'
+        FROM \`wiki\`
+      `);
 
       var ex2 = ply()
         .apply('data', '$wiki')
@@ -159,36 +244,38 @@ FROM \`wiki\``);
     });
 
     it("should parse a total expression with all sorts of applies", () => {
-      var parse = Expression.parseSQL(`SELECT
-COUNT()  AS Count1,
-COUNT(*) AS Count2,
-COUNT(1) AS Count3,
-COUNT(\`visitor\`) AS Count4,
-MATCH(\`visitor\`, "[0-9A-F]") AS 'Match',
-SUM(added) AS 'TotalAdded',
-'2014-01-02' AS 'Date',
-SUM(\`wiki\`.\`added\`) / 4 AS TotalAddedOver4,
-NOT(true) AS 'False',
--SUM(added) AS MinusAdded,
-ABS(MinusAdded) AS AbsAdded,
-ABSOLUTE(MinusAdded) AS AbsoluteAdded,
-POWER(MinusAdded, 0.5) AS SqRtAdded,
-POW(MinusAdded, 0.5) AS SqRtAdded2,
-SQRT(TotalAddedOver4) AS SquareRoot,
-EXP(0) AS One,
-+SUM(added) AS SimplyAdded,
-QUANTILE(added, 0.5) AS Median,
-COUNT_DISTINCT(visitor) AS 'Unique1',
-COUNT(DISTINCT visitor) AS 'Unique2',
-COUNT(DISTINCT(visitor)) AS 'Unique3',
-TIME_BUCKET(time, PT1H) AS 'TimeBucket',
-TIME_FLOOR(time, PT1H) AS 'TimeFloor',
-TIME_SHIFT(time, PT1H, 3) AS 'TimeShift3',
-TIME_RANGE(time, PT1H, 3) AS 'TimeRange3',
-OVERLAP(x, y) AS 'Overlap',
-CUSTOM('blah') AS 'Custom1'
-FROM \`wiki\`
-WHERE \`language\`="en"  ;  -- This is just some comment`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        COUNT()  AS Count1,
+        COUNT(*) AS Count2,
+        COUNT(1) AS Count3,
+        COUNT(\`visitor\`) AS Count4,
+        MATCH(\`visitor\`, "[0-9A-F]") AS 'Match',
+        SUM(added) AS 'TotalAdded',
+        '2014-01-02' AS 'Date',
+        SUM(\`wiki\`.\`added\`) / 4 AS TotalAddedOver4,
+        NOT(true) AS 'False',
+        -SUM(added) AS MinusAdded,
+        ABS(MinusAdded) AS AbsAdded,
+        ABSOLUTE(MinusAdded) AS AbsoluteAdded,
+        POWER(MinusAdded, 0.5) AS SqRtAdded,
+        POW(MinusAdded, 0.5) AS SqRtAdded2,
+        SQRT(TotalAddedOver4) AS SquareRoot,
+        EXP(0) AS One,
+        +SUM(added) AS SimplyAdded,
+        QUANTILE(added, 0.5) AS Median,
+        COUNT_DISTINCT(visitor) AS 'Unique1',
+        COUNT(DISTINCT visitor) AS 'Unique2',
+        COUNT(DISTINCT(visitor)) AS 'Unique3',
+        TIME_BUCKET(time, PT1H) AS 'TimeBucket',
+        TIME_FLOOR(time, PT1H) AS 'TimeFloor',
+        TIME_SHIFT(time, PT1H, 3) AS 'TimeShift3',
+        TIME_RANGE(time, PT1H, 3) AS 'TimeRange3',
+        OVERLAP(x, y) AS 'Overlap',
+        CUSTOM('blah') AS 'Custom1'
+        FROM \`wiki\`
+        WHERE \`language\`="en"  ;  -- This is just some comment
+      `);
 
       var ex2 = ply()
         .apply('data', '$wiki.filter($language == "en")')
@@ -224,10 +311,12 @@ WHERE \`language\`="en"  ;  -- This is just some comment`);
     });
 
     it("should parse a total expression without group by clause", () => {
-      var parse = Expression.parseSQL(`SELECT
-SUM(added) AS TotalAdded
-FROM \`wiki\`
-WHERE \`language\`="en"`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        SUM(added) AS TotalAdded
+        FROM \`wiki\`
+        WHERE \`language\`="en"
+      `);
 
       var ex2 = ply()
         .apply('data', '$wiki.filter($language == "en")')
@@ -238,22 +327,23 @@ WHERE \`language\`="en"`);
 
     it("should work with all sorts of comments", () => {
       var parse = Expression.parseSQL(`/*
-Multiline comments
-can exist
-at the start ...
-*/
-SELECT
-SUM(added)--1 AS /* Inline comment */ TotalAdded -- This is just some comment
-FROM \`wiki\` # Another comment
-/*
-... and in the
-middle...
-*/
-WHERE \`language\`="en"
-/*
-... and at the
-end.
-*/`);
+        Multiline comments
+        can exist
+        at the start ...
+        */
+        SELECT
+        SUM(added)--1 AS /* Inline comment */ TotalAdded -- This is just some comment
+        FROM \`wiki\` # Another comment
+        /*
+        ... and in the
+        middle...
+        */
+        WHERE \`language\`="en"
+        /*
+        ... and at the
+        end.
+        */
+      `);
 
       var ex2 = ply()
         .apply('data', '$wiki.filter($language == "en")')
@@ -263,9 +353,11 @@ end.
     });
 
     it("should work without a FROM", () => {
-      var parse = Expression.parseSQL(`SELECT
-SUM(added) AS 'TotalAdded'
-WHERE \`language\`="en"`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        SUM(added) AS 'TotalAdded'
+        WHERE \`language\`="en"
+      `);
 
       var ex2 = ply()
         .apply('data', '$data.filter($language == "en")')
@@ -275,9 +367,11 @@ WHERE \`language\`="en"`);
     });
 
     it("should work with a BETWEEN", () => {
-      var parse = Expression.parseSQL(`SELECT
-SUM(added) AS 'TotalAdded'
-WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        SUM(added) AS 'TotalAdded'
+        WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'
+      `);
 
       var ex2 = ply()
         .apply('data', $('data').filter(
@@ -293,9 +387,11 @@ WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-
     });
 
     it("should work with <= <", () => {
-      var parse = Expression.parseSQL(`SELECT
-SUM(added) AS 'TotalAdded'
-WHERE \`language\`="en" AND '2015-01-01T10:30:00' <= \`time\` AND \`time\` < '2015-01-02T12:30:00'`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        SUM(added) AS 'TotalAdded'
+        WHERE \`language\`="en" AND '2015-01-01T10:30:00' <= \`time\` AND \`time\` < '2015-01-02T12:30:00'
+      `);
 
       var ex2 = ply()
         .apply('data', $('data').filter(
@@ -307,27 +403,27 @@ WHERE \`language\`="en" AND '2015-01-01T10:30:00' <= \`time\` AND \`time\` < '20
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
 
-      return;
-
-      var ex2s = ply()
-        .apply('data', $('data').filter(
-          $('language').is("en").and($('time').in({
-            start: new Date('2015-01-01T10:30:00'),
-            end: new Date('2015-01-02T12:30:00')
-          }))
-        ))
-        .apply('TotalAdded', '$data.sum($added)');
-
-      expect(parse.expression.simplify().toJS()).to.deep.equal(ex2s.toJS());
+      //var ex2s = ply()
+      //  .apply('data', $('data').filter(
+      //    $('language').is("en").and($('time').in({
+      //      start: new Date('2015-01-01T10:30:00'),
+      //      end: new Date('2015-01-02T12:30:00')
+      //    }))
+      //  ))
+      //  .apply('TotalAdded', '$data.sum($added)');
+      //
+      //expect(parse.expression.simplify().toJS()).to.deep.equal(ex2s.toJS());
     });
 
     it("should work without top level GROUP BY", () => {
-      var parse = Expression.parseSQL(`SELECT
-\`page\` AS 'Page',
-SUM(added) AS 'TotalAdded'
-FROM \`wiki\`
-WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'
-GROUP BY 1`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        \`page\` AS 'Page',
+        SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`
+        WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'
+        GROUP BY 1
+      `);
 
       var ex2 = $('wiki').filter(
         $('language').is("en").and($('time').in({
@@ -342,13 +438,15 @@ GROUP BY 1`);
     });
 
     it("should work without top level GROUP BY with ORDER BY and LIMIT", () => {
-      var parse = Expression.parseSQL(`SELECT
-\`page\` AS 'Page',
-SUM(added) AS 'TotalAdded'
-FROM \`wiki\`
-GROUP BY \`page\`
-ORDER BY TotalAdded
-LIMIT 5`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        \`page\` AS 'Page',
+        SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`
+        GROUP BY \`page\`
+        ORDER BY TotalAdded
+        LIMIT 5
+      `);
 
       var ex2 = $('wiki').split('$page', 'Page', 'data')
         .apply('TotalAdded', '$data.sum($added)')
@@ -359,12 +457,14 @@ LIMIT 5`);
     });
 
     it("should work without top level GROUP BY with LIMIT only", () => {
-      var parse = Expression.parseSQL(`SELECT
-\`page\` AS 'Page',
-SUM(added) AS 'TotalAdded'
-FROM \`wiki\`
-GROUP BY \`page\`
-LIMIT 5`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        \`page\` AS 'Page',
+        SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`
+        GROUP BY \`page\`
+        LIMIT 5
+      `);
 
       var ex2 = $('wiki').split('$page', 'Page', 'data')
         .apply('TotalAdded', '$data.sum($added)')
@@ -374,7 +474,9 @@ LIMIT 5`);
     });
 
     it("should work with multi-dimensional GROUP BYs", () => {
-      var parse = Expression.parseSQL(`SELECT \`page\`, \`user\` FROM \`wiki\` GROUP BY \`page\`, \`user\``);
+      var parse = Expression.parseSQL(sane`
+        SELECT \`page\`, \`user\` FROM \`wiki\` GROUP BY \`page\`, \`user\`
+      `);
 
       var ex2 = $('wiki').split({ page: '$page', user: '$user' }, 'data');
 
@@ -382,7 +484,9 @@ LIMIT 5`);
     });
 
     it("should work with SELECT DISTINCT", () => {
-      var parse = Expression.parseSQL(`SELECT DISTINCT \`page\`, \`user\` FROM \`wiki\``);
+      var parse = Expression.parseSQL(sane`
+        SELECT DISTINCT \`page\`, \`user\` FROM \`wiki\`
+      `);
 
       var ex2 = $('wiki').split({ page: '$page', user: '$user' }, 'data');
 
@@ -390,7 +494,9 @@ LIMIT 5`);
     });
 
     it("should work with few spaces", () => {
-      var parse = Expression.parseSQL(`SELECT\`page\`AS'Page'FROM\`wiki\`GROUP BY\`page\`ORDER BY\`Page\`LIMIT 5`);
+      var parse = Expression.parseSQL(sane`
+        SELECT\`page\`AS'Page'FROM\`wiki\`GROUP BY\`page\`ORDER BY\`Page\`LIMIT 5
+      `);
 
       var ex2 = $('wiki').split('$page', 'Page', 'data')
         .sort('$Page', 'ascending')
@@ -400,11 +506,13 @@ LIMIT 5`);
     });
 
     it("should work with a TIME_BUCKET function", () => {
-      var parse = Expression.parseSQL(`SELECT
-TIME_BUCKET(\`time\`, 'PT1H', 'Etc/UTC') AS 'TimeByHour',
-SUM(added) AS 'TotalAdded'
-FROM \`wiki\`
-GROUP BY 1`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        TIME_BUCKET(\`time\`, 'PT1H', 'Etc/UTC') AS 'TimeByHour',
+        SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`
+        GROUP BY 1
+      `);
 
       var ex2 = $('wiki').split($('time').timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour', 'data')
         .apply('TotalAdded', '$data.sum($added)');
@@ -413,7 +521,9 @@ GROUP BY 1`);
     });
 
     it("should work with SELECT *", () => {
-      var parse = Expression.parseSQL(`SELECT * FROM \`wiki\``);
+      var parse = Expression.parseSQL(sane`
+        SELECT * FROM \`wiki\`
+      `);
 
       var ex2 = $('wiki');
 
@@ -421,7 +531,9 @@ GROUP BY 1`);
     });
 
     it("should work with SELECT * WHERE ...", () => {
-      var parse = Expression.parseSQL(`SELECT * FROM \`wiki\` WHERE language = 'en'`);
+      var parse = Expression.parseSQL(sane`
+        SELECT * FROM \`wiki\` WHERE language = 'en'
+      `);
 
       var ex2 = $('wiki')
         .filter('$language == "en"');
@@ -430,12 +542,14 @@ GROUP BY 1`);
     });
 
     it("should work with SELECT stuff", () => {
-      var parse = Expression.parseSQL(`SELECT \`page\`, \`added\` -- these are completly ignored for now
-FROM \`wiki\`
-WHERE language = 'en'
-HAVING added > 100
-ORDER BY \`page\` DESC
-LIMIT 10`);
+      var parse = Expression.parseSQL(sane`
+        SELECT \`page\`, \`added\` -- these are completly ignored for now
+        FROM \`wiki\`
+        WHERE language = 'en'
+        HAVING added > 100
+        ORDER BY \`page\` DESC
+        LIMIT 10
+      `);
 
       var ex2 = $('wiki')
         .filter('$language == "en"')
@@ -447,11 +561,13 @@ LIMIT 10`);
     });
 
     it("should work with a NUMBER_BUCKET function", () => {
-      var parse = Expression.parseSQL(`SELECT
-NUMBER_BUCKET(added, 10, 1 ) AS 'AddedBucket',
-SUM(added) AS 'TotalAdded'
-FROM \`wiki\`
-GROUP BY 1`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        NUMBER_BUCKET(added, 10, 1 ) AS 'AddedBucket',
+        SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`
+        GROUP BY 1
+      `);
 
       var ex2 = $('wiki').split($('added').numberBucket(10, 1), 'AddedBucket', 'data')
         .apply('TotalAdded', '$data.sum($added)');
@@ -460,11 +576,13 @@ GROUP BY 1`);
     });
 
     it("should work with a TIME_PART function", () => {
-      var parse = Expression.parseSQL(`SELECT
-TIME_PART(\`time\`, DAY_OF_WEEK, 'Etc/UTC' ) AS 'DayOfWeek',
-SUM(added) AS 'TotalAdded'
-FROM \`wiki\`
-GROUP BY 1`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+        TIME_PART(\`time\`, DAY_OF_WEEK, 'Etc/UTC' ) AS 'DayOfWeek',
+        SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`
+        GROUP BY 1
+      `);
 
       var ex2 = $('wiki').split($('time').timePart('DAY_OF_WEEK', 'Etc/UTC'), 'DayOfWeek', 'data')
         .apply('TotalAdded', '$data.sum($added)');
@@ -473,11 +591,13 @@ GROUP BY 1`);
     });
 
     it("should work with a SUBSTR and CONCAT function", () => {
-      var parse = Expression.parseSQL(`SELECT
-CONCAT('[', SUBSTRING(SUBSTR(\`page\`, 0, 3 ), 1, 2), ']') AS 'Crazy',
-SUM(added) AS 'TotalAdded'
-FROM \`wiki\`
-GROUP BY 1`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+          CONCAT('[', SUBSTRING(SUBSTR(\`page\`, 0, 3 ), 1, 2), ']') AS 'Crazy',
+          SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`
+        GROUP BY 1
+      `);
 
       var ex2 = $('wiki').split("'[' ++ $page.substr(0, 3).substr(1, 2) ++ ']'", 'Crazy', 'data')
         .apply('TotalAdded', '$data.sum($added)');
@@ -486,11 +606,13 @@ GROUP BY 1`);
     });
 
     it("should work with EXTRACT function", () => {
-      var parse = Expression.parseSQL(`SELECT
-EXTRACT(\`page\`, '^Wiki(.+)$') AS 'Extract',
-SUM(added) AS 'TotalAdded'
-FROM \`wiki\`
-GROUP BY 1`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+          EXTRACT(\`page\`, '^Wiki(.+)$') AS 'Extract',
+          SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`
+        GROUP BY 1
+      `);
 
       var ex2 = $('wiki').split("$page.extract('^Wiki(.+)$')", 'Extract', 'data')
         .apply('TotalAdded', '$data.sum($added)');
@@ -499,11 +621,13 @@ GROUP BY 1`);
     });
 
     it("should work with LOOKUP function", () => {
-      var parse = Expression.parseSQL(`SELECT
-LOOKUP(\`language\`, 'language-lookup') AS 'Lookup',
-SUM(added) AS 'TotalAdded'
-FROM \`wiki\`
-GROUP BY 1`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+          LOOKUP(\`language\`, 'language-lookup') AS 'Lookup',
+          SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`
+        GROUP BY 1
+      `);
 
       var ex2 = $('wiki').split("$language.lookup('language-lookup')", 'Lookup', 'data')
         .apply('TotalAdded', '$data.sum($added)');
@@ -512,19 +636,21 @@ GROUP BY 1`);
     });
 
     it("should parse a complex filter", () => {
-      var parse = Expression.parseSQL(`SELECT
-SUM(added) AS 'TotalAdded'
-FROM \`wiki\`    -- Filters can have ANDs and all sorts of stuff!
-WHERE user="Bot Master 1" AND
-  page<>"Hello World" AND
-  added < 5 AND
-  \`wiki\`.\`language\` IN ('ca', 'cs', 'da', 'el') AND
-  \`namespace\` NOT IN ('simple', 'dict') AND
-  geo IS NOT NULL AND
-  page CONTAINS 'World' AND
-  page LIKE '%Hello\\_World%' AND
-  page LIKE '%Hello!_World%' ESCAPE '!' AND
-  page REGEXP 'W[od]'`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+          SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`    -- Filters can have ANDs and all sorts of stuff!
+        WHERE user="Bot Master 1" AND
+          page<>"Hello World" AND
+          added < 5 AND
+          \`wiki\`.\`language\` IN ('ca', 'cs', 'da', 'el') AND
+          \`namespace\` NOT IN ('simple', 'dict') AND
+          geo IS NOT NULL AND
+          page CONTAINS 'World' AND
+          page LIKE '%Hello\\_World%' AND
+          page LIKE '%Hello!_World%' ESCAPE '!' AND
+          page REGEXP 'W[od]'
+         `);
 
       var ex2 = ply()
         .apply(
@@ -548,22 +674,24 @@ WHERE user="Bot Master 1" AND
     });
 
     it("should parse a total + split expression", () => {
-      var parse = Expression.parseSQL(`SELECT
-SUM(\`added\`) AS 'TotalAdded',
-(
-  SELECT
-  \`page\` AS 'Page',
-  COUNT() AS 'Count',
-  SUM(\`added\`) AS 'TotalAdded',
-  min(\`added\`) AS 'MinAdded',
-  mAx(\`added\`) AS 'MaxAdded'
-  GROUP BY 1
-  HAVING \`TotalAdded\` > 100
-  ORDER BY \`Count\` DESC
-  LIMIT 10
-) AS 'Pages'
-FROM \`wiki\`
-WHERE \`language\`="en"`);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+          SUM(\`added\`) AS 'TotalAdded',
+          (
+            SELECT
+            \`page\` AS 'Page',
+            COUNT() AS 'Count',
+            SUM(\`added\`) AS 'TotalAdded',
+            min(\`added\`) AS 'MinAdded',
+            mAx(\`added\`) AS 'MaxAdded'
+            GROUP BY 1
+            HAVING \`TotalAdded\` > 100
+            ORDER BY \`Count\` DESC
+            LIMIT 10
+          ) AS 'Pages'
+        FROM \`wiki\`
+        WHERE \`language\`="en"
+      `);
 
       var ex2 = ply()
         .apply('data', '$wiki.filter($language == "en")')
@@ -584,12 +712,14 @@ WHERE \`language\`="en"`);
     });
 
     it("should work with fancy names", () => {
-      var parse = Expression.parseSQL(`SELECT
-\`page or else?\` AS 'Page',
-SUM(added) AS 'TotalAdded'
-FROM \`wiki-tiki:taki\`
-WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'
-GROUP BY \`page or else?\``);
+      var parse = Expression.parseSQL(sane`
+        SELECT
+          \`page or else?\` AS 'Page',
+        SUM(added) AS 'TotalAdded'
+        FROM \`wiki-tiki:taki\`
+        WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'
+        GROUP BY \`page or else?\`
+      `);
 
       var ex2 = $('wiki-tiki:taki').filter(
         $('language').is("en").and($('time').in({

@@ -53,6 +53,75 @@ function reserved(str) {
   return objectHasOwnProperty.call(reservedWords, str.toUpperCase());
 }
 
+function parseYear(v) {
+  if (v.length === 2) {
+    v = parseInt(v, 10);
+    return (v < 70 ? 2000 : 1900) + v;
+  } else if (v.length === 4) {
+    return parseInt(v, 10);
+  } else {
+    error('Invalid year in date');
+  }
+}
+
+function parseMonth(v) {
+  v = parseInt(v, 10);
+  if (v <= 0 || 31 < v) error('Invalid month in date');
+  return v - 1;
+}
+
+function parseDay(v) {
+  v = parseInt(v, 10);
+  if (v <= 0 || 31 < v) error('Invalid day in date');
+  return v;
+}
+
+function parseHour(v) {
+  v = parseInt(v, 10);
+  if (v < 0 || 24 < v) error('Invalid hour in date');
+  return v;
+}
+
+function parseMinute(v) {
+  v = parseInt(v, 10);
+  if (v < 0 || 60 < v) error('Invalid minute in date');
+  return v;
+}
+
+function parseSecond(v) {
+  v = parseInt(v, 10);
+  if (v < 0 || 60 < v) error('Invalid second in date');
+  return v;
+}
+
+function parseMillisecond(v) {
+  if (!v) return 0;
+  return parseInt(v.substr(0, 3), 10);
+}
+
+function makeDate(type, v) {
+  if (type === 't') error('time literals are not supported');
+  var m, d;
+  if (type === 'ts') {
+    if (m = v.match(/^(\d{2}(?:\d{2})?)(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/)) {
+      d = Date.UTC(parseYear(m[1]), parseMonth(m[2]), parseDay(m[3]), parseHour(m[4]), parseMinute(m[5]), parseSecond(m[6]));
+    } else if (m = v.match(/^(\d{2}(?:\d{2})?)[~!@#$%^&*()_+=:.\-\/](\d{1,2})[~!@#$%^&*()_+=:.\-\/](\d{1,2})[T ](\d{1,2})[~!@#$%^&*()_+=:.\-\/](\d{1,2})[~!@#$%^&*()_+=:.\-\/](\d{1,2})(?:\.(\d{1,6}))?$/)) {
+      d = Date.UTC(parseYear(m[1]), parseMonth(m[2]), parseDay(m[3]), parseHour(m[4]), parseMinute(m[5]), parseSecond(m[6]), parseMillisecond(m[7]));
+    } else {
+      error('Invalid timestamp');
+    }
+  } else {
+    if (m = v.match(/^(\d{2}(?:\d{2})?)(\d{2})(\d{2})$/)) {
+      d = Date.UTC(parseYear(m[1]), parseMonth(m[2]), parseDay(m[3]));
+    } else if (m = v.match(/^(\d{2}(?:\d{2})?)[~!@#$%^&*()_+=:.\-\/](\d{1,2})[~!@#$%^&*()_+=:.\-\/](\d{1,2})$/)) {
+      d = Date.UTC(parseYear(m[1]), parseMonth(m[2]), parseDay(m[3]));
+    } else {
+      error('Invalid date');
+    }
+  }
+  return new Date(d);
+}
+
 function extractGroupByColumn(columns, groupBy, index) {
   var label = null;
   var otherColumns = [];
@@ -480,7 +549,12 @@ StringOrNumber = String / Number
 
 
 LiteralExpression
-  = number:Number { return r(number); }
+  = OpenCurly _ type:(DToken / TToken / TsToken) _ v:String CloseCurly
+    { return r(makeDate(type, v)); }
+  / type:(DateToken / TimeToken / TimestampToken) _ v:String
+    { return r(makeDate(type, v)); }
+  / number:Number
+    { return r(number); }
   / string:String
     {
       if (dateRegExp.test(string)) {
@@ -494,7 +568,8 @@ LiteralExpression
         return r(string);
       }
     }
-  / v:(NullToken / TrueToken / FalseToken) { return r(v); }
+  / v:(NullToken / TrueToken / FalseToken)
+    { return r(v); }
 
 
 String "String"
@@ -578,6 +653,12 @@ MatchToken         = "MATCH"i          !IdentifierPart { return 'match'; }
 OverlapToken       = "OVERLAP"i        !IdentifierPart { return 'overlap'; }
 
 NowToken           = "NOW"i            !IdentifierPart
+DateToken          = "DATE"i           !IdentifierPart { return 'd'; }
+TimeToken          = "TIME"i           !IdentifierPart { return 't'; }
+TimestampToken     = "TIMESTAMP"i      !IdentifierPart { return 'ts'; }
+DToken             = "D"i              !IdentifierPart { return 'd'; }
+TToken             = "T"i              !IdentifierPart { return 't'; }
+TsToken            = "TS"i             !IdentifierPart { return 'ts'; }
 
 IdentifierPart = [A-Za-z_]
 
@@ -610,6 +691,12 @@ OpenParen "("
 
 CloseParen ")"
   = _ ")"
+
+OpenCurly "{"
+  = "{"
+
+CloseCurly "}"
+  = _ "}"
 
 Comma
   = _ "," _

@@ -1,5 +1,9 @@
 # Change log
 
+## 0.8.20
+
+- Support Date and Timestamp literal as described here: https://dev.mysql.com/doc/refman/5.7/en/date-and-time-literals.html
+
 ## 0.8.19
 
 - Upgraded to TypeScript 1.8
