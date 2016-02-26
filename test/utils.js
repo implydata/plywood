@@ -118,6 +118,7 @@ exports.sane = function() {
   if (lines[lines.length - 1] === '') lines.pop(); // Remove last line if empty
 
   return lines.join('\n')
-    .replace(/\\`/g, '`') // Fix \` that should be `
-    .replace(/\\\{/g, '{'); // Fix \{ that should be {
+    .replace(/\\`/g, '`')    // Fix \` that should be `
+    .replace(/\\\{/g, '{')   // Fix \{ that should be {
+    .replace(/\\\\/g, '\\'); // Fix \\ that should be \
 };
