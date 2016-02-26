@@ -66,7 +66,7 @@ function parseYear(v) {
 
 function parseMonth(v) {
   v = parseInt(v, 10);
-  if (v <= 0 || 31 < v) error('Invalid month in date');
+  if (v <= 0 || 12 < v) error('Invalid month in date');
   return v - 1;
 }
 
