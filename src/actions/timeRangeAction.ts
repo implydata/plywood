@@ -41,7 +41,7 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'TIME');
       return 'TIME_RANGE';
     }
@@ -67,7 +67,7 @@ module Plywood {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (inV === null) return null;
-        timezone = timezone || (c['timezone'] ? Timezone.fromJS(c['timezone']) : Timezone.UTC);
+        timezone = timezone || (c['timezone'] ? Timezone.fromJS(<string>c['timezone']) : Timezone.UTC);
         var other = duration.move(inV, timezone, step);
         if (step > 0) {
           return new TimeRange({ start: inV, end: other });

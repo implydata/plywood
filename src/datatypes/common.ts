@@ -3,7 +3,7 @@ module Plywood {
     return Boolean(dt && dt.toISOString);
   }
 
-  export function getValueType(value: any): string {
+  export function getValueType(value: any): PlyType {
     var typeofValue = typeof value;
     if (typeofValue === 'object') {
       if (value === null) {
@@ -24,19 +24,19 @@ module Plywood {
           }
         }
         if (ctrType === 'SET') ctrType += '/' + value.setType;
-        return ctrType;
+        return <PlyType>ctrType;
       }
     } else {
       if (typeofValue !== 'boolean' && typeofValue !== 'number' && typeofValue !== 'string') {
         throw new TypeError('unsupported JS type ' + typeofValue);
       }
-      return typeofValue.toUpperCase();
+      return <PlyType>typeofValue.toUpperCase();
     }
   }
 
   export function getFullType(value: any): FullType {
     var myType = getValueType(value);
-    return myType === 'DATASET' ? (<Dataset>value).getFullType() : { type: myType };
+    return myType === 'DATASET' ? (<Dataset>value).getFullType() : { type: <PlyTypeSimple>myType };
   }
 
   export function valueFromJS(v: any, typeOverride: string = null): any {
@@ -145,10 +145,20 @@ module Plywood {
     ).then(() => datum);
   }
 
-  export interface FullType {
-    type: string;
-    datasetType?: Lookup<FullType>;
-    parent?: FullType;
-    remote?: string[];
+  export type PlyTypeSimple = 'NULL' | 'BOOLEAN' | 'NUMBER' | 'TIME' | 'STRING' | 'NUMBER_RANGE' | 'TIME_RANGE' | 'SET' | 'SET/NULL' | 'SET/BOOLEAN' | 'SET/NUMBER' | 'SET/TIME' | 'SET/STRING' | 'SET/NUMBER_RANGE' | 'SET/TIME_RANGE';
+
+  export type PlyType = PlyTypeSimple | 'DATASET';
+
+  export interface SimpleFullType {
+    type: PlyTypeSimple;
   }
+
+  export interface DatasetFullType {
+    type: 'DATASET';
+    datasetType: Lookup<FullType>;
+    parent?: DatasetFullType;
+    remote?: boolean;
+  }
+
+  export type FullType = SimpleFullType | DatasetFullType;
 }

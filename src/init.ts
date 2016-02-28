@@ -130,8 +130,14 @@ module Plywood {
 
   export import WallTime = Chronoshift.WallTime;
 
-  export interface Datum {
+  export type PlywoodValue = boolean | number | string | Date | NumberRange | TimeRange | Set | Dataset | External;
+
+  export interface PseudoDatum {
     [attribute: string]: any;
+  }
+
+  export interface Datum {
+    [attribute: string]: PlywoodValue;
   }
 
   export function safeAdd(num: number, delta: number): number {

@@ -41,7 +41,7 @@ module Plywood {
         this.compare === other.compare;
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'BOOLEAN', 'STRING');
       return 'BOOLEAN';
     }

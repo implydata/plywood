@@ -10,15 +10,14 @@ module Plywood {
       this._checkNoExpression();
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'DATASET');
       return 'NUMBER';
     }
 
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       return {
         type: 'NUMBER',
-        remote: typeContext.remote
       };
     }
 
@@ -30,7 +29,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `COUNT(${dialect.aggregateFilterIfNeeded(inputSQL, '1')})`;
+      return inputSQL.indexOf(' WHERE ') === -1 ? `COUNT(*)` : `SUM(${dialect.aggregateFilterIfNeeded(inputSQL, '1')})`;
     }
 
     public isAggregate(): boolean {

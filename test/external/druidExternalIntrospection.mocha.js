@@ -320,7 +320,7 @@ describe("DruidExternal Introspection", () => {
       .then(() => {
         throw new Error('DID_NOT_ERROR');
       })
-      .fail((err) => {
+      .catch((err) => {
         expect(err.message).to.equal('Bad status code');
         testComplete();
       })

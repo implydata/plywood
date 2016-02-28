@@ -155,6 +155,12 @@ describe("Simplify", () => {
       var ex2 = $('x').multiply('1 + $y', '$z');
       simplifiesTo(ex1, ex2);
     });
+
+    it.skip("works with trailing literals", () => {
+      var ex1 = $('x').multiply(3).multiply(3);
+      var ex2 = $('x').multiply(9);
+      simplifiesTo(ex1, ex2);
+    });
   });
 
 

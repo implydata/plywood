@@ -10,16 +10,15 @@ module Plywood {
       this._checkExpressionTypes('NUMBER');
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'DATASET');
       return 'NUMBER';
     }
 
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
       return {
         type: 'NUMBER',
-        remote: typeContext.remote
       };
     }
 

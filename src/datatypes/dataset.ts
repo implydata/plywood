@@ -216,7 +216,7 @@ module Plywood {
     var js: Datum = {};
     for (var k in datum) {
       var v = datum[k];
-      if (v && v.suppress === true) continue;
+      if (v && (v as any).suppress) continue;
       js[k] = valueToJSInlineType(v);
     }
     return js;
@@ -305,11 +305,10 @@ module Plywood {
         this.keys = parameters.keys;
       }
       var data = parameters.data;
-      if (Array.isArray(data)) {
-        this.data = data;
-      } else {
+      if (!Array.isArray(data)) {
         throw new TypeError("must have a `data` array");
       }
+      this.data = data;
     }
 
     public valueOf(): DatasetValue {
@@ -356,7 +355,7 @@ module Plywood {
       return datumHasExternal(this.data[0]);
     }
 
-    public getFullType(): FullType {
+    public getFullType(): DatasetFullType {
       this.introspect();
       var attributes = this.attributes;
       if (!attributes) throw new Error("dataset has not been introspected");
@@ -371,15 +370,15 @@ module Plywood {
           };
         } else {
           myDatasetType[attrName] = {
-            type: attribute.type
+            type: <PlyTypeSimple>attribute.type
           };
         }
       }
-      var myFullType: FullType = {
+
+      return {
         type: 'DATASET',
         datasetType: myDatasetType
       };
-      return myFullType;
     }
 
     // Actions
@@ -489,19 +488,20 @@ module Plywood {
       var splitFnList = keys.map(k => splitFns[k]);
 
       var splits: Lookup<Datum> = {};
-      var datas: Lookup<Datum[]> = {};
+      var datumGroups: Lookup<Datum[]> = {};
       var finalData: Datum[] = [];
+      var finalDataset: Datum[][] = [];
 
       function addDatum(datum: Datum, valueList: any): void {
         var key = valueList.join(';_PLYw00d_;');
-        if (hasOwnProperty(datas, key)) {
-          datas[key].push(datum);
+        if (hasOwnProperty(datumGroups, key)) {
+          datumGroups[key].push(datum);
         } else {
-          var newDatum = Object.create(null);
+          var newDatum: Datum = Object.create(null);
           for (var i = 0; i < numberOfKeys; i++) {
             newDatum[keys[i]] = valueList[i];
           }
-          newDatum[datasetName] = (datas[key] = [datum]);
+          finalDataset.push(datumGroups[key] = [datum]);
           splits[key] = newDatum;
           finalData.push(newDatum)
         }
@@ -520,8 +520,8 @@ module Plywood {
         }
       }
 
-      for (var finalDatum of finalData) {
-        finalDatum[datasetName] = new Dataset({ suppress: true, data: finalDatum[datasetName] });
+      for (var i = 0; i < finalData.length; i++) {
+        finalData[i][datasetName] = new Dataset({ suppress: true, data: finalDataset[i] });
       }
 
       return new Dataset({
@@ -582,28 +582,14 @@ module Plywood {
     public getExternals(): External[] {
       if (this.data.length === 0) return [];
       var datum = this.data[0];
-      var externals: External[][] = [];
+      var externals: External[] = [];
       Object.keys(datum).forEach(applyName => {
         var applyValue = datum[applyName];
         if (applyValue instanceof Dataset) {
-          externals.push(applyValue.getExternals());
+          externals.push(...applyValue.getExternals());
         }
       });
-      return mergeExternals(externals);
-    }
-
-    public getExternalIds(): string[] {
-      if (this.data.length === 0) return [];
-      var datum = this.data[0];
-      var push = Array.prototype.push;
-      var externalIds: string[] = [];
-      Object.keys(datum).forEach(applyName => {
-        var applyValue = datum[applyName];
-        if (applyValue instanceof Dataset) {
-          push.apply(externalIds, applyValue.getExternals());
-        }
-      });
-      return deduplicateSort(externalIds);
+      return External.deduplicateExternals(externals);
     }
 
     public join(other: Dataset): Dataset {
@@ -657,7 +643,7 @@ module Plywood {
         if (attribute.type === 'DATASET') {
           if (!subDatasetAdded) {
             subDatasetAdded = true;
-            column.columns = this.data[0][attribute.name].getNestedColumns();
+            column.columns = (this.data[0][attribute.name] as Dataset).getNestedColumns();
             nestedColumns.push(column);
           }
         } else {
@@ -677,11 +663,11 @@ module Plywood {
       return flattenColumns(this.getNestedColumns(), prefixColumns);
     }
 
-    private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, parentName: string, nesting: number, context: Datum, flat: Datum[]): void {
+    private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, parentName: string, nesting: number, context: Datum, flat: PseudoDatum[]): void {
       var data = this.data;
       var leaf = nestedColumns[nestedColumns.length - 1].type !== 'DATASET';
       for (let datum of data) {
-        var flatDatum: Datum = context ? copy(context) : {};
+        var flatDatum: PseudoDatum = context ? copy(context) : {};
         if (nestingName) flatDatum[nestingName] = nesting;
         if (parentName) flatDatum[parentName] = context;
 
@@ -691,7 +677,7 @@ module Plywood {
             if (prefix !== null) nextPrefix = prefix + flattenedColumn.name + '.';
 
             if (order === 'preorder') flat.push(flatDatum);
-            datum[flattenedColumn.name]._flattenHelper(flattenedColumn.columns, nextPrefix, order, nestingName, parentName, nesting + 1, flatDatum, flat);
+            (datum[flattenedColumn.name] as Dataset)._flattenHelper(flattenedColumn.columns, nextPrefix, order, nestingName, parentName, nesting + 1, flatDatum, flat);
             if (order === 'postorder') flat.push(flatDatum);
           } else {
             var flatName = (prefix !== null ? prefix : '') + flattenedColumn.name;
@@ -703,13 +689,13 @@ module Plywood {
       }
     }
 
-    public flatten(options: FlattenOptions = {}): Datum[] {
+    public flatten(options: FlattenOptions = {}): PseudoDatum[] {
       var prefixColumns = options.prefixColumns;
       var order = options.order; // preorder, inline [default], postorder
       var nestingName = options.nestingName;
       var parentName = options.parentName;
       var nestedColumns = this.getNestedColumns();
-      var flatData: Datum[] = [];
+      var flatData: PseudoDatum[] = [];
       if (nestedColumns.length) {
         this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, parentName, 0, null, flatData);
       }

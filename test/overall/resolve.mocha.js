@@ -51,8 +51,24 @@ describe("resolve", () => {
     });
   });
 
+  describe("#contained", () => {
+    it('works with agg', () => {
+      var ex = $('diamonds').sum('$price');
+      expect(ex.contained()).to.equal(true);
+    });
 
-  describe("resolves", () => {
+    it('works with add and var', () => {
+      var ex = $('TotalPrice').add($('diamonds').sum('$price'));
+      expect(ex.contained()).to.equal(true);
+    });
+
+    it('works with add and ^var', () => {
+      var ex = $('TotalPrice', 1).add($('diamonds').sum('$price'));
+      expect(ex.contained()).to.equal(false);
+    });
+  });
+
+  describe("#resolve", () => {
     it("works in a basic case", () => {
       var ex = $('foo').add('$bar');
 
@@ -193,103 +209,10 @@ describe("resolve", () => {
 
       var ex = $("diamonds").split("$cut", 'Cut')
         .apply('Count', $('diamonds').count())
-        .apply('PercentOfTotal', '$^Count / $Count');
+        .apply('PercentOfTotal', '$Count / $^Count');
 
       ex = ex.resolve(datum);
     });
   });
 
-
-  describe.skip("resolves remotes", () => {
-    var context = {
-      diamonds: External.fromJS({
-        engine: 'druid',
-        dataSource: 'diamonds',
-        timeAttribute: 'time',
-        context: null,
-        attributes: [
-          { name: 'time', type: 'TIME' },
-          { name: 'color', type: 'STRING' },
-          { name: 'cut', type: 'STRING' },
-          { name: 'carat', type: 'NUMBER' }
-        ]
-      }),
-      diamonds2: External.fromJS({
-        engine: 'druid',
-        dataSource: 'diamonds2',
-        timeAttribute: 'time',
-        context: null,
-        attributes: [
-          { name: 'time', type: 'TIME' },
-          { name: 'color', type: 'STRING' },
-          { name: 'cut', type: 'STRING' },
-          { name: 'carat', type: 'NUMBER' }
-        ]
-      })
-    };
-
-    it("resolves all remotes correctly", () => {
-      var ex = ply()
-        .apply(
-          'Cuts',
-          $("diamonds").split("$cut", 'Cut')
-            .apply('Count', $('diamonds').count())
-            .sort('$Count', 'descending')
-            .limit(10)
-        )
-        .apply(
-          'Carats',
-          $("diamonds").split($('carat').numberBucket(0.5), 'Carat')
-            .apply('Count', $('diamonds').count())
-            .sort('$Count', 'descending')
-            .limit(10)
-        );
-
-      ex = ex.referenceCheck(context);
-
-      expect(ex.every((e) => {
-          if (!e.isOp('ref')) {
-            return null;
-          }
-          return (String(e.remote) === 'druid:true:diamonds');
-        }
-      )).to.equal(true);
-    });
-
-    it("resolves two dataset remotes", () => {
-      var ex = ply()
-        .apply(
-          'Cuts',
-          $("diamonds").split("$cut", 'Cut')
-            .apply('Count', $('diamonds').count())
-            .sort('$Count', 'descending')
-            .limit(10)
-        )
-        .apply(
-          'Carats',
-          $("diamonds2").split($('carat').numberBucket(0.5), 'Carat')
-            .apply('Count', $('diamonds2').count())
-            .sort('$Count', 'descending')
-            .limit(10)
-        );
-
-      ex = ex.referenceCheck(context);
-
-      expect(ex.actions[0].expression.every((e) => {
-          if (!e.isOp('ref')) {
-            return null;
-          }
-          return (String(e.remote) === 'druid:true:diamonds');
-        }
-      )).to.equal(true);
-
-      expect(ex.actions[1].expression.every((e) => {
-          if (!e.isOp('ref')) {
-            return null;
-          }
-          return (String(e.remote) === 'druid:true:diamonds2');
-        }
-      )).to.equal(true);
-    });
-  });
 });

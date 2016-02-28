@@ -9,7 +9,7 @@ module Plywood {
       this._ensureAction("is");
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       var expressionType = this.expression.type;
       if (expressionType && expressionType !== 'NULL') this._checkInputTypes(inputType, expressionType);
       return 'BOOLEAN';

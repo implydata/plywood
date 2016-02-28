@@ -72,7 +72,7 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'DATASET');
       return 'DATASET';
     }
@@ -105,7 +105,7 @@ module Plywood {
       }
     }
 
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       var newDatasetType: Lookup<FullType> = {};
       this.mapSplits((name, expression) => {
         newDatasetType[name] = expression._fillRefSubstitutions(typeContext, indexer, alterations);
@@ -116,7 +116,7 @@ module Plywood {
         parent: typeContext.parent,
         type: 'DATASET',
         datasetType: newDatasetType,
-        remote: null
+        remote: false
       };
     }
 
@@ -171,19 +171,6 @@ module Plywood {
       if (!hasChanged) return this;
       var value = this.valueOf();
       value.splits = subSplits;
-      return new SplitAction(value);
-    }
-
-    public applyToExpression(transformation: ExpressionTransformation): Action {
-      var hasChanged = false;
-      var newSplits = this.mapSplitExpressions((ex) => {
-        var newExpression = transformation(ex);
-        if (newExpression !== ex) hasChanged = true;
-        return newExpression;
-      });
-      if (!hasChanged) return this;
-      var value = this.valueOf();
-      value.splits = newSplits;
       return new SplitAction(value);
     }
 

@@ -1,7 +1,7 @@
 var { expect } = require("chai");
 var Q = require('q');
 
-var plywood = require('../build/plywood');
+var { toJS } = require('../build/plywood');
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -75,7 +75,7 @@ exports.makeEqualityTest = (executorMap) => {
           if (typeof after === "function") after(null, results[0], results);
 
           results = results.map((result) => {
-            return uniformizeDoubles(result.toJS());
+            return uniformizeDoubles(toJS(result));
           });
 
           if (verbose) {

@@ -34,7 +34,7 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'TIME');
       return 'TIME';
     }
@@ -58,7 +58,7 @@ module Plywood {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (inV === null) return null;
-        timezone = timezone || (c['timezone'] ? Timezone.fromJS(c['timezone']) : Timezone.UTC);
+        timezone = timezone || (c['timezone'] ? Timezone.fromJS(<string>c['timezone']) : Timezone.UTC);
         return duration.floor(inV, timezone);
       }
     }

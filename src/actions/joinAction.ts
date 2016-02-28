@@ -10,14 +10,14 @@ module Plywood {
       if(!this.expression.canHaveType('DATASET')) throw new TypeError('expression must be a DATASET');
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'DATASET');
       return 'DATASET';
     }
 
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       var typeContextParent = typeContext.parent;
-      var expressionFullType = this.expression._fillRefSubstitutions(typeContextParent, indexer, alterations);
+      var expressionFullType = <DatasetFullType>this.expression._fillRefSubstitutions(typeContextParent, indexer, alterations);
 
       var inputDatasetType = typeContext.datasetType;
       var expressionDatasetType = expressionFullType.datasetType;
@@ -41,7 +41,7 @@ module Plywood {
         parent: typeContextParent,
         type: 'DATASET',
         datasetType: newDatasetType,
-        remote: mergeRemotes([typeContext.remote, expressionFullType.remote])
+        remote: typeContext.remote || expressionFullType.remote
       };
     }
 
