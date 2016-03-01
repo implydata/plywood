@@ -29,7 +29,7 @@ module Plywood {
         var inV = inputFn(d, c);
         var exV = expressionFn(d, c);
         if (!inV || !exV) return null;
-        return inV.overlap(exV);
+        return Set.isSet(inV) ? inV.overlap(exV) : exV.contains(inV);
       }
     }
 
