@@ -41,7 +41,7 @@
     "plywood-druid-requester": "1.2.8",
     "plywood-mysql-requester": "1.2.2",
     "tslint": "3.5.0",
-    "typescript": "1.8.2",
+    "typescript": "1.8.7",
     "underscore": "1.8.3",
     "walltime-js": "0.1.2"
   }
