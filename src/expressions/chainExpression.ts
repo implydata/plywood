@@ -409,7 +409,7 @@ module Plywood {
 
         }
 
-        throw new Error(`could not execute ${action.toString()}`);
+        throw new Error(`could not execute ${action}`);
       }
 
       var value = this.expression._computeResolvedSimulate(simulatedQueries);
@@ -447,7 +447,7 @@ module Plywood {
 
           }
 
-          throw new Error(`could not execute ${action.toString()}`);
+          throw new Error(`could not execute ${action}`);
         }
       }
 

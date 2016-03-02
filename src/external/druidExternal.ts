@@ -666,7 +666,7 @@ module Plywood {
           if (rhs instanceof RefExpression) {
             referenceName = rhs.name;
           } else {
-            throw new Error(`unsupported literal lhs must have ref rhs: ${rhs.toString()}`);
+            throw new Error(`unsupported literal lhs must have ref rhs: ${rhs}`);
           }
 
           if (filterAction instanceof InAction) {
@@ -677,7 +677,7 @@ module Plywood {
               value: attributeInfo.serialize(lhs.value)
             }
           }
-          throw new Error(`unsupported rhs action for literal lhs: ${filterAction.toString()}`);
+          throw new Error(`unsupported rhs action for literal lhs: ${filterAction}`);
         }
 
         if (filterAction instanceof NotAction) {
@@ -801,7 +801,7 @@ module Plywood {
       } else if (filter instanceof ChainExpression) {
         var lhs = filter.expression;
         var actions = filter.actions;
-        if (actions.length !== 1) throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+        if (actions.length !== 1) throw new Error(`can not convert ${filter} to Druid interval`);
         var filterAction = actions[0];
         var rhs = filterAction.expression;
 
@@ -809,7 +809,7 @@ module Plywood {
           if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
             return TimeRange.intervalFromDate(rhs.value);
           } else {
-            throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+            throw new Error(`can not convert ${filter} to Druid interval`);
           }
 
         } else if (filterAction instanceof InAction) {
@@ -827,11 +827,11 @@ module Plywood {
             var intervals = timeRanges.map(timeRange => timeRange.toInterval());
             return intervals.length === 1 ? intervals[0] : intervals;
           } else {
-            throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+            throw new Error(`can not convert ${filter} to Druid interval`);
           }
 
         } else {
-          throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+          throw new Error(`can not convert ${filter} to Druid interval`);
         }
 
         /*
@@ -843,7 +843,7 @@ module Plywood {
         */
 
       } else {
-        throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+        throw new Error(`can not convert ${filter} to Druid interval`);
       }
     }
 
@@ -914,7 +914,7 @@ return (start < 0 ?'-':'') + parts.join('.');
     public expressionToExtractionFn(expression: Expression): Druid.ExtractionFn {
       var freeReferences = expression.getFreeReferences();
       if (freeReferences.length !== 1) {
-        throw new Error(`must have a single reference: ${expression.toString()}`);
+        throw new Error(`must have a single reference: ${expression}`);
       }
       var referenceName = freeReferences[0];
 
@@ -963,7 +963,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         // Concat is the only thing allowed to have a non leading ref, the rest must be $ref.someFunction
         if (!expression.expression.isOp('ref')) {
-          throw new Error(`can not convert complex: ${expression.expression.toString()}`);
+          throw new Error(`can not convert complex: ${expression.expression}`);
         }
 
         var actions = expression.actions;
@@ -975,7 +975,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (actions.length === 2) {
           fallbackAction = <FallbackAction>actions[1];
           if (!(fallbackAction instanceof FallbackAction)) {
-            throw new Error(`can not convert expression: ${expression.toString()}`);
+            throw new Error(`can not convert expression: ${expression}`);
           }
           var fallbackExpression = fallbackAction.expression;
           if (fallbackExpression.isOp("ref")) {
@@ -986,10 +986,10 @@ return (start < 0 ?'-':'') + parts.join('.');
             replaceMissingValueWith = fallbackExpression.getLiteralValue();
           } else {
             // TODO: would be cool to support $foo.extract(...).fallback($foo ++ 'something')
-            throw new Error(`unsupported fallback action: ${expression.toString()}`);
+            throw new Error(`unsupported fallback action: ${expression}`);
           }
         } else if (actions.length !== 1) {
-          throw new Error(`can not convert expression: ${expression.toString()}`);
+          throw new Error(`can not convert expression: ${expression}`);
         }
 
         if (mainAction instanceof SubstrAction) {
@@ -1055,9 +1055,9 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (mainAction instanceof TimeBucketAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in timeBucket expression ${expression.toString()}`);
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in timeBucket expression ${expression}`);
           var format = TIME_BUCKET_FORMAT[mainAction.duration.toString()];
-          if (!format) throw new Error(`unsupported duration in timeBucket expression ${mainAction.duration.toString()}`);
+          if (!format) throw new Error(`unsupported duration in timeBucket expression ${mainAction.duration}`);
           return {
             type: "timeFormat",
             format: format,
@@ -1067,7 +1067,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (mainAction instanceof TimePartAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in timePart expression ${expression.toString()}`);
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in timePart expression ${expression}`);
           var format = TIME_PART_TO_FORMAT[mainAction.part];
           if (!format) throw new Error(`unsupported part in timePart expression ${mainAction.part}`);
           return {
@@ -1079,7 +1079,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (mainAction instanceof NumberBucketAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in numberBucket expression ${expression.toString()}`);
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in numberBucket expression ${expression}`);
           var attributeInfo = this.getAttributesInfo(referenceName);
           if (attributeInfo.type === 'NUMBER') {
             var floorExpression = continuousFloorExpression("d", "Math.floor", mainAction.size, mainAction.offset);
@@ -1109,7 +1109,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
       }
 
-      throw new Error(`could not convert ${expression.toString()} to a Druid extractionFn`);
+      throw new Error(`could not convert ${expression} to a Druid extractionFn`);
     }
 
     public splitExpressionToDimensionInflater(splitExpression: Expression, label: string): DimensionInflater {
@@ -1160,10 +1160,10 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (!splitExpression.expression.isOp('ref')) {
-          throw new Error(`can not convert complex: ${splitExpression.expression.toString()}`);
+          throw new Error(`can not convert complex: ${splitExpression.expression}`);
         }
         var actions = splitExpression.actions;
-        if (actions.length !== 1) throw new Error(`can not convert expression: ${splitExpression.toString()}`);
+        if (actions.length !== 1) throw new Error(`can not convert expression: ${splitExpression}`);
         var splitAction = actions[0];
 
         if (splitAction instanceof SubstrAction || splitAction instanceof AbsoluteAction || splitAction instanceof PowerAction) {
@@ -1175,7 +1175,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         if (splitAction instanceof TimeBucketAction) {
           var format = TIME_BUCKET_FORMAT[splitAction.duration.toString()];
-          if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration.toString()}`);
+          if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration}`);
           return {
             dimension,
             inflater: External.timeRangeInflaterFactory(label, splitAction.duration, splitAction.timezone || DEFAULT_TIMEZONE)
@@ -1211,7 +1211,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
       }
 
-      throw new Error(`could not convert ${splitExpression.toString()} to a Druid Dimension`);
+      throw new Error(`could not convert ${splitExpression} to a Druid Dimension`);
     }
 
     public splitToDruid(): DruidSplit {
@@ -1431,7 +1431,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       if (attribute instanceof RefExpression) {
         var attributeName = attribute.name;
       } else {
-        throw new Error(`can not compute countDistinct on derived attribute: ${attribute.toString()}`);
+        throw new Error(`can not compute countDistinct on derived attribute: ${attribute}`);
       }
 
       var attributeInfo = this.getAttributesInfo(attributeName);
@@ -1499,7 +1499,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
     public applyToAggregation(action: ApplyAction, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
       var applyExpression = <ChainExpression>action.expression;
-      if (applyExpression.op !== 'chain') throw new Error(`can not convert apply: ${applyExpression.toString()}`);
+      if (applyExpression.op !== 'chain') throw new Error(`can not convert apply: ${applyExpression}`);
 
       var actions = applyExpression.actions;
       var filterExpression: Expression = null;
@@ -1511,11 +1511,11 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (filterAction instanceof FilterAction) {
           filterExpression = filterAction.expression;
         } else {
-          throw new Error(`first action not a filter in: ${applyExpression.toString()}`);
+          throw new Error(`first action not a filter in: ${applyExpression}`);
         }
         aggregateAction = actions[1];
       } else {
-        throw new Error(`can not convert strange apply: ${applyExpression.toString()}`);
+        throw new Error(`can not convert strange apply: ${applyExpression}`);
       }
 
       var aggregation: Druid.Aggregation;
@@ -1540,7 +1540,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             if (this.canUseNativeAggregateFilter(filterExpression)) {
               aggregation = this.makeNativeAggregateFilter(action.name, filterExpression, this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction));
             } else {
-              throw new Error(`can not use complex filter with countDistinct aggregation: ${filterExpression.toString()}`);
+              throw new Error(`can not use complex filter with countDistinct aggregation: ${filterExpression}`);
             }
           } else {
             aggregation = this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction);
@@ -1555,7 +1555,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             if (this.canUseNativeAggregateFilter(filterExpression)) {
               aggregation = this.makeNativeAggregateFilter(action.name, filterExpression, this.makeCustomAggregation(action.name, <CustomAction>aggregateAction));
             } else {
-              throw new Error(`can not use complex filter with custom aggregation: ${filterExpression.toString()}`);
+              throw new Error(`can not use complex filter with custom aggregation: ${filterExpression}`);
             }
           } else {
             aggregation = this.makeCustomAggregation(action.name, <CustomAction>aggregateAction);
@@ -1648,7 +1648,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         var lhs = filter.expression;
         var actions = filter.actions;
-        if (actions.length !== 1) throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+        if (actions.length !== 1) throw new Error(`can not convert ${filter} to Druid interval`);
         var filterAction = actions[0];
         var rhs = filterAction.expression;
 
@@ -1661,7 +1661,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             };
 
           } else {
-            throw new Error(`can not convert ${filter.toString()} to Druid filter`);
+            throw new Error(`can not convert ${filter} to Druid filter`);
           }
 
         } else if (filterAction instanceof InAction) {
@@ -1697,14 +1697,14 @@ return (start < 0 ?'-':'') + parts.join('.');
               throw new Error("not supported " + rhsType);
             }
           } else {
-            throw new Error(`can not convert ${filter.toString()} to Druid having filter`);
+            throw new Error(`can not convert ${filter} to Druid having filter`);
           }
 
         }
 
       }
 
-      throw new Error(`could not convert filter ${filter.toString()} to Druid filter`);
+      throw new Error(`could not convert filter ${filter} to Druid filter`);
     }
 
     public isMinMaxTimeApply(apply: ApplyAction): boolean {

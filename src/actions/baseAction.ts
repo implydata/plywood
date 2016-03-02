@@ -211,7 +211,7 @@ module Plywood {
 
     protected _checkNoExpression() {
       if (this.expression) {
-        throw new Error(`${this.action} must no have an expression (is ${this.expression.toString()})`);
+        throw new Error(`${this.action} must no have an expression (is ${this.expression})`);
       }
     }
 

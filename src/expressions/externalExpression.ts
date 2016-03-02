@@ -33,7 +33,7 @@ module Plywood {
     }
 
     public toString(): string {
-      return `E:${this.external.toString()}`;
+      return `E:${this.external}`;
     }
 
     public getFn(): ComputeFn {

@@ -1113,7 +1113,7 @@ module Plywood {
             if (valueFound) {
               return foundExpression;
             } else if (ifNotFound === 'throw') {
-              throw new Error(`could not resolve ${ex.toString()} because is was not in the context`);
+              throw new Error(`could not resolve ${ex} because is was not in the context`);
             } else if (ifNotFound === 'null') {
               return Expression.NULL;
             } else if (ifNotFound === 'leave') {

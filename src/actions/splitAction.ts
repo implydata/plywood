@@ -82,7 +82,7 @@ module Plywood {
         var { splits } = this;
         var splitStrings: string[] = [];
         for (var name in splits) {
-          splitStrings.push(`${name}: ${splits[name].toString()}`);
+          splitStrings.push(`${name}: ${splits[name]}`);
         }
         return [splitStrings.join(', '), this.dataName];
       } else {

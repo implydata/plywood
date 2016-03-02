@@ -170,7 +170,7 @@ module Plywood {
     }
 
     public getSQL(dialect: SQLDialect, minimal: boolean = false): string {
-      if (this.nest) throw new Error(`can not call getSQL on unresolved expression: ${this.toString()}`);
+      if (this.nest) throw new Error(`can not call getSQL on unresolved expression: ${this}`);
       return dialect.escapeName(this.name);
     }
 
@@ -213,7 +213,7 @@ module Plywood {
       var myRemote = Boolean((myFullType as DatasetFullType).remote);
 
       if (this.type && this.type !== myType) {
-        throw new TypeError(`type mismatch in ${this.toString()} (has: ${this.type} needs: ${myType})`);
+        throw new TypeError(`type mismatch in ${this} (has: ${this.type} needs: ${myType})`);
       }
 
       // Check if it needs to be replaced
