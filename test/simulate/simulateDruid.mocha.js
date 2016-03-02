@@ -92,7 +92,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it.skip("works on initial dataset", () => {
+  it("works on initial dataset", () => {
     var dataset = Dataset.fromJS([
       { col: 'D' },
       { col: 'E' }
@@ -102,10 +102,45 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter($("color").is('$col')))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([]);
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "__VALUE__",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "filter": {
+          "dimension": "color",
+          "type": "selector",
+          "value": "D"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12/2015-03-19",
+        "queryType": "timeseries"
+      },
+      {
+        "aggregations": [
+          {
+            "name": "__VALUE__",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "filter": {
+          "dimension": "color",
+          "type": "selector",
+          "value": "E"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12/2015-03-19",
+        "queryType": "timeseries"
+      }
+    ]);
   });
 
-  it.skip("works in advanced case", () => {
+  it.only("works in advanced case", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D').and($('cut').in(['Good', 'Bad', 'Ugly']))))
       .apply('Count', '$diamonds.count()')
@@ -143,16 +178,6 @@ describe("simulate Druid", () => {
       {
         "aggregations": [
           {
-            "fieldName": "tax",
-            "name": "!T_0",
-            "type": "doubleSum"
-          },
-          {
-            "fieldName": "carat",
-            "name": "!T_1",
-            "type": "doubleSum"
-          },
-          {
             "name": "Count",
             "type": "count"
           },
@@ -174,17 +199,82 @@ describe("simulate Druid", () => {
             },
             "name": "PriceGoodCut",
             "type": "filtered"
+          },
+          {
+            "fieldName": "tax",
+            "name": "!T_0",
+            "type": "doubleSum"
+          },
+          {
+            "fieldName": "carat",
+            "name": "!T_1",
+            "type": "doubleSum"
           }
         ],
         "dataSource": "diamonds",
         "filter": {
-          "dimension": "color",
-          "type": "selector",
-          "value": "D"
+          "fields": [
+            {
+              "dimension": "color",
+              "type": "selector",
+              "value": "D"
+            },
+            {
+              "fields": [
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Good"
+                },
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Bad"
+                },
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Ugly"
+                }
+              ],
+              "type": "or"
+            }
+          ],
+          "type": "and"
         },
         "granularity": "all",
         "intervals": "2015-03-12/2015-03-19",
         "postAggregations": [
+          {
+            "fields": [
+              {
+                "fieldName": "TotalPrice",
+                "type": "fieldAccess"
+              },
+              {
+                "fieldName": "!T_0",
+                "type": "fieldAccess"
+              }
+            ],
+            "fn": "-",
+            "name": "PriceDiff",
+            "type": "arithmetic"
+          },
+          {
+            "fields": [
+              {
+                "fieldName": "TotalPrice",
+                "type": "fieldAccess"
+              },
+              {
+                "fieldName": "Count",
+                "type": "fieldAccess"
+              }
+            ],
+            "fn": "/",
+            "name": "AvgPrice",
+            "type": "arithmetic"
+          },
           {
             "fields": [
               {
@@ -218,25 +308,20 @@ describe("simulate Druid", () => {
           {
             "fields": [
               {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "-",
-            "name": "PriceDiff",
-            "type": "arithmetic"
-          },
-          {
-            "fields": [
-              {
                 "fields": [
                   {
-                    "fieldName": "TotalPrice",
-                    "type": "fieldAccess"
+                    "fields": [
+                      {
+                        "fieldName": "TotalPrice",
+                        "type": "fieldAccess"
+                      },
+                      {
+                        "fieldName": "!T_0",
+                        "type": "fieldAccess"
+                      }
+                    ],
+                    "fn": "-",
+                    "type": "arithmetic"
                   },
                   {
                     "type": "constant",
@@ -247,18 +332,8 @@ describe("simulate Druid", () => {
                 "type": "arithmetic"
               },
               {
-                "fields": [
-                  {
-                    "fieldName": "!T_0",
-                    "type": "fieldAccess"
-                  },
-                  {
-                    "fieldName": "!T_1",
-                    "type": "fieldAccess"
-                  }
-                ],
-                "fn": "+",
-                "type": "arithmetic"
+                "fieldName": "!T_1",
+                "type": "fieldAccess"
               }
             ],
             "fn": "-",
@@ -279,21 +354,6 @@ describe("simulate Druid", () => {
             "fn": "*",
             "name": "PriceAndTax",
             "type": "arithmetic"
-          },
-          {
-            "fields": [
-              {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "Count",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "/",
-            "name": "AvgPrice",
-            "type": "arithmetic"
           }
         ],
         "queryType": "timeseries"
@@ -312,9 +372,34 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "filter": {
-          "dimension": "color",
-          "type": "selector",
-          "value": "D"
+          "fields": [
+            {
+              "dimension": "color",
+              "type": "selector",
+              "value": "D"
+            },
+            {
+              "fields": [
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Good"
+                },
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Bad"
+                },
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Ugly"
+                }
+              ],
+              "type": "or"
+            }
+          ],
+          "type": "and"
         },
         "granularity": "all",
         "intervals": "2015-03-12/2015-03-19",
@@ -331,27 +416,12 @@ describe("simulate Druid", () => {
           }
         ],
         "dataSource": "diamonds",
-        "filter": {
-          "fields": [
-            {
-              "dimension": "color",
-              "type": "selector",
-              "value": "D"
-            },
-            {
-              "dimension": "cut",
-              "type": "selector",
-              "value": "some_cut"
-            }
-          ],
-          "type": "and"
-        },
         "granularity": {
           "period": "P1D",
           "timeZone": "America/Los_Angeles",
           "type": "period"
         },
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "1000-01-01/1000-01-02",
         "queryType": "timeseries"
       },
       {
@@ -363,31 +433,16 @@ describe("simulate Druid", () => {
         ],
         "dataSource": "diamonds",
         "dimension": {
+          "dimension": "carat",
           "extractionFn": {
             "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 0.25) * 0.25;}",
             "type": "javascript"
           },
-          "dimension": "carat",
           "outputName": "Carat",
           "type": "extraction"
         },
-        "filter": {
-          "fields": [
-            {
-              "dimension": "color",
-              "type": "selector",
-              "value": "D"
-            },
-            {
-              "dimension": "cut",
-              "type": "selector",
-              "value": "some_cut"
-            }
-          ],
-          "type": "and"
-        },
         "granularity": "all",
-        "intervals": "2015-03-13T07/2015-03-14T07",
+        "intervals": "1000-01-01/1000-01-02",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -1620,12 +1675,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  // In the future, druid will support finalize field access
-  // ( and potentially finalization of javascript post aggs.) In the meantime, it shouldnt be something that we try to implement
-  // in the plywood layer
-  // https://github.com/druid-io/druid/issues/2433
-
-  it.skip("makes a query with countDistinct", () => {
+  it("makes a query with countDistinct", () => {
     var ex = ply()
       .apply('NumColors', '$diamonds.countDistinct($color)')
       .apply('NumVendors', '$diamonds.countDistinct($vendor_id)')
@@ -1673,7 +1723,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it.skip("works with duplicate aggregates", () => {
+  it("works with duplicate aggregates", () => {
     var ex = ply()
       .apply('Price', '$diamonds.sum($price)')
       .apply('Price', '$diamonds.sum($price)')
