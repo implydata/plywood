@@ -675,8 +675,10 @@ describe("External", () => {
       it("works with fancy applies", () => {
         var ex = ply()
           .apply("wiki", $('wiki').filter("$language == 'en'"))
+          .apply("Five", 5)
           .apply('CountX3', '$wiki.count() * 3')
           .apply('AddedPlusDeleted', '$wiki.sum($added) + $wiki.sum($deleted)')
+          .apply("Six", 6)
           .apply('AddedUsPlusDeleted', '$wiki.filter($page == USA).sum($added) + $wiki.sum($deleted)')
           .apply('CountX3Plus5', '$CountX3 + 5');
 
@@ -690,15 +692,19 @@ describe("External", () => {
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
+          apply(Five,5)
           apply(CountX3,$__SEGMENT__:DATASET.count().multiply(3))
           apply(AddedPlusDeleted,$__SEGMENT__:DATASET.sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
+          apply(Six,6)
           apply(AddedUsPlusDeleted,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
           apply(CountX3Plus5,$__SEGMENT__:DATASET.count().multiply(3).add(5))
         `);
 
         expect(externalDataset.toJS().attributes).to.deep.equal([
+          { name: "Five", "type": "NUMBER" },
           { name: "CountX3", "type": "NUMBER" },
           { name: "AddedPlusDeleted", "type": "NUMBER" },
+          { name: "Six", "type": "NUMBER" },
           { name: "AddedUsPlusDeleted", "type": "NUMBER" },
           { name: "CountX3Plus5", "type": "NUMBER" }
         ]);

@@ -1,7 +1,7 @@
 var { expect } = require("chai");
 var Q = require('q');
 
-var { toJS } = require('../build/plywood');
+var { Expression, toJS } = require('../build/plywood');
 
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 
@@ -59,6 +59,10 @@ exports.makeEqualityTest = (executorMap) => {
   return ({executorNames, expression, verbose, before, after}) => {
     if (executorNames.length < 2) {
       throw new Error("must have at least two executorNames");
+    }
+
+    if (typeof expression === 'string') {
+      expression = Expression.parse(expression);
     }
 
     var executors = executorNames.map((executorName) => {

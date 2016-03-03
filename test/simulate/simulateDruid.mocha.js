@@ -150,6 +150,7 @@ describe("simulate Druid", () => {
       .apply('PriceDiff', '$diamonds.sum($price - $tax)')
       .apply('Crazy', '$diamonds.sum($price) - $diamonds.sum($tax) + 10 - $diamonds.sum($carat)')
       .apply('PriceAndTax', '$diamonds.sum($price) * $diamonds.sum($tax)')
+      .apply('SixtySix', 66)
       .apply('PriceGoodCut', $('diamonds').filter($('cut').is('good')).sum('$price'))
       .apply('AvgPrice', '$diamonds.average($price)')
       .apply(
@@ -354,6 +355,11 @@ describe("simulate Druid", () => {
             "fn": "*",
             "name": "PriceAndTax",
             "type": "arithmetic"
+          },
+          {
+            "name": "SixtySix",
+            "type": "constant",
+            "value": 66
           }
         ],
         "queryType": "timeseries"

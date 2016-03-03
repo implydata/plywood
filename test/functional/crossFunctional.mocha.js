@@ -394,6 +394,7 @@ describe("Cross Functional", function() {
         .apply('RowCount', '$wiki.count()')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
+        .apply('SixtySix', 66)
         .apply('AddedBYDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('TokyoAdded', '$wiki.filter($cityName == Tokyo).sum($added)')
         .apply('To*Added', '$wiki.filter($cityName.contains("to")).sum($added)')
@@ -460,12 +461,17 @@ describe("Cross Functional", function() {
   describe("value", () => {
     it('works with basic value', equalityTest({
       executorNames: ['druid', 'mysql'],
-      expression: $('wiki').filter('$cityName == "El Paso"').count()
+      expression: `$wiki.filter($cityName == "El Paso").count()`
     }));
 
     it('works with complex value', equalityTest({
       executorNames: ['druid', 'mysql'],
-      expression: $('wiki').filter('$cityName == "El Paso"').count().add($('wiki').sum('$count'))
+      expression: `$wiki.filter($cityName == "El Paso").count() + $wiki.sum($count)`
+    }));
+
+    it.skip('works with an even more complex value', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: `1000 - $wiki.filter($cityName == "El Paso").count() - $wiki.sum($count)`
     }));
 
   });

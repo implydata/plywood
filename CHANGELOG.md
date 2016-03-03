@@ -1,5 +1,9 @@
 # Change log
 
+## 0.9.1
+
+- New 'value' mode in externals. `$wikipedia.sum($added)` is now computable. 
+
 ## 0.8.21
 
 - Fix native `overlap` calculation
