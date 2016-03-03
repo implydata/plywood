@@ -2,7 +2,8 @@
 
 ## 0.9.1
 
-- New 'value' mode in externals. `$wikipedia.sum($added)` is now computable. 
+- New 'value' mode in externals. `$wikipedia.sum($added)` is now computable.
+- More relaxed date literal parsing in PlyQL
 
 ## 0.8.21
 
