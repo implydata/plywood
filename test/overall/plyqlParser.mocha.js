@@ -74,9 +74,37 @@ describe("SQL parser", () => {
       expect(Math.abs(js.value.valueOf() - Date.now())).to.be.lessThan(1000);
     });
 
+    it("it works with raw aggregate", () => {
+      var parse = Expression.parseSQL("(SUM(added) + 1000) / 2");
+
+      var ex2 = $('data').sum('$added').add(1000).divide(2);
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     describe("date literals", () => {
+      it('works with inferred literals', () => {
+        var tests = sane`
+          '2015-01-01T00:00:00.000' <= t AND t < '2016-01-01T00:00:00.000'
+          '2015-01-01T00:00:00.00' <= t AND t < '2016-01-01T00:00:00.00'
+          '2015-01-01T00:00:00.0' <= t AND t < '2016-01-01T00:00:00.0'
+          '2015-01-01T00:00:00' <= t AND t < '2016-01-01T00:00:00'
+          '2015-01-01T00:00' <= t AND t < '2016-01-01T00:00'
+          '2015-01-01T00' <= t AND t < '2016-01-01T00'
+          '2015-01-01' <= t AND t < '2016-01-01'
+        `;
+
+        var ex = r(new Date('2015-01-01T00:00:00Z')).lessThanOrEqual('$t').and($('t').lessThan(new Date('2016-01-01T00:00:00Z')));
+
+        tests.split('\n').forEach(test => {
+          var parse = Expression.parseSQL(test);
+          expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
+        });
+      });
+
       it('works with DATE', () => {
-        var dateLiterals = sane`
+        var tests = sane`
           DATE "2016-02-09"
           DATE "20160209"
           DATE "160209"
@@ -90,16 +118,15 @@ describe("SQL parser", () => {
           { D "2016/02$09" }
         `;
 
-        dateLiterals.split('\n').forEach(dateLiteral => {
-          var parse = Expression.parseSQL(dateLiteral);
-          var js = parse.expression.toJS();
-          expect(js.op).to.equal('literal');
-          expect(js.value).to.deep.equal(new Date('2016-02-09Z'));
+        var ex = r(new Date('2016-02-09Z'));
+        tests.split('\n').forEach(test => {
+          var parse = Expression.parseSQL(test);
+          expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
         });
       });
 
       it('works with TIMESTAMP', () => {
-        var timestampLiterals = sane`
+        var tests = sane`
           TIMESTAMP "20160209010203"
           TIMESTAMP "160209010203"
           TIMESTAMP "2016-02-09 01:02:03"
@@ -113,25 +140,23 @@ describe("SQL parser", () => {
           { TS "2016/02$09 01:02:03" }
         `;
 
-        timestampLiterals.split('\n').forEach(timestampLiteral => {
-          var parse = Expression.parseSQL(timestampLiteral);
-          var js = parse.expression.toJS();
-          expect(js.op).to.equal('literal');
-          expect(js.value).to.deep.equal(new Date('2016-02-09T01:02:03Z'));
+        var ex = r(new Date('2016-02-09T01:02:03Z'));
+        tests.split('\n').forEach(test => {
+          var parse = Expression.parseSQL(test);
+          expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
         });
       });
 
       it('works with TIMESTAMP.ms', () => {
-        var timestampLiterals = sane`
+        var tests = sane`
           TIMESTAMP "2016-02-09 01:02:03.456"
           TIMESTAMP "2016/02$09 01:02:03.456789"
         `;
 
-        timestampLiterals.split('\n').forEach(timestampLiteral => {
-          var parse = Expression.parseSQL(timestampLiteral);
-          var js = parse.expression.toJS();
-          expect(js.op).to.equal('literal');
-          expect(js.value).to.deep.equal(new Date('2016-02-09T01:02:03.456Z'));
+        var ex = r(new Date('2016-02-09T01:02:03.456Z'));
+        tests.split('\n').forEach(test => {
+          var parse = Expression.parseSQL(test);
+          expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
         });
       });
 
@@ -143,6 +168,25 @@ describe("SQL parser", () => {
         expect(() => {
           Expression.parseSQL("TIME '01:02:03'");
         }).to.throw('time literals are not supported');
+      });
+
+      it('works inside BETWEEN', () => {
+        var tests = sane`
+          t BETWEEN TIMESTAMP '2015-09-12T10:30:00' AND TIMESTAMP '2015-09-12T12:30:00'
+          t BETWEEN '2015-09-12T10:30:00' AND '2015-09-12T12:30:00'
+          t BETWEEN '2015-09-12T10:30' AND '2015-09-12T12:30'
+        `;
+
+        var ex = $('t').in({
+          bounds: "[]",
+          start: new Date('2015-09-12T10:30:00Z'),
+          end: new Date('2015-09-12T12:30:00Z')
+        });
+
+        tests.split('\n').forEach(test => {
+          var parse = Expression.parseSQL(test);
+          expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
+        });
       });
 
     });

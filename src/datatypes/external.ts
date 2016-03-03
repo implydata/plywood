@@ -958,17 +958,19 @@ module Plywood {
 
     // ----------------------
 
-    public valueExpressionWithinFilter(withinFilter: Expression): Expression {
+    public valueExpressionWithinFilter(withinFilter: Expression): ChainExpression {
       if (this.mode !== 'value') return null;
       var extraFilter = filterDiff(this.filter, withinFilter);
       if (!extraFilter) throw new Error('not within the segment');
 
       var ex = this.valueExpression;
       if (!extraFilter.equals(Expression.TRUE)) {
-        ex = new ChainExpression({
-          expression: ex.expression,
-          actions: [new FilterAction({ expression: extraFilter }) as Action].concat(ex.actions)
-        });
+        ex = <ChainExpression>ex.substitute(ex => {
+          if (ex instanceof RefExpression && ex.type === 'DATASET' && ex.name === External.SEGMENT_NAME) {
+            return ex.filter(extraFilter);
+          }
+          return null;
+        })
       }
 
       return ex;

@@ -228,6 +228,9 @@ module Plywood {
           return new ExternalExpression({
             external: external.prePack(preEx, action)
           });
+        },
+        {
+          onceInChain: true
         }
       ).simplify();
     }
@@ -369,6 +372,16 @@ module Plywood {
     public lastAction(): Action {
       var { actions } = this;
       return actions[actions.length - 1] || null;
+    }
+
+    public headActions(n: int): Expression {
+      var { actions } = this;
+      if (actions.length <= n) return this;
+      if (n <= 0) return this.expression;
+
+      var value = this.valueOf();
+      value.actions = actions.slice(0, n);
+      return new ChainExpression(value);
     }
 
     public popAction(): Expression {
