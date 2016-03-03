@@ -74,6 +74,10 @@ module Plywood {
 
   export type IfNotFound = "throw" | "leave" | "null";
 
+  export interface SubstituteActionOptions {
+    onceInChain?: boolean;
+  }
+
   function getDataName(ex: Expression): string {
     if (ex instanceof RefExpression) {
       return ex.name;
@@ -578,24 +582,17 @@ module Plywood {
       return this;
     }
 
-
-    public substituteAction(actionMatchFn: ActionMatchFn, actionSubstitutionFn: ActionSubstitutionFn, thisArg?: any): Expression {
+    public substituteAction(actionMatchFn: ActionMatchFn, actionSubstitutionFn: ActionSubstitutionFn, options: SubstituteActionOptions = {}, thisArg?: any): Expression {
       return this.substitute((ex: Expression) => {
         if (ex instanceof ChainExpression) {
           var actions = ex.actions;
           for (var i = 0; i < actions.length; i++) {
             var action = actions[i];
             if (actionMatchFn.call(this, action)) {
-              var preEx = ex.expression;
-              if (i) {
-                preEx = new ChainExpression({
-                  expression: preEx,
-                  actions: actions.slice(0, i)
-                })
-              }
-              var newEx = actionSubstitutionFn.call(this, preEx, action);
+              var newEx = actionSubstitutionFn.call(this, ex.headActions(i), action);
               for (var j = i + 1; j < actions.length; j++) newEx = newEx.performAction(actions[j]);
-              return newEx.substituteAction(actionMatchFn, actionSubstitutionFn, this);
+              if (options.onceInChain) return newEx;
+              return newEx.substituteAction(actionMatchFn, actionSubstitutionFn, options, this);
             }
           }
         }
@@ -699,6 +696,13 @@ module Plywood {
      */
     public lastAction(): Action {
       return null;
+    }
+
+    /**
+     * Returns an expression containing up to `n` actions
+     */
+    public headActions(n: int): Expression {
+      return this;
     }
 
     /**

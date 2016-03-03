@@ -484,7 +484,7 @@ describe("External", () => {
         `);
       });
 
-      it("works with aggregate that has a RHS post process", () => {
+      it("works with aggregate that has a LHS post process", () => {
         var ex = r(5).subtract($('wiki').filter('$page == USA').sum('$added'));
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
@@ -500,6 +500,23 @@ describe("External", () => {
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
           5.subtract($__SEGMENT__:DATASET.sum($added:NUMBER))
+        `);
+      });
+
+      it("works with aggregate that has LHS and RHS post process", () => {
+        var ex = r(5).subtract($('wiki').filter('$page == USA').sum('$added'), $('wiki').count());
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        expect(ex.op).to.equal('external');
+        var externalDataset = ex.external;
+
+        expect(externalDataset.filter.toString()).to.equal(sane`
+          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z))
+        `);
+
+        expect(externalDataset.valueExpression.toString()).to.equal(sane`
+          5.subtract($__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER)).subtract($__SEGMENT__:DATASET.count())
         `);
       });
 

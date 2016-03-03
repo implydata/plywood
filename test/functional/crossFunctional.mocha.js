@@ -469,7 +469,7 @@ describe("Cross Functional", function() {
       expression: `$wiki.filter($cityName == "El Paso").count() + $wiki.sum($count)`
     }));
 
-    it.skip('works with an even more complex value', equalityTest({
+    it('works with an even more complex value', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: `1000 - $wiki.filter($cityName == "El Paso").count() - $wiki.sum($count)`
     }));
