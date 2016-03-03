@@ -140,7 +140,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it.only("works in advanced case", () => {
+  it("works in advanced case", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D').and($('cut').in(['Good', 'Bad', 'Ugly']))))
       .apply('Count', '$diamonds.count()')
@@ -1857,6 +1857,41 @@ describe("simulate Druid", () => {
           "threshold": 10
         },
         "queryType": "select"
+      }
+    ]);
+  });
+
+  it("works with single split expression", () => {
+    var ex = $("diamonds").split("$cut", 'Cut');
+
+    var queryPlan = ex.simulateQueryPlan(context);
+
+    expect(queryPlan).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimensions": [
+          {
+            "dimension": "cut",
+            "outputName": "Cut",
+            "type": "default"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2015-03-12/2015-03-19",
+        "limitSpec": {
+          "columns": [
+            "Cut"
+          ],
+          "limit": 500000,
+          "type": "default"
+        },
+        "queryType": "groupBy"
       }
     ]);
   });

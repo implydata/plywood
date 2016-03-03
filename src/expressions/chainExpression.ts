@@ -159,7 +159,7 @@ module Plywood {
         if (baseExternals.length > 1) throw new Error('not supported for now'); // ToDo: would need to do a join at this point
 
         var dataDefinitions: Lookup<ExternalExpression> = Object.create(null);
-        var hasExternalApply = false;
+        var hasExternalValueApply = false;
         var applies: ApplyAction[] = [];
         var undigestedActions: Action[] = [];
 
@@ -169,7 +169,7 @@ module Plywood {
             dataDefinitions[action.name] = <ExternalExpression>action.expression;
           } else if (externalMode === 'value') {
             applies.push(action);
-            hasExternalApply = true;
+            hasExternalValueApply = true;
           } else {
             undigestedActions.push(action);
           }
@@ -197,7 +197,7 @@ module Plywood {
         }
 
         var newExpression: Expression;
-        if (hasExternalApply) {
+        if (hasExternalValueApply) {
           var combinedExternal = baseExternals[0].makeTotal(applies);
           if (!combinedExternal) throw new Error('something went wrong');
           newExpression = new ExternalExpression({ external: combinedExternal });

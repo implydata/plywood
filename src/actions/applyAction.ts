@@ -44,7 +44,7 @@ module Plywood {
     }
 
     public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
-      typeContext.datasetType[this.name] = <DatasetFullType>this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+      typeContext.datasetType[this.name] = this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
       return typeContext;
     }
 
