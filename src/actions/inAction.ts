@@ -10,7 +10,7 @@ module Plywood {
       this._ensureAction("in");
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       var expression = this.expression;
       if (inputType) {
         if (!(

@@ -349,7 +349,6 @@ describe("MySQL Functional", function() {
 
     it("fallback doesn't happen if not null", (testComplete) => {
       var ex = ply()
-        .apply("wiki", $('wiki'))
         .apply('added', $('wiki').sum($('added')).fallback(2));
 
       basicExecutor(ex)

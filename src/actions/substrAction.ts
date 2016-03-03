@@ -17,7 +17,7 @@ module Plywood {
       this._ensureAction("substr");
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'STRING');
       return 'STRING';
     }

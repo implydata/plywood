@@ -55,15 +55,14 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'STRING');
       return 'BOOLEAN';
     }
 
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       return {
         type: 'BOOLEAN',
-        remote: typeContext.remote
       };
     }
 

@@ -116,7 +116,7 @@ module Plywood {
 
     public timezoneConvert(operand: string, timezone: Timezone): string {
       if (!timezone || timezone.isUTC()) return operand;
-      return `CONVERT_TZ(${operand},'+0:00','${timezone.toString()}')`;
+      return `CONVERT_TZ(${operand},'+0:00','${timezone}')`;
     }
 
     public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {

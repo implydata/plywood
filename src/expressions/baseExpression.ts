@@ -43,7 +43,7 @@ module Plywood {
 
   export interface ExpressionValue {
     op?: string;
-    type?: string;
+    type?: PlyType;
     simple?: boolean;
     value?: any;
     name?: string;
@@ -52,12 +52,12 @@ module Plywood {
     expression?: Expression;
     actions?: Action[];
 
-    remote?: string[];
+    remote?: boolean;
   }
 
   export interface ExpressionJS {
     op: string;
-    type?: string;
+    type?: PlyType;
     value?: any;
     name?: string;
     nest?: int;
@@ -72,6 +72,8 @@ module Plywood {
     excluded: Expression;
   }
 
+  export type IfNotFound = "throw" | "leave" | "null";
+
   function getDataName(ex: Expression): string {
     if (ex instanceof RefExpression) {
       return ex.name;
@@ -80,18 +82,6 @@ module Plywood {
     } else {
       return null;
     }
-  }
-
-  export function mergeRemotes(remotes: string[][]): string[] {
-    var lookup: Lookup<boolean> = {};
-    for (let remote of remotes) {
-      if (!remote) continue;
-      for (let r of remote) {
-        lookup[r] = true;
-      }
-    }
-    var merged = Object.keys(lookup);
-    return merged.length ? merged.sort() : null;
   }
 
   function getValue(param: any): any {
@@ -133,9 +123,9 @@ module Plywood {
    * @param nest (optional) the amount of nesting to add default: 0
    * @param type (optional) force the type of the reference
    */
-  export function $(name: string, nest?: number, type?: string): RefExpression;
-  export function $(name: string, type?: string): RefExpression;
-  export function $(name: string, nest?: any, type?: string): RefExpression {
+  export function $(name: string, nest?: number, type?: PlyType): RefExpression;
+  export function $(name: string, type?: PlyType): RefExpression;
+  export function $(name: string, nest?: any, type?: PlyType): RefExpression {
     if (typeof name !== 'string') throw new TypeError('name must be a string');
     if (typeof nest === 'string') {
       type = nest;
@@ -152,6 +142,10 @@ module Plywood {
     if (External.isExternal(value)) throw new TypeError('r can not accept externals');
     if (Array.isArray(value)) value = Set.fromJS(value);
     return LiteralExpression.fromJS({ op: 'literal', value: value });
+  }
+
+  export function toJS(thing: any): any {
+    return (thing && typeof thing.toJS === 'function') ? thing.toJS() : thing;
   }
 
   function chainVia(op: string, expressions: Expression[], zero: Expression): Expression {
@@ -347,7 +341,7 @@ module Plywood {
     }
 
     public op: string;
-    public type: string;
+    public type: PlyType;
     public simple: boolean;
 
     constructor(parameters: ExpressionValue, dummy: Dummy = null) {
@@ -443,7 +437,7 @@ module Plywood {
     }
 
     /**
-     * Check if the expression contains references to remote datasets
+     * Check if the expression contains externals
      */
     public hasExternal(): boolean {
       return this.some(function(ex: Expression) {
@@ -453,26 +447,20 @@ module Plywood {
       });
     }
 
-    public getExternalIds(): string[] {
-      var externalIds: string[] = [];
-      var push = Array.prototype.push;
-      this.forEach(function(ex: Expression) {
-        if (ex.type !== 'DATASET') return;
-        if (ex instanceof LiteralExpression) {
-          push.apply(externalIds, (<Dataset>ex.value).getExternalIds());
-        } else if (ex instanceof RefExpression) {
-          push.apply(externalIds, ex.remote);
-        }
-      });
-      return deduplicateSort(externalIds);
-    }
-
-    public getExternals(): External[] {
+    public getBaseExternals(): External[] {
       var externals: External[] = [];
       this.forEach(function(ex: Expression) {
-        if (ex instanceof ExternalExpression) externals.push(ex.external);
+        if (ex instanceof ExternalExpression) externals.push(ex.external.getBase());
       });
-      return mergeExternals([externals]);
+      return External.deduplicateExternals(externals);
+    }
+
+    public getRawExternals(): External[] {
+      var externals: External[] = [];
+      this.forEach(function(ex: Expression) {
+        if (ex instanceof ExternalExpression) externals.push(ex.external.getRaw());
+      });
+      return External.deduplicateExternals(externals);
     }
 
     /**
@@ -653,13 +641,13 @@ module Plywood {
       var nameIndex = 0;
       var singleDatasetActions: ApplyAction[] = [];
 
-      var externals = this.getExternalIds();
+      var externals = this.getBaseExternals();
       if (externals.length < 2) {
         throw new Error('not a multiple dataset expression');
       }
 
       var combine = this.substitute(ex => {
-        var externals = ex.getExternalIds();
+        var externals = ex.getBaseExternals();
         if (externals.length !== 1) return null;
 
         var existingApply = find(singleDatasetActions, (apply) => apply.expression.equals(ex));
@@ -732,10 +720,17 @@ module Plywood {
     public performAction(action: Action, markSimple?: boolean): ChainExpression {
       if (!action) throw new Error('must have action');
       return new ChainExpression({
-        op: 'chain',
         expression: this,
         actions: [action],
         simple: Boolean(markSimple)
+      });
+    }
+
+    public performActions(actions: Action[]): Expression {
+      if (!actions.length) return this;
+      return new ChainExpression({
+        expression: this,
+        actions: actions
       });
     }
 
@@ -975,7 +970,7 @@ module Plywood {
       return this.performAction(new ApplyAction({ name: getString(name), expression: ex }));
     }
 
-    public sort(ex: any, direction: string): ChainExpression {
+    public sort(ex: any, direction: string = 'ascending'): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
       return this.performAction(new SortAction({ expression: ex, direction: getString(direction) }));
     }
@@ -1051,19 +1046,18 @@ module Plywood {
         if (!hasOwnProperty(context, k)) continue;
         datasetType[k] = getFullType(context[k]);
       }
-      var typeContext: FullType = {
+
+      return this.referenceCheckInTypeContext({
         type: 'DATASET',
         datasetType: datasetType
-      };
-
-      return this.referenceCheckInTypeContext(typeContext);
+      });
     }
 
     /**
      * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
      * @param typeContext The FullType context within which to resolve
      */
-    public referenceCheckInTypeContext(typeContext: FullType): Expression {
+    public referenceCheckInTypeContext(typeContext: DatasetFullType): Expression {
       var alterations: Alterations = {};
       this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This returns the final type
       if (!Object.keys(alterations).length) return this;
@@ -1077,45 +1071,56 @@ module Plywood {
      * @param alterations the accumulation of the alterations to be made (output)
      * @returns the resolved type of the expression
      */
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       indexer.index++;
       return typeContext;
     }
 
 
-    /**!
+    /**
      * Resolves one level of dependencies that refer outside of this expression.
      * @param context The context containing the values to resolve to
      * @param ifNotFound If the reference is not in the context what to do? "throw", "leave", "null"
      * @return The resolved expression
      */
-    public resolve(context: Datum, ifNotFound: string = 'throw'): Expression {
+    public resolve(context: Datum, ifNotFound: IfNotFound = 'throw'): Expression {
+      var expressions: Lookup<Expression> = Object.create(null);
+      for (var k in context) {
+        if (!hasOwnProperty(context, k)) continue;
+        var value = context[k];
+        expressions[k] = External.isExternal(value) ?
+          new ExternalExpression({ external: <External>value }) :
+          new LiteralExpression({ value });
+      }
+
+      return this.resolveWithExpressions(expressions, ifNotFound);
+    }
+
+    public resolveWithExpressions(expressions: Lookup<Expression>, ifNotFound: IfNotFound = 'throw'): Expression {
       return this.substitute((ex: Expression, index: int, depth: int, nestDiff: int) => {
         if (ex instanceof RefExpression) {
           var nest = ex.nest;
           if (nestDiff === nest) {
-            var foundValue: any = null;
+            var foundExpression: Expression = null;
             var valueFound: boolean = false;
-            if (hasOwnProperty(context, ex.name)) {
-              foundValue = context[ex.name];
+            if (hasOwnProperty(expressions, ex.name)) {
+              foundExpression = expressions[ex.name];
               valueFound = true;
             } else {
               valueFound = false;
             }
 
             if (valueFound) {
-              return External.isExternal(foundValue) ?
-                new ExternalExpression({ external: foundValue }) :
-                new LiteralExpression({ value: foundValue });
+              return foundExpression;
             } else if (ifNotFound === 'throw') {
-              throw new Error('could not resolve ' + ex.toString() + ' because is was not in the context');
+              throw new Error(`could not resolve ${ex} because is was not in the context`);
             } else if (ifNotFound === 'null') {
-              return new LiteralExpression({ value: null });
+              return Expression.NULL;
             } else if (ifNotFound === 'leave') {
               return ex;
             }
           } else if (nestDiff < nest) {
-            throw new Error('went too deep during resolve on: ' + ex.toString());
+            throw new Error(`went too deep during resolve on: ${ex}`);
           }
         }
         return null;
@@ -1126,6 +1131,16 @@ module Plywood {
       return this.every((ex: Expression) => {
         return (ex instanceof RefExpression) ? ex.nest === 0 : null; // Search within
       })
+    }
+
+    public contained(): boolean {
+      return this.every((ex: Expression, index: int, depth: int, nestDiff: int) => {
+        if (ex instanceof RefExpression) {
+          var nest = ex.nest;
+          return nestDiff >= nest
+        }
+        return null;
+      });
     }
 
     /**
@@ -1171,17 +1186,27 @@ module Plywood {
     // ---------------------------------------------------------
     // Evaluation
 
-    public simulateQueryPlan(context: Datum = {}): any[] {
-      if (!datumHasExternal(context) && !this.hasExternal()) {
-        return [];
-      }
-
-      var simulatedQueries: any[] = [];
+    public simulate(context: Datum = {}): PlywoodValue {
       var readyExpression = this.referenceCheck(context).resolve(context).simplify();
       if (readyExpression instanceof ExternalExpression) {
         // Top level externals need to be unsuppressed
-        readyExpression = (<ExternalExpression>readyExpression).unsuppress()
+        readyExpression = (<ExternalExpression>readyExpression).unsuppress();
       }
+
+      return readyExpression._computeResolvedSimulate([]);
+    }
+
+    public simulateQueryPlan(context: Datum = {}): any[] {
+      if (!datumHasExternal(context) && !this.hasExternal()) return [];
+
+
+      var readyExpression = this.referenceCheck(context).resolve(context).simplify();
+      if (readyExpression instanceof ExternalExpression) {
+        // Top level externals need to be unsuppressed
+        readyExpression = (<ExternalExpression>readyExpression).unsuppress();
+      }
+
+      var simulatedQueries: any[] = [];
       readyExpression._computeResolvedSimulate(simulatedQueries);
       return simulatedQueries;
     }
@@ -1195,7 +1220,7 @@ module Plywood {
      * Computes a general asynchronous expression
      * @param context The context within which to compute the expression
      */
-    public compute(context: Datum = {}): Q.Promise<any> {
+    public compute(context: Datum = {}): Q.Promise<PlywoodValue> {
       if (!datumHasExternal(context) && !this.hasExternal()) {
         return Q.fcall(() => {
           var referenceChecked = this.referenceCheck(context);

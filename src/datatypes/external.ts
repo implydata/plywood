@@ -1,6 +1,6 @@
 module Plywood {
   export interface PostProcess {
-    (result: any): Dataset;
+    (result: any): PlywoodValue;
   }
 
   export interface QueryAndPostProcess<T> {
@@ -12,19 +12,50 @@ module Plywood {
     (d: Datum, i: number, data: Datum[]): void;
   }
 
-  export function mergeExternals(externalGroups: External[][]): External[] {
-    var seen: Lookup<External> = {};
-    externalGroups.forEach(externalGroup => {
-      externalGroup.forEach(external => {
-        var id = external.getId();
-        if (seen[id]) return;
-        seen[id] = external;
-      })
-    });
-    return Object.keys(seen).sort().map(k => seen[k]);
+  export type QueryMode = "raw" | "value" | "total" | "split";
+
+  function filterToAnds(filter: Expression): Expression[] {
+    if (filter.equals(Expression.TRUE)) return [];
+    return filter.getExpressionPattern('and') || [filter];
   }
 
-  function getSampleValue(valueType: string, ex: Expression): any {
+  function filterDiff(strongerFilter: Expression, weakerFilter: Expression): Expression {
+    var strongerFilterAnds = filterToAnds(strongerFilter);
+    var weakerFilterAnds = filterToAnds(weakerFilter);
+    if (weakerFilterAnds.length > strongerFilterAnds.length) return null;
+    for (var i = 0; i < weakerFilterAnds.length; i++) {
+      if (!(weakerFilterAnds[i].equals(strongerFilterAnds[i]))) return null;
+    }
+    return Expression.and(strongerFilterAnds.slice(weakerFilterAnds.length));
+  }
+
+  function getCommonFilter(filter1: Expression, filter2: Expression): Expression {
+    var filter1Ands = filterToAnds(filter1);
+    var filter2Ands = filterToAnds(filter2);
+    var minLength = Math.min(filter1Ands.length, filter2Ands.length);
+    var commonExpressions: Expression[] = [];
+    for (var i = 0; i < minLength; i++) {
+      if (!filter1Ands[i].equals(filter2Ands[i])) break;
+      commonExpressions.push(filter1Ands[i]);
+    }
+    return Expression.and(commonExpressions);
+  }
+
+  function mergeDerivedAttributes(derivedAttributes1: Lookup<Expression>, derivedAttributes2: Lookup<Expression>): Lookup<Expression> {
+    var derivedAttributes: Lookup<Expression> = Object.create(null);
+    for (var k in derivedAttributes1) {
+      derivedAttributes[k] = derivedAttributes1[k];
+    }
+    for (var k in derivedAttributes2) {
+      if (hasOwnProperty(derivedAttributes, k) && !derivedAttributes[k].equals(derivedAttributes2[k])) {
+        throw new Error(`can not currently redefine conflicting ${k}`);
+      }
+      derivedAttributes[k] = derivedAttributes2[k];
+    }
+    return derivedAttributes;
+  }
+
+  function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
     switch (valueType) {
       case 'BOOLEAN':
         return true;
@@ -85,17 +116,25 @@ module Plywood {
     return newObj;
   }
 
+  function findApplyByExpression(applies: ApplyAction[], expression: Expression): ApplyAction {
+    for (let apply of applies) {
+      if (apply.expression.equals(expression)) return apply;
+    }
+    return null;
+  }
+
   export interface ExternalValue {
     engine?: string;
     suppress?: boolean;
     attributes?: Attributes;
     attributeOverrides?: Attributes;
-    mode?: string;
+    mode?: QueryMode;
     dataName?: string;
 
-    filter?: Expression;
     rawAttributes?: Attributes;
-    derivedAttributes?: Lookup<Expression>;
+    derivedAttributes?: Lookup<Expression>; // ToDo: make this ApplyAction[]
+    filter?: Expression;
+    valueExpression?: ChainExpression;
     split?: SplitAction;
     applies?: ApplyAction[];
     sort?: SortAction;
@@ -145,11 +184,132 @@ module Plywood {
     requester?: Requester.PlywoodRequester<any>;
   }
 
+  export interface ApplySegregation {
+    aggregateApplies: ApplyAction[];
+    postAggregateApplies: ApplyAction[];
+  }
+
+  export interface AttributesAndApplies {
+    attributes?: Attributes;
+    applies?: ApplyAction[];
+  }
+
   export class External {
     static type = 'EXTERNAL';
 
+    static SEGMENT_NAME = '__SEGMENT__';
+    static VALUE_NAME = '__VALUE__';
+
     static isExternal(candidate: any): boolean {
       return isInstanceOf(candidate, External);
+    }
+
+    static deduplicateExternals(externals: External[]): External[] {
+      if (externals.length < 2) return externals;
+      var uniqueExternals = [externals[0]];
+
+      function addToUniqueExternals(external: External) {
+        for (let uniqueExternal of uniqueExternals) {
+          if (uniqueExternal.equals(external)) return;
+        }
+        uniqueExternals.push(external);
+      }
+
+      for (let i = 1; i < externals.length; i++) addToUniqueExternals(externals[i]);
+      return uniqueExternals;
+    }
+
+    static normalizeAndAddApply(attributesAndApplies: AttributesAndApplies, apply: ApplyAction): AttributesAndApplies {
+      var { attributes, applies } = attributesAndApplies;
+
+      var expressions: Lookup<Expression> = Object.create(null);
+      for (let existingApply of applies) expressions[existingApply.name] = existingApply.expression;
+      apply = <ApplyAction>apply.changeExpression(apply.expression.resolveWithExpressions(expressions, 'leave').simplify());
+
+      // If it already exists filter it out
+      var applyName = apply.name;
+      if (expressions[applyName]) {
+        attributes = attributes.filter(a => a.name !== applyName);
+        applies = applies.filter(a => a.name !== applyName);
+      }
+
+      attributes = attributes.concat(new AttributeInfo({ name: applyName, type: apply.expression.type }));
+      applies = applies.concat(apply);
+
+      return {
+        attributes,
+        applies
+      }
+    }
+
+    static segregationAggregateApplies(applies: ApplyAction[]): ApplySegregation {
+      var aggregateApplies: ApplyAction[] = [];
+      var postAggregateApplies: ApplyAction[] = [];
+      var nameIndex = 0;
+
+      // First extract all the simple cases
+      var appliesToSegregate: ApplyAction[] = [];
+      for (let apply of applies) {
+        var applyExpression = apply.expression;
+        if (applyExpression instanceof ChainExpression) {
+          var actions = applyExpression.actions;
+          if (actions[actions.length - 1].isAggregate()) {
+            // This is a vanilla aggregate, just push it in.
+            aggregateApplies.push(apply);
+            continue;
+          }
+        }
+        appliesToSegregate.push(apply);
+      }
+
+      // Now do all the segregation
+      for (let apply of appliesToSegregate) {
+        var newExpression = apply.expression.substituteAction(
+          (action) => {
+            return action.isAggregate();
+          },
+          (preEx: Expression, action: Action) => {
+            var aggregateChain = preEx.performAction(action);
+            var existingApply = findApplyByExpression(aggregateApplies, aggregateChain);
+            if (existingApply) {
+              return $(existingApply.name, existingApply.expression.type);
+            } else {
+              var name = '!T_' + (nameIndex++);
+              aggregateApplies.push(new ApplyAction({
+                action: 'apply',
+                name: name,
+                expression: aggregateChain
+              }));
+              return $(name, aggregateChain.type);
+            }
+          }
+        );
+
+        postAggregateApplies.push(<ApplyAction>apply.changeExpression(newExpression));
+      }
+
+      return {
+        aggregateApplies,
+        postAggregateApplies
+      };
+    }
+
+    static getCommonFilterFromExternals(externals: External[]): Expression {
+      if (!externals.length) throw new Error('must have externals');
+      var commonFilter = externals[0].filter;
+      for (let i = 1; i < externals.length; i++) {
+        commonFilter = getCommonFilter(commonFilter, externals[i].filter);
+      }
+      return commonFilter;
+    }
+
+    static getMergedDerivedAttributesFromExternals(externals: External[]): Lookup<Expression> {
+      if (!externals.length) throw new Error('must have externals');
+      var derivedAttributes = externals[0].derivedAttributes;
+      for (let i = 1; i < externals.length; i++) {
+        derivedAttributes = mergeDerivedAttributes(derivedAttributes, externals[i].derivedAttributes);
+      }
+      return derivedAttributes;
     }
 
     // ==== Inflaters
@@ -202,7 +362,7 @@ module Plywood {
 
     static consecutiveTimeRangeInflaterFactory(label: string, duration: Duration, timezone: Timezone): Inflater {
       var canonicalDurationLengthAndThenSome = duration.getCanonicalLength() * 1.5;
-      return (d: any, i: int, data: Datum[]) => {
+      return (d: PseudoDatum, i: int, data: PseudoDatum[]) => {
         var v = d[label];
         if ('' + v === "null") {
           d[label] = null;
@@ -320,6 +480,13 @@ module Plywood {
       return ClassFn.fromJS(parameters);
     }
 
+    static fromValue(parameters: ExternalValue): External {
+      const { engine } = parameters;
+      const ClassFn = External.classMap[engine];
+      if (!ClassFn) throw new Error(`unsupported engine '${engine}'`);
+      return <External>(new ClassFn(parameters));
+    }
+
     public engine: string;
     public suppress: boolean;
     public attributes: Attributes = null;
@@ -327,11 +494,12 @@ module Plywood {
 
     public rawAttributes: Attributes = null;
     public requester: Requester.PlywoodRequester<any>;
-    public mode: string; // raw, total, split (potential aggregate mode)
+    public mode: QueryMode;
     public derivedAttributes: Lookup<Expression>;
     public filter: Expression;
-    public dataName: string;
+    public valueExpression: ChainExpression;
     public split: SplitAction;
+    public dataName: string;
     public applies: ApplyAction[];
     public sort: SortAction;
     public limit: LimitAction;
@@ -351,23 +519,34 @@ module Plywood {
       }
       this.rawAttributes = parameters.rawAttributes;
       this.requester = parameters.requester;
+
       this.mode = parameters.mode || 'raw';
       this.derivedAttributes = parameters.derivedAttributes || {};
       this.filter = parameters.filter || Expression.TRUE;
-      this.split = parameters.split;
-      this.dataName = parameters.dataName;
-      this.applies = parameters.applies;
-      this.sort = parameters.sort;
-      this.limit = parameters.limit;
-      this.havingFilter = parameters.havingFilter;
 
-      if (this.mode !== 'raw') {
-        this.applies = this.applies || [];
+      switch (this.mode) {
+        case 'raw':
+          this.sort = parameters.sort;
+          this.limit = parameters.limit;
+          break;
 
-        if (this.mode === 'split') {
+        case 'value':
+          this.valueExpression = parameters.valueExpression;
+          break;
+
+        case 'total':
+          this.applies = parameters.applies || [];
+          break;
+
+        case 'split':
+          this.dataName = parameters.dataName;
+          this.split = parameters.split;
           if (!this.split) throw new Error('must have split action in split mode');
-          this.havingFilter = this.havingFilter || Expression.TRUE;
-        }
+          this.applies = parameters.applies || [];
+          this.sort = parameters.sort;
+          this.limit = parameters.limit;
+          this.havingFilter = parameters.havingFilter || Expression.TRUE;
+          break;
       }
     }
 
@@ -401,6 +580,9 @@ module Plywood {
       }
       value.derivedAttributes = this.derivedAttributes;
       value.filter = this.filter;
+      if (this.valueExpression) {
+        value.valueExpression = this.valueExpression;
+      }
       if (this.split) {
         value.split = this.split;
       }
@@ -443,16 +625,19 @@ module Plywood {
     public toString(): string {
       switch (this.mode) {
         case 'raw':
-          return `ExternalRaw(${this.filter.toString()})`;
+          return `ExternalRaw(${this.filter})`;
+
+        case 'value':
+          return `ExternalValue(${this.valueExpression})`;
 
         case 'total':
           return `ExternalTotal(${this.applies.length})`;
 
         case 'split':
-          return `ExternalSplit(${this.applies.length})`;
+          return `ExternalSplit(${this.split}, ${this.applies.length})`;
 
-        default :
-          return 'External()';
+        default:
+          throw new Error(`unknown mode: ${this.mode}`);
       }
 
     }
@@ -462,22 +647,6 @@ module Plywood {
         this.engine === other.engine &&
         this.mode === other.mode &&
         this.filter.equals(other.filter);
-    }
-
-    public getId(): string {
-      return this.engine + ':' + this.filter.toString();
-    }
-
-    public hasExternal(): boolean {
-      return true;
-    }
-
-    public getExternals(): External[] {
-      return [this];
-    }
-
-    public getExternalIds(): string[] {
-      return [this.getId()]
     }
 
     public getAttributesInfo(attributeName: string) {
@@ -550,7 +719,22 @@ module Plywood {
 
     // -----------------
 
-    // ToDo: make this better
+    public getBase(): External {
+      var value = this.valueOf();
+      value.suppress = true;
+      value.mode = 'raw';
+      value.dataName = null;
+      if (this.mode !== 'raw') value.attributes = value.rawAttributes;
+      value.rawAttributes = null;
+      value.filter = null;
+      value.applies = [];
+      value.split = null;
+      value.sort = null;
+      value.limit = null;
+
+      return External.fromValue(value);
+    }
+
     public getRaw(): External {
       if (this.mode === 'raw') return this;
 
@@ -558,28 +742,56 @@ module Plywood {
       value.suppress = true;
       value.mode = 'raw';
       value.dataName = null;
-      value.attributes = value.rawAttributes;
+      if (this.mode !== 'raw') value.attributes = value.rawAttributes;
       value.rawAttributes = null;
       value.applies = [];
       value.split = null;
       value.sort = null;
       value.limit = null;
 
-      return <External>(new (External.classMap[this.engine])(value));
+      return External.fromValue(value);
     }
 
-    public makeTotal(dataName: string): External {
-      if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
+    public makeTotal(applies: ApplyAction[]): External {
+      if (this.mode !== 'raw') return null;
       if (!this.canHandleTotal()) return null;
 
-      var value = this.valueOf();
-      value.suppress = false;
-      value.mode = 'total';
-      value.dataName = dataName;
-      value.rawAttributes = value.attributes;
-      value.attributes = [];
+      if (!applies.length) throw new Error('must have applies');
 
-      return <External>(new (External.classMap[this.engine])(value));
+      var externals: External[] = [];
+      for (let apply of applies) {
+        let applyExpression = apply.expression;
+        if (applyExpression instanceof ExternalExpression) {
+          externals.push(applyExpression.external);
+        }
+      }
+
+      var commonFilter = External.getCommonFilterFromExternals(externals);
+
+      var attributesAndApplies: AttributesAndApplies = { attributes: [], applies: [] };
+      for (let apply of applies) {
+        let applyExpression = apply.expression;
+        if (applyExpression instanceof ExternalExpression) {
+          attributesAndApplies = External.normalizeAndAddApply(
+            attributesAndApplies,
+            <ApplyAction>apply.changeExpression(
+              applyExpression.external.valueExpressionWithinFilter(commonFilter)
+            )
+          );
+        } else {
+          attributesAndApplies = External.normalizeAndAddApply(attributesAndApplies, apply);
+        }
+      }
+
+      var value = this.valueOf();
+      value.mode = 'total';
+      value.suppress = false;
+      value.rawAttributes = value.attributes;
+      value.derivedAttributes = External.getMergedDerivedAttributesFromExternals(externals);
+      value.filter = commonFilter;
+      value.attributes = attributesAndApplies.attributes;
+      value.applies = attributesAndApplies.applies;
+      return External.fromValue(value);
     }
 
     public addAction(action: Action): External {
@@ -598,7 +810,10 @@ module Plywood {
       if (action instanceof LimitAction) {
         return this._addLimitAction(action);
       }
-      return null;
+      if (action.isAggregate()) {
+        return this._addAggregateAction(action);
+      }
+      return this._addPostAggregateAction(action);
     }
 
     private _addFilterAction(action: FilterAction): External {
@@ -612,7 +827,11 @@ module Plywood {
       switch (this.mode) {
         case 'raw':
           if (!this.canHandleFilter(expression)) return null;
-          value.filter = value.filter.and(expression).simplify();
+          if (value.filter.equals(Expression.TRUE)) {
+            value.filter = expression;
+          } else {
+            value.filter = value.filter.and(expression);
+          }
           break;
 
         case 'split':
@@ -624,7 +843,7 @@ module Plywood {
           return null; // can not add filter in total mode
       }
 
-      return <External>(new (External.classMap[this.engine])(value));
+      return External.fromValue(value);
     }
 
     private _addSplitAction(splitAction: SplitAction): External {
@@ -639,12 +858,13 @@ module Plywood {
       value.rawAttributes = value.attributes;
       value.attributes = splitAction.mapSplits((name, expression) => new AttributeInfo({ name, type: expression.type }));
 
-      return <External>(new (External.classMap[this.engine])(value));
+      return External.fromValue(value);
     }
 
     private _addApplyAction(action: ApplyAction): External {
       var expression = action.expression;
-      if (expression.type !== 'NUMBER' && expression.type !== 'TIME') return null;
+      if (expression.type === 'DATASET') return null;
+      if (!expression.contained()) return null;
       if (!this.canHandleApply(action.expression)) return null;
 
       if (this.mode === 'raw') {
@@ -657,17 +877,17 @@ module Plywood {
         // Can not redefine index for now.
         if (this.split && this.split.hasKey(action.name)) return null;
 
-        // process applies mutates value so we need to set value again after its called...
-
-        var basicApplyActions = this.processApply(action);
-        var value = this.valueOf();
-
-        for (let basicApplyAction of basicApplyActions) {
-          value.applies = value.applies.concat(basicApplyAction);
-          value.attributes = value.attributes.concat(new AttributeInfo({ name: basicApplyAction.name, type: basicApplyAction.expression.type }));
+        var actionExpression = action.expression;
+        if (actionExpression instanceof ExternalExpression) {
+          action = <ApplyAction>action.changeExpression(actionExpression.external.valueExpressionWithinFilter(this.filter));
         }
+
+        var value = this.valueOf();
+        var added = External.normalizeAndAddApply(value, action);
+        value.applies = added.applies;
+        value.attributes = added.attributes;
       }
-      return <External>(new (External.classMap[this.engine])(value));
+      return External.fromValue(value);
     }
 
     private _addSortAction(action: SortAction): External {
@@ -676,7 +896,7 @@ module Plywood {
 
       var value = this.valueOf();
       value.sort = action;
-      return <External>(new (External.classMap[this.engine])(value));
+      return External.fromValue(value);
     }
 
     private _addLimitAction(action: LimitAction): External {
@@ -686,17 +906,80 @@ module Plywood {
       if (!value.limit || action.limit < value.limit.limit) {
         value.limit = action;
       }
-      return <External>(new (External.classMap[this.engine])(value));
+      return External.fromValue(value);
+    }
+
+    private _addAggregateAction(action: Action): External {
+      if (this.mode !== 'raw' || this.limit) return null; // Can not value aggregate something with a limit
+
+      var value = this.valueOf();
+      value.mode = 'value';
+      value.suppress = false;
+      value.valueExpression = $(External.SEGMENT_NAME, 'DATASET').performAction(action);
+      value.rawAttributes = value.attributes;
+      value.attributes = null;
+      return External.fromValue(value);
+    }
+
+    private _addPostAggregateAction(action: Action): External {
+      if (this.mode !== 'value') throw new Error('must be in value mode to call addPostAggregateAction');
+      var actionExpression = action.expression;
+
+      var commonFilter = this.filter;
+      var newValueExpression: ChainExpression;
+      if (actionExpression instanceof ExternalExpression) {
+        var otherExternal = actionExpression.external;
+        if (!this.getBase().equals(otherExternal.getBase())) return null;
+
+        var commonFilter = getCommonFilter(commonFilter, otherExternal.filter);
+        var newAction = action.changeExpression(otherExternal.valueExpressionWithinFilter(commonFilter));
+        newValueExpression = this.valueExpressionWithinFilter(commonFilter).performAction(newAction);
+
+      } else if (!actionExpression || !actionExpression.hasExternal()) {
+        newValueExpression = this.valueExpression.performAction(action);
+
+      } else {
+        return null;
+      }
+
+      var value = this.valueOf();
+      value.valueExpression = newValueExpression;
+      value.filter = commonFilter;
+      return External.fromValue(value);
+    }
+
+    public prePack(prefix: Expression, myAction: Action): External {
+      if (this.mode !== 'value') throw new Error('must be in value mode to call prePack');
+
+      var value = this.valueOf();
+      value.valueExpression = prefix.performAction(myAction.changeExpression(value.valueExpression));
+      return External.fromValue(value);
     }
 
     // ----------------------
 
-    public getExistingApplyForExpression(expression: Expression): ApplyAction {
-      var applies = this.applies;
-      for (let apply of applies) {
-        if (apply.expression.equals(expression)) return apply;
+    public valueExpressionWithinFilter(withinFilter: Expression): Expression {
+      if (this.mode !== 'value') return null;
+      var extraFilter = filterDiff(this.filter, withinFilter);
+      if (!extraFilter) throw new Error('not within the segment');
+
+      var ex = this.valueExpression;
+      if (!extraFilter.equals(Expression.TRUE)) {
+        ex = new ChainExpression({
+          expression: ex.expression,
+          actions: [new FilterAction({ expression: extraFilter }) as Action].concat(ex.actions)
+        });
       }
-      return null;
+
+      return ex;
+    }
+
+    public toValueApply(): ApplyAction {
+      if (this.mode !== 'value') return null;
+      return new ApplyAction({
+        name: External.VALUE_NAME,
+        expression: this.valueExpression
+      });
     }
 
     public isKnownName(name: string): boolean {
@@ -705,14 +988,6 @@ module Plywood {
         if (attribute.name === name) return true;
       }
       return false;
-    }
-
-    public getTempName(namesTaken: string[] = []): string {
-      for (let i = 0; i < 1e6; i++) {
-        var name = '!T_' + i;
-        if (namesTaken.indexOf(name) === -1 && !this.isKnownName(name)) return name;
-      }
-      throw new Error('could not find available name');
     }
 
     public sortOnLabel(): boolean {
@@ -728,66 +1003,6 @@ module Plywood {
       }
 
       return true;
-    }
-
-    public getFinalizedName(aggregateApply: ApplyAction): string {
-      return aggregateApply.name;
-    }
-
-    public separateAggregates(apply: ApplyAction): ApplyAction[] {
-      var applyExpression = apply.expression;
-      if (applyExpression instanceof ChainExpression) {
-        var actions = applyExpression.actions;
-        if (actions[actions.length - 1].isAggregate()) {
-          // This is a vanilla aggregate, just return it.
-          return [apply];
-        }
-      }
-
-      var applies: ApplyAction[] = [];
-      var namesUsed: string[] = [];
-
-      var newExpression = applyExpression.substituteAction(
-        (action) => {
-          return action.isAggregate();
-        },
-        (preEx: Expression, action: Action) => {
-          var aggregateChain = preEx.performAction(action);
-          var existingApply = this.getExistingApplyForExpression(aggregateChain);
-          if (existingApply) {
-            return new RefExpression({
-              name: this.getFinalizedName(existingApply),
-              nest: 0,
-              type: existingApply.expression.type
-            });
-          } else {
-            var name = this.getTempName(namesUsed);
-            namesUsed.push(name);
-            var newApply = new ApplyAction({
-              action: 'apply',
-              name: name,
-              expression: aggregateChain
-            });
-            var finalName = this.getFinalizedName(newApply);
-            if (finalName !== name) namesUsed.push(finalName);
-            applies.push(newApply);
-            return new RefExpression({
-              name: finalName,
-              nest: 0,
-              type: aggregateChain.type
-            });
-          }
-        },
-        this
-      );
-
-      applies.push(new ApplyAction({
-        action: 'apply',
-        name: apply.name,
-        expression: newExpression
-      }));
-
-      return applies;
     }
 
     public inlineDerivedAttributes(expression: Expression): Expression {
@@ -811,52 +1026,37 @@ module Plywood {
       })
     }
 
-    public processApply(action: ApplyAction): ApplyAction[] {
-      return [action];
+    public getQueryFilter(): Expression {
+      return this.filter.simplify();
     }
 
     // -----------------
 
-    public getEmptyTotalDataset(): Dataset {
-      if (this.mode !== 'total' || this.applies.length) return null;
-      var dataName = this.dataName;
-      return new Dataset({ data: [{}] }).apply(dataName, () => {
-        return this.getRaw();
+    public addNextExternal(dataset: Dataset): Dataset {
+      const { mode, dataName, split } = this;
+      if (mode !== 'split') throw new Error('must be in split mode to addNextExternal');
+      return dataset.apply(dataName, (d: Datum) => {
+        return this.getRaw().addFilter(split.filterFromDatum(d));
       }, null);
     }
 
-    public addNextExternal(dataset: Dataset): Dataset {
-      var dataName = this.dataName;
-      switch (this.mode) {
-        case 'total':
-          return dataset.apply(dataName, () => {
-            return this.getRaw();
-          }, null);
+    public simulate(): PlywoodValue {
+      const { mode } = this;
 
-        case 'split':
-          var split = this.split;
-          return dataset.apply(dataName, (d: Datum) => {
-            return this.getRaw().addFilter(split.filterFromDatum(d));
-          }, null);
+      if (mode === 'value') return getSampleValue('NUMBER', null);
 
-        default:
-          return dataset;
-      }
-    }
-
-    public simulate(): Dataset {
       var datum: Datum = {};
 
-      if (this.mode === 'raw') {
+      if (mode === 'raw') {
         var attributes = this.attributes;
         for (let attribute of attributes) {
           datum[attribute.name] = getSampleValue(attribute.type, null);
         }
       } else {
-        if (this.mode === 'split') {
+        if (mode === 'split') {
           this.split.mapSplits((name, expression) => {
             var type = expression.type;
-            if (type.indexOf('SET/') === 0) type = type.substr(4);
+            if (type.indexOf('SET/') === 0) type = <PlyTypeSimple>type.substr(4);
             datum[name] = getSampleValue(type, expression);
           });
         }
@@ -868,7 +1068,7 @@ module Plywood {
       }
 
       var dataset = new Dataset({ data: [datum] });
-      dataset = this.addNextExternal(dataset);
+      if (mode === 'split') dataset = this.addNextExternal(dataset);
       return dataset;
     }
 
@@ -876,23 +1076,23 @@ module Plywood {
       throw new Error("can not call getQueryAndPostProcess directly");
     }
 
-    public queryValues(): Q.Promise<Dataset> {
+    public queryValues(): Q.Promise<PlywoodValue> {
       if (!this.requester) {
-        return <Q.Promise<Dataset>>Q.reject(new Error('must have a requester to make queries'));
+        return <Q.Promise<PlywoodValue>>Q.reject(new Error('must have a requester to make queries'));
       }
       try {
         var queryAndPostProcess = this.getQueryAndPostProcess();
       } catch (e) {
-        return <Q.Promise<Dataset>>Q.reject(e);
+        return <Q.Promise<PlywoodValue>>Q.reject(e);
       }
       if (!hasOwnProperty(queryAndPostProcess, 'query') || typeof queryAndPostProcess.postProcess !== 'function') {
-        return <Q.Promise<Dataset>>Q.reject(new Error('no error query or postProcess'));
+        return <Q.Promise<PlywoodValue>>Q.reject(new Error('no error query or postProcess'));
       }
       var result = this.requester({ query: queryAndPostProcess.query })
         .then(queryAndPostProcess.postProcess);
 
-      if (this.mode !== 'raw') {
-        result = <Q.Promise<Dataset>>result.then(this.addNextExternal.bind(this));
+      if (this.mode === 'split') {
+        result = <Q.Promise<PlywoodValue>>result.then(this.addNextExternal.bind(this));
       }
 
       return result;
@@ -930,26 +1130,23 @@ module Plywood {
         })
     }
 
-    public getFullType(): FullType {
+    public getFullType(): DatasetFullType {
       var attributes = this.attributes;
       if (!attributes) throw new Error("dataset has not been introspected");
-
-      var remote = [this.engine];
 
       var myDatasetType: Lookup<FullType> = {};
       for (var attribute of attributes) {
         var attrName = attribute.name;
         myDatasetType[attrName] = {
-          type: attribute.type,
-          remote
+          type: <PlyTypeSimple>attribute.type
         };
       }
-      var myFullType: FullType = {
+
+      return {
         type: 'DATASET',
         datasetType: myDatasetType,
-        remote
+        remote: true
       };
-      return myFullType;
     }
 
     // ------------------------
@@ -977,88 +1174,6 @@ module Plywood {
       }
     }
     */
-
-    public digest(expression: Expression, action: Action): Digest {
-      if (expression instanceof LiteralExpression) {
-        var external = expression.value;
-        if (external instanceof External) {
-          var newExternal = external.addAction(action);
-          if (!newExternal) return null;
-          return {
-            undigested: null,
-            expression: new LiteralExpression({
-              op: 'literal',
-              value: newExternal
-            })
-          };
-        } else {
-          return null;
-        }
-
-      /*
-      } else if (expression instanceof JoinExpression) {
-        var lhs = expression.lhs;
-        var rhs = expression.rhs;
-        if (lhs instanceof LiteralExpression && rhs instanceof LiteralExpression) {
-          var lhsValue = lhs.value;
-          var rhsValue = rhs.value;
-          if (lhsValue instanceof External && rhsValue instanceof External) {
-            var actionExpression = action.expression;
-
-            if (action instanceof DefAction) {
-              var actionDatasets = actionExpression.getExternalIds();
-              if (actionDatasets.length !== 1) return null;
-              newJoin = this._joinDigestHelper(expression, action);
-              if (!newJoin) return null;
-              return {
-                expression: newJoin,
-                undigested: null
-              };
-
-            } else if (action instanceof ApplyAction) {
-              var actionDatasets = actionExpression.getExternalIds();
-              if (!actionDatasets.length) return null;
-              var newJoin: JoinExpression = null;
-              if (actionDatasets.length === 1) {
-                newJoin = this._joinDigestHelper(expression, action);
-                if (!newJoin) return null;
-                return {
-                  expression: newJoin,
-                  undigested: null
-                };
-              } else {
-                var breakdown = actionExpression.breakdownByDataset('_br_');
-                var singleDatasetActions = breakdown.singleDatasetActions;
-                newJoin = expression;
-                for (let i = 0; i < singleDatasetActions.length && newJoin; i++) {
-                  newJoin = this._joinDigestHelper(newJoin, singleDatasetActions[i]);
-                }
-                if (!newJoin) return null;
-                return {
-                  expression: newJoin,
-                  undigested: new ApplyAction({
-                    action: 'apply',
-                    name: (<ApplyAction>action).name,
-                    expression: breakdown.combineExpression
-                  })
-                };
-              }
-
-            } else {
-              return null;
-            }
-          } else {
-            return null;
-          }
-        } else {
-          return null;
-        }
-        */
-
-      } else {
-        throw new Error(`can not digest ${expression.op}`);
-      }
-    }
 
   }
 }

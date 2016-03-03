@@ -41,7 +41,7 @@ module Plywood {
         this.compare === other.compare;
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'BOOLEAN', 'STRING');
       return 'BOOLEAN';
     }
@@ -75,7 +75,7 @@ module Plywood {
       if (expression instanceof LiteralExpression) {
         return `${inputSQL} LIKE "%${expression.value}%"`;
       } else {
-        throw new Error(`can not express ${this.toString()} in SQL`);
+        throw new Error(`can not express ${this} in SQL`);
       }
     }
   }

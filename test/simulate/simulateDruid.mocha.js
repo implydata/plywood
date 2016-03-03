@@ -86,15 +86,13 @@ describe("simulate Druid", () => {
           "value": "D"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "queryType": "timeseries"
       }
     ]);
   });
 
-  it.skip("works on initial dataset", () => {
+  it("works on initial dataset", () => {
     var dataset = Dataset.fromJS([
       { col: 'D' },
       { col: 'E' }
@@ -104,10 +102,45 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter($("color").is('$col')))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([]);
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "__VALUE__",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "filter": {
+          "dimension": "color",
+          "type": "selector",
+          "value": "D"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12/2015-03-19",
+        "queryType": "timeseries"
+      },
+      {
+        "aggregations": [
+          {
+            "name": "__VALUE__",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "filter": {
+          "dimension": "color",
+          "type": "selector",
+          "value": "E"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12/2015-03-19",
+        "queryType": "timeseries"
+      }
+    ]);
   });
 
-  it.skip("works in advanced case", () => {
+  it("works in advanced case", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D').and($('cut').in(['Good', 'Bad', 'Ugly']))))
       .apply('Count', '$diamonds.count()')
@@ -117,6 +150,7 @@ describe("simulate Druid", () => {
       .apply('PriceDiff', '$diamonds.sum($price - $tax)')
       .apply('Crazy', '$diamonds.sum($price) - $diamonds.sum($tax) + 10 - $diamonds.sum($carat)')
       .apply('PriceAndTax', '$diamonds.sum($price) * $diamonds.sum($tax)')
+      .apply('SixtySix', 66)
       .apply('PriceGoodCut', $('diamonds').filter($('cut').is('good')).sum('$price'))
       .apply('AvgPrice', '$diamonds.average($price)')
       .apply(
@@ -145,16 +179,6 @@ describe("simulate Druid", () => {
       {
         "aggregations": [
           {
-            "fieldName": "tax",
-            "name": "!T_0",
-            "type": "doubleSum"
-          },
-          {
-            "fieldName": "carat",
-            "name": "!T_1",
-            "type": "doubleSum"
-          },
-          {
             "name": "Count",
             "type": "count"
           },
@@ -176,19 +200,82 @@ describe("simulate Druid", () => {
             },
             "name": "PriceGoodCut",
             "type": "filtered"
+          },
+          {
+            "fieldName": "tax",
+            "name": "!T_0",
+            "type": "doubleSum"
+          },
+          {
+            "fieldName": "carat",
+            "name": "!T_1",
+            "type": "doubleSum"
           }
         ],
         "dataSource": "diamonds",
         "filter": {
-          "dimension": "color",
-          "type": "selector",
-          "value": "D"
+          "fields": [
+            {
+              "dimension": "color",
+              "type": "selector",
+              "value": "D"
+            },
+            {
+              "fields": [
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Good"
+                },
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Bad"
+                },
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Ugly"
+                }
+              ],
+              "type": "or"
+            }
+          ],
+          "type": "and"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "postAggregations": [
+          {
+            "fields": [
+              {
+                "fieldName": "TotalPrice",
+                "type": "fieldAccess"
+              },
+              {
+                "fieldName": "!T_0",
+                "type": "fieldAccess"
+              }
+            ],
+            "fn": "-",
+            "name": "PriceDiff",
+            "type": "arithmetic"
+          },
+          {
+            "fields": [
+              {
+                "fieldName": "TotalPrice",
+                "type": "fieldAccess"
+              },
+              {
+                "fieldName": "Count",
+                "type": "fieldAccess"
+              }
+            ],
+            "fn": "/",
+            "name": "AvgPrice",
+            "type": "arithmetic"
+          },
           {
             "fields": [
               {
@@ -222,25 +309,20 @@ describe("simulate Druid", () => {
           {
             "fields": [
               {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "-",
-            "name": "PriceDiff",
-            "type": "arithmetic"
-          },
-          {
-            "fields": [
-              {
                 "fields": [
                   {
-                    "fieldName": "TotalPrice",
-                    "type": "fieldAccess"
+                    "fields": [
+                      {
+                        "fieldName": "TotalPrice",
+                        "type": "fieldAccess"
+                      },
+                      {
+                        "fieldName": "!T_0",
+                        "type": "fieldAccess"
+                      }
+                    ],
+                    "fn": "-",
+                    "type": "arithmetic"
                   },
                   {
                     "type": "constant",
@@ -251,18 +333,8 @@ describe("simulate Druid", () => {
                 "type": "arithmetic"
               },
               {
-                "fields": [
-                  {
-                    "fieldName": "!T_0",
-                    "type": "fieldAccess"
-                  },
-                  {
-                    "fieldName": "!T_1",
-                    "type": "fieldAccess"
-                  }
-                ],
-                "fn": "+",
-                "type": "arithmetic"
+                "fieldName": "!T_1",
+                "type": "fieldAccess"
               }
             ],
             "fn": "-",
@@ -285,19 +357,9 @@ describe("simulate Druid", () => {
             "type": "arithmetic"
           },
           {
-            "fields": [
-              {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "Count",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "/",
-            "name": "AvgPrice",
-            "type": "arithmetic"
+            "name": "SixtySix",
+            "type": "constant",
+            "value": 66
           }
         ],
         "queryType": "timeseries"
@@ -316,14 +378,37 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "filter": {
-          "dimension": "color",
-          "type": "selector",
-          "value": "D"
+          "fields": [
+            {
+              "dimension": "color",
+              "type": "selector",
+              "value": "D"
+            },
+            {
+              "fields": [
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Good"
+                },
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Bad"
+                },
+                {
+                  "dimension": "cut",
+                  "type": "selector",
+                  "value": "Ugly"
+                }
+              ],
+              "type": "or"
+            }
+          ],
+          "type": "and"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 2
@@ -337,29 +422,12 @@ describe("simulate Druid", () => {
           }
         ],
         "dataSource": "diamonds",
-        "filter": {
-          "fields": [
-            {
-              "dimension": "color",
-              "type": "selector",
-              "value": "D"
-            },
-            {
-              "dimension": "cut",
-              "type": "selector",
-              "value": "some_cut"
-            }
-          ],
-          "type": "and"
-        },
         "granularity": {
           "period": "P1D",
           "timeZone": "America/Los_Angeles",
           "type": "period"
         },
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "1000-01-01/1000-01-02",
         "queryType": "timeseries"
       },
       {
@@ -371,33 +439,16 @@ describe("simulate Druid", () => {
         ],
         "dataSource": "diamonds",
         "dimension": {
+          "dimension": "carat",
           "extractionFn": {
             "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 0.25) * 0.25;}",
             "type": "javascript"
           },
-          "dimension": "carat",
           "outputName": "Carat",
           "type": "extraction"
         },
-        "filter": {
-          "fields": [
-            {
-              "dimension": "color",
-              "type": "selector",
-              "value": "D"
-            },
-            {
-              "dimension": "cut",
-              "type": "selector",
-              "value": "some_cut"
-            }
-          ],
-          "type": "and"
-        },
         "granularity": "all",
-        "intervals": [
-          "2015-03-13T07/2015-03-14T07"
-        ],
+        "intervals": "1000-01-01/1000-01-02",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -560,8 +611,7 @@ describe("simulate Druid", () => {
   });
 
   it("works on fancy filter [.in(...).not()]", () => {
-    var ex = ply()
-      .apply("diamonds", $('diamonds').filter("$color.in(['D', 'C']).not()"));
+    var ex = $('diamonds').filter("$color.in(['D', 'C']).not()");
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "field": {
@@ -584,8 +634,7 @@ describe("simulate Druid", () => {
   });
 
   it.skip("works on fancy filter (IN IS)", () => {
-    var ex = ply()
-      .apply("diamonds", $('diamonds').filter("$color.in(['D', 'C']) == true"));
+    var ex = $('diamonds').filter("$color.in(['D', 'C']) == true");
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
 
@@ -624,9 +673,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": {
           "type": "alphaNumeric"
         },
@@ -670,9 +717,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": {
           "type": "alphaNumeric"
         },
@@ -701,9 +746,7 @@ describe("simulate Druid", () => {
           }
         ],
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "limitSpec": {
           "columns": [
             {
@@ -794,9 +837,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "TotalPrice",
         "queryType": "topN",
         "threshold": 10
@@ -833,9 +874,7 @@ describe("simulate Druid", () => {
           "type": "greaterThan",
           "value": 100
         },
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "limitSpec": {
           "columns": [
             {
@@ -856,9 +895,7 @@ describe("simulate Druid", () => {
       .apply('diamonds', $("diamonds").filter($("time").in({ start: new Date('2015-03-12T00:00:00'), end: null })))
       .apply('Count', $('diamonds').count());
 
-    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.deep.equal([
-      "2015-03-12/3000-01-01"
-    ]);
+    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.equal("2015-03-12/3000-01-01");
   });
 
   it("works with upper bound only time filter", () => {
@@ -866,9 +903,7 @@ describe("simulate Druid", () => {
       .apply('diamonds', $("diamonds").filter($("time").in({ start: null, end: new Date('2015-03-12T00:00:00') })))
       .apply('Count', $('diamonds').count());
 
-    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.deep.equal([
-      "1000-01-01/2015-03-12"
-    ]);
+    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.equal("1000-01-01/2015-03-12");
   });
 
   it("works with numeric split", () => {
@@ -895,9 +930,7 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": {
           "metric": {
             "type": "alphaNumeric"
@@ -957,9 +990,7 @@ describe("simulate Druid", () => {
           "type": "or"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": {
           "metric": {
             "type": "lexicographic"
@@ -1008,9 +1039,7 @@ describe("simulate Druid", () => {
           "type": "and"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -1050,9 +1079,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 1000
@@ -1096,9 +1123,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -1122,9 +1147,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -1198,9 +1221,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -1299,9 +1320,7 @@ describe("simulate Druid", () => {
           "timeZone": "Etc/UTC",
           "type": "period"
         },
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "queryType": "timeseries"
       }
     ]);
@@ -1387,9 +1406,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -1454,9 +1471,7 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": {
           "type": "lexicographic"
         },
@@ -1476,9 +1491,7 @@ describe("simulate Druid", () => {
           "timeZone": "America/Los_Angeles",
           "type": "period"
         },
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "queryType": "timeseries"
       }
     ]);
@@ -1515,9 +1528,7 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": {
           "type": "lexicographic"
         },
@@ -1543,9 +1554,7 @@ describe("simulate Druid", () => {
           "value": "some_cut"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -1582,9 +1591,7 @@ describe("simulate Druid", () => {
           "timeZone": "Etc/UTC",
           "type": "period"
         },
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "queryType": "timeseries"
       },
       {
@@ -1601,9 +1608,7 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-14/2015-03-14T01"
-        ],
+        "intervals": "2015-03-14/2015-03-14T01",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -1640,9 +1645,7 @@ describe("simulate Druid", () => {
           "timeZone": "Etc/UTC",
           "type": "period"
         },
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "postAggregations": [
           {
             "fields": [
@@ -1678,12 +1681,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  // In the future, druid will support finalize field access
-  // ( and potentially finalization of javascript post aggs.) In the meantime, it shouldnt be something that we try to implement
-  // in the plywood layer
-  // https://github.com/druid-io/druid/issues/2433
-
-  it.skip("makes a query with countDistinct", () => {
+  it("makes a query with countDistinct", () => {
     var ex = ply()
       .apply('NumColors', '$diamonds.countDistinct($color)')
       .apply('NumVendors', '$diamonds.countDistinct($vendor_id)')
@@ -1708,9 +1706,7 @@ describe("simulate Druid", () => {
         ],
         "dataSource": "diamonds",
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "postAggregations": [
           {
             "fields": [
@@ -1762,9 +1758,7 @@ describe("simulate Druid", () => {
         ],
         "dataSource": "diamonds",
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "postAggregations": [
           {
             "fields": [
@@ -1792,9 +1786,9 @@ describe("simulate Druid", () => {
       .apply('diamonds', $('diamonds').filter($('time').is(new Date('2015-03-12T01:00:00.123Z'))))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].intervals).to.deep.equal([
+    expect(ex.simulateQueryPlan(context)[0].intervals).to.equal(
       "2015-03-12T01:00:00.123/2015-03-12T01:00:00.124"
-    ]);
+    );
   });
 
   it("works on exact time filter (in interval)", () => {
@@ -1802,9 +1796,9 @@ describe("simulate Druid", () => {
       .apply('diamonds', $('diamonds').filter($('time').in(new Date('2015-03-12T01:00:00.123Z'), new Date('2015-03-12T01:00:00.124Z'))))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].intervals).to.deep.equal([
+    expect(ex.simulateQueryPlan(context)[0].intervals).to.equal(
       "2015-03-12T01:00:00.123/2015-03-12T01:00:00.124"
-    ]);
+    );
   });
 
   it("works contains filter (case sensitive)", () => {
@@ -1858,9 +1852,7 @@ describe("simulate Druid", () => {
           "value": "D"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metrics": [
           "price",
           "tax",
@@ -1871,6 +1863,41 @@ describe("simulate Druid", () => {
           "threshold": 10
         },
         "queryType": "select"
+      }
+    ]);
+  });
+
+  it("works with single split expression", () => {
+    var ex = $("diamonds").split("$cut", 'Cut');
+
+    var queryPlan = ex.simulateQueryPlan(context);
+
+    expect(queryPlan).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimensions": [
+          {
+            "dimension": "cut",
+            "outputName": "Cut",
+            "type": "default"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2015-03-12/2015-03-19",
+        "limitSpec": {
+          "columns": [
+            "Cut"
+          ],
+          "limit": 500000,
+          "type": "default"
+        },
+        "queryType": "groupBy"
       }
     ]);
   });
@@ -1951,9 +1978,7 @@ describe("simulate Druid", () => {
           "type": "or"
         },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "limitSpec": {
           "columns": [
             "Color"
@@ -1996,7 +2021,7 @@ describe("simulate Druid", () => {
           "type": "and"
         },
         "granularity": "all",
-        "intervals": ["2015-03-14/2015-03-14T01"],
+        "intervals": "2015-03-14/2015-03-14T01",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -2065,9 +2090,7 @@ describe("simulate Druid", () => {
           "timeZone": "Etc/UTC",
           "type": "period"
         },
-        "intervals": [
-          "2015-03-12/2015-03-19"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "limitSpec": {
           "columns": [
             "Color"

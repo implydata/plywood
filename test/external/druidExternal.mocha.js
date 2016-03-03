@@ -71,146 +71,6 @@ var contextNoApprox = {
 };
 
 describe("DruidExternal", () => {
-  describe("processApply", () => {
-    it("breaks up correctly in simple case", () => {
-      var ex = ply()
-        .apply('wiki', '$wiki')// for now
-        .apply('Count', '$wiki.count()')
-        .apply('Added', '$wiki.sum($added)')
-        .apply('Volatile', '$wiki.max($added) - $wiki.min($deleted)');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-
-      expect(druidExternal.applies.join('\n')).to.equal(sane`
-        apply(Count,$wiki:DATASET.count())
-        apply(Added,$wiki:DATASET.sum($added:NUMBER))
-        apply("!T_0",$wiki:DATASET.max($added:NUMBER))
-        apply("!T_1",$wiki:DATASET.min($deleted:NUMBER))
-        apply(Volatile,$\{!T_0}:NUMBER.subtract($\{!T_1}:NUMBER))
-      `);
-    });
-
-    it("breaks up correctly in absolute cases", () => {
-      var ex = ply()
-        .apply('wiki', '$wiki')// for now
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('abs', $('AddedByDeleted').absolute());
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-
-      expect(druidExternal.applies.join('\n')).to.equal(sane`
-        apply("!T_0",$wiki:DATASET.sum($added:NUMBER))
-        apply("!T_1",$wiki:DATASET.sum($deleted:NUMBER))
-        apply(AddedByDeleted,$\{!T_0}:NUMBER.divide($\{!T_1}:NUMBER))
-        apply(abs,$AddedByDeleted:NUMBER.absolute())
-      `);
-    });
-
-    it("breaks up correctly in case of duplicate name", () => {
-      var ex = ply()
-        .apply('wiki', '$wiki')// for now
-        .apply('Count', '$wiki.count()')
-        .apply('Added', '$wiki.sum($added)')
-        .apply('Volatile', '$wiki.sum($added) - $wiki.sum($deleted)');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-
-      expect(druidExternal.applies.join('\n')).to.equal(sane`
-        apply(Count,$wiki:DATASET.count())
-        apply(Added,$wiki:DATASET.sum($added:NUMBER))
-        apply("!T_0",$wiki:DATASET.sum($deleted:NUMBER))
-        apply(Volatile,$Added:NUMBER.subtract($\{!T_0}:NUMBER))
-      `);
-    });
-
-    it("breaks up correctly in case of variable reference", () => {
-      var ex = ply()
-        .apply('wiki', '$wiki')// for now
-        .apply('Count', '$wiki.count()')
-        .apply('Added', '$wiki.sum($added)')
-        .apply('Volatile', '$Added - $wiki.sum($deleted)');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-
-      expect(druidExternal.applies.join('\n')).to.equal(sane`
-        apply(Count,$wiki:DATASET.count())
-        apply(Added,$wiki:DATASET.sum($added:NUMBER))
-        apply("!T_0",$wiki:DATASET.sum($deleted:NUMBER))
-        apply(Volatile,$Added:NUMBER.subtract($\{!T_0}:NUMBER))
-      `);
-    });
-
-    it("breaks up correctly in complex case", () => {
-      var ex = ply()
-        .apply('wiki', '$wiki')// for now
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-        .apply('Deleted', '$wiki.sum($deleted)');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-
-      expect(druidExternal.applies.join('\n')).to.equal(sane`
-        apply(Deleted,$wiki:DATASET.sum($deleted:NUMBER))
-        apply("!T_0",$wiki:DATASET.sum($added:NUMBER))
-        apply(AddedByDeleted,$\{!T_0}:NUMBER.divide($Deleted:NUMBER))
-        apply("!T_1",$wiki:DATASET.sum($inserted:NUMBER))
-        apply(DeletedByInserted,$Deleted:NUMBER.divide($\{!T_1}:NUMBER))
-      `);
-    });
-
-    it.skip("breaks up correctly in case of duplicate apply", () => {
-      var ex = ply()
-        .apply('wiki', '$wiki')// for now
-        .apply('Added', '$wiki.sum($added)')
-        .apply('Added2', '$wiki.sum($added)')
-        .apply('Volatile', '$Added - $wiki.sum($deleted)');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-
-      expect(druidExternal.applies.join('\n')).to.equal(sane`
-        apply(Added,$wiki:DATASET.sum($added:NUMBER))
-        apply(Added2,$Added:NUMBER)
-        apply("!T_0",$wiki:DATASET.sum($deleted:NUMBER))
-        apply(Volatile,$Added:NUMBER.subtract($\{!T_0}:NUMBER))
-      `);
-    });
-
-    it.skip("breaks up correctly in case of duplicate apply (same name)", () => {
-      var ex = ply()
-        .apply('wiki', '$wiki')// for now
-        .apply('Added', '$wiki.sum($added)')
-        .apply('Added', '$wiki.sum($added)')
-        .apply('Volatile', '$Added - $wiki.sum($deleted)');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-
-      expect(druidExternal.applies.join('\n')).to.equal(`.apply(Added,$wiki:DATASET.sum($added:NUMBER))
-        apply(Volatile,$Added:NUMBER.add($\{!T_0}:NUMBER.negate()))
-      `);
-    });
-  });
-
 
   describe("simplifies / digests", () => {
     it("a (timeBoundary) total", () => {
@@ -224,6 +84,88 @@ describe("DruidExternal", () => {
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "dataSource": "wikipedia",
         "queryType": "timeBoundary"
+      });
+    });
+
+    it("should properly process a simple value query", () => {
+      var ex = $('wiki').filter($("language").is('en')).sum('$added');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "fieldName": "added",
+            "name": "__VALUE__",
+            "type": "doubleSum"
+          }
+        ],
+        "dataSource": "wikipedia",
+        "filter": {
+          "dimension": "language",
+          "type": "selector",
+          "value": "en"
+        },
+        "granularity": "all",
+        "intervals": "2013-02-26/2013-02-27",
+        "queryType": "timeseries"
+      });
+    });
+
+    it("should properly process a complex value query", () => {
+      var ex = $('wiki').filter($("language").is('en')).sum('$added').add($('wiki').sum('$deleted'));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "aggregations": [
+          {
+            "aggregator": {
+              "fieldName": "added",
+              "name": "!T_0",
+              "type": "doubleSum"
+            },
+            "filter": {
+              "dimension": "language",
+              "type": "selector",
+              "value": "en"
+            },
+            "name": "!T_0",
+            "type": "filtered"
+          },
+          {
+            "fieldName": "deleted",
+            "name": "!T_1",
+            "type": "doubleSum"
+          }
+        ],
+        "dataSource": "wikipedia",
+        "granularity": "all",
+        "intervals": "2013-02-26/2013-02-27",
+        "postAggregations": [
+          {
+            "fields": [
+              {
+                "fieldName": "!T_0",
+                "type": "fieldAccess"
+              },
+              {
+                "fieldName": "!T_1",
+                "type": "fieldAccess"
+              }
+            ],
+            "fn": "+",
+            "name": "__VALUE__",
+            "type": "arithmetic"
+          }
+        ],
+        "queryType": "timeseries"
       });
     });
 
@@ -256,9 +198,7 @@ describe("DruidExternal", () => {
           "value": "en"
         },
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "queryType": "timeseries"
       });
     });
@@ -283,9 +223,7 @@ describe("DruidExternal", () => {
         ],
         "dataSource": "wikipedia",
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "postAggregations": [
           {
             "fields": [
@@ -351,9 +289,7 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 5
@@ -392,9 +328,7 @@ describe("DruidExternal", () => {
           }
         ],
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "limitSpec": {
           "columns": [
             {
@@ -441,30 +375,18 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "metric": "CrazyStupid",
         "postAggregations": [
           {
-            "fieldName": "!T_0",
-            "name": "!T_0_fin",
-            "type": "getSomeCrazy"
-          },
-          {
-            "fieldName": "!T_1",
-            "name": "!T_1_fin",
-            "type": "iAmWithStupid"
-          },
-          {
             "fields": [
               {
-                "fieldName": "!T_0_fin",
-                "type": "fieldAccess"
+                "fieldName": "!T_0",
+                "type": "getSomeCrazy"
               },
               {
-                "fieldName": "!T_1_fin",
-                "type": "fieldAccess"
+                "fieldName": "!T_1",
+                "type": "iAmWithStupid"
               }
             ],
             "fn": "*",
@@ -500,9 +422,7 @@ describe("DruidExternal", () => {
           "value": "en"
         },
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "queryType": "timeseries"
       });
     });
@@ -530,9 +450,7 @@ describe("DruidExternal", () => {
           "value": null
         },
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "queryType": "timeseries"
       });
     });
@@ -565,9 +483,7 @@ describe("DruidExternal", () => {
           "type": "search"
         },
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "queryType": "timeseries"
       });
     });
@@ -614,9 +530,7 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "metric": "SumAbs",
         "queryType": "topN",
         "threshold": 5
@@ -665,9 +579,7 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "metric": "FilteredSumDeleted",
         "queryType": "topN",
         "threshold": 5
@@ -701,9 +613,7 @@ describe("DruidExternal", () => {
           }
         ],
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "limitSpec": {
           "columns": [
             "Page"
@@ -746,9 +656,7 @@ describe("DruidExternal", () => {
           }
         ],
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "limitSpec": {
           "columns": [
             "Language"
@@ -791,9 +699,7 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "metric": "Abs",
         "postAggregations": [
           {
@@ -845,9 +751,7 @@ describe("DruidExternal", () => {
           }
         ],
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "limitSpec": {
           "columns": [
             {
@@ -889,9 +793,7 @@ describe("DruidExternal", () => {
           }
         ],
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "limitSpec": {
           "columns": [
             {
@@ -950,35 +852,28 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": [
-          "2013-02-26/2013-02-27"
-        ],
+        "intervals": "2013-02-26/2013-02-27",
         "metric": "Count",
         "postAggregations": [
           {
             "fieldName": "!T_1",
-            "name": "!T_1_fin",
+            "name": "!F_!T_1",
             "type": "hyperUniqueCardinality"
-          },
-          {
-            "fieldName": "!T_2",
-            "name": "!T_2_fin",
-            "type": "getSomeCrazy"
           },
           {
             "fields": [
               {
                 "fieldNames": [
                   "!T_0",
-                  "!T_1_fin",
+                  "!F_!T_1",
                   "Count"
                 ],
-                "function": "function(T_0,T_1_fin,Count) { return Math.pow(Math.abs(((T_0/Math.pow(Math.abs(Count),0.5))+(100*T_1_fin))),2); }",
+                "function": "function(T_0,T_1,Count) { return Math.pow(Math.abs(((T_0/Math.pow(Math.abs(Count),0.5))+(100*T_1))),2); }",
                 "type": "javascript"
               },
               {
-                "fieldName": "!T_2_fin",
-                "type": "fieldAccess"
+                "fieldName": "!T_2",
+                "type": "getSomeCrazy"
               }
             ],
             "fn": "+",
@@ -993,9 +888,7 @@ describe("DruidExternal", () => {
 
     it.skip("should work with error bound calculation", () => {
       var ex = ply()
-        .apply('wiki', '$wiki') // needed for now
-        .apply('DistPagesWithinLimits', '($wiki.countDistinct($page) - 279893).absolute()');
-        //.apply('DistPagesWithinLimits', '($wiki.countDistinct($page) - 279893).absolute() < 10');
+        .apply('DistPagesWithinLimits', '($wiki.countDistinct($page) - 279893).absolute() < 10');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -1016,7 +909,7 @@ describe("DruidExternal", () => {
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      requester(query) {
+      requester: (query) => {
         return Q([]);
       },
       attributes: [
@@ -1032,7 +925,7 @@ describe("DruidExternal", () => {
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      requester(query) {
+      requester: (query) => {
         return Q([{ result: [] }]);
       },
       attributes: [
@@ -1046,7 +939,6 @@ describe("DruidExternal", () => {
 
     describe("should return null correctly on a totals query", () => {
       var ex = ply()
-        .apply('wiki', '$wiki')// for now
         .apply('Count', '$wiki.count()');
 
       it("should work with [] return", (testComplete) => {
@@ -1109,7 +1001,7 @@ describe("DruidExternal", () => {
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      requester(query) {
+      requester: (query) => {
         return Q("[Does this look like data to you?");
       },
       attributes: [
@@ -1123,14 +1015,13 @@ describe("DruidExternal", () => {
 
     it("should work with all query", (testComplete) => {
       var ex = ply()
-        .apply('wiki', '$wiki')// for now
         .apply('Count', '$wiki.count()');
 
       ex.compute({ wiki: crapExternal })
         .then(() => {
           throw new Error('DID_NOT_ERROR');
         })
-        .fail((err) => {
+        .catch((err) => {
           expect(err.message).to.equal('unexpected result from Druid (all)');
           testComplete();
         })
@@ -1146,7 +1037,7 @@ describe("DruidExternal", () => {
         .then(() => {
           throw new Error('DID_NOT_ERROR');
         })
-        .fail((err) => {
+        .catch((err) => {
           expect(err.message).to.equal('unexpected result from Druid (timeseries)');
           testComplete();
         })

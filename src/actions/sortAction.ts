@@ -15,7 +15,7 @@ module Plywood {
 
     constructor(parameters: ActionValue = {}) {
       super(parameters, dummyObject);
-      var { direction } = parameters;
+      var direction = parameters.direction || 'ascending';
       if (direction !== SortAction.DESCENDING && direction !== SortAction.ASCENDING) {
         throw new Error(`direction must be '${SortAction.DESCENDING}' or '${SortAction.ASCENDING}'`);
       }
@@ -38,7 +38,7 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'DATASET');
       return 'DATASET';
     }

@@ -9,7 +9,7 @@ module Plywood {
       this._ensureAction("fallback");
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       var expressionType = this.expression.type;
       if (expressionType !== 'NULL') this._checkInputTypes(inputType, expressionType);
       return expressionType;

@@ -54,7 +54,7 @@ module Plywood {
 
       match = str.match(TYPE_REGEXP);
       if (match) {
-        refValue.type = match[1];
+        refValue.type = <PlyType>match[1];
         str = str.substr(0, str.length - match[0].length);
       }
 
@@ -79,7 +79,7 @@ module Plywood {
 
     public nest: int;
     public name: string;
-    public remote: string[];
+    public remote: boolean;
 
     constructor(parameters: ExpressionValue) {
       super(parameters, dummyObject);
@@ -108,7 +108,7 @@ module Plywood {
         this.type = myType;
       }
 
-      if (parameters.remote) this.remote = parameters.remote;
+      this.remote = Boolean(parameters.remote);
       this.simple = true;
     }
 
@@ -117,7 +117,7 @@ module Plywood {
       value.name = this.name;
       value.nest = this.nest;
       if (this.type) value.type = this.type;
-      if (this.remote) value.remote = this.remote;
+      if (this.remote) value.remote = true;
       return value;
     }
 
@@ -170,21 +170,22 @@ module Plywood {
     }
 
     public getSQL(dialect: SQLDialect, minimal: boolean = false): string {
-      if (this.nest) throw new Error(`can not call getSQL on unresolved expression: ${this.toString()}`);
+      if (this.nest) throw new Error(`can not call getSQL on unresolved expression: ${this}`);
       return dialect.escapeName(this.name);
     }
 
     public equals(other: RefExpression): boolean {
       return super.equals(other) &&
         this.name === other.name &&
-        this.nest === other.nest;
+        this.nest === other.nest &&
+        this.remote === other.remote;
     }
 
     public isRemote(): boolean {
-      return Boolean(this.remote && this.remote.length);
+      return this.remote;
     }
 
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       var myIndex = indexer.index;
       indexer.index++;
       var nest = this.nest;
@@ -209,14 +210,14 @@ module Plywood {
       var myFullType = myTypeContext.datasetType[this.name];
 
       var myType = myFullType.type;
-      var myRemote = myFullType.remote;
+      var myRemote = Boolean((myFullType as DatasetFullType).remote);
 
       if (this.type && this.type !== myType) {
-        throw new TypeError(`type mismatch in ${this.toString()} (has: ${this.type} needs: ${myType})`);
+        throw new TypeError(`type mismatch in ${this} (has: ${this.type} needs: ${myType})`);
       }
 
       // Check if it needs to be replaced
-      if (!this.type || nestDiff > 0 || String(this.remote) !== String(myRemote)) {
+      if (!this.type || nestDiff > 0 || this.remote !== myRemote) {
         alterations[myIndex] = new RefExpression({
           name: this.name,
           nest: this.nest + nestDiff,
@@ -229,8 +230,8 @@ module Plywood {
         return {
           parent: typeContext,
           type: 'DATASET',
-          datasetType: myFullType.datasetType,
-          remote: myFullType.remote
+          datasetType: (myFullType as DatasetFullType).datasetType,
+          remote: (myFullType as DatasetFullType).remote
         };
       }
 

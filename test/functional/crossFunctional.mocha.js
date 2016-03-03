@@ -206,7 +206,6 @@ describe("Cross Functional", function() {
     it('works with total', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
-        .apply('wiki', '$wiki') // needed for now
         .apply('RowCount', '$wiki.count()')
         .apply('EditsCount', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -395,6 +394,7 @@ describe("Cross Functional", function() {
         .apply('RowCount', '$wiki.count()')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
+        .apply('SixtySix', 66)
         .apply('AddedBYDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('TokyoAdded', '$wiki.filter($cityName == Tokyo).sum($added)')
         .apply('To*Added', '$wiki.filter($cityName.contains("to")).sum($added)')
@@ -410,14 +410,12 @@ describe("Cross Functional", function() {
     it.skip('works with (aprox) countDistinct', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
-        .apply('wiki', '$wiki') // needed for now
         .apply('DistPagesWithinLimits', '($wiki.countDistinct($page) - 279893).absolute() < 10')
     }));
 
     it('works with max time (total)', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
-        .apply('wiki', '$wiki') // needed for now
         .apply('MinTime', '$wiki.min($time)')
         .apply('MaxTime', '$wiki.max($time)')
     }));
@@ -456,6 +454,24 @@ describe("Cross Functional", function() {
       expression: $('wiki')
         .filter('$cityName == "El Paso"')
         .apply('AddedX2', '$added * 2')
+    }));
+
+  });
+
+  describe("value", () => {
+    it('works with basic value', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: `$wiki.filter($cityName == "El Paso").count()`
+    }));
+
+    it('works with complex value', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: `$wiki.filter($cityName == "El Paso").count() + $wiki.sum($count)`
+    }));
+
+    it.skip('works with an even more complex value', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: `1000 - $wiki.filter($cityName == "El Paso").count() - $wiki.sum($count)`
     }));
 
   });

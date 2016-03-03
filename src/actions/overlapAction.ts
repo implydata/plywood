@@ -12,7 +12,7 @@ module Plywood {
       }
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       var expressionType = this.expression.type;
       if (expressionType && expressionType !== 'NULL' && inputType && inputType !== 'NULL') {
         var setInputType = inputType.indexOf('SET/') === 0 ? inputType : ('SET/' + inputType);

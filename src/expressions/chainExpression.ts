@@ -126,43 +126,118 @@ module Plywood {
     }
 
     public foldIntoExternal(): Expression {
-      var externalExpression = this.expression;
-      var actions = this.actions;
+      const { expression, actions } = this;
+      var baseExternals = this.getBaseExternals();
+      if (baseExternals.length === 0) return this;
 
-      if (externalExpression instanceof ExternalExpression) {
+      // Looks like: External().blah().blah().blah()
+      if (expression instanceof ExternalExpression) {
+        var myExternal = expression;
         var undigestedActions: Action[] = [];
         for (var action of actions) {
-          var newExternal = (<ExternalExpression>externalExpression).addAction(action);
+          var newExternal = myExternal.addAction(action);
           if (newExternal) {
-            externalExpression = newExternal;
+            myExternal = newExternal;
           } else {
             undigestedActions.push(action);
           }
         }
 
-        var emptyLiteral = (<ExternalExpression>externalExpression).getEmptyLiteral();
-        if (emptyLiteral) {
-          externalExpression = emptyLiteral;
-        }
-
         if (undigestedActions.length) {
           return new ChainExpression({
-            expression: externalExpression,
+            expression: myExternal,
             actions: undigestedActions,
             simple: true
           });
         } else {
-          return externalExpression;
+          return myExternal;
         }
       }
-      return this;
+
+      // Looks like: ply().apply(ValueExternal()).apply(ValueExternal()).apply(ValueExternal())
+      var dataset = expression.getLiteralValue();
+      if (Dataset.isDataset(dataset) && dataset.basis()) {
+        if (baseExternals.length > 1) throw new Error('not supported for now'); // ToDo: would need to do a join at this point
+
+        var dataDefinitions: Lookup<ExternalExpression> = Object.create(null);
+        var hasExternalValueApply = false;
+        var applies: ApplyAction[] = [];
+        var undigestedActions: Action[] = [];
+
+        function addExternalApply(action: ApplyAction) {
+          var externalMode = (<ExternalExpression>action.expression).external.mode;
+          if (externalMode === 'raw') {
+            dataDefinitions[action.name] = <ExternalExpression>action.expression;
+          } else if (externalMode === 'value') {
+            applies.push(action);
+            hasExternalValueApply = true;
+          } else {
+            undigestedActions.push(action);
+          }
+        }
+
+        for (let action of actions) {
+          if (action instanceof ApplyAction) {
+            var substitutedAction = <ApplyAction>action.substitute((ex, index, depth, nestDiff) => {
+              if (ex instanceof RefExpression && ex.type === 'DATASET' && nestDiff === 1) {
+                return dataDefinitions[ex.name] || null;
+              }
+              return null;
+            }).simplify();
+
+            if (substitutedAction.expression instanceof ExternalExpression) {
+              addExternalApply(substitutedAction);
+            } else if (substitutedAction.expression.type !== 'DATASET') {
+              applies.push(substitutedAction);
+            } else {
+              undigestedActions.push(substitutedAction);
+            }
+          } else {
+            undigestedActions.push(action);
+          }
+        }
+
+        var newExpression: Expression;
+        if (hasExternalValueApply) {
+          var combinedExternal = baseExternals[0].makeTotal(applies);
+          if (!combinedExternal) throw new Error('something went wrong');
+          newExpression = new ExternalExpression({ external: combinedExternal });
+        } else {
+          newExpression = ply().performActions(applies);
+        }
+
+        if (undigestedActions.length) {
+          return new ChainExpression({
+            expression: newExpression,
+            actions: undigestedActions,
+            simple: true
+          });
+        } else {
+          return newExpression;
+        }
+      }
+
+      // Looks like: $().blah().blah(ValueExternal()).blah()
+      return this.substituteAction(
+        (action) => {
+          var expression = action.expression;
+          return (expression instanceof ExternalExpression) && expression.external.mode === 'value';
+        },
+        (preEx: Expression, action: Action) => {
+          var external = (action.expression as ExternalExpression).external;
+          return new ExternalExpression({
+            external: external.prePack(preEx, action)
+          });
+        }
+      ).simplify();
     }
 
     public simplify(): Expression {
       if (this.simple) return this;
-
       var simpleExpression = this.expression.simplify();
       var actions = this.actions;
+
+      // In the unlikely event that there is a chain of a chain => merge them
       if (simpleExpression instanceof ChainExpression) {
         return new ChainExpression({
           expression: simpleExpression.expression,
@@ -170,15 +245,15 @@ module Plywood {
         }).simplify();
       }
 
+      // Let the actions simplify (and re-arrange themselves)
       for (let action of actions) {
         simpleExpression = action.performOnSimple(simpleExpression);
       }
 
-      if (simpleExpression instanceof ChainExpression) {
-        return simpleExpression.foldIntoExternal();
-      } else {
-        return simpleExpression;
-      }
+      // Return now if already as simple as can be
+      if (!simpleExpression.isOp('chain')) return simpleExpression;
+
+      return (simpleExpression as ChainExpression).foldIntoExternal();
     }
 
     public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {
@@ -241,21 +316,21 @@ module Plywood {
       });
     }
 
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       indexer.index++;
 
       // Some explanation of what is going on here is in order as this is the heart of the variable resolution code
       // The _fillRefSubstitutions function is chained across all the expressions.
       // If an expression returns a DATASET type it is treated as the new context otherwise the original context is
       // used for the next expression (currentContext)
-      var currentContext = typeContext;
+      var currentContext: DatasetFullType = typeContext;
       var outputContext = this.expression._fillRefSubstitutions(currentContext, indexer, alterations);
-      currentContext = outputContext.type === 'DATASET' ? outputContext : typeContext;
+      currentContext = outputContext.type === 'DATASET' ? <DatasetFullType>outputContext : typeContext;
 
       var actions = this.actions;
       for (let action of actions) {
         outputContext = action._fillRefSubstitutions(currentContext, indexer, alterations);
-        currentContext = outputContext.type === 'DATASET' ? outputContext : typeContext;
+        currentContext = outputContext.type === 'DATASET' ? <DatasetFullType>outputContext : typeContext;
       }
 
       return outputContext;
@@ -297,9 +372,6 @@ module Plywood {
     }
 
     public popAction(): Expression {
-      if (arguments.length) {
-        console.error('popAction no longer takes any arguments, check lastAction instead');
-      }
       var actions = this.actions;
       if (!actions.length) return null;
       actions = actions.slice(0, -1);
@@ -338,7 +410,7 @@ module Plywood {
 
         }
 
-        throw new Error(`could not execute ${action.toString()}`);
+        throw new Error(`could not execute ${action}`);
       }
 
       var value = this.expression._computeResolvedSimulate(simulatedQueries);
@@ -376,7 +448,7 @@ module Plywood {
 
           }
 
-          throw new Error(`could not execute ${action.toString()}`);
+          throw new Error(`could not execute ${action}`);
         }
       }
 

@@ -27,7 +27,7 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'DATASET');
       return 'DATASET';
     }
@@ -43,7 +43,7 @@ module Plywood {
         this.name === other.name;
     }
 
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       typeContext.datasetType[this.name] = this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
       return typeContext;
     }
@@ -73,35 +73,18 @@ module Plywood {
       return true;
     }
 
-    protected _putBeforeAction(lastAction: Action): Action {
-      if (this.isSimpleAggregate() && lastAction instanceof ApplyAction && !lastAction.isSimpleAggregate()) {
+    protected _putBeforeLastAction(lastAction: Action): Action {
+      if (
+        this.isSimpleAggregate() &&
+        lastAction instanceof ApplyAction &&
+        !lastAction.isSimpleAggregate() &&
+        this.expression.getFreeReferences().indexOf(lastAction.name) === -1
+      ) {
         return this;
       }
       return null;
     }
 
-    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
-      var dataset: Dataset = literalExpression.value;
-      var myExpression = this.expression;
-      if (dataset.basis()) {
-        if (myExpression instanceof ExternalExpression) {
-          var newTotalExpression = myExpression.makeTotal(this.name);
-          if (newTotalExpression) return newTotalExpression;
-        } else {
-          var externals = myExpression.getExternals();
-          if (externals.length === 1) {
-            var newExternal = externals[0].makeTotal('main'); // ToDo: this 'main' is a hack
-            if (!newExternal) return null;
-            return this.performOnSimple(new ExternalExpression({
-              external: newExternal
-            }));
-          } else if (externals.length > 1) {
-            throw new Error('not done yet');
-          }
-        }
-      }
-      return null;
-    }
   }
 
   Action.register(ApplyAction);

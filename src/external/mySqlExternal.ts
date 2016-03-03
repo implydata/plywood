@@ -43,6 +43,16 @@ module Plywood {
     })
   }
 
+  function valuePostProcess(data: any[]): PlywoodValue {
+    if (!correctResult(data)) {
+      var err = new Error("unexpected result from MySQL (value)");
+      (<any>err).result = data; // ToDo: special error type
+      throw err;
+    }
+
+    return data.length ? data[0][External.VALUE_NAME] : 0;
+  }
+
   function postProcessFactory(inflaters: Inflater[]): PostProcess {
     return (data: any[]): Dataset => {
       if (!correctResult(data)) {
@@ -116,10 +126,6 @@ module Plywood {
         this.table === other.table;
     }
 
-    public getId(): string {
-      return super.getId() + ':' + this.table;
-    }
-
     // -----------------
 
     public canHandleFilter(ex: Expression): boolean {
@@ -153,12 +159,14 @@ module Plywood {
     // -----------------
 
     public getQueryAndPostProcess(): QueryAndPostProcess<string> {
-      const { table, mode, filter, split, applies, sort, limit, attributes } = this;
+      const { table, mode, split, applies, sort, limit, attributes } = this;
 
       var query = ['SELECT'];
+      var postProcess: PostProcess = null;
       var inflaters: Inflater[] = [];
 
       var from = "FROM `" + table + "`";
+      var filter = this.getQueryFilter();
       if (!filter.equals(Expression.TRUE)) {
         from += '\nWHERE ' + filter.getSQL(mySQLDialect);
       }
@@ -176,6 +184,15 @@ module Plywood {
             query.push(limit.getSQL('', mySQLDialect));
           }
           inflaters = getSelectInflaters(attributes);
+          break;
+
+        case 'value':
+          query.push(
+            this.toValueApply().getSQL('', mySQLDialect),
+            from,
+            "GROUP BY ''"
+          );
+          postProcess = valuePostProcess;
           break;
 
         case 'total':
@@ -212,7 +229,7 @@ module Plywood {
 
       return {
         query: query.join('\n'),
-        postProcess: postProcessFactory(inflaters)
+        postProcess: postProcess || postProcessFactory(inflaters)
       };
     }
 

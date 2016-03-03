@@ -103,7 +103,7 @@ module Plywood {
 
   export interface DruidFilterAndIntervals {
     filter: Druid.Filter;
-    intervals: string[];
+    intervals: Druid.Intervals;
   }
 
   export interface AggregationsAndPostAggregations {
@@ -199,6 +199,18 @@ module Plywood {
       newDatum[applyName] = 0;
     }
     return newDatum;
+  }
+
+  function valuePostProcess(res: Druid.TimeseriesResults): PlywoodValue {
+    if (!correctTimeseriesResult(res)) {
+      var err = new Error("unexpected result from Druid (all / value)");
+      (<any>err).result = res; // ToDo: special error type
+      throw err;
+    }
+    if (!res.length) {
+      return 0;
+    }
+    return res[0].result[External.VALUE_NAME];
   }
 
   function totalPostProcessFactory(applies: ApplyAction[]) {
@@ -414,8 +426,8 @@ module Plywood {
   export class DruidExternal extends External {
     static type = 'DATASET';
 
-    static TRUE_INTERVAL = ["1000-01-01/3000-01-01"];
-    static FALSE_INTERVAL = ["1000-01-01/1000-01-02"];
+    static TRUE_INTERVAL = "1000-01-01/3000-01-01";
+    static FALSE_INTERVAL = "1000-01-01/1000-01-02";
 
     static VALID_INTROSPECTION_STRATEGIES = ['segment-metadata-fallback', 'segment-metadata-only', 'datasource-get'];
     static DEFAULT_INTROSPECTION_STRATEGY = 'segment-metadata-fallback';
@@ -444,7 +456,6 @@ module Plywood {
     public exactResultsOnly: boolean;
     public context: Lookup<any>;
     public druidVersion: string;
-    public finalizers: Druid.PostAggregation[];
 
     constructor(parameters: ExternalValue) {
       super(parameters, dummyObject);
@@ -469,8 +480,6 @@ module Plywood {
       if (druidVersion.length !== 5) throw new Error('druidVersion length must be 5');
       if (druidVersion < '0.8.0') throw new Error('only druidVersions >= 0.8.0 are supported');
       this.druidVersion = druidVersion;
-
-      this.finalizers = parameters.finalizers || [];
     }
 
     public valueOf(): ExternalValue {
@@ -484,7 +493,6 @@ module Plywood {
       value.exactResultsOnly = this.exactResultsOnly;
       value.context = this.context;
       value.druidVersion = this.druidVersion;
-      value.finalizers = this.finalizers;
       return value;
     }
 
@@ -513,10 +521,6 @@ module Plywood {
         this.exactResultsOnly === other.exactResultsOnly &&
         dictEqual(this.context, other.context) &&
         this.druidVersion === other.druidVersion;
-    }
-
-    public getId(): string {
-      return super.getId() + ':' + this.dataSource;
     }
 
     // -----------------
@@ -662,7 +666,7 @@ module Plywood {
           if (rhs instanceof RefExpression) {
             referenceName = rhs.name;
           } else {
-            throw new Error(`unsupported literal lhs must have ref rhs: ${rhs.toString()}`);
+            throw new Error(`unsupported literal lhs must have ref rhs: ${rhs}`);
           }
 
           if (filterAction instanceof InAction) {
@@ -673,7 +677,7 @@ module Plywood {
               value: attributeInfo.serialize(lhs.value)
             }
           }
-          throw new Error(`unsupported rhs action for literal lhs: ${filterAction.toString()}`);
+          throw new Error(`unsupported rhs action for literal lhs: ${filterAction}`);
         }
 
         if (filterAction instanceof NotAction) {
@@ -786,7 +790,7 @@ module Plywood {
       throw new Error("could not convert filter " + filter.toString() + " to Druid filter");
     }
 
-    public timeFilterToIntervals(filter: Expression): string[] {
+    public timeFilterToIntervals(filter: Expression): Druid.Intervals {
       if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
 
       if (filter instanceof LiteralExpression) {
@@ -797,15 +801,15 @@ module Plywood {
       } else if (filter instanceof ChainExpression) {
         var lhs = filter.expression;
         var actions = filter.actions;
-        if (actions.length !== 1) throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+        if (actions.length !== 1) throw new Error(`can not convert ${filter} to Druid interval`);
         var filterAction = actions[0];
         var rhs = filterAction.expression;
 
         if (filterAction instanceof IsAction) {
           if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-            return [TimeRange.intervalFromDate(rhs.value)];
+            return TimeRange.intervalFromDate(rhs.value);
           } else {
-            throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+            throw new Error(`can not convert ${filter} to Druid interval`);
           }
 
         } else if (filterAction instanceof InAction) {
@@ -820,13 +824,14 @@ module Plywood {
               throw new Error("not supported " + rhsType + " for time filtering");
             }
 
-            return timeRanges.map(timeRange => timeRange.toInterval());
+            var intervals = timeRanges.map(timeRange => timeRange.toInterval());
+            return intervals.length === 1 ? intervals[0] : intervals;
           } else {
-            throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+            throw new Error(`can not convert ${filter} to Druid interval`);
           }
 
         } else {
-          throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+          throw new Error(`can not convert ${filter} to Druid interval`);
         }
 
         /*
@@ -838,7 +843,7 @@ module Plywood {
         */
 
       } else {
-        throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+        throw new Error(`can not convert ${filter} to Druid interval`);
       }
     }
 
@@ -909,7 +914,7 @@ return (start < 0 ?'-':'') + parts.join('.');
     public expressionToExtractionFn(expression: Expression): Druid.ExtractionFn {
       var freeReferences = expression.getFreeReferences();
       if (freeReferences.length !== 1) {
-        throw new Error(`must have a single reference: ${expression.toString()}`);
+        throw new Error(`must have a single reference: ${expression}`);
       }
       var referenceName = freeReferences[0];
 
@@ -958,7 +963,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         // Concat is the only thing allowed to have a non leading ref, the rest must be $ref.someFunction
         if (!expression.expression.isOp('ref')) {
-          throw new Error(`can not convert complex: ${expression.expression.toString()}`);
+          throw new Error(`can not convert complex: ${expression.expression}`);
         }
 
         var actions = expression.actions;
@@ -970,7 +975,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (actions.length === 2) {
           fallbackAction = <FallbackAction>actions[1];
           if (!(fallbackAction instanceof FallbackAction)) {
-            throw new Error(`can not convert expression: ${expression.toString()}`);
+            throw new Error(`can not convert expression: ${expression}`);
           }
           var fallbackExpression = fallbackAction.expression;
           if (fallbackExpression.isOp("ref")) {
@@ -981,10 +986,10 @@ return (start < 0 ?'-':'') + parts.join('.');
             replaceMissingValueWith = fallbackExpression.getLiteralValue();
           } else {
             // TODO: would be cool to support $foo.extract(...).fallback($foo ++ 'something')
-            throw new Error(`unsupported fallback action: ${expression.toString()}`);
+            throw new Error(`unsupported fallback action: ${expression}`);
           }
         } else if (actions.length !== 1) {
-          throw new Error(`can not convert expression: ${expression.toString()}`);
+          throw new Error(`can not convert expression: ${expression}`);
         }
 
         if (mainAction instanceof SubstrAction) {
@@ -1050,9 +1055,9 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (mainAction instanceof TimeBucketAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in timeBucket expression ${expression.toString()}`);
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in timeBucket expression ${expression}`);
           var format = TIME_BUCKET_FORMAT[mainAction.duration.toString()];
-          if (!format) throw new Error(`unsupported duration in timeBucket expression ${mainAction.duration.toString()}`);
+          if (!format) throw new Error(`unsupported duration in timeBucket expression ${mainAction.duration}`);
           return {
             type: "timeFormat",
             format: format,
@@ -1062,7 +1067,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (mainAction instanceof TimePartAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in timePart expression ${expression.toString()}`);
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in timePart expression ${expression}`);
           var format = TIME_PART_TO_FORMAT[mainAction.part];
           if (!format) throw new Error(`unsupported part in timePart expression ${mainAction.part}`);
           return {
@@ -1074,7 +1079,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (mainAction instanceof NumberBucketAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in numberBucket expression ${expression.toString()}`);
+          if (fallbackAction !== null) throw new Error(`unsupported fallback in numberBucket expression ${expression}`);
           var attributeInfo = this.getAttributesInfo(referenceName);
           if (attributeInfo.type === 'NUMBER') {
             var floorExpression = continuousFloorExpression("d", "Math.floor", mainAction.size, mainAction.offset);
@@ -1104,7 +1109,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
       }
 
-      throw new Error(`could not convert ${expression.toString()} to a Druid extractionFn`);
+      throw new Error(`could not convert ${expression} to a Druid extractionFn`);
     }
 
     public splitExpressionToDimensionInflater(splitExpression: Expression, label: string): DimensionInflater {
@@ -1155,10 +1160,10 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (!splitExpression.expression.isOp('ref')) {
-          throw new Error(`can not convert complex: ${splitExpression.expression.toString()}`);
+          throw new Error(`can not convert complex: ${splitExpression.expression}`);
         }
         var actions = splitExpression.actions;
-        if (actions.length !== 1) throw new Error(`can not convert expression: ${splitExpression.toString()}`);
+        if (actions.length !== 1) throw new Error(`can not convert expression: ${splitExpression}`);
         var splitAction = actions[0];
 
         if (splitAction instanceof SubstrAction || splitAction instanceof AbsoluteAction || splitAction instanceof PowerAction) {
@@ -1170,7 +1175,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         if (splitAction instanceof TimeBucketAction) {
           var format = TIME_BUCKET_FORMAT[splitAction.duration.toString()];
-          if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration.toString()}`);
+          if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration}`);
           return {
             dimension,
             inflater: External.timeRangeInflaterFactory(label, splitAction.duration, splitAction.timezone || DEFAULT_TIMEZONE)
@@ -1206,7 +1211,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
       }
 
-      throw new Error(`could not convert ${splitExpression.toString()} to a Druid Dimension`);
+      throw new Error(`could not convert ${splitExpression} to a Druid Dimension`);
     }
 
     public splitToDruid(): DruidSplit {
@@ -1285,11 +1290,35 @@ return (start < 0 ?'-':'') + parts.join('.');
       };
     }
 
-    public expressionToPostAggregation(ex: Expression): Druid.PostAggregation {
+    public getAccessTypeForAggregation(aggregationType: string): string {
+      if (aggregationType === 'hyperUnique' || aggregationType === 'cardinality') return 'hyperUniqueCardinality';
+
+      var customAggregations = this.customAggregations;
+      for (var customName in customAggregations) {
+        if (!hasOwnProperty(customAggregations, customName)) continue;
+        var customAggregation = customAggregations[customName];
+        if (customAggregation.aggregation.type === aggregationType) {
+          return customAggregation.accessType || 'fieldAccess';
+        }
+      }
+
+      return 'fieldAccess';
+    }
+
+    public getAccessType(aggregations: Druid.Aggregation[], aggregationName: string): string {
+      for (let aggregation of aggregations) {
+        if (aggregation.name === aggregationName) {
+          return this.getAccessTypeForAggregation(aggregation.type);
+        }
+      }
+      throw new Error(`aggregation '${aggregationName}' not found`);
+    }
+
+    public expressionToPostAggregation(ex: Expression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): Druid.PostAggregation {
       if (ex instanceof RefExpression) {
         var refName = ex.name;
         return {
-          type: 'fieldAccess',
+          type: this.getAccessType(aggregations, refName),
           fieldName: refName
         };
 
@@ -1305,10 +1334,22 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction) {
           var fieldNameRefs = ex.getFreeReferences();
+          var fieldNames = fieldNameRefs.map(fieldNameRef => {
+            var accessType = this.getAccessType(aggregations, fieldNameRef);
+            if (accessType === 'fieldAccess') return fieldNameRef;
+            var fieldNameRefTemp = '!F_' + fieldNameRef;
+            postAggregations.push({
+              name: fieldNameRefTemp,
+              type: accessType,
+              fieldName: fieldNameRef
+            });
+            return fieldNameRefTemp;
+          });
+
           return {
             type: 'javascript',
-            fieldNames: fieldNameRefs,
-            function: `function(${fieldNameRefs.map(RefExpression.toSimpleName)}) { return ${ex.getJS(null)}; }`
+            fieldNames: fieldNames,
+            'function': `function(${fieldNameRefs.map(RefExpression.toSimpleName)}) { return ${ex.getJS(null)}; }`
           };
         }
 
@@ -1317,28 +1358,28 @@ return (start < 0 ?'-':'') + parts.join('.');
           return {
             type: 'arithmetic',
             fn: '+',
-            fields: pattern.map(e => this.expressionToPostAggregation(e))
+            fields: pattern.map(e => this.expressionToPostAggregation(e, aggregations, postAggregations))
           };
         }
         if (pattern = ex.getExpressionPattern('subtract')) {
           return {
             type: 'arithmetic',
             fn: '-',
-            fields: pattern.map(e => this.expressionToPostAggregation(e))
+            fields: pattern.map(e => this.expressionToPostAggregation(e, aggregations, postAggregations))
           };
         }
         if (pattern = ex.getExpressionPattern('multiply')) {
           return {
             type: 'arithmetic',
             fn: '*',
-            fields: pattern.map(e => this.expressionToPostAggregation(e))
+            fields: pattern.map(e => this.expressionToPostAggregation(e, aggregations, postAggregations))
           };
         }
         if (pattern = ex.getExpressionPattern('divide')) {
           return {
             type: 'arithmetic',
             fn: '/',
-            fields: pattern.map(e => this.expressionToPostAggregation(e))
+            fields: pattern.map(e => this.expressionToPostAggregation(e, aggregations, postAggregations))
           };
         }
         throw new Error("can not convert chain to post agg: " + ex.toString());
@@ -1348,10 +1389,10 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
-    public applyToPostAggregation(action: ApplyAction): Druid.PostAggregation {
-      var postAgg = this.expressionToPostAggregation(action.expression);
+    public applyToPostAggregation(action: ApplyAction, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
+      var postAgg = this.expressionToPostAggregation(action.expression, aggregations, postAggregations);
       postAgg.name = action.name;
-      return postAgg;
+      postAggregations.push(postAgg);
     }
 
     public makeNativeAggregateFilter(name: string, filterExpression: Expression, aggregator: Druid.Aggregation): Druid.Aggregation {
@@ -1390,7 +1431,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       if (attribute instanceof RefExpression) {
         var attributeName = attribute.name;
       } else {
-        throw new Error(`can not compute countDistinct on derived attribute: ${attribute.toString()}`);
+        throw new Error(`can not compute countDistinct on derived attribute: ${attribute}`);
       }
 
       var attributeInfo = this.getAttributesInfo(attributeName);
@@ -1456,9 +1497,9 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
-    public applyToAggregation(action: ApplyAction): Druid.Aggregation {
+    public applyToAggregation(action: ApplyAction, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
       var applyExpression = <ChainExpression>action.expression;
-      if (applyExpression.op !== 'chain') throw new Error(`can not convert apply: ${applyExpression.toString()}`);
+      if (applyExpression.op !== 'chain') throw new Error(`can not convert apply: ${applyExpression}`);
 
       var actions = applyExpression.actions;
       var filterExpression: Expression = null;
@@ -1470,13 +1511,14 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (filterAction instanceof FilterAction) {
           filterExpression = filterAction.expression;
         } else {
-          throw new Error(`first action not a filter in: ${applyExpression.toString()}`);
+          throw new Error(`first action not a filter in: ${applyExpression}`);
         }
         aggregateAction = actions[1];
       } else {
-        throw new Error(`can not convert strange apply: ${applyExpression.toString()}`);
+        throw new Error(`can not convert strange apply: ${applyExpression}`);
       }
 
+      var aggregation: Druid.Aggregation;
       switch (aggregateAction.action) {
         case "count":
         case "sum":
@@ -1484,24 +1526,26 @@ return (start < 0 ?'-':'') + parts.join('.');
         case "max":
           if (filterExpression) {
             if (this.canUseNativeAggregateFilter(filterExpression)) {
-              return this.makeNativeAggregateFilter(action.name, filterExpression, this.makeStandardAggregation(action.name, aggregateAction));
+              aggregation = this.makeNativeAggregateFilter(action.name, filterExpression, this.makeStandardAggregation(action.name, aggregateAction));
             } else {
-              return this.makeJavaScriptAggregation(action.name, filterExpression, aggregateAction);
+              aggregation = this.makeJavaScriptAggregation(action.name, filterExpression, aggregateAction);
             }
           } else {
-            return this.makeStandardAggregation(action.name, aggregateAction);
+            aggregation = this.makeStandardAggregation(action.name, aggregateAction);
           }
+          break;
 
         case "countDistinct":
           if (filterExpression) {
             if (this.canUseNativeAggregateFilter(filterExpression)) {
-              return this.makeNativeAggregateFilter(action.name, filterExpression, this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction));
+              aggregation = this.makeNativeAggregateFilter(action.name, filterExpression, this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction));
             } else {
-              throw new Error(`can not use complex filter with countDistinct aggregation: ${filterExpression.toString()}`);
+              throw new Error(`can not use complex filter with countDistinct aggregation: ${filterExpression}`);
             }
           } else {
-            return this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction);
+            aggregation = this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction);
           }
+          break;
 
         case "quantile":
           throw new Error(`ToDo: add quantile support`); // ToDo: add quantile support
@@ -1509,89 +1553,42 @@ return (start < 0 ?'-':'') + parts.join('.');
         case "custom":
           if (filterExpression) {
             if (this.canUseNativeAggregateFilter(filterExpression)) {
-              return this.makeNativeAggregateFilter(action.name, filterExpression, this.makeCustomAggregation(action.name, <CustomAction>aggregateAction));
+              aggregation = this.makeNativeAggregateFilter(action.name, filterExpression, this.makeCustomAggregation(action.name, <CustomAction>aggregateAction));
             } else {
-              throw new Error(`can not use complex filter with custom aggregation: ${filterExpression.toString()}`);
+              throw new Error(`can not use complex filter with custom aggregation: ${filterExpression}`);
             }
           } else {
-            return this.makeCustomAggregation(action.name, <CustomAction>aggregateAction);
+            aggregation = this.makeCustomAggregation(action.name, <CustomAction>aggregateAction);
           }
+          break;
 
         default:
           throw new Error(`unsupported aggregate action ${aggregateAction.action}`);
       }
+      aggregations.push(aggregation);
     }
 
-    public processApply(apply: ApplyAction): ApplyAction[] {
-      return this.separateAggregates(<ApplyAction>apply.applyToExpression(ex => {
-        return this.inlineDerivedAttributes(ex).decomposeAverage().distribute();
-      }));
-    }
+    public getAggregationsAndPostAggregations(applies: ApplyAction[]): AggregationsAndPostAggregations {
+      var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(
+        applies.map(apply => {
+          return <ApplyAction>apply.changeExpression(this.inlineDerivedAttributes(apply.expression).decomposeAverage().distribute())
+        })
+      );
 
-    public getFinalizedName(aggregateApply: ApplyAction): string {
-      var finalizerType = this.getFinalizerTypeForAggregateApply(aggregateApply);
-      if ( finalizerType ) {
-        var finalizer: Druid.PostAggregation = {
-          type: finalizerType,
-          fieldName: aggregateApply.name,
-          name: aggregateApply.name + "_fin"
-        };
-        this.finalizers = this.finalizers.concat(finalizer);
-
-        return finalizer.name;
-      }
-      return aggregateApply.name;
-    }
-
-    public getFinalizerTypeForAggregateApply(aggregateApply: ApplyAction): string {
-      var aggregateAction = aggregateApply.expression.lastAction();
-      if (aggregateAction instanceof CountDistinctAction) {
-        return "hyperUniqueCardinality";
-      }
-      if (aggregateAction instanceof CustomAction) {
-        var customAggregation = this.customAggregations[aggregateAction.custom];
-        if (!customAggregation) {
-          throw new Error("custom aggregation is not defined " + aggregateAction.custom);
-        }
-        return customAggregation.accessType || null;
-      }
-      return null;
-    }
-
-    public isAggregateExpression(expression: Expression): boolean {
-      if (expression instanceof ChainExpression) {
-        var { actions } = expression;
-        if (actions.length === 1) {
-          return actions[0].isAggregate();
-        } else if (actions.length === 2) {
-          return actions[0].action === 'filter' && actions[1].isAggregate();
-        } else {
-          return false;
-        }
-      }
-      return false;
-    }
-
-    public getAggregationsAndPostAggregations(): AggregationsAndPostAggregations {
       var aggregations: Druid.Aggregation[] = [];
       var postAggregations: Druid.PostAggregation[] = [];
 
-      this.applies.forEach(apply => {
-        var applyName = apply.name;
-        if (this.isAggregateExpression(apply.expression)) {
-          var aggregation = this.applyToAggregation(apply);
-          aggregations = aggregations.filter(a => a.name !== applyName);
-          aggregations.push(aggregation);
-        } else {
-          var postAggregation = this.applyToPostAggregation(apply);
-          postAggregations = postAggregations.filter(a => a.name !== applyName);
-          postAggregations.push(postAggregation);
-        }
-      });
+      for (let aggregateApply of aggregateApplies) {
+        this.applyToAggregation(aggregateApply, aggregations, postAggregations);
+      }
+
+      for (let postAggregateApply of postAggregateApplies) {
+        this.applyToPostAggregation(postAggregateApply, aggregations, postAggregations);
+      }
 
       return {
-        aggregations: aggregations,
-        postAggregations: this.finalizers.concat(postAggregations)
+        aggregations,
+        postAggregations
       };
     }
 
@@ -1651,7 +1648,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
         var lhs = filter.expression;
         var actions = filter.actions;
-        if (actions.length !== 1) throw new Error(`can not convert ${filter.toString()} to Druid interval`);
+        if (actions.length !== 1) throw new Error(`can not convert ${filter} to Druid interval`);
         var filterAction = actions[0];
         var rhs = filterAction.expression;
 
@@ -1664,7 +1661,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             };
 
           } else {
-            throw new Error(`can not convert ${filter.toString()} to Druid filter`);
+            throw new Error(`can not convert ${filter} to Druid filter`);
           }
 
         } else if (filterAction instanceof InAction) {
@@ -1700,14 +1697,14 @@ return (start < 0 ?'-':'') + parts.join('.');
               throw new Error("not supported " + rhsType);
             }
           } else {
-            throw new Error(`can not convert ${filter.toString()} to Druid having filter`);
+            throw new Error(`can not convert ${filter} to Druid having filter`);
           }
 
         }
 
       }
 
-      throw new Error(`could not convert filter ${filter.toString()} to Druid filter`);
+      throw new Error(`could not convert filter ${filter} to Druid filter`);
     }
 
     public isMinMaxTimeApply(apply: ApplyAction): boolean {
@@ -1724,16 +1721,16 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public getTimeBoundaryQueryAndPostProcess(): QueryAndPostProcess<Druid.Query> {
+      const { applies, context } = this;
       var druidQuery: Druid.Query = {
         queryType: "timeBoundary",
         dataSource: this.getDruidDataSource()
       };
 
-      //if (queryBuilder.hasContext()) {
-      //  druidQuery.context = queryBuilder.context;
-      //}
+      if (context) {
+        druidQuery.context = context;
+      }
 
-      var applies = this.applies;
       if (applies.length === 1) {
         var loneApplyExpression = <ChainExpression>applies[0].expression;
         // Max time only
@@ -1745,12 +1742,12 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       return {
         query: druidQuery,
-        postProcess: timeBoundaryPostProcessFactory(this.applies)
+        postProcess: timeBoundaryPostProcessFactory(applies)
       };
     }
 
     public getQueryAndPostProcess(): QueryAndPostProcess<Druid.Query> {
-      const { mode, filter, split, applies, sort, limit, context } = this;
+      const { mode, split, applies, sort, limit, context } = this;
       if (applies && applies.length && applies.every(this.isMinMaxTimeApply, this)) {
         return this.getTimeBoundaryQueryAndPostProcess();
       }
@@ -1766,7 +1763,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         druidQuery.context = context;
       }
 
-      var filterAndIntervals = this.filterToDruid(filter);
+      var filterAndIntervals = this.filterToDruid(this.getQueryFilter());
       druidQuery.intervals = filterAndIntervals.intervals;
       if (filterAndIntervals.filter) {
         druidQuery.filter = filterAndIntervals.filter;
@@ -1826,8 +1823,22 @@ return (start < 0 ?'-':'') + parts.join('.');
             postProcess: postProcessFactory(selectNormalizerFactory(timeAttribute), inflaters)
           };
 
+        case 'value':
+          var aggregationsAndPostAggregations = this.getAggregationsAndPostAggregations([this.toValueApply()]);
+          if (aggregationsAndPostAggregations.aggregations.length) {
+            druidQuery.aggregations = aggregationsAndPostAggregations.aggregations;
+          }
+          if (aggregationsAndPostAggregations.postAggregations.length) {
+            druidQuery.postAggregations = aggregationsAndPostAggregations.postAggregations;
+          }
+
+          return {
+            query: druidQuery,
+            postProcess: valuePostProcess
+          };
+
         case 'total':
-          var aggregationsAndPostAggregations = this.getAggregationsAndPostAggregations();
+          var aggregationsAndPostAggregations = this.getAggregationsAndPostAggregations(this.applies);
           if (aggregationsAndPostAggregations.aggregations.length) {
             druidQuery.aggregations = aggregationsAndPostAggregations.aggregations;
           }
@@ -1841,7 +1852,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           };
 
         case 'split':
-          var aggregationsAndPostAggregations = this.getAggregationsAndPostAggregations();
+          var aggregationsAndPostAggregations = this.getAggregationsAndPostAggregations(this.applies);
           if (aggregationsAndPostAggregations.aggregations.length) {
             druidQuery.aggregations = aggregationsAndPostAggregations.aggregations;
           } else {

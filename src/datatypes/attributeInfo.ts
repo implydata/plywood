@@ -13,7 +13,7 @@ module Plywood {
   export interface AttributeInfoValue {
     special?: string;
     name: string;
-    type?: string;
+    type?: PlyType;
     datasetType?: Lookup<FullType>;
     unsplitable?: boolean;
     makerAction?: Action;
@@ -28,7 +28,7 @@ module Plywood {
   export interface AttributeInfoJS {
     special?: string;
     name: string;
-    type?: string;
+    type?: PlyType;
     datasetType?: Lookup<FullType>;
     unsplitable?: boolean;
     makerAction?: ActionJS;
@@ -123,7 +123,7 @@ module Plywood {
 
     public special: string;
     public name: string;
-    public type: string;
+    public type: PlyType;
     public datasetType: Lookup<FullType>;
     public unsplitable: boolean;
     public makerAction: Action;
@@ -152,23 +152,23 @@ module Plywood {
         return;
       }
       if (this.special !== special) {
-        throw new TypeError("incorrect attributeInfo `special` '" + this.special + "' (needs to be: '" + special + "')");
+        throw new TypeError(`incorrect attributeInfo special '${this.special}' (needs to be: '${special}')`);
       }
     }
 
-    public _ensureType(myType: string) {
+    public _ensureType(myType: PlyType) {
       if (!this.type) {
         this.type = myType;
         return;
       }
       if (this.type !== myType) {
-        throw new TypeError("incorrect attributeInfo `type` '" + this.type + "' (needs to be: '" + myType + "')");
+        throw new TypeError(`incorrect attributeInfo type '${this.type}' (needs to be: '${myType}')`);
       }
     }
 
     public toString(): string {
-      var special = this.special || 'basic';
-      return `${special}(${this.type})`;
+      var special = this.special ? `[${this.special}]` : '';
+      return `${this.name}::${this.type}${special}`;
     }
 
     public valueOf(): AttributeInfoValue {

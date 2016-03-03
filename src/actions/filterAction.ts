@@ -14,7 +14,7 @@ module Plywood {
       this._checkExpressionTypes('BOOLEAN');
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'DATASET');
       return 'DATASET';
     }
@@ -36,7 +36,7 @@ module Plywood {
       return null;
     }
 
-    protected _putBeforeAction(lastAction: Action): Action {
+    protected _putBeforeLastAction(lastAction: Action): Action {
       if (lastAction instanceof ApplyAction) {
         var freeReferences = this.getFreeReferences();
         return freeReferences.indexOf(lastAction.name) === -1 ? this : null;

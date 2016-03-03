@@ -12,10 +12,11 @@ module Plywood {
 
     constructor(parameters: ExpressionValue) {
       super(parameters, dummyObject);
-      this.external = parameters.external;
-      if (!this.external) throw new Error('must have an external');
+      var external = parameters.external;
+      if (!external) throw new Error('must have an external');
+      this.external = external;
       this._ensureOp('external');
-      this.type = 'DATASET';
+      this.type = external.mode === 'value' ? 'NUMBER' : 'DATASET'; // ToDo: not always number
       this.simple = true;
     }
 
@@ -32,7 +33,7 @@ module Plywood {
     }
 
     public toString(): string {
-      return `E:${this.external.toString()}`;
+      return `E:${this.external}`;
     }
 
     public getFn(): ComputeFn {
@@ -44,11 +45,16 @@ module Plywood {
         this.external.equals(other.external);
     }
 
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       indexer.index++;
-      var newTypeContext = this.external.getFullType();
-      newTypeContext.parent = typeContext;
-      return newTypeContext;
+      const { external } = this;
+      if (external.mode === 'value') {
+        return { type: 'NUMBER' };
+      } else {
+        var newTypeContext = this.external.getFullType();
+        newTypeContext.parent = typeContext;
+        return newTypeContext;
+      }
     }
 
     public _computeResolvedSimulate(simulatedQueries: any[]): any {
@@ -72,21 +78,8 @@ module Plywood {
 
     public addAction(action: Action): ExternalExpression {
       var newExternal = this.external.addAction(action);
-      if (!newExternal) return;
-      return new ExternalExpression({ external: newExternal });
-    }
-
-    public makeTotal(dataName: string): ExternalExpression {
-      var newExternal = this.external.makeTotal(dataName);
       if (!newExternal) return null;
       return new ExternalExpression({ external: newExternal });
-    }
-
-    public getEmptyLiteral(): LiteralExpression {
-      var external = this.external;
-      var emptyTotalDataset = external.getEmptyTotalDataset();
-      if (!emptyTotalDataset) return null;
-      return r(emptyTotalDataset);
     }
 
     public maxPossibleSplitValues(): number {

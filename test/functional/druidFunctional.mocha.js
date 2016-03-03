@@ -360,7 +360,7 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it.skip("works with all kinds of cool aggregates on totals level", (testComplete) => {
+    it("works with all kinds of cool aggregates on totals level", (testComplete) => {
       var ex = ply()
         .apply("NumPages", $('wiki').countDistinct('$page'))
         .apply("NumEnPages", $('wiki').filter($("channel").is('en')).countDistinct('$page'))
@@ -375,7 +375,17 @@ describe("Druid Functional", function() {
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
-
+            {
+              "ChannelAdded": 97393743,
+              "ChannelENAdded": 32553107,
+              "ChannelENishAdded": 32553107,
+              "Count": 392443,
+              "CountSquareRoot": 626.4527117029664,
+              "CountSquared": 154011508249,
+              "NumEnPages": 63849.8464587151,
+              "NumPages": 279107.1992807899,
+              "One": 1
+            }
           ]);
           testComplete();
         })

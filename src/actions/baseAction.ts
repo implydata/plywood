@@ -65,10 +65,6 @@ module Plywood {
     lookup?: string;
   }
 
-  export interface ExpressionTransformation {
-    (ex: Expression): Expression;
-  }
-
 // =====================================================================================
 // =====================================================================================
 
@@ -215,7 +211,7 @@ module Plywood {
 
     protected _checkNoExpression() {
       if (this.expression) {
-        throw new Error(`${this.action} must no have an expression (is ${this.expression.toString()})`);
+        throw new Error(`${this.action} must no have an expression (is ${this.expression})`);
       }
     }
 
@@ -230,11 +226,11 @@ module Plywood {
       }
     }
 
-    public getOutputType(inputType: string): string {
+    public getOutputType(inputType: PlyType): PlyType {
       throw new Error('must implement type checker');
     }
 
-    public _fillRefSubstitutions(typeContext: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       var expression = this.expression;
       if (expression) expression._fillRefSubstitutions(typeContext, indexer, alterations);
       return typeContext;
@@ -359,7 +355,7 @@ module Plywood {
      * Special logic to move this action before the previous one.
      * @param lastAction the previous action
      */
-    protected _putBeforeAction(lastAction: Action): Action {
+    protected _putBeforeLastAction(lastAction: Action): Action {
       return null;
     }
 
@@ -411,7 +407,7 @@ module Plywood {
           return foldedAction.performOnSimple(simpleExpression.popAction());
         }
 
-        var beforeAction = this._putBeforeAction(lastAction);
+        var beforeAction = this._putBeforeLastAction(lastAction);
         if (beforeAction) {
           return lastAction.performOnSimple(beforeAction.performOnSimple(simpleExpression.popAction()));
         }
@@ -459,6 +455,7 @@ module Plywood {
       var subExpression = expression._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff + Number(this.isNester()));
       if (expression === subExpression) return this;
       var value = this.valueOf();
+      value.simple = false;
       value.expression = subExpression;
       return new (Action.classMap[this.action])(value);
     }
@@ -471,11 +468,9 @@ module Plywood {
       return null;
     }
 
-    public applyToExpression(transformation: ExpressionTransformation): Action {
+    public changeExpression(newExpression: Expression): Action {
       var expression = this.expression;
-      if (!expression) return this;
-      var newExpression = transformation(expression);
-      if (newExpression === expression) return this;
+      if (!expression || expression === newExpression) return this;
       var value = this.valueOf();
       value.expression = newExpression;
       return new (Action.classMap[this.action])(value);
