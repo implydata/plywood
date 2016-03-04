@@ -1,5 +1,9 @@
 # Change log
 
+## 0.9.2
+
+- Custom type guards for all the modal classes
+
 ## 0.9.1
 
 - New 'value' mode in externals. `$wikipedia.sum($added)` is now computable.
