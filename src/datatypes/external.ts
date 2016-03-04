@@ -200,7 +200,7 @@ module Plywood {
     static SEGMENT_NAME = '__SEGMENT__';
     static VALUE_NAME = '__VALUE__';
 
-    static isExternal(candidate: any): boolean {
+    static isExternal(candidate: any): candidate is External {
       return isInstanceOf(candidate, External);
     }
 

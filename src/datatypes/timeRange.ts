@@ -35,7 +35,7 @@ module Plywood {
   export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, TimeRangeJS> {
     static type = 'TIME_RANGE';
 
-    static isTimeRange(candidate: any): boolean {
+    static isTimeRange(candidate: any): candidate is TimeRange {
       return isInstanceOf(candidate, TimeRange);
     }
 

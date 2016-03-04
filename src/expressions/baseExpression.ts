@@ -180,7 +180,7 @@ module Plywood {
     static EMPTY_STRING: LiteralExpression;
     static EMPTY_SET: LiteralExpression;
 
-    static isExpression(candidate: any): boolean {
+    static isExpression(candidate: any): candidate is Expression {
       return isInstanceOf(candidate, Expression);
     }
 

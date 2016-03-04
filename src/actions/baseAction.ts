@@ -90,7 +90,7 @@ module Plywood {
       return false;
     }
 
-    static isAction(candidate: any): boolean {
+    static isAction(candidate: any): candidate is Action {
       return isInstanceOf(candidate, Action);
     }
 
