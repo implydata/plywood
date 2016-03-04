@@ -109,7 +109,7 @@ This example will use Druid as the data store:
 
 ```javascript
 // Get the druid requester (which is a node specific module)
-var druidRequesterFactory = require('plywoodjs-druid-requester').druidRequesterFactory;
+var druidRequesterFactory = require('plywood-druid-requester').druidRequesterFactory;
 
 var plywood = require('plywood');
 var Dataset = plywood.Dataset;
