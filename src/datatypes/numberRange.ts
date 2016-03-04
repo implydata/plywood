@@ -19,7 +19,7 @@ module Plywood {
   export class NumberRange extends Range<number> implements Instance<NumberRangeValue, NumberRangeJS> {
     static type = 'NUMBER_RANGE';
 
-    static isNumberRange(candidate: any): boolean {
+    static isNumberRange(candidate: any): candidate is NumberRange {
       return isInstanceOf(candidate, NumberRange);
     }
 

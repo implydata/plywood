@@ -261,7 +261,7 @@ module Plywood {
   export class Dataset implements Instance<DatasetValue, any> {
     static type = 'DATASET';
 
-    static isDataset(candidate: any): boolean {
+    static isDataset(candidate: any): candidate is Dataset {
       return isInstanceOf(candidate, Dataset);
     }
 

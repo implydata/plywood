@@ -55,7 +55,7 @@ module Plywood {
     static type = 'SET';
     static EMPTY: Set;
 
-    static isSet(candidate: any): boolean {
+    static isSet(candidate: any): candidate is Set {
       return isInstanceOf(candidate, Set);
     }
 

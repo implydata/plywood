@@ -42,7 +42,7 @@ module Plywood {
 
   var check: Class<AttributeInfoValue, AttributeInfoJS>;
   export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfoJS> {
-    static isAttributeInfo(candidate: any): boolean {
+    static isAttributeInfo(candidate: any): candidate is AttributeInfo {
       return isInstanceOf(candidate, AttributeInfo);
     }
 
