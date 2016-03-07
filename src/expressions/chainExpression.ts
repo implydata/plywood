@@ -407,9 +407,7 @@ module Plywood {
         } else if (action instanceof ApplyAction) {
           if (actionExpression.hasExternal()) {
             return dataset.apply(action.name, (d: Datum) => {
-              var simpleActionExpression = actionExpression.resolve(d);
-              simpleActionExpression = simpleActionExpression.simplify();
-              return simpleActionExpression._computeResolvedSimulate(simulatedQueries);
+              return actionExpression.resolve(d).simplify()._computeResolvedSimulate(simulatedQueries);
             }, null);
           } else {
             return dataset.apply(action.name, actionExpression.getFn(), null);

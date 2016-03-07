@@ -354,7 +354,7 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should parse a total expression without group by clause", () => {
+    it("should parse a total expression without GROUP BY clause", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
         SUM(added) AS TotalAdded
@@ -585,9 +585,31 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with SELECT stuff", () => {
+    it("should work with a SELECT query with renames", () => {
       var parse = Expression.parseSQL(sane`
-        SELECT \`page\`, \`added\` -- these are completly ignored for now
+        SELECT
+          page,
+          isNew AS IsNew,
+          added AS Added
+        FROM \`wiki\`
+        WHERE \`language\`="en"
+      `);
+
+      var ex2 = $('wiki')
+        .filter('$language == en')
+        .apply('page', '$page')
+        .apply('IsNew', '$isNew')
+        .apply('Added', '$added')
+        .select('page', 'IsNew', 'Added');
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with SELECT and stuff", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT
+          CONCAT(page, "lol") AS Page,
+          added + 1 as added
         FROM \`wiki\`
         WHERE language = 'en'
         HAVING added > 100
@@ -597,6 +619,9 @@ describe("SQL parser", () => {
 
       var ex2 = $('wiki')
         .filter('$language == "en"')
+        .apply('Page', '$page.concat(lol)')
+        .apply('added', '$added + 1')
+        .select('Page', 'added')
         .filter('$added > 100')
         .sort('$page', 'descending')
         .limit(10);

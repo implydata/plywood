@@ -26,11 +26,12 @@ var context = {
       { name: 'language', type: 'STRING' },
       { name: 'page', type: 'STRING' },
       { name: 'commentLength', type: 'NUMBER' },
-      { name: 'added', type: 'NUMBER' },
-      { name: 'deleted', type: 'NUMBER' },
-      { name: 'inserted', type: 'NUMBER' }
+      { name: 'added', type: 'NUMBER', unsplitable: true },
+      { name: 'deleted', type: 'NUMBER', unsplitable: true },
+      { name: 'inserted', type: 'NUMBER', unsplitable: true }
     ],
     filter: timeFilter,
+    druidVersion: '0.9.1',
     customAggregations: {
       crazy: {
         accessType: 'getSomeCrazy',
@@ -548,28 +549,43 @@ describe("DruidExternal", () => {
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
+
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
-            "fieldNames": [
-              "deleted",
-              "page"
-            ],
-            "fnAggregate": "function(_c,deleted,page) { return _c+((''+page).indexOf(\"wikipedia\")>-1 ? deleted : 0); }",
-            "fnCombine": "function(a,b) { return a+b; }",
-            "fnReset": "function() { return 0; }",
+            "aggregator": {
+              "fieldName": "deleted",
+              "name": "FilteredSumDeleted",
+              "type": "doubleSum"
+            },
+            "filter": {
+              "dimension": "page",
+              "extractionFn": {
+                "function": "function(d){return (''+d).indexOf(\"wikipedia\")>-1;}",
+                "type": "javascript"
+              },
+              "type": "extraction",
+              "value": "true"
+            },
             "name": "FilteredSumDeleted",
-            "type": "javascript"
+            "type": "filtered"
           },
           {
-            "fieldNames": [
-              "deleted"
-            ],
-            "fnAggregate": "function(_c,deleted) { return _c+(!((deleted===100)) ? deleted : 0); }",
-            "fnCombine": "function(a,b) { return a+b; }",
-            "fnReset": "function() { return 0; }",
+            "aggregator": {
+              "fieldName": "deleted",
+              "name": "Filtered2",
+              "type": "doubleSum"
+            },
+            "filter": {
+              "field": {
+                "dimension": "deleted",
+                "type": "selector",
+                "value": 100
+              },
+              "type": "not"
+            },
             "name": "Filtered2",
-            "type": "javascript"
+            "type": "filtered"
           }
         ],
         "dataSource": "wikipedia",
@@ -605,8 +621,10 @@ describe("DruidExternal", () => {
           {
             "dimension": "page",
             "extractionFn": {
-              "function": "function(d){return (_ = ((''+d).match(/^Cat(.+)$/) || [])[1] || null, (_ === null ? \"noMatch\" : _));}",
-              "type": "javascript"
+              "type": "regex",
+              "expr": "^Cat(.+)$",
+              "replaceMissingValues": true,
+              "replaceMissingValuesWith": "noMatch"
             },
             "outputName": "Page",
             "type": "extraction"

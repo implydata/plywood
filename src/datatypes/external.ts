@@ -1045,7 +1045,10 @@ module Plywood {
     public simulate(): PlywoodValue {
       const { mode } = this;
 
-      if (mode === 'value') return getSampleValue('NUMBER', null);
+      if (mode === 'value') {
+        var valueExpression = this.valueExpression;
+        return getSampleValue(valueExpression.type, valueExpression);
+      }
 
       var datum: Datum = {};
 

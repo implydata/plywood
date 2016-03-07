@@ -1,0 +1,6 @@
+#!/bin/bash -eu
+
+echo "Init";
+#cp /opt/data/druid/common.runtime.properties /root/imply-1.1.0/conf-quickstart/druid/_common/common.runtime.properties
+
+perl -pi -e's/druid.extensions.coordinates=.*/druid.extensions.coordinates=["io.druid.extensions:druid-namespace-lookup", "io.druid.extensions:druid-histogram"]/g' /root/imply-*/conf-quickstart/druid/_common/common.runtime.properties

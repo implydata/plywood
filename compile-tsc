@@ -60,6 +60,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/actions/overlapAction.ts \
   src/actions/powerAction.ts \
   src/actions/quantileAction.ts \
+  src/actions/selectAction.ts \
   src/actions/sortAction.ts \
   src/actions/splitAction.ts \
   src/actions/substrAction.ts \

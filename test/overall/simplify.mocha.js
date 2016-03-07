@@ -628,6 +628,15 @@ describe("Simplify", () => {
 
 
   describe('apply', () => {
+    it('removes no-op applies', () => {
+      var ex1 = ply()
+        .apply('x', '$x');
+
+      var ex2 = ply();
+
+      simplifiesTo(ex1, ex2);
+    });
+
     it('sorts applies does not mess with sort if all are simple 1', () => {
       var ex1 = ply()
         .apply('Count', '$wiki.count()')
@@ -639,7 +648,6 @@ describe("Simplify", () => {
 
       simplifiesTo(ex1, ex2);
     });
-
 
     it('sorts applies does not mess with sort if all are simple 2', () => {
       var ex1 = ply()
@@ -707,6 +715,36 @@ describe("Simplify", () => {
         .apply('Wiki', '$wiki.sum($deleted)')
         .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+
+      simplifiesTo(ex1, ex2);
+    });
+  });
+
+
+  describe('select', () => {
+    it('consecutive selects fold together', () => {
+      var ex1 = $('main')
+        .select('a', 'b')
+        .select('a', 'c');
+
+      var ex2 = $('main')
+        .select('a');
+
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('removes a preceding apply', () => {
+      var ex1 = $('main')
+        .apply('Added', '$wiki.sum($added)')
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .select('Added', 'Deleted');
+
+      var ex2 = $('main')
+        .apply('Added', '$wiki.sum($added)')
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .select('Added', 'Deleted');
 
       simplifiesTo(ex1, ex2);
     });

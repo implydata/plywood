@@ -142,7 +142,7 @@ describe("simulate Druid", () => {
 
   it("works in advanced case", () => {
     var ex = ply()
-      .apply("diamonds", $('diamonds').filter($("color").is('D').and($('cut').in(['Good', 'Bad', 'Ugly']))))
+      .apply("diamonds", $('diamonds').filter($("color").is('D').and($('tags').overlap(['Good', 'Bad', 'Ugly']))))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
       .apply('PriceTimes2', '$diamonds.sum($price) * 2')
@@ -223,17 +223,17 @@ describe("simulate Druid", () => {
             {
               "fields": [
                 {
-                  "dimension": "cut",
+                  "dimension": "tags",
                   "type": "selector",
                   "value": "Good"
                 },
                 {
-                  "dimension": "cut",
+                  "dimension": "tags",
                   "type": "selector",
                   "value": "Bad"
                 },
                 {
-                  "dimension": "cut",
+                  "dimension": "tags",
                   "type": "selector",
                   "value": "Ugly"
                 }
@@ -387,17 +387,17 @@ describe("simulate Druid", () => {
             {
               "fields": [
                 {
-                  "dimension": "cut",
+                  "dimension": "tags",
                   "type": "selector",
                   "value": "Good"
                 },
                 {
-                  "dimension": "cut",
+                  "dimension": "tags",
                   "type": "selector",
                   "value": "Bad"
                 },
                 {
-                  "dimension": "cut",
+                  "dimension": "tags",
                   "type": "selector",
                   "value": "Ugly"
                 }
@@ -422,12 +422,47 @@ describe("simulate Druid", () => {
           }
         ],
         "dataSource": "diamonds",
+        "filter": {
+          "fields": [
+            {
+              "dimension": "color",
+              "type": "selector",
+              "value": "D"
+            },
+            {
+              "fields": [
+                {
+                  "dimension": "tags",
+                  "type": "selector",
+                  "value": "Good"
+                },
+                {
+                  "dimension": "tags",
+                  "type": "selector",
+                  "value": "Bad"
+                },
+                {
+                  "dimension": "tags",
+                  "type": "selector",
+                  "value": "Ugly"
+                }
+              ],
+              "type": "or"
+            },
+            {
+              "dimension": "cut",
+              "type": "selector",
+              "value": "some_cut"
+            }
+          ],
+          "type": "and"
+        },
         "granularity": {
           "period": "P1D",
           "timeZone": "America/Los_Angeles",
           "type": "period"
         },
-        "intervals": "1000-01-01/1000-01-02",
+        "intervals": "2015-03-12/2015-03-19",
         "queryType": "timeseries"
       },
       {
@@ -447,8 +482,43 @@ describe("simulate Druid", () => {
           "outputName": "Carat",
           "type": "extraction"
         },
+        "filter": {
+          "fields": [
+            {
+              "dimension": "color",
+              "type": "selector",
+              "value": "D"
+            },
+            {
+              "fields": [
+                {
+                  "dimension": "tags",
+                  "type": "selector",
+                  "value": "Good"
+                },
+                {
+                  "dimension": "tags",
+                  "type": "selector",
+                  "value": "Bad"
+                },
+                {
+                  "dimension": "tags",
+                  "type": "selector",
+                  "value": "Ugly"
+                }
+              ],
+              "type": "or"
+            },
+            {
+              "dimension": "cut",
+              "type": "selector",
+              "value": "some_cut"
+            }
+          ],
+          "type": "and"
+        },
         "granularity": "all",
-        "intervals": "1000-01-01/1000-01-02",
+        "intervals": "2015-03-13T07/2015-03-14T07",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -1283,15 +1353,22 @@ describe("simulate Druid", () => {
             "type": "filtered"
           },
           {
-            "fieldNames": [
-              "cut",
-              "price"
-            ],
-            "fnAggregate": "function(_c,cut,price) { return _c+((''+cut).indexOf(\"Good\")>-1 ? price : 0); }",
-            "fnCombine": "function(a,b) { return a+b; }",
-            "fnReset": "function() { return 0; }",
+            "aggregator": {
+              "fieldName": "price",
+              "name": "GoodishPrice",
+              "type": "doubleSum"
+            },
+            "filter": {
+              "dimension": "cut",
+              "extractionFn": {
+                "function": "function(d){return (''+d).indexOf(\"Good\")>-1;}",
+                "type": "javascript"
+              },
+              "type": "extraction",
+              "value": "true"
+            },
             "name": "GoodishPrice",
-            "type": "javascript"
+            "type": "filtered"
           },
           {
             "aggregator": {

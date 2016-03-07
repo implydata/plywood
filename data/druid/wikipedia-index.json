@@ -85,6 +85,11 @@
           "fieldName" : "deltaByTen"
         },
         {
+          "name" : "delta_hist",
+          "type" : "approxHistogramFold",
+          "fieldName" : "delta"
+        },
+        {
           "name" : "user_unique",
           "type" : "hyperUnique",
           "fieldName" : "user"

@@ -382,6 +382,20 @@ module Plywood {
     }
 
     // Actions
+    public select(attributes: string[]): Dataset {
+      // Note this works in place, fix that later if needed.
+      var data = this.data;
+      for (let datum of data) {
+        for (let key in datum) {
+          if (attributes.indexOf(key) === -1) {
+            delete datum[key];
+          }
+        }
+      }
+      this.attributes = null; // Since we did the change in place, blow out the attributes
+      return this;
+    }
+
     public apply(name: string, exFn: ComputeFn, context: Datum): Dataset {
       // Note this works in place, fix that later if needed.
       var data = this.data;

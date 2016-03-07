@@ -42,6 +42,22 @@ describe("reference check", () => {
       }).to.throw('could not resolve $^x');
     });
 
+    it("fails to resolve a variable that does not exist (because of select)", () => {
+      var ex = ply()
+        .apply('num', 5)
+        .apply(
+          'subData',
+          ply()
+            .apply('x', '$num + 1')
+            .select('blah')
+            .apply('y', '$x * 2')
+        );
+
+      expect(() => {
+        ex.referenceCheck({});
+      }).to.throw('could not resolve $x');
+    });
+
     it("fails to when a variable goes too deep", () => {
       var ex = ply()
         .apply('num', 5)

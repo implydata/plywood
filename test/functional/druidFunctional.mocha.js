@@ -9,7 +9,7 @@ if (!WallTime.rules) {
 var { druidRequesterFactory } = require('plywood-druid-requester');
 
 var plywood = require('../../build/plywood');
-var { External, TimeRange, $, ply, basicExecutorFactory } = plywood;
+var { External, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
 
 var info = require('../info');
 
@@ -50,6 +50,7 @@ describe("Druid Functional", function() {
             { name: 'count', type: 'NUMBER', unsplitable: true },
             { name: 'delta', type: 'NUMBER', unsplitable: true },
             { name: 'deltaByTen', type: 'NUMBER', unsplitable: true },
+            { name: 'delta_hist', special: 'histogram' },
             { name: 'added', type: 'NUMBER', unsplitable: true },
             { name: 'deleted', type: 'NUMBER', unsplitable: true },
             { name: 'user_unique', special: 'unique', unsplitable: true },
@@ -370,12 +371,16 @@ describe("Druid Functional", function() {
         .apply('Count', $('wiki').sum('$count'))
         .apply('CountSquareRoot', $('wiki').sum('$count').power(0.5))
         .apply('CountSquared', $('wiki').sum('$count').power(2))
-        .apply('One', $('wiki').sum('$count').power(0));
+        .apply('One', $('wiki').sum('$count').power(0))
+        .apply('AddedByDeleted', $('wiki').sum('$added').divide($('wiki').sum('$deleted')))
+        .apply('Delta95th', $('wiki').quantile('$delta_hist', 0.95))
+        .apply('Delta99thX2', $('wiki').quantile('$delta_hist', 0.99).multiply(2));
 
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
+              "AddedByDeleted": 24.909643797343193,
               "ChannelAdded": 97393743,
               "ChannelENAdded": 32553107,
               "ChannelENishAdded": 32553107,
@@ -384,7 +389,9 @@ describe("Druid Functional", function() {
               "CountSquared": 154011508249,
               "NumEnPages": 63849.8464587151,
               "NumPages": 279107.1992807899,
-              "One": 1
+              "One": 1,
+              "Delta95th": 161.95787,
+              "Delta99thX2": 328.91522216796875
             }
           ]);
           testComplete();
@@ -1114,6 +1121,7 @@ describe("Druid Functional", function() {
               "deleted": 39,
               "delta": -39,
               "deltaByTen": -3.9000000953674316,
+              "delta_hist": null,
               "isAnonymous": true,
               "isNew": false,
               "metroCode": "765",
@@ -1144,6 +1152,7 @@ describe("Druid Functional", function() {
               "deleted": 0,
               "delta": 0,
               "deltaByTen": 0,
+              "delta_hist": null,
               "isAnonymous": true,
               "isNew": false,
               "metroCode": "765",
