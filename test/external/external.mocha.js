@@ -82,7 +82,7 @@ describe("External", () => {
 
       {
         engine: 'druid',
-        dataSource: 'moon_child2', // ToDo: remove the 2 and fix the equality test
+        dataSource: 'moon_child',
         timeAttribute: 'time',
         context: null,
         attributeOverrides: [
@@ -90,7 +90,12 @@ describe("External", () => {
           { name: 'cut', type: 'STRING' },
           { name: 'unique', type: "STRING", special: 'unique' }
         ],
-        druidVersion: '0.8.0'
+        druidVersion: '0.8.0',
+        customAggregations: {
+          test: {
+            aggregation: { type: 'longSum', fieldName: 'count' }
+          }
+        }
       }
     ], {
       newThrows: true
@@ -498,8 +503,6 @@ describe("External", () => {
         var ex = r(5).subtract($('wiki').filter('$page == USA').sum('$added'));
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
-
-        console.log(ex.toString(2));
 
         expect(ex.op).to.equal('external');
         var externalDataset = ex.external;

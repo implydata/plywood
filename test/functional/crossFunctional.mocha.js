@@ -168,6 +168,14 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with OR filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($channel == "en" or $cityName == "Tel Aviv")')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with contains filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()

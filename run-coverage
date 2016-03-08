@@ -1,3 +1,10 @@
 #!/bin/bash
-node --harmony_destructuring node_modules/.bin/istanbul cover _mocha -- test/**/*.mocha.js
 
+# rename the mocha.opts file as it messes with istanbul when it runs _mocha
+mv test/mocha.opts test/_mocha.opts_
+
+# Use a reporter that does not take a ton of height
+node --harmony_destructuring node_modules/.bin/istanbul cover _mocha -- --reporter nyan test/**/*.mocha.js
+
+# restore the mocha.opts file
+mv test/_mocha.opts_ test/mocha.opts

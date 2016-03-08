@@ -603,30 +603,6 @@ module Plywood {
       }
     }
 
-    public canUseNativeAggregateFilter(filter: Expression): boolean {
-      if (filter instanceof ChainExpression) {
-        var pattern: Expression[];
-        if (pattern = (filter.getExpressionPattern('and') || filter.getExpressionPattern('or'))) {
-          return pattern.every(ex => {
-            return this.canUseNativeAggregateFilter(ex);
-          }, this);
-        }
-
-        if (filter.lastAction() instanceof NotAction) {
-          return this.canUseNativeAggregateFilter(filter.popAction());
-        }
-
-        var actions = filter.actions;
-        if (actions.length !== 1) return false;
-        var firstAction = actions[0];
-        return filter.expression.isOp('ref') &&
-          (firstAction.action === 'is' || firstAction.action === 'in') &&
-          firstAction.expression.isOp('literal') &&
-          filter.expression.type === "STRING";
-      }
-      return false;
-    }
-
     public javaScriptDruidFilter(referenceName: string, filter: Expression): Druid.Filter {
       return {
         type: "javascript",
