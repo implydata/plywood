@@ -56,13 +56,19 @@ exports.wrapVerbose = (requester, name) => {
 };
 
 exports.makeEqualityTest = (executorMap) => {
-  return ({executorNames, expression, verbose, before, after}) => {
+  return ({executorNames, expression, sql, verbose, before, after}) => {
     if (executorNames.length < 2) {
       throw new Error("must have at least two executorNames");
     }
 
+    if (expression && sql) throw new Error("can not set 'expression' and 'sql' at the same time");
+
     if (typeof expression === 'string') {
       expression = Expression.parse(expression);
+    }
+
+    if (typeof sql === 'string') {
+      expression = Expression.parseSQL(sql).expression;
     }
 
     var executors = executorNames.map((executorName) => {

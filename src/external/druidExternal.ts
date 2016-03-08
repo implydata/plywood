@@ -284,8 +284,12 @@ module Plywood {
       }
       return res[0].result.events.map(event => {
         var datum: Datum = event.event;
-        datum[timestampLabel] = datum['timestamp']; // The __time dimension always returns as 'timestamp' for some reason
+        if (timestampLabel != null) {
+          // The __time dimension always returns as 'timestamp' for some reason
+          datum[timestampLabel] = datum['timestamp'];
+        }
         delete datum['timestamp'];
+        cleanDatumInPlace(datum);
         return datum;
       })
     }
@@ -1120,12 +1124,12 @@ return (start < 0 ?'-':'') + parts.join('.');
       throw new Error(`could not convert ${expression} to a Druid extractionFn`);
     }
 
-    public splitExpressionToDimensionInflater(splitExpression: Expression, label: string): DimensionInflater {
-      var extractionFn = this.expressionToExtractionFn(splitExpression);
+    public expressionToDimensionInflater(expression: Expression, label: string): DimensionInflater {
+      var extractionFn = this.expressionToExtractionFn(expression);
       // expressionToExtractionFn already checked that there is only one ref name
-      var referenceName = splitExpression.getFreeReferences()[0];
+      var referenceName = expression.getFreeReferences()[0];
 
-      var simpleInflater = External.getSimpleInflater(splitExpression, label);
+      var simpleInflater = External.getSimpleInflater(expression, label);
 
       var dimension: Druid.DimensionSpecFull = {
         type: "default",
@@ -1137,7 +1141,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         dimension.extractionFn = extractionFn;
       }
 
-      if (splitExpression instanceof RefExpression) {
+      if (expression instanceof RefExpression) {
         var attributeInfo = this.getAttributesInfo(referenceName);
         if (attributeInfo instanceof RangeAttributeInfo) {
           return {
@@ -1152,26 +1156,26 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
       }
 
-      if (splitExpression.type === 'BOOLEAN' || splitExpression.type === 'STRING') {
+      if (expression.type === 'BOOLEAN' || expression.type === 'STRING') {
         return {
           dimension,
           inflater: simpleInflater
         };
       }
 
-      if (splitExpression instanceof ChainExpression) {
-        if (splitExpression.getExpressionPattern('concat')) {
+      if (expression instanceof ChainExpression) {
+        if (expression.getExpressionPattern('concat')) {
           return {
             dimension,
             inflater: simpleInflater
           };
         }
 
-        if (!splitExpression.expression.isOp('ref')) {
-          throw new Error(`can not convert complex: ${splitExpression.expression}`);
+        if (!expression.expression.isOp('ref')) {
+          throw new Error(`can not convert complex: ${expression.expression}`);
         }
-        var actions = splitExpression.actions;
-        if (actions.length !== 1) throw new Error(`can not convert expression: ${splitExpression}`);
+        var actions = expression.actions;
+        if (actions.length !== 1) throw new Error(`can not convert expression: ${expression}`);
         var splitAction = actions[0];
 
         if (splitAction instanceof SubstrAction || splitAction instanceof AbsoluteAction || splitAction instanceof PowerAction) {
@@ -1202,7 +1206,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (splitAction instanceof NumberBucketAction) {
           var attributeInfo = this.getAttributesInfo(referenceName);
           if (attributeInfo.type === 'NUMBER') {
-            var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
+            //var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
             return {
               dimension,
               inflater: External.numberRangeInflaterFactory(label, splitAction.size)
@@ -1219,7 +1223,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
       }
 
-      throw new Error(`could not convert ${splitExpression} to a Druid Dimension`);
+      throw new Error(`could not convert ${expression} to a Druid Dimension`);
     }
 
     public splitToDruid(): DruidSplit {
@@ -1242,7 +1246,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             }
           }
 
-          var { dimension, inflater } = this.splitExpressionToDimensionInflater(expression, name);
+          var { dimension, inflater } = this.expressionToDimensionInflater(expression, name);
           dimensions.push(dimension);
           if (inflater) {
             inflaters.push(inflater);
@@ -1275,7 +1279,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
       }
 
-      var dimensionInflater = this.splitExpressionToDimensionInflater(splitExpression, label);
+      var dimensionInflater = this.expressionToDimensionInflater(splitExpression, label);
       var inflaters = [dimensionInflater.inflater].filter(Boolean);
       if (
         this.havingFilter.equals(Expression.TRUE) && // There is no having filter
@@ -1779,19 +1783,32 @@ return (start < 0 ?'-':'') + parts.join('.');
             throw new Error("to issues 'select' queries allowSelectQueries flag must be set");
           }
 
-          var selectDimensions: string[] = [];
+          var selectDimensions: Druid.DimensionSpec[] = [];
           var selectMetrics: string[] = [];
           var inflaters: Inflater[] = [];
 
           var timeAttribute = this.timeAttribute;
-          this.attributes.forEach((attribute) => {
+          var derivedAttributes = this.derivedAttributes;
+          var selectedTimeAttribute: string = null;
+          this.getSelectedAttributes().forEach(attribute => {
             var { name, type, unsplitable } = attribute;
 
-            if (name !== timeAttribute) {
+            if (name === timeAttribute) {
+              selectedTimeAttribute = name;
+            } else {
               if (unsplitable) {
                 selectMetrics.push(name);
               } else {
-                selectDimensions.push(name);
+                var derivedAttribute = derivedAttributes[name];
+                if (derivedAttribute) {
+                  if (this.versionBefore('0.9.1')) throw new Error('can not have derived attributes in select in Druid before 0.9.1');
+                  var dimensionInflater = this.expressionToDimensionInflater(derivedAttribute, name);
+                  selectDimensions.push(dimensionInflater.dimension);
+                  if (dimensionInflater.inflater) inflaters.push(dimensionInflater.inflater);
+                  return; // No need to add default inflater
+                } else {
+                  selectDimensions.push(name);
+                }
               }
             }
 
@@ -1814,6 +1831,10 @@ return (start < 0 ?'-':'') + parts.join('.');
             }
           });
 
+          // If dimensions or metrics are [] everything is returned, prevent this by asking for !DUMMY
+          if (!selectDimensions.length) selectDimensions.push(DUMMY_NAME);
+          if (!selectMetrics.length) selectMetrics.push(DUMMY_NAME);
+
           druidQuery.queryType = 'select';
           druidQuery.dimensions = selectDimensions;
           druidQuery.metrics = selectMetrics;
@@ -1824,7 +1845,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return {
             query: druidQuery,
-            postProcess: postProcessFactory(selectNormalizerFactory(timeAttribute), inflaters)
+            postProcess: postProcessFactory(selectNormalizerFactory(selectedTimeAttribute), inflaters)
           };
 
         case 'value':

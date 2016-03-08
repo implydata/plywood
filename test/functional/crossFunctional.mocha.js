@@ -444,12 +444,35 @@ describe("Cross Functional", function() {
   });
 
   describe("select", () => {
-    it('works with basic select', equalityTest({
+    it('works with basic filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').filter('$cityName == "El Paso"')
     }));
 
-    it.skip('works with extra columns', equalityTest({
+    it('works with basic select action', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').filter('$cityName == "El Paso"').select('channel', 'comment', 'added')
+    }));
+
+    it('works with basic select action (no measures)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').filter('$cityName == "El Paso"').select('time', 'channel', 'comment')
+    }));
+
+    it('works with basic select action (no dimensions)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').filter('$cityName == "El Paso"').select('added', 'deleted')
+    }));
+
+    it.skip('works with derived dimension columns', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki')
+        .filter('$cityName == "El Paso"')
+        .apply('regionNameLOL', '$regionName.concat(LOL)')
+        .select('regionNameLOL')
+    }));
+
+    it.skip('works with derived measure columns', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki')
         .filter('$cityName == "El Paso"')

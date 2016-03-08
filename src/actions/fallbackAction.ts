@@ -11,7 +11,7 @@ module Plywood {
 
     public getOutputType(inputType: PlyType): PlyType {
       var expressionType = this.expression.type;
-      if (expressionType !== 'NULL') this._checkInputTypes(inputType, expressionType);
+      if (expressionType && expressionType !== 'NULL') this._checkInputTypes(inputType, expressionType);
       return expressionType;
     }
 

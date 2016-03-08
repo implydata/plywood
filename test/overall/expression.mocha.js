@@ -93,6 +93,23 @@ describe("Expression", () => {
             "expression": { "op": "ref", "name": "z" }
           }
         ]
+      },
+
+      {
+        "op": "external",
+        external: {
+          engine: 'druid',
+          dataSource: 'moon_child',
+          timeAttribute: 'time',
+          context: null,
+          attributes: [
+            { name: 'color', type: 'STRING' },
+            { name: 'cut', type: 'STRING' },
+            { name: 'carat', type: 'STRING' },
+            { name: 'price', type: 'NUMBER', unsplitable: true }
+          ],
+          druidVersion: '0.8.1'
+        }
       }
 
     ], {

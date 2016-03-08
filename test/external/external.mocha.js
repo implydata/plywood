@@ -345,11 +345,21 @@ describe("External", () => {
   describe("simplifies / digests", () => {
 
     describe("raw mode", () => {
-      it("works with a simple select", () => {
+      it("works in basic raw mode", () => {
         var ex = $('wiki');
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('external');
+      });
+
+      it("works with a simple select", () => {
+        var ex = $('wiki').select('time', 'language', 'added');
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+        expect(ex.op).to.equal('external');
+        var externalDataset = ex.external;
+
+        expect(externalDataset.select.attributes).to.deep.equal(['time', 'language', 'added']);
       });
 
       it("works with a derived attribute and a filter", () => {

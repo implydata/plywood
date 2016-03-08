@@ -769,14 +769,28 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it.skip("works with lookup split", (testComplete) => {
+    it("works with lookup split", (testComplete) => {
       var ex = ply()
         .apply(
           'Channels',
-          $('wiki').split($('channel').lookup('wikipedia-channel-lookup'), 'Channel')
+          $('wiki').split($('channel').lookup('channel_lookup'), 'Channel')
             .apply('Count', '$wiki.sum($count)')
             .sort('$Count', 'descending')
-            .limit(3)
+            .limit(4)
+        )
+        .apply(
+          'ChannelFallbackLOL',
+          $('wiki').split($('channel').lookup('channel_lookup').fallback('LOL'), 'Channel')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(4)
+        )
+        .apply(
+          'ChannelFallbackSelf',
+          $('wiki').split($('channel').lookup('channel_lookup').fallback('$channel'), 'Channel')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(4)
         );
 
       basicExecutor(ex)
@@ -784,18 +798,22 @@ describe("Druid Functional", function() {
           expect(result.toJS()).to.deep.equal([
             {
               "Channels": [
-                {
-                  "Count": 122857,
-                  "Channel": "English"
-                },
-                {
-                  "Count": 22862,
-                  "Channel": "German"
-                },
-                {
-                  "Count": 22140,
-                  "Channel": "French"
-                }
+                { "Channel": null, "Count": 227040 },
+                { "Channel": "English", "Count": 114711 },
+                { "Channel": "French", "Count": 21285 },
+                { "Channel": "Russian", "Count": 14031 }
+              ],
+              "ChannelFallbackLOL": [
+                { "Channel": "LOL", "Count": 227040 },
+                { "Channel": "English", "Count": 114711 },
+                { "Channel": "French", "Count": 21285 },
+                { "Channel": "Russian", "Count": 14031 }
+              ],
+              "ChannelFallbackSelf": [
+                { "Channel": "English", "Count": 114711 },
+                { "Channel": "vi", "Count": 99010 },
+                { "Channel": "de", "Count": 25103 },
+                { "Channel": "French", "Count": 21285 }
               ]
             }
           ]);

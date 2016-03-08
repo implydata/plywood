@@ -36,6 +36,7 @@
     "browserify": "13.0.0",
     "chai": "3.5.0",
     "chronoshift": "0.3.7",
+    "istanbul": "0.4.2",
     "mocha": "2.4.5",
     "pegjs": "0.9.0",
     "plywood-druid-requester": "1.2.8",

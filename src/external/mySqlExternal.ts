@@ -12,15 +12,6 @@ module Plywood {
     return Array.isArray(result) && (result.length === 0 || typeof result[0] === 'object');
   }
 
-  function getSelectInflaters(attributes: Attributes): Inflater[] {
-    return attributes.map(attribute => {
-      if (attribute.type === 'BOOLEAN') {
-        return External.booleanInflaterFactory(attribute.name);
-      }
-      return;
-    }).filter(Boolean);
-  }
-
   function getSplitInflaters(split: SplitAction): Inflater[] {
     return split.mapSplits((label, splitExpression) => {
       if (splitExpression.type === 'BOOLEAN') {
@@ -159,7 +150,7 @@ module Plywood {
     // -----------------
 
     public getQueryAndPostProcess(): QueryAndPostProcess<string> {
-      const { table, mode, split, applies, sort, limit, attributes } = this;
+      const { table, mode, split, applies, sort, limit, derivedAttributes } = this;
 
       var query = ['SELECT'];
       var postProcess: PostProcess = null;
@@ -173,8 +164,23 @@ module Plywood {
 
       switch (mode) {
         case 'raw':
+          var selectedAttributes = this.getSelectedAttributes();
+
+          selectedAttributes.forEach(attribute => {
+            if (attribute.type === 'BOOLEAN') {
+              inflaters.push(External.booleanInflaterFactory(attribute.name));
+            }
+          });
+
           query.push(
-            attributes.map(a => mySQLDialect.escapeName(a.name)).join(', '),
+            selectedAttributes.map(a => {
+              var name = a.name;
+              if (derivedAttributes[name]) {
+                return new ApplyAction({ name, expression: derivedAttributes[name] }).getSQL('', mySQLDialect)
+              } else {
+                return mySQLDialect.escapeName(name);
+              }
+            }).join(', '),
             from
           );
           if (sort) {
@@ -183,7 +189,6 @@ module Plywood {
           if (limit) {
             query.push(limit.getSQL('', mySQLDialect));
           }
-          inflaters = getSelectInflaters(attributes);
           break;
 
         case 'value':

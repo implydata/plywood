@@ -27,24 +27,41 @@ var mySqlRequester = mySqlRequesterFactory({
 describe("MySQL Functional", function() {
   this.timeout(10000);
 
+  var wikiAttributes = [
+    { "name": "time", "type": "TIME" },
+    { "name": "channel", "type": "STRING" },
+    { "name": "cityName", "type": "STRING" },
+    { "name": "comment", "type": "STRING" },
+    { "name": "commentLength", "type": "NUMBER" },
+    { "name": "countryIsoCode", "type": "STRING" },
+    { "name": "countryName", "type": "STRING" },
+    { "name": "isAnonymous", "type": "BOOLEAN" },
+    { "name": "isMinor", "type": "BOOLEAN" },
+    { "name": "isNew", "type": "BOOLEAN" },
+    { "name": "isRobot", "type": "BOOLEAN" },
+    { "name": "isUnpatrolled", "type": "BOOLEAN" },
+    { "name": "metroCode", "type": "NUMBER" },
+    { "name": "namespace", "type": "STRING" },
+    { "name": "page", "type": "STRING" },
+    { "name": "regionIsoCode", "type": "STRING" },
+    { "name": "regionName", "type": "STRING" },
+    { "name": "user", "type": "STRING" },
+    { "name": "count", "type": "NUMBER" },
+    { "name": "added", "type": "NUMBER" },
+    { "name": "deleted", "type": "NUMBER" },
+    { "name": "delta", "type": "NUMBER" },
+    { "name": "min_delta", "type": "NUMBER" },
+    { "name": "max_delta", "type": "NUMBER" },
+    { "name": "deltaByTen", "type": "NUMBER" }
+  ];
+
   describe("defined attributes in datasource", () => {
     var basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
           table: 'wikipedia',
-          attributes: [
-            { name: 'time', type: 'TIME' },
-            { name: 'language', type: 'STRING' },
-            { name: 'page', type: 'STRING' },
-            { name: 'namespace', type: 'STRING' },
-            { name: 'count', type: 'NUMBER' },
-            { name: 'added', type: 'NUMBER' },
-            { name: 'regionName', type: 'STRING' },
-            { name: 'countryName', type: 'STRING' },
-            { name: 'channel', type: 'STRING' },
-            { name: 'added', type: 'NUMBER' }
-          ],
+          attributes: wikiAttributes,
           requester: mySqlRequester
         })
       }
@@ -53,33 +70,36 @@ describe("MySQL Functional", function() {
     it("works in advanced case", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
+        .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
-        .apply('Namespaces',
-              $("wiki").split("$namespace", 'Namespace')
-                .apply('Added', '$wiki.sum($added)')
-                .sort('$Added', 'descending')
-                .limit(2)
-                .apply(
-                  'Time',
-                  $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
-                    .apply('TotalAdded', '$wiki.sum($added)')
-                    .sort('$TotalAdded', 'descending')
-                    .limit(3)
-                )
+        .apply(
+          'Namespaces',
+          $("wiki").split("$namespace", 'Namespace')
+            .apply('Added', '$wiki.sum($added)')
+            .sort('$Added', 'descending')
+            .limit(2)
+            .apply(
+              'Time',
+              $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
+                .apply('TotalAdded', '$wiki.sum($added)')
+                .sort('$TotalAdded', 'descending')
+                .limit(3)
+            )
+        )
+        .apply(
+          'PagesHaving',
+          $("wiki").split("$page", 'Page')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .filter($('Count').lessThan(30))
+            .limit(3)
         );
-      //      .apply(
-      //        'PagesHaving',
-      //        $("wiki").split("$page", 'Page')
-      //          .apply('Count', '$wiki.sum($count)')
-      //          .sort('$Count', 'descending')
-      //          .filter($('Count').lessThan(30))
-      //          .limit(100)
-      //      )
 
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
+              "Count": 114711,
               "Namespaces": [
                 {
                   "Added": 11594002,
@@ -142,7 +162,21 @@ describe("MySQL Functional", function() {
                   ]
                 }
               ],
-              "TotalAdded": 32553107
+              "TotalAdded": 32553107,
+              "PagesHaving": [
+                {
+                  "Count": 29,
+                  "Page": "User:King Lui"
+                },
+                {
+                  "Count": 29,
+                  "Page": "The Visit (2015 film)"
+                },
+                {
+                  "Count": 29,
+                  "Page": "Stargate production discography"
+                }
+              ]
             }
           ]);
           testComplete();
@@ -235,6 +269,78 @@ describe("MySQL Functional", function() {
         .done();
     });
 
+    it("fallback doesn't happen if not null", (testComplete) => {
+      var ex = ply()
+        .apply('added', $('wiki').sum($('added')).fallback(2));
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "added": 97393743
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with complex raw mode", (testComplete) => {
+      var ex = $('wiki')
+        .filter('$cityName == "El Paso"')
+        .apply('regionNameLOL', '$regionName.concat(LOL)')
+        .apply('addedPlusOne', '$added + 1')
+        .select('regionNameLOL', 'addedPlusOne');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            { "regionNameLOL": "TexasLOL", "addedPlusOne": 1 },
+            { "regionNameLOL": "TexasLOL", "addedPlusOne": 1 }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("fallback happens if null", (testComplete) => {
+      var ex = ply()
+        .apply("wiki", $('wiki').filter($("page").is('Rallicula')))
+        .apply('MetroCode', $('wiki').sum($('metroCode')).fallback(0));
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "MetroCode": 0
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("power of and abs", (testComplete) => {
+      var ex = ply()
+        .apply("wiki", $('wiki').filter($("page").is('Kosowo')))
+        .apply('Delta', $('wiki').min($('delta')))
+        .apply('AbsDelta', $('wiki').min($('delta')).absolute())
+        .apply('SquareDelta', $('wiki').sum($('delta')).power(2));
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "AbsDelta": 2,
+              "Delta": -2,
+              "SquareDelta": 4
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
   });
 
   describe("introspection", () => {
@@ -246,6 +352,19 @@ describe("MySQL Functional", function() {
           requester: mySqlRequester
         })
       }
+    });
+
+    it("introspects", (testComplete) => {
+      External.fromJS({
+        engine: 'mysql',
+        table: 'wikipedia',
+        requester: mySqlRequester
+      }).introspect()
+        .then((external) => {
+          expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
+          testComplete();
+        })
+        .done();
     });
 
     it("works with introspection", (testComplete) => {
@@ -336,69 +455,4 @@ describe("MySQL Functional", function() {
     });
   });
 
-  describe("fallback", () => {
-    var basicExecutor = basicExecutorFactory({
-      datasets: {
-        wiki: External.fromJS({
-          engine: 'mysql',
-          table: 'wikipedia',
-          requester: mySqlRequester
-        })
-      }
-    });
-
-    it("fallback doesn't happen if not null", (testComplete) => {
-      var ex = ply()
-        .apply('added', $('wiki').sum($('added')).fallback(2));
-
-      basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "added": 97393743
-            }
-          ]);
-          testComplete();
-        })
-        .done();
-    });
-
-    it("fallback happens if null", (testComplete) => {
-      var ex = ply()
-        .apply("wiki", $('wiki').filter($("page").is('Rallicula')))
-        .apply('MetroCode', $('wiki').sum($('metroCode')).fallback(0));
-
-      basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-          {
-            "MetroCode": 0
-          }
-        ]);
-        testComplete();
-        })
-        .done();
-    });
-
-    it("power of and abs", (testComplete) => {
-      var ex = ply()
-        .apply("wiki", $('wiki').filter($("page").is('Kosowo')))
-        .apply('Delta', $('wiki').min($('delta')))
-        .apply('AbsDelta', $('wiki').min($('delta')).absolute())
-        .apply('SquareDelta', $('wiki').sum($('delta')).power(2));
-
-      basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "AbsDelta": 2,
-              "Delta": -2,
-              "SquareDelta": 4
-            }
-          ]);
-          testComplete();
-        })
-        .done();
-    });
-  });
 });
