@@ -1,5 +1,11 @@
 # Change log
 
+## 0.9.3
+
+- Added `.select('attr1', 'attr2', 'attr3')` action allowing `SELECT attr1, attr2, attr3 FROM ...` to be expressed in PlyQL
+- Added support for `.quantile(p)` aggregator in DruidExternal (using [approximateHistograms](http://druid.io/docs/latest/development/approximate-histograms.html))
+- Better support for filtered aggregates in DruidExternal
+
 ## 0.9.2
 
 - Custom type guards for all the modal classes
