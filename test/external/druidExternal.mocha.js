@@ -1061,5 +1061,92 @@ describe("DruidExternal", () => {
         })
         .done();
     });
+
   });
+
+
+  describe("should work well with druid context", () => {
+    it("should pass the context", () => {
+      var external = External.fromJS({
+        engine: 'druid',
+        dataSource: 'wikipedia',
+        timeAttribute: 'time',
+        attributes: [
+          { name: 'time', type: 'TIME' },
+          { name: 'page', type: 'STRING' }
+        ],
+        filter: timeFilter,
+        context: {
+          hello: "world"
+        }
+      });
+
+      var context = { wiki: external };
+
+      var ex = $('wiki').split("$page", 'Page');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.context).to.deep.equal({
+        hello: "world"
+      })
+    });
+
+    it("should set skipEmptyBuckets on timeseries", () => {
+      var external = External.fromJS({
+        engine: 'druid',
+        dataSource: 'wikipedia',
+        timeAttribute: 'time',
+        attributes: [
+          { name: 'time', type: 'TIME' },
+          { name: 'page', type: 'STRING' }
+        ],
+        filter: timeFilter
+      });
+
+      var context = { wiki: external };
+
+      var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'T');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.context).to.deep.equal({
+        skipEmptyBuckets: "true"
+      })
+    });
+
+    it("should respect skipEmptyBuckets already set on context", () => {
+      var external = External.fromJS({
+        engine: 'druid',
+        dataSource: 'wikipedia',
+        timeAttribute: 'time',
+        attributes: [
+          { name: 'time', type: 'TIME' },
+          { name: 'page', type: 'STRING' }
+        ],
+        filter: timeFilter,
+        context: {
+          skipEmptyBuckets: "false"
+        }
+      });
+
+      var context = { wiki: external };
+
+      var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'T');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.context).to.deep.equal({
+        skipEmptyBuckets: "false"
+      })
+    });
+
+  });
+
 });

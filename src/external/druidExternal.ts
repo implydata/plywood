@@ -132,13 +132,9 @@ module Plywood {
     postProcess: PostProcess;
   }
 
-  interface LabelProcess {
-    (v: any): any;
-  }
-
   function cleanDatumInPlace(datum: Datum): void {
     for (var k in datum) {
-      if (k[0] === '!' && hasOwnProperty(datum, k)) delete datum[k];
+      if (k[0] === '!') delete datum[k];
     }
   }
 
@@ -1744,7 +1740,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       };
 
       if (context) {
-        druidQuery.context = context;
+        druidQuery.context = shallowCopy(context);
       }
 
       var filterAndIntervals = this.filterToDruid(this.getQueryFilter());
@@ -1879,6 +1875,12 @@ return (start < 0 ?'-':'') + parts.join('.');
               }
               if (limit) {
                 throw new Error('can not limit within timeseries query');
+              }
+
+              // Plywood's concept of splits does not allocate buckets for which there is no data.
+              if (!druidQuery.context || !hasOwnProperty(druidQuery.context, 'skipEmptyBuckets')) {
+                druidQuery.context = druidQuery.context || {};
+                druidQuery.context['skipEmptyBuckets'] = "true"; // This needs to be the string "true" to work with older Druid versions
               }
               break;
 

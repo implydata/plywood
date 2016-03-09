@@ -52,6 +52,14 @@ function repeat(str: string, times: int): string {
   return new Array(times + 1).join(str);
 }
 
+function shallowCopy<T>(thing: Lookup<T>): Lookup<T> {
+  var newThing: Lookup<T> = {};
+  for (var k in thing) {
+    if (hasOwnProperty(thing, k)) newThing[k] = thing[k];
+  }
+  return newThing;
+}
+
 function deduplicateSort(a: string[]): string[] {
   a = a.sort();
   var newA: string[] = [];
