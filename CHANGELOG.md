@@ -1,5 +1,9 @@
 # Change log
 
+## 0.9.4
+
+- Set `skipEmptyBuckets: "true"` in timeseries queries to get the Plywood expected behaviour 
+
 ## 0.9.3
 
 - Added `.select('attr1', 'attr2', 'attr3')` action allowing `SELECT attr1, attr2, attr3 FROM ...` to be expressed in PlyQL

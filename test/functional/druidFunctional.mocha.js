@@ -525,6 +525,57 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("does not zero fill", (testComplete) => {
+      var ex = $('wiki')
+        .filter('$cityName == "El Paso"')
+        .split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
+        .apply('count', '$wiki.count()')
+        .sort('$TimeByHour', 'ascending');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.have.length(2);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with time split with quantile", (testComplete) => {
+      var ex = $('wiki')
+        .filter('$cityName == "El Paso"')
+        .split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
+        .apply('count', '$wiki.count()')
+        .apply('Delta95th', $('wiki').quantile('$delta_hist', 0.95))
+        .sort('$TimeByHour', 'ascending')
+        .limit(3);
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Delta95th": -39,
+              "TimeByHour": {
+                "end": new Date('2015-09-12T07:00:00.000Z'),
+                "start": new Date('2015-09-12T06:00:00.000Z'),
+                "type": "TIME_RANGE"
+              },
+              "count": 1
+            },
+            {
+              "Delta95th": 0,
+              "TimeByHour": {
+                "end": new Date('2015-09-12T17:00:00.000Z'),
+                "start": new Date('2015-09-12T16:00:00.000Z'),
+                "type": "TIME_RANGE"
+              },
+              "count": 1
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
     it("works with contains (case sensitive) filter", (testComplete) => {
       var ex = ply()
         .apply('wiki', $('wiki').filter($('page').contains('wiki')))

@@ -463,7 +463,10 @@ describe("simulate Druid", () => {
           "type": "period"
         },
         "intervals": "2015-03-12/2015-03-19",
-        "queryType": "timeseries"
+        "queryType": "timeseries",
+        "context": {
+          "skipEmptyBuckets": "true"
+        }
       },
       {
         "aggregations": [
@@ -1398,7 +1401,10 @@ describe("simulate Druid", () => {
           "type": "period"
         },
         "intervals": "2015-03-12/2015-03-19",
-        "queryType": "timeseries"
+        "queryType": "timeseries",
+        "context": {
+          "skipEmptyBuckets": "true"
+        }
       }
     ]);
   });
@@ -1569,7 +1575,10 @@ describe("simulate Druid", () => {
           "type": "period"
         },
         "intervals": "2015-03-12/2015-03-19",
-        "queryType": "timeseries"
+        "queryType": "timeseries",
+        "context": {
+          "skipEmptyBuckets": "true"
+        }
       }
     ]);
   });
@@ -1669,7 +1678,10 @@ describe("simulate Druid", () => {
           "type": "period"
         },
         "intervals": "2015-03-12/2015-03-19",
-        "queryType": "timeseries"
+        "queryType": "timeseries",
+        "context": {
+          "skipEmptyBuckets": "true"
+        }
       },
       {
         "aggregations": [
@@ -1740,7 +1752,10 @@ describe("simulate Druid", () => {
             "type": "arithmetic"
           }
         ],
-        "queryType": "timeseries"
+        "queryType": "timeseries",
+        "context": {
+          "skipEmptyBuckets": "true"
+        }
       }
     ]);
   });
