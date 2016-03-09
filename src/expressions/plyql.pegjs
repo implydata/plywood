@@ -206,6 +206,17 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
   var query = null;
   if (!groupBys) {
     query = from;
+
+    if (Array.isArray(columns)) {
+      var attributes = [];
+      for (var i = 0; i < columns.length; i++) {
+        var column = columns[i];
+        query = query.performAction(column);
+        attributes.push(column.name);
+      }
+      query = query.select.apply(query, attributes);
+    }
+
   } else {
     if (columns === '*') error('can not SELECT * with a GROUP BY');
 

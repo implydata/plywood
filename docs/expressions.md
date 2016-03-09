@@ -524,11 +524,28 @@ var ex = $('data').limit(3);
 ex.compute({ data: someDataset }).then(console.log);
 // =>
 Dataset.fromJS([
-  { cut: 'Good',  price: 400, DoublePrice: 800, time: new Date('2015-10-01T10:20:30Z') },
-  { cut: 'Good',  price: 300, DoublePrice: 600, time: new Date('2015-10-02T10:20:30Z') },
-  { cut: 'Great', price: 124, DoublePrice: 248, time: null }
+  { cut: 'Good',  price: 400, time: new Date('2015-10-01T10:20:30Z') },
+  { cut: 'Good',  price: 300, time: new Date('2015-10-02T10:20:30Z') },
+  { cut: 'Great', price: 124, time: null }
 ])
 ```
+
+
+*operand*.**select**(...attributes: string[])
+
+Select only the provided attributes in the dataset. 
+
+```javascript
+var ex = $('data').select('cut', 'time');
+ex.compute({ data: someDataset }).then(console.log);
+// =>
+Dataset.fromJS([
+  { cut: 'Good',  time: new Date('2015-10-01T10:20:30Z') },
+  { cut: 'Good',  time: new Date('2015-10-02T10:20:30Z') },
+  { cut: 'Great', time: null }
+])
+```
+
 
 ### Aggregate expressions
 
@@ -611,6 +628,7 @@ Computes the quantile of the given expression in the operand dataset
 
 ```javascript
 var ex = $('data').quantile($('price'), 0.95);
+ex.compute({ data: someDataset }).then(console.log); // => 167.343
 ```
 
 

@@ -61,7 +61,7 @@ module Plywood {
     }
 
     public isSimpleAggregate(): boolean {
-      var expression = this.expression;
+      const { expression } = this;
       if (expression instanceof ChainExpression) {
         var actions = expression.actions;
         return actions.length === 1 && actions[0].isAggregate();
@@ -71,6 +71,14 @@ module Plywood {
 
     public isNester(): boolean {
       return true;
+    }
+
+    protected _removeAction(): boolean {
+      const { name, expression } = this;
+      if (expression instanceof RefExpression) {
+        return expression.name === name && expression.nest === 0;
+      }
+      return false;
     }
 
     protected _putBeforeLastAction(lastAction: Action): Action {

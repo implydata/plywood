@@ -11,7 +11,6 @@ module Plywood {
   };
 
   const AGGREGATE_TO_FUNCTION: Lookup<Function> = {
-    // count is handled before this and set as a "sum" action with arguments of literals with value 1
     sum: (a: string, b:string) => `${a}+${b}`,
     min: (a: string, b:string) => `Math.min(${a},${b})`,
     max: (a: string, b:string) => `Math.max(${a},${b})`
@@ -223,7 +222,9 @@ module Plywood {
       if (!res.length) {
         return new Dataset({ data: [makeZeroDatum(applies)] });
       }
-      return new Dataset({ data: [res[0].result] });
+      var datum = res[0].result;
+      cleanDatumInPlace(datum);
+      return new Dataset({ data: [datum] });
     };
   }
 
@@ -283,8 +284,12 @@ module Plywood {
       }
       return res[0].result.events.map(event => {
         var datum: Datum = event.event;
-        datum[timestampLabel] = datum['timestamp']; // The __time dimension always returns as 'timestamp' for some reason
+        if (timestampLabel != null) {
+          // The __time dimension always returns as 'timestamp' for some reason
+          datum[timestampLabel] = datum['timestamp'];
+        }
         delete datum['timestamp'];
+        cleanDatumInPlace(datum);
         return datum;
       })
     }
@@ -586,7 +591,7 @@ module Plywood {
       return this.druidVersion < neededVersion;
     }
 
-    public getDruidDataSource(): string | Druid.DataSource {
+    public getDruidDataSource(): Druid.DataSource {
       var dataSource = this.dataSource;
       if (Array.isArray(dataSource)) {
         return {
@@ -598,30 +603,6 @@ module Plywood {
       }
     }
 
-    public canUseNativeAggregateFilter(filter: Expression): boolean {
-      if (filter instanceof ChainExpression) {
-        var pattern: Expression[];
-        if (pattern = (filter.getExpressionPattern('and') || filter.getExpressionPattern('or'))) {
-          return pattern.every(ex => {
-            return this.canUseNativeAggregateFilter(ex);
-          }, this);
-        }
-
-        if (filter.lastAction() instanceof NotAction) {
-          return this.canUseNativeAggregateFilter(filter.popAction());
-        }
-
-        var actions = filter.actions;
-        if (actions.length !== 1) return false;
-        var firstAction = actions[0];
-        return filter.expression.isOp('ref') &&
-          (firstAction.action === 'is' || firstAction.action === 'in') &&
-          firstAction.expression.isOp('literal') &&
-          filter.expression.type === "STRING";
-      }
-      return false;
-    }
-
     public javaScriptDruidFilter(referenceName: string, filter: Expression): Druid.Filter {
       return {
         type: "javascript",
@@ -630,20 +611,20 @@ module Plywood {
       };
     }
 
-    public timelessFilterToDruid(filter: Expression): Druid.Filter {
+    public timelessFilterToDruid(filter: Expression, aggregatorFilter: boolean): Druid.Filter {
       if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
 
       var pattern: Expression[];
       if (pattern = filter.getExpressionPattern('and')) {
         return {
           type: 'and',
-          fields: pattern.map(this.timelessFilterToDruid, this)
+          fields: pattern.map(p => this.timelessFilterToDruid(p, aggregatorFilter))
         };
       }
       if (pattern = filter.getExpressionPattern('or')) {
         return {
           type: 'or',
-          fields: pattern.map(this.timelessFilterToDruid, this)
+          fields: pattern.map(p => this.timelessFilterToDruid(p, aggregatorFilter))
         };
       }
 
@@ -683,7 +664,7 @@ module Plywood {
         if (filterAction instanceof NotAction) {
           return {
             type: 'not',
-            field: this.timelessFilterToDruid(lhs)
+            field: this.timelessFilterToDruid(lhs, aggregatorFilter)
           };
         }
 
@@ -719,10 +700,6 @@ module Plywood {
                   value: attributeInfo.serialize(value)
                 };
                 if (extractionFn) {
-                  if (extractionFn.type === 'javascript') {
-                    // Might as well just do a full on javascript filter
-                    return this.javaScriptDruidFilter(referenceName, filter);
-                  }
                   druidFilter.type = "extraction";
                   druidFilter.extractionFn = extractionFn;
                 }
@@ -751,6 +728,17 @@ module Plywood {
             }
           } else {
             throw new Error("can not convert " + filter.toString() + " to Druid filter");
+          }
+        }
+
+        if (aggregatorFilter) {
+          if (this.versionBefore('0.8.2')) throw new Error(`can not express aggregate filter ${filter} in druid < 0.8.2`);
+
+          return {
+            type: "extraction",
+            dimension: referenceName,
+            extractionFn: this.expressionToExtractionFn(filter),
+            value: "true"
           }
         }
 
@@ -861,7 +849,7 @@ module Plywood {
 
         return {
           intervals: this.timeFilterToIntervals(sep.included),
-          filter: this.timelessFilterToDruid(sep.excluded)
+          filter: this.timelessFilterToDruid(sep.excluded, false)
         }
       }
     }
@@ -1112,12 +1100,12 @@ return (start < 0 ?'-':'') + parts.join('.');
       throw new Error(`could not convert ${expression} to a Druid extractionFn`);
     }
 
-    public splitExpressionToDimensionInflater(splitExpression: Expression, label: string): DimensionInflater {
-      var extractionFn = this.expressionToExtractionFn(splitExpression);
+    public expressionToDimensionInflater(expression: Expression, label: string): DimensionInflater {
+      var extractionFn = this.expressionToExtractionFn(expression);
       // expressionToExtractionFn already checked that there is only one ref name
-      var referenceName = splitExpression.getFreeReferences()[0];
+      var referenceName = expression.getFreeReferences()[0];
 
-      var simpleInflater = External.getSimpleInflater(splitExpression, label);
+      var simpleInflater = External.getSimpleInflater(expression, label);
 
       var dimension: Druid.DimensionSpecFull = {
         type: "default",
@@ -1129,7 +1117,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         dimension.extractionFn = extractionFn;
       }
 
-      if (splitExpression instanceof RefExpression) {
+      if (expression instanceof RefExpression) {
         var attributeInfo = this.getAttributesInfo(referenceName);
         if (attributeInfo instanceof RangeAttributeInfo) {
           return {
@@ -1144,26 +1132,26 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
       }
 
-      if (splitExpression.type === 'BOOLEAN' || splitExpression.type === 'STRING') {
+      if (expression.type === 'BOOLEAN' || expression.type === 'STRING') {
         return {
           dimension,
           inflater: simpleInflater
         };
       }
 
-      if (splitExpression instanceof ChainExpression) {
-        if (splitExpression.getExpressionPattern('concat')) {
+      if (expression instanceof ChainExpression) {
+        if (expression.getExpressionPattern('concat')) {
           return {
             dimension,
             inflater: simpleInflater
           };
         }
 
-        if (!splitExpression.expression.isOp('ref')) {
-          throw new Error(`can not convert complex: ${splitExpression.expression}`);
+        if (!expression.expression.isOp('ref')) {
+          throw new Error(`can not convert complex: ${expression.expression}`);
         }
-        var actions = splitExpression.actions;
-        if (actions.length !== 1) throw new Error(`can not convert expression: ${splitExpression}`);
+        var actions = expression.actions;
+        if (actions.length !== 1) throw new Error(`can not convert expression: ${expression}`);
         var splitAction = actions[0];
 
         if (splitAction instanceof SubstrAction || splitAction instanceof AbsoluteAction || splitAction instanceof PowerAction) {
@@ -1194,7 +1182,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (splitAction instanceof NumberBucketAction) {
           var attributeInfo = this.getAttributesInfo(referenceName);
           if (attributeInfo.type === 'NUMBER') {
-            var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
+            //var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
             return {
               dimension,
               inflater: External.numberRangeInflaterFactory(label, splitAction.size)
@@ -1211,7 +1199,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
       }
 
-      throw new Error(`could not convert ${splitExpression} to a Druid Dimension`);
+      throw new Error(`could not convert ${expression} to a Druid Dimension`);
     }
 
     public splitToDruid(): DruidSplit {
@@ -1234,7 +1222,7 @@ return (start < 0 ?'-':'') + parts.join('.');
             }
           }
 
-          var { dimension, inflater } = this.splitExpressionToDimensionInflater(expression, name);
+          var { dimension, inflater } = this.expressionToDimensionInflater(expression, name);
           dimensions.push(dimension);
           if (inflater) {
             inflaters.push(inflater);
@@ -1267,7 +1255,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
       }
 
-      var dimensionInflater = this.splitExpressionToDimensionInflater(splitExpression, label);
+      var dimensionInflater = this.expressionToDimensionInflater(splitExpression, label);
       var inflaters = [dimensionInflater.inflater].filter(Boolean);
       if (
         this.havingFilter.equals(Expression.TRUE) && // There is no having filter
@@ -1301,7 +1289,6 @@ return (start < 0 ?'-':'') + parts.join('.');
           return customAggregation.accessType || 'fieldAccess';
         }
       }
-
       return 'fieldAccess';
     }
 
@@ -1311,7 +1298,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           return this.getAccessTypeForAggregation(aggregation.type);
         }
       }
-      throw new Error(`aggregation '${aggregationName}' not found`);
+      return 'fieldAccess'; // If not found it must be a post-agg
     }
 
     public expressionToPostAggregation(ex: Expression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): Druid.PostAggregation {
@@ -1395,11 +1382,11 @@ return (start < 0 ?'-':'') + parts.join('.');
       postAggregations.push(postAgg);
     }
 
-    public makeNativeAggregateFilter(name: string, filterExpression: Expression, aggregator: Druid.Aggregation): Druid.Aggregation {
+    public makeNativeAggregateFilter(filterExpression: Expression, aggregator: Druid.Aggregation): Druid.Aggregation {
       return {
         type: "filtered",
-        name: name,
-        filter: this.timelessFilterToDruid(filterExpression),
+        name: aggregator.name,
+        filter: this.timelessFilterToDruid(filterExpression, true),
         aggregator
       };
     }
@@ -1415,7 +1402,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (aggregateExpression instanceof RefExpression) {
           aggregation.fieldName = aggregateExpression.name;
         } else {
-          return this.makeJavaScriptAggregation(name, null, aggregateAction);
+          return this.makeJavaScriptAggregation(name, aggregateAction);
         }
       }
 
@@ -1466,32 +1453,48 @@ return (start < 0 ?'-':'') + parts.join('.');
       return aggregationObj;
     }
 
-    public makeJavaScriptAggregation(name: string, filterExpression: Expression, aggregateAction: Action): Druid.Aggregation {
+    public makeQuantileAggregation(name: string, action: QuantileAction, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
+      if (this.exactResultsOnly) {
+        throw new Error("approximate query not allowed");
+      }
+
+      var attribute = action.expression;
+      if (attribute instanceof RefExpression) {
+        var attributeName = attribute.name;
+      } else {
+        throw new Error(`can not compute countDistinct on derived attribute: ${attribute}`);
+      }
+
+      var histogramAggregationName = "!H_" + name;
+      var aggregation: Druid.Aggregation = {
+        name: histogramAggregationName,
+        type: "approxHistogramFold",
+        fieldName: attributeName
+      };
+
+      postAggregations.push({
+        name,
+        type: "quantile",
+        fieldName: histogramAggregationName,
+        probability: action.quantile
+      });
+
+      return aggregation;
+    }
+
+    public makeJavaScriptAggregation(name: string, aggregateAction: Action): Druid.Aggregation {
       var aggregateActionType = aggregateAction.action;
       var aggregateExpression = aggregateAction.expression;
 
-      if (aggregateActionType === "count") {
-        // special handling for count() == sum(1) -- a count can be thought of as a sum of literals with value 1
-        aggregateActionType = "sum";
-        aggregateExpression = r(1);
-      }
-
-      var zero =  AGGREGATE_TO_ZERO[aggregateActionType];
       var aggregateFunction = AGGREGATE_TO_FUNCTION[aggregateActionType];
+      if (!aggregateFunction) throw new Error(`Can not convert ${aggregateActionType} to JS`);
+      var zero =  AGGREGATE_TO_ZERO[aggregateActionType];
       var fieldNames = aggregateExpression.getFreeReferences();
-
-      var aggregateExpressionJS = aggregateExpression.getJS(null);
-
-      if (filterExpression) {
-        fieldNames = deduplicateSort(fieldNames.concat(filterExpression.getFreeReferences()));
-        aggregateExpressionJS = `(${filterExpression.getJS(null)} ? ${aggregateExpressionJS} : ${zero})`
-      }
-
       return {
         name,
         type: "javascript",
         fieldNames: fieldNames,
-        fnAggregate: `function(_c,${fieldNames}) { return ${aggregateFunction('_c', aggregateExpressionJS)}; }`,
+        fnAggregate: `function(_c,${fieldNames}) { return ${aggregateFunction('_c', aggregateExpression.getJS(null))}; }`,
         fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
         fnReset: `function() { return ${zero}; }`
       }
@@ -1524,46 +1527,27 @@ return (start < 0 ?'-':'') + parts.join('.');
         case "sum":
         case "min":
         case "max":
-          if (filterExpression) {
-            if (this.canUseNativeAggregateFilter(filterExpression)) {
-              aggregation = this.makeNativeAggregateFilter(action.name, filterExpression, this.makeStandardAggregation(action.name, aggregateAction));
-            } else {
-              aggregation = this.makeJavaScriptAggregation(action.name, filterExpression, aggregateAction);
-            }
-          } else {
-            aggregation = this.makeStandardAggregation(action.name, aggregateAction);
-          }
+          aggregation = this.makeStandardAggregation(action.name, aggregateAction);
           break;
 
         case "countDistinct":
-          if (filterExpression) {
-            if (this.canUseNativeAggregateFilter(filterExpression)) {
-              aggregation = this.makeNativeAggregateFilter(action.name, filterExpression, this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction));
-            } else {
-              throw new Error(`can not use complex filter with countDistinct aggregation: ${filterExpression}`);
-            }
-          } else {
-            aggregation = this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction);
-          }
+          aggregation = this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction);
           break;
 
         case "quantile":
-          throw new Error(`ToDo: add quantile support`); // ToDo: add quantile support
+          aggregation = this.makeQuantileAggregation(action.name, <QuantileAction>aggregateAction, postAggregations);
+          break;
 
         case "custom":
-          if (filterExpression) {
-            if (this.canUseNativeAggregateFilter(filterExpression)) {
-              aggregation = this.makeNativeAggregateFilter(action.name, filterExpression, this.makeCustomAggregation(action.name, <CustomAction>aggregateAction));
-            } else {
-              throw new Error(`can not use complex filter with custom aggregation: ${filterExpression}`);
-            }
-          } else {
-            aggregation = this.makeCustomAggregation(action.name, <CustomAction>aggregateAction);
-          }
+          aggregation = this.makeCustomAggregation(action.name, <CustomAction>aggregateAction);
           break;
 
         default:
           throw new Error(`unsupported aggregate action ${aggregateAction.action}`);
+      }
+
+      if (filterExpression) {
+        aggregation = this.makeNativeAggregateFilter(filterExpression, aggregation);
       }
       aggregations.push(aggregation);
     }
@@ -1775,19 +1759,32 @@ return (start < 0 ?'-':'') + parts.join('.');
             throw new Error("to issues 'select' queries allowSelectQueries flag must be set");
           }
 
-          var selectDimensions: string[] = [];
+          var selectDimensions: Druid.DimensionSpec[] = [];
           var selectMetrics: string[] = [];
           var inflaters: Inflater[] = [];
 
           var timeAttribute = this.timeAttribute;
-          this.attributes.forEach((attribute) => {
+          var derivedAttributes = this.derivedAttributes;
+          var selectedTimeAttribute: string = null;
+          this.getSelectedAttributes().forEach(attribute => {
             var { name, type, unsplitable } = attribute;
 
-            if (name !== timeAttribute) {
+            if (name === timeAttribute) {
+              selectedTimeAttribute = name;
+            } else {
               if (unsplitable) {
                 selectMetrics.push(name);
               } else {
-                selectDimensions.push(name);
+                var derivedAttribute = derivedAttributes[name];
+                if (derivedAttribute) {
+                  if (this.versionBefore('0.9.1')) throw new Error('can not have derived attributes in select in Druid before 0.9.1');
+                  var dimensionInflater = this.expressionToDimensionInflater(derivedAttribute, name);
+                  selectDimensions.push(dimensionInflater.dimension);
+                  if (dimensionInflater.inflater) inflaters.push(dimensionInflater.inflater);
+                  return; // No need to add default inflater
+                } else {
+                  selectDimensions.push(name);
+                }
               }
             }
 
@@ -1810,6 +1807,10 @@ return (start < 0 ?'-':'') + parts.join('.');
             }
           });
 
+          // If dimensions or metrics are [] everything is returned, prevent this by asking for !DUMMY
+          if (!selectDimensions.length) selectDimensions.push(DUMMY_NAME);
+          if (!selectMetrics.length) selectMetrics.push(DUMMY_NAME);
+
           druidQuery.queryType = 'select';
           druidQuery.dimensions = selectDimensions;
           druidQuery.metrics = selectMetrics;
@@ -1820,7 +1821,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return {
             query: druidQuery,
-            postProcess: postProcessFactory(selectNormalizerFactory(timeAttribute), inflaters)
+            postProcess: postProcessFactory(selectNormalizerFactory(selectedTimeAttribute), inflaters)
           };
 
         case 'value':

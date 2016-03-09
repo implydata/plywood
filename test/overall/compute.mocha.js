@@ -258,6 +258,26 @@ describe("compute native", () => {
       .done();
   });
 
+  it("works with select", (testComplete) => {
+    var ds = Dataset.fromJS(data);
+
+    var ex = ply(ds).select('price', 'cut');
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          { cut: 'Good',  price: 400  },
+          { cut: 'Good',  price: 300  },
+          { cut: 'Great', price: 124  },
+          { cut: 'Wow',   price: 160  },
+          { cut: 'Wow',   price: 100  },
+          { cut: null,    price: null }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
   it("works with simple split", (testComplete) => {
     var ds = Dataset.fromJS(data).hide();
 

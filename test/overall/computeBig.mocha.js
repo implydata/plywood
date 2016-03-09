@@ -159,7 +159,7 @@ describe("compute native nontrivial data", function() {
 
   it("works in with funny aggregates", (testComplete) => {
     var ex = $('data').split('$countryName', 'CountryName')
-      .apply('Language', '"[" ++ $CountryName ++ "]"')
+      .apply('LabelCountry', '"[" ++ $CountryName ++ "]"')
       .apply('Count', '$data.count()')
       .apply('CountLT1000', '$Count < 1000')
       .apply('CountGT1000', '$Count > 1000')
@@ -167,6 +167,7 @@ describe("compute native nontrivial data", function() {
       .apply('CountGTE397', '$Count >= 397')
       .apply('SumAdded', '$data.sum($added)')
       .apply('NegSumAdded', '-$SumAdded')
+      .apply('DistinctCity', '$data.countDistinct($cityName)')
       .sort('$SumAdded', 'descending')
       .limit(5);
 
@@ -180,7 +181,8 @@ describe("compute native nontrivial data", function() {
             "CountLT1000": false,
             "CountLTE397": false,
             "CountryName": null,
-            "Language": null,
+            "DistinctCity": 1,
+            "LabelCountry": null,
             "NegSumAdded": -8761516,
             "SumAdded": 8761516
           },
@@ -191,7 +193,8 @@ describe("compute native nontrivial data", function() {
             "CountLT1000": true,
             "CountLTE397": true,
             "CountryName": "Colombia",
-            "Language": "[Colombia]",
+            "DistinctCity": 8,
+            "LabelCountry": "[Colombia]",
             "NegSumAdded": -60398,
             "SumAdded": 60398
           },
@@ -202,7 +205,8 @@ describe("compute native nontrivial data", function() {
             "CountLT1000": true,
             "CountLTE397": true,
             "CountryName": "Russia",
-            "Language": "[Russia]",
+            "DistinctCity": 36,
+            "LabelCountry": "[Russia]",
             "NegSumAdded": -50561,
             "SumAdded": 50561
           },
@@ -213,7 +217,8 @@ describe("compute native nontrivial data", function() {
             "CountLT1000": true,
             "CountLTE397": false,
             "CountryName": "United States",
-            "Language": "[United States]",
+            "DistinctCity": 252,
+            "LabelCountry": "[United States]",
             "NegSumAdded": -44433,
             "SumAdded": 44433
           },
@@ -224,7 +229,8 @@ describe("compute native nontrivial data", function() {
             "CountLT1000": true,
             "CountLTE397": true,
             "CountryName": "Italy",
-            "Language": "[Italy]",
+            "DistinctCity": 78,
+            "LabelCountry": "[Italy]",
             "NegSumAdded": -41073,
             "SumAdded": 41073
           }

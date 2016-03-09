@@ -35,6 +35,7 @@ module Plywood {
     custom?: string;
     compare?: string;
     lookup?: string;
+    attributes?: string[];
     simple?: boolean;
   }
 
@@ -63,6 +64,7 @@ module Plywood {
     custom?: string;
     compare?: string;
     lookup?: string;
+    attributes?: string[];
   }
 
 // =====================================================================================

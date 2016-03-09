@@ -135,6 +135,7 @@ module Plywood {
     derivedAttributes?: Lookup<Expression>; // ToDo: make this ApplyAction[]
     filter?: Expression;
     valueExpression?: ChainExpression;
+    select?: SelectAction;
     split?: SplitAction;
     applies?: ApplyAction[];
     sort?: SortAction;
@@ -498,6 +499,7 @@ module Plywood {
     public derivedAttributes: Lookup<Expression>;
     public filter: Expression;
     public valueExpression: ChainExpression;
+    public select: SelectAction;
     public split: SplitAction;
     public dataName: string;
     public applies: ApplyAction[];
@@ -526,6 +528,7 @@ module Plywood {
 
       switch (this.mode) {
         case 'raw':
+          this.select = parameters.select;
           this.sort = parameters.sort;
           this.limit = parameters.limit;
           break;
@@ -582,6 +585,9 @@ module Plywood {
       value.filter = this.filter;
       if (this.valueExpression) {
         value.valueExpression = this.valueExpression;
+      }
+      if (this.select) {
+        value.select = this.select;
       }
       if (this.split) {
         value.split = this.split;
@@ -798,6 +804,9 @@ module Plywood {
       if (action instanceof FilterAction) {
         return this._addFilterAction(action);
       }
+      if (action instanceof SelectAction) {
+        return this._addSelectAction(action);
+      }
       if (action instanceof SplitAction) {
         return this._addSplitAction(action);
       }
@@ -843,6 +852,14 @@ module Plywood {
           return null; // can not add filter in total mode
       }
 
+      return External.fromValue(value);
+    }
+
+    private _addSelectAction(selectAction: SelectAction): External {
+      if (this.mode !== 'raw') return null; // Can only select on 'raw' datasets
+
+      var value = this.valueOf();
+      value.select = selectAction;
       return External.fromValue(value);
     }
 
@@ -1032,6 +1049,13 @@ module Plywood {
       return this.filter.simplify();
     }
 
+    public getSelectedAttributes(): Attributes {
+      const { select, attributes } = this;
+      if (!select) return attributes;
+      const selectAttributes = select.attributes;
+      return attributes.filter(a => selectAttributes.indexOf(a.name) !== -1);
+    }
+
     // -----------------
 
     public addNextExternal(dataset: Dataset): Dataset {
@@ -1045,7 +1069,10 @@ module Plywood {
     public simulate(): PlywoodValue {
       const { mode } = this;
 
-      if (mode === 'value') return getSampleValue('NUMBER', null);
+      if (mode === 'value') {
+        var valueExpression = this.valueExpression;
+        return getSampleValue(valueExpression.type, valueExpression);
+      }
 
       var datum: Datum = {};
 

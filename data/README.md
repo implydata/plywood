@@ -3,7 +3,7 @@
 ## General Setup
 
 1. [Install Docker](https://docs.docker.com/engine/installation/)
-1. Increase docker machine memory to 4GB 
+1. Increase docker machine memory to 4GB
   1. Open Oracle VM VirtualBox Manager (installed with docker)
   2. Under default machine -> Settings -> System -> Base Memory -> 4096MB
 2. Run `./make-data-files`
@@ -14,7 +14,8 @@
 ### Setup
 
 ```bash
-docker run -v /${IMPLY_PROJECTS}/plywood/data:/opt/data -p 8081-8110:8081-8110 -p 8200:8200 -p 9095:9095 -d --name plywood-test-druid imply/imply
+docker build -t plywood-test-druid "${IMPLY_PROJECTS}/plywood/data/druid"
+docker run -v "${IMPLY_PROJECTS}/plywood/data":/opt/data -p 8081-8110:8081-8110 -p 8200:8200 -p 9095:9095 -d --name plywood-test-druid plywood-test-druid
 docker exec -it plywood-test-druid /opt/data/druid/load-data
 ```
 
@@ -36,7 +37,7 @@ docker start plywood-test-druid
 ### Setup
 
 ```bash
-docker run -v /${IMPLY_PROJECTS}/plywood/data:/opt/data -p 6603:3306 -d --name plywood-test-mysql -e MYSQL_ALLOW_EMPTY_PASSWORD='true' -d mysql/mysql-server:5.7
+docker run -v "${IMPLY_PROJECTS}/plywood/data":/opt/data -p 6603:3306 -d --name plywood-test-mysql -e MYSQL_ALLOW_EMPTY_PASSWORD='true' -d mysql/mysql-server:5.7
 docker exec -it plywood-test-mysql /opt/data/mysql/load-data
 ```
 

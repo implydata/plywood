@@ -47,13 +47,13 @@ describe("Actions", () => {
         direction: 'ascending'
       },
       {
-        action: 'fallback',
-        expression: { op: 'ref', name: 'myVar2' }
-      },
-      {
         action: 'limit',
         limit: 10
       },
+      { action: 'select', attributes: ['a', 'b', 'c'] },
+      { action: 'select', attributes: ['b', 'c'] },
+
+      { action: 'fallback', expression: { op: 'ref', name: 'myVar2' } },
       { action: 'count' },
       { action: 'sum', expression: { op: 'ref', name: 'myVar' } },
       { action: 'power', expression: { op: 'ref', name: 'myVar' } },
@@ -68,8 +68,14 @@ describe("Actions", () => {
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'normal' },
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'ignoreCase' },
 
+      { action: 'match', regexp: 'A[B]' },
+      { action: 'match', regexp: '^fu*$' },
+
       { action: 'overlap', expression: { op: 'ref', name: 'myVar' } },
       { action: 'overlap', expression: { op: 'literal', value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] }, type: 'SET' } },
+
+      { action: 'numberBucket', size: 5 },
+      { action: 'numberBucket', size: 5, offset: 1 },
 
       { action: 'timeBucket', duration: 'P1D' },
       { action: 'timeBucket', duration: 'P2D', timezone: 'Etc/UTC' },

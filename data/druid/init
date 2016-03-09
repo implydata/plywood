@@ -1,0 +1,9 @@
+#!/bin/bash -eu
+
+echo "Set Druid props";
+
+perl -pi -e's/druid.extensions.coordinates=.*/druid.extensions.coordinates=["io.druid.extensions:druid-namespace-lookup", "io.druid.extensions:druid-histogram"]/g' \
+  /root/imply-*/conf-quickstart/druid/_common/common.runtime.properties
+
+echo 'druid.query.extraction.namespace.lookups=[{"type":"uri","namespace":"channel_lookup","uri":"file:/opt/data/druid/channel-lookup.json","namespaceParseSpec":{"format":"customJson","keyFieldName":"key","valueFieldName":"value"},"pollPeriod":"P1D"}]' \
+  >> /root/imply-*/conf-quickstart/druid/_common/common.runtime.properties

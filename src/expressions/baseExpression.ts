@@ -782,6 +782,11 @@ module Plywood {
       return this._performMultiAction('power', exs);
     }
 
+    public fallback(ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new FallbackAction({ expression: ex }));
+    }
+
     // Boolean predicates
 
     public is(ex: any): ChainExpression {
@@ -895,6 +900,10 @@ module Plywood {
       return this.performAction(new NumberBucketAction({ size: getNumber(size), offset: getNumber(offset) }));
     }
 
+    public absolute(): ChainExpression {
+      return this.performAction(new AbsoluteAction({}));
+    }
+
     // Time manipulation
 
     public timeBucket(duration: any, timezone?: any): ChainExpression {
@@ -979,18 +988,15 @@ module Plywood {
       return this.performAction(new SortAction({ expression: ex, direction: getString(direction) }));
     }
 
-    public absolute(): ChainExpression {
-      return this.performAction(new AbsoluteAction({}));
-    }
-
     public limit(limit: number): ChainExpression {
       return this.performAction(new LimitAction({ limit: getNumber(limit) }));
     }
 
-    public fallback(ex: any): ChainExpression {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new FallbackAction({ expression: ex }));
+    public select(...attributes: string[]): ChainExpression {
+      attributes = attributes.map(getString);
+      return this.performAction(new SelectAction({ attributes }));
     }
+
 
     // Aggregate expressions
 

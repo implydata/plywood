@@ -82,7 +82,7 @@ describe("External", () => {
 
       {
         engine: 'druid',
-        dataSource: 'moon_child2', // ToDo: remove the 2 and fix the equality test
+        dataSource: 'moon_child',
         timeAttribute: 'time',
         context: null,
         attributeOverrides: [
@@ -90,7 +90,12 @@ describe("External", () => {
           { name: 'cut', type: 'STRING' },
           { name: 'unique', type: "STRING", special: 'unique' }
         ],
-        druidVersion: '0.8.0'
+        druidVersion: '0.8.0',
+        customAggregations: {
+          test: {
+            aggregation: { type: 'longSum', fieldName: 'count' }
+          }
+        }
       }
     ], {
       newThrows: true
@@ -345,11 +350,21 @@ describe("External", () => {
   describe("simplifies / digests", () => {
 
     describe("raw mode", () => {
-      it("works with a simple select", () => {
+      it("works in basic raw mode", () => {
         var ex = $('wiki');
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('external');
+      });
+
+      it("works with a simple select", () => {
+        var ex = $('wiki').select('time', 'language', 'added');
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+        expect(ex.op).to.equal('external');
+        var externalDataset = ex.external;
+
+        expect(externalDataset.select.attributes).to.deep.equal(['time', 'language', 'added']);
       });
 
       it("works with a derived attribute and a filter", () => {
@@ -488,8 +503,6 @@ describe("External", () => {
         var ex = r(5).subtract($('wiki').filter('$page == USA').sum('$added'));
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
-
-        console.log(ex.toString(2));
 
         expect(ex.op).to.equal('external');
         var externalDataset = ex.external;
