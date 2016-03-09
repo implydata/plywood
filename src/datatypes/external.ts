@@ -858,8 +858,6 @@ module Plywood {
     private _addSelectAction(selectAction: SelectAction): External {
       if (this.mode !== 'raw') return null; // Can only select on 'raw' datasets
 
-      var selectAttributes = selectAction.attributes;
-
       var value = this.valueOf();
       value.select = selectAction;
       return External.fromValue(value);

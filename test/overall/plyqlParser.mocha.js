@@ -22,6 +22,14 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("works with a fancy number expression", () => {
+      var parse = Expression.parseSQL("-5e-2");
+      var ex2 = r(-5e-2);
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("works with a COUNT expression", () => {
       var parse = Expression.parseSQL("COUNT()");
 
