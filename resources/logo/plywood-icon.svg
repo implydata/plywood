@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="114px" height="114px" viewBox="0 0 114 114" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.4.2 (15855) - http://www.bohemiancoding.com/sketch -->
+    <title>Artboard 1</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-5" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="Plywood-+-Rectangle-20-+-Rectangle-20-+-Rectangle-20-+-Rectangle-20-+-Rectangle-20-+-Rectangle-20" sketch:type="MSLayerGroup" transform="translate(5.000000, 18.000000)">
+            <g id="Rectangle-20-+-Rectangle-20-+-Rectangle-20-+-Rectangle-20-+-Rectangle-20-+-Rectangle-20" sketch:type="MSShapeGroup">
+                <g id="Rectangle-20-+-Rectangle-20-+-Rectangle-20" transform="translate(0.000000, 19.987500)">
+                    <path d="M52,0 L104,28.3253749 L52,56.6507497 L0,28.3253749 L52,0 L52,0 Z" id="Rectangle-20" fill="#C799E4"></path>
+                    <path d="M104,28.3253749 L52,56.6507497 L0,28.3253749 L52,0 L104,28.3253749 Z M52.0702632,6.05741602 L92.9499997,28.3253749 L52.0702632,50.5933337 L11.1905267,28.3253749 L52.0702632,6.05741602 Z" id="Shape" fill="#703B91"></path>
+                    <path d="M80.5337362,17.9401022 L81.9265933,20.3526015 L35.711447,47.0349287 L34.3185898,44.6224294 L80.5337362,17.9401022 Z" id="Rectangle-20" fill="#703B91"></path>
+                    <path d="M65.4788765,10.7412525 L67.7919035,12.6224916 L23.4925687,38.1987244 L22.0997116,35.7862251 L65.4788765,10.7412525 Z" id="Rectangle-20" fill="#703B91"></path>
+                </g>
+                <g id="Rectangle-20-+-Rectangle-20-+-Rectangle-20" transform="translate(52.000000, 29.412498) scale(-1, 1) translate(-52.000000, -29.412498) translate(0.000000, 0.974998)">
+                    <path d="M52,0 L104,28.3253749 L52,56.6507497 L0,28.3253749 L52,0 L52,0 Z" id="Rectangle-20" fill="#DCC1ED"></path>
+                    <path d="M104,28.3253749 L52,56.6507497 L0,28.3253749 L52,0 L104,28.3253749 Z M52.0702632,6.05741602 L92.9499997,28.3253749 L52.0702632,50.5933337 L11.1905267,28.3253749 L52.0702632,6.05741602 Z" id="Shape" fill="#703B91"></path>
+                    <path d="M80.5337362,17.9401022 L81.9265933,20.3526015 L35.711447,47.0349287 L34.3185898,44.6224294 L80.5337362,17.9401022 Z" id="Rectangle-20" fill="#703B91"></path>
+                    <path d="M65.4788765,10.7412525 L67.7919035,12.6224916 L23.4925687,38.1987244 L22.0997116,35.7862251 L65.4788765,10.7412525 Z" id="Rectangle-20" fill="#703B91"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
