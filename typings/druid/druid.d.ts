@@ -8,16 +8,22 @@ declare module Druid {
     |           Query           |
     \* ----------------------- */
 
-    // http://druid.io/docs/latest/Querying.html#query-context
+    type FancyBoolean = boolean | "true" | "false";
+
+    // http://druid.io/docs/latest/querying/query-context.html
     interface Context {
         timeout?: number;
         priority?: number;
         queryId?: number;
-        useCache?: boolean;
-        populateCache?: boolean;
-        bySegment?: boolean;
-        finalize?: boolean;
+        useCache?: FancyBoolean;
+        populateCache?: FancyBoolean;
+        bySegment?: FancyBoolean;
+        finalize?: FancyBoolean;
         chunkPeriod?: number;
+        useOffheap?: FancyBoolean;
+        groupByMerge?: FancyBoolean;
+        skipIncrementalSegment?: FancyBoolean;
+        skipEmptyBuckets?: FancyBoolean; // http://druid.io/docs/latest/querying/timeseriesquery.html
 
         // Undocumented:
         doAggregateTopNMetricFirst?: boolean;
@@ -39,7 +45,7 @@ declare module Druid {
         radius?: number;
     }
 
-    // http://druid.io/docs/latest/TimeseriesQuery.html
+    // http://druid.io/docs/latest/querying/timeseriesquery.html
     type Intervals = string | string[];
 
     // http://druid.io/docs/latest/Filters.html
@@ -215,8 +221,7 @@ declare module Druid {
 
         // Specific to type: "regex"
         expr?: string;
-        replaceMissingValues?: boolean; // Note the extra 's'
-        replaceMissingValuesWith?: string; // Note the extra 's'
+        replaceMissingValue?: boolean;
 
         // Specific to type: "searchQuery"
         query?: string;

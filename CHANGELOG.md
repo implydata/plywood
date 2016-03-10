@@ -1,5 +1,9 @@
 # Change log
 
+## 0.9.5
+
+- The FROM clause in PlyQL now accepts relaxed table names allowing for: `SELECT * FROM my-table*is:the/best_table`
+
 ## 0.9.4
 
 - Set `skipEmptyBuckets: "true"` in timeseries queries to get the Plywood expected behaviour 

@@ -572,7 +572,7 @@ describe("simulate Druid", () => {
       "dimension": "color",
       "extractionFn": {
         "expr": "^(.)",
-        "replaceMissingValues": true,
+        "replaceMissingValue": true,
         "type": "regex"
       },
       "type": "extraction",
@@ -589,8 +589,8 @@ describe("simulate Druid", () => {
       "dimension": "color",
       "extractionFn": {
         "expr": "^(.)",
-        "replaceMissingValues": true,
-        "replaceMissingValuesWith": "lol",
+        "replaceMissingValue": true,
+        "replaceMissingValueWith": "lol",
         "type": "regex"
       },
       "type": "extraction",
