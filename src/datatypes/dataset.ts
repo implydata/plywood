@@ -565,7 +565,26 @@ module Plywood {
     }
 
     public quantile(exFn: ComputeFn, quantile: number, context: Datum): number {
-      return quantile; // ToDo fill this in
+      var data = this.data;
+      var vs: number[] = [];
+      for (let datum of data) {
+        var v = exFn(datum, context);
+        if (v != null) vs.push(v);
+      }
+
+      vs.sort((a: number, b: number) => a - b);
+
+      var n = vs.length;
+      if (quantile === 0) return vs[0];
+      if (quantile === 1) return vs[n - 1];
+      var rank = n * quantile - 1;
+
+      // Is the rank an integer?
+      if (rank === Math.floor(rank)) {
+        return (vs[rank] + vs[rank + 1]) / 2;
+      } else {
+        return vs[Math.ceil(rank)];
+      }
     }
 
     public split(splitFns: SplitFns, datasetName: string, context: Datum): Dataset {

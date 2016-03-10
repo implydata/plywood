@@ -381,6 +381,56 @@ describe("compute native", () => {
       .done();
   });
 
+  it("works with quantiles", (testComplete) => {
+    // Test data comes from: https://en.wikipedia.org/wiki/Quantile
+    var quantileData = [
+      { vOdd:  3, vEven:  3 },
+      { vOdd:  6, vEven:  6 },
+      { vOdd:  7, vEven:  7 },
+      { vOdd:  8, vEven:  8 },
+      { vOdd:  8, vEven:  8 },
+      { vOdd:  9, vEven: null },
+      { vOdd: 10, vEven: 10 },
+      { vOdd: 13, vEven: 13 },
+      { vOdd: 15, vEven: 15 },
+      { vOdd: 16, vEven: 16 },
+      { vOdd: 20, vEven: 20 }
+    ];
+
+    var ex = ply()
+      .apply('d', Dataset.fromJS(quantileData).hide())
+      .apply('quantileEven0.00', '$d.quantile($vEven, 0.00)')
+      .apply('quantileEven0.25', '$d.quantile($vEven, 0.25)')
+      .apply('quantileEven0.50', '$d.quantile($vEven, 0.50)')
+      .apply('quantileEven0.75', '$d.quantile($vEven, 0.75)')
+      .apply('quantileEven1.00', '$d.quantile($vEven, 1.00)')
+      .apply('quantileOdd0.00', '$d.quantile($vOdd, 0.00)')
+      .apply('quantileOdd0.25', '$d.quantile($vOdd, 0.25)')
+      .apply('quantileOdd0.50', '$d.quantile($vOdd, 0.50)')
+      .apply('quantileOdd0.75', '$d.quantile($vOdd, 0.75)')
+      .apply('quantileOdd1.00', '$d.quantile($vOdd, 1.00)');
+
+    var p = ex.compute();
+    p.then((v) => {
+      expect(v.toJS()).to.deep.equal([
+        {
+          "quantileEven0.00": 3,
+          "quantileEven0.25": 7,
+          "quantileEven0.50": 9,
+          "quantileEven0.75": 15,
+          "quantileEven1.00": 20,
+          "quantileOdd0.00": 3,
+          "quantileOdd0.25": 7,
+          "quantileOdd0.50": 9,
+          "quantileOdd0.75": 15,
+          "quantileOdd1.00": 20
+        }
+      ]);
+      testComplete();
+    })
+      .done();
+  });
+
   it("works with a basic select", (testComplete) => {
     var ds = Dataset.fromJS(data);
 
