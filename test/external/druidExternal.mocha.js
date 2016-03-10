@@ -623,8 +623,8 @@ describe("DruidExternal", () => {
             "extractionFn": {
               "type": "regex",
               "expr": "^Cat(.+)$",
-              "replaceMissingValues": true,
-              "replaceMissingValuesWith": "noMatch"
+              "replaceMissingValue": true,
+              "replaceMissingValueWith": "noMatch"
             },
             "outputName": "Page",
             "type": "extraction"

@@ -232,12 +232,21 @@ describe("SQL parser", () => {
       });
     });
 
-    it("works with another DESCRIBE query", () => {
-      var parse = Expression.parseSQL("DESCRIBE `my-table` ; ");
+    it("works with a relaxed table name DESCRIBE query", () => {
+      var parse = Expression.parseSQL("DESCRIBE my-table*is:the/best_table; ");
 
       expect(parse).to.deep.equal({
         verb: 'DESCRIBE',
-        table: 'my-table'
+        table: 'my-table*is:the/best_table'
+      });
+    });
+
+    it("works with another DESCRIBE query", () => {
+      var parse = Expression.parseSQL("DESCRIBE `my-table~~!@#$%^&*()_+-=` ; ");
+
+      expect(parse).to.deep.equal({
+        verb: 'DESCRIBE',
+        table: 'my-table~~!@#$%^&*()_+-='
       });
     });
   });
@@ -279,6 +288,18 @@ describe("SQL parser", () => {
       }).to.throw('can not use DISTINCT for sum aggregator');
     });
 
+    it("should have a good error for unterminated single quote strings", () => {
+      expect(() => {
+        Expression.parseSQL("SELECT page, COUNT() AS 'Count FROM wiki");
+      }).to.throw('Unmatched single quote on');
+    });
+
+    it("should have a good error for unterminated double quote strings", () => {
+      expect(() => {
+        Expression.parseSQL("SELECT page, COUNT() AS \"Count FROM wiki");
+      }).to.throw('Unmatched double quote on');
+    });
+
     it("should parse a simple expression", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
@@ -292,6 +313,18 @@ describe("SQL parser", () => {
 
       expect(parse.verb).to.equal('SELECT');
       expect(parse.table).to.equal('wiki');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should parse a relaxed table name", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT * FROM my-table*is:the/best_table;
+      `);
+
+      var ex2 = $('my-table*is:the/best_table');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.table).to.equal('my-table*is:the/best_table');
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 

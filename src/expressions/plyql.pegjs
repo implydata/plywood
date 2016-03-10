@@ -295,11 +295,11 @@ OtherQuery
     }
 
 DescribeQuery
-  = DescribeToken _ table:NamespacedRef _ QueryTerminator? _
+  = DescribeToken _ table:RelaxedNamespacedRef _ QueryTerminator? _
     {
       return {
         verb: 'DESCRIBE',
-        table: table
+        table: table.name
       };
     }
 
@@ -339,8 +339,8 @@ Distinct
   = _ DistinctToken
 
 FromClause
-  = _ FromToken _ table:NamespacedRef
-    { return table; }
+  = _ FromToken _ table:RelaxedNamespacedRef
+    { return table.name; }
 
 WhereClause
   = _ WhereToken _ filter:Expression
@@ -559,18 +559,38 @@ TimezoneParameter
   = Comma timezone:NameOrString { return timezone }
 
 RefExpression
-  = ref:NamespacedRef { return $(ref); }
+  = ref:NamespacedRef { return $(ref.name); }
+
+RelaxedNamespacedRef
+  = ns:(Ref _ "." _)? name:RelaxedRef
+    {
+      return {
+        namespace: ns ? ns[0] : null,
+        name: name
+      };
+    }
 
 NamespacedRef
-  = (Ref _ "." _)? name:Ref
+  = ns:(Ref _ "." _)? name:Ref
     {
-      return name; // ToDo: do not ignore namespace
+      return {
+        namespace: ns ? ns[0] : null,
+        name: name
+      };
     }
+
+RelaxedRef
+  = name:RelaxedName !{ return reserved(name); }
+    { return name }
+  / BacktickRef
 
 Ref
   = name:Name !{ return reserved(name); }
     { return name }
-  / "`" name:$([^`]+) "`"
+  / BacktickRef
+
+BacktickRef
+  = "`" name:$([^`]+) "`"
     { return name }
 
 NameOrString = Name / String
@@ -722,6 +742,9 @@ Comma
 
 Name "Name"
   = $([a-zA-Z_] [a-z0-9A-Z_]*)
+
+RelaxedName "RelaxedName"
+  = $([a-zA-Z_\-:*/] [a-z0-9A-Z_\-:*/]*)
 
 NotSQuote "NotSQuote"
   = $([^']*)

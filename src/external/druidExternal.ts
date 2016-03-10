@@ -1007,11 +1007,11 @@ return (start < 0 ?'-':'') + parts.join('.');
           };
 
           if (!retainMissingValue) {
-            regexExtractionFn.replaceMissingValues = true; // Note the 's' in 'Values'
+            regexExtractionFn.replaceMissingValue = true;
           }
 
           if (replaceMissingValueWith !== null) {
-            regexExtractionFn.replaceMissingValuesWith = replaceMissingValueWith; // Note the 's' in 'Values'
+            regexExtractionFn.replaceMissingValueWith = replaceMissingValueWith;
           }
 
           return regexExtractionFn;
@@ -1880,7 +1880,7 @@ return (start < 0 ?'-':'') + parts.join('.');
               // Plywood's concept of splits does not allocate buckets for which there is no data.
               if (!druidQuery.context || !hasOwnProperty(druidQuery.context, 'skipEmptyBuckets')) {
                 druidQuery.context = druidQuery.context || {};
-                druidQuery.context['skipEmptyBuckets'] = "true"; // This needs to be the string "true" to work with older Druid versions
+                druidQuery.context.skipEmptyBuckets = "true"; // This needs to be the string "true" to work with older Druid versions
               }
               break;
 
