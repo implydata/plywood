@@ -66,7 +66,11 @@ module Plywood {
       if (this.compare === ContainsAction.NORMAL) {
         return `(''+${inputJS}).indexOf(${expressionJS})>-1`;
       } else {
-        return `(''+${inputJS}).toLowerCase().indexOf(String(${expressionJS}).toLowerCase())>-1`;
+        if (this.expression.isOp('literal')) {
+          return `(''+${inputJS}).toLowerCase().indexOf(${expressionJS.toLowerCase()})>-1`;
+        } else {
+          return `(''+${inputJS}).toLowerCase().indexOf((''+${expressionJS}).toLowerCase())>-1`;
+        }
       }
     }
 

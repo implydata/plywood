@@ -719,29 +719,37 @@ module Plywood {
               var range: NumberRange = rhs.value;
               var r0 = range.start;
               var r1 = range.end;
+              var bounds = range.bounds;
+
               if (this.versionBefore('0.9.0')) {
+                var cmpStrings: string[] = [];
+                if (r0 != null) {
+                  cmpStrings.push(`${r0} ${bounds[0] === '(' ? '<' : '<='} a`);
+                }
+                if (r1 != null) {
+                  cmpStrings.push(`a ${bounds[1] === ')' ? '<' : '<='} ${r1}`);
+                }
                 return {
                   type: "javascript",
                   dimension: referenceName,
-                  "function": `function(a) { a = Number(a); return ${r0} <= a && a < ${r1}; }`
+                  "function": `function(a) { a = Number(a); return ${cmpStrings.join(' && ')}; }`
                 };
-              } else {
-                var bounds = range.bounds;
-                var boundFilter: Druid.Filter = {
-                  "type": "bound",
-                  "dimension": referenceName,
-                  "alphaNumeric": true
-                };
-                if (r0 != null) {
-                  boundFilter.lower = r0;
-                  if (bounds[0] === '(') boundFilter.lowerStrict = true;
-                }
-                if (r1 != null) {
-                  boundFilter.upper = r1;
-                  if (bounds[1] === ')') boundFilter.upperStrict = true;
-                }
-                return boundFilter;
               }
+
+              var boundFilter: Druid.Filter = {
+                "type": "bound",
+                "dimension": referenceName,
+                "alphaNumeric": true
+              };
+              if (r0 != null) {
+                boundFilter.lower = r0;
+                if (bounds[0] === '(') boundFilter.lowerStrict = true;
+              }
+              if (r1 != null) {
+                boundFilter.upper = r1;
+                if (bounds[1] === ')') boundFilter.upperStrict = true;
+              }
+              return boundFilter;
 
             } else if (rhsType === 'TIME_RANGE') {
               throw new Error("can not time filter on non-primary time dimension");
@@ -914,7 +922,9 @@ module Plywood {
       switch (extractionFns.length) {
         case 0: return null;
         case 1: return extractionFns[0];
-        default: return { type: 'cascade', extractionFns };
+        default:
+          if (this.versionBefore('0.9.0')) throw new Error(`can not convert ${expression} to filter in Druid < 0.9.0`);
+          return { type: 'cascade', extractionFns };
       }
     }
 
@@ -930,30 +940,36 @@ module Plywood {
       }
 
       if (expression instanceof ChainExpression) {
+        var lead = expression.expression;
         var actions = expression.actions;
-        var pattern: Expression[];
 
-        if (pattern = expression.getExpressionPattern('concat')) {
-          this.processConcatExtractionFn(pattern, extractionFns);
-          return;
+        var i = 0;
+        var curAction: Action = actions[0];
+        var concatPrefix: Expression[] = [];
+        if (curAction.action === 'concat') {
+          concatPrefix.push(lead);
+          while (curAction && curAction.action === 'concat') {
+            concatPrefix.push(curAction.expression);
+            curAction = actions[++i];
+          }
+          this._processConcatExtractionFn(concatPrefix, extractionFns);
+
+        } else if (!lead.isOp('ref')) {
+          // Concat is the only thing allowed to have a non leading ref, the rest must be $ref.someFunction
+          throw new Error(`can not convert complex: ${lead}`);
         }
 
-        // Concat is the only thing allowed to have a non leading ref, the rest must be $ref.someFunction
-        if (!expression.expression.isOp('ref')) {
-          throw new Error(`can not convert complex: ${expression.expression}`);
-        }
-
-        for (var i = 0; i < actions.length; i++) {
-          var action = actions[i];
+        while (curAction) {
           var nextAction = actions[i + 1];
           var extractionFn: Druid.ExtractionFn;
           if (nextAction instanceof FallbackAction) {
-            extractionFn = this.actionToExtractionFn(action, nextAction);
+            extractionFn = this.actionToExtractionFn(curAction, nextAction);
             i++; // Skip it
           } else {
-            extractionFn = this.actionToExtractionFn(action, null);
+            extractionFn = this.actionToExtractionFn(curAction, null);
           }
           extractionFns.push(extractionFn);
+          curAction = actions[++i];
         }
       }
     }
@@ -1101,7 +1117,7 @@ module Plywood {
       throw new Error(`can not covert ${action} to extractionFn`);
     }
 
-    public processConcatExtractionFn(pattern: Expression[], extractionFns: Druid.ExtractionFn[]): void {
+    private _processConcatExtractionFn(pattern: Expression[], extractionFns: Druid.ExtractionFn[]): void {
       if (this.versionBefore('0.9.0')) {
         extractionFns.push({
           type: "javascript",
@@ -1641,7 +1657,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         case '>=':
           return { type: 'not', havingSpec: { type: "lessThan", aggregation: agg, value: value } };
         default:
-          throw new Error('unknown op: ' + op);
+          throw new Error(`unknown op: ${op}`);
       }
     }
 

@@ -160,7 +160,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with .concat().concat().contains() filter', equalityTest({
+    it.skip('works with .concat().concat().contains() filter', equalityTest({ // ToDo: un-skip when druid 0.9.0
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter(("[" ++ $cityName ++ "]").contains("[san", "ignoreCase"))')
@@ -208,13 +208,46 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with numeric range', equalityTest({
+    it('works with lessThanOrEqual filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($commentLength <= 50)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with numeric range, bounds: ()', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(20 < $commentLength and $commentLength < 50)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with numeric range, bounds: [)', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter(20 <= $commentLength and $commentLength < 50)')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
+
+    it('works with numeric range, bounds: (]', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(20 < $commentLength and $commentLength <= 50)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with numeric range, bounds: []', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(20 <= $commentLength and $commentLength <= 50)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
   });
 
 
@@ -440,24 +473,44 @@ describe("Cross Functional", function() {
 
 
   describe("having filter", () => {
-    it('works with greaterThan', equalityTest({
-      executorNames: ['druid', 'mysql'],
-      expression: $('wiki').split('$channel', 'Channel')
-        .sort('$Channel', 'ascending')
-        .apply('TotalEdits', '$wiki.sum($count)')
-        .filter('$TotalEdits > 5000')
-        .limit(20)
-    }));
-
     it('works with lessThan', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').split('$channel', 'Channel')
         .sort('$Channel', 'ascending')
         .apply('TotalEdits', '$wiki.sum($count)')
-        .filter('$TotalEdits < 5000')
+        .filter('$TotalEdits < 5096') // Channel 'ko' has erectly 5096 edits
         .limit(20)
     }));
+
+    it('works with lessThanOrEqual', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .filter('$TotalEdits <= 5096') // Channel 'ko' has erectly 5096 edits
+        .limit(20)
+    }));
+
+    it('works with greaterThan', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .filter('$TotalEdits > 5096') // Channel 'ko' has erectly 5096 edits
+        .limit(20)
+    }));
+
+    it('works with greaterThanOrEqual', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .filter('$TotalEdits >= 5096') // Channel 'ko' has erectly 5096 edits
+        .limit(20)
+    }));
+
   });
+
 
   describe("select", () => {
     it('works with basic filter', equalityTest({
@@ -480,7 +533,7 @@ describe("Cross Functional", function() {
       expression: $('wiki').filter('$cityName == "El Paso"').select('added', 'deleted')
     }));
 
-    it.skip('works with derived dimension columns', equalityTest({
+    it.skip('works with derived dimension columns', equalityTest({ // ToDo: un-skip when druid is 0.9.0
       executorNames: ['druid', 'mysql'],
       expression: $('wiki')
         .filter('$cityName == "El Paso"')
@@ -496,6 +549,7 @@ describe("Cross Functional", function() {
     }));
 
   });
+
 
   describe("value", () => {
     it('works with basic value', equalityTest({

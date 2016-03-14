@@ -750,7 +750,7 @@ describe("DruidExternal", () => {
       });
     });
 
-    it("works with .lookup().overlap(balh, null) (on SET/STRING)", () => {
+    it("works with .lookup().overlap(blah, null) (on SET/STRING)", () => {
       var ex = $('wiki').filter($("tags").lookup('tag_lookup').overlap(['Good', null]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
@@ -788,7 +788,7 @@ describe("DruidExternal", () => {
       });
     });
 
-    it("works with .extract().overlap(balh, null) (on SET/STRING)", () => {
+    it("works with .extract().overlap(blah, null) (on SET/STRING)", () => {
       var ex = $('wiki').filter($("tags").extract('[0-9]+').overlap(['Good', null]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
@@ -822,7 +822,7 @@ describe("DruidExternal", () => {
       });
     });
 
-    it("works with .substr().overlap(balh, null) (on SET/STRING)", () => {
+    it("works with .substr().overlap(blah, null) (on SET/STRING)", () => {
       var ex = $('wiki').filter($("tags").substr(1, 3).overlap(['Good', null]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
@@ -893,7 +893,7 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup().contains()", () => {
-      var ex = $('wiki').filter($("language").lookup('language_lookup').contains('en', 'ignoreCase'));
+      var ex = $('wiki').filter($("language").lookup('language_lookup').contains('eN', 'ignoreCase'));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -911,7 +911,7 @@ describe("DruidExternal", () => {
               "type": "lookup"
             },
             {
-              "function": "function(d){return (''+d).toLowerCase().indexOf(String(\"en\").toLowerCase())>-1;}",
+              "function": "function(d){return (''+d).toLowerCase().indexOf(\"en\")>-1;}",
               "type": "javascript"
             }
           ],
@@ -923,7 +923,7 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup().contains().not()", () => {
-      var ex = $('wiki').filter($("language").lookup('language_lookup').contains('en', 'ignoreCase').not());
+      var ex = $('wiki').filter($("language").lookup('language_lookup').contains('eN', 'ignoreCase').not());
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -942,7 +942,7 @@ describe("DruidExternal", () => {
                 "type": "lookup"
               },
               {
-                "function": "function(d){return (''+d).toLowerCase().indexOf(String(\"en\").toLowerCase())>-1;}",
+                "function": "function(d){return (''+d).toLowerCase().indexOf(\"en\")>-1;}",
                 "type": "javascript"
               }
             ],
@@ -956,14 +956,29 @@ describe("DruidExternal", () => {
     });
 
     it("works with .concat().concat().contains()", () => {
-      var ex = $('wiki').filter("('[' ++ $language ++ ']').contains('en', 'ignoreCase')");
+      var ex = $('wiki').filter("('[' ++ $language ++ ']').contains('eN', 'ignoreCase')");
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
-
+        "dimension": "language",
+        "extractionFn": {
+          "extractionFns": [
+            {
+              "format": "[%s]",
+              "type": "stringFormat"
+            },
+            {
+              "function": "function(d){return (''+d).toLowerCase().indexOf(\"en\")>-1;}",
+              "type": "javascript"
+            }
+          ],
+          "type": "cascade"
+        },
+        "type": "extraction",
+        "value": "true"
       });
     });
 
