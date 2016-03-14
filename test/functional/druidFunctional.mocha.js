@@ -873,6 +873,28 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works with lookup IS filter", (testComplete) => {
+      var ex = $('wiki').filter($('channel').lookup('channel_lookup').is('English')).sum('$count');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result).to.equal(114711);
+          testComplete();
+        })
+        .done();
+    });
+
+    it.only("works with lookup CONTAINS filter", (testComplete) => {
+      var ex = $('wiki').filter($('channel').lookup('channel_lookup').contains('Eng', 'ignoreCase')).sum('$count');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result).to.equal(114711);
+          testComplete();
+        })
+        .done();
+    });
+
     it("works with absolute number split", (testComplete) => {
       var ex = ply()
         .apply(

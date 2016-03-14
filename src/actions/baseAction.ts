@@ -232,6 +232,11 @@ module Plywood {
       throw new Error('must implement type checker');
     }
 
+    protected _stringTransformOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType, 'STRING', 'SET/STRING');
+      return inputType;
+    }
+
     public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
       var expression = this.expression;
       if (expression) expression._fillRefSubstitutions(typeContext, indexer, alterations);

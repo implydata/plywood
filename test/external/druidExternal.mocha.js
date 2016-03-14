@@ -23,14 +23,18 @@ var context = {
     timeAttribute: 'time',
     attributes: [
       { name: 'time', type: 'TIME' },
+      { name: 'sometimeLater', type: 'TIME' },
       { name: 'language', type: 'STRING' },
       { name: 'page', type: 'STRING' },
+      { name: 'tags', type: 'SET/STRING' },
       { name: 'commentLength', type: 'NUMBER' },
+      { name: 'isRobot', type: 'BOOLEAN' },
       { name: 'added', type: 'NUMBER', unsplitable: true },
       { name: 'deleted', type: 'NUMBER', unsplitable: true },
       { name: 'inserted', type: 'NUMBER', unsplitable: true }
     ],
     filter: timeFilter,
+    allowSelectQueries: true,
     druidVersion: '0.9.1',
     customAggregations: {
       crazy: {
@@ -400,145 +404,41 @@ describe("DruidExternal", () => {
       });
     });
 
-    it("filters (in)", () => {
+    it("works with complex aggregate expressions", () => {
       var ex = ply()
-        .apply("wiki", $('wiki', 1).filter($("language").in(['en'])))
-        .apply('Count', '$wiki.count()');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "Count",
-            "type": "count"
-          }
-        ],
-        "dataSource": "wikipedia",
-        "filter": {
-          "dimension": "language",
-          "type": "selector",
-          "value": "en"
-        },
-        "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
-        "queryType": "timeseries"
-      });
-    });
-
-    it("filters (in [null])", () => {
-      var ex = ply()
-        .apply("wiki", $('wiki', 1).filter($("language").in([null])))
-        .apply('Count', '$wiki.count()');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "Count",
-            "type": "count"
-          }
-        ],
-        "dataSource": "wikipedia",
-        "filter": {
-          "dimension": "language",
-          "type": "selector",
-          "value": null
-        },
-        "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
-        "queryType": "timeseries"
-      });
-    });
-
-    it("filters (contains)", () => {
-      var ex = ply()
-        .apply("wiki", $('wiki', 1).filter($("language").contains('en', 'ignoreCase')))
-        .apply('Count', '$wiki.count()');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "Count",
-            "type": "count"
-          }
-        ],
-        "dataSource": "wikipedia",
-        "filter": {
-          "dimension": "language",
-          "query": {
-            "type": "fragment",
-            "values": [
-              "en"
-            ]
-          },
-          "type": "search"
-        },
-        "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
-        "queryType": "timeseries"
-      });
-    });
-
-    it("should work with complex aggregate expressions", () => {
-      var ex = $('wiki').split("$page", 'Page')
         .apply('SumAbs', '$wiki.sum($added.absolute())')
-        .apply('SumComplex', '$wiki.sum($added.power(2) * $deleted / $added.absolute())')
-        .sort('$SumAbs', 'descending')
-        .limit(5);
+        .apply('SumComplex', '$wiki.sum($added.power(2) * $deleted / $added.absolute())');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
-        "aggregations": [
-          {
-            "fieldNames": [
-              "added"
-            ],
-            "fnAggregate": "function(_c,added) { return _c+Math.abs(added); }",
-            "fnCombine": "function(a,b) { return a+b; }",
-            "fnReset": "function() { return 0; }",
-            "name": "SumAbs",
-            "type": "javascript"
-          },
-          {
-            "fieldNames": [
-              "added",
-              "deleted"
-            ],
-            "fnAggregate": "function(_c,added,deleted) { return _c+((Math.pow(added,2)*deleted)/Math.abs(added)); }",
-            "fnCombine": "function(a,b) { return a+b; }",
-            "fnReset": "function() { return 0; }",
-            "name": "SumComplex",
-            "type": "javascript"
-          }
-        ],
-        "dataSource": "wikipedia",
-        "dimension": {
-          "dimension": "page",
-          "outputName": "Page",
-          "type": "default"
+      expect(druidExternal.getQueryAndPostProcess().query.aggregations).to.deep.equal([
+        {
+          "fieldNames": [
+            "added"
+          ],
+          "fnAggregate": "function(_c,added) { return _c+Math.abs(added); }",
+          "fnCombine": "function(a,b) { return a+b; }",
+          "fnReset": "function() { return 0; }",
+          "name": "SumAbs",
+          "type": "javascript"
         },
-        "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
-        "metric": "SumAbs",
-        "queryType": "topN",
-        "threshold": 5
-      });
+        {
+          "fieldNames": [
+            "added",
+            "deleted"
+          ],
+          "fnAggregate": "function(_c,added,deleted) { return _c+((Math.pow(added,2)*deleted)/Math.abs(added)); }",
+          "fnCombine": "function(a,b) { return a+b; }",
+          "fnReset": "function() { return 0; }",
+          "name": "SumComplex",
+          "type": "javascript"
+        }
+      ]);
     });
 
-    it("should work with filtered complex aggregate expressions", () => {
+    it("works with filtered complex aggregate expressions", () => {
       var ex = $('wiki').split("$page", 'Page')
         .apply('FilteredSumDeleted', '$wiki.filter($page.contains("wikipedia")).sum($deleted)')
         .apply('Filtered2', '$wiki.filter($deleted != 100).sum($deleted)')
@@ -602,91 +502,7 @@ describe("DruidExternal", () => {
       });
     });
 
-    it("processes an expression function fallback", () => {
-      var ex = $('wiki').split($('page').extract('^Cat(.+)$').fallback("noMatch"), 'Page');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
-        "dataSource": "wikipedia",
-        "dimensions": [
-          {
-            "dimension": "page",
-            "extractionFn": {
-              "type": "regex",
-              "expr": "^Cat(.+)$",
-              "replaceMissingValue": true,
-              "replaceMissingValueWith": "noMatch"
-            },
-            "outputName": "Page",
-            "type": "extraction"
-          }
-        ],
-        "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
-        "limitSpec": {
-          "columns": [
-            "Page"
-          ],
-          "limit": 500000,
-          "type": "default"
-        },
-        "queryType": "groupBy"
-      });
-    });
-
-    it("processes a lookup function fallback", () => {
-      var ex = $('wiki').split($('page').lookup('wikipedia-language-lookup').fallback('missing'), 'Language');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
-        "dataSource": "wikipedia",
-        "dimensions": [
-          {
-            "dimension": "page",
-            "extractionFn": {
-              "lookup": {
-                "namespace": "wikipedia-language-lookup",
-                "type": "namespace"
-              },
-              "replaceMissingValueWith": "missing",
-              "type": "lookup"
-            },
-            "outputName": "Language",
-            "type": "extraction"
-          }
-        ],
-        "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
-        "limitSpec": {
-          "columns": [
-            "Language"
-          ],
-          "limit": 500000,
-          "type": "default"
-        },
-        "queryType": "groupBy"
-      });
-    });
-
-    it("should work in simple cases with power and absolute", () => {
+    it("works in simple cases with power and absolute", () => {
       var ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Abs', '$wiki.sum($added).absolute()')
@@ -742,91 +558,9 @@ describe("DruidExternal", () => {
       });
     });
 
-    it("should work with ABSOLUTE in split expression", () => {
-      var ex = $('wiki').split("$commentLength.absolute()", 'AbsCommentLength');
 
-      ex = ex.referenceCheck(context).resolve(context).simplify();
 
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
-        "dataSource": "wikipedia",
-        "dimensions": [
-          {
-            "dimension": "commentLength",
-            "extractionFn": {
-              "function": "function(d){return Math.abs(d);}",
-              "type": "javascript"
-            },
-            "outputName": "AbsCommentLength",
-            "type": "extraction"
-          }
-        ],
-        "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
-        "limitSpec": {
-          "columns": [
-            {
-              "dimension": "AbsCommentLength",
-              "dimensionOrder": "alphaNumeric"
-            }
-          ],
-          "limit": 500000,
-          "type": "default"
-        },
-        "queryType": "groupBy"
-      });
-    });
-
-    it("should work with POWER in split expression", () => {
-      var ex = $('wiki').split("$commentLength.power(2)", 'AbsCommentLength');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
-        "dataSource": "wikipedia",
-        "dimensions": [
-          {
-            "dimension": "commentLength",
-            "extractionFn": {
-              "function": "function(d){return Math.pow(d,2);}",
-              "type": "javascript"
-            },
-            "outputName": "AbsCommentLength",
-            "type": "extraction"
-          }
-        ],
-        "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
-        "limitSpec": {
-          "columns": [
-            {
-              "dimension": "AbsCommentLength",
-              "dimensionOrder": "alphaNumeric"
-            }
-          ],
-          "limit": 500000,
-          "type": "default"
-        },
-        "queryType": "groupBy"
-      });
-    });
-
-    it("should work with complex absolute and power expressions", () => {
+    it("works with complex absolute and power expressions", () => {
       var ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Abs', '(($wiki.sum($added)/$wiki.count().absolute().power(0.5) + 100 * $wiki.countDistinct($page)).absolute()).power(2) + $wiki.custom(crazy)')
@@ -922,6 +656,762 @@ describe("DruidExternal", () => {
   });
 
 
+  describe("filters", () => {
+
+    it("works with .in(1 thing)", () => {
+      var ex = $('wiki').filter($("language").in(['en']));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "language",
+        "type": "selector",
+        "value": "en"
+      });
+    });
+
+    it("works with .in(3 things)", () => {
+      var ex = $('wiki').filter($("language").in(['en', 'es', 'fr']));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "language",
+        "type": "in",
+        "values": ['en', 'es', 'fr']
+      });
+    });
+
+    it("works with .in([null])", () => {
+      var ex = $('wiki').filter($("language").in([null]));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "language",
+        "type": "selector",
+        "value": null
+      });
+    });
+
+    it("works with .lookup().in(3 things)", () => {
+      var ex = $('wiki').filter($("language").lookup('language_lookup').in(['en', 'es', 'fr']));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "fields": [
+          {
+            "dimension": "language",
+            "extractionFn": {
+              "lookup": {
+                "namespace": "language_lookup",
+                "type": "namespace"
+              },
+              "type": "lookup"
+            },
+            "type": "extraction",
+            "value": "en"
+          },
+          {
+            "dimension": "language",
+            "extractionFn": {
+              "lookup": {
+                "namespace": "language_lookup",
+                "type": "namespace"
+              },
+              "type": "lookup"
+            },
+            "type": "extraction",
+            "value": "es"
+          },
+          {
+            "dimension": "language",
+            "extractionFn": {
+              "lookup": {
+                "namespace": "language_lookup",
+                "type": "namespace"
+              },
+              "type": "lookup"
+            },
+            "type": "extraction",
+            "value": "fr"
+          }
+        ],
+        "type": "or"
+      });
+    });
+
+    it("works with .lookup().overlap(balh, null) (on SET/STRING)", () => {
+      var ex = $('wiki').filter($("tags").lookup('tag_lookup').overlap(['Good', null]));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "fields": [
+          {
+            "dimension": "tags",
+            "extractionFn": {
+              "lookup": {
+                "namespace": "tag_lookup",
+                "type": "namespace"
+              },
+              "type": "lookup"
+            },
+            "type": "extraction",
+            "value": "Good"
+          },
+          {
+            "dimension": "tags",
+            "extractionFn": {
+              "lookup": {
+                "namespace": "tag_lookup",
+                "type": "namespace"
+              },
+              "type": "lookup"
+            },
+            "type": "extraction",
+            "value": null
+          }
+        ],
+        "type": "or"
+      });
+    });
+
+    it("works with .extract().overlap(balh, null) (on SET/STRING)", () => {
+      var ex = $('wiki').filter($("tags").extract('[0-9]+').overlap(['Good', null]));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "fields": [
+          {
+            "dimension": "tags",
+            "extractionFn": {
+              "expr": "[0-9]+",
+              "replaceMissingValue": true,
+              "type": "regex"
+            },
+            "type": "extraction",
+            "value": "Good"
+          },
+          {
+            "dimension": "tags",
+            "extractionFn": {
+              "expr": "[0-9]+",
+              "replaceMissingValue": true,
+              "type": "regex"
+            },
+            "type": "extraction",
+            "value": null
+          }
+        ],
+        "type": "or"
+      });
+    });
+
+    it("works with .substr().overlap(balh, null) (on SET/STRING)", () => {
+      var ex = $('wiki').filter($("tags").substr(1, 3).overlap(['Good', null]));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "fields": [
+          {
+            "dimension": "tags",
+            "extractionFn": {
+              "index": 1,
+              "length": 3,
+              "type": "substring"
+            },
+            "type": "extraction",
+            "value": "Good"
+          },
+          {
+            "dimension": "tags",
+            "extractionFn": {
+              "index": 1,
+              "length": 3,
+              "type": "substring"
+            },
+            "type": "extraction",
+            "value": null
+          }
+        ],
+        "type": "or"
+      });
+    });
+
+    it("works with .in(10, 30)", () => {
+      var ex = $('wiki').filter($("commentLength").in(10, 30));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "alphaNumeric": true,
+        "dimension": "commentLength",
+        "lower": 10,
+        "type": "bound",
+        "upper": 30,
+        "upperStrict": true
+      });
+    });
+
+    it("works with .contains()", () => {
+      var ex = $('wiki').filter($("language").contains('en', 'ignoreCase'));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "language",
+        "query": {
+          "type": "fragment",
+          "values": [
+            "en"
+          ]
+        },
+        "type": "search"
+      });
+    });
+
+    it("works with .lookup().contains()", () => {
+      var ex = $('wiki').filter($("language").lookup('language_lookup').contains('en', 'ignoreCase'));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "language",
+        "extractionFn": {
+          "extractionFns": [
+            {
+              "lookup": {
+                "namespace": "language_lookup",
+                "type": "namespace"
+              },
+              "type": "lookup"
+            },
+            {
+              "function": "function(d){return (''+d).toLowerCase().indexOf(String(\"en\").toLowerCase())>-1;}",
+              "type": "javascript"
+            }
+          ],
+          "type": "cascade"
+        },
+        "type": "extraction",
+        "value": "true"
+      });
+    });
+
+    it("works with .lookup().contains().not()", () => {
+      var ex = $('wiki').filter($("language").lookup('language_lookup').contains('en', 'ignoreCase').not());
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "field": {
+          "dimension": "language",
+          "extractionFn": {
+            "extractionFns": [
+              {
+                "lookup": {
+                  "namespace": "language_lookup",
+                  "type": "namespace"
+                },
+                "type": "lookup"
+              },
+              {
+                "function": "function(d){return (''+d).toLowerCase().indexOf(String(\"en\").toLowerCase())>-1;}",
+                "type": "javascript"
+              }
+            ],
+            "type": "cascade"
+          },
+          "type": "extraction",
+          "value": "true"
+        },
+        "type": "not"
+      });
+    });
+
+    it("works with .concat().concat().contains()", () => {
+      var ex = $('wiki').filter("('[' ++ $language ++ ']').contains('en', 'ignoreCase')");
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+
+      });
+    });
+
+  });
+
+
+  describe("splits (makes correct dimension extractionFns)", () => {
+
+    it("works with default", () => {
+      var ex = $('wiki').split('$page', 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "outputName": "Split",
+        "type": "default"
+      });
+    });
+
+    it("works with BOOLEAN ref", () => {
+      var ex = $('wiki').split('$isRobot', 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('topN');
+      expect(query.dimension).to.deep.equal({
+        "dimension": "isRobot",
+        "extractionFn": {
+          "lookup": {
+            "map": {
+              "0": "false",
+              "1": "true",
+              "false": "false",
+              "true": "true"
+            },
+            "type": "map"
+          },
+          "type": "lookup"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .concat()", () => {
+      var ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "format": "[\\%]%s[\\%]",
+          "type": "stringFormat"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .substr()", () => {
+      var ex = $('wiki').split('$page.substr(3, 5)', 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "type": "substring",
+          "index": 3,
+          "length": 5
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .substr().extract()", () => {
+      var ex = $('wiki').split('$page.substr(3, 5).extract("\\d+")', 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "extractionFns": [
+            {
+              "index": 3,
+              "length": 5,
+              "type": "substring"
+            },
+            {
+              "expr": "\\d+",
+              "replaceMissingValue": true,
+              "type": "regex"
+            }
+          ],
+          "type": "cascade"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .extract() (no fallback)", () => {
+      var ex = $('wiki').split($('page').extract('^Cat(.+)$'), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "type": "regex",
+          "expr": "^Cat(.+)$",
+          "replaceMissingValue": true
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .extract() with custom .fallback()", () => {
+      var ex = $('wiki').split($('page').extract('^Cat(.+)$').fallback("noMatch"), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "type": "regex",
+          "expr": "^Cat(.+)$",
+          "replaceMissingValue": true,
+          "replaceMissingValueWith": "noMatch"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .extract() with self .fallback()", () => {
+      var ex = $('wiki').split($('page').extract('^Cat(.+)$').fallback("$page"), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "type": "regex",
+          "expr": "^Cat(.+)$"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .lookup() (no fallback)", () => {
+      var ex = $('wiki').split($('page').lookup('wikipedia-page-lookup'), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "lookup": {
+            "namespace": "wikipedia-page-lookup",
+            "type": "namespace"
+          },
+          "type": "lookup"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .lookup() with custom .fallback()", () => {
+      var ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('missing'), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "lookup": {
+            "namespace": "wikipedia-page-lookup",
+            "type": "namespace"
+          },
+          "replaceMissingValueWith": "missing",
+          "type": "lookup"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .lookup() with self .fallback()", () => {
+      var ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('$page'), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "lookup": {
+            "namespace": "wikipedia-page-lookup",
+            "type": "namespace"
+          },
+          "retainMissingValue": true,
+          "type": "lookup"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .lookup().fallback().extract()", () => {
+      var ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('$page').extract("\\d+"), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "extractionFns": [
+            {
+              "lookup": {
+                "namespace": "wikipedia-page-lookup",
+                "type": "namespace"
+              },
+              "retainMissingValue": true,
+              "type": "lookup"
+            },
+            {
+              "expr": "\\d+",
+              "replaceMissingValue": true,
+              "type": "regex"
+            }
+          ],
+          "type": "cascade"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .lookup().fallback().contains()", () => {
+      var ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('$page').contains("lol"), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('topN');
+      expect(query.dimension).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "extractionFns": [
+            {
+              "lookup": {
+                "namespace": "wikipedia-page-lookup",
+                "type": "namespace"
+              },
+              "retainMissingValue": true,
+              "type": "lookup"
+            },
+            {
+              "function": "function(d){return (''+d).indexOf(\"lol\")>-1;}",
+              "type": "javascript"
+            }
+          ],
+          "type": "cascade"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .absolute()", () => {
+      var ex = $('wiki').split("$commentLength.absolute()", 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "commentLength",
+        "extractionFn": {
+          "function": "function(d){return Math.abs(d);}",
+          "type": "javascript"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .power()", () => {
+      var ex = $('wiki').split("$commentLength.power(2)", 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "commentLength",
+        "extractionFn": {
+          "function": "function(d){return Math.pow(d,2);}",
+          "type": "javascript"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .numberBucket()", () => {
+      var ex = $('wiki').split("$commentLength.numberBucket(10, 1)", 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "commentLength",
+        "extractionFn": {
+          "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor((d - 1) / 10) * 10 + 1;}",
+          "type": "javascript"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .absolute().numberBucket()", () => {
+      var ex = $('wiki').split("$commentLength.absolute().numberBucket(10)", 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "commentLength",
+        "extractionFn": {
+          "extractionFns": [
+            {
+              "function": "function(d){return Math.abs(d);}",
+              "type": "javascript"
+            },
+            {
+              "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 10) * 10;}",
+              "type": "javascript"
+            }
+          ],
+          "type": "cascade"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .timeBucket()", () => {
+      var ex = $('wiki').split({
+        'Split1': "$time.timeBucket(P1D, 'Etc/UTC')",
+        'Split2': "$sometimeLater.timeBucket(P1D, 'Etc/UTC')"
+      });
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "sometimeLater",
+        "extractionFn": {
+          "format": "yyyy-MM-dd'Z",
+          "locale": "en-US",
+          "timeZone": "Etc/UTC",
+          "type": "timeFormat"
+        },
+        "outputName": "Split2",
+        "type": "extraction"
+      });
+    });
+
+    it("works with .timePart()", () => {
+      var ex = $('wiki').split({
+        'Split1': "$time.timePart(DAY_OF_WEEK, 'Etc/UTC')",
+        'Split2': "$sometimeLater.timePart(DAY_OF_WEEK, 'Etc/UTC')"
+      });
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "__time",
+        "extractionFn": {
+          "format": "e'~",
+          "locale": "en-US",
+          "timeZone": "Etc/UTC",
+          "type": "timeFormat"
+        },
+        "outputName": "Split1",
+        "type": "extraction"
+      });
+    });
+
+  });
+
+
   describe("should work when getting back [] and [{result:[]}]", () => {
     var nullExternal = External.fromJS({
       engine: 'druid',
@@ -959,7 +1449,7 @@ describe("DruidExternal", () => {
       var ex = ply()
         .apply('Count', '$wiki.count()');
 
-      it("should work with [] return", (testComplete) => {
+      it("works with [] return", (testComplete) => {
         ex.compute({ wiki: nullExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([
@@ -976,7 +1466,7 @@ describe("DruidExternal", () => {
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');
 
-      it("should work with [] return", (testComplete) => {
+      it("works with [] return", (testComplete) => {
         ex.compute({ wiki: nullExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([]);
@@ -993,7 +1483,7 @@ describe("DruidExternal", () => {
         .sort('$Count', 'descending')
         .limit(5);
 
-      it("should work with [] return", (testComplete) => {
+      it("works with [] return", (testComplete) => {
         ex.compute({ wiki: nullExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([]);
@@ -1002,7 +1492,7 @@ describe("DruidExternal", () => {
           .done();
       });
 
-      it("should work with [{result:[]}] return", (testComplete) => {
+      it("works with [{result:[]}] return", (testComplete) => {
         ex.compute({ wiki: emptyExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([]);
@@ -1031,7 +1521,7 @@ describe("DruidExternal", () => {
       filter: timeFilter
     });
 
-    it("should work with all query", (testComplete) => {
+    it("works with all query", (testComplete) => {
       var ex = ply()
         .apply('Count', '$wiki.count()');
 
@@ -1046,7 +1536,7 @@ describe("DruidExternal", () => {
         .done();
     });
 
-    it("should work with timeseries query", (testComplete) => {
+    it("works with timeseries query", (testComplete) => {
       var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');

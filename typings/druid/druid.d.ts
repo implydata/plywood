@@ -59,10 +59,12 @@ declare module Druid {
         // Specific to type: "in"
         values?: string[];
 
-        // Specific to type: "between"
+        // Specific to type: "bound"
         lower?: number | string;
         upper?: number | string;
-        numerically?: boolean;
+        lowerStrict?: boolean;
+        upperStrict?: boolean;
+        alphaNumeric?: boolean;
 
         // Specific to type: "regex"
         pattern?: string;
