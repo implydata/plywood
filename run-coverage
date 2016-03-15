@@ -4,7 +4,7 @@
 mv test/mocha.opts test/_mocha.opts_
 
 # Use a reporter that does not take a ton of height
-node --harmony_destructuring node_modules/.bin/istanbul cover _mocha -- --reporter nyan test/**/*.mocha.js
+node --harmony_destructuring node_modules/.bin/istanbul cover _mocha -- --timeout 4000 --reporter nyan test/**/*.mocha.js
 
 # restore the mocha.opts file
 mv test/_mocha.opts_ test/mocha.opts

@@ -18,7 +18,7 @@ expressionParser = expressionParser.substring(prefixToRemove.length, expressionP
 
 expressionParser = 'module.exports = function(plywood) {' + expressionParser + '};\n';
 
-fs.writeFileSync('./parser/expression.js', expressionParser, 'utf8');
+fs.writeFileSync('./build/expressionParser.js', expressionParser, 'utf8');
 
 // SQL
 
@@ -34,4 +34,4 @@ plyqlParser = plyqlParser.substring(prefixToRemove.length, plyqlParser.length - 
 
 plyqlParser = 'module.exports = function(plywood) {' + plyqlParser + '};\n';
 
-fs.writeFileSync('./parser/plyql.js', plyqlParser, 'utf8');
+fs.writeFileSync('./build/plyqlParser.js', plyqlParser, 'utf8');

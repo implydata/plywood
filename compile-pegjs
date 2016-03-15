@@ -1,9 +1,6 @@
 #!/bin/bash
 
-rm -rf parser/*
-mkdir -p parser
-
-echo "The contents of this directory is auto-generated" > parser/README.md
+mkdir -p build
 
 # Expression parser, SQL parser
 node extra/pegjs.js

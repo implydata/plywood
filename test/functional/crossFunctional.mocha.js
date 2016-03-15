@@ -184,7 +184,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with contains filter', equalityTest({
+    it('works with .contains()', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter($cityName.contains("San"))')
@@ -192,7 +192,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with match filter', equalityTest({
+    it('works with .match()', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression:  ply()
         .apply('wiki', '$wiki.filter($cityName.match("^S[ab]n .{3,6}$"))')
@@ -200,7 +200,15 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with lessThan filter', equalityTest({
+    it.skip('works with .timePart().in()', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter($('time').timePart('HOUR_OF_DAY').in([3, 7])))
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with .lessThan()', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter($commentLength < 50)')
@@ -208,7 +216,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with lessThanOrEqual filter', equalityTest({
+    it('works with .lessThanOrEqual()', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter($commentLength <= 50)')

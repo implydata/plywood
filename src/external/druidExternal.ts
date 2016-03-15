@@ -666,8 +666,9 @@ module Plywood {
 
         var extractionFn = this.expressionToExtractionFn(lhs);
         var freeReferences = lhs.getFreeReferences();
-        if (freeReferences.length !== 1) throw new Error(`can not convert multi referense filter ${filter} to Druid filter`);
+        if (freeReferences.length !== 1) throw new Error(`can not convert multi reference filter ${filter} to Druid filter`);
         var referenceName = freeReferences[0];
+        var dimensionName = referenceName === this.timeAttribute ? '__time' : referenceName;
         attributeInfo = this.getAttributesInfo(referenceName);
 
         if (filterAction instanceof IsAction) {
@@ -683,20 +684,20 @@ module Plywood {
             }
             return druidFilter;
           } else {
-            throw new Error("can not convert " + filter.toString() + " to Druid filter");
+            throw new Error(`can not convert ${filter} to Druid filter`);
           }
         }
 
         if (filterAction instanceof InAction || filterAction instanceof OverlapAction) {
           if (rhs instanceof LiteralExpression) {
             var rhsType = rhs.type;
-            if (rhsType === 'SET/STRING' || rhsType === 'SET/NULL') {
+            if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
               var elements = rhs.value.elements;
-              if (extractionFn || this.versionBefore('0.9.0') || elements.length < 2) {
+              if (extractionFn || elements.length < 2 || this.versionBefore('0.9.0')) {
                 var fields = elements.map((value: string) => {
                   var druidFilter: Druid.Filter = {
                     type: "selector",
-                    dimension: referenceName,
+                    dimension: dimensionName,
                     value: attributeInfo.serialize(value)
                   };
                   if (extractionFn) {
@@ -710,7 +711,7 @@ module Plywood {
               } else {
                 return {
                   type: 'in',
-                  dimension: referenceName,
+                  dimension: dimensionName,
                   values: elements.map((value: string) => attributeInfo.serialize(value))
                 };
               }
@@ -731,15 +732,15 @@ module Plywood {
                 }
                 return {
                   type: "javascript",
-                  dimension: referenceName,
+                  dimension: dimensionName,
                   "function": `function(a) { a = Number(a); return ${cmpStrings.join(' && ')}; }`
                 };
               }
 
               var boundFilter: Druid.Filter = {
-                "type": "bound",
-                "dimension": referenceName,
-                "alphaNumeric": true
+                type: "bound",
+                dimension: dimensionName,
+                alphaNumeric: true
               };
               if (r0 != null) {
                 boundFilter.lower = r0;
@@ -755,7 +756,7 @@ module Plywood {
               throw new Error("can not time filter on non-primary time dimension");
 
             } else {
-              throw new Error("not supported " + rhsType);
+              throw new Error(`not supported IN rhs type ${rhsType}`);
 
             }
           } else {
@@ -772,7 +773,7 @@ module Plywood {
           if (lhs instanceof RefExpression) {
             return {
               type: "regex",
-              dimension: referenceName,
+              dimension: dimensionName,
               pattern: filterAction.regexp
             };
           } else {
@@ -785,7 +786,7 @@ module Plywood {
             if (filterAction.compare === ContainsAction.IGNORE_CASE) {
               return {
                 type: "search",
-                dimension: referenceName,
+                dimension: dimensionName,
                 query: {
                   type: "fragment", // ToDo: change to 'insensitive_contains'
                   values: [rhs.value]
@@ -844,7 +845,7 @@ module Plywood {
             } else if (rhsType === 'TIME_RANGE') {
               timeRanges = [rhs.value];
             } else {
-              throw new Error("not supported " + rhsType + " for time filtering");
+              throw new Error(`not supported ${rhsType} for time filtering`);
             }
 
             var intervals = timeRanges.map(timeRange => timeRange.toInterval());
@@ -856,14 +857,6 @@ module Plywood {
         } else {
           throw new Error(`can not convert ${filter} to Druid interval`);
         }
-
-        /*
-        else if (filter instanceof AndExpression) {
-          var mergedTimePart = AndExpression.mergeTimePart(filter);
-          if (mergedTimePart) {
-          return this.timeFilterToIntervals(mergedTimePart);
-        }
-        */
 
       } else {
         throw new Error(`can not convert ${filter} to Druid interval`);
@@ -879,12 +872,22 @@ module Plywood {
           filter: null
         }
       } else {
-        var sep = filter.separateViaAnd(this.timeAttribute);
-        if (!sep) throw new Error("could not separate time filter in " + filter.toString());
-
+        const { timeAttribute } = this;
+        const { extract, rest } = filter.extractFromAnd(ex => {
+          if (ex instanceof ChainExpression) {
+            var op = ex.expression;
+            var actions = ex.actions;
+            if (op instanceof RefExpression) {
+              if (!(op.name === timeAttribute && actions.length === 1)) return false;
+              var action = actions[0].action;
+              return action === 'is' || action === 'in';
+            }
+          }
+          return false;
+        });
         return {
-          intervals: this.timeFilterToIntervals(sep.included),
-          filter: this.timelessFilterToDruid(sep.excluded, false)
+          intervals: this.timeFilterToIntervals(extract),
+          filter: this.timelessFilterToDruid(rest, false)
         }
       }
     }

@@ -232,13 +232,13 @@ Comma
   = _ "," _
 
 ReservedWord
-  = ( "ply" / "false" / "true" ) ![A-Za-z_]
+  = ( "ply" / "false" / "true" ) ![a-z_]i
 
 CallFn "CallFn"
   = $([a-zA-Z]+)
 
 Name "Name"
-  = $(!ReservedWord [a-zA-Z_] [a-z0-9A-Z_]*)
+  = $(!ReservedWord [a-z_]i [a-z0-9_]i*)
 
 TypeName "TypeName"
   = $([A-Z_/]+)

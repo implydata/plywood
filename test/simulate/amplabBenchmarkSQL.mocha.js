@@ -14,6 +14,7 @@ var context = {
     engine: 'druid',
     dataSource: 'rankings',
     timeAttribute: 'time',
+    allowSelectQueries: true,
     allowEternity: true,
     context: null,
     attributes: [
@@ -27,6 +28,7 @@ var context = {
     engine: 'druid',
     dataSource: 'uservisits',
     timeAttribute: 'visitDate',
+    allowSelectQueries: true,
     allowEternity: true,
     context: null,
     attributes: [
@@ -46,16 +48,50 @@ var context = {
 
 // https://amplab.cs.berkeley.edu/benchmark/
 describe("simulate Druid for amplab benchmark", () => {
-  it.skip("works for Query1", () => {
-//      SELECT pageURL, pageRank FROM rankings WHERE pageRank > X
-    var sql;
-    return sql = 'SELECT pageURL, pageRank FROM rankings WHERE pageRank > 5';
+  it("works for Query1", () => {
+    //         SELECT pageURL, pageRank FROM rankings WHERE pageRank > X
+    var sql = 'SELECT pageURL, pageRank FROM rankings WHERE pageRank > 5';
+    var ex = Expression.parseSQL(sql).expression;
+
+    expect(ex.toJS()).to.deep.equal(
+      $('rankings')
+        .filter('$pageRank > 5')
+        .apply('pageURL', '$pageURL')
+        .apply('pageRank', '$pageRank')
+        .select('pageURL', 'pageRank')
+        .toJS()
+    );
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "dataSource": "rankings",
+        "dimensions": [
+          "pageURL",
+          "pageRank"
+        ],
+        "filter": {
+          "alphaNumeric": true,
+          "dimension": "pageRank",
+          "lower": 5,
+          "lowerStrict": true,
+          "type": "bound"
+        },
+        "granularity": "all",
+        "intervals": "1000-01-01/3000-01-01",
+        "metrics": [
+          "!DUMMY"
+        ],
+        "pagingSpec": {
+          "pagingIdentifiers": {},
+          "threshold": 10000
+        },
+        "queryType": "select"
+      }
+    ]);
   });
 
-  // ToDo: make it so that selects such as these are automatically turned into groupBys within druid
-
   it("works for Query1 (modified to be GROUP BY)", () => {
-//      SELECT pageURL, sum(pageRank) AS pageRank FROM rankings GROUP BY pageURL HAVING pageRank > X
+    //         SELECT pageURL, sum(pageRank) AS pageRank FROM rankings GROUP BY pageURL HAVING pageRank > X
     var sql = 'SELECT pageURL, sum(pageRank) AS pageRank FROM rankings GROUP BY pageURL HAVING pageRank > 5';
     var ex = Expression.parseSQL(sql).expression;
 
@@ -103,7 +139,7 @@ describe("simulate Druid for amplab benchmark", () => {
   });
 
   it("works for Query2", () => {
-//      SELECT SUBSTR(sourceIP, 1, X), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, X)
+    //         SELECT SUBSTR(sourceIP, 1, X), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, X)
     var sql = 'SELECT SUBSTR(sourceIP, 1, 5), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, 5)';
     var ex = Expression.parseSQL(sql).expression;
 

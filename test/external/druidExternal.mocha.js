@@ -856,7 +856,7 @@ describe("DruidExternal", () => {
       });
     });
 
-    it("works with .in(10, 30)", () => {
+    it("works with .in(NUMBER_RANGE)", () => {
       var ex = $('wiki').filter($("commentLength").in(10, 30));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
@@ -870,6 +870,20 @@ describe("DruidExternal", () => {
         "type": "bound",
         "upper": 30,
         "upperStrict": true
+      });
+    });
+
+    it("works with .in(SET/NUMBER)", () => {
+      var ex = $('wiki').filter($("commentLength").in([10, 30]));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "commentLength",
+        "type": "in",
+        "values": [10, 30]
       });
     });
 
@@ -980,6 +994,43 @@ describe("DruidExternal", () => {
         "type": "extraction",
         "value": "true"
       });
+    });
+
+    it("works with .timePart().in()", () => {
+      var ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').in([3, 5]));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+          "fields": [
+            {
+              "dimension": "__time",
+              "extractionFn": {
+                "format": "H",
+                "locale": "en-US",
+                "timeZone": "Etc/UTC",
+                "type": "timeFormat"
+              },
+              "type": "extraction",
+              "value": 3
+            },
+            {
+              "dimension": "__time",
+              "extractionFn": {
+                "format": "H",
+                "locale": "en-US",
+                "timeZone": "Etc/UTC",
+                "type": "timeFormat"
+              },
+              "type": "extraction",
+              "value": 5
+            }
+          ],
+          "type": "or"
+        }
+      );
     });
 
   });

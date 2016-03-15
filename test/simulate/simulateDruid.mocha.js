@@ -1308,7 +1308,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it.skip("makes a filter on timePart", () => {
+  it("makes a filter on timePart", () => {
     var ex = $("diamonds").filter(
       $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').in([3, 4, 10]).and($("time").in([
         TimeRange.fromJS({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-15T00:00:00') }),
@@ -1333,19 +1333,48 @@ describe("simulate Druid", () => {
           "outputName": "Color",
           "type": "default"
         },
+        "filter": {
+          "fields": [
+            {
+              "dimension": "__time",
+              "extractionFn": {
+                "format": "H",
+                "locale": "en-US",
+                "timeZone": "Etc/UTC",
+                "type": "timeFormat"
+              },
+              "type": "extraction",
+              "value": 3
+            },
+            {
+              "dimension": "__time",
+              "extractionFn": {
+                "format": "H",
+                "locale": "en-US",
+                "timeZone": "Etc/UTC",
+                "type": "timeFormat"
+              },
+              "type": "extraction",
+              "value": 4
+            },
+            {
+              "dimension": "__time",
+              "extractionFn": {
+                "format": "H",
+                "locale": "en-US",
+                "timeZone": "Etc/UTC",
+                "type": "timeFormat"
+              },
+              "type": "extraction",
+              "value": 10
+            }
+          ],
+          "type": "or"
+        },
         "granularity": "all",
         "intervals": [
-          "2015-03-12T03/2015-03-12T05",
-          "2015-03-12T10/2015-03-12T11",
-          "2015-03-13T03/2015-03-13T05",
-          "2015-03-13T10/2015-03-13T11",
-          "2015-03-14T03/2015-03-14T05",
-          "2015-03-14T10/2015-03-14T11",
-
-          "2015-03-16T03/2015-03-16T05",
-          "2015-03-16T10/2015-03-16T11",
-          "2015-03-17T03/2015-03-17T05",
-          "2015-03-17T10/2015-03-17T11"
+          "2015-03-12/2015-03-15",
+          "2015-03-16/2015-03-18"
         ],
         "metric": "Count",
         "queryType": "topN",
@@ -1354,7 +1383,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it.skip("splits on timePart with sub split", () => {
+  it("splits on timePart with sub split", () => {
     var ex = $("diamonds").split($("time").timePart('HOUR_OF_DAY', 'Etc/UTC'), 'hourOfDay')
       .apply('Count', '$diamonds.count()')
       .sort('$Count', 'descending')
@@ -1406,16 +1435,19 @@ describe("simulate Druid", () => {
           "outputName": "Color",
           "type": "default"
         },
+        "filter": {
+          "dimension": "time",
+          "extractionFn": {
+            "format": "H",
+            "locale": "en-US",
+            "timeZone": "Etc/UTC",
+            "type": "timeFormat"
+          },
+          "type": "extraction",
+          "value": 4
+        },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12T04/2015-03-12T05",
-          "2015-03-13T04/2015-03-13T05",
-          "2015-03-14T04/2015-03-14T05",
-          "2015-03-15T04/2015-03-15T05",
-          "2015-03-16T04/2015-03-16T05",
-          "2015-03-17T04/2015-03-17T05",
-          "2015-03-18T04/2015-03-18T05"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10

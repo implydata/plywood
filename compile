@@ -3,6 +3,7 @@
 echo "Compiling..."
 
 rm -rf build/*
+mkdir -p build
 
 echo "Compiling PEG.js"
 ./compile-pegjs

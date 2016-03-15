@@ -90,7 +90,8 @@ module Plywood {
           return `${dialect.timeToSQL(value.start)}/${dialect.timeToSQL(value.end)}`;
 
         case 'SET/STRING':
-          return '(' + (<Set>value).elements.map((v: string) => dialect.escapeLiteral(v)).join(',') + ')';
+        case 'SET/NUMBER':
+          return '(' + (<Set>value).elements.map((v: any) => dialect.escapeLiteral(v)).join(',') + ')';
 
         default:
           throw new Error("currently unsupported type: " + this.type);

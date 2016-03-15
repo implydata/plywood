@@ -1,6 +1,5 @@
 #!/bin/bash
 
-rm -rf build/*
 mkdir -p build
 
 node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComments --noFallthroughCasesInSwitch --noImplicitReturns --out build/plywood.js \
