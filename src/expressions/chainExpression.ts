@@ -470,27 +470,25 @@ module Plywood {
       return promise;
     }
 
-    public separateViaAnd(refName: string): Separation {
-      if (typeof refName !== 'string') throw new Error('must have refName');
-      if (!this.simple) return this.simplify().separateViaAnd(refName);
+    public extractFromAnd(matchFn: ExpressionMatchFn): ExtractAndRest {
+      if (!this.simple) return this.simplify().extractFromAnd(matchFn);
 
       var andExpressions = this.getExpressionPattern('and');
-      if (!andExpressions) {
-        return super.separateViaAnd(refName);
-      }
+      if (!andExpressions) return super.extractFromAnd(matchFn);
 
       var includedExpressions: Expression[] = [];
       var excludedExpressions: Expression[] = [];
-      for (let operand of andExpressions) {
-        var sep = operand.separateViaAnd(refName);
-        if (sep === null) return null;
-        includedExpressions.push(sep.included);
-        excludedExpressions.push(sep.excluded);
+      for (let ex of andExpressions) {
+        if (matchFn(ex)) {
+          includedExpressions.push(ex);
+        } else {
+          excludedExpressions.push(ex);
+        }
       }
 
       return {
-        included: Expression.and(includedExpressions).simplify(),
-        excluded: Expression.and(excludedExpressions).simplify()
+        extract: Expression.and(includedExpressions).simplify(),
+        rest: Expression.and(excludedExpressions).simplify()
       };
     }
 

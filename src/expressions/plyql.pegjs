@@ -253,6 +253,10 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
   return query;
 }
 
+function makeList(head, tail) {
+  return [head].concat(tail);
+}
+
 function makeListMap1(head, tail) {
   return [head].concat(tail.map(function(t) { return t[1] }));
 }
@@ -347,8 +351,8 @@ WhereClause
     { return filter; }
 
 GroupByClause
-  = _ GroupToken __ ByToken _ head:Expression tail:(Comma Expression)*
-    { return makeListMap1(head, tail); }
+  = _ GroupToken __ ByToken _ head:Expression tail:ExpressionParameter*
+    { return makeList(head, tail); }
 
 HavingClause
   = _ HavingToken _ having:Expression
@@ -401,53 +405,62 @@ AndExpression
 
 
 NotExpression
-  = NotToken _ ex:ComparisonExpression { return ex.not(); }
-  / ComparisonExpression
+  = not:(NotToken _)? ex:ComparisonExpression
+    {
+      if (not) ex = ex.not();
+      return ex;
+    }
 
 
 ComparisonExpression
-  = lhs:AdditiveExpression not:(_ NotToken)? __ BetweenToken __ start:LiteralExpression __ AndToken __ end:LiteralExpression
+  = ex:AdditiveExpression rhs:(_ ComparisonExpressionRhs)?
     {
-      var ex = lhs.in({ start: start.value, end: end.value, bounds: '[]' });
-      if (not) ex = ex.not();
+      if (rhs) {
+        rhs = rhs[1];
+        ex = ex[rhs.call].apply(ex, rhs.args);
+        if (rhs.not) ex = ex.not();
+      }
       return ex;
     }
-  / lhs:AdditiveExpression _ IsToken not:(_ NotToken)? _ rhs:LiteralExpression
+
+ComparisonExpressionRhs
+  = not:NotToken? _ rhs:ComparisonExpressionRhsNotable
     {
-      var ex = lhs.is(rhs);
-      if (not) ex = ex.not();
-      return ex;
+      rhs.not = not;
+      return rhs;
     }
-  / lhs:AdditiveExpression not:(_ NotToken)? _ InToken _ list:ListLiteral
+  / IsToken not:(_ NotToken)? _ rhs:LiteralExpression
     {
-      var ex = lhs.in(list);
-      if (not) ex = ex.not();
-      return ex;
+      return { call: 'is', args: [rhs], not: not };
     }
-  / lhs:AdditiveExpression not:(_ NotToken)? _ ContainsToken _ string:String
+  / op:ComparisonOp _ lhs:AdditiveExpression
     {
-      var ex = lhs.contains(string, 'ignoreCase');
-      if (not) ex = ex.not();
-      return ex;
+      return { call: op, args: [lhs] };
     }
-  / lhs:AdditiveExpression not:(_ NotToken)? _ LikeToken _ string:String escape:(_ EscapeToken _ String)?
+
+ComparisonExpressionRhsNotable
+  = BetweenToken __ start:LiteralExpression __ AndToken __ end:LiteralExpression
+    {
+      var range = { start: start.value, end: end.value, bounds: '[]' };
+      return { call: 'in', args: [range] };
+    }
+  / InToken _ list:ListLiteral
+    {
+      return { call: 'in', args: [list] };
+    }
+  / ContainsToken _ string:String
+    {
+      return { call: 'contains', args: [string, 'ignoreCase'] };
+    }
+  / LikeToken _ string:String escape:(_ EscapeToken _ String)?
     {
       var escapeStr = escape ? escape[3] : '\\';
       if (escapeStr.length > 1) error('Invalid escape string: ' + escapeStr);
-      var ex = lhs.match(MatchAction.likeToRegExp(string, escapeStr));
-      if (not) ex = ex.not();
-      return ex;
+      return { call: 'match', args: [MatchAction.likeToRegExp(string, escapeStr)] };
     }
-  / lhs:AdditiveExpression not:(_ NotToken)? _ RegExpToken _ string:String
+  / RegExpToken _ string:String
     {
-      var ex = lhs.match(string);
-      if (not) ex = ex.not();
-      return ex;
-    }
-  / lhs:AdditiveExpression rest:(_ ComparisonOp _ AdditiveExpression)?
-    {
-      if (!rest) return lhs;
-      return lhs[rest[1]](rest[3]);
+      return { call: 'match', args: [string] };
     }
 
 ComparisonOp
@@ -468,14 +481,14 @@ AdditiveExpression
   = head:MultiplicativeExpression tail:(_ AdditiveOp _ MultiplicativeExpression)*
     { return naryExpressionWithAltFactory('add', head, tail, '-', 'subtract'); }
 
-AdditiveOp = op:[+-] ![+] { return op; }
+AdditiveOp = op:("+" / "-") !"+" { return op; }
 
 
 MultiplicativeExpression
   = head:UnaryExpression tail:(_ MultiplicativeOp _ UnaryExpression)*
     { return naryExpressionWithAltFactory('multiply', head, tail, '/', 'divide'); }
 
-MultiplicativeOp = [*/]
+MultiplicativeOp = "*" / "/"
 
 
 UnaryExpression
@@ -492,8 +505,7 @@ BasicExpression
   = LiteralExpression
   / AggregateExpression
   / FunctionCallExpression
-  / OpenParen _ ex:Expression CloseParen { return ex; }
-  / OpenParen _ selectSubQuery:SelectSubQuery CloseParen { return selectSubQuery; }
+  / OpenParen _ sub:(Expression / SelectSubQuery) CloseParen { return sub; }
   / RefExpression
 
 
@@ -520,43 +532,50 @@ AggregateExpression
 AggregateFn
   = SumToken / AvgToken / MinToken / MaxToken / CountDistinctToken
 
-
 FunctionCallExpression
-  = NumberBucketToken OpenParen _ operand:Expression Comma size:Number Comma offset:Number CloseParen
+  = NumberBucketToken OpenParen operand:Operand size:NumberParameter offset:NumberParameter CloseParen
     { return operand.numberBucket(size, offset); }
-  / fn:(TimeBucketToken / TimeFloorToken) OpenParen _ operand:Expression Comma duration:NameOrString timezone:TimezoneParameter? CloseParen
+  / fn:(TimeBucketToken / TimeFloorToken) OpenParen operand:Operand duration:NameOrStringParameter timezone:NameOrStringParameter? CloseParen
     { return operand[fn](duration, timezone); }
-  / TimePartToken OpenParen _ operand:Expression Comma part:NameOrString timezone:TimezoneParameter? CloseParen
+  / TimePartToken OpenParen operand:Operand part:NameOrStringParameter timezone:NameOrStringParameter? CloseParen
     { return operand.timePart(part, timezone); }
-  / fn:(TimeShiftToken / TimeRangeToken) OpenParen _ operand:Expression Comma duration:NameOrString Comma step:Number timezone:TimezoneParameter? CloseParen
+  / fn:(TimeShiftToken / TimeRangeToken) OpenParen operand:Operand duration:NameOrStringParameter step:NumberParameter timezone:NameOrStringParameter? CloseParen
     { return operand[fn](duration, step, timezone); }
-  / SubstrToken OpenParen _ operand:Expression Comma position:Number Comma length:Number CloseParen
+  / SubstrToken OpenParen operand:Operand position:NumberParameter length:NumberParameter CloseParen
     { return operand.substr(position, length); }
-  / ExtractToken OpenParen _ operand:Expression Comma regexp:String CloseParen
+  / ExtractToken OpenParen operand:Operand regexp:StringParameter CloseParen
     { return operand.extract(regexp); }
-  / LookupToken OpenParen _ operand:Expression Comma lookup:String CloseParen
+  / LookupToken OpenParen operand:Operand lookup:StringParameter CloseParen
     { return operand.lookup(lookup); }
-  / ConcatToken OpenParen head:Expression tail:(Comma Expression)* CloseParen
-    { return Expression.concat(makeListMap1(head, tail)); }
-  / (IfNullToken/FallbackToken) OpenParen _ operand:Expression Comma _ fallbackValue:Expression CloseParen
+  / ConcatToken OpenParen head:Expression tail:ExpressionParameter* CloseParen
+    { return Expression.concat(makeList(head, tail)); }
+  / (IfNullToken/FallbackToken) OpenParen operand:Operand fallbackValue:ExpressionParameter CloseParen
     { return operand.fallback(fallbackValue);}
-  / MatchToken OpenParen operand:Expression Comma regexp:String CloseParen
+  / MatchToken OpenParen operand:Expression regexp:StringParameter CloseParen
     { return operand.match(regexp); }
   / NowToken OpenParen CloseParen
     { return r(new Date()); }
-  / (AbsToken/AbsoluteToken ) OpenParen _ operand:Expression _ CloseParen
+  / (AbsToken/AbsoluteToken ) OpenParen operand:Operand CloseParen
     { return operand.absolute(); }
-  / (PowToken/PowerToken) OpenParen _ operand:Expression Comma exponent:Number CloseParen
+  / (PowToken/PowerToken) OpenParen operand:Operand exponent:NumberParameter CloseParen
     { return operand.power(exponent); }
-  / ExpToken OpenParen _ exponent:Expression CloseParen
+  / ExpToken OpenParen exponent:Operand CloseParen
     { return r(Math.E).power(exponent); }
-  / SqrtToken OpenParen _ operand:Expression CloseParen
+  / SqrtToken OpenParen operand:Operand CloseParen
     { return operand.power(0.5); }
-  / OverlapToken OpenParen _ lhs:Expression Comma rhs:Expression CloseParen
+  / OverlapToken OpenParen lhs:Operand rhs:ExpressionParameter CloseParen
     { return lhs.overlap(rhs); }
 
-TimezoneParameter
-  = Comma timezone:NameOrString { return timezone }
+Operand = _ ex:Expression { return ex; }
+
+ExpressionParameter = Comma ex:Expression { return ex; }
+
+NumberParameter = Comma num:Number { return num; }
+
+StringParameter = Comma str:String { return str; }
+
+NameOrStringParameter = Comma timezone:NameOrString { return timezone; }
+
 
 RefExpression
   = ref:NamespacedRef { return $(ref.name); }
@@ -741,10 +760,10 @@ Comma
   = _ "," _
 
 Name "Name"
-  = $([a-zA-Z_] [a-z0-9A-Z_]*)
+  = $([a-z_]i [a-z0-9_]i*)
 
 RelaxedName "RelaxedName"
-  = $([a-zA-Z_\-:*/] [a-z0-9A-Z_\-:*/]*)
+  = $([a-z_\-:*/]i [a-z0-9_\-:*/]i*)
 
 NotSQuote "NotSQuote"
   = $([^']*)

@@ -18,5 +18,6 @@ mocha \
   test/external/* \
   test/helper/* \
   test/overall/* \
+  test/parser/* \
   test/simulate/* \
   ;

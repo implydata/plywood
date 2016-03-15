@@ -11,6 +11,10 @@ module Plywood {
     (ex: Expression, index?: int, depth?: int, nestDiff?: int): Expression;
   }
 
+  export interface ExpressionMatchFn {
+    (ex: Expression): boolean;
+  }
+
   export interface ActionMatchFn {
     (action: Action): boolean;
   }
@@ -67,9 +71,9 @@ module Plywood {
     actions?: ActionJS[];
   }
 
-  export interface Separation {
-    included: Expression;
-    excluded: Expression;
+  export interface ExtractAndRest {
+    extract: Expression;
+    rest: Expression;
   }
 
   export type IfNotFound = "throw" | "leave" | "null";
@@ -616,20 +620,17 @@ module Plywood {
       throw new Error('should never be called directly');
     }
 
-    public separateViaAnd(refName: string): Separation {
-      if (typeof refName !== 'string') throw new Error('must have refName');
+    public extractFromAnd(matchFn: ExpressionMatchFn): ExtractAndRest {
       if (this.type !== 'BOOLEAN') return null;
-      var myRef = this.getFreeReferences();
-      if (myRef.length > 1 && myRef.indexOf(refName) !== -1) return null;
-      if (myRef[0] === refName) {
+      if (matchFn(this)) {
         return {
-          included: this,
-          excluded: Expression.TRUE
+          extract: this,
+          rest: Expression.TRUE
         }
       } else {
         return {
-          included: Expression.TRUE,
-          excluded: this
+          extract: Expression.TRUE,
+          rest: this
         }
       }
     }

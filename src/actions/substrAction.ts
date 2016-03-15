@@ -18,8 +18,7 @@ module Plywood {
     }
 
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'STRING');
-      return 'STRING';
+      return this._stringTransformOutputType(inputType);
     }
 
     public valueOf(): ActionValue {

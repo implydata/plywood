@@ -221,24 +221,9 @@ describe("simulate Druid", () => {
               "value": "D"
             },
             {
-              "fields": [
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Good"
-                },
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Bad"
-                },
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Ugly"
-                }
-              ],
-              "type": "or"
+              "values": ["Good", "Bad", "Ugly"],
+              "type": "in",
+              "dimension": "tags"
             }
           ],
           "type": "and"
@@ -385,24 +370,9 @@ describe("simulate Druid", () => {
               "value": "D"
             },
             {
-              "fields": [
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Good"
-                },
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Bad"
-                },
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Ugly"
-                }
-              ],
-              "type": "or"
+              "values": ["Good", "Bad", "Ugly"],
+              "type": "in",
+              "dimension": "tags"
             }
           ],
           "type": "and"
@@ -430,24 +400,9 @@ describe("simulate Druid", () => {
               "value": "D"
             },
             {
-              "fields": [
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Good"
-                },
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Bad"
-                },
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Ugly"
-                }
-              ],
-              "type": "or"
+              "values": ["Good", "Bad", "Ugly"],
+              "type": "in",
+              "dimension": "tags"
             },
             {
               "dimension": "cut",
@@ -493,24 +448,9 @@ describe("simulate Druid", () => {
               "value": "D"
             },
             {
-              "fields": [
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Good"
-                },
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Bad"
-                },
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "Ugly"
-                }
-              ],
-              "type": "or"
+              "values": ["Good", "Bad", "Ugly"],
+              "type": "in",
+              "dimension": "tags"
             },
             {
               "dimension": "cut",
@@ -547,19 +487,9 @@ describe("simulate Druid", () => {
       .apply('Count', '$diamonds.count()');
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
-      "fields": [
-        {
-          "dimension": "color",
-          "type": "selector",
-          "value": "C"
-        },
-        {
-          "dimension": "color",
-          "type": "selector",
-          "value": "D"
-        }
-      ],
-      "type": "or"
+      "values": ["C", "D"],
+      "type": "in",
+      "dimension": "color"
     });
   });
 
@@ -688,19 +618,9 @@ describe("simulate Druid", () => {
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "field": {
-        "fields": [
-          {
-            "dimension": "color",
-            "type": "selector",
-            "value": "D"
-          },
-          {
-            "dimension": "color",
-            "type": "selector",
-            "value": "C"
-          }
-        ],
-        "type": "or"
+        "values": ["D", "C"],
+        "type": "in",
+        "dimension": "color"
       },
       "type": "not"
     });
@@ -849,9 +769,8 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].dimension).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
-        "function": "function(d){return ((\"!!!<\"+d)+\">!!!\");}",
-        "type": "javascript",
-        "injective": true
+        "format": "!!!<%s>!!!",
+        "type": "stringFormat"
       },
       "outputName": "Colors",
       "type": "extraction"
@@ -1048,19 +967,9 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "filter": {
-          "fields": [
-            {
-              "dimension": "tags",
-              "type": "selector",
-              "value": "tagA"
-            },
-            {
-              "dimension": "tags",
-              "type": "selector",
-              "value": "tagB"
-            }
-          ],
-          "type": "or"
+          "values": ["tagA", "tagB"],
+          "type": "in",
+          "dimension": "tags"
         },
         "granularity": "all",
         "intervals": "2015-03-12/2015-03-19",
@@ -1089,19 +998,9 @@ describe("simulate Druid", () => {
         "filter": {
           "fields": [
             {
-              "fields": [
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "tagA"
-                },
-                {
-                  "dimension": "tags",
-                  "type": "selector",
-                  "value": "tagB"
-                }
-              ],
-              "type": "or"
+              "values": ["tagA", "tagB"],
+              "type": "in",
+              "dimension": "tags"
             },
             {
               "dimension": "tags",
@@ -1212,7 +1111,7 @@ describe("simulate Druid", () => {
         "dataSource": "diamonds",
         "dimension": {
           "extractionFn": {
-            "function": "function(d) {\nvar m = d.match(/^((?:-?[1-9]\\d*|0)\\.\\d{2});((?:-?[1-9]\\d*|0)\\.\\d{2})$/);\nif(!m) return 'null';\nvar s = +m[1];\nif(!(Math.abs(+m[2] - s - 0.05) < 1e-6)) return 'null'; s=Math.floor((s - 0.5) / 2) * 2 + 0.5;\nvar parts = String(Math.abs(s)).split('.');\nparts[0] = ('000000000' + parts[0]).substr(-10);\nreturn (start < 0 ?'-':'') + parts.join('.');\n}",
+            "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor((d - 0.5) / 2) * 2 + 0.5;}",
             "type": "javascript"
           },
           "dimension": "height_bucket",
@@ -1409,7 +1308,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it.skip("makes a filter on timePart", () => {
+  it("makes a filter on timePart", () => {
     var ex = $("diamonds").filter(
       $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').in([3, 4, 10]).and($("time").in([
         TimeRange.fromJS({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-15T00:00:00') }),
@@ -1434,19 +1333,48 @@ describe("simulate Druid", () => {
           "outputName": "Color",
           "type": "default"
         },
+        "filter": {
+          "fields": [
+            {
+              "dimension": "__time",
+              "extractionFn": {
+                "format": "H",
+                "locale": "en-US",
+                "timeZone": "Etc/UTC",
+                "type": "timeFormat"
+              },
+              "type": "extraction",
+              "value": 3
+            },
+            {
+              "dimension": "__time",
+              "extractionFn": {
+                "format": "H",
+                "locale": "en-US",
+                "timeZone": "Etc/UTC",
+                "type": "timeFormat"
+              },
+              "type": "extraction",
+              "value": 4
+            },
+            {
+              "dimension": "__time",
+              "extractionFn": {
+                "format": "H",
+                "locale": "en-US",
+                "timeZone": "Etc/UTC",
+                "type": "timeFormat"
+              },
+              "type": "extraction",
+              "value": 10
+            }
+          ],
+          "type": "or"
+        },
         "granularity": "all",
         "intervals": [
-          "2015-03-12T03/2015-03-12T05",
-          "2015-03-12T10/2015-03-12T11",
-          "2015-03-13T03/2015-03-13T05",
-          "2015-03-13T10/2015-03-13T11",
-          "2015-03-14T03/2015-03-14T05",
-          "2015-03-14T10/2015-03-14T11",
-
-          "2015-03-16T03/2015-03-16T05",
-          "2015-03-16T10/2015-03-16T11",
-          "2015-03-17T03/2015-03-17T05",
-          "2015-03-17T10/2015-03-17T11"
+          "2015-03-12/2015-03-15",
+          "2015-03-16/2015-03-18"
         ],
         "metric": "Count",
         "queryType": "topN",
@@ -1455,7 +1383,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it.skip("splits on timePart with sub split", () => {
+  it("splits on timePart with sub split", () => {
     var ex = $("diamonds").split($("time").timePart('HOUR_OF_DAY', 'Etc/UTC'), 'hourOfDay')
       .apply('Count', '$diamonds.count()')
       .sort('$Count', 'descending')
@@ -1507,16 +1435,19 @@ describe("simulate Druid", () => {
           "outputName": "Color",
           "type": "default"
         },
+        "filter": {
+          "dimension": "time",
+          "extractionFn": {
+            "format": "H",
+            "locale": "en-US",
+            "timeZone": "Etc/UTC",
+            "type": "timeFormat"
+          },
+          "type": "extraction",
+          "value": 4
+        },
         "granularity": "all",
-        "intervals": [
-          "2015-03-12T04/2015-03-12T05",
-          "2015-03-13T04/2015-03-13T05",
-          "2015-03-14T04/2015-03-14T05",
-          "2015-03-15T04/2015-03-15T05",
-          "2015-03-16T04/2015-03-16T05",
-          "2015-03-17T04/2015-03-17T05",
-          "2015-03-18T04/2015-03-18T05"
-        ],
+        "intervals": "2015-03-12/2015-03-19",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -2050,24 +1981,9 @@ describe("simulate Druid", () => {
           }
         ],
         "filter": {
-          "fields": [
-            {
-              "dimension": "color",
-              "type": "selector",
-              "value": "A"
-            },
-            {
-              "dimension": "color",
-              "type": "selector",
-              "value": "B"
-            },
-            {
-              "dimension": "color",
-              "type": "selector",
-              "value": "some_color"
-            }
-          ],
-          "type": "or"
+          "values": ["A", "B", "some_color"],
+          "type": "in",
+          "dimension": "color"
         },
         "granularity": "all",
         "intervals": "2015-03-12/2015-03-19",
@@ -2158,24 +2074,9 @@ describe("simulate Druid", () => {
           }
         ],
         "filter": {
-          "fields": [
-            {
-              "dimension": "color",
-              "type": "selector",
-              "value": "A"
-            },
-            {
-              "dimension": "color",
-              "type": "selector",
-              "value": "B"
-            },
-            {
-              "dimension": "color",
-              "type": "selector",
-              "value": "some_color"
-            }
-          ],
-          "type": "or"
+          "values": ["A", "B", "some_color"],
+          "type": "in",
+          "dimension": "color"
         },
         "granularity": {
           "period": "PT1H",

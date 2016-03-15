@@ -665,7 +665,10 @@ module Plywood {
         }
 
         var extractionFn = this.expressionToExtractionFn(lhs);
-        referenceName = lhs.getFreeReferences()[0];
+        var freeReferences = lhs.getFreeReferences();
+        if (freeReferences.length !== 1) throw new Error(`can not convert multi reference filter ${filter} to Druid filter`);
+        var referenceName = freeReferences[0];
+        var dimensionName = referenceName === this.timeAttribute ? '__time' : referenceName;
         attributeInfo = this.getAttributesInfo(referenceName);
 
         if (filterAction instanceof IsAction) {
@@ -681,72 +684,100 @@ module Plywood {
             }
             return druidFilter;
           } else {
-            throw new Error("can not convert " + filter.toString() + " to Druid filter");
+            throw new Error(`can not convert ${filter} to Druid filter`);
           }
         }
 
         if (filterAction instanceof InAction || filterAction instanceof OverlapAction) {
           if (rhs instanceof LiteralExpression) {
             var rhsType = rhs.type;
-            if (rhsType === 'SET/STRING' || rhsType === 'SET/NULL') {
-              var fields = rhs.value.elements.map((value: string) => {
-                var druidFilter: Druid.Filter = {
-                  type: "selector",
-                  dimension: referenceName,
-                  value: attributeInfo.serialize(value)
-                };
-                if (extractionFn) {
-                  druidFilter.type = "extraction";
-                  druidFilter.extractionFn = extractionFn;
-                }
-                return druidFilter;
-              });
+            if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
+              var elements = rhs.value.elements;
+              if (extractionFn || elements.length < 2 || this.versionBefore('0.9.0')) {
+                var fields = elements.map((value: string) => {
+                  var druidFilter: Druid.Filter = {
+                    type: "selector",
+                    dimension: dimensionName,
+                    value: attributeInfo.serialize(value)
+                  };
+                  if (extractionFn) {
+                    druidFilter.type = "extraction";
+                    druidFilter.extractionFn = extractionFn;
+                  }
+                  return druidFilter;
+                });
 
-              if (fields.length === 1) return fields[0];
-              return { type: "or", fields };
+                return fields.length === 1 ? fields[0] : { type: "or", fields };
+              } else {
+                return {
+                  type: 'in',
+                  dimension: dimensionName,
+                  values: elements.map((value: string) => attributeInfo.serialize(value))
+                };
+              }
 
             } else if (rhsType === 'NUMBER_RANGE') {
               var range: NumberRange = rhs.value;
               var r0 = range.start;
               var r1 = range.end;
-              return {
-                type: "javascript",
-                dimension: referenceName,
-                "function": `function(a) { a = Number(a); return ${r0} <= a && a < ${r1}; }`
+              var bounds = range.bounds;
+
+              if (this.versionBefore('0.9.0')) {
+                var cmpStrings: string[] = [];
+                if (r0 != null) {
+                  cmpStrings.push(`${r0} ${bounds[0] === '(' ? '<' : '<='} a`);
+                }
+                if (r1 != null) {
+                  cmpStrings.push(`a ${bounds[1] === ')' ? '<' : '<='} ${r1}`);
+                }
+                return {
+                  type: "javascript",
+                  dimension: dimensionName,
+                  "function": `function(a) { a = Number(a); return ${cmpStrings.join(' && ')}; }`
+                };
+              }
+
+              var boundFilter: Druid.Filter = {
+                type: "bound",
+                dimension: dimensionName,
+                alphaNumeric: true
               };
+              if (r0 != null) {
+                boundFilter.lower = r0;
+                if (bounds[0] === '(') boundFilter.lowerStrict = true;
+              }
+              if (r1 != null) {
+                boundFilter.upper = r1;
+                if (bounds[1] === ')') boundFilter.upperStrict = true;
+              }
+              return boundFilter;
 
             } else if (rhsType === 'TIME_RANGE') {
               throw new Error("can not time filter on non-primary time dimension");
 
             } else {
-              throw new Error("not supported " + rhsType);
+              throw new Error(`not supported IN rhs type ${rhsType}`);
 
             }
           } else {
-            throw new Error("can not convert " + filter.toString() + " to Druid filter");
+            throw new Error(`can not convert ${filter} to Druid filter`);
           }
         }
 
         if (aggregatorFilter) {
           if (this.versionBefore('0.8.2')) throw new Error(`can not express aggregate filter ${filter} in druid < 0.8.2`);
-
-          return {
-            type: "extraction",
-            dimension: referenceName,
-            extractionFn: this.expressionToExtractionFn(filter),
-            value: "true"
-          }
+          return this.makeExtractionFilter(filter);
         }
 
         if (filterAction instanceof MatchAction) {
           if (lhs instanceof RefExpression) {
             return {
               type: "regex",
-              dimension: referenceName,
+              dimension: dimensionName,
               pattern: filterAction.regexp
             };
           } else {
-            throw new Error("can not convert " + filter.toString() + " to Druid filter");
+            return this.makeExtractionFilter(filter);
           }
         }
 
@@ -755,7 +786,7 @@ module Plywood {
             if (filterAction.compare === ContainsAction.IGNORE_CASE) {
               return {
                 type: "search",
-                dimension: referenceName,
+                dimension: dimensionName,
                 query: {
                   type: "fragment", // ToDo: change to 'insensitive_contains'
                   values: [rhs.value]
@@ -765,13 +796,22 @@ module Plywood {
               return this.javaScriptDruidFilter(referenceName, filter);
             }
           } else {
-            throw new Error("can not convert " + filter.toString() + " to Druid filter");
+            return this.makeExtractionFilter(filter);
           }
         }
 
       }
 
-      throw new Error("could not convert filter " + filter.toString() + " to Druid filter");
+      throw new Error(`could not convert filter ${filter} to Druid filter`);
+    }
+
+    public makeExtractionFilter(filter: Expression): Druid.Filter {
+      return {
+        type: "extraction",
+        dimension: filter.getFreeReferences()[0],
+        extractionFn: this.expressionToExtractionFn(filter),
+        value: "true"
+      }
     }
 
     public timeFilterToIntervals(filter: Expression): Druid.Intervals {
@@ -805,7 +845,7 @@ module Plywood {
             } else if (rhsType === 'TIME_RANGE') {
               timeRanges = [rhs.value];
             } else {
-              throw new Error("not supported " + rhsType + " for time filtering");
+              throw new Error(`not supported ${rhsType} for time filtering`);
             }
 
             var intervals = timeRanges.map(timeRange => timeRange.toInterval());
@@ -817,14 +857,6 @@ module Plywood {
         } else {
           throw new Error(`can not convert ${filter} to Druid interval`);
         }
-
-        /*
-        else if (filter instanceof AndExpression) {
-          var mergedTimePart = AndExpression.mergeTimePart(filter);
-          if (mergedTimePart) {
-          return this.timeFilterToIntervals(mergedTimePart);
-        }
-        */
 
       } else {
         throw new Error(`can not convert ${filter} to Druid interval`);
@@ -840,35 +872,24 @@ module Plywood {
           filter: null
         }
       } else {
-        var sep = filter.separateViaAnd(this.timeAttribute);
-        if (!sep) throw new Error("could not separate time filter in " + filter.toString());
-
+        const { timeAttribute } = this;
+        const { extract, rest } = filter.extractFromAnd(ex => {
+          if (ex instanceof ChainExpression) {
+            var op = ex.expression;
+            var actions = ex.actions;
+            if (op instanceof RefExpression) {
+              if (!(op.name === timeAttribute && actions.length === 1)) return false;
+              var action = actions[0].action;
+              return action === 'is' || action === 'in';
+            }
+          }
+          return false;
+        });
         return {
-          intervals: this.timeFilterToIntervals(sep.included),
-          filter: this.timelessFilterToDruid(sep.excluded, false)
+          intervals: this.timeFilterToIntervals(extract),
+          filter: this.timelessFilterToDruid(rest, false)
         }
       }
-    }
-
-    public getRangeBucketingExtractionFn(attributeInfo: RangeAttributeInfo, numberBucket: NumberBucketAction): Druid.ExtractionFn {
-      var regExp = attributeInfo.getMatchingRegExpString();
-      if (numberBucket && numberBucket.offset === 0 && numberBucket.size === attributeInfo.rangeSize) numberBucket = null;
-      var bucketing = '';
-      if (numberBucket) {
-        bucketing = 's=' + continuousFloorExpression('s', 'Math.floor', numberBucket.size, numberBucket.offset) + ';';
-      }
-      return {
-        type: "javascript",
-        'function': `function(d) {
-var m = d.match(${regExp});
-if(!m) return 'null';
-var s = +m[1];
-if(!(Math.abs(+m[2] - s - ${attributeInfo.rangeSize}) < 1e-6)) return 'null'; ${bucketing}
-var parts = String(Math.abs(s)).split('.');
-parts[0] = ('000000000' + parts[0]).substr(-10);
-return (start < 0 ?'-':'') + parts.join('.');
-}`
-      };
     }
 
     public isTimeRef(ex: Expression) {
@@ -895,115 +916,120 @@ return (start < 0 ?'-':'') + parts.join('.');
       return null;
     }
 
+    // ---------------------------------------------------------------------------------------------------------------------------
+    // Extraction functions
+
     public expressionToExtractionFn(expression: Expression): Druid.ExtractionFn {
+      var extractionFns: Druid.ExtractionFn[] = [];
+      this._expressionToExtractionFns(expression, extractionFns);
+      switch (extractionFns.length) {
+        case 0: return null;
+        case 1: return extractionFns[0];
+        default:
+          if (this.versionBefore('0.9.0')) throw new Error(`can not convert ${expression} to filter in Druid < 0.9.0`);
+          return { type: 'cascade', extractionFns };
+      }
+    }
+
+    private _expressionToExtractionFns(expression: Expression, extractionFns: Druid.ExtractionFn[]): void {
       var freeReferences = expression.getFreeReferences();
       if (freeReferences.length !== 1) {
         throw new Error(`must have a single reference: ${expression}`);
       }
-      var referenceName = freeReferences[0];
 
       if (expression instanceof RefExpression) {
-        var attributeInfo = this.getAttributesInfo(referenceName);
-
-        if (attributeInfo instanceof RangeAttributeInfo) {
-          return this.getRangeBucketingExtractionFn(attributeInfo, null)
-        }
-
-        if (expression.type === 'BOOLEAN') {
-          return {
-            type: "lookup",
-            lookup: {
-              type: "map",
-              map: {
-                "0": "false",
-                "1": "true",
-                "false": "false",
-                "true": "true"
-              }
-            }
-          };
-        }
-
-        return null; // A valid return for no extractionFn needed
-      }
-
-      if (expression.type === 'BOOLEAN') {
-        return {
-          type: "javascript",
-          'function': expression.getJSFn('d')
-        };
+        this._processRefExtractionFn(expression, extractionFns);
+        return;
       }
 
       if (expression instanceof ChainExpression) {
-        if (expression.getExpressionPattern('concat')) {
-          // https://github.com/druid-io/druid/commit/3459a202ce751cb60884519ef902e35280550895
-          // Also https://github.com/druid-io/druid/pull/2209/files
-          return {
-            type: "javascript",
-            'function': expression.getJSFn('d'),
-            injective: true
-          };
-        }
-
-        // Concat is the only thing allowed to have a non leading ref, the rest must be $ref.someFunction
-        if (!expression.expression.isOp('ref')) {
-          throw new Error(`can not convert complex: ${expression.expression}`);
-        }
-
+        var lead = expression.expression;
         var actions = expression.actions;
-        var mainAction = actions[0];
+
+        var i = 0;
+        var curAction: Action = actions[0];
+        var concatPrefix: Expression[] = [];
+        if (curAction.action === 'concat') {
+          concatPrefix.push(lead);
+          while (curAction && curAction.action === 'concat') {
+            concatPrefix.push(curAction.expression);
+            curAction = actions[++i];
+          }
+          this._processConcatExtractionFn(concatPrefix, extractionFns);
+
+        } else if (!lead.isOp('ref')) {
+          // Concat is the only thing allowed to have a non leading ref, the rest must be $ref.someFunction
+          throw new Error(`can not convert complex: ${lead}`);
+        }
+
+        while (curAction) {
+          var nextAction = actions[i + 1];
+          var extractionFn: Druid.ExtractionFn;
+          if (nextAction instanceof FallbackAction) {
+            extractionFn = this.actionToExtractionFn(curAction, nextAction);
+            i++; // Skip it
+          } else {
+            extractionFn = this.actionToExtractionFn(curAction, null);
+          }
+          extractionFns.push(extractionFn);
+          curAction = actions[++i];
+        }
+      }
+    }
+
+    private _processRefExtractionFn(ref: RefExpression, extractionFns: Druid.ExtractionFn[]): void {
+      var attributeInfo = this.getAttributesInfo(ref.name);
+
+      if (attributeInfo instanceof RangeAttributeInfo) {
+        extractionFns.push(this.getRangeBucketingExtractionFn(attributeInfo, null));
+        return;
+      }
+
+      if (ref.type === 'BOOLEAN') {
+        extractionFns.push({
+          type: "lookup",
+          lookup: {
+            type: "map",
+            map: {
+              "0": "false",
+              "1": "true",
+              "false": "false",
+              "true": "true"
+            }
+          }
+        });
+        return;
+      }
+    }
+
+    public actionToExtractionFn(action: Action, fallbackAction: FallbackAction): Druid.ExtractionFn {
+      if (action.action === 'extract' || action.action === 'lookup') {
         var retainMissingValue = false;
         var replaceMissingValueWith: any = null;
-        var fallbackAction: FallbackAction = null;
 
-        if (actions.length === 2) {
-          fallbackAction = <FallbackAction>actions[1];
-          if (!(fallbackAction instanceof FallbackAction)) {
-            throw new Error(`can not convert expression: ${expression}`);
-          }
+        if (fallbackAction) {
           var fallbackExpression = fallbackAction.expression;
           if (fallbackExpression.isOp("ref")) {
-            // the ref has to be the same as the argument beacause we can't refer to other dimensions
+            // the ref has to be the same as the argument because we can't refer to other dimensions
             // so the only option would be for it to be equal to original dimension
             retainMissingValue = true;
           } else if (fallbackExpression.isOp("literal")) {
             replaceMissingValueWith = fallbackExpression.getLiteralValue();
           } else {
-            // TODO: would be cool to support $foo.extract(...).fallback($foo ++ 'something')
-            throw new Error(`unsupported fallback action: ${expression}`);
+            throw new Error(`unsupported fallback expression: ${fallbackExpression}`);
           }
-        } else if (actions.length !== 1) {
-          throw new Error(`can not convert expression: ${expression}`);
         }
 
-        if (mainAction instanceof SubstrAction) {
-          if (this.versionBefore('0.9.0')) {
-            return {
-              type: "javascript",
-              'function': expression.getJSFn('d')
-            };
-          }
-
-          return {
-            type: "substring",
-            index: mainAction.position,
-            length: mainAction.length
-          };
-        }
-
-        if (mainAction instanceof ExtractAction) {
+        if (action instanceof ExtractAction) {
           // retainMissingValue === false is not supported in old druid nor is replaceMissingValueWith in regex extractionFn
           // we want to use a js function if we are using an old version of druid and want to use this functionality
           if (this.versionBefore('0.9.0') && (retainMissingValue === false || replaceMissingValueWith !== null)) {
-            return {
-              type: "javascript",
-              'function': expression.getJSFn('d')
-            };
+            return this.getJavaScriptExtractionFn(action);
           }
 
           var regexExtractionFn: Druid.ExtractionFn = {
             type: "regex",
-            expr: mainAction.regexp
+            expr: action.regexp
           };
 
           if (!retainMissingValue) {
@@ -1017,13 +1043,12 @@ return (start < 0 ?'-':'') + parts.join('.');
           return regexExtractionFn;
         }
 
-        if (mainAction instanceof LookupAction) {
-
+        if (action instanceof LookupAction) {
           var lookupExtractionFn: Druid.ExtractionFn = {
             type: "lookup",
             lookup: {
               type: "namespace",
-              "namespace": mainAction.lookup
+              "namespace": action.lookup
             }
           };
 
@@ -1037,63 +1062,116 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return lookupExtractionFn;
         }
-
-        if (mainAction instanceof TimeBucketAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in timeBucket expression ${expression}`);
-          var format = TIME_BUCKET_FORMAT[mainAction.duration.toString()];
-          if (!format) throw new Error(`unsupported duration in timeBucket expression ${mainAction.duration}`);
-          return {
-            type: "timeFormat",
-            format: format,
-            timeZone: (mainAction.timezone || DEFAULT_TIMEZONE).toString(),
-            locale: "en-US"
-          };
-        }
-
-        if (mainAction instanceof TimePartAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in timePart expression ${expression}`);
-          var format = TIME_PART_TO_FORMAT[mainAction.part];
-          if (!format) throw new Error(`unsupported part in timePart expression ${mainAction.part}`);
-          return {
-            type: "timeFormat",
-            format: format,
-            timeZone: (mainAction.timezone || DEFAULT_TIMEZONE).toString(),
-            locale: "en-US"
-          };
-        }
-
-        if (mainAction instanceof NumberBucketAction) {
-          if (fallbackAction !== null) throw new Error(`unsupported fallback in numberBucket expression ${expression}`);
-          var attributeInfo = this.getAttributesInfo(referenceName);
-          if (attributeInfo.type === 'NUMBER') {
-            var floorExpression = continuousFloorExpression("d", "Math.floor", mainAction.size, mainAction.offset);
-            return {
-              type: "javascript",
-              'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
-            };
-          }
-
-          if (attributeInfo instanceof RangeAttributeInfo) {
-            return this.getRangeBucketingExtractionFn(<RangeAttributeInfo>attributeInfo, mainAction);
-          }
-
-          if (attributeInfo instanceof HistogramAttributeInfo) {
-            if (this.exactResultsOnly) {
-              throw new Error("can not use approximate histograms in exactResultsOnly mode");
-            }
-            throw new Error("histogram splits do not work right now");
-          }
-        }
-
-        if (mainAction instanceof AbsoluteAction || mainAction instanceof PowerAction) {
-          return {
-            type: "javascript",
-            'function': expression.getJSFn('d')
-          };
-        }
       }
 
-      throw new Error(`could not convert ${expression} to a Druid extractionFn`);
+      // After this point nothing supports a native fallback
+      if (fallbackAction) {
+        throw new Error(`unsupported fallback after ${action.action} action`);
+      }
+
+      // This is an action that returns a boolean
+      if (action.getOutputType(null) === 'BOOLEAN') {
+        return this.getJavaScriptExtractionFn(action);
+      }
+
+      if (action instanceof SubstrAction) {
+        if (this.versionBefore('0.9.0')) return this.getJavaScriptExtractionFn(action);
+        return {
+          type: "substring",
+          index: action.position,
+          length: action.length
+        };
+      }
+
+      if (action instanceof TimeBucketAction) {
+        var format = TIME_BUCKET_FORMAT[action.duration.toString()];
+        if (!format) throw new Error(`unsupported duration in timeBucket expression ${action.duration}`);
+        return {
+          type: "timeFormat",
+          format: format,
+          timeZone: (action.timezone || DEFAULT_TIMEZONE).toString(),
+          locale: "en-US"
+        };
+      }
+
+      if (action instanceof TimePartAction) {
+        var format = TIME_PART_TO_FORMAT[action.part];
+        if (!format) throw new Error(`unsupported part in timePart expression ${action.part}`);
+        return {
+          type: "timeFormat",
+          format: format,
+          timeZone: (action.timezone || DEFAULT_TIMEZONE).toString(),
+          locale: "en-US"
+        };
+      }
+
+      if (action instanceof NumberBucketAction) {
+        var floorExpression = continuousFloorExpression("d", "Math.floor", action.size, action.offset);
+        return {
+          type: "javascript",
+          'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
+        };
+      }
+
+      if (action instanceof AbsoluteAction || action instanceof PowerAction) {
+        return this.getJavaScriptExtractionFn(action);
+      }
+
+      throw new Error(`can not covert ${action} to extractionFn`);
+    }
+
+    private _processConcatExtractionFn(pattern: Expression[], extractionFns: Druid.ExtractionFn[]): void {
+      if (this.versionBefore('0.9.0')) {
+        extractionFns.push({
+          type: "javascript",
+          'function': Expression.concat(pattern).getJSFn('d'),
+          injective: true
+        });
+        return;
+      }
+
+      var format = pattern.map(ex => {
+        if (ex instanceof LiteralExpression) {
+          return ex.value.replace(/%/g, '\\%');
+        }
+        if (!ex.isOp('ref')) {
+          this._expressionToExtractionFns(ex, extractionFns);
+        }
+        return '%s';
+      }).join('');
+
+      extractionFns.push({
+        type: 'stringFormat',
+        format
+      })
+    }
+
+    public getJavaScriptExtractionFn(action: Action): Druid.ExtractionFn {
+      return {
+        type: "javascript",
+        'function': $('x').performAction(action).getJSFn('d')
+      };
+    }
+
+    public getRangeBucketingExtractionFn(attributeInfo: RangeAttributeInfo, numberBucket: NumberBucketAction): Druid.ExtractionFn {
+      var regExp = attributeInfo.getMatchingRegExpString();
+      if (numberBucket && numberBucket.offset === 0 && numberBucket.size === attributeInfo.rangeSize) numberBucket = null;
+      var bucketing = '';
+      if (numberBucket) {
+        bucketing = 's=' + continuousFloorExpression('s', 'Math.floor', numberBucket.size, numberBucket.offset) + ';';
+      }
+      return {
+        type: "javascript",
+        'function': `function(d) {
+var m = d.match(${regExp});
+if(!m) return 'null';
+var s = +m[1];
+if(!(Math.abs(+m[2] - s - ${attributeInfo.rangeSize}) < 1e-6)) return 'null'; ${bucketing}
+var parts = String(Math.abs(s)).split('.');
+parts[0] = ('000000000' + parts[0]).substr(-10);
+return (start < 0 ?'-':'') + parts.join('.');
+}`
+      };
     }
 
     public expressionToDimensionInflater(expression: Expression, label: string): DimensionInflater {
@@ -1146,9 +1224,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (!expression.expression.isOp('ref')) {
           throw new Error(`can not convert complex: ${expression.expression}`);
         }
-        var actions = expression.actions;
-        if (actions.length !== 1) throw new Error(`can not convert expression: ${expression}`);
-        var splitAction = actions[0];
+        var splitAction = expression.lastAction();
 
         if (splitAction instanceof SubstrAction || splitAction instanceof AbsoluteAction || splitAction instanceof PowerAction) {
           return {
@@ -1584,7 +1660,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         case '>=':
           return { type: 'not', havingSpec: { type: "lessThan", aggregation: agg, value: value } };
         default:
-          throw new Error('unknown op: ' + op);
+          throw new Error(`unknown op: ${op}`);
       }
     }
 

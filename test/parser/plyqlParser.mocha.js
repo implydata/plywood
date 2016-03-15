@@ -350,7 +350,7 @@ describe("SQL parser", () => {
         +SUM(added) AS SimplyAdded,
         QUANTILE(added, 0.5) AS Median,
         COUNT_DISTINCT(visitor) AS 'Unique1',
-        COUNT(DISTINCT visitor) AS 'Unique2',
+        COUNT( DISTINCT visitor) AS 'Unique2',
         COUNT(DISTINCT(visitor)) AS 'Unique3',
         TIME_BUCKET(time, PT1H) AS 'TimeBucket',
         TIME_FLOOR(time, PT1H) AS 'TimeFloor',

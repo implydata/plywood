@@ -56,6 +56,7 @@ module Plywood {
           throw new Error('not implemented yet');
 
         case 'SET/STRING':
+        case 'SET/NUMBER':
           return `${inputSQL} IN ${expressionSQL}`;
 
         default:
