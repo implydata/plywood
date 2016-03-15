@@ -64,12 +64,15 @@ AndExpression
 
 
 NotExpression
-  = NotToken _ ex:ComparisonExpression { return ex.not(); }
-  / ComparisonExpression
+  = not:(NotToken _)? ex:ComparisonExpression
+    {
+      if (not) ex = ex.not();
+      return ex;
+    }
 
 
 ComparisonExpression
-  = lhs:ConcatenationExpression rest:(_ ComparisonOp _ ConcatenationExpression)?
+  = lhs:ConcatExpression rest:(_ ComparisonOp _ ConcatExpression)?
     {
       if (!rest) return lhs;
       return lhs[rest[1]](rest[3]);
@@ -83,12 +86,11 @@ ComparisonOp
   / ">=" { return 'greaterThanOrEqual'; }
   / "<"  { return 'lessThan'; }
   / ">"  { return 'greaterThan'; }
-  / "//" { return 'fallback'; }
 
 
-ConcatenationExpression
+ConcatExpression
   = head:AdditiveExpression tail:(_ ConcatToken _ AdditiveExpression)*
-      { return naryExpressionFactory('concat', head, tail); }
+    { return naryExpressionFactory('concat', head, tail); }
 
 
 AdditiveExpression
@@ -105,11 +107,13 @@ MultiplicativeExpression
 MultiplicativeOp = [*/]
 
 ExponentialExpression
- = lhs:UnaryExpression _ ExponentialOp _ rhs:ExponentialExpression
-   { return lhs.power(rhs) }
- / UnaryExpression
+  = ex:UnaryExpression rhs:(_ ExponentialOp _ ExponentialExpression)?
+    {
+      if (rhs) ex = ex.power(rhs[3]);
+      return ex;
+    }
 
-ExponentialOp = [\^]
+ExponentialOp = "^"
 
 
 UnaryExpression

@@ -405,53 +405,62 @@ AndExpression
 
 
 NotExpression
-  = NotToken _ ex:ComparisonExpression { return ex.not(); }
-  / ComparisonExpression
+  = not:(NotToken _)? ex:ComparisonExpression
+    {
+      if (not) ex = ex.not();
+      return ex;
+    }
 
 
 ComparisonExpression
-  = lhs:AdditiveExpression not:(_ NotToken)? __ BetweenToken __ start:LiteralExpression __ AndToken __ end:LiteralExpression
+  = ex:AdditiveExpression rhs:(_ ComparisonExpressionRhs)?
     {
-      var ex = lhs.in({ start: start.value, end: end.value, bounds: '[]' });
-      if (not) ex = ex.not();
+      if (rhs) {
+        rhs = rhs[1];
+        ex = ex[rhs.call].apply(ex, rhs.args);
+        if (rhs.not) ex = ex.not();
+      }
       return ex;
     }
-  / lhs:AdditiveExpression _ IsToken not:(_ NotToken)? _ rhs:LiteralExpression
+
+ComparisonExpressionRhs
+  = not:NotToken? _ rhs:ComparisonExpressionRhsNotable
     {
-      var ex = lhs.is(rhs);
-      if (not) ex = ex.not();
-      return ex;
+      rhs.not = not;
+      return rhs;
     }
-  / lhs:AdditiveExpression not:(_ NotToken)? _ InToken _ list:ListLiteral
+  / IsToken not:(_ NotToken)? _ rhs:LiteralExpression
     {
-      var ex = lhs.in(list);
-      if (not) ex = ex.not();
-      return ex;
+      return { call: 'is', args: [rhs], not: not };
     }
-  / lhs:AdditiveExpression not:(_ NotToken)? _ ContainsToken _ string:String
+  / op:ComparisonOp _ lhs:AdditiveExpression
     {
-      var ex = lhs.contains(string, 'ignoreCase');
-      if (not) ex = ex.not();
-      return ex;
+      return { call: op, args: [lhs] };
     }
-  / lhs:AdditiveExpression not:(_ NotToken)? _ LikeToken _ string:String escape:(_ EscapeToken _ String)?
+
+ComparisonExpressionRhsNotable
+  = BetweenToken __ start:LiteralExpression __ AndToken __ end:LiteralExpression
+    {
+      var range = { start: start.value, end: end.value, bounds: '[]' };
+      return { call: 'in', args: [range] };
+    }
+  / InToken _ list:ListLiteral
+    {
+      return { call: 'in', args: [list] };
+    }
+  / ContainsToken _ string:String
+    {
+      return { call: 'contains', args: [string, 'ignoreCase'] };
+    }
+  / LikeToken _ string:String escape:(_ EscapeToken _ String)?
     {
       var escapeStr = escape ? escape[3] : '\\';
       if (escapeStr.length > 1) error('Invalid escape string: ' + escapeStr);
-      var ex = lhs.match(MatchAction.likeToRegExp(string, escapeStr));
-      if (not) ex = ex.not();
-      return ex;
+      return { call: 'match', args: [MatchAction.likeToRegExp(string, escapeStr)] };
     }
-  / lhs:AdditiveExpression not:(_ NotToken)? _ RegExpToken _ string:String
+  / RegExpToken _ string:String
     {
-      var ex = lhs.match(string);
-      if (not) ex = ex.not();
-      return ex;
-    }
-  / lhs:AdditiveExpression rest:(_ ComparisonOp _ AdditiveExpression)?
-    {
-      if (!rest) return lhs;
-      return lhs[rest[1]](rest[3]);
+      return { call: 'match', args: [string] };
     }
 
 ComparisonOp
@@ -496,8 +505,7 @@ BasicExpression
   = LiteralExpression
   / AggregateExpression
   / FunctionCallExpression
-  / OpenParen _ ex:Expression CloseParen { return ex; }
-  / OpenParen _ selectSubQuery:SelectSubQuery CloseParen { return selectSubQuery; }
+  / OpenParen _ sub:(Expression / SelectSubQuery) CloseParen { return sub; }
   / RefExpression
 
 
@@ -523,7 +531,6 @@ AggregateExpression
 
 AggregateFn
   = SumToken / AvgToken / MinToken / MaxToken / CountDistinctToken
-
 
 FunctionCallExpression
   = NumberBucketToken OpenParen operand:Operand size:NumberParameter offset:NumberParameter CloseParen

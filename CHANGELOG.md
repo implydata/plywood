@@ -1,5 +1,11 @@
 # Change log
 
+## 0.9.6
+
+- Support for new features in Druid 0.9.0
+- Fix for Druid "bound" / "between" filter
+- Much faster PlyQL parsing
+
 ## 0.9.5
 
 - The FROM clause in PlyQL now accepts relaxed table names allowing for: `SELECT * FROM my-table*is:the/best_table`

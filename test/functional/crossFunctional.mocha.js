@@ -208,6 +208,14 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with .timePart().in() [alt time column]', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter($('sometimeLater').timePart('HOUR_OF_DAY').in([3, 7])))
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with .lessThan()', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
