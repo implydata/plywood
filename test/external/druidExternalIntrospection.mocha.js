@@ -17,6 +17,7 @@ describe("DruidExternal Introspection", () => {
 
 
   var requesterDruid_0_9_0 = ({query}) => {
+    if (query.queryType === 'status') return Q({ version: '0.9.0' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -132,6 +133,7 @@ describe("DruidExternal Introspection", () => {
 
 
   var requesterDruid_0_8_3 = ({query}) => {
+    if (query.queryType === 'status') return Q({ version: '0.8.3' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -232,6 +234,7 @@ describe("DruidExternal Introspection", () => {
 
 
   var requesterDruid_0_8_2 = ({query}) => {
+    if (query.queryType === 'status') return Q({ version: '0.8.2' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -278,6 +281,7 @@ describe("DruidExternal Introspection", () => {
 
 
   var requesterDruid_0_8_1 = ({query}) => {
+    if (query.queryType === 'status') return Q({ version: '0.8.1' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -305,7 +309,7 @@ describe("DruidExternal Introspection", () => {
         introspectionStrategy: 'crowd-source',
         requester: requesterFail
       });
-    }).to.throw("Invalid introspectionStrategy 'crowd-source'");
+    }).to.throw("invalid introspectionStrategy 'crowd-source'");
   });
 
   it("does an introspect with general failure", (testComplete) => {
@@ -337,6 +341,7 @@ describe("DruidExternal Introspection", () => {
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
+        expect(introspectedExternal.version).to.equal('0.9.0');
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -408,6 +413,7 @@ describe("DruidExternal Introspection", () => {
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
+        expect(introspectedExternal.version).to.equal('0.8.3');
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -465,6 +471,7 @@ describe("DruidExternal Introspection", () => {
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
+        expect(introspectedExternal.version).to.equal('0.8.2');
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -512,6 +519,7 @@ describe("DruidExternal Introspection", () => {
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
+        expect(introspectedExternal.version).to.equal('0.8.1');
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -574,6 +582,7 @@ describe("DruidExternal Introspection", () => {
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
+        expect(introspectedExternal.version).to.equal('0.9.0');
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
@@ -639,6 +648,7 @@ describe("DruidExternal Introspection", () => {
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
+        expect(introspectedExternal.version).to.equal('0.8.1');
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",

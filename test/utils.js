@@ -132,3 +132,15 @@ exports.sane = function() {
     .replace(/\\\{/g, '{')   // Fix \{ that should be {
     .replace(/\\\\/g, '\\'); // Fix \\ that should be \
 };
+
+
+exports.grabConsoleWarn = function(fn) {
+  var originalConsoleWarn = console.warn;
+  var text = null;
+  console.warn = function(str) {
+    text = (text || '') + str + '\n';
+  };
+  fn();
+  console.warn = originalConsoleWarn;
+  return text;
+};

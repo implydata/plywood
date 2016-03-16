@@ -63,8 +63,8 @@ module Plywood {
     }
   }
 
-  function postProcessIntrospect(columns: SQLDescribeRow[]): Attributes {
-    return columns.map((column: SQLDescribeRow) => {
+  function postProcessIntrospect(columns: SQLDescribeRow[]): IntrospectResult {
+    var attributes = columns.map((column: SQLDescribeRow) => {
       var name = column.Field;
       var sqlType = column.Type.toLowerCase();
       if (sqlType === "datetime") {
@@ -81,6 +81,11 @@ module Plywood {
       }
       return null;
     }).filter(Boolean);
+
+    return {
+      version: null,
+      attributes
+    }
   }
 
   export class MySQLExternal extends External {
@@ -238,7 +243,7 @@ module Plywood {
       };
     }
 
-    public getIntrospectAttributes(): Q.Promise<Attributes> {
+    public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
       return this.requester({ query: "DESCRIBE `" + this.table + "`", }).then(postProcessIntrospect);
     }
   }

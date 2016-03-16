@@ -12,6 +12,7 @@ var { Expression, External, TimeRange, $, ply, r } = plywood;
 var context = {
   rankings: External.fromJS({
     engine: 'druid',
+    version: '0.9.0',
     dataSource: 'rankings',
     timeAttribute: 'time',
     allowSelectQueries: true,
@@ -21,11 +22,11 @@ var context = {
       { name: 'pageURL', type: 'STRING' }, // VARCHAR(300)
       { name: 'pageRank', type: 'NUMBER' }, // INT
       { name: 'avgDuration', type: 'NUMBER' } // INT
-    ],
-    druidVersion: '0.9.0'
+    ]
   }),
   uservisits: External.fromJS({
     engine: 'druid',
+    version: '0.9.0',
     dataSource: 'uservisits',
     timeAttribute: 'visitDate',
     allowSelectQueries: true,
@@ -41,8 +42,7 @@ var context = {
       { name: 'languageCode', type: 'STRING' }, // CHAR(6)
       { name: 'searchWord', type: 'STRING' }, // VARCHAR(32)
       { name: 'duration', type: 'NUMBER' } // INT
-    ],
-    druidVersion: '0.9.0'
+    ]
   })
 };
 

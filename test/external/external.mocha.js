@@ -1,5 +1,5 @@
 var { expect } = require("chai");
-var { sane } = require('../utils');
+var { sane, grabConsoleWarn } = require('../utils');
 
 var { testImmutableClass } = require("immutable-class/build/tester");
 
@@ -62,12 +62,12 @@ describe("External", () => {
           { name: 'cut', type: 'STRING' },
           { name: 'carat', type: 'STRING' },
           { name: 'price', type: 'NUMBER', unsplitable: true }
-        ],
-        druidVersion: '0.8.1'
+        ]
       },
 
       {
         engine: 'druid',
+        version: '0.9.0',
         dataSource: 'wiki',
         timeAttribute: 'time',
         allowEternity: true,
@@ -76,12 +76,12 @@ describe("External", () => {
         exactResultsOnly: true,
         context: {
           timeout: 10000
-        },
-        druidVersion: '0.9.0'
+        }
       },
 
       {
         engine: 'druid',
+        version: '0.8.0',
         dataSource: 'moon_child',
         timeAttribute: 'time',
         context: null,
@@ -90,7 +90,6 @@ describe("External", () => {
           { name: 'cut', type: 'STRING' },
           { name: 'unique', type: "STRING", special: 'unique' }
         ],
-        druidVersion: '0.8.0',
         customAggregations: {
           test: {
             aggregation: { type: 'longSum', fieldName: 'count' }
@@ -104,37 +103,147 @@ describe("External", () => {
 
 
   describe("does not die with hasOwnProperty", () => {
-    it("survives", () => {
+    it("survives a troll", () => {
       expect(External.fromJS({
         engine: 'druid',
+        version: '0.8.2',
         dataSource: 'wiki',
         timeAttribute: 'time',
         context: null,
-        druidVersion: '0.8.2',
         hasOwnProperty: 'troll'
       }).toJS()).to.deep.equal({
         engine: 'druid',
+        version: '0.8.2',
         dataSource: 'wiki',
         timeAttribute: 'time',
-        druidVersion: '0.8.2',
         context: null
       });
     });
+
   });
 
 
-  describe("fails on version too low", () => {
-    it("survives a troll", () => {
+  describe("version check", () => {
+    it("works with invlaid version", () => {
       expect(() => {
         External.fromJS({
           engine: 'druid',
+          version: 'koalas0.2.',
+          dataSource: 'wiki',
+          timeAttribute: 'time'
+        });
+      }).to.throw('invalid version koalas0.2.');
+    });
+
+    it("works with version too low", () => {
+      expect(() => {
+        External.fromJS({
+          engine: 'druid',
+          version: '0.7.3',
+          dataSource: 'wiki',
+          timeAttribute: 'time'
+        });
+      }).to.throw('only druid versions >= 0.8.0 are supported');
+    });
+
+  });
+
+
+  describe("back compat", () => {
+    it("druidVersion -> version", () => {
+      expect(grabConsoleWarn(() => {
+        expect(External.fromJS({
+          engine: 'druid',
+          druidVersion: '0.8.2',
           dataSource: 'wiki',
           timeAttribute: 'time',
-          druidVersion: '0.7.3',
-          hasOwnProperty: 'troll'
+          context: null
+        }).toJS()).to.deep.equal({
+          engine: 'druid',
+          version: '0.8.2',
+          dataSource: 'wiki',
+          timeAttribute: 'time',
+          context: null
         });
-      }).to.throw('only druidVersions >= 0.8.0 are supported');
+      })).to.equal("'druidVersion' parameter is deprecated, use 'version: 0.8.2' instead\n");
     });
+
+  });
+
+
+  describe(".getVersion", () => {
+    it("works in null case", () => {
+      expect(External.getVersion(null)).to.equal(null);
+    });
+
+    it("works in basic case", () => {
+      expect(External.getVersion('0.8.1')).to.equal('0.8.1');
+    });
+
+    it("works in basic case 2", () => {
+      expect(External.getVersion('0.8.10')).to.equal('0.8.10');
+    });
+
+    it("works in extra stuff case", () => {
+      expect(External.getVersion('0.9.1-iap1')).to.equal('0.9.1');
+    });
+
+    it("works in bad case", () => {
+      expect(External.getVersion('lol: 0.9.1-iap1')).to.equal(null);
+    });
+
+  });
+
+
+  describe(".getVersion", () => {
+    it("works in null case", () => {
+      expect(External.getVersion(null)).to.equal(null);
+    });
+
+    it("works in basic case", () => {
+      expect(External.getVersion('0.8.1')).to.equal('0.8.1');
+    });
+
+    it("works in basic case 2", () => {
+      expect(External.getVersion('0.8.10')).to.equal('0.8.10');
+    });
+
+    it("works in extra stuff case", () => {
+      expect(External.getVersion('0.9.1-iap1')).to.equal('0.9.1');
+    });
+
+    it("works in bad case", () => {
+      expect(External.getVersion('lol: 0.9.1-iap1')).to.equal(null);
+    });
+
+  });
+
+
+  describe(".versionLessThan", () => {
+    it("works in basic case", () => {
+      expect(External.versionLessThan('0.0.0', '0.8.0')).to.equal(true);
+    });
+
+    it("works in basic case 2", () => {
+      expect(External.versionLessThan('0.8.2', '0.9.1')).to.equal(true);
+    });
+
+    it("works in basic case 3", () => {
+      expect(External.versionLessThan('0.8.2', '0.8.3')).to.equal(true);
+    });
+
+    it("works in basic case 3", () => {
+      expect(External.versionLessThan('0.1.2', '0.10.2')).to.equal(true);
+    });
+
+    it("works in same inputs", () => {
+      expect(External.versionLessThan('0.1.2', '0.1.2')).to.equal(false);
+    });
+
+    it("works in reverse inputs", () => {
+      expect(External.versionLessThan('0.9.1', '0.8.2')).to.equal(false);
+    });
+
   });
 
 

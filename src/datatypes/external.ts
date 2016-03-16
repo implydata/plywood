@@ -125,6 +125,7 @@ module Plywood {
 
   export interface ExternalValue {
     engine?: string;
+    version?: string;
     suppress?: boolean;
     attributes?: Attributes;
     attributeOverrides?: Attributes;
@@ -154,7 +155,6 @@ module Plywood {
     introspectionStrategy?: string;
     exactResultsOnly?: boolean;
     context?: Lookup<any>;
-    druidVersion?: string;
     finalizers? : Druid.PostAggregation[];
 
     requester?: Requester.PlywoodRequester<any>;
@@ -162,6 +162,7 @@ module Plywood {
 
   export interface ExternalJS {
     engine: string;
+    version?: string;
     attributes?: AttributeJSs;
     attributeOverrides?: AttributeJSs;
 
@@ -180,7 +181,6 @@ module Plywood {
     introspectionStrategy?: string;
     exactResultsOnly?: boolean;
     context?: Lookup<any>;
-    druidVersion?: string;
 
     requester?: Requester.PlywoodRequester<any>;
   }
@@ -195,6 +195,11 @@ module Plywood {
     applies?: ApplyAction[];
   }
 
+  export interface IntrospectResult {
+    version: string;
+    attributes: Attributes;
+  }
+
   export class External {
     static type = 'EXTERNAL';
 
@@ -203,6 +208,20 @@ module Plywood {
 
     static isExternal(candidate: any): candidate is External {
       return isInstanceOf(candidate, External);
+    }
+
+    static getVersion(v: string): string {
+      if (!v) return null;
+      var m = v.match(/^\d+\.\d+\.\d+/);
+      return m ? m[0] : null;
+    }
+
+    static versionLessThan(va: string, vb: string): boolean {
+      var pa = va.split('.');
+      var pb = vb.split('.');
+      if (pa[0] !== pb[0]) return pa[0] < pb[0];
+      if (pa[1] !== pb[1]) return pa[1] < pb[1];
+      return pa[2] < pb[2];
     }
 
     static deduplicateExternals(externals: External[]): External[] {
@@ -446,6 +465,7 @@ module Plywood {
     static jsToValue(parameters: ExternalJS): ExternalValue {
       var value: ExternalValue = {
         engine: parameters.engine,
+        version: parameters.version,
         suppress: true
       };
       if (parameters.attributes) {
@@ -489,6 +509,7 @@ module Plywood {
     }
 
     public engine: string;
+    public version: string;
     public suppress: boolean;
     public attributes: Attributes = null;
     public attributeOverrides: Attributes = null;
@@ -512,6 +533,14 @@ module Plywood {
         throw new TypeError("can not call `new External` directly use External.fromJS instead");
       }
       this.engine = parameters.engine;
+
+      var version: string = null;
+      if (parameters.version) {
+        version = External.getVersion(parameters.version);
+        if (!version) throw new Error(`invalid version ${parameters.version}`);
+      }
+      this.version = version;
+
       this.suppress = parameters.suppress === true;
       if (parameters.attributes) {
         this.attributes = parameters.attributes;
@@ -563,9 +592,16 @@ module Plywood {
       }
     }
 
+    protected _ensureMinVersion(minVersion: string) {
+      if (this.version && External.versionLessThan(this.version, minVersion)) {
+        throw new Error(`only ${this.engine} versions >= ${minVersion} are supported`);
+      }
+    }
+
     public valueOf(): ExternalValue {
       var value: ExternalValue = {
-        engine: this.engine
+        engine: this.engine,
+        version: this.version
       };
       if (this.suppress) value.suppress = this.suppress;
       if (this.attributes) value.attributes = this.attributes;
@@ -611,6 +647,7 @@ module Plywood {
       var js: ExternalJS = {
         engine: this.engine
       };
+      if (this.version) js.version = this.version;
       if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
       if (this.attributeOverrides) js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
 
@@ -651,8 +688,14 @@ module Plywood {
     public equals(other: External): boolean {
       return External.isExternal(other) &&
         this.engine === other.engine &&
+        this.version === other.version &&
         this.mode === other.mode &&
         this.filter.equals(other.filter);
+    }
+
+    public versionBefore(neededVersion: string): boolean {
+      const { version } = this;
+      return version && External.versionLessThan(version, neededVersion);
     }
 
     public getAttributesInfo(attributeName: string) {
@@ -1133,7 +1176,7 @@ module Plywood {
       return !this.attributes;
     }
 
-    public getIntrospectAttributes(): Q.Promise<Attributes> {
+    public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
       throw new Error("can not call getIntrospectAttributes directly");
     }
 
@@ -1149,14 +1192,16 @@ module Plywood {
       var value = this.valueOf();
       var ClassFn = External.classMap[this.engine];
       return this.getIntrospectAttributes()
-        .then((attributes: Attributes) => {
+        .then(result => {
+          var attributes = result.attributes;
           if (value.attributeOverrides) {
             attributes = AttributeInfo.applyOverrides(attributes, value.attributeOverrides);
           }
+          value.version = result.version;
           value.attributes = attributes;
           // Once attributes are set attributeOverrides will be ignored
           return <External>(new ClassFn(value));
-        })
+        });
     }
 
     public getFullType(): DatasetFullType {

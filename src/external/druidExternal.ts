@@ -433,17 +433,22 @@ module Plywood {
     static VALID_INTROSPECTION_STRATEGIES = ['segment-metadata-fallback', 'segment-metadata-only', 'datasource-get'];
     static DEFAULT_INTROSPECTION_STRATEGY = 'segment-metadata-fallback';
 
-    static fromJS(datasetJS: any): DruidExternal {
-      var value: ExternalValue = External.jsToValue(datasetJS);
-      value.dataSource = datasetJS.dataSource;
-      value.timeAttribute = datasetJS.timeAttribute;
-      value.customAggregations = datasetJS.customAggregations || {};
-      value.allowEternity = Boolean(datasetJS.allowEternity);
-      value.allowSelectQueries = Boolean(datasetJS.allowSelectQueries);
-      value.introspectionStrategy = datasetJS.introspectionStrategy;
-      value.exactResultsOnly = Boolean(datasetJS.exactResultsOnly);
-      value.context = datasetJS.context;
-      value.druidVersion = datasetJS.druidVersion;
+    static fromJS(parameters: ExternalJS): DruidExternal {
+      // Back compat:
+      if (typeof (<any>parameters).druidVersion === 'string') {
+        parameters.version = (<any>parameters).druidVersion;
+        console.warn(`'druidVersion' parameter is deprecated, use 'version: ${parameters.version}' instead`);
+      }
+
+      var value: ExternalValue = External.jsToValue(parameters);
+      value.dataSource = parameters.dataSource;
+      value.timeAttribute = parameters.timeAttribute;
+      value.customAggregations = parameters.customAggregations || {};
+      value.allowEternity = Boolean(parameters.allowEternity);
+      value.allowSelectQueries = Boolean(parameters.allowSelectQueries);
+      value.introspectionStrategy = parameters.introspectionStrategy;
+      value.exactResultsOnly = Boolean(parameters.exactResultsOnly);
+      value.context = parameters.context;
       return new DruidExternal(value);
     }
 
@@ -456,11 +461,11 @@ module Plywood {
     public introspectionStrategy: string;
     public exactResultsOnly: boolean;
     public context: Lookup<any>;
-    public druidVersion: string;
 
     constructor(parameters: ExternalValue) {
       super(parameters, dummyObject);
       this._ensureEngine("druid");
+      this._ensureMinVersion("0.8.0");
       this.dataSource = parameters.dataSource;
       this.timeAttribute = parameters.timeAttribute;
       this.customAggregations = parameters.customAggregations;
@@ -470,17 +475,12 @@ module Plywood {
 
       var introspectionStrategy = parameters.introspectionStrategy || DruidExternal.DEFAULT_INTROSPECTION_STRATEGY;
       if (DruidExternal.VALID_INTROSPECTION_STRATEGIES.indexOf(introspectionStrategy) === -1) {
-        throw new Error(`Invalid introspectionStrategy '${introspectionStrategy}'`);
+        throw new Error(`invalid introspectionStrategy '${introspectionStrategy}'`);
       }
       this.introspectionStrategy = introspectionStrategy;
 
       this.exactResultsOnly = parameters.exactResultsOnly;
       this.context = parameters.context;
-
-      var druidVersion = parameters.druidVersion || '0.8.0';
-      if (druidVersion.length !== 5) throw new Error('druidVersion length must be 5');
-      if (druidVersion < '0.8.0') throw new Error('only druidVersions >= 0.8.0 are supported');
-      this.druidVersion = druidVersion;
     }
 
     public valueOf(): ExternalValue {
@@ -493,7 +493,6 @@ module Plywood {
       value.introspectionStrategy = this.introspectionStrategy;
       value.exactResultsOnly = this.exactResultsOnly;
       value.context = this.context;
-      value.druidVersion = this.druidVersion;
       return value;
     }
 
@@ -507,7 +506,6 @@ module Plywood {
       if (this.introspectionStrategy !== DruidExternal.DEFAULT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
       if (this.exactResultsOnly) js.exactResultsOnly = true;
       js.context = this.context;
-      js.druidVersion = this.druidVersion;
       return js;
     }
 
@@ -520,8 +518,7 @@ module Plywood {
         this.allowSelectQueries === other.allowSelectQueries &&
         this.introspectionStrategy === other.introspectionStrategy &&
         this.exactResultsOnly === other.exactResultsOnly &&
-        dictEqual(this.context, other.context) &&
-        this.druidVersion === other.druidVersion;
+        dictEqual(this.context, other.context);
     }
 
     // -----------------
@@ -582,10 +579,6 @@ module Plywood {
     }
 
     // -----------------
-
-    public versionBefore(neededVersion: string): boolean {
-      return this.druidVersion < neededVersion;
-    }
 
     public getDruidDataSource(): Druid.DataSource {
       var dataSource = this.dataSource;
@@ -2033,6 +2026,20 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
+    public getIntrospectVersion(): Q.Promise<string> {
+      var { requester } = this;
+
+      return requester({
+        query: {
+          queryType: 'status'
+        }
+      })
+        .then(
+          ((res) => External.getVersion(res.version)),
+          () => null
+        )
+    }
+
     public getIntrospectAttributesWithSegmentMetadata(): Q.Promise<Attributes> {
       var { requester, timeAttribute } = this;
 
@@ -2044,18 +2051,20 @@ return (start < 0 ?'-':'') + parts.join('.');
           analysisTypes: ["aggregators"],
           lenientAggregatorMerge: true
         }
-      }).catch((err: Error) => {
-        if (err.message.indexOf('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType') === -1) throw err;
+      })
+        .catch((err: Error) => {
+          if (err.message.indexOf('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType') === -1) throw err;
 
-        return requester({
-          query: {
-            queryType: 'segmentMetadata',
-            dataSource: this.getDruidDataSource(),
-            merge: true,
-            analysisTypes: []
-          }
+          return requester({
+            query: {
+              queryType: 'segmentMetadata',
+              dataSource: this.getDruidDataSource(),
+              merge: true,
+              analysisTypes: []
+            }
+          })
         })
-      }).then(segmentMetadataPostProcessFactory(timeAttribute));
+        .then(segmentMetadataPostProcessFactory(timeAttribute));
     }
 
     public getIntrospectAttributesWithGet(): Q.Promise<Attributes> {
@@ -2066,27 +2075,42 @@ return (start < 0 ?'-':'') + parts.join('.');
           queryType: 'introspect',
           dataSource: this.getDruidDataSource()
         }
-      }).then(introspectPostProcessFactory(timeAttribute))
+      })
+        .then(introspectPostProcessFactory(timeAttribute))
     }
 
-    public getIntrospectAttributes(): Q.Promise<Attributes> {
+    public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
+      var versionPromise = this.getIntrospectVersion();
+
+      var attributePromise: Q.Promise<Attributes>;
       switch (this.introspectionStrategy) {
         case 'segment-metadata-fallback':
-          return this.getIntrospectAttributesWithSegmentMetadata()
+          attributePromise = this.getIntrospectAttributesWithSegmentMetadata()
             .catch((err: Error) => {
               if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
               return this.getIntrospectAttributesWithGet();
             });
+          break;
 
         case 'segment-metadata-only':
-          return this.getIntrospectAttributesWithSegmentMetadata();
+          attributePromise = this.getIntrospectAttributesWithSegmentMetadata();
+          break;
 
         case 'datasource-get':
-          return this.getIntrospectAttributesWithGet();
+          attributePromise = this.getIntrospectAttributesWithGet();
+          break;
 
         default:
-          throw new Error('invalid params');
+          throw new Error('invalid introspectionStrategy');
       }
+
+     return Q.all<string | Attributes>([versionPromise, attributePromise])
+       .then((va) => {
+         return {
+           version: <string>va[0],
+           attributes: <Attributes>va[1]
+         };
+       });
     }
   }
   External.register(DruidExternal);
