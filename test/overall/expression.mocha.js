@@ -99,6 +99,7 @@ describe("Expression", () => {
         "op": "external",
         external: {
           engine: 'druid',
+          version: '0.8.1',
           dataSource: 'moon_child',
           timeAttribute: 'time',
           context: null,
@@ -107,8 +108,7 @@ describe("Expression", () => {
             { name: 'cut', type: 'STRING' },
             { name: 'carat', type: 'STRING' },
             { name: 'price', type: 'NUMBER', unsplitable: true }
-          ],
-          druidVersion: '0.8.1'
+          ]
         }
       }
 

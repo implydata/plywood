@@ -25,6 +25,7 @@ var attributes = [
 var context = {
   'diamonds': External.fromJS({
     engine: 'druid',
+    version: '0.9.1',
     dataSource: 'diamonds',
     timeAttribute: 'time',
     attributes,
@@ -32,11 +33,11 @@ var context = {
     filter: $("time").in({
       start: new Date('2015-03-12T00:00:00'),
       end: new Date('2015-03-19T00:00:00')
-    }),
-    druidVersion: '0.9.1'
+    })
   }),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
+    version: '0.9.1',
     dataSource: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
@@ -44,8 +45,7 @@ var context = {
     filter: $("time").in({
       start: new Date('2015-03-12T00:00:00'),
       end: new Date('2015-03-19T00:00:00')
-    }),
-    druidVersion: '0.9.1'
+    })
   })
 };
 

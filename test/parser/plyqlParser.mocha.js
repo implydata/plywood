@@ -331,6 +331,9 @@ describe("SQL parser", () => {
     it("should parse a total expression with all sorts of applies", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
+        a = b AS aISb1,
+        a IS b AS aISb2,
+        a <=> b AS aISb3,
         COUNT()  AS Count1,
         COUNT(*) AS Count2,
         COUNT(1) AS Count3,
@@ -364,6 +367,9 @@ describe("SQL parser", () => {
 
       var ex2 = ply()
         .apply('data', '$wiki.filter($language == "en")')
+        .apply('aISb1', '$a.is($b)')
+        .apply('aISb2', '$a.is($b)')
+        .apply('aISb3', '$a.is($b)')
         .apply('Count1', '$data.count()')
         .apply('Count2', '$data.count()')
         .apply('Count3', '$data.filter(1 != null).count()')

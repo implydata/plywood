@@ -385,7 +385,7 @@ Expressions are defined below in acceding priority order
   Or (OR)
   And (AND)
   Not (NOT)
-  Comparison (=, <, >, <=, >=, <>, !=, IS, LIKE, BETWEEN, IN, CONTAINS, REGEXP)
+  Comparison (=, <=>, <, >, <=, >=, <>, !=, IS, LIKE, BETWEEN, IN, CONTAINS, REGEXP)
   Additive (+, -)
   Multiplicative (*), Division (/)
   Unary identity (+), negation (-)
@@ -429,7 +429,7 @@ ComparisonExpressionRhs
       rhs.not = not;
       return rhs;
     }
-  / IsToken not:(_ NotToken)? _ rhs:LiteralExpression
+  / IsToken not:(_ NotToken)? _ rhs:AdditiveExpression
     {
       return { call: 'is', args: [rhs], not: not };
     }
@@ -464,13 +464,14 @@ ComparisonExpressionRhsNotable
     }
 
 ComparisonOp
-  = "="  { return 'is'; }
-  / "<>" { return 'isnt'; }
-  / "!=" { return 'isnt'; }
-  / "<=" { return 'lessThanOrEqual'; }
-  / ">=" { return 'greaterThanOrEqual'; }
-  / "<"  { return 'lessThan'; }
-  / ">"  { return 'greaterThan'; }
+  = "="   { return 'is'; }
+  / "<=>" { return 'is'; }
+  / "<>"  { return 'isnt'; }
+  / "!="  { return 'isnt'; }
+  / "<="  { return 'lessThanOrEqual'; }
+  / ">="  { return 'greaterThanOrEqual'; }
+  / "<"   { return 'lessThan'; }
+  / ">"   { return 'greaterThan'; }
 
 ListLiteral
   = "(" head:StringOrNumber tail:(Comma StringOrNumber)* ")"

@@ -330,6 +330,7 @@ declare module Druid {
         searchDimensions?: string[];
         query?: SearchQuerySpec;
         sort?: string; // ToDo: revisit after clarification
+        lenientAggregatorMerge?: boolean;
 
         // Specific to queryType: "segmentMetadata"
         // http://druid.io/docs/latest/SegmentMetadataQuery.html

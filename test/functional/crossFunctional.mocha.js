@@ -77,7 +77,7 @@ var druidExecutor = basicExecutorFactory({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       })),
-      druidVersion: info.druidVersion,
+      version: info.druidVersion,
       allowSelectQueries: true,
       requester: druidRequester
     })
@@ -112,7 +112,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it.skip('works with != filter', equalityTest({
+    it('works with != filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter($cityName != "San Francisco")')
@@ -184,10 +184,18 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with .contains()', equalityTest({
+    it('works with .contains(,normal)', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
-        .apply('wiki', '$wiki.filter($cityName.contains("San"))')
+        .apply('wiki', '$wiki.filter($cityName.contains("San", normal))')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with .contains(,ignoreCase)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($cityName.contains("San", ignoreCase))')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -292,7 +300,7 @@ describe("Cross Functional", function() {
         .sort('$TotalAdded', 'descending')
     }));
 
-    it.skip('works with BOOLEAN split (expression, nullable)', equalityTest({
+    it('works with BOOLEAN split (expression, nullable)', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').split('$cityName == "San Francisco"', 'CityIsSF')
         .apply('TotalEdits', '$wiki.sum($count)')

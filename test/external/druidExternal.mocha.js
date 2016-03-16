@@ -35,7 +35,7 @@ var context = {
     ],
     filter: timeFilter,
     allowSelectQueries: true,
-    druidVersion: '0.9.1',
+    version: '0.9.1',
     customAggregations: {
       crazy: {
         accessType: 'getSomeCrazy',

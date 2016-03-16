@@ -74,13 +74,12 @@ module Plywood {
       }
     }
 
-    public getSQL(inputSQL: string, dialect: SQLDialect): string {
-      var expression = this.expression;
-      if (expression instanceof LiteralExpression) {
-        return `${inputSQL} LIKE "%${expression.value}%"`;
-      } else {
-        throw new Error(`can not express ${this} in SQL`);
+    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+      if (this.compare === ContainsAction.IGNORE_CASE) {
+        expressionSQL = `LOWER(${expressionSQL})`;
+        inputSQL = `LOWER(${inputSQL})`;
       }
+      return `LOCATE(${expressionSQL},${inputSQL})>0`;
     }
   }
 

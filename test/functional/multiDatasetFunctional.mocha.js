@@ -77,7 +77,7 @@ var mixedExecutor = basicExecutorFactory({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       })),
-      druidVersion: info.druidVersion,
+      version: info.druidVersion,
       requester: druidRequester
     }),
     wiki_mysql: External.fromJS({

@@ -60,7 +60,7 @@ describe("Druid Functional", function() {
             start: new Date("2015-09-12T00:00:00Z"),
             end: new Date("2015-09-13T00:00:00Z")
           })),
-          druidVersion: info.druidVersion,
+          version: info.druidVersion,
           allowSelectQueries: true,
           requester: druidRequester
         })
@@ -1275,21 +1275,31 @@ describe("Druid Functional", function() {
 
 
   describe("introspection", () => {
+    var wikiExternal = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      context: null,
+      filter: $('time').in(TimeRange.fromJS({
+        start: new Date("2015-09-12T00:00:00Z"),
+        end: new Date("2015-09-13T00:00:00Z")
+      })),
+      requester: druidRequester
+    });
+
     var basicExecutor = basicExecutorFactory({
       datasets: {
-        wiki: External.fromJS({
-          engine: 'druid',
-          dataSource: 'wikipedia',
-          timeAttribute: 'time',
-          context: null,
-          filter: $('time').in(TimeRange.fromJS({
-            start: new Date("2015-09-12T00:00:00Z"),
-            end: new Date("2015-09-13T00:00:00Z")
-          })),
-          druidVersion: info.druidVersion,
-          requester: druidRequester
-        })
+        wiki: wikiExternal
       }
+    });
+
+    it("introspects version", (testComplete) => {
+      wikiExternal.introspect()
+        .then((introspectedExternal) => {
+          expect(introspectedExternal.version).to.equal('0.8.3');
+          testComplete();
+        })
+        .done();
     });
 
     it("works with introspection", (testComplete) => {
