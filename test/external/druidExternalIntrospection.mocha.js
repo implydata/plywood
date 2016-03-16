@@ -132,6 +132,12 @@ describe("DruidExternal Introspection", () => {
   };
 
 
+  var requesterDruid_0_9_0_flake = ({query}) => {
+    if (query.queryType === 'status') return Q({ version: '0.9.0' });
+    return requesterDruid_0_8_3({ query });
+  };
+
+
   var requesterDruid_0_8_3 = ({query}) => {
     if (query.queryType === 'status') return Q({ version: '0.8.3' });
     expect(query.dataSource).to.equal('wikipedia');
@@ -371,6 +377,64 @@ describe("DruidExternal Introspection", () => {
                 "op": "ref"
               }
             },
+            "name": "count",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "delta_hist",
+            "special": "histogram",
+            "type": "NUMBER"
+          },
+          {
+            "name": "language",
+            "type": "STRING"
+          },
+          {
+            "name": "namespace",
+            "type": "SET/STRING"
+          },
+          {
+            "name": "page",
+            "type": "STRING"
+          },
+          {
+            "name": "user_unique",
+            "special": "unique",
+            "type": "STRING"
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("does an introspect with segmentMetadata (without aggregators, flaky driver)", (testComplete) => {
+    var wikiExternal = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      requester: requesterDruid_0_9_0_flake
+    });
+
+    return wikiExternal.introspect()
+      .then((introspectedExternal) => {
+        expect(introspectedExternal.version).to.equal('0.9.0');
+        expect(introspectedExternal.toJS().attributes).to.deep.equal([
+          {
+            "name": "time",
+            "type": "TIME"
+          },
+          {
+            "name": "added",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "name": "anonymous",
+            "type": "STRING"
+          },
+          {
             "name": "count",
             "type": "NUMBER",
             "unsplitable": true

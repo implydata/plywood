@@ -2040,31 +2040,32 @@ return (start < 0 ?'-':'') + parts.join('.');
         )
     }
 
-    public getIntrospectAttributesWithSegmentMetadata(): Q.Promise<Attributes> {
+    public getIntrospectAttributesWithSegmentMetadata(withAggregators: boolean): Q.Promise<Attributes> {
       var { requester, timeAttribute } = this;
 
-      return requester({
-        query: {
-          queryType: 'segmentMetadata',
-          dataSource: this.getDruidDataSource(),
-          merge: true,
-          analysisTypes: ["aggregators"],
-          lenientAggregatorMerge: true
-        }
-      })
-        .catch((err: Error) => {
-          if (err.message.indexOf('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType') === -1) throw err;
+      var query: Druid.Query = {
+        queryType: 'segmentMetadata',
+        dataSource: this.getDruidDataSource(),
+        merge: true,
+        analysisTypes: []
+      };
+      if (withAggregators) {
+        query.analysisTypes.push("aggregators");
+        query.lenientAggregatorMerge = true;
+      }
 
-          return requester({
-            query: {
-              queryType: 'segmentMetadata',
-              dataSource: this.getDruidDataSource(),
-              merge: true,
-              analysisTypes: []
-            }
-          })
-        })
-        .then(segmentMetadataPostProcessFactory(timeAttribute));
+      var resultPromise = requester({ query }).then(segmentMetadataPostProcessFactory(timeAttribute));
+
+      if (withAggregators) {
+        resultPromise = resultPromise.catch((err: Error) => {
+          if (err.message.indexOf('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType') === -1) {
+            throw err;
+          }
+          return this.getIntrospectAttributesWithSegmentMetadata(false);
+        });
+      }
+
+      return resultPromise;
     }
 
     public getIntrospectAttributesWithGet(): Q.Promise<Attributes> {
@@ -2080,37 +2081,39 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
-      var versionPromise = this.getIntrospectVersion();
+      var versionPromise = this.version ? Q(this.version) : this.getIntrospectVersion();
 
-      var attributePromise: Q.Promise<Attributes>;
-      switch (this.introspectionStrategy) {
-        case 'segment-metadata-fallback':
-          attributePromise = this.getIntrospectAttributesWithSegmentMetadata()
-            .catch((err: Error) => {
-              if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
-              return this.getIntrospectAttributesWithGet();
-            });
-          break;
+      return versionPromise.then((version) => {
+        var withAggregators = version && !External.versionLessThan(version, '0.9.0');
+        var attributePromise: Q.Promise<Attributes>;
+        switch (this.introspectionStrategy) {
+          case 'segment-metadata-fallback':
+            attributePromise = this.getIntrospectAttributesWithSegmentMetadata(withAggregators)
+              .catch((err: Error) => {
+                if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
+                return this.getIntrospectAttributesWithGet();
+              });
+            break;
 
-        case 'segment-metadata-only':
-          attributePromise = this.getIntrospectAttributesWithSegmentMetadata();
-          break;
+          case 'segment-metadata-only':
+            attributePromise = this.getIntrospectAttributesWithSegmentMetadata(withAggregators);
+            break;
 
-        case 'datasource-get':
-          attributePromise = this.getIntrospectAttributesWithGet();
-          break;
+          case 'datasource-get':
+            attributePromise = this.getIntrospectAttributesWithGet();
+            break;
 
-        default:
-          throw new Error('invalid introspectionStrategy');
-      }
+          default:
+            throw new Error('invalid introspectionStrategy');
+        }
 
-     return Q.all<string | Attributes>([versionPromise, attributePromise])
-       .then((va) => {
-         return {
-           version: <string>va[0],
-           attributes: <Attributes>va[1]
-         };
-       });
+        return attributePromise.then(attributes => {
+          return {
+            version,
+            attributes
+          }
+        });
+      });
     }
   }
   External.register(DruidExternal);

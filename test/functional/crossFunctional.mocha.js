@@ -300,7 +300,7 @@ describe("Cross Functional", function() {
         .sort('$TotalAdded', 'descending')
     }));
 
-    it.skip('works with BOOLEAN split (expression, nullable)', equalityTest({
+    it('works with BOOLEAN split (expression, nullable)', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').split('$cityName == "San Francisco"', 'CityIsSF')
         .apply('TotalEdits', '$wiki.sum($count)')
