@@ -188,7 +188,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it.skip('works with .concat().concat().contains() filter', equalityTest({ // ToDo: un-skip when druid 0.9.0
+    it('works with .concat().concat().contains() filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter(("[" ++ $cityName ++ "]").contains("[san", "ignoreCase"))')
@@ -629,7 +629,7 @@ describe("Cross Functional", function() {
       expression: $('wiki').filter('$cityName == "El Paso"').select('added', 'deleted')
     }));
 
-    it.skip('works with derived dimension columns', equalityTest({ // ToDo: un-skip when druid is 0.9.0-iap
+    it.skip('works with derived dimension columns', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki')
         .filter('$cityName == "El Paso"')

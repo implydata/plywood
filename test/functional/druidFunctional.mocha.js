@@ -934,7 +934,7 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it.skip("works with lookup CONTAINS filter", (testComplete) => { // ToDo: un-skip when out Druid is updated to 0.9.0
+    it("works with lookup CONTAINS filter", (testComplete) => {
       var ex = $('wiki').filter($('channel').lookup('channel-lookup').contains('Eng', 'ignoreCase')).sum('$count');
 
       basicExecutor(ex)
