@@ -72,9 +72,9 @@ describe("simulate MySQL", () => {
       (SUM(\`price\`)-SUM(\`tax\`)) AS "PriceMinusTax",
       (((SUM(\`price\`)-SUM(\`tax\`))+10)-SUM(\`carat\`)) AS "Crazy",
       (SUM(\`price\`)+SUM(\`tax\`)) AS "PriceAndTax",
-      SUM(IF((\`cut\`="good"),\`price\`,0)) AS "PriceGoodCut"
+      SUM(IF((\`cut\`<=>"good"),\`price\`,0)) AS "PriceGoodCut"
       FROM \`diamonds\`
-      WHERE (\`color\`="D")
+      WHERE (\`color\`<=>"D")
       GROUP BY ''
     `);
 
@@ -84,7 +84,7 @@ describe("simulate MySQL", () => {
       COUNT(*) AS "Count",
       (COUNT(*)/4) AS "PercentOfTotal"
       FROM \`diamonds\`
-      WHERE (\`color\`="D")
+      WHERE (\`color\`<=>"D")
       GROUP BY 1
       ORDER BY \`Count\` DESC
       LIMIT 2
@@ -95,7 +95,7 @@ describe("simulate MySQL", () => {
       DATE_FORMAT(CONVERT_TZ(\`time\`,'+0:00','America/Los_Angeles'),'%Y-%m-%dZ') AS "Timestamp",
       SUM(\`price\`) AS "TotalPrice"
       FROM \`diamonds\`
-      WHERE ((\`color\`="D") AND (\`cut\`="some_cut"))
+      WHERE ((\`color\`<=>"D") AND (\`cut\`<=>"some_cut"))
       GROUP BY 1
       ORDER BY \`Timestamp\` ASC
     `);
@@ -105,7 +105,7 @@ describe("simulate MySQL", () => {
       FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
       COALESCE(COUNT(*), 0) AS "Count"
       FROM \`diamonds\`
-      WHERE (((\`color\`="D") AND (\`cut\`="some_cut")) AND ('2015-03-13 07:00:00'<=\`time\` AND \`time\`<'2015-03-14 07:00:00'))
+      WHERE (((\`color\`<=>"D") AND (\`cut\`<=>"some_cut")) AND ('2015-03-13 07:00:00'<=\`time\` AND \`time\`<'2015-03-14 07:00:00'))
       GROUP BY 1
       ORDER BY \`Count\` DESC
       LIMIT 3
@@ -218,7 +218,7 @@ describe("simulate MySQL", () => {
       SELECT
       \`time\`, \`color\`, \`cut\`, \`tags\`, \`carat\`, \`height_bucket\`, \`price\`, \`tax\`
       FROM \`diamonds\`
-      WHERE (\`color\`="D")
+      WHERE (\`color\`<=>"D")
       ORDER BY \`cut\` DESC
       LIMIT 10
     `);
@@ -234,7 +234,7 @@ describe("simulate MySQL", () => {
       SELECT
       SUM(\`price\`) AS "__VALUE__"
       FROM \`diamonds\`
-      WHERE (\`color\`="D")
+      WHERE (\`color\`<=>"D")
       GROUP BY ''
     `);
   });
@@ -249,7 +249,7 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[0]).to.equal(sane`
       SELECT
-      (\`color\`="A") AS "ColorIsA",
+      (\`color\`<=>"A") AS "ColorIsA",
       COUNT(*) AS "Count"
       FROM \`diamonds\`
       GROUP BY 1
@@ -293,7 +293,7 @@ describe("simulate MySQL", () => {
       FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
       COUNT(*) AS "Count"
       FROM \`diamonds\`
-      WHERE ((\`color\`="some_color") AND (\`cut\`="some_cut"))
+      WHERE ((\`color\`<=>"some_color") AND (\`cut\`<=>"some_cut"))
       GROUP BY 1
       ORDER BY \`Count\` DESC
       LIMIT 3

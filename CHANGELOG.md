@@ -1,4 +1,13 @@
-# Change log
+# Change Log
+
+## 0.9.7
+
+- `version` is now a parameter on all External
+- In Druid external `druidVersion` was renamed to `version`
+- Fixed MySQL translation of .is() action to use null safe equals (<=>)
+- Fixed MySQL translation of .contains()
+- Added `<=>` to PlyQL
+- Druid external now introspects version and does not make broken query
 
 ## 0.9.6
 
