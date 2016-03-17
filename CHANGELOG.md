@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.9
+
+- Fixed Druid 'select' failing on time interval outside of Druid cluster
+
 ## 0.9.8
 
 - Using Imply Analytics Platform 1.1.1 docker image for Druid tests
