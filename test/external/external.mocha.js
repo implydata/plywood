@@ -185,31 +185,7 @@ describe("External", () => {
     });
 
     it("works in extra stuff case", () => {
-      expect(External.getVersion('0.9.1-iap1')).to.equal('0.9.1');
-    });
-
-    it("works in bad case", () => {
-      expect(External.getVersion('lol: 0.9.1-iap1')).to.equal(null);
-    });
-
-  });
-
-
-  describe(".getVersion", () => {
-    it("works in null case", () => {
-      expect(External.getVersion(null)).to.equal(null);
-    });
-
-    it("works in basic case", () => {
-      expect(External.getVersion('0.8.1')).to.equal('0.8.1');
-    });
-
-    it("works in basic case 2", () => {
-      expect(External.getVersion('0.8.10')).to.equal('0.8.10');
-    });
-
-    it("works in extra stuff case", () => {
-      expect(External.getVersion('0.9.1-iap1')).to.equal('0.9.1');
+      expect(External.getVersion('0.9.1-iap1')).to.equal('0.9.1-iap1');
     });
 
     it("works in bad case", () => {
@@ -234,6 +210,10 @@ describe("External", () => {
 
     it("works in basic case 3", () => {
       expect(External.versionLessThan('0.1.2', '0.10.2')).to.equal(true);
+    });
+
+    it("works with extra", () => {
+      expect(External.versionLessThan('0.1.2-iap1', '0.10.2-iap3')).to.equal(true);
     });
 
     it("works in same inputs", () => {

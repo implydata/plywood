@@ -1842,7 +1842,9 @@ return (start < 0 ?'-':'') + parts.join('.');
               } else {
                 var derivedAttribute = derivedAttributes[name];
                 if (derivedAttribute) {
-                  if (this.versionBefore('0.9.1')) throw new Error('can not have derived attributes in select in Druid before 0.9.1');
+                  if (this.versionBefore('0.9.1') && !/^0\.9\.0-iap/.test(this.version)) {
+                    throw new Error(`can not have derived attributes in Druid select in ${this.version}, upgrade to 0.9.1 or 0.9.0-iap`);
+                  }
                   var dimensionInflater = this.expressionToDimensionInflater(derivedAttribute, name);
                   selectDimensions.push(dimensionInflater.dimension);
                   if (dimensionInflater.inflater) inflaters.push(dimensionInflater.inflater);

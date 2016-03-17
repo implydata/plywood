@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.9.8
+
+- Using Imply Analytics Platform 1.1.1 docker image for Druid tests
+- Derived columns in Druid select will now trigger if version is `/^0.9.0-iap/` 
+
 ## 0.9.7
 
 - `version` is now a parameter on all External
