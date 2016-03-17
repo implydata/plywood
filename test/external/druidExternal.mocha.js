@@ -1483,7 +1483,8 @@ describe("DruidExternal", () => {
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      requester: (query) => {
+      allowSelectQueries: true,
+      requester: () => {
         return Q([]);
       },
       attributes: [
@@ -1499,8 +1500,23 @@ describe("DruidExternal", () => {
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      requester: (query) => {
-        return Q([{ result: [] }]);
+      allowSelectQueries: true,
+      requester: ({query}) => {
+        if (query.queryType === 'select') {
+          return Q([
+            {
+              "timestamp": "2016-03-15T23:00:00.458Z",
+              "result": {
+                "pagingIdentifiers": {
+                  "wikipedia_2016-03-15T23:00:00.000Z_2016-03-16T00:00:00.000Z_2016-03-15T23:00:00.000Z": 0
+                },
+                "events": []
+              }
+            }
+          ]);
+        } else {
+          return Q([{ result: [] }]);
+        }
       },
       attributes: [
         { name: 'time', type: 'TIME' },
@@ -1548,6 +1564,28 @@ describe("DruidExternal", () => {
         .apply('Added', '$wiki.sum($added)')
         .sort('$Count', 'descending')
         .limit(5);
+
+      it("works with [] return", (testComplete) => {
+        ex.compute({ wiki: nullExternal })
+          .then((result) => {
+            expect(result.toJS()).to.deep.equal([]);
+            testComplete();
+          })
+          .done();
+      });
+
+      it("works with [{result:[]}] return", (testComplete) => {
+        ex.compute({ wiki: emptyExternal })
+          .then((result) => {
+            expect(result.toJS()).to.deep.equal([]);
+            testComplete();
+          })
+          .done();
+      });
+    });
+
+    describe("should return null correctly on a select query", () => {
+      var ex = $('wiki');
 
       it("works with [] return", (testComplete) => {
         ex.compute({ wiki: nullExternal })

@@ -537,6 +537,11 @@ describe("Cross Functional", function() {
 
 
   describe("select", () => {
+    it('works with empty filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').filter('$cityName == "I am pretty sure this city does not exist"')
+    }));
+
     it('works with basic filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').filter('$cityName == "El Paso"')

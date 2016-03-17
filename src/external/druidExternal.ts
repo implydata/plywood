@@ -278,6 +278,7 @@ module Plywood {
         (<any>err).result = res; // ToDo: special error type
         throw err;
       }
+      if (res.length === 0) return [];
       return res[0].result.events.map(event => {
         var datum: Datum = event.event;
         if (timestampLabel != null) {
