@@ -1,4 +1,4 @@
-FROM imply/imply:1.1.0
+FROM imply/imply:1.1.1
 
 COPY init /tmp/init
 RUN chmod +x /tmp/init

@@ -1296,7 +1296,7 @@ describe("Druid Functional", function() {
     it("introspects version", (testComplete) => {
       wikiExternal.introspect()
         .then((introspectedExternal) => {
-          expect(introspectedExternal.version).to.equal('0.8.3');
+          expect(introspectedExternal.version).to.equal(info.druidVersion);
           testComplete();
         })
         .done();

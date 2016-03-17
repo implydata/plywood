@@ -212,13 +212,13 @@ module Plywood {
 
     static getVersion(v: string): string {
       if (!v) return null;
-      var m = v.match(/^\d+\.\d+\.\d+/);
+      var m = v.match(/^\d+\.\d+\.\d+(?:-\w+)?/);
       return m ? m[0] : null;
     }
 
     static versionLessThan(va: string, vb: string): boolean {
-      var pa = va.split('.');
-      var pb = vb.split('.');
+      var pa = va.split('-')[0].split('.');
+      var pb = vb.split('-')[0].split('.');
       if (pa[0] !== pb[0]) return pa[0] < pb[0];
       if (pa[1] !== pb[1]) return pa[1] < pb[1];
       return pa[2] < pb[2];
