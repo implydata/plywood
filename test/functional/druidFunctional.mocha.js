@@ -9,7 +9,7 @@ if (!WallTime.rules) {
 var { druidRequesterFactory } = require('plywood-druid-requester');
 
 var plywood = require('../../build/plywood');
-var { External, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
+var { External, DruidExternal, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
 
 var info = require('../info');
 
@@ -23,6 +23,18 @@ var druidRequester = druidRequesterFactory({
 
 describe("Druid Functional", function() {
   this.timeout(10000);
+
+  describe("source list", () => {
+    it("does a source list", (testComplete) => {
+      DruidExternal.getSourceList(druidRequester)
+        .then((sources) => {
+          expect(sources).to.deep.equal(['wikipedia']);
+          testComplete();
+        })
+        .done()
+    });
+  });
+
 
   describe("defined attributes in datasource", () => {
     var basicExecutor = basicExecutorFactory({

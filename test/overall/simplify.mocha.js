@@ -17,17 +17,31 @@ function simplifiesTo(ex1, ex2) {
   expect(ex1Simple.toJS(), 'must be the same').to.deep.equal(ex2.toJS());
 }
 
+function leavesAlone(ex) {
+  simplifiesTo(ex, ex);
+}
+
 describe("Simplify", () => {
-  it("simplifies to number", () => {
-    var ex1 = r(5).add(1).subtract(4);
-    var ex2 = r(2);
-    simplifiesTo(ex1, ex2);
+  describe('literals', () => {
+    it("simplifies to number", () => {
+      var ex1 = r(5).add(1).subtract(4);
+      var ex2 = r(2);
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("simplifies literal prefix", () => {
+      var ex1 = r(5).add(1).subtract(4).multiply('$x');
+      var ex2 = r(2).multiply('$x');
+      simplifiesTo(ex1, ex2);
+    });
   });
 
-  it("simplifies literal prefix", () => {
-    var ex1 = r(5).add(1).subtract(4).multiply('$x');
-    var ex2 = r(2).multiply('$x');
-    simplifiesTo(ex1, ex2);
+
+  describe('leaves', () => {
+    it('does not touch a lookup on a literal', () => {
+      var ex = $('city').contains('San').and($('city').is(r('San Francisco')));
+      leavesAlone(ex);
+    });
   });
 
 

@@ -482,7 +482,7 @@ module Plywood {
           freeReferences.push(repeat('^', ex.nest - nestDiff) + ex.name);
         }
       });
-      return deduplicateSort(freeReferences);
+      return helper.deduplicateSort(freeReferences);
     }
 
     /**

@@ -187,16 +187,6 @@ module Plywood {
     };
   }
 
-  function makeZeroDatum(applies: ApplyAction[]): Datum {
-    var newDatum = Object.create(null);
-    for (var apply of applies) {
-      var applyName = apply.name;
-      if (applyName[0] === '_') continue;
-      newDatum[applyName] = 0;
-    }
-    return newDatum;
-  }
-
   function valuePostProcess(res: Druid.TimeseriesResults): PlywoodValue {
     if (!correctTimeseriesResult(res)) {
       var err = new Error("unexpected result from Druid (all / value)");
@@ -217,7 +207,7 @@ module Plywood {
         throw err;
       }
       if (!res.length) {
-        return new Dataset({ data: [makeZeroDatum(applies)] });
+        return new Dataset({ data: [External.makeZeroDatum(applies)] });
       }
       var datum = res[0].result;
       cleanDatumInPlace(datum);
@@ -452,6 +442,14 @@ module Plywood {
       value.exactResultsOnly = Boolean(parameters.exactResultsOnly);
       value.context = parameters.context;
       return new DruidExternal(value);
+    }
+
+    static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
+      return requester({ query: { queryType: 'sourceList' } })
+        .then((sources) => {
+          if (!Array.isArray(sources)) throw new Error('invalid sources response');
+          return sources;
+        })
     }
 
 
@@ -1554,7 +1552,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       var aggregateFunction = AGGREGATE_TO_FUNCTION[aggregateActionType];
       if (!aggregateFunction) throw new Error(`Can not convert ${aggregateActionType} to JS`);
-      var zero =  AGGREGATE_TO_ZERO[aggregateActionType];
+      var zero = AGGREGATE_TO_ZERO[aggregateActionType];
       var fieldNames = aggregateExpression.getFreeReferences();
       return {
         name,
@@ -1810,7 +1808,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       };
 
       if (context) {
-        druidQuery.context = shallowCopy(context);
+        druidQuery.context = helper.shallowCopy(context);
       }
 
       var filterAndIntervals = this.filterToDruid(this.getQueryFilter());

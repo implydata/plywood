@@ -9,7 +9,7 @@ if (!WallTime.rules) {
 var { mySqlRequesterFactory } = require('plywood-mysql-requester');
 
 var plywood = require('../../build/plywood');
-var { Expression, External, TimeRange, $, ply, basicExecutorFactory } = plywood;
+var { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory } = plywood;
 
 var info = require('../info');
 
@@ -54,6 +54,19 @@ describe("MySQL Functional", function() {
     { "name": "max_delta", "type": "NUMBER" },
     { "name": "deltaByTen", "type": "NUMBER" }
   ];
+
+
+  describe("source list", () => {
+    it("does a source list", (testComplete) => {
+      MySQLExternal.getSourceList(mySqlRequester)
+        .then((sources) => {
+          expect(sources).to.deep.equal(['wikipedia', 'wikipedia_raw']);
+          testComplete();
+        })
+        .done()
+    });
+  });
+
 
   describe("defined attributes in datasource", () => {
     var basicExecutor = basicExecutorFactory({

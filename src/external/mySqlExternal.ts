@@ -44,7 +44,7 @@ module Plywood {
     return data.length ? data[0][External.VALUE_NAME] : 0;
   }
 
-  function postProcessFactory(inflaters: Inflater[]): PostProcess {
+  function postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyAction[]): PostProcess {
     return (data: any[]): Dataset => {
       if (!correctResult(data)) {
         var err = new Error("unexpected result from MySQL");
@@ -57,6 +57,10 @@ module Plywood {
         for (var i = 0; i < n; i++) {
           inflater(data[i], i, data);
         }
+      }
+
+      if (n === 0 && zeroTotalApplies) {
+        data = [External.makeZeroDatum(zeroTotalApplies)];
       }
 
       return new Dataset({ data });
@@ -95,6 +99,17 @@ module Plywood {
       var value: ExternalValue = External.jsToValue(parameters, requester);
       value.table = parameters.table;
       return new MySQLExternal(value);
+    }
+
+    static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
+      return requester({ query: "SHOW TABLES" })
+        .then((sources) => {
+          if (!Array.isArray(sources)) throw new Error('invalid sources response');
+          if (!sources.length) return sources;
+          var key = Object.keys(sources[0])[0];
+          if (!key) throw new Error('invalid sources response (no key)');
+          return sources.map((s: PseudoDatum) => s[key]);
+        });
     }
 
     public table: string;
@@ -160,6 +175,7 @@ module Plywood {
       var query = ['SELECT'];
       var postProcess: PostProcess = null;
       var inflaters: Inflater[] = [];
+      var zeroTotalApplies: ApplyAction[] = null;
 
       var from = "FROM `" + table + "`";
       var filter = this.getQueryFilter();
@@ -206,6 +222,7 @@ module Plywood {
           break;
 
         case 'total':
+          zeroTotalApplies = applies;
           query.push(
             applies.map(apply => apply.getSQL('', mySQLDialect)).join(',\n'),
             from,
@@ -239,7 +256,7 @@ module Plywood {
 
       return {
         query: query.join('\n'),
-        postProcess: postProcess || postProcessFactory(inflaters)
+        postProcess: postProcess || postProcessFactory(inflaters, zeroTotalApplies)
       };
     }
 

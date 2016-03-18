@@ -1,5 +1,10 @@
 module Plywood {
 
+  const IS_OR_IN_ACTION: Lookup<boolean> = {
+    'is': true,
+    'in': true
+  };
+
   function mergeAnd(ex1: Expression, ex2: Expression): Expression {
     if (
       !ex1.isOp('chain') ||
@@ -13,9 +18,12 @@ module Plywood {
     var ex2Actions = (<ChainExpression>ex2).actions;
     if (ex1Actions.length !== 1 || ex2Actions.length !== 1) return null;
 
-    var firstActionExpression1 = ex1Actions[0].expression;
-    var firstActionExpression2 = ex2Actions[0].expression;
+    var ex1Action = ex1Actions[0];
+    var ex2Action = ex2Actions[0];
+    if (!IS_OR_IN_ACTION[ex1Action.action] || !IS_OR_IN_ACTION[ex2Action.action]) return null;
 
+    var firstActionExpression1 = ex1Action.expression;
+    var firstActionExpression2 = ex2Action.expression;
     if (!firstActionExpression1 || !firstActionExpression2 || !firstActionExpression1.isOp('literal') || !firstActionExpression2.isOp('literal')) return null;
 
     var intersect = Set.generalIntersect(firstActionExpression1.getLiteralValue(), firstActionExpression2.getLiteralValue());
