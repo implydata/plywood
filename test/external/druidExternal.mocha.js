@@ -1484,9 +1484,6 @@ describe("DruidExternal", () => {
       dataSource: 'wikipedia',
       timeAttribute: 'time',
       allowSelectQueries: true,
-      requester: () => {
-        return Q([]);
-      },
       attributes: [
         { name: 'time', type: 'TIME' },
         { name: 'language', type: 'STRING' },
@@ -1494,30 +1491,13 @@ describe("DruidExternal", () => {
         { name: 'added', type: 'NUMBER' }
       ],
       filter: timeFilter
-    });
+    }, () => Q([]));
 
     var emptyExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
       allowSelectQueries: true,
-      requester: ({query}) => {
-        if (query.queryType === 'select') {
-          return Q([
-            {
-              "timestamp": "2016-03-15T23:00:00.458Z",
-              "result": {
-                "pagingIdentifiers": {
-                  "wikipedia_2016-03-15T23:00:00.000Z_2016-03-16T00:00:00.000Z_2016-03-15T23:00:00.000Z": 0
-                },
-                "events": []
-              }
-            }
-          ]);
-        } else {
-          return Q([{ result: [] }]);
-        }
-      },
       attributes: [
         { name: 'time', type: 'TIME' },
         { name: 'language', type: 'STRING' },
@@ -1525,6 +1505,22 @@ describe("DruidExternal", () => {
         { name: 'added', type: 'NUMBER' }
       ],
       filter: timeFilter
+    }, ({query}) => {
+      if (query.queryType === 'select') {
+        return Q([
+          {
+            "timestamp": "2016-03-15T23:00:00.458Z",
+            "result": {
+              "pagingIdentifiers": {
+                "wikipedia_2016-03-15T23:00:00.000Z_2016-03-16T00:00:00.000Z_2016-03-15T23:00:00.000Z": 0
+              },
+              "events": []
+            }
+          }
+        ]);
+      } else {
+        return Q([{ result: [] }]);
+      }
     });
 
     describe("should return null correctly on a totals query", () => {
@@ -1613,9 +1609,6 @@ describe("DruidExternal", () => {
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      requester: (query) => {
-        return Q("[Does this look like data to you?");
-      },
       attributes: [
         { name: 'time', type: 'TIME' },
         { name: 'language', type: 'STRING' },
@@ -1623,7 +1616,7 @@ describe("DruidExternal", () => {
         { name: 'added', type: 'NUMBER' }
       ],
       filter: timeFilter
-    });
+    }, (query) => Q("[Does this look like data to you?"));
 
     it("works with all query", (testComplete) => {
       var ex = ply()

@@ -101,8 +101,6 @@ describe("Expression", () => {
           engine: 'druid',
           version: '0.8.1',
           dataSource: 'moon_child',
-          timeAttribute: 'time',
-          context: null,
           attributes: [
             { name: 'color', type: 'STRING' },
             { name: 'cut', type: 'STRING' },

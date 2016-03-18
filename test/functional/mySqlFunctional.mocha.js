@@ -61,9 +61,8 @@ describe("MySQL Functional", function() {
         wiki: External.fromJS({
           engine: 'mysql',
           table: 'wikipedia',
-          attributes: wikiAttributes,
-          requester: mySqlRequester
-        })
+          attributes: wikiAttributes
+        }, mySqlRequester)
       }
     });
 
@@ -348,18 +347,16 @@ describe("MySQL Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
-          table: 'wikipedia',
-          requester: mySqlRequester
-        })
+          table: 'wikipedia'
+        }, mySqlRequester)
       }
     });
 
     it("introspects", (testComplete) => {
       External.fromJS({
         engine: 'mysql',
-        table: 'wikipedia',
-        requester: mySqlRequester
-      }).introspect()
+        table: 'wikipedia'
+      }, mySqlRequester).introspect()
         .then((external) => {
           expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
           testComplete();

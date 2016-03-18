@@ -1,4 +1,5 @@
 var { expect } = require("chai");
+var Q = require("q");
 var { sane, grabConsoleWarn } = require('../utils');
 
 var { testImmutableClass } = require("immutable-class/build/tester");
@@ -16,7 +17,6 @@ var wikiDataset = External.fromJS({
   engine: 'druid',
   dataSource: 'wikipedia',
   timeAttribute: 'time',
-  context: null,
   attributes: [
     { name: 'time', type: 'TIME' },
     { name: 'language', type: 'STRING' },
@@ -56,7 +56,6 @@ describe("External", () => {
         engine: 'druid',
         dataSource: 'moon_child',
         timeAttribute: 'time',
-        context: null,
         attributes: [
           { name: 'color', type: 'STRING' },
           { name: 'cut', type: 'STRING' },
@@ -84,7 +83,6 @@ describe("External", () => {
         version: '0.8.0',
         dataSource: 'moon_child',
         timeAttribute: 'time',
-        context: null,
         attributeOverrides: [
           { name: 'color', type: 'STRING' },
           { name: 'cut', type: 'STRING' },
@@ -108,15 +106,11 @@ describe("External", () => {
         engine: 'druid',
         version: '0.8.2',
         dataSource: 'wiki',
-        timeAttribute: 'time',
-        context: null,
         hasOwnProperty: 'troll'
       }).toJS()).to.deep.equal({
         engine: 'druid',
         version: '0.8.2',
-        dataSource: 'wiki',
-        timeAttribute: 'time',
-        context: null
+        dataSource: 'wiki'
       });
     });
 
@@ -155,17 +149,26 @@ describe("External", () => {
         expect(External.fromJS({
           engine: 'druid',
           druidVersion: '0.8.2',
-          dataSource: 'wiki',
-          timeAttribute: 'time',
-          context: null
+          dataSource: 'wiki'
         }).toJS()).to.deep.equal({
           engine: 'druid',
           version: '0.8.2',
-          dataSource: 'wiki',
-          timeAttribute: 'time',
-          context: null
+          dataSource: 'wiki'
         });
       })).to.equal("'druidVersion' parameter is deprecated, use 'version: 0.8.2' instead\n");
+    });
+
+    it("requester in JS", () => {
+      expect(grabConsoleWarn(() => {
+        var requester = () => null;
+        var external = External.fromJS({
+          engine: 'druid',
+          dataSource: 'wiki',
+          requester
+        });
+
+        expect(external.requester).to.equal(requester);
+      })).to.equal("'requester' parameter should be passed as context (2nd argument)\n");
     });
 
   });
@@ -227,13 +230,95 @@ describe("External", () => {
   });
 
 
+  describe("#introspect", () => {
+    it("does two introspects", (testComplete) => {
+      var dummyRequester = () => null;
+      var external = External.fromJS({
+        engine: 'druid',
+        dataSource: 'moon_child',
+        attributeOverrides: [
+          { "name": "unique_thing", "special": "unique", "type": "STRING" }
+        ]
+      }, dummyRequester);
+
+      Q(external)
+        .then((baseExternal) => {
+          baseExternal.getIntrospectAttributes = () => {
+            return Q({
+              version: '0.9.0-yo',
+              attributes: AttributeInfo.fromJSs([
+                { name: 'color', type: 'STRING' },
+                { name: 'cut', type: 'STRING' },
+                { name: 'carat', type: 'STRING' },
+                { name: 'unique_thing', type: 'NUMBER', unsplitable: true }
+              ])
+            });
+          };
+
+          return baseExternal.introspect()
+        })
+        .then((introspectedExternal1) => {
+          expect(introspectedExternal1.toJS()).to.deep.equal({
+            engine: 'druid',
+            version: '0.9.0-yo',
+            dataSource: 'moon_child',
+            attributeOverrides: [
+              { "name": "unique_thing", "special": "unique", "type": "STRING" }
+            ],
+            attributes: [
+              { name: 'color', type: 'STRING' },
+              { name: 'cut', type: 'STRING' },
+              { name: 'carat', type: 'STRING' },
+              { "name": "unique_thing", "special": "unique", "type": "STRING" }
+            ]
+          });
+          return introspectedExternal1;
+        })
+        .then((introspectedExternal1) => {
+          introspectedExternal1.getIntrospectAttributes = () => {
+            return Q({
+              attributes: AttributeInfo.fromJSs([
+                // Color removed
+                { name: 'cut', type: 'STRING' },
+                { name: 'carat', type: 'STRING' },
+                { name: 'unique_thing', type: 'NUMBER', unsplitable: true },
+                { name: 'price', type: 'NUMBER' }
+              ])
+            });
+          };
+
+          return introspectedExternal1.introspect()
+        })
+        .then((introspectedExternal2) => {
+          expect(introspectedExternal2.toJS()).to.deep.equal({
+            engine: 'druid',
+            version: '0.9.0-yo',
+            dataSource: 'moon_child',
+            attributeOverrides: [
+              { "name": "unique_thing", "special": "unique", "type": "STRING" }
+            ],
+            attributes: [
+              { name: 'color', type: 'STRING' },
+              { name: 'cut', type: 'STRING' },
+              { name: 'carat', type: 'STRING' },
+              { "name": "unique_thing", "special": "unique", "type": "STRING" },
+              { name: 'price', type: 'NUMBER' }
+            ]
+          });
+          testComplete();
+        })
+        .done();
+    })
+
+  });
+
+
   describe("#updateAttribute", () => {
     it("works", () => {
       var external = External.fromJS({
         engine: 'druid',
         dataSource: 'moon_child',
         timeAttribute: 'time',
-        context: null,
         attributes: [
           { name: 'color', type: 'STRING' },
           { name: 'cut', type: 'STRING' },
@@ -412,7 +497,6 @@ describe("External", () => {
         engine: 'druid',
         dataSource: 'moon_child',
         timeAttribute: 'time',
-        context: null,
         attributes: [
           { name: 'page', type: 'STRING' },
           { name: 'added', type: 'NUMBER', unsplitable: true }

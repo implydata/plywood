@@ -101,6 +101,7 @@ function higherArraysEqual(a: Array<any>, b: Array<any>): boolean {
   return true;
 }
 
+
 var expressionParser: PEGParser;
 var plyqlParser: PEGParser;
 
@@ -139,14 +140,6 @@ module Plywood {
       var scale = Math.pow(10, stringDelta.length - dotIndex - 1);
       return (num * scale + delta * scale) / scale;
     }
-  }
-
-  export function find<T>(array: T[], fn: (value: T, index: int, array: T[]) => boolean): T {
-    for (let i = 0, n = array.length; i < n; i++) {
-      let a = array[i];
-      if (fn.call(array, a, i)) return a;
-    }
-    return null;
   }
 
   export function continuousFloorExpression(variable: string, floorFn: string, size: number, offset: number): string {

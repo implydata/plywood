@@ -101,23 +101,8 @@ module Plywood {
       return attributes.map(attribute => attribute.toJS());
     }
 
-    static applyOverrides(attributes: Attributes, attributeOverrides: Attributes): Attributes {
-      attributeOverrides.forEach(attributeOverride => {
-        var attributeOverrideName = attributeOverride.name;
-        var added = false;
-        attributes = attributes.map(a => {
-          if (a.name === attributeOverrideName) {
-            added = true;
-            return attributeOverride;
-          } else {
-            return a;
-          }
-        });
-        if (!added) {
-          attributes = attributes.concat(attributeOverride);
-        }
-      });
-      return attributes;
+    static override(attributes: Attributes, attributeOverrides: Attributes): Attributes {
+      return helper.overrideByName(attributes, attributeOverrides);
     }
 
 

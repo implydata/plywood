@@ -61,9 +61,8 @@ describe("Druid Functional", function() {
             end: new Date("2015-09-13T00:00:00Z")
           })),
           version: info.druidVersion,
-          allowSelectQueries: true,
-          requester: druidRequester
-        })
+          allowSelectQueries: true
+        }, druidRequester)
       }
     });
 
@@ -1279,13 +1278,11 @@ describe("Druid Functional", function() {
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      context: null,
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
-      })),
-      requester: druidRequester
-    });
+      }))
+    }, druidRequester);
 
     var basicExecutor = basicExecutorFactory({
       datasets: {
