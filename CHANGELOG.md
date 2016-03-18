@@ -4,6 +4,7 @@
 
 - added `getSourceList` to externals
 - Fixed bug in expression simplification where `$s.contains('A') and $x.is('B') => false`
+- Respect unsplitable measures in DruidExternal
 
 ## 0.9.10
 
