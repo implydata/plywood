@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.9.11
+
+- added `getSourceList` to externals
+- Fixed bug in expression simplification where `$s.contains('A') and $x.is('B') => false`
+- Respect unsplitable measures in DruidExternal
+
 ## 0.9.10
 
 - DruidExternal timeAttribute now defaults to `__time`

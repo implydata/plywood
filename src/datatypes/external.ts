@@ -237,6 +237,16 @@ module Plywood {
       return uniqueExternals;
     }
 
+    static makeZeroDatum(applies: ApplyAction[]): Datum {
+      var newDatum = Object.create(null);
+      for (var apply of applies) {
+        var applyName = apply.name;
+        if (applyName[0] === '_') continue;
+        newDatum[applyName] = 0;
+      }
+      return newDatum;
+    }
+
     static normalizeAndAddApply(attributesAndApplies: AttributesAndApplies, apply: ApplyAction): AttributesAndApplies {
       var { attributes, applies } = attributesAndApplies;
 

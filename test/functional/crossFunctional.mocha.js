@@ -102,6 +102,14 @@ describe("Cross Functional", function() {
   this.timeout(10000);
 
   describe("filters", () => {
+    it('works with empty filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($cityName == "this city does not exist")')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with == filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
@@ -130,6 +138,14 @@ describe("Cross Functional", function() {
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter($cityName != null)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with .contains() and .is() filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($cityName.contains("San") and $cityName == "San Francisco")')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -274,12 +290,13 @@ describe("Cross Functional", function() {
 
 
   describe("splits", () => {
-    it('works with total', equalityTest({
+    it('works with empty filter split', equalityTest({
       executorNames: ['druid', 'mysql'],
-      expression: ply()
-        .apply('RowCount', '$wiki.count()')
-        .apply('EditsCount', '$wiki.sum($count)')
-        .apply('TotalAdded', '$wiki.sum($added)')
+      expression: $('wiki')
+        .filter('$cityName == "this city does not exist"')
+        .split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+        .limit(20)
     }));
 
     it('works with BOOLEAN split (native)', equalityTest({
@@ -579,6 +596,11 @@ describe("Cross Functional", function() {
 
 
   describe("value", () => {
+    it('works with empty filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: `$wiki.filter($cityName == "this city does not exist").count()`
+    }));
+
     it('works with basic value', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: `$wiki.filter($cityName == "El Paso").count()`

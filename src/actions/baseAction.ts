@@ -436,7 +436,7 @@ module Plywood {
       this.getExpressions().forEach((ex) => {
         freeReferences = freeReferences.concat(ex.getFreeReferences());
       });
-      return deduplicateSort(freeReferences);
+      return helper.deduplicateSort(freeReferences);
     }
 
     public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {

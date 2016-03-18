@@ -187,16 +187,6 @@ module Plywood {
     };
   }
 
-  function makeZeroDatum(applies: ApplyAction[]): Datum {
-    var newDatum = Object.create(null);
-    for (var apply of applies) {
-      var applyName = apply.name;
-      if (applyName[0] === '_') continue;
-      newDatum[applyName] = 0;
-    }
-    return newDatum;
-  }
-
   function valuePostProcess(res: Druid.TimeseriesResults): PlywoodValue {
     if (!correctTimeseriesResult(res)) {
       var err = new Error("unexpected result from Druid (all / value)");
@@ -217,7 +207,7 @@ module Plywood {
         throw err;
       }
       if (!res.length) {
-        return new Dataset({ data: [makeZeroDatum(applies)] });
+        return new Dataset({ data: [External.makeZeroDatum(applies)] });
       }
       var datum = res[0].result;
       cleanDatumInPlace(datum);
@@ -454,6 +444,14 @@ module Plywood {
       return new DruidExternal(value);
     }
 
+    static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
+      return requester({ query: { queryType: 'sourceList' } })
+        .then((sources) => {
+          if (!Array.isArray(sources)) throw new Error('invalid sources response');
+          return sources;
+        })
+    }
+
 
     public dataSource: string | string[];
     public timeAttribute: string;
@@ -626,19 +624,21 @@ module Plywood {
         }
 
       } else if (filter instanceof ChainExpression) {
+        var freeReferences = filter.getFreeReferences();
+        if (freeReferences.length !== 1) throw new Error(`can not convert multi reference filter ${filter} to Druid filter`);
+        var referenceName = freeReferences[0];
+        var attributeInfo = this.getAttributesInfo(referenceName);
+        if (attributeInfo.unsplitable) {
+          throw new Error(`can not convert ${filter} to filter because it references an un-filterable metric '${referenceName}' which is most likely rolled up.`)
+        }
+
         var filterAction = filter.lastAction();
         var rhs = filterAction.expression;
         var lhs = filter.popAction();
-        var referenceName: string;
-        var attributeInfo: AttributeInfo;
 
         // Special handling for r('some_tag').in($tags)
         if (lhs instanceof LiteralExpression) {
-          if (rhs instanceof RefExpression) {
-            referenceName = rhs.name;
-          } else {
-            throw new Error(`unsupported literal lhs must have ref rhs: ${rhs}`);
-          }
+          if (!rhs.isOp('ref')) throw new Error(`unsupported literal lhs must have ref rhs: ${rhs}`);
 
           if (filterAction instanceof InAction) {
             attributeInfo = this.getAttributesInfo(referenceName);
@@ -659,11 +659,7 @@ module Plywood {
         }
 
         var extractionFn = this.expressionToExtractionFn(lhs);
-        var freeReferences = lhs.getFreeReferences();
-        if (freeReferences.length !== 1) throw new Error(`can not convert multi reference filter ${filter} to Druid filter`);
-        var referenceName = freeReferences[0];
         var dimensionName = referenceName === this.timeAttribute ? '__time' : referenceName;
-        attributeInfo = this.getAttributesInfo(referenceName);
 
         if (filterAction instanceof IsAction) {
           if (rhs instanceof LiteralExpression) {
@@ -928,7 +924,7 @@ module Plywood {
     private _expressionToExtractionFns(expression: Expression, extractionFns: Druid.ExtractionFn[]): void {
       var freeReferences = expression.getFreeReferences();
       if (freeReferences.length !== 1) {
-        throw new Error(`must have a single reference: ${expression}`);
+        throw new Error(`must have 1 reference (has ${freeReferences.length}): ${expression}`);
       }
 
       if (expression instanceof RefExpression) {
@@ -1169,9 +1165,18 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public expressionToDimensionInflater(expression: Expression, label: string): DimensionInflater {
+      var freeReferences = expression.getFreeReferences();
+      if (freeReferences.length !== 1) {
+        throw new Error(`must have 1 reference (has ${freeReferences.length}): ${expression}`);
+      }
+      var referenceName = freeReferences[0];
+
+      var attributeInfo = this.getAttributesInfo(referenceName);
+      if (attributeInfo.unsplitable) {
+        throw new Error(`can not convert ${expression} to split because it references an un-splitable metric '${referenceName}' which is most likely rolled up.`)
+      }
+
       var extractionFn = this.expressionToExtractionFn(expression);
-      // expressionToExtractionFn already checked that there is only one ref name
-      var referenceName = expression.getFreeReferences()[0];
 
       var simpleInflater = External.getSimpleInflater(expression, label);
 
@@ -1186,7 +1191,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
 
       if (expression instanceof RefExpression) {
-        var attributeInfo = this.getAttributesInfo(referenceName);
+
         if (attributeInfo instanceof RangeAttributeInfo) {
           return {
             dimension,
@@ -1246,7 +1251,6 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (splitAction instanceof NumberBucketAction) {
-          var attributeInfo = this.getAttributesInfo(referenceName);
           if (attributeInfo.type === 'NUMBER') {
             //var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
             return {
@@ -1554,7 +1558,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       var aggregateFunction = AGGREGATE_TO_FUNCTION[aggregateActionType];
       if (!aggregateFunction) throw new Error(`Can not convert ${aggregateActionType} to JS`);
-      var zero =  AGGREGATE_TO_ZERO[aggregateActionType];
+      var zero = AGGREGATE_TO_ZERO[aggregateActionType];
       var fieldNames = aggregateExpression.getFreeReferences();
       return {
         name,
@@ -1810,7 +1814,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       };
 
       if (context) {
-        druidQuery.context = shallowCopy(context);
+        druidQuery.context = helper.shallowCopy(context);
       }
 
       var filterAndIntervals = this.filterToDruid(this.getQueryFilter());

@@ -29,6 +29,7 @@ var context = {
       { name: 'tags', type: 'SET/STRING' },
       { name: 'commentLength', type: 'NUMBER' },
       { name: 'isRobot', type: 'BOOLEAN' },
+      { name: 'count', type: 'NUMBER', unsplitable: true },
       { name: 'added', type: 'NUMBER', unsplitable: true },
       { name: 'deleted', type: 'NUMBER', unsplitable: true },
       { name: 'inserted', type: 'NUMBER', unsplitable: true }
@@ -441,7 +442,7 @@ describe("DruidExternal", () => {
     it("works with filtered complex aggregate expressions", () => {
       var ex = $('wiki').split("$page", 'Page')
         .apply('FilteredSumDeleted', '$wiki.filter($page.contains("wikipedia")).sum($deleted)')
-        .apply('Filtered2', '$wiki.filter($deleted != 100).sum($deleted)')
+        .apply('Filtered2', '$wiki.filter($page.match("^wiki")).sum($deleted)')
         .sort('$FilteredSumDeleted', 'descending')
         .limit(5);
 
@@ -477,12 +478,13 @@ describe("DruidExternal", () => {
               "type": "doubleSum"
             },
             "filter": {
-              "field": {
-                "dimension": "deleted",
-                "type": "selector",
-                "value": 100
+              "dimension": "page",
+              "extractionFn": {
+                "function": "function(d){return /^wiki/.test(d);}",
+                "type": "javascript"
               },
-              "type": "not"
+              "type": "extraction",
+              "value": "true"
             },
             "name": "Filtered2",
             "type": "filtered"
@@ -657,6 +659,17 @@ describe("DruidExternal", () => {
 
 
   describe("filters", () => {
+
+    it("throws an error on unsplitable", () => {
+      var ex = $('wiki').filter($("count").is(1337));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      expect(() => {
+        ex.external.getQueryAndPostProcess();
+      }).to.throw(`can not convert $count:NUMBER.is(1337) to filter because it references an un-filterable metric 'count' which is most likely rolled up.`);
+    });
 
     it("works with .in(1 thing)", () => {
       var ex = $('wiki').filter($("language").in(['en']));
@@ -1037,6 +1050,17 @@ describe("DruidExternal", () => {
 
 
   describe("splits (makes correct dimension extractionFns)", () => {
+
+    it("throws an error on unsplitable", () => {
+      var ex = $('wiki').split('$count', 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      expect(() => {
+        ex.external.getQueryAndPostProcess();
+      }).to.throw(`can not convert $count:NUMBER to split because it references an un-splitable metric 'count' which is most likely rolled up.`);
+    });
 
     it("works with default", () => {
       var ex = $('wiki').split('$page', 'Split');

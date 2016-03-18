@@ -37,7 +37,7 @@ docker start plywood-test-druid
 ### Setup
 
 ```bash
-docker run -v "${IMPLY_PROJECTS}/plywood/data":/opt/data -p 6603:3306 -d --name plywood-test-mysql -e MYSQL_ALLOW_EMPTY_PASSWORD='true' -d mysql/mysql-server:5.7
+docker run -v "${IMPLY_PROJECTS}/plywood/data":/opt/data -p 3306:3306 -d --name plywood-test-mysql -e MYSQL_ALLOW_EMPTY_PASSWORD='true' -d mysql/mysql-server:5.7
 docker exec -it plywood-test-mysql /opt/data/mysql/load-data
 ```
 

@@ -68,5 +68,24 @@ module Plywood {
       return things;
     }
 
+
+    export function shallowCopy<T>(thing: Lookup<T>): Lookup<T> {
+      var newThing: Lookup<T> = {};
+      for (var k in thing) {
+        if (hasOwnProperty(thing, k)) newThing[k] = thing[k];
+      }
+      return newThing;
+    }
+
+    export function deduplicateSort(a: string[]): string[] {
+      a = a.sort();
+      var newA: string[] = [];
+      var last: string = null;
+      for (let v of a) {
+        if (v !== last) newA.push(v);
+        last = v;
+      }
+      return newA
+    }
   }
 }
