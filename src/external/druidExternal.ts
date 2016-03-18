@@ -1,6 +1,7 @@
 module Plywood {
   const DUMMY_NAME = '!DUMMY';
 
+  const DEFAULT_TIME_ATTRIBUTE = '__time';
   const DEFAULT_TIMEZONE = Timezone.UTC;
 
   const AGGREGATE_TO_DRUID: Lookup<string> = {
@@ -434,14 +435,14 @@ module Plywood {
     static VALID_INTROSPECTION_STRATEGIES = ['segment-metadata-fallback', 'segment-metadata-only', 'datasource-get'];
     static DEFAULT_INTROSPECTION_STRATEGY = 'segment-metadata-fallback';
 
-    static fromJS(parameters: ExternalJS): DruidExternal {
+    static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): DruidExternal {
       // Back compat:
       if (typeof (<any>parameters).druidVersion === 'string') {
         parameters.version = (<any>parameters).druidVersion;
         console.warn(`'druidVersion' parameter is deprecated, use 'version: ${parameters.version}' instead`);
       }
 
-      var value: ExternalValue = External.jsToValue(parameters);
+      var value: ExternalValue = External.jsToValue(parameters, requester);
       value.dataSource = parameters.dataSource;
       value.timeAttribute = parameters.timeAttribute;
       value.customAggregations = parameters.customAggregations || {};
@@ -468,9 +469,8 @@ module Plywood {
       this._ensureEngine("druid");
       this._ensureMinVersion("0.8.0");
       this.dataSource = parameters.dataSource;
-      this.timeAttribute = parameters.timeAttribute;
+      this.timeAttribute = parameters.timeAttribute || DEFAULT_TIME_ATTRIBUTE;
       this.customAggregations = parameters.customAggregations;
-      if (typeof this.timeAttribute !== 'string') throw new Error("must have a timeAttribute");
       this.allowEternity = parameters.allowEternity;
       this.allowSelectQueries = parameters.allowSelectQueries;
 
@@ -500,13 +500,13 @@ module Plywood {
     public toJS(): ExternalJS {
       var js: ExternalJS = super.toJS();
       js.dataSource = this.dataSource;
-      js.timeAttribute = this.timeAttribute;
+      if (this.timeAttribute !== DEFAULT_TIME_ATTRIBUTE) js.timeAttribute = this.timeAttribute;
       if (Object.keys(this.customAggregations).length) js.customAggregations = this.customAggregations;
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
       if (this.introspectionStrategy !== DruidExternal.DEFAULT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
       if (this.exactResultsOnly) js.exactResultsOnly = true;
-      js.context = this.context;
+      if (this.context) js.context = this.context;
       return js;
     }
 

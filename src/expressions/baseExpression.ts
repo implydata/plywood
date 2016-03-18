@@ -648,7 +648,7 @@ module Plywood {
         var externals = ex.getBaseExternals();
         if (externals.length !== 1) return null;
 
-        var existingApply = find(singleDatasetActions, (apply) => apply.expression.equals(ex));
+        var existingApply = helper.find(singleDatasetActions, (apply) => apply.expression.equals(ex));
 
         var tempName: string;
         if (existingApply) {

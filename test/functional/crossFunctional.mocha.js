@@ -78,9 +78,8 @@ var druidExecutor = basicExecutorFactory({
         end: new Date("2015-09-13T00:00:00Z")
       })),
       version: info.druidVersion,
-      allowSelectQueries: true,
-      requester: druidRequester
-    })
+      allowSelectQueries: true
+    }, druidRequester)
   }
 });
 
@@ -89,9 +88,8 @@ var mysqlExecutor = basicExecutorFactory({
     wiki: External.fromJS({
       engine: 'mysql',
       table: 'wikipedia',
-      attributes,
-      requester: mySqlRequester
-    })
+      attributes
+    }, mySqlRequester)
   }
 });
 

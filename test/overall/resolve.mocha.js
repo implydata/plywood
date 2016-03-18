@@ -196,10 +196,8 @@ describe("resolve", () => {
         diamonds: External.fromJS({
           engine: 'druid',
           dataSource: 'diamonds',
-          timeAttribute: 'time',
-          context: null,
           attributes: [
-            { name: 'time', type: 'TIME' },
+            { name: '__time', type: 'TIME' },
             { name: 'color', type: 'STRING' },
             { name: 'cut', type: 'STRING' },
             { name: 'carat', type: 'NUMBER' }

@@ -585,7 +585,7 @@ module Plywood {
 
       var attributeOverrides = this.attributeOverrides;
       if (attributeOverrides) {
-        attributes = AttributeInfo.applyOverrides(attributes, attributeOverrides);
+        attributes = AttributeInfo.override(attributes, attributeOverrides);
         this.attributeOverrides = null;
       }
 

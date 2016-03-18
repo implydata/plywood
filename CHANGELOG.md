@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.9.10
+
+- DruidExternal timeAttribute now defaults to `__time`
+- Moved find* methods into helper
+- Externals can re-introspect
+
 ## 0.9.9
 
 - Fixed Druid 'select' failing on time interval outside of Druid cluster

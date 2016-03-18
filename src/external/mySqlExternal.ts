@@ -91,9 +91,9 @@ module Plywood {
   export class MySQLExternal extends External {
     static type = 'DATASET';
 
-    static fromJS(datasetJS: any): MySQLExternal {
-      var value: ExternalValue = External.jsToValue(datasetJS);
-      value.table = datasetJS.table;
+    static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): MySQLExternal {
+      var value: ExternalValue = External.jsToValue(parameters, requester);
+      value.table = parameters.table;
       return new MySQLExternal(value);
     }
 

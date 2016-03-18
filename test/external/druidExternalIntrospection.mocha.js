@@ -311,20 +311,16 @@ describe("DruidExternal Introspection", () => {
       External.fromJS({
         engine: 'druid',
         dataSource: 'wikipedia',
-        timeAttribute: 'time',
-        introspectionStrategy: 'crowd-source',
-        requester: requesterFail
-      });
+        introspectionStrategy: 'crowd-source'
+      }, requesterFail);
     }).to.throw("invalid introspectionStrategy 'crowd-source'");
   });
 
   it("does an introspect with general failure", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
-      timeAttribute: 'time',
-      requester: requesterFail
-    });
+      dataSource: 'wikipedia'
+    }, requesterFail);
 
     return wikiExternal.introspect()
       .then(() => {
@@ -341,9 +337,8 @@ describe("DruidExternal Introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
-      timeAttribute: 'time',
-      requester: requesterDruid_0_9_0
-    });
+      timeAttribute: 'time'
+    },requesterDruid_0_9_0);
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
@@ -413,9 +408,8 @@ describe("DruidExternal Introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
-      timeAttribute: 'time',
-      requester: requesterDruid_0_9_0_flake
-    });
+      timeAttribute: 'time'
+    }, requesterDruid_0_9_0_flake);
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
@@ -471,9 +465,8 @@ describe("DruidExternal Introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
-      timeAttribute: 'time',
-      requester: requesterDruid_0_8_3
-    });
+      timeAttribute: 'time'
+    }, requesterDruid_0_8_3);
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
@@ -529,9 +522,8 @@ describe("DruidExternal Introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
-      timeAttribute: 'time',
-      requester: requesterDruid_0_8_2
-    });
+      timeAttribute: 'time'
+    }, requesterDruid_0_8_2);
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
@@ -577,9 +569,8 @@ describe("DruidExternal Introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
-      timeAttribute: 'time',
-      requester: requesterDruid_0_8_1
-    });
+      timeAttribute: 'time'
+    }, requesterDruid_0_8_1);
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
@@ -639,10 +630,9 @@ describe("DruidExternal Introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',
-      timeAttribute: 'time',
       introspectionStrategy: 'datasource-get',
-      requester: requesterDruid_0_9_0
-    });
+      timeAttribute: 'time'
+    }, requesterDruid_0_9_0);
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
@@ -703,12 +693,11 @@ describe("DruidExternal Introspection", () => {
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time',
-      requester: requesterDruid_0_8_1,
       attributeOverrides: [
         { name: "user_unique", special: 'unique' },
         { name: "delta_hist", special: 'histogram' }
       ]
-    });
+    }, requesterDruid_0_8_1);
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {

@@ -181,8 +181,6 @@ module Plywood {
     introspectionStrategy?: string;
     exactResultsOnly?: boolean;
     context?: Lookup<any>;
-
-    requester?: Requester.PlywoodRequester<any>;
   }
 
   export interface ApplySegregation {
@@ -462,11 +460,12 @@ module Plywood {
       }
     }
 
-    static jsToValue(parameters: ExternalJS): ExternalValue {
+    static jsToValue(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): ExternalValue {
       var value: ExternalValue = {
         engine: parameters.engine,
         version: parameters.version,
-        suppress: true
+        suppress: true,
+        requester
       };
       if (parameters.attributes) {
         value.attributes = AttributeInfo.fromJSs(parameters.attributes);
@@ -474,7 +473,6 @@ module Plywood {
       if (parameters.attributeOverrides) {
         value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
       }
-      if (parameters.requester) value.requester = parameters.requester;
       value.filter = parameters.filter ? Expression.fromJS(parameters.filter) : Expression.TRUE;
 
       return value;
@@ -486,7 +484,7 @@ module Plywood {
       External.classMap[id] = ex;
     }
 
-    static fromJS(parameters: ExternalJS): External {
+    static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any> = null): External {
       if (!hasOwnProperty(parameters, "engine")) {
         throw new Error("external `engine` must be defined");
       }
@@ -498,7 +496,14 @@ module Plywood {
       if (!ClassFn) {
         throw new Error(`unsupported engine '${engine}'`);
       }
-      return ClassFn.fromJS(parameters);
+
+      // Back compat
+      if (!requester && hasOwnProperty(parameters, 'requester')) {
+        console.warn("'requester' parameter should be passed as context (2nd argument)");
+        requester = (parameters as any).requester;
+      }
+
+      return ClassFn.fromJS(parameters, requester);
     }
 
     static fromValue(parameters: ExternalValue): External {
@@ -652,9 +657,6 @@ module Plywood {
       if (this.attributeOverrides) js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
 
       if (this.rawAttributes) js.rawAttributes = AttributeInfo.toJSs(this.rawAttributes);
-      if (this.requester) {
-        js.requester = this.requester;
-      }
       if (!this.filter.equals(Expression.TRUE)) {
         js.filter = this.filter.toJS();
       }
@@ -700,40 +702,20 @@ module Plywood {
 
     public getAttributesInfo(attributeName: string) {
       var attributes = this.rawAttributes || this.attributes;
-      for (var attribute of attributes) {
-        if (attribute.name === attributeName) return attribute;
-      }
-      return null;
+      return helper.findByName(attributes, attributeName);
     }
 
     public updateAttribute(newAttribute: AttributeInfo): External {
       if (!this.attributes) return this;
-      var newAttributeName = newAttribute.name;
-      var added = false;
-
       var value = this.valueOf();
-
-      value.attributes = value.attributes.map((attribute) => {
-        if (attribute.name === newAttributeName) {
-          added = true;
-          return newAttribute;
-        } else {
-          return attribute;
-        }
-      });
-
-      if (!added) {
-        // At this point map already made a copy of the list
-        value.attributes.push(newAttribute);
-      }
-
-      return new (External.classMap[this.engine])(value);
+      value.attributes = AttributeInfo.override(value.attributes, [newAttribute]);
+      return External.fromValue(value);
     }
 
     public show(): External {
       var value = this.valueOf();
       value.suppress = false;
-      return new (External.classMap[this.engine])(value);
+      return External.fromValue(value);
     }
 
     // -----------------
@@ -1181,26 +1163,28 @@ module Plywood {
     }
 
     public introspect(): Q.Promise<External> {
-      if (this.attributes) {
-        return Q(this);
-      }
-
       if (!this.requester) {
         return <Q.Promise<External>>Q.reject(new Error('must have a requester to introspect'));
       }
 
-      var value = this.valueOf();
-      var ClassFn = External.classMap[this.engine];
       return this.getIntrospectAttributes()
-        .then(result => {
-          var attributes = result.attributes;
+        .then(({version, attributes}) => {
+          var value = this.valueOf();
+
+          // Apply user provided (if any) overrides to the received attributes
           if (value.attributeOverrides) {
-            attributes = AttributeInfo.applyOverrides(attributes, value.attributeOverrides);
+            attributes = AttributeInfo.override(attributes, value.attributeOverrides);
           }
-          value.version = result.version;
+
+          // Override any existing attributes (we do not just replace them)
+          if (value.attributes) {
+            attributes = AttributeInfo.override(value.attributes, attributes);
+          }
+
+          if (version) value.version = version;
           value.attributes = attributes;
           // Once attributes are set attributeOverrides will be ignored
-          return <External>(new ClassFn(value));
+          return External.fromValue(value);
         });
     }
 

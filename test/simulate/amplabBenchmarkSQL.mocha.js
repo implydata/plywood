@@ -17,7 +17,6 @@ var context = {
     timeAttribute: 'time',
     allowSelectQueries: true,
     allowEternity: true,
-    context: null,
     attributes: [
       { name: 'pageURL', type: 'STRING' }, // VARCHAR(300)
       { name: 'pageRank', type: 'NUMBER' }, // INT
@@ -31,7 +30,6 @@ var context = {
     timeAttribute: 'visitDate',
     allowSelectQueries: true,
     allowEternity: true,
-    context: null,
     attributes: [
       { name: 'sourceIP', type: 'STRING' }, // VARCHAR(116)
       { name: 'destURL', type: 'STRING' }, // VARCHAR(100)
