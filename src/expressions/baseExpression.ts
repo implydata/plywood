@@ -1004,6 +1004,7 @@ module Plywood {
     // Aggregate expressions
 
     public count(): ChainExpression {
+      if (arguments.length) throw new Error('.count() should not have arguments, did you want to .filter().count()?');
       return this.performAction(new CountAction({}));
     }
 

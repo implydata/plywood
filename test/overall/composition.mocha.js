@@ -4,6 +4,22 @@ var plywood = require('../../build/plywood');
 var { $, ply, r } = plywood;
 
 describe("composition", () => {
+
+  describe("errors", () => {
+    it("throws on a nameless apply", () => {
+      expect(() => {
+        ply().apply('$data.sum($x)');
+      }).to.throw('invalid arguments to .apply, did you forget to specify a name?');
+    });
+
+    it("throws on an expression in count", () => {
+      expect(() => {
+        ply().count('$x');
+      }).to.throw('.count() should not have arguments, did you want to .filter().count()?');
+    });
+
+  });
+
   it("works in blank case", () => {
     var ex = ply();
     expect(ex.toJS()).to.deep.equal({

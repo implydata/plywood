@@ -625,6 +625,11 @@ describe("Cross Functional", function() {
       expression: `1000 - $wiki.filter($cityName == "El Paso").count() - $wiki.sum($count)`
     }));
 
+    it('works with chain division', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: `$wiki.count() / $wiki.sum($count) / 0.25`
+    }));
+
   });
 
 });
