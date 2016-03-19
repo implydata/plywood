@@ -37,6 +37,10 @@ module Plywood {
       }
     }
 
+    protected _getJSHelper(inputJS: string, expressionJS: string): string {
+      return `(function() {throw new Error('ToDo: implement IN')})()`;
+    }
+
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       var expression = this.expression;
       var expressionType = expression.type;

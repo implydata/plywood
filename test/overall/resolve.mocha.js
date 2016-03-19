@@ -1,7 +1,7 @@
 var { expect } = require("chai");
 
 var plywood = require('../../build/plywood');
-var { Expression, Dataset, External, $, ply, r } = plywood;
+var { Expression, Dataset, External, ExternalExpression, $, ply, r } = plywood;
 
 describe("resolve", () => {
   describe("errors if", () => {
@@ -190,19 +190,21 @@ describe("resolve", () => {
       );
     });
 
-    it.skip("works with sub-expressions", () => {
+    it("works with sub-expressions", () => {
+      var external = External.fromJS({
+        engine: 'druid',
+        dataSource: 'diamonds',
+        attributes: [
+          { name: '__time', type: 'TIME' },
+          { name: 'color', type: 'STRING' },
+          { name: 'cut', type: 'STRING' },
+          { name: 'carat', type: 'NUMBER' }
+        ]
+      });
+
       var datum = {
         Count: 5,
-        diamonds: External.fromJS({
-          engine: 'druid',
-          dataSource: 'diamonds',
-          attributes: [
-            { name: '__time', type: 'TIME' },
-            { name: 'color', type: 'STRING' },
-            { name: 'cut', type: 'STRING' },
-            { name: 'carat', type: 'NUMBER' }
-          ]
-        })
+        diamonds: external
       };
 
       var ex = $("diamonds").split("$cut", 'Cut')
@@ -210,6 +212,14 @@ describe("resolve", () => {
         .apply('PercentOfTotal', '$Count / $^Count');
 
       ex = ex.resolve(datum);
+
+      var externalExpression = new ExternalExpression({ external });
+      expect(ex.toJS()).to.deep.equal(
+        externalExpression.split("$cut", 'Cut', 'diamonds')
+          .apply('Count', $('diamonds').count())
+          .apply('PercentOfTotal', '$Count / 5')
+          .toJS()
+      );
     });
   });
 

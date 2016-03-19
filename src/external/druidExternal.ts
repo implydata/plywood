@@ -1634,7 +1634,9 @@ return (start < 0 ?'-':'') + parts.join('.');
     public getAggregationsAndPostAggregations(applies: ApplyAction[]): AggregationsAndPostAggregations {
       var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(
         applies.map(apply => {
-          return <ApplyAction>apply.changeExpression(this.inlineDerivedAttributes(apply.expression).decomposeAverage().distribute())
+          var expression = apply.expression;
+          expression = this.switchToRollupCount(this.inlineDerivedAttributes(expression).decomposeAverage()).distribute();
+          return <ApplyAction>apply.changeExpression(expression);
         })
       );
 

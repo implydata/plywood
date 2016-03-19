@@ -127,6 +127,7 @@ module Plywood {
     engine?: string;
     version?: string;
     suppress?: boolean;
+    rollup?: boolean;
     attributes?: Attributes;
     attributeOverrides?: Attributes;
     mode?: QueryMode;
@@ -163,6 +164,7 @@ module Plywood {
   export interface ExternalJS {
     engine: string;
     version?: string;
+    rollup?: boolean;
     attributes?: AttributeJSs;
     attributeOverrides?: AttributeJSs;
 
@@ -475,6 +477,7 @@ module Plywood {
         engine: parameters.engine,
         version: parameters.version,
         suppress: true,
+        rollup: parameters.rollup,
         requester
       };
       if (parameters.attributes) {
@@ -526,6 +529,7 @@ module Plywood {
     public engine: string;
     public version: string;
     public suppress: boolean;
+    public rollup: boolean;
     public attributes: Attributes = null;
     public attributeOverrides: Attributes = null;
 
@@ -556,7 +560,8 @@ module Plywood {
       }
       this.version = version;
 
-      this.suppress = parameters.suppress === true;
+      this.suppress = Boolean(parameters.suppress);
+      this.rollup = Boolean(parameters.rollup);
       if (parameters.attributes) {
         this.attributes = parameters.attributes;
       }
@@ -616,7 +621,9 @@ module Plywood {
     public valueOf(): ExternalValue {
       var value: ExternalValue = {
         engine: this.engine,
-        version: this.version
+        version: this.version,
+        rollup: this.rollup,
+        mode: this.mode
       };
       if (this.suppress) value.suppress = this.suppress;
       if (this.attributes) value.attributes = this.attributes;
@@ -628,7 +635,7 @@ module Plywood {
       if (this.requester) {
         value.requester = this.requester;
       }
-      value.mode = this.mode;
+
       if (this.dataName) {
         value.dataName = this.dataName;
       }
@@ -663,6 +670,7 @@ module Plywood {
         engine: this.engine
       };
       if (this.version) js.version = this.version;
+      if (this.rollup) js.rollup = true;
       if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
       if (this.attributeOverrides) js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
 
@@ -701,6 +709,7 @@ module Plywood {
       return External.isExternal(other) &&
         this.engine === other.engine &&
         this.version === other.version &&
+        this.rollup === other.rollup &&
         this.mode === other.mode &&
         this.filter.equals(other.filter);
     }
@@ -1060,24 +1069,46 @@ module Plywood {
     }
 
     public inlineDerivedAttributes(expression: Expression): Expression {
-      var derivedAttributes = this.derivedAttributes;
-      return expression.substitute(ex => {
-        return null;
-        /*
-        if (ex instanceof AggregateExpression) {
-          return ex.substitute(refEx => {
+      const { derivedAttributes } = this;
+      return expression.substituteAction(
+        (action) => {
+          if (!action.isAggregate()) return false;
+          return action.getFreeReferences().some(ref => hasOwnProperty(derivedAttributes, ref));
+        },
+        (preEx, action) => {
+          return preEx.performAction(action.changeExpression(action.expression.substitute(refEx => {
             if (refEx instanceof RefExpression) {
               var refName = refEx.name;
               return hasOwnProperty(derivedAttributes, refName) ? derivedAttributes[refName] : null;
             } else {
               return null;
             }
-          });
-        } else {
-          return null;
+          })));
         }
-        */
-      })
+      );
+    }
+
+    public switchToRollupCount(expression: Expression): Expression {
+      var countName = this.getRollupCountName();
+      if (!countName) return expression;
+      return expression.substituteAction(
+        (action) => {
+          return action.action === 'count';
+        },
+        (preEx, action) => {
+          return preEx.sum($(countName));
+        }
+      );
+    }
+
+    public getRollupCountName(): string {
+      const { rollup, rawAttributes } = this;
+      if (!rollup) return null;
+      for (var attribute of rawAttributes) {
+        var makerAction = attribute.makerAction;
+        if (makerAction && makerAction.action === 'count') return attribute.name;
+      }
+      return null;
     }
 
     public getQueryFilter(): Expression {
