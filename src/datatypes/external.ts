@@ -1096,7 +1096,7 @@ module Plywood {
         (action) => {
           return action.action === 'count';
         },
-        (preEx, action) => {
+        (preEx) => {
           if (!countRef) countRef = $(this.getRollupCountName(), 'NUMBER');
           return preEx.sum(countRef);
         }

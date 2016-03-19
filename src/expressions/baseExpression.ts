@@ -1,26 +1,26 @@
 module Plywood {
   export interface BooleanExpressionIterator {
-    (ex: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
+    (ex?: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
   }
 
   export interface VoidExpressionIterator {
-    (ex: Expression, index?: int, depth?: int, nestDiff?: int): void;
+    (ex?: Expression, index?: int, depth?: int, nestDiff?: int): void;
   }
 
   export interface SubstitutionFn {
-    (ex: Expression, index?: int, depth?: int, nestDiff?: int): Expression;
+    (ex?: Expression, index?: int, depth?: int, nestDiff?: int): Expression;
   }
 
   export interface ExpressionMatchFn {
-    (ex: Expression): boolean;
+    (ex?: Expression): boolean;
   }
 
   export interface ActionMatchFn {
-    (action: Action): boolean;
+    (action?: Action): boolean;
   }
 
   export interface ActionSubstitutionFn {
-    (preEx: Expression, action: Action): Expression;
+    (preEx?: Expression, action?: Action): Expression;
   }
 
   export interface DatasetBreakdown {
