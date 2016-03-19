@@ -41,8 +41,9 @@ module Plywood {
 
   export interface SQLParse {
     verb: string;
-    expression: Expression;
-    table: string;
+    expression?: Expression;
+    table?: string;
+    rest?: string;
   }
 
   export interface ExpressionValue {
@@ -980,6 +981,7 @@ module Plywood {
      * @param ex The expression to evaluate
      */
     public apply(name: string, ex: any): ChainExpression {
+      if (arguments.length < 2) throw new Error('invalid arguments to .apply, did you forget to specify a name?');
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
       return this.performAction(new ApplyAction({ name: getString(name), expression: ex }));
     }

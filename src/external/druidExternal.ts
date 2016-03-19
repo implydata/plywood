@@ -602,18 +602,8 @@ module Plywood {
     public timelessFilterToDruid(filter: Expression, aggregatorFilter: boolean): Druid.Filter {
       if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
 
-      var pattern: Expression[];
-      if (pattern = filter.getExpressionPattern('and')) {
-        return {
-          type: 'and',
-          fields: pattern.map(p => this.timelessFilterToDruid(p, aggregatorFilter))
-        };
-      }
-      if (pattern = filter.getExpressionPattern('or')) {
-        return {
-          type: 'or',
-          fields: pattern.map(p => this.timelessFilterToDruid(p, aggregatorFilter))
-        };
+      if (filter instanceof RefExpression) {
+        filter = filter.is(true);
       }
 
       if (filter instanceof LiteralExpression) {
@@ -624,6 +614,31 @@ module Plywood {
         }
 
       } else if (filter instanceof ChainExpression) {
+        var pattern: Expression[];
+        if (pattern = filter.getExpressionPattern('and')) {
+          return {
+            type: 'and',
+            fields: pattern.map(p => this.timelessFilterToDruid(p, aggregatorFilter))
+          };
+        }
+        if (pattern = filter.getExpressionPattern('or')) {
+          return {
+            type: 'or',
+            fields: pattern.map(p => this.timelessFilterToDruid(p, aggregatorFilter))
+          };
+        }
+
+        var filterAction = filter.lastAction();
+        var rhs = filterAction.expression;
+        var lhs = filter.popAction();
+
+        if (filterAction instanceof NotAction) {
+          return {
+            type: 'not',
+            field: this.timelessFilterToDruid(lhs, aggregatorFilter)
+          };
+        }
+
         var freeReferences = filter.getFreeReferences();
         if (freeReferences.length !== 1) throw new Error(`can not convert multi reference filter ${filter} to Druid filter`);
         var referenceName = freeReferences[0];
@@ -631,10 +646,6 @@ module Plywood {
         if (attributeInfo.unsplitable) {
           throw new Error(`can not convert ${filter} to filter because it references an un-filterable metric '${referenceName}' which is most likely rolled up.`)
         }
-
-        var filterAction = filter.lastAction();
-        var rhs = filterAction.expression;
-        var lhs = filter.popAction();
 
         // Special handling for r('some_tag').in($tags)
         if (lhs instanceof LiteralExpression) {
@@ -649,13 +660,6 @@ module Plywood {
             }
           }
           throw new Error(`unsupported rhs action for literal lhs: ${filterAction}`);
-        }
-
-        if (filterAction instanceof NotAction) {
-          return {
-            type: 'not',
-            field: this.timelessFilterToDruid(lhs, aggregatorFilter)
-          };
         }
 
         var extractionFn = this.expressionToExtractionFn(lhs);

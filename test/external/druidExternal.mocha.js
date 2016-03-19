@@ -671,6 +671,61 @@ describe("DruidExternal", () => {
       }).to.throw(`can not convert $count:NUMBER.is(1337) to filter because it references an un-filterable metric 'count' which is most likely rolled up.`);
     });
 
+    it("works with ref filter", () => {
+      var ex = $('wiki').filter($("isRobot"));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "isRobot",
+        "extractionFn": {
+          "lookup": {
+            "map": {
+              "0": "false",
+              "1": "true",
+              "false": "false",
+              "true": "true"
+            },
+            "type": "map"
+          },
+          "type": "lookup"
+        },
+        "type": "extraction",
+        "value": true
+      });
+    });
+
+    it("works with ref.not() filter", () => {
+      var ex = $('wiki').filter($("isRobot").not());
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "field": {
+          "dimension": "isRobot",
+          "extractionFn": {
+            "lookup": {
+              "map": {
+                "0": "false",
+                "1": "true",
+                "false": "false",
+                "true": "true"
+              },
+              "type": "map"
+            },
+            "type": "lookup"
+          },
+          "type": "extraction",
+          "value": true
+        },
+        "type": "not"
+      });
+    });
+
     it("works with .in(1 thing)", () => {
       var ex = $('wiki').filter($("language").in(['en']));
 
@@ -1496,6 +1551,48 @@ describe("DruidExternal", () => {
         },
         "outputName": "Split1",
         "type": "extraction"
+      });
+    });
+
+  });
+
+
+  describe("applies", () => {
+    it("works ref filtered agg", () => {
+      var ex = ply()
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Test', $('wiki').filter('$isRobot').sum('$count'));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('timeseries');
+      expect(query.aggregations[1]).to.deep.equal({
+        "aggregator": {
+          "fieldName": "count",
+          "name": "Test",
+          "type": "doubleSum"
+        },
+        "filter": {
+          "dimension": "isRobot",
+          "extractionFn": {
+            "lookup": {
+              "map": {
+                "0": "false",
+                "1": "true",
+                "false": "false",
+                "true": "true"
+              },
+              "type": "map"
+            },
+            "type": "lookup"
+          },
+          "type": "extraction",
+          "value": true
+        },
+        "name": "Test",
+        "type": "filtered"
       });
     });
 

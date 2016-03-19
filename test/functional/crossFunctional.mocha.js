@@ -110,10 +110,18 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with == filter', equalityTest({
+    it('works with ref filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter($cityName == "San Francisco")')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with == filter', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($isAnonymous)')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -488,6 +496,7 @@ describe("Cross Functional", function() {
         .apply('To*Added', '$wiki.filter($cityName.contains("to")).sum($added)')
         .apply('MinDelta', '$wiki.min($min_delta)')
         .apply('MaxDelta', '$wiki.max($max_delta)')
+        .apply('Anon', '$wiki.filter($isAnonymous).count()')
         .apply('AbsDeltaX2', '$wiki.sum($delta.absolute()) * 2')
         .apply('SumAdded^0.6', '$wiki.sum($added) ^ 0.6')
         .apply('Sum(Added^0.6)', '$wiki.sum($added ^ 0.6)') // This is meaningless since added is aggregated
