@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.12
+
+- DruidExternal now supports boolean ref filters like: `$wiki.filter($isAnonymous)`
+
 ## 0.9.11
 
 - added `getSourceList` to externals
