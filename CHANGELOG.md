@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.9.13
+
+- Added (experimental) rollup mode to all Externals, only implemented in DruidExternal
+- Derived attributes now work for DruidExternal
+
 ## 0.9.12
 
 - DruidExternal now supports boolean ref filters like: `$wiki.filter($isAnonymous)`
