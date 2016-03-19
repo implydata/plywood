@@ -366,11 +366,7 @@ describe("DruidExternal Introspection", () => {
           },
           {
             "makerAction": {
-              "action": "sum",
-              "expression": {
-                "name": "count",
-                "op": "ref"
-              }
+              "action": "count"
             },
             "name": "count",
             "type": "NUMBER",

@@ -93,6 +93,24 @@ describe("External", () => {
             aggregation: { type: 'longSum', fieldName: 'count' }
           }
         }
+      },
+
+      {
+        engine: 'druid',
+        version: '0.8.0',
+        rollup: true,
+        dataSource: 'moon_child',
+        timeAttribute: 'time',
+        attributeOverrides: [
+          { name: 'color', type: 'STRING' },
+          { name: 'cut', type: 'STRING' },
+          { name: 'unique', type: "STRING", special: 'unique' }
+        ],
+        customAggregations: {
+          test: {
+            aggregation: { type: 'longSum', fieldName: 'count' }
+          }
+        }
       }
     ], {
       newThrows: true
@@ -1203,8 +1221,6 @@ describe("External", () => {
           .limit(5);
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
-
-        // console.log("ex.toString()", ex.toString());
 
         expect(ex.op).to.equal('chain');
         expect(ex.operand.op).to.equal('join');

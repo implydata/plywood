@@ -626,7 +626,7 @@ describe("simulate Druid", () => {
     });
   });
 
-  it.skip("works on fancy filter (IN IS)", () => {
+  it.skip("works on fancy filter .in().is()", () => {
     var ex = $('diamonds').filter("$color.in(['D', 'C']) == true");
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
@@ -1636,7 +1636,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it.skip("inlines a defined derived attribute", () => {
+  it("inlines a defined derived attribute", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').apply('sale_price', '$price + $tax'))
       .apply(

@@ -316,10 +316,15 @@ module Plywood {
 
   function generateMakerAction(aggregation: Druid.Aggregation): Action {
     if (!aggregation) return null;
+    const { type, fieldName } = aggregation;
 
-    var expression = $(aggregation.fieldName);
+    // Hacky way to guess at a count
+    if (type === 'longSum' && fieldName === 'count') {
+      return new CountAction({});
+    }
 
-    switch (aggregation.type) {
+    var expression = $(fieldName);
+    switch (type) {
       case "count":
         return new CountAction({});
 
@@ -1443,10 +1448,10 @@ return (start < 0 ?'-':'') + parts.join('.');
             fields: pattern.map(e => this.expressionToPostAggregation(e, aggregations, postAggregations))
           };
         }
-        throw new Error("can not convert chain to post agg: " + ex.toString());
+        throw new Error(`can not convert chain to post agg: ${ex}`);
 
       } else {
-        throw new Error("can not convert expression to post agg: " + ex.toString());
+        throw new Error(`can not convert expression to post agg: ${ex}`);
       }
     }
 
@@ -1629,7 +1634,9 @@ return (start < 0 ?'-':'') + parts.join('.');
     public getAggregationsAndPostAggregations(applies: ApplyAction[]): AggregationsAndPostAggregations {
       var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(
         applies.map(apply => {
-          return <ApplyAction>apply.changeExpression(this.inlineDerivedAttributes(apply.expression).decomposeAverage().distribute())
+          var expression = apply.expression;
+          expression = this.switchToRollupCount(this.inlineDerivedAttributes(expression).decomposeAverage()).distribute();
+          return <ApplyAction>apply.changeExpression(expression);
         })
       );
 
@@ -1793,9 +1800,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         var loneApplyExpression = <ChainExpression>applies[0].expression;
         // Max time only
         druidQuery.bound = loneApplyExpression.actions[0].action + "Time";
-        //if (this.useDataSourceMetadata) {
-        //  druidQuery.queryType = "dataSourceMetadata";
-        //}
+        // druidQuery.queryType = "dataSourceMetadata";
       }
 
       return {
