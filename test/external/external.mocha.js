@@ -1222,8 +1222,6 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        // console.log("ex.toString()", ex.toString());
-
         expect(ex.op).to.equal('chain');
         expect(ex.operand.op).to.equal('join');
 

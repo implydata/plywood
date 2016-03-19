@@ -1089,26 +1089,27 @@ module Plywood {
     }
 
     public switchToRollupCount(expression: Expression): Expression {
-      var countName = this.getRollupCountName();
-      if (!countName) return expression;
+      if (!this.rollup) return expression;
+
+      var countRef: RefExpression = null;
       return expression.substituteAction(
         (action) => {
           return action.action === 'count';
         },
         (preEx, action) => {
-          return preEx.sum($(countName));
+          if (!countRef) countRef = $(this.getRollupCountName(), 'NUMBER');
+          return preEx.sum(countRef);
         }
       );
     }
 
     public getRollupCountName(): string {
-      const { rollup, rawAttributes } = this;
-      if (!rollup) return null;
+      const { rawAttributes } = this;
       for (var attribute of rawAttributes) {
         var makerAction = attribute.makerAction;
         if (makerAction && makerAction.action === 'count') return attribute.name;
       }
-      return null;
+      throw new Error(`could not find rollup count`);
     }
 
     public getQueryFilter(): Expression {
