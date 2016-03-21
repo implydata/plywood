@@ -26,7 +26,7 @@
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
-    "immutable-class": "0.4.1",
+    "immutable-class": "0.4.3",
     "q": "1.4.1"
   },
   "peerDependencies": {

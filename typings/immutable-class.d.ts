@@ -30,20 +30,26 @@ declare module ImmutableClass {
      */
     isImmutableClass(thing: any): boolean;
     /**
+     * Checks if two immutable classes are equal (if both null it counts as yes)
+     * @param a - thing to compare
+     * @param b - thing to compare
+     * @returns {boolean}
+     */
+    immutableEqual<T extends Equalable>(a: T, b: T): boolean;
+    /**
      * Checks is two arrays have equal higher objects
      * @param arrayA - array to compare
      * @param arrayB - array to compare
      * @returns {boolean}
      */
-    immutableArraysEqual<T>(arrayA: T[], arrayB: T[]): boolean;
-
+    immutableArraysEqual<T extends Equalable>(arrayA: T[], arrayB: T[]): boolean;
     /**
      * Checks if two lookups have equal immutable classes
      * @param lookupA - lookup to compare
      * @param lookupB - lookup to compare
      * @returns {boolean}
      */
-    immutableLookupsEqual(lookupA: { [k: string]: Equalable; }, lookupB: { [k: string]: Equalable; }): boolean;
+    immutableLookupsEqual<T extends Equalable>(lookupA: { [k: string]: T }, lookupB: { [k: string]: T }): boolean;
   }
   export interface Instance<ValueType, JSType> {
     valueOf(): ValueType;
