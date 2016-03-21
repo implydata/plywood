@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.9.14
+
+- Allow derivedAttributes to be specified in ExternalJS
+- derivedAttributes can now be used in filters and splits
+- Fixed bugs in type inference
+- Fixed `.substr()` getJS to work correctly with nulls
+
 ## 0.9.13
 
 - Added (experimental) rollup mode to all Externals, only implemented in DruidExternal

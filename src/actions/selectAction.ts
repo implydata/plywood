@@ -27,21 +27,21 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'DATASET');
-      return 'DATASET';
+    public equals(other: SelectAction): boolean {
+      return super.equals(other) &&
+        String(this.attributes) === String(other.attributes);
     }
 
     protected _toStringParameters(expressionString: string): string[] {
       return this.attributes;
     }
 
-    public equals(other: SelectAction): boolean {
-      return super.equals(other) &&
-        String(this.attributes) === String(other.attributes);
+    public getOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType, 'DATASET');
+      return 'DATASET';
     }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
       const { attributes } = this;
       var { datasetType } = typeContext;
       var newDatasetType = Object.create(null);

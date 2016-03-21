@@ -41,13 +41,18 @@ module Plywood {
         this.compare === other.compare;
     }
 
+    protected _toStringParameters(expressionString: string): string[] {
+      return [expressionString, this.compare];
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'BOOLEAN', 'STRING');
       return 'BOOLEAN';
     }
 
-    protected _toStringParameters(expressionString: string): string[] {
-      return [expressionString, this.compare];
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+      return inputType;
     }
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {

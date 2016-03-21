@@ -15,6 +15,10 @@ module Plywood {
       return 'BOOLEAN';
     }
 
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
+      return inputType;
+    }
+
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         return !inputFn(d, c);

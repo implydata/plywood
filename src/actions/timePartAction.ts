@@ -96,9 +96,11 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'TIME');
-      return 'NUMBER';
+    public equals(other: TimePartAction): boolean {
+      return super.equals(other) &&
+        this.part === other.part &&
+        Boolean(this.timezone) === Boolean(other.timezone) &&
+        (!this.timezone || this.timezone.equals(other.timezone));
     }
 
     protected _toStringParameters(expressionString: string): string[] {
@@ -107,11 +109,16 @@ module Plywood {
       return ret;
     }
 
-    public equals(other: TimePartAction): boolean {
-      return super.equals(other) &&
-        this.part === other.part &&
-        Boolean(this.timezone) === Boolean(other.timezone) &&
-        (!this.timezone || this.timezone.equals(other.timezone));
+
+    public getOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType, 'TIME');
+      return 'NUMBER';
+    }
+
+    public _fillRefSubstitutions(): FullType {
+      return {
+        type: 'NUMBER',
+      };
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {

@@ -504,7 +504,7 @@ module Plywood {
       var js: ExternalJS = super.toJS();
       js.dataSource = this.dataSource;
       if (this.timeAttribute !== DEFAULT_TIME_ATTRIBUTE) js.timeAttribute = this.timeAttribute;
-      if (Object.keys(this.customAggregations).length) js.customAggregations = this.customAggregations;
+      if (helper.nonEmptyLookup(this.customAggregations)) js.customAggregations = this.customAggregations;
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
       if (this.introspectionStrategy !== DruidExternal.DEFAULT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
@@ -1281,8 +1281,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       throw new Error(`could not convert ${expression} to a Druid Dimension`);
     }
 
-    public splitToDruid(): DruidSplit {
-      var split = this.split;
+    public splitToDruid(split: SplitAction): DruidSplit {
       if (split.isMultiSplit()) {
         var timestampLabel: string = null;
         var granularity: Druid.Granularity = null;
@@ -1635,7 +1634,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(
         applies.map(apply => {
           var expression = apply.expression;
-          expression = this.switchToRollupCount(this.inlineDerivedAttributes(expression).decomposeAverage()).distribute();
+          expression = this.switchToRollupCount(this.inlineDerivedAttributesInAggregate(expression).decomposeAverage()).distribute();
           return <ApplyAction>apply.changeExpression(expression);
         })
       );
@@ -1810,7 +1809,7 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public getQueryAndPostProcess(): QueryAndPostProcess<Druid.Query> {
-      const { mode, split, applies, sort, limit, context } = this;
+      const { mode, applies, sort, limit, context } = this;
       if (applies && applies.length && applies.every(this.isMinMaxTimeApply, this)) {
         return this.getTimeBoundaryQueryAndPostProcess();
       }
@@ -1826,6 +1825,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         druidQuery.context = helper.shallowCopy(context);
       }
 
+      // Filter
       var filterAndIntervals = this.filterToDruid(this.getQueryFilter());
       druidQuery.intervals = filterAndIntervals.intervals;
       if (filterAndIntervals.filter) {
@@ -1934,7 +1934,17 @@ return (start < 0 ?'-':'') + parts.join('.');
           };
 
         case 'split':
-          var aggregationsAndPostAggregations = this.getAggregationsAndPostAggregations(this.applies);
+          // Split
+          var split = this.getQuerySplit();
+          var splitSpec = this.splitToDruid(split);
+          druidQuery.queryType = splitSpec.queryType;
+          druidQuery.granularity = splitSpec.granularity;
+          if (splitSpec.dimension) druidQuery.dimension = splitSpec.dimension;
+          if (splitSpec.dimensions) druidQuery.dimensions = splitSpec.dimensions;
+          var postProcess = splitSpec.postProcess;
+
+          // Apply
+          var aggregationsAndPostAggregations = this.getAggregationsAndPostAggregations(applies);
           if (aggregationsAndPostAggregations.aggregations.length) {
             druidQuery.aggregations = aggregationsAndPostAggregations.aggregations;
           } else {
@@ -1944,13 +1954,6 @@ return (start < 0 ?'-':'') + parts.join('.');
           if (aggregationsAndPostAggregations.postAggregations.length) {
             druidQuery.postAggregations = aggregationsAndPostAggregations.postAggregations;
           }
-
-          var splitSpec = this.splitToDruid();
-          druidQuery.queryType = splitSpec.queryType;
-          druidQuery.granularity = splitSpec.granularity;
-          if (splitSpec.dimension) druidQuery.dimension = splitSpec.dimension;
-          if (splitSpec.dimensions) druidQuery.dimensions = splitSpec.dimensions;
-          var postProcess = splitSpec.postProcess;
 
           // Combine
           switch (druidQuery.queryType) {

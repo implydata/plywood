@@ -52,9 +52,12 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'NUMBER', 'NUMBER_RANGE');
-      return 'NUMBER_RANGE';
+    public equals(other: NumberBucketAction): boolean {
+      return super.equals(other) &&
+        this.size === other.size &&
+        this.offset === other.offset &&
+        this.lowerLimit === other.lowerLimit &&
+        this.upperLimit === other.upperLimit;
     }
 
     protected _toStringParameters(expressionString: string): string[] {
@@ -63,12 +66,15 @@ module Plywood {
       return params;
     }
 
-    public equals(other: NumberBucketAction): boolean {
-      return super.equals(other) &&
-        this.size === other.size &&
-        this.offset === other.offset &&
-        this.lowerLimit === other.lowerLimit &&
-        this.upperLimit === other.upperLimit;
+    public getOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType, 'NUMBER', 'NUMBER_RANGE');
+      return 'NUMBER_RANGE';
+    }
+
+    public _fillRefSubstitutions(): FullType {
+      return {
+        type: 'NUMBER_RANGE',
+      };
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {

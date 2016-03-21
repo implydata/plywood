@@ -55,24 +55,24 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'STRING');
-      return 'BOOLEAN';
-    }
-
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
-      return {
-        type: 'BOOLEAN',
-      };
+    public equals(other: MatchAction): boolean {
+      return super.equals(other) &&
+        this.regexp === other.regexp;
     }
 
     protected _toStringParameters(expressionString: string): string[] {
       return [this.regexp];
     }
 
-    public equals(other: MatchAction): boolean {
-      return super.equals(other) &&
-        this.regexp === other.regexp;
+    public getOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType, 'STRING');
+      return 'BOOLEAN';
+    }
+
+    public _fillRefSubstitutions(): FullType {
+      return {
+        type: 'BOOLEAN',
+      };
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {

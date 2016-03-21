@@ -88,4 +88,9 @@ describe("stringification", () => {
     var ex = $('time').timeRange('P1D', 2);
     expect(ex.toString(2)).to.equal("$time.timeRange(P1D,2)");
   });
+
+  it("works with custom", () => {
+    var ex = $('x').custom('lol');
+    expect(ex.toString(2)).to.equal("$x.custom(lol)");
+  });
 });

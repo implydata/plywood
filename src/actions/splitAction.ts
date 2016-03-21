@@ -1,23 +1,4 @@
 module Plywood {
-  function splitsFromJS(splitsJS: SplitsJS): Splits {
-    var splits: Splits = Object.create(null);
-    for (var name in splitsJS) {
-      if (!hasOwnProperty(splitsJS, name)) continue;
-      splits[name] = Expression.fromJS(splitsJS[name]);
-    }
-    return splits;
-  }
-
-  function splitsEqual(splitsA: Splits, splitsB: Splits): boolean {
-    var keysA = Object.keys(splitsA);
-    var keysB = Object.keys(splitsB);
-    if (keysA.length !== keysB.length) return false;
-    for (var k of keysA) {
-      if (!splitsA[k].equals(splitsB[k])) return false;
-    }
-    return true;
-  }
-
 
   export class SplitAction extends Action {
     static fromJS(parameters: ActionJS): SplitAction {
@@ -30,7 +11,7 @@ module Plywood {
       } else {
         splits = parameters.splits;
       }
-      value.splits = splitsFromJS(splits);
+      value.splits = helper.expressionLookupFromJS(splits);
       value.dataName = parameters.dataName;
       return new SplitAction(value);
     }
@@ -58,11 +39,12 @@ module Plywood {
     }
 
     public toJS(): ActionJS {
+      var { splits } = this;
+
       var js = super.toJS();
       if (this.isMultiSplit()) {
-        js.splits = this.mapSplitExpressions((ex) => ex.toJS());
+        js.splits = helper.expressionLookupToJS(splits);
       } else {
-        var { splits } = this;
         for (var name in splits) {
           js.name = name;
           js.expression = splits[name].toJS();
@@ -72,9 +54,10 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'DATASET');
-      return 'DATASET';
+    public equals(other: SplitAction): boolean {
+      return super.equals(other) &&
+        immutableLookupsEqual(this.splits, other.splits) &&
+        this.dataName === other.dataName;
     }
 
     protected _toStringParameters(expressionString: string): string[] {
@@ -90,22 +73,12 @@ module Plywood {
       }
     }
 
-    public equals(other: SplitAction): boolean {
-      return super.equals(other) &&
-        splitsEqual(this.splits, other.splits) &&
-        this.dataName === other.dataName;
+    public getOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType, 'DATASET');
+      return 'DATASET';
     }
 
-    public getFn(inputFn: ComputeFn): ComputeFn {
-      var { dataName } = this;
-      var splitFns = this.mapSplitExpressions((ex) => ex.getFn());
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        return inV ? inV.split(splitFns, dataName) : null;
-      }
-    }
-
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
       var newDatasetType: Lookup<FullType> = {};
       this.mapSplits((name, expression) => {
         newDatasetType[name] = expression._fillRefSubstitutions(typeContext, indexer, alterations);
@@ -118,6 +91,15 @@ module Plywood {
         datasetType: newDatasetType,
         remote: false
       };
+    }
+
+    public getFn(inputFn: ComputeFn): ComputeFn {
+      var { dataName } = this;
+      var splitFns = this.mapSplitExpressions((ex) => ex.getFn());
+      return (d: Datum, c: Datum) => {
+        var inV = inputFn(d, c);
+        return inV ? inV.split(splitFns, dataName) : null;
+      }
     }
 
     public getSQL(inputSQL: string, dialect: SQLDialect): string {
@@ -203,6 +185,22 @@ module Plywood {
         ret[key] = fn(splits[key], key);
       }
       return ret;
+    }
+
+    public transformExpressions(fn: (expression: Expression, name?: string) => Expression): SplitAction {
+      var { splits, keys } = this;
+      var newSplits: Lookup<Expression> = Object.create(null);
+      var changed = false;
+      for (var key of keys) {
+        var ex = splits[key];
+        var transformed = fn(ex, key);
+        if (transformed !== ex) changed = true;
+        newSplits[key] = transformed;
+      }
+      if (!changed) return this;
+      var value = this.valueOf();
+      value.splits = newSplits;
+      return new SplitAction(value);
     }
 
     public firstSplitName(): string {

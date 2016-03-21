@@ -130,11 +130,11 @@ module Plywood {
     rollup?: boolean;
     attributes?: Attributes;
     attributeOverrides?: Attributes;
+    derivedAttributes?: Lookup<Expression>;
     mode?: QueryMode;
     dataName?: string;
 
     rawAttributes?: Attributes;
-    derivedAttributes?: Lookup<Expression>; // ToDo: make this ApplyAction[]
     filter?: Expression;
     valueExpression?: ChainExpression;
     select?: SelectAction;
@@ -167,6 +167,7 @@ module Plywood {
     rollup?: boolean;
     attributes?: AttributeJSs;
     attributeOverrides?: AttributeJSs;
+    derivedAttributes?: Lookup<ExpressionJS>;
 
     filter?: ExpressionJS;
     rawAttributes?: AttributeJSs;
@@ -230,7 +231,7 @@ module Plywood {
 
       function addToUniqueExternals(external: External) {
         for (let uniqueExternal of uniqueExternals) {
-          if (uniqueExternal.equals(external)) return;
+          if (uniqueExternal.equalBase(external)) return;
         }
         uniqueExternals.push(external);
       }
@@ -486,6 +487,10 @@ module Plywood {
       if (parameters.attributeOverrides) {
         value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
       }
+      if (parameters.derivedAttributes) {
+        value.derivedAttributes = helper.expressionLookupFromJS(parameters.derivedAttributes);
+      }
+
       value.filter = parameters.filter ? Expression.fromJS(parameters.filter) : Expression.TRUE;
 
       return value;
@@ -532,11 +537,11 @@ module Plywood {
     public rollup: boolean;
     public attributes: Attributes = null;
     public attributeOverrides: Attributes = null;
+    public derivedAttributes: Lookup<Expression>;
 
     public rawAttributes: Attributes = null;
     public requester: Requester.PlywoodRequester<any>;
     public mode: QueryMode;
-    public derivedAttributes: Lookup<Expression>;
     public filter: Expression;
     public valueExpression: ChainExpression;
     public select: SelectAction;
@@ -568,11 +573,11 @@ module Plywood {
       if (parameters.attributeOverrides) {
         this.attributeOverrides = parameters.attributeOverrides;
       }
+      this.derivedAttributes = parameters.derivedAttributes || {};
       this.rawAttributes = parameters.rawAttributes;
       this.requester = parameters.requester;
 
       this.mode = parameters.mode || 'raw';
-      this.derivedAttributes = parameters.derivedAttributes || {};
       this.filter = parameters.filter || Expression.TRUE;
 
       switch (this.mode) {
@@ -628,6 +633,7 @@ module Plywood {
       if (this.suppress) value.suppress = this.suppress;
       if (this.attributes) value.attributes = this.attributes;
       if (this.attributeOverrides) value.attributeOverrides = this.attributeOverrides;
+      if (helper.nonEmptyLookup(this.derivedAttributes)) value.derivedAttributes = this.derivedAttributes;
 
       if (this.rawAttributes) {
         value.rawAttributes = this.rawAttributes;
@@ -639,7 +645,6 @@ module Plywood {
       if (this.dataName) {
         value.dataName = this.dataName;
       }
-      value.derivedAttributes = this.derivedAttributes;
       value.filter = this.filter;
       if (this.valueExpression) {
         value.valueExpression = this.valueExpression;
@@ -673,6 +678,7 @@ module Plywood {
       if (this.rollup) js.rollup = true;
       if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
       if (this.attributeOverrides) js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
+      if (helper.nonEmptyLookup(this.derivedAttributes)) js.derivedAttributes = helper.expressionLookupToJS(this.derivedAttributes);
 
       if (this.rawAttributes) js.rawAttributes = AttributeInfo.toJSs(this.rawAttributes);
       if (!this.filter.equals(Expression.TRUE)) {
@@ -706,6 +712,11 @@ module Plywood {
     }
 
     public equals(other: External): boolean {
+      return this.equalBase(other) &&
+        immutableLookupsEqual(this.derivedAttributes, other.derivedAttributes);
+    }
+
+    public equalBase(other: External): boolean {
       return External.isExternal(other) &&
         this.engine === other.engine &&
         this.version === other.version &&
@@ -933,7 +944,6 @@ module Plywood {
         value.derivedAttributes = immutableAdd(
           value.derivedAttributes, action.name, action.expression
         );
-        value.attributes = value.attributes.concat(new AttributeInfo({ name: action.name, type: action.expression.type }));
       } else {
         // Can not redefine index for now.
         if (this.split && this.split.hasKey(action.name)) return null;
@@ -1070,20 +1080,25 @@ module Plywood {
 
     public inlineDerivedAttributes(expression: Expression): Expression {
       const { derivedAttributes } = this;
+      return expression.substitute(refEx => {
+        if (refEx instanceof RefExpression) {
+          var refName = refEx.name;
+          return hasOwnProperty(derivedAttributes, refName) ? derivedAttributes[refName] : null;
+        } else {
+          return null;
+        }
+      })
+    }
+
+    public inlineDerivedAttributesInAggregate(expression: Expression): Expression {
+      const { derivedAttributes } = this;
       return expression.substituteAction(
         (action) => {
           if (!action.isAggregate()) return false;
           return action.getFreeReferences().some(ref => hasOwnProperty(derivedAttributes, ref));
         },
         (preEx, action) => {
-          return preEx.performAction(action.changeExpression(action.expression.substitute(refEx => {
-            if (refEx instanceof RefExpression) {
-              var refName = refEx.name;
-              return hasOwnProperty(derivedAttributes, refName) ? derivedAttributes[refName] : null;
-            } else {
-              return null;
-            }
-          })));
+          return preEx.performAction(action.changeExpression(this.inlineDerivedAttributes(action.expression)));
         }
       );
     }
@@ -1112,12 +1127,22 @@ module Plywood {
       throw new Error(`could not find rollup count`);
     }
 
+    public getQuerySplit(): SplitAction {
+      return this.split.transformExpressions((ex) => {
+        return this.inlineDerivedAttributes(ex);
+      })
+    }
+
     public getQueryFilter(): Expression {
-      return this.filter.simplify();
+      return this.inlineDerivedAttributes(this.filter).simplify();
     }
 
     public getSelectedAttributes(): Attributes {
-      const { select, attributes } = this;
+      var { select, attributes, derivedAttributes } = this;
+      attributes = attributes.slice();
+      for (var k in derivedAttributes) {
+        attributes.push(new AttributeInfo({ name: k, type: derivedAttributes[k].type }));
+      }
       if (!select) return attributes;
       const selectAttributes = select.attributes;
       return attributes.filter(a => selectAttributes.indexOf(a.name) !== -1);
@@ -1231,7 +1256,7 @@ module Plywood {
     }
 
     public getFullType(): DatasetFullType {
-      var attributes = this.attributes;
+      const { attributes, derivedAttributes } = this;
       if (!attributes) throw new Error("dataset has not been introspected");
 
       var myDatasetType: Lookup<FullType> = {};
@@ -1239,6 +1264,12 @@ module Plywood {
         var attrName = attribute.name;
         myDatasetType[attrName] = {
           type: <PlyTypeSimple>attribute.type
+        };
+      }
+
+      for (var name in derivedAttributes) {
+        myDatasetType[name] = {
+          type: <PlyTypeSimple>derivedAttributes[name].type
         };
       }
 

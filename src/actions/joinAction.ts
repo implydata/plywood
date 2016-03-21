@@ -15,7 +15,7 @@ module Plywood {
       return 'DATASET';
     }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
       var typeContextParent = typeContext.parent;
       var expressionFullType = <DatasetFullType>this.expression._fillRefSubstitutions(typeContextParent, indexer, alterations);
 

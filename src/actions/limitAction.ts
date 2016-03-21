@@ -28,18 +28,22 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'DATASET');
-      return 'DATASET';
+    public equals(other: LimitAction): boolean {
+      return super.equals(other) &&
+        this.limit === other.limit;
     }
 
     protected _toStringParameters(expressionString: string): string[] {
       return [String(this.limit)];
     }
 
-    public equals(other: LimitAction): boolean {
-      return super.equals(other) &&
-        this.limit === other.limit;
+    public getOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType, 'DATASET');
+      return 'DATASET';
+    }
+
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      return inputType;
     }
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {

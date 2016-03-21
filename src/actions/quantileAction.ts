@@ -27,12 +27,21 @@ module Plywood {
       return js;
     }
 
+    public equals(other: QuantileAction): boolean {
+      return super.equals(other) &&
+        this.quantile === other.quantile;
+    }
+
+    protected _toStringParameters(expressionString: string): string[] {
+      return [expressionString, String(this.quantile)];
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'DATASET');
       return 'NUMBER';
     }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
       this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
       return {
         type: 'NUMBER',
@@ -45,15 +54,6 @@ module Plywood {
         var inV = inputFn(d, c);
         return inV ? inV.quantile(expressionFn, quantile, foldContext(d, c)) : null;
       }
-    }
-
-    protected _toStringParameters(expressionString: string): string[] {
-      return [expressionString, String(this.quantile)];
-    }
-
-    public equals(other: QuantileAction): boolean {
-      return super.equals(other) &&
-        this.quantile === other.quantile;
     }
 
     public isAggregate(): boolean {

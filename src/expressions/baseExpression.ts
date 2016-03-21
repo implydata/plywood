@@ -1074,7 +1074,7 @@ module Plywood {
     public referenceCheckInTypeContext(typeContext: DatasetFullType): Expression {
       var alterations: Alterations = {};
       this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This returns the final type
-      if (!Object.keys(alterations).length) return this;
+      if (helper.emptyLookup(alterations)) return this;
       return this.substitute((ex: Expression, index: int): Expression => alterations[index] || null);
     }
 

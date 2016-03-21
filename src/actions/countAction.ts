@@ -15,7 +15,7 @@ module Plywood {
       return 'NUMBER';
     }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(): FullType {
       return {
         type: 'NUMBER',
       };

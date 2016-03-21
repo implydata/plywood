@@ -41,9 +41,12 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'TIME');
-      return 'TIME_RANGE';
+    public equals(other: TimeRangeAction): boolean {
+      return super.equals(other) &&
+        this.duration.equals(other.duration) &&
+        this.step === other.step &&
+        Boolean(this.timezone) === Boolean(other.timezone) &&
+        (!this.timezone || this.timezone.equals(other.timezone));
     }
 
     protected _toStringParameters(expressionString: string): string[] {
@@ -52,12 +55,15 @@ module Plywood {
       return ret;
     }
 
-    public equals(other: TimeRangeAction): boolean {
-      return super.equals(other) &&
-        this.duration.equals(other.duration) &&
-        this.step === other.step &&
-        Boolean(this.timezone) === Boolean(other.timezone) &&
-        (!this.timezone || this.timezone.equals(other.timezone));
+    public getOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType, 'TIME');
+      return 'TIME_RANGE';
+    }
+
+    public _fillRefSubstitutions(): FullType {
+      return {
+        type: 'TIME_RANGE',
+      };
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {

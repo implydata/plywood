@@ -17,10 +17,6 @@ module Plywood {
       this._ensureAction("substr");
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      return this._stringTransformOutputType(inputType);
-    }
-
     public valueOf(): ActionValue {
       var value = super.valueOf();
       value.position = this.position;
@@ -35,14 +31,22 @@ module Plywood {
       return js;
     }
 
-    protected _toStringParameters(expressionString: string): string[] {
-      return [expressionString, String(this.position), String(this.length)];
-    }
-
     public equals(other: SubstrAction): boolean {
       return super.equals(other) &&
         this.position === other.position &&
         this.length === other.length;
+    }
+
+    protected _toStringParameters(expressionString: string): string[] {
+      return [expressionString, String(this.position), String(this.length)];
+    }
+
+    public getOutputType(inputType: PlyType): PlyType {
+      return this._stringTransformOutputType(inputType);
+    }
+
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
+      return inputType;
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
@@ -56,8 +60,7 @@ module Plywood {
 
     protected _getJSHelper(inputJS: string): string {
       const { position, length } = this;
-      return `(''+${inputJS}).substr(${position},${length})`;
-      //return `(_=''+${inputJS},_.length>${position}?null:_.substr(${position},${length}))`;
+      return `(_=${inputJS},_==null?null:(''+_).substr(${position},${length}))`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

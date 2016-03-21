@@ -34,9 +34,11 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'TIME');
-      return 'TIME';
+    public equals(other: TimeBucketAction): boolean {
+      return super.equals(other) &&
+        this.duration.equals(other.duration) &&
+        Boolean(this.timezone) === Boolean(other.timezone) &&
+        (!this.timezone || this.timezone.equals(other.timezone));
     }
 
     protected _toStringParameters(expressionString: string): string[] {
@@ -45,11 +47,15 @@ module Plywood {
       return ret;
     }
 
-    public equals(other: TimeBucketAction): boolean {
-      return super.equals(other) &&
-        this.duration.equals(other.duration) &&
-        Boolean(this.timezone) === Boolean(other.timezone) &&
-        (!this.timezone || this.timezone.equals(other.timezone));
+    public getOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType, 'TIME');
+      return 'TIME';
+    }
+
+    public _fillRefSubstitutions(): FullType {
+      return {
+        type: 'TIME',
+      };
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {

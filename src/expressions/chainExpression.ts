@@ -71,7 +71,7 @@ module Plywood {
     public equals(other: ChainExpression): boolean {
       return super.equals(other) &&
              this.expression.equals(other.expression) &&
-             higherArraysEqual(this.actions, other.actions);
+             immutableArraysEqual(this.actions, other.actions);
     }
 
     public expressionCount(): int {
@@ -157,7 +157,9 @@ module Plywood {
       // Looks like: ply().apply(ValueExternal()).apply(ValueExternal()).apply(ValueExternal())
       var dataset = expression.getLiteralValue();
       if (Dataset.isDataset(dataset) && dataset.basis()) {
-        if (baseExternals.length > 1) throw new Error('not supported for now'); // ToDo: would need to do a join at this point
+        if (baseExternals.length > 1) {
+          throw new Error('multiple externals not supported for now'); // ToDo: would need to do a join at this point
+        }
 
         var dataDefinitions: Lookup<ExternalExpression> = Object.create(null);
         var hasExternalValueApply = false;
@@ -297,10 +299,7 @@ module Plywood {
       var subExpression = expression._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff);
 
       var actions = this.actions;
-      var subActions = actions.map(action => {
-        var subbedAction = action._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff);
-        return subbedAction;
-      });
+      var subActions = actions.map(action => action._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff));
       if (expression === subExpression && arraysEqual(actions, subActions)) return this;
 
       var value = this.valueOf();
@@ -332,7 +331,7 @@ module Plywood {
 
       var actions = this.actions;
       for (let action of actions) {
-        outputContext = action._fillRefSubstitutions(currentContext, indexer, alterations);
+        outputContext = action._fillRefSubstitutions(currentContext, outputContext, indexer, alterations);
         currentContext = outputContext.type === 'DATASET' ? <DatasetFullType>outputContext : typeContext;
       }
 
