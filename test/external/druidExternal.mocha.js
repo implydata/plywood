@@ -34,6 +34,9 @@ var context = {
       { name: 'deleted', type: 'NUMBER', unsplitable: true },
       { name: 'inserted', type: 'NUMBER', unsplitable: true }
     ],
+    derivedAttributes: {
+      pageInBrackets: "'[' ++ $page ++ ']'"
+    },
     filter: timeFilter,
     allowSelectQueries: true,
     version: '0.9.1',
@@ -1072,33 +1075,73 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
-          "fields": [
-            {
-              "dimension": "__time",
-              "extractionFn": {
-                "format": "H",
-                "locale": "en-US",
-                "timeZone": "Etc/UTC",
-                "type": "timeFormat"
-              },
-              "type": "extraction",
-              "value": 3
+        "fields": [
+          {
+            "dimension": "__time",
+            "extractionFn": {
+              "format": "H",
+              "locale": "en-US",
+              "timeZone": "Etc/UTC",
+              "type": "timeFormat"
             },
-            {
-              "dimension": "__time",
-              "extractionFn": {
-                "format": "H",
-                "locale": "en-US",
-                "timeZone": "Etc/UTC",
-                "type": "timeFormat"
-              },
-              "type": "extraction",
-              "value": 5
-            }
-          ],
-          "type": "or"
-        }
-      );
+            "type": "extraction",
+            "value": 3
+          },
+          {
+            "dimension": "__time",
+            "extractionFn": {
+              "format": "H",
+              "locale": "en-US",
+              "timeZone": "Etc/UTC",
+              "type": "timeFormat"
+            },
+            "type": "extraction",
+            "value": 5
+          }
+        ],
+        "type": "or"
+      });
+    });
+
+    it("works with derived .in()", () => {
+      var ex = $('wiki')
+        .filter('$pageInBrackets == "[wiki]"');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "format": "[%s]",
+          "type": "stringFormat"
+        },
+        "type": "extraction",
+        "value": "[wiki]"
+      });
+    });
+
+    it("works with dynamic derived .in()", () => {
+      var ex = $('wiki')
+        .apply('page3', '$page.substr(0, 3)')
+        .filter('$page3 == wik');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "index": 0,
+          "length": 3,
+          "type": "substring"
+        },
+        "type": "extraction",
+        "value": "wik"
+      });
     });
 
   });
@@ -1153,6 +1196,41 @@ describe("DruidExternal", () => {
             "type": "map"
           },
           "type": "lookup"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with simple STRING", () => {
+      var ex = $('wiki').split('$page', 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "outputName": "Split",
+        "type": "default"
+      });
+    });
+
+    it("works with dynamic derived column STRING", () => {
+      var ex = $('wiki').apply('page3', '$page.substr(0, 3)').split('$page3', 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "index": 0,
+          "length": 3,
+          "type": "substring"
         },
         "outputName": "Split",
         "type": "extraction"

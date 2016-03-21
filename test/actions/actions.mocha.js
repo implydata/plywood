@@ -93,7 +93,10 @@ describe("Actions", () => {
       { action: 'timeRange', duration: 'P1D', step: 1 },
       { action: 'timeRange', duration: 'P1D', step: -2 },
       { action: 'timeRange', duration: 'P2D', step: 3, timezone: 'Etc/UTC' },
-      { action: 'timeRange', duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' }
+      { action: 'timeRange', duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' },
+
+      { action: 'custom', custom: 'lol1' },
+      { action: 'custom', custom: 'lol2' }
     ], {
       newThrows: true
     });

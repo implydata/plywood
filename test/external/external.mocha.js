@@ -111,6 +111,16 @@ describe("External", () => {
             aggregation: { type: 'longSum', fieldName: 'count' }
           }
         }
+      },
+
+      {
+        engine: 'druid',
+        version: '0.9.0',
+        dataSource: 'wiki',
+        timeAttribute: 'time',
+        derivedAttributes: {
+          city3: $('city').substr(0, 3).toJS()
+        }
       }
     ], {
       newThrows: true

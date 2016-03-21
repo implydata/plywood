@@ -32,6 +32,11 @@ module Plywood {
       return 'DATASET';
     }
 
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      typeContext.datasetType[this.name] = this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+      return typeContext;
+    }
+
     protected _toStringParameters(expressionString: string): string[] {
       var name = this.name;
       if (!RefExpression.SIMPLE_NAME_REGEXP.test(name)) name = JSON.stringify(name);
@@ -41,11 +46,6 @@ module Plywood {
     public equals(other: ApplyAction): boolean {
       return super.equals(other) &&
         this.name === other.name;
-    }
-
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
-      typeContext.datasetType[this.name] = this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return typeContext;
     }
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {

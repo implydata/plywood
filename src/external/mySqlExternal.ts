@@ -170,7 +170,7 @@ module Plywood {
     // -----------------
 
     public getQueryAndPostProcess(): QueryAndPostProcess<string> {
-      const { table, mode, split, applies, sort, limit, derivedAttributes } = this;
+      const { table, mode, applies, sort, limit, derivedAttributes } = this;
 
       var query = ['SELECT'];
       var postProcess: PostProcess = null;
@@ -231,6 +231,7 @@ module Plywood {
           break;
 
         case 'split':
+          var split = this.getQuerySplit();
           query.push(
             split.getSelectSQL(mySQLDialect)
               .concat(applies.map(apply => apply.getSQL('', mySQLDialect)))

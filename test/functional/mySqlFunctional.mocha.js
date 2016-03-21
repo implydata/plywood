@@ -9,7 +9,7 @@ if (!WallTime.rules) {
 var { mySqlRequesterFactory } = require('plywood-mysql-requester');
 
 var plywood = require('../../build/plywood');
-var { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory } = plywood;
+var { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
 
 var info = require('../info');
 
@@ -55,6 +55,9 @@ describe("MySQL Functional", function() {
     { "name": "deltaByTen", "type": "NUMBER" }
   ];
 
+  var wikiDerivedAttributes = {
+    pageInBrackets: "'[' ++ $page ++ ']'"
+  };
 
   describe("source list", () => {
     it("does a source list", (testComplete) => {
@@ -65,6 +68,7 @@ describe("MySQL Functional", function() {
         })
         .done()
     });
+
   });
 
 
@@ -74,7 +78,8 @@ describe("MySQL Functional", function() {
         wiki: External.fromJS({
           engine: 'mysql',
           table: 'wikipedia',
-          attributes: wikiAttributes
+          attributes: wikiAttributes,
+          derivedAttributes: wikiDerivedAttributes
         }, mySqlRequester)
       }
     });
@@ -302,13 +307,13 @@ describe("MySQL Functional", function() {
         .filter('$cityName == "El Paso"')
         .apply('regionNameLOL', '$regionName.concat(LOL)')
         .apply('addedPlusOne', '$added + 1')
-        .select('regionNameLOL', 'addedPlusOne');
+        .select('regionNameLOL', 'addedPlusOne', 'pageInBrackets');
 
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
-            { "regionNameLOL": "TexasLOL", "addedPlusOne": 1 },
-            { "regionNameLOL": "TexasLOL", "addedPlusOne": 1 }
+            { "regionNameLOL": "TexasLOL", "addedPlusOne": 1, "pageInBrackets": "[Clint High School]" },
+            { "regionNameLOL": "TexasLOL", "addedPlusOne": 1, "pageInBrackets": "[Reggie Williams (linebacker)]" }
           ]);
           testComplete();
         })

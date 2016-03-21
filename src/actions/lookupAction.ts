@@ -14,10 +14,6 @@ module Plywood {
       this._ensureAction("lookup");
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      return this._stringTransformOutputType(inputType);
-    }
-
     public valueOf(): ActionValue {
       var value = super.valueOf();
       value.lookup = this.lookup;
@@ -30,13 +26,23 @@ module Plywood {
       return js;
     }
 
+    public equals(other: LookupAction): boolean {
+      return super.equals(other) &&
+        this.lookup === other.lookup;
+    }
+
     protected _toStringParameters(expressionString: string): string[] {
       return [String(this.lookup)];
     }
 
-    public equals(other: LookupAction): boolean {
-      return super.equals(other) &&
-        this.lookup === other.lookup;
+    public getOutputType(inputType: PlyType): PlyType {
+      return this._stringTransformOutputType(inputType);
+    }
+
+    public _fillRefSubstitutions(): FullType {
+      return {
+        type: 'STRING',
+      };
     }
 
     public fullyDefined(): boolean {

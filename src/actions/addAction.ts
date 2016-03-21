@@ -15,11 +15,9 @@ module Plywood {
       return 'NUMBER';
     }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
       this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return {
-        type: 'NUMBER',
-      };
+      return inputType;
     }
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {

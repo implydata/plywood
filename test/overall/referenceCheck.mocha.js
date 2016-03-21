@@ -1,14 +1,29 @@
 var { expect } = require("chai");
 
 var plywood = require('../../build/plywood');
-var { Expression, Dataset, $, ply, r } = plywood;
+var { External, Dataset, $, ply, r } = plywood;
 
 describe("reference check", () => {
   var context = {
     seventy: 70,
     diamonds: Dataset.fromJS([
       { color: 'A', cut: 'great', carat: 1.1, price: 300 }
-    ])
+    ]),
+    wiki: External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      attributes: [
+        { name: 'time', type: 'TIME' },
+        { name: 'language', type: 'STRING' },
+        { name: 'page', type: 'STRING' },
+        { name: 'tags', type: 'SET/STRING' },
+        { name: 'commentLength', type: 'NUMBER' },
+        { name: 'isRobot', type: 'BOOLEAN' },
+        { name: 'count', type: 'NUMBER', unsplitable: true },
+        { name: 'added', type: 'NUMBER', unsplitable: true }
+      ]
+    })
   };
 
   describe("errors", () => {
@@ -151,6 +166,20 @@ describe("reference check", () => {
       expect(ex1.referenceCheck({ x: 70 }).toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("works with .substr()", () => {
+      var ex1 = ply()
+        .apply('s1', 'hello')
+        .apply('s2', '$s1.substr(0, 1)')
+        .apply('s3', '$s2');
+
+      var ex2 = ply()
+        .apply('s1', 'hello')
+        .apply('s2', '$s1:STRING.substr(0, 1)')
+        .apply('s3', '$s2:STRING');
+
+      expect(ex1.referenceCheck({}).toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("works from context 1", () => {
       var ex1 = $('diamonds')
         .apply('priceOver2', '$price / 2');
@@ -253,6 +282,18 @@ describe("reference check", () => {
       var ex2 = $("diamonds", "DATASET").filter($('color', 'STRING').is('D')).split("$cut:STRING", 'Cut')
         .apply('Count', '$diamonds:DATASET.count()')
         .apply('TotalPrice', '$diamonds:DATASET.sum($price:NUMBER)');
+
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with derived attribute", () => {
+      var ex1 = $('wiki')
+        .apply('page3', '$page.substr(0, 3)')
+        .filter('$page3 == wik');
+
+      var ex2 = $('wiki', 'DATASET')
+        .apply('page3', '$page:STRING.substr(0, 3)')
+        .filter('$page3:STRING == wik');
 
       expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });

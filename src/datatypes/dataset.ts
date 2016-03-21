@@ -484,10 +484,15 @@ module Plywood {
     public countDistinct(exFn: ComputeFn, context: Datum): number {
       var data = this.data;
       var seen: Lookup<number> = Object.create(null);
+      var count = 0;
       for (let datum of data) {
-        seen[exFn(datum, context)] = 1;
+        var v = exFn(datum, context);
+        if (!seen[v]) {
+          seen[v] = 1;
+          ++count;
+        }
       }
-      return Object.keys(seen).length;
+      return count;
     }
 
     public quantile(exFn: ComputeFn, quantile: number, context: Datum): number {

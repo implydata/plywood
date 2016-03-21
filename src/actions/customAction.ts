@@ -26,12 +26,21 @@ module Plywood {
       return js;
     }
 
+    public equals(other: CustomAction): boolean {
+      return super.equals(other) &&
+        this.custom === other.custom;
+    }
+
+    protected _toStringParameters(expressionString: string): string[] {
+      return [this.custom]; // ToDo: escape this
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'DATASET');
       return 'NUMBER';
     }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
       return {
         type: 'NUMBER',
       };
@@ -43,11 +52,6 @@ module Plywood {
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       throw new Error('custom action not implemented');
-    }
-
-    public equals(other: CustomAction): boolean {
-      return super.equals(other) &&
-        this.custom === other.custom;
     }
 
     public isAggregate(): boolean {

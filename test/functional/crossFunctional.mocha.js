@@ -10,7 +10,7 @@ var { druidRequesterFactory } = require('plywood-druid-requester');
 var { mySqlRequesterFactory } = require('plywood-mysql-requester');
 
 var plywood = require('../../build/plywood');
-var { External, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
+var { External, TimeRange, $, ply, r, basicExecutorFactory, helper } = plywood;
 
 var utils = require('../utils');
 var info = require('../info');
@@ -63,6 +63,10 @@ var attributes = [
   { name: 'deleted', type: 'NUMBER', unsplitable: true }
 ];
 
+var derivedAttributes = {
+  //pageInBrackets: "'[' ++ $page ++ ']'" // ToDo: un-comment when druid is 0.9.0-iap
+};
+
 var druidExecutor = basicExecutorFactory({
   datasets: {
     wiki: External.fromJS({
@@ -73,6 +77,7 @@ var druidExecutor = basicExecutorFactory({
         timeout: 10000
       },
       attributes,
+      derivedAttributes,
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
@@ -88,7 +93,8 @@ var mysqlExecutor = basicExecutorFactory({
     wiki: External.fromJS({
       engine: 'mysql',
       table: 'wikipedia',
-      attributes
+      attributes,
+      derivedAttributes
     }, mySqlRequester)
   }
 });
@@ -294,6 +300,22 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it.skip('works with static derived attribute .is()', equalityTest({ // ToDo: uncomment when 0.9.0-iap
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($pageInBrackets == "[Deaths_in_2015]")')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with dynamic derived attribute .is()', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('wiki', '$wiki.apply(city3, $cityName.substr(0, 3)).filter($city3 == "San")')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
   });
 
 
@@ -350,6 +372,15 @@ describe("Cross Functional", function() {
     it('works with STRING split (nullable dimension)', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').split('$cityName', 'City')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(20)
+    }));
+
+    it('works with dynamic derived column', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').apply('city3', '$cityName.substr(0, 3)').split('$city3', 'City3')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
@@ -586,7 +617,7 @@ describe("Cross Functional", function() {
       expression: $('wiki').filter('$cityName == "El Paso"').select('added', 'deleted')
     }));
 
-    it.skip('works with derived dimension columns', equalityTest({ // ToDo: un-skip when druid is 0.9.0
+    it.skip('works with derived dimension columns', equalityTest({ // ToDo: un-skip when druid is 0.9.0-iap
       executorNames: ['druid', 'mysql'],
       expression: $('wiki')
         .filter('$cityName == "El Paso"')

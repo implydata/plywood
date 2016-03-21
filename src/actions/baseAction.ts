@@ -229,7 +229,7 @@ module Plywood {
     }
 
     public getOutputType(inputType: PlyType): PlyType {
-      throw new Error('must implement type checker');
+      throw new Error(`must implement getOutputType in ${this.action}`);
     }
 
     protected _stringTransformOutputType(inputType: PlyType): PlyType {
@@ -237,10 +237,8 @@ module Plywood {
       return inputType;
     }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
-      var expression = this.expression;
-      if (expression) expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return typeContext;
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      throw new Error(`must implement _fillRefSubstitutions in ${this.action}`);
     }
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {

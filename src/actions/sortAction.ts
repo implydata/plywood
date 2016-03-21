@@ -4,11 +4,9 @@ module Plywood {
     static ASCENDING = 'ascending';
 
     static fromJS(parameters: ActionJS): SortAction {
-      return new SortAction({
-        action: parameters.action,
-        expression: Expression.fromJS(parameters.expression),
-        direction: parameters.direction
-      });
+      var value = Action.jsToValue(parameters);
+      value.direction = parameters.direction;
+      return new SortAction(value);
     }
 
     public direction: string;
@@ -38,18 +36,23 @@ module Plywood {
       return js;
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'DATASET');
-      return 'DATASET';
+    public equals(other: SortAction): boolean {
+      return super.equals(other) &&
+        this.direction === other.direction;
     }
 
     protected _toStringParameters(expressionString: string): string[] {
       return [expressionString, this.direction];
     }
 
-    public equals(other: SortAction): boolean {
-      return super.equals(other) &&
-        this.direction === other.direction;
+    public getOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType, 'DATASET');
+      return 'DATASET';
+    }
+
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+      return typeContext;
     }
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {

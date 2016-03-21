@@ -19,6 +19,11 @@ module Plywood {
       return 'DATASET';
     }
 
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+      return inputType;
+    }
+
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `${inputSQL} WHERE ${expressionSQL}`;
     }

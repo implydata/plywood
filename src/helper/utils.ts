@@ -87,5 +87,34 @@ module Plywood {
       }
       return newA
     }
+
+    export function emptyLookup(lookup: Lookup<any>): boolean {
+      for (var k in lookup) {
+        if (hasOwnProperty(lookup, k)) return false;
+      }
+      return true;
+    }
+
+    export function nonEmptyLookup(lookup: Lookup<any>): boolean {
+      return !emptyLookup(lookup);
+    }
+
+    export function expressionLookupFromJS(expressionJSs: Lookup<ExpressionJS>): Lookup<Expression> {
+      var expressions: Lookup<Expression> = Object.create(null);
+      for (var name in expressionJSs) {
+        if (!hasOwnProperty(expressionJSs, name)) continue;
+        expressions[name] = Expression.fromJSLoose(expressionJSs[name]);
+      }
+      return expressions;
+    }
+
+    export function expressionLookupToJS(expressions: Lookup<Expression>): Lookup<ExpressionJS> {
+      var expressionsJSs: Lookup<ExpressionJS> = {};
+      for (var name in expressions) {
+        if (!hasOwnProperty(expressions, name)) continue;
+        expressionsJSs[name] = expressions[name].toJS();
+      }
+      return expressionsJSs;
+    }
   }
 }

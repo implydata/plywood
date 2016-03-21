@@ -14,10 +14,6 @@ module Plywood {
       this._ensureAction("extract");
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      return this._stringTransformOutputType(inputType);
-    }
-
     public valueOf(): ActionValue {
       var value = super.valueOf();
       value.regexp = this.regexp;
@@ -30,13 +26,21 @@ module Plywood {
       return js;
     }
 
+    public equals(other: MatchAction): boolean {
+      return super.equals(other) &&
+        this.regexp === other.regexp;
+    }
+
     protected _toStringParameters(expressionString: string): string[] {
       return [this.regexp];
     }
 
-    public equals(other: MatchAction): boolean {
-      return super.equals(other) &&
-        this.regexp === other.regexp;
+    public getOutputType(inputType: PlyType): PlyType {
+      return this._stringTransformOutputType(inputType);
+    }
+
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      return inputType;
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {

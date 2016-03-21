@@ -16,6 +16,13 @@ module Plywood {
       return 'BOOLEAN';
     }
 
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+      return {
+        type: 'BOOLEAN'
+      };
+    }
+
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         return inputFn(d, c) < expressionFn(d, c);

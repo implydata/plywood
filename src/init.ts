@@ -73,15 +73,6 @@ function dictEqual(dictA: Lookup<any>, dictB: Lookup<any>): boolean {
   return true;
 }
 
-function higherArraysEqual(a: Array<any>, b: Array<any>): boolean {
-  var length = a.length;
-  if (length !== b.length) return false;
-  for (var i = 0; i < length; i++) {
-    if (!a[i].equals(b[i])) return false;
-  }
-  return true;
-}
-
 
 var expressionParser: PEGParser;
 var plyqlParser: PEGParser;
@@ -93,6 +84,8 @@ module Plywood {
 
   export var isInstanceOf = ImmutableClass.isInstanceOf;
   export var isImmutableClass = ImmutableClass.isImmutableClass;
+  export var immutableArraysEqual = ImmutableClass.immutableArraysEqual;
+  export var immutableLookupsEqual = ImmutableClass.immutableLookupsEqual;
 
   export import Class = ImmutableClass.Class;
   export import Instance = ImmutableClass.Instance;
