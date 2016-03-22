@@ -240,8 +240,8 @@ describe("Druid Functional", function() {
         .apply('UniquePages1', $('wiki').countDistinct("$page"))
         .apply('UniquePages2', $('wiki').countDistinct("$page_unique"))
         .apply('UniqueUsers1', $('wiki').countDistinct("$user"))
-        .apply('UniqueUsers2', $('wiki').countDistinct("$user_unique"));
-      //.apply('UniqueDiff', '$UniqueUsers1 - $UniqueUsers2')
+        .apply('UniqueUsers2', $('wiki').countDistinct("$user_unique"))
+        .apply('UniqueUsersDiff', '$UniqueUsers1 - $UniqueUsers2');
 
       basicExecutor(ex)
         .then((result) => {
@@ -250,7 +250,46 @@ describe("Druid Functional", function() {
               "UniquePages1": 279107.1992807899,
               "UniquePages2": 281588.11316378025,
               "UniqueUsers1": 39220.49269175933,
-              "UniqueUsers2": 37712.65497107271
+              "UniqueUsers2": 37712.65497107271,
+              "UniqueUsersDiff": 1507.8377206866207
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with filtered unique (in expression)", (testComplete) => {
+      var ex = ply()
+        .apply('UniquePagesEn', $('wiki').filter('$channel == en').countDistinct("$page"))
+        .apply('UniquePagesEnOver2', '$UniquePagesEn / 2');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "UniquePagesEn": 63849.8464587151,
+              "UniquePagesEnOver2": 31924.92322935755
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with filtered uniques", (testComplete) => {
+      var ex = ply()
+        .apply('UniquePagesEn', $('wiki').filter('$channel == en').countDistinct("$page"))
+        .apply('UniquePagesEs', $('wiki').filter('$channel == es').countDistinct("$page_unique"))
+        .apply('UniquePagesChannelDiff', '$UniquePagesEn - $UniquePagesEs');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "UniquePagesEn": 63849.8464587151,
+              "UniquePagesEs": 6870.355969047973,
+              "UniquePagesChannelDiff": 56979.49048966713
             }
           ]);
           testComplete();

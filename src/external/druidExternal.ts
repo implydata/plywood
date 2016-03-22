@@ -1373,7 +1373,9 @@ return (start < 0 ?'-':'') + parts.join('.');
     public getAccessType(aggregations: Druid.Aggregation[], aggregationName: string): string {
       for (let aggregation of aggregations) {
         if (aggregation.name === aggregationName) {
-          return this.getAccessTypeForAggregation(aggregation.type);
+          var aggregationType = aggregation.type;
+          if (aggregationType === 'filtered') aggregationType = aggregation.aggregator.type;
+          return this.getAccessTypeForAggregation(aggregationType);
         }
       }
       return 'fieldAccess'; // If not found it must be a post-agg

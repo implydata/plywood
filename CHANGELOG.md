@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.15
+
+- Fixed bug where DruidExternal did not work with filtered cardinality aggregator
+
 ## 0.9.14
 
 - Allow derivedAttributes to be specified in ExternalJS

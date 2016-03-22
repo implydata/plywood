@@ -88,6 +88,14 @@ module Plywood {
       return newA
     }
 
+    export function mapLookup<T, U>(thing: Lookup<T>, fn: (x: T) => U): Lookup<U> {
+      var newThing: Lookup<U> = Object.create(null);
+      for (var k in thing) {
+        if (hasOwnProperty(thing, k)) newThing[k] = fn(thing[k]);
+      }
+      return newThing;
+    }
+
     export function emptyLookup(lookup: Lookup<any>): boolean {
       for (var k in lookup) {
         if (hasOwnProperty(lookup, k)) return false;

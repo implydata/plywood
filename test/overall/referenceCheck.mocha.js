@@ -22,7 +22,10 @@ describe("reference check", () => {
         { name: 'isRobot', type: 'BOOLEAN' },
         { name: 'count', type: 'NUMBER', unsplitable: true },
         { name: 'added', type: 'NUMBER', unsplitable: true }
-      ]
+      ],
+      derivedAttributes: {
+        pageExtract: '$page.extract("^(lol)")'
+      }
     })
   };
 
@@ -286,7 +289,19 @@ describe("reference check", () => {
       expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works with derived attribute", () => {
+    it.skip("works with static derived attribute", () => {
+      var ex1 = $('wiki')
+        .apply('pageEx', '$pageExtract')
+        .filter('$pageEx == wik');
+
+      var ex2 = $('wiki', 'DATASET')
+        .apply('pageEx', '$pageExtract')
+        .filter('$pageEx:STRING == wik');
+
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with dynamic derived attribute", () => {
       var ex1 = $('wiki')
         .apply('page3', '$page.substr(0, 3)')
         .filter('$page3 == wik');

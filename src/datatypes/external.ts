@@ -574,6 +574,7 @@ module Plywood {
         this.attributeOverrides = parameters.attributeOverrides;
       }
       this.derivedAttributes = parameters.derivedAttributes || {};
+
       this.rawAttributes = parameters.rawAttributes;
       this.requester = parameters.requester;
 
