@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.16
+
+- DruidExternal now supports lookups on SET/STRING dimensions
+
 ## 0.9.15
 
 - Fixed bug where DruidExternal did not work with filtered cardinality aggregator

@@ -213,7 +213,7 @@ module Plywood {
 
     public filterFromDatum(datum: Datum): Expression {
       return Expression.and(this.mapSplits((name, expression) => {
-        if (expression.type.indexOf('SET/') === 0) {
+        if (isSetType(expression.type)) {
           return r(datum[name]).in(expression);
         } else {
           return expression.is(r(datum[name]));

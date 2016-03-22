@@ -46,7 +46,7 @@ module Plywood {
     }
 
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'BOOLEAN', 'STRING');
+      this._checkInputTypes(inputType, 'STRING', 'SET/STRING');
       return 'BOOLEAN';
     }
 

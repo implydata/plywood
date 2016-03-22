@@ -149,6 +149,19 @@ module Plywood {
 
   export type PlyType = PlyTypeSimple | 'DATASET';
 
+  export function isSetType(type: PlyType): boolean {
+    return type && type.indexOf('SET/') === 0;
+  }
+
+  export function wrapSetType(type: PlyType): PlyType {
+    return isSetType(type) ? type : <PlyType>('SET/' + type);
+  }
+
+  export function unwrapSetType(type: PlyType): PlyType {
+    if (!type) return null;
+    return isSetType(type) ? <PlyType>type.substr(4) : type;
+  }
+
   export interface SimpleFullType {
     type: PlyTypeSimple;
   }

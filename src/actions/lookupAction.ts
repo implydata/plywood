@@ -39,10 +39,8 @@ module Plywood {
       return this._stringTransformOutputType(inputType);
     }
 
-    public _fillRefSubstitutions(): FullType {
-      return {
-        type: 'STRING',
-      };
+    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
+      return inputType;
     }
 
     public fullyDefined(): boolean {

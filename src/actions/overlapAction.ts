@@ -15,8 +15,8 @@ module Plywood {
     public getOutputType(inputType: PlyType): PlyType {
       var expressionType = this.expression.type;
       if (expressionType && expressionType !== 'NULL' && inputType && inputType !== 'NULL') {
-        var setInputType = inputType.indexOf('SET/') === 0 ? inputType : ('SET/' + inputType);
-        var setExpressionType = expressionType.indexOf('SET/') === 0 ? expressionType : ('SET/' + expressionType);
+        var setInputType = wrapSetType(inputType);
+        var setExpressionType = wrapSetType(expressionType);
         if (setInputType !== setExpressionType) {
           throw new Error(`type mismatch in overlap action: ${inputType} is incompatible with ${expressionType}`);
         }
