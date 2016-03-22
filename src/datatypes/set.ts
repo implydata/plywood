@@ -61,7 +61,7 @@ module Plywood {
 
     static convertToSet(thing: any): Set {
       var thingType = getValueType(thing);
-      if (thingType.indexOf('SET/') === 0) return thing;
+      if (isSetType(thingType)) return thing;
       return Set.fromJS({ setType: thingType, elements: [thing] });
     }
 

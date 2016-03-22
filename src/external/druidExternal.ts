@@ -1214,7 +1214,8 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
       }
 
-      if (expression.type === 'BOOLEAN' || expression.type === 'STRING') {
+      var effectiveType = unwrapSetType(expression.type);
+      if (effectiveType === 'BOOLEAN' || effectiveType === 'STRING' || effectiveType === 'NUMBER') {
         return {
           dimension,
           inflater: simpleInflater

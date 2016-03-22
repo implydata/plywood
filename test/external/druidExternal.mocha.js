@@ -1256,6 +1256,25 @@ describe("DruidExternal", () => {
       });
     });
 
+    it("works with SET/STRING.concat()", () => {
+      var ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "format": "[\\%]%s[\\%]",
+          "type": "stringFormat"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
     it("works with .substr()", () => {
       var ex = $('wiki').split('$page.substr(3, 5)', 'Split');
 
@@ -1489,6 +1508,59 @@ describe("DruidExternal", () => {
             },
             {
               "function": "function(d){return (''+d).indexOf(\"lol\")>-1;}",
+              "type": "javascript"
+            }
+          ],
+          "type": "cascade"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with SET/STRING.lookup()", () => {
+      var ex = $('wiki').split($('tags').lookup('tag-lookup'), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "tags",
+        "extractionFn": {
+          "lookup": {
+            "namespace": "tag-lookup",
+            "type": "namespace"
+          },
+          "type": "lookup"
+        },
+        "outputName": "Split",
+        "type": "extraction"
+      });
+    });
+
+    it("works with SET/STRING.lookup().contains()", () => {
+      var ex = $('wiki').split($('tags').lookup('tag-lookup').contains("lol", 'ignoreCase'), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('topN');
+      expect(query.dimension).to.deep.equal({
+        "dimension": "tags",
+        "extractionFn": {
+          "extractionFns": [
+            {
+              "lookup": {
+                "namespace": "tag-lookup",
+                "type": "namespace"
+              },
+              "type": "lookup"
+            },
+            {
+              "function": "function(d){return (''+d).toLowerCase().indexOf(\"lol\")>-1;}",
               "type": "javascript"
             }
           ],

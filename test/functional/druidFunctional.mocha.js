@@ -874,21 +874,21 @@ describe("Druid Functional", function() {
       var ex = ply()
         .apply(
           'Channels',
-          $('wiki').split($('channel').lookup('channel_lookup'), 'Channel')
+          $('wiki').split($('channel').lookup('channel-lookup'), 'Channel')
             .apply('Count', '$wiki.sum($count)')
             .sort('$Count', 'descending')
             .limit(4)
         )
         .apply(
           'ChannelFallbackLOL',
-          $('wiki').split($('channel').lookup('channel_lookup').fallback('LOL'), 'Channel')
+          $('wiki').split($('channel').lookup('channel-lookup').fallback('LOL'), 'Channel')
             .apply('Count', '$wiki.sum($count)')
             .sort('$Count', 'descending')
             .limit(4)
         )
         .apply(
           'ChannelFallbackSelf',
-          $('wiki').split($('channel').lookup('channel_lookup').fallback('$channel'), 'Channel')
+          $('wiki').split($('channel').lookup('channel-lookup').fallback('$channel'), 'Channel')
             .apply('Count', '$wiki.sum($count)')
             .sort('$Count', 'descending')
             .limit(4)
@@ -924,7 +924,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with lookup IS filter", (testComplete) => {
-      var ex = $('wiki').filter($('channel').lookup('channel_lookup').is('English')).sum('$count');
+      var ex = $('wiki').filter($('channel').lookup('channel-lookup').is('English')).sum('$count');
 
       basicExecutor(ex)
         .then((result) => {
@@ -935,7 +935,7 @@ describe("Druid Functional", function() {
     });
 
     it.skip("works with lookup CONTAINS filter", (testComplete) => { // ToDo: un-skip when out Druid is updated to 0.9.0
-      var ex = $('wiki').filter($('channel').lookup('channel_lookup').contains('Eng', 'ignoreCase')).sum('$count');
+      var ex = $('wiki').filter($('channel').lookup('channel-lookup').contains('Eng', 'ignoreCase')).sum('$count');
 
       basicExecutor(ex)
         .then((result) => {

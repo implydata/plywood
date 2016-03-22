@@ -14,7 +14,7 @@ module Plywood {
       var expression = this.expression;
       if (inputType) {
         if (!(
-          (inputType.indexOf('SET/') === -1 && expression.canHaveType('SET')) ||
+          (!isSetType(inputType) && expression.canHaveType('SET')) ||
           (inputType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE')) ||
           (inputType === 'TIME' && expression.canHaveType('TIME_RANGE'))
         )) {
@@ -79,7 +79,7 @@ module Plywood {
       var expression = this.expression;
       if (
         expression instanceof LiteralExpression &&
-        expression.type.indexOf('SET/') === 0 &&
+        isSetType(expression.type) &&
         expression.value.empty()
       ) return Expression.FALSE;
       return null;

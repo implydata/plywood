@@ -39,7 +39,7 @@ module Plywood {
       var js = super.toJS();
       if (this.value && this.value.toJS) {
         js.value = this.value.toJS();
-        js.type = (this.type.indexOf('SET/') === 0) ? 'SET' : this.type;
+        js.type = isSetType(this.type) ? 'SET' : this.type;
       } else {
         js.value = this.value;
       }

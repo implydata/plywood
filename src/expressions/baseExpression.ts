@@ -271,7 +271,7 @@ module Plywood {
 
       var literalType = literal.type;
       var returnExpression: Expression = null;
-      if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || literalType.indexOf('SET/') === 0) {
+      if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || isSetType(literalType)) {
         returnExpression = lhs.in(literal);
       } else {
         returnExpression = lhs.is(literal);
@@ -416,7 +416,7 @@ module Plywood {
       var { type } =  this;
       if (!type) return true;
       if (wantedType === 'SET') {
-        return type.indexOf('SET/') === 0;
+        return isSetType(type);
       } else {
         return type === wantedType;
       }

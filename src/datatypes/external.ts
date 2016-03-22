@@ -1177,9 +1177,7 @@ module Plywood {
       } else {
         if (mode === 'split') {
           this.split.mapSplits((name, expression) => {
-            var type = expression.type;
-            if (type.indexOf('SET/') === 0) type = <PlyTypeSimple>type.substr(4);
-            datum[name] = getSampleValue(type, expression);
+            datum[name] = getSampleValue(unwrapSetType(expression.type), expression);
           });
         }
 
