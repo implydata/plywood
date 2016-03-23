@@ -64,7 +64,7 @@ var attributes = [
 ];
 
 var derivedAttributes = {
-  //pageInBrackets: "'[' ++ $page ++ ']'" // ToDo: un-comment when druid is 0.9.0-iap
+  pageInBrackets: "'[' ++ $page:STRING ++ ']'" // ToDo: remove :STRING
 };
 
 var druidExecutor = basicExecutorFactory({
@@ -300,7 +300,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it.skip('works with static derived attribute .is()', equalityTest({ // ToDo: uncomment when 0.9.0-iap
+    it('works with static derived attribute .is()', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter($pageInBrackets == "[Deaths_in_2015]")')
@@ -536,13 +536,14 @@ describe("Cross Functional", function() {
         .limit(50)
     }));
 
-    it.skip('works with all sorts of filtered aggregates', equalityTest({
+    it('works with all sorts of filtered aggregates == null', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').split('$channel', 'Channel')
         .apply('RowCount', '$wiki.count()')
-        .apply('NullCities', '$wiki.filter($cityName == null).sum($added)')
-        .apply('NullCities3', '$wiki.filter($cityName.substr(0, 3) == null).sum($added)')
-        .apply('NullCity_lol', '$wiki.filter($cityName.concat(_lol) == null).sum($added)')
+        .apply('Added_NullCities', '$wiki.filter($cityName == null).sum($added)')
+        .apply('Added_NullCities3', '$wiki.filter($cityName.substr(0, 3) == null).sum($added)')
+        .apply('Added_NullCity_lol', '$wiki.filter($cityName.concat(_lol) == null).sum($added)')
+        .apply('Added_NullCityExtract', '$wiki.filter($cityName.extract("^(...)") == null).sum($added)')
         .sort('$Channel', 'descending')
         .limit(50)
     }));

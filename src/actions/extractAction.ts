@@ -55,6 +55,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+      if (this.regexp === '^(...)') return `SUBSTR(${inputSQL},1,3)`; // for testing only
       throw new Error('not implemented yet'); // https://github.com/mysqludf/lib_mysqludf_preg
     }
   }

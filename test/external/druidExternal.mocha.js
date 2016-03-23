@@ -821,6 +821,20 @@ describe("DruidExternal", () => {
       });
     });
 
+    it("works with .overlap([null])", () => {
+      var ex = $('wiki').filter($("language").overlap([null]));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "language",
+        "type": "selector",
+        "value": null
+      });
+    });
+
     it("works with .lookup().overlap(blah, null) (on SET/STRING)", () => {
       var ex = $('wiki').filter($("tags").lookup('tag_lookup').overlap(['Good', null]));
 
