@@ -2,7 +2,7 @@
 
 echo "Set Druid props ";
 
-perl -pi -e's/druid.extensions.coordinates=.*/druid.extensions.coordinates=["io.druid.extensions:druid-namespace-lookup", "io.druid.extensions:druid-histogram"]/g' \
+perl -pi -e's/druid.extensions.loadList=.*/druid.extensions.loadList=["druid-namespace-lookup", "druid-histogram", "druid-datasketches"]/g' \
   /root/imply-*/conf-quickstart/druid/_common/common.runtime.properties
 
 echo 'druid.query.extraction.namespace.lookups=[{"type":"uri","namespace":"channel-lookup","uri":"file:/opt/data/druid/channel-lookup/","namespaceParseSpec":{"format":"customJson","keyFieldName":"key","valueFieldName":"value"},"pollPeriod":"P1D"},{"type":"uri","namespace":"nato-phonetic","uri":"file:/opt/data/druid/nato-phonetic/","namespaceParseSpec":{"format":"customJson","keyFieldName":"key","valueFieldName":"value"},"pollPeriod":"P1D"}]' \

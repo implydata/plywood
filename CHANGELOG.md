@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.9.17
+
+- Fixed overlap on null, fixed null handling in extractionFns for Druid 0.8.3
+- Enabled all Druid 0.9.0 tests (testing using Druid 0.9.0-iap1)
+
 ## 0.9.16
 
 - DruidExternal now supports lookups on SET/STRING dimensions

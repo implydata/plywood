@@ -1128,7 +1128,8 @@ module Plywood {
     }
 
     private _processConcatExtractionFn(pattern: Expression[], extractionFns: Druid.ExtractionFn[]): void {
-      if (this.versionBefore('0.9.0')) {
+      if (this.versionBefore('0.9.1')) {
+        // Druid 0.9.0 behaves badly on null https://github.com/druid-io/druid/issues/2706
         extractionFns.push({
           type: "javascript",
           'function': Expression.concat(pattern).getJSFn('d'),

@@ -30,7 +30,7 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
-      return `(${inputJS}+${expressionJS})`;
+      return `(_1=${inputJS},_2=${expressionJS},(_1==null||_2==null)?null:(_1+_2))`;
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
