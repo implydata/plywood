@@ -1,17 +1,25 @@
 # Change Log
 
-## 0.9.17
+## 0.9.19
 
-- Fixed overlap on null, fixed null handling in extractionFns for Druid 0.8.3
+- Fixed null handling in extractionFns for Druid 0.8.3 
+
+## 0.9.18
+
+- Fixed overlap on `[null]`
 - Enabled all Druid 0.9.0 tests (testing using Druid 0.9.0-iap1)
 
-## 0.9.16
+## 0.9.17
 
 - DruidExternal now supports lookups on SET/STRING dimensions
 
-## 0.9.15
+## 0.9.16
 
 - Fixed bug where DruidExternal did not work with filtered cardinality aggregator
+
+## 0.9.15
+
+- New immutable class methods
 
 ## 0.9.14
 
