@@ -524,6 +524,7 @@ describe("Cross Functional", function() {
         .apply('SixtySix', 66)
         .apply('AddedBYDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('TokyoAdded', '$wiki.filter($cityName == Tokyo).sum($added)')
+        .apply('NullCities', '$wiki.filter($cityName == null).sum($added)')
         .apply('To*Added', '$wiki.filter($cityName.contains("to")).sum($added)')
         .apply('MinDelta', '$wiki.min($min_delta)')
         .apply('MaxDelta', '$wiki.max($max_delta)')
@@ -535,7 +536,18 @@ describe("Cross Functional", function() {
         .limit(50)
     }));
 
-    it.skip('works with (aprox) countDistinct', equalityTest({
+    it.skip('works with all sorts of filtered aggregates', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split('$channel', 'Channel')
+        .apply('RowCount', '$wiki.count()')
+        .apply('NullCities', '$wiki.filter($cityName == null).sum($added)')
+        .apply('NullCities3', '$wiki.filter($cityName.substr(0, 3) == null).sum($added)')
+        .apply('NullCity_lol', '$wiki.filter($cityName.concat(_lol) == null).sum($added)')
+        .sort('$Channel', 'descending')
+        .limit(50)
+    }));
+
+    it.skip('works with (approx) countDistinct', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: ply()
         .apply('DistPagesWithinLimits', '($wiki.countDistinct($page) - 279893).absolute() < 10')

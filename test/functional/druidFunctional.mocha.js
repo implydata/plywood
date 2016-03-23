@@ -662,7 +662,7 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it("works with contains (case insensitive) filter", (testComplete) => {
+    it("works with contains(ignoreCase) filter", (testComplete) => {
       var ex = ply()
         .apply('wiki', $('wiki').filter($('page').contains('wiki', 'ignoreCase')))
         .apply(
@@ -698,7 +698,7 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it("works with match filter", (testComplete) => {
+    it("works with match() filter", (testComplete) => {
       var ex = ply()
         .apply('wiki', $('wiki').filter($('page').match('^.*Bot.*$')))
         .apply(

@@ -604,6 +604,12 @@ module Plywood {
       };
     }
 
+    public sanitizeNull(v: any): any {
+      // There is a bug that was fixed in Druid 0.9.0 that dies when null is provided in as the value in an extractionFn
+      if (this.versionBefore('0.9.0') && v === null) return '';
+      return v;
+    }
+
     public timelessFilterToDruid(filter: Expression, aggregatorFilter: boolean): Druid.Filter {
       if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
 
@@ -680,6 +686,7 @@ module Plywood {
             if (extractionFn) {
               druidFilter.type = "extraction";
               druidFilter.extractionFn = extractionFn;
+              druidFilter.value = this.sanitizeNull(druidFilter.value);
             }
             return druidFilter;
           } else {
@@ -702,6 +709,7 @@ module Plywood {
                   if (extractionFn) {
                     druidFilter.type = "extraction";
                     druidFilter.extractionFn = extractionFn;
+                    druidFilter.value = this.sanitizeNull(druidFilter.value);
                   }
                   return druidFilter;
                 });
