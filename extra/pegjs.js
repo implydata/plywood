@@ -9,10 +9,15 @@ var postfixToRemove = '})()';
 var expressionGrammarFilename = './src/expressions/expression.pegjs';
 var expressionGrammar = fs.readFileSync(expressionGrammarFilename, 'utf8');
 
-var expressionParser = PEG.buildParser(expressionGrammar, {
-  output: 'source',
-  optimize: "speed" // or "size"
-});
+try {
+  var expressionParser = PEG.buildParser(expressionGrammar, {
+    output: 'source',
+    optimize: "speed" // or "size"
+  });
+} catch (e) {
+  console.error(e);
+  process.exit(1);
+}
 
 expressionParser = expressionParser.substring(prefixToRemove.length, expressionParser.length - postfixToRemove.length);
 
@@ -25,10 +30,15 @@ fs.writeFileSync('./build/expressionParser.js', expressionParser, 'utf8');
 var plyqlGrammarFilename = './src/expressions/plyql.pegjs';
 var plyqlGrammar = fs.readFileSync(plyqlGrammarFilename, 'utf8');
 
-var plyqlParser = PEG.buildParser(plyqlGrammar, {
-  output: 'source',
-  optimize: "speed" // or "size"
-});
+try {
+  var plyqlParser = PEG.buildParser(plyqlGrammar, {
+    output: 'source',
+    optimize: "speed" // or "size"
+  });
+} catch (e) {
+  console.error(e);
+  process.exit(1);
+}
 
 plyqlParser = plyqlParser.substring(prefixToRemove.length, plyqlParser.length - postfixToRemove.length);
 

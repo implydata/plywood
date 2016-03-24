@@ -149,14 +149,14 @@ describe("expression parser", () => {
     });
 
     it("works with a fancy number expression", () => {
-      var ex1 = Expression.parse("-5e-2");
+      var ex1 = Expression.parse(" -5e-2 ");
       var ex2 = r(-5e-2);
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("should not get confused with parsable strings in strange places", () => {
-      var ex1 = Expression.parse("ply().apply('$x + 1', $x + 1)");
+      var ex1 = Expression.parse("ply().apply('$x + 1', $x +1)");
       var ex2 = ply().apply('$x + 1', $("x").add(1));
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());

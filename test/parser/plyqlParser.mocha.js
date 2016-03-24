@@ -15,7 +15,7 @@ describe("SQL parser", () => {
     var $data = $('data');
 
     it("works with a literal expression", () => {
-      var parse = Expression.parseSQL("1");
+      var parse = Expression.parseSQL(" 1 ");
       var ex2 = r(1);
 
       expect(parse.verb).to.equal(null);
@@ -39,10 +39,55 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("works with a filtered COUNT expression", () => {
+      var parse = Expression.parseSQL("COUNT(* WHERE cityName = 'San Francisco')");
+
+      var ex2 = $('data').filter("$cityName == 'San Francisco'").count();
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with a filtered SUM expression", () => {
+      var parse = Expression.parseSQL("SUM(added WHERE cityName = 'San Francisco')");
+
+      var ex2 = $('data').filter("$cityName == 'San Francisco'").sum('$added');
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with a filtered QUANTILE expression", () => {
+      var parse = Expression.parseSQL("QUANTILE(added WHERE cityName = 'San Francisco', 0.99)");
+
+      var ex2 = $('data').filter("$cityName == 'San Francisco'").quantile('$added', 0.99);
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with a trivial arithmetic expression", () => {
+      var parse = Expression.parseSQL("(1 + 7) + 5 / 2");
+
+      var ex2 = Expression.parse('(1 + 7) + 5 / 2');
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("works with an arithmetic expression", () => {
       var parse = Expression.parseSQL("SUM(`added`) + 5 + SUM(deleted) / 2");
 
       var ex2 = $data.sum('$added').add(5, '$data.sum($deleted) / 2');
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with IN expression", () => {
+      var parse = Expression.parseSQL("language IN ( 'ca', 'cs', 'da', 'el' )");
+
+      var ex2 = $('language').in(['ca', 'cs', 'da', 'el']);
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -279,7 +324,13 @@ describe("SQL parser", () => {
     it("should fail gracefully on COUNT(DISTINCT)", () => {
       expect(() => {
         Expression.parseSQL("COUNT(DISTINCT)");
-      }).to.throw('COUNT DISTINCT must have expression');
+      }).to.throw('COUNT DISTINCT must have an expression');
+    });
+
+    it("should fail gracefully on COUNT(DISTINCT *)", () => {
+      expect(() => {
+        Expression.parseSQL("COUNT(DISTINCT *)");
+      }).to.throw('COUNT DISTINCT can not be used with *');
     });
 
     it("should fail gracefully on SUM(DISTINCT blah)", () => {
@@ -313,6 +364,20 @@ describe("SQL parser", () => {
 
       expect(parse.verb).to.equal('SELECT');
       expect(parse.table).to.equal('wiki');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should parse a simple expression 2", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT COUNT(page)
+      `);
+
+      var ex2 = ply()
+        .apply('data', '$data')
+        .apply('COUNT_page', '$data.filter($page.isnt(null)).count()');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.table).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 

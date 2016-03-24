@@ -233,6 +233,10 @@ module Plywood {
       }
       return num;
     }
+
+    public isAggregate() {
+      return true;
+    }
   }
 
   Action.register(SplitAction);
