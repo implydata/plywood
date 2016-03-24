@@ -37,16 +37,6 @@ var reservedWords = {
   WHERE: 1
 }
 
-var aggregates = {
-  count: 1,
-  sum: 1, min: 1, max: 1,
-  average: 1,
-  countDistinct: 1,
-  quantile: 1,
-  custom: 1,
-  split: 1
-}
-
 var objectHasOwnProperty = Object.prototype.hasOwnProperty;
 function reserved(str) {
   return objectHasOwnProperty.call(reservedWords, str.toUpperCase());
@@ -178,8 +168,7 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
       var hasAggregate = columns.some(function(column) {
         var columnExpression = column.expression;
         return columnExpression.isOp('chain') &&
-          columnExpression.actions.length &&
-          aggregates[columnExpression.actions[0].action];
+          columnExpression.actions.some(function(action) { return action.isAggregate(); })
       })
       if (hasAggregate) {
         groupBys = [Expression.EMPTY_STRING];
@@ -263,14 +252,14 @@ function makeListMap1(head, tail) {
 
 function naryExpressionFactory(op, head, tail) {
   if (!tail.length) return head;
-  return head[op].apply(head, tail.map(function(t) { return t[3]; }));
+  return head[op].apply(head, tail.map(function(t) { return t[1]; }));
 }
 
 function naryExpressionWithAltFactory(op, head, tail, altToken, altOp) {
   if (!tail.length) return head;
   for (var i = 0; i < tail.length; i++) {
     var t = tail[i];
-    head = head[t[1] === altToken ? altOp : op].call(head, t[3]);
+    head = head[t[0] === altToken ? altOp : op].call(head, t[1]);
   }
   return head;
 }
@@ -278,10 +267,13 @@ function naryExpressionWithAltFactory(op, head, tail, altToken, altOp) {
 }// Start grammar
 
 start
-  = _ queryParse:SelectQuery _ { return queryParse; }
-  / _ queryParse:DescribeQuery _ { return queryParse; }
-  / _ queryParse:OtherQuery _ { return queryParse; }
-  / _ ex:Expression _
+  = _ queryParse:SupportedQuery QueryTerminator? { return queryParse; }
+
+SupportedQuery
+  = queryParse:SelectQuery { return queryParse; }
+  / queryParse:DescribeQuery { return queryParse; }
+  / queryParse:OtherQuery { return queryParse; }
+  / ex:Expression
     {
       return {
         verb: null,
@@ -290,7 +282,7 @@ start
     }
 
 OtherQuery
-  = verb:(UpdateToken / ShowToken / SetToken) rest:Rest
+  = verb:(UpdateToken / ShowToken / SetToken) rest:$(.*)
     {
       return {
         verb: verb,
@@ -299,7 +291,7 @@ OtherQuery
     }
 
 DescribeQuery
-  = DescribeToken _ table:RelaxedNamespacedRef _ QueryTerminator? _
+  = DescribeToken table:RelaxedNamespacedRef
     {
       return {
         verb: 'DESCRIBE',
@@ -308,7 +300,7 @@ DescribeQuery
     }
 
 SelectQuery
-  = SelectToken distinct:Distinct? columns:Columns? from:FromClause? where:WhereClause? groupBys:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause? QueryTerminator? _
+  = SelectToken distinct:DistinctToken? columns:Columns? from:FromClause? where:WhereClause? groupBys:GroupByClause? having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
     {
       return {
         verb: 'SELECT',
@@ -318,13 +310,13 @@ SelectQuery
     }
 
 SelectSubQuery
-  = SelectToken distinct:Distinct? columns:Columns? where:WhereClause? groupBys:GroupByClause having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
+  = SelectToken distinct:DistinctToken? columns:Columns? where:WhereClause? groupBys:GroupByClause having:HavingClause? orderBy:OrderByClause? limit:LimitClause?
     { return constructQuery(distinct, columns, null, where, groupBys, having, orderBy, limit); }
 
 Columns
-  = _ StarToken
+  = StarToken
     { return '*'; }
-  / _ head:Column tail:(Comma Column)*
+  / head:Column tail:(Comma Column)*
     { return makeListMap1(head, tail); }
 
 Column
@@ -337,47 +329,40 @@ Column
     }
 
 As
-  = _ AsToken _ name:(String / Ref) { return name; }
-
-Distinct
-  = _ DistinctToken
+  = AsToken name:(String / Ref) { return name; }
 
 FromClause
-  = _ FromToken _ table:RelaxedNamespacedRef
+  = FromToken table:RelaxedNamespacedRef
     { return table.name; }
 
 WhereClause
-  = _ WhereToken _ filter:Expression
+  = WhereToken filter:Expression
     { return filter; }
 
 GroupByClause
-  = _ GroupToken __ ByToken _ head:Expression tail:ExpressionParameter*
+  = GroupToken ByToken head:Expression tail:ExpressionParameter*
     { return makeList(head, tail); }
 
 HavingClause
-  = _ HavingToken _ having:Expression
+  = HavingToken having:Expression
     { return new FilterAction({ expression: having }); }
 
 OrderByClause
-  = _ OrderToken __ ByToken _ orderBy:Expression direction:Direction? tail:(Comma Expression Direction?)*
+  = OrderToken ByToken orderBy:Expression direction:Direction? tail:(Comma Expression Direction?)*
     {
       if (tail.length) error('plywood does not currently support multi-column ORDER BYs');
       return new SortAction({ expression: orderBy, direction: direction || 'ascending' });
     }
 
 Direction
-  = _ dir:(AscToken / DescToken) { return dir; }
+  = AscToken / DescToken
 
 LimitClause
-  = _ LimitToken _ limit:Number
+  = LimitToken limit:Number
     { return new LimitAction({ limit: limit }); }
 
 QueryTerminator
-  = _ ";"
-
-Rest
-  = __ rest:$(.*)
-    { return rest; }
+  = ";" _
 
 /*
 Expressions are defined below in acceding priority order
@@ -395,17 +380,17 @@ Expression = OrExpression
 
 
 OrExpression
-  = head:AndExpression tail:(_ OrToken _ AndExpression)*
+  = head:AndExpression tail:(OrToken AndExpression)*
     { return naryExpressionFactory('or', head, tail); }
 
 
 AndExpression
-  = head:NotExpression tail:(_ AndToken _ NotExpression)*
+  = head:NotExpression tail:(AndToken NotExpression)*
     { return naryExpressionFactory('and', head, tail); }
 
 
 NotExpression
-  = not:(NotToken _)? ex:ComparisonExpression
+  = not:NotToken? ex:ComparisonExpression
     {
       if (not) ex = ex.not();
       return ex;
@@ -413,10 +398,9 @@ NotExpression
 
 
 ComparisonExpression
-  = ex:AdditiveExpression rhs:(_ ComparisonExpressionRhs)?
+  = ex:AdditiveExpression rhs:ComparisonExpressionRhs?
     {
       if (rhs) {
-        rhs = rhs[1];
         ex = ex[rhs.call].apply(ex, rhs.args);
         if (rhs.not) ex = ex.not();
       }
@@ -424,12 +408,12 @@ ComparisonExpression
     }
 
 ComparisonExpressionRhs
-  = not:NotToken? _ rhs:ComparisonExpressionRhsNotable
+  = not:NotToken? rhs:ComparisonExpressionRhsNotable
     {
       rhs.not = not;
       return rhs;
     }
-  / IsToken not:(_ NotToken)? _ rhs:AdditiveExpression
+  / IsToken not:NotToken? rhs:AdditiveExpression
     {
       return { call: 'is', args: [rhs], not: not };
     }
@@ -439,26 +423,26 @@ ComparisonExpressionRhs
     }
 
 ComparisonExpressionRhsNotable
-  = BetweenToken __ start:LiteralExpression __ AndToken __ end:LiteralExpression
+  = BetweenToken start:LiteralExpression AndToken end:LiteralExpression
     {
       var range = { start: start.value, end: end.value, bounds: '[]' };
       return { call: 'in', args: [range] };
     }
-  / InToken _ list:ListLiteral
+  / InToken list:ListLiteral
     {
       return { call: 'in', args: [list] };
     }
-  / ContainsToken _ string:String
+  / ContainsToken string:String
     {
       return { call: 'contains', args: [string, 'ignoreCase'] };
     }
-  / LikeToken _ string:String escape:(_ EscapeToken _ String)?
+  / LikeToken string:String escape:(EscapeToken String)?
     {
-      var escapeStr = escape ? escape[3] : '\\';
+      var escapeStr = escape ? escape[1] : '\\';
       if (escapeStr.length > 1) error('Invalid escape string: ' + escapeStr);
       return { call: 'match', args: [MatchAction.likeToRegExp(string, escapeStr)] };
     }
-  / RegExpToken _ string:String
+  / RegExpToken string:String
     {
       return { call: 'match', args: [string] };
     }
@@ -474,26 +458,26 @@ ComparisonOp
   / ">"   { return 'greaterThan'; }
 
 ListLiteral
-  = "(" head:StringOrNumber tail:(Comma StringOrNumber)* ")"
+  = OpenParen head:StringOrNumber tail:(Comma StringOrNumber)* CloseParen
     { return r(Set.fromJS(makeListMap1(head, tail))); }
 
 
 AdditiveExpression
-  = head:MultiplicativeExpression tail:(_ AdditiveOp _ MultiplicativeExpression)*
+  = head:MultiplicativeExpression tail:(AdditiveOp MultiplicativeExpression)*
     { return naryExpressionWithAltFactory('add', head, tail, '-', 'subtract'); }
 
-AdditiveOp = op:("+" / "-") !"+" { return op; }
+AdditiveOp = op:("+" / "-") !"+" _ { return op; }
 
 
 MultiplicativeExpression
-  = head:UnaryExpression tail:(_ MultiplicativeOp _ UnaryExpression)*
+  = head:UnaryExpression tail:(MultiplicativeOp UnaryExpression)*
     { return naryExpressionWithAltFactory('multiply', head, tail, '/', 'divide'); }
 
-MultiplicativeOp = "*" / "/"
+MultiplicativeOp = op:("*" / "/") _ { return op; }
 
 
 UnaryExpression
-  = op:AdditiveOp _ !Number ex:BasicExpression
+  = op:AdditiveOp !Number ex:BasicExpression
     {
       // !Number is to make sure that -3 parses as literal(-3) and not literal(3).negate()
       var negEx = ex.negate(); // Always negate (even with +) just to make sure it is possible
@@ -506,68 +490,87 @@ BasicExpression
   = LiteralExpression
   / AggregateExpression
   / FunctionCallExpression
-  / OpenParen _ sub:(Expression / SelectSubQuery) CloseParen { return sub; }
+  / OpenParen sub:(Expression / SelectSubQuery) CloseParen { return sub; }
   / RefExpression
 
 
 AggregateExpression
-  = CountToken OpenParen distinct:Distinct? _ ex:(StarToken / Expression)? CloseParen
+  = CountToken OpenParen distinct:DistinctToken? exd:ExpressionMaybeFiltered? CloseParen
     {
-      if (!ex || ex === '*') {
-        if (distinct) error('COUNT DISTINCT must have expression');
+      if (!exd) {
+        if (distinct) error('COUNT DISTINCT must have an expression');
         return dataRef.count();
+      } else if (exd.ex === '*') {
+        if (distinct) error('COUNT DISTINCT can not be used with *');
+        return exd.data.count();
       } else {
-        return distinct ? dataRef.countDistinct(ex) : dataRef.filter(ex.isnt(null)).count()
+        return distinct ? exd.data.countDistinct(exd.ex) : exd.data.filter(exd.ex.isnt(null)).count()
       }
     }
-  / fn:AggregateFn OpenParen distinct:Distinct? _ ex:Expression CloseParen
+  / fn:AggregateFn OpenParen distinct:DistinctToken? exd:ExpressionMaybeFiltered CloseParen
     {
       if (distinct) error('can not use DISTINCT for ' + fn + ' aggregator');
-      return dataRef[fn](ex);
+      if (exd.ex === '*') error('can not use * for ' + fn + ' aggregator');
+      return exd.data[fn](exd.ex);
     }
-  / QuantileToken OpenParen _ ex:Expression Comma value: Number CloseParen
-    { return dataRef.quantile(ex, value); }
-  / CustomToken OpenParen _ value: String CloseParen
-    { return dataRef.custom(value); }
+  / QuantileToken OpenParen distinct:DistinctToken? exd:ExpressionMaybeFiltered Comma value:Number CloseParen
+    {
+      if (distinct) error('can not use DISTINCT for quantile aggregator');
+      if (exd.ex === '*') error('can not use * for quantile aggregator');
+      return exd.data.quantile(exd.ex, value);
+    }
+  / CustomToken OpenParen value:String filter:WhereClause? CloseParen
+    {
+      var d = dataRef;
+      if (filter) d = d.filter(filter);
+      return d.custom(value);
+    }
 
 AggregateFn
   = SumToken / AvgToken / MinToken / MaxToken / CountDistinctToken
 
+ExpressionMaybeFiltered
+  = ex:(StarToken / Expression) filter:WhereClause?
+    {
+      var data = dataRef;
+      if (filter) data = data.filter(filter);
+      return { ex: ex, data: data };
+    }
+
+
 FunctionCallExpression
-  = NumberBucketToken OpenParen operand:Operand size:NumberParameter offset:NumberParameter CloseParen
+  = NumberBucketToken OpenParen operand:Expression size:NumberParameter offset:NumberParameter CloseParen
     { return operand.numberBucket(size, offset); }
-  / fn:(TimeBucketToken / TimeFloorToken) OpenParen operand:Operand duration:NameOrStringParameter timezone:NameOrStringParameter? CloseParen
+  / fn:(TimeBucketToken / TimeFloorToken) OpenParen operand:Expression duration:NameOrStringParameter timezone:NameOrStringParameter? CloseParen
     { return operand[fn](duration, timezone); }
-  / TimePartToken OpenParen operand:Operand part:NameOrStringParameter timezone:NameOrStringParameter? CloseParen
+  / TimePartToken OpenParen operand:Expression part:NameOrStringParameter timezone:NameOrStringParameter? CloseParen
     { return operand.timePart(part, timezone); }
-  / fn:(TimeShiftToken / TimeRangeToken) OpenParen operand:Operand duration:NameOrStringParameter step:NumberParameter timezone:NameOrStringParameter? CloseParen
+  / fn:(TimeShiftToken / TimeRangeToken) OpenParen operand:Expression duration:NameOrStringParameter step:NumberParameter timezone:NameOrStringParameter? CloseParen
     { return operand[fn](duration, step, timezone); }
-  / SubstrToken OpenParen operand:Operand position:NumberParameter length:NumberParameter CloseParen
+  / SubstrToken OpenParen operand:Expression position:NumberParameter length:NumberParameter CloseParen
     { return operand.substr(position, length); }
-  / ExtractToken OpenParen operand:Operand regexp:StringParameter CloseParen
+  / ExtractToken OpenParen operand:Expression regexp:StringParameter CloseParen
     { return operand.extract(regexp); }
-  / LookupToken OpenParen operand:Operand lookup:StringParameter CloseParen
+  / LookupToken OpenParen operand:Expression lookup:StringParameter CloseParen
     { return operand.lookup(lookup); }
   / ConcatToken OpenParen head:Expression tail:ExpressionParameter* CloseParen
     { return Expression.concat(makeList(head, tail)); }
-  / (IfNullToken/FallbackToken) OpenParen operand:Operand fallbackValue:ExpressionParameter CloseParen
+  / (IfNullToken/FallbackToken) OpenParen operand:Expression fallbackValue:ExpressionParameter CloseParen
     { return operand.fallback(fallbackValue);}
   / MatchToken OpenParen operand:Expression regexp:StringParameter CloseParen
     { return operand.match(regexp); }
   / NowToken OpenParen CloseParen
     { return r(new Date()); }
-  / (AbsToken/AbsoluteToken ) OpenParen operand:Operand CloseParen
+  / (AbsToken/AbsoluteToken ) OpenParen operand:Expression CloseParen
     { return operand.absolute(); }
-  / (PowToken/PowerToken) OpenParen operand:Operand exponent:NumberParameter CloseParen
+  / (PowToken/PowerToken) OpenParen operand:Expression exponent:NumberParameter CloseParen
     { return operand.power(exponent); }
-  / ExpToken OpenParen exponent:Operand CloseParen
+  / ExpToken OpenParen exponent:Expression CloseParen
     { return r(Math.E).power(exponent); }
-  / SqrtToken OpenParen operand:Operand CloseParen
+  / SqrtToken OpenParen operand:Expression CloseParen
     { return operand.power(0.5); }
-  / OverlapToken OpenParen lhs:Operand rhs:ExpressionParameter CloseParen
+  / OverlapToken OpenParen lhs:Expression rhs:ExpressionParameter CloseParen
     { return lhs.overlap(rhs); }
-
-Operand = _ ex:Expression { return ex; }
 
 ExpressionParameter = Comma ex:Expression { return ex; }
 
@@ -582,7 +585,7 @@ RefExpression
   = ref:NamespacedRef { return $(ref.name); }
 
 RelaxedNamespacedRef
-  = ns:(Ref _ "." _)? name:RelaxedRef
+  = ns:(Ref Dot)? name:RelaxedRef
     {
       return {
         namespace: ns ? ns[0] : null,
@@ -591,7 +594,7 @@ RelaxedNamespacedRef
     }
 
 NamespacedRef
-  = ns:(Ref _ "." _)? name:Ref
+  = ns:(Ref Dot)? name:Ref
     {
       return {
         namespace: ns ? ns[0] : null,
@@ -610,7 +613,7 @@ Ref
   / BacktickRef
 
 BacktickRef
-  = "`" name:$([^`]+) "`"
+  = "`" name:$([^`]+) "`" _
     { return name }
 
 NameOrString = Name / String
@@ -619,9 +622,9 @@ StringOrNumber = String / Number
 
 
 LiteralExpression
-  = OpenCurly _ type:(DToken / TToken / TsToken) _ v:String CloseCurly
+  = OpenCurly type:(DToken / TToken / TsToken) v:String CloseCurly
     { return r(makeDate(type, v)); }
-  / type:(DateToken / TimeToken / TimestampToken) _ v:String
+  / type:(DateToken / TimeToken / TimestampToken) v:String
     { return r(makeDate(type, v)); }
   / number:Number
     { return r(number); }
@@ -632,99 +635,99 @@ LiteralExpression
 
 
 String "String"
-  = "'" chars:NotSQuote "'" { return chars; }
+  = "'" chars:NotSQuote "'" _ { return chars; }
   / "'" chars:NotSQuote { error("Unmatched single quote"); }
-  / '"' chars:NotDQuote '"' { return chars; }
+  / '"' chars:NotDQuote '"' _ { return chars; }
   / '"' chars:NotDQuote { error("Unmatched double quote"); }
 
 /* Tokens */
 
-NullToken          = "NULL"i           !IdentifierPart { return null; }
-TrueToken          = "TRUE"i           !IdentifierPart { return true; }
-FalseToken         = "FALSE"i          !IdentifierPart { return false; }
+NullToken          = "NULL"i           !IdentifierPart _ { return null; }
+TrueToken          = "TRUE"i           !IdentifierPart _ { return true; }
+FalseToken         = "FALSE"i          !IdentifierPart _ { return false; }
 
-SelectToken        = "SELECT"i         !IdentifierPart { return 'SELECT'; }
-DescribeToken      = "DESCRIBE"i       !IdentifierPart { return 'DESCRIBE'; }
-UpdateToken        = "UPDATE"i         !IdentifierPart { return 'UPDATE'; }
-ShowToken          = "SHOW"i           !IdentifierPart { return 'SHOW'; }
-SetToken           = "SET"i            !IdentifierPart { return 'SET'; }
+SelectToken        = "SELECT"i         !IdentifierPart _ { return 'SELECT'; }
+DescribeToken      = "DESCRIBE"i       !IdentifierPart _ { return 'DESCRIBE'; }
+UpdateToken        = "UPDATE"i         !IdentifierPart _ { return 'UPDATE'; }
+ShowToken          = "SHOW"i           !IdentifierPart _ { return 'SHOW'; }
+SetToken           = "SET"i            !IdentifierPart _ { return 'SET'; }
 
-FromToken          = "FROM"i           !IdentifierPart
-AsToken            = "AS"i             !IdentifierPart
-OnToken            = "ON"i             !IdentifierPart
-LeftToken          = "LEFT"i           !IdentifierPart
-InnerToken         = "INNER"i          !IdentifierPart
-JoinToken          = "JOIN"i           !IdentifierPart
-UnionToken         = "UNION"i          !IdentifierPart
-WhereToken         = "WHERE"i          !IdentifierPart
-GroupToken         = "GROUP"i          !IdentifierPart
-ByToken            = "BY"i             !IdentifierPart
-OrderToken         = "ORDER"i          !IdentifierPart
-HavingToken        = "HAVING"i         !IdentifierPart
-LimitToken         = "LIMIT"i          !IdentifierPart
+FromToken          = "FROM"i           !IdentifierPart _
+AsToken            = "AS"i             !IdentifierPart _
+OnToken            = "ON"i             !IdentifierPart _
+LeftToken          = "LEFT"i           !IdentifierPart _
+InnerToken         = "INNER"i          !IdentifierPart _
+JoinToken          = "JOIN"i           !IdentifierPart _
+UnionToken         = "UNION"i          !IdentifierPart _
+WhereToken         = "WHERE"i          !IdentifierPart _
+GroupToken         = "GROUP"i          !IdentifierPart _
+ByToken            = "BY"i             !IdentifierPart _
+OrderToken         = "ORDER"i          !IdentifierPart _
+HavingToken        = "HAVING"i         !IdentifierPart _
+LimitToken         = "LIMIT"i          !IdentifierPart _
 
-AscToken           = "ASC"i            !IdentifierPart { return SortAction.ASCENDING;  }
-DescToken          = "DESC"i           !IdentifierPart { return SortAction.DESCENDING; }
+AscToken           = "ASC"i            !IdentifierPart _ { return SortAction.ASCENDING;  }
+DescToken          = "DESC"i           !IdentifierPart _ { return SortAction.DESCENDING; }
 
-BetweenToken       = "BETWEEN"i        !IdentifierPart
-InToken            = "IN"i             !IdentifierPart
-IsToken            = "IS"i             !IdentifierPart
-LikeToken          = "LIKE"i           !IdentifierPart
-ContainsToken      = "CONTAINS"i       !IdentifierPart
-RegExpToken        = "REGEXP"i         !IdentifierPart
-EscapeToken        = "ESCAPE"i         !IdentifierPart
+BetweenToken       = "BETWEEN"i        !IdentifierPart _
+InToken            = "IN"i             !IdentifierPart _
+IsToken            = "IS"i             !IdentifierPart _
+LikeToken          = "LIKE"i           !IdentifierPart _
+ContainsToken      = "CONTAINS"i       !IdentifierPart _
+RegExpToken        = "REGEXP"i         !IdentifierPart _
+EscapeToken        = "ESCAPE"i         !IdentifierPart _
 
-NotToken           = "NOT"i            !IdentifierPart
-AndToken           = "AND"i            !IdentifierPart
-OrToken            = "OR"i             !IdentifierPart
+NotToken           = "NOT"i            !IdentifierPart _
+AndToken           = "AND"i            !IdentifierPart _
+OrToken            = "OR"i             !IdentifierPart _
 
-DistinctToken      = "DISTINCT"i       !IdentifierPart
-StarToken          = "*"               !IdentifierPart { return '*'; }
+DistinctToken      = "DISTINCT"i       !IdentifierPart _
+StarToken          = "*"               !IdentifierPart _ { return '*'; }
 
-AbsToken           = "ABS"i            !IdentifierPart { return 'absolute'; }
-AbsoluteToken      = "ABSOLUTE"i       !IdentifierPart { return 'absolute'; }
-CountToken         = "COUNT"i          !IdentifierPart { return 'count'; }
-CountDistinctToken = "COUNT_DISTINCT"i !IdentifierPart { return 'countDistinct'; }
-SumToken           = "SUM"i            !IdentifierPart { return 'sum'; }
-AvgToken           = "AVG"i            !IdentifierPart { return 'average'; }
-MinToken           = "MIN"i            !IdentifierPart { return 'min'; }
-MaxToken           = "MAX"i            !IdentifierPart { return 'max'; }
-PowerToken         = "POWER"i          !IdentifierPart { return 'power'; }
-PowToken           = "POW"i            !IdentifierPart { return 'power'; }
-ExpToken           = "EXP"i            !IdentifierPart { return 'power'; }
-SqrtToken          = "SQRT"i           !IdentifierPart { return 'power'; }
-QuantileToken      = "QUANTILE"i       !IdentifierPart { return 'quantile'; }
-CustomToken        = "CUSTOM"i         !IdentifierPart { return 'custom'; }
+AbsToken           = "ABS"i            !IdentifierPart _ { return 'absolute'; }
+AbsoluteToken      = "ABSOLUTE"i       !IdentifierPart _ { return 'absolute'; }
+CountToken         = "COUNT"i          !IdentifierPart _ { return 'count'; }
+CountDistinctToken = "COUNT_DISTINCT"i !IdentifierPart _ { return 'countDistinct'; }
+SumToken           = "SUM"i            !IdentifierPart _ { return 'sum'; }
+AvgToken           = "AVG"i            !IdentifierPart _ { return 'average'; }
+MinToken           = "MIN"i            !IdentifierPart _ { return 'min'; }
+MaxToken           = "MAX"i            !IdentifierPart _ { return 'max'; }
+PowerToken         = "POWER"i          !IdentifierPart _ { return 'power'; }
+PowToken           = "POW"i            !IdentifierPart _ { return 'power'; }
+ExpToken           = "EXP"i            !IdentifierPart _ { return 'power'; }
+SqrtToken          = "SQRT"i           !IdentifierPart _ { return 'power'; }
+QuantileToken      = "QUANTILE"i       !IdentifierPart _ { return 'quantile'; }
+CustomToken        = "CUSTOM"i         !IdentifierPart _ { return 'custom'; }
 
-TimeFloorToken     = "TIME_FLOOR"i     !IdentifierPart { return 'timeFloor'; }
-TimeShiftToken     = "TIME_SHIFT"i     !IdentifierPart { return 'timeShift'; }
-TimeRangeToken     = "TIME_RANGE"i     !IdentifierPart { return 'timeRange'; }
-TimeBucketToken    = "TIME_BUCKET"i    !IdentifierPart { return 'timeBucket'; }
-NumberBucketToken  = "NUMBER_BUCKET"i  !IdentifierPart { return 'numberBucket'; }
-TimePartToken      = "TIME_PART"i      !IdentifierPart { return 'timePart'; }
-SubstrToken        = "SUBSTR"i "ING"i? !IdentifierPart { return 'substr'; }
-ExtractToken       = "EXTRACT"i        !IdentifierPart { return 'extract'; }
-ConcatToken        = "CONCAT"i         !IdentifierPart { return 'concat'; }
-LookupToken        = "LOOKUP"i         !IdentifierPart { return 'lookup'; }
-IfNullToken        = "IFNULL"i         !IdentifierPart { return 'fallback'; }
-FallbackToken      = "FALLBACK"i       !IdentifierPart { return 'fallback'; }
-MatchToken         = "MATCH"i          !IdentifierPart { return 'match'; }
-OverlapToken       = "OVERLAP"i        !IdentifierPart { return 'overlap'; }
+TimeFloorToken     = "TIME_FLOOR"i     !IdentifierPart _ { return 'timeFloor'; }
+TimeShiftToken     = "TIME_SHIFT"i     !IdentifierPart _ { return 'timeShift'; }
+TimeRangeToken     = "TIME_RANGE"i     !IdentifierPart _ { return 'timeRange'; }
+TimeBucketToken    = "TIME_BUCKET"i    !IdentifierPart _ { return 'timeBucket'; }
+NumberBucketToken  = "NUMBER_BUCKET"i  !IdentifierPart _ { return 'numberBucket'; }
+TimePartToken      = "TIME_PART"i      !IdentifierPart _ { return 'timePart'; }
+SubstrToken        = "SUBSTR"i "ING"i? !IdentifierPart _ { return 'substr'; }
+ExtractToken       = "EXTRACT"i        !IdentifierPart _ { return 'extract'; }
+ConcatToken        = "CONCAT"i         !IdentifierPart _ { return 'concat'; }
+LookupToken        = "LOOKUP"i         !IdentifierPart _ { return 'lookup'; }
+IfNullToken        = "IFNULL"i         !IdentifierPart _ { return 'fallback'; }
+FallbackToken      = "FALLBACK"i       !IdentifierPart _ { return 'fallback'; }
+MatchToken         = "MATCH"i          !IdentifierPart _ { return 'match'; }
+OverlapToken       = "OVERLAP"i        !IdentifierPart _ { return 'overlap'; }
 
-NowToken           = "NOW"i            !IdentifierPart
-DateToken          = "DATE"i           !IdentifierPart { return 'd'; }
-TimeToken          = "TIME"i           !IdentifierPart { return 't'; }
-TimestampToken     = "TIMESTAMP"i      !IdentifierPart { return 'ts'; }
-DToken             = "D"i              !IdentifierPart { return 'd'; }
-TToken             = "T"i              !IdentifierPart { return 't'; }
-TsToken            = "TS"i             !IdentifierPart { return 'ts'; }
+NowToken           = "NOW"i            !IdentifierPart _
+DateToken          = "DATE"i           !IdentifierPart _ { return 'd'; }
+TimeToken          = "TIME"i           !IdentifierPart _ { return 't'; }
+TimestampToken     = "TIMESTAMP"i      !IdentifierPart _ { return 'ts'; }
+DToken             = "D"i              !IdentifierPart _ { return 'd'; }
+TToken             = "T"i              !IdentifierPart _ { return 't'; }
+TsToken            = "TS"i             !IdentifierPart _ { return 'ts'; }
 
-IdentifierPart = [A-Za-z_]
+IdentifierPart = [a-z_]i
 
 /* Numbers */
 
 Number "Number"
-  = n: $(Int Fraction? Exp?) { return parseFloat(n); }
+  = n:$(Int Fraction? Exp?) _ { return parseFloat(n); }
 
 Int
   = $("-"? [1-9] Digits)
@@ -746,25 +749,28 @@ Digit
 /* Extra */
 
 OpenParen "("
-  = "("
+  = "(" _
 
 CloseParen ")"
-  = _ ")"
+  = ")" _
 
 OpenCurly "{"
-  = "{"
+  = "{" _
 
 CloseCurly "}"
-  = _ "}"
+  = "}" _
 
 Comma
-  = _ "," _
+  = "," _
+
+Dot
+  = "." _
 
 Name "Name"
-  = $([a-z_]i [a-z0-9_]i*)
+  = name:$([a-z_]i [a-z0-9_]i*) _ { return name; }
 
 RelaxedName "RelaxedName"
-  = $([a-z_\-:*/]i [a-z0-9_\-:*/]i*)
+  = name:$([a-z_\-:*/]i [a-z0-9_\-:*/]i*) _ { return name; }
 
 NotSQuote "NotSQuote"
   = $([^']*)
@@ -774,9 +780,6 @@ NotDQuote "NotDQuote"
 
 _ "Whitespace"
   = $ ([ \t\r\n] / SingleLineComment / InlineComment)*
-
-__ "Mandatory Whitespace"
-  = $ ([ \t\r\n] / SingleLineComment / InlineComment)+
 
 InlineComment
   = "/*" (!CommentTerminator .)* CommentTerminator

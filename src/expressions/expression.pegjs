@@ -20,14 +20,14 @@ function makeListMap1(head, tail) {
 
 function naryExpressionFactory(op, head, tail) {
   if (!tail.length) return head;
-  return head[op].apply(head, tail.map(function(t) { return t[3]; }));
+  return head[op].apply(head, tail.map(function(t) { return t[1]; }));
 }
 
 function naryExpressionWithAltFactory(op, head, tail, altToken, altOp) {
   if (!tail.length) return head;
   for (var i = 0; i < tail.length; i++) {
     var t = tail[i];
-    head = head[t[1] === altToken ? altOp : op].call(head, t[3]);
+    head = head[t[0] === altToken ? altOp : op].call(head, t[1]);
   }
   return head;
 }
@@ -35,7 +35,7 @@ function naryExpressionWithAltFactory(op, head, tail, altToken, altOp) {
 }// Start grammar
 
 start
-  = _ ex:Expression _ { return ex; }
+  = _ ex:Expression { return ex; }
 
 /*
 Expressions are defined below in acceding priority order
@@ -54,17 +54,17 @@ Expression = OrExpression
 
 
 OrExpression
-  = head:AndExpression tail:(_ OrToken _ AndExpression)*
+  = head:AndExpression tail:(OrToken AndExpression)*
     { return naryExpressionFactory('or', head, tail); }
 
 
 AndExpression
-  = head:NotExpression tail:(_ AndToken _ NotExpression)*
+  = head:NotExpression tail:(AndToken NotExpression)*
     { return naryExpressionFactory('and', head, tail); }
 
 
 NotExpression
-  = not:(NotToken _)? ex:ComparisonExpression
+  = not:NotToken? ex:ComparisonExpression
     {
       if (not) ex = ex.not();
       return ex;
@@ -72,13 +72,13 @@ NotExpression
 
 
 ComparisonExpression
-  = lhs:ConcatExpression rest:(_ ComparisonOp _ ConcatExpression)?
+  = lhs:ConcatExpression rest:(ComparisonOp _ ConcatExpression)?
     {
       if (!rest) return lhs;
-      return lhs[rest[1]](rest[3]);
+      return lhs[rest[0]](rest[2]);
     }
 
-ComparisonOp
+ComparisonOp "Comparison"
   = "==" { return 'is'; }
   / "!=" { return 'isnt'; }
   / "in" { return 'in'; }
@@ -89,31 +89,32 @@ ComparisonOp
 
 
 ConcatExpression
-  = head:AdditiveExpression tail:(_ ConcatToken _ AdditiveExpression)*
+  = head:AdditiveExpression tail:(ConcatToken AdditiveExpression)*
     { return naryExpressionFactory('concat', head, tail); }
 
 
 AdditiveExpression
-  = head:MultiplicativeExpression tail:(_ AdditiveOp _ MultiplicativeExpression)*
+  = head:MultiplicativeExpression tail:(AdditiveOp MultiplicativeExpression)*
     { return naryExpressionWithAltFactory('add', head, tail, '-', 'subtract'); }
 
-AdditiveOp = op:[+-] ![+] { return op; }
+AdditiveOp = op:("+" / "-") !"+" _ { return op; }
 
 
 MultiplicativeExpression
-  = head:ExponentialExpression tail:(_ MultiplicativeOp _ ExponentialExpression)*
+  = head:ExponentialExpression tail:(MultiplicativeOp ExponentialExpression)*
     { return naryExpressionWithAltFactory('multiply', head, tail, '/', 'divide'); }
 
-MultiplicativeOp = [*/]
+MultiplicativeOp = op:("*" / "/") _ { return op; }
+
 
 ExponentialExpression
-  = ex:UnaryExpression rhs:(_ ExponentialOp _ ExponentialExpression)?
+  = ex:UnaryExpression rhs:(ExponentialOp ExponentialExpression)?
     {
-      if (rhs) ex = ex.power(rhs[3]);
+      if (rhs) ex = ex.power(rhs[1]);
       return ex;
     }
 
-ExponentialOp = "^"
+ExponentialOp = "^" _
 
 
 UnaryExpression
@@ -128,15 +129,15 @@ UnaryExpression
 
 
 CallChainExpression
-  = lhs:BasicExpression tail:(_ "." _ CallFn OpenParen _ Params? CloseParen)*
+  = lhs:BasicExpression tail:(Dot Name OpenParen Params? CloseParen)*
     {
       if (!tail.length) return lhs;
       var operand = lhs;
       for (var i = 0, n = tail.length; i < n; i++) {
         var part = tail[i];
-        var op = part[3];
+        var op = part[1];
         if (!possibleCalls[op]) error('no such call: ' + op);
-        var params = part[6] || [];
+        var params = part[3] || [];
         operand = operand[op].apply(operand, params);
       }
       return operand;
@@ -154,13 +155,13 @@ BasicExpression
 
 
 RefExpression
-  = "$" name:$("^"* Name (":" TypeName)?)
+  = "$" name:$("^"* NamePart (":" TypeName)?) _
     { return RefExpression.parse(name); }
-  / "$" name:$("^"* "{" [^}]+ "}" (":" TypeName)?)
+  / "$" name:$("^"* "{" [^}]+ "}" (":" TypeName)?) _
     { return RefExpression.parse(name); }
 
 LiteralExpression
-  = value:(NullToken/FalseToken/TrueToken) { return r(value); }
+  = value:(NullToken / FalseToken / TrueToken) { return r(value); }
   / value:Number { return r(value); }
   / value:Name { return r(value); }
   / value:String { return r(value); }
@@ -169,43 +170,44 @@ LiteralExpression
 
 
 StringSet "StringSet"
-  = "[" head:StringOrNull tail:(Comma StringOrNull)* "]"
+  = OpenBracket head:StringOrNull tail:(Comma StringOrNull)* CloseBracket
     { return Set.fromJS(makeListMap1(head, tail)); }
 
-StringOrNull = String / NullToken;
+StringOrNull
+  = String / NullToken;
 
 
 NumberSet "NumberSet"
-  = "[" head:NumberOrNull tail:(Comma NumberOrNull)* "]"
+  = OpenBracket head:NumberOrNull tail:(Comma NumberOrNull)* CloseBracket
     { return Set.fromJS(makeListMap1(head, tail)); }
 
 NumberOrNull = Number / NullToken;
 
 
 String "String"
-  = "'" chars:NotSQuote "'" { return chars; }
+  = "'" chars:NotSQuote "'" _ { return chars; }
   / "'" chars:NotSQuote { error("Unmatched single quote"); }
-  / '"' chars:NotDQuote '"' { return chars; }
+  / '"' chars:NotDQuote '"' _ { return chars; }
   / '"' chars:NotDQuote { error("Unmatched double quote"); }
 
 
 /* Tokens */
 
-NullToken         = "null"    !IdentifierPart { return null; }
-FalseToken        = "false"   !IdentifierPart { return false; }
-TrueToken         = "true"    !IdentifierPart { return true; }
+NullToken         = "null"    !IdentifierPart _ { return null; }
+FalseToken        = "false"   !IdentifierPart _ { return false; }
+TrueToken         = "true"    !IdentifierPart _ { return true; }
 
-NotToken          = "not"     !IdentifierPart
-AndToken          = "and"     !IdentifierPart
-OrToken           = "or"      !IdentifierPart
-ConcatToken       = "++"      !IdentifierPart
+NotToken          = "not"     !IdentifierPart _
+AndToken          = "and"     !IdentifierPart _
+OrToken           = "or"      !IdentifierPart _
+ConcatToken       = "++"      !IdentifierPart _
 
-IdentifierPart = [A-Za-z_]
+IdentifierPart = [a-z_]i
 
 /* Numbers */
 
 Number "Number"
-  = n: $(Int Fraction? Exp?) { return parseFloat(n); }
+  = n:$(Int Fraction? Exp?) _ { return parseFloat(n); }
 
 Int
   = $("-"? [1-9] Digits)
@@ -226,22 +228,34 @@ Digit
 
 /* Extra */
 
+OpenBracket "["
+  = "[" _
+
+CloseBracket "]"
+  = "]" _
+
 OpenParen "("
-  = "("
+  = "(" _
 
 CloseParen ")"
-  = _ ")"
+  = ")" _
 
 Comma
-  = _ "," _
+  = "," _
+
+Dot
+  = "." _
+
+Pipe
+  = "|" _
 
 ReservedWord
   = ( "ply" / "false" / "true" ) ![a-z_]i
 
-CallFn "CallFn"
-  = $([a-zA-Z]+)
-
 Name "Name"
+  = name:NamePart _ { return name; }
+
+NamePart
   = $(!ReservedWord [a-z_]i [a-z0-9_]i*)
 
 TypeName "TypeName"
@@ -252,9 +266,6 @@ NotSQuote "NotSQuote"
 
 NotDQuote "NotDQuote"
   = $([^"]*)
-
-Pipe
-  = "|"
 
 _ "Whitespace"
   = $([ \t\r\n]*)

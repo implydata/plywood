@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.9.20
+
+- Added convenient filtered aggregators to PlyQL like: `SUM(added WHERE cityName = 'San Francisco')`
+- Fixed PlyQL incorrectly parsing `SELECT COUNT(page)`
+
 ## 0.9.19
 
 - Fixed null handling in extractionFns for Druid 0.8.3 
