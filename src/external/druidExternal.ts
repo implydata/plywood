@@ -2,7 +2,6 @@ module Plywood {
   const DUMMY_NAME = '!DUMMY';
 
   const DEFAULT_TIME_ATTRIBUTE = '__time';
-  const DEFAULT_TIMEZONE = Timezone.UTC;
 
   const AGGREGATE_TO_DRUID: Lookup<string> = {
     count: "count",
@@ -906,17 +905,20 @@ module Plywood {
     public splitExpressionToGranularityInflater(splitExpression: Expression, label: string): GranularityInflater {
       if (splitExpression instanceof ChainExpression) {
         var splitActions = splitExpression.actions;
-        if (this.isTimeRef(splitExpression.expression) && splitActions.length === 1 && splitActions[0].action === 'timeBucket') {
-
-          var { duration, timezone } = <TimeBucketAction>splitActions[0];
-          return {
-            granularity: {
-              type: "period",
-              period: duration.toString(),
-              timeZone: timezone.toString()
-            },
-            inflater: External.timeRangeInflaterFactory(label, duration, timezone)
-          };
+        if (this.isTimeRef(splitExpression.expression) && splitActions.length === 1) {
+          var action = splitActions[0];
+          if (action instanceof TimeBucketAction) {
+            var duration = action.duration;
+            var timezone = action.getTimezone();
+            return {
+              granularity: {
+                type: "period",
+                period: duration.toString(),
+                timeZone: timezone.toString()
+              },
+              inflater: External.timeRangeInflaterFactory(label, duration, timezone)
+            };
+          }
         }
       }
 
@@ -1096,7 +1098,7 @@ module Plywood {
         return {
           type: "timeFormat",
           format: format,
-          timeZone: (action.timezone || DEFAULT_TIMEZONE).toString(),
+          timeZone: action.getTimezone().toString(),
           locale: "en-US"
         };
       }
@@ -1107,7 +1109,7 @@ module Plywood {
         return {
           type: "timeFormat",
           format: format,
-          timeZone: (action.timezone || DEFAULT_TIMEZONE).toString(),
+          timeZone: action.getTimezone().toString(),
           locale: "en-US"
         };
       }
@@ -1128,8 +1130,8 @@ module Plywood {
     }
 
     private _processConcatExtractionFn(pattern: Expression[], extractionFns: Druid.ExtractionFn[]): void {
-      if (this.versionBefore('0.9.1')) {
-        // Druid 0.9.0 behaves badly on null https://github.com/druid-io/druid/issues/2706
+      if (this.versionBefore('0.9.2')) {
+        // Druid < 0.9.2 behaves badly on null https://github.com/druid-io/druid/issues/2706
         extractionFns.push({
           type: "javascript",
           'function': Expression.concat(pattern).getJSFn('d'),
@@ -1256,7 +1258,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration}`);
           return {
             dimension,
-            inflater: External.timeRangeInflaterFactory(label, splitAction.duration, splitAction.timezone || DEFAULT_TIMEZONE)
+            inflater: External.timeRangeInflaterFactory(label, splitAction.duration, splitAction.getTimezone())
           };
         }
 

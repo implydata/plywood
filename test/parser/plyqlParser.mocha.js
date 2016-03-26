@@ -142,10 +142,16 @@ describe("SQL parser", () => {
           '2015-01-01T00:00:00.000' <= t AND t < '2016-01-01T00:00:00.000'
           '2015-01-01T00:00:00.00' <= t AND t < '2016-01-01T00:00:00.00'
           '2015-01-01T00:00:00.0' <= t AND t < '2016-01-01T00:00:00.0'
+          '2015-01-01T000000.0' <= t AND t < '2016-01-01T000000.0'
           '2015-01-01T00:00:00' <= t AND t < '2016-01-01T00:00:00'
+          '2015-01-01T000000' <= t AND t < '2016-01-01T000000'
           '2015-01-01T00:00' <= t AND t < '2016-01-01T00:00'
+          '2015-01-01T0000' <= t AND t < '2016-01-01T0000'
           '2015-01-01T00' <= t AND t < '2016-01-01T00'
           '2015-01-01' <= t AND t < '2016-01-01'
+          '20150101' <= t AND t < '20160101'
+          '2015-01' <= t AND t < '2016-01'
+          '2015' <= t AND t < '2016'
         `;
 
         var ex = r(new Date('2015-01-01T00:00:00Z')).lessThanOrEqual('$t').and($('t').lessThan(new Date('2016-01-01T00:00:00Z')));
@@ -239,6 +245,36 @@ describe("SQL parser", () => {
         tests.split('\n').forEach(test => {
           var parse = Expression.parseSQL(test);
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
+        });
+      });
+
+      it('works inside BETWEEN of years', () => {
+        var tests = sane`
+          t BETWEEN '2015-01-01T00:00:00+00:00' AND '2016-01-01T00:00:00+00:00'
+          t BETWEEN '2015-01-01T00:00:00-00:00' AND '2016-01-01T00:00:00-00:00'
+          t BETWEEN '2015-01-01T00:00:00Z' AND '2016-01-01T00:00:00Z'
+          t BETWEEN '2015-01-01T00:00:00.000' AND '2016-01-01T00:00:00.000'
+          t BETWEEN '2015-01-01T00:00:00' AND '2016-01-01T00:00:00'
+          t BETWEEN '2015-01-01T000000' AND '2016-01-01T000000'
+          t BETWEEN '2015-01-01T00:00' AND '2016-01-01T00:00'
+          t BETWEEN '2015-01-01T0000' AND '2016-01-01T0000'
+          t BETWEEN '2015-01-01T00' AND '2016-01-01T00'
+          t BETWEEN '2015-01-01 00' AND '2016-01-01 00'
+          t BETWEEN '2015-01-01' AND '2016-01-01'
+          t BETWEEN '2015-0101' AND '2016-0101'
+          t BETWEEN '201501' AND '201601'
+          t BETWEEN '2015' AND '2016'
+        `;
+
+        var ex = $('t').in({
+          bounds: "[]",
+          start: new Date('2015-01-01T00:00:00Z'),
+          end: new Date('2016-01-01T00:00:00Z')
+        });
+
+        tests.split('\n').forEach((test, i) => {
+          var parse = Expression.parseSQL(test);
+          expect(parse.expression.toJS(), `#${i}`).to.deep.equal(ex.toJS());
         });
       });
 
@@ -405,7 +441,7 @@ describe("SQL parser", () => {
         COUNT(\`visitor\`) AS Count4,
         MATCH(\`visitor\`, "[0-9A-F]") AS 'Match',
         SUM(added) AS 'TotalAdded',
-        '2014-01-02' AS 'Date',
+        DATE '2014-01-02' AS 'Date',
         SUM(\`wiki\`.\`added\`) / 4 AS TotalAddedOver4,
         NOT(true) AS 'False',
         -SUM(added) AS MinusAdded,

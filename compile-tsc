@@ -78,6 +78,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/helper/retryRequester.ts \
   src/helper/concurrentLimitRequester.ts \
   src/helper/utils.ts \
+  src/helper/dates.ts \
   \
   src/exports.ts \
   && \

@@ -38,7 +38,7 @@ module Plywood {
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      return [expressionString, String(this.position), String(this.length)];
+      return [String(this.position), String(this.length)];
     }
 
     public getOutputType(inputType: PlyType): PlyType {

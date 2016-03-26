@@ -45,8 +45,7 @@ module Plywood {
       return super.equals(other) &&
         this.duration.equals(other.duration) &&
         this.step === other.step &&
-        Boolean(this.timezone) === Boolean(other.timezone) &&
-        (!this.timezone || this.timezone.equals(other.timezone));
+        immutableEqual(this.timezone, other.timezone);
     }
 
     protected _toStringParameters(expressionString: string): string[] {
@@ -69,11 +68,10 @@ module Plywood {
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
       var duration = this.duration;
       var step = this.step;
-      var timezone = this.timezone;
+      var timezone = this.getTimezone();
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (inV === null) return null;
-        timezone = timezone || (c['timezone'] ? Timezone.fromJS(<string>c['timezone']) : Timezone.UTC);
         return duration.move(inV, timezone, step);
       }
     }
@@ -83,7 +81,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.timeShiftExpression(inputSQL, this.duration, this.timezone);
+      return dialect.timeShiftExpression(inputSQL, this.duration, this.getTimezone());
     }
 
     protected _foldWithPrevAction(prevAction: Action): Action {
@@ -99,6 +97,21 @@ module Plywood {
         }
       }
       return null;
+    }
+
+    public needsEnvironment(): boolean {
+      return !this.timezone;
+    }
+
+    public defineEnvironment(environment: Environment): Action {
+      if (this.timezone || !environment.timezone) return this;
+      var value = this.valueOf();
+      value.timezone = environment.timezone;
+      return new TimeShiftAction(value);
+    }
+
+    public getTimezone(): Timezone {
+      return this.timezone || Timezone.UTC;
     }
   }
 

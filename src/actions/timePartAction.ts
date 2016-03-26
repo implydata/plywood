@@ -99,8 +99,7 @@ module Plywood {
     public equals(other: TimePartAction): boolean {
       return super.equals(other) &&
         this.part === other.part &&
-        Boolean(this.timezone) === Boolean(other.timezone) &&
-        (!this.timezone || this.timezone.equals(other.timezone));
+        immutableEqual(this.timezone, other.timezone);
     }
 
     protected _toStringParameters(expressionString: string): string[] {
@@ -122,7 +121,8 @@ module Plywood {
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
-      const { part, timezone } = this;
+      const { part } = this;
+      const timezone = this.getTimezone();
       var parter = PART_TO_FUNCTION[part];
       if (!parter) throw new Error(`unsupported part '${part}'`);
       return (d: Datum, c: Datum) => {
@@ -138,15 +138,14 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      const { part, timezone } = this;
-      return dialect.timePartExpression(inputSQL, part, timezone);
+      return dialect.timePartExpression(inputSQL, this.part, this.getTimezone());
     }
 
     public materializeWithinRange(extentRange: TimeRange, values: int[]): Set {
       var partUnits = this.part.toLowerCase().split('_of_');
       var unitSmall = partUnits[0];
       var unitBig = partUnits[1];
-      var timezone = this.timezone;
+      var timezone = this.getTimezone();
       var smallTimeMover = <Chronoshift.TimeMover>(<any>Chronoshift)[unitSmall];
       var bigTimeMover = <Chronoshift.TimeMover>(<any>Chronoshift)[unitBig];
 
@@ -176,6 +175,21 @@ module Plywood {
       var maxValue = PART_TO_MAX_VALUES[this.part];
       if (!maxValue) return Infinity;
       return maxValue + 1; // +1 for null
+    }
+
+    public needsEnvironment(): boolean {
+      return !this.timezone;
+    }
+
+    public defineEnvironment(environment: Environment): Action {
+      if (this.timezone || !environment.timezone) return this;
+      var value = this.valueOf();
+      value.timezone = environment.timezone;
+      return new TimePartAction(value);
+    }
+
+    public getTimezone(): Timezone {
+      return this.timezone || Timezone.UTC;
     }
   }
 

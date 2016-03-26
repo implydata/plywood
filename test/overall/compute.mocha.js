@@ -7,7 +7,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Expression, Dataset, $, ply, r } = plywood;
+var { Dataset, $, ply, r } = plywood;
 
 describe("compute native", () => {
   var data = [

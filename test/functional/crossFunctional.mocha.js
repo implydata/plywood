@@ -319,7 +319,7 @@ describe("Cross Functional", function() {
   });
 
 
-  describe("splits", () => {
+  describe("splits (single)", () => {
     it('works with empty filter split', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki')
@@ -509,6 +509,25 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
         .limit(4)
+    }));
+  });
+
+
+  describe("splits (nested)", () => {
+    it('works with STRING, STRING', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split('$cityName', 'CityName')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .sort('$TotalEdits', 'descending')
+        .limit(5)
+        .apply(
+          'ByNamespace',
+          $('wiki').split('$namespace', 'Namespace')
+            .apply('TotalEdits', '$wiki.sum($count)')
+            .apply('TotalAdded', '$wiki.sum($added)')
+            .sort('$TotalAdded', 'descending')
+            .limit(5)
+        )
     }));
 
   });

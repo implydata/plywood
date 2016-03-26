@@ -719,6 +719,10 @@ module Plywood {
       return null;
     }
 
+    public bumpStringLiteralToTime(): Expression {
+      return this;
+    }
+
     // ------------------------------------------------------------------------
     // API behaviour
 
@@ -802,22 +806,22 @@ module Plywood {
 
     public lessThan(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new LessThanAction({ expression: ex }));
+      return this.bumpStringLiteralToTime().performAction(new LessThanAction({ expression: ex.bumpStringLiteralToTime() }));
     }
 
     public lessThanOrEqual(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new LessThanOrEqualAction({ expression: ex }));
+      return this.bumpStringLiteralToTime().performAction(new LessThanOrEqualAction({ expression: ex.bumpStringLiteralToTime() }));
     }
 
     public greaterThan(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new GreaterThanAction({ expression: ex }));
+      return this.bumpStringLiteralToTime().performAction(new GreaterThanAction({ expression: ex.bumpStringLiteralToTime() }));
     }
 
     public greaterThanOrEqual(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new GreaterThanOrEqualAction({ expression: ex }));
+      return this.bumpStringLiteralToTime().performAction(new GreaterThanOrEqualAction({ expression: ex.bumpStringLiteralToTime() }));
     }
 
     public contains(ex: any, compare?: string): ChainExpression {
@@ -840,13 +844,13 @@ module Plywood {
         snd = getValue(snd);
 
         if (typeof ex === 'string') {
-          ex = new Date(ex);
-          if (isNaN(ex.valueOf())) throw new Error('can not convert start to date');
+          ex = helper.parseISODate(ex);
+          if (!ex) throw new Error('can not convert start to date');
         }
 
         if (typeof snd === 'string') {
-          snd = new Date(snd);
-          if (isNaN(snd.valueOf())) throw new Error('can not convert end to date');
+          snd = helper.parseISODate(snd);
+          if (!snd) throw new Error('can not convert end to date');
         }
 
         if (typeof ex === 'number' && typeof snd === 'number') {
@@ -1049,6 +1053,21 @@ module Plywood {
       return this.performAction(new JoinAction({ expression: ex }));
     }
 
+    /**
+     * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
+     * @param environment The environment that will be defined
+     */
+    public defineEnvironment(environment: Environment): Expression {
+      if (!environment.timezone) return this;
+
+      // Allow strings as well
+      if (typeof environment.timezone === 'string') environment = { timezone: Timezone.fromJS(environment.timezone as any) };
+
+      return this.substituteAction(
+        (action) => action.needsEnvironment(),
+        (preEx, action) => preEx.performAction(action.defineEnvironment(environment))
+      );
+    }
 
     /**
      * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
@@ -1200,8 +1219,21 @@ module Plywood {
     // ---------------------------------------------------------
     // Evaluation
 
-    public simulate(context: Datum = {}): PlywoodValue {
-      var readyExpression = this.referenceCheck(context).resolve(context).simplify();
+    private _initialPrepare(context: Datum, environment: Environment): Expression {
+      return this.defineEnvironment(environment)
+        .referenceCheck(context)
+        .resolve(context)
+        .simplify();
+    }
+
+
+    /**
+     * Simulates computing the expression and returns the results with the right shape (but fake data)
+     * @param context The context within which to compute the expression
+     * @param environment The environment for the default of the expression
+     */
+    public simulate(context: Datum = {}, environment: Environment = {}): PlywoodValue {
+      var readyExpression = this._initialPrepare(context, environment);
       if (readyExpression instanceof ExternalExpression) {
         // Top level externals need to be unsuppressed
         readyExpression = (<ExternalExpression>readyExpression).unsuppress();
@@ -1210,11 +1242,17 @@ module Plywood {
       return readyExpression._computeResolvedSimulate([]);
     }
 
-    public simulateQueryPlan(context: Datum = {}): any[] {
+
+    /**
+     * Simulates computing the expression and returns the quereis that would have been made
+     * @param context The context within which to compute the expression
+     * @param environment The environment for the default of the expression
+     */
+    public simulateQueryPlan(context: Datum = {}, environment: Environment = {}): any[] {
       if (!datumHasExternal(context) && !this.hasExternal()) return [];
 
 
-      var readyExpression = this.referenceCheck(context).resolve(context).simplify();
+      var readyExpression = this._initialPrepare(context, environment);
       if (readyExpression instanceof ExternalExpression) {
         // Top level externals need to be unsuppressed
         readyExpression = (<ExternalExpression>readyExpression).unsuppress();
@@ -1233,23 +1271,24 @@ module Plywood {
     /**
      * Computes a general asynchronous expression
      * @param context The context within which to compute the expression
+     * @param environment The environment for the default of the expression
      */
-    public compute(context: Datum = {}): Q.Promise<PlywoodValue> {
+    public compute(context: Datum = {}, environment: Environment = {}): Q.Promise<PlywoodValue> {
       if (!datumHasExternal(context) && !this.hasExternal()) {
         return Q.fcall(() => {
-          var referenceChecked = this.referenceCheck(context);
+          var referenceChecked = this.defineEnvironment(environment).referenceCheck(context);
           return referenceChecked.getFn()(context, null);
         });
       }
-      var ex = this;
-      return introspectDatum(context).then(introspectedContext => {
-        var readyExpression = ex.referenceCheck(introspectedContext).resolve(introspectedContext).simplify();
-        if (readyExpression instanceof ExternalExpression) {
-          // Top level externals need to be unsuppressed
-          readyExpression = (<ExternalExpression>readyExpression).unsuppress()
-        }
-        return readyExpression._computeResolved();
-      });
+      return introspectDatum(context)
+        .then(introspectedContext => {
+          var readyExpression = this._initialPrepare(context, environment);
+          if (readyExpression instanceof ExternalExpression) {
+            // Top level externals need to be unsuppressed
+            readyExpression = (<ExternalExpression>readyExpression).unsuppress()
+          }
+          return readyExpression._computeResolved();
+        });
     }
 
     public _computeResolved(): Q.Promise<any> {

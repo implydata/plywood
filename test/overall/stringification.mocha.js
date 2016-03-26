@@ -93,4 +93,9 @@ describe("stringification", () => {
     var ex = $('x').custom('lol');
     expect(ex.toString(2)).to.equal("$x.custom(lol)");
   });
+
+  it("works with substr", () => {
+    var ex = $('x').substr(1, 5);
+    expect(ex.toString(2)).to.equal("$x.substr(1,5)");
+  });
 });
