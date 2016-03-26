@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.9.21
+
+- Added ability to define the timezone through the environment
+- Timezone always defaults to UTC
+- Date parsing no longer done by PlyQL parser
+- Added tests for legacy Druid versions
+
 ## 0.9.20
 
 - Added convenient filtered aggregators to PlyQL like: `SUM(added WHERE cityName = 'San Francisco')`

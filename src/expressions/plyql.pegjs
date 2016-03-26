@@ -2,6 +2,7 @@
 var ply = plywood.ply;
 var $ = plywood.$;
 var r = plywood.r;
+var helper = plywood.helper;
 var Expression = plywood.Expression;
 var FilterAction = plywood.FilterAction;
 var ApplyAction = plywood.ApplyAction;
@@ -42,94 +43,11 @@ function reserved(str) {
   return objectHasOwnProperty.call(reservedWords, str.toUpperCase());
 }
 
-function parseYear(v) {
-  if (v.length === 2) {
-    v = parseInt(v, 10);
-    return (v < 70 ? 2000 : 1900) + v;
-  } else if (v.length === 4) {
-    return parseInt(v, 10);
-  } else {
-    throw new Error('Invalid year in date');
-  }
-}
-
-function parseMonth(v) {
-  v = parseInt(v, 10);
-  if (v <= 0 || 12 < v) throw new Error('Invalid month in date');
-  return v - 1;
-}
-
-function parseDay(v) {
-  v = parseInt(v, 10);
-  if (v <= 0 || 31 < v) throw new Error('Invalid day in date');
-  return v;
-}
-
-function parseHour(v) {
-  v = parseInt(v, 10);
-  if (v < 0 || 24 < v) throw new Error('Invalid hour in date');
-  return v;
-}
-
-function parseMinute(v) {
-  v = parseInt(v, 10);
-  if (v < 0 || 60 < v) throw new Error('Invalid minute in date');
-  return v;
-}
-
-function parseSecond(v) {
-  v = parseInt(v, 10);
-  if (v < 0 || 60 < v) throw new Error('Invalid second in date');
-  return v;
-}
-
-function parseMillisecond(v) {
-  if (!v) return 0;
-  return parseInt(v.substr(0, 3), 10);
-}
-
 function makeDate(type, v) {
-  if (type === 't') error('time literals are not supported');
   try {
-    var m, d;
-    if (type === 'ts') {
-      if (m = v.match(/^(\d{2}(?:\d{2})?)(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/)) {
-        d = Date.UTC(parseYear(m[1]), parseMonth(m[2]), parseDay(m[3]), parseHour(m[4]), parseMinute(m[5]), parseSecond(m[6]));
-      } else if (m = v.match(/^(\d{2}(?:\d{2})?)[~!@#$%^&*()_+=:.\-\/](\d{1,2})[~!@#$%^&*()_+=:.\-\/](\d{1,2})[T ](\d{1,2})[~!@#$%^&*()_+=:.\-\/](\d{1,2})[~!@#$%^&*()_+=:.\-\/](\d{1,2})(?:\.(\d{1,6}))?$/)) {
-        d = Date.UTC(parseYear(m[1]), parseMonth(m[2]), parseDay(m[3]), parseHour(m[4]), parseMinute(m[5]), parseSecond(m[6]), parseMillisecond(m[7]));
-      } else {
-        throw new Error('Invalid timestamp');
-      }
-    } else {
-      if (m = v.match(/^(\d{2}(?:\d{2})?)(\d{2})(\d{2})$/)) {
-        d = Date.UTC(parseYear(m[1]), parseMonth(m[2]), parseDay(m[3]));
-      } else if (m = v.match(/^(\d{2}(?:\d{2})?)[~!@#$%^&*()_+=:.\-\/](\d{1,2})[~!@#$%^&*()_+=:.\-\/](\d{1,2})$/)) {
-        d = Date.UTC(parseYear(m[1]), parseMonth(m[2]), parseDay(m[3]));
-      } else {
-        throw new Error('Invalid date');
-      }
-    }
-    return new Date(d);
+    return helper.parseSQLDate(type, v);
   } catch (e) {
     error(e.message);
-  }
-}
-
-function parseISODate(v) {
-  var m = v.match(/^(\d{4})-(\d\d)-(\d\d)(?:[T ](\d\d)?(?::(\d\d))?(?::(\d\d))?(?:.(\d{1,3}))?)?Z?$/);
-  if (!m) return null;
-  try {
-    return new Date(Date.UTC(
-      parseYear(m[1]),
-      parseMonth(m[2]),
-      parseDay(m[3]),
-      parseHour(m[4] || '0'),
-      parseMinute(m[5] || '0'),
-      parseSecond(m[6] || '0'),
-      parseMillisecond(m[7] || '0')
-    ));
-  } catch (e) {
-    return null;
   }
 }
 
@@ -629,7 +547,7 @@ LiteralExpression
   / number:Number
     { return r(number); }
   / string:String
-    { return r(parseISODate(string) || string); }
+    { return r(string); }
   / v:(NullToken / TrueToken / FalseToken)
     { return r(v); }
 

@@ -140,6 +140,13 @@ module Plywood {
       const { value } = this;
       return Set.isSet(value) ? value.size() : 1;
     }
+
+    public bumpStringLiteralToTime(): Expression {
+      if (this.type !== 'STRING') return this;
+      var parse = helper.parseISODate(this.value);
+      if (!parse) throw new Error(`could not parse '${this.value}' as string`);
+      return r(parse);
+    }
   }
 
   Expression.NULL = new LiteralExpression({ value: null });

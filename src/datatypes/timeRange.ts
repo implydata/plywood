@@ -14,7 +14,7 @@ module Plywood {
   function toDate(date: any, name: string): Date {
     if (date === null) return null;
     if (typeof date === "undefined") throw new TypeError(`timeRange must have a ${name}`);
-    if (typeof date === 'string' || typeof date === 'number') date = new Date(date);
+    if (typeof date === 'string' || typeof date === 'number') date = helper.parseISODate(date);
     if (!date.getDay) throw new TypeError(`timeRange must have a ${name} that is a Date`);
     return date;
   }

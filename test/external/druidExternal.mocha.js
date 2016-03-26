@@ -39,7 +39,7 @@ var context = {
     },
     filter: timeFilter,
     allowSelectQueries: true,
-    version: '0.9.1',
+    version: '0.9.2',
     customAggregations: {
       crazy: {
         accessType: 'getSomeCrazy',
@@ -1672,8 +1672,8 @@ describe("DruidExternal", () => {
 
     it("works with .timeBucket()", () => {
       var ex = $('wiki').split({
-        'Split1': "$time.timeBucket(P1D, 'Etc/UTC')",
-        'Split2': "$sometimeLater.timeBucket(P1D, 'Etc/UTC')"
+        'Split1': "$time.timeBucket(P1D)",
+        'Split2': "$sometimeLater.timeBucket(P1D)"
       });
 
       ex = ex.referenceCheck(context).resolve(context).simplify();

@@ -84,6 +84,7 @@ module Plywood {
 
   export var isInstanceOf = ImmutableClass.isInstanceOf;
   export var isImmutableClass = ImmutableClass.isImmutableClass;
+  export var immutableEqual = ImmutableClass.immutableEqual;
   export var immutableArraysEqual = ImmutableClass.immutableArraysEqual;
   export var immutableLookupsEqual = ImmutableClass.immutableLookupsEqual;
 

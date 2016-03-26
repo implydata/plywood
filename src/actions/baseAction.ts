@@ -67,6 +67,10 @@ module Plywood {
     attributes?: string[];
   }
 
+  export interface Environment {
+    timezone?: Timezone;
+  }
+
 // =====================================================================================
 // =====================================================================================
 
@@ -495,6 +499,20 @@ module Plywood {
 
     public maxPossibleSplitValues(): number {
       return Infinity;
+    }
+
+    // Environment methods
+
+    public needsEnvironment(): boolean {
+      return false;
+    }
+
+    public defineEnvironment(environment: Environment): Action {
+      return this;
+    }
+
+    public getTimezone(): Timezone {
+      return Timezone.UTC;
     }
   }
   checkAction = Action;

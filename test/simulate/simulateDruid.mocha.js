@@ -25,7 +25,7 @@ var attributes = [
 var context = {
   'diamonds': External.fromJS({
     engine: 'druid',
-    version: '0.9.1',
+    version: '0.9.2',
     dataSource: 'diamonds',
     timeAttribute: 'time',
     attributes,
@@ -37,7 +37,7 @@ var context = {
   }),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
-    version: '0.9.1',
+    version: '0.9.2',
     dataSource: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
