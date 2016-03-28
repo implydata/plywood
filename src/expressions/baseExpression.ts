@@ -1249,7 +1249,7 @@ module Plywood {
         readyExpression = (<ExternalExpression>readyExpression).unsuppress();
       }
 
-      return readyExpression._computeResolvedSimulate([]);
+      return readyExpression._computeResolvedSimulate(true, []);
     }
 
 
@@ -1269,11 +1269,11 @@ module Plywood {
       }
 
       var simulatedQueries: any[] = [];
-      readyExpression._computeResolvedSimulate(simulatedQueries);
+      readyExpression._computeResolvedSimulate(true, simulatedQueries);
       return simulatedQueries;
     }
 
-    public _computeResolvedSimulate(simulatedQueries: any[]): any {
+    public _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue {
       throw new Error("can not call this directly");
     }
 

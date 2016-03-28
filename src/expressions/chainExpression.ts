@@ -393,7 +393,7 @@ module Plywood {
       return new ChainExpression(value);
     }
 
-    public _computeResolvedSimulate(simulatedQueries: any[]): any {
+    public _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue {
       var actions = this.actions;
 
       function execAction(i: int, dataset: Dataset): Dataset {
@@ -406,7 +406,8 @@ module Plywood {
         } else if (action instanceof ApplyAction) {
           if (actionExpression.hasExternal()) {
             return dataset.apply(action.name, (d: Datum) => {
-              return actionExpression.resolve(d).simplify()._computeResolvedSimulate(simulatedQueries);
+              var simpleExpression = actionExpression.resolve(d).simplify();
+              return simpleExpression._computeResolvedSimulate(simpleExpression.isOp('external'), simulatedQueries);
             }, null);
           } else {
             return dataset.apply(action.name, actionExpression.getFn(), null);
@@ -423,14 +424,14 @@ module Plywood {
         throw new Error(`could not execute ${action}`);
       }
 
-      var value = this.expression._computeResolvedSimulate(simulatedQueries);
+      var value = this.expression._computeResolvedSimulate(false, simulatedQueries);
       for (var i = 0; i < actions.length; i++) {
-        value = execAction(i, value);
+        value = execAction(i, value as Dataset);
       }
       return value;
     }
 
-    public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
+    public _computeResolved(): Q.Promise<PlywoodValue> {
       var actions = this.actions;
 
       function execAction(i: int) {

@@ -128,11 +128,11 @@ module Plywood {
       return this.value;
     }
 
-    public _computeResolvedSimulate(simulatedQueries: any[]): any {
+    public _computeResolvedSimulate(): PlywoodValue {
       return this.value;
     }
 
-    public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
+    public _computeResolved(): Q.Promise<PlywoodValue> {
       return Q(this.value);
     }
 

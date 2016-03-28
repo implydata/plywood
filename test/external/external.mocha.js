@@ -633,7 +633,7 @@ describe("External", () => {
           $__SEGMENT__:DATASET.sum($added:NUMBER)
         `);
 
-        expect(externalDataset.simulate()).to.equal(4);
+        expect(externalDataset.simulateValue()).to.equal(4);
       });
 
       it("works with a filter and aggregate", () => {
@@ -760,7 +760,7 @@ describe("External", () => {
           { name: "TotalAdded", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulate().toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue().toJS()).to.deep.equal([
           {
             "TotalAdded": 4
           }
@@ -797,7 +797,7 @@ describe("External", () => {
           { name: "TotalUK", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulate().toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue().toJS()).to.deep.equal([
           {
             "Count": 4,
             "TotalAdded": 4,
@@ -964,7 +964,7 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulate().toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue().toJS()).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
@@ -1034,7 +1034,7 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulate().toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue().toJS()).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
@@ -1072,7 +1072,7 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulate().toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue().toJS()).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,

@@ -1159,7 +1159,7 @@ module Plywood {
       }, null);
     }
 
-    public simulate(): PlywoodValue {
+    public simulateValue(lastNode: boolean): PlywoodValue {
       const { mode } = this;
 
       if (mode === 'value') {
@@ -1188,7 +1188,7 @@ module Plywood {
       }
 
       var dataset = new Dataset({ data: [datum] });
-      if (mode === 'split') dataset = this.addNextExternal(dataset);
+      if (!lastNode && mode === 'split') dataset = this.addNextExternal(dataset);
       return dataset;
     }
 
@@ -1196,7 +1196,7 @@ module Plywood {
       throw new Error("can not call getQueryAndPostProcess directly");
     }
 
-    public queryValues(lastNode: boolean): Q.Promise<PlywoodValue> {
+    public queryValue(lastNode: boolean): Q.Promise<PlywoodValue> {
       if (!this.requester) {
         return <Q.Promise<PlywoodValue>>Q.reject(new Error('must have a requester to make queries'));
       }

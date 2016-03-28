@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.9.22
+
+- Moved date parsing to Chronoshift and updated to latest Chronoshift
+- Parser can now configure a timezone within which it will parse 'local' date strings
+- Optimized post processing by not calculating the filter for final splits 
+
 ## 0.9.21
 
 - Added ability to define the timezone through the environment
