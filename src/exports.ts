@@ -1,5 +1,5 @@
-expressionParser = (<PEGParserFactory>require("./expressionParser"))(Plywood);
-plyqlParser = (<PEGParserFactory>require("./plyqlParser"))(Plywood);
+expressionParser = (<PEGParserFactory>require("./expressionParser"))(Plywood, Chronoshift);
+plyqlParser = (<PEGParserFactory>require("./plyqlParser"))(Plywood, Chronoshift);
 
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
   module.exports = Plywood;

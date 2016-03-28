@@ -143,7 +143,7 @@ module Plywood {
 
     public bumpStringLiteralToTime(): Expression {
       if (this.type !== 'STRING') return this;
-      var parse = helper.parseISODate(this.value);
+      var parse = parseISODate(this.value, defaultParserTimezone);
       if (!parse) throw new Error(`could not parse '${this.value}' as string`);
       return r(parse);
     }

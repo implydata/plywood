@@ -32,7 +32,8 @@ var context = {
       { name: 'count', type: 'NUMBER', unsplitable: true },
       { name: 'added', type: 'NUMBER', unsplitable: true },
       { name: 'deleted', type: 'NUMBER', unsplitable: true },
-      { name: 'inserted', type: 'NUMBER', unsplitable: true }
+      { name: 'inserted', type: 'NUMBER', unsplitable: true },
+      { name: 'delta_hist', special: 'histogram' }
     ],
     derivedAttributes: {
       pageInBrackets: "'[' ++ $page ++ ']'"
@@ -1722,7 +1723,7 @@ describe("DruidExternal", () => {
 
 
   describe("applies", () => {
-    it("works ref filtered agg", () => {
+    it("works with ref filtered agg", () => {
       var ex = ply()
         .apply('Count', $('wiki').sum('$count'))
         .apply('Test', $('wiki').filter('$isRobot').sum('$count'));
@@ -1758,6 +1759,60 @@ describe("DruidExternal", () => {
         "name": "Test",
         "type": "filtered"
       });
+    });
+
+    it("works with quantile agg", () => {
+      var ex = ply()
+        .apply('P95', $('wiki').quantile('$delta_hist', 0.95))
+        .apply('P99by2', $('wiki').quantile('$delta_hist', 0.99).divide(2));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('timeseries');
+      expect(query.aggregations).to.deep.equal([
+        {
+          "fieldName": "delta_hist",
+          "name": "!H_P95",
+          "type": "approxHistogramFold"
+        },
+        {
+          "fieldName": "delta_hist",
+          "name": "!H_!T_0",
+          "type": "approxHistogramFold"
+        }
+      ]);
+      
+      expect(query.postAggregations).to.deep.equal([
+        {
+          "fieldName": "!H_P95",
+          "name": "P95",
+          "probability": 0.95,
+          "type": "quantile"
+        },
+        {
+          "fieldName": "!H_!T_0",
+          "name": "!T_0",
+          "probability": 0.99,
+          "type": "quantile"
+        },
+        {
+          "fields": [
+            {
+              "fieldName": "!T_0",
+              "type": "fieldAccess"
+            },
+            {
+              "type": "constant",
+              "value": 2
+            }
+          ],
+          "fn": "/",
+          "name": "P99by2",
+          "type": "arithmetic"
+        }
+      ]);
     });
 
   });

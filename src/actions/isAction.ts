@@ -66,7 +66,7 @@ module Plywood {
 
         if (duration.isFloorable()) {
           if (duration.floor(start, timezone).valueOf() === start.valueOf() &&
-            duration.move(start, timezone, 1).valueOf() === end.valueOf()) {
+            duration.shift(start, timezone, 1).valueOf() === end.valueOf()) {
 
             return new InAction({ expression: this.expression }).performOnSimple(chainExpression.popAction());
           } else {

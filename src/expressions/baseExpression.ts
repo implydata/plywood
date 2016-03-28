@@ -192,26 +192,36 @@ module Plywood {
     /**
      * Parses an expression
      * @param str The expression to parse
+     * @param timezone The timezone within which to evaluate any untimezoned date strings
      */
-    static parse(str: string): Expression {
+    static parse(str: string, timezone?: Timezone): Expression {
+      var original = defaultParserTimezone;
+      if (timezone) defaultParserTimezone = timezone;
       try {
         return expressionParser.parse(str);
       } catch (e) {
         // Re-throw to add the stacktrace
-        throw new Error('Expression parse error: ' + e.message + ' on `' + str + '`');
+        throw new Error(`Expression parse error: ${e.message} on '${str}'`);
+      } finally {
+        defaultParserTimezone = original;
       }
     }
 
     /**
      * Parses SQL statements into a plywood expressions
      * @param str The SQL to parse
+     * @param timezone The timezone within which to evaluate any untimezoned date strings
      */
-    static parseSQL(str: string): SQLParse {
+    static parseSQL(str: string, timezone?: Timezone): SQLParse {
+      var original = defaultParserTimezone;
+      if (timezone) defaultParserTimezone = timezone;
       try {
         return plyqlParser.parse(str);
       } catch (e) {
         // Re-throw to add the stacktrace
-        throw new Error('SQL parse error: ' + e.message + ' on `' + str + '`');
+        throw new Error(`SQL parse error: ${e.message} on '${str}'`);
+      } finally {
+        defaultParserTimezone = original;
       }
     }
 
@@ -844,12 +854,12 @@ module Plywood {
         snd = getValue(snd);
 
         if (typeof ex === 'string') {
-          ex = helper.parseISODate(ex);
+          ex = parseISODate(ex, defaultParserTimezone);
           if (!ex) throw new Error('can not convert start to date');
         }
 
         if (typeof snd === 'string') {
-          snd = helper.parseISODate(snd);
+          snd = parseISODate(snd, defaultParserTimezone);
           if (!snd) throw new Error('can not convert end to date');
         }
 

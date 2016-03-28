@@ -72,7 +72,7 @@ module Plywood {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (inV === null) return null;
-        return duration.move(inV, timezone, step);
+        return duration.shift(inV, timezone, step);
       }
     }
 

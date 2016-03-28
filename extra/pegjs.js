@@ -21,7 +21,7 @@ try {
 
 expressionParser = expressionParser.substring(prefixToRemove.length, expressionParser.length - postfixToRemove.length);
 
-expressionParser = 'module.exports = function(plywood) {' + expressionParser + '};\n';
+expressionParser = 'module.exports = function(plywood, chronoshift) {' + expressionParser + '};\n';
 
 fs.writeFileSync('./build/expressionParser.js', expressionParser, 'utf8');
 
@@ -42,6 +42,6 @@ try {
 
 plyqlParser = plyqlParser.substring(prefixToRemove.length, plyqlParser.length - postfixToRemove.length);
 
-plyqlParser = 'module.exports = function(plywood) {' + plyqlParser + '};\n';
+plyqlParser = 'module.exports = function(plywood, chronoshift) {' + plyqlParser + '};\n';
 
 fs.writeFileSync('./build/plyqlParser.js', plyqlParser, 'utf8');

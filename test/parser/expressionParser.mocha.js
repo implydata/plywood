@@ -295,7 +295,7 @@ describe("expression parser", () => {
     it("should complain on identity misuse (on non numbers)", () => {
       expect(() => {
         Expression.parse("+'poo'");
-      }).to.throw("Expression parse error: subtract must have expression of type NUMBER (is STRING) on `+\'poo\'`");
+      }).to.throw("Expression parse error: subtract must have expression of type NUMBER (is STRING) on \'+\'poo\'\'");
     });
 
     it("should parse leading number in param", () => {

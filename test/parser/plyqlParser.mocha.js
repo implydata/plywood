@@ -1,7 +1,7 @@
 var { expect } = require("chai");
 var { sane } = require('../utils');
 
-var { WallTime } = require('chronoshift');
+var { WallTime, Timezone } = require('chronoshift');
 if (!WallTime.rules) {
   var tzData = require("chronoshift/lib/walltime/walltime-data.js");
   WallTime.init(tzData.rules, tzData.zones);
@@ -158,6 +158,31 @@ describe("SQL parser", () => {
 
         tests.split('\n').forEach(test => {
           var parse = Expression.parseSQL(test);
+          expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
+        });
+      });
+
+      it('works with a custom Timezone in inferred literals', () => {
+        var tests = sane`
+          '2015-01-01T00:00:00.000' <= t AND t < '2016-01-01T00:00:00.000'
+          '2015-01-01T00:00:00.00' <= t AND t < '2016-01-01T00:00:00.00'
+          '2015-01-01T00:00:00.0' <= t AND t < '2016-01-01T00:00:00.0'
+          '2015-01-01T000000.0' <= t AND t < '2016-01-01T000000.0'
+          '2015-01-01T00:00:00' <= t AND t < '2016-01-01T00:00:00'
+          '2015-01-01T000000' <= t AND t < '2016-01-01T000000'
+          '2015-01-01T00:00' <= t AND t < '2016-01-01T00:00'
+          '2015-01-01T0000' <= t AND t < '2016-01-01T0000'
+          '2015-01-01T00' <= t AND t < '2016-01-01T00'
+          '2015-01-01' <= t AND t < '2016-01-01'
+          '20150101' <= t AND t < '20160101'
+          '2015-01' <= t AND t < '2016-01'
+          '2015' <= t AND t < '2016'
+        `;
+
+        var ex = r(new Date('2015-01-01T05:00:00Z')).lessThanOrEqual('$t').and($('t').lessThan(new Date('2016-01-01T05:00:00Z')));
+
+        tests.split('\n').forEach(test => {
+          var parse = Expression.parseSQL(test, Timezone.fromJS('America/New_York'));
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
         });
       });
@@ -336,7 +361,7 @@ describe("SQL parser", () => {
     it("should fail on a expression with no columns", () => {
       expect(() => {
         Expression.parseSQL("SELECT FROM wiki");
-      }).to.throw('SQL parse error: Can not have empty column list on `SELECT FROM wiki`');
+      }).to.throw("SQL parse error: Can not have empty column list on 'SELECT FROM wiki'");
     });
 
     it("should have a good error for incorrect numeric GROUP BYs", () => {

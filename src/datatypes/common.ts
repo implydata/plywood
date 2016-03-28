@@ -18,9 +18,9 @@ module Plywood {
         var ctrType = value.constructor.type;
         if (!ctrType) {
           if (Expression.isExpression(value)) {
-            throw new Error("expression used as datum value " + value.toString());
+            throw new Error(`expression used as datum value ${value}`);
           } else {
-            throw new Error("can not have an object without a type: " + JSON.stringify(value));
+            throw new Error(`can not have an object without a type: ${JSON.stringify(value)}`);
           }
         }
         if (ctrType === 'SET') ctrType += '/' + value.setType;

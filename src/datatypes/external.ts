@@ -84,7 +84,7 @@ module Plywood {
           var start = timeBucketAction.duration.floor(new Date('2015-03-14T00:00:00'), timezone);
           return new TimeRange({
             start,
-            end: timeBucketAction.duration.move(start, timezone, 1)
+            end: timeBucketAction.duration.shift(start, timezone, 1)
           });
         } else {
           return new TimeRange({ start: new Date('2015-03-14T00:00:00'), end: new Date('2015-03-15T00:00:00') });
@@ -387,7 +387,7 @@ module Plywood {
         }
 
         var start = new Date(v);
-        d[label] = new TimeRange({ start, end: duration.move(start, timezone) })
+        d[label] = new TimeRange({ start, end: duration.shift(start, timezone) })
       };
     }
 
@@ -412,7 +412,7 @@ module Plywood {
           start.valueOf() < nextTimestamp.valueOf() &&
           nextTimestamp.valueOf() - start.valueOf() < canonicalDurationLengthAndThenSome
         ) ? nextTimestamp
-          : duration.move(start, timezone, 1);
+          : duration.shift(start, timezone, 1);
 
         d[label] = new TimeRange({ start, end });
       };
