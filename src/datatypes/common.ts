@@ -132,17 +132,23 @@ module Plywood {
   }
 
   export function introspectDatum(datum: Datum): Q.Promise<Datum> {
-    return Q.all(
-      Object.keys(datum).map(name => {
-        var external = datum[name];
-        if (external instanceof External && external.needsIntrospect()) {
-          return external.introspect().then((newExternal: External) => {
-            datum[name] = newExternal;
-          })
+    var promises: Q.Promise<void>[] = [];
+    var newDatum: Datum = Object.create(null);
+    Object.keys(datum)
+      .forEach(name => {
+        var v = datum[name];
+        if (v instanceof External && v.needsIntrospect()) {
+          promises.push(
+            v.introspect().then((introspectedExternal: External) => {
+              newDatum[name] = introspectedExternal;
+            })
+          );
+        } else {
+          newDatum[name] = v;
         }
-        return null;
-      }).filter(Boolean)
-    ).then(() => datum);
+      });
+    
+    return Q.all(promises).then(() => newDatum);
   }
 
   export type PlyTypeSimple = 'NULL' | 'BOOLEAN' | 'NUMBER' | 'TIME' | 'STRING' | 'NUMBER_RANGE' | 'TIME_RANGE' | 'SET' | 'SET/NULL' | 'SET/BOOLEAN' | 'SET/NUMBER' | 'SET/TIME' | 'SET/STRING' | 'SET/NUMBER_RANGE' | 'SET/TIME_RANGE';

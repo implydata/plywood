@@ -430,7 +430,7 @@ module Plywood {
       return value;
     }
 
-    public _computeResolved(): Q.Promise<Dataset> {
+    public _computeResolved(): Q.Promise<PlywoodValue> {
       var actions = this.actions;
 
       function execAction(i: int) {

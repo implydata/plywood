@@ -127,7 +127,7 @@ describe("DruidExternal Introspection", () => {
       });
 
     } else {
-      throw new Error('non introspection query');
+      throw new Error(`unsupported query ${query.queryType}`);
     }
   };
 
@@ -234,7 +234,7 @@ describe("DruidExternal Introspection", () => {
       });
 
     } else {
-      throw new Error('non introspection query');
+      throw new Error(`unsupported query ${query.queryType}`);
     }
   };
 
@@ -281,7 +281,7 @@ describe("DruidExternal Introspection", () => {
       });
 
     } else {
-      throw new Error('non introspection query');
+      throw new Error(`unsupported query ${query.queryType}`);
     }
   };
 
@@ -301,7 +301,7 @@ describe("DruidExternal Introspection", () => {
       });
 
     } else {
-      throw new Error('non introspection query');
+      throw new Error(`unsupported query ${query.queryType}`);
     }
   };
 
@@ -338,7 +338,7 @@ describe("DruidExternal Introspection", () => {
       engine: 'druid',
       dataSource: 'wikipedia',
       timeAttribute: 'time'
-    },requesterDruid_0_9_0);
+    }, requesterDruid_0_9_0);
 
     return wikiExternal.introspect()
       .then((introspectedExternal) => {
@@ -744,6 +744,52 @@ describe("DruidExternal Introspection", () => {
             "type": "STRING"
           }
         ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("does a context based query", (testComplete) => {
+    var selectRequesterDruid = ({query}) => {
+      if (query.queryType !== 'select') return requesterDruid_0_9_0({query});
+      expect(query).to.deep.equal({
+        "dataSource": "wikipedia",
+        "dimensions": [
+          "anonymous",
+          "delta_hist",
+          "language",
+          "namespace",
+          "page",
+          "user_unique"
+        ],
+        "granularity": "all",
+        "intervals": "1000-01-01/3000-01-01",
+        "metrics": [
+          "added",
+          "count"
+        ],
+        "pagingSpec": {
+          "pagingIdentifiers": {},
+          "threshold": 10000
+        },
+        "queryType": "select"
+      });
+      return Q([]);
+    };
+    
+    var wikiExternal = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      allowEternity: true,
+      allowSelectQueries: true
+    }, selectRequesterDruid);
+
+    var context = { wiki: wikiExternal };
+
+    return $('wiki').compute(context)
+      .then((results) => {
+        expect(results.toJS()).to.deep.equal([]);
         testComplete();
       })
       .done();

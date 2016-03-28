@@ -1282,7 +1282,7 @@ module Plywood {
       }
       return introspectDatum(context)
         .then(introspectedContext => {
-          var readyExpression = this._initialPrepare(context, environment);
+          var readyExpression = this._initialPrepare(introspectedContext, environment);
           if (readyExpression instanceof ExternalExpression) {
             // Top level externals need to be unsuppressed
             readyExpression = (<ExternalExpression>readyExpression).unsuppress()
@@ -1291,7 +1291,7 @@ module Plywood {
         });
     }
 
-    public _computeResolved(): Q.Promise<any> {
+    public _computeResolved(): Q.Promise<PlywoodValue> {
       throw new Error("can not call this directly");
     }
   }

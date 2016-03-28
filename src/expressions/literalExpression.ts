@@ -132,7 +132,7 @@ module Plywood {
       return this.value;
     }
 
-    public _computeResolved(): Q.Promise<any> {
+    public _computeResolved(): Q.Promise<PlywoodValue> {
       return Q(this.value);
     }
 
