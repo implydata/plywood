@@ -72,7 +72,7 @@ module Plywood {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (inV === null) return null;
-        var other = duration.move(inV, timezone, step);
+        var other = duration.shift(inV, timezone, step);
         if (step > 0) {
           return new TimeRange({ start: inV, end: other });
         } else {

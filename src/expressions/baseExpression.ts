@@ -192,26 +192,36 @@ module Plywood {
     /**
      * Parses an expression
      * @param str The expression to parse
+     * @param timezone The timezone within which to evaluate any untimezoned date strings
      */
-    static parse(str: string): Expression {
+    static parse(str: string, timezone?: Timezone): Expression {
+      var original = defaultParserTimezone;
+      if (timezone) defaultParserTimezone = timezone;
       try {
         return expressionParser.parse(str);
       } catch (e) {
         // Re-throw to add the stacktrace
-        throw new Error('Expression parse error: ' + e.message + ' on `' + str + '`');
+        throw new Error(`Expression parse error: ${e.message} on '${str}'`);
+      } finally {
+        defaultParserTimezone = original;
       }
     }
 
     /**
      * Parses SQL statements into a plywood expressions
      * @param str The SQL to parse
+     * @param timezone The timezone within which to evaluate any untimezoned date strings
      */
-    static parseSQL(str: string): SQLParse {
+    static parseSQL(str: string, timezone?: Timezone): SQLParse {
+      var original = defaultParserTimezone;
+      if (timezone) defaultParserTimezone = timezone;
       try {
         return plyqlParser.parse(str);
       } catch (e) {
         // Re-throw to add the stacktrace
-        throw new Error('SQL parse error: ' + e.message + ' on `' + str + '`');
+        throw new Error(`SQL parse error: ${e.message} on '${str}'`);
+      } finally {
+        defaultParserTimezone = original;
       }
     }
 
@@ -844,12 +854,12 @@ module Plywood {
         snd = getValue(snd);
 
         if (typeof ex === 'string') {
-          ex = helper.parseISODate(ex);
+          ex = parseISODate(ex, defaultParserTimezone);
           if (!ex) throw new Error('can not convert start to date');
         }
 
         if (typeof snd === 'string') {
-          snd = helper.parseISODate(snd);
+          snd = parseISODate(snd, defaultParserTimezone);
           if (!snd) throw new Error('can not convert end to date');
         }
 
@@ -1239,7 +1249,7 @@ module Plywood {
         readyExpression = (<ExternalExpression>readyExpression).unsuppress();
       }
 
-      return readyExpression._computeResolvedSimulate([]);
+      return readyExpression._computeResolvedSimulate(true, []);
     }
 
 
@@ -1259,11 +1269,11 @@ module Plywood {
       }
 
       var simulatedQueries: any[] = [];
-      readyExpression._computeResolvedSimulate(simulatedQueries);
+      readyExpression._computeResolvedSimulate(true, simulatedQueries);
       return simulatedQueries;
     }
 
-    public _computeResolvedSimulate(simulatedQueries: any[]): any {
+    public _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue {
       throw new Error("can not call this directly");
     }
 
@@ -1282,16 +1292,16 @@ module Plywood {
       }
       return introspectDatum(context)
         .then(introspectedContext => {
-          var readyExpression = this._initialPrepare(context, environment);
+          var readyExpression = this._initialPrepare(introspectedContext, environment);
           if (readyExpression instanceof ExternalExpression) {
             // Top level externals need to be unsuppressed
             readyExpression = (<ExternalExpression>readyExpression).unsuppress()
           }
-          return readyExpression._computeResolved();
+          return readyExpression._computeResolved(true);
         });
     }
 
-    public _computeResolved(): Q.Promise<any> {
+    public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
       throw new Error("can not call this directly");
     }
   }

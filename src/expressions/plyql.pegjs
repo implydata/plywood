@@ -1,8 +1,7 @@
-{// starts with function(plywood)
+{// starts with function(plywood, chronoshift)
 var ply = plywood.ply;
 var $ = plywood.$;
 var r = plywood.r;
-var helper = plywood.helper;
 var Expression = plywood.Expression;
 var FilterAction = plywood.FilterAction;
 var ApplyAction = plywood.ApplyAction;
@@ -45,7 +44,7 @@ function reserved(str) {
 
 function makeDate(type, v) {
   try {
-    return helper.parseSQLDate(type, v);
+    return chronoshift.parseSQLDate(type, v);
   } catch (e) {
     error(e.message);
   }

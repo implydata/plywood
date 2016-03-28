@@ -1,0 +1,7 @@
+#!/bin/bash
+
+docker-machine start default
+eval $(docker-machine env)
+
+docker start plywood-test-mysql
+docker start plywood-test-druid

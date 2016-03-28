@@ -84,7 +84,7 @@ module Plywood {
           var start = timeBucketAction.duration.floor(new Date('2015-03-14T00:00:00'), timezone);
           return new TimeRange({
             start,
-            end: timeBucketAction.duration.move(start, timezone, 1)
+            end: timeBucketAction.duration.shift(start, timezone, 1)
           });
         } else {
           return new TimeRange({ start: new Date('2015-03-14T00:00:00'), end: new Date('2015-03-15T00:00:00') });
@@ -387,7 +387,7 @@ module Plywood {
         }
 
         var start = new Date(v);
-        d[label] = new TimeRange({ start, end: duration.move(start, timezone) })
+        d[label] = new TimeRange({ start, end: duration.shift(start, timezone) })
       };
     }
 
@@ -412,7 +412,7 @@ module Plywood {
           start.valueOf() < nextTimestamp.valueOf() &&
           nextTimestamp.valueOf() - start.valueOf() < canonicalDurationLengthAndThenSome
         ) ? nextTimestamp
-          : duration.move(start, timezone, 1);
+          : duration.shift(start, timezone, 1);
 
         d[label] = new TimeRange({ start, end });
       };
@@ -1159,7 +1159,7 @@ module Plywood {
       }, null);
     }
 
-    public simulate(): PlywoodValue {
+    public simulateValue(lastNode: boolean): PlywoodValue {
       const { mode } = this;
 
       if (mode === 'value') {
@@ -1188,7 +1188,7 @@ module Plywood {
       }
 
       var dataset = new Dataset({ data: [datum] });
-      if (mode === 'split') dataset = this.addNextExternal(dataset);
+      if (!lastNode && mode === 'split') dataset = this.addNextExternal(dataset);
       return dataset;
     }
 
@@ -1196,7 +1196,7 @@ module Plywood {
       throw new Error("can not call getQueryAndPostProcess directly");
     }
 
-    public queryValues(): Q.Promise<PlywoodValue> {
+    public queryValue(lastNode: boolean): Q.Promise<PlywoodValue> {
       if (!this.requester) {
         return <Q.Promise<PlywoodValue>>Q.reject(new Error('must have a requester to make queries'));
       }
@@ -1211,7 +1211,7 @@ module Plywood {
       var result = this.requester({ query: queryAndPostProcess.query })
         .then(queryAndPostProcess.postProcess);
 
-      if (this.mode === 'split') {
+      if (!lastNode && this.mode === 'split') {
         result = <Q.Promise<PlywoodValue>>result.then(this.addNextExternal.bind(this));
       }
 

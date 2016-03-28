@@ -36,7 +36,7 @@ interface PEGParser {
 }
 
 interface PEGParserFactory {
-  (plywood: any): PEGParser;
+  (plywood: any, chronoshift: any): PEGParser;
 }
 
 // --------------------------------------------------------
@@ -80,7 +80,7 @@ var plyqlParser: PEGParser;
 interface DELETE_END {} // This is just a marker for the declaration post processor
 
 module Plywood {
-  export var version = '###_VERSION_###';
+  export const version = '###_VERSION_###';
 
   export var isInstanceOf = ImmutableClass.isInstanceOf;
   export var isImmutableClass = ImmutableClass.isImmutableClass;
@@ -95,6 +95,11 @@ module Plywood {
   export import Duration = Chronoshift.Duration;
 
   export import WallTime = Chronoshift.WallTime;
+
+  export var parseISODate = Chronoshift.parseISODate;
+
+  // The default timezone within which dates in expressions are parsed
+  export var defaultParserTimezone: Timezone = Timezone.UTC;
 
   export type PlywoodValue = boolean | number | string | Date | NumberRange | TimeRange | Set | Dataset | External;
 

@@ -19,7 +19,7 @@ module Plywood {
       }
       this.direction = direction;
       if (!this.expression.isOp('ref')) {
-        throw new Error("must be a reference expression (for now): " + this.toString());
+        throw new Error(`must be a reference expression: ${this.expression}`);
       }
       this._ensureAction("sort");
     }

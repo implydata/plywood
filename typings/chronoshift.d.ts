@@ -24,9 +24,6 @@ declare module Chronoshift {
         private timezone;
         static isTimezone(candidate: any): boolean;
         static fromJS(spec: string): Timezone;
-        /**
-         * Constructs a timezone form the string representation by checking that it is defined
-         */
         constructor(timezone: string);
         valueOf(): string;
         toJS(): string;
@@ -40,28 +37,30 @@ declare module Chronoshift {
     interface AlignFn {
         (dt: Date, tz: Timezone): Date;
     }
-    interface MoveFn {
+    interface ShiftFn {
         (dt: Date, tz: Timezone, step: number): Date;
     }
     interface RoundFn {
         (dt: Date, roundTo: number, tz: Timezone): Date;
     }
-    interface TimeMover {
+    interface TimeShifter {
         canonicalLength: number;
         siblings?: number;
         floor: AlignFn;
         round?: RoundFn;
-        move: MoveFn;
+        shift: ShiftFn;
         ceil?: AlignFn;
+        move?: ShiftFn;
     }
-    var second: TimeMover;
-    var minute: TimeMover;
-    var hour: TimeMover;
-    var day: TimeMover;
-    var week: TimeMover;
-    var month: TimeMover;
-    var year: TimeMover;
-    var movers: Lookup<TimeMover>;
+    var second: TimeShifter;
+    var minute: TimeShifter;
+    var hour: TimeShifter;
+    var day: TimeShifter;
+    var week: TimeShifter;
+    var month: TimeShifter;
+    var year: TimeShifter;
+    var shifters: Lookup<TimeShifter>;
+    var movers: Lookup<TimeShifter>;
 }
 declare module Chronoshift {
     interface DurationValue {
@@ -80,9 +79,6 @@ declare module Chronoshift {
         static fromJS(durationStr: string): Duration;
         static fromCanonicalLength(length: number): Duration;
         static isDuration(candidate: any): boolean;
-        /**
-         * Constructs an ISO duration like P1DT3H from a string
-         */
         constructor(spans: DurationValue);
         constructor(start: Date, end: Date, timezone: Timezone);
         toString(): string;
@@ -94,24 +90,16 @@ declare module Chronoshift {
         equals(other: Duration): boolean;
         isSimple(): boolean;
         isFloorable(): boolean;
-        /**
-         * Floors the date according to this duration.
-         * @param date The date to floor
-         * @param timezone The timezone within which to floor
-         */
         floor(date: Date, timezone: Timezone): Date;
-        /**
-         * Moves the given date by 'step' times of the duration
-         * Negative step value will move back in time.
-         * @param date The date to move
-         * @param timezone The timezone within which to make the move
-         * @param step The number of times to step by the duration
-         */
+        shift(date: Date, timezone: Timezone, step?: number): Date;
         move(date: Date, timezone: Timezone, step?: number): Date;
         getCanonicalLength(): number;
-        canonicalLength(): number;
         getDescription(): string;
     }
+}
+declare module Chronoshift {
+    function parseSQLDate(type: string, v: string): Date;
+    function parseISODate(date: string, timezone?: Timezone): Date;
 }
 
 declare var chronoshift: typeof Chronoshift;

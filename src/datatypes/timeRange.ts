@@ -14,7 +14,7 @@ module Plywood {
   function toDate(date: any, name: string): Date {
     if (date === null) return null;
     if (typeof date === "undefined") throw new TypeError(`timeRange must have a ${name}`);
-    if (typeof date === 'string' || typeof date === 'number') date = helper.parseISODate(date);
+    if (typeof date === 'string' || typeof date === 'number') date = parseISODate(date, defaultParserTimezone);
     if (!date.getDay) throw new TypeError(`timeRange must have a ${name} that is a Date`);
     return date;
   }
@@ -48,7 +48,7 @@ module Plywood {
       var start = duration.floor(date, timezone);
       return new TimeRange({
         start: start,
-        end: duration.move(start, timezone, 1),
+        end: duration.shift(start, timezone, 1),
         bounds: Range.DEFAULT_BOUNDS
       });
     }

@@ -146,23 +146,23 @@ module Plywood {
       var unitSmall = partUnits[0];
       var unitBig = partUnits[1];
       var timezone = this.getTimezone();
-      var smallTimeMover = <Chronoshift.TimeMover>(<any>Chronoshift)[unitSmall];
-      var bigTimeMover = <Chronoshift.TimeMover>(<any>Chronoshift)[unitBig];
+      var smallTimeShifter = <Chronoshift.TimeShifter>(<any>Chronoshift)[unitSmall];
+      var bigTimeShifter = <Chronoshift.TimeShifter>(<any>Chronoshift)[unitBig];
 
       var start = extentRange.start;
       var end = extentRange.end;
 
       var ranges: TimeRange[] = [];
-      var iter = bigTimeMover.floor(start, timezone);
+      var iter = bigTimeShifter.floor(start, timezone);
       while (iter <= end) {
         for (let value of values) {
-          let subIter = smallTimeMover.move(iter, timezone, value);
+          let subIter = smallTimeShifter.shift(iter, timezone, value);
           ranges.push(new TimeRange({
             start: subIter,
-            end: smallTimeMover.move(subIter, timezone, 1)
+            end: smallTimeShifter.shift(subIter, timezone, 1)
           }));
         }
-        iter = bigTimeMover.move(iter, timezone, 1);
+        iter = bigTimeShifter.shift(iter, timezone, 1);
       }
 
       return Set.fromJS({

@@ -117,7 +117,7 @@ module Plywood {
       }
       var ClassFn = Action.classMap[action];
       if (!ClassFn) {
-        throw new Error("unsupported action '" + action + "'");
+        throw new Error(`unsupported action '${action}'`);
       }
 
       return ClassFn.fromJS(actionJS);
@@ -142,7 +142,7 @@ module Plywood {
         return;
       }
       if (this.action !== action) {
-        throw new TypeError("incorrect action '" + this.action + "' (needs to be: '" + action + "')");
+        throw new TypeError(`incorrect action '${this.action}' (needs to be: '${action}')`);
       }
     }
 
