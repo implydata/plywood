@@ -64,10 +64,10 @@ module Plywood {
       return external.simulate();
     }
 
-    public _computeResolved(): Q.Promise<PlywoodValue> {
+    public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
       var external = this.external;
       if (external.suppress) return Q(external);
-      return external.queryValues();
+      return external.queryValues(lastNode);
     }
 
     public unsuppress(): ExternalExpression {

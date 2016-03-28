@@ -1287,11 +1287,11 @@ module Plywood {
             // Top level externals need to be unsuppressed
             readyExpression = (<ExternalExpression>readyExpression).unsuppress()
           }
-          return readyExpression._computeResolved();
+          return readyExpression._computeResolved(true);
         });
     }
 
-    public _computeResolved(): Q.Promise<PlywoodValue> {
+    public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
       throw new Error("can not call this directly");
     }
   }

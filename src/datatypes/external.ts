@@ -1196,7 +1196,7 @@ module Plywood {
       throw new Error("can not call getQueryAndPostProcess directly");
     }
 
-    public queryValues(): Q.Promise<PlywoodValue> {
+    public queryValues(lastNode: boolean): Q.Promise<PlywoodValue> {
       if (!this.requester) {
         return <Q.Promise<PlywoodValue>>Q.reject(new Error('must have a requester to make queries'));
       }
@@ -1211,7 +1211,7 @@ module Plywood {
       var result = this.requester({ query: queryAndPostProcess.query })
         .then(queryAndPostProcess.postProcess);
 
-      if (this.mode === 'split') {
+      if (!lastNode && this.mode === 'split') {
         result = <Q.Promise<PlywoodValue>>result.then(this.addNextExternal.bind(this));
       }
 

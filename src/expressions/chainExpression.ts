@@ -430,7 +430,7 @@ module Plywood {
       return value;
     }
 
-    public _computeResolved(): Q.Promise<PlywoodValue> {
+    public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
       var actions = this.actions;
 
       function execAction(i: int) {
@@ -444,7 +444,8 @@ module Plywood {
           } else if (action instanceof ApplyAction) {
             if (actionExpression.hasExternal()) {
               return dataset.applyPromise(action.name, (d: Datum) => {
-                return actionExpression.resolve(d).simplify()._computeResolved();
+                var simpleExpression = actionExpression.resolve(d).simplify();
+                return simpleExpression._computeResolved(simpleExpression.isOp('external'));
               }, null);
             } else {
               return dataset.apply(action.name, actionExpression.getFn(), null);
@@ -462,7 +463,7 @@ module Plywood {
         }
       }
 
-      var promise = this.expression._computeResolved();
+      var promise = this.expression._computeResolved(false);
       for (var i = 0; i < actions.length; i++) {
         promise = promise.then(execAction(i));
       }
