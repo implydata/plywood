@@ -100,6 +100,14 @@ declare module Chronoshift {
 declare module Chronoshift {
     function parseSQLDate(type: string, v: string): Date;
     function parseISODate(date: string, timezone?: Timezone): Date;
+    interface IntervalParse {
+        computedStart: Date;
+        computedEnd: Date;
+        start?: Date;
+        end?: Date;
+        duration?: Duration;
+    }
+    function parseInterval(str: string, timezone?: Timezone, now?: Date): IntervalParse;
 }
 
 declare var chronoshift: typeof Chronoshift;
