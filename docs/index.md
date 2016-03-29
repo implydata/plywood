@@ -70,7 +70,18 @@ Plywood can be also used by the browser.
 ### Example 0
 
 Here is an example of a simple plywood query that illustrates the different ways by which expressions can be created:
+First of all plywood and its component parts need to be imported into the project.
+We will import two plywood functions here:
+```javascript
+var plywood = require('plywood');
+var ply = plywood.ply;
+var $ = plywood.$;
+```
+* `ply()` creates a dataset with one empty datum inside of it. This is the base of many plywood operations.
 
+* `$()` creates a [Reference Expression](http://plywood.imply.io/expressions)
+
+Now, a simple query can be issued:
 ```javascript
 var ex0 = ply() // Create an empty singleton dataset literal [{}]
   // 1 is converted into a literal
@@ -83,7 +94,9 @@ var ex0 = ply() // Create an empty singleton dataset literal [{}]
   .apply("four", $("two").multiply(2))
 ```
 
-Calling ```ex0.compute()``` will return a [Q](https://github.com/kriskowal/q) promise that will resolve to:
+* `apply(name, expression)` evaluates the given `expression` for every element of the dataset and saves the result as `name`.
+
+* Calling ```ex0.compute()``` will return a [Q](https://github.com/kriskowal/q) promise that will resolve to:
 
 ```javascript
 [
@@ -95,55 +108,62 @@ Calling ```ex0.compute()``` will return a [Q](https://github.com/kriskowal/q) pr
 ]
 ```
 
-This example employs three functions:
-
-* `ply()` creates a dataset with one empty datum inside of it. This is the base of many plywood operations.
-
-* `apply(name, expression)` evaluates the given `expression` for every element of the dataset and saves the result as `name`.
-
-
 ### Example 1
 
-First of all plywood and its component parts need to be imported into the project.
-This example will use Druid as the data store:
+This example will use Druid as the data store.  
+We will need to import and define some additional components to query external data.
 
 ```javascript
-// Get the druid requester (which is a node specific module)
+var External = plywood.External;
 var druidRequesterFactory = require('plywood-druid-requester').druidRequesterFactory;
-
-var plywood = require('plywood');
-var Dataset = plywood.Dataset;
 ```
+
+* External: An external acts as a query planner and scheduler for its database. [More about them here](./design-overview.md)
+* DruidRequesterFactory: This is a node specific module. Each external requires a requester function and this module exposes a factory function that makes them. 
 
 Next, the druid connection needs to be configured:
 
 ```javascript
 var druidRequester = druidRequesterFactory({
-  host: '10.153.211.100' // Where ever your Druid may be
-});
-
-var wikiDataset = Dataset.fromJS({
-  source: 'druid',
-  dataSource: 'wikipedia',  // The datasource name in Druid
-  timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time'
-  requester: druidRequester
+  host: '192.168.60.100:8082' // Where ever your Druid may be
 });
 ```
 
-Once that is up and running a simple query can be issued:
+Construct an external from a JSON definition. 
+
+```javascript
+var wikiDataset = External.fromJS({
+  engine: 'druid',
+  dataSource: 'wikipedia',  // The datasource name in Druid
+  timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time',
+  context: {
+    timeout: 10000 // The Druid context 
+  }
+}, druidRequester);
+```
+
+Once that is up and running, we should configure our execution context (Note, this is unrelated to the Druid context defined in the external)
+The execution context is a map that allows us to define values that our query can refer to.  
+With the following context definition, we can now refer to our wikipedia External as "wiki".
+Less helpfully, we can also refer to the number 70 with the string "seventy".
 
 ```javascript
 var context = {
-  wiki: wikiDataset
+  wiki: wikiDataset,
+  seventy: 70
 };
+```
 
+Now, a simple query can be issued:
+
+```
 var ex = ply()
-  // Define the dataset in context with a filter on time and language
+  // Define the external in scope with a filter on time and language
   .apply("wiki",
     $('wiki').filter($("time").in({
-      start: new Date("2015-08-26T00:00:00Z"),
-      end: new Date("2015-08-27T00:00:00Z")
-    }).and($('language').is('en')))
+      start: new Date("2015-09-12T00:00:00Z"),
+      end: new Date("2015-09-13T00:00:00Z")
+    }).and($('channel').is('en')))
   )
 
   // Calculate count
@@ -151,6 +171,9 @@ var ex = ply()
 
   // Calculate the sum of the `added` attribute
   .apply('TotalAdded', '$wiki.sum($added)');
+  
+  // Refer to the seventy defined in the context
+  .apply('70', $('seventy'));
 
 ex.compute(context).then(function(data) {
   // Log the data while converting it to a readable standard
@@ -163,8 +186,9 @@ This will output:
 ```javascript
 [
   {
-    "Count": 308675,
-    "TotalAdded": 41412583
+    "70": 70,
+    "TotalAdded": 32553107,
+    "Count": 113240
   }
 ]
 ```
@@ -186,8 +210,8 @@ var context = {
 var ex = ply()
   .apply("wiki",
     $('wiki').filter($("time").in({
-      start: new Date("2015-08-26T00:00:00Z"),
-      end: new Date("2015-08-27T00:00:00Z")
+      start: new Date("2015-09-12T00:00:00Z"),
+      end: new Date("2015-09-13T00:00:00Z")
     }))
   )
   .apply('Count', $('wiki').count())
@@ -214,32 +238,38 @@ The output will look like so:
 ```javascript
 [
   {
-    "Count": 573775,
-    "TotalAdded": 124184252,
+    "TotalAdded": 32553107,
+    "Count": 113240
+  }
+]
+[
+  {
+    "TotalAdded": 97393743,
+    "Count": 389319,
     "Pages": [
       {
+        "Page": "Jeremy Corbyn",
+        "Count": 314
+      },
+      {
+        "Page": "User:Cyde/List of candidates for speedy deletion/Subpage",
+        "Count": 255
+      },
+      {
+        "Page": "Wikipedia:Administrators' noticeboard/Incidents",
+        "Count": 228
+      },
+      {
         "Page": "Wikipedia:Vandalismusmeldung",
-        "Count": 177
+        "Count": 186
       },
       {
-        "Page": "Wikipedia:Administrator_intervention_against_vandalism",
-        "Count": 124
+        "Page": "Total Drama Presents: The Ridonculous Race",
+        "Count": 160
       },
       {
-        "Page": "Wikipedia:Auskunft",
-        "Count": 124
-      },
-      {
-        "Page": "Wikipedia:Löschkandidaten/26._Februar_2013",
-        "Count": 88
-      },
-      {
-        "Page": "Wikipedia:Reference_desk/Science",
-        "Count": 88
-      },
-      {
-        "Page": "Wikipedia:Administrators'_noticeboard",
-        "Count": 87
+        "Page": "Wikipedia:Administrator intervention against vandalism",
+        "Count": 145
       }
     ]
   }
