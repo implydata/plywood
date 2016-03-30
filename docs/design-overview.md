@@ -29,7 +29,7 @@ Plywood expressions were designed with the following ideas in mind:
 - Serializable - an expression can be converted to and from plain JSON to be saved in a file or transferred over the network.
 - Immutable - inspired by [immutable.js](https://facebook.github.io/immutable-js/), this immutability makes expressions very easy to work with and reason about.
 - Parsable - the plywood expression DSL is implemented in JavaScript and as a parser so: `Expression.parse('$wiki.sum($added)').equals($('wiki').sum($('added')))`  
-- Smart - expressions can perform complex internal rewriting to facilitate [query simplification](test/overall/simplify.mocha.coffee).  
+- Smart - expressions can perform complex internal rewriting to facilitate [query simplification](test/overall/simplify.mocha.js).  
 
 For more information about expressions check out the [API reference](expressions.md).
 
