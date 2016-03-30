@@ -69,7 +69,7 @@ Plywood can be also used by the browser.
 
 ### Example 0
 
-Here is an example of a simple plywood query that illustrates the different ways by which expressions can be created:
+Here is an example of a simple plywood query that illustrates the different ways by which expressions can be created.
 First of all plywood and its component parts need to be imported into the project.
 We will import two plywood functions here:
 ```javascript
@@ -119,7 +119,7 @@ var druidRequesterFactory = require('plywood-druid-requester').druidRequesterFac
 ```
 
 * External: An external acts as a query planner and scheduler for its database. [More about them here](./design-overview.md)
-* DruidRequesterFactory: This is a node specific module. Each external requires a requester function and this module exposes a factory function that makes them. 
+* DruidRequesterFactory: This is a node specific module. Each external requires a requester function and this module exposes a factory function that makes these requester functions. 
 
 Next, the druid connection needs to be configured:
 
@@ -142,7 +142,8 @@ var wikiDataset = External.fromJS({
 }, druidRequester);
 ```
 
-Once that is up and running, we should configure our execution context (Note, this is unrelated to the Druid context defined in the external)
+Once that is up and running, we should configure our execution context 
+(Note, this is unrelated to the Druid context defined in the external)
 The execution context is a map that allows us to define values that our query can refer to.  
 With the following context definition, we can now refer to our wikipedia External as "wiki".
 Less helpfully, we can also refer to the number 70 with the string "seventy".
@@ -193,7 +194,7 @@ This will output:
 ]
 ```
 
-A dataset with a single datum in it.
+This result is a dataset with a single datum in it.
 The attribute of this datum will be the `.apply` calls that we asked Druid to calculate.
 
 This might not look mind blowing but we can build on this concept.
