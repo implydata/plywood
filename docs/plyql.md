@@ -12,7 +12,7 @@ A full list of CLI options is documented on the [Github page] (https://github.co
 To start, we can issue a `SHOW TABLES` query for the list of data sources, which we pass in to the  `--query` (`-q`) option.
 
 ```sql
-plyql -h 192.168.60.100:8082 -q "SHOW TABLES"
+plyql -h 192.168.60.100:8082 -q 'SHOW TABLES'
 ```
 
 Returns:
@@ -27,7 +27,7 @@ Returns:
 PlyQL allows you to interface with druid data sources as if they were SQL tables, so we can issue a `describe` query on it.
 
 ```sql
-plyql -h 192.168.60.100:8082 -q "DESCRIBE wikipedia"
+plyql -h 192.168.60.100:8082 -q 'DESCRIBE wikipedia'
 ```
 
 Returns the column definitions of the data source:
@@ -99,7 +99,7 @@ Returns the column definitions of the data source:
 Here is a simple query that gets the maximum of the `__time` column. This query displays the time of the latest event in the database.
 
 ```sql
-plyql -h 192.168.60.100:8082 -q "SELECT MAX(__time) AS maxTime FROM wikipedia"
+plyql -h 192.168.60.100:8082 -q 'SELECT MAX(__time) AS maxTime FROM wikipedia'
 ```
 
 Returns:
@@ -120,14 +120,14 @@ Ok now you might want to examine the different hashtags that are trending.
 You might do a GROUP BY on the `page` column like this:
 
 ```sql
-plyql -h 192.168.60.100:8082 -q "
+plyql -h 192.168.60.100:8082 -q '
 SELECT page as pg, 
 COUNT() as cnt 
 FROM wikipedia 
 GROUP BY page 
 ORDER BY cnt DESC 
 LIMIT 5;
-"
+'
 ```
 
 This will throw an error because there is no time filter specified and the plyql guards against this.
@@ -138,7 +138,7 @@ large amounts of data as it can issue computationally prohibitive queries.
 Try it again, with a time filter:
   
 ```sql
-plyql -h 192.168.60.100:8082 -q "
+plyql -h 192.168.60.100:8082 -q '
 SELECT page as pg, 
 COUNT() as cnt 
 FROM wikipedia 
@@ -146,7 +146,7 @@ WHERE '2015-09-12T00:00:00' <= __time AND __time < '2015-09-13T00:00:00'
 GROUP BY page 
 ORDER BY cnt DESC 
 LIMIT 5;
-"
+'
 ```
 
 Results:
@@ -180,24 +180,24 @@ Plyql has an option `--interval` (`-i`) that automatically filters time on the l
 It is useful if you do not want to type out a time filter.
 
 ```sql
-plyql -h 192.168.60.100:8082 -i P1Y -q "
+plyql -h 192.168.60.100:8082 -i P1Y -q '
 SELECT page as pg, 
 COUNT() as cnt 
 FROM wikipedia 
 GROUP BY page 
 ORDER BY cnt DESC 
 LIMIT 5;
-"
+'
 ```
 
 To get a breakdown by time the `TIME_BUCKET` function can be used:
 
 ```sql
-plyql -h 192.168.60.100:8082 -i P1Y -q "
+plyql -h 192.168.60.100:8082 -i P1Y -q '
 SELECT SUM(added) as TotalAdded 
 FROM wikipedia 
 GROUP BY TIME_BUCKET(__time, PT6H, 'Etc/UTC');
-"
+'
 ```
 
 Returns:
@@ -230,13 +230,13 @@ was one of the select clauses.
 Time parting is also supported, here is an example:
 
 ```sql
-plyql -h 192.168.60.100:8082 -i P1Y -q "
+plyql -h 192.168.60.100:8082 -i P1Y -q '
 SELECT TIME_PART(__time, HOUR_OF_DAY, 'Etc/UTC') as HourOfDay, 
 SUM(added) as TotalAdded 
 FROM wikipedia 
 GROUP BY 1 
 ORDER BY TotalAdded DESC LIMIT 3;
-"
+'
 ```
 
 Notice that this `GROUP BY` is referring to the first column in the select.
@@ -263,23 +263,25 @@ This returns:
 Quantiles on histograms are supported. 
 Suppose you wanted to use histograms to calculate the 0.95 quantile of delta filtered on city is San Francisco.
 ```sql
+plyql -h 192.168.60.100:8082 -i P1Y -q '
 SELECT 
 QUANTILE(delta_hist WHERE cityName = 'San Francisco', 0.95) as P95 
-FROM wikipedia
+FROM wikipedia;
+'
 ```
 
 It is also possible to do multi dimensional GROUP BYs
 
 ```sql
-plyql -h 192.168.60.100:8082 -i P1Y -q "
+plyql -h 192.168.60.100:8082 -i P1Y -q '
 SELECT TIME_BUCKET(__time, PT1H, 'Etc/UTC') as Hour, 
 page as PageName, 
 SUM(added) as TotalAdded 
 FROM wikipedia 
 GROUP BY 1, 2 
 ORDER BY TotalAdded DESC 
-LIMIT 3;"
-"
+LIMIT 3;
+'
 ```
 
 Returns:
@@ -321,7 +323,7 @@ A notable feature of PlyQL is that it treats a dataset (aka table) as just anoth
 This allows us to nest queries as aggregates like so:
 
 ```sql
-plyql -h 192.168.60.100:8082 -i P1Y -q "
+plyql -h 192.168.60.100:8082 -i P1Y -q '
 SELECT page as Page, 
 COUNT() as cnt, 
 (
@@ -334,7 +336,7 @@ FROM wikipedia
 GROUP BY page 
 ORDER BY cnt DESC 
 LIMIT 5;
-"
+'
 ```
 
 Returns:
