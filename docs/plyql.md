@@ -142,7 +142,7 @@ plyql -h 192.168.60.100:8082 -q '
 SELECT page as pg, 
 COUNT() as cnt 
 FROM wikipedia 
-WHERE '2015-09-12T00:00:00' <= __time AND __time < '2015-09-13T00:00:00' 
+WHERE "2015-09-12T00:00:00" <= __time AND __time < "2015-09-13T00:00:00"
 GROUP BY page 
 ORDER BY cnt DESC 
 LIMIT 5;
@@ -196,7 +196,7 @@ To get a breakdown by time the `TIME_BUCKET` function can be used:
 plyql -h 192.168.60.100:8082 -i P1Y -q '
 SELECT SUM(added) as TotalAdded 
 FROM wikipedia 
-GROUP BY TIME_BUCKET(__time, PT6H, 'Etc/UTC');
+GROUP BY TIME_BUCKET(__time, PT6H, "Etc/UTC");
 '
 ```
 
@@ -231,7 +231,7 @@ Time parting is also supported, here is an example:
 
 ```sql
 plyql -h 192.168.60.100:8082 -i P1Y -q '
-SELECT TIME_PART(__time, HOUR_OF_DAY, 'Etc/UTC') as HourOfDay, 
+SELECT TIME_PART(__time, HOUR_OF_DAY, "Etc/UTC") as HourOfDay, 
 SUM(added) as TotalAdded 
 FROM wikipedia 
 GROUP BY 1 
@@ -265,7 +265,7 @@ Suppose you wanted to use histograms to calculate the 0.95 quantile of delta fil
 ```sql
 plyql -h 192.168.60.100:8082 -i P1Y -q '
 SELECT 
-QUANTILE(delta_hist WHERE cityName = 'San Francisco', 0.95) as P95 
+QUANTILE(delta_hist WHERE cityName = "San Francisco", 0.95) as P95 
 FROM wikipedia;
 '
 ```
@@ -274,7 +274,7 @@ It is also possible to do multi dimensional GROUP BYs
 
 ```sql
 plyql -h 192.168.60.100:8082 -i P1Y -q '
-SELECT TIME_BUCKET(__time, PT1H, 'Etc/UTC') as Hour, 
+SELECT TIME_BUCKET(__time, PT1H, "Etc/UTC") as Hour, 
 page as PageName, 
 SUM(added) as TotalAdded 
 FROM wikipedia 
@@ -329,9 +329,9 @@ COUNT() as cnt,
 (
   SELECT 
   SUM(added) as TotalAdded 
-  GROUP BY TIME_BUCKET(__time, PT1H, 'Etc/UTC') 
+  GROUP BY TIME_BUCKET(__time, PT1H, "Etc/UTC") 
   LIMIT 3 -- only get the first 3 hours to keep this example output small
-) as 'ByTime' 
+) as "ByTime" 
 FROM wikipedia 
 GROUP BY page 
 ORDER BY cnt DESC 
