@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.23
+
+- Fix .match() not working on SET/STRING 
+
 ## 0.9.22
 
 - Moved date parsing to Chronoshift and updated to latest Chronoshift
