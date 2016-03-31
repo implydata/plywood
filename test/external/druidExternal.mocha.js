@@ -992,6 +992,25 @@ describe("DruidExternal", () => {
       });
     });
 
+    it("works with SET/STRING.contains()", () => {
+      var ex = $('wiki').filter($("tags").contains('good', 'ignoreCase'));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "tags",
+        "query": {
+          "type": "fragment",
+          "values": [
+            "good"
+          ]
+        },
+        "type": "search"
+      });
+    });
+    
     it("works with .lookup().contains()", () => {
       var ex = $('wiki').filter($("language").lookup('language_lookup').contains('eN', 'ignoreCase'));
 
@@ -1079,6 +1098,34 @@ describe("DruidExternal", () => {
         },
         "type": "extraction",
         "value": "true"
+      });
+    });
+
+    it("works with .match()", () => {
+      var ex = $('wiki').filter($("language").match('en+'));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "language",
+        "pattern": "en+",
+        "type": "regex"
+      });
+    });
+
+    it("works with SET/STRING.match()", () => {
+      var ex = $('wiki').filter($("tags").match('goo+d'));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+        "dimension": "tags",
+        "pattern": "goo+d",
+        "type": "regex"
       });
     });
 
