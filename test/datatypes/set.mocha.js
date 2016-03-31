@@ -13,6 +13,10 @@ describe("Set", () => {
         elements: []
       },
       {
+        setType: 'NULL',
+        elements: [null]
+      },
+      {
         setType: 'BOOLEAN',
         elements: [true]
       },
