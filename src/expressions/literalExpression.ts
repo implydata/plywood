@@ -147,6 +147,11 @@ module Plywood {
       if (!parse) throw new Error(`could not parse '${this.value}' as string`);
       return r(parse);
     }
+
+    public bumpStringLiteralToSetString(): Expression {
+      if (this.type !== 'STRING') return this;
+      return r(Set.fromJS([this.value]));
+    }
   }
 
   Expression.NULL = new LiteralExpression({ value: null });

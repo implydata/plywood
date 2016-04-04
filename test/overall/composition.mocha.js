@@ -37,6 +37,48 @@ describe("composition", () => {
     });
   });
 
+  it("it bumps lessThan to time", () => {
+    var ex = r("2016").lessThan('$x');
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "lessThan",
+        "expression": {
+          "name": "x",
+          "op": "ref"
+        }
+      },
+      "expression": {
+        "op": "literal",
+        "value": new Date('2016-01-01T00:00:00.000Z')
+      },
+      "op": "chain"
+    });
+  });
+
+  it("overlap to SET", () => {
+    var ex = r("hello").overlap('$x');
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "overlap",
+        "expression": {
+          "name": "x",
+          "op": "ref"
+        }
+      },
+      "expression": {
+        "op": "literal",
+        "type": "SET",
+        "value": {
+          "elements": [
+            "hello"
+          ],
+          "setType": "STRING"
+        }
+      },
+      "op": "chain"
+    });
+  });
+
   it("works in uber-basic case", () => {
     var ex = ply()
       .apply('five', 5)

@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.9.24
+
+- Added SET expressions to PlyQL `{'A', 'B', 'C'}`
+- PlyQL can now parse IN with arbitrary right expression on
+
 ## 0.9.23
 
 - Fix .match() not working on SET/STRING 

@@ -164,6 +164,7 @@ function makeList(head, tail) {
 }
 
 function makeListMap1(head, tail) {
+  if (head == null) return [];
   return [head].concat(tail.map(function(t) { return t[1] }));
 }
 
@@ -345,7 +346,7 @@ ComparisonExpressionRhsNotable
       var range = { start: start.value, end: end.value, bounds: '[]' };
       return { call: 'in', args: [range] };
     }
-  / InToken list:ListLiteral
+  / InToken list:(InListLiteralExpression / AdditiveExpression)
     {
       return { call: 'in', args: [list] };
     }
@@ -373,10 +374,6 @@ ComparisonOp
   / ">="  { return 'greaterThanOrEqual'; }
   / "<"   { return 'lessThan'; }
   / ">"   { return 'greaterThan'; }
-
-ListLiteral
-  = OpenParen head:StringOrNumber tail:(Comma StringOrNumber)* CloseParen
-    { return r(Set.fromJS(makeListMap1(head, tail))); }
 
 
 AdditiveExpression
@@ -543,13 +540,16 @@ LiteralExpression
     { return r(makeDate(type, v)); }
   / type:(DateToken / TimeToken / TimestampToken) v:String
     { return r(makeDate(type, v)); }
-  / number:Number
-    { return r(number); }
-  / string:String
-    { return r(string); }
-  / v:(NullToken / TrueToken / FalseToken)
+  / v:(Number / String / ListLiteral / NullToken / TrueToken / FalseToken)
     { return r(v); }
 
+ListLiteral
+  = OpenCurly head:StringOrNumber? tail:(Comma StringOrNumber)* CloseCurly
+    { return Set.fromJS(makeListMap1(head, tail)); }
+
+InListLiteralExpression
+  = OpenParen head:StringOrNumber tail:(Comma StringOrNumber)* CloseParen
+    { return r(Set.fromJS(makeListMap1(head, tail))); }
 
 String "String"
   = "'" chars:NotSQuote "'" _ { return chars; }
