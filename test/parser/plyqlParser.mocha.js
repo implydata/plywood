@@ -8,7 +8,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Expression, $, ply, r } = plywood;
+var { Expression, $, ply, r, Set } = plywood;
 
 describe("SQL parser", () => {
   describe("basic expression", () => {
@@ -25,6 +25,22 @@ describe("SQL parser", () => {
     it("works with a fancy number expression", () => {
       var parse = Expression.parseSQL("-5e-2");
       var ex2 = r(-5e-2);
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with an empty set", () => {
+      var parse = Expression.parseSQL("{}");
+      var ex2 = r(Set.fromJS([]));
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with a basic set", () => {
+      var parse = Expression.parseSQL("{'a', 'b'}");
+      var ex2 = r(Set.fromJS(['a', 'b']));
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -84,10 +100,28 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works with IN expression", () => {
+    it("works with IN expression (value list)", () => {
       var parse = Expression.parseSQL("language IN ( 'ca', 'cs', 'da', 'el' )");
 
       var ex2 = $('language').in(['ca', 'cs', 'da', 'el']);
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with IN expression (list literal)", () => {
+      var parse = Expression.parseSQL("language IN { 'ca', 'cs', 'da', 'el' }");
+
+      var ex2 = $('language').in(['ca', 'cs', 'da', 'el']);
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with IN expression (variable)", () => {
+      var parse = Expression.parseSQL("language IN languages");
+
+      var ex2 = $('language').in('$languages');
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -886,6 +920,8 @@ describe("SQL parser", () => {
           page<>"Hello World" AND
           added < 5 AND
           \`wiki\`.\`language\` IN ('ca', 'cs', 'da', 'el') AND
+          \`wiki\`.\`language\` IN {'ca', 'cs', 'da', 'el'} AND
+          \`wiki\`.\`language\` IN languages AND
           \`namespace\` NOT IN ('simple', 'dict') AND
           geo IS NOT NULL AND
           page CONTAINS 'World' AND
@@ -902,6 +938,8 @@ describe("SQL parser", () => {
               .and($('page').isnt(r("Hello World")))
               .and($('added').lessThan(5))
               .and($('language').in(['ca', 'cs', 'da', 'el']))
+              .and($('language').in(['ca', 'cs', 'da', 'el']))
+              .and($('language').in('$languages'))
               .and($('namespace').in(['simple', 'dict']).not())
               .and($('geo').isnt(null))
               .and($('page').contains('World', 'ignoreCase'))

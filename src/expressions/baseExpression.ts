@@ -733,6 +733,10 @@ module Plywood {
       return this;
     }
 
+    public bumpStringLiteralToSetString(): Expression {
+      return this;
+    }
+
     // ------------------------------------------------------------------------
     // API behaviour
 
@@ -877,7 +881,7 @@ module Plywood {
 
     public overlap(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.performAction(new OverlapAction({ expression: ex }));
+      return this.bumpStringLiteralToSetString().performAction(new OverlapAction({ expression: ex.bumpStringLiteralToSetString() }));
     }
 
     public not(): ChainExpression {
