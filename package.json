@@ -41,7 +41,7 @@
     "pegjs": "0.9.0",
     "plywood-druid-requester": "1.4.2",
     "plywood-mysql-requester": "1.2.2",
-    "tslint": "3.6.0",
+    "tslint": "3.7.0",
     "typescript": "1.8.9",
     "underscore": "1.8.3",
     "walltime-js": "0.1.2"
