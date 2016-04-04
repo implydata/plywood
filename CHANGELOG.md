@@ -1,9 +1,11 @@
 # Change Log
 
+For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
+
 ## 0.9.24
 
 - Added SET expressions to PlyQL `{'A', 'B', 'C'}`
-- PlyQL can now parse IN with arbitrary right expression on
+- PlyQL can now parse IN with arbitrary expression on right hand side
 
 ## 0.9.23
 
