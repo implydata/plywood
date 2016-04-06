@@ -1756,7 +1756,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "__time",
         "extractionFn": {
-          "format": "e'~",
+          "format": "e",
           "locale": "en-US",
           "timeZone": "Etc/UTC",
           "type": "timeFormat"

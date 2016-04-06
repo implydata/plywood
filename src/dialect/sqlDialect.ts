@@ -100,14 +100,15 @@ module Plywood {
       HOUR_OF_MONTH: '((DAYOFMONTH($$)-1)*24+HOUR($$))',
       HOUR_OF_YEAR: '((DAYOFYEAR($$)-1)*24+HOUR($$))',
 
-      DAY_OF_WEEK: 'WEEKDAY($$)',
-      DAY_OF_MONTH: '(DAYOFMONTH($$)-1)',
-      DAY_OF_YEAR: '(DAYOFYEAR($$)-1)',
+      DAY_OF_WEEK: '(WEEKDAY($$)+1)',
+      DAY_OF_MONTH: 'DAYOFMONTH($$)',
+      DAY_OF_YEAR: 'DAYOFYEAR($$)',
 
       WEEK_OF_MONTH: null,
       WEEK_OF_YEAR: 'WEEK($$)', // ToDo: look into mode (https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_week)
 
-      MONTH_OF_YEAR: 'MONTH($$)'
+      MONTH_OF_YEAR: 'MONTH($$)',
+      YEAR: 'YEAR($$)'
     };
 
     constructor() {

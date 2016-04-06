@@ -64,6 +64,15 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("works with a YEAR expression", () => {
+      var parse = Expression.parseSQL("YEAR(time)");
+
+      var ex2 = $('time').timePart('YEAR');
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("works with a filtered SUM expression", () => {
       var parse = Expression.parseSQL("SUM(added WHERE cityName = 'San Francisco')");
 

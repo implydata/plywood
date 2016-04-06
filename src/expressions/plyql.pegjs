@@ -9,6 +9,8 @@ var SortAction = plywood.SortAction;
 var LimitAction = plywood.LimitAction;
 var MatchAction = plywood.MatchAction;
 
+var Timezone = chronoshift.Timezone;
+
 var Set = plywood.Set;
 
 var dataRef = $('data');
@@ -35,7 +37,63 @@ var reservedWords = {
   UNION: 1, UPDATE: 1,
   VALUES: 1,
   WHERE: 1
-}
+};
+
+var notImplemented = function() { error('not implemented yet'); };
+var fns = {
+  ABSOLUTE: function(op) { return op.absolute(); },
+  OVERLAP: function(op, ex) { return op.overlap(ex); },
+  SQRT: function(op) { return op.power(0.5); },
+  EXP: function(ex) { return r(Math.E).power(ex); },
+  POWER: function(op, ex) { return op.power(ex); },
+  NOW: function() { return r(new Date()); },
+  CURDATE: function() { return r(chronoshift.day.floor(new Date(), Timezone.UTC)); },
+  FALLBACK: function(op, ex) { return op.fallback(ex); },
+  MATCH: function(op, reg) { return op.match(reg); },
+  EXTRACT: function(op, reg) { return op.extract(reg); },
+  CONCAT: function() { return Expression.concat(arguments); },
+  SUBSTRING: function(op, i, n) { return op.substr(i, n); },
+  TIME_FLOOR: function(op, d, tz) { return op.timeFloor(d, tz); },
+  TIME_SHIFT: function(op, d, s, tz) { return op.timeShift(d, s, tz); },
+  TIME_RANGE: function(op, d, s, tz) { return op.timeRange(d, s, tz); },
+  TIME_BUCKET: function(op, d, tz) { return op.timeBucket(d, tz); },
+  NUMBER_BUCKET: function(op, s, o) { return op.numberBucket(s, o); },
+  TIME_PART: function(op, part, tz) { return op.timePart(part, tz); },
+  LOOKUP: function(op, name) { return op.lookup(name); },
+  PI: function() { return r(Math.PI); },
+
+  YEAR: function(op, tz) { return op.timePart('YEAR', tz); },
+  MONTH: function(op, tz) { return op.timePart('MONTH_OF_YEAR', tz); },
+  WEEK_OF_YEAR: function(op, tz) { return op.timePart('WEEK_OF_YEAR', tz); },
+  DAY_OF_YEAR: function(op, tz) { return op.timePart('DAY_OF_YEAR', tz); },
+  DAY_OF_MONTH: function(op, tz) { return op.timePart('DAY_OF_MONTH', tz); },
+  DAY_OF_WEEK: function(op, tz) { return op.timePart('DAY_OF_WEEK', tz); },
+  WEEKDAY: notImplemented,
+  HOUR: function(op, tz) { return op.timePart('HOUR_OF_DAY', tz); },
+  MINUTE: function(op, tz) { return op.timePart('MINUTE_OF_HOUR', tz); },
+  SECOND: function(op, tz) { return op.timePart('SECOND_OF_MINUTE', tz); },
+  DATE: function(op, tz) { return op.timeFloor('P1D', tz); },
+  DATE_ADD: notImplemented,
+  DATE_SUB: notImplemented,
+};
+fns.ABS = fns.ABSOLUTE;
+fns.POW = fns.POWER;
+fns.IFNULL = fns.FALLBACK;
+fns.SUBSTR = fns.SUBSTRING;
+fns.CURRENT_TIMESTAMP = fns.NOW;
+fns.LOCALTIME = fns.NOW;
+fns.LOCALTIMESTAMP = fns.NOW;
+fns.UTC_TIMESTAMP = fns.NOW;
+fns.SYSDATE = fns.NOW;
+fns.CURRENT_DATE = fns.CURDATE;
+fns.UTC_DATE = fns.CURDATE;
+fns.DAY_OF_YEAR = fns.DAY_OF_YEAR;
+fns.DOY = fns.DAY_OF_YEAR;
+fns.DOW = fns.DAY_OF_WEEK;
+fns.DAYOFMONTH = fns.DAY_OF_MONTH;
+fns.DAY = fns.DAY_OF_MONTH;
+fns.WEEKOFYEAR = fns.WEEK_OF_YEAR;
+fns.WEEK = fns.WEEK_OF_YEAR;
 
 var objectHasOwnProperty = Object.prototype.hasOwnProperty;
 function reserved(str) {
@@ -453,47 +511,18 @@ ExpressionMaybeFiltered
 
 
 FunctionCallExpression
-  = NumberBucketToken OpenParen operand:Expression size:NumberParameter offset:NumberParameter CloseParen
-    { return operand.numberBucket(size, offset); }
-  / fn:(TimeBucketToken / TimeFloorToken) OpenParen operand:Expression duration:NameOrStringParameter timezone:NameOrStringParameter? CloseParen
-    { return operand[fn](duration, timezone); }
-  / TimePartToken OpenParen operand:Expression part:NameOrStringParameter timezone:NameOrStringParameter? CloseParen
-    { return operand.timePart(part, timezone); }
-  / fn:(TimeShiftToken / TimeRangeToken) OpenParen operand:Expression duration:NameOrStringParameter step:NumberParameter timezone:NameOrStringParameter? CloseParen
-    { return operand[fn](duration, step, timezone); }
-  / SubstrToken OpenParen operand:Expression position:NumberParameter length:NumberParameter CloseParen
-    { return operand.substr(position, length); }
-  / ExtractToken OpenParen operand:Expression regexp:StringParameter CloseParen
-    { return operand.extract(regexp); }
-  / LookupToken OpenParen operand:Expression lookup:StringParameter CloseParen
-    { return operand.lookup(lookup); }
-  / ConcatToken OpenParen head:Expression tail:ExpressionParameter* CloseParen
-    { return Expression.concat(makeList(head, tail)); }
-  / (IfNullToken/FallbackToken) OpenParen operand:Expression fallbackValue:ExpressionParameter CloseParen
-    { return operand.fallback(fallbackValue);}
-  / MatchToken OpenParen operand:Expression regexp:StringParameter CloseParen
-    { return operand.match(regexp); }
-  / NowToken OpenParen CloseParen
-    { return r(new Date()); }
-  / (AbsToken/AbsoluteToken ) OpenParen operand:Expression CloseParen
-    { return operand.absolute(); }
-  / (PowToken/PowerToken) OpenParen operand:Expression exponent:NumberParameter CloseParen
-    { return operand.power(exponent); }
-  / ExpToken OpenParen exponent:Expression CloseParen
-    { return r(Math.E).power(exponent); }
-  / SqrtToken OpenParen operand:Expression CloseParen
-    { return operand.power(0.5); }
-  / OverlapToken OpenParen lhs:Expression rhs:ExpressionParameter CloseParen
-    { return lhs.overlap(rhs); }
+  = fn:Fn OpenParen params:Params CloseParen
+    { return fn.apply(null, params); }
 
-ExpressionParameter = Comma ex:Expression { return ex; }
+Fn
+  = name:Name &{ return fns[name.toUpperCase()]; }
+    { return fns[name.toUpperCase()]; }
 
-NumberParameter = Comma num:Number { return num; }
+Params
+  = head:Param? tail:(Comma Param)*
+    { return makeListMap1(head, tail); }
 
-StringParameter = Comma str:String { return str; }
-
-NameOrStringParameter = Comma timezone:NameOrString { return timezone; }
-
+Param = Expression / Number / String / Name;
 
 RefExpression
   = ref:NamespacedRef { return $(ref.name); }
@@ -601,37 +630,15 @@ OrToken            = "OR"i             !IdentifierPart _
 DistinctToken      = "DISTINCT"i       !IdentifierPart _
 StarToken          = "*"               !IdentifierPart _ { return '*'; }
 
-AbsToken           = "ABS"i            !IdentifierPart _ { return 'absolute'; }
-AbsoluteToken      = "ABSOLUTE"i       !IdentifierPart _ { return 'absolute'; }
 CountToken         = "COUNT"i          !IdentifierPart _ { return 'count'; }
 CountDistinctToken = "COUNT_DISTINCT"i !IdentifierPart _ { return 'countDistinct'; }
 SumToken           = "SUM"i            !IdentifierPart _ { return 'sum'; }
 AvgToken           = "AVG"i            !IdentifierPart _ { return 'average'; }
 MinToken           = "MIN"i            !IdentifierPart _ { return 'min'; }
 MaxToken           = "MAX"i            !IdentifierPart _ { return 'max'; }
-PowerToken         = "POWER"i          !IdentifierPart _ { return 'power'; }
-PowToken           = "POW"i            !IdentifierPart _ { return 'power'; }
-ExpToken           = "EXP"i            !IdentifierPart _ { return 'power'; }
-SqrtToken          = "SQRT"i           !IdentifierPart _ { return 'power'; }
 QuantileToken      = "QUANTILE"i       !IdentifierPart _ { return 'quantile'; }
 CustomToken        = "CUSTOM"i         !IdentifierPart _ { return 'custom'; }
 
-TimeFloorToken     = "TIME_FLOOR"i     !IdentifierPart _ { return 'timeFloor'; }
-TimeShiftToken     = "TIME_SHIFT"i     !IdentifierPart _ { return 'timeShift'; }
-TimeRangeToken     = "TIME_RANGE"i     !IdentifierPart _ { return 'timeRange'; }
-TimeBucketToken    = "TIME_BUCKET"i    !IdentifierPart _ { return 'timeBucket'; }
-NumberBucketToken  = "NUMBER_BUCKET"i  !IdentifierPart _ { return 'numberBucket'; }
-TimePartToken      = "TIME_PART"i      !IdentifierPart _ { return 'timePart'; }
-SubstrToken        = "SUBSTR"i "ING"i? !IdentifierPart _ { return 'substr'; }
-ExtractToken       = "EXTRACT"i        !IdentifierPart _ { return 'extract'; }
-ConcatToken        = "CONCAT"i         !IdentifierPart _ { return 'concat'; }
-LookupToken        = "LOOKUP"i         !IdentifierPart _ { return 'lookup'; }
-IfNullToken        = "IFNULL"i         !IdentifierPart _ { return 'fallback'; }
-FallbackToken      = "FALLBACK"i       !IdentifierPart _ { return 'fallback'; }
-MatchToken         = "MATCH"i          !IdentifierPart _ { return 'match'; }
-OverlapToken       = "OVERLAP"i        !IdentifierPart _ { return 'overlap'; }
-
-NowToken           = "NOW"i            !IdentifierPart _
 DateToken          = "DATE"i           !IdentifierPart _ { return 'd'; }
 TimeToken          = "TIME"i           !IdentifierPart _ { return 't'; }
 TimestampToken     = "TIMESTAMP"i      !IdentifierPart _ { return 'ts'; }

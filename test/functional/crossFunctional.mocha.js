@@ -26,12 +26,12 @@ var mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 });
 
-//druidRequester = helper.verboseRequesterFactory({
-//  requester: druidRequester
-//});
-//mySqlRequester = helper.verboseRequesterFactory({
-//  requester: mySqlRequester
-//});
+// druidRequester = helper.verboseRequesterFactory({
+//   requester: druidRequester
+// });
+// mySqlRequester = helper.verboseRequesterFactory({
+//   requester: mySqlRequester
+// });
 
 var attributes = [
   { name: 'time', type: 'TIME' },
@@ -414,6 +414,21 @@ describe("Cross Functional", function() {
         .limit(20) // To force a topN (for now)
     }));
 
+    it('works with TIME split (raw) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').filter('$time < "2015-09-12T02Z"').split($("time"), 'TimeRaw')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .sort('$TimeRaw', 'ascending')
+    }));
+
+    it('works with TIME split (timeFloor) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("time").timeFloor('PT1H', 'Etc/UTC'), 'TimeFloorHour')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TimeFloorHour', 'ascending')
+    }));
+
     it('works with TIME split (timeBucket) (sort on split)', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
@@ -437,6 +452,42 @@ describe("Cross Functional", function() {
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$HourOfDay', 'ascending')
+    }));
+
+    it('works with TIME split (timePart(YEAR)) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("time").timePart('YEAR'), 'TimePart')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .sort('$TimePart', 'ascending')
+    }));
+
+    it('works with TIME split (timePart(DAY_OF_YEAR)) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("time").timePart('DAY_OF_YEAR'), 'TimePart')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .sort('$TimePart', 'ascending')
+    }));
+
+    it('works with TIME split (timePart(DAY_OF_MONTH)) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("time").timePart('DAY_OF_MONTH'), 'TimePart')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .sort('$TimePart', 'ascending')
+    }));
+
+    it('works with TIME split (timePart(DAY_OF_WEEK)) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("time").timePart('DAY_OF_WEEK'), 'TimePart')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .sort('$TimePart', 'ascending')
+    }));
+
+    it('works with TIME split (timePart(MINUTE_OF_DAY)) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split($("time").timePart('MINUTE_OF_DAY'), 'TimePart')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .sort('$TimePart', 'ascending')
+        .limit(200)
     }));
 
     it('works with TIME split (timePart) (sort on apply)', equalityTest({

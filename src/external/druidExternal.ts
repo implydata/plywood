@@ -41,14 +41,15 @@ module Plywood {
     HOUR_OF_MONTH: "d'~*24+H",
     HOUR_OF_YEAR: "D'*24+H",
 
-    DAY_OF_WEEK: "e'~",
-    DAY_OF_MONTH: "d'~",
+    DAY_OF_WEEK: "e",
+    DAY_OF_MONTH: "d",
     DAY_OF_YEAR: "D",
 
     WEEK_OF_MONTH: null,
     WEEK_OF_YEAR: "w",
 
-    MONTH_OF_YEAR: "M~"
+    MONTH_OF_YEAR: "M",
+    YEAR: "Y"
   };
 
   const TIME_BUCKET_FORMAT: Lookup<string> = {
@@ -903,11 +904,17 @@ module Plywood {
     }
 
     public splitExpressionToGranularityInflater(splitExpression: Expression, label: string): GranularityInflater {
-      if (splitExpression instanceof ChainExpression) {
+      if (this.isTimeRef(splitExpression)) {
+        return {
+          granularity: 'none',
+          inflater: External.timeInflaterFactory(label)
+        };
+
+      } else if (splitExpression instanceof ChainExpression) {
         var splitActions = splitExpression.actions;
         if (this.isTimeRef(splitExpression.expression) && splitActions.length === 1) {
           var action = splitActions[0];
-          if (action instanceof TimeBucketAction) {
+          if (action instanceof TimeBucketAction || action instanceof TimeFloorAction) {
             var duration = action.duration;
             var timezone = action.getTimezone();
             return {
@@ -916,7 +923,9 @@ module Plywood {
                 period: duration.toString(),
                 timeZone: timezone.toString()
               },
-              inflater: External.timeRangeInflaterFactory(label, duration, timezone)
+              inflater: action.action === 'timeBucket' ?
+                External.timeRangeInflaterFactory(label, duration, timezone) :
+                External.timeInflaterFactory(label)
             };
           }
         }
@@ -1092,7 +1101,7 @@ module Plywood {
         };
       }
 
-      if (action instanceof TimeBucketAction) {
+      if (action instanceof TimeBucketAction || action instanceof TimeFloorAction) {
         var format = TIME_BUCKET_FORMAT[action.duration.toString()];
         if (!format) throw new Error(`unsupported duration in timeBucket expression ${action.duration}`);
         return {
@@ -1225,33 +1234,8 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
       }
 
-      var effectiveType = unwrapSetType(expression.type);
-      if (effectiveType === 'BOOLEAN' || effectiveType === 'STRING' || effectiveType === 'NUMBER') {
-        return {
-          dimension,
-          inflater: simpleInflater
-        };
-      }
-
       if (expression instanceof ChainExpression) {
-        if (expression.getExpressionPattern('concat')) {
-          return {
-            dimension,
-            inflater: simpleInflater
-          };
-        }
-
-        if (!expression.expression.isOp('ref')) {
-          throw new Error(`can not convert complex: ${expression.expression}`);
-        }
         var splitAction = expression.lastAction();
-
-        if (splitAction instanceof SubstrAction || splitAction instanceof AbsoluteAction || splitAction instanceof PowerAction) {
-          return {
-            dimension,
-            inflater: simpleInflater
-          };
-        }
 
         if (splitAction instanceof TimeBucketAction) {
           var format = TIME_BUCKET_FORMAT[splitAction.duration.toString()];
@@ -1288,6 +1272,14 @@ return (start < 0 ?'-':'') + parts.join('.');
           }
 
         }
+      }
+
+      var effectiveType = unwrapSetType(expression.type);
+      if (effectiveType === 'BOOLEAN' || effectiveType === 'STRING' || effectiveType === 'NUMBER') {
+        return {
+          dimension,
+          inflater: simpleInflater
+        };
       }
 
       throw new Error(`could not convert ${expression} to a Druid Dimension`);

@@ -22,14 +22,15 @@ module Plywood {
     HOUR_OF_MONTH: d => (d.getDate() - 1) * 24 + d.getHours(),
     HOUR_OF_YEAR: null,
 
-    DAY_OF_WEEK: d => d.getDay(),
-    DAY_OF_MONTH: d => d.getDate() - 1,
+    DAY_OF_WEEK: d => d.getDay() || 7, // fix Sunday [0 -> 7] 
+    DAY_OF_MONTH: d => d.getDate(),
     DAY_OF_YEAR: null,
 
     WEEK_OF_MONTH: null,
     WEEK_OF_YEAR: null,
 
-    MONTH_OF_YEAR: d => d.getMonth()
+    MONTH_OF_YEAR: d => d.getMonth(),
+    YEAR: d => d.getFullYear()
   };
 
   const PART_TO_MAX_VALUES: Lookup<number> = {
@@ -58,7 +59,8 @@ module Plywood {
     WEEK_OF_MONTH: 5,
     WEEK_OF_YEAR: 53,
 
-    MONTH_OF_YEAR: 12
+    MONTH_OF_YEAR: 12,
+    YEAR: null
   };
 
   export class TimePartAction extends Action {
@@ -139,36 +141,6 @@ module Plywood {
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return dialect.timePartExpression(inputSQL, this.part, this.getTimezone());
-    }
-
-    public materializeWithinRange(extentRange: TimeRange, values: int[]): Set {
-      var partUnits = this.part.toLowerCase().split('_of_');
-      var unitSmall = partUnits[0];
-      var unitBig = partUnits[1];
-      var timezone = this.getTimezone();
-      var smallTimeShifter = <Chronoshift.TimeShifter>(<any>Chronoshift)[unitSmall];
-      var bigTimeShifter = <Chronoshift.TimeShifter>(<any>Chronoshift)[unitBig];
-
-      var start = extentRange.start;
-      var end = extentRange.end;
-
-      var ranges: TimeRange[] = [];
-      var iter = bigTimeShifter.floor(start, timezone);
-      while (iter <= end) {
-        for (let value of values) {
-          let subIter = smallTimeShifter.shift(iter, timezone, value);
-          ranges.push(new TimeRange({
-            start: subIter,
-            end: smallTimeShifter.shift(subIter, timezone, 1)
-          }));
-        }
-        iter = bigTimeShifter.shift(iter, timezone, 1);
-      }
-
-      return Set.fromJS({
-        setType: 'TIME_RANGE',
-        elements: ranges
-      })
     }
 
     public maxPossibleSplitValues(): number {

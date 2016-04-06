@@ -2,6 +2,16 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.9.25
+
+- Dramatically reduced PlyQL parser size
+- Added `YEAR` as a possible `timePart` value
+- Added `CURDATE`, `PI`, `YEAR`, `MONTH`, `WEEK_OF_YEAR`, `DAY_OF_YEAR`, `DAY_OF_MONTH`,
+  `DAY_OF_WEEK`, `HOUR`, `MINUTE`, `SECOND`, `DATE`, `CURRENT_TIMESTAMP`, `LOCALTIME`,
+  `LOCALTIMESTAMP`, `UTC_TIMESTAMP`, `SYSDATE`, `CURRENT_DATE`, `UTC_DATE`, `DAY_OF_YEAR`,
+  `DOY`, `DOW`, `DAYOFMONTH`, `DAY`, `WEEKOFYEAR`, and `WEEK` to PlyQL
+- Fixed bug where `DAY_OF_YEAR`, `DAY_OF_MONTH`, and `DAY_OF_WEEK` was zero indexed
+
 ## 0.9.24
 
 - Added SET expressions to PlyQL `{'A', 'B', 'C'}`
