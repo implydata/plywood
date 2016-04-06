@@ -217,10 +217,6 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
   return query;
 }
 
-function makeList(head, tail) {
-  return [head].concat(tail);
-}
-
 function makeListMap1(head, tail) {
   if (head == null) return [];
   return [head].concat(tail.map(function(t) { return t[1] }));
@@ -316,8 +312,8 @@ WhereClause
     { return filter; }
 
 GroupByClause
-  = GroupToken ByToken head:Expression tail:ExpressionParameter*
-    { return makeList(head, tail); }
+  = GroupToken ByToken head:Expression tail:(Comma Expression)*
+    { return makeListMap1(head, tail); }
 
 HavingClause
   = HavingToken having:Expression
