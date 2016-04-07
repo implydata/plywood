@@ -11,6 +11,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
   `LOCALTIMESTAMP`, `UTC_TIMESTAMP`, `SYSDATE`, `CURRENT_DATE`, `UTC_DATE`, `DAY_OF_YEAR`,
   `DOY`, `DOW`, `DAYOFMONTH`, `DAY`, `WEEKOFYEAR`, and `WEEK` to PlyQL
 - Fixed bug where `DAY_OF_YEAR`, `DAY_OF_MONTH`, and `DAY_OF_WEEK` was zero indexed
+- Added support for `timeFloor` split in Druid external
 
 ## 0.9.24
 

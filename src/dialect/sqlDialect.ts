@@ -136,7 +136,7 @@ module Plywood {
       return timePartFunction.replace(/\$\$/g, this.timezoneConvert(operand, timezone));
     }
 
-    public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone  ): string {
+    public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string {
       // https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_date-add
       var sqlFn = "DATE_ADD("; //warpDirection > 0 ? "DATE_ADD(" : "DATE_SUB(";
       var spans = duration.valueOf();
