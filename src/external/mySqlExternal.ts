@@ -1,8 +1,6 @@
 module Plywood {
   var mySQLDialect = new MySQLDialect();
 
-  const DEFAULT_TIMEZONE = Timezone.UTC;
-
   interface SQLDescribeRow {
     Field: string;
     Type: string;
@@ -14,15 +12,14 @@ module Plywood {
 
   function getSplitInflaters(split: SplitAction): Inflater[] {
     return split.mapSplits((label, splitExpression) => {
-      if (splitExpression.type === 'BOOLEAN') {
-        return External.booleanInflaterFactory(label);
-      }
+      var simpleInflater = External.getSimpleInflater(splitExpression, label);
+      if (simpleInflater) return simpleInflater;
 
       if (splitExpression instanceof ChainExpression) {
         var lastAction = splitExpression.lastAction();
 
         if (lastAction instanceof TimeBucketAction) {
-          return External.timeRangeInflaterFactory(label, lastAction.duration, lastAction.timezone || DEFAULT_TIMEZONE);
+          return External.timeRangeInflaterFactory(label, lastAction.duration, lastAction.getTimezone());
         }
 
         if (lastAction instanceof NumberBucketAction) {

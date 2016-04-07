@@ -4,7 +4,10 @@
       <w>actionize</w>
       <w>amplab</w>
       <w>backtick</w>
+      <w>curdate</w>
       <w>datas</w>
+      <w>dayofmonth</w>
+      <w>dayofyear</w>
       <w>destructuring</w>
       <w>fallbacks</w>
       <w>inflater</w>
@@ -25,6 +28,7 @@
       <w>unsplitable</w>
       <w>unsuppress</w>
       <w>uservisits</w>
+      <w>weekofyear</w>
     </words>
   </dictionary>
 </component>

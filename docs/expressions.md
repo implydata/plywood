@@ -410,6 +410,7 @@ The possible part values are:
 * `DAY_OF_WEEK`, `DAY_OF_MONTH`, `DAY_OF_YEAR`
 * `WEEK_OF_MONTH`, `WEEK_OF_YEAR`
 * `MONTH_OF_YEAR`
+* `YEAR`
 
 ```javascript
 var ex = $('time').timePart('DAY_OF_WEEK');

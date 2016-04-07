@@ -103,6 +103,9 @@ module Plywood {
     if (param instanceof LiteralExpression && param.type === 'STRING') {
       return param.value;
     }
+    if (param instanceof RefExpression && param.nest === 0) {
+      return param.name;
+    }
     throw new Error('could not extract a string out of ' + String(param));
   }
 
