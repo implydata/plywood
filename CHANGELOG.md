@@ -4,6 +4,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.10.1
 
+- Fixed bug where select queries including multi value dimensions would sometimes error out in DruidExternal
 - Changed `helper.overrideByName` to `helper.overridesByName`, `helper.overrideByName` now does a single override
 - Added `finalLineBreak` option to `Dataset#toTabular`, `Dataset#toCSV`, `Dataset#toTSV` (default to 'include' for tabular and 'suppress' for toCSV and toTSV)
 - `Dataset` now always has introspected dimensions

@@ -456,6 +456,7 @@ module Plywood {
           return;
         }
 
+        if (typeof v === 'string') v = [v];
         d[label] = Set.fromJS({
           setType: 'STRING',
           elements: v
