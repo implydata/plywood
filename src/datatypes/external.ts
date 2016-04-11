@@ -257,19 +257,9 @@ module Plywood {
       for (let existingApply of applies) expressions[existingApply.name] = existingApply.expression;
       apply = <ApplyAction>apply.changeExpression(apply.expression.resolveWithExpressions(expressions, 'leave').simplify());
 
-      // If it already exists filter it out
-      var applyName = apply.name;
-      if (expressions[applyName]) {
-        attributes = attributes.filter(a => a.name !== applyName);
-        applies = applies.filter(a => a.name !== applyName);
-      }
-
-      attributes = attributes.concat(new AttributeInfo({ name: applyName, type: apply.expression.type }));
-      applies = applies.concat(apply);
-
       return {
-        attributes,
-        applies
+        attributes: helper.overrideByName(attributes, new AttributeInfo({ name: apply.name, type: apply.expression.type })),
+        applies: helper.overrideByName(applies, apply)
       }
     }
 
@@ -466,6 +456,7 @@ module Plywood {
           return;
         }
 
+        if (typeof v === 'string') v = [v];
         d[label] = Set.fromJS({
           setType: 'STRING',
           elements: v
@@ -1156,7 +1147,7 @@ module Plywood {
       if (mode !== 'split') throw new Error('must be in split mode to addNextExternal');
       return dataset.apply(dataName, (d: Datum) => {
         return this.getRaw().addFilter(split.filterFromDatum(d));
-      }, null);
+      }, 'DATASET', null);
     }
 
     public simulateValue(lastNode: boolean): PlywoodValue {

@@ -102,7 +102,7 @@ module Plywood {
     }
 
     static override(attributes: Attributes, attributeOverrides: Attributes): Attributes {
-      return helper.overrideByName(attributes, attributeOverrides);
+      return helper.overridesByName(attributes, attributeOverrides);
     }
 
 

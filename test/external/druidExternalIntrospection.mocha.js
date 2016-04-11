@@ -734,14 +734,14 @@ describe("DruidExternal Introspection", () => {
             "unsplitable": true
           },
           {
-            "name": "delta_hist",
-            "special": "histogram",
-            "type": "NUMBER"
-          },
-          {
             "name": "user_unique",
             "special": "unique",
             "type": "STRING"
+          },
+          {
+            "name": "delta_hist",
+            "special": "histogram",
+            "type": "NUMBER"
           }
         ]);
         testComplete();

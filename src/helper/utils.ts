@@ -55,15 +55,16 @@ module Plywood {
       return findIndex(array, (x) => x.name === name);
     }
 
-    export function overrideByName<T extends Nameable>(things: T[], thingOverrides: T[]): T[] {
-      things = things.slice();
+    export function overrideByName<T extends Nameable>(things: T[], thingOverride: T): T[] {
+      var overrideName = thingOverride.name;
+      things = things.filter(t => t.name !== overrideName);
+      things.push(thingOverride);
+      return things;
+    }
+
+    export function overridesByName<T extends Nameable>(things: T[], thingOverrides: T[]): T[] {
       for (var thingOverride of thingOverrides) {
-        var idx = findIndexByName(things, thingOverride.name);
-        if (idx === -1) {
-          things.push(thingOverride);
-        } else {
-          things[idx] = thingOverride;
-        }
+        things = overrideByName(things, thingOverride);
       }
       return things;
     }

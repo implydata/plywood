@@ -161,16 +161,12 @@ module Plywood {
   }
 
   function chainVia(op: string, expressions: Expression[], zero: Expression): Expression {
-    switch (expressions.length) {
-      case 0: return zero;
-      case 1: return expressions[0];
-      default:
-        var acc = expressions[0];
-        for (var i = 1; i < expressions.length; i++) {
-          acc = (<any>acc)[op](expressions[i]);
-        }
-        return acc;
-    }
+    var n = expressions.length;
+    if (!n) return zero;
+    var acc = expressions[0];
+    if (!Expression.isExpression(acc)) acc = Expression.fromJSLoose(acc);
+    for (var i = 1; i < n; i++) acc = (<any>acc)[op](expressions[i]);
+    return acc;
   }
 
   var check: Class<ExpressionValue, ExpressionJS>;
@@ -932,30 +928,30 @@ module Plywood {
     public timeBucket(duration: any, timezone?: any): ChainExpression {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
       if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-      return this.performAction(new TimeBucketAction({ duration, timezone }));
+      return this.bumpStringLiteralToTime().performAction(new TimeBucketAction({ duration, timezone }));
     }
 
     public timeFloor(duration: any, timezone?: any): ChainExpression {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
       if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-      return this.performAction(new TimeFloorAction({ duration, timezone }));
+      return this.bumpStringLiteralToTime().performAction(new TimeFloorAction({ duration, timezone }));
     }
 
     public timeShift(duration: any, step: number, timezone?: any): ChainExpression {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
       if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-      return this.performAction(new TimeShiftAction({ duration, step: getNumber(step), timezone }));
+      return this.bumpStringLiteralToTime().performAction(new TimeShiftAction({ duration, step: getNumber(step), timezone }));
     }
 
     public timeRange(duration: any, step: number, timezone?: any): ChainExpression {
       if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
       if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-      return this.performAction(new TimeRangeAction({ duration, step: getNumber(step), timezone }));
+      return this.bumpStringLiteralToTime().performAction(new TimeRangeAction({ duration, step: getNumber(step), timezone }));
     }
 
     public timePart(part: string, timezone?: any): ChainExpression {
       if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-      return this.performAction(new TimePartAction({ part: getString(part), timezone }));
+      return this.bumpStringLiteralToTime().performAction(new TimePartAction({ part: getString(part), timezone }));
     }
 
     // Split Apply Combine based transformations

@@ -1,7 +1,7 @@
 var { expect } = require("chai");
 
 var plywood = require('../../build/plywood');
-var { $, ply, r } = plywood;
+var { $, ply, r, Expression } = plywood;
 
 describe("composition", () => {
 
@@ -491,4 +491,34 @@ describe("composition", () => {
       "op": "chain"
     });
   });
+
+  it("multi-value case", () => {
+    var ex = Expression.concat(['$a', '$b', '"]"']);
+
+    expect(ex.toJS()).to.deep.equal({
+      "actions": [
+        {
+          "action": "concat",
+          "expression": {
+            "name": "b",
+            "op": "ref"
+          }
+        },
+        {
+          "action": "concat",
+          "expression": {
+            "op": "literal",
+            "value": "]"
+          }
+        }
+      ],
+      "expression": {
+        "name": "a",
+        "op": "ref"
+      },
+      "op": "chain"
+    });
+    
+  });
+  
 });

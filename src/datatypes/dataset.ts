@@ -159,9 +159,12 @@ module Plywood {
     parentName?: string;
   }
 
+  export type FinalLineBreak = 'include' | 'suppress';
+
   export interface TabulatorOptions extends FlattenOptions {
     separator?: string;
     lineBreak?: string;
+    finalLineBreak?: FinalLineBreak;
     formatter?: Formatter;
   }
 
@@ -243,8 +246,9 @@ module Plywood {
   }
 
   export interface DatasetValue {
-    attributes?: Attributes;
     attributeOverrides?: Attributes;
+
+    attributes?: Attributes;
     keys?: string[];
     data?: Datum[];
     suppress?: boolean;
@@ -252,7 +256,6 @@ module Plywood {
 
   export interface DatasetJS {
     attributes?: AttributeJSs;
-    attributeOverrides?: AttributeJSs;
     keys?: string[];
     data?: Datum[];
   }
@@ -263,6 +266,41 @@ module Plywood {
 
     static isDataset(candidate: any): candidate is Dataset {
       return isInstanceOf(candidate, Dataset);
+    }
+
+    static getAttributesFromData(data: Datum[]): Attributes {
+      if (!data.length) return [];
+
+      var attributeNamesToIntrospect = Object.keys(data[0]);
+      var attributes: Attributes = [];
+
+      for (var datum of data) {
+        var attributeNamesStillToIntrospect: string[] = [];
+        for (var attributeNameToIntrospect of attributeNamesToIntrospect) {
+          var attributeInfo = getAttributeInfo(attributeNameToIntrospect, datum[attributeNameToIntrospect]);
+          if (attributeInfo) {
+            attributes.push(attributeInfo);
+          } else {
+            attributeNamesStillToIntrospect.push(attributeNameToIntrospect);
+          }
+        }
+
+        attributeNamesToIntrospect = attributeNamesStillToIntrospect;
+        if (!attributeNamesToIntrospect.length) break;
+      }
+
+      // Assume all the remaining nulls are strings
+      for (var attributeName of attributeNamesToIntrospect) {
+        attributes.push(new AttributeInfo({ name: attributeName, type: 'STRING' }));
+      }
+
+      attributes.sort((a, b) => {
+        var typeDiff = typeOrder[a.type] - typeOrder[b.type];
+        if (typeDiff) return typeDiff;
+        return a.name.localeCompare(b.name)
+      });
+
+      return attributes;
     }
 
     static fromJS(parameters: any): Dataset {
@@ -289,18 +327,12 @@ module Plywood {
 
     public suppress: boolean;
     public attributes: Attributes = null;
-    public attributeOverrides: Attributes = null;
     public keys: string[] = null;
     public data: Datum[];
 
     constructor(parameters: DatasetValue) {
       if (parameters.suppress === true) this.suppress = true;
-      if (parameters.attributes) {
-        this.attributes = parameters.attributes;
-      }
-      if (parameters.attributeOverrides) {
-        this.attributeOverrides = parameters.attributeOverrides;
-      }
+
       if (parameters.keys) {
         this.keys = parameters.keys;
       }
@@ -309,13 +341,22 @@ module Plywood {
         throw new TypeError("must have a `data` array");
       }
       this.data = data;
+
+      var attributes = parameters.attributes;
+      if (!attributes) attributes = Dataset.getAttributesFromData(data);
+
+      var attributeOverrides = parameters.attributeOverrides;
+      if (attributeOverrides) {
+        attributes = AttributeInfo.override(attributes, attributeOverrides);
+      }
+
+      this.attributes = attributes;
     }
 
     public valueOf(): DatasetValue {
       var value: DatasetValue = {};
       if (this.suppress) value.suppress = true;
       if (this.attributes) value.attributes = this.attributes;
-      if (this.attributeOverrides) value.attributeOverrides = this.attributeOverrides;
       if (this.keys) value.keys = this.keys;
       value.data = this.data;
       return value;
@@ -356,8 +397,7 @@ module Plywood {
     }
 
     public getFullType(): DatasetFullType {
-      this.introspect();
-      var attributes = this.attributes;
+      var { attributes } = this;
       if (!attributes) throw new Error("dataset has not been introspected");
 
       var myDatasetType: Lookup<FullType> = {};
@@ -396,32 +436,49 @@ module Plywood {
       return this;
     }
 
-    public apply(name: string, exFn: ComputeFn, context: Datum): Dataset {
-      // Note this works in place, fix that later if needed.
-      var data = this.data;
+    public apply(name: string, exFn: ComputeFn, type: PlyType, context: Datum): Dataset {
+      var value = this.valueOf();
+      var data = value.data;
       for (let datum of data) {
-        datum[name] = exFn(datum, context);
+        datum[name] = exFn(datum, context); // Note this works in place, fix that later if needed.
       }
-      this.attributes = null; // Since we did the change in place, blow out the attributes
-      return this;
+
+      // Hack
+      var datasetType: Lookup<FullType> = null;
+      if (type === 'DATASET' && data[0] && data[0][name]) {
+        datasetType = (data[0][name] as any).getFullType().datasetType;
+      }
+      // End Hack
+
+      value.attributes = helper.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
+      return new Dataset(value);
     }
 
-    public applyPromise(name: string, exFn: ComputePromiseFn, context: Datum): Q.Promise<Dataset> {
-      // Note this works in place, fix that later if needed.
-      var ds = this;
-      var promises = this.data.map(datum => exFn(datum, context));
+    public applyPromise(name: string, exFn: ComputePromiseFn, type: PlyType, context: Datum): Q.Promise<Dataset> {
+      var value = this.valueOf();
+      var promises = value.data.map(datum => exFn(datum, context));
       return Q.all(promises).then(values => {
-        var data = ds.data;
+        var data = value.data;
         var n = data.length;
-        for (var i = 0; i < n; i++) data[i][name] = values[i];
-        this.attributes = null; // Since we did the change in place, blow out the attributes
-        return ds; // ToDo: make a new Dataset here
+        for (var i = 0; i < n; i++) {
+          data[i][name] = values[i]; // Note this works in place, fix that later if needed.
+        }
+
+        // Hack
+        var datasetType: Lookup<FullType> = null;
+        if (type === 'DATASET' && data[0] && data[0][name]) {
+          datasetType = (data[0][name] as any).getFullType().datasetType;
+        }
+        // End Hack
+
+        value.attributes = helper.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
+        return new Dataset(value);
       });
     }
 
     public filter(exFn: ComputeFn, context: Datum): Dataset {
       var value = this.valueOf();
-      value.data = this.data.filter(datum => exFn(datum, context));
+      value.data = value.data.filter(datum => exFn(datum, context));
       return new Dataset(value);
     }
 
@@ -549,53 +606,8 @@ module Plywood {
       });
     }
 
-    // Introspection
     public introspect(): void {
-      if (this.attributes) return;
-
-      var data = this.data;
-      if (!data.length) {
-        this.attributes = [];
-        return;
-      }
-
-      var attributeNamesToIntrospect = Object.keys(data[0]);
-      var attributes: Attributes = [];
-
-      for (var datum of data) {
-        var attributeNamesStillToIntrospect: string[] = [];
-        for (var attributeNameToIntrospect of attributeNamesToIntrospect) {
-          var attributeInfo = getAttributeInfo(attributeNameToIntrospect, datum[attributeNameToIntrospect]);
-          if (attributeInfo) {
-            attributes.push(attributeInfo);
-          } else {
-            attributeNamesStillToIntrospect.push(attributeNameToIntrospect);
-          }
-        }
-
-        attributeNamesToIntrospect = attributeNamesStillToIntrospect;
-        if (!attributeNamesToIntrospect.length) break;
-      }
-
-      // Assume all the remaining nulls are strings
-      for (var attributeName of attributeNamesToIntrospect) {
-        attributes.push(new AttributeInfo({ name: attributeName, type: 'STRING' }));
-      }
-
-      attributes.sort((a, b) => {
-        var typeDiff = typeOrder[a.type] - typeOrder[b.type];
-        if (typeDiff) return typeDiff;
-        return a.name.localeCompare(b.name)
-      });
-
-      var attributeOverrides = this.attributeOverrides;
-      if (attributeOverrides) {
-        attributes = AttributeInfo.override(attributes, attributeOverrides);
-        this.attributeOverrides = null;
-      }
-
-      // ToDo: make this immutable so it matches the rest of the code   [+1]
-      this.attributes = attributes;
+      console.error('introspection is always done, `.introspect()` method never needs to be called');
     }
 
     public getExternals(): External[] {
@@ -649,7 +661,6 @@ module Plywood {
     }
 
     public getNestedColumns(): Column[] {
-      this.introspect();
       var nestedColumns: Column[] = [];
       var attributes = this.attributes;
 
@@ -660,9 +671,10 @@ module Plywood {
           type: attribute.type
         };
         if (attribute.type === 'DATASET') {
-          if (!subDatasetAdded) {
+          var subDataset = this.data[0][attribute.name];
+          if (!subDatasetAdded && Dataset.isDataset(subDataset)) {
             subDatasetAdded = true;
-            column.columns = (this.data[0][attribute.name] as Dataset).getNestedColumns();
+            column.columns = subDataset.getNestedColumns();
             nestedColumns.push(column);
           }
         } else {
@@ -737,18 +749,20 @@ module Plywood {
       }
 
       var lineBreak = tabulatorOptions.lineBreak || '\n';
-      return lines.join(lineBreak) + (lines.length > 0 ? lineBreak : '');
+      return lines.join(lineBreak) + (tabulatorOptions.finalLineBreak === 'include' && lines.length > 0 ? lineBreak : '');
     }
 
     public toCSV(tabulatorOptions: TabulatorOptions = {}): string {
       tabulatorOptions.separator = tabulatorOptions.separator || ',';
       tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
+      tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
       return this.toTabular(tabulatorOptions);
     }
 
     public toTSV(tabulatorOptions: TabulatorOptions = {}): string {
       tabulatorOptions.separator = tabulatorOptions.separator || '\t';
       tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
+      tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
       return this.toTabular(tabulatorOptions);
     }
 

@@ -408,9 +408,9 @@ module Plywood {
             return dataset.apply(action.name, (d: Datum) => {
               var simpleExpression = actionExpression.resolve(d).simplify();
               return simpleExpression._computeResolvedSimulate(simpleExpression.isOp('external'), simulatedQueries);
-            }, null);
+            }, actionExpression.type, null);
           } else {
-            return dataset.apply(action.name, actionExpression.getFn(), null);
+            return dataset.apply(action.name, actionExpression.getFn(), actionExpression.type, null);
           }
 
         } else if (action instanceof SortAction) {
@@ -447,9 +447,9 @@ module Plywood {
               return dataset.applyPromise(action.name, (d: Datum) => {
                 var simpleExpression = actionExpression.resolve(d).simplify();
                 return simpleExpression._computeResolved(simpleExpression.isOp('external'));
-              }, null);
+              }, actionExpression.type, null);
             } else {
-              return dataset.apply(action.name, actionExpression.getFn(), null);
+              return dataset.apply(action.name, actionExpression.getFn(), actionExpression.type, null);
             }
 
           } else if (action instanceof SortAction) {

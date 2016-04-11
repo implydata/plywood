@@ -50,9 +50,10 @@ module Plywood {
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       var name = this.name;
+      var type = this.expression.type;
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
-        return inV ? inV.apply(name, expressionFn, foldContext(d, c)) : null;
+        return inV ? inV.apply(name, expressionFn, type, foldContext(d, c)) : null;
       }
     }
 

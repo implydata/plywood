@@ -7,7 +7,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Dataset, $, ply, r } = plywood;
+var { Dataset, $, ply, r, AttributeInfo } = plywood;
 
 describe("compute native", () => {
   var data = [
@@ -69,8 +69,8 @@ describe("compute native", () => {
 
   it("doesn't fallback if not null", (testComplete) => {
     var ex = $('x').fallback(5);
-    var p = ex.compute({ x: 2 });
-    p.then((v) => {
+    ex.compute({ x: 2 })
+      .then((v) => {
         expect(v).to.deep.equal(2);
         testComplete();
       })
@@ -120,6 +120,55 @@ describe("compute native", () => {
           { cut: 'Great', price: 124, priceX2: 248 },
           { cut: 'Wow', price: 160, priceX2: 320 }
         ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("works with pure filter", (testComplete) => {
+    var ds = Dataset.fromJS(data);
+
+    var ex = ply(ds).filter('$cut == Great');
+
+    ex.compute()
+      .then((v) => {
+        expect(AttributeInfo.toJSs(v.attributes)).to.deep.equal([
+          { "name": "time", "type": "TIME" },
+          { "name": "cut", "type": "STRING" },
+          { "name": "tags", "type": "SET/STRING" },
+          { "name": "price", "type": "NUMBER" }
+        ]);
+
+        expect(v.toJS()).to.deep.equal([
+          {
+            cut: 'Great',
+            price: 124,
+            tags: { type: "SET", setType: "STRING", elements: ['cool'] },
+            time: null
+          }
+        ]);
+
+        testComplete();
+      })
+      .done();
+  });
+
+  it("works with pure empty filter", (testComplete) => {
+    var ds = Dataset.fromJS(data);
+
+    var ex = ply(ds).filter('$cut == Best');
+
+    ex.compute()
+      .then((v) => {
+        expect(AttributeInfo.toJSs(v.attributes)).to.deep.equal([
+          { "name": "time", "type": "TIME" },
+          { "name": "cut", "type": "STRING" },
+          { "name": "tags", "type": "SET/STRING" },
+          { "name": "price", "type": "NUMBER" }
+        ]);
+
+        expect(v.toJS()).to.deep.equal([]);
+
         testComplete();
       })
       .done();
@@ -499,8 +548,8 @@ describe("compute native", () => {
       .apply('Data', ply(ds))
       .apply('CountPlusX', '$Data.count() + $x');
 
-    var p = ex.compute({ x: 13 });
-    p.then((v) => {
+    ex.compute({ x: 13 })
+      .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
             "CountPlusX": 19
@@ -527,8 +576,8 @@ describe("compute native", () => {
           .apply('MaxTime', '$Data.max($time)')
       );
 
-    var p = ex.compute({ x: 13 });
-    p.then((v) => {
+    ex.compute({ x: 13 })
+      .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
             "Cuts": [
@@ -709,8 +758,8 @@ describe("compute native", () => {
             .apply('Price', '$Data.sum($price)')
         );
 
-      var p = ex.compute();
-      p.then((v) => {
+      ex.compute()
+        .then((v) => {
           midData = v;
           expect(midData.toJS()).to.deep.equal([
             {
@@ -754,8 +803,8 @@ describe("compute native", () => {
             .apply('AvgPrice', '$Data.sum($price) / $Data.count()')
         );
 
-      var p = ex.compute();
-      p.then((v) => {
+      ex.compute()
+        .then((v) => {
           expect(v.toJS()).to.deep.equal([
             {
               "Count": 6,
@@ -811,8 +860,8 @@ describe("compute native", () => {
             .apply('Counts', '100 * $Data1.count() + $K2.count()')
         );
 
-      var p = ex.compute();
-      p.then((v) => {
+      ex.compute()
+        .then((v) => {
           expect(v.toJS()).to.deep.equal([
             {
               "Count1": 3,
