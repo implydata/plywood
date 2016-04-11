@@ -283,7 +283,7 @@ module Plywood {
     }
   }
 
-  function postProcessFactory(normalizer: Normalizer, inflaters: Inflater[]) {
+  function postProcessFactory(normalizer: Normalizer, inflaters: Inflater[], attributes: Attributes) {
     return (res: any): Dataset => {
       var data = normalizer(res);
       var n = data.length;
@@ -292,7 +292,7 @@ module Plywood {
           inflater(data[i], i, data);
         }
       }
-      return new Dataset({ data: data });
+      return new Dataset({ data, attributes });
     };
   }
 
@@ -1316,7 +1316,8 @@ return (start < 0 ?'-':'') + parts.join('.');
           granularity: granularity || 'all',
           postProcess: postProcessFactory(
             groupByNormalizerFactory(timestampLabel),
-            inflaters
+            inflaters,
+            null
           )
         };
       }
@@ -1332,7 +1333,8 @@ return (start < 0 ?'-':'') + parts.join('.');
           granularity: granularityInflater.granularity,
           postProcess: postProcessFactory(
             timeseriesNormalizerFactory(label),
-            [granularityInflater.inflater]
+            [granularityInflater.inflater],
+            null
           )
         };
       }
@@ -1348,7 +1350,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           queryType: 'topN',
           dimension: dimensionInflater.dimension,
           granularity: 'all',
-          postProcess: postProcessFactory(topNNormalizer, inflaters)
+          postProcess: postProcessFactory(topNNormalizer, inflaters, null)
         };
       }
 
@@ -1356,7 +1358,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         queryType: 'groupBy',
         dimensions: [dimensionInflater.dimension],
         granularity: 'all',
-        postProcess: postProcessFactory(groupByNormalizerFactory(), inflaters)
+        postProcess: postProcessFactory(groupByNormalizerFactory(), inflaters, null)
       };
     }
 
@@ -1851,7 +1853,8 @@ return (start < 0 ?'-':'') + parts.join('.');
           var timeAttribute = this.timeAttribute;
           var derivedAttributes = this.derivedAttributes;
           var selectedTimeAttribute: string = null;
-          this.getSelectedAttributes().forEach(attribute => {
+          var selectedAttributes = this.getSelectedAttributes()
+          selectedAttributes.forEach(attribute => {
             var { name, type, unsplitable } = attribute;
 
             if (name === timeAttribute) {
@@ -1908,7 +1911,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
           return {
             query: druidQuery,
-            postProcess: postProcessFactory(selectNormalizerFactory(selectedTimeAttribute), inflaters)
+            postProcess: postProcessFactory(selectNormalizerFactory(selectedTimeAttribute), inflaters, selectedAttributes)
           };
 
         case 'value':

@@ -252,8 +252,22 @@ describe("SQL parser", () => {
         });
       });
 
+      it('works with DATE()', () => {
+        var tests = sane`
+          DATE("2016-02-09")
+          DATE("2016-02-09 00:00:00")
+        `;
+
+        var ex = r(new Date('2016-02-09Z')).timeFloor('P1D');
+        tests.split('\n').forEach(test => {
+          var parse = Expression.parseSQL(test);
+          expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
+        });
+      });
+
       it('works with TIMESTAMP', () => {
         var tests = sane`
+          TIMESTAMP("20160209010203")
           TIMESTAMP "20160209010203"
           TIMESTAMP "160209010203"
           TIMESTAMP "2016-02-09 01:02:03"
@@ -288,6 +302,10 @@ describe("SQL parser", () => {
       });
 
       it('errors on TIME', () => {
+        expect(() => {
+          Expression.parseSQL("TIME('01:02:03')");
+        }).to.throw('time literals are not supported');
+
         expect(() => {
           Expression.parseSQL("{t '01:02:03'}");
         }).to.throw('time literals are not supported');
@@ -392,6 +410,15 @@ describe("SQL parser", () => {
 
     it("works with another DESCRIBE query", () => {
       var parse = Expression.parseSQL("DESCRIBE `my-table~~!@#$%^&*()_+-=` ; ");
+
+      expect(parse).to.deep.equal({
+        verb: 'DESCRIBE',
+        table: 'my-table~~!@#$%^&*()_+-='
+      });
+    });
+
+    it("works with another DESC query", () => {
+      var parse = Expression.parseSQL("DESC `my-table~~!@#$%^&*()_+-=` ; ");
 
       expect(parse).to.deep.equal({
         verb: 'DESCRIBE',
@@ -780,6 +807,42 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should work with a DATE_FORMAT function (PT1S)", () => {
+      var parse = Expression.parseSQL("DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d %H:%i:%s' )");
+      var ex2 = $('time').timeFloor('PT1S');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with a DATE_FORMAT function (PT1M)", () => {
+      var parse = Expression.parseSQL("DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d %H:%i:00' )");
+      var ex2 = $('time').timeFloor('PT1M');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with a DATE_FORMAT function (PTD)", () => {
+      var parse = Expression.parseSQL("DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d' )");
+      var ex2 = $('time').timeFloor('P1D');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with a DATE_FORMAT function (PTD)", () => {
+      var parse = Expression.parseSQL("DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d' )");
+      var ex2 = $('time').timeFloor('P1D');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with a ADDDATE(DATE_FORMAT) function (PTD)", () => {
+      var parse = Expression.parseSQL("ADDDATE(DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d' ), INTERVAL 0 SECOND )");
+      var ex2 = $('time').timeFloor('P1D');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("throws on non zero interval", () => {
+      expect(() => {
+        Expression.parseSQL("ADDDATE(DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d' ), INTERVAL 1 SECOND )");
+      }).to.throw('only zero intervals supported for now');
+    });
+
     it("should work with SELECT *", () => {
       var parse = Expression.parseSQL(sane`
         SELECT * FROM \`wiki\`
@@ -1021,5 +1084,28 @@ describe("SQL parser", () => {
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
+
   });
+
+
+  describe("SELECT (Tableau specific)", () => {
+    it("should work with this filter query", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT SUM(\`wikipedia\`.\`added\`) AS \`sum_added_ok\`,
+          ADDDATE( DATE_FORMAT( \`wikipedia\`.\`time\`, '%Y-%m-%d %H:%i:%s' ), INTERVAL 0 SECOND ) AS \`tsc_time_ok\`
+        FROM \`wikipedia\`
+        WHERE ((ADDDATE( DATE_FORMAT( \`wikipedia\`.\`time\`, '%Y-%m-%d %H:00:00' ), INTERVAL 0 SECOND ) >= TIMESTAMP('2015-09-12 00:00:00'))
+          AND (ADDDATE( DATE_FORMAT( \`wikipedia\`.\`time\`, '%Y-%m-%d %H:00:00' ), INTERVAL 0 SECOND ) <= TIMESTAMP('2015-09-12 23:00:00')))
+        GROUP BY 2
+      `);
+
+      var ex2 = $('wikipedia').filter("$time.timeFloor(PT1H) >= '2015-09-12 00:00:00' and $time.timeFloor(PT1H) <= '2015-09-12 23:00:00'")
+        .split('$time.timeFloor(PT1S)', 'tsc_time_ok', 'data')
+        .apply('sum_added_ok', '$data.sum($added)');
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+  });
+
 });

@@ -1,4 +1,5 @@
 var { expect } = require("chai");
+var { sane } = require('../utils');
 
 var { WallTime } = require('chronoshift');
 if (!WallTime.rules) {
@@ -76,6 +77,29 @@ describe("Druid Functional", function() {
           allowSelectQueries: true
         }, druidRequester)
       }
+    });
+
+    it("works basic case to CSV", (testComplete) => {
+      var ex = ply()
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
+        .apply(
+          'Cities',
+          $("wiki").split("$cityName", 'City')
+            .apply('TotalAdded', '$wiki.sum($added)')
+            .sort('$TotalAdded', 'descending')
+            .limit(2)
+        );
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toCSV({ lineBreak: '\n' })).to.deep.equal(sane`
+            City,TotalAdded
+            null,31529720
+            Mineola,50836
+          `);
+          testComplete();
+        })
+        .done();
     });
 
     it("works timePart case", (testComplete) => {

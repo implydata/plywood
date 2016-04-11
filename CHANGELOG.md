@@ -2,6 +2,15 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.1
+
+- Changed `helper.overrideByName` to `helper.overridesByName`, `helper.overrideByName` now does a single override
+- Added `finalLineBreak` option to `Dataset#toTabular`, `Dataset#toCSV`, `Dataset#toTSV` (default to 'include' for tabular and 'suppress' for toCSV and toTSV)
+- `Dataset` now always has introspected dimensions
+- Support for zero Intervals in PlyQL 
+- Support for `DATE_FORMAT` in PlyQL as used in MySQL for `TIME_FLOOR`
+
+
 ## 0.9.25
 
 - Dramatically reduced PlyQL parser size
@@ -136,6 +145,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - New 'value' mode in externals. `$wikipedia.sum($added)` is now computable.
 - More relaxed date literal parsing in PlyQL
 
+
 ## 0.8.21
 
 - Fix native `overlap` calculation
@@ -238,6 +248,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.8.1
 
 - Removing d3 dependency and minimizing code size
+
 
 ## 0.7.30
 
@@ -385,6 +396,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Fix support for `sort` and `limit` in SELECT queries
 - Better escaping in MySQL driver
 
+
 ## 0.6.3
 
 - Changed JS fallbacks in DruidExternal to use native code generators and removed some null bugs. 
@@ -399,10 +411,12 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
   `Expression.parseSQL(blah)` ==> `Expression.parseSQL(blah).expression`
 - In PlyQL changed the meaning of `GROUP BY <number>` to be a reference to a column (just like in MySQL and Postgres)
 
+
 ## 0.5.2
 
 - Added support for case sensitive (`normal`) / case insensitive (`ignoreCase`) contains.
 - Improved concat action support in Druid
+
 
 ## 0.5
 
@@ -411,6 +425,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Misc bug fixes
 - Added SortAction DESCENDING, ASCENDING, toggleDirection
 - DruidExternal guards against duplicate aggs and postAggs
+
 
 ## 0.4
 

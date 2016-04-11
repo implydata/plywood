@@ -25,7 +25,7 @@ describe("typecheck", () => {
   it("should throw on non numeric lessThan", () => {
     expect(() => {
       r(5).lessThan('hello');
-    }).to.throw("could not parse 'hello' as string");
+    }).to.throw("could not parse 'hello' as time");
   });
 
   it("should throw on bad IN", () => {

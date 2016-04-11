@@ -9,7 +9,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { External, TimeRange, $, ply, r } = plywood;
+var { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 
 var timeFilter = $('time').in(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
@@ -1010,7 +1010,7 @@ describe("DruidExternal", () => {
         "type": "search"
       });
     });
-    
+
     it("works with .lookup().contains()", () => {
       var ex = $('wiki').filter($("language").lookup('language_lookup').contains('eN', 'ignoreCase'));
 
@@ -1830,7 +1830,7 @@ describe("DruidExternal", () => {
           "type": "approxHistogramFold"
         }
       ]);
-      
+
       expect(query.postAggregations).to.deep.equal([
         {
           "fieldName": "!H_P95",
@@ -1973,7 +1973,15 @@ describe("DruidExternal", () => {
       it("works with [] return", (testComplete) => {
         ex.compute({ wiki: nullExternal })
           .then((result) => {
+            expect(AttributeInfo.toJSs(result.attributes)).to.deep.equal([
+              { name: 'time', type: 'TIME' },
+              { name: 'language', type: 'STRING' },
+              { name: 'page', type: 'STRING' },
+              { name: 'added', type: 'NUMBER' }
+            ]);
+
             expect(result.toJS()).to.deep.equal([]);
+            expect(result.toCSV()).to.equal('time,language,page,added');
             testComplete();
           })
           .done();
@@ -1982,7 +1990,15 @@ describe("DruidExternal", () => {
       it("works with [{result:[]}] return", (testComplete) => {
         ex.compute({ wiki: emptyExternal })
           .then((result) => {
+            expect(AttributeInfo.toJSs(result.attributes)).to.deep.equal([
+              { name: 'time', type: 'TIME' },
+              { name: 'language', type: 'STRING' },
+              { name: 'page', type: 'STRING' },
+              { name: 'added', type: 'NUMBER' }
+            ]);
+
             expect(result.toJS()).to.deep.equal([]);
+            expect(result.toCSV()).to.equal('time,language,page,added');
             testComplete();
           })
           .done();

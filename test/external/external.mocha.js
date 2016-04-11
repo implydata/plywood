@@ -146,7 +146,7 @@ describe("External", () => {
 
 
   describe("version check", () => {
-    it("works with invlaid version", () => {
+    it("works with invalid version", () => {
       expect(() => {
         External.fromJS({
           engine: 'druid',
@@ -309,8 +309,8 @@ describe("External", () => {
                 // Color removed
                 { name: 'cut', type: 'STRING' },
                 { name: 'carat', type: 'STRING' },
-                { name: 'unique_thing', type: 'NUMBER', unsplitable: true },
-                { name: 'price', type: 'NUMBER' }
+                { name: 'price', type: 'NUMBER' },
+                { name: 'unique_thing', type: 'NUMBER', unsplitable: true }
               ])
             });
           };
@@ -329,8 +329,8 @@ describe("External", () => {
               { name: 'color', type: 'STRING' },
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
-              { "name": "unique_thing", "special": "unique", "type": "STRING" },
-              { name: 'price', type: 'NUMBER' }
+              { name: 'price', type: 'NUMBER' },
+              { "name": "unique_thing", "special": "unique", "type": "STRING" }
             ]
           });
           testComplete();

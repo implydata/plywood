@@ -1,4 +1,5 @@
 var { expect } = require("chai");
+var { sane } = require('../utils');
 
 var { testImmutableClass } = require("immutable-class/build/tester");
 
@@ -749,20 +750,25 @@ describe("Dataset", () => {
 
     describe("#toCSV", () => {
       it("works with basic dataset", () => {
-        expect(carDataset.toTabular({})).to.equal(`time,make,model,price
-2015-01-04T12:32:43.000Z,Honda,Civic,10000
-2015-01-04T14:00:40.000Z,Toyota,Prius,20000
-`);
+        expect(carDataset.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+          time,make,model,price
+          2015-01-04T12:32:43.000Z,Honda,Civic,10000
+          2015-01-04T14:00:40.000Z,Toyota,Prius,20000
+        `);
       });
 
       it("works with sub-dataset", () => {
-        expect(carAndPartsDataset.toTabular({})).to.equal(`time,make,model,part,price,weight
-2015-01-04T12:32:43.000Z,Honda,Civic,Engine,10000,500
-2015-01-04T12:32:43.000Z,Honda,Civic,Door,10000,20
-2015-01-04T14:00:40.000Z,Toyota,Prius,Engine,20000,400
-2015-01-04T14:00:40.000Z,Toyota,Prius,Door,20000,25
-`);
+        expect(carAndPartsDataset.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+          time,make,model,part,price,weight
+          2015-01-04T12:32:43.000Z,Honda,Civic,Engine,10000,500
+          2015-01-04T12:32:43.000Z,Honda,Civic,Door,10000,20
+          2015-01-04T14:00:40.000Z,Toyota,Prius,Engine,20000,400
+          2015-01-04T14:00:40.000Z,Toyota,Prius,Door,20000,25
+        `);
       });
+      
     });
+    
   });
+  
 });
