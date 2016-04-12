@@ -26,12 +26,12 @@ var mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 });
 
-// druidRequester = helper.verboseRequesterFactory({
-//   requester: druidRequester
-// });
-// mySqlRequester = helper.verboseRequesterFactory({
-//   requester: mySqlRequester
-// });
+druidRequester = helper.verboseRequesterFactory({
+  requester: druidRequester
+});
+mySqlRequester = helper.verboseRequesterFactory({
+  requester: mySqlRequester
+});
 
 var attributes = [
   { name: 'time', type: 'TIME' },
@@ -419,6 +419,7 @@ describe("Cross Functional", function() {
       expression: $('wiki').filter('$time < "2015-09-12T02Z"').split($("time"), 'TimeRaw')
         .apply('TotalEdits', '$wiki.sum($count)')
         .sort('$TimeRaw', 'ascending')
+        .limit(20)
     }));
 
     it('works with TIME split (timeFloor) (sort on split)', equalityTest({
@@ -427,6 +428,7 @@ describe("Cross Functional", function() {
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TimeFloorHour', 'ascending')
+        .limit(20)
     }));
 
     it('works with TIME split (timeBucket) (sort on split)', equalityTest({
@@ -435,6 +437,7 @@ describe("Cross Functional", function() {
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TimeByHour', 'ascending')
+        .limit(20)
     }));
 
     it('works with TIME split (timeBucket) (sort on apply)', equalityTest({
@@ -561,6 +564,20 @@ describe("Cross Functional", function() {
         .sort('$TotalAdded', 'descending')
         .limit(4)
     }));
+
+    it('works with timeFloor multi-dimensional split', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki')
+        .split({
+          'Channel': "$channel",
+          'TimeByHour': '$time.timeFloor(PT1M)'
+        })
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(4)
+    }));
+
   });
 
 
@@ -631,6 +648,12 @@ describe("Cross Functional", function() {
         .apply('MaxTime', '$wiki.max($time)')
     }));
 
+    it.skip('works with filtered count', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: ply()
+        .apply('CrazyCount', "$wiki.filter($time < '2015-09-12T18Z').sum($count) + $wiki.filter('2015-09-12T18Z' <= $time).sum($count)")
+    }));
+
   });
 
 
@@ -674,7 +697,7 @@ describe("Cross Functional", function() {
   });
 
 
-  describe("select", () => {
+  describe("raw (select)", () => {
     it('works with empty filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').filter('$cityName == "I am pretty sure this city does not exist"')
@@ -698,6 +721,32 @@ describe("Cross Functional", function() {
     it('works with basic select action (no dimensions)', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').filter('$cityName == "El Paso"').select('added', 'deleted')
+    }));
+    
+    // Pick a city with distinct time values so as not worry about tie brakers
+    // SELECT cityName, COUNT(*) as cnt, COUNT(DISTINCT time) - COUNT(*) AS diff FROM wikipedia GROUP BY 1 HAVING diff = 0 AND cnt > 20 ORDER BY cnt DESC
+    it('works with sort on time ascending and limit', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').filter('$cityName == "Sydney"')
+        .select('time', 'added', 'deleted')
+        .sort('$time', 'ascending')
+        .limit(20)
+    }));
+
+    it('works with sort on time descending and limit', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').filter('$cityName == "Sydney"')
+        .select('time', 'added', 'deleted')
+        .sort('$time', 'descending')
+        .limit(20)
+    }));
+
+    it.skip('works with sort on something else and limit', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').filter('$cityName == "Sydney"')
+        .select('time', 'added', 'deleted')
+        .sort('$added', 'descending')
+        .limit(20)
     }));
 
     it.skip('works with derived dimension columns', equalityTest({

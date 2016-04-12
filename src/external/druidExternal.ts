@@ -544,38 +544,22 @@ module Plywood {
     }
 
     public canHandleSort(sortAction: SortAction): boolean {
-      var split = this.split;
-      if (!split || split.isMultiSplit()) return true;
-      var splitExpression = split.firstSplitExpression();
-      var label = split.firstSplitName();
-      if (splitExpression instanceof ChainExpression) {
-        if (splitExpression.actions.length === 1 && splitExpression.actions[0].action === 'timeBucket') {
-          if (sortAction.direction !== 'ascending') return false;
-          var sortExpression = sortAction.expression;
-          if (sortExpression instanceof RefExpression) {
-            return sortExpression.name === label;
-          } else {
-            return false;
-          }
-        } else {
-          return true
-        }
+      if (this.isTimeseries()) {
+        if (sortAction.direction !== 'ascending') return false;
+        return sortAction.refName() === this.split.firstSplitName();
+        
+      } else if (this.mode === 'raw') {
+        if (sortAction.refName() !== this.timeAttribute) return false;
+        if (this.versionBefore('0.9.0')) return sortAction.direction === 'ascending';
+        return true;
+        
       } else {
         return true;
       }
     }
 
     public canHandleLimit(limitAction: LimitAction): boolean {
-      var split = this.split;
-      if (!split || split.isMultiSplit()) return true;
-      var splitExpression = split.firstSplitExpression();
-      if (splitExpression instanceof ChainExpression) {
-        if (splitExpression.getExpressionPattern('concat')) return true;
-        if (splitExpression.actions.length !== 1) return false;
-        return splitExpression.actions[0].action !== 'timeBucket';
-      } else {
-        return true;
-      }
+      return !this.isTimeseries();
     }
 
     public canHandleHavingFilter(ex: Expression): boolean {
@@ -583,6 +567,21 @@ module Plywood {
     }
 
     // -----------------
+
+    public isTimeseries(): boolean {
+      const { split } = this;
+      if (!split || split.isMultiSplit()) return false;
+      var splitExpression = split.firstSplitExpression();
+      if (this.isTimeRef(splitExpression)) return true;
+
+      if (splitExpression instanceof ChainExpression) {
+        var actions = splitExpression.actions;
+        if (actions.length !== 1) return false;
+        var action = actions[0].action;
+        return action === 'timeBucket' || action === 'timeFloor';
+      }
+      return false;
+    }
 
     public getDruidDataSource(): Druid.DataSource {
       var dataSource = this.dataSource;
@@ -1238,8 +1237,6 @@ return (start < 0 ?'-':'') + parts.join('.');
         var splitAction = expression.lastAction();
 
         if (splitAction instanceof TimeBucketAction) {
-          var format = TIME_BUCKET_FORMAT[splitAction.duration.toString()];
-          if (!format) throw new Error(`unsupported part in timeBucket expression ${splitAction.duration}`);
           return {
             dimension,
             inflater: External.timeRangeInflaterFactory(label, splitAction.duration, splitAction.getTimezone())
@@ -1247,8 +1244,6 @@ return (start < 0 ?'-':'') + parts.join('.');
         }
 
         if (splitAction instanceof TimePartAction) {
-          var format = TIME_PART_TO_FORMAT[splitAction.part];
-          if (!format) throw new Error(`unsupported part in timePart expression ${splitAction.part}`);
           return {
             dimension,
             inflater: simpleMathInflaterFactory(label)
@@ -1275,14 +1270,14 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
 
       var effectiveType = unwrapSetType(expression.type);
-      if (effectiveType === 'BOOLEAN' || effectiveType === 'STRING' || effectiveType === 'NUMBER') {
+      if (simpleInflater || effectiveType === 'STRING') {
         return {
           dimension,
           inflater: simpleInflater
         };
       }
 
-      throw new Error(`could not convert ${expression} to a Druid Dimension`);
+      throw new Error(`could not convert ${expression} to a Druid dimension`);
     }
 
     public splitToDruid(split: SplitAction): DruidSplit {
@@ -1853,7 +1848,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           var timeAttribute = this.timeAttribute;
           var derivedAttributes = this.derivedAttributes;
           var selectedTimeAttribute: string = null;
-          var selectedAttributes = this.getSelectedAttributes()
+          var selectedAttributes = this.getSelectedAttributes();
           selectedAttributes.forEach(attribute => {
             var { name, type, unsplitable } = attribute;
 
@@ -1908,6 +1903,10 @@ return (start < 0 ?'-':'') + parts.join('.');
             "pagingIdentifiers": {},
             "threshold": limit ? limit.limit : 10000
           };
+
+          if (sort && sort.direction === 'descending') {
+            druidQuery.descending = true;
+          }
 
           return {
             query: druidQuery,

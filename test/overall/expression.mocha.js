@@ -27,6 +27,7 @@ describe("Expression", () => {
       { op: 'literal', value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] }, type: 'SET' },
       { op: 'literal', value: { setType: 'NUMBER', elements: [0.05, 0.1] }, type: 'SET' },
       { op: 'literal', value: [{}], type: 'DATASET' },
+      { op: 'literal', value: new Date('2015-10-10Z'), type: 'TIME' },
       { op: 'ref', name: 'authors' },
       { op: 'ref', name: 'light_time' },
       { op: 'ref', name: 'timestamp' },

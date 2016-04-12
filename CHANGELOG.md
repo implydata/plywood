@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.2
+
+- Ability to sort in select queries
+- Fix `timeFloor` now work with limit
+
 ## 0.10.1
 
 - Fixed bug where select queries including multi value dimensions would sometimes error out in DruidExternal

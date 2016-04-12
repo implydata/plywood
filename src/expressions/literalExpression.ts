@@ -42,6 +42,7 @@ module Plywood {
         js.type = isSetType(this.type) ? 'SET' : this.type;
       } else {
         js.value = this.value;
+        if (this.type === 'TIME') js.type = 'TIME';
       }
       return js;
     }

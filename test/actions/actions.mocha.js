@@ -71,6 +71,8 @@ describe("Actions", () => {
       { action: 'match', regexp: 'A[B]' },
       { action: 'match', regexp: '^fu*$' },
 
+      { action: 'lessThan', expression: { op: 'literal', type: 'TIME', value: new Date('2015-10-10Z') } },
+
       { action: 'overlap', expression: { op: 'ref', name: 'myVar' } },
       { action: 'overlap', expression: { op: 'literal', value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] }, type: 'SET' } },
 

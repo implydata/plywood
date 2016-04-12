@@ -356,6 +356,7 @@ declare module Druid {
         // http://druid.io/docs/latest/SelectQuery.html
         metrics?: string[];
         pagingSpec?: PagingSpec;
+        descending?: boolean;
     }
 
     /* ----------------------- *\
