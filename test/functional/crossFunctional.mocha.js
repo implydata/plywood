@@ -723,7 +723,7 @@ describe("Cross Functional", function() {
       expression: $('wiki').filter('$cityName == "El Paso"').select('added', 'deleted')
     }));
 
-    // Pick a city with distinct time values so as not worry about tie brakers
+    // Pick a city with distinct time values so as not worry about ties
     // SELECT cityName, COUNT(*) as cnt, COUNT(DISTINCT time) - COUNT(*) AS diff FROM wikipedia GROUP BY 1 HAVING diff = 0 AND cnt > 20 ORDER BY cnt DESC
     it('works with sort on time ascending and limit', equalityTest({
       executorNames: ['druid', 'mysql'],

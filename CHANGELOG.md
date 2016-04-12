@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.3
+
+- Added ability to do ISO8601 in PlyQL time literals
+
 ## 0.10.2
 
 - Ability to sort in select queries
