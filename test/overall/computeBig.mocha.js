@@ -22,7 +22,7 @@ wikiDayData.forEach((d, i) => {
 });
 
 describe("compute native nontrivial data", function() {
-  this.timeout(5000);
+  this.timeout(7000);
 
   var ds = Dataset.fromJS(wikiDayData);
 
