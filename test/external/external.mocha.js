@@ -586,20 +586,20 @@ describe("External", () => {
 
       it("works with a sort and a limit", () => {
         var ex = $('wiki')
-          .sort('$added')
+          .sort('$time')
           .limit(10);
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('external');
         var externalDataset = ex.external;
 
-        expect(externalDataset.sort.toString()).to.equal('sort($added:NUMBER,ascending)');
+        expect(externalDataset.sort.toString()).to.equal('sort($time:TIME,ascending)');
         expect(externalDataset.limit.toString()).to.equal('limit(10)');
       });
 
       it("works with a sort and a limit where there is also an aggregate", () => {
         var ex = $('wiki')
-          .sort('$added')
+          .sort('$time')
           .limit(10)
           .count();
 
@@ -607,7 +607,7 @@ describe("External", () => {
         expect(ex.op).to.equal('chain');
         var externalDataset = ex.expression.external;
 
-        expect(externalDataset.sort.toString()).to.equal('sort($added:NUMBER,ascending)');
+        expect(externalDataset.sort.toString()).to.equal('sort($time:TIME,ascending)');
         expect(externalDataset.limit.toString()).to.equal('limit(10)');
 
         expect(ex.actions).to.have.length(1);
