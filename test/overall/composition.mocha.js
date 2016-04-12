@@ -49,6 +49,7 @@ describe("composition", () => {
       },
       "expression": {
         "op": "literal",
+        "type": "TIME",
         "value": new Date('2016-01-01T00:00:00.000Z')
       },
       "op": "chain"
@@ -518,7 +519,7 @@ describe("composition", () => {
       },
       "op": "chain"
     });
-    
+
   });
-  
+
 });
