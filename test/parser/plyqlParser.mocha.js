@@ -232,6 +232,8 @@ describe("SQL parser", () => {
 
       it('works with DATE', () => {
         var tests = sane`
+          DATE "2016-02-09Z"
+          DATE "2016-02-09T01:01:01Z"
           DATE "2016-02-09"
           DATE "20160209"
           DATE "160209"
@@ -270,6 +272,8 @@ describe("SQL parser", () => {
           TIMESTAMP("20160209010203")
           TIMESTAMP "20160209010203"
           TIMESTAMP "160209010203"
+          TIMESTAMP "2016-02-09T01:02:03Z"
+          TIMESTAMP "2016-02-09T03:02:03+02:00"
           TIMESTAMP "2016-02-09 01:02:03"
           TIMESTAMP "2016/02$09 01:02:03"
           TIMESTAMP'2016/02$09 01:02:03'
@@ -290,6 +294,7 @@ describe("SQL parser", () => {
 
       it('works with TIMESTAMP.ms', () => {
         var tests = sane`
+          TIMESTAMP "2016-02-09T01:02:03.456Z"
           TIMESTAMP "2016-02-09 01:02:03.456"
           TIMESTAMP "2016/02$09 01:02:03.456789"
         `;

@@ -166,6 +166,11 @@ function makeDate(type, v) {
   try {
     return chronoshift.parseSQLDate(type, v);
   } catch (e) {
+    var isoDate = chronoshift.parseISODate(v);
+    if (isoDate) {
+      if (type === 'd') isoDate = chronoshift.day.floor(isoDate, Timezone.UTC);
+      return isoDate;
+    }
     error(e.message);
   }
 }
