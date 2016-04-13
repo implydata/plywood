@@ -41,26 +41,25 @@ var reservedWords = {
 
 var unsupportedVerbs = {
   ALTER: 1,
-  CREATE: 1,
-  DROP: 1,
-  RENAME: 1,
-  TRUNCATE: 1,
   CALL: 1,
+  CREATE: 1,
+  DEALLOCATE: 1,
   DELETE: 1,
   DO: 1,
+  DROP: 1,
+  EXECUTE: 1,
   HANDLER: 1,
   INSERT: 1,
   LOAD: 1,
-  REPLACE: 1,
-  UPDATE: 1,
-  START: 1,
-  SAVEPOINT: 1,
   LOCK: 1,
-  UNLOCK: 1,
   PREPARE: 1,
-  EXECUTE: 1,
-  DEALLOCATE: 1,
-  PREPARE: 1
+  RENAME: 1,
+  REPLACE: 1,
+  SAVEPOINT: 1,
+  START: 1,
+  TRUNCATE: 1,
+  UNLOCK: 1,
+  UPDATE: 1
 };
 
 var intervalUnits = {

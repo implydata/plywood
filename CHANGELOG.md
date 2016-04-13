@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.3
+
+- Removed duplicate entry that killed in strict mode.
+
 ## 0.10.2
 
 - Added ability to do ISO8601 in PlyQL time literals
