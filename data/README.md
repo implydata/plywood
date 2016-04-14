@@ -14,6 +14,7 @@
 ### Setup
 
 ```bash
+eval $(docker-machine env)
 docker build -t plywood-test-druid "${IMPLY_PROJECTS}/plywood/data/druid"
 docker run -v "${IMPLY_PROJECTS}/plywood/data":/opt/data -p 8081-8110:8081-8110 -p 8200:8200 -p 9095:9095 -d --name plywood-test-druid plywood-test-druid
 docker exec -it plywood-test-druid /opt/data/druid/load-data
