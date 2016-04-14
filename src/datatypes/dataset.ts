@@ -8,7 +8,7 @@ module Plywood {
   }
 
   export interface ComputeFn {
-    (d: Datum, c: Datum): any;
+    (d: Datum, c: Datum, index?: number): any;
   }
 
   export interface SplitFns {
@@ -423,35 +423,51 @@ module Plywood {
 
     // Actions
     public select(attrs: string[]): Dataset {
-      var value = this.valueOf();
-      var data = value.data;
-      for (let datum of data) {
+      var attrLookup: Lookup<boolean> = Object.create(null);
+      for (var attr of attrs) attrLookup[attr] = true;
+
+      var data = this.data;
+      var n = data.length;
+      var newData = new Array(n);
+      for (var i = 0; i < n; i++) {
+        var datum = data[i];
+        var newDatum = Object.create(null);
         for (let key in datum) {
-          if (attrs.indexOf(key) === -1) {
-            delete datum[key]; // Note this works in place, fix that later if needed.
+          if (attrLookup[key]) {
+            newDatum[key] = datum[key];
           }
         }
+        newData[i] = newDatum;
       }
 
-      value.attributes = value.attributes.filter((attribute) => attrs.indexOf(attribute.name) !== -1);
+      var value = this.valueOf();
+      value.attributes = value.attributes.filter((attribute) => attrLookup[attribute.name]);
+      value.data = newData;
       return new Dataset(value);
     }
 
     public apply(name: string, exFn: ComputeFn, type: PlyType, context: Datum): Dataset {
-      var value = this.valueOf();
-      var data = value.data;
-      for (let datum of data) {
-        datum[name] = exFn(datum, context); // Note this works in place, fix that later if needed.
+      var data = this.data;
+      var n = data.length;
+      var newData = new Array(n);
+      for (var i = 0; i < n; i++) {
+        var datum = data[i];
+        var newDatum = Object.create(null);
+        for (let key in datum) newDatum[key] = datum[key];
+        newDatum[name] = exFn(datum, context, i);
+        newData[i] = newDatum;
       }
 
       // Hack
       var datasetType: Lookup<FullType> = null;
-      if (type === 'DATASET' && data[0] && data[0][name]) {
-        datasetType = (data[0][name] as any).getFullType().datasetType;
+      if (type === 'DATASET' && newData[0] && newData[0][name]) {
+        datasetType = (newData[0][name] as any).getFullType().datasetType;
       }
       // End Hack
 
+      var value = this.valueOf();
       value.attributes = helper.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
+      value.data = newData;
       return new Dataset(value);
     }
 
@@ -459,21 +475,7 @@ module Plywood {
       var value = this.valueOf();
       var promises = value.data.map(datum => exFn(datum, context));
       return Q.all(promises).then(values => {
-        var data = value.data;
-        var n = data.length;
-        for (var i = 0; i < n; i++) {
-          data[i][name] = values[i]; // Note this works in place, fix that later if needed.
-        }
-
-        // Hack
-        var datasetType: Lookup<FullType> = null;
-        if (type === 'DATASET' && data[0] && data[0][name]) {
-          datasetType = (data[0][name] as any).getFullType().datasetType;
-        }
-        // End Hack
-
-        value.attributes = helper.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
-        return new Dataset(value);
+        return this.apply(name, ((d, c, i) => values[i]), type, context);
       });
     }
 

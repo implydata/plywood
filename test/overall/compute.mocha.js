@@ -374,7 +374,7 @@ describe("compute native", () => {
       .done();
   });
 
-  it("works with select", (testComplete) => {
+  it("works with a basic select", (testComplete) => {
     var ds = Dataset.fromJS(data);
 
     var ex = ply(ds).select('price', 'cut');
@@ -388,6 +388,47 @@ describe("compute native", () => {
           { cut: 'Wow',   price: 160  },
           { cut: 'Wow',   price: 100  },
           { cut: null,    price: null }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("works with a transformed select", (testComplete) => {
+    var ds = Dataset.fromJS(data);
+
+    var ex = ply(ds)
+      .apply('[cut]', '"[" ++ $cut ++ "]"')
+      .apply('price+1', '$price + 1')
+      .select('[cut]', 'price+1');
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "[cut]": "[Good]",
+            "price+1": 401
+          },
+          {
+            "[cut]": "[Good]",
+            "price+1": 301
+          },
+          {
+            "[cut]": "[Great]",
+            "price+1": 125
+          },
+          {
+            "[cut]": "[Wow]",
+            "price+1": 161
+          },
+          {
+            "[cut]": "[Wow]",
+            "price+1": 101
+          },
+          {
+            "[cut]": null,
+            "price+1": 1
+          }
         ]);
         testComplete();
       })

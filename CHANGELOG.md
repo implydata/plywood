@@ -4,6 +4,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.10.4
 
+- Made Dataset#apply and Dataset#select truly immutable
 - Fix Druid introspection bug on JS ingestion aggregators
 - Allow data-less PlyQL queries like `SELECT 1+1`
 - Default PlyQL `AS` text now matches SQL implementation.  
