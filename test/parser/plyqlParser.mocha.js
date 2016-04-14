@@ -487,6 +487,20 @@ describe("SQL parser", () => {
       }).to.throw('Unmatched double quote on');
     });
 
+    it("should parse a trivial expression", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT 1+1 AS Two, 1+3 AS Three;
+      `);
+
+      var ex2 = ply()
+        .apply('Two', '1+1')
+        .apply('Three', '1+3');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.table).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("should parse a simple expression", () => {
       var parse = Expression.parseSQL(sane`
         SELECT

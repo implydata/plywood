@@ -7,7 +7,17 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Dataset, $, ply, r, AttributeInfo } = plywood;
+var { Dataset, $, ply, r, AttributeInfo, External } = plywood;
+
+// used to trigger routes with external
+var dummyExternal = External.fromJS({
+  engine: 'druid',
+  dataSource: 'diamonds',
+  attributes: [
+    { name: 'time', type: 'TIME' },
+    { name: 'color', type: 'STRING' }
+  ]
+});
 
 describe("compute native", () => {
   var data = [
@@ -119,6 +129,63 @@ describe("compute native", () => {
           { cut: 'Good', price: 400, priceX2: 800 },
           { cut: 'Great', price: 124, priceX2: 248 },
           { cut: 'Wow', price: 160, priceX2: 320 }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("works with filter, select", (testComplete) => {
+    var ds = Dataset.fromJS(data);
+
+    var ex = $('ds').filter('$price > 200').select('cut');
+
+    ex.compute({ ds, dummyExternal })
+      .then((v) => {
+        expect(v.getColumns()).to.deep.equal([
+          {
+            "name": "cut",
+            "type": "STRING"
+          }
+        ]);
+
+        expect(v.toJS()).to.deep.equal([
+          {
+            "cut": "Good"
+          },
+          {
+            "cut": "Good"
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("works with select, limit", (testComplete) => {
+    var ds = Dataset.fromJS(data);
+
+    var ex = $('ds').select('cut').limit(3);
+
+    ex.compute({ ds })
+      .then((v) => {
+        expect(v.getColumns()).to.deep.equal([
+          {
+            "name": "cut",
+            "type": "STRING"
+          }
+        ]);
+
+        expect(v.toJS()).to.deep.equal([
+          {
+            "cut": "Good"
+          },
+          {
+            "cut": "Good"
+          },
+          {
+            "cut": "Great"
+          }
         ]);
         testComplete();
       })
