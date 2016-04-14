@@ -1,7 +1,7 @@
 var fs = require('fs');
 var PEG = require("pegjs");
 
-var prefixToRemove = '(function() {';
+var prefixToRemove = '(function() {\n  "use strict";\n';
 var postfixToRemove = '})()';
 
 // Expressions
@@ -21,7 +21,7 @@ try {
 
 expressionParser = expressionParser.substring(prefixToRemove.length, expressionParser.length - postfixToRemove.length);
 
-expressionParser = 'module.exports = function(plywood, chronoshift) {' + expressionParser + '};\n';
+expressionParser = '"use strict";\nmodule.exports = function(plywood, chronoshift) {' + expressionParser + '};\n';
 
 fs.writeFileSync('./build/expressionParser.js', expressionParser, 'utf8');
 
@@ -42,6 +42,6 @@ try {
 
 plyqlParser = plyqlParser.substring(prefixToRemove.length, plyqlParser.length - postfixToRemove.length);
 
-plyqlParser = 'module.exports = function(plywood, chronoshift) {' + plyqlParser + '};\n';
+plyqlParser = '"use strict";\nmodule.exports = function(plywood, chronoshift) {' + plyqlParser + '};\n';
 
 fs.writeFileSync('./build/plyqlParser.js', plyqlParser, 'utf8');

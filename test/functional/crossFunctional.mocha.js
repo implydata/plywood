@@ -701,26 +701,31 @@ describe("Cross Functional", function() {
     it('works with empty filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').filter('$cityName == "I am pretty sure this city does not exist"')
+        .select('page', 'channel', 'comment', 'added')
     }));
 
     it('works with basic filter', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression: $('wiki').filter('$cityName == "El Paso"')
+        .select('page', 'channel', 'comment', 'added')
     }));
 
     it('works with basic select action', equalityTest({
       executorNames: ['druid', 'mysql'],
-      expression: $('wiki').filter('$cityName == "El Paso"').select('channel', 'comment', 'added')
+      expression: $('wiki').filter('$cityName == "El Paso"')
+        .select('page', 'channel', 'comment', 'added')
     }));
 
     it('works with basic select action (no measures)', equalityTest({
       executorNames: ['druid', 'mysql'],
-      expression: $('wiki').filter('$cityName == "El Paso"').select('time', 'channel', 'comment')
+      expression: $('wiki').filter('$cityName == "El Paso"')
+        .select('time', 'channel', 'comment')
     }));
 
     it('works with basic select action (no dimensions)', equalityTest({
       executorNames: ['druid', 'mysql'],
-      expression: $('wiki').filter('$cityName == "El Paso"').select('added', 'deleted')
+      expression: $('wiki').filter('$cityName == "El Paso"')
+        .select('added', 'deleted')
     }));
 
     // Pick a city with distinct time values so as not worry about ties

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 docker-machine start default
 eval $(docker-machine env)
