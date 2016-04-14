@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.4
+
+- Fix Druid introspection bug on JS ingestion aggregators
+- Allow data-less PlyQL queries like `SELECT 1+1`
+- Default PlyQL `AS` text now matches SQL implementation.  
+
 ## 0.10.3
 
 - Removed duplicate entry that killed in strict mode.

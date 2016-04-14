@@ -394,8 +394,12 @@ Columns
 Column
   = ex:Expression as:As?
     {
+      if (as == null) {
+        as = text().trim();
+        if (as[0] === '`' && as[as.length - 1] === '`') as = as.substr(1, as.length - 2);
+      }
       return new ApplyAction({
-        name: as || text().replace(/^\W+|\W+$/g, '').replace(/\W+/g, '_'),
+        name: as,
         expression: ex
       });
     }

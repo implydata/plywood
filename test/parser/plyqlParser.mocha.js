@@ -519,12 +519,12 @@ describe("SQL parser", () => {
 
     it("should parse a simple expression 2", () => {
       var parse = Expression.parseSQL(sane`
-        SELECT COUNT(page)
+        SELECT  COUNT(page)
       `);
 
       var ex2 = ply()
         .apply('data', '$data')
-        .apply('COUNT_page', '$data.filter($page.isnt(null)).count()');
+        .apply('COUNT(page)', '$data.filter($page.isnt(null)).count()');
 
       expect(parse.verb).to.equal('SELECT');
       expect(parse.table).to.equal(null);

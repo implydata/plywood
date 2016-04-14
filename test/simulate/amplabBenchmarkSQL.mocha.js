@@ -142,8 +142,8 @@ describe("simulate Druid for amplab benchmark", () => {
     var ex = Expression.parseSQL(sql).expression;
 
     expect(ex.toJS()).to.deep.equal(
-      $('uservisits').split('$sourceIP.substr(1, 5)', 'SUBSTR_sourceIP_1_5', 'data')
-        .apply('SUM_adRevenue', '$data.sum($adRevenue)')
+      $('uservisits').split('$sourceIP.substr(1, 5)', 'SUBSTR(sourceIP, 1, 5)', 'data')
+        .apply('SUM(adRevenue)', '$data.sum($adRevenue)')
         .toJS()
     );
 
@@ -152,7 +152,7 @@ describe("simulate Druid for amplab benchmark", () => {
         "aggregations": [
           {
             "fieldName": "adRevenue",
-            "name": "SUM_adRevenue",
+            "name": "SUM(adRevenue)",
             "type": "doubleSum"
           }
         ],
@@ -165,7 +165,7 @@ describe("simulate Druid for amplab benchmark", () => {
               "index": 1,
               "length": 5
             },
-            "outputName": "SUBSTR_sourceIP_1_5",
+            "outputName": "SUBSTR(sourceIP, 1, 5)",
             "type": "extraction"
           }
         ],
@@ -173,7 +173,7 @@ describe("simulate Druid for amplab benchmark", () => {
         "intervals": "1000-01-01/3000-01-01",
         "limitSpec": {
           "columns": [
-            "SUBSTR_sourceIP_1_5"
+            "SUBSTR(sourceIP, 1, 5)"
           ],
           "limit": 500000,
           "type": "default"
