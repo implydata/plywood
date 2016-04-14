@@ -34,10 +34,11 @@ module Plywood {
     public timeToSQL(date: Date): string {
       if (!date) return 'NULL';
       var str = date.toISOString()
-        .replace("T", " ")
-        .replace(/\.\d\d\dZ$/, "")
-        .replace(" 00:00:00", "");
-      return "'" + str + "'";
+        .replace('T', ' ')
+        .replace('Z', '')
+        .replace(/\.000$/, '')
+        .replace(/ 00:00:00$/, '');
+      return `TIMESTAMP('${str}')`;
     }
 
     public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, zeroSQL: string = '0'): string {
