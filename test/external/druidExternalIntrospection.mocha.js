@@ -53,6 +53,13 @@ describe("DruidExternal Introspection", () => {
             "errorMessage": null
           },
           "count": { "type": "LONG", "hasMultipleValues": false, "size": 0, "cardinality": null, "errorMessage": null },
+          "delta": {
+            "type": "FLOAT",
+            "hasMultipleValues": false,
+            "size": 0,
+            "cardinality": null,
+            "errorMessage": null
+          },
           "delta_hist": {
             "type": "approximateHistogram",
             "hasMultipleValues": false,
@@ -102,9 +109,23 @@ describe("DruidExternal Introspection", () => {
 
       if (query.analysisTypes.indexOf("aggregators") !== -1) {
         merged.aggregators = {
+          // Normal aggs
           "added": { "type": "doubleSum", "name": "added", "fieldName": "added" },
           "count": { "type": "longSum", "name": "count", "fieldName": "count" },
-          "delta": { "type": "doubleSum", "name": "delta", "fieldName": "delta" },
+
+          // This can happen if the JS agg was used at ingestion time
+          "delta": {
+            "type": "javascript",
+            "name": "delta",
+            "fieldNames": [
+              "delta"
+            ],
+            "fnAggregate": "function(partialA,partialB) {return partialA + partialB; }",
+            "fnReset": "function() {return 0; }",
+            "fnCombine": "function(partialA,partialB) {return partialA + partialB; }"
+          },
+
+          // A histogram
           "delta_hist": {
             "type": "approxHistogramFold",
             "name": "delta_hist",
@@ -369,6 +390,18 @@ describe("DruidExternal Introspection", () => {
               "action": "count"
             },
             "name": "count",
+            "type": "NUMBER",
+            "unsplitable": true
+          },
+          {
+            "makerAction": {
+              "action": "sum",
+              "expression": {
+                "name": "delta",
+                "op": "ref"
+              }
+            },
+            "name": "delta",
             "type": "NUMBER",
             "unsplitable": true
           },
@@ -766,7 +799,8 @@ describe("DruidExternal Introspection", () => {
         "intervals": "1000-01-01/3000-01-01",
         "metrics": [
           "added",
-          "count"
+          "count",
+          "delta"
         ],
         "pagingSpec": {
           "pagingIdentifiers": {},
@@ -776,7 +810,7 @@ describe("DruidExternal Introspection", () => {
       });
       return Q([]);
     };
-    
+
     var wikiExternal = External.fromJS({
       engine: 'druid',
       dataSource: 'wikipedia',

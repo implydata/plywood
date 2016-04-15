@@ -138,7 +138,7 @@ module Plywood {
   export function $(name: string, nest?: number, type?: PlyType): RefExpression;
   export function $(name: string, type?: PlyType): RefExpression;
   export function $(name: string, nest?: any, type?: PlyType): RefExpression {
-    if (typeof name !== 'string') throw new TypeError('name must be a string');
+    if (typeof name !== 'string') throw new TypeError('$() argument must be a string');
     if (typeof nest === 'string') {
       type = nest;
       nest = 0;

@@ -105,7 +105,7 @@ describe("simulate MySQL", () => {
       FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
       COALESCE(COUNT(*), 0) AS "Count"
       FROM \`diamonds\`
-      WHERE (((\`color\`<=>"D") AND (\`cut\`<=>"some_cut")) AND ('2015-03-13 07:00:00'<=\`time\` AND \`time\`<'2015-03-14 07:00:00'))
+      WHERE (((\`color\`<=>"D") AND (\`cut\`<=>"some_cut")) AND (TIMESTAMP('2015-03-13 07:00:00')<=\`time\` AND \`time\`<TIMESTAMP('2015-03-14 07:00:00')))
       GROUP BY 1
       ORDER BY \`Count\` DESC
       LIMIT 3

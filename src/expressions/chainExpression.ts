@@ -419,9 +419,12 @@ module Plywood {
         } else if (action instanceof LimitAction) {
           return dataset.limit(action.limit);
 
+        } else if (action instanceof SelectAction) {
+          return dataset.select(action.attributes);
+
         }
 
-        throw new Error(`could not execute ${action}`);
+        throw new Error(`could not execute action ${action}`);
       }
 
       var value = this.expression._computeResolvedSimulate(false, simulatedQueries);
@@ -458,9 +461,12 @@ module Plywood {
           } else if (action instanceof LimitAction) {
             return dataset.limit(action.limit);
 
+          } else if (action instanceof SelectAction) {
+            return dataset.select(action.attributes);
+
           }
 
-          throw new Error(`could not execute ${action}`);
+          throw new Error(`could not execute action ${action}`);
         }
       }
 

@@ -316,11 +316,17 @@ module Plywood {
 
   function generateMakerAction(aggregation: Druid.Aggregation): Action {
     if (!aggregation) return null;
-    const { type, fieldName } = aggregation;
+    var { type, fieldName } = aggregation;
 
     // Hacky way to guess at a count
     if (type === 'longSum' && fieldName === 'count') {
       return new CountAction({});
+    }
+
+    if (!fieldName) {
+      var { fieldNames } = aggregation;
+      if (!Array.isArray(fieldNames) || fieldNames.length !== 1) return null;
+      fieldName = fieldNames[0];
     }
 
     var expression = $(fieldName);
@@ -330,6 +336,11 @@ module Plywood {
 
       case "doubleSum":
       case "longSum":
+        return new SumAction({ expression });
+
+      case "javascript":
+        const { fnAggregate, fnCombine } = aggregation;
+        if (fnAggregate !== fnCombine || fnCombine.indexOf('+') === -1) return null;
         return new SumAction({ expression });
 
       case "doubleMin":
@@ -547,12 +558,12 @@ module Plywood {
       if (this.isTimeseries()) {
         if (sortAction.direction !== 'ascending') return false;
         return sortAction.refName() === this.split.firstSplitName();
-        
+
       } else if (this.mode === 'raw') {
         if (sortAction.refName() !== this.timeAttribute) return false;
         if (this.versionBefore('0.9.0')) return sortAction.direction === 'ascending';
         return true;
-        
+
       } else {
         return true;
       }

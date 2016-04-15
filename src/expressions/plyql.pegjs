@@ -193,14 +193,7 @@ function extractGroupByColumn(columns, groupBy, index) {
   };
 }
 
-function constructQuery(distinct, columns, from, where, groupBys, having, orderBy, limit) {
-  if (!columns) error('Can not have empty column list');
-  from = from ? $(from) : dataRef;
-
-  if (where) {
-    from = from.filter(where);
-  }
-
+function upgradeGroupBys(distinct, columns, groupBys) {
   if (Array.isArray(columns)) { // Not *
     if (!groupBys) {
       // Support for not having a group by clause if there are aggregates in the columns
@@ -212,13 +205,13 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
           columnExpression.actions.some(function(action) { return action.isAggregate(); })
       })
       if (hasAggregate) {
-        groupBys = [Expression.EMPTY_STRING];
+        return [Expression.EMPTY_STRING];
       } else if (distinct) {
-        groupBys = columns.map(function(column) { return column.expression });
+        return columns.map(function(column) { return column.expression });
       }
 
     } else {
-      groupBys = groupBys.map(function(groupBy) {
+      return groupBys.map(function(groupBy) {
         if (groupBy.isOp('literal') && groupBy.type === 'NUMBER') {
           // Support for not having a group by clause refer to a select column by index
 
@@ -233,39 +226,70 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
     }
   }
 
-  var query = null;
-  if (!groupBys) {
-    query = from;
+  return groupBys;
+}
 
-    if (Array.isArray(columns)) {
-      var attributes = [];
-      for (var i = 0; i < columns.length; i++) {
-        var column = columns[i];
-        query = query.performAction(column);
-        attributes.push(column.name);
-      }
-      query = query.select.apply(query, attributes);
+function staticColumn(column) {
+  return column.expression.getFreeReferences().length === 0;
+}
+
+function constructQuery(distinct, columns, from, where, groupBys, having, orderBy, limit) {
+  if (!columns) error('Can not have empty column list');
+
+  var query = null;
+
+  if (!distinct && Array.isArray(columns) && !from && !where && !groupBys && columns.every(staticColumn)) {
+    // This is a SELECT 1+1; type query
+    query = ply();
+    for (var i = 0; i < columns.length; i++) {
+      query = query.performAction(columns[i]);
     }
 
   } else {
-    if (columns === '*') error('can not SELECT * with a GROUP BY');
+    from = from ? $(from) : dataRef;
 
-    if (groupBys.length === 1 && groupBys[0].isOp('literal')) {
-      query = ply().apply('data', from);
-    } else {
-      var splits = {};
-      for (var i = 0; i < groupBys.length; i++) {
-        var groupBy = groupBys[i];
-        var extract = extractGroupByColumn(columns, groupBy, i);
-        columns = extract.otherColumns;
-        splits[extract.label] = groupBy;
-      }
-      query = from.split(splits, 'data');
+    if (where) {
+      from = from.filter(where);
     }
 
-    if (Array.isArray(columns)) {
-      for (var i = 0; i < columns.length; i++) {
-        query = query.performAction(columns[i]);
+    groupBys = upgradeGroupBys(distinct, columns, groupBys);
+
+
+    if (!groupBys) {
+      // Select query
+      query = from;
+
+      if (Array.isArray(columns)) {
+        var attributes = [];
+        for (var i = 0; i < columns.length; i++) {
+          var column = columns[i];
+          query = query.performAction(column);
+          attributes.push(column.name);
+        }
+        query = query.select.apply(query, attributes);
+      }
+
+    } else {
+      // Group By query
+      if (columns === '*') error('can not SELECT * with a GROUP BY');
+
+      if (groupBys.length === 1 && groupBys[0].isOp('literal')) {
+        query = ply().apply('data', from);
+      } else {
+        var splits = {};
+        for (var i = 0; i < groupBys.length; i++) {
+          var groupBy = groupBys[i];
+          var extract = extractGroupByColumn(columns, groupBy, i);
+          columns = extract.otherColumns;
+          splits[extract.label] = groupBy;
+        }
+        query = from.split(splits, 'data');
+      }
+
+      if (Array.isArray(columns)) {
+        for (var i = 0; i < columns.length; i++) {
+          query = query.performAction(columns[i]);
+        }
       }
     }
   }
@@ -370,8 +394,12 @@ Columns
 Column
   = ex:Expression as:As?
     {
+      if (as == null) {
+        as = text().trim();
+        if (as[0] === '`' && as[as.length - 1] === '`') as = as.substr(1, as.length - 2);
+      }
       return new ApplyAction({
-        name: as || text().replace(/^\W+|\W+$/g, '').replace(/\W+/g, '_'),
+        name: as,
         expression: ex
       });
     }
