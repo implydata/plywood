@@ -41,8 +41,10 @@ module Plywood {
 
   export interface SQLParse {
     verb: string;
+    rewrite?: string;
     expression?: Expression;
     table?: string;
+    database?: string;
     rest?: string;
   }
 

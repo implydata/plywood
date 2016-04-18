@@ -4,7 +4,7 @@ echo "Sleep for 15 seconds to make sure the server starts";
 sleep 15;
 
 echo "Setting up MySQL...";
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS plywood_test;"
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS plywood_test CHARACTER SET utf8 COLLATE utf8_general_ci;"
 
 echo "Creating table...";
 mysql -u root plywood_test < /opt/data/mysql/wikipedia-create-raw-table.sql;

@@ -1915,7 +1915,7 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12/2015-03-19",
         "limitSpec": {
           "columns": [
-            "Cut"
+            { "dimension": "Cut" }
           ],
           "limit": 500000,
           "type": "default"
@@ -1989,7 +1989,7 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12/2015-03-19",
         "limitSpec": {
           "columns": [
-            "Color"
+            { "dimension": "Color" }
           ],
           "limit": 3,
           "type": "default"
@@ -2045,7 +2045,7 @@ describe("simulate Druid", () => {
         $("diamonds").split({
             'Cut': "$cut",
             'Color': '$color',
-            'TimeByHour': '$time.timeBucket(PT1H, "Etc/UTC")'
+            'ATimeByHour': '$time.timeBucket(PT1H, "Etc/UTC")'
           })
           .apply('Count', $('diamonds').count())
       );
@@ -2086,7 +2086,7 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12/2015-03-19",
         "limitSpec": {
           "columns": [
-            "Color"
+            { "dimension": "Color" }
           ],
           "limit": 500000,
           "type": "default"

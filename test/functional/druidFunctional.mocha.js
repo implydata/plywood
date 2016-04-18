@@ -1271,7 +1271,7 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it("works with SELECT", (testComplete) => {
+    it("works with raw (SELECT)", (testComplete) => {
       var ex = $('wiki').filter('$cityName == "El Paso"');
 
       basicExecutor(ex)
@@ -1338,6 +1338,89 @@ describe("Druid Functional", function() {
                 "type": "SET"
               },
               "user_unique": "AQAAAQAAAAOIQA=="
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with raw (SELECT) inside a split", (testComplete) => {
+      var ex = $('wiki')
+        .filter('$cityName.match("^San")')
+        .split('$cityName', 'City')
+        .apply('Edits', '$wiki.sum($count)')
+        .sort('$Edits', 'descending')
+        .limit(2)
+        .apply(
+          'Latest2Events',
+          $('wiki').sort('$time', 'descending')
+            .select("time", "channel", "commentLength")
+            .limit(3)
+        );
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "City": "Santiago",
+              "Edits": 135,
+              "Latest2Events": [
+                {
+                  "channel": "es",
+                  "commentLength": 15,
+                  "time": {
+                    "type": "TIME",
+                    "value": new Date('2015-09-12T23:35:00.000Z')
+                  }
+                },
+                {
+                  "channel": "es",
+                  "commentLength": 73,
+                  "time": {
+                    "type": "TIME",
+                    "value": new Date('2015-09-12T23:17:00.000Z')
+                  }
+                },
+                {
+                  "channel": "es",
+                  "commentLength": 18,
+                  "time": {
+                    "type": "TIME",
+                    "value": new Date('2015-09-12T23:14:00.000Z')
+                  }
+                }
+              ]
+            },
+            {
+              "City": "San Juan",
+              "Edits": 41,
+              "Latest2Events": [
+                {
+                  "channel": "en",
+                  "commentLength": 20,
+                  "time": {
+                    "type": "TIME",
+                    "value": new Date('2015-09-12T22:57:00.000Z')
+                  }
+                },
+                {
+                  "channel": "en",
+                  "commentLength": 20,
+                  "time": {
+                    "type": "TIME",
+                    "value": new Date('2015-09-12T22:55:00.000Z')
+                  }
+                },
+                {
+                  "channel": "en",
+                  "commentLength": 15,
+                  "time": {
+                    "type": "TIME",
+                    "value": new Date('2015-09-12T19:42:00.000Z')
+                  }
+                }
+              ]
             }
           ]);
           testComplete();

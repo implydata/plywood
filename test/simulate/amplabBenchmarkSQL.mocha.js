@@ -126,7 +126,7 @@ describe("simulate Druid for amplab benchmark", () => {
         "intervals": "1000-01-01/3000-01-01",
         "limitSpec": {
           "columns": [
-            "pageURL"
+            { "dimension": "pageURL" }
           ],
           "limit": 500000,
           "type": "default"
@@ -173,7 +173,7 @@ describe("simulate Druid for amplab benchmark", () => {
         "intervals": "1000-01-01/3000-01-01",
         "limitSpec": {
           "columns": [
-            "SUBSTR(sourceIP, 1, 5)"
+            { "dimension": "SUBSTR(sourceIP, 1, 5)" }
           ],
           "limit": 500000,
           "type": "default"

@@ -769,6 +769,22 @@ describe("Cross Functional", function() {
         .apply('AddedX2', '$added * 2')
     }));
 
+    it("works with raw data inside a split", equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki')
+        .filter('$cityName.match("^San")')
+        .split('$cityName', 'City')
+        .apply('Edits', '$wiki.sum($count)')
+        .sort('$Edits', 'descending')
+        .limit(2)
+        .apply(
+          'Latest2Events',
+          $('wiki').sort('$time', 'descending')
+            .select("time", "channel", "commentLength")
+            .limit(3)
+        )
+    }));
+
   });
 
 
