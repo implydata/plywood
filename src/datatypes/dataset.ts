@@ -758,7 +758,7 @@ module Plywood {
 
     public toCSV(tabulatorOptions: TabulatorOptions = {}): string {
       var csvFormatter = helper.shallowCopy(tabulatorOptions.formatter);
-      var stringFn = defaultFormatter['STRING'] || csvFormatter['STRING'];
+      var stringFn = csvFormatter['STRING'] || defaultFormatter['STRING'];
       csvFormatter['STRING'] = (v: string) => {
         var str = stringFn(v);
         if (str[0] === "\"" || str.indexOf(",") === -1) return str;
