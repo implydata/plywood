@@ -906,6 +906,7 @@ module Plywood {
       if (this.mode !== 'raw') return null; // Can only select on 'raw' datasets
 
       var value = this.valueOf();
+      value.suppress = false;
       value.select = selectAction;
       return External.fromValue(value);
     }
@@ -966,6 +967,7 @@ module Plywood {
       if (!this.canHandleLimit(action)) return null;
 
       var value = this.valueOf();
+      value.suppress = false;
       if (!value.limit || action.limit < value.limit.limit) {
         value.limit = action;
       }

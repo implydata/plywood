@@ -127,6 +127,7 @@ module Plywood {
 
   export interface DruidSplit {
     queryType: string;
+    timestampLabel?: string;
     granularity: Druid.Granularity | string;
     dimension?: Druid.DimensionSpec;
     dimensions?: Druid.DimensionSpec[];
@@ -1319,6 +1320,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         return {
           queryType: 'groupBy',
           dimensions: dimensions,
+          timestampLabel,
           granularity: granularity || 'all',
           postProcess: postProcessFactory(
             groupByNormalizerFactory(timestampLabel),
@@ -2032,11 +2034,17 @@ return (start < 0 ?'-':'') + parts.join('.');
                   }
                 }
               } else { // Going to sortOnLabel implicitly
-                if (expressionNeedsAlphaNumericSort(split.firstSplitExpression())) {
-                  orderByColumn = {
-                    dimension: split.firstSplitName(),
-                    dimensionOrder: 'alphaNumeric'
-                  };
+                // Find the first non primary time key
+                var { timestampLabel } = splitSpec;
+                var splitKeys = split.keys.filter(k => k !== timestampLabel);
+                if (!splitKeys.length) throw new Error('could not find order by column for group by');
+                var splitKey = splitKeys[0];
+                var keyExpression = split.splits[splitKey];
+                orderByColumn = {
+                  dimension: splitKey,
+                };
+                if (expressionNeedsAlphaNumericSort(keyExpression)) {
+                  orderByColumn.dimensionOrder = 'alphaNumeric';
                 }
               }
 

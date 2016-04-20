@@ -424,8 +424,14 @@ module Plywood {
 
     // Actions
     public select(attrs: string[]): Dataset {
+      var attributes = this.attributes;
+      var newAttributes: Attributes = [];
       var attrLookup: Lookup<boolean> = Object.create(null);
-      for (var attr of attrs) attrLookup[attr] = true;
+      for (var attr of attrs) {
+        attrLookup[attr] = true;
+        var existingAttribute = helper.findByName(attributes, attr);
+        if (existingAttribute) newAttributes.push(existingAttribute)
+      }
 
       var data = this.data;
       var n = data.length;
@@ -442,7 +448,7 @@ module Plywood {
       }
 
       var value = this.valueOf();
-      value.attributes = value.attributes.filter((attribute) => attrLookup[attribute.name]);
+      value.attributes = newAttributes;
       value.data = newData;
       return new Dataset(value);
     }

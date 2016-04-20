@@ -1127,4 +1127,114 @@ describe("SQL parser", () => {
 
   });
 
+
+  describe("SHOW", () => {
+    it("should work with SHOW VARIABLES", () => {
+      var parse = Expression.parseSQL(sane`
+        SHOW VARIABLES like 'collation_server'
+      `);
+
+      var ex2 = $('GLOBAL_VARIABLES')
+        .filter($('VARIABLE_NAME').match('^collation.server$'))
+        .apply('Variable_name', $('VARIABLE_NAME'))
+        .apply('Value', $('VARIABLE_VALUE'))
+        .select('Variable_name', 'Value');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with SHOW DATABASES", () => {
+      var parse = Expression.parseSQL(sane`
+        SHOW DATABASES
+      `);
+
+      var ex2 = $('SCHEMATA')
+        .apply('Database', $('SCHEMA_NAME'))
+        .select('Database');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with SHOW SCHEMAS", () => {
+      var parse = Expression.parseSQL(sane`
+        SHOW SCHEMAS LIKE "Vannie%"
+      `);
+
+      var ex2 = $('SCHEMATA')
+        .filter($('SCHEMA_NAME').match('^Vannie.*$'))
+        .apply('Database', $('SCHEMA_NAME'))
+        .select('Database');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with SHOW TABLES", () => {
+      var parse = Expression.parseSQL(sane`
+        SHOW TABLES IN my_db
+      `);
+
+      var ex2 = $('TABLES')
+        .filter($('TABLE_SCHEMA').is('my_db'))
+        .apply('Tables_in_database', $('TABLE_NAME'))
+        .select('Tables_in_database');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with SHOW COLUMNS", () => {
+      var parse = Expression.parseSQL(sane`
+        SHOW COLUMNS IN my_table IN my_db
+      `);
+
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is('my_table'))
+        .filter($('TABLE_SCHEMA').is('my_db'))
+        .apply('Field', $('COLUMN_NAME'))
+        .apply('Type', $('COLUMN_TYPE'))
+        .apply('Null', $('IS_NULLABLE'))
+        .apply('Key', $('COLUMN_KEY'))
+        .apply('Default', $('COLUMN_DEFAULT'))
+        .apply('Extra', $('EXTRA'))
+        .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with SHOW FULL COLUMNS", () => {
+      var parse = Expression.parseSQL(sane`
+        SHOW FULL COLUMNS IN my_table IN my_db LIKE "T%"
+      `);
+
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is('my_table'))
+        .filter($('TABLE_SCHEMA').is('my_db'))
+        .filter($('COLUMN_NAME').match('^T.*$'))
+        .apply('Field', $('COLUMN_NAME'))
+        .apply('Type', $('COLUMN_TYPE'))
+        .apply('Null', $('IS_NULLABLE'))
+        .apply('Key', $('COLUMN_KEY'))
+        .apply('Default', $('COLUMN_DEFAULT'))
+        .apply('Extra', $('EXTRA'))
+        .apply('Collation', $('COLLATION_NAME'))
+        .apply('Privileges', $('PRIVILEGES'))
+        .apply('Comment', $('COLUMN_COMMENT'))
+        .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra', 'Collation', 'Privileges', 'Comment');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+  });
+
 });

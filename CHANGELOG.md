@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.5
+
+- Fixed DruidExternal sometimes generating an invalid Druid query when doind a multi-dimensional split that includes time
+- Unsuppress datasource when it is limited or selected
+- Better show query support
+
 ## 0.10.4
 
 - Made Dataset#apply and Dataset#select truly immutable

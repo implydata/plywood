@@ -246,10 +246,10 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
     }
 
   } else {
-    from = from ? $(from) : dataRef;
+    var fromEx = from ? $(from.name) : dataRef;
 
     if (where) {
-      from = from.filter(where);
+      fromEx = fromEx.filter(where);
     }
 
     groupBys = upgradeGroupBys(distinct, columns, groupBys);
@@ -257,7 +257,7 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
 
     if (!groupBys) {
       // Select query
-      query = from;
+      query = fromEx;
 
       if (Array.isArray(columns)) {
         var attributes = [];
@@ -274,7 +274,7 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
       if (columns === '*') error('can not SELECT * with a GROUP BY');
 
       if (groupBys.length === 1 && groupBys[0].isOp('literal')) {
-        query = ply().apply('data', from);
+        query = ply().apply('data', fromEx);
       } else {
         var splits = {};
         for (var i = 0; i < groupBys.length; i++) {
@@ -283,7 +283,7 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
           columns = extract.otherColumns;
           splits[extract.label] = groupBy;
         }
-        query = from.split(splits, 'data');
+        query = fromEx.split(splits, 'data');
       }
 
       if (Array.isArray(columns)) {
@@ -332,7 +332,7 @@ start
   = _ queryParse:Query QueryTerminator? { return queryParse; }
 
 Query
-  = queryParse:(SelectQuery / DescribeQuery / OtherQuery / UnsupportedQuery)
+  = queryParse:(SelectQuery / DescribeQuery / ShowQuery / SetQuery / UnsupportedQuery)
     {
       return queryParse;
     }
@@ -344,8 +344,82 @@ Query
       }
     }
 
-OtherQuery
-  = verb:(ShowToken / SetToken) rest:$(.*)
+ShowQuery
+  = ShowToken ex:ShowQueryExpression
+    {
+      return {
+        verb: 'SELECT',
+        rewrite: 'SHOW',
+        database: 'information_schema',
+        expression: ex
+      };
+    }
+
+
+ShowQueryExpression
+  = VariablesToken like:LikeRhs?
+    {
+      // https://dev.mysql.com/doc/refman/5.7/en/show-variables.html
+      var ex = $('GLOBAL_VARIABLES')
+      if (like) ex = ex.filter(like($('VARIABLE_NAME')));
+      return ex
+        .apply('Variable_name', $('VARIABLE_NAME'))
+        .apply('Value', $('VARIABLE_VALUE'))
+        .select('Variable_name', 'Value');
+    }
+  / (SchemasToken / DatabasesToken) like:LikeRhs?
+    {
+      // https://dev.mysql.com/doc/refman/5.0/en/schemata-table.html
+      var ex = $('SCHEMATA')
+      if (like) ex = ex.filter(like($('SCHEMA_NAME')));
+      return ex
+        .apply('Database', $('SCHEMA_NAME'))
+        .select('Database');
+    }
+  / TablesToken db:(FromOrIn Ref)? like:LikeRhs?
+    {
+      // https://dev.mysql.com/doc/refman/5.0/en/tables-table.html
+      var ex = $('TABLES')
+      if (db) ex= ex.filter($('TABLE_SCHEMA').is(db[1]));
+      if (like) ex = ex.filter(like($('TABLE_NAME')));
+      return ex
+        .apply('Tables_in_database', $('TABLE_NAME'))
+        .select('Tables_in_database');
+    }
+  / full:FullToken? ColumnsToken FromOrIn table:RelaxedNamespacedRef db:(FromOrIn Ref)? like:LikeRhs? where:WhereClause?
+    {
+      // https://dev.mysql.com/doc/refman/5.0/en/columns-table.html
+      var ex = $('COLUMNS').filter($('TABLE_NAME').is(table.name));
+      db = db ? db[1] : table.namespace;
+      if (db) ex = ex.filter($('TABLE_SCHEMA').is(db));
+      if (like) ex = ex.filter(like($('COLUMN_NAME')));
+      if (where) ex = ex.filter(where);
+      ex = ex
+        .apply('Field', $('COLUMN_NAME'))
+        .apply('Type', $('COLUMN_TYPE'))
+        .apply('Null', $('IS_NULLABLE'))
+        .apply('Key', $('COLUMN_KEY'))
+        .apply('Default', $('COLUMN_DEFAULT'))
+        .apply('Extra', $('EXTRA'))
+
+      if (full) {
+        ex = ex
+          .apply('Collation', $('COLLATION_NAME'))
+          .apply('Privileges', $('PRIVILEGES'))
+          .apply('Comment', $('COLUMN_COMMENT'))
+          .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra', 'Collation', 'Privileges', 'Comment')
+      } else {
+        ex = ex.select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra')
+      }
+
+      return ex;
+    }
+
+FromOrIn = FromToken / InToken;
+
+
+SetQuery
+  = verb:SetToken rest:$(.*)
     {
       return {
         verb: verb,
@@ -377,7 +451,8 @@ SelectQuery
       return {
         verb: 'SELECT',
         expression: constructQuery(distinct, columns, from, where, groupBys, having, orderBy, limit),
-        table: from
+        table: from ? from.name : null,
+        database: from ? from.namespace : null
       };
     }
 
@@ -408,8 +483,8 @@ As
   = AsToken name:(String / Ref) { return name; }
 
 FromClause
-  = FromToken table:RelaxedNamespacedRef
-    { return table.name; }
+  = FromToken nr:RelaxedNamespacedRef
+    { return nr; }
 
 WhereClause
   = WhereToken filter:Expression
@@ -476,51 +551,56 @@ NotExpression
 ComparisonExpression
   = ex:AdditiveExpression rhs:ComparisonExpressionRhs?
     {
-      if (rhs) {
-        ex = ex[rhs.call].apply(ex, rhs.args);
-        if (rhs.not) ex = ex.not();
-      }
+      if (rhs) ex = rhs(ex);
       return ex;
     }
 
 ComparisonExpressionRhs
   = not:NotToken? rhs:ComparisonExpressionRhsNotable
     {
-      rhs.not = not;
-      return rhs;
+      if (!not) return rhs;
+      return function(ex) { return rhs(ex).not(); };
     }
   / IsToken not:NotToken? rhs:AdditiveExpression
     {
-      return { call: 'is', args: [rhs], not: not };
+      return function(ex) {
+        ex = ex.is(rhs);
+        if (not) ex = ex.not();
+        return ex;
+      };
     }
   / op:ComparisonOp _ lhs:AdditiveExpression
     {
-      return { call: op, args: [lhs] };
+      return function(ex) { return ex[op](lhs); };
     }
 
 ComparisonExpressionRhsNotable
   = BetweenToken start:LiteralExpression AndToken end:LiteralExpression
     {
       var range = { start: start.value, end: end.value, bounds: '[]' };
-      return { call: 'in', args: [range] };
+      return function(ex) { return ex.in(range); };
     }
   / InToken list:(InListLiteralExpression / AdditiveExpression)
     {
-      return { call: 'in', args: [list] };
+      return function(ex) { return ex.in(list); };
     }
   / ContainsToken string:String
     {
-      return { call: 'contains', args: [string, 'ignoreCase'] };
+      return function(ex) { return ex.contains(string, 'ignoreCase'); };
     }
-  / LikeToken string:String escape:(EscapeToken String)?
+  / LikeRhs
+  / RegExpToken string:String
+    {
+      return function(ex) { return ex.match(string); };
+    }
+
+LikeRhs
+  = LikeToken string:String escape:(EscapeToken String)?
     {
       var escapeStr = escape ? escape[1] : '\\';
       if (escapeStr.length > 1) error('Invalid escape string: ' + escapeStr);
-      return { call: 'match', args: [MatchAction.likeToRegExp(string, escapeStr)] };
-    }
-  / RegExpToken string:String
-    {
-      return { call: 'match', args: [string] };
+      var regExp = MatchAction.likeToRegExp(string, escapeStr);
+      return function(ex) { return ex.match(regExp); };
     }
 
 ComparisonOp
@@ -705,6 +785,13 @@ SelectToken        = "SELECT"i         !IdentifierPart _ { return 'SELECT'; }
 DescribeToken      = "DESCRIBE"i       !IdentifierPart _ { return 'DESCRIBE'; }
 ShowToken          = "SHOW"i           !IdentifierPart _ { return 'SHOW'; }
 SetToken           = "SET"i            !IdentifierPart _ { return 'SET'; }
+
+VariablesToken     = "VARIABLES"i      !IdentifierPart _
+DatabasesToken     = "DATABASES"i      !IdentifierPart _
+SchemasToken       = "SCHEMAS"i        !IdentifierPart _
+ColumnsToken       = "COLUMNS"i        !IdentifierPart _
+FullToken          = "FULL"i           !IdentifierPart _
+TablesToken        = "TABLES"i         !IdentifierPart _
 
 FromToken          = "FROM"i           !IdentifierPart _
 AsToken            = "AS"i             !IdentifierPart _
