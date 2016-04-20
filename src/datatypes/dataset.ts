@@ -140,6 +140,7 @@ module Plywood {
     'SET/TIME_RANGE': (v: Set) => { return String(v); },
     'STRING': (v: string) => {
       v = '' + v;
+      v = v.replace(/(?:\r\n|\r|\n)/g, ' ');
       if (v.indexOf('"') === -1) return v;
       return '"' + v.replace(/"/g, '""') + '"';
     },
@@ -756,6 +757,14 @@ module Plywood {
     }
 
     public toCSV(tabulatorOptions: TabulatorOptions = {}): string {
+      var csvFormatter = helper.shallowCopy(tabulatorOptions.formatter);
+      var stringFn = csvFormatter['STRING'] || defaultFormatter['STRING'];
+      csvFormatter['STRING'] = (v: string) => {
+        var str = stringFn(v);
+        if (str[0] === "\"" || str.indexOf(",") === -1) return str;
+        return `"${str}"`;
+      };
+      tabulatorOptions.formatter = csvFormatter;
       tabulatorOptions.separator = tabulatorOptions.separator || ',';
       tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
       tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';

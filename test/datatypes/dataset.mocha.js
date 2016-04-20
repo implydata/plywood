@@ -766,9 +766,72 @@ describe("Dataset", () => {
           2015-01-04T14:00:40.000Z,Toyota,Prius,Door,20000,25
         `);
       });
-      
+
+      it("escapes commas by enclosing whole field in quotes", () => {
+        var dsComma = Dataset.fromJS([
+          { letter: 'dear john, how are you doing' }
+        ]);
+        expect(dsComma.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+        letter
+        "dear john, how are you doing"
+        `);
+      });
+
+      it("escapes quotes by escaping quoted text but not if already quoted due to comma escape", () => {
+        var dsComma = Dataset.fromJS([
+          { letter: 'dear john, how are you "doing"' }
+        ]);
+        expect(dsComma.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+        letter
+        "dear john, how are you ""doing"""
+        `);
+      });
+
+      it("removes line breaks with csv", () => {
+        var dsLineBreak = Dataset.fromJS([
+          { letter: `dear john\nhow are you doing?\r\nI'm good.\r-mildred` }
+        ]);
+        expect(dsLineBreak.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+        letter
+        dear john how are you doing? I'm good. -mildred
+        `);
+      });
+
+      it("is ok with null", () => {
+        var ds = Dataset.fromJS([
+          { letter: null }
+        ]);
+
+        expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+        letter
+        null
+        `);
+      });
+
     });
-    
+
+
+    describe("#toTSV", () => {
+      it("does not escape commas in text by enclosing whole field in quotes", () => {
+        var dsComma = Dataset.fromJS([
+          { letter: 'dear john, how are you doing' }
+        ]);
+        expect(dsComma.toTSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+        letter
+        dear john, how are you doing
+        `);
+      });
+
+      it.skip("escapes tabs in text field", () => {
+        var dsComma = Dataset.fromJS([
+          { letter: 'dear john, \thow are you doing' }
+        ]);
+        expect(dsComma.toTSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+        letter
+        dear john, how are you doing
+        `);
+      });
+    })
   });
   
 });
