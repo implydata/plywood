@@ -767,7 +767,7 @@ describe("Dataset", () => {
         `);
       });
 
-      it("escapes commas in text by enclosing whole field in quotes", () => {
+      it("escapes commas by enclosing whole field in quotes", () => {
         var dsComma = Dataset.fromJS([
           { letter: 'dear john, how are you doing' }
         ]);
@@ -777,7 +777,7 @@ describe("Dataset", () => {
         `);
       });
 
-      it("escapes quotes in text by escaping quoted text but not if already quoted", () => {
+      it("escapes quotes by escaping quoted text but not if already quoted due to comma escape", () => {
         var dsComma = Dataset.fromJS([
           { letter: 'dear john, how are you "doing"' }
         ]);
@@ -809,6 +809,8 @@ describe("Dataset", () => {
       });
 
     });
+
+
     describe("#toTSV", () => {
       it("does not escape commas in text by enclosing whole field in quotes", () => {
         var dsComma = Dataset.fromJS([
