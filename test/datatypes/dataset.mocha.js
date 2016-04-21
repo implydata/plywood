@@ -820,7 +820,7 @@ describe("Dataset", () => {
 
       it("escapes sets properly", () => {
         var ds = Dataset.fromJS([
-          { w: [1, 2], x: 1, y: ['hel,lo', 'mo\non'], z: [new Date("2015-02-20T00:00:00").toString(), new Date("2015-02-21T00:00:00").toString()] },
+          { w: [1, 2], x: 1, y: ['hel,lo', 'mo\non'], z: ["Thu Feb 19 2015 16:00:00 GMT-0800 (PST)", "Fri Feb 20 2015 16:00:00 GMT-0800 (PST)"] },
           { w: ["null"], x: 2, y: ['wo\r\nrld', 'mo\ron'], z: ["stars"] }
         ]);
         expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
