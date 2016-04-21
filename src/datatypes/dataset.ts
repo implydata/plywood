@@ -715,8 +715,11 @@ module Plywood {
     }
 
     private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, parentName: string, nesting: number, context: Datum, flat: PseudoDatum[]): void {
+      var nestedColumnsLength = nestedColumns.length;
+      if (!nestedColumnsLength) return;
+
       var data = this.data;
-      var leaf = nestedColumns[nestedColumns.length - 1].type !== 'DATASET';
+      var leaf = nestedColumns[nestedColumnsLength - 1].type !== 'DATASET';
       for (let datum of data) {
         var flatDatum: PseudoDatum = context ? copy(context) : {};
         if (nestingName) flatDatum[nestingName] = nesting;

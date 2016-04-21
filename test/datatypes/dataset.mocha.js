@@ -312,6 +312,13 @@ describe("Dataset", () => {
   describe("methods", () => {
     var emptyDataset = Dataset.fromJS([]);
 
+    var emptyNestedDataset = Dataset.fromJS([
+      {
+        count: 0,
+        split: []
+      }
+    ]);
+
     var carDataset = Dataset.fromJS([
       {
         time: new Date('2015-01-04T12:32:43'),
@@ -540,6 +547,11 @@ describe("Dataset", () => {
       it("works with empty dataset", () => {
         expect(emptyDataset.flatten()).to.deep.equal([]);
       });
+
+      it("works with empty nested dataset", () => {
+        expect(emptyNestedDataset.flatten()).to.deep.equal([]);
+      });
+
 
       it("works with basic dataset", () => {
         expect(carDataset.flatten()).to.deep.equal([
