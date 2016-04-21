@@ -766,14 +766,13 @@ describe("Dataset", () => {
           { number: 2, isEmpty: true }
         ]);
 
-        var finalizer = (type, v) => {
-          if (type === 'NUMBER') return v * 2;
-          if (type === 'BOOLEAN') return !v;
+        var finalizer = (v) => {
+          return !v + 2;
         };
 
         expect(ds.toTabular({ finalizer: finalizer, lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
           isEmpty,number
-          false,4
+          2,2
         `);
 
       })
@@ -819,15 +818,15 @@ describe("Dataset", () => {
         `);
       });
 
-      it("escapes set/string properly", () => {
+      it("escapes sets properly", () => {
         var ds = Dataset.fromJS([
-          { x: 1, y: ['hel,lo', 'mo\non'] },
-          { x: 2, y: ['wo\r\nrld', 'mo\ron'] }
+          { w: [1, 2], x: 1, y: ['hel,lo', 'mo\non'], z: [new Date("2015-02-20T00:00:00").toString(), new Date("2015-02-21T00:00:00").toString()] },
+          { w: ["null"], x: 2, y: ['wo\r\nrld', 'mo\ron'], z: ["stars"] }
         ]);
         expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
-          x,y
-          1,"hel,lo, mo on"
-          2,"wo rld, mo on"
+          w,x,y,z
+          "1, 2",1,"hel,lo, mo on","Thu Feb 19 2015 16:00:00 GMT-0800 (PST), Fri Feb 20 2015 16:00:00 GMT-0800 (PST)"
+          null,2,"wo rld, mo on",stars
         `);
       });
 
