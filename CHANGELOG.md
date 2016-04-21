@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.6
+
+- Added `finalizer` option to `Dataset#toTabular`
+- Fixed quoting when exporting to CSV or TSV
+
 ## 0.10.5
 
 - Fixed DruidExternal sometimes generating an invalid Druid query when doing a multi-dimensional split that includes time
