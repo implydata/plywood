@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.7
+
+- Accidentally published again.
+
 ## 0.10.6
 
 - Added `finalizer` option to `Dataset#toTabular`
