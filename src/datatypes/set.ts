@@ -175,7 +175,8 @@ module Plywood {
     }
 
     public toString(): string {
-      return `SET_${this.setType}(${this.elements.length})`;
+      if (this.setType === "NULL") return "null";
+      return `${this.elements.map(String).join(", ")}`;
     }
 
     public equals(other: Set): boolean {

@@ -100,6 +100,20 @@ module Plywood {
     return sortColumns(uniqueColumns(flatColumns));
   }
 
+  function removeLineBreaks(v: string): string {
+    return v.replace(/(?:\r\n|\r|\n)/g, ' ');
+  }
+
+  var escapeFnCSV = (v: string) => {
+    v = removeLineBreaks(v);
+    if (v.indexOf('"') === -1 &&  v.indexOf(",") === -1) return v;
+    return `"${v.replace(/"/g, '""')}"`;
+  };
+
+  var escapeFnTSV = (v: string) => {
+    return removeLineBreaks(v).replace(/\t/g, "").replace(/"/g, '""');
+  };
+
   var typeOrder: Lookup<number> = {
     'NULL': 0,
     'TIME': 1,
@@ -135,21 +149,16 @@ module Plywood {
   var defaultFormatter: Formatter = {
     'NULL': (v: any) => { return 'NULL'; },
     'TIME': (v: Date) => { return v.toISOString(); },
-    'TIME_RANGE': (v: TimeRange) => { return String(v) },
-    'SET/TIME': (v: Set) => { return String(v); },
-    'SET/TIME_RANGE': (v: Set) => { return String(v); },
-    'STRING': (v: string) => {
-      v = '' + v;
-      v = v.replace(/(?:\r\n|\r|\n)/g, ' ');
-      if (v.indexOf('"') === -1) return v;
-      return '"' + v.replace(/"/g, '""') + '"';
-    },
-    'SET/STRING': (v: Set) => { return String(v); },
-    'BOOLEAN': (v: boolean) => { return String(v); },
-    'NUMBER': (v: number) => { return String(v); },
-    'NUMBER_RANGE': (v: NumberRange) => { return String(v); },
-    'SET/NUMBER': (v: Set) => { return String(v); },
-    'SET/NUMBER_RANGE': (v: Set) => { return String(v); },
+    'TIME_RANGE': (v: TimeRange) => { return '' + v; },
+    'SET/TIME': (v: Set) => { return '' + v; },
+    'SET/TIME_RANGE': (v: Set) => { return '' + v; },
+    'STRING': (v: string) => { return '' + v; },
+    'SET/STRING': (v: Set) => { return '' + v; },
+    'BOOLEAN': (v: boolean) => { return '' + v; },
+    'NUMBER': (v: number) => { return '' + v; },
+    'NUMBER_RANGE': (v: NumberRange) => { return '' + v; },
+    'SET/NUMBER': (v: Set) => { return '' + v; },
+    'SET/NUMBER_RANGE': (v: Set) => { return '' + v; },
     'DATASET': (v: Dataset) => { return 'DATASET'; }
   };
 
@@ -167,6 +176,7 @@ module Plywood {
     lineBreak?: string;
     finalLineBreak?: FinalLineBreak;
     formatter?: Formatter;
+    finalizer?: (v: string) => string;
   }
 
   function isBoolean(b: any) {
@@ -745,6 +755,7 @@ module Plywood {
 
     public toTabular(tabulatorOptions: TabulatorOptions): string {
       var formatter: Formatter = tabulatorOptions.formatter || {};
+      var finalizer: (v: string) => string = tabulatorOptions.finalizer;
       var data = this.flatten(tabulatorOptions);
       var columns = this.getColumns(tabulatorOptions);
 
@@ -754,7 +765,10 @@ module Plywood {
       for (var i = 0; i < data.length; i++) {
         var datum = data[i];
         lines.push(columns.map(c => {
-          return String((formatter[c.type] || defaultFormatter[c.type])(datum[c.name]));
+          var value = datum[c.name];
+          var formatted = String((formatter[c.type] || defaultFormatter[c.type])(value));
+          var finalized = formatted && finalizer ? finalizer(formatted) : formatted;
+          return finalized;
         }).join(tabulatorOptions.separator || ','));
       }
 
@@ -763,14 +777,7 @@ module Plywood {
     }
 
     public toCSV(tabulatorOptions: TabulatorOptions = {}): string {
-      var csvFormatter = helper.shallowCopy(tabulatorOptions.formatter);
-      var stringFn = csvFormatter['STRING'] || defaultFormatter['STRING'];
-      csvFormatter['STRING'] = (v: string) => {
-        var str = stringFn(v);
-        if (str[0] === "\"" || str.indexOf(",") === -1) return str;
-        return `"${str}"`;
-      };
-      tabulatorOptions.formatter = csvFormatter;
+      tabulatorOptions.finalizer = escapeFnCSV;
       tabulatorOptions.separator = tabulatorOptions.separator || ',';
       tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
       tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
@@ -778,6 +785,7 @@ module Plywood {
     }
 
     public toTSV(tabulatorOptions: TabulatorOptions = {}): string {
+      tabulatorOptions.finalizer = escapeFnTSV;
       tabulatorOptions.separator = tabulatorOptions.separator || '\t';
       tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
       tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';

@@ -4,7 +4,7 @@ var { sane } = require('../utils');
 var { testImmutableClass } = require("immutable-class/build/tester");
 
 var plywood = require('../../build/plywood');
-var { Dataset, AttributeInfo, $, ply, r } = plywood;
+var { Dataset, AttributeInfo, $, Set, r } = plywood;
 
 describe("Dataset", () => {
   it("is immutable class", () => {
@@ -748,6 +748,37 @@ describe("Dataset", () => {
     });
 
 
+    describe("#toTabular", () => {
+      it("does not auto remove line breaks", () => {
+        var dsLineBreak = Dataset.fromJS([
+          { letter: `dear john\nhow are you doing\nfish` }
+        ]);
+        expect(dsLineBreak.toTabular({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+          letter
+          dear john
+          how are you doing
+          fish
+        `);
+      });
+
+      it("allows for custom finalization", () => {
+        var ds = Dataset.fromJS([
+          { number: 2, isEmpty: true }
+        ]);
+
+        var finalizer = (v) => {
+          return !v + 2;
+        };
+
+        expect(ds.toTabular({ finalizer: finalizer, lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+          isEmpty,number
+          2,2
+        `);
+
+      })
+    });
+
+
     describe("#toCSV", () => {
       it("works with basic dataset", () => {
         expect(carDataset.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
@@ -787,6 +818,18 @@ describe("Dataset", () => {
         `);
       });
 
+      it("escapes sets properly", () => {
+        var ds = Dataset.fromJS([
+          { w: [1, 2], x: 1, y: ['hel,lo', 'mo\non'], z: ["Thu Feb 19 2015 16:00:00 GMT-0800 (PST)", "Fri Feb 20 2015 16:00:00 GMT-0800 (PST)"] },
+          { w: ["null"], x: 2, y: ['wo\r\nrld', 'mo\ron'], z: ["stars"] }
+        ]);
+        expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+          w,x,y,z
+          "1, 2",1,"hel,lo, mo on","Thu Feb 19 2015 16:00:00 GMT-0800 (PST), Fri Feb 20 2015 16:00:00 GMT-0800 (PST)"
+          null,2,"wo rld, mo on",stars
+        `);
+      });
+
       it("removes line breaks with csv", () => {
         var dsLineBreak = Dataset.fromJS([
           { letter: `dear john\nhow are you doing?\r\nI'm good.\r-mildred` }
@@ -822,7 +865,7 @@ describe("Dataset", () => {
         `);
       });
 
-      it.skip("escapes tabs in text field", () => {
+      it("escapes tabs in text field", () => {
         var dsComma = Dataset.fromJS([
           { letter: 'dear john, \thow are you doing' }
         ]);
@@ -831,7 +874,18 @@ describe("Dataset", () => {
         dear john, how are you doing
         `);
       });
+
+      it("escapes set/string properly", () => {
+        var ds = Dataset.fromJS([
+          { x: 1, y: ['hel,lo', 'mo\non'] },
+          { x: 2, y: ['wo\r\nrld', 'mo\ron'] }
+        ]);
+        expect(ds.toTSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+          x	y
+          1	hel,lo, mo on
+          2	wo rld, mo on
+        `);
+      });
     })
   });
-  
 });
