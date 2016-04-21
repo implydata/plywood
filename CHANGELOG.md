@@ -4,7 +4,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.10.5
 
-- Fixed DruidExternal sometimes generating an invalid Druid query when doind a multi-dimensional split that includes time
+- Fixed DruidExternal sometimes generating an invalid Druid query when doing a multi-dimensional split that includes time
 - Unsuppress datasource when it is limited or selected
 - Better show query support
 
