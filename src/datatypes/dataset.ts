@@ -100,6 +100,10 @@ module Plywood {
     return sortColumns(uniqueColumns(flatColumns));
   }
 
+  function removeLineBreaks(v: string): string {
+    return v.replace(/(?:\r\n|\r|\n)/g, ' ');
+  }
+
   var typeOrder: Lookup<number> = {
     'NULL': 0,
     'TIME': 1,
@@ -138,12 +142,7 @@ module Plywood {
     'TIME_RANGE': (v: TimeRange) => { return String(v) },
     'SET/TIME': (v: Set) => { return String(v); },
     'SET/TIME_RANGE': (v: Set) => { return String(v); },
-    'STRING': (v: string) => {
-      v = '' + v;
-      v = v.replace(/(?:\r\n|\r|\n)/g, ' ');
-      if (v.indexOf('"') === -1) return v;
-      return '"' + v.replace(/"/g, '""') + '"';
-    },
+    'STRING': (v: string) => { return v; },
     'SET/STRING': (v: Set) => { return String(v); },
     'BOOLEAN': (v: boolean) => { return String(v); },
     'NUMBER': (v: number) => { return String(v); },
@@ -167,6 +166,7 @@ module Plywood {
     lineBreak?: string;
     finalLineBreak?: FinalLineBreak;
     formatter?: Formatter;
+    finalizer?: (type: PlyType, v: string) => string;
   }
 
   function isBoolean(b: any) {
@@ -745,6 +745,7 @@ module Plywood {
 
     public toTabular(tabulatorOptions: TabulatorOptions): string {
       var formatter: Formatter = tabulatorOptions.formatter || {};
+      var finalizer: (type: PlyType, v: string) => string = tabulatorOptions.finalizer;
       var data = this.flatten(tabulatorOptions);
       var columns = this.getColumns(tabulatorOptions);
 
@@ -754,7 +755,10 @@ module Plywood {
       for (var i = 0; i < data.length; i++) {
         var datum = data[i];
         lines.push(columns.map(c => {
-          return String((formatter[c.type] || defaultFormatter[c.type])(datum[c.name]));
+          var value = datum[c.name];
+          var formatted = String((formatter[c.type] || defaultFormatter[c.type])(value));
+          var finalized = formatted && finalizer ? finalizer(c.type as PlyType, formatted) : formatted;
+          return finalized;
         }).join(tabulatorOptions.separator || ','));
       }
 
@@ -763,14 +767,18 @@ module Plywood {
     }
 
     public toCSV(tabulatorOptions: TabulatorOptions = {}): string {
-      var csvFormatter = helper.shallowCopy(tabulatorOptions.formatter);
-      var stringFn = csvFormatter['STRING'] || defaultFormatter['STRING'];
-      csvFormatter['STRING'] = (v: string) => {
-        var str = stringFn(v);
-        if (str[0] === "\"" || str.indexOf(",") === -1) return str;
-        return `"${str}"`;
+      var escapeFn = (v: string) => {
+        v = removeLineBreaks(v);
+        if (v.indexOf('"') === -1 &&  v.indexOf(",") === -1) return v;
+        return `"${v.replace(/"/g, '""')}"`;
       };
-      tabulatorOptions.formatter = csvFormatter;
+
+      tabulatorOptions.finalizer = ((type: PlyType, v: string) => {
+        if (type === "STRING") return escapeFn(v);
+        if (type === "SET/STRING") return `"${removeLineBreaks(v)}"`;
+        if (['SET/TIME', 'SET/TIME_RANGE', 'SET_NUMBER', 'TIME_RANGE'].indexOf(type) !== -1) return `"${v}"`;
+        return v;
+      });
       tabulatorOptions.separator = tabulatorOptions.separator || ',';
       tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
       tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
@@ -778,6 +786,16 @@ module Plywood {
     }
 
     public toTSV(tabulatorOptions: TabulatorOptions = {}): string {
+      var escapeFn = (v: string) => {
+        return removeLineBreaks(v).replace(/\t/g, "").replace(/"/g, '""');
+      };
+
+      tabulatorOptions.finalizer = ((type: PlyType, v: string) => {
+        if (type === "STRING" || type === "SET/STRING") {
+          return escapeFn(v);
+        }
+        return v;
+      });
       tabulatorOptions.separator = tabulatorOptions.separator || '\t';
       tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
       tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
