@@ -1059,6 +1059,84 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("works with lookup split (and subsplit)", () => {
+    var ex = $("diamonds").split("$tags.lookup(tag_lookup)", 'Tag')
+      .sort('$Tag', 'descending')
+      .limit(10)
+      .apply(
+        'Cuts',
+        $("diamonds").split("$cut", 'Cut')
+          .apply('Count', $('diamonds').count())
+          .sort('$Count', 'descending')
+          .limit(10)
+      );
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "tags",
+          "extractionFn": {
+            "lookup": {
+              "namespace": "tag_lookup",
+              "type": "namespace"
+            },
+            "type": "lookup"
+          },
+          "outputName": "Tag",
+          "type": "extraction"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12/2015-03-19",
+        "metric": {
+          "metric": {
+            "type": "lexicographic"
+          },
+          "type": "inverted"
+        },
+        "queryType": "topN",
+        "threshold": 10
+      },
+      {
+        "aggregations": [
+          {
+            "name": "Count",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "cut",
+          "outputName": "Cut",
+          "type": "default"
+        },
+        "filter": {
+          "dimension": "tags",
+          "extractionFn": {
+            "lookup": {
+              "namespace": "tag_lookup",
+              "type": "namespace"
+            },
+            "type": "lookup"
+          },
+          "type": "extraction",
+          "value": "something"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12/2015-03-19",
+        "metric": "Count",
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
+  });
+
   it("works with range bucket", () => {
     var ex = ply()
       .apply(
@@ -1436,7 +1514,7 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "filter": {
-          "dimension": "time",
+          "dimension": "__time",
           "extractionFn": {
             "format": "H",
             "locale": "en-US",

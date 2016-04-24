@@ -225,7 +225,6 @@ describe("Dataset", () => {
         }
       ]);
 
-      ds.introspect();
       expect(AttributeInfo.toJSs(ds.attributes)).to.deep.equal([
         { "name": "time", "type": "TIME" },
         { "name": "channel", "type": "STRING" },
@@ -435,6 +434,29 @@ describe("Dataset", () => {
         ]
       }
     ]);
+
+
+    describe("#findDatumByAttribute", () => {
+      it("works with basic dataset", () => {
+        expect(carDataset.findDatumByAttribute('make', 'Kaka')).to.deep.equal(null);
+
+        expect(carDataset.findDatumByAttribute('make', 'Honda')).to.deep.equal({
+          time: new Date('2015-01-04T12:32:43'),
+          make: 'Honda',
+          model: 'Civic',
+          price: 10000
+        });
+
+        expect(carDataset.findDatumByAttribute('time', new Date('2015-01-04T12:32:43'))).to.deep.equal({
+          time: new Date('2015-01-04T12:32:43'),
+          make: 'Honda',
+          model: 'Civic',
+          price: 10000
+        });
+      });
+
+    });
+
 
     describe("#getColumns", () => {
       it("works with empty dataset", () => {

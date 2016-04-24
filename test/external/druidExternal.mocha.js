@@ -672,7 +672,7 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       expect(() => {
         ex.external.getQueryAndPostProcess();
-      }).to.throw(`can not convert $count:NUMBER.is(1337) to filter because it references an un-filterable metric 'count' which is most likely rolled up.`);
+      }).to.throw(`can not convert $count:NUMBER = 1337 to filter because it references an un-filterable metric 'count' which is most likely rolled up.`);
     });
 
     it("works with ref filter", () => {

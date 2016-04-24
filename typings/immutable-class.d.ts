@@ -30,6 +30,13 @@ declare module ImmutableClass {
      */
     isImmutableClass(thing: any): boolean;
     /**
+     * Checks if two general things are equal (if both null it counts as yes)
+     * @param a - thing to compare
+     * @param b - thing to compare
+     * @returns {boolean}
+     */
+    generalEqual<T>(a: T, b: T): boolean;
+    /**
      * Checks if two immutable classes are equal (if both null it counts as yes)
      * @param a - thing to compare
      * @param b - thing to compare
