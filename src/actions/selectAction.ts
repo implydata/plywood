@@ -45,9 +45,10 @@ module Plywood {
       const { attributes } = this;
       var { datasetType } = typeContext;
       var newDatasetType = Object.create(null);
-      for (var attr in datasetType) {
-        if (attributes.indexOf(attr) === -1) continue;
-        newDatasetType[attr] = datasetType[attr];
+      for (var attr of attributes) {
+        var attrType = datasetType[attr];
+        if (!attrType) throw new Error(`unknown attribute '${attr}' in select`);
+        newDatasetType[attr] = attrType;
       }
       typeContext.datasetType = newDatasetType;
       return typeContext;

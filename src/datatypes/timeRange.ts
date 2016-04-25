@@ -137,6 +137,11 @@ module Plywood {
     public midpoint(): Date {
       return new Date((this.start.valueOf() + this.end.valueOf()) / 2);
     }
+    
+    public isAligned(duration: Duration, timezone: Timezone): boolean {
+      const { start, end } = this;
+      return (!start || duration.isAligned(start, timezone)) && (!end || duration.isAligned(end, timezone));
+    }
   }
   check = TimeRange;
 }

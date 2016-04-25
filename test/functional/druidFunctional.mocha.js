@@ -29,7 +29,7 @@ describe("Druid Functional", function() {
     it("does a source list", (testComplete) => {
       DruidExternal.getSourceList(druidRequester)
         .then((sources) => {
-          expect(sources).to.deep.equal(['wikipedia']);
+          expect(sources).to.deep.equal(['wikipedia', 'wikipedia-compact']);
           testComplete();
         })
         .done()
@@ -38,44 +38,81 @@ describe("Druid Functional", function() {
 
 
   describe("defined attributes in datasource", () => {
+    var wiki = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      context: {
+        timeout: 10000,
+        useCache: false,
+        populateCache: false
+      },
+      attributes: [
+        { name: 'time', type: 'TIME' },
+        { name: 'sometimeLater', type: 'TIME' },
+        { name: 'channel', type: 'STRING' },
+        { name: 'page', type: 'STRING' },
+        { name: 'user', type: 'STRING' },
+        { name: 'userChars', type: 'SET/STRING' },
+        { name: 'isNew', type: 'BOOLEAN' },
+        { name: 'isAnonymous', type: 'BOOLEAN' },
+        { name: 'commentLength', type: 'NUMBER' },
+        { name: 'metroCode', type: 'STRING' },
+        { name: 'cityName', type: 'STRING' },
+
+        { name: 'count', type: 'NUMBER', unsplitable: true },
+        { name: 'delta', type: 'NUMBER', unsplitable: true },
+        { name: 'deltaByTen', type: 'NUMBER', unsplitable: true },
+        { name: 'delta_hist', special: 'histogram' },
+        { name: 'added', type: 'NUMBER', unsplitable: true },
+        { name: 'deleted', type: 'NUMBER', unsplitable: true },
+        { name: 'user_unique', special: 'unique', unsplitable: true },
+        { name: 'page_unique', special: 'unique', unsplitable: true }
+      ],
+      filter: $('time').in(TimeRange.fromJS({
+        start: new Date("2015-09-12T00:00:00Z"),
+        end: new Date("2015-09-13T00:00:00Z")
+      })),
+      version: info.druidVersion,
+      allowSelectQueries: true
+    }, druidRequester);
+
+    var wikiCompact = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia-compact',
+      timeAttribute: 'time',
+      context: {
+        timeout: 10000,
+        useCache: false,
+        populateCache: false
+      },
+      attributes: [
+        { name: 'time', type: 'TIME', makerAction: { action: 'timeFloor', duration: 'PT1H', timezone: 'Etc/UTC' } },
+        { name: 'channel', type: 'STRING' },
+        { name: 'isNew', type: 'BOOLEAN' },
+        { name: 'isAnonymous', type: 'BOOLEAN' },
+        { name: 'commentLength', type: 'NUMBER' },
+        { name: 'metroCode', type: 'STRING' },
+        { name: 'cityName', type: 'STRING' },
+
+        { name: 'count', type: 'NUMBER', unsplitable: true },
+        { name: 'delta', type: 'NUMBER', unsplitable: true },
+        { name: 'added', type: 'NUMBER', unsplitable: true },
+        { name: 'deleted', type: 'NUMBER', unsplitable: true },
+        { name: 'page_unique', special: 'unique', unsplitable: true }
+      ],
+      filter: $('time').in(TimeRange.fromJS({
+        start: new Date("2015-09-12T00:00:00Z"),
+        end: new Date("2015-09-13T00:00:00Z")
+      })),
+      concealBuckets: true,
+      version: info.druidVersion,
+      allowSelectQueries: true
+    }, druidRequester);
+
     var basicExecutor = basicExecutorFactory({
       datasets: {
-        wiki: External.fromJS({
-          engine: 'druid',
-          dataSource: 'wikipedia',
-          timeAttribute: 'time',
-          context: {
-            timeout: 10000
-          },
-          attributes: [
-            { name: 'time', type: 'TIME' },
-            { name: 'sometimeLater', type: 'TIME' },
-            { name: 'channel', type: 'STRING' },
-            { name: 'page', type: 'STRING' },
-            { name: 'user', type: 'STRING' },
-            { name: 'userChars', type: 'SET/STRING' },
-            { name: 'isNew', type: 'BOOLEAN' },
-            { name: 'isAnonymous', type: 'BOOLEAN' },
-            { name: 'commentLength', type: 'NUMBER' },
-            { name: 'metroCode', type: 'STRING' },
-            { name: 'cityName', type: 'STRING' },
-
-            { name: 'count', type: 'NUMBER', unsplitable: true },
-            { name: 'delta', type: 'NUMBER', unsplitable: true },
-            { name: 'deltaByTen', type: 'NUMBER', unsplitable: true },
-            { name: 'delta_hist', special: 'histogram' },
-            { name: 'added', type: 'NUMBER', unsplitable: true },
-            { name: 'deleted', type: 'NUMBER', unsplitable: true },
-            { name: 'user_unique', special: 'unique', unsplitable: true },
-            { name: 'page_unique', special: 'unique', unsplitable: true }
-          ],
-          filter: $('time').in(TimeRange.fromJS({
-            start: new Date("2015-09-12T00:00:00Z"),
-            end: new Date("2015-09-13T00:00:00Z")
-          })),
-          version: info.druidVersion,
-          allowSelectQueries: true
-        }, druidRequester)
+        wiki: wiki.addDelegate(wikiCompact)
       }
     });
 
@@ -378,7 +415,7 @@ describe("Druid Functional", function() {
 
     it("works with absolute", (testComplete) => {
       var ex = ply()
-        .apply("Count", $('wiki').filter($("channel").is('en')).count())
+        .apply("Count", $('wiki').filter($("channel").is('en')).sum('$count'))
         .apply('Negate', $('Count').negate())
         .apply('Abs', $('Count').negate().absolute().negate().absolute());
 
@@ -386,9 +423,9 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Abs": 113240,
-              "Count": 113240,
-              "Negate": -113240
+              "Abs": 114711,
+              "Count": 114711,
+              "Negate": -114711
             }
           ]);
           testComplete();
@@ -1202,7 +1239,7 @@ describe("Druid Functional", function() {
         .apply(
           'data1',
           $("wiki").split($("time").timeFloor('PT1H', 'Etc/UTC'), 'TimeCol')
-            .apply('Count', '$wiki.count()')
+            .apply('Count', '$wiki.sum($count)')
             .sort('$TimeCol', 'descending')
             .limit(2)
         )
@@ -1213,18 +1250,18 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "MaxCount": 15784,
-              "MinCount": 14684,
+              "MaxCount": 15906,
+              "MinCount": 14814,
               "data1": [
                 {
-                  "Count": 14684,
+                  "Count": 14814,
                   "TimeCol": {
                     "type": "TIME",
                     "value": new Date('2015-09-12T23:00:00.000Z')
                   }
                 },
                 {
-                  "Count": 15784,
+                  "Count": 15906,
                   "TimeCol": {
                     "type": "TIME",
                     "value": new Date('2015-09-12T22:00:00.000Z')

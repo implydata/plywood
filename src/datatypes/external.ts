@@ -14,6 +14,16 @@ module Plywood {
 
   export type QueryMode = "raw" | "value" | "total" | "split";
 
+  function nullMap<T, Q>(xs: T[], fn: (x: T) => Q): Q[] {
+    if (!xs) return null;
+    var res: Q[] = [];
+    for (var x of xs) {
+      var y = fn(x);
+      if (y) res.push(y);
+    }
+    return res.length ? res : null;
+  }
+
   function filterToAnds(filter: Expression): Expression[] {
     if (filter.equals(Expression.TRUE)) return [];
     return filter.getExpressionPattern('and') || [filter];
@@ -131,9 +141,10 @@ module Plywood {
     attributes?: Attributes;
     attributeOverrides?: Attributes;
     derivedAttributes?: Lookup<Expression>;
+    delegates?: External[];
+    concealBuckets?: boolean;
     mode?: QueryMode;
     dataName?: string;
-
     rawAttributes?: Attributes;
     filter?: Expression;
     valueExpression?: ChainExpression;
@@ -168,9 +179,9 @@ module Plywood {
     attributes?: AttributeJSs;
     attributeOverrides?: AttributeJSs;
     derivedAttributes?: Lookup<ExpressionJS>;
-
     filter?: ExpressionJS;
     rawAttributes?: AttributeJSs;
+    concealBuckets?: boolean;
 
     // MySQL
     table?: string;
@@ -470,6 +481,7 @@ module Plywood {
         version: parameters.version,
         suppress: true,
         rollup: parameters.rollup,
+        concealBuckets: Boolean(parameters.concealBuckets),
         requester
       };
       if (parameters.attributes) {
@@ -529,6 +541,8 @@ module Plywood {
     public attributes: Attributes = null;
     public attributeOverrides: Attributes = null;
     public derivedAttributes: Lookup<Expression>;
+    public delegates: External[];
+    public concealBuckets: boolean;
 
     public rawAttributes: Attributes = null;
     public requester: Requester.PlywoodRequester<any>;
@@ -565,6 +579,10 @@ module Plywood {
         this.attributeOverrides = parameters.attributeOverrides;
       }
       this.derivedAttributes = parameters.derivedAttributes || {};
+      if (parameters.delegates) {
+        this.delegates = parameters.delegates;
+      }
+      this.concealBuckets = parameters.concealBuckets;
 
       this.rawAttributes = parameters.rawAttributes;
       this.requester = parameters.requester;
@@ -626,6 +644,8 @@ module Plywood {
       if (this.attributes) value.attributes = this.attributes;
       if (this.attributeOverrides) value.attributeOverrides = this.attributeOverrides;
       if (helper.nonEmptyLookup(this.derivedAttributes)) value.derivedAttributes = this.derivedAttributes;
+      if (this.delegates) value.delegates = this.delegates;
+      value.concealBuckets = this.concealBuckets;
 
       if (this.rawAttributes) {
         value.rawAttributes = this.rawAttributes;
@@ -671,6 +691,7 @@ module Plywood {
       if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
       if (this.attributeOverrides) js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
       if (helper.nonEmptyLookup(this.derivedAttributes)) js.derivedAttributes = helper.expressionLookupToJS(this.derivedAttributes);
+      if (this.concealBuckets) js.concealBuckets = true;
 
       if (this.rawAttributes) js.rawAttributes = AttributeInfo.toJSs(this.rawAttributes);
       if (!this.filter.equals(Expression.TRUE)) {
@@ -705,7 +726,9 @@ module Plywood {
 
     public equals(other: External): boolean {
       return this.equalBase(other) &&
-        immutableLookupsEqual(this.derivedAttributes, other.derivedAttributes);
+        immutableLookupsEqual(this.derivedAttributes, other.derivedAttributes) &&
+        immutableArraysEqual(this.delegates, other.delegates) &&
+        this.concealBuckets === other.concealBuckets;
     }
 
     public equalBase(other: External): boolean {
@@ -740,6 +763,40 @@ module Plywood {
       return External.fromValue(value);
     }
 
+    public hasAttribute(name: string): boolean {
+      const { attributes, rawAttributes, derivedAttributes } = this;
+      if (helper.find(rawAttributes || attributes, (a) => a.name === name)) return true;
+      return hasOwnProperty(derivedAttributes, name);
+    }
+
+    public expressionDefined(ex: Expression): boolean {
+      return ex.definedInTypeContext(this.getFullType());
+    }
+
+    public bucketsConcealed(ex: Expression) {
+      return ex.every((ex, index, depth, nestDiff) => {
+        if (nestDiff) return true;
+        if (ex instanceof RefExpression) {
+          var refAttributeInfo = this.getAttributesInfo(ex.name);
+          if (refAttributeInfo && refAttributeInfo.makerAction) {
+            return refAttributeInfo.makerAction.alignsWith([]);
+          }
+
+        } else if (ex instanceof ChainExpression) {
+          var refExpression = ex.expression;
+          if (refExpression instanceof RefExpression) {
+            var ref = refExpression.name;
+            var refAttributeInfo = this.getAttributesInfo(ref);
+            if (refAttributeInfo && refAttributeInfo.makerAction) {
+              return refAttributeInfo.makerAction.alignsWith(ex.actions);
+            }
+          }
+
+        }
+        return null;
+      });
+    }
+
     // -----------------
 
     public canHandleFilter(ex: Expression): boolean {
@@ -772,6 +829,13 @@ module Plywood {
 
     // -----------------
 
+    public addDelegate(delegate: External): External {
+      var value = this.valueOf();
+      if (!value.delegates) value.delegates = [];
+      value.delegates = value.delegates.concat(delegate);
+      return External.fromValue(value);
+    }
+
     public getBase(): External {
       var value = this.valueOf();
       value.suppress = true;
@@ -785,6 +849,7 @@ module Plywood {
       value.sort = null;
       value.limit = null;
 
+      value.delegates = nullMap(value.delegates, (e) => e.getBase());
       return External.fromValue(value);
     }
 
@@ -802,6 +867,7 @@ module Plywood {
       value.sort = null;
       value.limit = null;
 
+      value.delegates = nullMap(value.delegates, (e) => e.getRaw());
       return External.fromValue(value);
     }
 
@@ -821,30 +887,23 @@ module Plywood {
 
       var commonFilter = External.getCommonFilterFromExternals(externals);
 
-      var attributesAndApplies: AttributesAndApplies = { attributes: [], applies: [] };
-      for (let apply of applies) {
-        let applyExpression = apply.expression;
-        if (applyExpression instanceof ExternalExpression) {
-          attributesAndApplies = External.normalizeAndAddApply(
-            attributesAndApplies,
-            <ApplyAction>apply.changeExpression(
-              applyExpression.external.valueExpressionWithinFilter(commonFilter)
-            )
-          );
-        } else {
-          attributesAndApplies = External.normalizeAndAddApply(attributesAndApplies, apply);
-        }
-      }
-
       var value = this.valueOf();
       value.mode = 'total';
       value.suppress = false;
       value.rawAttributes = value.attributes;
       value.derivedAttributes = External.getMergedDerivedAttributesFromExternals(externals);
       value.filter = commonFilter;
-      value.attributes = attributesAndApplies.attributes;
-      value.applies = attributesAndApplies.applies;
-      return External.fromValue(value);
+      value.attributes = [];
+      value.applies = [];
+      value.delegates = nullMap(value.delegates, (e) => e.makeTotal(applies));
+      var totalExternal = External.fromValue(value);
+
+      for (let apply of applies) {
+        totalExternal = totalExternal._addApplyAction(apply);
+        if (!totalExternal) return null;
+      }
+
+      return totalExternal;
     }
 
     public addAction(action: Action): External {
@@ -878,10 +937,12 @@ module Plywood {
 
     public addFilter(expression: Expression): External {
       if (!expression.resolved()) return null;
+      if (!this.expressionDefined(expression)) return null;
 
       var value = this.valueOf();
       switch (this.mode) {
         case 'raw':
+          if (this.concealBuckets && !this.bucketsConcealed(expression)) return null;
           if (!this.canHandleFilter(expression)) return null;
           if (value.filter.equals(Expression.TRUE)) {
             value.filter = expression;
@@ -899,21 +960,35 @@ module Plywood {
           return null; // can not add filter in total mode
       }
 
+      value.delegates = nullMap(value.delegates, (e) => e.addFilter(expression));
       return External.fromValue(value);
     }
 
     private _addSelectAction(selectAction: SelectAction): External {
       if (this.mode !== 'raw') return null; // Can only select on 'raw' datasets
 
+      const { datasetType } = this.getFullType();
+      const { attributes } = selectAction;
+      for (var attribute of attributes) {
+        if (!datasetType[attribute]) return null;
+      }
+
       var value = this.valueOf();
       value.suppress = false;
       value.select = selectAction;
+      value.delegates = nullMap(value.delegates, (e) => e._addSelectAction(selectAction));
       return External.fromValue(value);
     }
 
     private _addSplitAction(splitAction: SplitAction): External {
       if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
-      //if (!this.canHandleSplit(expression)) return null;
+      var splitKeys = splitAction.keys;
+      for (var splitKey of splitKeys) {
+        var splitExpression = splitAction.splits[splitKey];
+        if (!this.expressionDefined(splitExpression)) return null;
+        if (this.concealBuckets && !this.bucketsConcealed(splitExpression)) return null;
+        if (!this.canHandleSplit(splitExpression)) return null;
+      }
 
       var value = this.valueOf();
       value.suppress = false;
@@ -922,7 +997,7 @@ module Plywood {
       value.split = splitAction;
       value.rawAttributes = value.attributes;
       value.attributes = splitAction.mapSplits((name, expression) => new AttributeInfo({ name, type: expression.type }));
-
+      value.delegates = nullMap(value.delegates, (e) => e._addSplitAction(splitAction));
       return External.fromValue(value);
     }
 
@@ -930,6 +1005,7 @@ module Plywood {
       var expression = action.expression;
       if (expression.type === 'DATASET') return null;
       if (!expression.contained()) return null;
+      if (!this.expressionDefined(expression)) return null;
       if (!this.canHandleApply(action.expression)) return null;
 
       if (this.mode === 'raw') {
@@ -951,6 +1027,7 @@ module Plywood {
         value.applies = added.applies;
         value.attributes = added.attributes;
       }
+      value.delegates = nullMap(value.delegates, (e) => e._addApplyAction(action));
       return External.fromValue(value);
     }
 
@@ -960,6 +1037,7 @@ module Plywood {
 
       var value = this.valueOf();
       value.sort = action;
+      value.delegates = nullMap(value.delegates, (e) => e._addSortAction(action));
       return External.fromValue(value);
     }
 
@@ -971,11 +1049,14 @@ module Plywood {
       if (!value.limit || action.limit < value.limit.limit) {
         value.limit = action;
       }
+      value.delegates = nullMap(value.delegates, (e) => e._addLimitAction(action));
       return External.fromValue(value);
     }
 
     private _addAggregateAction(action: Action): External {
       if (this.mode !== 'raw' || this.limit) return null; // Can not value aggregate something with a limit
+      var actionExpression = action.expression;
+      if (actionExpression && !this.expressionDefined(actionExpression)) return null;
 
       var value = this.valueOf();
       value.mode = 'value';
@@ -983,12 +1064,14 @@ module Plywood {
       value.valueExpression = $(External.SEGMENT_NAME, 'DATASET').performAction(action);
       value.rawAttributes = value.attributes;
       value.attributes = null;
+      value.delegates = nullMap(value.delegates, (e) => e._addAggregateAction(action));
       return External.fromValue(value);
     }
 
     private _addPostAggregateAction(action: Action): External {
       if (this.mode !== 'value') throw new Error('must be in value mode to call addPostAggregateAction');
       var actionExpression = action.expression;
+      // ToDo: do I need to run  expressionDefined here?
 
       var commonFilter = this.filter;
       var newValueExpression: ChainExpression;
@@ -1010,6 +1093,7 @@ module Plywood {
       var value = this.valueOf();
       value.valueExpression = newValueExpression;
       value.filter = commonFilter;
+      value.delegates = nullMap(value.delegates, (e) => e._addPostAggregateAction(action));
       return External.fromValue(value);
     }
 
@@ -1018,6 +1102,7 @@ module Plywood {
 
       var value = this.valueOf();
       value.valueExpression = prefix.performAction(myAction.changeExpression(value.valueExpression));
+      value.delegates = nullMap(value.delegates, (e) => e.prePack(prefix, myAction));
       return External.fromValue(value);
     }
 
@@ -1047,14 +1132,6 @@ module Plywood {
         name: External.VALUE_NAME,
         expression: this.valueExpression
       });
-    }
-
-    public isKnownName(name: string): boolean {
-      var attributes = this.attributes;
-      for (var attribute of attributes) {
-        if (attribute.name === name) return true;
-      }
-      return false;
     }
 
     public sortOnLabel(): boolean {
@@ -1152,8 +1229,23 @@ module Plywood {
       }, 'DATASET', null);
     }
 
-    public simulateValue(lastNode: boolean): PlywoodValue {
+    public getDelegate(): External {
+      const { mode, delegates } = this;
+      if (!delegates || !delegates.length || mode === 'raw') return null;
+      return delegates[0];
+    }
+
+    public simulateValue(lastNode: boolean, simulatedQueries: any[], externalForNext: External = null): PlywoodValue {
       const { mode } = this;
+
+      if (!externalForNext) externalForNext = this;
+
+      var delegate = this.getDelegate();
+      if (delegate) {
+        return delegate.simulateValue(lastNode, simulatedQueries, externalForNext);
+      }
+
+      simulatedQueries.push(this.getQueryAndPostProcess().query);
 
       if (mode === 'value') {
         var valueExpression = this.valueExpression;
@@ -1181,7 +1273,7 @@ module Plywood {
       }
 
       var dataset = new Dataset({ data: [datum] });
-      if (!lastNode && mode === 'split') dataset = this.addNextExternal(dataset);
+      if (!lastNode && mode === 'split') dataset = externalForNext.addNextExternal(dataset);
       return dataset;
     }
 
@@ -1189,8 +1281,17 @@ module Plywood {
       throw new Error("can not call getQueryAndPostProcess directly");
     }
 
-    public queryValue(lastNode: boolean): Q.Promise<PlywoodValue> {
-      if (!this.requester) {
+    public queryValue(lastNode: boolean, externalForNext: External = null): Q.Promise<PlywoodValue> {
+      const { mode, requester } = this;
+
+      if (!externalForNext) externalForNext = this;
+
+      var delegate = this.getDelegate();
+      if (delegate) {
+        return delegate.queryValue(lastNode, externalForNext);
+      }
+
+      if (!requester) {
         return <Q.Promise<PlywoodValue>>Q.reject(new Error('must have a requester to make queries'));
       }
       try {
@@ -1201,11 +1302,11 @@ module Plywood {
       if (!hasOwnProperty(queryAndPostProcess, 'query') || typeof queryAndPostProcess.postProcess !== 'function') {
         return <Q.Promise<PlywoodValue>>Q.reject(new Error('no error query or postProcess'));
       }
-      var result = this.requester({ query: queryAndPostProcess.query })
+      var result = requester({ query: queryAndPostProcess.query })
         .then(queryAndPostProcess.postProcess);
 
-      if (!lastNode && this.mode === 'split') {
-        result = <Q.Promise<PlywoodValue>>result.then(this.addNextExternal.bind(this));
+      if (!lastNode && mode === 'split') {
+        result = <Q.Promise<PlywoodValue>>result.then(externalForNext.addNextExternal.bind(externalForNext));
       }
 
       return result;
@@ -1247,15 +1348,17 @@ module Plywood {
         });
     }
 
-    public getFullType(): DatasetFullType {
-      const { attributes, derivedAttributes } = this;
+    public getRawDatasetType(): Lookup<FullType> {
+      var { attributes, rawAttributes, derivedAttributes } = this;
       if (!attributes) throw new Error("dataset has not been introspected");
 
+      if (!rawAttributes) rawAttributes = attributes
+
       var myDatasetType: Lookup<FullType> = {};
-      for (var attribute of attributes) {
-        var attrName = attribute.name;
+      for (var rawAttribute of rawAttributes) {
+        var attrName = rawAttribute.name;
         myDatasetType[attrName] = {
-          type: <PlyTypeSimple>attribute.type
+          type: <PlyTypeSimple>rawAttribute.type
         };
       }
 
@@ -1263,6 +1366,33 @@ module Plywood {
         myDatasetType[name] = {
           type: <PlyTypeSimple>derivedAttributes[name].type
         };
+      }
+
+      return myDatasetType;
+    }
+
+    public getFullType(): DatasetFullType {
+      const { mode, attributes } = this;
+
+      if (mode === 'value') throw new Error('not supported for value mode yet');
+      var myDatasetType = this.getRawDatasetType();
+
+      if (mode !== 'raw') {
+        var splitDatasetType: Lookup<FullType> = {};
+        splitDatasetType[this.dataName || External.SEGMENT_NAME] = {
+          type: 'DATASET',
+          datasetType: myDatasetType,
+          remote: true
+        };
+
+        for (var attribute of attributes) {
+          var attrName = attribute.name;
+          splitDatasetType[attrName] = {
+            type: <PlyTypeSimple>attribute.type
+          };
+        }
+
+        myDatasetType = splitDatasetType;
       }
 
       return {

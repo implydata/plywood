@@ -5,6 +5,7 @@ module Plywood {
         op: parameters.op,
         type: parameters.type
       };
+      if (!hasOwnProperty(parameters, 'value')) throw new Error('literal expression must have value');
       var v: any = parameters.value;
       if (isImmutableClass(v)) {
         value.value = v;

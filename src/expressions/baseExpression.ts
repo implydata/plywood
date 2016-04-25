@@ -1085,18 +1085,23 @@ module Plywood {
      * @param context The datum within which the check is happening
      */
     public referenceCheck(context: Datum): Expression {
-      var datasetType: Lookup<FullType> = {};
-      for (var k in context) {
-        if (!hasOwnProperty(context, k)) continue;
-        datasetType[k] = getFullType(context[k]);
-      }
-
-      return this.referenceCheckInTypeContext({
-        type: 'DATASET',
-        datasetType: datasetType
-      });
+      return this.referenceCheckInTypeContext(getFullTypeFromDatum(context));
     }
 
+    /**
+     * Check if the expression is defined in the given type context
+     * @param typeContext The FullType context within which to resolve
+     */
+    public definedInTypeContext(typeContext: DatasetFullType): boolean {
+      try {
+        var alterations: Alterations = {};
+        this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This returns the final type
+      } catch (e) {
+        return false;
+      }
+      return true;
+    }
+    
     /**
      * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
      * @param typeContext The FullType context within which to resolve

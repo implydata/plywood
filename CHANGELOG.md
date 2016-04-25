@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.16
+
+- Ability to define delegates in Externals
+
 ## 0.10.15
 
 - New chronoshift fixes bug with flooring `PT12H`

@@ -564,8 +564,6 @@ describe("DruidExternal", () => {
       });
     });
 
-
-
     it("works with complex absolute and power expressions", () => {
       var ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')

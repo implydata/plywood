@@ -96,6 +96,32 @@ module Plywood {
     public getTimezone(): Timezone {
       return this.timezone || Timezone.UTC;
     }
+
+    public alignsWith(actions: Action[]): boolean {
+      if (!actions.length) return false;
+      const action = actions[0];
+
+      const { timezone, duration } = this;
+      if (!timezone) return false;
+
+      if (action instanceof TimeFloorAction || action instanceof TimeBucketAction) {
+        return timezone.equals(action.timezone) && action.duration.dividesBy(duration);
+      }
+
+      if (action instanceof InAction || action instanceof OverlapAction) {
+        var literal = action.getLiteralValue();
+        if (TimeRange.isTimeRange(literal)) {
+          return literal.isAligned(duration, timezone);
+        } else if (Set.isSet(literal)) {
+          if (literal.setType !== 'TIME_RANGE') return false;
+          return literal.elements.every((e: TimeRange) => {
+            return e.isAligned(duration, timezone);
+          });
+        }
+      }
+
+      return false;
+    }
   }
 
   Action.register(TimeFloorAction);
