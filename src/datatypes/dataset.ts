@@ -680,6 +680,10 @@ module Plywood {
       return new Dataset({ data: newData });
     }
 
+    public findDatumByAttribute(attribute: string, value: any): Datum {
+      return helper.find(this.data, (d) => generalEqual(d[attribute], value));
+    }
+
     public getNestedColumns(): Column[] {
       var nestedColumns: Column[] = [];
       var attributes = this.attributes;

@@ -26,7 +26,7 @@
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
-    "immutable-class": "0.4.3",
+    "immutable-class": "0.4.4",
     "q": "1.4.1"
   },
   "peerDependencies": {
@@ -41,7 +41,7 @@
     "pegjs": "0.9.0",
     "plywood-druid-requester": "1.4.3",
     "plywood-mysql-requester": "1.2.2",
-    "tslint": "3.7.4",
+    "tslint": "3.8.0",
     "typescript": "1.8.10",
     "underscore": "1.8.3",
     "walltime-js": "0.1.2"

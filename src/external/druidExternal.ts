@@ -621,6 +621,33 @@ module Plywood {
       return v;
     }
 
+    // Makes a filter of (ex = value) or (value in ex) which are the same in Druid
+    public makeSelectorFilter(ex: Expression, value: any): Druid.Filter {
+      var freeReferences = ex.getFreeReferences();
+      if (freeReferences.length !== 1) throw new Error(`can not convert multi reference expression ${ex} to Druid selector filter`);
+      var referenceName = freeReferences[0];
+
+      var attributeInfo = this.getAttributesInfo(referenceName);
+      if (attributeInfo.unsplitable) {
+        throw new Error(`can not convert ${ex} = ${value} to filter because it references an un-filterable metric '${referenceName}' which is most likely rolled up.`)
+      }
+
+      var extractionFn = this.expressionToExtractionFn(ex);
+      var dimensionName = referenceName === this.timeAttribute ? '__time' : referenceName;
+
+      var druidFilter: Druid.Filter = {
+        type: "selector",
+        dimension: dimensionName,
+        value: attributeInfo.serialize(value)
+      };
+      if (extractionFn) {
+        druidFilter.type = "extraction";
+        druidFilter.extractionFn = extractionFn;
+        druidFilter.value = this.sanitizeNull(druidFilter.value);
+      }
+      return druidFilter;
+    }
+
     public timelessFilterToDruid(filter: Expression, aggregatorFilter: boolean): Druid.Filter {
       if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
 
@@ -661,6 +688,23 @@ module Plywood {
           };
         }
 
+        // Do the basic selectors
+
+        if (lhs instanceof LiteralExpression) {
+          // Special handling for r('some_tag').in($tags)
+          if (filterAction.action !== 'in') throw new Error(`can not convert ${filter} to Druid filter`);
+          return this.makeSelectorFilter(rhs, lhs.value);
+        }
+
+        if (filterAction instanceof IsAction) {
+          if (rhs instanceof LiteralExpression) {
+            return this.makeSelectorFilter(lhs, rhs.value);
+          } else {
+            throw new Error(`can not convert ${filter} to Druid filter`);
+          }
+        }
+
+
         var freeReferences = filter.getFreeReferences();
         if (freeReferences.length !== 1) throw new Error(`can not convert multi reference filter ${filter} to Druid filter`);
         var referenceName = freeReferences[0];
@@ -669,41 +713,8 @@ module Plywood {
           throw new Error(`can not convert ${filter} to filter because it references an un-filterable metric '${referenceName}' which is most likely rolled up.`)
         }
 
-        // Special handling for r('some_tag').in($tags)
-        if (lhs instanceof LiteralExpression) {
-          if (!rhs.isOp('ref')) throw new Error(`unsupported literal lhs must have ref rhs: ${rhs}`);
-
-          if (filterAction instanceof InAction) {
-            attributeInfo = this.getAttributesInfo(referenceName);
-            return {
-              type: "selector",
-              dimension: referenceName,
-              value: attributeInfo.serialize(lhs.value)
-            }
-          }
-          throw new Error(`unsupported rhs action for literal lhs: ${filterAction}`);
-        }
-
         var extractionFn = this.expressionToExtractionFn(lhs);
         var dimensionName = referenceName === this.timeAttribute ? '__time' : referenceName;
-
-        if (filterAction instanceof IsAction) {
-          if (rhs instanceof LiteralExpression) {
-            var druidFilter: Druid.Filter = {
-              type: "selector",
-              dimension: referenceName,
-              value: attributeInfo.serialize(rhs.value)
-            };
-            if (extractionFn) {
-              druidFilter.type = "extraction";
-              druidFilter.extractionFn = extractionFn;
-              druidFilter.value = this.sanitizeNull(druidFilter.value);
-            }
-            return druidFilter;
-          } else {
-            throw new Error(`can not convert ${filter} to Druid filter`);
-          }
-        }
 
         if (filterAction instanceof InAction || filterAction instanceof OverlapAction) {
           if (rhs instanceof LiteralExpression) {
@@ -712,17 +723,7 @@ module Plywood {
               var elements = rhs.value.elements;
               if (extractionFn || elements.length < 2 || this.versionBefore('0.9.0')) {
                 var fields = elements.map((value: string) => {
-                  var druidFilter: Druid.Filter = {
-                    type: "selector",
-                    dimension: dimensionName,
-                    value: attributeInfo.serialize(value)
-                  };
-                  if (extractionFn) {
-                    druidFilter.type = "extraction";
-                    druidFilter.extractionFn = extractionFn;
-                    druidFilter.value = this.sanitizeNull(druidFilter.value);
-                  }
-                  return druidFilter;
+                  return this.makeSelectorFilter(lhs, value);
                 });
 
                 return fields.length === 1 ? fields[0] : { type: "or", fields };
