@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.9
+
+- Fixed problem with filtering on multi-dimensional dimensions with a lookup
+- Added `Dataset#findDatumByAttribute`
+
 ## 0.10.8
 
 - Fixed bug where flatten would fail on an empty nested dataset.
