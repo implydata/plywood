@@ -837,49 +837,45 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it("works with having filter", () => {
+  it("works with simple having filter", () => {
     var ex = $("diamonds").split("$cut", 'Cut')
       .apply('Count', $('diamonds').count())
       .sort('$Count', 'descending')
-      .filter($('Count').greaterThan(100))
+      .filter('$Count > 100')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
-      {
-        "aggregations": [
-          {
-            "name": "Count",
-            "type": "count"
-          }
-        ],
-        "dataSource": "diamonds",
-        "dimensions": [
-          {
-            "dimension": "cut",
-            "outputName": "Cut",
-            "type": "default"
-          }
-        ],
-        "granularity": "all",
-        "having": {
+    expect(ex.simulateQueryPlan(context)[0].having).to.deep.equal({
+      "aggregation": "Count",
+      "type": "greaterThan",
+      "value": 100
+    });
+  });
+
+  it("works with AND having filter", () => {
+    var ex = $("diamonds").split("$cut", 'Cut')
+      .apply('Count', $('diamonds').count())
+      .sort('$Count', 'descending')
+      .filter('$Count > 100 and $Count <= 200')
+      .limit(10);
+
+    expect(ex.simulateQueryPlan(context)[0].having).to.deep.equal({
+      "havingSpecs": [
+        {
           "aggregation": "Count",
           "type": "greaterThan",
           "value": 100
         },
-        "intervals": "2015-03-12/2015-03-19",
-        "limitSpec": {
-          "columns": [
-            {
-              "dimension": "Count",
-              "direction": "descending"
-            }
-          ],
-          "limit": 10,
-          "type": "default"
-        },
-        "queryType": "groupBy"
-      }
-    ]);
+        {
+          "havingSpec": {
+            "aggregation": "Count",
+            "type": "greaterThan",
+            "value": 200
+          },
+          "type": "not"
+        }
+      ],
+      "type": "and"
+    });
   });
 
   it("works with lower bound only time filter", () => {

@@ -663,7 +663,7 @@ describe("Cross Functional", function() {
       expression: $('wiki').split('$channel', 'Channel')
         .sort('$Channel', 'ascending')
         .apply('TotalEdits', '$wiki.sum($count)')
-        .filter('$TotalEdits < 5096') // Channel 'ko' has erectly 5096 edits
+        .filter('$TotalEdits < 5096') // Channel 'ko' has exactly 5096 edits
         .limit(20)
     }));
 
@@ -672,7 +672,7 @@ describe("Cross Functional", function() {
       expression: $('wiki').split('$channel', 'Channel')
         .sort('$Channel', 'ascending')
         .apply('TotalEdits', '$wiki.sum($count)')
-        .filter('$TotalEdits <= 5096') // Channel 'ko' has erectly 5096 edits
+        .filter('$TotalEdits <= 5096') // Channel 'ko' has exactly 5096 edits
         .limit(20)
     }));
 
@@ -681,7 +681,7 @@ describe("Cross Functional", function() {
       expression: $('wiki').split('$channel', 'Channel')
         .sort('$Channel', 'ascending')
         .apply('TotalEdits', '$wiki.sum($count)')
-        .filter('$TotalEdits > 5096') // Channel 'ko' has erectly 5096 edits
+        .filter('$TotalEdits > 5096') // Channel 'ko' has exactly 5096 edits
         .limit(20)
     }));
 
@@ -690,7 +690,25 @@ describe("Cross Functional", function() {
       expression: $('wiki').split('$channel', 'Channel')
         .sort('$Channel', 'ascending')
         .apply('TotalEdits', '$wiki.sum($count)')
-        .filter('$TotalEdits >= 5096') // Channel 'ko' has erectly 5096 edits
+        .filter('$TotalEdits >= 5096') // Channel 'ko' has exactly 5096 edits
+        .limit(20)
+    }));
+
+    it('works with AND', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .filter('$TotalEdits >= 5096 and $TotalEdits < 10000')
+        .limit(20)
+    }));
+
+    it('works with OR', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .filter('$TotalEdits == 5096 or $TotalEdits > 10000') // Channel 'ko' has exactly 5096 edits
         .limit(20)
     }));
 

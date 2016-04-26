@@ -2,7 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.10.9
+## 0.10.10
+
+- Fixed problem with DruidExternal having filter generating an OR instead of an AND for time ranges
+
+## 0.10.9 
 
 - Fixed problem with filtering on multi-dimensional dimensions with a lookup
 - Added `Dataset#findDatumByAttribute`

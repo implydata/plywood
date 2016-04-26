@@ -49,6 +49,7 @@ module Plywood {
     }
 
     public inExpression(operand: string, start: string, end: string, bounds: string) {
+      if (start === end && bounds === '[]') return `${operand}=${start}`;
       var startSQL: string = null;
       if (start !== 'NULL') {
         startSQL = start + (bounds[0] === '[' ? '<=' : '<') + operand;
