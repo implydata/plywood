@@ -94,6 +94,9 @@ module Plywood {
         case 'SET/NUMBER':
           return '(' + (<Set>value).elements.map((v: any) => dialect.escapeLiteral(v)).join(',') + ')';
 
+        case 'SET/NUMBER_RANGE':
+          return 'FALSE'; // ToDo: fix these dummies
+
         default:
           throw new Error("currently unsupported type: " + this.type);
       }

@@ -70,6 +70,15 @@ module Plywood {
         case 'SET/NUMBER':
           return `${inputSQL} IN ${expressionSQL}`;
 
+        case 'SET/NUMBER_RANGE':
+          if (expression instanceof LiteralExpression) {
+            var setOfNumberRange: Set = expression.value;
+            return setOfNumberRange.elements.map((numberRange: NumberRange) => {
+              return dialect.inExpression(inputSQL, dialect.numberToSQL(numberRange.start), dialect.numberToSQL(numberRange.end), numberRange.bounds);
+            }).join(' OR ');
+          }
+          throw new Error('not implemented yet');
+
         default:
           throw new Error('not implemented yet');
       }

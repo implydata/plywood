@@ -1697,7 +1697,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       if (range.end !== null) {
         havingSpecs.push(this.makeHavingComparison(agg, (range.bounds[1] === ']' ? '<=' : '<'), range.end));
       }
-      return havingSpecs.length === 1 ? havingSpecs[0] : { type: 'or', havingSpecs };
+      return havingSpecs.length === 1 ? havingSpecs[0] : { type: 'and', havingSpecs };
     }
 
     public havingFilterToDruid(filter: Expression): Druid.Having {
