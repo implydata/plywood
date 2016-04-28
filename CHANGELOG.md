@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.11
+
+- PlyQL describe query now rewrites
+
 ## 0.10.10
 
 - Fixed problem with DruidExternal having filter generating an OR instead of an AND for time ranges

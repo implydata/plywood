@@ -380,7 +380,7 @@ ShowQueryExpression
     {
       // https://dev.mysql.com/doc/refman/5.0/en/tables-table.html
       var ex = $('TABLES')
-      if (db) ex= ex.filter($('TABLE_SCHEMA').is(db[1]));
+      if (db) ex= ex.filter($('TABLE_SCHEMA').is(r(db[1])));
       if (like) ex = ex.filter(like($('TABLE_NAME')));
       return ex
         .apply('Tables_in_database', $('TABLE_NAME'))
@@ -389,9 +389,9 @@ ShowQueryExpression
   / full:FullToken? ColumnsToken FromOrIn table:RelaxedNamespacedRef db:(FromOrIn Ref)? like:LikeRhs? where:WhereClause?
     {
       // https://dev.mysql.com/doc/refman/5.0/en/columns-table.html
-      var ex = $('COLUMNS').filter($('TABLE_NAME').is(table.name));
+      var ex = $('COLUMNS').filter($('TABLE_NAME').is(r(table.name)));
       db = db ? db[1] : table.namespace;
-      if (db) ex = ex.filter($('TABLE_SCHEMA').is(db));
+      if (db) ex = ex.filter($('TABLE_SCHEMA').is(r(db)));
       if (like) ex = ex.filter(like($('COLUMN_NAME')));
       if (where) ex = ex.filter(where);
       ex = ex
@@ -428,11 +428,31 @@ SetQuery
     }
 
 DescribeQuery
-  = (DescribeToken / DescToken) table:RelaxedNamespacedRef
+  = (DescribeToken / DescToken) table:RelaxedNamespacedRef colRef:Ref? wild:String?
     {
+      var ex = $('COLUMNS').filter($('TABLE_NAME').is(r(table.name)));
+      if (table.namespace) ex = ex.filter($('TABLE_SCHEMA').is(r(table.namespace)));
+      if (colRef) {
+        ex = ex.filter($('COLUMN_NAME').is(r(colRef)));
+      } else if (wild) {
+        ex = ex.filter($('COLUMN_NAME').match(MatchAction.likeToRegExp(wild)));
+      }
+
+      ex = ex
+        .apply('Field', $('COLUMN_NAME'))
+        .apply('Type', $('COLUMN_TYPE'))
+        .apply('Null', $('IS_NULLABLE'))
+        .apply('Key', $('COLUMN_KEY'))
+        .apply('Default', $('COLUMN_DEFAULT'))
+        .apply('Extra', $('EXTRA'))
+        .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
+
       return {
-        verb: 'DESCRIBE',
-        table: table.name
+        verb: 'SELECT',
+        rewrite: 'DESCRIBE',
+        table: table.name,
+        database: 'information_schema',
+        expression: ex
       };
     }
 
@@ -782,7 +802,7 @@ TrueToken          = "TRUE"i           !IdentifierPart _ { return true; }
 FalseToken         = "FALSE"i          !IdentifierPart _ { return false; }
 
 SelectToken        = "SELECT"i         !IdentifierPart _ { return 'SELECT'; }
-DescribeToken      = "DESCRIBE"i       !IdentifierPart _ { return 'DESCRIBE'; }
+DescribeToken      = ("DESCRIBE"i / "EXPLAIN"i) !IdentifierPart _ { return 'DESCRIBE'; }
 ShowToken          = "SHOW"i           !IdentifierPart _ { return 'SHOW'; }
 SetToken           = "SET"i            !IdentifierPart _ { return 'SET'; }
 
