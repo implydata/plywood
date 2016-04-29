@@ -394,44 +394,6 @@ describe("SQL parser", () => {
   });
 
 
-  describe("DESCRIBE", () => {
-    it("works with DESCRIBE query", () => {
-      var parse = Expression.parseSQL("DESCRIBE wikipedia");
-
-      expect(parse).to.deep.equal({
-        verb: 'DESCRIBE',
-        table: 'wikipedia'
-      });
-    });
-
-    it("works with a relaxed table name DESCRIBE query", () => {
-      var parse = Expression.parseSQL("DESCRIBE my-table*is:the/best_table; ");
-
-      expect(parse).to.deep.equal({
-        verb: 'DESCRIBE',
-        table: 'my-table*is:the/best_table'
-      });
-    });
-
-    it("works with another DESCRIBE query", () => {
-      var parse = Expression.parseSQL("DESCRIBE `my-table~~!@#$%^&*()_+-=` ; ");
-
-      expect(parse).to.deep.equal({
-        verb: 'DESCRIBE',
-        table: 'my-table~~!@#$%^&*()_+-='
-      });
-    });
-
-    it("works with another DESC query", () => {
-      var parse = Expression.parseSQL("DESC `my-table~~!@#$%^&*()_+-=` ; ");
-
-      expect(parse).to.deep.equal({
-        verb: 'DESCRIBE',
-        table: 'my-table~~!@#$%^&*()_+-='
-      });
-    });
-  });
-
   describe("SELECT", () => {
     it("should fail on a expression with no columns", () => {
       expect(() => {
@@ -1232,6 +1194,87 @@ describe("SQL parser", () => {
 
       expect(parse.verb).to.equal('SELECT');
       expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+  });
+
+  describe("DESCRIBE", () => {
+    it("works with DESCRIBE query", () => {
+      var parse = Expression.parseSQL("DESCRIBE wikipedia");
+
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is('wikipedia'))
+        //.filter($('TABLE_SCHEMA').is('my_db'))
+        .apply('Field', $('COLUMN_NAME'))
+        .apply('Type', $('COLUMN_TYPE'))
+        .apply('Null', $('IS_NULLABLE'))
+        .apply('Key', $('COLUMN_KEY'))
+        .apply('Default', $('COLUMN_DEFAULT'))
+        .apply('Extra', $('EXTRA'))
+        .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('DESCRIBE');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with a relaxed table name DESCRIBE query", () => {
+      var parse = Expression.parseSQL("DESCRIBE my_db.my-table*is:the/best_table; ");
+
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is(r('my-table*is:the/best_table')))
+        .filter($('TABLE_SCHEMA').is('my_db'))
+        .apply('Field', $('COLUMN_NAME'))
+        .apply('Type', $('COLUMN_TYPE'))
+        .apply('Null', $('IS_NULLABLE'))
+        .apply('Key', $('COLUMN_KEY'))
+        .apply('Default', $('COLUMN_DEFAULT'))
+        .apply('Extra', $('EXTRA'))
+        .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('DESCRIBE');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with a relaxed column name", () => {
+      var parse = Expression.parseSQL("DESCRIBE my_db.my-table cityName; ");
+
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is(r('my-table')))
+        .filter($('TABLE_SCHEMA').is('my_db'))
+        .filter($('COLUMN_NAME').is('cityName'))
+        .apply('Field', $('COLUMN_NAME'))
+        .apply('Type', $('COLUMN_TYPE'))
+        .apply('Null', $('IS_NULLABLE'))
+        .apply('Key', $('COLUMN_KEY'))
+        .apply('Default', $('COLUMN_DEFAULT'))
+        .apply('Extra', $('EXTRA'))
+        .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('DESCRIBE');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with a wild card (also EXPLAIN)", () => {
+      var parse = Expression.parseSQL("EXPLAIN my_db.my-table 'city%'; ");
+
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is(r('my-table')))
+        .filter($('TABLE_SCHEMA').is('my_db'))
+        .filter($('COLUMN_NAME').match('^city.*$'))
+        .apply('Field', $('COLUMN_NAME'))
+        .apply('Type', $('COLUMN_TYPE'))
+        .apply('Null', $('IS_NULLABLE'))
+        .apply('Key', $('COLUMN_KEY'))
+        .apply('Default', $('COLUMN_DEFAULT'))
+        .apply('Extra', $('EXTRA'))
+        .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('DESCRIBE');
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
