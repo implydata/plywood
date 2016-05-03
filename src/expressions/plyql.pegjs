@@ -610,7 +610,7 @@ ComparisonExpressionRhsNotable
       var range = { start: start.value, end: end.value, bounds: '[]' };
       return function(ex) { return ex.in(range); };
     }
-  / InToken list:(InListLiteralExpression / AdditiveExpression)
+  / InToken list:(InSetLiteralExpression / AdditiveExpression)
     {
       return function(ex) { return ex.in(list); };
     }
@@ -771,24 +771,28 @@ BacktickRef
 
 NameOrString = Name / String
 
-StringOrNumber = String / Number
-
-
 LiteralExpression
   = OpenCurly type:(DToken / TToken / TsToken) v:String CloseCurly
     { return r(makeDate(type, v)); }
   / type:(DateToken / TimeToken / TimestampToken) v:String
     { return r(makeDate(type, v)); }
-  / v:(Number / String / ListLiteral / NullToken / TrueToken / FalseToken)
+  / v:(Number / String / SetLiteral / NullToken / TrueToken / FalseToken)
     { return r(v); }
 
-ListLiteral
-  = OpenCurly head:StringOrNumber? tail:(Comma StringOrNumber)* CloseCurly
+
+SetLiteral
+  = OpenCurly head:StringNumberOrNull? tail:(Comma StringNumberOrNull)* CloseCurly
     { return Set.fromJS(makeListMap1(head, tail)); }
 
-InListLiteralExpression
+StringNumberOrNull = String / Number / NullToken
+
+
+InSetLiteralExpression
   = OpenParen head:StringOrNumber tail:(Comma StringOrNumber)* CloseParen
     { return r(Set.fromJS(makeListMap1(head, tail))); }
+
+StringOrNumber = String / Number
+
 
 String "String"
   = "'" chars:NotSQuote "'" _ { return chars; }

@@ -8,6 +8,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Added `DruidExternal.getVersion`
 - Fixed post computation tasks
 - Added support for `USE` on PlyQL
+- PlyQL allows `NULL` in set literal e.g. `{'a', 'b', NULL}` 
 
 ## 0.10.11
 

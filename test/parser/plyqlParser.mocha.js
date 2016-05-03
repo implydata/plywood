@@ -46,6 +46,22 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("works with a set containing null", () => {
+      var parse = Expression.parseSQL("{'a', 'b', NULL}");
+      var ex2 = r(Set.fromJS(['a', 'b', null]));
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it.skip("works with a set that is only null", () => {
+      var parse = Expression.parseSQL("{NULL}");
+      var ex2 = r(Set.fromJS([null]));
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("works with a COUNT expression", () => {
       var parse = Expression.parseSQL("COUNT()");
 
