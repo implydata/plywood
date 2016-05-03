@@ -469,6 +469,18 @@ module Plywood {
         })
     }
 
+    static getVersion(requester: Requester.PlywoodRequester<any>): Q.Promise<string> {
+      return requester({
+        query: {
+          queryType: 'status'
+        }
+      })
+        .then(
+          ((res) => External.extractVersion(res.version)),
+          () => null
+        )
+    }
+
 
     public dataSource: string | string[];
     public timeAttribute: string;
@@ -2073,20 +2085,6 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
-    public getIntrospectVersion(): Q.Promise<string> {
-      var { requester } = this;
-
-      return requester({
-        query: {
-          queryType: 'status'
-        }
-      })
-        .then(
-          ((res) => External.getVersion(res.version)),
-          () => null
-        )
-    }
-
     public getIntrospectAttributesWithSegmentMetadata(withAggregators: boolean): Q.Promise<Attributes> {
       var { requester, timeAttribute } = this;
 
@@ -2128,7 +2126,7 @@ return (start < 0 ?'-':'') + parts.join('.');
     }
 
     public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
-      var versionPromise = this.version ? Q(this.version) : this.getIntrospectVersion();
+      var versionPromise = this.version ? Q(this.version) : DruidExternal.getVersion(this.requester);
 
       return versionPromise.then((version) => {
         var withAggregators = version && !External.versionLessThan(version, '0.9.0');

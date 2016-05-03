@@ -18,9 +18,9 @@ var druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
-//druidRequester = helper.verboseRequesterFactory({
-//  requester: druidRequester
-//});
+// druidRequester = helper.verboseRequesterFactory({
+//   requester: druidRequester
+// });
 
 describe("Druid Functional", function() {
   this.timeout(10000);
@@ -1187,6 +1187,47 @@ describe("Druid Functional", function() {
                     "end": new Date('2016-09-12T05:00:00.000Z'),
                     "start": new Date('2016-09-12T04:00:00.000Z'),
                     "type": "TIME_RANGE"
+                  }
+                }
+              ]
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("can do a sub-query", (testComplete) => {
+      var ex = ply()
+        .apply(
+          'data1',
+          $("wiki").split($("time").timeFloor('PT1H', 'Etc/UTC'), 'TimeCol')
+            .apply('Count', '$wiki.count()')
+            .sort('$TimeCol', 'descending')
+            .limit(2)
+        )
+        .apply('MinCount', '$data1.min($Count)')
+        .apply('MaxCount', '$data1.max($Count)');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "MaxCount": 15784,
+              "MinCount": 14684,
+              "data1": [
+                {
+                  "Count": 14684,
+                  "TimeCol": {
+                    "type": "TIME",
+                    "value": new Date('2015-09-12T23:00:00.000Z')
+                  }
+                },
+                {
+                  "Count": 15784,
+                  "TimeCol": {
+                    "type": "TIME",
+                    "value": new Date('2015-09-12T22:00:00.000Z')
                   }
                 }
               ]

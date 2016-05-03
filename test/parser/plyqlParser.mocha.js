@@ -46,6 +46,22 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("works with a set containing null", () => {
+      var parse = Expression.parseSQL("{'a', 'b', NULL}");
+      var ex2 = r(Set.fromJS(['a', 'b', null]));
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it.skip("works with a set that is only null", () => {
+      var parse = Expression.parseSQL("{NULL}");
+      var ex2 = r(Set.fromJS([null]));
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("works with a COUNT expression", () => {
       var parse = Expression.parseSQL("COUNT()");
 
@@ -68,6 +84,15 @@ describe("SQL parser", () => {
       var parse = Expression.parseSQL("YEAR(time)");
 
       var ex2 = $('time').timePart('YEAR');
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with a filtered SUM 1 expression", () => {
+      var parse = Expression.parseSQL("SUM(1 WHERE cityName = 'San Francisco')");
+
+      var ex2 = $('data').filter("$cityName == 'San Francisco'").sum(1);
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -1199,6 +1224,7 @@ describe("SQL parser", () => {
 
   });
 
+
   describe("DESCRIBE", () => {
     it("works with DESCRIBE query", () => {
       var parse = Expression.parseSQL("DESCRIBE wikipedia");
@@ -1276,6 +1302,24 @@ describe("SQL parser", () => {
       expect(parse.verb).to.equal('SELECT');
       expect(parse.rewrite).to.equal('DESCRIBE');
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+  });
+
+
+  describe("other queries", () => {
+    it("knows of USE query", () => {
+      var parse = Expression.parseSQL("USE plyql1;");
+
+      expect(parse.verb).to.equal('USE');
+      expect(parse.database).to.equal('plyql1');
+    });
+
+    it("knows of USE query with back-ticks", () => {
+      var parse = Expression.parseSQL("USE `plyql2`");
+
+      expect(parse.verb).to.equal('USE');
+      expect(parse.database).to.equal('plyql2');
     });
 
   });

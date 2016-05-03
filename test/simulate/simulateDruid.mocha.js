@@ -1382,6 +1382,37 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("makes a filtered aggregate query", () => {
+    var ex = ply()
+      .apply(
+        'BySegment',
+        $('diamonds').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeSegment')
+          .apply('Total', $('diamonds').sum('$price'))
+          .apply('GoodPrice', $('diamonds').filter($('cut').is('Good')).sum(1))
+      );
+
+    expect(ex.simulateQueryPlan(context)[0].aggregations).to.deep.equal([
+      {
+        "fieldName": "price",
+        "name": "Total",
+        "type": "doubleSum"
+      },
+      {
+        "aggregator": {
+          "name": "GoodPrice",
+          "type": "count"
+        },
+        "filter": {
+          "dimension": "cut",
+          "type": "selector",
+          "value": "Good"
+        },
+        "name": "GoodPrice",
+        "type": "filtered"
+      }
+    ]);
+  });
+
   it("makes a filter on timePart", () => {
     var ex = $("diamonds").filter(
       $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').in([3, 4, 10]).and($("time").in([

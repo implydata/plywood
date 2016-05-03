@@ -211,7 +211,7 @@ module Plywood {
       return isInstanceOf(candidate, External);
     }
 
-    static getVersion(v: string): string {
+    static extractVersion(v: string): string {
       if (!v) return null;
       var m = v.match(/^\d+\.\d+\.\d+(?:-\w+)?/);
       return m ? m[0] : null;
@@ -551,7 +551,7 @@ module Plywood {
 
       var version: string = null;
       if (parameters.version) {
-        version = External.getVersion(parameters.version);
+        version = External.extractVersion(parameters.version);
         if (!version) throw new Error(`invalid version ${parameters.version}`);
       }
       this.version = version;

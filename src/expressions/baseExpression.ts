@@ -743,19 +743,15 @@ module Plywood {
 
     // Action constructors
     public performAction(action: Action, markSimple?: boolean): ChainExpression {
-      if (!action) throw new Error('must have action');
-      return new ChainExpression({
-        expression: this,
-        actions: [action],
-        simple: Boolean(markSimple)
-      });
+      return <ChainExpression>this.performActions([action], markSimple);
     }
 
-    public performActions(actions: Action[]): Expression {
+    public performActions(actions: Action[], markSimple?: boolean): Expression {
       if (!actions.length) return this;
       return new ChainExpression({
         expression: this,
-        actions: actions
+        actions: actions,
+        simple: Boolean(markSimple)
       });
     }
 

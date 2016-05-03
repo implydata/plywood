@@ -50,6 +50,7 @@ var unsupportedVerbs = {
   EXECUTE: 1,
   HANDLER: 1,
   INSERT: 1,
+  KILL: 1,
   LOAD: 1,
   LOCK: 1,
   PREPARE: 1,
@@ -332,7 +333,7 @@ start
   = _ queryParse:Query QueryTerminator? { return queryParse; }
 
 Query
-  = queryParse:(SelectQuery / DescribeQuery / ShowQuery / SetQuery / UnsupportedQuery)
+  = queryParse:(SelectQuery / DescribeQuery / ShowQuery / SetQuery / UseQuery / UnsupportedQuery)
     {
       return queryParse;
     }
@@ -424,6 +425,15 @@ SetQuery
       return {
         verb: verb,
         rest: rest
+      };
+    }
+
+UseQuery
+  = verb:UseToken db:Ref
+    {
+      return {
+        verb: verb,
+        database: db
       };
     }
 
@@ -600,7 +610,7 @@ ComparisonExpressionRhsNotable
       var range = { start: start.value, end: end.value, bounds: '[]' };
       return function(ex) { return ex.in(range); };
     }
-  / InToken list:(InListLiteralExpression / AdditiveExpression)
+  / InToken list:(InSetLiteralExpression / AdditiveExpression)
     {
       return function(ex) { return ex.in(list); };
     }
@@ -623,7 +633,7 @@ LikeRhs
       return function(ex) { return ex.match(regExp); };
     }
 
-ComparisonOp
+ComparisonOp "Comparison"
   = "="   { return 'is'; }
   / "<=>" { return 'is'; }
   / "<>"  { return 'isnt'; }
@@ -761,24 +771,28 @@ BacktickRef
 
 NameOrString = Name / String
 
-StringOrNumber = String / Number
-
-
 LiteralExpression
   = OpenCurly type:(DToken / TToken / TsToken) v:String CloseCurly
     { return r(makeDate(type, v)); }
   / type:(DateToken / TimeToken / TimestampToken) v:String
     { return r(makeDate(type, v)); }
-  / v:(Number / String / ListLiteral / NullToken / TrueToken / FalseToken)
+  / v:(Number / String / SetLiteral / NullToken / TrueToken / FalseToken)
     { return r(v); }
 
-ListLiteral
-  = OpenCurly head:StringOrNumber? tail:(Comma StringOrNumber)* CloseCurly
+
+SetLiteral
+  = OpenCurly head:StringNumberOrNull? tail:(Comma StringNumberOrNull)* CloseCurly
     { return Set.fromJS(makeListMap1(head, tail)); }
 
-InListLiteralExpression
+StringNumberOrNull = String / Number / NullToken
+
+
+InSetLiteralExpression
   = OpenParen head:StringOrNumber tail:(Comma StringOrNumber)* CloseParen
     { return r(Set.fromJS(makeListMap1(head, tail))); }
+
+StringOrNumber = String / Number
+
 
 String "String"
   = "'" chars:NotSQuote "'" _ { return chars; }
@@ -805,6 +819,7 @@ SelectToken        = "SELECT"i         !IdentifierPart _ { return 'SELECT'; }
 DescribeToken      = ("DESCRIBE"i / "EXPLAIN"i) !IdentifierPart _ { return 'DESCRIBE'; }
 ShowToken          = "SHOW"i           !IdentifierPart _ { return 'SHOW'; }
 SetToken           = "SET"i            !IdentifierPart _ { return 'SET'; }
+UseToken           = "USE"i            !IdentifierPart _ { return 'USE'; }
 
 VariablesToken     = "VARIABLES"i      !IdentifierPart _
 DatabasesToken     = "DATABASES"i      !IdentifierPart _

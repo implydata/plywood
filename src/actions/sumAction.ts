@@ -45,7 +45,7 @@ module Plywood {
       if (expression instanceof LiteralExpression) {
         var value = expression.value;
         if (value === 0) return Expression.ZERO;
-        return expression.multiply(preEx.count());
+        return expression.multiply(preEx.count()).simplify();
       }
 
       var pattern: Expression[];
