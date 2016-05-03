@@ -1,6 +1,6 @@
 module Plywood {
   export interface Executor {
-    (ex: Expression): Q.Promise<PlywoodValue>;
+    (ex: Expression, env?: Environment): Q.Promise<PlywoodValue>;
   }
 
   export interface BasicExecutorParameters {
@@ -9,8 +9,8 @@ module Plywood {
 
   export function basicExecutorFactory(parameters: BasicExecutorParameters): Executor {
     var datasets = parameters.datasets;
-    return (ex: Expression) => {
-      return ex.compute(datasets);
+    return (ex: Expression, env: Environment = {}) => {
+      return ex.compute(datasets, env);
     }
   }
 }

@@ -9,7 +9,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Expression, $, RefExpression } = plywood;
+var { Expression, $, r, RefExpression } = plywood;
 
 describe("Expression", () => {
   it("is immutable class", () => {
@@ -270,6 +270,18 @@ describe("Expression", () => {
     it('works in simple + case', () => {
       var ex1 = $('data').sum('$x + $y');
       var ex2 = $('data').sum('$x').add('$data.sum($y)');
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it('turns sum in count 1', () => {
+      var ex1 = $('data').sum('6');
+      var ex2 = r(6).multiply('$data.count()');
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it('turns sum in count 2', () => {
+      var ex1 = $('data').sum('1');
+      var ex2 = $('data').count();
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 

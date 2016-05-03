@@ -50,6 +50,7 @@ var unsupportedVerbs = {
   EXECUTE: 1,
   HANDLER: 1,
   INSERT: 1,
+  KILL: 1,
   LOAD: 1,
   LOCK: 1,
   PREPARE: 1,
@@ -332,7 +333,7 @@ start
   = _ queryParse:Query QueryTerminator? { return queryParse; }
 
 Query
-  = queryParse:(SelectQuery / DescribeQuery / ShowQuery / SetQuery / UnsupportedQuery)
+  = queryParse:(SelectQuery / DescribeQuery / ShowQuery / SetQuery / UseQuery / UnsupportedQuery)
     {
       return queryParse;
     }
@@ -424,6 +425,15 @@ SetQuery
       return {
         verb: verb,
         rest: rest
+      };
+    }
+
+UseQuery
+  = verb:UseToken db:Ref
+    {
+      return {
+        verb: verb,
+        database: db
       };
     }
 
@@ -623,7 +633,7 @@ LikeRhs
       return function(ex) { return ex.match(regExp); };
     }
 
-ComparisonOp
+ComparisonOp "Comparison"
   = "="   { return 'is'; }
   / "<=>" { return 'is'; }
   / "<>"  { return 'isnt'; }
@@ -805,6 +815,7 @@ SelectToken        = "SELECT"i         !IdentifierPart _ { return 'SELECT'; }
 DescribeToken      = ("DESCRIBE"i / "EXPLAIN"i) !IdentifierPart _ { return 'DESCRIBE'; }
 ShowToken          = "SHOW"i           !IdentifierPart _ { return 'SHOW'; }
 SetToken           = "SET"i            !IdentifierPart _ { return 'SET'; }
+UseToken           = "USE"i            !IdentifierPart _ { return 'USE'; }
 
 VariablesToken     = "VARIABLES"i      !IdentifierPart _
 DatabasesToken     = "DATABASES"i      !IdentifierPart _

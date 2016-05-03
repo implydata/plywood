@@ -73,6 +73,15 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("works with a filtered SUM 1 expression", () => {
+      var parse = Expression.parseSQL("SUM(1 WHERE cityName = 'San Francisco')");
+
+      var ex2 = $('data').filter("$cityName == 'San Francisco'").sum(1);
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("works with a filtered SUM expression", () => {
       var parse = Expression.parseSQL("SUM(added WHERE cityName = 'San Francisco')");
 
@@ -1199,6 +1208,7 @@ describe("SQL parser", () => {
 
   });
 
+
   describe("DESCRIBE", () => {
     it("works with DESCRIBE query", () => {
       var parse = Expression.parseSQL("DESCRIBE wikipedia");
@@ -1276,6 +1286,24 @@ describe("SQL parser", () => {
       expect(parse.verb).to.equal('SELECT');
       expect(parse.rewrite).to.equal('DESCRIBE');
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+  });
+
+
+  describe("other queries", () => {
+    it("knows of USE query", () => {
+      var parse = Expression.parseSQL("USE plyql1;");
+
+      expect(parse.verb).to.equal('USE');
+      expect(parse.database).to.equal('plyql1');
+    });
+
+    it("knows of USE query with back-ticks", () => {
+      var parse = Expression.parseSQL("USE `plyql2`");
+
+      expect(parse.verb).to.equal('USE');
+      expect(parse.database).to.equal('plyql2');
     });
 
   });

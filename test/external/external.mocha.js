@@ -202,25 +202,25 @@ describe("External", () => {
   });
 
 
-  describe(".getVersion", () => {
+  describe(".extractVersion", () => {
     it("works in null case", () => {
-      expect(External.getVersion(null)).to.equal(null);
+      expect(External.extractVersion(null)).to.equal(null);
     });
 
     it("works in basic case", () => {
-      expect(External.getVersion('0.8.1')).to.equal('0.8.1');
+      expect(External.extractVersion('0.8.1')).to.equal('0.8.1');
     });
 
     it("works in basic case 2", () => {
-      expect(External.getVersion('0.8.10')).to.equal('0.8.10');
+      expect(External.extractVersion('0.8.10')).to.equal('0.8.10');
     });
 
     it("works in extra stuff case", () => {
-      expect(External.getVersion('0.9.1-iap1')).to.equal('0.9.1-iap1');
+      expect(External.extractVersion('0.9.1-iap1')).to.equal('0.9.1-iap1');
     });
 
     it("works in bad case", () => {
-      expect(External.getVersion('lol: 0.9.1-iap1')).to.equal(null);
+      expect(External.extractVersion('lol: 0.9.1-iap1')).to.equal(null);
     });
 
   });
@@ -1251,6 +1251,27 @@ describe("External", () => {
         ]);
 
         expect(ex.actions[0].toString()).to.equal('.apply(CountDiff, ($_br_0 + $_br_1))');
+      });
+
+      it("works with a split and further compute", () => {
+        var ex = ply()
+          .apply(
+            'Pages',
+            $('wiki').split("$page", 'Page')
+              .apply('Count', '$wiki.count()')
+              .apply('Added', '$wiki.sum($added)')
+              .sort('$Count', 'descending')
+              .limit(5)
+          )
+          .apply('MinCount', '$Pages.min($Count)')
+          .apply('MaxAdded', '$Pages.max($Added)');
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        expect(ex.op).to.equal('chain');
+        expect(ex.actions).to.have.length(3);
+
+        expect(ex.actions.map(a => a.name)).to.deep.equal(['Pages', 'MinCount', 'MaxAdded']);
       });
 
     });

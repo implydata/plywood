@@ -249,6 +249,7 @@ describe("compute native", () => {
       .apply('cutMatch', $('cut').match('^G.+'))
       .apply('cutInGoodGreat', $('cut').in(['Good', 'Great']))
       .apply('cutOverlapGoodGreat', $('cut').overlap(['Good', 'Great']))
+      .apply('cutOverlapNull', $('cut').overlap([null]))
       .apply('cutIsGoodOverlapFalse', $('cut').is('Good').overlap([false]))
       .apply('timeFloorDay', $('time').timeFloor('P1D'))
       .apply('timeShiftDay2', $('time').timeShift('P1D', 2))
@@ -264,6 +265,7 @@ describe("compute native", () => {
             cutMatch: true,
             cutInGoodGreat: true,
             cutOverlapGoodGreat: true,
+            cutOverlapNull: false,
             cutIsGoodOverlapFalse: false,
             price: 400,
             tags: { type: "SET", setType: "STRING", elements: ['super', 'cool'] },
@@ -283,6 +285,7 @@ describe("compute native", () => {
             cutMatch: true,
             cutInGoodGreat: true,
             cutOverlapGoodGreat: true,
+            cutOverlapNull: false,
             cutIsGoodOverlapFalse: false,
             price: 300,
             tags: { type: "SET", setType: "STRING", elements: ['super'] },
@@ -302,6 +305,7 @@ describe("compute native", () => {
             cutMatch: true,
             cutInGoodGreat: true,
             cutOverlapGoodGreat: true,
+            cutOverlapNull: false,
             cutIsGoodOverlapFalse: true,
             price: 124,
             tags: { type: "SET", setType: "STRING", elements: ['cool'] },
@@ -317,6 +321,7 @@ describe("compute native", () => {
             cutMatch: false,
             cutInGoodGreat: false,
             cutOverlapGoodGreat: false,
+            cutOverlapNull: false,
             cutIsGoodOverlapFalse: true,
             price: 160,
             tags: { type: "SET", setType: "STRING", elements: ['sweet'] },
@@ -336,10 +341,11 @@ describe("compute native", () => {
             cutMatch: false,
             cutInGoodGreat: false,
             cutOverlapGoodGreat: false,
+            cutOverlapNull: false,
             cutIsGoodOverlapFalse: true,
             price: 100,
             tags: null,
-            overlapSuperCool: null,
+            overlapSuperCool: false,
             time: { type: "TIME", value: new Date('2015-10-05T05:20:30Z') },
             timeFloorDay: { type: "TIME", value: new Date('2015-10-05T00:00:00Z') },
             timeShiftDay2: { type: "TIME", value: new Date('2015-10-07T05:20:30Z') },
@@ -354,7 +360,8 @@ describe("compute native", () => {
             cutConcat: null,
             cutMatch: null,
             cutInGoodGreat: false, // ToDo: this is inconsistent, figure put how to fix it.
-            cutOverlapGoodGreat: null,
+            cutOverlapGoodGreat: false,
+            cutOverlapNull: true,
             cutIsGoodOverlapFalse: true,
             price: null,
             tags: { type: "SET", setType: "STRING", elements: ['super', 'sweet', 'cool'] },

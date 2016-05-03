@@ -44,6 +44,28 @@ describe("compute native nontrivial data", function() {
       .done();
   });
 
+  it("works in with a filter == null", (testComplete) => {
+    var ex = $('data').filter('$countryName == null').count();
+
+    ex.compute({ data: ds })
+      .then((v) => {
+        expect(v).to.equal(35445);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("works in with a filter overlap null", (testComplete) => {
+    var ex = $('data').filter($('countryName').overlap([null])).count();
+
+    ex.compute({ data: ds })
+      .then((v) => {
+        expect(v).to.equal(35445);
+        testComplete();
+      })
+      .done();
+  });
+
   it("works in simple split case (small dimension)", (testComplete) => {
     var ex = $('data').split('$countryName', 'CountryName')
       .apply('Count', '$data.count()')

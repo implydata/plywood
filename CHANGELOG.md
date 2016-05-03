@@ -2,6 +2,13 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.12
+
+- Fix distribution of `SUM(1) => COUNT()`
+- Added `DruidExternal.getVersion`
+- Fixed post computation tasks
+- Added support for `USE` on PlyQL
+
 ## 0.10.11
 
 - PlyQL describe query now rewrites

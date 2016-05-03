@@ -165,6 +165,7 @@ module Plywood {
         var hasExternalValueApply = false;
         var applies: ApplyAction[] = [];
         var undigestedActions: Action[] = [];
+        var allActions: Action[] = [];
 
         function addExternalApply(action: ApplyAction) {
           var externalMode = (<ExternalExpression>action.expression).external.mode;
@@ -172,9 +173,11 @@ module Plywood {
             dataDefinitions[action.name] = <ExternalExpression>action.expression;
           } else if (externalMode === 'value') {
             applies.push(action);
+            allActions.push(action);
             hasExternalValueApply = true;
           } else {
             undigestedActions.push(action);
+            allActions.push(action);
           }
         }
 
@@ -191,11 +194,14 @@ module Plywood {
               addExternalApply(substitutedAction);
             } else if (substitutedAction.expression.type !== 'DATASET') {
               applies.push(substitutedAction);
+              allActions.push(substitutedAction);
             } else {
               undigestedActions.push(substitutedAction);
+              allActions.push(substitutedAction);
             }
           } else {
             undigestedActions.push(action);
+            allActions.push(action);
           }
         }
 
@@ -204,18 +210,10 @@ module Plywood {
           var combinedExternal = baseExternals[0].makeTotal(applies);
           if (!combinedExternal) throw new Error('something went wrong');
           newExpression = new ExternalExpression({ external: combinedExternal });
-        } else {
-          newExpression = ply().performActions(applies);
-        }
-
-        if (undigestedActions.length) {
-          return new ChainExpression({
-            expression: newExpression,
-            actions: undigestedActions,
-            simple: true
-          });
-        } else {
+          if (undigestedActions.length) newExpression = newExpression.performActions(undigestedActions, true);
           return newExpression;
+        } else {
+          return ply().performActions(allActions);
         }
       }
 
