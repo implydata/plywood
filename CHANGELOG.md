@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.13
+
+- Allow PlyQL to support `SHOW SESSION VARIABLES WHERE ...` rewriting
+
 ## 0.10.12
 
 - Fix distribution of `SUM(1) => COUNT()`

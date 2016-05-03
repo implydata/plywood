@@ -1116,13 +1116,29 @@ describe("SQL parser", () => {
 
 
   describe("SHOW", () => {
-    it("should work with SHOW VARIABLES", () => {
+    it("should work with SHOW VARIABLES like", () => {
       var parse = Expression.parseSQL(sane`
         SHOW VARIABLES like 'collation_server'
       `);
 
       var ex2 = $('GLOBAL_VARIABLES')
         .filter($('VARIABLE_NAME').match('^collation.server$'))
+        .apply('Variable_name', $('VARIABLE_NAME'))
+        .apply('Value', $('VARIABLE_VALUE'))
+        .select('Variable_name', 'Value');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with SHOW VARIABLES WHERE", () => {
+      var parse = Expression.parseSQL(sane`
+        SHOW SESSION VARIABLES WHERE Variable_name ='language' OR Variable_name = 'net_write_timeout'
+      `);
+
+      var ex2 = $('GLOBAL_VARIABLES')
+        .filter($('Variable_name').is(r('language')).or($('Variable_name').is(r('net_write_timeout'))))
         .apply('Variable_name', $('VARIABLE_NAME'))
         .apply('Value', $('VARIABLE_VALUE'))
         .select('Variable_name', 'Value');

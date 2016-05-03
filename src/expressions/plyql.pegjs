@@ -358,11 +358,12 @@ ShowQuery
 
 
 ShowQueryExpression
-  = VariablesToken like:LikeRhs?
+  = (GlobalToken / SessionToken)? VariablesToken like:LikeRhs? where:WhereClause?
     {
       // https://dev.mysql.com/doc/refman/5.7/en/show-variables.html
       var ex = $('GLOBAL_VARIABLES')
       if (like) ex = ex.filter(like($('VARIABLE_NAME')));
+      if (where) ex = ex.filter(where);
       return ex
         .apply('Variable_name', $('VARIABLE_NAME'))
         .apply('Value', $('VARIABLE_VALUE'))
@@ -827,6 +828,8 @@ SchemasToken       = "SCHEMAS"i        !IdentifierPart _
 ColumnsToken       = "COLUMNS"i        !IdentifierPart _
 FullToken          = "FULL"i           !IdentifierPart _
 TablesToken        = "TABLES"i         !IdentifierPart _
+GlobalToken        = "GLOBAL"i         !IdentifierPart _
+SessionToken       = "SESSION"i        !IdentifierPart _
 
 FromToken          = "FROM"i           !IdentifierPart _
 AsToken            = "AS"i             !IdentifierPart _
