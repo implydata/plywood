@@ -14,6 +14,11 @@ var Timezone = chronoshift.Timezone;
 var Set = plywood.Set;
 
 var dataRef = $('data');
+var NULL = {}; // A dummy for null
+
+function undummyNull(x) {
+  return x === NULL ? null : x;
+}
 
 // See here: https://www.drupal.org/node/141051
 var reservedWords = {
@@ -133,6 +138,19 @@ var fns = {
   TIME: function() { error('time literals are not supported'); },
   DATE_ADD: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
   DATE_SUB: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
+
+  // Information Functions
+  BENCHMARK: function() { return r(0); },
+  CHARSET: function() { return r('utf8mb4'); },
+  COERCIBILITY: function() { return r(0); },
+  COLLATION: function() { return r('utf8mb4_unicode_ci'); },
+  CONNECTION_ID: function() { return r(123); }, // ToDo
+  DATABASE: function() { return r('plyql1'); },
+  FOUND_ROWS: function() { return r(2005); },
+  LAST_INSERT_ID: function() { return r(0); },
+  ROW_COUNT: function() { return r(0); },
+  USER: function() { return r('plyql@localhost'); },
+  VERSION: function() { return r('5.7.11'); }
 };
 fns.ABS = fns.ABSOLUTE;
 fns.POW = fns.POWER;
@@ -156,6 +174,12 @@ fns.ADDDATE = fns.DATE_ADD;
 fns.SUBDATE = fns.DATE_SUB;
 fns.STDDEV = fns.STD;
 fns.STDDEV_POP = fns.STD;
+
+// Information Functions
+fns.SESSION_USER = fns.USER;
+fns.SYSTEM_USER = fns.USER;
+fns.CURRENT_USER = fns.USER;
+fns.SCHEMA = fns.DATABASE;
 
 var objectHasOwnProperty = Object.prototype.hasOwnProperty;
 function reserved(str) {
@@ -540,8 +564,17 @@ Direction
   = AscToken / DescToken
 
 LimitClause
-  = LimitToken limit:Number
-    { return new LimitAction({ limit: limit }); }
+  = LimitToken a:Number b:(Comma Number)?
+    {
+      var limit;
+      if (b) {
+        if (a !== 0) error('can not skip for now');
+        limit = b[1];
+      } else {
+        limit = a;
+      }
+      return new LimitAction({ limit: limit });
+    }
 
 QueryTerminator
   = ";" _
@@ -778,12 +811,12 @@ LiteralExpression
   / type:(DateToken / TimeToken / TimestampToken) v:String
     { return r(makeDate(type, v)); }
   / v:(Number / String / SetLiteral / NullToken / TrueToken / FalseToken)
-    { return r(v); }
+    { return r(undummyNull(v)); }
 
 
 SetLiteral
   = OpenCurly head:StringNumberOrNull? tail:(Comma StringNumberOrNull)* CloseCurly
-    { return Set.fromJS(makeListMap1(head, tail)); }
+    { return Set.fromJS(makeListMap1(head, tail).map(undummyNull)); }
 
 StringNumberOrNull = String / Number / NullToken
 
@@ -812,7 +845,7 @@ Interval
 
 /* Tokens */
 
-NullToken          = "NULL"i           !IdentifierPart _ { return null; }
+NullToken          = "NULL"i           !IdentifierPart _ { return NULL; }
 TrueToken          = "TRUE"i           !IdentifierPart _ { return true; }
 FalseToken         = "FALSE"i          !IdentifierPart _ { return false; }
 
