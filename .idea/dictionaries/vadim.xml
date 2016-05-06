@@ -6,6 +6,7 @@
       <w>amplab</w>
       <w>attrs</w>
       <w>backtick</w>
+      <w>coercibility</w>
       <w>curdate</w>
       <w>datas</w>
       <w>dayofmonth</w>
@@ -27,6 +28,7 @@
       <w>struct</w>
       <w>subdate</w>
       <w>uber</w>
+      <w>undummy</w>
       <w>uniformize</w>
       <w>unsplitable</w>
       <w>unsuppress</w>

@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.14
+
+- Fixed parsing of `NULL` in set expressions
+- Added information function to PlyQL
+
 ## 0.10.13
 
 - Allow PlyQL to support `SHOW SESSION VARIABLES WHERE ...` rewriting

@@ -40,21 +40,21 @@ Plywood can run entirely from the browser as long as there is a way for it to is
 
 ![web app, not node.js](images/web-app-not-nodejs.png)
 
-It might be undesirable to have the web app communicate with the DB in which case you could also use the [Plywood proxy](https://github.com/implydata/plywood-proxy) like so:
+It might be undesirable to have the web app communicate with the DB directly in which case you could also use the [plyql in server mode](http://imply.io/post/2016/05/04/programmatic-plyql.html) like so:
 
 ![web app, not node.js, proxy](images/web-app-not-nodejs-proxy.png)
 
 ### You are building a data-driven application and you are allergic to JavaScript
 
-If JavaScript does not fit into your stack you can still benefit from Plywood by utilizing the Plywood proxy.
-Your application could ether generate Plywood queries in their JSON form or as PlyQL strings that it sends over to the Plywood proxy.
-The Plywood proxy will send back nested JSON results.
+If JavaScript does not fit into your stack you can still benefit from Plywood by utilizing plyql.
+Your application could ether generate Plywood queries in their JSON form or as PlyQL SQL strings that it sends over to plyql running in server mode.
+plyql will send back nested JSON results.
    
 ![app, proxy](images/app-proxy.png)
    
 ### You know SQL and want to query a DB that does not use SQL (like Druid)   
    
-Maybe all you want is to have a SQL-like interface to Druid. You can use the [PlyQL](https://github.com/implydata/plyql) command line utility to talk to Druid.
+Maybe all you want is to have a SQL-like interface to Druid. You can use the [plyql](https://github.com/implydata/plyql) command line utility to talk to Druid.
 
 ![plyql](images/plyql.png)
 
@@ -110,7 +110,7 @@ var ex0 = ply() // Create an empty singleton dataset literal [{}]
 
 ### Example 1
 
-This example will use Druid as the data store.  
+This example will use Druid as the data store.
 We will need to import and define some additional components to query external data.
 
 ```javascript

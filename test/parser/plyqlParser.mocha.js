@@ -54,7 +54,7 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it.skip("works with a set that is only null", () => {
+    it("works with a set that is only null", () => {
       var parse = Expression.parseSQL("{NULL}");
       var ex2 = r(Set.fromJS([null]));
 
@@ -84,6 +84,15 @@ describe("SQL parser", () => {
       var parse = Expression.parseSQL("YEAR(time)");
 
       var ex2 = $('time').timePart('YEAR');
+
+      expect(parse.verb).to.equal(null);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works with NULL arguments", () => {
+      var parse = Expression.parseSQL("CONCAT(NULL, 'lol')");
+
+      var ex2 = r(null).concat('"lol"');
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -749,6 +758,19 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should work with fancy limit LIMIT 0,x", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT SUM(added) AS 'TotalAdded' FROM \`wiki\` LIMIT 0, 5
+      `);
+
+      var ex2 = ply()
+        .apply('data', '$wiki')
+        .apply('TotalAdded', '$data.sum($added)')
+        .limit(5);
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("should work without top level GROUP BY with LIMIT only", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
@@ -1336,6 +1358,16 @@ describe("SQL parser", () => {
 
       expect(parse.verb).to.equal('USE');
       expect(parse.database).to.equal('plyql2');
+    });
+
+    it("works information query", () => {
+      var parse = Expression.parseSQL("SELECT current_user();");
+
+      var ex2 = ply()
+        .apply('current_user()', r('plyql@localhost'));
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
   });
