@@ -5,6 +5,8 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.10.16
 
 - Ability to define delegates in Externals
+- selectAction now type checks and only allows defined attributes to be selected
+- `DruidExternal.getSourceList` now returns the sources in a sorted order
 
 ## 0.10.15
 
