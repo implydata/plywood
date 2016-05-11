@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.15
+
+- New chronoshift fixes bug with flooring `PT12H`
+
 ## 0.10.14
 
 - Fixed parsing of `NULL` in set expressions

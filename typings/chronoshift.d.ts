@@ -92,7 +92,9 @@ declare module Chronoshift {
         isFloorable(): boolean;
         floor(date: Date, timezone: Timezone): Date;
         shift(date: Date, timezone: Timezone, step?: number): Date;
-        move(date: Date, timezone: Timezone, step?: number): Date;
+        materialize(start: Date, end: Date, timezone: Timezone, step?: number): Date[];
+        isAligned(date: Date, timezone: Timezone): boolean;
+        dividesBy(smaller: Duration): boolean;
         getCanonicalLength(): number;
         getDescription(): string;
     }
