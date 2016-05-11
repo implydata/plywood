@@ -60,6 +60,16 @@ describe("reference check", () => {
       }).to.throw('could not resolve $^x');
     });
 
+    it("fails to resolve a select of a non existent attribute", () => {
+      var ex = ply()
+        .apply('num', 5)
+        .select('num', 'lol');
+
+      expect(() => {
+        ex.referenceCheck({});
+      }).to.throw("unknown attribute 'lol' in select");
+    });
+
     it("fails to resolve a variable that does not exist (because of select)", () => {
       var ex = ply()
         .apply('num', 5)
@@ -67,7 +77,8 @@ describe("reference check", () => {
           'subData',
           ply()
             .apply('x', '$num + 1')
-            .select('blah')
+            .apply('z', '$num + 1')
+            .select('z')
             .apply('y', '$x * 2')
         );
 

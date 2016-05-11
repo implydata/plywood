@@ -22,6 +22,25 @@ var attributes = [
   { name: 'vendor_id', special: 'unique', unsplitable: true }
 ];
 
+var diamondsCompact = External.fromJS({
+  engine: 'druid',
+  version: '0.9.2',
+  dataSource: 'diamonds-compact',
+  timeAttribute: 'time',
+  attributes: [
+    { name: 'time', type: 'TIME', makerAction: { action: 'timeFloor', duration: 'P1D', timezone: 'Etc/UTC' } },
+    { name: 'color', type: 'STRING' },
+    { name: 'cut', type: 'STRING' },
+    { name: 'price', type: 'NUMBER', unsplitable: true }
+  ],
+  concealBuckets: true,
+  allowSelectQueries: true,
+  filter: $("time").in({
+    start: new Date('2015-03-12T00:00:00'),
+    end: new Date('2015-03-19T00:00:00')
+  })
+});
+
 var context = {
   'diamonds': External.fromJS({
     engine: 'druid',
@@ -34,7 +53,7 @@ var context = {
       start: new Date('2015-03-12T00:00:00'),
       end: new Date('2015-03-19T00:00:00')
     })
-  }),
+  }).addDelegate(diamondsCompact),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
     version: '0.9.2',
@@ -79,7 +98,7 @@ describe("simulate Druid", () => {
             "type": "doubleSum"
           }
         ],
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "filter": {
           "dimension": "color",
           "type": "selector",
@@ -110,7 +129,7 @@ describe("simulate Druid", () => {
             "type": "count"
           }
         ],
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "filter": {
           "dimension": "color",
           "type": "selector",
@@ -127,7 +146,7 @@ describe("simulate Druid", () => {
             "type": "count"
           }
         ],
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "filter": {
           "dimension": "color",
           "type": "selector",
@@ -680,7 +699,7 @@ describe("simulate Druid", () => {
     var ex = ply()
       .apply(
         'HoursOfDay',
-        $("diamonds").split("$time.timePart(HOUR_OF_DAY, 'Etc/UTC')", 'HourOfDay')
+        $("diamonds").split("$time.timePart(HOUR_OF_DAY)", 'HourOfDay')
           .sort('$HourOfDay', 'ascending')
       )
       .apply(
@@ -818,7 +837,7 @@ describe("simulate Druid", () => {
             "type": "doubleSum"
           }
         ],
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "dimension": {
           "dimension": "color",
           "extractionFn": {
@@ -1208,7 +1227,7 @@ describe("simulate Druid", () => {
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
       {
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "queryType": "timeBoundary"
       }
     ]);
@@ -1220,7 +1239,7 @@ describe("simulate Druid", () => {
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
       {
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "queryType": "timeBoundary",
         "bound": "maxTime"
       }
@@ -1233,7 +1252,7 @@ describe("simulate Druid", () => {
 
     expect(ex.simulateQueryPlan(context)).to.deep.equal([
       {
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "queryType": "timeBoundary",
         "bound": "minTime"
       }
@@ -1583,7 +1602,7 @@ describe("simulate Druid", () => {
             "type": "count"
           }
         ],
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "dimension": {
           "dimension": "color",
           "outputName": "Color",
@@ -1643,7 +1662,7 @@ describe("simulate Druid", () => {
             "type": "count"
           }
         ],
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "dimension": {
           "dimension": "cut",
           "outputName": "Cut",
@@ -1664,7 +1683,7 @@ describe("simulate Druid", () => {
             "type": "count"
           }
         ],
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "dimension": {
           "dimension": "color",
           "outputName": "Color",
@@ -1884,7 +1903,7 @@ describe("simulate Druid", () => {
             "type": "count"
           }
         ],
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "granularity": "all",
         "intervals": "2015-03-12/2015-03-19",
         "postAggregations": [
@@ -2008,7 +2027,7 @@ describe("simulate Druid", () => {
             "type": "count"
           }
         ],
-        "dataSource": "diamonds",
+        "dataSource": "diamonds-compact",
         "dimensions": [
           {
             "dimension": "cut",

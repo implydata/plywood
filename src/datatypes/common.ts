@@ -39,6 +39,19 @@ module Plywood {
     return myType === 'DATASET' ? (<Dataset>value).getFullType() : { type: <PlyTypeSimple>myType };
   }
 
+  export function getFullTypeFromDatum(datum: Datum): DatasetFullType {
+    var datasetType: Lookup<FullType> = {};
+    for (var k in datum) {
+      if (!hasOwnProperty(datum, k)) continue;
+      datasetType[k] = getFullType(datum[k]);
+    }
+
+    return {
+      type: 'DATASET',
+      datasetType: datasetType
+    };
+  }
+
   export function valueFromJS(v: any, typeOverride: string = null): any {
     if (v == null) {
       return null;
@@ -147,7 +160,7 @@ module Plywood {
           newDatum[name] = v;
         }
       });
-    
+
     return Q.all(promises).then(() => newDatum);
   }
 

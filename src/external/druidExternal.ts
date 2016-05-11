@@ -465,7 +465,7 @@ module Plywood {
       return requester({ query: { queryType: 'sourceList' } })
         .then((sources) => {
           if (!Array.isArray(sources)) throw new Error('invalid sources response');
-          return sources;
+          return sources.sort();
         })
     }
 

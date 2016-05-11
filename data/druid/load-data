@@ -1,4 +1,7 @@
 #!/bin/bash -eu
 
-echo "Sending index job";
+echo "Sending index job...";
 bin/post-index-task -f /opt/data/druid/wikipedia-index.json
+
+echo "Sending compact index job...";
+bin/post-index-task -f /opt/data/druid/wikipedia-compact-index.json

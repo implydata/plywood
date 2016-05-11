@@ -514,6 +514,10 @@ module Plywood {
     public getTimezone(): Timezone {
       return Timezone.UTC;
     }
+
+    public alignsWith(actions: Action[]): boolean {
+      return true;
+    }
   }
   checkAction = Action;
 }

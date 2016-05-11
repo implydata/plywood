@@ -519,25 +519,50 @@ describe("External", () => {
     });
   });
 
-  describe("#addAction / #getRaw", () => {
-    it('runs through a cycle', () => {
-      var rawExternal = External.fromJS({
-        engine: 'druid',
-        dataSource: 'moon_child',
-        timeAttribute: 'time',
-        attributes: [
-          { name: 'page', type: 'STRING' },
-          { name: 'added', type: 'NUMBER', unsplitable: true }
-        ]
-      });
 
+  describe("#hasAttribute", () => {
+    var rawExternal = External.fromJS({
+      engine: 'druid',
+      dataSource: 'moon_child',
+      timeAttribute: 'time',
+      attributes: [
+        { name: 'page', type: 'STRING' },
+        { name: 'added', type: 'NUMBER', unsplitable: true }
+      ],
+      derivedAttributes: {
+        'addedX2': '$added * 2'
+      }
+    });
+
+    it('works in raw mode', () => {
+      expect(rawExternal.hasAttribute('page')).to.equal(true);
+      expect(rawExternal.hasAttribute('added')).to.equal(true);
+      expect(rawExternal.hasAttribute('addedX2')).to.equal(true);
+      expect(rawExternal.hasAttribute('moon')).to.equal(false);
+    });
+
+  });
+
+
+  describe("#addAction / #getRaw", () => {
+    var rawExternal = External.fromJS({
+      engine: 'druid',
+      dataSource: 'moon_child',
+      timeAttribute: 'time',
+      attributes: [
+        { name: 'page', type: 'STRING' },
+        { name: 'added', type: 'NUMBER', unsplitable: true }
+      ]
+    });
+
+    it('runs through a life cycle', () => {
       var filteredRawExternal = rawExternal.addFilter($('page').contains('lol'));
 
-      var ex = $('data').sum('$added');
+      var ex = $('blah').sum('$added:NUMBER');
       var filteredValueExternal = filteredRawExternal.addAction(ex.actions[0]);
 
       expect(filteredValueExternal.mode).to.equal('value');
-      expect(filteredValueExternal.valueExpression.toString()).to.equal('$__SEGMENT__:DATASET.sum($added)');
+      expect(filteredValueExternal.valueExpression.toString()).to.equal('$__SEGMENT__:DATASET.sum($added:NUMBER)');
 
       var filteredRawExternal2 = filteredValueExternal.getRaw();
       expect(filteredRawExternal2.equals(filteredRawExternal)).to.equal(true);
@@ -545,6 +570,88 @@ describe("External", () => {
       var rawExternal2 = filteredValueExternal.getBase();
       expect(rawExternal2.equals(rawExternal)).to.equal(true);
     });
+
+    it('it checks that expressions are internally defined (filter raw)', () => {
+      expect(rawExternal.addAction($('blah').filter('$user:STRING.contains("lol")').actions[0])).to.equal(null);
+      expect(rawExternal.addAction($('blah').filter('$page:STRING.contains("lol")').actions[0])).to.not.equal(null);
+    });
+
+    it('it checks that expressions are internally defined (filter split)', () => {
+      var splitExternal = rawExternal.addAction($('blah').split('$page:STRING', 'Page', 'blah').actions[0]);
+      expect(splitExternal.addAction($('blah').filter('$User:STRING.contains("lol")').actions[0])).to.equal(null);
+      expect(splitExternal.addAction($('blah').filter('$Page:STRING.contains("lol")').actions[0])).to.not.equal(null);
+    });
+
+    it('it checks that expressions are internally defined (split)', () => {
+      expect(rawExternal.addAction($('blah').split('$user:STRING', 'User', 'blah').actions[0])).to.equal(null);
+      expect(rawExternal.addAction($('blah').split('$page:STRING', 'Page', 'blah').actions[0])).to.not.equal(null);
+    });
+
+    it('it checks that expressions are internally defined (apply on raw)', () => {
+      expect(rawExternal.addAction($('blah').apply('DeltaPlusOne', '$delta:NUMBER + 1').actions[0])).to.equal(null);
+      expect(rawExternal.addAction($('blah').apply('AddedPlusOne', '$added:NUMBER + 1').actions[0])).to.not.equal(null);
+    });
+
+    it('it checks that expressions are internally defined (apply on split)', () => {
+      var splitExternal = rawExternal.addAction($('blah').split('$page:STRING', 'Page', 'blah').actions[0]);
+      expect(splitExternal.addAction($('blah').apply('DeltaPlusOne', '$blah.sum($delta:NUMBER)').actions[0])).to.equal(null);
+      expect(splitExternal.addAction($('blah').apply('AddedPlusOne', '$blah.sum($added:NUMBER)').actions[0])).to.not.equal(null);
+    });
+
+    it('it checks that expressions are internally defined (value / aggregate)', () => {
+      expect(rawExternal.addAction($('blah').sum('$delta:NUMBER').actions[0])).to.equal(null);
+      expect(rawExternal.addAction($('blah').sum('$added:NUMBER').actions[0])).to.not.equal(null);
+    });
+
+    it('it checks that expressions are internally defined (select)', () => {
+      //expect(rawExternal.addAction($('blah').select('user').actions[0])).to.equal(null);
+      expect(rawExternal.addAction($('blah').select('page').actions[0])).to.not.equal(null);
+    });
+
+  });
+
+
+  describe("#bucketsConcealed", () => {
+    var bucketedExternal = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      attributes: [
+        { name: 'time', type: 'TIME', makerAction: { action: 'timeFloor', duration: 'PT1H', timezone: 'Etc/UTC' } },
+        { name: 'language', type: 'STRING' }
+      ]
+    });
+
+    it('accepts', () => {
+      var exs = [
+        $('time').timeFloor('PT1H', 'Etc/UTC'),
+        $('time').timeFloor('PT2H', 'Etc/UTC'),
+        $('time').timeFloor('P1D', 'Etc/UTC'),
+        $('time').timeBucket('P1D', 'Etc/UTC'),
+        $('language').is('en').and($('time').timeFloor('PT1H', 'Etc/UTC')),
+        $('time').in(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:00Z'))
+      ];
+
+      for (var ex of exs) {
+        expect(bucketedExternal.bucketsConcealed(ex), ex.toString()).to.equal(true);
+      }
+    });
+
+    it('rejects', () => {
+      var exs = [
+        $('time'),
+        $('time').timeFloor('PT1H'),
+        $('time').timeFloor('PT1M', 'Etc/UTC'),
+        $('time').timeFloor('PT1S', 'Etc/UTC'),
+        $('language').is('en').and($('time').timeFloor('PT1M', 'Etc/UTC')),
+        $('time').in(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:01Z'))
+      ];
+
+      for (var ex of exs) {
+        expect(bucketedExternal.bucketsConcealed(ex), ex.toString()).to.equal(false);
+      }
+    });
+
   });
 
 
@@ -633,7 +740,7 @@ describe("External", () => {
           $__SEGMENT__:DATASET.sum($added:NUMBER)
         `);
 
-        expect(externalDataset.simulateValue()).to.equal(4);
+        expect(externalDataset.simulateValue(true, [])).to.equal(4);
       });
 
       it("works with a filter and aggregate", () => {
@@ -760,7 +867,7 @@ describe("External", () => {
           { name: "TotalAdded", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue().toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
           {
             "TotalAdded": 4
           }
@@ -797,7 +904,7 @@ describe("External", () => {
           { name: "TotalUK", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue().toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
           {
             "Count": 4,
             "TotalAdded": 4,
@@ -964,7 +1071,7 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue().toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
@@ -1034,7 +1141,7 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue().toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
@@ -1072,7 +1179,7 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue().toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
