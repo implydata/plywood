@@ -119,7 +119,6 @@ module Plywood {
      * Detects when ranges are touching such as [0, 1) and [1, 0)
      *
      * @param other The range to check against
-     * @returns {boolean}
      */
     public adjacent(other: Range<T>): boolean {
       return (this._endpointEqual(this.end, other.start) && this.openEnd() !== other.openStart())
@@ -130,7 +129,6 @@ module Plywood {
      * Detects if the two ranges can be merged such as [0, 1) and [1, 0)
      *
      * @param other The range to check against
-     * @returns {boolean}
      */
     public mergeable(other: Range<T>): boolean {
       return this.intersects(other) || this.adjacent(other);
@@ -140,7 +138,6 @@ module Plywood {
      * Computes the union of the ranges, if the ranges can not be merged null is returned
      *
      * @param other The range to union with
-     * @returns {boolean}
      */
     public union(other: Range<T>): Range<T> {
       if (!this.mergeable(other)) return null;
@@ -148,10 +145,16 @@ module Plywood {
     }
 
     /**
+     * Returns the extent of the single range (itself)
+     */
+    public extent(): Range<T> {
+      return this;
+    }
+
+    /**
      * Computes the extent of the ranges
      *
      * @param other The range to extend with
-     * @returns {boolean}
      */
     public extend(other: Range<T>): Range<T> {
       var thisStart = this.start;
@@ -193,7 +196,6 @@ module Plywood {
      * If the ranges are adjacent, like [0, 1) and [1, 2), the empty range [0, 0) is returned.
      *
      * @param other The range to union with
-     * @returns {boolean}
      */
     public intersect(other: Range<T>): Range<T> {
       if (!this.mergeable(other)) return null;
