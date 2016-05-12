@@ -8,6 +8,3 @@
 /build/
 /notes/
 /docs/examples/play.js
-
-# You have to make the files in 'tmp' yourself by running data/make-data-files
-/data/tmp/

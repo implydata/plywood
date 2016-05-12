@@ -34,8 +34,11 @@ To learn more, see [http://plywood.imply.io](http://plywood.imply.io/)
 
 * [Pivot](https://github.com/implydata/pivot) - a data exploration GUI built using Plywood.
 * [PlyQL](https://github.com/implydata/plyql) - a SQL-like interface to plywood
-* [Plywood Proxy](https://github.com/implydata/plywood-proxy) - A handy proxy server for Plywood.
 * Vadim Ogievetsky talks about the [inspiration behind Plywood](https://www.youtube.com/watch?v=JNMbLxqzGFA)
+
+## Development
+
+To run all the Plywood unit tests you will need to set up the data sources in the [DataZoo](https://github.com/implydata/datazoo).  
 
 ## Questions & Support
 

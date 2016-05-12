@@ -1,9 +1,0 @@
-#!/bin/bash -e
-
-docker-machine start default || echo "already running";
-eval $(docker-machine env)
-
-docker start plywood-test-mysql
-docker start plywood-test-druid
-
-echo "Running on: $DOCKER_HOST"
