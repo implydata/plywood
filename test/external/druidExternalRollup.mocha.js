@@ -111,7 +111,7 @@ describe("DruidExternal Rollup", () => {
         ],
         "dataSource": "diamonds",
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
             "fields": [
@@ -201,7 +201,7 @@ describe("DruidExternal Rollup", () => {
         ],
         "dataSource": "diamonds",
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
             "fields": [

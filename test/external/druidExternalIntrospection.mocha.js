@@ -767,14 +767,14 @@ describe("DruidExternal Introspection", () => {
             "unsplitable": true
           },
           {
-            "name": "user_unique",
-            "special": "unique",
-            "type": "STRING"
-          },
-          {
             "name": "delta_hist",
             "special": "histogram",
             "type": "NUMBER"
+          },
+          {
+            "name": "user_unique",
+            "special": "unique",
+            "type": "STRING"
           }
         ]);
         testComplete();
@@ -796,7 +796,7 @@ describe("DruidExternal Introspection", () => {
           "user_unique"
         ],
         "granularity": "all",
-        "intervals": "1000-01-01/3000-01-01",
+        "intervals": "1000/3000",
         "metrics": [
           "added",
           "count",

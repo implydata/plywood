@@ -436,8 +436,8 @@ module Plywood {
   export class DruidExternal extends External {
     static type = 'DATASET';
 
-    static TRUE_INTERVAL = "1000-01-01/3000-01-01";
-    static FALSE_INTERVAL = "1000-01-01/1000-01-02";
+    static TRUE_INTERVAL = "1000/3000";
+    static FALSE_INTERVAL = "1000/1001";
 
     static VALID_INTROSPECTION_STRATEGIES = ['segment-metadata-fallback', 'segment-metadata-only', 'datasource-get'];
     static DEFAULT_INTROSPECTION_STRATEGY = 'segment-metadata-fallback';

@@ -120,7 +120,7 @@ describe("DruidExternal", () => {
           "value": "en"
         },
         "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "queryType": "timeseries"
       });
     });
@@ -157,7 +157,7 @@ describe("DruidExternal", () => {
         ],
         "dataSource": "wikipedia",
         "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "postAggregations": [
           {
             "fields": [
@@ -208,7 +208,7 @@ describe("DruidExternal", () => {
           "value": "en"
         },
         "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "queryType": "timeseries"
       });
     });
@@ -233,7 +233,7 @@ describe("DruidExternal", () => {
         ],
         "dataSource": "wikipedia",
         "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "postAggregations": [
           {
             "fields": [
@@ -299,7 +299,7 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 5
@@ -338,7 +338,7 @@ describe("DruidExternal", () => {
           }
         ],
         "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "limitSpec": {
           "columns": [
             {
@@ -385,7 +385,7 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "metric": "CrazyStupid",
         "postAggregations": [
           {
@@ -501,7 +501,7 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "metric": "FilteredSumDeleted",
         "queryType": "topN",
         "threshold": 5
@@ -539,7 +539,7 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "metric": "Abs",
         "postAggregations": [
           {
@@ -608,7 +608,7 @@ describe("DruidExternal", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": "2013-02-26/2013-02-27",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "metric": "Count",
         "postAggregations": [
           {

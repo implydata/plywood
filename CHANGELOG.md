@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.17
+
+- `helper.overrideByName` maintains original order
+- DruidExternal explicitly sends UTC timestamps
+
 ## 0.10.16
 
 - Ability to define delegates in Externals

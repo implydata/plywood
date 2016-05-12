@@ -57,8 +57,16 @@ module Plywood {
 
     export function overrideByName<T extends Nameable>(things: T[], thingOverride: T): T[] {
       var overrideName = thingOverride.name;
-      things = things.filter(t => t.name !== overrideName);
-      things.push(thingOverride);
+      var added = false;
+      things = things.map(t => {
+        if (t.name === overrideName) {
+          added = true;
+          return thingOverride;
+        } else {
+          return t;
+        }
+      });
+      if (!added) things.push(thingOverride);
       return things;
     }
 

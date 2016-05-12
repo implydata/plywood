@@ -110,25 +110,25 @@ describe("TimeRange", () => {
         start: '2015-01-26T04:54:10Z',
         end: '2015-01-26T05:00:00Z'
       });
-      expect(timeRange.toInterval()).to.equal('2015-01-26T04:54:10/2015-01-26T05');
+      expect(timeRange.toInterval()).to.equal('2015-01-26T04:54:10Z/2015-01-26T05Z');
     });
 
     it('works on a round interval', () => {
       expect(
         TimeRange.fromJS({ start: '2015-01-26T00:00:00', end: '2015-01-27T00:00:00' }).toInterval()
-      ).to.deep.equal('2015-01-26/2015-01-27');
+      ).to.deep.equal('2015-01-26T00Z/2015-01-27T00Z');
     });
 
     it('works on a non round interval', () => {
       expect(
         TimeRange.fromJS({ start: '2015-01-26T12:34:56', end: '2015-01-27T11:22:33' }).toInterval()
-      ).to.deep.equal('2015-01-26T12:34:56/2015-01-27T11:22:33');
+      ).to.deep.equal('2015-01-26T12:34:56Z/2015-01-27T11:22:33Z');
     });
 
     it('works on an interval with different bounds', () => {
       expect(
         TimeRange.fromJS({ start: '2015-01-26T00:00:00', end: '2015-01-27T00:00:00', bounds: '(]' }).toInterval()
-      ).to.deep.equal('2015-01-26T00:00:00.001/2015-01-27T00:00:00.001');
+      ).to.deep.equal('2015-01-26T00:00:00.001Z/2015-01-27T00:00:00.001Z');
     });
   });
 });

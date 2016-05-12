@@ -291,13 +291,13 @@ describe("External", () => {
             version: '0.9.0-yo',
             dataSource: 'moon_child',
             attributeOverrides: [
-              { "name": "unique_thing", "special": "unique", "type": "STRING" }
+              { name: "unique_thing", special: "unique", type: "STRING" }
             ],
             attributes: [
               { name: 'color', type: 'STRING' },
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
-              { "name": "unique_thing", "special": "unique", "type": "STRING" }
+              { name: "unique_thing", special: "unique", type: "STRING" }
             ]
           });
           return introspectedExternal1;
@@ -323,14 +323,14 @@ describe("External", () => {
             version: '0.9.0-yo',
             dataSource: 'moon_child',
             attributeOverrides: [
-              { "name": "unique_thing", "special": "unique", "type": "STRING" }
+              { name: "unique_thing", special: "unique", type: "STRING" }
             ],
             attributes: [
               { name: 'color', type: 'STRING' },
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
-              { name: 'price', type: 'NUMBER' },
-              { "name": "unique_thing", "special": "unique", "type": "STRING" }
+              { name: "unique_thing", special: "unique", type: "STRING" },
+              { name: 'price', type: 'NUMBER' }
             ]
           });
           testComplete();

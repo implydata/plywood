@@ -105,7 +105,7 @@ describe("simulate Druid", () => {
           "value": "D"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "queryType": "timeseries"
       }
     ]);
@@ -136,7 +136,7 @@ describe("simulate Druid", () => {
           "value": "D"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "queryType": "timeseries"
       },
       {
@@ -153,7 +153,7 @@ describe("simulate Druid", () => {
           "value": "E"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "queryType": "timeseries"
       }
     ]);
@@ -248,7 +248,7 @@ describe("simulate Druid", () => {
           "type": "and"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
             "fields": [
@@ -397,7 +397,7 @@ describe("simulate Druid", () => {
           "type": "and"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 2
@@ -436,7 +436,7 @@ describe("simulate Druid", () => {
           "timeZone": "America/Los_Angeles",
           "type": "period"
         },
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "queryType": "timeseries",
         "context": {
           "skipEmptyBuckets": "true"
@@ -480,7 +480,7 @@ describe("simulate Druid", () => {
           "type": "and"
         },
         "granularity": "all",
-        "intervals": "2015-03-13T07/2015-03-14T07",
+        "intervals": "2015-03-13T07Z/2015-03-14T07Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -685,7 +685,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "type": "alphaNumeric"
         },
@@ -729,7 +729,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "type": "alphaNumeric"
         },
@@ -758,7 +758,7 @@ describe("simulate Druid", () => {
           }
         ],
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "limitSpec": {
           "columns": [
             {
@@ -848,7 +848,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "TotalPrice",
         "queryType": "topN",
         "threshold": 10
@@ -902,7 +902,7 @@ describe("simulate Druid", () => {
       .apply('diamonds', $("diamonds").filter($("time").in({ start: new Date('2015-03-12T00:00:00'), end: null })))
       .apply('Count', $('diamonds').count());
 
-    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.equal("2015-03-12/3000-01-01");
+    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.equal("2015-03-12T00Z/3000");
   });
 
   it("works with upper bound only time filter", () => {
@@ -910,7 +910,7 @@ describe("simulate Druid", () => {
       .apply('diamonds', $("diamonds").filter($("time").in({ start: null, end: new Date('2015-03-12T00:00:00') })))
       .apply('Count', $('diamonds').count());
 
-    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.equal("1000-01-01/2015-03-12");
+    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.equal("1000/2015-03-12T00Z");
   });
 
   it("works with numeric split", () => {
@@ -937,7 +937,7 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "metric": {
             "type": "alphaNumeric"
@@ -987,7 +987,7 @@ describe("simulate Druid", () => {
           "dimension": "tags"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "metric": {
             "type": "lexicographic"
@@ -1026,7 +1026,7 @@ describe("simulate Druid", () => {
           "type": "and"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -1066,7 +1066,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 1000
@@ -1108,7 +1108,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "metric": {
             "type": "lexicographic"
@@ -1144,7 +1144,7 @@ describe("simulate Druid", () => {
           "value": "something"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -1188,7 +1188,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -1212,7 +1212,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -1286,7 +1286,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -1392,7 +1392,7 @@ describe("simulate Druid", () => {
           "timeZone": "Etc/UTC",
           "type": "period"
         },
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "queryType": "timeseries",
         "context": {
           "skipEmptyBuckets": "true"
@@ -1497,8 +1497,8 @@ describe("simulate Druid", () => {
         },
         "granularity": "all",
         "intervals": [
-          "2015-03-12/2015-03-15",
-          "2015-03-16/2015-03-18"
+          "2015-03-12T00Z/2015-03-15T00Z",
+          "2015-03-16T00Z/2015-03-18T00Z"
         ],
         "metric": "Count",
         "queryType": "topN",
@@ -1541,7 +1541,7 @@ describe("simulate Druid", () => {
           "type": "extraction"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -1571,7 +1571,7 @@ describe("simulate Druid", () => {
           "value": 4
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
@@ -1609,7 +1609,7 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "type": "lexicographic"
         },
@@ -1629,7 +1629,7 @@ describe("simulate Druid", () => {
           "timeZone": "America/Los_Angeles",
           "type": "period"
         },
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "queryType": "timeseries",
         "context": {
           "skipEmptyBuckets": "true"
@@ -1669,7 +1669,7 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "type": "lexicographic"
         },
@@ -1695,7 +1695,7 @@ describe("simulate Druid", () => {
           "value": "some_cut"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -1732,7 +1732,7 @@ describe("simulate Druid", () => {
           "timeZone": "Etc/UTC",
           "type": "period"
         },
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "queryType": "timeseries",
         "context": {
           "skipEmptyBuckets": "true"
@@ -1752,7 +1752,7 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "granularity": "all",
-        "intervals": "2015-03-14/2015-03-14T01",
+        "intervals": "2015-03-14T00Z/2015-03-14T01Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -1789,7 +1789,7 @@ describe("simulate Druid", () => {
           "timeZone": "Etc/UTC",
           "type": "period"
         },
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
             "fields": [
@@ -1853,7 +1853,7 @@ describe("simulate Druid", () => {
         ],
         "dataSource": "diamonds",
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
             "fields": [
@@ -1905,7 +1905,7 @@ describe("simulate Druid", () => {
         ],
         "dataSource": "diamonds-compact",
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
             "fields": [
@@ -1934,7 +1934,7 @@ describe("simulate Druid", () => {
       .apply('Count', '$diamonds.count()');
 
     expect(ex.simulateQueryPlan(context)[0].intervals).to.equal(
-      "2015-03-12T01:00:00.123/2015-03-12T01:00:00.124"
+      "2015-03-12T01:00:00.123Z/2015-03-12T01:00:00.124Z"
     );
   });
 
@@ -1944,7 +1944,7 @@ describe("simulate Druid", () => {
       .apply('Count', '$diamonds.count()');
 
     expect(ex.simulateQueryPlan(context)[0].intervals).to.equal(
-      "2015-03-12T01:00:00.123/2015-03-12T01:00:00.124"
+      "2015-03-12T01:00:00.123Z/2015-03-12T01:00:00.124Z"
     );
   });
 
@@ -1999,7 +1999,7 @@ describe("simulate Druid", () => {
           "value": "D"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metrics": [
           "price",
           "tax",
@@ -2036,7 +2036,7 @@ describe("simulate Druid", () => {
           }
         ],
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "limitSpec": {
           "columns": [
             { "dimension": "Cut" }
@@ -2110,7 +2110,7 @@ describe("simulate Druid", () => {
           "dimension": "color"
         },
         "granularity": "all",
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "limitSpec": {
           "columns": [
             { "dimension": "Color" }
@@ -2153,7 +2153,7 @@ describe("simulate Druid", () => {
           "type": "and"
         },
         "granularity": "all",
-        "intervals": "2015-03-14/2015-03-14T01",
+        "intervals": "2015-03-14T00Z/2015-03-14T01Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -2207,7 +2207,7 @@ describe("simulate Druid", () => {
           "timeZone": "Etc/UTC",
           "type": "period"
         },
-        "intervals": "2015-03-12/2015-03-19",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "limitSpec": {
           "columns": [
             { "dimension": "Color" }
