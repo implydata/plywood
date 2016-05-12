@@ -19,16 +19,14 @@ module Plywood {
     return date;
   }
 
-  const START_OF_TIME = "1000-01-01";
-  const END_OF_TIME = "3000-01-01";
+  const START_OF_TIME = "1000";
+  const END_OF_TIME = "3000";
 
   function dateToIntervalPart(date: Date): string {
     return date.toISOString()
-      .replace('Z', '')
-      .replace('.000', '')
-      .replace(/:00$/, '')
-      .replace(/:00$/, '')
-      .replace(/T00$/, '');
+      .replace('.000Z', 'Z')
+      .replace(':00Z', 'Z')
+      .replace(':00Z', 'Z'); // Do not do a final .replace('T00Z', 'Z');
   }
 
   var check: Class<TimeRangeValue, TimeRangeJS>;
@@ -137,7 +135,7 @@ module Plywood {
     public midpoint(): Date {
       return new Date((this.start.valueOf() + this.end.valueOf()) / 2);
     }
-    
+
     public isAligned(duration: Duration, timezone: Timezone): boolean {
       const { start, end } = this;
       return (!start || duration.isAligned(start, timezone)) && (!end || duration.isAligned(end, timezone));
