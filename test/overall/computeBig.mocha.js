@@ -12,7 +12,7 @@ if (!chronoshift.WallTime.rules) {
   chronoshift.WallTime.init(tzData.rules, tzData.zones);
 }
 
-var rawData = fs.readFileSync(path.join(__dirname, '../../data/wikipedia-sampled.json'), 'utf-8');
+var rawData = fs.readFileSync(path.join(__dirname, '../../resources/wikipedia-sampled.json'), 'utf-8');
 var wikiDayData = helper.parseJSON(rawData);
 
 wikiDayData.forEach((d, i) => {
