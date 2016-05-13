@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.18
+
+- `timeFloor` and `timeBucket` actions make sure duration is floorable
+
 ## 0.10.17
 
 - `helper.overrideByName` maintains original order

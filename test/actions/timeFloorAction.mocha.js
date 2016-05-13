@@ -11,6 +11,18 @@ var { $, ply, r, Action } = plywood;
 
 describe("TimeFloorAction", () => {
 
+  describe("errors", () => {
+    it('errors on non-floorable duration', () => {
+      expect(() => {
+        Action.fromJS({
+          action: 'timeFloor',
+          duration: 'PT5H'
+        });
+      }).to.throw("duration 'PT5H' is not floorable");
+    });
+
+  });
+
   describe("#alignsWith", () => {
     var hourFloorUTC = Action.fromJS({
       action: 'timeFloor',

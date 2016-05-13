@@ -96,7 +96,7 @@ declare module Chronoshift {
         isAligned(date: Date, timezone: Timezone): boolean;
         dividesBy(smaller: Duration): boolean;
         getCanonicalLength(): number;
-        getDescription(): string;
+        getDescription(capitalize?: boolean): string;
     }
 }
 declare module Chronoshift {

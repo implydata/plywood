@@ -12,11 +12,15 @@ module Plywood {
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
-      this.duration = parameters.duration;
+      var duration = parameters.duration;
+      this.duration = duration;
       this.timezone = parameters.timezone;
       this._ensureAction("timeFloor");
-      if (!Duration.isDuration(this.duration)) {
+      if (!Duration.isDuration(duration)) {
         throw new Error("`duration` must be a Duration");
+      }
+      if (!duration.isFloorable()) {
+        throw new Error(`duration '${duration.toString()}' is not floorable`);
       }
     }
 

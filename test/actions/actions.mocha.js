@@ -79,9 +79,13 @@ describe("Actions", () => {
       { action: 'numberBucket', size: 5 },
       { action: 'numberBucket', size: 5, offset: 1 },
 
+      { action: 'timeFloor', duration: 'P1D' },
+      { action: 'timeFloor', duration: 'PT2H', timezone: 'Etc/UTC' },
+      { action: 'timeFloor', duration: 'PT2H', timezone: 'America/Los_Angeles' },
+
       { action: 'timeBucket', duration: 'P1D' },
-      { action: 'timeBucket', duration: 'P2D', timezone: 'Etc/UTC' },
-      { action: 'timeBucket', duration: 'P2D', timezone: 'America/Los_Angeles' },
+      { action: 'timeBucket', duration: 'PT2H', timezone: 'Etc/UTC' },
+      { action: 'timeBucket', duration: 'PT2H', timezone: 'America/Los_Angeles' },
 
       { action: 'timePart', part: 'DAY_OF_WEEK' },
       { action: 'timePart', part: 'DAY_OF_MONTH', timezone: 'Etc/UTC' },
