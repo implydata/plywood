@@ -96,6 +96,7 @@ module Plywood {
           return '(' + (<Set>value).elements.map((v: any) => dialect.escapeLiteral(v)).join(',') + ')';
 
         case 'SET/NUMBER_RANGE':
+        case 'SET/TIME_RANGE':
           return 'FALSE'; // ToDo: fix these dummies
 
         default:

@@ -78,12 +78,27 @@ var druidExecutor = basicExecutorFactory({
       },
       attributes,
       derivedAttributes,
-      filter: $('time').in(TimeRange.fromJS({
-        start: new Date("2015-09-12T00:00:00Z"),
-        end: new Date("2015-09-13T00:00:00Z")
-      })),
       version: info.druidVersion,
-      allowSelectQueries: true
+      allowSelectQueries: true,
+      allowEternity: true
+    }, druidRequester)
+  }
+});
+
+var druidLegacyExecutor = basicExecutorFactory({
+  datasets: {
+    wiki: External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      context: {
+        timeout: 10001 // Put a different timeout here so we can tell queries apart from non-legacy druid
+      },
+      attributes,
+      derivedAttributes,
+      version: '0.8.3',
+      allowSelectQueries: true,
+      allowEternity: true
     }, druidRequester)
   }
 });
@@ -101,6 +116,7 @@ var mysqlExecutor = basicExecutorFactory({
 
 var equalityTest = utils.makeEqualityTest({
   druid: druidExecutor,
+  druidLegacy: druidLegacyExecutor,
   mysql: mysqlExecutor
 });
 
@@ -236,6 +252,46 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with primary time filter (single range)', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter($('time').in(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z"))))
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with alt time filter (single range)', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter($('sometimeLater').in(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z"))))
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with primary time filter (multi range)', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter(
+          $('time').in(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z")).or(
+            $('time').in(new Date("2015-09-12T03:00:00Z"), new Date("2015-09-12T04:30:00Z")),
+            $('time').in(new Date("2015-09-12T05:00:00Z"), new Date("2015-09-12T06:30:00Z")))
+        ))
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with alt time filter (multi range)', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter(
+          $('sometimeLater').in(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z")).or(
+            $('sometimeLater').in(new Date("2016-09-12T03:00:00Z"), new Date("2016-09-12T04:30:00Z")),
+            $('sometimeLater').in(new Date("2016-09-12T05:00:00Z"), new Date("2016-09-12T06:30:00Z")))
+        ))
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it.skip('works with .timePart().in()', equalityTest({
       executorNames: ['druid', 'mysql'],
       expression:  ply()
@@ -253,7 +309,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with .lessThan()', equalityTest({
-      executorNames: ['druid', 'mysql'],
+      executorNames: ['druid', 'druidLegacy', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter($commentLength < 50)')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -261,7 +317,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with .lessThanOrEqual()', equalityTest({
-      executorNames: ['druid', 'mysql'],
+      executorNames: ['druid', 'druidLegacy', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter($commentLength <= 50)')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -269,7 +325,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with numeric range, bounds: ()', equalityTest({
-      executorNames: ['druid', 'mysql'],
+      executorNames: ['druid', 'druidLegacy', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter(20 < $commentLength and $commentLength < 50)')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -277,7 +333,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with numeric range, bounds: [)', equalityTest({
-      executorNames: ['druid', 'mysql'],
+      executorNames: ['druid', 'druidLegacy', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter(20 <= $commentLength and $commentLength < 50)')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -285,7 +341,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with numeric range, bounds: (]', equalityTest({
-      executorNames: ['druid', 'mysql'],
+      executorNames: ['druid', 'druidLegacy', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter(20 < $commentLength and $commentLength <= 50)')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -293,7 +349,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with numeric range, bounds: []', equalityTest({
-      executorNames: ['druid', 'mysql'],
+      executorNames: ['druid', 'druidLegacy', 'mysql'],
       expression: ply()
         .apply('wiki', '$wiki.filter(20 <= $commentLength and $commentLength <= 50)')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -500,6 +556,14 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
         .limit(10)
+    }));
+
+    it('works with secondary TIME split (raw) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'],
+      expression: $('wiki').filter('$time < "2015-09-12T02Z"').split($("sometimeLater"), 'TimeRaw')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .sort('$TimeRaw', 'ascending')
+        .limit(20)
     }));
 
     it('works with secondary TIME split (timeBucket PT1M) (sort on split)', equalityTest({

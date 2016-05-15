@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.19
+
+- Made filters on non primary time dimensions work in DruidExternal
+- Added basic tests for legacy Druid versions 
+
 ## 0.10.18
 
 - `timeFloor` and `timeBucket` actions make sure duration is floorable
