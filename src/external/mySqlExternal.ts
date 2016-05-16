@@ -1,6 +1,4 @@
 module Plywood {
-  var mySQLDialect = new MySQLDialect();
-
   interface SQLDescribeRow {
     Field: string;
     Type: string;
@@ -89,12 +87,11 @@ module Plywood {
     }
   }
 
-  export class MySQLExternal extends External {
+  export class MySQLExternal extends SQLExternal {
     static type = 'DATASET';
 
     static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): MySQLExternal {
-      var value: ExternalValue = External.jsToValue(parameters, requester);
-      value.table = parameters.table;
+      var value: ExternalValue = SQLExternal.jsToValue(parameters, requester);
       return new MySQLExternal(value);
     }
 
@@ -112,154 +109,12 @@ module Plywood {
     public table: string;
 
     constructor(parameters: ExternalValue) {
-      super(parameters, dummyObject);
+      super(parameters, new MySQLDialect());
       this._ensureEngine("mysql");
-      this.table = parameters.table;
-    }
-
-    public valueOf(): ExternalValue {
-      var value: ExternalValue = super.valueOf();
-      value.table = this.table;
-      return value;
-    }
-
-    public toJS(): ExternalJS {
-      var js: ExternalJS = super.toJS();
-      js.table = this.table;
-      return js;
-    }
-
-    public equals(other: MySQLExternal): boolean {
-      return super.equals(other) &&
-        this.table === other.table;
-    }
-
-    // -----------------
-
-    public canHandleFilter(ex: Expression): boolean {
-      return true;
-    }
-
-    public canHandleTotal(): boolean {
-      return true;
-    }
-
-    public canHandleSplit(ex: Expression): boolean {
-      return true;
-    }
-
-    public canHandleApply(ex: Expression): boolean {
-      return true;
-    }
-
-    public canHandleSort(sortAction: SortAction): boolean {
-      return true;
-    }
-
-    public canHandleLimit(limitAction: LimitAction): boolean {
-      return true;
-    }
-
-    public canHandleHavingFilter(ex: Expression): boolean {
-      return true;
-    }
-
-    // -----------------
-
-    public getQueryAndPostProcess(): QueryAndPostProcess<string> {
-      const { table, mode, applies, sort, limit, derivedAttributes } = this;
-
-      var query = ['SELECT'];
-      var postProcess: PostProcess = null;
-      var inflaters: Inflater[] = [];
-      var zeroTotalApplies: ApplyAction[] = null;
-
-      var from = "FROM `" + table + "`";
-      var filter = this.getQueryFilter();
-      if (!filter.equals(Expression.TRUE)) {
-        from += '\nWHERE ' + filter.getSQL(mySQLDialect);
-      }
-
-      switch (mode) {
-        case 'raw':
-          var selectedAttributes = this.getSelectedAttributes();
-
-          selectedAttributes.forEach(attribute => {
-            if (attribute.type === 'BOOLEAN') {
-              inflaters.push(External.booleanInflaterFactory(attribute.name));
-            }
-          });
-
-          query.push(
-            selectedAttributes.map(a => {
-              var name = a.name;
-              if (derivedAttributes[name]) {
-                return new ApplyAction({ name, expression: derivedAttributes[name] }).getSQL('', mySQLDialect)
-              } else {
-                return mySQLDialect.escapeName(name);
-              }
-            }).join(', '),
-            from
-          );
-          if (sort) {
-            query.push(sort.getSQL('', mySQLDialect));
-          }
-          if (limit) {
-            query.push(limit.getSQL('', mySQLDialect));
-          }
-          break;
-
-        case 'value':
-          query.push(
-            this.toValueApply().getSQL('', mySQLDialect),
-            from,
-            "GROUP BY ''"
-          );
-          postProcess = valuePostProcess;
-          break;
-
-        case 'total':
-          zeroTotalApplies = applies;
-          query.push(
-            applies.map(apply => apply.getSQL('', mySQLDialect)).join(',\n'),
-            from,
-            "GROUP BY ''"
-          );
-          break;
-
-        case 'split':
-          var split = this.getQuerySplit();
-          query.push(
-            split.getSelectSQL(mySQLDialect)
-              .concat(applies.map(apply => apply.getSQL('', mySQLDialect)))
-              .join(',\n'),
-            from,
-            split.getShortGroupBySQL()
-          );
-          if (!(this.havingFilter.equals(Expression.TRUE))) {
-            query.push('HAVING ' + this.havingFilter.getSQL(mySQLDialect));
-          }
-          if (sort) {
-            query.push(sort.getSQL('', mySQLDialect));
-          }
-          if (limit) {
-            query.push(limit.getSQL('', mySQLDialect));
-          }
-          inflaters = getSplitInflaters(split);
-          break;
-
-        default:
-          throw new Error(`can not get query for mode: ${mode}`);
-      }
-
-      return {
-        query: query.join('\n'),
-        postProcess: postProcess || postProcessFactory(inflaters, zeroTotalApplies)
-      };
     }
 
     public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
-      return this.requester({ query: "DESCRIBE `" + this.table + "`", }).then(postProcessIntrospect);
+      return this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.table)}`, }).then(postProcessIntrospect);
     }
   }
 

@@ -41,6 +41,7 @@
     "pegjs": "0.9.0",
     "plywood-druid-requester": "1.4.3",
     "plywood-mysql-requester": "1.2.2",
+    "plywood-postgres-requester": "0.8.1",
     "tslint": "3.10.1",
     "typescript": "1.8.10",
     "underscore": "1.8.3",

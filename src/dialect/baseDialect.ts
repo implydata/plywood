@@ -1,0 +1,87 @@
+module Plywood {
+  export class SQLDialect {
+    constructor() {}
+
+    public constantGroupBy(): string {
+      return "GROUP BY ''";
+    }
+    
+    public escapeName(name: string): string {
+      name = name.replace(/"/g, '""');
+      return '"' + name + '"';
+    }
+
+    public escapeLiteral(name: string): string {
+      return JSON.stringify(name);
+    }
+
+    public booleanToSQL(bool: boolean): string {
+      return ('' + bool).toUpperCase();
+    }
+
+    public numberOrTimeToSQL(x: number | Date): string {
+      if (x === null) return 'NULL';
+      if ((x as Date).toISOString) {
+        return this.timeToSQL(x as Date);
+      } else {
+        return this.numberToSQL(x as number);
+      }
+    }
+
+    public numberToSQL(num: number): string {
+      if (num === null) return 'NULL';
+      return '' + num;
+    }
+
+    public timeToSQL(date: Date): string {
+      if (!date) return 'NULL';
+      var str = date.toISOString()
+        .replace('T', ' ')
+        .replace('Z', '')
+        .replace(/\.000$/, '')
+        .replace(/ 00:00:00$/, '');
+      return `TIMESTAMP('${str}')`;
+    }
+
+    public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, zeroSQL: string = '0'): string {
+      var whereIndex = inputSQL.indexOf(' WHERE ');
+      if (whereIndex === -1) return expressionSQL;
+      var filterSQL = inputSQL.substr(whereIndex + 7);
+      return `IF(${filterSQL},${expressionSQL},${zeroSQL})`
+    }
+
+    public inExpression(operand: string, start: string, end: string, bounds: string) {
+      if (start === end && bounds === '[]') return `${operand}=${start}`;
+      var startSQL: string = null;
+      if (start !== 'NULL') {
+        startSQL = start + (bounds[0] === '[' ? '<=' : '<') + operand;
+      }
+      var endSQL: string = null;
+      if (end !== 'NULL') {
+        endSQL = operand + (bounds[1] === ']' ? '<=' : '<') + end;
+      }
+      if (startSQL) {
+        return endSQL ? `(${startSQL} AND ${endSQL})` : startSQL;
+      } else {
+        return endSQL ? endSQL : 'TRUE';
+      }
+    }
+
+    public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
+      throw new Error('Dialect must implement timeFloorExpression');
+    }
+
+    public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
+      throw new Error('Dialect must implement timeBucketExpression');
+    }
+
+    public timePartExpression(operand: string, part: string, timezone: Timezone): string {
+      throw new Error('Dialect must implement timePartExpression');
+    }
+
+    public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string {
+      throw new Error('Dialect must implement timeShiftExpression');
+    }
+  }
+
+}
