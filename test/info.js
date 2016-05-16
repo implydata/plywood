@@ -7,3 +7,8 @@ exports.mySqlHost = `${DOCKER_MACHINE}:3306`;
 exports.mySqlDatabase = 'plywood_test';
 exports.mySqlUser = 'root';
 exports.mySqlPassword = '';
+
+exports.postgresHost = `${DOCKER_MACHINE}:5432`;
+exports.postgresDatabase = 'datazoo';
+exports.postgresUser = 'root';
+exports.postgresPassword = 'datazoo';

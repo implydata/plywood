@@ -5,14 +5,15 @@ module Plywood {
     public constantGroupBy(): string {
       return "GROUP BY ''";
     }
-    
+
     public escapeName(name: string): string {
       name = name.replace(/"/g, '""');
       return '"' + name + '"';
     }
 
     public escapeLiteral(name: string): string {
-      return JSON.stringify(name);
+      name = name.replace(/'/g, "''");
+      return "'" + name + "'";
     }
 
     public booleanToSQL(bool: boolean): string {
@@ -48,6 +49,18 @@ module Plywood {
       if (whereIndex === -1) return expressionSQL;
       var filterSQL = inputSQL.substr(whereIndex + 7);
       return `IF(${filterSQL},${expressionSQL},${zeroSQL})`
+    }
+
+    public concatExpression(a: string, b: string): string {
+      throw new Error('must implement');
+    }
+
+    public containsExpression(a: string, b: string): string {
+      throw new Error('must implement');
+    }
+    
+    public isNotDistinctFromExpression(a: string, b: string): string {
+      return `(${a} IS NOT DISTINCT FROM ${b})`;
     }
 
     public inExpression(operand: string, start: string, end: string, bounds: string) {

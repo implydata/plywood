@@ -34,7 +34,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `CONCAT(${inputSQL},${expressionSQL})`;
+      return dialect.concatExpression(inputSQL, expressionSQL);
     }
 
     protected _removeAction(): boolean {

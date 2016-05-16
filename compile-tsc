@@ -7,6 +7,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   \
   src/dialect/baseDialect.ts \
   src/dialect/mySqlDialect.ts \
+  src/dialect/postgresDialect.ts \
   \
   src/datatypes/common.ts \
   src/datatypes/attributeInfo.ts \
@@ -20,6 +21,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/external/druidExternal.ts \
   src/external/sqlExternal.ts \
   src/external/mySqlExternal.ts \
+  src/external/postgresExternal.ts \
   \
   src/expressions/baseExpression.ts \
   src/expressions/literalExpression.ts \

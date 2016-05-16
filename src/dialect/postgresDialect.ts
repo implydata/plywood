@@ -9,22 +9,22 @@ module Plywood {
     "P1Y":  "%Y-01-01Z"
   };
 
-  export class MySQLDialect extends SQLDialect {
+  export class PostgresDialect extends SQLDialect {
     static TIME_PART_TO_FUNCTION: Lookup<string> = {
-      SECOND_OF_MINUTE: 'SECOND($$)',
+      SECOND_OF_MINUTE: "DATE_PART('second', $$)",
       SECOND_OF_HOUR: '(MINUTE($$)*60+SECOND($$))',
       SECOND_OF_DAY: '((HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
       SECOND_OF_WEEK: '(((WEEKDAY($$)*24)+HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
       SECOND_OF_MONTH: '((((DAYOFMONTH($$)-1)*24)+HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
       SECOND_OF_YEAR: '((((DAYOFYEAR($$)-1)*24)+HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
 
-      MINUTE_OF_HOUR: 'MINUTE($$)',
+      MINUTE_OF_HOUR: "DATE_PART('minute', $$)",
       MINUTE_OF_DAY: 'HOUR($$)*60+MINUTE($$)',
       MINUTE_OF_WEEK: '(WEEKDAY($$)*24)+HOUR($$)*60+MINUTE($$)',
       MINUTE_OF_MONTH: '((DAYOFMONTH($$)-1)*24)+HOUR($$)*60+MINUTE($$)',
       MINUTE_OF_YEAR: '((DAYOFYEAR($$)-1)*24)+HOUR($$)*60+MINUTE($$)',
 
-      HOUR_OF_DAY: 'HOUR($$)',
+      HOUR_OF_DAY: "DATE_PART('hour', $$)",
       HOUR_OF_WEEK: '(WEEKDAY($$)*24+HOUR($$))',
       HOUR_OF_MONTH: '((DAYOFMONTH($$)-1)*24+HOUR($$))',
       HOUR_OF_YEAR: '((DAYOFYEAR($$)-1)*24+HOUR($$))',
@@ -36,33 +36,24 @@ module Plywood {
       WEEK_OF_MONTH: null,
       WEEK_OF_YEAR: 'WEEK($$)', // ToDo: look into mode (https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_week)
 
-      MONTH_OF_YEAR: 'MONTH($$)',
-      YEAR: 'YEAR($$)'
+      MONTH_OF_YEAR: "DATE_PART('month', $$)",
+      YEAR: "DATE_PART('year', $$)",
     };
 
     constructor() {
       super();
     }
 
-    public escapeName(name: string): string {
-      name = name.replace(/`/g, '``');
-      return '`' + name + '`';
-    }
-
-    public escapeLiteral(name: string): string {
-      return JSON.stringify(name);
+    public constantGroupBy(): string {
+      return "GROUP BY ''=''";
     }
 
     public concatExpression(a: string, b: string): string {
-      return `CONCAT(${a},${b})`;
+      return `(${a}||${b})`;
     }
 
     public containsExpression(a: string, b: string): string {
-      return `LOCATE(${a},${b})>0`;
-    }
-    
-    public isNotDistinctFromExpression(a: string, b: string): string {
-      return `(${a}<=>${b})`;
+      return `POSITION(${a} IN ${b})>0`;
     }
 
     public timezoneConvert(operand: string, timezone: Timezone): string {
@@ -81,7 +72,7 @@ module Plywood {
     }
 
     public timePartExpression(operand: string, part: string, timezone: Timezone): string {
-      var timePartFunction = MySQLDialect.TIME_PART_TO_FUNCTION[part];
+      var timePartFunction = PostgresDialect.TIME_PART_TO_FUNCTION[part];
       if (!timePartFunction) throw new Error(`unsupported part ${part} in MySQL dialect`);
       return timePartFunction.replace(/\$\$/g, this.timezoneConvert(operand, timezone));
     }

@@ -58,7 +58,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `${expressionSQL} AS ${dialect.escapeLiteral(this.name)}`;
+      return `${expressionSQL} AS ${dialect.escapeName(this.name)}`;
     }
 
     public isSimpleAggregate(): boolean {

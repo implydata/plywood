@@ -29,14 +29,14 @@ module Plywood {
     }
   }
 
-  export class MySQLExternal extends SQLExternal {
+  export class PostgresExternal extends SQLExternal {
     static type = 'DATASET';
 
-    static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): MySQLExternal {
+    static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): PostgresExternal {
       var value: ExternalValue = SQLExternal.jsToValue(parameters, requester);
-      return new MySQLExternal(value);
+      return new PostgresExternal(value);
     }
-
+    
     static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
       return requester({ query: "SHOW TABLES" })
         .then((sources) => {
@@ -49,8 +49,8 @@ module Plywood {
     }
 
     constructor(parameters: ExternalValue) {
-      super(parameters, new MySQLDialect());
-      this._ensureEngine("mysql");
+      super(parameters, new PostgresDialect());
+      this._ensureEngine("postgres");
     }
 
     public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
@@ -58,5 +58,5 @@ module Plywood {
     }
   }
 
-  External.register(MySQLExternal, 'mysql');
+  External.register(PostgresExternal, 'postgres');
 }
