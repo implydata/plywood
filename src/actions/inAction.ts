@@ -55,7 +55,7 @@ module Plywood {
         case 'NUMBER_RANGE':
         case 'TIME_RANGE':
           if (expression instanceof LiteralExpression) {
-            var range: Range<any> = expression.value;
+            var range: PlywoodRange = expression.value;
             return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
           }
           throw new Error(`can not convert action to SQL ${this}`);
@@ -68,7 +68,7 @@ module Plywood {
         case 'SET/TIME_RANGE':
           if (expression instanceof LiteralExpression) {
             var setOfRange: Set = expression.value;
-            return setOfRange.elements.map((range: Range<any>) => {
+            return setOfRange.elements.map((range: PlywoodRange) => {
               return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
             }).join(' OR ');
           }

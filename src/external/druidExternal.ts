@@ -660,7 +660,7 @@ module Plywood {
       return druidFilter;
     }
 
-    public makeBoundFilter(dimensionName: string, range: Range<any>): Druid.Filter {
+    public makeBoundFilter(dimensionName: string, range: PlywoodRange): Druid.Filter {
       var isTime = TimeRange.isTimeRange(range);
       var r0 = range.start;
       var r1 = range.end;
@@ -670,11 +670,9 @@ module Plywood {
         var convert = isTime ? '' : 'a = +a;';
         var cmpStrings: string[] = [];
         if (r0 != null) {
-          if (r0.toISOString) r0 = r0.toISOString();
           cmpStrings.push(`${JSON.stringify(r0)} ${bounds[0] === '(' ? '<' : '<='} a`);
         }
         if (r1 != null) {
-          if (r1.toISOString) r1 = r1.toISOString();
           cmpStrings.push(`a ${bounds[1] === ')' ? '<' : '<='} ${JSON.stringify(r1)}`);
         }
         return {
@@ -692,13 +690,11 @@ module Plywood {
         boundFilter.alphaNumeric = true;
       }
       if (r0 != null) {
-        if (r0.toISOString) r0 = r0.toISOString();
-        boundFilter.lower = r0;
+        boundFilter.lower = isDate(r0) ? r0.toISOString() : r0;
         if (bounds[0] === '(') boundFilter.lowerStrict = true;
       }
       if (r1 != null) {
-        if (r1.toISOString) r1 = r1.toISOString();
-        boundFilter.upper = r1;
+        boundFilter.upper = isDate(r1) ? r1.toISOString() : r1;
         if (bounds[1] === ')') boundFilter.upperStrict = true;
       }
       return boundFilter;
@@ -796,7 +792,7 @@ module Plywood {
 
             } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE') {
               var elements = rhs.value.elements;
-              var fields = elements.map((range: Range<any>) => {
+              var fields = elements.map((range: PlywoodRange) => {
                 return this.makeBoundFilter(dimensionName, range);
               });
 

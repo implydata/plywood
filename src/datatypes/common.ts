@@ -1,6 +1,6 @@
 module Plywood {
-  export function isDate(dt: any) {
-    return Boolean(dt && dt.toISOString);
+  export function isDate(dt: any): dt is Date {
+    return !!(dt && dt.toISOString);
   }
 
   export function getValueType(value: any): PlyType {
