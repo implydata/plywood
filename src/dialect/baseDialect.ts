@@ -34,21 +34,27 @@ module Plywood {
       return '' + num;
     }
 
-    public timeToSQL(date: Date): string {
-      if (!date) return 'NULL';
-      var str = date.toISOString()
+    public dateToSQLDateString(date: Date): string {
+      return date.toISOString()
         .replace('T', ' ')
         .replace('Z', '')
         .replace(/\.000$/, '')
         .replace(/ 00:00:00$/, '');
-      return `TIMESTAMP('${str}')`;
+    }
+
+    public timeToSQL(date: Date): string {
+      throw new Error('must implement');
     }
 
     public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, zeroSQL: string = '0'): string {
       var whereIndex = inputSQL.indexOf(' WHERE ');
       if (whereIndex === -1) return expressionSQL;
       var filterSQL = inputSQL.substr(whereIndex + 7);
-      return `IF(${filterSQL},${expressionSQL},${zeroSQL})`
+      return this.conditionalExpression(filterSQL, expressionSQL, zeroSQL);
+    }
+
+    public conditionalExpression(condition: string, thenPart: string, elsePart: string): string {
+      return `IF(${condition},${thenPart},${elsePart})`
     }
 
     public concatExpression(a: string, b: string): string {
@@ -61,6 +67,10 @@ module Plywood {
     
     public isNotDistinctFromExpression(a: string, b: string): string {
       return `(${a} IS NOT DISTINCT FROM ${b})`;
+    }
+    
+    public regexpExpression(expression: string, regexp: string): string {
+      throw new Error('must implement');
     }
 
     public inExpression(operand: string, start: string, end: string, bounds: string) {

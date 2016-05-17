@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.20
+
+- PostgresQL works
+- Refactored common SQL External functionality into SQLExternal base class
+
 ## 0.10.19
 
 - Made filters on non primary time dimensions work in DruidExternal

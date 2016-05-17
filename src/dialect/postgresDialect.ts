@@ -12,33 +12,33 @@ module Plywood {
     };
 
     static TIME_PART_TO_FUNCTION: Lookup<string> = {
-      SECOND_OF_MINUTE: "DATE_PART('second', $$)",
-      SECOND_OF_HOUR: '(MINUTE($$)*60+SECOND($$))',
-      SECOND_OF_DAY: '((HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
-      SECOND_OF_WEEK: '(((WEEKDAY($$)*24)+HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
-      SECOND_OF_MONTH: '((((DAYOFMONTH($$)-1)*24)+HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
-      SECOND_OF_YEAR: '((((DAYOFYEAR($$)-1)*24)+HOUR($$)*60+MINUTE($$))*60+SECOND($$))',
+      SECOND_OF_MINUTE: "DATE_PART('second',$$)",
+      SECOND_OF_HOUR: "(DATE_PART('minute',$$)*60+DATE_PART('second',$$))",
+      SECOND_OF_DAY: "((DATE_PART('hour',$$)*60+DATE_PART('minute',$$))*60+DATE_PART('second',$$))",
+      SECOND_OF_WEEK: "((((CAST((DATE_PART('dow',$$)+6) AS int)%7)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$))*60+DATE_PART('second',$$))",
+      SECOND_OF_MONTH: "((((DATE_PART('day',$$)-1)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$))*60+DATE_PART('second',$$))",
+      SECOND_OF_YEAR: "((((DATE_PART('doy',$$)-1)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$))*60+DATE_PART('second',$$))",
 
-      MINUTE_OF_HOUR: "DATE_PART('minute', $$)",
-      MINUTE_OF_DAY: 'HOUR($$)*60+MINUTE($$)',
-      MINUTE_OF_WEEK: '(WEEKDAY($$)*24)+HOUR($$)*60+MINUTE($$)',
-      MINUTE_OF_MONTH: '((DAYOFMONTH($$)-1)*24)+HOUR($$)*60+MINUTE($$)',
-      MINUTE_OF_YEAR: '((DAYOFYEAR($$)-1)*24)+HOUR($$)*60+MINUTE($$)',
+      MINUTE_OF_HOUR: "DATE_PART('minute',$$)",
+      MINUTE_OF_DAY: "DATE_PART('hour',$$)*60+DATE_PART('minute',$$)",
+      MINUTE_OF_WEEK: "((CAST((DATE_PART('dow',$$)+6) AS int)%7)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$)",
+      MINUTE_OF_MONTH: "((DATE_PART('day',$$)-1)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$)",
+      MINUTE_OF_YEAR: "((DATE_PART('doy',$$)-1)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$)",
 
-      HOUR_OF_DAY: "DATE_PART('hour', $$)",
-      HOUR_OF_WEEK: '(WEEKDAY($$)*24+HOUR($$))',
-      HOUR_OF_MONTH: '((DAYOFMONTH($$)-1)*24+HOUR($$))',
-      HOUR_OF_YEAR: '((DAYOFYEAR($$)-1)*24+HOUR($$))',
+      HOUR_OF_DAY: "DATE_PART('hour',$$)",
+      HOUR_OF_WEEK: "((CAST((DATE_PART('dow',$$)+6) AS int)%7)*24+DATE_PART('hour',$$))",
+      HOUR_OF_MONTH: "((DATE_PART('day',$$)-1)*24+DATE_PART('hour',$$))",
+      HOUR_OF_YEAR: "((DATE_PART('doy',$$)-1)*24+DATE_PART('hour',$$))",
 
-      DAY_OF_WEEK: '(WEEKDAY($$)+1)',
-      DAY_OF_MONTH: 'DAYOFMONTH($$)',
-      DAY_OF_YEAR: 'DAYOFYEAR($$)',
+      DAY_OF_WEEK: "(CAST((DATE_PART('dow',$$)+6) AS int)%7)+1",
+      DAY_OF_MONTH: "DATE_PART('day',$$)",
+      DAY_OF_YEAR: "DATE_PART('doy',$$)",
 
       WEEK_OF_MONTH: null,
-      WEEK_OF_YEAR: 'WEEK($$)', // ToDo: look into mode (https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_week)
+      WEEK_OF_YEAR: "DATE_PART('week',$$)",
 
-      MONTH_OF_YEAR: "DATE_PART('month', $$)",
-      YEAR: "DATE_PART('year', $$)",
+      MONTH_OF_YEAR: "DATE_PART('month',$$)",
+      YEAR: "DATE_PART('year',$$)",
     };
 
     constructor() {
@@ -49,12 +49,25 @@ module Plywood {
       return "GROUP BY ''=''";
     }
 
+    public timeToSQL(date: Date): string {
+      if (!date) return 'NULL';
+      return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
+    }
+
+    public conditionalExpression(condition: string, thenPart: string, elsePart: string): string {
+      return `(CASE WHEN ${condition} THEN ${thenPart} ELSE ${elsePart} END)`;
+    }
+
     public concatExpression(a: string, b: string): string {
       return `(${a}||${b})`;
     }
 
     public containsExpression(a: string, b: string): string {
       return `POSITION(${a} IN ${b})>0`;
+    }
+
+    public regexpExpression(expression: string, regexp: string): string {
+      return `(${expression} ~ '${regexp}')`; // ToDo: escape this.regexp
     }
 
     public utcToWalltime(operand: string, timezone: Timezone): string {

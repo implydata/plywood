@@ -90,7 +90,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `${inputSQL} REGEXP '${this.regexp}'`; // ToDo: escape this.regexp
+      return dialect.regexpExpression(inputSQL, this.regexp);
     }
   }
 

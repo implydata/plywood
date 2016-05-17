@@ -1,12 +1,12 @@
 module Plywood {
   export class MySQLDialect extends SQLDialect {
     static TIME_BUCKETING: Lookup<string> = {
-      "PT1S": "%Y-%m-%d %H:%i:%S",
-      "PT1M": "%Y-%m-%d %H:%i:00",
-      "PT1H": "%Y-%m-%d %H:00:00",
-      "P1D":  "%Y-%m-%d 00:00:00",
-      "P1M":  "%Y-%m-01 00:00:00",
-      "P1Y":  "%Y-01-01 00:00:00"
+      "PT1S": "%Y-%m-%d %H:%i:%SZ",
+      "PT1M": "%Y-%m-%d %H:%i:00Z",
+      "PT1H": "%Y-%m-%d %H:00:00Z",
+      "P1D":  "%Y-%m-%d 00:00:00Z",
+      "P1M":  "%Y-%m-01 00:00:00Z",
+      "P1Y":  "%Y-01-01 00:00:00Z"
     };
 
     static TIME_PART_TO_FUNCTION: Lookup<string> = {
@@ -52,6 +52,11 @@ module Plywood {
       return JSON.stringify(name);
     }
 
+    public timeToSQL(date: Date): string {
+      if (!date) return 'NULL';
+      return `TIMESTAMP('${this.dateToSQLDateString(date)}')`;
+    }
+
     public concatExpression(a: string, b: string): string {
       return `CONCAT(${a},${b})`;
     }
@@ -62,6 +67,10 @@ module Plywood {
 
     public isNotDistinctFromExpression(a: string, b: string): string {
       return `(${a}<=>${b})`;
+    }
+
+    public regexpExpression(expression: string, regexp: string): string {
+      return `(${expression} REGEXP '${regexp}')`; // ToDo: escape this.regexp
     }
 
     public utcToWalltime(operand: string, timezone: Timezone): string {
