@@ -66,13 +66,13 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[0]).to.equal(sane`
       SELECT
-      COUNT(*) AS "Count",
-      SUM(\`price\`) AS "TotalPrice",
-      (SUM(\`price\`)*2) AS "PriceTimes2",
-      (SUM(\`price\`)-SUM(\`tax\`)) AS "PriceMinusTax",
-      (((SUM(\`price\`)-SUM(\`tax\`))+10)-SUM(\`carat\`)) AS "Crazy",
-      (SUM(\`price\`)+SUM(\`tax\`)) AS "PriceAndTax",
-      SUM(IF((\`cut\`<=>"good"),\`price\`,0)) AS "PriceGoodCut"
+      COUNT(*) AS \`Count\`,
+      SUM(\`price\`) AS \`TotalPrice\`,
+      (SUM(\`price\`)*2) AS \`PriceTimes2\`,
+      (SUM(\`price\`)-SUM(\`tax\`)) AS \`PriceMinusTax\`,
+      (((SUM(\`price\`)-SUM(\`tax\`))+10)-SUM(\`carat\`)) AS \`Crazy\`,
+      (SUM(\`price\`)+SUM(\`tax\`)) AS \`PriceAndTax\`,
+      SUM(IF((\`cut\`<=>"good"),\`price\`,0)) AS \`PriceGoodCut\`
       FROM \`diamonds\`
       WHERE (\`color\`<=>"D")
       GROUP BY ''
@@ -80,9 +80,9 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[1]).to.equal(sane`
       SELECT
-      \`cut\` AS "Cut",
-      COUNT(*) AS "Count",
-      (COUNT(*)/4) AS "PercentOfTotal"
+      \`cut\` AS \`Cut\`,
+      COUNT(*) AS \`Count\`,
+      (COUNT(*)/4) AS \`PercentOfTotal\`
       FROM \`diamonds\`
       WHERE (\`color\`<=>"D")
       GROUP BY 1
@@ -92,8 +92,8 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[2]).to.equal(sane`
       SELECT
-      DATE_FORMAT(CONVERT_TZ(\`time\`,'+0:00','America/Los_Angeles'),'%Y-%m-%dZ') AS "Timestamp",
-      SUM(\`price\`) AS "TotalPrice"
+      CONVERT_TZ(DATE_FORMAT(CONVERT_TZ(\`time\`,'+0:00','America/Los_Angeles'),'%Y-%m-%d 00:00:00Z'),'America/Los_Angeles','+0:00') AS \`Timestamp\`,
+      SUM(\`price\`) AS \`TotalPrice\`
       FROM \`diamonds\`
       WHERE ((\`color\`<=>"D") AND (\`cut\`<=>"some_cut"))
       GROUP BY 1
@@ -102,8 +102,8 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[3]).to.equal(sane`
       SELECT
-      FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
-      COALESCE(COUNT(*), 0) AS "Count"
+      FLOOR(\`carat\` / 0.25) * 0.25 AS \`Carat\`,
+      COALESCE(COUNT(*), 0) AS \`Count\`
       FROM \`diamonds\`
       WHERE (((\`color\`<=>"D") AND (\`cut\`<=>"some_cut")) AND (TIMESTAMP('2015-03-13 07:00:00')<=\`time\` AND \`time\`<TIMESTAMP('2015-03-14 07:00:00')))
       GROUP BY 1
@@ -127,16 +127,16 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[0]).to.equal(sane`
       SELECT
-      COUNT(*) AS "Count"
+      COUNT(*) AS \`Count\`
       FROM \`diamonds\`
       GROUP BY ''
     `);
 
     expect(queryPlan[1]).to.equal(sane`
       SELECT
-      \`cut\` AS "Cut",
-      COUNT(*) AS "Count",
-      (COUNT(*)/4) AS "PercentOfTotal"
+      \`cut\` AS \`Cut\`,
+      COUNT(*) AS \`Count\`,
+      (COUNT(*)/4) AS \`PercentOfTotal\`
       FROM \`diamonds\`
       GROUP BY 1
     `);
@@ -154,8 +154,8 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[0]).to.equal(sane`
       SELECT
-      \`cut\` AS "Cut",
-      COUNT(*) AS "Count"
+      \`cut\` AS \`Cut\`,
+      COUNT(*) AS \`Count\`
       FROM \`diamonds\`
       GROUP BY 1
       HAVING 100<\`Count\`
@@ -186,8 +186,8 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[0]).to.equal(sane`
       SELECT
-      \`height_bucket\` AS "HeightBucket",
-      COUNT(*) AS "Count"
+      \`height_bucket\` AS \`HeightBucket\`,
+      COUNT(*) AS \`Count\`
       FROM \`diamonds\`
       GROUP BY 1
       ORDER BY \`Count\` DESC
@@ -196,8 +196,8 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[1]).to.equal(sane`
       SELECT
-      FLOOR((\`height_bucket\` - 0.5) / 2) * 2 + 0.5 AS "HeightBucket",
-      COUNT(*) AS "Count"
+      FLOOR((\`height_bucket\` - 0.5) / 2) * 2 + 0.5 AS \`HeightBucket\`,
+      COUNT(*) AS \`Count\`
       FROM \`diamonds\`
       GROUP BY 1
       ORDER BY \`Count\` DESC
@@ -232,7 +232,7 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[0]).to.equal(sane`
       SELECT
-      SUM(\`price\`) AS "__VALUE__"
+      SUM(\`price\`) AS \`__VALUE__\`
       FROM \`diamonds\`
       WHERE (\`color\`<=>"D")
       GROUP BY ''
@@ -249,8 +249,8 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[0]).to.equal(sane`
       SELECT
-      (\`color\`<=>"A") AS "ColorIsA",
-      COUNT(*) AS "Count"
+      (\`color\`<=>"A") AS \`ColorIsA\`,
+      COUNT(*) AS \`Count\`
       FROM \`diamonds\`
       GROUP BY 1
       ORDER BY \`Count\` DESC
@@ -279,9 +279,9 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[0]).to.equal(sane`
       SELECT
-      \`color\` AS "Color",
-      \`cut\` AS "Cut",
-      COUNT(*) AS "Count"
+      \`color\` AS \`Color\`,
+      \`cut\` AS \`Cut\`,
+      COUNT(*) AS \`Count\`
       FROM \`diamonds\`
       WHERE \`color\` IN ("A","B","some_color")
       GROUP BY 1, 2
@@ -290,8 +290,8 @@ describe("simulate MySQL", () => {
 
     expect(queryPlan[1]).to.equal(sane`
       SELECT
-      FLOOR(\`carat\` / 0.25) * 0.25 AS "Carat",
-      COUNT(*) AS "Count"
+      FLOOR(\`carat\` / 0.25) * 0.25 AS \`Carat\`,
+      COUNT(*) AS \`Count\`
       FROM \`diamonds\`
       WHERE ((\`color\`<=>"some_color") AND (\`cut\`<=>"some_cut"))
       GROUP BY 1

@@ -6,6 +6,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 - PostgresQL works
 - Refactored common SQL External functionality into SQLExternal base class
+- Fixed timezone bucketing in MySQL External
 
 ## 0.10.19
 
