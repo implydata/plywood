@@ -17,8 +17,8 @@ module Plywood {
     return xs.map(x => valueFromJS(x, setType));
   }
 
-  function unifyElements(elements: Array<Range<any>>): Array<Range<any>> {
-    var newElements: Lookup<Range<any>> = Object.create(null);
+  function unifyElements(elements: Array<PlywoodRange>): Array<PlywoodRange> {
+    var newElements: Lookup<PlywoodRange> = Object.create(null);
     for (var accumulator of elements) {
       var newElementsKeys = Object.keys(newElements);
       for (let newElementsKey of newElementsKeys) {
@@ -34,8 +34,8 @@ module Plywood {
     return Object.keys(newElements).map(k => newElements[k]);
   }
 
-  function intersectElements(elements1: Array<Range<any>>, elements2: Array<Range<any>>): Array<Range<any>> {
-    var newElements: Array<Range<any>> = [];
+  function intersectElements(elements1: Array<PlywoodRange>, elements2: Array<PlywoodRange>): Array<PlywoodRange> {
+    var newElements: Array<PlywoodRange> = [];
     for (var element1 of elements1) {
       for (var element2 of elements2) {
         var intersect = element1.intersect(element2);
@@ -237,14 +237,14 @@ module Plywood {
       }
     }
 
-    public extent(): Range<any> {
+    public extent(): PlywoodRange {
       var setType = this.setType;
       if (hasOwnProperty(typeUpgrades, setType)) {
         return this.upgradeType().extent();
       }
       if (setType !== 'NUMBER_RANGE' && setType !== 'TIME_RANGE') return null;
       var elements = this.elements;
-      var extent: Range<any> = elements[0] || null;
+      var extent: PlywoodRange = elements[0] || null;
       for (var i = 1; i < elements.length; i++) {
         extent = extent.extend(elements[i]);
       }

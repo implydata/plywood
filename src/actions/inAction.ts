@@ -53,34 +53,29 @@ module Plywood {
       var expressionType = expression.type;
       switch (expressionType) {
         case 'NUMBER_RANGE':
-          if (expression instanceof LiteralExpression) {
-            var numberRange: NumberRange = expression.value;
-            return dialect.inExpression(inputSQL, dialect.numberToSQL(numberRange.start), dialect.numberToSQL(numberRange.end), numberRange.bounds);
-          }
-          throw new Error('not implemented yet');
-
         case 'TIME_RANGE':
           if (expression instanceof LiteralExpression) {
-            var timeRange: TimeRange = expression.value;
-            return dialect.inExpression(inputSQL, dialect.timeToSQL(timeRange.start), dialect.timeToSQL(timeRange.end), timeRange.bounds);
+            var range: PlywoodRange = expression.value;
+            return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
           }
-          throw new Error('not implemented yet');
+          throw new Error(`can not convert action to SQL ${this}`);
 
         case 'SET/STRING':
         case 'SET/NUMBER':
           return `${inputSQL} IN ${expressionSQL}`;
 
         case 'SET/NUMBER_RANGE':
+        case 'SET/TIME_RANGE':
           if (expression instanceof LiteralExpression) {
-            var setOfNumberRange: Set = expression.value;
-            return setOfNumberRange.elements.map((numberRange: NumberRange) => {
-              return dialect.inExpression(inputSQL, dialect.numberToSQL(numberRange.start), dialect.numberToSQL(numberRange.end), numberRange.bounds);
+            var setOfRange: Set = expression.value;
+            return setOfRange.elements.map((range: PlywoodRange) => {
+              return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
             }).join(' OR ');
           }
-          throw new Error('not implemented yet');
+          throw new Error(`can not convert action to SQL ${this}`);
 
         default:
-          throw new Error('not implemented yet');
+          throw new Error(`can not convert action to SQL ${this}`);
       }
     }
 

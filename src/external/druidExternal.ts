@@ -660,6 +660,46 @@ module Plywood {
       return druidFilter;
     }
 
+    public makeBoundFilter(dimensionName: string, range: PlywoodRange): Druid.Filter {
+      var isTime = TimeRange.isTimeRange(range);
+      var r0 = range.start;
+      var r1 = range.end;
+      var bounds = range.bounds;
+
+      if (this.versionBefore('0.9.0')) {
+        var convert = isTime ? '' : 'a = +a;';
+        var cmpStrings: string[] = [];
+        if (r0 != null) {
+          cmpStrings.push(`${JSON.stringify(r0)} ${bounds[0] === '(' ? '<' : '<='} a`);
+        }
+        if (r1 != null) {
+          cmpStrings.push(`a ${bounds[1] === ')' ? '<' : '<='} ${JSON.stringify(r1)}`);
+        }
+        return {
+          type: "javascript",
+          dimension: dimensionName,
+          "function": `function(a) { ${convert}return ${cmpStrings.join(' && ')}; }`
+        };
+      }
+
+      var boundFilter: Druid.Filter = {
+        type: "bound",
+        dimension: dimensionName,
+      };
+      if (!isTime) {
+        boundFilter.alphaNumeric = true;
+      }
+      if (r0 != null) {
+        boundFilter.lower = isDate(r0) ? r0.toISOString() : r0;
+        if (bounds[0] === '(') boundFilter.lowerStrict = true;
+      }
+      if (r1 != null) {
+        boundFilter.upper = isDate(r1) ? r1.toISOString() : r1;
+        if (bounds[1] === ')') boundFilter.upperStrict = true;
+      }
+      return boundFilter;
+    }
+
     public timelessFilterToDruid(filter: Expression, aggregatorFilter: boolean): Druid.Filter {
       if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
 
@@ -747,44 +787,16 @@ module Plywood {
                 };
               }
 
-            } else if (rhsType === 'NUMBER_RANGE') {
-              var range: NumberRange = rhs.value;
-              var r0 = range.start;
-              var r1 = range.end;
-              var bounds = range.bounds;
+            } else if (rhsType === 'NUMBER_RANGE' || rhsType === 'TIME_RANGE') {
+              return this.makeBoundFilter(dimensionName, rhs.value);
 
-              if (this.versionBefore('0.9.0')) {
-                var cmpStrings: string[] = [];
-                if (r0 != null) {
-                  cmpStrings.push(`${r0} ${bounds[0] === '(' ? '<' : '<='} a`);
-                }
-                if (r1 != null) {
-                  cmpStrings.push(`a ${bounds[1] === ')' ? '<' : '<='} ${r1}`);
-                }
-                return {
-                  type: "javascript",
-                  dimension: dimensionName,
-                  "function": `function(a) { a = Number(a); return ${cmpStrings.join(' && ')}; }`
-                };
-              }
+            } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE') {
+              var elements = rhs.value.elements;
+              var fields = elements.map((range: PlywoodRange) => {
+                return this.makeBoundFilter(dimensionName, range);
+              });
 
-              var boundFilter: Druid.Filter = {
-                type: "bound",
-                dimension: dimensionName,
-                alphaNumeric: true
-              };
-              if (r0 != null) {
-                boundFilter.lower = r0;
-                if (bounds[0] === '(') boundFilter.lowerStrict = true;
-              }
-              if (r1 != null) {
-                boundFilter.upper = r1;
-                if (bounds[1] === ')') boundFilter.upperStrict = true;
-              }
-              return boundFilter;
-
-            } else if (rhsType === 'TIME_RANGE') {
-              throw new Error("can not time filter on non-primary time dimension");
+              return fields.length === 1 ? fields[0] : { type: "or", fields };
 
             } else {
               throw new Error(`not supported IN rhs type ${rhsType}`);
@@ -1784,7 +1796,7 @@ return (start < 0 ?'-':'') + parts.join('.');
               return this.inToHavingFilter(lhs.name, rhs.value);
 
             } else if (rhsType === 'TIME_RANGE') {
-              throw new Error("can not time filter on non-primary time dimension");
+              throw new Error("can not compute having filter on time");
 
             } else {
               throw new Error("not supported " + rhsType);

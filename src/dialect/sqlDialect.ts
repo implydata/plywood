@@ -26,6 +26,15 @@ module Plywood {
       return ('' + bool).toUpperCase();
     }
 
+    public numberOrTimeToSQL(x: number | Date): string {
+      if (x === null) return 'NULL';
+      if ((x as Date).toISOString) {
+        return this.timeToSQL(x as Date);
+      } else {
+        return this.numberToSQL(x as number);
+      }
+    }
+
     public numberToSQL(num: number): string {
       if (num === null) return 'NULL';
       return '' + num;
