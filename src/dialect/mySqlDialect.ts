@@ -1,13 +1,12 @@
 module Plywood {
   export class MySQLDialect extends SQLDialect {
     static TIME_BUCKETING: Lookup<string> = {
-      "PT1S": "%Y-%m-%dT%H:%i:%SZ",
-      "PT1M": "%Y-%m-%dT%H:%iZ",
-      "PT1H": "%Y-%m-%dT%H:00Z",
-      "P1D":  "%Y-%m-%dZ",
-      //"P1W":  "%Y-%m-%dZ",
-      "P1M":  "%Y-%m-01Z",
-      "P1Y":  "%Y-01-01Z"
+      "PT1S": "%Y-%m-%d %H:%i:%S",
+      "PT1M": "%Y-%m-%d %H:%i:00",
+      "PT1H": "%Y-%m-%d %H:00:00",
+      "P1D":  "%Y-%m-%d 00:00:00",
+      "P1M":  "%Y-%m-01 00:00:00",
+      "P1Y":  "%Y-01-01 00:00:00"
     };
 
     static TIME_PART_TO_FUNCTION: Lookup<string> = {
@@ -60,20 +59,25 @@ module Plywood {
     public containsExpression(a: string, b: string): string {
       return `LOCATE(${a},${b})>0`;
     }
-    
+
     public isNotDistinctFromExpression(a: string, b: string): string {
       return `(${a}<=>${b})`;
     }
 
-    public timezoneConvert(operand: string, timezone: Timezone): string {
-      if (!timezone || timezone.isUTC()) return operand;
+    public utcToWalltime(operand: string, timezone: Timezone): string {
+      if (timezone.isUTC()) return operand;
       return `CONVERT_TZ(${operand},'+0:00','${timezone}')`;
+    }
+
+    public walltimeToUTC(operand: string, timezone: Timezone): string {
+      if (timezone.isUTC()) return operand;
+      return `CONVERT_TZ(${operand},'${timezone}','+0:00')`;
     }
 
     public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
       var bucketFormat = MySQLDialect.TIME_BUCKETING[duration.toString()];
       if (!bucketFormat) throw new Error(`unsupported duration '${duration}'`);
-      return `DATE_FORMAT(${this.timezoneConvert(operand, timezone)},'${bucketFormat}')`;
+      return this.walltimeToUTC(`DATE_FORMAT(${this.utcToWalltime(operand, timezone)},'${bucketFormat}')`, timezone);
     }
 
     public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
@@ -83,7 +87,7 @@ module Plywood {
     public timePartExpression(operand: string, part: string, timezone: Timezone): string {
       var timePartFunction = MySQLDialect.TIME_PART_TO_FUNCTION[part];
       if (!timePartFunction) throw new Error(`unsupported part ${part} in MySQL dialect`);
-      return timePartFunction.replace(/\$\$/g, this.timezoneConvert(operand, timezone));
+      return timePartFunction.replace(/\$\$/g, this.utcToWalltime(operand, timezone));
     }
 
     public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string {

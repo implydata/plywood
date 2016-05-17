@@ -57,15 +57,20 @@ module Plywood {
       return `POSITION(${a} IN ${b})>0`;
     }
 
-    public timezoneConvert(operand: string, timezone: Timezone): string {
-      if (!timezone || timezone.isUTC()) return operand;
-      return `CONVERT_TZ(${operand},'+0:00','${timezone}')`;
+    public utcToWalltime(operand: string, timezone: Timezone): string {
+      if (timezone.isUTC()) return operand;
+      return `(${operand} AT TIME ZONE 'UTC' AT TIME ZONE '${timezone}')`;
+    }
+
+    public walltimeToUTC(operand: string, timezone: Timezone): string {
+      if (timezone.isUTC()) return operand;
+      return `(${operand} AT TIME ZONE '${timezone}' AT TIME ZONE 'UTC')`;
     }
 
     public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
       var bucketFormat = PostgresDialect.TIME_BUCKETING[duration.toString()];
       if (!bucketFormat) throw new Error(`unsupported duration '${duration}'`);
-      return `DATE_TRUNC('${bucketFormat}',${this.timezoneConvert(operand, timezone)})`;
+      return this.walltimeToUTC(`DATE_TRUNC('${bucketFormat}',${this.utcToWalltime(operand, timezone)})`, timezone);
     }
 
     public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
@@ -75,7 +80,7 @@ module Plywood {
     public timePartExpression(operand: string, part: string, timezone: Timezone): string {
       var timePartFunction = PostgresDialect.TIME_PART_TO_FUNCTION[part];
       if (!timePartFunction) throw new Error(`unsupported part ${part} in MySQL dialect`);
-      return timePartFunction.replace(/\$\$/g, this.timezoneConvert(operand, timezone));
+      return timePartFunction.replace(/\$\$/g, this.utcToWalltime(operand, timezone));
     }
 
     public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string {

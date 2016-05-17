@@ -40,9 +40,9 @@ var postgresRequester = postgresRequesterFactory({
 // mySqlRequester = helper.verboseRequesterFactory({
 //   requester: mySqlRequester
 // });
-// postgresRequester = helper.verboseRequesterFactory({
-//   requester: postgresRequester
-// });
+postgresRequester = helper.verboseRequesterFactory({
+  requester: postgresRequester
+});
 
 var attributes = [
   { name: 'time', type: 'TIME' },
@@ -227,7 +227,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it.only('works with .concat().concat().contains() filter', equalityTest({
+    it('works with .concat().concat().contains() filter', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter(("[" ++ $cityName ++ "]").contains("[san", "ignoreCase"))')
@@ -519,9 +519,18 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it.only('works with TIME split (timeBucket) (sort on split)', equalityTest({
+    it('works with TIME split (timeBucket) (sort on split)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TimeByHour', 'ascending')
+        .limit(20)
+    }));
+
+    it.only('works with TIME split (timeBucket, Kathmandu) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'], // , 'postgres'
+      expression: $('wiki').split($("time").timeBucket('PT1H', 'Asia/Kathmandu'), 'TimeByHour')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TimeByHour', 'ascending')
