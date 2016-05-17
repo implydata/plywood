@@ -237,16 +237,19 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => true
 
 *operand*.**in**(ex: any)
 
-Checks whether the operand is in the provided set.
+Checks whether the operand is in the provided set or range.
 
 ```javascript
 var ex = $('x').in([5, 8]);
-ex.compute({ x: 10 }).then(console.log); // => false
+ex.compute({ x: 7 }).then(console.log); // => false
 
 var ex = $('str').in(['hello', 'world']);
 ex.compute({ str: 'hello' }).then(console.log); // => true
-```
 
+var ex = $('x').in(5, 8);
+ex.compute({ x: 7 }).then(console.log); // => true
+
+```
 
 *operand*.**overlap**(ex: any)
 
