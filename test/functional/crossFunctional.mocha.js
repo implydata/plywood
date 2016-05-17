@@ -484,6 +484,15 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
+    it('works with NUMBER split (-expression) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split("1000 - $commentLength", 'MinusCommentLength')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$CommentLengthSq', 'descending')
+        .limit(20) // To force a topN (for now)
+    }));
+
     it('works with NUMBER split (expression^2) (sort on split)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split("$commentLength^2", 'CommentLengthSq')
@@ -510,7 +519,7 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it('works with TIME split (timeBucket) (sort on split)', equalityTest({
+    it.only('works with TIME split (timeBucket) (sort on split)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
         .apply('TotalEdits', '$wiki.sum($count)')

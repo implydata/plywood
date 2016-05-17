@@ -1,15 +1,16 @@
 module Plywood {
-  const TIME_BUCKETING: Lookup<string> = {
-    "PT1S": "%Y-%m-%dT%H:%i:%SZ",
-    "PT1M": "%Y-%m-%dT%H:%iZ",
-    "PT1H": "%Y-%m-%dT%H:00Z",
-    "P1D":  "%Y-%m-%dZ",
-    //"P1W":  "%Y-%m-%dZ",
-    "P1M":  "%Y-%m-01Z",
-    "P1Y":  "%Y-01-01Z"
-  };
-
   export class PostgresDialect extends SQLDialect {
+    static TIME_BUCKETING: Lookup<string> = {
+      "PT1S": "second",
+      "PT1M": "minute",
+      "PT1H": "hour",
+      "P1D":  "day",
+      "P1W":  "week",
+      "P1M":  "month",
+      "P3M":  "quarter",
+      "P1Y":  "year"
+    };
+
     static TIME_PART_TO_FUNCTION: Lookup<string> = {
       SECOND_OF_MINUTE: "DATE_PART('second', $$)",
       SECOND_OF_HOUR: '(MINUTE($$)*60+SECOND($$))',
@@ -62,9 +63,9 @@ module Plywood {
     }
 
     public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
-      var bucketFormat = TIME_BUCKETING[duration.toString()];
+      var bucketFormat = PostgresDialect.TIME_BUCKETING[duration.toString()];
       if (!bucketFormat) throw new Error(`unsupported duration '${duration}'`);
-      return `DATE_FORMAT(${this.timezoneConvert(operand, timezone)},'${bucketFormat}')`;
+      return `DATE_TRUNC('${bucketFormat}',${this.timezoneConvert(operand, timezone)})`;
     }
 
     public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {

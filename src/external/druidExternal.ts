@@ -1011,6 +1011,10 @@ module Plywood {
           }
           this._processConcatExtractionFn(concatPrefix, extractionFns);
 
+        } else if (lead.isOp('literal') && lead.type === 'NUMBER') {
+          extractionFns.push(this.expressionToJavaScriptExtractionFn(expression));
+          return;
+
         } else if (!lead.isOp('ref')) {
           // Concat is the only thing allowed to have a non leading ref, the rest must be $ref.someFunction
           throw new Error(`can not convert complex: ${lead}`);
@@ -1078,7 +1082,7 @@ module Plywood {
           // retainMissingValue === false is not supported in old druid nor is replaceMissingValueWith in regex extractionFn
           // we want to use a js function if we are using an old version of druid and want to use this functionality
           if (this.versionBefore('0.9.0') && (retainMissingValue === false || replaceMissingValueWith !== null)) {
-            return this.getJavaScriptExtractionFn(action);
+            return this.actionToJavaScriptExtractionFn(action);
           }
 
           var regexExtractionFn: Druid.ExtractionFn = {
@@ -1125,11 +1129,11 @@ module Plywood {
 
       // This is an action that returns a boolean
       if (action.getOutputType(null) === 'BOOLEAN') {
-        return this.getJavaScriptExtractionFn(action);
+        return this.actionToJavaScriptExtractionFn(action);
       }
 
       if (action instanceof SubstrAction) {
-        if (this.versionBefore('0.9.0')) return this.getJavaScriptExtractionFn(action);
+        if (this.versionBefore('0.9.0')) return this.actionToJavaScriptExtractionFn(action);
         return {
           type: "substring",
           index: action.position,
@@ -1168,7 +1172,7 @@ module Plywood {
       }
 
       if (action instanceof AbsoluteAction || action instanceof PowerAction) {
-        return this.getJavaScriptExtractionFn(action);
+        return this.actionToJavaScriptExtractionFn(action);
       }
 
       throw new Error(`can not covert ${action} to extractionFn`);
@@ -1201,10 +1205,14 @@ module Plywood {
       })
     }
 
-    public getJavaScriptExtractionFn(action: Action): Druid.ExtractionFn {
+    public actionToJavaScriptExtractionFn(action: Action): Druid.ExtractionFn {
+      return this.expressionToJavaScriptExtractionFn($('x').performAction(action));
+    }
+
+    public expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {
       return {
         type: "javascript",
-        'function': $('x').performAction(action).getJSFn('d')
+        'function': ex.getJSFn('d')
       };
     }
 
