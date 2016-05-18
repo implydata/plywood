@@ -767,7 +767,6 @@ describe("simulate Druid", () => {
               "direction": "ascending"
             }
           ],
-          "limit": 500000,
           "type": "default"
         },
         "queryType": "groupBy"
@@ -2041,7 +2040,6 @@ describe("simulate Druid", () => {
           "columns": [
             { "dimension": "Cut" }
           ],
-          "limit": 500000,
           "type": "default"
         },
         "queryType": "groupBy"
@@ -2212,7 +2210,6 @@ describe("simulate Druid", () => {
           "columns": [
             { "dimension": "Color" }
           ],
-          "limit": 500000,
           "type": "default"
         },
         "queryType": "groupBy"

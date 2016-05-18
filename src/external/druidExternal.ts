@@ -403,6 +403,10 @@ module Plywood {
             case 'approximateHistogram':
               attributes.push(new HistogramAttributeInfo({ name }));
               break;
+
+            case 'thetaSketch':
+              attributes.push(new ThetaAttributeInfo({ name }));
+              break;
           }
         }
       }
@@ -1011,6 +1015,10 @@ module Plywood {
           }
           this._processConcatExtractionFn(concatPrefix, extractionFns);
 
+        } else if (lead.isOp('literal') && lead.type === 'NUMBER') {
+          extractionFns.push(this.expressionToJavaScriptExtractionFn(expression));
+          return;
+
         } else if (!lead.isOp('ref')) {
           // Concat is the only thing allowed to have a non leading ref, the rest must be $ref.someFunction
           throw new Error(`can not convert complex: ${lead}`);
@@ -1078,7 +1086,7 @@ module Plywood {
           // retainMissingValue === false is not supported in old druid nor is replaceMissingValueWith in regex extractionFn
           // we want to use a js function if we are using an old version of druid and want to use this functionality
           if (this.versionBefore('0.9.0') && (retainMissingValue === false || replaceMissingValueWith !== null)) {
-            return this.getJavaScriptExtractionFn(action);
+            return this.actionToJavaScriptExtractionFn(action);
           }
 
           var regexExtractionFn: Druid.ExtractionFn = {
@@ -1125,11 +1133,11 @@ module Plywood {
 
       // This is an action that returns a boolean
       if (action.getOutputType(null) === 'BOOLEAN') {
-        return this.getJavaScriptExtractionFn(action);
+        return this.actionToJavaScriptExtractionFn(action);
       }
 
       if (action instanceof SubstrAction) {
-        if (this.versionBefore('0.9.0')) return this.getJavaScriptExtractionFn(action);
+        if (this.versionBefore('0.9.0')) return this.actionToJavaScriptExtractionFn(action);
         return {
           type: "substring",
           index: action.position,
@@ -1168,7 +1176,7 @@ module Plywood {
       }
 
       if (action instanceof AbsoluteAction || action instanceof PowerAction) {
-        return this.getJavaScriptExtractionFn(action);
+        return this.actionToJavaScriptExtractionFn(action);
       }
 
       throw new Error(`can not covert ${action} to extractionFn`);
@@ -1201,10 +1209,14 @@ module Plywood {
       })
     }
 
-    public getJavaScriptExtractionFn(action: Action): Druid.ExtractionFn {
+    public actionToJavaScriptExtractionFn(action: Action): Druid.ExtractionFn {
+      return this.expressionToJavaScriptExtractionFn($('x').performAction(action));
+    }
+
+    public expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {
       return {
         type: "javascript",
-        'function': $('x').performAction(action).getJSFn('d')
+        'function': ex.getJSFn('d')
       };
     }
 
@@ -1528,7 +1540,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       return aggregation;
     }
 
-    public makeCountDistinctAggregation(name: string, action: CountDistinctAction): Druid.Aggregation {
+    public makeCountDistinctAggregation(name: string, action: CountDistinctAction, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
       if (this.exactResultsOnly) {
         throw new Error("approximate query not allowed");
       }
@@ -1547,6 +1559,20 @@ return (start < 0 ?'-':'') + parts.join('.');
           type: "hyperUnique",
           fieldName: attributeName
         };
+
+      } else if (attributeInfo instanceof ThetaAttributeInfo) {
+        postAggregations.push({
+          type: "thetaSketchEstimate",
+          name: name,
+          field: { type: 'fieldAccess', fieldName: '!Theta' + name }
+        });
+
+        return {
+          name: '!Theta' + name,
+          type: "thetaSketch",
+          fieldName: attributeName
+        };
+
       } else {
         return {
           name: name,
@@ -1554,6 +1580,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           fieldNames: [attributeName],
           byRow: true
         };
+
       }
     }
 
@@ -1650,7 +1677,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           break;
 
         case "countDistinct":
-          aggregation = this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction);
+          aggregation = this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction, postAggregations);
           break;
 
         case "quantile":
@@ -2075,7 +2102,6 @@ return (start < 0 ?'-':'') + parts.join('.');
 
               druidQuery.limitSpec = {
                 type: "default",
-                limit: 500000,
                 columns: [orderByColumn || split.firstSplitName()]
               };
               if (limit) {

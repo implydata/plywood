@@ -108,7 +108,7 @@ module Plywood {
     }
 
     public getSelectSQL(dialect: SQLDialect): string[] {
-      return this.mapSplits((name, expression) => `${expression.getSQL(dialect)} AS ${dialect.escapeLiteral(name)}`);
+      return this.mapSplits((name, expression) => `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`);
     }
 
     public getShortGroupBySQL(): string {

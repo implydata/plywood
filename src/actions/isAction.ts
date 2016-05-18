@@ -33,7 +33,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `(${inputSQL}<=>${expressionSQL})`;
+      return dialect.isNotDistinctFromExpression(inputSQL, expressionSQL);
     }
 
     protected _performOnLiteral(literalExpression: LiteralExpression): Expression {

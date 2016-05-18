@@ -2,6 +2,14 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.20
+
+- Added PostgresExternal
+- Refactored common SQL External functionality into SQLExternal base class
+- Fixed timezone bucketing in MySQL External
+- Support countDistinct on Theta sketches
+- Druid GroupBy will no longer receive arbitrary limit
+
 ## 0.10.19
 
 - Made filters on non primary time dimensions work in DruidExternal

@@ -115,8 +115,9 @@ declare module Druid {
         lowerLimit?: number;
         upperLimit?: number;
 
-        // Also arbitrary keys are supported
-        [key: string]: any;
+        // Specific to type: "thetaSketch"
+        isInputThetaSketch?: boolean;
+        size?: number;
     }
 
     // http://druid.io/docs/latest/Post-aggregations.html
@@ -148,6 +149,13 @@ declare module Druid {
 
         // Specific to type: "quantiles"
         probabilities?: number[];
+
+        // Specific to type: "thetaSketchEstimate"
+        field?: PostAggregation;
+
+        // Specific to type: "thetaSketchSetOp"
+        func?: 'UNION' | 'INTERSECT' | 'NOT';
+        size?: number;
     }
 
     // http://druid.io/docs/latest/Granularities.html
@@ -170,8 +178,8 @@ declare module Druid {
     }
     interface LimitSpec {
         type: string;
-        limit: number;
-        columns: OrderByColumnSpec[];
+        limit?: number;
+        columns?: OrderByColumnSpec[];
     }
 
     // http://druid.io/docs/latest/Having.html

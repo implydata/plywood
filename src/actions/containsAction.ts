@@ -84,7 +84,7 @@ module Plywood {
         expressionSQL = `LOWER(${expressionSQL})`;
         inputSQL = `LOWER(${inputSQL})`;
       }
-      return `LOCATE(${expressionSQL},${inputSQL})>0`;
+      return dialect.containsExpression(expressionSQL, inputSQL);
     }
   }
 
