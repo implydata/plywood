@@ -6,25 +6,25 @@ if (!WallTime.rules) {
   WallTime.init(tzData.rules, tzData.zones);
 }
 
-var { mySqlRequesterFactory } = require('plywood-mysql-requester');
+var { postgresRequesterFactory } = require('plywood-postgres-requester');
 
 var plywood = require('../../build/plywood');
-var { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
+var { External, PostgresExternal, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
 
 var info = require('../info');
 
-var mySqlRequester = mySqlRequesterFactory({
-  host: info.mySqlHost,
-  database: info.mySqlDatabase,
-  user: info.mySqlUser,
-  password: info.mySqlPassword
+var postgresRequester = postgresRequesterFactory({
+  host: info.postgresHost,
+  database: info.postgresDatabase,
+  user: info.postgresUser,
+  password: info.postgresPassword
 });
 
-//mySqlRequester = helper.verboseRequesterFactory({
-//  requester: mySqlRequester
-//});
+// postgresRequester = helper.verboseRequesterFactory({
+//  requester: postgresRequester
+// });
 
-describe("MySQL Functional", function() {
+describe("Postgres Functional", function() {
   this.timeout(10000);
 
   var wikiAttributes = [
@@ -62,7 +62,7 @@ describe("MySQL Functional", function() {
 
   describe("source list", () => {
     it("does a source list", (testComplete) => {
-      MySQLExternal.getSourceList(mySqlRequester)
+      PostgresExternal.getSourceList(postgresRequester)
         .then((sources) => {
           expect(sources).to.deep.equal(['wikipedia', 'wikipedia_raw']);
           testComplete();
@@ -77,11 +77,11 @@ describe("MySQL Functional", function() {
     var basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
-          engine: 'mysql',
+          engine: 'postgres',
           table: 'wikipedia',
           attributes: wikiAttributes,
           derivedAttributes: wikiDerivedAttributes
-        }, mySqlRequester)
+        }, postgresRequester)
       }
     });
 
@@ -103,15 +103,15 @@ describe("MySQL Functional", function() {
                 .sort('$TotalAdded', 'descending')
                 .limit(3)
             )
-        )
-        .apply(
-          'PagesHaving',
-          $("wiki").split("$page", 'Page')
-            .apply('Count', '$wiki.sum($count)')
-            .sort('$Count', 'descending')
-            .filter($('Count').lessThan(30))
-            .limit(3)
         );
+        // .apply(
+        //   'PagesHaving',
+        //   $("wiki").split("$page", 'Page')
+        //     .apply('Count', '$wiki.sum($count)')
+        //     .sort('$Count', 'descending')
+        //     .filter($('Count').lessThan(30))
+        //     .limit(3)
+        // );
 
       basicExecutor(ex)
         .then((result) => {
@@ -180,21 +180,21 @@ describe("MySQL Functional", function() {
                   ]
                 }
               ],
-              "TotalAdded": 32553107,
-              "PagesHaving": [
-                {
-                  "Count": 29,
-                  "Page": "User:King Lui"
-                },
-                {
-                  "Count": 29,
-                  "Page": "The Visit (2015 film)"
-                },
-                {
-                  "Count": 29,
-                  "Page": "Stargate production discography"
-                }
-              ]
+              "TotalAdded": 32553107
+              // "PagesHaving": [
+              //   {
+              //     "Count": 29,
+              //     "Page": "User:King Lui"
+              //   },
+              //   {
+              //     "Count": 29,
+              //     "Page": "The Visit (2015 film)"
+              //   },
+              //   {
+              //     "Count": 29,
+              //     "Page": "Stargate production discography"
+              //   }
+              // ]
             }
           ]);
           testComplete();
@@ -224,158 +224,23 @@ describe("MySQL Functional", function() {
         .done();
     });
 
-    it("works with multi-dimensional GROUP BYs", (testComplete) => {
-      var ex = ply()
-        .apply("wiki", $('wiki').filter($("channel").isnt("en")))
-        .apply(
-          'Cuts',
-          $("wiki").split({
-              'Channel': "$channel",
-              'TimeByHour': '$time.timeBucket(PT1H)'
-            })
-            .apply('Count', $('wiki').sum('$count'))
-            .sort('$Count', 'descending')
-            .limit(4)
-        );
-
-      basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "Cuts": [
-                {
-                  "Channel": "vi",
-                  "Count": 12443,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T07:00:00.000Z'),
-                    "start": new Date('2015-09-12T06:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "Channel": "vi",
-                  "Count": 11833,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T08:00:00.000Z'),
-                    "start": new Date('2015-09-12T07:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "Channel": "vi",
-                  "Count": 6411,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T18:00:00.000Z'),
-                    "start": new Date('2015-09-12T17:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "Channel": "vi",
-                  "Count": 4943,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T16:00:00.000Z'),
-                    "start": new Date('2015-09-12T15:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                }
-              ]
-            }
-          ]);
-          testComplete();
-        })
-        .done();
-    });
-
-    it("fallback doesn't happen if not null", (testComplete) => {
-      var ex = ply()
-        .apply('added', $('wiki').sum($('added')).fallback(2));
-
-      basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "added": 97393743
-            }
-          ]);
-          testComplete();
-        })
-        .done();
-    });
-
-    it("works with complex raw mode", (testComplete) => {
-      var ex = $('wiki')
-        .filter('$cityName == "El Paso"')
-        .apply('regionNameLOL', '$regionName.concat(LOL)')
-        .apply('addedPlusOne', '$added + 1')
-        .select('regionNameLOL', 'addedPlusOne', 'pageInBrackets');
-
-      basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            { "regionNameLOL": "TexasLOL", "addedPlusOne": 1, "pageInBrackets": "[Clint High School]" },
-            { "regionNameLOL": "TexasLOL", "addedPlusOne": 1, "pageInBrackets": "[Reggie Williams (linebacker)]" }
-          ]);
-          testComplete();
-        })
-        .done();
-    });
-
-    it("fallback happens if null", (testComplete) => {
-      var ex = ply()
-        .apply("wiki", $('wiki').filter($("page").is('Rallicula')))
-        .apply('MetroCode', $('wiki').sum($('metroCode')).fallback(0));
-
-      basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "MetroCode": 0
-            }
-          ]);
-          testComplete();
-        })
-        .done();
-    });
-
-    it("power of and abs", (testComplete) => {
-      var ex = ply()
-        .apply("wiki", $('wiki').filter($("page").is('Kosowo')))
-        .apply('Delta', $('wiki').min($('delta')))
-        .apply('AbsDelta', $('wiki').min($('delta')).absolute())
-        .apply('SquareDelta', $('wiki').sum($('delta')).power(2));
-
-      basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "AbsDelta": 2,
-              "Delta": -2,
-              "SquareDelta": 4
-            }
-          ]);
-          testComplete();
-        })
-        .done();
-    });
-
   });
 
   describe("introspection", () => {
     var basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
-          engine: 'mysql',
+          engine: 'postgres',
           table: 'wikipedia'
-        }, mySqlRequester)
+        }, postgresRequester)
       }
     });
 
     it("introspects", (testComplete) => {
       External.fromJS({
-        engine: 'mysql',
+        engine: 'postgres',
         table: 'wikipedia'
-      }, mySqlRequester).introspect()
+      }, postgresRequester).introspect()
         .then((external) => {
           expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
           testComplete();

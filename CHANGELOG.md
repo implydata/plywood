@@ -4,9 +4,10 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.10.20
 
-- PostgresQL works
+- Added PostgresExternal
 - Refactored common SQL External functionality into SQLExternal base class
 - Fixed timezone bucketing in MySQL External
+- Support countDistinct on theta sketches
 
 ## 0.10.19
 

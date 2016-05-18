@@ -25,6 +25,40 @@ var druidRequester = druidRequesterFactory({
 describe("Druid Functional", function() {
   this.timeout(10000);
 
+  var wikiAttributes = [
+    { "name":"time", "type":"TIME" },
+    { "name":"added", "makerAction":{"action":"sum", "expression":{"name":"added", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
+    { "name":"channel", "type":"STRING" },
+    { "name":"cityName", "type":"STRING" },
+    { "name":"comment", "type":"STRING" },
+    { "name":"commentLength", "type":"NUMBER" },
+    { "makerAction":{"action":"count"},"name":"count", "type":"NUMBER", "unsplitable":true },
+    { "name":"countryIsoCode", "type":"STRING" },
+    { "name":"countryName", "type":"STRING" },
+    { "name":"deleted", "makerAction":{"action":"sum", "expression":{"name":"deleted", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
+    { "name":"delta", "makerAction":{"action":"sum", "expression":{"name":"delta", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
+    { "name":"deltaByTen", "makerAction":{"action":"sum", "expression":{"name":"deltaByTen", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
+    { "name":"delta_hist", "special":"histogram", "type":"NUMBER" },
+    { "name":"isAnonymous", "type":"BOOLEAN" },
+    { "name":"isMinor", "type":"BOOLEAN" },
+    { "name":"isNew", "type":"BOOLEAN" },
+    { "name":"isRobot", "type":"BOOLEAN" },
+    { "name":"isUnpatrolled", "type":"BOOLEAN" },
+    { "name":"max_delta", "makerAction":{"action":"max", "expression":{"name":"max_delta", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
+    { "name":"metroCode", "type":"STRING" },
+    { "name":"min_delta", "makerAction":{"action":"min", "expression":{"name":"min_delta", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
+    { "name":"namespace", "type":"STRING" },
+    { "name":"page", "type":"STRING" },
+    { "name":"page_unique", "special":"unique", "type":"STRING" },
+    { "name":"regionIsoCode", "type":"STRING" },
+    { "name":"regionName", "type":"STRING" },
+    { "name":"sometimeLater", "type":"TIME" },
+    { "name":"user", "type":"STRING" },
+    { "name":"userChars", "type":"SET/STRING" },
+    { "name":"user_theta", "special":"theta", "type":"STRING" },
+    { "name":"user_unique", "special":"unique", "type":"STRING" }
+  ];
+
   describe("source list", () => {
     it("does a source list", (testComplete) => {
       DruidExternal.getSourceList(druidRequester)
@@ -47,28 +81,7 @@ describe("Druid Functional", function() {
         useCache: false,
         populateCache: false
       },
-      attributes: [
-        { name: 'time', type: 'TIME' },
-        { name: 'sometimeLater', type: 'TIME' },
-        { name: 'channel', type: 'STRING' },
-        { name: 'page', type: 'STRING' },
-        { name: 'user', type: 'STRING' },
-        { name: 'userChars', type: 'SET/STRING' },
-        { name: 'isNew', type: 'BOOLEAN' },
-        { name: 'isAnonymous', type: 'BOOLEAN' },
-        { name: 'commentLength', type: 'NUMBER' },
-        { name: 'metroCode', type: 'STRING' },
-        { name: 'cityName', type: 'STRING' },
-
-        { name: 'count', type: 'NUMBER', unsplitable: true },
-        { name: 'delta', type: 'NUMBER', unsplitable: true },
-        { name: 'deltaByTen', type: 'NUMBER', unsplitable: true },
-        { name: 'delta_hist', special: 'histogram' },
-        { name: 'added', type: 'NUMBER', unsplitable: true },
-        { name: 'deleted', type: 'NUMBER', unsplitable: true },
-        { name: 'user_unique', special: 'unique', unsplitable: true },
-        { name: 'page_unique', special: 'unique', unsplitable: true }
-      ],
+      attributes: wikiAttributes,
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
@@ -296,23 +309,29 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it("works with uniques", (testComplete) => {
+    it.only("works with uniques", (testComplete) => {
       var ex = ply()
         .apply('UniquePages1', $('wiki').countDistinct("$page"))
         .apply('UniquePages2', $('wiki').countDistinct("$page_unique"))
         .apply('UniqueUsers1', $('wiki').countDistinct("$user"))
         .apply('UniqueUsers2', $('wiki').countDistinct("$user_unique"))
-        .apply('UniqueUsersDiff', '$UniqueUsers1 - $UniqueUsers2');
+        .apply('UniqueUsers3', $('wiki').countDistinct("$user_theta"))
+        .apply('Diff_Users_1_2', '$UniqueUsers1 - $UniqueUsers2')
+        .apply('Diff_Users_2_3', '$UniqueUsers2 - $UniqueUsers3')
+        .apply('Diff_Users_1_3', '$UniqueUsers1 - $UniqueUsers3');
 
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
+              "Diff_Users_1_2": 1507.8377206866207,
+              "Diff_Users_1_3": 1055.998647896362,
+              "Diff_Users_2_3": -451.8390727902588,
               "UniquePages1": 279107.1992807899,
               "UniquePages2": 281588.11316378025,
               "UniqueUsers1": 39220.49269175933,
               "UniqueUsers2": 37712.65497107271,
-              "UniqueUsersDiff": 1507.8377206866207
+              "UniqueUsers3": 38164.49404386297
             }
           ]);
           testComplete();
@@ -1359,20 +1378,31 @@ describe("Druid Functional", function() {
               "added": 0,
               "channel": "en",
               "cityName": "El Paso",
+              "comment": "/* Clubs and organizations */",
               "commentLength": 29,
               "count": 1,
+              "countryIsoCode": "US",
+              "countryName": "United States",
               "deleted": 39,
               "delta": -39,
               "deltaByTen": -3.9000000953674316,
               "delta_hist": null,
               "isAnonymous": true,
+              "isMinor": false,
               "isNew": false,
+              "isRobot": false,
+              "isUnpatrolled": false,
+              "max_delta": -39,
               "metroCode": "765",
+              "min_delta": -39,
+              "namespace": "Main",
               "page": "Clint High School",
-              "page_unique": "AQAAAQAAAADYAQ==",
+              "page_unique": null,
+              "regionIsoCode": "TX",
+              "regionName": "Texas",
               "sometimeLater": {
                 "type": "TIME",
-                "value": new Date('2016-09-12T06:05:00.000Z')
+                "value": new Date('2016-09-12T06:05:00Z')
               },
               "time": {
                 "type": "TIME",
@@ -1384,26 +1414,38 @@ describe("Druid Functional", function() {
                 "setType": "STRING",
                 "type": "SET"
               },
-              "user_unique": "AQAAAQAAAAFzBQ=="
+              "user_theta": null,
+              "user_unique": null
             },
             {
               "added": 0,
               "channel": "en",
               "cityName": "El Paso",
+              "comment": "/* Early life */ spelling",
               "commentLength": 25,
               "count": 1,
+              "countryIsoCode": "US",
+              "countryName": "United States",
               "deleted": 0,
               "delta": 0,
               "deltaByTen": 0,
               "delta_hist": null,
               "isAnonymous": true,
+              "isMinor": false,
               "isNew": false,
+              "isRobot": false,
+              "isUnpatrolled": false,
+              "max_delta": 0,
               "metroCode": "765",
+              "min_delta": 0,
+              "namespace": "Main",
               "page": "Reggie Williams (linebacker)",
-              "page_unique": "AQAAAQAAAAOhEA==",
+              "page_unique": null,
+              "regionIsoCode": "TX",
+              "regionName": "Texas",
               "sometimeLater": {
                 "type": "TIME",
-                "value": new Date('2016-09-12T16:14:00.000Z')
+                "value": new Date('2016-09-12T16:14:00Z')
               },
               "time": {
                 "type": "TIME",
@@ -1415,7 +1457,8 @@ describe("Druid Functional", function() {
                 "setType": "STRING",
                 "type": "SET"
               },
-              "user_unique": "AQAAAQAAAAOIQA=="
+              "user_theta": null,
+              "user_unique": null
             }
           ]);
           testComplete();
@@ -1517,7 +1560,16 @@ describe("Druid Functional", function() {
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
-      }))
+      })),
+      attributeOverrides: [
+        { "name":"sometimeLater", "type":"TIME" },
+        { "name":"commentLength", "type":"NUMBER" },
+        { "name":"isAnonymous", "type":"BOOLEAN" },
+        { "name":"isMinor", "type":"BOOLEAN" },
+        { "name":"isNew", "type":"BOOLEAN" },
+        { "name":"isRobot", "type":"BOOLEAN" },
+        { "name":"isUnpatrolled", "type":"BOOLEAN" }
+      ]
     }, druidRequester);
 
     var basicExecutor = basicExecutorFactory({
@@ -1526,10 +1578,11 @@ describe("Druid Functional", function() {
       }
     });
 
-    it("introspects version", (testComplete) => {
+    it("introspects version and attributes", (testComplete) => {
       wikiExternal.introspect()
         .then((introspectedExternal) => {
           expect(introspectedExternal.version).to.equal(info.druidVersion);
+          expect(introspectedExternal.toJS().attributes).to.deep.equal(wikiAttributes);
           testComplete();
         })
         .done();

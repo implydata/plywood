@@ -4,7 +4,7 @@ exports.druidHost = `${DOCKER_MACHINE}:8082`;
 exports.druidVersion = '0.9.0';
 
 exports.mySqlHost = `${DOCKER_MACHINE}:3306`;
-exports.mySqlDatabase = 'plywood_test';
+exports.mySqlDatabase = 'datazoo';
 exports.mySqlUser = 'root';
 exports.mySqlPassword = '';
 

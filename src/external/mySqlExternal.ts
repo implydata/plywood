@@ -8,7 +8,7 @@ module Plywood {
     var attributes = columns.map((column: SQLDescribeRow) => {
       var name = column.Field;
       var sqlType = column.Type.toLowerCase();
-      if (sqlType === "datetime") {
+      if (sqlType === "datetime" || sqlType === "timestamp") {
         return new AttributeInfo({ name, type: 'TIME' });
       } else if (sqlType.indexOf("varchar(") === 0 || sqlType.indexOf("blob") === 0) {
         return new AttributeInfo({ name, type: 'STRING' });
@@ -44,7 +44,7 @@ module Plywood {
           if (!sources.length) return sources;
           var key = Object.keys(sources[0])[0];
           if (!key) throw new Error('invalid sources response (no key)');
-          return sources.map((s: PseudoDatum) => s[key]);
+          return sources.map((s: PseudoDatum) => s[key]).sort();
         });
     }
 

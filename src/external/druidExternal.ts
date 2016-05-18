@@ -403,6 +403,10 @@ module Plywood {
             case 'approximateHistogram':
               attributes.push(new HistogramAttributeInfo({ name }));
               break;
+
+            case 'thetaSketch':
+              attributes.push(new ThetaAttributeInfo({ name }));
+              break;
           }
         }
       }
@@ -1536,7 +1540,7 @@ return (start < 0 ?'-':'') + parts.join('.');
       return aggregation;
     }
 
-    public makeCountDistinctAggregation(name: string, action: CountDistinctAction): Druid.Aggregation {
+    public makeCountDistinctAggregation(name: string, action: CountDistinctAction, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
       if (this.exactResultsOnly) {
         throw new Error("approximate query not allowed");
       }
@@ -1555,6 +1559,20 @@ return (start < 0 ?'-':'') + parts.join('.');
           type: "hyperUnique",
           fieldName: attributeName
         };
+
+      } else if (attributeInfo instanceof ThetaAttributeInfo) {
+        postAggregations.push({
+          type: "thetaSketchEstimate",
+          name: name,
+          field: { type: 'fieldAccess', fieldName: '!Theta' + name }
+        });
+
+        return {
+          name: '!Theta' + name,
+          type: "thetaSketch",
+          fieldName: attributeName
+        };
+
       } else {
         return {
           name: name,
@@ -1562,6 +1580,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           fieldNames: [attributeName],
           byRow: true
         };
+
       }
     }
 
@@ -1658,7 +1677,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           break;
 
         case "countDistinct":
-          aggregation = this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction);
+          aggregation = this.makeCountDistinctAggregation(action.name, <CountDistinctAction>aggregateAction, postAggregations);
           break;
 
         case "quantile":

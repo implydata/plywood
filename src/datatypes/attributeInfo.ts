@@ -342,6 +342,23 @@ module Plywood {
   }
   AttributeInfo.register(UniqueAttributeInfo);
 
+  export class ThetaAttributeInfo extends AttributeInfo {
+    static fromJS(parameters: AttributeInfoJS): ThetaAttributeInfo {
+      return new ThetaAttributeInfo(AttributeInfo.jsToValue(parameters));
+    }
+
+    constructor(parameters: AttributeInfoValue) {
+      super(parameters);
+      this._ensureSpecial("theta");
+      this._ensureType('STRING');
+    }
+
+    public serialize(value: any): string {
+      throw new Error("can not serialize a theta value");
+    }
+  }
+  AttributeInfo.register(ThetaAttributeInfo);
+
   export class HistogramAttributeInfo extends AttributeInfo {
     static fromJS(parameters: AttributeInfoJS): HistogramAttributeInfo {
       return new HistogramAttributeInfo(AttributeInfo.jsToValue(parameters));
