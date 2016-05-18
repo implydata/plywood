@@ -2102,7 +2102,6 @@ return (start < 0 ?'-':'') + parts.join('.');
 
               druidQuery.limitSpec = {
                 type: "default",
-                limit: 500000,
                 columns: [orderByColumn || split.firstSplitName()]
               };
               if (limit) {

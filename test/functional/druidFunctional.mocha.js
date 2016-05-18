@@ -32,7 +32,7 @@ describe("Druid Functional", function() {
     { "name":"cityName", "type":"STRING" },
     { "name":"comment", "type":"STRING" },
     { "name":"commentLength", "type":"NUMBER" },
-    { "makerAction":{"action":"count"},"name":"count", "type":"NUMBER", "unsplitable":true },
+    { "name":"count", "makerAction":{"action":"count"}, "type":"NUMBER", "unsplitable":true },
     { "name":"countryIsoCode", "type":"STRING" },
     { "name":"countryName", "type":"STRING" },
     { "name":"deleted", "makerAction":{"action":"sum", "expression":{"name":"deleted", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
@@ -309,7 +309,7 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it.only("works with uniques", (testComplete) => {
+    it("works with uniques", (testComplete) => {
       var ex = ply()
         .apply('UniquePages1', $('wiki').countDistinct("$page"))
         .apply('UniquePages2', $('wiki').countDistinct("$page_unique"))

@@ -178,8 +178,8 @@ declare module Druid {
     }
     interface LimitSpec {
         type: string;
-        limit: number;
-        columns: OrderByColumnSpec[];
+        limit?: number;
+        columns?: OrderByColumnSpec[];
     }
 
     // http://druid.io/docs/latest/Having.html
