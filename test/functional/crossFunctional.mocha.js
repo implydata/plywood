@@ -53,6 +53,7 @@ var attributes = [
   { name: "commentLength", type: 'NUMBER' },
   { name: "countryIsoCode", type: 'STRING' },
   { name: "countryName", type: 'STRING' },
+  { name: "deltaBucket100", type: 'NUMBER' },
   { name: "isAnonymous", type: 'BOOLEAN' },
   { name: "isMinor", type: 'BOOLEAN' },
   { name: "isNew", type: 'BOOLEAN' },
@@ -379,6 +380,14 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with negative number in range', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(-300 <= $deltaBucket100 and $deltaBucket100 <= 300)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with static derived attribute .is()', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: ply()
@@ -481,6 +490,15 @@ describe("Cross Functional", function() {
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
+        .limit(20)
+    }));
+
+    it('works with NUMBER split (with negatives) (sort on split)', equalityTest({
+      executorNames: ['mysql', 'postgres'], // 'druid',
+      expression: $('wiki').split("$deltaBucket100", 'DeltaBucket100')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$DeltaBucket100', 'ascending')
         .limit(20)
     }));
 
