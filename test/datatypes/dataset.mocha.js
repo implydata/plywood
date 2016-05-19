@@ -331,7 +331,7 @@ describe("Dataset", () => {
         model: 'Prius',
         price: 20000
       }
-    ]);
+    ]).select(['time', 'make', 'model', 'price']);
 
     var carAndPartsDataset = Dataset.fromJS([
       {
@@ -354,7 +354,7 @@ describe("Dataset", () => {
           { part: 'Door', weight: 25 }
         ]
       }
-    ]);
+    ]).select(['time', 'make', 'model', 'price', 'parts']);
 
     var carTotalAndSubSplitDataset = Dataset.fromJS([
       {
@@ -411,7 +411,7 @@ describe("Dataset", () => {
               "type": "TIME_RANGE"
             },
             "count": 2012,
-            "added": 373390,
+            "added": 373390
           },
           {
             "Segment": {
@@ -420,7 +420,7 @@ describe("Dataset", () => {
               "type": "TIME_RANGE"
             },
             "count": 1702,
-            "added": 181266,
+            "added": 181266
           },
           {
             "Segment": {
@@ -429,8 +429,8 @@ describe("Dataset", () => {
               "type": "TIME_RANGE"
             },
             "count": 1625,
-            "added": 284339,
-          },
+            "added": 284339
+          }
         ]
       }
     ]);
@@ -464,103 +464,27 @@ describe("Dataset", () => {
       });
 
       it("works with basic dataset", () => {
-        expect(carDataset.getColumns()).to.deep.equal([
-          {
-            "name": "time",
-            "type": "TIME"
-          },
-          {
-            "name": "make",
-            "type": "STRING"
-          },
-          {
-            "name": "model",
-            "type": "STRING"
-          },
-          {
-            "name": "price",
-            "type": "NUMBER"
-          }
-        ]);
+        expect(
+          carDataset.getColumns().map(c => c.name).sort().join(',')
+        ).to.equal("make,model,price,time");
       });
 
       it("works with sub-dataset without prefix", () => {
-        expect(carAndPartsDataset.getColumns()).to.deep.equal([
-          {
-            "name": "time",
-            "type": "TIME"
-          },
-          {
-            "name": "make",
-            "type": "STRING"
-          },
-          {
-            "name": "model",
-            "type": "STRING"
-          },
-          {
-            "name": "part",
-            "type": "STRING"
-          },
-          {
-            "name": "price",
-            "type": "NUMBER"
-          },
-          {
-            "name": "weight",
-            "type": "NUMBER"
-          }
-        ]);
+        expect(
+          carAndPartsDataset.getColumns().map(c => c.name).sort().join(',')
+        ).to.equal("make,model,part,price,time,weight");
       });
 
       it("works with sub-dataset with prefix", () => {
-        expect(carAndPartsDataset.getColumns({ prefixColumns: true })).to.deep.equal([
-          {
-            "name": "time",
-            "type": "TIME"
-          },
-          {
-            "name": "make",
-            "type": "STRING"
-          },
-          {
-            "name": "model",
-            "type": "STRING"
-          },
-          {
-            "name": "parts.part",
-            "type": "STRING"
-          },
-          {
-            "name": "parts.weight",
-            "type": "NUMBER"
-          },
-          {
-            "name": "price",
-            "type": "NUMBER"
-          }
-        ]);
+        expect(
+          carAndPartsDataset.getColumns({ prefixColumns: true }).map(c => c.name).sort().join(',')
+        ).to.equal('make,model,parts.part,parts.weight,price,time');
       });
 
       it("works with total and sub-split", () => {
-        expect(carTotalAndSubSplitDataset.getColumns()).to.deep.equal([
-          {
-            "name": "make",
-            "type": "STRING"
-          },
-          {
-            "name": "model",
-            "type": "STRING"
-          },
-          {
-            "name": "price",
-            "type": "NUMBER"
-          },
-          {
-            "name": "weight",
-            "type": "NUMBER"
-          }
-        ]);
+        expect(
+          carTotalAndSubSplitDataset.getColumns().map(c => c.name).sort().join(',')
+        ).to.deep.equal('make,model,price,weight');
       });
     });
 
@@ -824,11 +748,11 @@ describe("Dataset", () => {
 
       it("works with sub-dataset", () => {
         expect(carAndPartsDataset.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
-          time,make,model,part,price,weight
-          2015-01-04T12:32:43.000Z,Honda,Civic,Engine,10000,500
-          2015-01-04T12:32:43.000Z,Honda,Civic,Door,10000,20
-          2015-01-04T14:00:40.000Z,Toyota,Prius,Engine,20000,400
-          2015-01-04T14:00:40.000Z,Toyota,Prius,Door,20000,25
+          time,make,model,price,part,weight
+          2015-01-04T12:32:43.000Z,Honda,Civic,10000,Engine,500
+          2015-01-04T12:32:43.000Z,Honda,Civic,10000,Door,20
+          2015-01-04T14:00:40.000Z,Toyota,Prius,20000,Engine,400
+          2015-01-04T14:00:40.000Z,Toyota,Prius,20000,Door,25
         `);
       });
 
@@ -836,6 +760,7 @@ describe("Dataset", () => {
         var dsComma = Dataset.fromJS([
           { letter: 'dear john, how are you doing' }
         ]);
+
         expect(dsComma.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
         letter
         "dear john, how are you doing"
@@ -856,7 +781,8 @@ describe("Dataset", () => {
         var ds = Dataset.fromJS([
           { w: [1, 2], x: 1, y: ['hel,lo', 'mo\non'], z: ["Thu Feb 19 2015 16:00:00 GMT-0800 (PST)", "Fri Feb 20 2015 16:00:00 GMT-0800 (PST)"] },
           { w: ["null"], x: 2, y: ['wo\r\nrld', 'mo\ron'], z: ["stars"] }
-        ]);
+        ]).select(['w', 'x', 'y', 'z']);
+
         expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
           w,x,y,z
           "1, 2",1,"hel,lo, mo on","Thu Feb 19 2015 16:00:00 GMT-0800 (PST), Fri Feb 20 2015 16:00:00 GMT-0800 (PST)"
@@ -893,6 +819,7 @@ describe("Dataset", () => {
         var dsComma = Dataset.fromJS([
           { letter: 'dear john, how are you doing' }
         ]);
+
         expect(dsComma.toTSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
         letter
         dear john, how are you doing
@@ -903,6 +830,7 @@ describe("Dataset", () => {
         var dsComma = Dataset.fromJS([
           { letter: 'dear john, \thow are you doing' }
         ]);
+
         expect(dsComma.toTSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
         letter
         dear john, how are you doing
@@ -913,7 +841,8 @@ describe("Dataset", () => {
         var ds = Dataset.fromJS([
           { x: 1, y: ['hel,lo', 'mo\non'] },
           { x: 2, y: ['wo\r\nrld', 'mo\ron'] }
-        ]);
+        ]).select(['x', 'y']);
+
         expect(ds.toTSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
           x	y
           1	hel,lo, mo on

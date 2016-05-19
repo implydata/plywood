@@ -26,37 +26,38 @@ describe("Druid Functional", function() {
   this.timeout(10000);
 
   var wikiAttributes = [
-    { "name":"time", "type":"TIME" },
-    { "name":"added", "makerAction":{"action":"sum", "expression":{"name":"added", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
-    { "name":"channel", "type":"STRING" },
-    { "name":"cityName", "type":"STRING" },
-    { "name":"comment", "type":"STRING" },
-    { "name":"commentLength", "type":"NUMBER" },
-    { "name":"count", "makerAction":{"action":"count"}, "type":"NUMBER", "unsplitable":true },
-    { "name":"countryIsoCode", "type":"STRING" },
-    { "name":"countryName", "type":"STRING" },
-    { "name":"deleted", "makerAction":{"action":"sum", "expression":{"name":"deleted", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
-    { "name":"delta", "makerAction":{"action":"sum", "expression":{"name":"delta", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
-    { "name":"deltaByTen", "makerAction":{"action":"sum", "expression":{"name":"deltaByTen", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
-    { "name":"delta_hist", "special":"histogram", "type":"NUMBER" },
-    { "name":"isAnonymous", "type":"BOOLEAN" },
-    { "name":"isMinor", "type":"BOOLEAN" },
-    { "name":"isNew", "type":"BOOLEAN" },
-    { "name":"isRobot", "type":"BOOLEAN" },
-    { "name":"isUnpatrolled", "type":"BOOLEAN" },
-    { "name":"max_delta", "makerAction":{"action":"max", "expression":{"name":"max_delta", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
-    { "name":"metroCode", "type":"STRING" },
-    { "name":"min_delta", "makerAction":{"action":"min", "expression":{"name":"min_delta", "op":"ref"}},"type":"NUMBER", "unsplitable":true },
-    { "name":"namespace", "type":"STRING" },
-    { "name":"page", "type":"STRING" },
-    { "name":"page_unique", "special":"unique", "type":"STRING" },
-    { "name":"regionIsoCode", "type":"STRING" },
-    { "name":"regionName", "type":"STRING" },
-    { "name":"sometimeLater", "type":"TIME" },
-    { "name":"user", "type":"STRING" },
-    { "name":"userChars", "type":"SET/STRING" },
-    { "name":"user_theta", "special":"theta", "type":"STRING" },
-    { "name":"user_unique", "special":"unique", "type":"STRING" }
+    { "name": "time", "type": "TIME" },
+    { "name": "added", "makerAction":{"action": "sum", "expression":{"name": "added", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "channel", "type": "STRING" },
+    { "name": "cityName", "type": "STRING" },
+    { "name": "comment", "type": "STRING" },
+    { "name": "commentLength", "type": "NUMBER" },
+    { "name": "count", "makerAction":{"action": "count"}, "type": "NUMBER", "unsplitable":true },
+    { "name": "countryIsoCode", "type": "STRING" },
+    { "name": "countryName", "type": "STRING" },
+    { "name": "deleted", "makerAction":{"action": "sum", "expression":{"name": "deleted", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "delta", "makerAction":{"action": "sum", "expression":{"name": "delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "deltaBucket100", "type": "NUMBER" },
+    { "name": "deltaByTen", "makerAction":{"action": "sum", "expression":{"name": "deltaByTen", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "delta_hist", "special": "histogram", "type": "NUMBER" },
+    { "name": "isAnonymous", "type": "BOOLEAN" },
+    { "name": "isMinor", "type": "BOOLEAN" },
+    { "name": "isNew", "type": "BOOLEAN" },
+    { "name": "isRobot", "type": "BOOLEAN" },
+    { "name": "isUnpatrolled", "type": "BOOLEAN" },
+    { "name": "max_delta", "makerAction":{"action": "max", "expression":{"name": "max_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "metroCode", "type": "STRING" },
+    { "name": "min_delta", "makerAction":{"action": "min", "expression":{"name": "min_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "namespace", "type": "STRING" },
+    { "name": "page", "type": "STRING" },
+    { "name": "page_unique", "special": "unique", "type": "STRING" },
+    { "name": "regionIsoCode", "type": "STRING" },
+    { "name": "regionName", "type": "STRING" },
+    { "name": "sometimeLater", "type": "TIME" },
+    { "name": "user", "type": "STRING" },
+    { "name": "userChars", "type": "SET/STRING" },
+    { "name": "user_theta", "special": "theta", "type": "STRING" },
+    { "name": "user_unique", "special": "unique", "type": "STRING" }
   ];
 
   describe("source list", () => {
@@ -387,7 +388,7 @@ describe("Druid Functional", function() {
             .apply(
               'Users',
               $('wiki').split('$user', 'User')
-                .apply('Count', $('wiki').count())
+                .apply('Count', $('wiki').sum('$count'))
                 .sort('$Count', 'descending')
                 .limit(2)
             )
@@ -457,7 +458,7 @@ describe("Druid Functional", function() {
         .apply(
           'UserChars',
           $('wiki').split("$userChars", 'UserChar')
-            .apply("Count", $('wiki').count())
+            .apply("Count", $('wiki').sum('$count'))
             .sort('$Count', 'descending')
             .limit(4)
         );
@@ -468,19 +469,19 @@ describe("Druid Functional", function() {
             {
               "UserChars": [
                 {
-                  "Count": 222292,
+                  "Count": 223134,
                   "UserChar": "O"
                 },
                 {
-                  "Count": 221424,
+                  "Count": 222676,
                   "UserChar": "A"
                 },
                 {
-                  "Count": 215526,
+                  "Count": 216186,
                   "UserChar": "T"
                 },
                 {
-                  "Count": 176567,
+                  "Count": 176986,
                   "UserChar": "B"
                 }
               ]
@@ -520,8 +521,8 @@ describe("Druid Functional", function() {
               "NumEnPages": 63849.8464587151,
               "NumPages": 279107.1992807899,
               "One": 1,
-              "Delta95th": 161.95787,
-              "Delta99thX2": 328.91522216796875
+              "Delta95th": 161.95517,
+              "Delta99thX2": 328.9096984863281
             }
           ]);
           testComplete();
@@ -585,7 +586,7 @@ describe("Druid Functional", function() {
             .apply(
               'Users',
               $('wiki').split('$page', 'Page')
-                .apply('Count', $('wiki').count())
+                .apply('Count', $('wiki').sum('$count'))
                 .sort('$Count', 'descending')
                 .limit(2)
             )
@@ -604,11 +605,11 @@ describe("Druid Functional", function() {
                   },
                   "Users": [
                     {
-                      "Count": 10,
-                      "Page": "POOP"
+                      "Count": 12,
+                      "Page": "User talk:Dudeperson176123"
                     },
                     {
-                      "Count": 9,
+                      "Count": 11,
                       "Page": "Israel Ballet"
                     }
                   ]
@@ -642,7 +643,7 @@ describe("Druid Functional", function() {
                       "Page": "Wikipedia:Administrators' noticeboard/Incidents"
                     },
                     {
-                      "Count": 16,
+                      "Count": 18,
                       "Page": "2015 World Wrestling Championships"
                     }
                   ]
@@ -659,7 +660,7 @@ describe("Druid Functional", function() {
       var ex = $('wiki')
         .filter('$cityName == "El Paso"')
         .split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
-        .apply('count', '$wiki.count()')
+        .apply('Count', '$wiki.sum($count)')
         .sort('$TimeByHour', 'ascending');
 
       basicExecutor(ex)
@@ -674,7 +675,7 @@ describe("Druid Functional", function() {
       var ex = $('wiki')
         .filter('$cityName == "El Paso"')
         .split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
-        .apply('count', '$wiki.count()')
+        .apply('count', '$wiki.sum($count)')
         .apply('Delta95th', $('wiki').quantile('$delta_hist', 0.95))
         .sort('$TimeByHour', 'ascending')
         .limit(3);
@@ -1306,7 +1307,7 @@ describe("Druid Functional", function() {
               'IsNew': '$isNew',
               'ChannelIsDE': "$channel == 'de'"
             })
-            .apply('Count', $('wiki').count())
+            .apply('Count', $('wiki').sum('$count'))
             .sort('$Count', 'descending')
             .limit(4)
         );
@@ -1319,7 +1320,7 @@ describe("Druid Functional", function() {
                 {
                   "Channel": "vi",
                   "ChannelIsDE": false,
-                  "Count": 12431,
+                  "Count": 12433,
                   "IsNew": false,
                   "TimeByHour": {
                     "end": new Date('2015-09-12T07:00:00.000Z'),
@@ -1352,7 +1353,7 @@ describe("Druid Functional", function() {
                 {
                   "Channel": "vi",
                   "ChannelIsDE": false,
-                  "Count": 4938,
+                  "Count": 4939,
                   "IsNew": false,
                   "TimeByHour": {
                     "end": new Date('2015-09-12T16:00:00.000Z'),
@@ -1385,6 +1386,7 @@ describe("Druid Functional", function() {
               "countryName": "United States",
               "deleted": 39,
               "delta": -39,
+              "deltaBucket100": -100,
               "deltaByTen": -3.9000000953674316,
               "delta_hist": null,
               "isAnonymous": true,
@@ -1428,6 +1430,7 @@ describe("Druid Functional", function() {
               "countryName": "United States",
               "deleted": 0,
               "delta": 0,
+              "deltaBucket100": 0,
               "deltaByTen": 0,
               "delta_hist": null,
               "isAnonymous": true,
@@ -1562,13 +1565,14 @@ describe("Druid Functional", function() {
         end: new Date("2015-09-13T00:00:00Z")
       })),
       attributeOverrides: [
-        { "name":"sometimeLater", "type":"TIME" },
-        { "name":"commentLength", "type":"NUMBER" },
-        { "name":"isAnonymous", "type":"BOOLEAN" },
-        { "name":"isMinor", "type":"BOOLEAN" },
-        { "name":"isNew", "type":"BOOLEAN" },
-        { "name":"isRobot", "type":"BOOLEAN" },
-        { "name":"isUnpatrolled", "type":"BOOLEAN" }
+        { "name": "sometimeLater", "type": "TIME" },
+        { "name": "commentLength", "type": "NUMBER" },
+        { "name": "deltaBucket100", "type": "NUMBER" },
+        { "name": "isAnonymous", "type": "BOOLEAN" },
+        { "name": "isMinor", "type": "BOOLEAN" },
+        { "name": "isNew", "type": "BOOLEAN" },
+        { "name": "isRobot", "type": "BOOLEAN" },
+        { "name": "isUnpatrolled", "type": "BOOLEAN" }
       ]
     }, druidRequester);
 

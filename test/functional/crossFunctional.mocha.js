@@ -853,7 +853,7 @@ describe("Cross Functional", function() {
     // SELECT cityName, COUNT(*) as cnt, COUNT(DISTINCT time) - COUNT(*) AS diff FROM wikipedia GROUP BY 1 HAVING diff = 0 AND cnt > 20 ORDER BY cnt DESC
     it('works with sort on time ascending and limit', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
-      expression: $('wiki').filter('$cityName == "Sydney"')
+      expression: $('wiki').filter('$cityName == "Munich"')
         .select('time', 'added', 'deleted')
         .sort('$time', 'ascending')
         .limit(20)
@@ -861,7 +861,7 @@ describe("Cross Functional", function() {
 
     it('works with sort on time descending and limit', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
-      expression: $('wiki').filter('$cityName == "Sydney"')
+      expression: $('wiki').filter('$cityName == "Munich"')
         .select('time', 'added', 'deleted')
         .sort('$time', 'descending')
         .limit(20)
@@ -869,7 +869,7 @@ describe("Cross Functional", function() {
 
     it.skip('works with sort on something else and limit', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
-      expression: $('wiki').filter('$cityName == "Sydney"')
+      expression: $('wiki').filter('$cityName == "Munich"')
         .select('time', 'added', 'deleted')
         .sort('$added', 'descending')
         .limit(20)

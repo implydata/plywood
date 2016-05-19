@@ -59,14 +59,6 @@ module Plywood {
     }
   }
 
-  function sortColumns(columns: Column[]): Column[] {
-    return columns.sort((c1, c2) => {
-      var typeDiff = typePreference(c1.type) - typePreference(c2.type);
-      if (typeDiff) return typeDiff;
-      return c1.name.localeCompare(c2.name);
-    });
-  }
-
   function uniqueColumns(columns: Column[]): Column[] {
     var seen: Lookup<boolean> = {};
     var uniqueColumns: Column[] = [];
@@ -97,7 +89,7 @@ module Plywood {
         i++;
       }
     }
-    return sortColumns(uniqueColumns(flatColumns));
+    return uniqueColumns(flatColumns);
   }
 
   function removeLineBreaks(v: string): string {
@@ -695,7 +687,7 @@ module Plywood {
           type: attribute.type
         };
         if (attribute.type === 'DATASET') {
-          var subDataset = this.data[0][attribute.name];
+          var subDataset = this.data[0][attribute.name]; // ToDo: fix this!
           if (!subDatasetAdded && Dataset.isDataset(subDataset)) {
             subDatasetAdded = true;
             column.columns = subDataset.getNestedColumns();
@@ -706,11 +698,7 @@ module Plywood {
         }
       }
 
-      return nestedColumns.sort((a, b) => {
-        var typeDiff = typeOrder[a.type] - typeOrder[b.type];
-        if (typeDiff) return typeDiff;
-        return a.name.localeCompare(b.name);
-      });
+      return nestedColumns;
     }
 
     public getColumns(options: FlattenOptions = {}): Column[] {
@@ -723,27 +711,28 @@ module Plywood {
       if (!nestedColumnsLength) return;
 
       var data = this.data;
-      var leaf = nestedColumns[nestedColumnsLength - 1].type !== 'DATASET';
+      var datasetColumn = nestedColumns.filter((nestedColumn) => nestedColumn.type === 'DATASET')[0];
       for (let datum of data) {
         var flatDatum: PseudoDatum = context ? copy(context) : {};
         if (nestingName) flatDatum[nestingName] = nesting;
         if (parentName) flatDatum[parentName] = context;
 
         for (let flattenedColumn of nestedColumns) {
-          if (flattenedColumn.type === 'DATASET') {
-            var nextPrefix: string = null;
-            if (prefix !== null) nextPrefix = prefix + flattenedColumn.name + '.';
-
-            if (order === 'preorder') flat.push(flatDatum);
-            (datum[flattenedColumn.name] as Dataset)._flattenHelper(flattenedColumn.columns, nextPrefix, order, nestingName, parentName, nesting + 1, flatDatum, flat);
-            if (order === 'postorder') flat.push(flatDatum);
-          } else {
-            var flatName = (prefix !== null ? prefix : '') + flattenedColumn.name;
-            flatDatum[flatName] = datum[flattenedColumn.name];
-          }
+          if (flattenedColumn.type === 'DATASET') continue;
+          var flatName = (prefix !== null ? prefix : '') + flattenedColumn.name;
+          flatDatum[flatName] = datum[flattenedColumn.name];
         }
 
-        if (leaf) flat.push(flatDatum);
+        if (datasetColumn) {
+          var nextPrefix: string = null;
+          if (prefix !== null) nextPrefix = prefix + datasetColumn.name + '.';
+
+          if (order === 'preorder') flat.push(flatDatum);
+          (datum[datasetColumn.name] as Dataset)._flattenHelper(datasetColumn.columns, nextPrefix, order, nestingName, parentName, nesting + 1, flatDatum, flat);
+          if (order === 'postorder') flat.push(flatDatum);
+        }
+
+        if (!datasetColumn) flat.push(flatDatum);
       }
     }
 

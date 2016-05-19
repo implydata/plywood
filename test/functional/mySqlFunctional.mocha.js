@@ -36,6 +36,7 @@ describe("MySQL Functional", function() {
     { "name": "commentLength", "type": "NUMBER" },
     { "name": "countryIsoCode", "type": "STRING" },
     { "name": "countryName", "type": "STRING" },
+    { "name": "deltaBucket100", "type": "NUMBER" },
     { "name": "isAnonymous", "type": "BOOLEAN" },
     { "name": "isMinor", "type": "BOOLEAN" },
     { "name": "isNew", "type": "BOOLEAN" },
