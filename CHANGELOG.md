@@ -5,6 +5,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.10.21
 
 - Druid: Default to JavaScript filter for negative bounds in bound filter
+- Druid Fixed number range behaviour in nested splits
 - Add tests around negative numbers
 
 ## 0.10.20

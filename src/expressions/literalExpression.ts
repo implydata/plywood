@@ -83,13 +83,13 @@ module Plywood {
           return dialect.numberToSQL(value);
 
         case 'NUMBER_RANGE':
-          return `${dialect.numberToSQL(value.start)}/${dialect.numberToSQL(value.end)}`;
+          return `${dialect.numberToSQL(value.start)}`;
 
         case 'TIME':
           return dialect.timeToSQL(<Date>value);
 
         case 'TIME_RANGE':
-          return `${dialect.timeToSQL(value.start)}/${dialect.timeToSQL(value.end)}`;
+          return `${dialect.timeToSQL(value.start)}`;
 
         case 'SET/STRING':
         case 'SET/NUMBER':

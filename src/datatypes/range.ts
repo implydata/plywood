@@ -6,6 +6,10 @@ module Plywood {
   export class Range<T> {
     static DEFAULT_BOUNDS = '[)';
 
+    static isRange(candidate: any): candidate is PlywoodRange {
+      return isInstanceOf(candidate, Range);
+    }
+
     // ToDo: enforce stricter typing here
     static fromJS(parameters: any): PlywoodRange {
       if (typeof parameters.start === 'number' || typeof parameters.end === 'number') {

@@ -721,6 +721,22 @@ describe("Cross Functional", function() {
         )
     }));
 
+    it('works with NUMBER_BUCKET, STRING', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split('$commentLength.numberBucket(10)', 'CommentLengthB10')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .sort('$CommentLengthB10', 'ascending')
+        .limit(5)
+        .apply(
+          'ByNamespace',
+          $('wiki').split('$namespace', 'Namespace')
+            .apply('TotalEdits', '$wiki.sum($count)')
+            .apply('TotalAdded', '$wiki.sum($added)')
+            .sort('$TotalAdded', 'descending')
+            .limit(5)
+        )
+    }));
+
   });
 
 

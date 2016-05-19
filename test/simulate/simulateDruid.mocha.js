@@ -1578,6 +1578,76 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("splits on timePart with sub split", () => {
+    var ex = $("diamonds").split($("carat").numberBucket(10), 'CaratB10')
+      .apply('Count', '$diamonds.count()')
+      .sort('$CaratB10', 'ascending')
+      .limit(3)
+      .apply(
+        'Colors',
+        $("diamonds").split("$color", 'Color')
+          .apply('Count', $('diamonds').count())
+          .sort('$Count', 'descending')
+          .limit(10)
+      );
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "Count",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "carat",
+          "extractionFn": {
+            "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 10) * 10;}",
+            "type": "javascript"
+          },
+          "outputName": "CaratB10",
+          "type": "extraction"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "metric": {
+          "type": "alphaNumeric"
+        },
+        "queryType": "topN",
+        "threshold": 3
+      },
+      {
+        "aggregations": [
+          {
+            "name": "Count",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "color",
+          "outputName": "Color",
+          "type": "default"
+        },
+        "filter": {
+          "dimension": "carat",
+          "extractionFn": {
+            "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 10) * 10;}",
+            "type": "javascript"
+          },
+          "type": "extraction",
+          "value": 0
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "metric": "Count",
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
+  });
+
   it("works without a sort defined", () => {
     var ex = ply()
       .apply(
