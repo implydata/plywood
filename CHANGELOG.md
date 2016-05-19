@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.21
+
+- Druid: Default to JavaScript filter for negative bounds in bound filter
+- Add tests around negative numbers
+
 ## 0.10.20
 
 - Added PostgresExternal

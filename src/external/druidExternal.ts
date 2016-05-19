@@ -670,7 +670,7 @@ module Plywood {
       var r1 = range.end;
       var bounds = range.bounds;
 
-      if (this.versionBefore('0.9.0')) {
+      if (this.versionBefore('0.9.0') || r0 < 0 || r1 < 0) {
         var convert = isTime ? '' : 'a = +a;';
         var cmpStrings: string[] = [];
         if (r0 != null) {
