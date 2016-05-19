@@ -651,6 +651,9 @@ module Plywood {
       var extractionFn = this.expressionToExtractionFn(ex);
       var dimensionName = referenceName === this.timeAttribute ? '__time' : referenceName;
 
+      // Kill range
+      if (Range.isRange(value)) value = value.start;
+
       var druidFilter: Druid.Filter = {
         type: "selector",
         dimension: dimensionName,
@@ -1561,14 +1564,15 @@ return (start < 0 ?'-':'') + parts.join('.');
         };
 
       } else if (attributeInfo instanceof ThetaAttributeInfo) {
+        var tempName = '!Theta_' + name;
         postAggregations.push({
           type: "thetaSketchEstimate",
           name: name,
-          field: { type: 'fieldAccess', fieldName: '!Theta' + name }
+          field: { type: 'fieldAccess', fieldName: tempName }
         });
 
         return {
-          name: '!Theta' + name,
+          name: tempName,
           type: "thetaSketch",
           fieldName: attributeName
         };
