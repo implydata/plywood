@@ -36,6 +36,39 @@ module Plywood {
       return dialect.isNotDistinctFromExpression(inputSQL, expressionSQL);
     }
 
+    protected _nukeExpression(precedingExpression: Expression): Expression {
+      var prevAction = precedingExpression.lastAction();
+      var literalValue = this.getLiteralValue();
+
+      if (prevAction instanceof TimeBucketAction && literalValue instanceof TimeRange && prevAction.timezone) {
+        if (literalValue.start !== null && TimeRange.timeBucket(literalValue.start, prevAction.duration, prevAction.timezone).equals(literalValue)) return null;
+        return Expression.FALSE;
+      }
+
+      if (prevAction instanceof NumberBucketAction && literalValue instanceof NumberRange) {
+        if (literalValue.start !== null && NumberRange.numberBucket(literalValue.start, prevAction.size, prevAction.offset).equals(literalValue)) return null;
+        return Expression.FALSE;
+      }
+
+      return null;
+    }
+
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      var literalValue = this.getLiteralValue();
+
+      if (prevAction instanceof TimeBucketAction && literalValue instanceof TimeRange && prevAction.timezone) {
+        if (!(literalValue.start !== null && TimeRange.timeBucket(literalValue.start, prevAction.duration, prevAction.timezone).equals(literalValue))) return null;
+        return new InAction({ expression: this.expression });
+      }
+
+      if (prevAction instanceof NumberBucketAction && literalValue instanceof NumberRange) {
+        if (!(literalValue.start !== null && NumberRange.numberBucket(literalValue.start, prevAction.size, prevAction.offset).equals(literalValue))) return null;
+        return new InAction({ expression: this.expression })
+      }
+
+      return null;
+    }
+
     protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
       var expression = this.expression;
       if (!expression.isOp('literal')) {
@@ -56,24 +89,6 @@ module Plywood {
         return Expression.TRUE;
       }
 
-      var lastAction = chainExpression.lastAction();
-      var literalValue = this.getLiteralValue();
-      if (lastAction instanceof TimeBucketAction && literalValue instanceof TimeRange && lastAction.timezone) {
-        var duration = lastAction.duration;
-        var timezone = lastAction.timezone;
-        var start = literalValue.start;
-        var end = literalValue.end;
-
-        if (duration.isFloorable()) {
-          if (duration.floor(start, timezone).valueOf() === start.valueOf() &&
-            duration.shift(start, timezone, 1).valueOf() === end.valueOf()) {
-
-            return new InAction({ expression: this.expression }).performOnSimple(chainExpression.popAction());
-          } else {
-            return Expression.FALSE;
-          }
-        }
-      }
       return null;
     }
   }

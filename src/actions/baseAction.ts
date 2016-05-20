@@ -20,8 +20,6 @@ module Plywood {
     limit?: int;
     size?: number;
     offset?: number;
-    lowerLimit?: number;
-    upperLimit?: number;
     duration?: Duration;
     timezone?: Timezone;
     part?: string;
@@ -49,8 +47,6 @@ module Plywood {
     limit?: int;
     size?: number;
     offset?: number;
-    lowerLimit?: number;
-    upperLimit?: number;
     duration?: string;
     timezone?: string;
     part?: string;
@@ -324,7 +320,7 @@ module Plywood {
      * Wipe out all if possible
      * For example *0
      */
-    protected _nukeExpression(): Expression {
+    protected _nukeExpression(precedingExpression: Expression): Expression {
       return null;
     }
 
@@ -382,7 +378,7 @@ module Plywood {
 
       if (this._removeAction()) return simpleExpression;
 
-      var nukedExpression = this._nukeExpression();
+      var nukedExpression = this._nukeExpression(simpleExpression);
       if (nukedExpression) return nukedExpression;
 
       var distributedActions = this._distributeAction();

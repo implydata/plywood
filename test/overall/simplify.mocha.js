@@ -404,6 +404,67 @@ describe("Simplify", () => {
       var ex = $('time').timeBucket('P1D').is(interval);
       expect(ex.simplify().toJS()).to.deep.equal(ex.toJS());
     });
+
+    it('kills impossible timeBucket (no start)', () => {
+      var interval = TimeRange.fromJS({
+        start: null,
+        end: new Date('2016-01-03Z')
+      });
+      var ex1 = $('time').timeBucket('P1D', 'Etc/UTC').is(interval);
+      var ex2 = Expression.FALSE;
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('kills impossible timeBucket (not aligned)', () => {
+      var interval = TimeRange.fromJS({
+        start: new Date('2016-01-02Z'),
+        end: new Date('2016-01-04Z')
+      });
+      var ex1 = $('time').timeBucket('P1D', 'Etc/UTC').is(interval);
+      var ex2 = Expression.FALSE;
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('removes a numberBucket', () => {
+      var interval = NumberRange.fromJS({
+        start: 1,
+        end: 6
+      });
+      var ex1 = $('num').numberBucket(5, 1).is(interval);
+      var ex2 = $('num').in(interval);
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('removes a numberBucket with 0 start', () => {
+      var interval = NumberRange.fromJS({
+        start: 0,
+        end: 5
+      });
+      var ex1 = $('num').numberBucket(5, 0).is(interval);
+      var ex2 = $('num').in(interval);
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('kills impossible numberBucket (no start)', () => {
+      var interval = NumberRange.fromJS({
+        start: null,
+        end: 6
+      });
+      var ex1 = $('time').numberBucket(5, 1).is(interval);
+      var ex2 = Expression.FALSE;
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('kills impossible numberBucket (not aligned)', () => {
+      var interval = NumberRange.fromJS({
+        start: 2,
+        end: 7
+      });
+      var ex1 = $('time').numberBucket(5, 1).is(interval);
+      var ex2 = Expression.FALSE;
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 

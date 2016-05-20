@@ -1578,7 +1578,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it("splits on timePart with sub split", () => {
+  it("splits on numberBucket with sub split", () => {
     var ex = $("diamonds").split($("carat").numberBucket(10), 'CaratB10')
       .apply('Count', '$diamonds.count()')
       .sort('$CaratB10', 'ascending')
@@ -1631,13 +1631,12 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "filter": {
+          "alphaNumeric": true,
           "dimension": "carat",
-          "extractionFn": {
-            "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 10) * 10;}",
-            "type": "javascript"
-          },
-          "type": "extraction",
-          "value": 0
+          "lower": 0,
+          "type": "bound",
+          "upper": 10,
+          "upperStrict": true
         },
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
