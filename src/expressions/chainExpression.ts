@@ -114,7 +114,7 @@ module Plywood {
 
     /**
      * Returns the single action of the chain, if there are multiple actions null is returned
-     * @param neededAction and optional type can be passed in to retrun only an action of this type
+     * @param neededAction and optional type can be passed in to return only an action of this type
      * @returns Action
      */
     public getSingleAction(neededAction?: string): Action {

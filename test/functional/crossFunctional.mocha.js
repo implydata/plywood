@@ -417,6 +417,13 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
+    it.skip('works with constant split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split('blah', 'Constant')
+        .apply('TotalEdits', '$wiki.sum($count)')
+    }));
+
     it('works with BOOLEAN split (native)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split('$isNew', 'IsNew')
