@@ -264,24 +264,29 @@ module Plywood {
   }
 
   function selectNormalizerFactory(timestampLabel: string): Normalizer {
-    return (res: Druid.SelectResults): Datum[] => {
-      if (!correctSelectResult(res)) {
-        var err = new Error("unexpected result from Druid (select)");
-        (<any>err).result = res; // ToDo: special error type
-        throw err;
-      }
-      if (res.length === 0) return [];
-      return res[0].result.events.map(event => {
-        var datum: Datum = event.event;
-        if (timestampLabel != null) {
-          // The __time dimension always returns as 'timestamp' for some reason
-          datum[timestampLabel] = datum['timestamp'];
+    return (results: Druid.SelectResults[]): Datum[] => {
+      var data: Datum[] = [];
+      for (var result of results) {
+        if (!correctSelectResult(result)) {
+          var err = new Error("unexpected result from Druid (select)");
+          (<any>err).result = result; // ToDo: special error type
+          throw err;
         }
-        delete datum['timestamp'];
-        cleanDatumInPlace(datum);
-        return datum;
-      })
-    }
+        if (result.length === 0) continue;
+        var events = result[0].result.events;
+        for (var event of events) {
+          var datum: Datum = event.event;
+          if (timestampLabel != null) {
+            // The __time dimension always returns as 'timestamp' for some reason
+            datum[timestampLabel] = datum['timestamp'];
+          }
+          delete datum['timestamp'];
+          cleanDatumInPlace(datum);
+          data.push(datum);
+        }
+      }
+      return data;
+    };
   }
 
   function postProcessFactory(normalizer: Normalizer, inflaters: Inflater[], attributes: Attributes) {
@@ -295,6 +300,30 @@ module Plywood {
       }
       return new Dataset({ data, attributes });
     };
+  }
+
+  function selectNextFactory(limit: number, descending: boolean): NextFn<Druid.Query, Druid.SelectResults> {
+    var resultsSoFar = 0;
+    return (prevQuery, prevResult) => {
+      if (!correctSelectResult(prevResult)) {
+        var err = new Error("unexpected result from Druid (select / partial)");
+        (<any>err).result = prevResult; // ToDo: special error type
+        throw err;
+      }
+
+      if (prevResult.length === 0) return null; // Out of results: done!
+
+      var { pagingIdentifiers, events } = prevResult[0].result;
+      if (events.length < prevQuery.pagingSpec.threshold) return null; // Less results than asked for: done!
+
+      resultsSoFar += events.length;
+      if (resultsSoFar >= limit) return null; // Got enough results overall: done!
+
+      var pagingIdentifiers = DruidExternal.movePagingIdentifiers(pagingIdentifiers, descending ? -1 : 1);
+      prevQuery.pagingSpec.pagingIdentifiers = pagingIdentifiers;
+      prevQuery.pagingSpec.threshold = Math.min(limit - resultsSoFar, DruidExternal.SELECT_MAX_LIMIT);
+      return prevQuery;
+    }
   }
 
   function simpleMathInflaterFactory(label: string): Inflater {
@@ -446,6 +475,9 @@ module Plywood {
     static VALID_INTROSPECTION_STRATEGIES = ['segment-metadata-fallback', 'segment-metadata-only', 'datasource-get'];
     static DEFAULT_INTROSPECTION_STRATEGY = 'segment-metadata-fallback';
 
+    static SELECT_INIT_LIMIT = 50;
+    static SELECT_MAX_LIMIT = 10000;
+
     static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): DruidExternal {
       // Back compat:
       if (typeof (<any>parameters).druidVersion === 'string') {
@@ -483,6 +515,19 @@ module Plywood {
           ((res) => External.extractVersion(res.version)),
           () => null
         )
+    }
+
+    /**
+     * A paging identifier typically looks like this:
+     * { "wikipedia_2012-12-29T00:00:00.000Z_2013-01-10T08:00:00.000Z_2013-01-10T08:13:47.830Z_v9": 4 }
+     */
+    static movePagingIdentifiers(pagingIdentifiers: Druid.PagingIdentifiers, increment: number): Druid.PagingIdentifiers {
+      var newPagingIdentifiers: Druid.PagingIdentifiers = {};
+      for (var key in pagingIdentifiers) {
+        if (!hasOwnProperty(pagingIdentifiers, key)) continue;
+        newPagingIdentifiers[key] = pagingIdentifiers[key] + increment;
+      }
+      return newPagingIdentifiers;
     }
 
 
@@ -1965,21 +2010,24 @@ return (start < 0 ?'-':'') + parts.join('.');
           if (!selectDimensions.length) selectDimensions.push(DUMMY_NAME);
           if (!selectMetrics.length) selectMetrics.push(DUMMY_NAME);
 
+          var resultLimit = limit ? limit.limit : Infinity;
           druidQuery.queryType = 'select';
           druidQuery.dimensions = selectDimensions;
           druidQuery.metrics = selectMetrics;
           druidQuery.pagingSpec = {
             "pagingIdentifiers": {},
-            "threshold": limit ? limit.limit : 10000
+            "threshold": Math.min(resultLimit, DruidExternal.SELECT_INIT_LIMIT)
           };
 
-          if (sort && sort.direction === 'descending') {
+          var descending = sort && sort.direction === 'descending';
+          if (descending) {
             druidQuery.descending = true;
           }
 
           return {
             query: druidQuery,
-            postProcess: postProcessFactory(selectNormalizerFactory(selectedTimeAttribute), inflaters, selectedAttributes)
+            postProcess: postProcessFactory(selectNormalizerFactory(selectedTimeAttribute), inflaters, selectedAttributes),
+            next: selectNextFactory(resultLimit, descending)
           };
 
         case 'value':

@@ -56,13 +56,6 @@ module Plywood {
       throw new Error('not possible');
     }
 
-    /*
-    protected _specialSimplify(simpleLhs: Expression, simpleRhs: Expression): Expression {
-      if (simpleLhs.equals(simpleRhs)) return simpleLhs;
-      return null;
-    }
-    */
-
   }
 
   Action.register(JoinAction);

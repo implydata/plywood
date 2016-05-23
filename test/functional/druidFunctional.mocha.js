@@ -1469,6 +1469,38 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("gets the right number of results in a big raw (SELECT ascending)", (testComplete) => {
+      var limit = 15001;
+      var ex = $('wiki')
+        .filter('$cityName == null')
+        .select('time', 'cityName')
+        .sort('$time', 'ascending')
+        .limit(limit);
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().length).to.equal(limit);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("gets the right number of results in a big raw (SELECT descending)", (testComplete) => {
+      var limit = 15001;
+      var ex = $('wiki')
+        .filter('$cityName == null')
+        .select('time', 'cityName')
+        .sort('$time', 'descending')
+        .limit(limit);
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().length).to.equal(limit);
+          testComplete();
+        })
+        .done();
+    });
+
     it("works with raw (SELECT) inside a split", (testComplete) => {
       var ex = $('wiki')
         .filter('$cityName.match("^San")')
