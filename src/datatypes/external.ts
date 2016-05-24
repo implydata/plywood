@@ -3,9 +3,14 @@ module Plywood {
     (result: any): PlywoodValue;
   }
 
+  export interface NextFn<Q, R> {
+    (prevQuery: Q, prevResult: R): Q
+  }
+
   export interface QueryAndPostProcess<T> {
     query: T;
     postProcess: PostProcess;
+    next?: NextFn<T, any>;
   }
 
   export interface Inflater {
@@ -1299,17 +1304,38 @@ module Plywood {
       } catch (e) {
         return <Q.Promise<PlywoodValue>>Q.reject(e);
       }
-      if (!hasOwnProperty(queryAndPostProcess, 'query') || typeof queryAndPostProcess.postProcess !== 'function') {
-        return <Q.Promise<PlywoodValue>>Q.reject(new Error('no error query or postProcess'));
+
+      var { query, postProcess, next } = queryAndPostProcess;
+      if (!query || typeof postProcess !== 'function') {
+        return <Q.Promise<PlywoodValue>>Q.reject(new Error('no query or postProcess'));
       }
-      var result = requester({ query: queryAndPostProcess.query })
-        .then(queryAndPostProcess.postProcess);
+
+      var finalResult: Q.Promise<PlywoodValue>;
+      if (next) {
+        var results: any[] = [];
+        finalResult = helper.promiseWhile(
+          () => query,
+          () => {
+            return requester({ query })
+              .then((result) => {
+                results.push(result);
+                query = next(query, result);
+              })
+          }
+        )
+          .then(() => {
+            return queryAndPostProcess.postProcess(results);
+          })
+      } else {
+        finalResult = requester({ query })
+          .then(queryAndPostProcess.postProcess);
+      }
 
       if (!lastNode && mode === 'split') {
-        result = <Q.Promise<PlywoodValue>>result.then(externalForNext.addNextExternal.bind(externalForNext));
+        finalResult = <Q.Promise<PlywoodValue>>finalResult.then(externalForNext.addNextExternal.bind(externalForNext));
       }
 
-      return result;
+      return finalResult;
     }
 
     // -------------------------

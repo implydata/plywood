@@ -804,7 +804,7 @@ describe("DruidExternal Introspection", () => {
         ],
         "pagingSpec": {
           "pagingIdentifiers": {},
-          "threshold": 10000
+          "threshold": 50
         },
         "queryType": "select"
       });

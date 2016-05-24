@@ -82,6 +82,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/helper/verboseRequester.ts \
   src/helper/retryRequester.ts \
   src/helper/concurrentLimitRequester.ts \
+  src/helper/promiseWhile.ts \
   src/helper/utils.ts \
   \
   src/exports.ts \

@@ -72,9 +72,9 @@ var contextNoApprox = {
       { name: 'time', type: 'TIME' },
       { name: 'language', type: 'STRING' },
       { name: 'page', type: 'STRING' },
-      { name: 'added', type: 'NUMBER' },
-      { name: 'deleted', type: 'NUMBER' },
-      { name: 'inserted', type: 'NUMBER' }
+      { name: 'added', type: 'NUMBER', unsplitable: true },
+      { name: 'deleted', type: 'NUMBER', unsplitable: true },
+      { name: 'inserted', type: 'NUMBER', unsplitable: true }
     ],
     filter: timeFilter
   })

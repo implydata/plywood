@@ -800,6 +800,13 @@ describe("Cross Functional", function() {
         .apply('CrazyCount', "$wiki.filter($time < '2015-09-12T18Z').sum($count) + $wiki.filter('2015-09-12T18Z' <= $time).sum($count)")
     }));
 
+    it('works with min/max numeric dimension', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('MinCommentLength', '$wiki.min($commentLength)')
+        .apply('MaxCommentLength', '$wiki.max($commentLength)')
+    }));
+
   });
 
 

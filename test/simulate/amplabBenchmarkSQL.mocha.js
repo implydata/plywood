@@ -34,12 +34,12 @@ var context = {
       { name: 'sourceIP', type: 'STRING' }, // VARCHAR(116)
       { name: 'destURL', type: 'STRING' }, // VARCHAR(100)
       { name: 'visitDate', type: 'TIME' }, // DATE
-      { name: 'adRevenue', type: 'NUMBER' }, // FLOAT
+      { name: 'adRevenue', type: 'NUMBER', unsplitable: true }, // FLOAT
       { name: 'userAgent', type: 'STRING' }, // VARCHAR(256)
       { name: 'countryCode', type: 'STRING' }, // CHAR(3)
       { name: 'languageCode', type: 'STRING' }, // CHAR(6)
       { name: 'searchWord', type: 'STRING' }, // VARCHAR(32)
-      { name: 'duration', type: 'NUMBER' } // INT
+      { name: 'duration', type: 'NUMBER', unsplitable: true } // INT
     ]
   })
 };
@@ -81,7 +81,7 @@ describe("simulate Druid for amplab benchmark", () => {
         ],
         "pagingSpec": {
           "pagingIdentifiers": {},
-          "threshold": 10000
+          "threshold": 50
         },
         "queryType": "select"
       }
@@ -104,9 +104,14 @@ describe("simulate Druid for amplab benchmark", () => {
       {
         "aggregations": [
           {
-            "fieldName": "pageRank",
+            "fieldNames": [
+              "pageRank"
+            ],
+            "fnAggregate": "function(_c,pageRank) { return _c+pageRank; }",
+            "fnCombine": "function(a,b) { return a+b; }",
+            "fnReset": "function() { return 0; }",
             "name": "pageRank",
-            "type": "doubleSum"
+            "type": "javascript"
           }
         ],
         "dataSource": "rankings",
