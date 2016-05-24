@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.23
+
+- Druid Select query no longer bound to 10000 max limit and will use itterative strategy
+- Numeric Dimensions can be aggregated
+
 ## 0.10.22
 
 - Better simplification of `.is(TimeRange)` and `.is(NumberRange)`
