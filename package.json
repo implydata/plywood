@@ -1,6 +1,6 @@
 {
   "name": "plywood",
-  "version": "0.10.22",
+  "version": "0.10.23",
   "description": "split-apply-combine; unify data and vis; with single language",
   "keywords": [
     "split",
