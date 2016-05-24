@@ -226,9 +226,14 @@ describe("simulate Druid", () => {
             "type": "doubleSum"
           },
           {
-            "fieldName": "carat",
+            "fieldNames": [
+              "carat"
+            ],
+            "fnAggregate": "function(_c,carat) { return _c+carat; }",
+            "fnCombine": "function(a,b) { return a+b; }",
+            "fnReset": "function() { return 0; }",
             "name": "!T_1",
-            "type": "doubleSum"
+            "type": "javascript"
           }
         ],
         "dataSource": "diamonds",
@@ -1289,6 +1294,43 @@ describe("simulate Druid", () => {
         "metric": "Count",
         "queryType": "topN",
         "threshold": 10
+      }
+    ]);
+  });
+
+  it("makes a min/max query on a numeric dimension", () => {
+    var ex = ply()
+      .apply('maxCarat', '$diamonds.max($carat)')
+      .apply('minCarat', '$diamonds.min($carat)');
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldNames": [
+              "carat"
+            ],
+            "fnAggregate": "function(_c,carat) { return Math.max(_c,carat); }",
+            "fnCombine": "function(a,b) { return Math.max(a,b); }",
+            "fnReset": "function() { return -Infinity; }",
+            "name": "maxCarat",
+            "type": "javascript"
+          },
+          {
+            "fieldNames": [
+              "carat"
+            ],
+            "fnAggregate": "function(_c,carat) { return Math.min(_c,carat); }",
+            "fnCombine": "function(a,b) { return Math.min(a,b); }",
+            "fnReset": "function() { return Infinity; }",
+            "name": "minCarat",
+            "type": "javascript"
+          }
+        ],
+        "dataSource": "diamonds",
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "queryType": "timeseries"
       }
     ]);
   });

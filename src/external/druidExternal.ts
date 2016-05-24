@@ -1577,9 +1577,16 @@ return (start < 0 ?'-':'') + parts.join('.');
         name: name,
         type: AGGREGATE_TO_DRUID[fn]
       };
+
       if (fn !== 'count') {
         if (aggregateExpression instanceof RefExpression) {
-          aggregation.fieldName = aggregateExpression.name;
+          var refName = aggregateExpression.name;
+          var attributeInfo = this.getAttributesInfo(refName);
+          if (attributeInfo.unsplitable) {
+            aggregation.fieldName = refName;
+          } else {
+            return this.makeJavaScriptAggregation(name, aggregateAction);
+          }
         } else {
           return this.makeJavaScriptAggregation(name, aggregateAction);
         }

@@ -29,7 +29,6 @@ describe('Promise While', () => {
   });
 
   it('should propagate rejection', (testComplete) => {
-
     function TestError() {}
 
     helper.promiseWhile(
@@ -38,6 +37,48 @@ describe('Promise While', () => {
       },
       function () {
         return Q.reject(new TestError('test'));
+      }
+    )
+      .then(() => {
+        throw new Error('did not error');
+      })
+      .catch(function (err) {
+        expect(err).be.instanceof(TestError);
+        testComplete();
+      })
+      .done();
+  });
+
+  it('should propagate conditions throw', (testComplete) => {
+    function TestError() {}
+
+    helper.promiseWhile(
+      function () {
+        throw new TestError('test');
+      },
+      function () {
+        return Q();
+      }
+    )
+      .then(() => {
+        throw new Error('did not error');
+      })
+      .catch(function (err) {
+        expect(err).be.instanceof(TestError);
+        testComplete();
+      })
+      .done();
+  });
+
+  it('should propagate action throw', (testComplete) => {
+    function TestError() {}
+
+    helper.promiseWhile(
+      function () {
+        return true;
+      },
+      function () {
+        throw new TestError('test');
       }
     )
       .then(() => {
