@@ -40,7 +40,7 @@ var context = {
     },
     filter: timeFilter,
     allowSelectQueries: true,
-    version: '0.9.1',
+    version: '0.9.2',
     customAggregations: {
       crazy: {
         accessType: 'getSomeCrazy',
@@ -466,12 +466,12 @@ describe("DruidExternal", () => {
             },
             "filter": {
               "dimension": "page",
-              "extractionFn": {
-                "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"wikipedia\")>-1));}",
-                "type": "javascript"
+              "query": {
+                "caseSensitive": true,
+                "type": "contains",
+                "value": "wikipedia"
               },
-              "type": "extraction",
-              "value": "true"
+              "type": "search"
             },
             "name": "FilteredSumDeleted",
             "type": "filtered"
@@ -484,12 +484,8 @@ describe("DruidExternal", () => {
             },
             "filter": {
               "dimension": "page",
-              "extractionFn": {
-                "function": "function(d){return /^wiki/.test(d);}",
-                "type": "javascript"
-              },
-              "type": "extraction",
-              "value": "true"
+              "pattern": "^wiki",
+              "type": "regex"
             },
             "name": "Filtered2",
             "type": "filtered"
@@ -695,7 +691,7 @@ describe("DruidExternal", () => {
           },
           "type": "lookup"
         },
-        "type": "extraction",
+        "type": "selector",
         "value": true
       });
     });
@@ -722,7 +718,7 @@ describe("DruidExternal", () => {
             },
             "type": "lookup"
           },
-          "type": "extraction",
+          "type": "selector",
           "value": true
         },
         "type": "not"
@@ -779,45 +775,17 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
-        "fields": [
-          {
-            "dimension": "language",
-            "extractionFn": {
-              "lookup": {
-                "namespace": "language_lookup",
-                "type": "namespace"
-              },
-              "type": "lookup"
-            },
-            "type": "extraction",
-            "value": "en"
-          },
-          {
-            "dimension": "language",
-            "extractionFn": {
-              "lookup": {
-                "namespace": "language_lookup",
-                "type": "namespace"
-              },
-              "type": "lookup"
-            },
-            "type": "extraction",
-            "value": "es"
-          },
-          {
-            "dimension": "language",
-            "extractionFn": {
-              "lookup": {
-                "namespace": "language_lookup",
-                "type": "namespace"
-              },
-              "type": "lookup"
-            },
-            "type": "extraction",
-            "value": "fr"
-          }
-        ],
-        "type": "or"
+        "dimension": "language",
+        "extractionFn": {
+          "lookup": "language_lookup",
+          "type": "registeredLookup"
+        },
+        "type": "in",
+        "values": [
+          "en",
+          "es",
+          "fr"
+        ]
       });
     });
 
@@ -843,33 +811,16 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
-        "fields": [
-          {
-            "dimension": "tags",
-            "extractionFn": {
-              "lookup": {
-                "namespace": "tag_lookup",
-                "type": "namespace"
-              },
-              "type": "lookup"
-            },
-            "type": "extraction",
-            "value": "Good"
-          },
-          {
-            "dimension": "tags",
-            "extractionFn": {
-              "lookup": {
-                "namespace": "tag_lookup",
-                "type": "namespace"
-              },
-              "type": "lookup"
-            },
-            "type": "extraction",
-            "value": null
-          }
-        ],
-        "type": "or"
+        "dimension": "tags",
+        "extractionFn": {
+          "lookup": "tag_lookup",
+          "type": "registeredLookup"
+        },
+        "type": "in",
+        "values": [
+          "Good",
+          null
+        ]
       });
     });
 
@@ -881,29 +832,17 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
-        "fields": [
-          {
-            "dimension": "tags",
-            "extractionFn": {
-              "expr": "[0-9]+",
-              "replaceMissingValue": true,
-              "type": "regex"
-            },
-            "type": "extraction",
-            "value": "Good"
-          },
-          {
-            "dimension": "tags",
-            "extractionFn": {
-              "expr": "[0-9]+",
-              "replaceMissingValue": true,
-              "type": "regex"
-            },
-            "type": "extraction",
-            "value": null
-          }
-        ],
-        "type": "or"
+        "dimension": "tags",
+        "extractionFn": {
+          "expr": "[0-9]+",
+          "replaceMissingValue": true,
+          "type": "regex"
+        },
+        "type": "in",
+        "values": [
+          "Good",
+          null
+        ]
       });
     });
 
@@ -915,29 +854,17 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
-        "fields": [
-          {
-            "dimension": "tags",
-            "extractionFn": {
-              "index": 1,
-              "length": 3,
-              "type": "substring"
-            },
-            "type": "extraction",
-            "value": "Good"
-          },
-          {
-            "dimension": "tags",
-            "extractionFn": {
-              "index": 1,
-              "length": 3,
-              "type": "substring"
-            },
-            "type": "extraction",
-            "value": null
-          }
-        ],
-        "type": "or"
+        "dimension": "tags",
+        "extractionFn": {
+          "index": 1,
+          "length": 3,
+          "type": "substring"
+        },
+        "type": "in",
+        "values": [
+          "Good",
+          null
+        ]
       });
     });
 
@@ -982,7 +909,8 @@ describe("DruidExternal", () => {
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "query": {
-          "type": "insensitive_contains",
+          "caseSensitive": false,
+          "type": "contains",
           "value": "en"
         },
         "type": "search"
@@ -999,7 +927,8 @@ describe("DruidExternal", () => {
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "tags",
         "query": {
-          "type": "insensitive_contains",
+          "caseSensitive": false,
+          "type": "contains",
           "value": "good"
         },
         "type": "search"
@@ -1016,23 +945,15 @@ describe("DruidExternal", () => {
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "extractionFn": {
-          "extractionFns": [
-            {
-              "lookup": {
-                "namespace": "language_lookup",
-                "type": "namespace"
-              },
-              "type": "lookup"
-            },
-            {
-              "function": "function(d){return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"eN\").toLowerCase())>-1));}",
-              "type": "javascript"
-            }
-          ],
-          "type": "cascade"
+          "lookup": "language_lookup",
+          "type": "registeredLookup"
         },
-        "type": "extraction",
-        "value": "true"
+        "query": {
+          "caseSensitive": false,
+          "type": "contains",
+          "value": "eN"
+        },
+        "type": "search"
       });
     });
 
@@ -1047,23 +968,15 @@ describe("DruidExternal", () => {
         "field": {
           "dimension": "language",
           "extractionFn": {
-            "extractionFns": [
-              {
-                "lookup": {
-                  "namespace": "language_lookup",
-                  "type": "namespace"
-                },
-                "type": "lookup"
-              },
-              {
-                "function": "function(d){return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"eN\").toLowerCase())>-1));}",
-                "type": "javascript"
-              }
-            ],
-            "type": "cascade"
+            "lookup": "language_lookup",
+            "type": "registeredLookup"
           },
-          "type": "extraction",
-          "value": "true"
+          "query": {
+            "caseSensitive": false,
+            "type": "contains",
+            "value": "eN"
+          },
+          "type": "search"
         },
         "type": "not"
       });
@@ -1079,21 +992,16 @@ describe("DruidExternal", () => {
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "extractionFn": {
-          "extractionFns": [
-            {
-              "format": "[%s]",
-              "nullHandling": "returnNull",
-              "type": "stringFormat"
-            },
-            {
-              "function": "function(d){return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"eN\").toLowerCase())>-1));}",
-              "type": "javascript"
-            }
-          ],
-          "type": "cascade"
+          "format": "[%s]",
+          "nullHandling": "returnNull",
+          "type": "stringFormat"
         },
-        "type": "extraction",
-        "value": "true"
+        "query": {
+          "caseSensitive": false,
+          "type": "contains",
+          "value": "eN"
+        },
+        "type": "search"
       });
     });
 
@@ -1133,31 +1041,18 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
-        "fields": [
-          {
-            "dimension": "__time",
-            "extractionFn": {
-              "format": "H",
-              "locale": "en-US",
-              "timeZone": "Etc/UTC",
-              "type": "timeFormat"
-            },
-            "type": "extraction",
-            "value": 3
-          },
-          {
-            "dimension": "__time",
-            "extractionFn": {
-              "format": "H",
-              "locale": "en-US",
-              "timeZone": "Etc/UTC",
-              "type": "timeFormat"
-            },
-            "type": "extraction",
-            "value": 5
-          }
-        ],
-        "type": "or"
+        "dimension": "__time",
+        "extractionFn": {
+          "format": "H",
+          "locale": "en-US",
+          "timeZone": "Etc/UTC",
+          "type": "timeFormat"
+        },
+        "type": "in",
+        "values": [
+          3,
+          5
+        ]
       });
     });
 
@@ -1176,7 +1071,7 @@ describe("DruidExternal", () => {
           "nullHandling": "returnNull",
           "type": "stringFormat"
         },
-        "type": "extraction",
+        "type": "selector",
         "value": "[wiki]"
       });
     });
@@ -1198,7 +1093,7 @@ describe("DruidExternal", () => {
           "length": 3,
           "type": "substring"
         },
-        "type": "extraction",
+        "type": "selector",
         "value": "wik"
       });
     });
@@ -1457,11 +1352,8 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
-          "lookup": {
-            "namespace": "wikipedia-page-lookup",
-            "type": "namespace"
-          },
-          "type": "lookup"
+          "lookup": "wikipedia-page-lookup",
+          "type": "registeredLookup"
         },
         "outputName": "Split",
         "type": "extraction"
@@ -1479,12 +1371,9 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
-          "lookup": {
-            "namespace": "wikipedia-page-lookup",
-            "type": "namespace"
-          },
+          "lookup": "wikipedia-page-lookup",
           "replaceMissingValueWith": "missing",
-          "type": "lookup"
+          "type": "registeredLookup"
         },
         "outputName": "Split",
         "type": "extraction"
@@ -1502,12 +1391,9 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
-          "lookup": {
-            "namespace": "wikipedia-page-lookup",
-            "type": "namespace"
-          },
+          "lookup": "wikipedia-page-lookup",
           "retainMissingValue": true,
-          "type": "lookup"
+          "type": "registeredLookup"
         },
         "outputName": "Split",
         "type": "extraction"
@@ -1527,12 +1413,9 @@ describe("DruidExternal", () => {
         "extractionFn": {
           "extractionFns": [
             {
-              "lookup": {
-                "namespace": "wikipedia-page-lookup",
-                "type": "namespace"
-              },
+              "lookup": "wikipedia-page-lookup",
               "retainMissingValue": true,
-              "type": "lookup"
+              "type": "registeredLookup"
             },
             {
               "expr": "\\d+",
@@ -1560,12 +1443,9 @@ describe("DruidExternal", () => {
         "extractionFn": {
           "extractionFns": [
             {
-              "lookup": {
-                "namespace": "wikipedia-page-lookup",
-                "type": "namespace"
-              },
+              "lookup": "wikipedia-page-lookup",
               "retainMissingValue": true,
-              "type": "lookup"
+              "type": "registeredLookup"
             },
             {
               "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"lol\")>-1));}",
@@ -1590,11 +1470,8 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "tags",
         "extractionFn": {
-          "lookup": {
-            "namespace": "tag-lookup",
-            "type": "namespace"
-          },
-          "type": "lookup"
+          "lookup": "tag-lookup",
+          "type": "registeredLookup"
         },
         "outputName": "Split",
         "type": "extraction"
@@ -1614,11 +1491,8 @@ describe("DruidExternal", () => {
         "extractionFn": {
           "extractionFns": [
             {
-              "lookup": {
-                "namespace": "tag-lookup",
-                "type": "namespace"
-              },
-              "type": "lookup"
+              "lookup": "tag-lookup",
+              "type": "registeredLookup"
             },
             {
               "function": "function(d){return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"lol\").toLowerCase())>-1));}",
@@ -1790,7 +1664,7 @@ describe("DruidExternal", () => {
             },
             "type": "lookup"
           },
-          "type": "extraction",
+          "type": "selector",
           "value": true
         },
         "name": "Test",

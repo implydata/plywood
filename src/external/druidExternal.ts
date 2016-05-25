@@ -1,7 +1,7 @@
 module Plywood {
   const DUMMY_NAME = '!DUMMY';
 
-  const DEFAULT_TIME_ATTRIBUTE = '__time';
+  const TIME_ATTRIBUTE = '__time';
 
   const AGGREGATE_TO_DRUID: Lookup<string> = {
     count: "count",
@@ -313,7 +313,7 @@ module Plywood {
         // Error conditions
         if (columnData.errorMessage || columnData.size < 0) continue;
 
-        if (name === '__time') {
+        if (name === TIME_ATTRIBUTE) {
           attributes.push(new AttributeInfo({ name: timeAttribute, type: 'TIME' }));
           foundTime = true;
         } else {
@@ -351,7 +351,7 @@ module Plywood {
         }
       }
 
-      if (!foundTime) throw new Error('no valid __time in segmentMetadata response');
+      if (!foundTime) throw new Error(`no valid ${TIME_ATTRIBUTE} in segmentMetadata response`);
       return attributes;
     }
   }
@@ -566,7 +566,7 @@ module Plywood {
       super(parameters, dummyObject);
       this._ensureEngine("druid");
       this._ensureMinVersion("0.8.0");
-      this.timeAttribute = parameters.timeAttribute || DEFAULT_TIME_ATTRIBUTE;
+      this.timeAttribute = parameters.timeAttribute || TIME_ATTRIBUTE;
       this.customAggregations = parameters.customAggregations;
       this.allowEternity = parameters.allowEternity;
       this.allowSelectQueries = parameters.allowSelectQueries;
@@ -595,7 +595,7 @@ module Plywood {
 
     public toJS(): ExternalJS {
       var js: ExternalJS = super.toJS();
-      if (this.timeAttribute !== DEFAULT_TIME_ATTRIBUTE) js.timeAttribute = this.timeAttribute;
+      if (this.timeAttribute !== TIME_ATTRIBUTE) js.timeAttribute = this.timeAttribute;
       if (helper.nonEmptyLookup(this.customAggregations)) js.customAggregations = this.customAggregations;
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
@@ -693,13 +693,26 @@ module Plywood {
       }
     }
 
+    public getDimensionNameForAttribureInfo(attributeInfo: AttributeInfo): string {
+      return attributeInfo.name === this.timeAttribute ? TIME_ATTRIBUTE : attributeInfo.name;
+    }
+
     // ========= FILTERS =========
+
+    public checkFilterExtractability(attributeInfo: AttributeInfo): void {
+      if (this.versionBefore('0.9.2') && attributeInfo.name === this.timeAttribute) {
+        throw new Error('can not do secondary filtering on primary time dimension (https://github.com/druid-io/druid/issues/2816)');
+      }
+    }
 
     public makeJavaScriptFilter(ex: Expression): Druid.Filter {
       var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+
+      this.checkFilterExtractability(attributeInfo);
+
       return {
         type: "javascript",
-        dimension: attributeInfo.name,
+        dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
         "function": ex.getJSFn('d')
       };
     }
@@ -708,9 +721,11 @@ module Plywood {
       var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
       var extractionFn = this.expressionToExtractionFn(ex);
 
+      if (extractionFn) this.checkFilterExtractability(attributeInfo);
+
       return {
         type: "extraction",
-        dimension: attributeInfo.name,
+        dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
         extractionFn: extractionFn,
         value: "true"
       }
@@ -724,19 +739,20 @@ module Plywood {
       }
 
       var extractionFn = this.expressionToExtractionFn(ex);
-      var dimensionName = attributeInfo.name === this.timeAttribute ? '__time' : attributeInfo.name;
+
+      if (extractionFn) this.checkFilterExtractability(attributeInfo);
 
       // Kill range
       if (Range.isRange(value)) value = value.start;
 
       var druidFilter: Druid.Filter = {
         type: "selector",
-        dimension: dimensionName,
+        dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
         value: attributeInfo.serialize(value)
       };
       if (extractionFn) {
-        druidFilter.type = "extraction";
         druidFilter.extractionFn = extractionFn;
+        if (this.versionBefore('0.9.1')) druidFilter.type = "extraction";
         if (this.versionBefore('0.9.0') && druidFilter.value === null) druidFilter.value = '';
       }
       return druidFilter;
@@ -745,8 +761,15 @@ module Plywood {
     public makeInFilter(ex: Expression, valueSet: Set): Druid.Filter {
       var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
       var extractionFn = this.expressionToExtractionFn(ex);
+
+      if (extractionFn) this.checkFilterExtractability(attributeInfo);
+
       var elements = valueSet.elements;
-      if (elements.length < 2 || extractionFn || this.versionBefore('0.9.0')) {
+      if (
+        elements.length < 2 ||
+        (this.versionBefore('0.9.1') && extractionFn) ||
+        this.versionBefore('0.9.0')
+      ) {
         var fields = elements.map((value: string) => {
           return this.makeSelectorFilter(ex, value);
         });
@@ -754,11 +777,13 @@ module Plywood {
         return fields.length === 1 ? fields[0] : { type: "or", fields };
       }
 
-      return {
+      var inFilter: Druid.Filter = {
         type: 'in',
-        dimension: attributeInfo.name,
+        dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
         values: elements.map((value: string) => attributeInfo.serialize(value))
       };
+      if (extractionFn) inFilter.extractionFn = extractionFn;
+      return inFilter;
     }
 
     public makeBoundFilter(ex: Expression, range: PlywoodRange): Druid.Filter {
@@ -771,14 +796,22 @@ module Plywood {
       }
 
       var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+      var extractionFn = this.expressionToExtractionFn(ex);
+
+      if (this.versionBefore('0.9.1') && extractionFn) {
+        return this.makeJavaScriptFilter(ex.in(range));
+      }
+
+      if (extractionFn) this.checkFilterExtractability(attributeInfo);
 
       var boundFilter: Druid.Filter = {
         type: "bound",
-        dimension: attributeInfo.name
+        dimension: this.getDimensionNameForAttribureInfo(attributeInfo)
       };
-      if (NumberRange.isNumberRange(range)) {
-        boundFilter.alphaNumeric = true;
-      }
+
+      if (extractionFn) boundFilter.extractionFn = extractionFn;
+      if (NumberRange.isNumberRange(range)) boundFilter.alphaNumeric = true;
+
       if (r0 != null) {
         boundFilter.lower = isDate(r0) ? r0.toISOString() : r0;
         if (bounds[0] === '(') boundFilter.lowerStrict = true;
@@ -794,15 +827,19 @@ module Plywood {
       var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
       var extractionFn = this.expressionToExtractionFn(ex);
 
-      if (extractionFn) {
+      if (this.versionBefore('0.9.1') && extractionFn) {
         return this.makeExtractionFilter(ex.match(regex));
       }
 
-      return {
+      if (extractionFn) this.checkFilterExtractability(attributeInfo);
+
+      var regexFilter: Druid.Filter = {
         type: "regex",
-        dimension: attributeInfo.name,
+        dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
         pattern: regex
       };
+      if (extractionFn) regexFilter.extractionFn = extractionFn;
+      return regexFilter;
     }
 
     public makeContainsFilter(lhs: Expression, rhs: Expression, compare: string): Druid.Filter {
@@ -810,22 +847,39 @@ module Plywood {
         var attributeInfo = this.getSingleReferenceAttributeInfo(lhs);
         var extractionFn = this.expressionToExtractionFn(lhs);
 
-        if (extractionFn) {
+        if (extractionFn) this.checkFilterExtractability(attributeInfo);
+
+        if (this.versionBefore('0.9.0')) {
+          if (compare === ContainsAction.IGNORE_CASE) {
+            return {
+              type: "search",
+              dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
+              query: {
+                type: "insensitive_contains",
+                value: rhs.value
+              }
+            }
+          } else {
+            return this.makeJavaScriptFilter(lhs.contains(rhs, compare));
+          }
+        }
+
+        if (this.versionBefore('0.9.1') && extractionFn) {
           return this.makeExtractionFilter(lhs.contains(rhs, compare));
         }
 
-        if (compare === ContainsAction.IGNORE_CASE) {
-          return {
-            type: "search",
-            dimension: attributeInfo.name,
-            query: {
-              type: "insensitive_contains",
-              value: rhs.value
-            }
-          };
-        } else {
-          return this.makeJavaScriptFilter(lhs.contains(rhs, compare));
-        }
+        var searchFilter: Druid.Filter = {
+          type: "search",
+          dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
+          query: {
+            type: "contains",
+            value: rhs.value,
+            caseSensitive: compare === ContainsAction.NORMAL
+          }
+        };
+        if (extractionFn) searchFilter.extractionFn = extractionFn;
+        return searchFilter;
+
       } else {
         return this.makeJavaScriptFilter(lhs.contains(rhs, compare));
       }
@@ -924,7 +978,7 @@ module Plywood {
 
         if (aggregatorFilter) {
           if (this.versionBefore('0.8.2')) throw new Error(`can not express aggregate filter ${filter} in druid < 0.8.2`);
-          return this.makeExtractionFilter(filter);
+          if (this.versionBefore('0.9.1')) return this.makeExtractionFilter(filter);
         }
 
         if (filterAction instanceof MatchAction) {
@@ -1134,11 +1188,6 @@ module Plywood {
     private _processRefExtractionFn(ref: RefExpression, extractionFns: Druid.ExtractionFn[]): void {
       var attributeInfo = this.getAttributesInfo(ref.name);
 
-      if (attributeInfo instanceof RangeAttributeInfo) {
-        extractionFns.push(this.getRangeBucketingExtractionFn(attributeInfo, null));
-        return;
-      }
-
       if (ref.type === 'BOOLEAN') {
         extractionFns.push({
           type: "lookup",
@@ -1199,12 +1248,19 @@ module Plywood {
 
         if (action instanceof LookupAction) {
           var lookupExtractionFn: Druid.ExtractionFn = {
-            type: "lookup",
-            lookup: {
-              type: "namespace",
-              "namespace": action.lookup
-            }
+            type: "registeredLookup",
+            lookup: action.lookup
           };
+
+          if (this.versionBefore('0.9.1') || /-legacy-lookups/.test(this.version)) {
+            lookupExtractionFn = {
+              type: "lookup",
+              lookup: {
+                type: "namespace",
+                "namespace": action.lookup
+              }
+            };
+          }
 
           if (retainMissingValue) {
             lookupExtractionFn.retainMissingValue = true;
@@ -1308,27 +1364,6 @@ module Plywood {
       };
     }
 
-    public getRangeBucketingExtractionFn(attributeInfo: RangeAttributeInfo, numberBucket: NumberBucketAction): Druid.ExtractionFn {
-      var regExp = attributeInfo.getMatchingRegExpString();
-      if (numberBucket && numberBucket.offset === 0 && numberBucket.size === attributeInfo.rangeSize) numberBucket = null;
-      var bucketing = '';
-      if (numberBucket) {
-        bucketing = 's=' + continuousFloorExpression('s', 'Math.floor', numberBucket.size, numberBucket.offset) + ';';
-      }
-      return {
-        type: "javascript",
-        'function': `function(d) {
-var m = d.match(${regExp});
-if(!m) return 'null';
-var s = +m[1];
-if(!(Math.abs(+m[2] - s - ${attributeInfo.rangeSize}) < 1e-6)) return 'null'; ${bucketing}
-var parts = String(Math.abs(s)).split('.');
-parts[0] = ('000000000' + parts[0]).substr(-10);
-return (start < 0 ?'-':'') + parts.join('.');
-}`
-      };
-    }
-
     public expressionToDimensionInflater(expression: Expression, label: string): DimensionInflater {
       var freeReferences = expression.getFreeReferences();
       if (freeReferences.length !== 1) {
@@ -1347,7 +1382,7 @@ return (start < 0 ?'-':'') + parts.join('.');
 
       var dimension: Druid.DimensionSpecFull = {
         type: "default",
-        dimension: referenceName === this.timeAttribute ? '__time' : referenceName,
+        dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
         outputName: label
       };
       if (extractionFn) {
@@ -1356,14 +1391,6 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
 
       if (expression instanceof RefExpression) {
-
-        if (attributeInfo instanceof RangeAttributeInfo) {
-          return {
-            dimension,
-            inflater: External.numberRangeInflaterFactory(label, attributeInfo.rangeSize)
-          };
-        }
-
         return {
           dimension,
           inflater: simpleInflater
@@ -1394,13 +1421,6 @@ return (start < 0 ?'-':'') + parts.join('.');
               dimension,
               inflater: External.numberRangeInflaterFactory(label, splitAction.size)
             };
-          }
-
-          if (attributeInfo instanceof RangeAttributeInfo) {
-            return {
-              dimension,
-              inflater: External.numberRangeInflaterFactory(label, splitAction.size)
-            }
           }
 
         }
@@ -2022,8 +2042,8 @@ return (start < 0 ?'-':'') + parts.join('.');
               } else {
                 var derivedAttribute = derivedAttributes[name];
                 if (derivedAttribute) {
-                  if (this.versionBefore('0.9.1') && !/^0\.9\.0-iap/.test(this.version)) {
-                    throw new Error(`can not have derived attributes in Druid select in ${this.version}, upgrade to 0.9.1 or 0.9.0-iap`);
+                  if (this.versionBefore('0.9.1')) {
+                    throw new Error(`can not have derived attributes in Druid select in ${this.version}, upgrade to 0.9.1`);
                   }
                   var dimensionInflater = this.expressionToDimensionInflater(derivedAttribute, name);
                   selectDimensions.push(dimensionInflater.dimension);

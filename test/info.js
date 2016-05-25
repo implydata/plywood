@@ -1,6 +1,6 @@
 const DOCKER_MACHINE = '192.168.99.100';
 
-exports.druidVersion = '0.9.0';
+exports.druidVersion = '0.9.1-rc4-SNAPSHOT';
 exports.druidHost = `${DOCKER_MACHINE}:8082`;
 
 exports.mySqlVersion = '5.7.13';
