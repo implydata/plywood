@@ -499,7 +499,7 @@ module Plywood {
       MONTH_OF_YEAR: "d.getMonthOfYear()",
       YEAR: "d.getYearOfEra()"
     };
-    
+
     static timePartToExtraction(part: string, timezone: Timezone): Druid.ExtractionFn {
       var format = DruidExternal.TIME_PART_TO_FORMAT[part];
       if (format) {
@@ -523,7 +523,7 @@ module Plywood {
         }
       }
     }
-    
+
 
     static SPAN_TO_FLOOR_FORMAT: Lookup<string> = {
       second: "yyyy-MM-dd'T'HH:mm:ss'Z",
@@ -547,7 +547,7 @@ module Plywood {
     static timeFloorToExtraction(duration: Duration, timezone: Timezone): Druid.ExtractionFn {
       var singleSpan = duration.getSingleSpan();
       var spanValue = duration.getSingleSpanValue();
-      
+
       if (spanValue === 1 && DruidExternal.SPAN_TO_FLOOR_FORMAT[singleSpan]) {
         return {
           "format": DruidExternal.SPAN_TO_FLOOR_FORMAT[singleSpan],
@@ -1104,7 +1104,7 @@ module Plywood {
           }
           this._processConcatExtractionFn(concatPrefix, extractionFns);
 
-        } else if (lead.isOp('literal') && lead.type === 'NUMBER') {
+        } else if (lead.type === 'NUMBER' && expression.type === 'NUMBER') {
           extractionFns.push(this.expressionToJavaScriptExtractionFn(expression));
           return;
 

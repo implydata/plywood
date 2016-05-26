@@ -229,7 +229,7 @@ describe("simulate Druid", () => {
             "fieldNames": [
               "carat"
             ],
-            "fnAggregate": "function(_c,carat) { return _c+carat; }",
+            "fnAggregate": "function(_c,carat) { return _c+(+carat); }",
             "fnCombine": "function(a,b) { return a+b; }",
             "fnReset": "function() { return 0; }",
             "name": "!T_1",
@@ -1306,7 +1306,7 @@ describe("simulate Druid", () => {
             "fieldNames": [
               "carat"
             ],
-            "fnAggregate": "function(_c,carat) { return Math.max(_c,carat); }",
+            "fnAggregate": "function(_c,carat) { return Math.max(_c,(+carat)); }",
             "fnCombine": "function(a,b) { return Math.max(a,b); }",
             "fnReset": "function() { return -Infinity; }",
             "name": "maxCarat",
@@ -1316,7 +1316,7 @@ describe("simulate Druid", () => {
             "fieldNames": [
               "carat"
             ],
-            "fnAggregate": "function(_c,carat) { return Math.min(_c,carat); }",
+            "fnAggregate": "function(_c,carat) { return Math.min(_c,(+carat)); }",
             "fnCombine": "function(a,b) { return Math.min(a,b); }",
             "fnReset": "function() { return Infinity; }",
             "name": "minCarat",
@@ -1370,7 +1370,7 @@ describe("simulate Druid", () => {
               "fieldNames": [
                 "price"
               ],
-              "fnAggregate": "function(_c,price) { return _c+Math.pow(price,2); }",
+              "fnAggregate": "function(_c,price) { return _c+Math.pow((+price),2); }",
               "fnCombine": "function(a,b) { return a+b; }",
               "fnReset": "function() { return 0; }",
               "name": "GoodPrice2",
