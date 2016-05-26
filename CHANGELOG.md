@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.24
+
+- DruidExternal: Ability to split on a secondary time dimension by `PT2H` e.t.c. 
+- PlyQL: `SHOW FULL TABLES` rewrites correctly
+
 ## 0.10.23
 
 - Druid Select query no longer bound to 10000 max limit and will use iterative strategy

@@ -1214,6 +1214,23 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should work with SHOW FULL TABLES", () => {
+      var parse = Expression.parseSQL(sane`
+        SHOW FULL TABLES FROM \`my_db\` LIKE '%'
+      `);
+
+      var ex2 = $('TABLES')
+        .filter($('TABLE_SCHEMA').is('my_db'))
+        .filter($('TABLE_NAME').match('^.*$'))
+        .apply('Tables_in_database', $('TABLE_NAME'))
+        .apply('Table_type', $('TABLE_TYPE'))
+        .select('Tables_in_database', 'Table_type');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("should work with SHOW COLUMNS", () => {
       var parse = Expression.parseSQL(sane`
         SHOW COLUMNS IN my_table IN my_db

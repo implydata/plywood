@@ -17,7 +17,8 @@ describe("defineEnvironment", () => {
       .apply('timeFloor', $("diamonds").split("$time.timeFloor(P1D)", 'Split'))
       .apply('timeShift', $("diamonds").split("$time.timeShift(P1D, 1)", 'Split'))
       .apply('timeRange', $("diamonds").split("$time.timeRange(P1D, 1)", 'Split'))
-      .apply('timePart', $("diamonds").split("$time.timePart(P1D)", 'Split'));
+      .apply('timePart', $("diamonds").split("$time.timePart(P1D)", 'Split'))
+      .apply('multiSplit', $("diamonds").split({ A: "$time.timePart(P1D)", B: "$time.timePart(P1D)" }));
 
     var environment = { timezone: 'Etc/UTC' };
 
@@ -27,7 +28,8 @@ describe("defineEnvironment", () => {
       .apply('timeFloor', $("diamonds").split("$time.timeFloor(P1D, 'Etc/UTC')", 'Split'))
       .apply('timeShift', $("diamonds").split("$time.timeShift(P1D, 1, 'Etc/UTC')", 'Split'))
       .apply('timeRange', $("diamonds").split("$time.timeRange(P1D, 1, 'Etc/UTC')", 'Split'))
-      .apply('timePart', $("diamonds").split("$time.timePart(P1D, 'Etc/UTC')", 'Split'));
+      .apply('timePart', $("diamonds").split("$time.timePart(P1D, 'Etc/UTC')", 'Split'))
+      .apply('multiSplit', $("diamonds").split({ A: "$time.timePart(P1D, 'Etc/UTC')", B: "$time.timePart(P1D, 'Etc/UTC')" }));
 
     expect(ex1.defineEnvironment(environment).toJS()).to.deep.equal(ex2.toJS());
   });
@@ -39,7 +41,8 @@ describe("defineEnvironment", () => {
       .apply('timeFloor', $("diamonds").split("$time.timeFloor(P1D)", 'Split'))
       .apply('timeShift', $("diamonds").split("$time.timeShift(P1D, 1)", 'Split'))
       .apply('timeRange', $("diamonds").split("$time.timeRange(P1D, 1)", 'Split'))
-      .apply('timePart', $("diamonds").split("$time.timePart(P1D)", 'Split'));
+      .apply('timePart', $("diamonds").split("$time.timePart(P1D)", 'Split'))
+      .apply('multiSplit', $("diamonds").split({ A: "$time.timePart(P1D)", B: "$time.timePart(P1D)" }));
 
     var environment = { timezone: 'America/Los_Angeles' };
 
@@ -49,7 +52,8 @@ describe("defineEnvironment", () => {
       .apply('timeFloor', $("diamonds").split("$time.timeFloor(P1D, 'America/Los_Angeles')", 'Split'))
       .apply('timeShift', $("diamonds").split("$time.timeShift(P1D, 1, 'America/Los_Angeles')", 'Split'))
       .apply('timeRange', $("diamonds").split("$time.timeRange(P1D, 1, 'America/Los_Angeles')", 'Split'))
-      .apply('timePart', $("diamonds").split("$time.timePart(P1D, 'America/Los_Angeles')", 'Split'));
+      .apply('timePart', $("diamonds").split("$time.timePart(P1D, 'America/Los_Angeles')", 'Split'))
+      .apply('multiSplit', $("diamonds").split({ A: "$time.timePart(P1D, 'America/Los_Angeles')", B: "$time.timePart(P1D, 'America/Los_Angeles')" }));
 
     expect(ex1.defineEnvironment(environment).toJS()).to.deep.equal(ex2.toJS());
   });
@@ -61,7 +65,8 @@ describe("defineEnvironment", () => {
       .apply('timeFloor', $("diamonds").split("$time.timeFloor(P1D)", 'Split'))
       .apply('timeShift', $("diamonds").split("$time.timeShift(P1D, 1, 'Etc/UTC')", 'Split'))
       .apply('timeRange', $("diamonds").split("$time.timeRange(P1D, 1, 'America/New_York')", 'Split'))
-      .apply('timePart', $("diamonds").split("$time.timePart(P1D)", 'Split'));
+      .apply('timePart', $("diamonds").split("$time.timePart(P1D)", 'Split'))
+      .apply('multiSplit', $("diamonds").split({ A: "$time.timePart(P1D, 'America/New_York')", B: "$time.timePart(P1D)" }));
 
     var environment = { timezone: 'America/Los_Angeles' };
 
@@ -71,7 +76,8 @@ describe("defineEnvironment", () => {
       .apply('timeFloor', $("diamonds").split("$time.timeFloor(P1D, 'America/Los_Angeles')", 'Split'))
       .apply('timeShift', $("diamonds").split("$time.timeShift(P1D, 1, 'Etc/UTC')", 'Split'))
       .apply('timeRange', $("diamonds").split("$time.timeRange(P1D, 1, 'America/New_York')", 'Split'))
-      .apply('timePart', $("diamonds").split("$time.timePart(P1D, 'America/Los_Angeles')", 'Split'));
+      .apply('timePart', $("diamonds").split("$time.timePart(P1D, 'America/Los_Angeles')", 'Split'))
+      .apply('multiSplit', $("diamonds").split({ A: "$time.timePart(P1D, 'America/New_York')", B: "$time.timePart(P1D, 'America/Los_Angeles')" }));
 
     expect(ex1.defineEnvironment(environment).toJS()).to.deep.equal(ex2.toJS());
   });

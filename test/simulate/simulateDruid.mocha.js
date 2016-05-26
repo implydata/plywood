@@ -753,10 +753,8 @@ describe("simulate Druid", () => {
           {
             "dimension": "__time",
             "extractionFn": {
-              "format": "H'*60+'m'*60+'s",
-              "locale": "en-US",
-              "timeZone": "Etc/UTC",
-              "type": "timeFormat"
+              "function": "function(s){try{\nvar d = new org.joda.time.DateTime(s);\nd = d.getSecondOfDay();\nreturn d;\n}catch(e){return null;}}",
+              "type": "javascript"
             },
             "outputName": "HourOfDay",
             "type": "extraction"
@@ -1281,10 +1279,8 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "__time",
           "extractionFn": {
-            "format": "H'*60+'m'*60+'s",
-            "locale": "en-US",
-            "timeZone": "Etc/UTC",
-            "type": "timeFormat"
+            "function": "function(s){try{\nvar d = new org.joda.time.DateTime(s);\nd = d.getSecondOfDay();\nreturn d;\n}catch(e){return null;}}",
+            "type": "javascript"
           },
           "outputName": "Time",
           "type": "extraction"

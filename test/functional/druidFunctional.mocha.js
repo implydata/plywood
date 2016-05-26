@@ -1162,7 +1162,7 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it("can timeBucket a time column that is the timeAttribute one", (testComplete) => {
+    it("can timeBucket a primary time column", (testComplete) => {
       var ex = ply()
         .apply(
           'Time',
@@ -1198,7 +1198,7 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it("can timeBucket a time column that's not the timeAttribute one", (testComplete) => {
+    it("can timeBucket a secondary time column", (testComplete) => {
       var ex = ply()
         .apply(
           'TimeLater',
@@ -1243,6 +1243,62 @@ describe("Druid Functional", function() {
                   "SometimeLater": {
                     "end": new Date('2016-09-12T05:00:00.000Z'),
                     "start": new Date('2016-09-12T04:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  }
+                }
+              ]
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("can timeBucket a secondary time column (complex duration, tz)", (testComplete) => {
+      var ex = ply()
+        .apply(
+          'TimeLater',
+          $("wiki").split($("sometimeLater").timeBucket('PT3H', 'Asia/Kathmandu'), 'SometimeLater')
+            .limit(5)
+        );
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "TimeLater": [
+                {
+                  "SometimeLater": {
+                    "end": new Date('2016-09-12T03:15:00.000Z'),
+                    "start": new Date('2016-09-12T00:15:00.000Z'),
+                    "type": "TIME_RANGE"
+                  }
+                },
+                {
+                  "SometimeLater": {
+                    "end": new Date('2016-09-12T06:15:00.000Z'),
+                    "start": new Date('2016-09-12T03:15:00.000Z'),
+                    "type": "TIME_RANGE"
+                  }
+                },
+                {
+                  "SometimeLater": {
+                    "end": new Date('2016-09-12T09:15:00.000Z'),
+                    "start": new Date('2016-09-12T06:15:00.000Z'),
+                    "type": "TIME_RANGE"
+                  }
+                },
+                {
+                  "SometimeLater": {
+                    "end": new Date('2016-09-12T12:15:00.000Z'),
+                    "start": new Date('2016-09-12T09:15:00.000Z'),
+                    "type": "TIME_RANGE"
+                  }
+                },
+                {
+                  "SometimeLater": {
+                    "end": new Date('2016-09-12T15:15:00.000Z'),
+                    "start": new Date('2016-09-12T12:15:00.000Z'),
                     "type": "TIME_RANGE"
                   }
                 }
@@ -1303,7 +1359,7 @@ describe("Druid Functional", function() {
           $("wiki")
             .split({
               'Channel': "$channel",
-              'TimeByHour': '$time.timeBucket(PT1H)',
+              'TimeByHour': '$time.timeBucket(PT2H)',
               'IsNew': '$isNew',
               'ChannelIsDE': "$channel == 'de'"
             })
@@ -1320,10 +1376,10 @@ describe("Druid Functional", function() {
                 {
                   "Channel": "vi",
                   "ChannelIsDE": false,
-                  "Count": 12433,
+                  "Count": 24258,
                   "IsNew": false,
                   "TimeByHour": {
-                    "end": new Date('2015-09-12T07:00:00.000Z'),
+                    "end": new Date('2015-09-12T08:00:00.000Z'),
                     "start": new Date('2015-09-12T06:00:00.000Z'),
                     "type": "TIME_RANGE"
                   }
@@ -1331,33 +1387,33 @@ describe("Druid Functional", function() {
                 {
                   "Channel": "vi",
                   "ChannelIsDE": false,
-                  "Count": 11825,
-                  "IsNew": false,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T08:00:00.000Z'),
-                    "start": new Date('2015-09-12T07:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "Channel": "vi",
-                  "ChannelIsDE": false,
-                  "Count": 6409,
+                  "Count": 11215,
                   "IsNew": false,
                   "TimeByHour": {
                     "end": new Date('2015-09-12T18:00:00.000Z'),
-                    "start": new Date('2015-09-12T17:00:00.000Z'),
+                    "start": new Date('2015-09-12T16:00:00.000Z'),
                     "type": "TIME_RANGE"
                   }
                 },
                 {
                   "Channel": "vi",
                   "ChannelIsDE": false,
-                  "Count": 4939,
+                  "Count": 9246,
                   "IsNew": false,
                   "TimeByHour": {
                     "end": new Date('2015-09-12T16:00:00.000Z'),
-                    "start": new Date('2015-09-12T15:00:00.000Z'),
+                    "start": new Date('2015-09-12T14:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  }
+                },
+                {
+                  "Channel": "vi",
+                  "ChannelIsDE": false,
+                  "Count": 8917,
+                  "IsNew": false,
+                  "TimeByHour": {
+                    "end": new Date('2015-09-12T10:00:00.000Z'),
+                    "start": new Date('2015-09-12T08:00:00.000Z'),
                     "type": "TIME_RANGE"
                   }
                 }

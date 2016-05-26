@@ -632,7 +632,7 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it('works with secondary TIME split (timeBucket PT1M) (sort on split)', equalityTest({
+    it('works with secondary TIME split (timeBucket PT1H) (sort on split)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split($("sometimeLater").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -640,12 +640,21 @@ describe("Cross Functional", function() {
         .sort('$TimeByHour', 'ascending')
     }));
 
-    it('works with secondary TIME split (timeBucket PT1M) (sort on apply)', equalityTest({
+    it('works with secondary TIME split (timeBucket PT1H) (sort on apply)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split($("sometimeLater").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
+    it.skip('works with secondary TIME split (timeBucket PT3H) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split($("sometimeLater").timeBucket('PT3H', 'Etc/UTC'), 'TimeByHour')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TimeByHour', 'ascending')
         .limit(10)
     }));
 

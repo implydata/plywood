@@ -22,72 +22,9 @@ module Plywood {
     max: "-Infinity"
   };
 
-  const TIME_PART_TO_FORMAT: Lookup<string> = {
-    SECOND_OF_MINUTE: "s",
-    SECOND_OF_HOUR: "m'*60+'s",
-    SECOND_OF_DAY: "H'*60+'m'*60+'s",
-    SECOND_OF_WEEK: "e'~*24+H'*60+'m'*60+'s",
-    SECOND_OF_MONTH: "d'~*24+H'*60+'m'*60+'s",
-    SECOND_OF_YEAR: "D'*24+H'*60+'m'*60+'s",
-
-    MINUTE_OF_HOUR: "m",
-    MINUTE_OF_DAY: "H'*60+'m",
-    MINUTE_OF_WEEK: "e'~*24+H'*60+'m",
-    MINUTE_OF_MONTH: "d'~*24+H'*60+'m",
-    MINUTE_OF_YEAR: "D'*24+H'*60+'m",
-
-    HOUR_OF_DAY: "H",
-    HOUR_OF_WEEK: "e'~*24+H",
-    HOUR_OF_MONTH: "d'~*24+H",
-    HOUR_OF_YEAR: "D'*24+H",
-
-    DAY_OF_WEEK: "e",
-    DAY_OF_MONTH: "d",
-    DAY_OF_YEAR: "D",
-
-    WEEK_OF_MONTH: null,
-    WEEK_OF_YEAR: "w",
-
-    MONTH_OF_YEAR: "M",
-    YEAR: "Y"
-  };
-
-  const TIME_BUCKET_FORMAT: Lookup<string> = {
-    "PT1S": "yyyy-MM-dd'T'HH:mm:ss'Z",
-    "PT1M": "yyyy-MM-dd'T'HH:mm'Z",
-    "PT1H": "yyyy-MM-dd'T'HH':00Z",
-    "P1D": "yyyy-MM-dd'Z",
-    //"P1W":  "yyyy-MM'-01Z",
-    "P1M": "yyyy-MM'-01Z",
-    "P1Y": "yyyy'-01-01Z"
-  };
-
   function expressionNeedsAlphaNumericSort(ex: Expression): boolean {
     var type = ex.type;
     return (type === 'NUMBER' || type === 'NUMBER_RANGE');
-  }
-
-  function simpleMath(exprStr: string): int {
-    if (String(exprStr) === 'null') return null;
-    var parts = exprStr.split(/(?=[*+~])/);
-    var acc = parseInt(parts.shift(), 10);
-    for (let part of parts) {
-      var v = parseInt(part.substring(1), 10);
-      switch (part[0]) {
-        case '+':
-          acc += v;
-          break;
-
-        case '*':
-          acc *= v;
-          break;
-
-        case '~':
-          acc--;
-          break;
-      }
-    }
-    return acc;
   }
 
   export interface CustomDruidAggregation {
@@ -216,6 +153,9 @@ module Plywood {
     };
   }
 
+  function wrapFunctionTryCatch(lines: string[]): string {
+    return 'function(s){try{\n' + lines.filter(Boolean).join('\n') + '\n}catch(e){return null;}}';
+  }
 
   // ==========================
 
@@ -323,18 +263,6 @@ module Plywood {
       prevQuery.pagingSpec.pagingIdentifiers = pagingIdentifiers;
       prevQuery.pagingSpec.threshold = Math.min(limit - resultsSoFar, DruidExternal.SELECT_MAX_LIMIT);
       return prevQuery;
-    }
-  }
-
-  function simpleMathInflaterFactory(label: string): Inflater {
-    return (d: any) => {
-      var v = d[label];
-      if ('' + v === "null") {
-        d[label] = null;
-        return;
-      }
-
-      d[label] = simpleMath(v);
     }
   }
 
@@ -528,6 +456,119 @@ module Plywood {
         newPagingIdentifiers[key] = pagingIdentifiers[key] + increment;
       }
       return newPagingIdentifiers;
+    }
+
+
+    static TIME_PART_TO_FORMAT: Lookup<string> = {
+      SECOND_OF_MINUTE: "s",
+      MINUTE_OF_HOUR: "m",
+      HOUR_OF_DAY: "H",
+      DAY_OF_WEEK: "e",
+      DAY_OF_MONTH: "d",
+      DAY_OF_YEAR: "D",
+      WEEK_OF_YEAR: "w",
+      MONTH_OF_YEAR: "M",
+      YEAR: "Y"
+    };
+
+    static TIME_PART_TO_EXPR: Lookup<string> = {
+      SECOND_OF_MINUTE: "d.getSecondOfMinute()",
+      SECOND_OF_HOUR: "d.getSecondOfHour()",
+      SECOND_OF_DAY: "d.getSecondOfDay()",
+      SECOND_OF_WEEK: "d.getDayOfWeek()*86400 + d.getSecondOfMinute()",
+      SECOND_OF_MONTH: "d.getDayOfMonth()*86400 + d.getSecondOfHour()",
+      SECOND_OF_YEAR: "d.getDayOfYear()*86400 + d.getSecondOfDay()",
+
+      MINUTE_OF_HOUR: "d.getMinuteOfHour()",
+      MINUTE_OF_DAY: "d.getMinuteOfDay()",
+      MINUTE_OF_WEEK: "d.getDayOfWeek()*1440 + d.getMinuteOfDay()",
+      MINUTE_OF_MONTH: "d.getDayOfMonth()*1440 + d.getMinuteOfDay()",
+      MINUTE_OF_YEAR: "d.getDayOfYear()*1440 + d.getMinuteOfDay()",
+
+      HOUR_OF_DAY: "d.getHourOfDay()",
+      HOUR_OF_WEEK: "d.getDayOfWeek()*24 + d.getHourOfDay()",
+      HOUR_OF_MONTH: "d.getDayOfMonth()*24 + d.getHourOfDay()",
+      HOUR_OF_YEAR: "d.getDayOfYear()*24 + d.getHourOfDay()",
+
+      DAY_OF_WEEK: "d.getDayOfWeek()",
+      DAY_OF_MONTH: "d.getDayOfMonth()",
+      DAY_OF_YEAR: "d.getDayOfYear()",
+
+      WEEK_OF_YEAR: "d.getWeekOfWeekyear()",
+
+      MONTH_OF_YEAR: "d.getMonthOfYear()",
+      YEAR: "d.getYearOfEra()"
+    };
+    
+    static timePartToExtraction(part: string, timezone: Timezone): Druid.ExtractionFn {
+      var format = DruidExternal.TIME_PART_TO_FORMAT[part];
+      if (format) {
+        return {
+          "format": format,
+          "locale": "en-US",
+          "timeZone": timezone.toString(),
+          "type": "timeFormat"
+        }
+      } else {
+        var expr = DruidExternal.TIME_PART_TO_EXPR[part];
+        if (!expr) throw new Error(`can not part on ${part}`);
+        return {
+          type: 'javascript',
+          'function': wrapFunctionTryCatch([
+            'var d = new org.joda.time.DateTime(s);',
+            timezone.isUTC() ? null : `d = d.withZone(org.joda.time.DateTimeZone.forID(${JSON.stringify(timezone)}));`,
+            `d = ${expr};`,
+            'return d;'
+          ])
+        }
+      }
+    }
+    
+
+    static SPAN_TO_FLOOR_FORMAT: Lookup<string> = {
+      second: "yyyy-MM-dd'T'HH:mm:ss'Z",
+      minute: "yyyy-MM-dd'T'HH:mm'Z",
+      hour: "yyyy-MM-dd'T'HH':00Z",
+      day: "yyyy-MM-dd'Z",
+      month: "yyyy-MM'-01Z",
+      year: "yyyy'-01-01Z"
+    };
+
+    static SPAN_TO_PROPERTY: Lookup<string> = {
+      second: 'secondOfMinute',
+      minute: 'minuteOfHour',
+      hour: 'hourOfDay',
+      day: 'dayOfMonth',
+      week: 'weekOfWeekyear',
+      month: 'monthOfYear',
+      year: 'yearOfEra'
+    };
+
+    static timeFloorToExtraction(duration: Duration, timezone: Timezone): Druid.ExtractionFn {
+      var singleSpan = duration.getSingleSpan();
+      var spanValue = duration.getSingleSpanValue();
+      
+      if (spanValue === 1 && DruidExternal.SPAN_TO_FLOOR_FORMAT[singleSpan]) {
+        return {
+          "format": DruidExternal.SPAN_TO_FLOOR_FORMAT[singleSpan],
+          "locale": "en-US",
+          "timeZone": timezone.toString(),
+          "type": "timeFormat"
+        }
+      } else {
+        var prop = DruidExternal.SPAN_TO_PROPERTY[singleSpan];
+        if (!prop) throw new Error(`can not floor on ${duration}`);
+        return {
+          type: 'javascript',
+          'function': wrapFunctionTryCatch([
+            'var d = new org.joda.time.DateTime(s);',
+            timezone.isUTC() ? null : `d = d.withZone(org.joda.time.DateTimeZone.forID(${JSON.stringify(timezone)}));`,
+            `d = d.${prop}().roundFloorCopy();`,
+            `d = d.${prop}().setCopy(Math.floor(d.${prop}().get() / ${spanValue}) * ${spanValue});`,
+            'return d;'
+          ])
+        }
+      }
     }
 
 
@@ -1194,25 +1235,11 @@ module Plywood {
       }
 
       if (action instanceof TimeBucketAction || action instanceof TimeFloorAction) {
-        var format = TIME_BUCKET_FORMAT[action.duration.toString()];
-        if (!format) throw new Error(`unsupported duration in timeBucket expression ${action.duration}`);
-        return {
-          type: "timeFormat",
-          format: format,
-          timeZone: action.getTimezone().toString(),
-          locale: "en-US"
-        };
+        return DruidExternal.timeFloorToExtraction(action.duration, action.getTimezone());
       }
 
       if (action instanceof TimePartAction) {
-        var format = TIME_PART_TO_FORMAT[action.part];
-        if (!format) throw new Error(`unsupported part in timePart expression ${action.part}`);
-        return {
-          type: "timeFormat",
-          format: format,
-          timeZone: action.getTimezone().toString(),
-          locale: "en-US"
-        };
+        return DruidExternal.timePartToExtraction(action.part, action.getTimezone());
       }
 
       if (action instanceof NumberBucketAction) {
@@ -1343,7 +1370,7 @@ return (start < 0 ?'-':'') + parts.join('.');
         if (splitAction instanceof TimePartAction) {
           return {
             dimension,
-            inflater: simpleMathInflaterFactory(label)
+            inflater: simpleInflater
           };
         }
 

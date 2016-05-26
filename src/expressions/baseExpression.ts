@@ -1069,7 +1069,7 @@ module Plywood {
      * @param environment The environment that will be defined
      */
     public defineEnvironment(environment: Environment): Expression {
-      if (!environment.timezone) return this;
+      if (!environment.timezone) environment = { timezone: Timezone.UTC };
 
       // Allow strings as well
       if (typeof environment.timezone === 'string') environment = { timezone: Timezone.fromJS(environment.timezone as any) };
@@ -1101,7 +1101,7 @@ module Plywood {
       }
       return true;
     }
-    
+
     /**
      * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
      * @param typeContext The FullType context within which to resolve

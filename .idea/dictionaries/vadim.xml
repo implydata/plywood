@@ -17,6 +17,7 @@
       <w>inflater</w>
       <w>inflaters</w>
       <w>injective</w>
+      <w>joda</w>
       <w>namespaced</w>
       <w>nodejs</w>
       <w>noop</w>
@@ -35,6 +36,7 @@
       <w>unsuppress</w>
       <w>uservisits</w>
       <w>weekofyear</w>
+      <w>weekyear</w>
     </words>
   </dictionary>
 </component>

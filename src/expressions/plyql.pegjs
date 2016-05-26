@@ -402,15 +402,24 @@ ShowQueryExpression
         .apply('Database', $('SCHEMA_NAME'))
         .select('Database');
     }
-  / TablesToken db:(FromOrIn Ref)? like:LikeRhs?
+  / full:FullToken? TablesToken db:(FromOrIn Ref)? like:LikeRhs?
     {
       // https://dev.mysql.com/doc/refman/5.0/en/tables-table.html
       var ex = $('TABLES')
       if (db) ex= ex.filter($('TABLE_SCHEMA').is(r(db[1])));
       if (like) ex = ex.filter(like($('TABLE_NAME')));
-      return ex
-        .apply('Tables_in_database', $('TABLE_NAME'))
-        .select('Tables_in_database');
+      ex = ex
+        .apply('Tables_in_database', $('TABLE_NAME'));
+
+      if (full) {
+        ex = ex
+          .apply('Table_type', $('TABLE_TYPE'))
+          .select('Tables_in_database', 'Table_type');
+      } else {
+        ex = ex.select('Tables_in_database');
+      }
+
+      return ex;
     }
   / full:FullToken? ColumnsToken FromOrIn table:RelaxedNamespacedRef db:(FromOrIn Ref)? like:LikeRhs? where:WhereClause?
     {
