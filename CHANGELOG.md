@@ -2,7 +2,7 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.10.24
+## 0.10.26
 
 - DruidExternal: Ability to split on a secondary time dimension by `PT2H` e.t.c. 
 - PlyQL: `SHOW FULL TABLES` rewrites correctly
