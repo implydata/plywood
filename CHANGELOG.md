@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.27
+
+- DruidExternal: Fix bug where `$blah / 10` did not work in split
+- DruidExternal: Fix bug where `1 + $blah` did not cast to number
+
 ## 0.10.26
 
 - DruidExternal: Ability to split on a secondary time dimension by `PT2H` e.t.c. 

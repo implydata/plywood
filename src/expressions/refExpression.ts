@@ -162,11 +162,15 @@ module Plywood {
     public getJS(datumVar: string): string {
       if (this.nest) throw new Error("can not call getJS on unresolved expression");
       var name = this.name;
+      var expr: string;
       if (datumVar) {
-        return datumVar.replace('[]', "[" + JSON.stringify(name) + "]");
+        expr = datumVar.replace('[]', "[" + JSON.stringify(name) + "]");
       } else {
-        return RefExpression.toSimpleName(name);
+        expr = RefExpression.toSimpleName(name);
       }
+
+      if (this.type === 'NUMBER') expr = `(+${expr})`;
+      return expr;
     }
 
     public getSQL(dialect: SQLDialect, minimal: boolean = false): string {

@@ -423,7 +423,7 @@ describe("DruidExternal", () => {
           "fieldNames": [
             "added"
           ],
-          "fnAggregate": "function(_c,added) { return _c+Math.abs(added); }",
+          "fnAggregate": "function(_c,added) { return _c+Math.abs((+added)); }",
           "fnCombine": "function(a,b) { return a+b; }",
           "fnReset": "function() { return 0; }",
           "name": "SumAbs",
@@ -434,7 +434,7 @@ describe("DruidExternal", () => {
             "added",
             "deleted"
           ],
-          "fnAggregate": "function(_c,added,deleted) { return _c+((Math.pow(added,2)*deleted)/Math.abs(added)); }",
+          "fnAggregate": "function(_c,added,deleted) { return _c+((Math.pow((+added),2)*(+deleted))/Math.abs((+added))); }",
           "fnCombine": "function(a,b) { return a+b; }",
           "fnReset": "function() { return 0; }",
           "name": "SumComplex",
@@ -546,7 +546,7 @@ describe("DruidExternal", () => {
             "fieldNames": [
               "!T_0"
             ],
-            "function": "function(T_0) { return Math.abs(T_0); }",
+            "function": "function(T_0) { return Math.abs((+T_0)); }",
             "name": "Abs",
             "type": "javascript"
           },
@@ -554,7 +554,7 @@ describe("DruidExternal", () => {
             "fieldNames": [
               "!T_0"
             ],
-            "function": "function(T_0) { return Math.pow(T_0,2); }",
+            "function": "function(T_0) { return Math.pow((+T_0),2); }",
             "name": "Abs2",
             "type": "javascript"
           }
@@ -624,7 +624,7 @@ describe("DruidExternal", () => {
                   "!F_!T_1",
                   "Count"
                 ],
-                "function": "function(T_0,T_1,Count) { return Math.pow(Math.abs(((T_0/Math.pow(Math.abs(Count),0.5))+(100*T_1))),2); }",
+                "function": "function(T_0,T_1,Count) { return Math.pow(Math.abs((((+T_0)/Math.pow(Math.abs((+Count)),0.5))+(100*(+T_1)))),2); }",
                 "type": "javascript"
               },
               {
@@ -1642,7 +1642,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){return Math.abs(d);}",
+          "function": "function(d){return Math.abs((+d));}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1661,7 +1661,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){return Math.pow(d,2);}",
+          "function": "function(d){return Math.pow((+d),2);}",
           "type": "javascript"
         },
         "outputName": "Split",

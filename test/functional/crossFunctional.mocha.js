@@ -518,6 +518,24 @@ describe("Cross Functional", function() {
         .limit(20) // To force a topN (for now)
     }));
 
+    it('works with NUMBER split (1 + expression) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split("1 + $commentLength", 'OnePlusCommentLength')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$OnePlusCommentLength', 'descending')
+        .limit(20) // To force a topN (for now)
+    }));
+
+    it('works with NUMBER split (expression / 10) (sort on split)', equalityTest({
+      executorNames: ['druid', 'mysql'], //'postgres' # ToDo: postgres truncates results
+      expression: $('wiki').split("$commentLength / 10", 'CommentLengthDiv')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalEdits', 'descending')
+        .limit(20) // To force a topN (for now)
+    }));
+
     it('works with NUMBER split (expression^2) (sort on split)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split("$commentLength^2", 'CommentLengthSq')
