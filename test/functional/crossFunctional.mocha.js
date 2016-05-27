@@ -527,9 +527,18 @@ describe("Cross Functional", function() {
         .limit(20) // To force a topN (for now)
     }));
 
-    it('works with NUMBER split (expression / 10) (sort on split)', equalityTest({
+    it('works with NUMBER split (expression / 10) (sort on apply)', equalityTest({
       executorNames: ['druid', 'mysql'], //'postgres' # ToDo: postgres truncates results
       expression: $('wiki').split("$commentLength / 10", 'CommentLengthDiv')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalEdits', 'descending')
+        .limit(20) // To force a topN (for now)
+    }));
+
+    it('works with NUMBER split (expression / 10).numberBucket (sort on apply)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split("($commentLength / 10).numberBucket(2, 0)", 'CommentLengthDivBucket')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalEdits', 'descending')

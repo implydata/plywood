@@ -745,6 +745,12 @@ module Plywood {
         this.filter.equals(other.filter);
     }
 
+    public attachRequester(requester: Requester.PlywoodRequester<any>): External {
+      var value = this.valueOf();
+      value.requester = requester;
+      return External.fromValue(value);
+    }
+
     public versionBefore(neededVersion: string): boolean {
       const { version } = this;
       return version && External.versionLessThan(version, neededVersion);

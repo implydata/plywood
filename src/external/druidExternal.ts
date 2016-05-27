@@ -1104,7 +1104,7 @@ module Plywood {
           }
           this._processConcatExtractionFn(concatPrefix, extractionFns);
 
-        } else if (lead.type === 'NUMBER' && expression.type === 'NUMBER') {
+        } else if (lead.type === 'NUMBER' && (expression.type === 'NUMBER' || expression.type === 'NUMBER_RANGE')) {
           extractionFns.push(this.expressionToJavaScriptExtractionFn(expression));
           return;
 
