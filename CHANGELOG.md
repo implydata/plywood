@@ -6,6 +6,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 - DruidExternal: Fix bug where `$blah / 10` did not work in split
 - DruidExternal: Fix bug where `1 + $blah` did not cast to number
+- DruidExternal: Pure `.fallback()` now works 
 
 ## 0.10.26
 

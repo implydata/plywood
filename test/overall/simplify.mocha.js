@@ -465,6 +465,18 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
+    it('kills impossible fallback', () => {
+      var ex1 = $('color').fallback('NoColor').is('D');
+      var ex2 = $('color').is('D');;
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('leaves possible fallback', () => {
+      var ex1 = $('color').fallback('D').is('D');
+      var ex2 = $('color').fallback('D').is('D');
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 

@@ -1199,7 +1199,7 @@ module Plywood {
 
         if (action instanceof ExtractAction) {
           // retainMissingValue === false is not supported in old druid nor is replaceMissingValueWith in regex extractionFn
-          // we want to use a js function if we are using an old version of druid and want to use this functionality
+          // we want to use a js function if we are using an old version of Druid
           if (this.versionBefore('0.9.0') && (retainMissingValue === false || replaceMissingValueWith !== null)) {
             return this.actionToJavaScriptExtractionFn(action);
           }
@@ -1274,6 +1274,19 @@ module Plywood {
 
       if (action instanceof AbsoluteAction || action instanceof PowerAction) {
         return this.actionToJavaScriptExtractionFn(action);
+      }
+
+      if (action instanceof FallbackAction && action.expression.isOp('literal')) {
+        return {
+          type: "lookup",
+          retainMissingValue: true,
+          lookup: {
+            type: "map",
+            map: {
+              "": action.getLiteralValue()
+            }
+          }
+        };
       }
 
       throw new Error(`can not covert ${action} to extractionFn`);

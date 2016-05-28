@@ -569,6 +569,40 @@ describe("simulate Druid", () => {
     });
   });
 
+  it("works on fancy filter .fallback().is() [impossible]", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.fallback('NoColor') == 'D'"))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color",
+      "type": "selector",
+      "value": "D"
+    });
+  });
+
+  it("works on fancy filter .fallback().is() [possible]", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.fallback('D') == 'D'"))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color",
+      "extractionFn": {
+        "lookup": {
+          "map": {
+            "": "D"
+          },
+          "type": "map"
+        },
+        "retainMissingValue": true,
+        "type": "lookup"
+      },
+      "type": "extraction",
+      "value": "D"
+    });
+  });
+
   it("works on fancy filter .extract().is()", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.extract('^(.)') == 'D'"))
