@@ -622,7 +622,7 @@ describe("simulate Druid", () => {
 
   it("works on fancy filter .extract().fallback().is()", () => {
     var ex = ply()
-      .apply("diamonds", $('diamonds').filter("$color.extract('^(.)').fallback('lol') == 'D'"))
+      .apply("diamonds", $('diamonds').filter("$color.extract('^(.)').fallback('D') == 'D'"))
       .apply('Count', '$diamonds.count()');
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
@@ -630,7 +630,7 @@ describe("simulate Druid", () => {
       "extractionFn": {
         "expr": "^(.)",
         "replaceMissingValue": true,
-        "replaceMissingValueWith": "lol",
+        "replaceMissingValueWith": "D",
         "type": "regex"
       },
       "type": "extraction",
