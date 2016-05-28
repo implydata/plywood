@@ -94,7 +94,7 @@ describe("DruidExternal Legacy", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
-          "function": "function(d){return (_1=(_1=\"[%]\",_2=d,(_1==null||_2==null)?null:(_1+_2)),_2=\"[%]\",(_1==null||_2==null)?null:(_1+_2));}",
+          "function": "function(d){return (_=(_=d,(_==null)?null:(\"[%]\"+_)),(_==null)?null:(_+\"[%]\"));}",
           "injective": true,
           "type": "javascript"
         },
@@ -114,7 +114,7 @@ describe("DruidExternal Legacy", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
-          "function": "function(d){return (_1=(_1=\"[%]\",_2=d,(_1==null||_2==null)?null:(_1+_2)),_2=\"[%]\",(_1==null||_2==null)?null:(_1+_2));}",
+          "function": "function(d){return (_=(_=d,(_==null)?null:(\"[%]\"+_)),(_==null)?null:(_+\"[%]\"));}",
           "injective": true,
           "type": "javascript"
         },

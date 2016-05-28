@@ -289,6 +289,22 @@ module Plywood {
       }
       return returnExpression.simplify();
     }
+    
+    static jsNullSafety(lhs: string, rhs: string, combine: (lhs: string, rhs: string) => string, lhsCantBeNull?: boolean, rhsCantBeNull?: boolean): string {
+      if (lhsCantBeNull) {
+        if (rhsCantBeNull) {
+          return `(${combine(lhs, rhs)})`;
+        } else {
+          return `(_=${rhs},(_==null)?null:(${combine(lhs, '_')}))`;
+        }
+      } else {
+        if (rhsCantBeNull) {
+          return `(_=${lhs},(_==null)?null:(${combine('_', rhs)}))`;
+        } else {
+          return `(_1=${rhs},_2=${lhs},(_1==null||_2==null)?null:(${combine('_1', '_2')})`;
+        }
+      }
+    }
 
     /**
      * Composes the given expressions with an AND

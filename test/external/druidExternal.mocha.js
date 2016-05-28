@@ -40,7 +40,7 @@ var context = {
     },
     filter: timeFilter,
     allowSelectQueries: true,
-    version: '0.9.2',
+    version: '0.9.1',
     customAggregations: {
       crazy: {
         accessType: 'getSomeCrazy',
@@ -467,7 +467,7 @@ describe("DruidExternal", () => {
             "filter": {
               "dimension": "page",
               "extractionFn": {
-                "function": "function(d){return (''+d).indexOf(\"wikipedia\")>-1;}",
+                "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"wikipedia\")>-1));}",
                 "type": "javascript"
               },
               "type": "extraction",
@@ -982,10 +982,8 @@ describe("DruidExternal", () => {
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "query": {
-          "type": "fragment",
-          "values": [
-            "en"
-          ]
+          "type": "insensitive_contains",
+          "value": "en"
         },
         "type": "search"
       });
@@ -1001,10 +999,8 @@ describe("DruidExternal", () => {
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "tags",
         "query": {
-          "type": "fragment",
-          "values": [
-            "good"
-          ]
+          "type": "insensitive_contains",
+          "value": "good"
         },
         "type": "search"
       });
@@ -1029,7 +1025,7 @@ describe("DruidExternal", () => {
               "type": "lookup"
             },
             {
-              "function": "function(d){return (''+d).toLowerCase().indexOf(\"en\")>-1;}",
+              "function": "function(d){return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"eN\").toLowerCase())>-1));}",
               "type": "javascript"
             }
           ],
@@ -1060,7 +1056,7 @@ describe("DruidExternal", () => {
                 "type": "lookup"
               },
               {
-                "function": "function(d){return (''+d).toLowerCase().indexOf(\"en\")>-1;}",
+                "function": "function(d){return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"eN\").toLowerCase())>-1));}",
                 "type": "javascript"
               }
             ],
@@ -1086,10 +1082,11 @@ describe("DruidExternal", () => {
           "extractionFns": [
             {
               "format": "[%s]",
+              "nullHandling": "returnNull",
               "type": "stringFormat"
             },
             {
-              "function": "function(d){return (''+d).toLowerCase().indexOf(\"en\")>-1;}",
+              "function": "function(d){return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"eN\").toLowerCase())>-1));}",
               "type": "javascript"
             }
           ],
@@ -1176,6 +1173,7 @@ describe("DruidExternal", () => {
         "dimension": "page",
         "extractionFn": {
           "format": "[%s]",
+          "nullHandling": "returnNull",
           "type": "stringFormat"
         },
         "type": "extraction",
@@ -1310,6 +1308,7 @@ describe("DruidExternal", () => {
         "dimension": "page",
         "extractionFn": {
           "format": "[\\%]%s[\\%]",
+          "nullHandling": "returnNull",
           "type": "stringFormat"
         },
         "outputName": "Split",
@@ -1329,6 +1328,7 @@ describe("DruidExternal", () => {
         "dimension": "page",
         "extractionFn": {
           "format": "[\\%]%s[\\%]",
+          "nullHandling": "returnNull",
           "type": "stringFormat"
         },
         "outputName": "Split",
@@ -1568,7 +1568,7 @@ describe("DruidExternal", () => {
               "type": "lookup"
             },
             {
-              "function": "function(d){return (''+d).indexOf(\"lol\")>-1;}",
+              "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"lol\")>-1));}",
               "type": "javascript"
             }
           ],
@@ -1621,7 +1621,7 @@ describe("DruidExternal", () => {
               "type": "lookup"
             },
             {
-              "function": "function(d){return (''+d).toLowerCase().indexOf(\"lol\")>-1;}",
+              "function": "function(d){return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"lol\").toLowerCase())>-1));}",
               "type": "javascript"
             }
           ],

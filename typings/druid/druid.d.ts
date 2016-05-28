@@ -268,6 +268,9 @@ declare module Druid {
 
         // Specific to type: "regexFiltered"
         pattern?: string;
+
+        // Specific to type: "stringFormat"
+        nullHandling?: 'nullString' | 'emptyString' | 'returnNull';
     }
 
     type DimensionSpec = string | DimensionSpecFull;

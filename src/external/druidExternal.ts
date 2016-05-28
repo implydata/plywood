@@ -818,7 +818,7 @@ module Plywood {
       var extractionFn = this.expressionToExtractionFn(ex);
 
       if (extractionFn) {
-        this.makeJavaScriptFilter(ex.match(regex));
+        return this.makeExtractionFilter(ex.match(regex));
       }
 
       return {
@@ -829,23 +829,28 @@ module Plywood {
     }
 
     public makeContainsFilter(lhs: Expression, rhs: Expression, compare: string): Druid.Filter {
-      if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
+      if (rhs instanceof LiteralExpression) {
         var attributeInfo = this.getSingleReferenceAttributeInfo(lhs);
+        var extractionFn = this.expressionToExtractionFn(lhs);
+
+        if (extractionFn) {
+          return this.makeExtractionFilter(lhs.contains(rhs, compare));
+        }
 
         if (compare === ContainsAction.IGNORE_CASE) {
           return {
             type: "search",
             dimension: attributeInfo.name,
             query: {
-              type: "fragment", // ToDo: change to 'insensitive_contains'
-              values: [rhs.value]
+              type: "insensitive_contains",
+              value: rhs.value
             }
           };
         } else {
           return this.makeJavaScriptFilter(lhs.contains(rhs, compare));
         }
       } else {
-        return this.makeExtractionFilter(lhs.contains(rhs, compare));
+        return this.makeJavaScriptFilter(lhs.contains(rhs, compare));
       }
     }
 
@@ -1081,7 +1086,20 @@ module Plywood {
         case 0: return null;
         case 1: return extractionFns[0];
         default:
-          if (this.versionBefore('0.9.0')) throw new Error(`can not convert ${expression} to filter in Druid < 0.9.0`);
+          if (extractionFns.every(extractionFn => extractionFn.type === 'javascript')) {
+            // If they are all JS anyway might as well make a single JS function (this is better for Druid < 0.9.0)
+            return this.expressionToJavaScriptExtractionFn(expression);
+          }
+
+          if (this.versionBefore('0.9.0')) {
+            try {
+              // Try a Hail Mary pass - maybe we can plan the whole thing with JS
+              return this.expressionToJavaScriptExtractionFn(expression);
+            } catch (e) {
+              throw new Error(`can not convert ${expression} to filter in Druid < 0.9.0`);
+            }
+          }
+
           return { type: 'cascade', extractionFns };
       }
     }
@@ -1262,8 +1280,8 @@ module Plywood {
     }
 
     private _processConcatExtractionFn(pattern: Expression[], extractionFns: Druid.ExtractionFn[]): void {
-      if (this.versionBefore('0.9.2')) {
-        // Druid < 0.9.2 behaves badly on null https://github.com/druid-io/druid/issues/2706
+      if (this.versionBefore('0.9.1')) {
+        // Druid < 0.9.1 behaves badly on null https://github.com/druid-io/druid/issues/2706 (does not have nullHandling: 'returnNull')
         extractionFns.push({
           type: "javascript",
           'function': Expression.concat(pattern).getJSFn('d'),
@@ -1284,7 +1302,8 @@ module Plywood {
 
       extractionFns.push({
         type: 'stringFormat',
-        format
+        format,
+        nullHandling: 'returnNull'
       })
     }
 
