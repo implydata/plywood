@@ -639,6 +639,13 @@ module Plywood {
         dictEqual(this.context, other.context);
     }
 
+    public getSingleReferenceAttributeInfo(ex: Expression): AttributeInfo {
+      var freeReferences = ex.getFreeReferences();
+      if (freeReferences.length !== 1) throw new Error(`can not translate multi reference expression ${ex} to Druid`);
+      var referenceName = freeReferences[0];
+      return this.getAttributesInfo(referenceName);
+    }
+
     // -----------------
 
     public canHandleFilter(ex: Expression): boolean {
@@ -709,33 +716,38 @@ module Plywood {
       }
     }
 
-    public javaScriptDruidFilter(referenceName: string, filter: Expression): Druid.Filter {
+    // ========= FILTERS =========
+
+    public makeJavaScriptFilter(ex: Expression): Druid.Filter {
+      var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
       return {
         type: "javascript",
-        dimension: referenceName,
-        "function": filter.getJSFn('d')
+        dimension: attributeInfo.name,
+        "function": ex.getJSFn('d')
       };
     }
 
-    public sanitizeNull(v: any): any {
-      // There is a bug that was fixed in Druid 0.9.0 that dies when null is provided in as the value in an extractionFn
-      if (this.versionBefore('0.9.0') && v === null) return '';
-      return v;
+    public makeExtractionFilter(ex: Expression): Druid.Filter {
+      var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+      var extractionFn = this.expressionToExtractionFn(ex);
+
+      return {
+        type: "extraction",
+        dimension: attributeInfo.name,
+        extractionFn: extractionFn,
+        value: "true"
+      }
     }
 
     // Makes a filter of (ex = value) or (value in ex) which are the same in Druid
     public makeSelectorFilter(ex: Expression, value: any): Druid.Filter {
-      var freeReferences = ex.getFreeReferences();
-      if (freeReferences.length !== 1) throw new Error(`can not convert multi reference expression ${ex} to Druid selector filter`);
-      var referenceName = freeReferences[0];
-
-      var attributeInfo = this.getAttributesInfo(referenceName);
+      var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
       if (attributeInfo.unsplitable) {
-        throw new Error(`can not convert ${ex} = ${value} to filter because it references an un-filterable metric '${referenceName}' which is most likely rolled up.`)
+        throw new Error(`can not convert ${ex} = ${value} to filter because it references an un-filterable metric '${attributeInfo.name}' which is most likely rolled up.`)
       }
 
       var extractionFn = this.expressionToExtractionFn(ex);
-      var dimensionName = referenceName === this.timeAttribute ? '__time' : referenceName;
+      var dimensionName = attributeInfo.name === this.timeAttribute ? '__time' : attributeInfo.name;
 
       // Kill range
       if (Range.isRange(value)) value = value.start;
@@ -748,38 +760,46 @@ module Plywood {
       if (extractionFn) {
         druidFilter.type = "extraction";
         druidFilter.extractionFn = extractionFn;
-        druidFilter.value = this.sanitizeNull(druidFilter.value);
+        if (this.versionBefore('0.9.0') && druidFilter.value === null) druidFilter.value = '';
       }
       return druidFilter;
     }
 
-    public makeBoundFilter(dimensionName: string, range: PlywoodRange): Druid.Filter {
-      var isTime = TimeRange.isTimeRange(range);
+    public makeInFilter(ex: Expression, valueSet: Set): Druid.Filter {
+      var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+      var extractionFn = this.expressionToExtractionFn(ex);
+      var elements = valueSet.elements;
+      if (elements.length < 2 || extractionFn || this.versionBefore('0.9.0')) {
+        var fields = elements.map((value: string) => {
+          return this.makeSelectorFilter(ex, value);
+        });
+
+        return fields.length === 1 ? fields[0] : { type: "or", fields };
+      }
+
+      return {
+        type: 'in',
+        dimension: attributeInfo.name,
+        values: elements.map((value: string) => attributeInfo.serialize(value))
+      };
+    }
+
+    public makeBoundFilter(ex: Expression, range: PlywoodRange): Druid.Filter {
       var r0 = range.start;
       var r1 = range.end;
       var bounds = range.bounds;
 
       if (this.versionBefore('0.9.0') || r0 < 0 || r1 < 0) {
-        var convert = isTime ? '' : 'a = +a;';
-        var cmpStrings: string[] = [];
-        if (r0 != null) {
-          cmpStrings.push(`${JSON.stringify(r0)} ${bounds[0] === '(' ? '<' : '<='} a`);
-        }
-        if (r1 != null) {
-          cmpStrings.push(`a ${bounds[1] === ')' ? '<' : '<='} ${JSON.stringify(r1)}`);
-        }
-        return {
-          type: "javascript",
-          dimension: dimensionName,
-          "function": `function(a) { ${convert}return ${cmpStrings.join(' && ')}; }`
-        };
+        return this.makeJavaScriptFilter(ex.in(range));
       }
+
+      var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
 
       var boundFilter: Druid.Filter = {
         type: "bound",
-        dimension: dimensionName,
+        dimension: attributeInfo.name
       };
-      if (!isTime) {
+      if (NumberRange.isNumberRange(range)) {
         boundFilter.alphaNumeric = true;
       }
       if (r0 != null) {
@@ -791,6 +811,42 @@ module Plywood {
         if (bounds[1] === ')') boundFilter.upperStrict = true;
       }
       return boundFilter;
+    }
+
+    public makeRegexFilter(ex: Expression, regex: string): Druid.Filter {
+      var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+      var extractionFn = this.expressionToExtractionFn(ex);
+
+      if (extractionFn) {
+        this.makeJavaScriptFilter(ex.match(regex));
+      }
+
+      return {
+        type: "regex",
+        dimension: attributeInfo.name,
+        pattern: regex
+      };
+    }
+
+    public makeContainsFilter(lhs: Expression, rhs: Expression, compare: string): Druid.Filter {
+      if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
+        var attributeInfo = this.getSingleReferenceAttributeInfo(lhs);
+
+        if (compare === ContainsAction.IGNORE_CASE) {
+          return {
+            type: "search",
+            dimension: attributeInfo.name,
+            query: {
+              type: "fragment", // ToDo: change to 'insensitive_contains'
+              values: [rhs.value]
+            }
+          };
+        } else {
+          return this.makeJavaScriptFilter(lhs.contains(rhs, compare));
+        }
+      } else {
+        return this.makeExtractionFilter(lhs.contains(rhs, compare));
+      }
     }
 
     public timelessFilterToDruid(filter: Expression, aggregatorFilter: boolean): Druid.Filter {
@@ -858,35 +914,19 @@ module Plywood {
           throw new Error(`can not convert ${filter} to filter because it references an un-filterable metric '${referenceName}' which is most likely rolled up.`)
         }
 
-        var extractionFn = this.expressionToExtractionFn(lhs);
-        var dimensionName = referenceName === this.timeAttribute ? '__time' : referenceName;
-
         if (filterAction instanceof InAction || filterAction instanceof OverlapAction) {
           if (rhs instanceof LiteralExpression) {
             var rhsType = rhs.type;
             if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
-              var elements = rhs.value.elements;
-              if (extractionFn || elements.length < 2 || this.versionBefore('0.9.0')) {
-                var fields = elements.map((value: string) => {
-                  return this.makeSelectorFilter(lhs, value);
-                });
-
-                return fields.length === 1 ? fields[0] : { type: "or", fields };
-              } else {
-                return {
-                  type: 'in',
-                  dimension: dimensionName,
-                  values: elements.map((value: string) => attributeInfo.serialize(value))
-                };
-              }
+              return this.makeInFilter(lhs, rhs.value);
 
             } else if (rhsType === 'NUMBER_RANGE' || rhsType === 'TIME_RANGE') {
-              return this.makeBoundFilter(dimensionName, rhs.value);
+              return this.makeBoundFilter(lhs, rhs.value);
 
             } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE') {
               var elements = rhs.value.elements;
               var fields = elements.map((range: PlywoodRange) => {
-                return this.makeBoundFilter(dimensionName, range);
+                return this.makeBoundFilter(lhs, range);
               });
 
               return fields.length === 1 ? fields[0] : { type: "or", fields };
@@ -906,48 +946,16 @@ module Plywood {
         }
 
         if (filterAction instanceof MatchAction) {
-          if (lhs instanceof RefExpression) {
-            return {
-              type: "regex",
-              dimension: dimensionName,
-              pattern: filterAction.regexp
-            };
-          } else {
-            return this.makeExtractionFilter(filter);
-          }
+          return this.makeRegexFilter(lhs, filterAction.regexp);
         }
 
         if (filterAction instanceof ContainsAction) {
-          if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-            if (filterAction.compare === ContainsAction.IGNORE_CASE) {
-              return {
-                type: "search",
-                dimension: dimensionName,
-                query: {
-                  type: "fragment", // ToDo: change to 'insensitive_contains'
-                  values: [rhs.value]
-                }
-              };
-            } else {
-              return this.javaScriptDruidFilter(referenceName, filter);
-            }
-          } else {
-            return this.makeExtractionFilter(filter);
-          }
+          return this.makeContainsFilter(lhs, rhs, filterAction.compare);
         }
 
       }
 
       throw new Error(`could not convert filter ${filter} to Druid filter`);
-    }
-
-    public makeExtractionFilter(filter: Expression): Druid.Filter {
-      return {
-        type: "extraction",
-        dimension: filter.getFreeReferences()[0],
-        extractionFn: this.expressionToExtractionFn(filter),
-        value: "true"
-      }
     }
 
     public timeFilterToIntervals(filter: Expression): Druid.Intervals {
@@ -1243,11 +1251,7 @@ module Plywood {
       }
 
       if (action instanceof NumberBucketAction) {
-        var floorExpression = continuousFloorExpression("d", "Math.floor", action.size, action.offset);
-        return {
-          type: "javascript",
-          'function': `function(d){d=Number(d); if(isNaN(d)) return 'null'; return ${floorExpression};}`
-        };
+        return this.actionToJavaScriptExtractionFn(action);
       }
 
       if (action instanceof AbsoluteAction || action instanceof PowerAction) {

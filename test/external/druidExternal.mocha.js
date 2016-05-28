@@ -80,6 +80,7 @@ var contextNoApprox = {
   })
 };
 
+
 describe("DruidExternal", () => {
 
   describe("simplifies / digests", () => {
@@ -1642,7 +1643,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){return Math.abs((+d));}",
+          "function": "function(d){_=Math.abs((+d));return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1661,7 +1662,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){return Math.pow((+d),2);}",
+          "function": "function(d){_=Math.pow((+d),2);return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1680,7 +1681,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor((d - 1) / 10) * 10 + 1;}",
+          "function": "function(d){_=Math.floor(((+d) - 1) / 10) * 10 + 1;return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1699,17 +1700,8 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "extractionFns": [
-            {
-              "function": "function(d){return Math.abs(d);}",
-              "type": "javascript"
-            },
-            {
-              "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 10) * 10;}",
-              "type": "javascript"
-            }
-          ],
-          "type": "cascade"
+          "function": "function(d){_=Math.floor(Math.abs((+d)) / 10) * 10;return isNaN(_)?null:_}",
+          "type": "javascript"
         },
         "outputName": "Split",
         "type": "extraction"

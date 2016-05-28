@@ -625,7 +625,15 @@ module Plywood {
     }
 
     public getJSFn(datumVar: string = 'd[]'): string {
-      return `function(${datumVar.replace('[]', '')}){return ${this.getJS(datumVar)};}`;
+      const { type } = this;
+      var jsEx = this.getJS(datumVar);
+      var body: string;
+      if (type === 'NUMBER' || type === 'NUMBER_RANGE') {
+        body = `_=${jsEx};return isNaN(_)?null:_`;
+      } else {
+        body = `return ${jsEx};`;
+      }
+      return `function(${datumVar.replace('[]', '')}){${body}}`;
     }
 
     public getSQL(dialect: SQLDialect): string {
