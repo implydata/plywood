@@ -397,33 +397,6 @@ module Plywood {
       };
     }
 
-    static consecutiveTimeRangeInflaterFactory(label: string, duration: Duration, timezone: Timezone): Inflater {
-      var canonicalDurationLengthAndThenSome = duration.getCanonicalLength() * 1.5;
-      return (d: PseudoDatum, i: int, data: PseudoDatum[]) => {
-        var v = d[label];
-        if ('' + v === "null") {
-          d[label] = null;
-          return;
-        }
-
-        var start = new Date(v);
-        var next = data[i + 1];
-        var nextTimestamp: Date;
-        if (next) {
-          nextTimestamp = new Date(next[label]);
-        }
-
-        var end = (
-          nextTimestamp &&
-          start.valueOf() < nextTimestamp.valueOf() &&
-          nextTimestamp.valueOf() - start.valueOf() < canonicalDurationLengthAndThenSome
-        ) ? nextTimestamp
-          : duration.shift(start, timezone, 1);
-
-        d[label] = new TimeRange({ start, end });
-      };
-    }
-
     static numberRangeInflaterFactory(label: string, rangeSize: number): Inflater  {
       return (d: any) => {
         var v = d[label];
