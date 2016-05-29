@@ -720,6 +720,15 @@ describe("Cross Functional", function() {
         .limit(10)
     }));
 
+    it('works with secondary TIME split (timePart, TZ) (sort on apply)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split($("sometimeLater").timePart('DAY_OF_YEAR', 'America/New_York'), 'HourOfDay')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
     it('works with BOOLEAN multi-dim-split', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki')
