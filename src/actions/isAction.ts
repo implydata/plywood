@@ -66,6 +66,10 @@ module Plywood {
         return new InAction({ expression: this.expression })
       }
 
+      if (prevAction instanceof FallbackAction && prevAction.expression.isOp('literal') && this.expression.isOp('literal') && !prevAction.expression.equals(this.expression)) {
+        return this;
+      }
+
       return null;
     }
 

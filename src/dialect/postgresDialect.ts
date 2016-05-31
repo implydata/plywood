@@ -113,6 +113,11 @@ module Plywood {
       }
       return operand
     }
+
+    public extractExpression(operand: string, regexp: string): string {
+      return `(SELECT (REGEXP_MATCHES(${operand}, '${regexp}'))[1])`;
+    }
+
   }
 
 }

@@ -24,7 +24,7 @@ var attributes = [
 
 var diamondsCompact = External.fromJS({
   engine: 'druid',
-  version: '0.9.2',
+  version: '0.9.1',
   dataSource: 'diamonds-compact',
   timeAttribute: 'time',
   attributes: [
@@ -44,7 +44,7 @@ var diamondsCompact = External.fromJS({
 var context = {
   'diamonds': External.fromJS({
     engine: 'druid',
-    version: '0.9.2',
+    version: '0.9.1',
     dataSource: 'diamonds',
     timeAttribute: 'time',
     attributes,
@@ -56,7 +56,7 @@ var context = {
   }).addDelegate(diamondsCompact),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
-    version: '0.9.2',
+    version: '0.9.1',
     dataSource: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
@@ -458,7 +458,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "carat",
           "extractionFn": {
-            "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 0.25) * 0.25;}",
+            "function": "function(d){_=Math.floor((+d) / 0.25) * 0.25;return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "Carat",
@@ -517,7 +517,93 @@ describe("simulate Druid", () => {
     });
   });
 
-  it("works on fancy filter dataset (EXTRACT / IS)", () => {
+  it("works on fancy filter .concat().match()", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("('A' ++ $color ++ 'Z').match('AB+')"))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color",
+      "extractionFn": {
+        "extractionFns": [
+          {
+            "format": "A%sZ",
+            "nullHandling": "returnNull",
+            "type": "stringFormat"
+          },
+          {
+            "function": "function(d){return /AB+/.test(d);}",
+            "type": "javascript"
+          }
+        ],
+        "type": "cascade"
+      },
+      "type": "extraction",
+      "value": "true"
+    });
+  });
+
+  it("works on fancy filter .concat().contains()", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("('A' ++ $color ++ 'Z').contains('AB')"))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color",
+      "extractionFn": {
+        "extractionFns": [
+          {
+            "format": "A%sZ",
+            "nullHandling": "returnNull",
+            "type": "stringFormat"
+          },
+          {
+            "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"AB\")>-1));}",
+            "type": "javascript"
+          }
+        ],
+        "type": "cascade"
+      },
+      "type": "extraction",
+      "value": "true"
+    });
+  });
+
+  it("works on fancy filter .fallback().is() [impossible]", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.fallback('NoColor') == 'D'"))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color",
+      "type": "selector",
+      "value": "D"
+    });
+  });
+
+  it("works on fancy filter .fallback().is() [possible]", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.fallback('D') == 'D'"))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color",
+      "extractionFn": {
+        "lookup": {
+          "map": {
+            "": "D"
+          },
+          "type": "map"
+        },
+        "retainMissingValue": true,
+        "type": "lookup"
+      },
+      "type": "extraction",
+      "value": "D"
+    });
+  });
+
+  it("works on fancy filter .extract().is()", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.extract('^(.)') == 'D'"))
       .apply('Count', '$diamonds.count()');
@@ -534,9 +620,9 @@ describe("simulate Druid", () => {
     });
   });
 
-  it("works on fancy filter dataset (EXTRACT + FALLBACK / IS)", () => {
+  it("works on fancy filter .extract().fallback().is()", () => {
     var ex = ply()
-      .apply("diamonds", $('diamonds').filter("$color.extract('^(.)').fallback('lol') == 'D'"))
+      .apply("diamonds", $('diamonds').filter("$color.extract('^(.)').fallback('D') == 'D'"))
       .apply('Count', '$diamonds.count()');
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
@@ -544,7 +630,7 @@ describe("simulate Druid", () => {
       "extractionFn": {
         "expr": "^(.)",
         "replaceMissingValue": true,
-        "replaceMissingValueWith": "lol",
+        "replaceMissingValueWith": "D",
         "type": "regex"
       },
       "type": "extraction",
@@ -552,7 +638,7 @@ describe("simulate Druid", () => {
     });
   });
 
-  it("works on fancy filter (SUBSTR / IS)", () => {
+  it("works on fancy filter .substr().is()", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1) == 'D'"))
       .apply('Count', '$diamonds.count()');
@@ -569,7 +655,7 @@ describe("simulate Druid", () => {
     });
   });
 
-  it("works on fancy filter (SUBSTR / IN)", () => {
+  it("works on fancy filter .substr().in()", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1).in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');
@@ -601,7 +687,7 @@ describe("simulate Druid", () => {
     });
   });
 
-  it("works on fancy filter (LOOKUP / IN)", () => {
+  it("works on fancy filter .lookup().in()", () => {
     var ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');
@@ -637,6 +723,34 @@ describe("simulate Druid", () => {
     });
   });
 
+  it("works on fancy filter .lookup().contains()", () => {
+    var ex = ply()
+      .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').contains('hello')"))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color",
+      "extractionFn": {
+        "extractionFns": [
+          {
+            "lookup": {
+              "namespace": "some_lookup",
+              "type": "namespace"
+            },
+            "type": "lookup"
+          },
+          {
+            "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"hello\")>-1));}",
+            "type": "javascript"
+          }
+        ],
+        "type": "cascade"
+      },
+      "type": "extraction",
+      "value": "true"
+    });
+  });
+
   it("works on fancy filter [.in(...).not()]", () => {
     var ex = $('diamonds').filter("$color.in(['D', 'C']).not()");
 
@@ -650,11 +764,17 @@ describe("simulate Druid", () => {
     });
   });
 
-  it.skip("works on fancy filter .in().is()", () => {
+  it("works on fancy filter .in().is()", () => {
     var ex = $('diamonds').filter("$color.in(['D', 'C']) == true");
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
-
+      "dimension": "color",
+      "extractionFn": {
+        "function": "function(d){return [\"D\",\"C\"].indexOf(d)>-1;}",
+        "type": "javascript"
+      },
+      "type": "extraction",
+      "value": true
     });
   });
 
@@ -791,6 +911,7 @@ describe("simulate Druid", () => {
       "dimension": "color",
       "extractionFn": {
         "format": "!!!<%s>!!!",
+        "nullHandling": "returnNull",
         "type": "stringFormat"
       },
       "outputName": "Colors",
@@ -1206,7 +1327,7 @@ describe("simulate Druid", () => {
         "dataSource": "diamonds",
         "dimension": {
           "extractionFn": {
-            "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor((d - 0.5) / 2) * 2 + 0.5;}",
+            "function": "function(d){_=Math.floor((d - 0.5) / 2) * 2 + 0.5;return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "dimension": "height_bucket",
@@ -1393,7 +1514,7 @@ describe("simulate Druid", () => {
             "filter": {
               "dimension": "cut",
               "extractionFn": {
-                "function": "function(d){return (''+d).indexOf(\"Good\")>-1;}",
+                "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"Good\")>-1));}",
                 "type": "javascript"
               },
               "type": "extraction",
@@ -1641,7 +1762,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "carat",
           "extractionFn": {
-            "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 10) * 10;}",
+            "function": "function(d){_=Math.floor((+d) / 10) * 10;return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "CaratB10",
@@ -2061,7 +2182,7 @@ describe("simulate Druid", () => {
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
-      "function": "function(d){return (''+d).indexOf(\"sup\\\"yo\")>-1;}",
+      "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"sup\\\"yo\")>-1));}",
       "type": "javascript"
     });
   });
@@ -2074,8 +2195,8 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
       "query": {
-        "type": "fragment",
-        "values": ['sup"yo']
+        "type": "insensitive_contains",
+        "value": 'sup"yo'
       },
       "type": "search"
     });
@@ -2236,7 +2357,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "carat",
           "extractionFn": {
-            "function": "function(d){d=Number(d); if(isNaN(d)) return 'null'; return Math.floor(d / 0.25) * 0.25;}",
+            "function": "function(d){_=Math.floor((+d) / 0.25) * 0.25;return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "Carat",

@@ -68,15 +68,13 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
+      var combine: (lhs: string, rhs: string) => string;
       if (this.compare === ContainsAction.NORMAL) {
-        return `(''+${inputJS}).indexOf(${expressionJS})>-1`;
+        combine = (lhs, rhs) => `(''+${lhs}).indexOf(${rhs})>-1`;
       } else {
-        if (this.expression.isOp('literal')) {
-          return `(''+${inputJS}).toLowerCase().indexOf(${expressionJS.toLowerCase()})>-1`;
-        } else {
-          return `(''+${inputJS}).toLowerCase().indexOf((''+${expressionJS}).toLowerCase())>-1`;
-        }
+        combine = (lhs, rhs) => `(''+${lhs}).toLowerCase().indexOf((''+${rhs}).toLowerCase())>-1`;
       }
+      return Expression.jsNullSafety(inputJS, expressionJS, combine, inputJS[0] === '"', expressionJS[0] === '"');
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

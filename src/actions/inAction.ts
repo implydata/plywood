@@ -45,7 +45,36 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string, expressionJS: string): string {
-      return `(function() {throw new Error('ToDo: implement IN')})()`;
+      const { expression } = this;
+      if (expression instanceof LiteralExpression) {
+        switch (expression.type) {
+          case 'NUMBER_RANGE':
+          case 'TIME_RANGE':
+            var range: PlywoodRange = expression.value;
+            var r0 = range.start;
+            var r1 = range.end;
+            var bounds = range.bounds;
+
+            var cmpStrings: string[] = [];
+            if (r0 != null) {
+              cmpStrings.push(`${JSON.stringify(r0)} ${bounds[0] === '(' ? '<' : '<='} _`);
+            }
+            if (r1 != null) {
+              cmpStrings.push(`_ ${bounds[1] === ')' ? '<' : '<='} ${JSON.stringify(r1)}`);
+            }
+
+            return `(_=${inputJS}, ${cmpStrings.join(' && ')})`;
+
+          case 'SET/STRING':
+            var valueSet: Set = expression.value;
+            return `${JSON.stringify(valueSet.elements)}.indexOf(${inputJS})>-1`;
+
+          default:
+            throw new Error(`can not convert ${this} to JS function, unsupported type ${expression.type}`);
+        }
+      }
+
+      throw new Error(`can not convert ${this} to JS function`);
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

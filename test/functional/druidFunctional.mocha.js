@@ -1643,6 +1643,112 @@ describe("Druid Functional", function() {
   });
 
 
+  describe("incorrect user chars", () => {
+    var wikiUserCharAsNumber = External.fromJS({
+      engine: 'druid',
+      dataSource: 'wikipedia',
+      timeAttribute: 'time',
+      allowEternity: true,
+      attributes: [
+        { name: 'time', type: 'TIME' },
+        { name: "channel", type: "STRING" },
+        { name: 'userChars', type: 'NUMBER' }, // This is incorrect
+        { name: 'count', type: 'NUMBER', unsplitable: true }
+      ]
+    }, druidRequester);
+
+    it("works with number addition", (testComplete) => {
+      var ex = $('wiki').split("$userChars + 10", 'U')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      ex.compute({ wiki: wikiUserCharAsNumber })
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Count": 2618887,
+              "U": null
+            },
+            {
+              "Count": 75475,
+              "U": 10
+            },
+            {
+              "Count": 68663,
+              "U": 11
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with number bucketing", (testComplete) => {
+      var ex = $('wiki').split("$userChars.numberBucket(5, 2.5)", 'U')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      ex.compute({ wiki: wikiUserCharAsNumber })
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Count": 2618887,
+              "U": null
+            },
+            {
+              "Count": 189960,
+              "U": {
+                "end": 2.5,
+                "start": -2.5,
+                "type": "NUMBER_RANGE"
+              }
+            },
+            {
+              "Count": 151159,
+              "U": {
+                "end": 7.5,
+                "start": 2.5,
+                "type": "NUMBER_RANGE"
+              }
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with power", (testComplete) => {
+      var ex = $('wiki').split("$userChars.power(2)", 'U')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      ex.compute({ wiki: wikiUserCharAsNumber })
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Count": 2618887,
+              "U": null
+            },
+            {
+              "Count": 75475,
+              "U": 0
+            },
+            {
+              "Count": 68663,
+              "U": 1
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+  });
+
+
   describe("introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',

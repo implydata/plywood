@@ -482,6 +482,24 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
+    it('works with STRING split .fallback() no match', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split('$cityName.fallback("NoCity")', 'CityFallback')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(20)
+    }));
+
+    it('works with STRING split .fallback() with match', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split('$cityName.fallback("Bucharest")', 'CityFallback')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(20)
+    }));
+
     it('works with NUMBER split (numberBucket) (sort on split)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split($("commentLength").numberBucket(10), 'CommentLength10')
@@ -527,9 +545,18 @@ describe("Cross Functional", function() {
         .limit(20) // To force a topN (for now)
     }));
 
-    it('works with NUMBER split (expression / 10) (sort on split)', equalityTest({
+    it('works with NUMBER split (expression / 10) (sort on apply)', equalityTest({
       executorNames: ['druid', 'mysql'], //'postgres' # ToDo: postgres truncates results
       expression: $('wiki').split("$commentLength / 10", 'CommentLengthDiv')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalEdits', 'descending')
+        .limit(20) // To force a topN (for now)
+    }));
+
+    it('works with NUMBER split (expression / 10).numberBucket (sort on apply)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split("($commentLength / 10).numberBucket(2, 0)", 'CommentLengthDivBucket')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalEdits', 'descending')
@@ -693,6 +720,15 @@ describe("Cross Functional", function() {
         .limit(10)
     }));
 
+    it('works with secondary TIME split (timePart, TZ) (sort on apply)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split($("sometimeLater").timePart('DAY_OF_YEAR', 'America/New_York'), 'HourOfDay')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
     it('works with BOOLEAN multi-dim-split', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki')
@@ -797,7 +833,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with all sorts of filtered aggregates == null', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'],
+      executorNames: ['druid', 'postgres'], // , 'mysql'
       expression: $('wiki').split('$channel', 'Channel')
         .apply('RowCount', '$wiki.count()')
         .apply('Added_NullCities', '$wiki.filter($cityName == null).sum($added)')

@@ -65,11 +65,11 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string): string {
-      return continuousFloorExpression(inputJS, "Math.floor", this.size, this.offset); // ToDo: lowerLimit, upperLimit
+      return continuousFloorExpression(inputJS, "Math.floor", this.size, this.offset);
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return continuousFloorExpression(inputSQL, "FLOOR", this.size, this.offset); // ToDo: lowerLimit, upperLimit
+      return continuousFloorExpression(inputSQL, "FLOOR", this.size, this.offset);
     }
   }
 
