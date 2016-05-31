@@ -64,11 +64,13 @@ module Plywood {
     public containsExpression(a: string, b: string): string {
       throw new Error('must implement');
     }
-    
+
     public isNotDistinctFromExpression(a: string, b: string): string {
+      if (a === 'NULL') return `${b} IS NULL`;
+      if (b === 'NULL') return `${a} IS NULL`;
       return `(${a} IS NOT DISTINCT FROM ${b})`;
     }
-    
+
     public regexpExpression(expression: string, regexp: string): string {
       throw new Error('must implement');
     }
@@ -104,6 +106,10 @@ module Plywood {
 
     public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string {
       throw new Error('Dialect must implement timeShiftExpression');
+    }
+
+    public extractExpression(operand: string, regexp: string): string {
+      throw new Error('Dialect must implement extractExpression');
     }
   }
 

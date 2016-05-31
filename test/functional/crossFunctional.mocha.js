@@ -833,7 +833,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with all sorts of filtered aggregates == null', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'],
+      executorNames: ['druid', 'postgres'], // , 'mysql'
       expression: $('wiki').split('$channel', 'Channel')
         .apply('RowCount', '$wiki.count()')
         .apply('Added_NullCities', '$wiki.filter($cityName == null).sum($added)')

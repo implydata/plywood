@@ -116,6 +116,10 @@ module Plywood {
       }
       return operand
     }
+
+    public extractExpression(operand: string, regexp: string): string {
+      throw new Error('MySQL must implement extractExpression (https://github.com/mysqludf/lib_mysqludf_preg)');
+    }
   }
 
 }
