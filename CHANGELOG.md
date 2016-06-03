@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.28
+
+- Added compare to ranges so they sort correctly
+
 ## 0.10.27
 
 - DruidExternal: Fix bug where `$blah / 10` did not work in split
