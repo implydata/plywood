@@ -857,6 +857,77 @@ describe("compute native", () => {
   });
 
 
+  describe.only("sort test", () => {
+    var data = [
+      { n: 1 },
+      { n: 2 },
+      { n: 10 },
+      { n: 20 }
+    ];
+
+    it("sorts on numbers", (testComplete) => {
+      var ds = Dataset.fromJS(data);
+
+      var ex = ply(ds).sort('$n');
+
+      ex.compute()
+        .then((v) => {
+          expect(v.toJS()).to.deep.equal([
+            { n: 1 },
+            { n: 2 },
+            { n: 10 },
+            { n: 20 }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("sorts on number ranges", (testComplete) => {
+      var ds = Dataset.fromJS(data);
+
+      var ex = ply(ds).apply('nr', '$n.numberBucket(1)').select('nr').sort('$nr');
+
+      ex.compute()
+        .then((v) => {
+          expect(v.toJS()).to.deep.equal([
+            {
+              "nr": {
+                "end": 2,
+                "start": 1,
+                "type": "NUMBER_RANGE"
+              }
+            },
+            {
+              "nr": {
+                "end": 3,
+                "start": 2,
+                "type": "NUMBER_RANGE"
+              }
+            },
+            {
+              "nr": {
+                "end": 11,
+                "start": 10,
+                "type": "NUMBER_RANGE"
+              }
+            },
+            {
+              "nr": {
+                "end": 21,
+                "start": 20,
+                "type": "NUMBER_RANGE"
+              }
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+  });
+
+
   describe("it works with re-selects", () => {
     var ds = Dataset.fromJS(data).hide();
     var midData = null;

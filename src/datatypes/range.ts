@@ -79,6 +79,12 @@ module Plywood {
       return bounds[0] + this._endpointToString(this.start) + ',' + this._endpointToString(this.end) + bounds[1];
     }
 
+    public compare(other: Range<T>): number {
+      const myStart = this.start;
+      const otherStart = other.start;
+      return myStart < otherStart ? -1 : (otherStart < myStart ? 1 : 0);
+    }
+
     public openStart(): boolean {
       return this.bounds[0] === '(';
     }
