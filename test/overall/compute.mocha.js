@@ -857,7 +857,7 @@ describe("compute native", () => {
   });
 
 
-  describe.only("sort test", () => {
+  describe("sort test", () => {
     var data = [
       { n: 1 },
       { n: 2 },
