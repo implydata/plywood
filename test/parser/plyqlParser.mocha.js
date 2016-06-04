@@ -1095,20 +1095,120 @@ describe("SQL parser", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
           \`page or else?\` AS 'Page',
-        SUM(added) AS 'TotalAdded'
+          SUM(added) AS 'TotalAdded'
         FROM \`wiki-tiki:taki\`
         WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'
         GROUP BY \`page or else?\`
       `);
 
-      var ex2 = $('wiki-tiki:taki').filter(
-        $('language').is("en").and($('time').in({
-          start: new Date('2015-01-01T10:30:00'),
-          end: new Date('2015-01-02T12:30:00'),
-          bounds: '[]'
-        }))
-      ).split('${page or else?}', 'Page', 'data')
+      var ex2 = $('wiki-tiki:taki')
+        .filter(
+          $('language').is("en").and($('time').in({
+            start: new Date('2015-01-01T10:30:00'),
+            end: new Date('2015-01-02T12:30:00'),
+            bounds: '[]'
+          }))
+        )
+        .split('${page or else?}', 'Page', 'data')
         .apply('TotalAdded', '$data.sum($added)');
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with FROM (sub query)", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT * FROM (
+          SELECT
+            \`page\` AS 'Page',
+            SUM(added) AS 'TotalAdded'
+          FROM \`wiki\`
+          WHERE \`language\`="en"
+          GROUP BY \`page\`
+        )
+      `);
+
+      var ex2 = $('wiki')
+        .filter($('language').is("en"))
+        .split('$page', 'Page', 'data')
+        .apply('TotalAdded', '$data.sum($added)');
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with FROM (sub query) + alias", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT * FROM (
+          SELECT
+            \`page\` AS 'Page',
+            SUM(added) AS 'TotalAdded'
+          FROM \`wiki\`
+          WHERE \`language\`="en"
+          GROUP BY \`page\`
+        ) AS T
+      `);
+
+      var ex2 = $('wiki')
+        .filter($('language').is("en"))
+        .split('$page', 'Page', 'data')
+        .apply('TotalAdded', '$data.sum($added)');
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with FROM (sub query) complex in total", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT
+          SUM(\`TotalAdded\`) AS 'SumTotalAdded'
+        FROM (
+          SELECT
+            \`page\` AS 'Page',
+            SUM(added) AS 'TotalAdded'
+          FROM \`wiki\`
+          WHERE \`language\`="en"
+          GROUP BY \`page\`
+        ) AS T
+      `);
+
+      var ex2 = ply()
+        .apply(
+          'data',
+          $('wiki')
+            .filter($('language').is("en"))
+            .split('$page', 'Page', 'data')
+            .apply('TotalAdded', '$data.sum($added)')
+        )
+        .apply('SumTotalAdded', '$data.sum($TotalAdded)');
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with FROM (sub query) complex in split", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT
+          \`Page\` AS 'Page',
+          SUM(\`TotalAdded\`) AS 'SumTotalAdded'
+        FROM (
+          SELECT
+            \`page\` AS 'Page',
+            \`user\` AS 'User',
+            SUM(added) AS 'TotalAdded'
+          FROM \`wiki\`
+          WHERE \`language\`="en"
+          GROUP BY 1, 2
+        )
+        WHERE TotalAdded != 5
+        GROUP BY \`Page\`
+        LIMIT 5
+      `);
+
+      var ex2 = $('wiki')
+        .filter($('language').is("en"))
+        .split({ Page: '$page', User: '$user' }, 'data')
+        .apply('TotalAdded', '$data.sum($added)')
+        .filter($('TotalAdded').isnt(5))
+        .split('$Page', 'Page', 'data')
+          .apply('SumTotalAdded', '$data.sum($TotalAdded)')
+          .limit(5);
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });

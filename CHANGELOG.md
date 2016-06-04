@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.29
+
+- PlyQL: From(sub query) works
+
 ## 0.10.28
 
 - Added compare to ranges so they sort correctly
