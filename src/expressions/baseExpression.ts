@@ -234,6 +234,9 @@ module Plywood {
       var expressionJS: ExpressionJS;
       // Quick parse simple expressions
       switch (typeof param) {
+        case 'undefined':
+          throw new Error('must have an expression');
+
         case 'object':
           if (param === null) {
             return Expression.NULL;

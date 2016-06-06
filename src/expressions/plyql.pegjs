@@ -199,6 +199,18 @@ function makeDate(type, v) {
   }
 }
 
+function getFromTable(from) {
+  if (!from) return null;
+  if (from.verb === 'SELECT') return from.table; // From is a sub-query
+  return from.name; // From is a ref: `namespace`.`name`
+}
+
+function getFromDatabase(from) {
+  if (!from) return null;
+  if (from.verb === 'SELECT') return from.database; // From is a sub-query
+  return from.namespace; // From is a ref: `namespace`.`name`
+}
+
 function extractGroupByColumn(columns, groupBy, index) {
   var label = null;
   var otherColumns = [];
@@ -271,7 +283,7 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
     }
 
   } else {
-    var fromEx = from ? $(from.name) : dataRef;
+    var fromEx = from ? (from.verb === 'SELECT' ? from.expression : $(from.name)) : dataRef;
 
     if (where) {
       fromEx = fromEx.filter(where);
@@ -515,8 +527,8 @@ SelectQuery
       return {
         verb: 'SELECT',
         expression: constructQuery(distinct, columns, from, where, groupBys, having, orderBy, limit),
-        table: from ? from.name : null,
-        database: from ? from.namespace : null
+        table: getFromTable(from),
+        database: getFromDatabase(from)
       };
     }
 
@@ -547,8 +559,14 @@ As
   = AsToken name:(String / Ref) { return name; }
 
 FromClause
-  = FromToken nr:RelaxedNamespacedRef
-    { return nr; }
+  = FromToken fc:FromContent
+    { return fc; }
+
+FromContent
+  = RelaxedNamespacedRef
+  / OpenParen subQuery:SelectQuery CloseParen As?
+    { return subQuery; }
+
 
 WhereClause
   = WhereToken filter:Expression
