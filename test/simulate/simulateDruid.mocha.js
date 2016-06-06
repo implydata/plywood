@@ -2445,6 +2445,61 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("works nested GROUP BYs", () => {
+    var ex = $("diamonds")
+      .filter($("color").in(['A', 'B', 'some_color']))
+      .split({ 'Cut': "$cut", 'Color': '$color' })
+      .apply('Count', $('diamonds').count())
+      .split('$Cut', 'Cut', 'data')
+      .apply('MaxCount', '$data.max($Count)');
+
+    var queryPlan = ex.simulateQueryPlan(context);
+
+    expect(queryPlan).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "Count",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds-compact",
+        "dimensions": [
+          {
+            "dimension": "color",
+            "outputName": "Color",
+            "type": "default"
+          },
+          {
+            "dimension": "cut",
+            "outputName": "Cut",
+            "type": "default"
+          }
+        ],
+        "filter": {
+          "dimension": "color",
+          "type": "in",
+          "values": [
+            "A",
+            "B",
+            "some_color"
+          ]
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "Color"
+            }
+          ],
+          "type": "default"
+        },
+        "queryType": "groupBy"
+      }
+    ]);
+  });
+
   it("adds context to query if set on External", (testComplete) => {
     var ds = External.fromJS({
       engine: 'druid',

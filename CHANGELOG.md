@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.30
+
+- Compute expression HEAD also
+
 ## 0.10.29
 
 - PlyQL: From(sub query) works

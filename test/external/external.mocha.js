@@ -1381,6 +1381,19 @@ describe("External", () => {
         expect(ex.actions.map(a => a.name)).to.deep.equal(['Pages', 'MinCount', 'MaxAdded']);
       });
 
+      it("works with a split and a further split", () => {
+        var ex = $('wiki')
+          .split({ 'user': '$user', 'page': '$page' })
+          .apply('TotalAdded', '$wiki.sum($added)')
+          .split('$user', 'user', 'data')
+          .apply('SumTotalEdits', '$data.sum($TotalAdded)');
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        expect(ex.op).to.equal('chain');
+        expect(ex.actions.map(a => a.action)).to.deep.equal(['split', 'apply']);
+      });
+
     });
 
   });

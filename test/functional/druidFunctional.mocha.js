@@ -1425,6 +1425,31 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works nested GROUP BYs", (testComplete) => {
+      var ex = $('wiki')
+        .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .split('$isNew', 'isNew', 'data')
+        .apply('SumTotalEdits', '$data.sum($TotalEdits)');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "SumTotalEdits": 368841,
+              "isNew": false
+            },
+            {
+              "SumTotalEdits": 23602,
+              "isNew": true
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
     it("works with raw (SELECT)", (testComplete) => {
       var ex = $('wiki').filter('$cityName == "El Paso"');
 
