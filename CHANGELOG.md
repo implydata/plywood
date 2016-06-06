@@ -5,6 +5,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.10.29
 
 - PlyQL: From(sub query) works
+- Native quantiles also work
 
 ## 0.10.28
 

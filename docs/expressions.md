@@ -628,13 +628,16 @@ ex.compute({ data: someDataset }).then(console.log); // => 3
 
 *operand*.**quantile**(ex: any, quantile: number)
 
-Computes the quantile of the given expression in the operand dataset
+Computes the [quantile](https://en.wikipedia.org/wiki/Quantile) of the given expression in the operand dataset
 
 ```javascript
 var ex = $('data').quantile($('price'), 0.95);
 ex.compute({ data: someDataset }).then(console.log); // => 167.343
 ```
 
+Does not expect the input data to be sorted.
+
+Note that the 0.5 quantile is also known as the median.
 
 *operand*.**custom**(custom: string)
 
