@@ -39,7 +39,7 @@ module Plywood {
 
     static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
       return requester({
-        query: `SELECT table_name AS "tab" FROM INFORMATION_SCHEMA.TABLES WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')`
+        query: `SELECT table_name AS "tab" FROM INFORMATION_SCHEMA.TABLES WHERE table_type = 'BASE TABLE' AND table_schema = 'public'`
       })
         .then((sources) => {
           if (!Array.isArray(sources)) throw new Error('invalid sources response');
