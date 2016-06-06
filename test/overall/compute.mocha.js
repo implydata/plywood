@@ -382,9 +382,9 @@ describe("compute native", () => {
   });
 
   it("works with quantiles", (testComplete) => {
-    // Test data comes from: https://en.wikipedia.org/wiki/Quantile
+    // Test data comes from: https://en.wikipedia.org/wiki/Quantile (order changed to not be sorted)
     var quantileData = [
-      { vOdd:  3, vEven:  3 },
+      { vOdd: 20, vEven: 20 },
       { vOdd:  6, vEven:  6 },
       { vOdd:  7, vEven:  7 },
       { vOdd:  8, vEven:  8 },
@@ -394,7 +394,7 @@ describe("compute native", () => {
       { vOdd: 13, vEven: 13 },
       { vOdd: 15, vEven: 15 },
       { vOdd: 16, vEven: 16 },
-      { vOdd: 20, vEven: 20 }
+      { vOdd:  3, vEven:  3 }
     ];
 
     var ex = ply()
