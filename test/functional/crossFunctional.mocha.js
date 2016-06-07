@@ -729,6 +729,9 @@ describe("Cross Functional", function() {
         .limit(10)
     }));
 
+  });
+
+  describe("splits (single, multi-dim)", () => {
     it('works with BOOLEAN multi-dim-split', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki')
@@ -805,6 +808,20 @@ describe("Cross Functional", function() {
             .sort('$TotalAdded', 'descending')
             .limit(5)
         )
+    }));
+
+  });
+
+
+  describe("splits (sequential)", () => {
+    it('works with nested split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .split('$isNew', 'isNew', 'data')
+        .apply('SumTotalEdits', '$data.sum($TotalEdits)')
     }));
 
   });

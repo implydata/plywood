@@ -392,7 +392,17 @@ module Plywood {
     }
 
     public _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue {
-      var actions = this.actions;
+      var { expression, actions } = this;
+
+      if (expression.isOp('external')) {
+        var exV = expression._computeResolvedSimulate(false, simulatedQueries);
+        var newExpression = r(exV).performActions(actions).simplify();
+        if (newExpression.hasExternal()) {
+          return newExpression._computeResolvedSimulate(true, simulatedQueries);
+        } else {
+          return newExpression.getFn()(null, null);
+        }
+      }
 
       function execAction(i: int, dataset: Dataset): Dataset {
         var action = actions[i];
@@ -425,7 +435,7 @@ module Plywood {
         throw new Error(`could not execute action ${action}`);
       }
 
-      var value = this.expression._computeResolvedSimulate(false, simulatedQueries);
+      var value = expression._computeResolvedSimulate(false, simulatedQueries);
       for (var i = 0; i < actions.length; i++) {
         value = execAction(i, value as Dataset);
       }
@@ -433,7 +443,18 @@ module Plywood {
     }
 
     public _computeResolved(): Q.Promise<PlywoodValue> {
-      var actions = this.actions;
+      var { expression, actions } = this;
+
+      if (expression.isOp('external')) {
+        return expression._computeResolved(false).then((exV) => {
+          var newExpression = r(exV).performActions(actions).simplify();
+          if (newExpression.hasExternal()) {
+            return newExpression._computeResolved(true);
+          } else {
+            return newExpression.getFn()(null, null);
+          }
+        });
+      }
 
       function execAction(i: int) {
         return (dataset: Dataset): Dataset | Q.Promise<Dataset> => {
@@ -468,7 +489,7 @@ module Plywood {
         }
       }
 
-      var promise = this.expression._computeResolved(false);
+      var promise = expression._computeResolved(false);
       for (var i = 0; i < actions.length; i++) {
         promise = promise.then(execAction(i));
       }

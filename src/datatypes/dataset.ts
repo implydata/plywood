@@ -588,7 +588,7 @@ module Plywood {
     }
 
     public split(splitFns: SplitFns, datasetName: string, context: Datum): Dataset {
-      var data = this.data;
+      var { data, attributes } = this;
 
       var keys = Object.keys(splitFns);
       var numberOfKeys = keys.length;
@@ -628,7 +628,11 @@ module Plywood {
       }
 
       for (var i = 0; i < finalData.length; i++) {
-        finalData[i][datasetName] = new Dataset({ suppress: true, data: finalDataset[i] });
+        finalData[i][datasetName] = new Dataset({
+          suppress: true,
+          attributes,
+          data: finalDataset[i]
+        });
       }
 
       return new Dataset({
