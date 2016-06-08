@@ -70,11 +70,11 @@ module Plywood {
       return hasOwnProperty(POSSIBLE_TYPES, typeName);
     }
 
-    static toSimpleName(variableName: string): string {
+    static toJavaScriptSafeName(variableName: string): string {
       if (!RefExpression.SIMPLE_NAME_REGEXP.test(variableName)) {
-        variableName = variableName.replace(/\W/g, '');
+        variableName = variableName.replace(/\W/g, (c) => `$${c.charCodeAt(0)}`);
       }
-      return variableName
+      return '_' + variableName;
     }
 
     public nest: int;
@@ -166,7 +166,7 @@ module Plywood {
       if (datumVar) {
         expr = datumVar.replace('[]', "[" + JSON.stringify(name) + "]");
       } else {
-        expr = RefExpression.toSimpleName(name);
+        expr = RefExpression.toJavaScriptSafeName(name);
       }
 
       if (this.type === 'NUMBER') expr = `(+${expr})`;

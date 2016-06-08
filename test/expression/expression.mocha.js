@@ -302,5 +302,17 @@ describe("Expression", () => {
       var ex2 = $('data').sum($x).add('$data.sum($y)', '(5 * $data.sum($z)).negate()', '6 * $data.count()');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
+
   });
+
+  describe("RefExpression.toJavaScriptSafeName", () => {
+    it('works', () => {
+      expect(RefExpression.toJavaScriptSafeName('hello')).to.equal('_hello');
+      expect(RefExpression.toJavaScriptSafeName('try')).to.equal('_try');
+      expect(RefExpression.toJavaScriptSafeName('i-love-you')).to.equal('_i$45love$45you');
+      expect(RefExpression.toJavaScriptSafeName('ру́сский')).to.equal('_$1088$1091$769$1089$1089$1082$1080$1081');
+    });
+    
+  });
+
 });
