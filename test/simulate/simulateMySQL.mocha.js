@@ -13,7 +13,7 @@ var { External, $, ply, r } = plywood;
 var context = {
   diamonds: External.fromJS({
     engine: 'mysql',
-    table: 'diamonds',
+    source: 'diamonds',
     attributes: [
       { name: 'time', type: 'TIME' },
       { name: 'color', type: 'STRING' },

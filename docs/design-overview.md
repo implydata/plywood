@@ -48,7 +48,7 @@ Here is an example of a Druid external:
 ```javascript
 External.fromJS({
   engine: 'druid',         
-  dataSource: 'wikipedia',  // The datasource name in Druid
+  source: 'wikipedia',  // The datasource name in Druid
   timeAttribute: 'time',    // Druid's anonymous time attribute will be called 'time'
   
   requester: druidRequester // a thing that knows how to make Druid requests

@@ -19,7 +19,7 @@ var timeFilter = $('time').in(TimeRange.fromJS({
 var context = {
   wiki: External.fromJS({
     engine: 'druid',
-    dataSource: 'wikipedia',
+    source: 'wikipedia',
     timeAttribute: 'time',
     attributes: [
       { name: 'time', type: 'TIME' },
@@ -65,7 +65,7 @@ var context = {
 var contextNoApprox = {
   wiki: External.fromJS({
     engine: 'druid',
-    dataSource: 'wikipedia',
+    source: 'wikipedia',
     timeAttribute: 'time',
     exactResultsOnly: true,
     attributes: [
@@ -1858,7 +1858,7 @@ describe("DruidExternal", () => {
   describe("should work when getting back [] and [{result:[]}]", () => {
     var nullExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       allowSelectQueries: true,
       attributes: [
@@ -1872,7 +1872,7 @@ describe("DruidExternal", () => {
 
     var emptyExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       allowSelectQueries: true,
       attributes: [
@@ -2000,7 +2000,7 @@ describe("DruidExternal", () => {
   describe("should work when getting back crap data", () => {
     var crapExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       attributes: [
         { name: 'time', type: 'TIME' },
@@ -2049,7 +2049,7 @@ describe("DruidExternal", () => {
     it("should pass the context", () => {
       var external = External.fromJS({
         engine: 'druid',
-        dataSource: 'wikipedia',
+        source: 'wikipedia',
         timeAttribute: 'time',
         attributes: [
           { name: 'time', type: 'TIME' },
@@ -2077,7 +2077,7 @@ describe("DruidExternal", () => {
     it("should set skipEmptyBuckets on timeseries", () => {
       var external = External.fromJS({
         engine: 'druid',
-        dataSource: 'wikipedia',
+        source: 'wikipedia',
         timeAttribute: 'time',
         attributes: [
           { name: 'time', type: 'TIME' },
@@ -2102,7 +2102,7 @@ describe("DruidExternal", () => {
     it("should respect skipEmptyBuckets already set on context", () => {
       var external = External.fromJS({
         engine: 'druid',
-        dataSource: 'wikipedia',
+        source: 'wikipedia',
         timeAttribute: 'time',
         attributes: [
           { name: 'time', type: 'TIME' },

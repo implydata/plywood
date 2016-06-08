@@ -6,7 +6,7 @@ var External = plywood.External;
 // Define an external or two
 var mysqlExternal = External.fromJS({
   engine: 'mysql',
-  table: 'wikipedia',
+  source: 'wikipedia',
   attributes: [
     { name: 'time', type: 'TIME' },
     { name: 'page', type: 'STRING' },
@@ -17,7 +17,7 @@ var mysqlExternal = External.fromJS({
 
 var druidExternal = External.fromJS({
   engine: 'druid',
-  dataSource: 'wikipedia',
+  source: 'wikipedia',
   timeAttribute: 'time',
   attributes: [
     { name: 'time', type: 'TIME' },

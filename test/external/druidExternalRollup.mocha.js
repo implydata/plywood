@@ -15,7 +15,7 @@ describe("DruidExternal Rollup", () => {
     wiki: External.fromJS({
       engine: 'druid',
       version: '0.9.1',
-      dataSource: 'diamonds',
+      source: 'diamonds',
       rollup: true,
       timeAttribute: 'time',
       attributes: [

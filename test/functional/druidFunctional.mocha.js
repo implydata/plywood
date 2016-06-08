@@ -75,7 +75,7 @@ describe("Druid Functional", function() {
   describe("defined attributes in datasource", () => {
     var wiki = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       context: {
         timeout: 10000,
@@ -93,7 +93,7 @@ describe("Druid Functional", function() {
 
     var wikiCompact = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia-compact',
+      source: 'wikipedia-compact',
       timeAttribute: 'time',
       context: {
         timeout: 10000,
@@ -1671,7 +1671,7 @@ describe("Druid Functional", function() {
   describe("incorrect user chars", () => {
     var wikiUserCharAsNumber = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       allowEternity: true,
       attributes: [
@@ -1777,7 +1777,7 @@ describe("Druid Functional", function() {
   describe("introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),

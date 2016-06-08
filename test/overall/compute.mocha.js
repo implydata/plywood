@@ -12,7 +12,7 @@ var { Dataset, $, ply, r, AttributeInfo, External } = plywood;
 // used to trigger routes with external
 var dummyExternal = External.fromJS({
   engine: 'druid',
-  dataSource: 'diamonds',
+  source: 'diamonds',
   attributes: [
     { name: 'time', type: 'TIME' },
     { name: 'color', type: 'STRING' }

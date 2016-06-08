@@ -101,7 +101,7 @@ describe("Expression", () => {
         external: {
           engine: 'druid',
           version: '0.8.1',
-          dataSource: 'moon_child',
+          source: 'moon_child',
           attributes: [
             { name: 'color', type: 'STRING' },
             { name: 'cut', type: 'STRING' },

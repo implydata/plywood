@@ -134,7 +134,7 @@ Construct an external from a JSON definition.
 ```javascript
 var wikiDataset = External.fromJS({
   engine: 'druid',
-  dataSource: 'wikipedia',  // The datasource name in Druid
+  source: 'wikipedia',  // The datasource name in Druid
   timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time',
   context: {
     timeout: 10000 // The Druid context 

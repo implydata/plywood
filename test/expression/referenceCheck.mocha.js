@@ -11,7 +11,7 @@ describe("reference check", () => {
     ]),
     wiki: External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       attributes: [
         { name: 'time', type: 'TIME' },

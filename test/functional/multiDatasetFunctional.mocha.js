@@ -67,7 +67,7 @@ var mixedExecutor = basicExecutorFactory({
   datasets: {
     wiki_druid: External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       context: {
         timeout: 10000
@@ -81,7 +81,7 @@ var mixedExecutor = basicExecutorFactory({
     }, druidRequester),
     wiki_mysql: External.fromJS({
       engine: 'mysql',
-      table: 'wikipedia',
+      source: 'wikipedia',
       attributes
     }, mySqlRequester)
   }

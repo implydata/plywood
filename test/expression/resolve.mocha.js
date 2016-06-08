@@ -193,7 +193,7 @@ describe("resolve", () => {
     it("works with sub-expressions", () => {
       var external = External.fromJS({
         engine: 'druid',
-        dataSource: 'diamonds',
+        source: 'diamonds',
         attributes: [
           { name: '__time', type: 'TIME' },
           { name: 'color', type: 'STRING' },
