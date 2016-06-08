@@ -480,7 +480,7 @@ module Plywood {
       External.classMap[id] = ex;
     }
 
-    static getExternalConstructor(engine: string): typeof External {
+    static getConstructorFor(engine: string): typeof External {
       const classFn = External.classMap[engine];
       if (!classFn) throw new Error(`unsupported engine '${engine}'`);
       return classFn;
@@ -492,7 +492,7 @@ module Plywood {
       }
       var engine: string = parameters.engine;
       if (typeof engine !== "string") throw new Error("engine must be a string");
-      var ClassFn = External.getExternalConstructor(engine);
+      var ClassFn = External.getConstructorFor(engine);
 
       // Back compat
       if (!requester && hasOwnProperty(parameters, 'requester')) {
@@ -508,7 +508,7 @@ module Plywood {
 
     static fromValue(parameters: ExternalValue): External {
       const { engine } = parameters;
-      var ClassFn = External.getExternalConstructor(engine);
+      var ClassFn = External.getConstructorFor(engine);
       return <External>(new ClassFn(parameters));
     }
 
