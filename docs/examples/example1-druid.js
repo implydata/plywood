@@ -13,7 +13,7 @@ var druidRequester = druidRequesterFactory({
 var context = {
   wiki: External.fromJS({
     engine: 'druid',
-    dataSource: 'wikipedia',
+    source: 'wikipedia',
     timeAttribute: 'time',
     requester: druidRequester
   })

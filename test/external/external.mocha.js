@@ -15,7 +15,7 @@ var { Expression, Dataset, External, TimeRange, AttributeInfo, $, ply, r } = ply
 
 var wikiDataset = External.fromJS({
   engine: 'druid',
-  dataSource: 'wikipedia',
+  source: 'wikipedia',
   timeAttribute: 'time',
   attributes: [
     { name: 'time', type: 'TIME' },
@@ -43,7 +43,7 @@ describe("External", () => {
     testImmutableClass(External, [
       {
         engine: 'mysql',
-        table: 'diamonds',
+        source: 'diamonds',
         attributes: [
           { name: 'time', type: 'TIME' },
           { name: 'color', type: 'STRING' },
@@ -54,7 +54,7 @@ describe("External", () => {
 
       {
         engine: 'druid',
-        dataSource: 'moon_child',
+        source: 'moon_child',
         timeAttribute: 'time',
         attributes: [
           { name: 'color', type: 'STRING' },
@@ -67,7 +67,7 @@ describe("External", () => {
       {
         engine: 'druid',
         version: '0.9.0',
-        dataSource: 'wiki',
+        source: 'wiki',
         timeAttribute: 'time',
         allowEternity: true,
         allowSelectQueries: true,
@@ -81,7 +81,7 @@ describe("External", () => {
       {
         engine: 'druid',
         version: '0.8.0',
-        dataSource: 'moon_child',
+        source: 'moon_child',
         timeAttribute: 'time',
         attributeOverrides: [
           { name: 'color', type: 'STRING' },
@@ -99,7 +99,7 @@ describe("External", () => {
         engine: 'druid',
         version: '0.8.0',
         rollup: true,
-        dataSource: 'moon_child',
+        source: 'moon_child',
         timeAttribute: 'time',
         attributeOverrides: [
           { name: 'color', type: 'STRING' },
@@ -116,7 +116,7 @@ describe("External", () => {
       {
         engine: 'druid',
         version: '0.9.0',
-        dataSource: 'wiki',
+        source: 'wiki',
         timeAttribute: 'time',
         derivedAttributes: {
           city3: $('city').substr(0, 3).toJS()
@@ -133,12 +133,12 @@ describe("External", () => {
       expect(External.fromJS({
         engine: 'druid',
         version: '0.8.2',
-        dataSource: 'wiki',
+        source: 'wiki',
         hasOwnProperty: 'troll'
       }).toJS()).to.deep.equal({
         engine: 'druid',
         version: '0.8.2',
-        dataSource: 'wiki'
+        source: 'wiki'
       });
     });
 
@@ -151,7 +151,7 @@ describe("External", () => {
         External.fromJS({
           engine: 'druid',
           version: 'koalas0.2.',
-          dataSource: 'wiki',
+          source: 'wiki',
           timeAttribute: 'time'
         });
       }).to.throw('invalid version koalas0.2.');
@@ -162,7 +162,7 @@ describe("External", () => {
         External.fromJS({
           engine: 'druid',
           version: '0.7.3',
-          dataSource: 'wiki',
+          source: 'wiki',
           timeAttribute: 'time'
         });
       }).to.throw('only druid versions >= 0.8.0 are supported');
@@ -177,11 +177,11 @@ describe("External", () => {
         expect(External.fromJS({
           engine: 'druid',
           druidVersion: '0.8.2',
-          dataSource: 'wiki'
+          source: 'wiki'
         }).toJS()).to.deep.equal({
           engine: 'druid',
           version: '0.8.2',
-          dataSource: 'wiki'
+          source: 'wiki'
         });
       })).to.equal("'druidVersion' parameter is deprecated, use 'version: 0.8.2' instead\n");
     });
@@ -191,12 +191,32 @@ describe("External", () => {
         var requester = () => null;
         var external = External.fromJS({
           engine: 'druid',
-          dataSource: 'wiki',
+          source: 'wiki',
           requester
         });
 
         expect(external.requester).to.equal(requester);
       })).to.equal("'requester' parameter should be passed as context (2nd argument)\n");
+    });
+
+    it("dataSource -> source", () => {
+      expect(External.fromJS({
+        engine: 'druid',
+        dataSource: 'wiki'
+      }).toJS()).to.deep.equal({
+        engine: 'druid',
+        source: 'wiki'
+      });
+    });
+
+    it("table -> source", () => {
+      expect(External.fromJS({
+        engine: 'mysql',
+        table: 'wiki'
+      }).toJS()).to.deep.equal({
+        engine: 'mysql',
+        source: 'wiki'
+      });
     });
 
   });
@@ -263,7 +283,7 @@ describe("External", () => {
       var dummyRequester = () => null;
       var external = External.fromJS({
         engine: 'druid',
-        dataSource: 'moon_child',
+        source: 'moon_child',
         attributeOverrides: [
           { "name": "unique_thing", "special": "unique", "type": "STRING" }
         ]
@@ -289,7 +309,7 @@ describe("External", () => {
           expect(introspectedExternal1.toJS()).to.deep.equal({
             engine: 'druid',
             version: '0.9.0-yo',
-            dataSource: 'moon_child',
+            source: 'moon_child',
             attributeOverrides: [
               { name: "unique_thing", special: "unique", type: "STRING" }
             ],
@@ -321,7 +341,7 @@ describe("External", () => {
           expect(introspectedExternal2.toJS()).to.deep.equal({
             engine: 'druid',
             version: '0.9.0-yo',
-            dataSource: 'moon_child',
+            source: 'moon_child',
             attributeOverrides: [
               { name: "unique_thing", special: "unique", type: "STRING" }
             ],
@@ -345,7 +365,7 @@ describe("External", () => {
     it("works", () => {
       var external = External.fromJS({
         engine: 'druid',
-        dataSource: 'moon_child',
+        source: 'moon_child',
         timeAttribute: 'time',
         attributes: [
           { name: 'color', type: 'STRING' },
@@ -523,7 +543,7 @@ describe("External", () => {
   describe("#hasAttribute", () => {
     var rawExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'moon_child',
+      source: 'moon_child',
       timeAttribute: 'time',
       attributes: [
         { name: 'page', type: 'STRING' },
@@ -547,7 +567,7 @@ describe("External", () => {
   describe("#addAction / #getRaw", () => {
     var rawExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'moon_child',
+      source: 'moon_child',
       timeAttribute: 'time',
       attributes: [
         { name: 'page', type: 'STRING' },
@@ -614,7 +634,7 @@ describe("External", () => {
   describe("#bucketsConcealed", () => {
     var bucketedExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       attributes: [
         { name: 'time', type: 'TIME', makerAction: { action: 'timeFloor', duration: 'PT1H', timezone: 'Etc/UTC' } },

@@ -19,7 +19,7 @@ var timeFilter = $('time').in(TimeRange.fromJS({
 var context = {
   wiki: External.fromJS({
     engine: 'druid',
-    dataSource: 'wikipedia',
+    source: 'wikipedia',
     timeAttribute: 'time',
     attributes: [
       { name: 'time', type: 'TIME' },
@@ -64,7 +64,7 @@ var context = {
 var contextNoApprox = {
   wiki: External.fromJS({
     engine: 'druid',
-    dataSource: 'wikipedia',
+    source: 'wikipedia',
     timeAttribute: 'time',
     exactResultsOnly: true,
     attributes: [

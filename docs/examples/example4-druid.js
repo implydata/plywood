@@ -19,7 +19,7 @@ var druidRequester = druidRequesterFactory({
 var context = {
   wiki: External.fromJS({
     engine: 'druid',
-    dataSource: 'wikipedia',  // The datasource name in Druid
+    source: 'wikipedia',  // The datasource name in Druid
     timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time'
     requester: druidRequester
   })

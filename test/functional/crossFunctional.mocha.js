@@ -83,7 +83,7 @@ var druidExecutor = basicExecutorFactory({
   datasets: {
     wiki: External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       context: {
         timeout: 10000
@@ -101,7 +101,7 @@ var druidLegacyExecutor = basicExecutorFactory({
   datasets: {
     wiki: External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       context: {
         timeout: 10001 // Put a different timeout here so we can tell queries apart from non-legacy druid
@@ -119,7 +119,7 @@ var mysqlExecutor = basicExecutorFactory({
   datasets: {
     wiki: External.fromJS({
       engine: 'mysql',
-      table: 'wikipedia',
+      source: 'wikipedia',
       attributes,
       derivedAttributes
     }, mySqlRequester)
@@ -130,7 +130,7 @@ var postgresExecutor = basicExecutorFactory({
   datasets: {
     wiki: External.fromJS({
       engine: 'postgres',
-      table: 'wikipedia',
+      source: 'wikipedia',
       attributes,
       derivedAttributes
     }, postgresRequester)

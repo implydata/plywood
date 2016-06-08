@@ -9,7 +9,7 @@ describe.skip("breakdown", () => {
     y: 2,
     diamonds: External.fromJS({
       engine: 'druid',
-      dataSource: 'diamonds',
+      source: 'diamonds',
       timeAttribute: 'time',
       context: null,
       attributes: [
@@ -21,7 +21,7 @@ describe.skip("breakdown", () => {
     }),
     diamonds2: External.fromJS({
       engine: 'druid',
-      dataSource: 'diamonds2',
+      source: 'diamonds2',
       timeAttribute: 'time',
       context: null,
       attributes: [

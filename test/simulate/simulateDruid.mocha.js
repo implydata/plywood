@@ -28,7 +28,7 @@ var attributes = [
 var diamondsCompact = External.fromJS({
   engine: 'druid',
   version: '0.9.1',
-  dataSource: 'diamonds-compact',
+  source: 'diamonds-compact',
   timeAttribute: 'time',
   attributes: [
     { name: 'time', type: 'TIME', makerAction: { action: 'timeFloor', duration: 'P1D', timezone: 'Etc/UTC' } },
@@ -48,7 +48,7 @@ var context = {
   'diamonds': External.fromJS({
     engine: 'druid',
     version: '0.9.1',
-    dataSource: 'diamonds',
+    source: 'diamonds',
     timeAttribute: 'time',
     attributes,
     allowSelectQueries: true,
@@ -60,7 +60,7 @@ var context = {
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
     version: '0.9.1',
-    dataSource: 'diamonds-alt:;<>',
+    source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
     allowSelectQueries: true,
@@ -74,7 +74,7 @@ var context = {
 var contextUnfiltered = {
   'diamonds': External.fromJS({
     engine: 'druid',
-    dataSource: 'diamonds',
+    source: 'diamonds',
     timeAttribute: 'time',
     attributes,
     allowSelectQueries: true
@@ -2529,7 +2529,7 @@ describe("simulate Druid", () => {
   it("adds context to query if set on External", (testComplete) => {
     var ds = External.fromJS({
       engine: 'druid',
-      dataSource: 'diamonds',
+      source: 'diamonds',
       timeAttribute: 'time',
       attributes,
       allowSelectQueries: true,

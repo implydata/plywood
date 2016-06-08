@@ -331,7 +331,7 @@ describe("DruidExternal Introspection", () => {
     expect(() => {
       External.fromJS({
         engine: 'druid',
-        dataSource: 'wikipedia',
+        source: 'wikipedia',
         introspectionStrategy: 'crowd-source'
       }, requesterFail);
     }).to.throw("invalid introspectionStrategy 'crowd-source'");
@@ -340,7 +340,7 @@ describe("DruidExternal Introspection", () => {
   it("does an introspect with general failure", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia'
+      source: 'wikipedia'
     }, requesterFail);
 
     return wikiExternal.introspect()
@@ -357,7 +357,7 @@ describe("DruidExternal Introspection", () => {
   it("does an introspect with segmentMetadata (with aggregators)", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time'
     }, requesterDruid_0_9_0);
 
@@ -436,7 +436,7 @@ describe("DruidExternal Introspection", () => {
   it("does an introspect with segmentMetadata (without aggregators, flaky driver)", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time'
     }, requesterDruid_0_9_0_flake);
 
@@ -493,7 +493,7 @@ describe("DruidExternal Introspection", () => {
   it("does an introspect with segmentMetadata (without aggregators)", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time'
     }, requesterDruid_0_8_3);
 
@@ -550,7 +550,7 @@ describe("DruidExternal Introspection", () => {
   it("does an introspect with segmentMetadata (with old style COMPLEX columns)", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time'
     }, requesterDruid_0_8_2);
 
@@ -597,7 +597,7 @@ describe("DruidExternal Introspection", () => {
   it("does a simple introspect with GET", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time'
     }, requesterDruid_0_8_1);
 
@@ -658,7 +658,7 @@ describe("DruidExternal Introspection", () => {
   it("respects the introspectionStrategy flag", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       introspectionStrategy: 'datasource-get',
       timeAttribute: 'time'
     }, requesterDruid_0_9_0);
@@ -720,7 +720,7 @@ describe("DruidExternal Introspection", () => {
   it("does an introspect with overrides", (testComplete) => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       attributeOverrides: [
         { name: "user_unique", special: 'unique' },
@@ -813,7 +813,7 @@ describe("DruidExternal Introspection", () => {
 
     var wikiExternal = External.fromJS({
       engine: 'druid',
-      dataSource: 'wikipedia',
+      source: 'wikipedia',
       timeAttribute: 'time',
       allowEternity: true,
       allowSelectQueries: true

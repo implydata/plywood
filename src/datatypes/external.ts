@@ -142,6 +142,7 @@ module Plywood {
     engine?: string;
     version?: string;
     suppress?: boolean;
+    source?: string | string[];
     rollup?: boolean;
     attributes?: Attributes;
     attributeOverrides?: Attributes;
@@ -160,11 +161,8 @@ module Plywood {
     limit?: LimitAction;
     havingFilter?: Expression;
 
-    // MySQL
-    table?: string;
-
     // Druid
-    dataSource?: string | string[];
+
     timeAttribute?: string;
     customAggregations?: CustomDruidAggregations;
     allowEternity?: boolean;
@@ -180,6 +178,7 @@ module Plywood {
   export interface ExternalJS {
     engine: string;
     version?: string;
+    source?: string | string[];
     rollup?: boolean;
     attributes?: AttributeJSs;
     attributeOverrides?: AttributeJSs;
@@ -188,11 +187,8 @@ module Plywood {
     rawAttributes?: AttributeJSs;
     concealBuckets?: boolean;
 
-    // MySQL
-    table?: string;
-
     // Druid
-    dataSource?: string | string[];
+
     timeAttribute?: string;
     customAggregations?: CustomDruidAggregations;
     allowEternity?: boolean;
@@ -457,6 +453,7 @@ module Plywood {
       var value: ExternalValue = {
         engine: parameters.engine,
         version: parameters.version,
+        source: parameters.source,
         suppress: true,
         rollup: parameters.rollup,
         concealBuckets: Boolean(parameters.concealBuckets),
@@ -483,23 +480,27 @@ module Plywood {
       External.classMap[id] = ex;
     }
 
+    static getConstructorFor(engine: string): typeof External {
+      const classFn = External.classMap[engine];
+      if (!classFn) throw new Error(`unsupported engine '${engine}'`);
+      return classFn;
+    }
+
     static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any> = null): External {
       if (!hasOwnProperty(parameters, "engine")) {
         throw new Error("external `engine` must be defined");
       }
       var engine: string = parameters.engine;
-      if (typeof engine !== "string") {
-        throw new Error("dataset must be a string");
-      }
-      var ClassFn = External.classMap[engine];
-      if (!ClassFn) {
-        throw new Error(`unsupported engine '${engine}'`);
-      }
+      if (typeof engine !== "string") throw new Error("engine must be a string");
+      var ClassFn = External.getConstructorFor(engine);
 
       // Back compat
       if (!requester && hasOwnProperty(parameters, 'requester')) {
         console.warn("'requester' parameter should be passed as context (2nd argument)");
         requester = (parameters as any).requester;
+      }
+      if (!parameters.source) {
+        parameters.source = (parameters as any).dataSource || (parameters as any).table;
       }
 
       return ClassFn.fromJS(parameters, requester);
@@ -507,13 +508,13 @@ module Plywood {
 
     static fromValue(parameters: ExternalValue): External {
       const { engine } = parameters;
-      const ClassFn = External.classMap[engine];
-      if (!ClassFn) throw new Error(`unsupported engine '${engine}'`);
+      var ClassFn = External.getConstructorFor(engine);
       return <External>(new ClassFn(parameters));
     }
 
     public engine: string;
     public version: string;
+    public source: string | string[];
     public suppress: boolean;
     public rollup: boolean;
     public attributes: Attributes = null;
@@ -547,6 +548,7 @@ module Plywood {
         if (!version) throw new Error(`invalid version ${parameters.version}`);
       }
       this.version = version;
+      this.source = parameters.source;
 
       this.suppress = Boolean(parameters.suppress);
       this.rollup = Boolean(parameters.rollup);
@@ -615,6 +617,7 @@ module Plywood {
       var value: ExternalValue = {
         engine: this.engine,
         version: this.version,
+        source: this.source,
         rollup: this.rollup,
         mode: this.mode
       };
@@ -662,7 +665,8 @@ module Plywood {
 
     public toJS(): ExternalJS {
       var js: ExternalJS = {
-        engine: this.engine
+        engine: this.engine,
+        source: this.source
       };
       if (this.version) js.version = this.version;
       if (this.rollup) js.rollup = true;
@@ -705,6 +709,7 @@ module Plywood {
     public equals(other: External): boolean {
       return this.equalBase(other) &&
         immutableLookupsEqual(this.derivedAttributes, other.derivedAttributes) &&
+        immutableArraysEqual(this.attributes, other.attributes) &&
         immutableArraysEqual(this.delegates, other.delegates) &&
         this.concealBuckets === other.concealBuckets;
     }
@@ -712,6 +717,7 @@ module Plywood {
     public equalBase(other: External): boolean {
       return External.isExternal(other) &&
         this.engine === other.engine &&
+        String(this.source) === String(other.source) &&
         this.version === other.version &&
         this.rollup === other.rollup &&
         this.mode === other.mode &&

@@ -79,7 +79,7 @@ describe("Postgres Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'postgres',
-          table: 'wikipedia',
+          source: 'wikipedia',
           attributes: wikiAttributes,
           derivedAttributes: wikiDerivedAttributes
         }, postgresRequester)
@@ -232,7 +232,7 @@ describe("Postgres Functional", function() {
       datasets: {
         wiki: External.fromJS({
           engine: 'postgres',
-          table: 'wikipedia'
+          source: 'wikipedia'
         }, postgresRequester)
       }
     });
@@ -240,7 +240,7 @@ describe("Postgres Functional", function() {
     it("introspects", (testComplete) => {
       External.fromJS({
         engine: 'postgres',
-        table: 'wikipedia'
+        source: 'wikipedia'
       }, postgresRequester).introspect()
         .then((external) => {
           expect(external.toJS().attributes).to.deep.equal(wikiAttributes);

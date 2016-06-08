@@ -44,7 +44,7 @@ function saveToLocal() {
 context = {
   diamonds: External.fromJS({
     engine: 'druid',
-    dataSource: 'diamonds',
+    source: 'diamonds',
     timeAttribute: 'time',
     allowEternity: true,
     allowSelectQueries: true,

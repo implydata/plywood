@@ -13,7 +13,7 @@ var context = {
   rankings: External.fromJS({
     engine: 'druid',
     version: '0.9.0',
-    dataSource: 'rankings',
+    source: 'rankings',
     timeAttribute: 'time',
     allowSelectQueries: true,
     allowEternity: true,
@@ -26,7 +26,7 @@ var context = {
   uservisits: External.fromJS({
     engine: 'druid',
     version: '0.9.0',
-    dataSource: 'uservisits',
+    source: 'uservisits',
     timeAttribute: 'visitDate',
     allowSelectQueries: true,
     allowEternity: true,
