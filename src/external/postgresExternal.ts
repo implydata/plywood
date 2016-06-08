@@ -33,7 +33,7 @@ module Plywood {
     static type = 'DATASET';
 
     static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): PostgresExternal {
-      var value: ExternalValue = SQLExternal.jsToValue(parameters, requester);
+      var value: ExternalValue = External.jsToValue(parameters, requester);
       return new PostgresExternal(value);
     }
 
@@ -55,7 +55,7 @@ module Plywood {
 
     public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
       return this.requester({
-        query: `SELECT "column_name" AS "name", "data_type" AS "sqlType" FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = ${this.dialect.escapeLiteral(this.table)}`,
+        query: `SELECT "column_name" AS "name", "data_type" AS "sqlType" FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = ${this.dialect.escapeLiteral(this.source as string)}`,
       }).then(postProcessIntrospect);
     }
   }

@@ -60,36 +60,11 @@ module Plywood {
   export class SQLExternal extends External {
     static type = 'DATASET';
 
-    static jsToValue(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): ExternalValue {
-      var value: ExternalValue = External.jsToValue(parameters, requester);
-      value.table = parameters.table;
-      return value;
-    }
-
-    public table: string;
     public dialect: SQLDialect;
 
     constructor(parameters: ExternalValue, dialect: SQLDialect) {
       super(parameters, dummyObject);
-      this.table = parameters.table;
       this.dialect = dialect;
-    }
-
-    public valueOf(): ExternalValue {
-      var value: ExternalValue = super.valueOf();
-      value.table = this.table;
-      return value;
-    }
-
-    public toJS(): ExternalJS {
-      var js: ExternalJS = super.toJS();
-      js.table = this.table;
-      return js;
-    }
-
-    public equals(other: SQLExternal): boolean {
-      return super.equals(other) &&
-        this.table === other.table;
     }
 
     // -----------------
@@ -125,14 +100,14 @@ module Plywood {
     // -----------------
 
     public getQueryAndPostProcess(): QueryAndPostProcess<string> {
-      const { table, mode, applies, sort, limit, derivedAttributes, dialect } = this;
+      const { source, mode, applies, sort, limit, derivedAttributes, dialect } = this;
 
       var query = ['SELECT'];
       var postProcess: PostProcess = null;
       var inflaters: Inflater[] = [];
       var zeroTotalApplies: ApplyAction[] = null;
 
-      var from = "FROM " + this.dialect.escapeName(table);
+      var from = "FROM " + this.dialect.escapeName(source as string);
       var filter = this.getQueryFilter();
       if (!filter.equals(Expression.TRUE)) {
         from += '\nWHERE ' + filter.getSQL(dialect);

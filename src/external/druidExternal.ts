@@ -414,7 +414,6 @@ module Plywood {
       }
 
       var value: ExternalValue = External.jsToValue(parameters, requester);
-      value.dataSource = parameters.dataSource;
       value.timeAttribute = parameters.timeAttribute;
       value.customAggregations = parameters.customAggregations || {};
       value.allowEternity = Boolean(parameters.allowEternity);
@@ -572,7 +571,6 @@ module Plywood {
     }
 
 
-    public dataSource: string | string[];
     public timeAttribute: string;
     public customAggregations: CustomDruidAggregations;
     public allowEternity: boolean;
@@ -585,7 +583,6 @@ module Plywood {
       super(parameters, dummyObject);
       this._ensureEngine("druid");
       this._ensureMinVersion("0.8.0");
-      this.dataSource = parameters.dataSource;
       this.timeAttribute = parameters.timeAttribute || DEFAULT_TIME_ATTRIBUTE;
       this.customAggregations = parameters.customAggregations;
       this.allowEternity = parameters.allowEternity;
@@ -603,7 +600,6 @@ module Plywood {
 
     public valueOf(): ExternalValue {
       var value: ExternalValue = super.valueOf();
-      value.dataSource = this.dataSource;
       value.timeAttribute = this.timeAttribute;
       value.customAggregations = this.customAggregations;
       value.allowEternity = this.allowEternity;
@@ -616,7 +612,6 @@ module Plywood {
 
     public toJS(): ExternalJS {
       var js: ExternalJS = super.toJS();
-      js.dataSource = this.dataSource;
       if (this.timeAttribute !== DEFAULT_TIME_ATTRIBUTE) js.timeAttribute = this.timeAttribute;
       if (helper.nonEmptyLookup(this.customAggregations)) js.customAggregations = this.customAggregations;
       if (this.allowEternity) js.allowEternity = true;
@@ -629,7 +624,6 @@ module Plywood {
 
     public equals(other: DruidExternal): boolean {
       return super.equals(other) &&
-        String(this.dataSource) === String(other.dataSource) &&
         this.timeAttribute === other.timeAttribute &&
         customAggregationsEqual(this.customAggregations, other.customAggregations) &&
         this.allowEternity === other.allowEternity &&
@@ -705,14 +699,14 @@ module Plywood {
     }
 
     public getDruidDataSource(): Druid.DataSource {
-      var dataSource = this.dataSource;
-      if (Array.isArray(dataSource)) {
+      var source = this.source;
+      if (Array.isArray(source)) {
         return {
           type: "union",
-          dataSources: <string[]>dataSource
+          dataSources: <string[]>source
         };
       } else {
-        return <string>dataSource;
+        return <string>source;
       }
     }
 

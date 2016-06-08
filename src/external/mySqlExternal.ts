@@ -33,7 +33,7 @@ module Plywood {
     static type = 'DATASET';
 
     static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): MySQLExternal {
-      var value: ExternalValue = SQLExternal.jsToValue(parameters, requester);
+      var value: ExternalValue = External.jsToValue(parameters, requester);
       return new MySQLExternal(value);
     }
 
@@ -54,7 +54,7 @@ module Plywood {
     }
 
     public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
-      return this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.table)}`, }).then(postProcessIntrospect);
+      return this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.source as string)}`, }).then(postProcessIntrospect);
     }
   }
 
