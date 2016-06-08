@@ -1755,12 +1755,12 @@ return (start < 0 ?'-':'') + parts.join('.');
       if (!aggregateFunction) throw new Error(`Can not convert ${aggregateActionType} to JS`);
       var zero = AGGREGATE_TO_ZERO[aggregateActionType];
       var fieldNames = aggregateExpression.getFreeReferences();
-      var simpleFiledNames = fieldNames.map(RefExpression.toJavaScriptSafeName);
+      var simpleFieldNames = fieldNames.map(RefExpression.toJavaScriptSafeName);
       return {
         name,
         type: "javascript",
         fieldNames: fieldNames,
-        fnAggregate: `function($$,${simpleFiledNames.join(',')}) { return ${aggregateFunction('$$', aggregateExpression.getJS(null))}; }`,
+        fnAggregate: `function($$,${simpleFieldNames.join(',')}) { return ${aggregateFunction('$$', aggregateExpression.getJS(null))}; }`,
         fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
         fnReset: `function() { return ${zero}; }`
       }
