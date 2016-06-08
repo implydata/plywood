@@ -19,7 +19,10 @@ var attributes = [
   { name: 'height_bucket', special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 },
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
-  { name: 'vendor_id', special: 'unique', unsplitable: true }
+  { name: 'vendor_id', special: 'unique', unsplitable: true },
+
+  { name: 'try', type: 'NUMBER' }, // Added here because 'try' is a JS keyword
+  { name: 'a+b', type: 'NUMBER' } // Added here because it is invalid JS without escaping
 ];
 
 var diamondsCompact = External.fromJS({
@@ -229,7 +232,7 @@ describe("simulate Druid", () => {
             "fieldNames": [
               "carat"
             ],
-            "fnAggregate": "function(_c,carat) { return _c+(+carat); }",
+            "fnAggregate": "function($$,_carat) { return $$+(+_carat); }",
             "fnCombine": "function(a,b) { return a+b; }",
             "fnReset": "function() { return 0; }",
             "name": "!T_1",
@@ -1420,34 +1423,55 @@ describe("simulate Druid", () => {
       .apply('maxCarat', '$diamonds.max($carat)')
       .apply('minCarat', '$diamonds.min($carat)');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    expect(ex.simulateQueryPlan(context)[0].aggregations).to.deep.equal([
       {
-        "aggregations": [
-          {
-            "fieldNames": [
-              "carat"
-            ],
-            "fnAggregate": "function(_c,carat) { return Math.max(_c,(+carat)); }",
-            "fnCombine": "function(a,b) { return Math.max(a,b); }",
-            "fnReset": "function() { return -Infinity; }",
-            "name": "maxCarat",
-            "type": "javascript"
-          },
-          {
-            "fieldNames": [
-              "carat"
-            ],
-            "fnAggregate": "function(_c,carat) { return Math.min(_c,(+carat)); }",
-            "fnCombine": "function(a,b) { return Math.min(a,b); }",
-            "fnReset": "function() { return Infinity; }",
-            "name": "minCarat",
-            "type": "javascript"
-          }
+        "fieldNames": [
+          "carat"
         ],
-        "dataSource": "diamonds",
-        "granularity": "all",
-        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
-        "queryType": "timeseries"
+        "fnAggregate": "function($$,_carat) { return Math.max($$,(+_carat)); }",
+        "fnCombine": "function(a,b) { return Math.max(a,b); }",
+        "fnReset": "function() { return -Infinity; }",
+        "name": "maxCarat",
+        "type": "javascript"
+      },
+      {
+        "fieldNames": [
+          "carat"
+        ],
+        "fnAggregate": "function($$,_carat) { return Math.min($$,(+_carat)); }",
+        "fnCombine": "function(a,b) { return Math.min(a,b); }",
+        "fnReset": "function() { return Infinity; }",
+        "name": "minCarat",
+        "type": "javascript"
+      }
+    ]);
+  });
+
+  it("makes a query on a reserved JS word", () => {
+    var ex = ply()
+      .apply('maxTry', '$diamonds.max($try)')
+      .apply('maxA+B', '$diamonds.max(${a+b})');
+
+    expect(ex.simulateQueryPlan(context)[0].aggregations).to.deep.equal([
+      {
+        "fieldNames": [
+          "try"
+        ],
+        "fnAggregate": "function($$,_try) { return Math.max($$,(+_try)); }",
+        "fnCombine": "function(a,b) { return Math.max(a,b); }",
+        "fnReset": "function() { return -Infinity; }",
+        "name": "maxTry",
+        "type": "javascript"
+      },
+      {
+        "fieldNames": [
+          "a+b"
+        ],
+        "fnAggregate": "function($$,_a$43b) { return Math.max($$,(+_a$43b)); }",
+        "fnCombine": "function(a,b) { return Math.max(a,b); }",
+        "fnReset": "function() { return -Infinity; }",
+        "name": "maxA+B",
+        "type": "javascript"
       }
     ]);
   });
@@ -1491,7 +1515,7 @@ describe("simulate Druid", () => {
               "fieldNames": [
                 "price"
               ],
-              "fnAggregate": "function(_c,price) { return _c+Math.pow((+price),2); }",
+              "fnAggregate": "function($$,_price) { return $$+Math.pow((+_price),2); }",
               "fnCombine": "function(a,b) { return a+b; }",
               "fnReset": "function() { return 0; }",
               "name": "GoodPrice2",
@@ -2218,7 +2242,9 @@ describe("simulate Druid", () => {
           "isNice",
           "tags",
           "carat",
-          "height_bucket"
+          "height_bucket",
+          "try",
+          "a+b"
         ],
         "filter": {
           "dimension": "color",

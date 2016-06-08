@@ -11,7 +11,7 @@ var { testImmutableClass } = require("immutable-class/build/tester");
 var plywood = require('../../build/plywood');
 var { Action, $, ply, r, MatchAction } = plywood;
 
-describe("Actions", () => {
+describe("Action", () => {
   it("is immutable class", () => {
     testImmutableClass(Action, [
       {

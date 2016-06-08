@@ -424,7 +424,7 @@ describe("DruidExternal", () => {
           "fieldNames": [
             "added"
           ],
-          "fnAggregate": "function(_c,added) { return _c+Math.abs((+added)); }",
+          "fnAggregate": "function($$,_added) { return $$+Math.abs((+_added)); }",
           "fnCombine": "function(a,b) { return a+b; }",
           "fnReset": "function() { return 0; }",
           "name": "SumAbs",
@@ -435,7 +435,7 @@ describe("DruidExternal", () => {
             "added",
             "deleted"
           ],
-          "fnAggregate": "function(_c,added,deleted) { return _c+((Math.pow((+added),2)*(+deleted))/Math.abs((+added))); }",
+          "fnAggregate": "function($$,_added,_deleted) { return $$+((Math.pow((+_added),2)*(+_deleted))/Math.abs((+_added))); }",
           "fnCombine": "function(a,b) { return a+b; }",
           "fnReset": "function() { return 0; }",
           "name": "SumComplex",
@@ -547,7 +547,7 @@ describe("DruidExternal", () => {
             "fieldNames": [
               "!T_0"
             ],
-            "function": "function(T_0) { return Math.abs((+T_0)); }",
+            "function": "function(_$33T_0) { return Math.abs((+_$33T_0)); }",
             "name": "Abs",
             "type": "javascript"
           },
@@ -555,7 +555,7 @@ describe("DruidExternal", () => {
             "fieldNames": [
               "!T_0"
             ],
-            "function": "function(T_0) { return Math.pow((+T_0),2); }",
+            "function": "function(_$33T_0) { return Math.pow((+_$33T_0),2); }",
             "name": "Abs2",
             "type": "javascript"
           }
@@ -625,7 +625,7 @@ describe("DruidExternal", () => {
                   "!F_!T_1",
                   "Count"
                 ],
-                "function": "function(T_0,T_1,Count) { return Math.pow(Math.abs((((+T_0)/Math.pow(Math.abs((+Count)),0.5))+(100*(+T_1)))),2); }",
+                "function": "function(_$33T_0,_$33T_1,_Count) { return Math.pow(Math.abs((((+_$33T_0)/Math.pow(Math.abs((+_Count)),0.5))+(100*(+_$33T_1)))),2); }",
                 "type": "javascript"
               },
               {

@@ -1578,7 +1578,7 @@ return (start < 0 ?'-':'') + parts.join('.');
           return {
             type: 'javascript',
             fieldNames: fieldNames,
-            'function': `function(${fieldNameRefs.map(RefExpression.toSimpleName)}) { return ${ex.getJS(null)}; }`
+            'function': `function(${fieldNameRefs.map(RefExpression.toJavaScriptSafeName)}) { return ${ex.getJS(null)}; }`
           };
         }
 
@@ -1755,11 +1755,12 @@ return (start < 0 ?'-':'') + parts.join('.');
       if (!aggregateFunction) throw new Error(`Can not convert ${aggregateActionType} to JS`);
       var zero = AGGREGATE_TO_ZERO[aggregateActionType];
       var fieldNames = aggregateExpression.getFreeReferences();
+      var simpleFieldNames = fieldNames.map(RefExpression.toJavaScriptSafeName);
       return {
         name,
         type: "javascript",
         fieldNames: fieldNames,
-        fnAggregate: `function(_c,${fieldNames}) { return ${aggregateFunction('_c', aggregateExpression.getJS(null))}; }`,
+        fnAggregate: `function($$,${simpleFieldNames.join(',')}) { return ${aggregateFunction('$$', aggregateExpression.getJS(null))}; }`,
         fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
         fnReset: `function() { return ${zero}; }`
       }
