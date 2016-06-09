@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.32
+
+- Rename `dataSource` and `table` to `source`
+- Added `External.getExternalFor`
+
 ## 0.10.31
 
 - Fix bug where JS reserved words could not be used in aggregates
