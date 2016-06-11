@@ -1,7 +1,7 @@
 module Plywood {
   const BOUNDS_REG_EXP = /^[\[(][\])]$/;
 
-  export type PlywoodRange = Range<number | Date>;
+  export type PlywoodRange = Range<number | Date | string>;
 
   export abstract class Range<T> {
     static DEFAULT_BOUNDS = '[)';
@@ -14,6 +14,8 @@ module Plywood {
     static fromJS(parameters: any): PlywoodRange {
       if (typeof parameters.start === 'number' || typeof parameters.end === 'number') {
         return NumberRange.fromJS(parameters);
+      } else if (typeof parameters.start === 'string' || typeof parameters.end === 'string') {
+        return StringRange.fromJS(parameters);
       } else {
         return TimeRange.fromJS(parameters);
       }

@@ -961,7 +961,7 @@ module Plywood {
             if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
               return this.makeInFilter(lhs, rhs.value);
 
-            } else if (rhsType === 'NUMBER_RANGE' || rhsType === 'TIME_RANGE') {
+            } else if (rhsType === 'NUMBER_RANGE' || rhsType === 'TIME_RANGE' || rhsType === 'STRING_RANGE') {
               return this.makeBoundFilter(lhs, rhs.value);
 
             } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE') {

@@ -414,6 +414,14 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with string range, bounds: []', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter("c" >= $cityName)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with static derived attribute .is()', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: ply()

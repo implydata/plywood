@@ -102,7 +102,7 @@ module Plywood {
   // The default timezone within which dates in expressions are parsed
   export var defaultParserTimezone: Timezone = Timezone.UTC;
 
-  export type PlywoodValue = boolean | number | string | Date | NumberRange | TimeRange | Set | Dataset | External;
+  export type PlywoodValue = boolean | number | string | Date | NumberRange | TimeRange | StringRange | Set | Dataset | External;
 
   export interface PseudoDatum {
     [attribute: string]: any;

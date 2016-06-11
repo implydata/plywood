@@ -12,6 +12,7 @@ module Plywood {
     }
 
     public escapeLiteral(name: string): string {
+      if (!name) return "";
       name = name.replace(/'/g, "''");
       return "'" + name + "'";
     }

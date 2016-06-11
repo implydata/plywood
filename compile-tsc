@@ -13,8 +13,9 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/datatypes/attributeInfo.ts \
   src/datatypes/range.ts \
   src/datatypes/numberRange.ts \
-  src/datatypes/set.ts \
   src/datatypes/timeRange.ts \
+  src/datatypes/set.ts \
+  src/datatypes/stringRange.ts \
   src/datatypes/dataset.ts \
   src/datatypes/external.ts \
   \

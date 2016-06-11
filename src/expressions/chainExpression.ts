@@ -29,9 +29,18 @@ module Plywood {
 
       var type = expression.type;
       for (var action of actions) {
+        action = action.upgrade();
         type = action.getOutputType(type);
       }
       this.type = type;
+
+      if (expression.type === 'TIME' || expression.type === 'STRING') {
+        try {
+          this.expression = expression.bumpStringLiteralToTime();
+        } catch (e) {
+
+        }
+      }
     }
 
     public valueOf(): ExpressionValue {

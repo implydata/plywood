@@ -119,6 +119,13 @@ module Plywood {
           return Set.fromJS(['something']);
         }
 
+      case 'STRING_RANGE':
+        if (ex instanceof RefExpression) {
+          return StringRange.fromJS({start: 'some_' + ex.name, end: null});
+        } else {
+          return StringRange.fromJS({start: 'something', end: null});
+        }
+
       default:
         throw new Error("unsupported simulation on: " + valueType);
     }

@@ -91,6 +91,9 @@ module Plywood {
         case 'TIME_RANGE':
           return `${dialect.timeToSQL(value.start)}`;
 
+        case 'STRING_RANGE':
+          return dialect.escapeLiteral(value.start);
+
         case 'SET/STRING':
         case 'SET/NUMBER':
           return '(' + (<Set>value).elements.map((v: any) => typeof v === 'number' ? v : dialect.escapeLiteral(v)).join(',') + ')';

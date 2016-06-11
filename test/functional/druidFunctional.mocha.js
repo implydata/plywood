@@ -1542,6 +1542,34 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works string range", (testComplete) => {
+      var ex = $('wiki').filter('$cityName > "nice"')
+        .filter('$comment < "zebra"')
+        .filter('$page >= "car"')
+        .filter('$countryName <= "mauritius"')
+        .split({ 'cityName': '$cityName', 'page': '$page', 'comment': '$comment', 'country': '$countryName' });
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "cityName": "Ōita",
+              "comment": "/* 1982年（昭和57年） */",
+              "country": "Japan",
+              "page": "日本のテレビアニメ作品一覧 (1980年代)"
+            },
+            {
+              "cityName": "Ōita",
+              "comment": "/* 劇場版 */",
+              "country": "Japan",
+              "page": "ドクタースランプ"
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
     it("works with raw (SELECT)", (testComplete) => {
       var ex = $('wiki').filter('$cityName == "El Paso"');
 

@@ -107,14 +107,14 @@ describe("Postgres Functional", function() {
                 .limit(3)
             )
         );
-        // .apply(
-        //   'PagesHaving',
-        //   $("wiki").split("$page", 'Page')
-        //     .apply('Count', '$wiki.sum($count)')
-        //     .sort('$Count', 'descending')
-        //     .filter($('Count').lessThan(30))
-        //     .limit(3)
-        // );
+      // .apply(
+      //   'PagesHaving',
+      //   $("wiki").split("$page", 'Page')
+      //     .apply('Count', '$wiki.sum($count)')
+      //     .sort('$Count', 'descending')
+      //     .filter($('Count').lessThan(30))
+      //     .limit(3)
+      // );
 
       basicExecutor(ex)
         .then((result) => {
@@ -285,12 +285,103 @@ describe("Postgres Functional", function() {
                 "setType": "STRING",
                 "type": "SET"
               }
+            }]
+          )
+        })
+    });
+
+    it("works string range", (testComplete) => {
+      var ex = $('wiki')
+        .filter($('cityName').greaterThan('eagleton'))
+        .split('$cityName', 'CityName')
+        .sort('$CityName', 'descending')
+        .limit(10);
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "CityName": "Indre Arna"
+            },
+            {
+              "CityName": "Indore"
+            },
+            {
+              "CityName": "Indio"
+            },
+            {
+              "CityName": "Indian Trail"
+            },
+            {
+              "CityName": "Indianapolis"
+            },
+            {
+              "CityName": "Independence"
+            },
+            {
+              "CityName": "Inazawa"
+            },
+            {
+              "CityName": "Impruneta"
+            },
+            {
+              "CityName": "Imola"
+            },
+            {
+              "CityName": "Ilminster"
             }
           ]);
           testComplete();
         })
         .done();
     });
+
+
+    it("works string range greater than m", (testComplete) => {
+      var ex = $('wiki')
+        .filter($('cityName').greaterThan('i'))
+        .split('$cityName', 'CityName')
+        .sort('$CityName', 'descending')
+        .limit(10);
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "CityName": "Indre Arna"
+            },
+            {
+              "CityName": "Indore"
+            },
+            {
+              "CityName": "Indio"
+            },
+            {
+              "CityName": "Indian Trail"
+            },
+            {
+              "CityName": "Indianapolis"
+            },
+            {
+              "CityName": "Independence"
+            },
+            {
+              "CityName": "Inazawa"
+            },
+            {
+              "CityName": "Impruneta"
+            },
+            {
+              "CityName": "Imola"
+            },
+            {
+              "CityName": "Ilminster"
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
   });
 
   describe("incorrect commentLength and comment", () => {

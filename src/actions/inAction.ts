@@ -16,12 +16,13 @@ module Plywood {
         if (!(
           (!isSetType(inputType) && expression.canHaveType('SET')) ||
           (inputType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE')) ||
+          (inputType === 'STRING' && expression.canHaveType('STRING_RANGE')) ||
           (inputType === 'TIME' && expression.canHaveType('TIME_RANGE'))
         )) {
           throw new TypeError(`in action has a bad type combination ${inputType} IN ${expression.type || '*'}`);
         }
       } else {
-        if (!(expression.canHaveType('NUMBER_RANGE') || expression.canHaveType('TIME_RANGE') || expression.canHaveType('SET'))) {
+        if (!(expression.canHaveType('NUMBER_RANGE') || expression.canHaveType('STRING_RANGE') || expression.canHaveType('TIME_RANGE') || expression.canHaveType('SET'))) {
           throw new TypeError(`in action has invalid expression type ${expression.type}`);
         }
       }
@@ -35,6 +36,30 @@ module Plywood {
       };
     }
 
+    protected shouldUpgrade(): boolean {
+      return true;
+    }
+    
+    public upgrade() {
+      var exp = this.expression;
+      if (exp.op === 'literal') {
+        var type = (exp as LiteralExpression).type;
+        if (type === 'STRING_RANGE') {
+          var range = (this.expression as LiteralExpression).value;
+          var parseStart = parseISODate(range.start, defaultParserTimezone);
+          var parseEnd = parseISODate(range.end, defaultParserTimezone);
+          if (parseStart && parseEnd) {
+            (this.expression as LiteralExpression).type = "TIME_RANGE";
+            (this.expression as LiteralExpression).value = TimeRange.fromJS({
+              start: parseStart, end: parseEnd, bounds: '[]'
+            })
+          }
+        }
+      }
+      return this;
+    }
+
+    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
@@ -49,6 +74,7 @@ module Plywood {
       if (expression instanceof LiteralExpression) {
         switch (expression.type) {
           case 'NUMBER_RANGE':
+          case 'STRING_RANGE':
           case 'TIME_RANGE':
             var range: PlywoodRange = expression.value;
             var r0 = range.start;
@@ -86,6 +112,13 @@ module Plywood {
           if (expression instanceof LiteralExpression) {
             var range: PlywoodRange = expression.value;
             return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
+          }
+          throw new Error(`can not convert action to SQL ${this}`);
+
+        case 'STRING_RANGE':
+          if (expression instanceof LiteralExpression) {
+            var stringRange: StringRange = expression.value;
+            return dialect.inExpression(inputSQL, dialect.escapeLiteral(stringRange.start || String(-Infinity)), dialect.escapeLiteral(stringRange.end || String(Infinity)), stringRange.bounds);
           }
           throw new Error(`can not convert action to SQL ${this}`);
 

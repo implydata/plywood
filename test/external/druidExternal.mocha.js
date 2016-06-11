@@ -639,6 +639,57 @@ describe("DruidExternal", () => {
       });
     });
 
+    it("works in simple cases with string comparisons", () => {
+      var ex = $('wiki').filter("$page < 'moon'", 'Page')
+        .limit(5);
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var druidExternal = ex.external;
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
+        "dataSource": "wikipedia",
+        "dimensions": [
+          "sometimeLater",
+          "language",
+          "page",
+          "tags",
+          "commentLength",
+          "isRobot",
+          "delta_hist",
+          {
+            "dimension": "page",
+            "extractionFn": {
+              "format": "[%s]",
+              "nullHandling": "returnNull",
+              "type": "stringFormat"
+            },
+            "outputName": "pageInBrackets",
+            "type": "extraction"
+          }
+        ],
+        "filter": {
+          "dimension": "page",
+          "type": "bound",
+          "upper": "moon",
+          "upperStrict": true
+        },
+        "granularity": "all",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+        "metrics": [
+          "count",
+          "added",
+          "deleted",
+          "inserted",
+        ],
+        "pagingSpec": {
+          "pagingIdentifiers": {},
+          "threshold": 5
+        },
+        "queryType": "select"
+      });
+    });
+
     it.skip("should work with error bound calculation", () => {
       var ex = ply()
         .apply('DistPagesWithinLimits', '($wiki.countDistinct($page) - 279893).absolute() < 10');

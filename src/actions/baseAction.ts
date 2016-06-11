@@ -499,6 +499,26 @@ module Plywood {
       return Infinity;
     }
 
+    public upgrade() {
+      if (!this.shouldUpgrade()) return this;
+      var exp = this.expression;
+      if (exp.op === 'literal') {
+        var type = (exp as LiteralExpression).type;
+        if (type === 'STRING' || type === 'TIME') {
+          try {
+            this.expression = exp.bumpStringLiteralToTime();
+          } catch(e) {
+
+          }
+        }
+      }
+      return this;
+    }
+
+    protected shouldUpgrade(): boolean {
+      return false;
+    }
+
     // Environment methods
 
     public needsEnvironment(): boolean {

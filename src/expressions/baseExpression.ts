@@ -283,7 +283,7 @@ module Plywood {
 
       var literalType = literal.type;
       var returnExpression: Expression = null;
-      if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || isSetType(literalType)) {
+      if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || literalType === 'STRING_RANGE' || isSetType(literalType)) {
         returnExpression = lhs.in(literal);
       } else {
         returnExpression = lhs.is(literal);
@@ -841,22 +841,22 @@ module Plywood {
 
     public lessThan(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.bumpStringLiteralToTime().performAction(new LessThanAction({ expression: ex.bumpStringLiteralToTime() }));
+      return this.performAction(new LessThanAction({ expression: ex }));
     }
 
     public lessThanOrEqual(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.bumpStringLiteralToTime().performAction(new LessThanOrEqualAction({ expression: ex.bumpStringLiteralToTime() }));
+      return this.performAction(new LessThanOrEqualAction({ expression: ex }));
     }
 
     public greaterThan(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.bumpStringLiteralToTime().performAction(new GreaterThanAction({ expression: ex.bumpStringLiteralToTime() }));
+      return this.performAction(new GreaterThanAction({ expression: ex }));
     }
 
     public greaterThanOrEqual(ex: any): ChainExpression {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      return this.bumpStringLiteralToTime().performAction(new GreaterThanOrEqualAction({ expression: ex.bumpStringLiteralToTime() }));
+      return this.performAction(new GreaterThanOrEqualAction({ expression: ex }));
     }
 
     public contains(ex: any, compare?: string): ChainExpression {
@@ -879,19 +879,21 @@ module Plywood {
         snd = getValue(snd);
 
         if (typeof ex === 'string') {
-          ex = parseISODate(ex, defaultParserTimezone);
-          if (!ex) throw new Error('can not convert start to date');
+          var parse = parseISODate(ex, defaultParserTimezone);
+          if (parse) ex = parse;
         }
 
         if (typeof snd === 'string') {
-          snd = parseISODate(snd, defaultParserTimezone);
-          if (!snd) throw new Error('can not convert end to date');
+          var parse = parseISODate(snd, defaultParserTimezone);
+          if (parse) snd = parse;
         }
 
         if (typeof ex === 'number' && typeof snd === 'number') {
           ex = new NumberRange({ start: ex, end: snd });
         } else if (ex.toISOString && snd.toISOString) {
           ex = new TimeRange({ start: ex, end: snd });
+        } else if (typeof ex === 'string' && typeof snd === 'string') {
+          ex = new StringRange({ start: ex, end: snd });
         } else {
           throw new Error('uninterpretable IN parameters');
         }

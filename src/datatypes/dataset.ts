@@ -195,6 +195,8 @@ module Plywood {
       return new AttributeInfo({ name, type: 'STRING' });
     } else if (NumberRange.isNumberRange(attributeValue)) {
       return new AttributeInfo({ name, type: 'NUMBER_RANGE' });
+    } else if (StringRange.isStringRange(attributeValue)) {
+      return new AttributeInfo({ name, type: 'STRING_RANGE' });
     } else if (TimeRange.isTimeRange(attributeValue)) {
       return new AttributeInfo({ name, type: 'TIME_RANGE' });
     } else if (Set.isSet(attributeValue)) {

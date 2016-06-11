@@ -7,7 +7,7 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       this._ensureAction("greaterThanOrEqual");
-      this._checkExpressionTypes('NUMBER', 'TIME');
+      this._checkExpressionTypes('NUMBER', 'TIME', 'STRING');
     }
 
     public getOutputType(inputType: PlyType): PlyType {
@@ -23,6 +23,11 @@ module Plywood {
       };
     }
 
+    protected shouldUpgrade(): boolean {
+      return true;
+    }
+    
+    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         return inputFn(d, c) >= expressionFn(d, c);
