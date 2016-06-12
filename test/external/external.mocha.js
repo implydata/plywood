@@ -283,6 +283,7 @@ describe("External", () => {
       var dummyRequester = () => null;
       var external = External.fromJS({
         engine: 'druid',
+        version: '0.9.0-yo',
         source: 'moon_child',
         attributeOverrides: [
           { "name": "unique_thing", "special": "unique", "type": "STRING" }
@@ -290,20 +291,17 @@ describe("External", () => {
       }, dummyRequester);
 
       Q(external)
-        .then((baseExternal) => {
-          baseExternal.getIntrospectAttributes = () => {
-            return Q({
-              version: '0.9.0-yo',
-              attributes: AttributeInfo.fromJSs([
-                { name: 'color', type: 'STRING' },
-                { name: 'cut', type: 'STRING' },
-                { name: 'carat', type: 'STRING' },
-                { name: 'unique_thing', type: 'NUMBER', unsplitable: true }
-              ])
-            });
+        .then((initExternal) => {
+          initExternal.getIntrospectAttributes = () => {
+            return Q(AttributeInfo.fromJSs([
+              { name: 'color', type: 'STRING' },
+              { name: 'cut', type: 'STRING' },
+              { name: 'carat', type: 'STRING' },
+              { name: 'unique_thing', type: 'NUMBER', unsplitable: true }
+            ]));
           };
 
-          return baseExternal.introspect()
+          return initExternal.introspect()
         })
         .then((introspectedExternal1) => {
           expect(introspectedExternal1.toJS()).to.deep.equal({
@@ -324,15 +322,13 @@ describe("External", () => {
         })
         .then((introspectedExternal1) => {
           introspectedExternal1.getIntrospectAttributes = () => {
-            return Q({
-              attributes: AttributeInfo.fromJSs([
-                // Color removed
-                { name: 'cut', type: 'STRING' },
-                { name: 'carat', type: 'STRING' },
-                { name: 'price', type: 'NUMBER' },
-                { name: 'unique_thing', type: 'NUMBER', unsplitable: true }
-              ])
-            });
+            return Q(AttributeInfo.fromJSs([
+              // Color removed
+              { name: 'cut', type: 'STRING' },
+              { name: 'carat', type: 'STRING' },
+              { name: 'price', type: 'NUMBER' },
+              { name: 'unique_thing', type: 'NUMBER', unsplitable: true }
+            ]));
           };
 
           return introspectedExternal1.introspect()

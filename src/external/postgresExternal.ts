@@ -4,8 +4,8 @@ module Plywood {
     sqlType: string;
   }
 
-  function postProcessIntrospect(columns: SQLDescribeRow[]): IntrospectResult {
-    var attributes = columns.map((column: SQLDescribeRow) => {
+  function postProcessIntrospect(columns: SQLDescribeRow[]): Attributes {
+    return columns.map((column: SQLDescribeRow) => {
       var name = column.name;
       var sqlType = column.sqlType.toLowerCase();
       if (sqlType.indexOf('timestamp') !== -1) {
@@ -22,11 +22,6 @@ module Plywood {
       }
       return null;
     }).filter(Boolean);
-
-    return {
-      version: null,
-      attributes
-    }
   }
 
   export class PostgresExternal extends SQLExternal {
@@ -48,12 +43,25 @@ module Plywood {
         });
     }
 
+    static getVersion(requester: Requester.PlywoodRequester<any>): Q.Promise<string> {
+      return requester({ query: 'SELECT version()' })
+        .then((res) => {
+          if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
+          var key = Object.keys(res[0])[0];
+          if (!key) throw new Error('invalid version response (no key)');
+          var versionString = res[0][key];
+          var match: string[];
+          if (match = versionString.match(/^PostgreSQL (\S+) on/)) versionString = match[1];
+          return versionString;
+        });
+    }
+
     constructor(parameters: ExternalValue) {
       super(parameters, new PostgresDialect());
       this._ensureEngine("postgres");
     }
 
-    public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
+    protected getIntrospectAttributes(): Q.Promise<Attributes> {
       return this.requester({
         query: `SELECT "column_name" AS "name", "data_type" AS "sqlType" FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = ${this.dialect.escapeLiteral(this.source as string)}`,
       }).then(postProcessIntrospect);

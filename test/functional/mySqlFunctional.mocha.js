@@ -378,6 +378,7 @@ describe("MySQL Functional", function() {
         source: 'wikipedia'
       }, mySqlRequester).introspect()
         .then((external) => {
+          expect(external.version).to.equal(info.mySqlVersion);
           expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
           testComplete();
         })

@@ -40,6 +40,14 @@ module Plywood {
       throw new Error('should not call getFn on External');
     }
 
+    public getJS(datumVar: string): string {
+      throw new Error('should not call getJS on External');
+    }
+
+    public getSQL(dialect: SQLDialect): string {
+      throw new Error('should not call getSQL on External');
+    }
+
     public equals(other: ExternalExpression): boolean {
       return super.equals(other) &&
         this.external.equals(other.external);

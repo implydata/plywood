@@ -57,7 +57,7 @@ module Plywood {
     }
   }
 
-  export class SQLExternal extends External {
+  export abstract class SQLExternal extends External {
     static type = 'DATASET';
 
     public dialect: SQLDialect;
@@ -191,8 +191,6 @@ module Plywood {
       };
     }
 
-    public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
-      throw new Error('implement me');
-    }
+    protected abstract getIntrospectAttributes(): Q.Promise<Attributes>
   }
 }
