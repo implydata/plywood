@@ -62,6 +62,7 @@ module Plywood {
     }
 
     public escapeLiteral(name: string): string {
+      if (name === null) return 'NULL';
       return JSON.stringify(name);
     }
 

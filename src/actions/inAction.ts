@@ -118,7 +118,7 @@ module Plywood {
         case 'STRING_RANGE':
           if (expression instanceof LiteralExpression) {
             var stringRange: StringRange = expression.value;
-            return dialect.inExpression(inputSQL, dialect.escapeLiteral(stringRange.start || String(-Infinity)), dialect.escapeLiteral(stringRange.end || String(Infinity)), stringRange.bounds);
+            return dialect.inExpression(inputSQL, dialect.escapeLiteral(stringRange.start), dialect.escapeLiteral(stringRange.end), stringRange.bounds);
           }
           throw new Error(`can not convert action to SQL ${this}`);
 
