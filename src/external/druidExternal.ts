@@ -22,6 +22,15 @@ module Plywood {
     max: "-Infinity"
   };
 
+  export class InvalidResultError extends ExtendableError {
+    public result: any;
+
+    constructor(message: string, result: any) {
+      super(message);
+      this.result = result;
+    }
+  }
+
   function expressionNeedsAlphaNumericSort(ex: Expression): boolean {
     var type = ex.type;
     return (type === 'NUMBER' || type === 'NUMBER_RANGE');
@@ -103,11 +112,7 @@ module Plywood {
 
   function timeBoundaryPostProcessFactory(applies: ApplyAction[]): PostProcess {
     return (res: Druid.TimeBoundaryResults): Dataset => {
-      if (!correctTimeBoundaryResult(res)) {
-        var err = new Error("unexpected result from Druid (timeBoundary)");
-        (<any>err).result = res; // ToDo: special error type
-        throw err;
-      }
+      if (!correctTimeBoundaryResult(res)) throw new InvalidResultError("unexpected result from Druid (timeBoundary)", res);
 
       var result = res[0].result;
       var datum: Datum = {};
@@ -130,27 +135,18 @@ module Plywood {
   }
 
   function valuePostProcess(res: Druid.TimeseriesResults): PlywoodValue {
-    if (!correctTimeseriesResult(res)) {
-      var err = new Error("unexpected result from Druid (all / value)");
-      (<any>err).result = res; // ToDo: special error type
-      throw err;
-    }
-    if (!res.length) {
-      return 0;
-    }
+    if (!correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (all / value)", res);
+
+    if (!res.length) return 0;
     return res[0].result[External.VALUE_NAME];
   }
 
   function totalPostProcessFactory(applies: ApplyAction[]) {
     return (res: Druid.TimeseriesResults): Dataset => {
-      if (!correctTimeseriesResult(res)) {
-        var err = new Error("unexpected result from Druid (all)");
-        (<any>err).result = res; // ToDo: special error type
-        throw err;
-      }
-      if (!res.length) {
-        return new Dataset({ data: [External.makeZeroDatum(applies)] });
-      }
+      if (!correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (all)", res);
+
+      if (!res.length) return new Dataset({ data: [External.makeZeroDatum(applies)] });
+
       var datum = res[0].result;
       cleanDatumInPlace(datum);
       return new Dataset({ data: [datum] });
@@ -165,11 +161,7 @@ module Plywood {
 
   function timeseriesNormalizerFactory(timestampLabel: string = null): Normalizer {
     return (res: Druid.TimeseriesResults): Datum[] => {
-      if (!correctTimeseriesResult(res)) {
-        var err = new Error("unexpected result from Druid (timeseries)");
-        (<any>err).result = res; // ToDo: special error type
-        throw err;
-      }
+      if (!correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (timeseries)", res);
 
       return res.map(r => {
         var datum: Datum = r.result;
@@ -181,11 +173,8 @@ module Plywood {
   }
 
   function topNNormalizer(res: Druid.DruidResults): Datum[] {
-    if (!correctTopNResult(res)) {
-      var err = new Error("unexpected result from Druid (topN)");
-      (<any>err).result = res; // ToDo: special error type
-      throw err;
-    }
+    if (!correctTopNResult(res)) throw new InvalidResultError("unexpected result from Druid (topN)", res);
+
     var data = res.length ? res[0].result : [];
     for (var d of data) cleanDatumInPlace(d);
     return data;
@@ -193,11 +182,8 @@ module Plywood {
 
   function groupByNormalizerFactory(timestampLabel: string = null): Normalizer {
     return (res: Druid.GroupByResults): Datum[] => {
-      if (!correctGroupByResult(res)) {
-        var err = new Error("unexpected result from Druid (groupBy)");
-        (<any>err).result = res; // ToDo: special error type
-        throw err;
-      }
+      if (!correctGroupByResult(res)) throw new InvalidResultError("unexpected result from Druid (groupBy)", res);
+
       return res.map(r => {
         var datum: Datum = r.event;
         cleanDatumInPlace(datum);
@@ -211,11 +197,8 @@ module Plywood {
     return (results: Druid.SelectResults[]): Datum[] => {
       var data: Datum[] = [];
       for (var result of results) {
-        if (!correctSelectResult(result)) {
-          var err = new Error("unexpected result from Druid (select)");
-          (<any>err).result = result; // ToDo: special error type
-          throw err;
-        }
+        if (!correctSelectResult(result)) throw new InvalidResultError("unexpected result from Druid (select)", result);
+
         if (result.length === 0) continue;
         var events = result[0].result.events;
         for (var event of events) {
@@ -249,11 +232,7 @@ module Plywood {
   function selectNextFactory(limit: number, descending: boolean): NextFn<Druid.Query, Druid.SelectResults> {
     var resultsSoFar = 0;
     return (prevQuery, prevResult) => {
-      if (!correctSelectResult(prevResult)) {
-        var err = new Error("unexpected result from Druid (select / partial)");
-        (<any>err).result = prevResult; // ToDo: special error type
-        throw err;
-      }
+      if (!correctSelectResult(prevResult)) throw new InvalidResultError("unexpected result from Druid (select / partial)", prevResult);
 
       if (prevResult.length === 0) return null; // Out of results: done!
 
@@ -321,7 +300,7 @@ module Plywood {
   function segmentMetadataPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
     return (res: Druid.SegmentMetadataResults): Attributes => {
       var res0 = res[0];
-      if (!res0 || !res0.columns) throw new Error('malformed segmentMetadata response');
+      if (!res0 || !res0.columns) throw new InvalidResultError('malformed segmentMetadata response', res);
       var columns = res0.columns;
       var aggregators = res0.aggregators || {};
 
@@ -380,7 +359,7 @@ module Plywood {
   function introspectPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
     return (res: Druid.DatasourceIntrospectResult): Attributes => {
       if (!Array.isArray(res.dimensions) || !Array.isArray(res.metrics)) {
-        throw new Error('malformed GET introspect response');
+        throw new InvalidResultError('malformed GET introspect response', res);
       }
 
       var attributes: Attributes = [
@@ -431,7 +410,7 @@ module Plywood {
     static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
       return requester({ query: { queryType: 'sourceList' } })
         .then((sources) => {
-          if (!Array.isArray(sources)) throw new Error('invalid sources response');
+          if (!Array.isArray(sources)) throw new InvalidResultError('invalid sources response', sources);
           return sources.sort();
         })
     }
@@ -443,7 +422,7 @@ module Plywood {
         }
       })
         .then((res) => {
-          if (!correctStatusResult(res)) throw new Error('unexpected result from /status');
+          if (!correctStatusResult(res)) throw new InvalidResultError('unexpected result from /status', res);
           return res.version
         });
     }

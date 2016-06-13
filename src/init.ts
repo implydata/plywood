@@ -143,4 +143,20 @@ module Plywood {
     }
     return expr;
   }
+
+  // Taken from: https://stackoverflow.com/questions/31089801/extending-error-in-javascript-with-es6-syntax
+  export class ExtendableError extends Error {
+    public stack: string;
+
+    constructor(message: string) {
+      super(message);
+      this.name = (this.constructor as any).name;
+      this.message = message;
+      if (typeof (Error as any).captureStackTrace === 'function') {
+        (Error as any).captureStackTrace(this, this.constructor);
+      } else {
+        this.stack = (new Error(message) as any).stack;
+      }
+    }
+  }
 }
