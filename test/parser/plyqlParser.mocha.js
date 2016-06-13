@@ -80,12 +80,12 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works with a SIZE expression", () => {
-      var parse = Expression.parseSQL("SIZE(`page`)");
+    it("works with a LENGTH expression", () => {
+      var parse = Expression.parseSQL("LENGTH(`page`)");
       var parse2 = Expression.parseSQL("LEN(`page`)");
-      var parse3 = Expression.parseSQL("LENGTH(`page`)");
+      var parse3 = Expression.parseSQL("CHAR_LENGTH(`page`)");
 
-      var ex2 = $('page').size();
+      var ex2 = $('page').length();
 
       expect(parse.verb).to.equal(null);
       expect(parse2.verb).to.equal(null);

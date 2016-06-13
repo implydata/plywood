@@ -79,7 +79,7 @@ describe("Action", () => {
       { action: 'numberBucket', size: 5 },
       { action: 'numberBucket', size: 5, offset: 1 },
 
-      { action: 'size' },
+      { action: 'length' },
 
       { action: 'timeFloor', duration: 'P1D' },
       { action: 'timeFloor', duration: 'PT2H', timezone: 'Etc/UTC' },

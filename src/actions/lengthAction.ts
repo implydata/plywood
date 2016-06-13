@@ -1,17 +1,17 @@
 module Plywood {
-  export class SizeAction extends Action {
-    static fromJS(parameters: ActionJS): SizeAction {
-      return new SizeAction(Action.jsToValue(parameters));
+  export class LengthAction extends Action {
+    static fromJS(parameters: ActionJS): LengthAction {
+      return new LengthAction(Action.jsToValue(parameters));
     }
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
-      this._ensureAction("size");
+      this._ensureAction("length");
       this._checkNoExpression();
     }
 
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'STRING', 'SET/STRING', 'SET/NUMBER', 'SET/TIME');
+      this._checkInputTypes(inputType, 'STRING');
       return 'NUMBER';
     }
 
@@ -22,9 +22,8 @@ module Plywood {
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
-        if (inV === null) return 0;
-        if (typeof inV === 'string' || Array.isArray(inV)) return inV.length;
-        return (inV as Set).elements.length;
+        if (inV === null) return null;
+        return inV.length;
       }
     }
     
@@ -33,9 +32,9 @@ module Plywood {
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `LENGTH(${inputSQL})`
+      return dialect.lengthExpression(inputSQL);
     }
   }
 
-  Action.register(SizeAction);
+  Action.register(LengthAction);
 }

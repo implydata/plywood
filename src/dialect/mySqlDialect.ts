@@ -65,6 +65,10 @@ module Plywood {
       return `LOCATE(${a},${b})>0`;
     }
 
+    public lengthExpression(a: string): string {
+      return `CHAR_LENGTH(${a})`;
+    }
+
     public isNotDistinctFromExpression(a: string, b: string): string {
       return `(${a}<=>${b})`;
     }

@@ -108,7 +108,7 @@ var fns = {
   EXTRACT: function(op, reg) { return upgrade(op).extract(reg); },
   CONCAT: function() { return Expression.concat(Array.prototype.map.call(arguments, upgrade)); },
   SUBSTRING: function(op, i, n) { return upgrade(op).substr(i, n); },
-  SIZE: function(op) { return upgrade(op).size(); },
+  LENGTH: function(op) { return upgrade(op).length(); },
   TIME_FLOOR: function(op, d, tz) { return upgrade(op).timeFloor(d, tz); },
   TIME_SHIFT: function(op, d, s, tz) { return upgrade(op).timeShift(d, s, tz); },
   TIME_RANGE: function(op, d, s, tz) { return upgrade(op).timeRange(d, s, tz); },
@@ -155,8 +155,8 @@ var fns = {
 };
 fns.ABS = fns.ABSOLUTE;
 fns.POW = fns.POWER;
-fns.LEN = fns.SIZE;
-fns.LENGTH = fns.SIZE;
+fns.LEN = fns.LENGTH;
+fns.CHAR_LENGTH = fns.LENGTH;
 fns.IFNULL = fns.FALLBACK;
 fns.SUBSTR = fns.SUBSTRING;
 fns.CURRENT_TIMESTAMP = fns.NOW;

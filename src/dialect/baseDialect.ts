@@ -63,6 +63,10 @@ module Plywood {
       throw new Error('must implement');
     }
 
+    public lengthExpression(a: string): string {
+      throw new Error('must implement');
+    }
+
     public isNotDistinctFromExpression(a: string, b: string): string {
       if (a === 'NULL') return `${b} IS NULL`;
       if (b === 'NULL') return `${a} IS NULL`;

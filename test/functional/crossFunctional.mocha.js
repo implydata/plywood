@@ -406,6 +406,14 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with length action on filter', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').filter('$cityName.length() > 0')
+        .split('$cityName', 'CityName')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
   });
 
 
@@ -776,6 +784,15 @@ describe("Cross Functional", function() {
         .limit(4)
     }));
 
+    it('works with length action on split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split({ 'PageLength': '$page.length()', 'Page': '$page' })
+        .sort('$PageLength', 'descending')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
   });
 
 
@@ -889,22 +906,18 @@ describe("Cross Functional", function() {
         .apply('MaxCommentLength', '$wiki.max($commentLength)')
     }));
 
-    it('works with size action on split', equalityTest({
+    it('works with string length in apply', equalityTest({
+      /*
+       // 2 entries in zh:
+        druid and postgres returns: "Page": "𠊎話" (len 2) and mysql has: "Page": "?話"(len 2)
+        druid and postgres returns: 虾子𡎚站 (len 5) and mysql has 虾子?站(len 4)
+       */
       executorNames: ['druid', 'mysql', 'postgres'],
-      expression: $('wiki').split({ 'PageSize': '$page.size()', 'Page': '$page' })
-        .sort('$PageSize', 'descending')
-        .apply('Count', '$wiki.sum($count)')
-        .sort('$Count', 'descending')
-        .limit(5)
-    }));
-
-    it('works with size action on filter', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'],
-      expression: $('wiki').filter('$cityName.size() > 0')
-        .split('$cityName', 'CityName')
-        .apply('Count', '$wiki.sum($count)')
-        .sort('$Count', 'descending')
-        .limit(5)
+      expression: ply()
+        .apply('wiki', '$wiki.filter($channel != "zh")')
+        .apply('PageLength', '$wiki.sum($page.length())')
+        .sort('$PageLength', 'descending')
+        .limit(10)
     }));
 
   });
