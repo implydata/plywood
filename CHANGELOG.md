@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.10.33
+
+- DruidExternal: Segment metadata works on union dataSource
+- Using abstract classes (forces dependency on TypeScript >= 1.6)
+
 ## 0.10.32
 
 - Rename `dataSource` and `table` to `source`
