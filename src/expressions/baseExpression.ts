@@ -171,13 +171,11 @@ module Plywood {
     return acc;
   }
 
-  var check: Class<ExpressionValue, ExpressionJS>;
-
   /**
    * Provides a way to express arithmetic operations, aggregations and database operators.
    * This class is the backbone of plywood
    */
-  export class Expression implements Instance<ExpressionValue, ExpressionJS> {
+  export abstract class Expression implements Instance<ExpressionValue, ExpressionJS> {
     static NULL: LiteralExpression;
     static ZERO: LiteralExpression;
     static ONE: LiteralExpression;
@@ -292,7 +290,7 @@ module Plywood {
       }
       return returnExpression.simplify();
     }
-    
+
     static jsNullSafety(lhs: string, rhs: string, combine: (lhs: string, rhs: string) => string, lhsCantBeNull?: boolean, rhsCantBeNull?: boolean): string {
       if (lhsCantBeNull) {
         if (rhsCantBeNull) {
@@ -635,13 +633,9 @@ module Plywood {
       }, thisArg);
     }
 
-    public getFn(): ComputeFn {
-      throw new Error('should never be called directly');
-    }
+    public abstract getFn(): ComputeFn
 
-    public getJS(datumVar: string): string {
-      throw new Error('should never be called directly');
-    }
+    public abstract getJS(datumVar: string): string
 
     public getJSFn(datumVar: string = 'd[]'): string {
       const { type } = this;
@@ -655,9 +649,7 @@ module Plywood {
       return `function(${datumVar.replace('[]', '')}){${body}}`;
     }
 
-    public getSQL(dialect: SQLDialect): string {
-      throw new Error('should never be called directly');
-    }
+    public abstract getSQL(dialect: SQLDialect): string
 
     public extractFromAnd(matchFn: ExpressionMatchFn): ExtractAndRest {
       if (this.type !== 'BOOLEAN') return null;
@@ -787,7 +779,8 @@ module Plywood {
       var ret: any = this; // A slight type hack but it works because we know that we will go through the loop
       for (var ex of exs) {
         if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-        ret = ret.performAction(new Action.classMap[action]({ expression: ex }));
+        var ActionConstructor = Action.classMap[action] as any;
+        ret = ret.performAction(new ActionConstructor({ expression: ex }));
       }
       return ret;
     }
@@ -1255,9 +1248,7 @@ module Plywood {
     /**
      * Returns the maximum number of possible values this expression can return in a split context
      */
-    public maxPossibleSplitValues(): number {
-      throw new Error('must be implemented by sub class');
-    }
+    public abstract maxPossibleSplitValues(): number
 
     // ---------------------------------------------------------
     // Evaluation
@@ -1306,9 +1297,7 @@ module Plywood {
       return simulatedQueries;
     }
 
-    public _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue {
-      throw new Error("can not call this directly");
-    }
+    public abstract _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue
 
 
     /**
@@ -1334,9 +1323,6 @@ module Plywood {
         });
     }
 
-    public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
-      throw new Error("can not call this directly");
-    }
+    public abstract _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue>
   }
-  check = Expression;
 }

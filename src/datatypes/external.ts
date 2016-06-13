@@ -208,12 +208,7 @@ module Plywood {
     applies?: ApplyAction[];
   }
 
-  export interface IntrospectResult {
-    version: string;
-    attributes: Attributes;
-  }
-
-  export class External {
+  export abstract class External {
     static type = 'EXTERNAL';
 
     static SEGMENT_NAME = '__SEGMENT__';
@@ -508,8 +503,8 @@ module Plywood {
 
     static fromValue(parameters: ExternalValue): External {
       const { engine } = parameters;
-      var ClassFn = External.getConstructorFor(engine);
-      return <External>(new ClassFn(parameters));
+      var ClassFn = External.getConstructorFor(engine) as any;
+      return new ClassFn(parameters);
     }
 
     public engine: string;
@@ -722,6 +717,12 @@ module Plywood {
         this.rollup === other.rollup &&
         this.mode === other.mode &&
         this.filter.equals(other.filter);
+    }
+
+    public changeVersion(version: string) {
+      var value = this.valueOf();
+      value.version = version;
+      return External.fromValue(value);
     }
 
     public attachRequester(requester: Requester.PlywoodRequester<any>): External {
@@ -1329,17 +1330,23 @@ module Plywood {
       return !this.attributes;
     }
 
-    public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
-      throw new Error("can not call getIntrospectAttributes directly");
-    }
+    protected abstract getIntrospectAttributes(): Q.Promise<Attributes>
 
     public introspect(): Q.Promise<External> {
       if (!this.requester) {
         return <Q.Promise<External>>Q.reject(new Error('must have a requester to introspect'));
       }
 
+      if (!this.version) {
+        return (this.constructor as any).getVersion(this.requester).then((version: string) => {
+          version = External.extractVersion(version);
+          if (!version) throw new Error('external version not found, please specify explicitly');
+          return this.changeVersion(version).introspect();
+        });
+      }
+
       return this.getIntrospectAttributes()
-        .then(({version, attributes}) => {
+        .then((attributes) => {
           var value = this.valueOf();
 
           // Apply user provided (if any) overrides to the received attributes
@@ -1352,7 +1359,6 @@ module Plywood {
             attributes = AttributeInfo.override(value.attributes, attributes);
           }
 
-          if (version) value.version = version;
           value.attributes = attributes;
           // Once attributes are set attributeOverrides will be ignored
           return External.fromValue(value);

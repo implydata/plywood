@@ -355,8 +355,9 @@ module Plywood {
         newExpression = new ChainExpression(value);
       }
 
+      var ActionConstructor = Action.classMap[containingAction] as any;
       return [
-        new Action.classMap[containingAction]({
+        new ActionConstructor({
           expression: newExpression
         })
       ].concat(actions.slice(k));

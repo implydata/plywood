@@ -4,8 +4,8 @@ module Plywood {
     Type: string;
   }
 
-  function postProcessIntrospect(columns: SQLDescribeRow[]): IntrospectResult {
-    var attributes = columns.map((column: SQLDescribeRow) => {
+  function postProcessIntrospect(columns: SQLDescribeRow[]): Attributes {
+    return columns.map((column: SQLDescribeRow) => {
       var name = column.Field;
       var sqlType = column.Type.toLowerCase();
       if (sqlType === "datetime" || sqlType === "timestamp") {
@@ -22,11 +22,6 @@ module Plywood {
       }
       return null;
     }).filter(Boolean);
-
-    return {
-      version: null,
-      attributes
-    }
   }
 
   export class MySQLExternal extends SQLExternal {
@@ -48,12 +43,22 @@ module Plywood {
         });
     }
 
+    static getVersion(requester: Requester.PlywoodRequester<any>): Q.Promise<string> {
+      return requester({ query: 'SELECT @@version' })
+        .then((res) => {
+          if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
+          var key = Object.keys(res[0])[0];
+          if (!key) throw new Error('invalid version response (no key)');
+          return res[0][key];
+        });
+    }
+
     constructor(parameters: ExternalValue) {
       super(parameters, new MySQLDialect());
       this._ensureEngine("mysql");
     }
 
-    public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
+    protected getIntrospectAttributes(): Q.Promise<Attributes> {
       return this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.source as string)}`, }).then(postProcessIntrospect);
     }
   }

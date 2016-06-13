@@ -1,5 +1,5 @@
 module Plywood {
-  export class SQLDialect {
+  export abstract class SQLDialect {
     constructor() {}
 
     public constantGroupBy(): string {
@@ -42,9 +42,7 @@ module Plywood {
         .replace(/ 00:00:00$/, '');
     }
 
-    public timeToSQL(date: Date): string {
-      throw new Error('must implement');
-    }
+    public abstract timeToSQL(date: Date): string;
 
     public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, zeroSQL: string = '0'): string {
       var whereIndex = inputSQL.indexOf(' WHERE ');
@@ -71,9 +69,7 @@ module Plywood {
       return `(${a} IS NOT DISTINCT FROM ${b})`;
     }
 
-    public regexpExpression(expression: string, regexp: string): string {
-      throw new Error('must implement');
-    }
+    public abstract regexpExpression(expression: string, regexp: string): string
 
     public inExpression(operand: string, start: string, end: string, bounds: string) {
       if (start === end && bounds === '[]') return `${operand}=${start}`;
@@ -92,25 +88,15 @@ module Plywood {
       }
     }
 
-    public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
-      throw new Error('Dialect must implement timeFloorExpression');
-    }
+    public abstract timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string
 
-    public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
-      throw new Error('Dialect must implement timeBucketExpression');
-    }
+    public abstract timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string
 
-    public timePartExpression(operand: string, part: string, timezone: Timezone): string {
-      throw new Error('Dialect must implement timePartExpression');
-    }
+    public abstract timePartExpression(operand: string, part: string, timezone: Timezone): string
 
-    public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string {
-      throw new Error('Dialect must implement timeShiftExpression');
-    }
+    public abstract timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string
 
-    public extractExpression(operand: string, regexp: string): string {
-      throw new Error('Dialect must implement extractExpression');
-    }
+    public abstract extractExpression(operand: string, regexp: string): string
   }
 
 }

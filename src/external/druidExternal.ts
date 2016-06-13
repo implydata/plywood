@@ -438,10 +438,10 @@ module Plywood {
           queryType: 'status'
         }
       })
-        .then(
-          ((res) => External.extractVersion(res.version)),
-          () => null
-        )
+        .then((res) => {
+          // ToDo: check valid response
+          return res.version
+        });
     }
 
     /**
@@ -2240,35 +2240,31 @@ return (start < 0 ?'-':'') + parts.join('.');
       }
     }
 
-    public getIntrospectAttributesWithSegmentMetadata(withAggregators: boolean): Q.Promise<Attributes> {
+    protected getIntrospectAttributesWithSegmentMetadata(): Q.Promise<Attributes> {
       var { requester, timeAttribute } = this;
 
       var query: Druid.Query = {
         queryType: 'segmentMetadata',
         dataSource: this.getDruidDataSource(),
         merge: true,
-        analysisTypes: []
+        analysisTypes: ['aggregators'],
+        lenientAggregatorMerge: true
       };
-      if (withAggregators) {
-        query.analysisTypes.push("aggregators");
-        query.lenientAggregatorMerge = true;
+
+      if (this.versionBefore('0.9.0')) {
+        query.analysisTypes = [];
+        delete query.lenientAggregatorMerge;
       }
 
-      var resultPromise = requester({ query }).then(segmentMetadataPostProcessFactory(timeAttribute));
-
-      if (withAggregators) {
-        resultPromise = resultPromise.catch((err: Error) => {
-          if (err.message.indexOf('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType') === -1) {
-            throw err;
-          }
-          return this.getIntrospectAttributesWithSegmentMetadata(false);
-        });
+      if (this.versionBefore('0.9.2') && (query.dataSource as Druid.DataSourceFull).type === 'union') {
+        // https://github.com/druid-io/druid/issues/3128
+        query.dataSource = (query.dataSource as Druid.DataSourceFull).dataSources[0];
       }
 
-      return resultPromise;
+      return requester({ query }).then(segmentMetadataPostProcessFactory(timeAttribute));
     }
 
-    public getIntrospectAttributesWithGet(): Q.Promise<Attributes> {
+    protected getIntrospectAttributesWithGet(): Q.Promise<Attributes> {
       var { requester, timeAttribute } = this;
 
       return requester({
@@ -2280,40 +2276,24 @@ return (start < 0 ?'-':'') + parts.join('.');
         .then(introspectPostProcessFactory(timeAttribute))
     }
 
-    public getIntrospectAttributes(): Q.Promise<IntrospectResult> {
-      var versionPromise = this.version ? Q(this.version) : DruidExternal.getVersion(this.requester);
+    protected getIntrospectAttributes(): Q.Promise<Attributes> {
+      switch (this.introspectionStrategy) {
+        case 'segment-metadata-fallback':
+          return this.getIntrospectAttributesWithSegmentMetadata()
+            .catch((err: Error) => {
+              if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
+              return this.getIntrospectAttributesWithGet();
+            });
 
-      return versionPromise.then((version) => {
-        var withAggregators = version && !External.versionLessThan(version, '0.9.0');
-        var attributePromise: Q.Promise<Attributes>;
-        switch (this.introspectionStrategy) {
-          case 'segment-metadata-fallback':
-            attributePromise = this.getIntrospectAttributesWithSegmentMetadata(withAggregators)
-              .catch((err: Error) => {
-                if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
-                return this.getIntrospectAttributesWithGet();
-              });
-            break;
+        case 'segment-metadata-only':
+          return this.getIntrospectAttributesWithSegmentMetadata();
 
-          case 'segment-metadata-only':
-            attributePromise = this.getIntrospectAttributesWithSegmentMetadata(withAggregators);
-            break;
+        case 'datasource-get':
+          return this.getIntrospectAttributesWithGet();
 
-          case 'datasource-get':
-            attributePromise = this.getIntrospectAttributesWithGet();
-            break;
-
-          default:
-            throw new Error('invalid introspectionStrategy');
-        }
-
-        return attributePromise.then(attributes => {
-          return {
-            version,
-            attributes
-          }
-        });
-      });
+        default:
+          throw new Error('invalid introspectionStrategy');
+      }
     }
   }
   External.register(DruidExternal);

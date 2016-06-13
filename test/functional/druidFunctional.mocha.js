@@ -1899,5 +1899,79 @@ describe("Druid Functional", function() {
         })
         .done();
     });
+
   });
+
+
+  describe("introspection (union dataSource)", () => {
+    var doubleWikiExternal = External.fromJS({
+      engine: 'druid',
+      source: ['wikipedia', 'wikipedia-compact'],
+      timeAttribute: 'time',
+      filter: $('time').in(TimeRange.fromJS({
+        start: new Date("2015-09-12T00:00:00Z"),
+        end: new Date("2015-09-13T00:00:00Z")
+      }))
+    }, druidRequester);
+
+    var basicExecutor = basicExecutorFactory({
+      datasets: {
+        wiki: doubleWikiExternal
+      }
+    });
+
+    it("works with introspection", (testComplete) => {
+      var ex = ply()
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
+        .apply('Count', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .apply(
+          'Time',
+          $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
+            .apply('TotalAdded', '$wiki.sum($added)')
+            .sort('$Timestamp', 'ascending')
+            .limit(3)
+        );
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Count": 229422,
+              "Time": [
+                {
+                  "Timestamp": {
+                    "end": new Date('2015-09-12T01:00:00.000Z'),
+                    "start": new Date('2015-09-12T00:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  },
+                  "TotalAdded": 663850
+                },
+                {
+                  "Timestamp": {
+                    "end": new Date('2015-09-12T02:00:00.000Z'),
+                    "start": new Date('2015-09-12T01:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  },
+                  "TotalAdded": 2836144
+                },
+                {
+                  "Timestamp": {
+                    "end": new Date('2015-09-12T03:00:00.000Z'),
+                    "start": new Date('2015-09-12T02:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  },
+                  "TotalAdded": 6091932
+                }
+              ],
+              "TotalAdded": 65106214
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+  });
+
 });

@@ -70,8 +70,7 @@ module Plywood {
 // =====================================================================================
 // =====================================================================================
 
-  var checkAction: Class<ActionValue, ActionJS>;
-  export class Action implements Instance<ActionValue, ActionJS> {
+  export abstract class Action implements Instance<ActionValue, ActionJS> {
 
     static jsToValue(parameters: ActionJS): ActionValue {
       var value: ActionValue = {
@@ -117,6 +116,11 @@ module Plywood {
       }
 
       return ClassFn.fromJS(actionJS);
+    }
+
+    static fromValue(value: ActionValue): Action {
+      var ClassFn = Action.classMap[value.action] as any;
+      return new ClassFn(value);
     }
 
     public action: string;
@@ -228,18 +232,14 @@ module Plywood {
       }
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      throw new Error(`must implement getOutputType in ${this.action}`);
-    }
+    public abstract getOutputType(inputType: PlyType): PlyType
 
     protected _stringTransformOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'STRING', 'SET/STRING');
       return inputType;
     }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      throw new Error(`must implement _fillRefSubstitutions in ${this.action}`);
-    }
+    public abstract _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType
 
     protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       var action = this.action;
@@ -305,7 +305,7 @@ module Plywood {
         value.expression = simpleExpression;
       }
       value.simple = true;
-      return new Action.classMap[this.action](value);
+      return Action.fromValue(value);
     }
 
     /**
@@ -462,7 +462,7 @@ module Plywood {
       var value = this.valueOf();
       value.simple = false;
       value.expression = subExpression;
-      return new (Action.classMap[this.action])(value);
+      return Action.fromValue(value);
     }
 
     public canDistribute(): boolean {
@@ -478,7 +478,7 @@ module Plywood {
       if (!expression || expression === newExpression) return this;
       var value = this.valueOf();
       value.expression = newExpression;
-      return new (Action.classMap[this.action])(value);
+      return Action.fromValue(value);
     }
 
     public isNester(): boolean {
@@ -515,5 +515,5 @@ module Plywood {
       return true;
     }
   }
-  checkAction = Action;
+
 }

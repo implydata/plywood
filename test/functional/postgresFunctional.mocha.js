@@ -243,6 +243,7 @@ describe("Postgres Functional", function() {
         source: 'wikipedia'
       }, postgresRequester).introspect()
         .then((external) => {
+          expect(external.version).to.equal(info.postgresVersion);
           expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
           testComplete();
         })
