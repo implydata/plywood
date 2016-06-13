@@ -941,6 +941,10 @@ module Plywood {
       return this.performAction(new AbsoluteAction({}));
     }
 
+    public size(): ChainExpression {
+      return this.performAction(new SizeAction({}));
+    }
+
     // Time manipulation
 
     public timeBucket(duration: any, timezone?: any): ChainExpression {

@@ -889,6 +889,24 @@ describe("Cross Functional", function() {
         .apply('MaxCommentLength', '$wiki.max($commentLength)')
     }));
 
+    it('works with size action on split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split({ 'PageSize': '$page.size()', 'Page': '$page' })
+        .sort('$PageSize', 'descending')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with size action on filter', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').filter('$cityName.size() > 0')
+        .split('$cityName', 'CityName')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
   });
 
 

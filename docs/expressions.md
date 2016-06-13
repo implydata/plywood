@@ -341,6 +341,10 @@ Performs a lookup within the specified namespace.
 Returns value of given expression if operand is null. 
 Writing `$('str').fallback(r('hello'))` is the same as parsing `$str === null ? 'hello' : $str`
 
+*operand*.**size**()
+
+Operand is of type string or Set. Returns size of operand. 
+
 ```javascript
 var ex = $('str').extract("([0-9]+\\.[0-9]+\\.[0-9]+)").fallback("missing");
 ex.compute({ str: 'kafka-0.7.2' }).then(console.log); // => '0.7.2'
