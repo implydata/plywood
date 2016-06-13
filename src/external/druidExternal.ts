@@ -97,6 +97,10 @@ module Plywood {
     return Array.isArray(result) && (result.length === 0 || typeof result[0].result === 'object');
   }
 
+  function correctStatusResult(result: Druid.StatusResult): boolean {
+    return result && typeof result.version === 'string';
+  }
+
   function timeBoundaryPostProcessFactory(applies: ApplyAction[]): PostProcess {
     return (res: Druid.TimeBoundaryResults): Dataset => {
       if (!correctTimeBoundaryResult(res)) {
@@ -439,7 +443,7 @@ module Plywood {
         }
       })
         .then((res) => {
-          // ToDo: check valid response
+          if (!correctStatusResult(res)) throw new Error('unexpected result from /status');
           return res.version
         });
     }
