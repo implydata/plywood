@@ -157,6 +157,12 @@ module Plywood {
       return r(parse);
     }
 
+    public bumpStringLiteralToTimeIfCan(): Expression {
+      if (this.type !== 'STRING') return this;
+      var parse = parseISODate(this.value, defaultParserTimezone);
+      return parse ? r(parse) : this;
+    }
+    
     public bumpStringLiteralToSetString(): Expression {
       if (this.type !== 'STRING') return this;
       return r(Set.fromJS([this.value]));

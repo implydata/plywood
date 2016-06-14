@@ -757,6 +757,10 @@ module Plywood {
       return this;
     }
 
+    public bumpStringLiteralToTimeIfCan(): Expression {
+      return this;
+    }
+
     public bumpStringLiteralToSetString(): Expression {
       return this;
     }

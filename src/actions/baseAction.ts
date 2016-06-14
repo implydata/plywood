@@ -505,11 +505,7 @@ module Plywood {
       if (exp.op === 'literal') {
         var type = (exp as LiteralExpression).type;
         if (type === 'STRING' || type === 'TIME') {
-          try {
-            this.expression = exp.bumpStringLiteralToTime();
-          } catch(e) {
-            return this;
-          }
+          this.expression = exp.bumpStringLiteralToTimeIfCan()
         }
       }
       return this;

@@ -35,11 +35,7 @@ module Plywood {
       this.type = type;
 
       if (expression.type === 'TIME' || expression.type === 'STRING') {
-        try {
-          this.expression = expression.bumpStringLiteralToTime();
-        } catch (e) {
-
-        }
+        this.expression = expression.bumpStringLiteralToTimeIfCan();
       }
     }
 
