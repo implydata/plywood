@@ -460,7 +460,7 @@ module Plywood {
       var expression = this.expression;
       if (!expression) return this;
       var subExpression = expression._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff + Number(this.isNester()));
-      if (expression.equals(subExpression)) return this;
+      if (expression === subExpression) return this;
       var value = this.valueOf();
       value.simple = false;
       value.expression = subExpression;
@@ -499,13 +499,13 @@ module Plywood {
       return Infinity;
     }
 
-    public upgradeStringToTime(): Action {
-      if (!this.shouldUpgradeStringToTime()) return this;
+    public upgradeStringToTime(type: PlyType): Action {
+      if (!this.shouldUpgradeStringToTime(type) || type !== 'TIME') return this;
       var { expression } = this;
-      return this.changeExpression(expression.bumpStringLiteralToTimeIfCan());
+      return this.changeExpression(expression.bumpStringLiteralToTimeIfCan(type));
     }
 
-    protected shouldUpgradeStringToTime(): boolean {
+    protected shouldUpgradeStringToTime(type: PlyType): boolean {
       return false;
     }
 

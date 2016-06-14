@@ -69,7 +69,7 @@ module Plywood {
     }
 
     public midpoint(): string {
-      return String.fromCharCode(Math.floor((this.start.charCodeAt(0) + this.end.charCodeAt(0)) / 2));
+      throw new Error("midpoint not supported in string range");
     }
 
     protected _zeroEndpoint() {

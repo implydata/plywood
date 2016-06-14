@@ -30,17 +30,14 @@ module Plywood {
       var type = expression.type;
       var upgradeActions: Action[] = [];
       for (var action of actions) {
-        var upgraded = action.upgradeStringToTime();
+        var upgraded = action.upgradeStringToTime(expression.type);
         upgradeActions.push(upgraded);
         type = upgraded.getOutputType(type);
       }
 
       this.actions = upgradeActions;
       this.type = type;
-
-      if (expression.type === 'STRING') {
-        this.expression = expression.bumpStringLiteralToTimeIfCan();
-      }
+      this.expression = expression.bumpStringLiteralToTimeIfCan(expression.type);
     }
 
     public valueOf(): ExpressionValue {
