@@ -66,6 +66,10 @@ module Plywood {
       return `POSITION(${a} IN ${b})>0`;
     }
 
+    public lengthExpression(a: string): string {
+      return `LENGTH(${a})`;
+    }
+
     public regexpExpression(expression: string, regexp: string): string {
       return `(${expression} ~ '${regexp}')`; // ToDo: escape this.regexp
     }

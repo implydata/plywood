@@ -50,6 +50,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/actions/inAction.ts \
   src/actions/isAction.ts \
   src/actions/joinAction.ts \
+  src/actions/lengthAction.ts \
   src/actions/lessThanAction.ts \
   src/actions/lessThanOrEqualAction.ts \
   src/actions/lookupAction.ts \

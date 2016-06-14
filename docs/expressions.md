@@ -347,6 +347,15 @@ ex.compute({ str: 'kafka-0.7.2' }).then(console.log); // => '0.7.2'
 ex.compute({ str: 'Web 2.0' }).then(console.log); // => 'missing'
 ```
 
+*operand*.**length**()
+
+Returns the length of the string
+
+```javascript
+var ex = $('str').length();
+ex.compute({ str: 'morning' }).then(console.log); // => 7
+```
+
 ### Number manipulation
 
 

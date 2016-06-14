@@ -88,6 +88,8 @@ module Plywood {
       }
     }
 
+    public abstract lengthExpression(a: string): string;
+
     public abstract timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string
 
     public abstract timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string

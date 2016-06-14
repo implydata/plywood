@@ -47,6 +47,22 @@ describe("compute native", () => {
       .done();
   });
 
+  it("gets length of string", (testComplete) => {
+    var ex = ply()
+      .apply('size', r('hey').length());
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            size: 3
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+  
   it("works with power and abs", (testComplete) => {
     var ex = ply()
       .apply('number', 256)
