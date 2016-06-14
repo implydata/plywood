@@ -40,19 +40,21 @@ module Plywood {
       return true;
     }
     
-    public upgradeStringToTime() {
-      var exp = this.expression;
-      if (exp.op === 'literal') {
-        var type = (exp as LiteralExpression).type;
+    public upgradeStringToTime(): Action {
+      const { expression } = this;
+      if (expression instanceof LiteralExpression) {
+        var type = expression.type;
         if (type === 'STRING_RANGE') {
-          var range = (this.expression as LiteralExpression).value;
+          var range = expression.value;
           var parseStart = parseISODate(range.start, defaultParserTimezone);
           var parseEnd = parseISODate(range.end, defaultParserTimezone);
-          if (parseStart && parseEnd) {
-            (this.expression as LiteralExpression).type = "TIME_RANGE";
-            (this.expression as LiteralExpression).value = TimeRange.fromJS({
-              start: parseStart, end: parseEnd, bounds: '[]'
-            })
+          if (parseStart || parseEnd) {
+            return this.changeExpression(new LiteralExpression({
+              type: "TIME_RANGE",
+              value: TimeRange.fromJS({
+                start: parseStart, end: parseEnd, bounds: '[]'
+              })
+            }))
           }
         }
       }

@@ -28,10 +28,13 @@ module Plywood {
       this._ensureOp('chain');
 
       var type = expression.type;
+      var upgradeActions: Action[] = [];
       for (var action of actions) {
-        action = action.upgradeStringToTime();
+        upgradeActions.push(action.upgradeStringToTime());
         type = action.getOutputType(type);
       }
+
+      this.actions = upgradeActions;
       this.type = type;
 
       if (expression.type === 'TIME' || expression.type === 'STRING') {

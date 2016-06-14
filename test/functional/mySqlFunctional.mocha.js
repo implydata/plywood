@@ -364,7 +364,8 @@ describe("MySQL Functional", function() {
 
     it("works string range FAIL", (testComplete) => {
       var ex = $('wiki')
-        .filter($('cityName').greaterThan('a'))
+        .filter($('cityName').greaterThan('A'))
+        .split('$cityName', 'City')
         .limit(5);
       basicExecutor(ex)
         .then((result) => {
@@ -392,13 +393,16 @@ describe("MySQL Functional", function() {
 
     it("works string range", (testComplete) => {
       var ex = $('wiki')
-        .filter($('cityName').lessThan('p'))
+        .filter($('cityName').lessThan('P'))
         .filter('$comment < "zebra"')
         .split('$cityName', 'City')
         .limit(5);
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
+            {
+              "City": "'Ewa Beach"
+            },
             {
               "City": "A Coruña"
             },
@@ -410,9 +414,6 @@ describe("MySQL Functional", function() {
             },
             {
               "City": "Aarhus"
-            },
-            {
-              "City": "Aaviku"
             }
           ]);
           testComplete();

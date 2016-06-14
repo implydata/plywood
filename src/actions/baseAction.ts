@@ -501,14 +501,8 @@ module Plywood {
 
     public upgradeStringToTime() {
       if (!this.shouldUpgradeStringToTime()) return this;
-      var exp = this.expression;
-      if (exp.op === 'literal') {
-        var type = (exp as LiteralExpression).type;
-        if (type === 'STRING' || type === 'TIME') {
-          this.expression = exp.bumpStringLiteralToTimeIfCan()
-        }
-      }
-      return this;
+      var { expression } = this;
+      return this.changeExpression(expression.bumpStringLiteralToTimeIfCan());
     }
 
     protected shouldUpgradeStringToTime(): boolean {

@@ -292,7 +292,7 @@ describe("Postgres Functional", function() {
 
     it("works string range", (testComplete) => {
       var ex = $('wiki')
-        .filter($('cityName').greaterThan('eagleton'))
+        .filter($('cityName').greaterThan('Eagleton'))
         .split('$cityName', 'CityName')
         .sort('$CityName', 'descending')
         .limit(10);
@@ -300,88 +300,40 @@ describe("Postgres Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "CityName": "Indre Arna"
+              "CityName": "Ōita"
             },
             {
-              "CityName": "Indore"
+              "CityName": "Łódź"
             },
             {
-              "CityName": "Indio"
+              "CityName": "İzmit"
             },
             {
-              "CityName": "Indian Trail"
+              "CityName": "České Budějovice"
             },
             {
-              "CityName": "Indianapolis"
+              "CityName": "Ürümqi"
             },
             {
-              "CityName": "Independence"
+              "CityName": "Ústí nad Labem"
             },
             {
-              "CityName": "Inazawa"
+              "CityName": "Évry"
             },
             {
-              "CityName": "Impruneta"
+              "CityName": "Épinay-sur-Seine"
             },
             {
-              "CityName": "Imola"
+              "CityName": "Épernay"
             },
             {
-              "CityName": "Ilminster"
+              "CityName": "Élancourt"
             }
           ]);
           testComplete();
         })
         .done();
     });
-
-
-    it("works string range greater than m", (testComplete) => {
-      var ex = $('wiki')
-        .filter($('cityName').greaterThan('i'))
-        .split('$cityName', 'CityName')
-        .sort('$CityName', 'descending')
-        .limit(10);
-
-      basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "CityName": "Indre Arna"
-            },
-            {
-              "CityName": "Indore"
-            },
-            {
-              "CityName": "Indio"
-            },
-            {
-              "CityName": "Indian Trail"
-            },
-            {
-              "CityName": "Indianapolis"
-            },
-            {
-              "CityName": "Independence"
-            },
-            {
-              "CityName": "Inazawa"
-            },
-            {
-              "CityName": "Impruneta"
-            },
-            {
-              "CityName": "Imola"
-            },
-            {
-              "CityName": "Ilminster"
-            }
-          ]);
-          testComplete();
-        })
-        .done();
-    });
-
   });
 
   describe("incorrect commentLength and comment", () => {
