@@ -30,8 +30,9 @@ module Plywood {
       var type = expression.type;
       var upgradeActions: Action[] = [];
       for (var action of actions) {
-        upgradeActions.push(action.upgradeStringToTime());
-        type = action.getOutputType(type);
+        var upgraded = action.upgradeStringToTime();
+        upgradeActions.push(upgraded);
+        type = upgraded.getOutputType(type);
       }
 
       this.actions = upgradeActions;
