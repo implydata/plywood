@@ -7,6 +7,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Takes advantage of most features in Druid 0.9.1
 - Removed untested RangeAttributeInfo with helpful error message to use numbers instead
 - DruidExternal: added `-legacy-lookups` version flag
+- Trying to secondary filter on __time in Druid <= 0.9.1 now throws an error (at planning stage) as it is impossible
 
 ## 0.10.33
 
