@@ -23,7 +23,7 @@ module Plywood {
       };
     }
 
-    protected shouldUpgrade(): boolean {
+    protected shouldUpgradeStringToTime(): boolean {
       return true;
     }
     

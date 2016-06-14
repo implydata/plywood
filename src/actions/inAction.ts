@@ -36,11 +36,11 @@ module Plywood {
       };
     }
 
-    protected shouldUpgrade(): boolean {
+    protected shouldUpgradeStringToTime(): boolean {
       return true;
     }
     
-    public upgrade() {
+    public upgradeStringToTime() {
       var exp = this.expression;
       if (exp.op === 'literal') {
         var type = (exp as LiteralExpression).type;

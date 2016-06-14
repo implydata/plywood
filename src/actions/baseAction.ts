@@ -499,8 +499,8 @@ module Plywood {
       return Infinity;
     }
 
-    public upgrade() {
-      if (!this.shouldUpgrade()) return this;
+    public upgradeStringToTime() {
+      if (!this.shouldUpgradeStringToTime()) return this;
       var exp = this.expression;
       if (exp.op === 'literal') {
         var type = (exp as LiteralExpression).type;
@@ -508,14 +508,14 @@ module Plywood {
           try {
             this.expression = exp.bumpStringLiteralToTime();
           } catch(e) {
-
+            return this;
           }
         }
       }
       return this;
     }
 
-    protected shouldUpgrade(): boolean {
+    protected shouldUpgradeStringToTime(): boolean {
       return false;
     }
 

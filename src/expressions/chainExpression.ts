@@ -29,7 +29,7 @@ module Plywood {
 
       var type = expression.type;
       for (var action of actions) {
-        action = action.upgrade();
+        action = action.upgradeStringToTime();
         type = action.getOutputType(type);
       }
       this.type = type;
