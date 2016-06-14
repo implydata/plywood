@@ -28,8 +28,7 @@ module Plywood {
     }
     
     protected _getJSHelper(inputJS: string): string {
-      if (inputJS === null) return null;
-      return `${inputJS}.length`
+      return `(_ = ${inputJS}, (_ === null ? null : _.length))`
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
