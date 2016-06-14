@@ -28,6 +28,7 @@ module Plywood {
     }
     
     protected _getJSHelper(inputJS: string): string {
+      if (inputJS === null) return null;
       return `${inputJS}.length`
     }
 

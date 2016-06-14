@@ -408,8 +408,9 @@ describe("Cross Functional", function() {
 
     it('works with length action on filter', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
-      expression: $('wiki').filter('$cityName.length() > 0')
-        .split('$cityName', 'CityName')
+      expression: ply()
+        .apply('wiki', '$wiki.apply(longCities, $cityName.length() > 10)')
+        .split('$wiki', 'CityName')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(5)
@@ -787,7 +788,6 @@ describe("Cross Functional", function() {
     it('works with length action on split', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split({ 'PageLength': '$page.length()', 'Page': '$page' })
-        .sort('$PageLength', 'descending')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(5)

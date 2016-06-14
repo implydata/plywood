@@ -63,10 +63,6 @@ module Plywood {
       throw new Error('must implement');
     }
 
-    public lengthExpression(a: string): string {
-      throw new Error('must implement');
-    }
-
     public isNotDistinctFromExpression(a: string, b: string): string {
       if (a === 'NULL') return `${b} IS NULL`;
       if (b === 'NULL') return `${a} IS NULL`;
@@ -91,6 +87,8 @@ module Plywood {
         return endSQL ? endSQL : 'TRUE';
       }
     }
+
+    public abstract lengthExpression(a: string): string;
 
     public abstract timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string
 
