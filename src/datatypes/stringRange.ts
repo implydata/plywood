@@ -69,8 +69,7 @@ module Plywood {
     }
 
     public midpoint(): string {
-      // todo
-      return this.start;
+      return String.fromCharCode(Math.floor(this.start.charCodeAt(0) + this.end.charCodeAt(0) / 2));
     }
 
     protected _zeroEndpoint() {
