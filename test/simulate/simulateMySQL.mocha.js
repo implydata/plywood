@@ -20,7 +20,7 @@ var context = {
       { name: 'cut', type: 'STRING' },
       { name: 'tags', type: 'SET/STRING' },
       { name: 'carat', type: 'NUMBER' },
-      { name: 'height_bucket', special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 },
+      { name: 'height_bucket', type: 'NUMBER' },
       { name: 'price', type: 'NUMBER' },
       { name: 'tax', type: 'NUMBER' }
     ]

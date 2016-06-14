@@ -220,7 +220,7 @@ module Plywood {
 
     static extractVersion(v: string): string {
       if (!v) return null;
-      var m = v.match(/^\d+\.\d+\.\d+(?:-\w+)?/);
+      var m = v.match(/^\d+\.\d+\.\d+(?:-[\w\-]+)?/);
       return m ? m[0] : null;
     }
 

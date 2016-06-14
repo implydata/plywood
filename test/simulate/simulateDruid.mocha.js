@@ -16,7 +16,7 @@ var attributes = [
   { name: 'isNice', type: 'BOOLEAN' },
   { name: 'tags', type: 'SET/STRING' },
   { name: 'carat', type: 'NUMBER' },
-  { name: 'height_bucket', special: 'range', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 },
+  { name: 'height_bucket', type: 'NUMBER' },
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
   { name: 'vendor_id', special: 'unique', unsplitable: true },
@@ -27,7 +27,7 @@ var attributes = [
 
 var diamondsCompact = External.fromJS({
   engine: 'druid',
-  version: '0.9.1',
+  version: '0.9.2',
   source: 'diamonds-compact',
   timeAttribute: 'time',
   attributes: [
@@ -47,7 +47,7 @@ var diamondsCompact = External.fromJS({
 var context = {
   'diamonds': External.fromJS({
     engine: 'druid',
-    version: '0.9.1',
+    version: '0.9.2',
     source: 'diamonds',
     timeAttribute: 'time',
     attributes,
@@ -59,7 +59,7 @@ var context = {
   }).addDelegate(diamondsCompact),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
-    version: '0.9.1',
+    version: '0.9.2',
     source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
@@ -528,21 +528,12 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
-        "extractionFns": [
-          {
-            "format": "A%sZ",
-            "nullHandling": "returnNull",
-            "type": "stringFormat"
-          },
-          {
-            "function": "function(d){return /AB+/.test(d);}",
-            "type": "javascript"
-          }
-        ],
-        "type": "cascade"
+        "format": "A%sZ",
+        "nullHandling": "returnNull",
+        "type": "stringFormat"
       },
-      "type": "extraction",
-      "value": "true"
+      "pattern": "AB+",
+      "type": "regex"
     });
   });
 
@@ -554,21 +545,16 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
-        "extractionFns": [
-          {
-            "format": "A%sZ",
-            "nullHandling": "returnNull",
-            "type": "stringFormat"
-          },
-          {
-            "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"AB\")>-1));}",
-            "type": "javascript"
-          }
-        ],
-        "type": "cascade"
+        "format": "A%sZ",
+        "nullHandling": "returnNull",
+        "type": "stringFormat"
       },
-      "type": "extraction",
-      "value": "true"
+      "query": {
+        "caseSensitive": true,
+        "type": "contains",
+        "value": "AB"
+      },
+      "type": "search"
     });
   });
 
@@ -601,7 +587,7 @@ describe("simulate Druid", () => {
         "retainMissingValue": true,
         "type": "lookup"
       },
-      "type": "extraction",
+      "type": "selector",
       "value": "D"
     });
   });
@@ -618,7 +604,7 @@ describe("simulate Druid", () => {
         "replaceMissingValue": true,
         "type": "regex"
       },
-      "type": "extraction",
+      "type": "selector",
       "value": "D"
     });
   });
@@ -636,7 +622,7 @@ describe("simulate Druid", () => {
         "replaceMissingValueWith": "D",
         "type": "regex"
       },
-      "type": "extraction",
+      "type": "selector",
       "value": "D"
     });
   });
@@ -653,7 +639,7 @@ describe("simulate Druid", () => {
         "index": 0,
         "length": 1
       },
-      "type": "extraction",
+      "type": "selector",
       "value": "D"
     });
   });
@@ -664,28 +650,16 @@ describe("simulate Druid", () => {
       .apply('Count', '$diamonds.count()');
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
-      "type": "or",
-      "fields": [
-        {
-          "dimension": "color",
-          "extractionFn": {
-            "type": "substring",
-            "index": 0,
-            "length": 1
-          },
-          "type": "extraction",
-          "value": "D"
-        },
-        {
-          "dimension": "color",
-          "extractionFn": {
-            "type": "substring",
-            "index": 0,
-            "length": 1
-          },
-          "type": "extraction",
-          "value": "C"
-        }
+      "dimension": "color",
+      "extractionFn": {
+        "index": 0,
+        "length": 1,
+        "type": "substring"
+      },
+      "type": "in",
+      "values": [
+        "D",
+        "C"
       ]
     });
   });
@@ -696,33 +670,16 @@ describe("simulate Druid", () => {
       .apply('Count', '$diamonds.count()');
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
-      "fields": [
-        {
-          "dimension": "color",
-          "extractionFn": {
-            "lookup": {
-              "namespace": 'some_lookup',
-              "type": "namespace"
-            },
-            "type": "lookup"
-          },
-          "type": "extraction",
-          "value": "D"
-        },
-        {
-          "dimension": "color",
-          "extractionFn": {
-            "lookup": {
-              "namespace": 'some_lookup',
-              "type": "namespace"
-            },
-            "type": "lookup"
-          },
-          "type": "extraction",
-          "value": "C"
-        }
-      ],
-      "type": "or"
+      "dimension": "color",
+      "extractionFn": {
+        "lookup": "some_lookup",
+        "type": "registeredLookup"
+      },
+      "type": "in",
+      "values": [
+        "D",
+        "C"
+      ]
     });
   });
 
@@ -734,23 +691,15 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
-        "extractionFns": [
-          {
-            "lookup": {
-              "namespace": "some_lookup",
-              "type": "namespace"
-            },
-            "type": "lookup"
-          },
-          {
-            "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"hello\")>-1));}",
-            "type": "javascript"
-          }
-        ],
-        "type": "cascade"
+        "lookup": "some_lookup",
+        "type": "registeredLookup"
       },
-      "type": "extraction",
-      "value": "true"
+      "query": {
+        "caseSensitive": true,
+        "type": "contains",
+        "value": "hello"
+      },
+      "type": "search"
     });
   });
 
@@ -776,7 +725,7 @@ describe("simulate Druid", () => {
         "function": "function(d){return [\"D\",\"C\"].indexOf(d)>-1;}",
         "type": "javascript"
       },
-      "type": "extraction",
+      "type": "selector",
       "value": true
     });
   });
@@ -1224,11 +1173,8 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "tags",
           "extractionFn": {
-            "lookup": {
-              "namespace": "tag_lookup",
-              "type": "namespace"
-            },
-            "type": "lookup"
+            "lookup": "tag_lookup",
+            "type": "registeredLookup"
           },
           "outputName": "Tag",
           "type": "extraction"
@@ -1260,13 +1206,10 @@ describe("simulate Druid", () => {
         "filter": {
           "dimension": "tags",
           "extractionFn": {
-            "lookup": {
-              "namespace": "tag_lookup",
-              "type": "namespace"
-            },
-            "type": "lookup"
+            "lookup": "tag_lookup",
+            "type": "registeredLookup"
           },
-          "type": "extraction",
+          "type": "selector",
           "value": "something"
         },
         "granularity": "all",
@@ -1305,13 +1248,9 @@ describe("simulate Druid", () => {
         ],
         "dataSource": "diamonds",
         "dimension": {
-          "extractionFn": {
-            "function": "function(d) {\nvar m = d.match(/^((?:-?[1-9]\\d*|0)\\.\\d{2});((?:-?[1-9]\\d*|0)\\.\\d{2})$/);\nif(!m) return 'null';\nvar s = +m[1];\nif(!(Math.abs(+m[2] - s - 0.05) < 1e-6)) return 'null'; \nvar parts = String(Math.abs(s)).split('.');\nparts[0] = ('000000000' + parts[0]).substr(-10);\nreturn (start < 0 ?'-':'') + parts.join('.');\n}",
-            "type": "javascript"
-          },
           "dimension": "height_bucket",
           "outputName": "HeightBucket",
-          "type": "extraction"
+          "type": "default"
         },
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
@@ -1330,7 +1269,7 @@ describe("simulate Druid", () => {
         "dataSource": "diamonds",
         "dimension": {
           "extractionFn": {
-            "function": "function(d){_=Math.floor((d - 0.5) / 2) * 2 + 0.5;return isNaN(_)?null:_}",
+            "function": "function(d){_=Math.floor(((+d) - 0.5) / 2) * 2 + 0.5;return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "dimension": "height_bucket",
@@ -1537,12 +1476,12 @@ describe("simulate Druid", () => {
             },
             "filter": {
               "dimension": "cut",
-              "extractionFn": {
-                "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"Good\")>-1));}",
-                "type": "javascript"
+              "query": {
+                "caseSensitive": true,
+                "type": "contains",
+                "value": "Good"
               },
-              "type": "extraction",
-              "value": "true"
+              "type": "search"
             },
             "name": "GoodishPrice",
             "type": "filtered"
@@ -1640,42 +1579,19 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "filter": {
-          "fields": [
-            {
-              "dimension": "__time",
-              "extractionFn": {
-                "format": "H",
-                "locale": "en-US",
-                "timeZone": "Etc/UTC",
-                "type": "timeFormat"
-              },
-              "type": "extraction",
-              "value": 3
-            },
-            {
-              "dimension": "__time",
-              "extractionFn": {
-                "format": "H",
-                "locale": "en-US",
-                "timeZone": "Etc/UTC",
-                "type": "timeFormat"
-              },
-              "type": "extraction",
-              "value": 4
-            },
-            {
-              "dimension": "__time",
-              "extractionFn": {
-                "format": "H",
-                "locale": "en-US",
-                "timeZone": "Etc/UTC",
-                "type": "timeFormat"
-              },
-              "type": "extraction",
-              "value": 10
-            }
-          ],
-          "type": "or"
+          "dimension": "__time",
+          "extractionFn": {
+            "format": "H",
+            "locale": "en-US",
+            "timeZone": "Etc/UTC",
+            "type": "timeFormat"
+          },
+          "type": "in",
+          "values": [
+            3,
+            4,
+            10
+          ]
         },
         "granularity": "all",
         "intervals": [
@@ -1749,7 +1665,7 @@ describe("simulate Druid", () => {
             "timeZone": "Etc/UTC",
             "type": "timeFormat"
           },
-          "type": "extraction",
+          "type": "selector",
           "value": 4
         },
         "granularity": "all",
@@ -2206,8 +2122,12 @@ describe("simulate Druid", () => {
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
-      "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"sup\\\"yo\")>-1));}",
-      "type": "javascript"
+      "query": {
+        "caseSensitive": true,
+        "type": "contains",
+        "value": 'sup"yo'
+      },
+      "type": "search"
     });
   });
 
@@ -2219,7 +2139,8 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
       "query": {
-        "type": "insensitive_contains",
+        "caseSensitive": false,
+        "type": "contains",
         "value": 'sup"yo'
       },
       "type": "search"
@@ -2552,4 +2473,5 @@ describe("simulate Druid", () => {
 
     testComplete();
   });
+
 });

@@ -86,6 +86,8 @@ var druidExecutor = basicExecutorFactory({
       source: 'wikipedia',
       timeAttribute: 'time',
       context: {
+        // useCache: false,
+        // populateCache: false,
         timeout: 10000
       },
       attributes,
@@ -1003,7 +1005,7 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it.skip('works with derived dimension columns', equalityTest({
+    it('works with derived dimension columns', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki')
         .filter('$cityName == "El Paso"')

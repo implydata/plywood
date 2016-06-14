@@ -239,6 +239,10 @@ describe("External", () => {
       expect(External.extractVersion('0.9.1-iap1')).to.equal('0.9.1-iap1');
     });
 
+    it("works in multiple -s", () => {
+      expect(External.extractVersion('0.9.1-iap1-legacy-lookups')).to.equal('0.9.1-iap1-legacy-lookups');
+    });
+
     it("works in bad case", () => {
       expect(External.extractVersion('lol: 0.9.1-iap1')).to.equal(null);
     });
