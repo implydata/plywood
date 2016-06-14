@@ -21,23 +21,23 @@ module Plywood {
     constructor(parameters: ExpressionValue) {
       super(parameters, dummyObject);
       var expression = parameters.expression;
-      this.expression = expression;
+      var expressionType = expression.type;
       var actions = parameters.actions;
       if (!actions.length) throw new Error('can not have empty actions');
       this.actions = actions;
       this._ensureOp('chain');
 
-      var type = expression.type;
+      var type = expressionType;
       var upgradeActions: Action[] = [];
       for (var action of actions) {
-        var upgraded = action.upgradeStringToTime(expression.type);
+        var upgraded = action.upgradeStringToTime(expressionType);
         upgradeActions.push(upgraded);
         type = upgraded.getOutputType(type);
       }
 
       this.actions = upgradeActions;
       this.type = type;
-      this.expression = expression.bumpStringLiteralToTimeIfCan(expression.type);
+      this.expression = expression.bumpStringLiteralToTimeIfCan(expressionType);
     }
 
     public valueOf(): ExpressionValue {
