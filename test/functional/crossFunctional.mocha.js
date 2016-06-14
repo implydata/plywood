@@ -408,9 +408,8 @@ describe("Cross Functional", function() {
 
     it('works with length action on filter', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
-      expression: ply()
-        .apply('wiki', '$wiki.apply(longCities, $cityName.length() > 10)')
-        .split('$wiki', 'CityName')
+      expression: $('wiki').filter('$cityName.length() > 4')
+        .split('$cityName', 'CityName')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(5)
