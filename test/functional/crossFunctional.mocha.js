@@ -417,7 +417,15 @@ describe("Cross Functional", function() {
     it('works with string range, bounds: []', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
       expression: ply()
-        .apply('wiki', '$wiki.filter("G" >= $cityName)')
+        .apply('wiki', '$wiki.filter("G" >= $cityName and $cityName <= "K")')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with string range, bounds: ()', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter("C" > $cityName and $cityName < "Ra")')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));

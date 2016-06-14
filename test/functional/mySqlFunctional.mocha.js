@@ -362,28 +362,28 @@ describe("MySQL Functional", function() {
     });
 
 
-    it("works string range FAIL", (testComplete) => {
+    it("works string range", (testComplete) => {
       var ex = $('wiki')
-        .filter($('cityName').greaterThan('A'))
+        .filter($('cityName').greaterThan('Kab').and($('cityName').lessThan('Kar')))
         .split('$cityName', 'City')
         .limit(5);
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "City": "A Coruña"
+              "City": "Kadelburg"
             },
             {
-              "City": "Aachen"
+              "City": "Kaduwela"
             },
             {
-              "City": "Aalborg"
+              "City": "Kagoshima"
             },
             {
-              "City": "Aarhus"
+              "City": "Kailua"
             },
             {
-              "City": "Aaviku"
+              "City": "Kainan"
             }
           ]);
           testComplete();

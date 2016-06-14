@@ -38,7 +38,7 @@ module Plywood {
       this.actions = upgradeActions;
       this.type = type;
 
-      if (expression.type === 'TIME' || expression.type === 'STRING') {
+      if (expression.type === 'STRING') {
         this.expression = expression.bumpStringLiteralToTimeIfCan();
       }
     }
