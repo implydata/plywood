@@ -417,7 +417,7 @@ describe("Cross Functional", function() {
     it('works with string range, bounds: []', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
       expression: ply()
-        .apply('wiki', '$wiki.filter("G" >= $cityName and $cityName <= "K")')
+        .apply('wiki', '$wiki.filter("b" >= $channel and $channel <= "z")')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -425,7 +425,7 @@ describe("Cross Functional", function() {
     it('works with string range, bounds: ()', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
       expression: ply()
-        .apply('wiki', '$wiki.filter("C" > $cityName and $cityName < "Ra")')
+        .apply('wiki', '$wiki.filter("d" > $channel and $channel < "w")')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
