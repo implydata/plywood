@@ -447,13 +447,7 @@ module Plywood {
     static setCardinalityInflaterFactory(label: string): Inflater  {
       return (d: any) => {
         var v = d[label];
-        if ('' + v === "null") {
-          d[label] = null;
-          return;
-        }
-
-        if (typeof v === 'string') v = [v];
-        d[label] = v.length
+        d[label] = Array.isArray(v) ? v.length : 1
       }
     }
 

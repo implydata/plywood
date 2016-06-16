@@ -24,7 +24,7 @@ module Plywood {
         var inV = inputFn(d, c);
         if (inV === null) return null;
         if (Array.isArray(inV)) return inV.length; // this is to allow passing an array into .compute()
-        return inV.size();
+        return inV.cardinality();
       }
     }
 
