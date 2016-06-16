@@ -123,6 +123,10 @@ module Plywood {
       return new ClassFn(value);
     }
 
+    static jsNullSafetyExpressionless(inputJS: string, ifNotNull: (str: string) => string): string {
+      return `(_=${inputJS},(_==null?null:${ifNotNull('_')}))`;
+    }
+
     public action: string;
     public expression: Expression;
     public simple: boolean;
