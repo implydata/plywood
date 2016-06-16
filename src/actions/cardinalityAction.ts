@@ -23,6 +23,7 @@ module Plywood {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (inV === null) return null;
+        if (Array.isArray(inV)) return inV.length;
         return inV.size();
       }
     }

@@ -31,6 +31,8 @@ module Plywood {
         if (isDate(value.start) || isDate(value.end)) return 'TIME_RANGE';
         if (typeof value.start === 'number' || typeof value.end === 'number') return 'NUMBER_RANGE';
         throw new Error("unrecognizable range");
+      } else if (Array.isArray(value)) {
+        return setTypeFromArray(value);
       } else {
         var ctrType = value.constructor.type;
         if (!ctrType) {

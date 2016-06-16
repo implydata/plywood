@@ -368,6 +368,16 @@ var ex = $('x').numberBucket(5);
 ex.compute({ x: 7 }).then(console.log); // => [5, 10)
 ```
 
+### Set manipulation
+*operand*.**cardinality**()
+
+Returns the cardinality of the set
+
+```javascript
+var ex = $('colors').length();
+ex.compute({ colors: ['red', 'orange', 'green', 'blue'] }).then(console.log); // => 4
+```
+
 
 ### Time manipulation
 
