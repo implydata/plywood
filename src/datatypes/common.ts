@@ -3,23 +3,6 @@ module Plywood {
     return !!(dt && dt.toISOString);
   }
 
-  export function isBoolean(b: any) {
-    return b === true || b === false;
-  }
-
-  export function isNumber(n: any) {
-    return n !== null && !isNaN(Number(n));
-  }
-
-  export function isString(str: string) {
-    return typeof str === "string";
-  }
-
-  function isNull(n: any) {
-    return n === null;
-  }
-
-
   export function getValueType(value: any): PlyType {
     var typeofValue = typeof value;
     if (typeofValue === 'object') {
@@ -31,8 +14,6 @@ module Plywood {
         if (isDate(value.start) || isDate(value.end)) return 'TIME_RANGE';
         if (typeof value.start === 'number' || typeof value.end === 'number') return 'NUMBER_RANGE';
         throw new Error("unrecognizable range");
-      } else if (Array.isArray(value)) {
-        return setTypeFromArray(value);
       } else {
         var ctrType = value.constructor.type;
         if (!ctrType) {
@@ -138,8 +119,6 @@ module Plywood {
       if (typeofV === 'object') {
         if (v.toISOString) {
           return { type: 'TIME', value: v };
-        } else if (Array.isArray(v)) {
-          return { type: setTypeFromArray(v), value: v}
         } else {
           var js = v.toJS();
           if (!Array.isArray(js)) {
@@ -200,19 +179,6 @@ module Plywood {
   export function unwrapSetType(type: PlyType): PlyType {
     if (!type) return null;
     return isSetType(type) ? <PlyType>type.substr(4) : type;
-  }
-
-  export function setTypeFromArray(arr: PlyType[]): PlyType {
-    var type = "";
-    if (arr.every(isNull)) type = "NULL";
-    else if (arr.every(isString || isNull)) type = "STRING";
-    else if (arr.every(isDate || isNull)) type = "TIME";
-    else if (arr.every(isNumber || isNull)) type = "NUMBER";
-    else if (arr.every(isBoolean || isNull)) type = "BOOLEAN";
-    else if (arr.every(TimeRange.isTimeRange)) type = "TIME_RANGE";
-    else if (arr.every(NumberRange.isNumberRange)) type = "NUMBER_RANGE";
-    if (!type) throw new Error("unrecognized set type");
-    return `SET/${type}` as PlyType;
   }
 
   export interface SimpleFullType {

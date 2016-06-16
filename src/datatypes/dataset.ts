@@ -171,6 +171,18 @@ module Plywood {
     finalizer?: (v: string) => string;
   }
 
+  function isBoolean(b: any) {
+    return b === true || b === false;
+  }
+
+  function isNumber(n: any) {
+    return n !== null && !isNaN(Number(n));
+  }
+
+  function isString(str: string) {
+    return typeof str === "string";
+  }
+
   function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
     if (attributeValue == null) return null;
     if (isDate(attributeValue)) {
@@ -187,8 +199,6 @@ module Plywood {
       return new AttributeInfo({ name, type: 'TIME_RANGE' });
     } else if (Set.isSet(attributeValue)) {
       return new AttributeInfo({ name, type: attributeValue.getType() });
-    } else if (Array.isArray(attributeValue)) {
-      return new AttributeInfo({ name, type: setTypeFromArray(attributeValue) });
     } else if (Dataset.isDataset(attributeValue)) {
       return new AttributeInfo({ name, type: 'DATASET', datasetType: attributeValue.getFullType().datasetType });
     } else {

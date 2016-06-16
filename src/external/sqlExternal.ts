@@ -118,8 +118,15 @@ module Plywood {
           var selectedAttributes = this.getSelectedAttributes();
 
           selectedAttributes.forEach(attribute => {
-            if (attribute.type === 'BOOLEAN') {
-              inflaters.push(External.booleanInflaterFactory(attribute.name));
+            var { name, type } = attribute;
+            switch (type) {
+              case 'BOOLEAN':
+                inflaters.push(External.booleanInflaterFactory(name));
+                break;
+
+              case 'SET/STRING':
+                inflaters.push(External.setStringInflaterFactory(name));
+                break;
             }
           });
 

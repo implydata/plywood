@@ -239,8 +239,7 @@ describe("Postgres Functional", function() {
             {
               "commentLength": 179,
               "userChars": {
-                "type": "SET/STRING",
-                "value": [
+                "elements": [
                   ".",
                   "1",
                   "2",
@@ -248,14 +247,15 @@ describe("Postgres Functional", function() {
                   "7",
                   "8",
                   "9"
-                ]
+                ],
+                "setType": "STRING",
+                "type": "SET"
               }
             },
             {
               "commentLength": 37,
               "userChars": {
-                "type": "SET/STRING",
-                "value": [
+                "elements": [
                   ".",
                   "0",
                   "1",
@@ -264,14 +264,15 @@ describe("Postgres Functional", function() {
                   "6",
                   "7",
                   "9"
-                ]
+                ],
+                "setType": "STRING",
+                "type": "SET"
               }
             },
             {
               "commentLength": 11,
               "userChars": {
-                "type": "SET/STRING",
-                "value": [
+                "elements": [
                   "A",
                   "B",
                   "I",
@@ -279,7 +280,9 @@ describe("Postgres Functional", function() {
                   "N",
                   "O",
                   "R"
-                ]
+                ],
+                "setType": "STRING",
+                "type": "SET"
               }
             }
           ]);
