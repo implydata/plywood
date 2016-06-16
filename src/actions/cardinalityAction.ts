@@ -29,7 +29,7 @@ module Plywood {
     }
 
     protected _getJSHelper(inputJS: string): string {
-      return Action.jsNullSafetyExpressionless(inputJS, (input: string) => `${input}.length`);
+      return Expression.jsNullSafetyUnary(inputJS, (input: string) => `${input}.length`);
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
