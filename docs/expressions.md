@@ -356,6 +356,7 @@ var ex = $('str').length();
 ex.compute({ str: 'morning' }).then(console.log); // => 7
 ```
 
+
 ### Number manipulation
 
 
@@ -368,7 +369,10 @@ var ex = $('x').numberBucket(5);
 ex.compute({ x: 7 }).then(console.log); // => [5, 10)
 ```
 
+
 ### Set manipulation
+
+
 *operand*.**cardinality**()
 
 Returns the cardinality of the set
