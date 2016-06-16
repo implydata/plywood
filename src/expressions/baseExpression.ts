@@ -976,6 +976,12 @@ module Plywood {
       return this.bumpStringLiteralToTime().performAction(new TimePartAction({ part: getString(part), timezone }));
     }
 
+    // Set operations
+
+    public cardinality() {
+      return this.performAction(new CardinalityAction({}));
+    }
+
     // Split Apply Combine based transformations
 
     /**

@@ -48,6 +48,7 @@ describe("Postgres Functional", function() {
     { "name": "regionIsoCode", "type": "STRING" },
     { "name": "regionName", "type": "STRING" },
     { "name": "user", "type": "STRING" },
+    { "name": "userChars", "type": "SET/STRING" },
     { "name": "count", "type": "NUMBER" },
     { "name": "added", "type": "NUMBER" },
     { "name": "deleted", "type": "NUMBER" },
@@ -225,6 +226,67 @@ describe("Postgres Functional", function() {
         .done();
     });
 
+    it("filters on set/string select", (testComplete) => {
+      var ex = $('wiki').filter('$userChars.cardinality() > 5')
+        .filter($("channel").is('war'))
+        .select("userChars", "commentLength")
+        .sort('$commentLength', 'descending')
+        .limit(5);
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "commentLength": 179,
+              "userChars": {
+                "type": "SET/STRING",
+                "value": [
+                  ".",
+                  "1",
+                  "2",
+                  "4",
+                  "7",
+                  "8",
+                  "9"
+                ]
+              }
+            },
+            {
+              "commentLength": 37,
+              "userChars": {
+                "type": "SET/STRING",
+                "value": [
+                  ".",
+                  "0",
+                  "1",
+                  "2",
+                  "4",
+                  "6",
+                  "7",
+                  "9"
+                ]
+              }
+            },
+            {
+              "commentLength": 11,
+              "userChars": {
+                "type": "SET/STRING",
+                "value": [
+                  "A",
+                  "B",
+                  "I",
+                  "K",
+                  "N",
+                  "O",
+                  "R"
+                ]
+              }
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
   });
 
   describe("introspection", () => {
