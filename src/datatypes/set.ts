@@ -186,6 +186,10 @@ module Plywood {
         this.elements.slice().sort().join('') === other.elements.slice().sort().join('');
     }
 
+    public cardinality(): int {
+      return this.size();
+    }
+
     public size(): int {
       return this.elements.length;
     }

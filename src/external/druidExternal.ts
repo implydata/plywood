@@ -626,7 +626,8 @@ module Plywood {
     // -----------------
 
     public canHandleFilter(ex: Expression): boolean {
-      return true;
+      return !(ex instanceof ChainExpression &&
+      (ex as ChainExpression).actions.some((a: Action) => a.action === 'cardinality'));
     }
 
     public canHandleTotal(): boolean {
@@ -1305,7 +1306,7 @@ module Plywood {
         return this.actionToJavaScriptExtractionFn(action);
       }
 
-      if (action instanceof AbsoluteAction || action instanceof PowerAction || action instanceof LengthAction) {
+      if (action instanceof AbsoluteAction || action instanceof PowerAction || action instanceof LengthAction || action instanceof CardinalityAction) {
         return this.actionToJavaScriptExtractionFn(action);
       }
 
@@ -1423,6 +1424,13 @@ module Plywood {
             };
           }
 
+        }
+
+        if (splitAction instanceof CardinalityAction) {
+          return {
+            dimension,
+            inflater: External.setCardinalityInflaterFactory(label)
+          };
         }
       }
 

@@ -74,7 +74,7 @@ module Plywood {
       } else {
         combine = (lhs, rhs) => `(''+${lhs}).toLowerCase().indexOf((''+${rhs}).toLowerCase())>-1`;
       }
-      return Expression.jsNullSafety(inputJS, expressionJS, combine, inputJS[0] === '"', expressionJS[0] === '"');
+      return Expression.jsNullSafetyBinary(inputJS, expressionJS, combine, inputJS[0] === '"', expressionJS[0] === '"');
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

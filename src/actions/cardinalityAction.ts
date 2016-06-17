@@ -1,17 +1,17 @@
 module Plywood {
-  export class LengthAction extends Action {
-    static fromJS(parameters: ActionJS): LengthAction {
-      return new LengthAction(Action.jsToValue(parameters));
+  export class CardinalityAction extends Action {
+    static fromJS(parameters: ActionJS): CardinalityAction {
+      return new CardinalityAction(Action.jsToValue(parameters));
     }
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
-      this._ensureAction("length");
+      this._ensureAction("cardinality");
       this._checkNoExpression();
     }
 
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'STRING');
+      this._checkInputTypes(inputType, 'SET/STRING', 'SET/STRING_RANGE', 'SET/NUMBER', 'SET/NUMBER_RANGE', 'SET/TIME', 'SET/TIME_RANGE');
       return 'NUMBER';
     }
 
@@ -23,18 +23,19 @@ module Plywood {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (inV === null) return null;
-        return inV.length;
+        if (Array.isArray(inV)) return inV.length; // this is to allow passing an array into .compute()
+        return inV.cardinality();
       }
     }
-    
+
     protected _getJSHelper(inputJS: string): string {
       return Expression.jsNullSafetyUnary(inputJS, (input: string) => `${input}.length`);
     }
 
     protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.lengthExpression(inputSQL);
+      return `cardinality(${inputSQL})`
     }
   }
 
-  Action.register(LengthAction);
+  Action.register(CardinalityAction);
 }

@@ -65,6 +65,7 @@ var attributes = [
   { name: "regionIsoCode", type: 'STRING' },
   { name: "regionName", type: 'STRING' },
   { name: "user", type: 'STRING' },
+  { name: "userChars", type: 'SET/STRING' },
 
   { name: 'count', type: 'NUMBER', unsplitable: true },
   { name: 'delta', type: 'NUMBER', unsplitable: true },
@@ -919,6 +920,14 @@ describe("Cross Functional", function() {
         .limit(10)
     }));
 
+    it('works with set cardinality in apply', equalityTest({
+      executorNames: ['druid', 'postgres'],
+      expression: $('wiki').split('$channel', 'Channel')
+        .apply('SIZE', ('$wiki.max($userChars.cardinality())'))
+        .sort('$Channel', 'descending')
+        .limit(5)
+    }));
+
   });
 
 
@@ -1064,6 +1073,15 @@ describe("Cross Functional", function() {
             .select("time", "channel", "commentLength")
             .limit(3)
         )
+    }));
+
+    it('works with cardinality in select', equalityTest({
+      executorNames: ['druid', 'postgres'],
+      expression: $('wiki').filter('$cityName == "El Paso"')
+        .select('userChars')
+        .apply('Cardinality', '$userChars.cardinality()')
+        .select("Cardinality")
+        .limit(5)
     }));
 
   });

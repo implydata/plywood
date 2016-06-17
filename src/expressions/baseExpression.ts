@@ -291,7 +291,7 @@ module Plywood {
       return returnExpression.simplify();
     }
 
-    static jsNullSafety(lhs: string, rhs: string, combine: (lhs: string, rhs: string) => string, lhsCantBeNull?: boolean, rhsCantBeNull?: boolean): string {
+    static jsNullSafetyBinary(lhs: string, rhs: string, combine: (lhs: string, rhs: string) => string, lhsCantBeNull?: boolean, rhsCantBeNull?: boolean): string {
       if (lhsCantBeNull) {
         if (rhsCantBeNull) {
           return `(${combine(lhs, rhs)})`;
@@ -305,6 +305,10 @@ module Plywood {
           return `(_1=${rhs},_2=${lhs},(_1==null||_2==null)?null:(${combine('_1', '_2')})`;
         }
       }
+    }
+
+    static jsNullSafetyUnary(inputJS: string, ifNotNull: (str: string) => string): string {
+      return `(_=${inputJS},(_==null?null:${ifNotNull('_')}))`;
     }
 
     /**
@@ -974,6 +978,12 @@ module Plywood {
     public timePart(part: string, timezone?: any): ChainExpression {
       if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
       return this.bumpStringLiteralToTime().performAction(new TimePartAction({ part: getString(part), timezone }));
+    }
+
+    // Set operations
+
+    public cardinality() {
+      return this.performAction(new CardinalityAction({}));
     }
 
     // Split Apply Combine based transformations

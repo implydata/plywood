@@ -2,6 +2,7 @@ module Plywood {
   interface SQLDescribeRow {
     name: string;
     sqlType: string;
+    arrayType?: string;
   }
 
   function postProcessIntrospect(columns: SQLDescribeRow[]): Attributes {
@@ -15,10 +16,17 @@ module Plywood {
       } else if (sqlType === 'integer' || sqlType === 'bigint') {
         // ToDo: make something special for integers
         return new AttributeInfo({ name, type: 'NUMBER' });
-      } else if (sqlType === "double precision" || sqlType === "float") {
+      } else if (sqlType === 'double precision' || sqlType === 'float') {
         return new AttributeInfo({ name, type: 'NUMBER' });
       } else if (sqlType === 'boolean') {
         return new AttributeInfo({ name, type: 'BOOLEAN' });
+      } else if (sqlType === 'array') {
+        var arrayType = column.arrayType.toLowerCase();
+        if (arrayType === 'character') return new AttributeInfo({ name, type: 'SET/STRING' });
+        else if (arrayType === 'timestamp') return new AttributeInfo({ name, type: 'SET/TIME' });
+        else if (arrayType === 'integer' || arrayType === 'bigint' || sqlType === 'double precision' || sqlType === 'float') return new AttributeInfo({ name, type: 'SET/NUMBER' });
+        else if (arrayType === 'boolean') return new AttributeInfo({ name, type: 'SET/BOOLEAN' });
+        return null;
       }
       return null;
     }).filter(Boolean);
@@ -62,8 +70,13 @@ module Plywood {
     }
 
     protected getIntrospectAttributes(): Q.Promise<Attributes> {
+      // from https://www.postgresql.org/docs/9.1/static/infoschema-element-types.html
       return this.requester({
-        query: `SELECT "column_name" AS "name", "data_type" AS "sqlType" FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = ${this.dialect.escapeLiteral(this.source as string)}`,
+        query: `SELECT c.column_name as "name", c.data_type as "sqlType", e.data_type AS "arrayType"
+         FROM information_schema.columns c LEFT JOIN information_schema.element_types e
+         ON ((c.table_catalog, c.table_schema, c.table_name, 'TABLE', c.dtd_identifier)
+         = (e.object_catalog, e.object_schema, e.object_name, e.object_type, e.collection_type_identifier))
+         WHERE table_name = ${this.dialect.escapeLiteral(this.source as string)}`,
       }).then(postProcessIntrospect);
     }
   }

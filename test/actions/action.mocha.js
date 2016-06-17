@@ -80,6 +80,7 @@ describe("Action", () => {
       { action: 'numberBucket', size: 5, offset: 1 },
 
       { action: 'length' },
+      { action: 'cardinality' },
 
       { action: 'timeFloor', duration: 'P1D' },
       { action: 'timeFloor', duration: 'PT2H', timezone: 'Etc/UTC' },

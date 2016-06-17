@@ -444,6 +444,13 @@ module Plywood {
       }
     }
 
+    static setCardinalityInflaterFactory(label: string): Inflater  {
+      return (d: any) => {
+        var v = d[label];
+        d[label] = Array.isArray(v) ? v.length : 1
+      }
+    }
+
     static jsToValue(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): ExternalValue {
       var value: ExternalValue = {
         engine: parameters.engine,

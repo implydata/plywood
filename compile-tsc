@@ -36,6 +36,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/actions/applyAction.ts \
   src/actions/averageAction.ts \
   src/actions/baseAction.ts \
+  src/actions/cardinalityAction.ts \
   src/actions/concatAction.ts \
   src/actions/containsAction.ts \
   src/actions/countAction.ts \

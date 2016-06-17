@@ -49,13 +49,13 @@ describe("compute native", () => {
 
   it("gets length of string", (testComplete) => {
     var ex = ply()
-      .apply('size', r('hey').length());
+      .apply('length', r('hey').length());
 
     ex.compute()
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
-            size: 3
+            length: 3
           }
         ]);
         testComplete();
@@ -128,6 +128,71 @@ describe("compute native", () => {
       .done();
   });
 
+  it("gets cardinality of set", (testComplete) => {
+    var data = [
+      { id: 1, prices: [400, 200, 3], times: {type: 'SET', elements: [new Date('2015-10-01T09:20:30Z')]}, tags: ['super', 'cool'] },
+      { id: 2, prices: [300, 2, 3], times: {type: 'SET', elements: [new Date('2015-10-01T09:20:30Z')]}, tags: ['super'] },
+      { id: 3, prices: [124], times: null, tags: ['cool'] },
+      { id: 4, prices: [22, 28], times: {type: 'SET', elements: [new Date('2015-10-01T09:20:30Z')]}, tags: ['sweet'] },
+      { id: 5, prices: [100, 105], times: {type: 'SET', elements: [new Date('2015-10-01T09:20:30Z')]}, tags: null },
+      { id: null, prices: null, times: {type: 'SET', elements: [new Date('2015-10-01T09:20:30Z')]}, tags: ['super', 'sweet', 'cool'] }
+    ];
+
+    var ds = Dataset.fromJS(data).hide();
+
+    var ex = ply()
+      .apply('Data', ply(ds))
+      .apply(
+        'SetSize',
+        $('Data').split({
+          'Prices': "$prices.cardinality()",
+          'Tags': '$tags.cardinality()',
+          'Times': '$times.cardinality()'
+        })
+      );
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "SetSize": [
+              {
+                "Prices": 3,
+                "Tags": 2,
+                "Times": 1
+              },
+              {
+                "Prices": 3,
+                "Tags": 1,
+                "Times": 1
+              },
+              {
+                "Prices": 1,
+                "Tags": 1,
+                "Times": null
+              },
+              {
+                "Prices": 2,
+                "Tags": 1,
+                "Times": 1
+              },
+              {
+                "Prices": 2,
+                "Tags": null,
+                "Times": 1
+              },
+              {
+                "Prices": null,
+                "Tags": 3,
+                "Times": 1
+              }
+            ]
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
 
   it("works in existing dataset case", (testComplete) => {
     var ds = Dataset.fromJS([
