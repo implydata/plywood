@@ -559,15 +559,15 @@ Column
     }
 
 As
-  = AsToken name:(String / Ref) { return name; }
+  = AsToken? name:(String / Ref) { return name; }
 
 FromClause
-  = FromToken fc:FromContent
+  = FromToken fc:FromContent As?
     { return fc; }
 
 FromContent
   = RelaxedNamespacedRef
-  / OpenParen subQuery:SelectQuery CloseParen As?
+  / OpenParen subQuery:SelectQuery CloseParen
     { return subQuery; }
 
 
