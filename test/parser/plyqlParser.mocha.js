@@ -554,13 +554,25 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should parse a table alias", () => {
+      var parse1 = Expression.parseSQL('SELECT * FROM my-table AS t;');
+      var parse2 = Expression.parseSQL('SELECT * FROM my-table t;');
+
+      var ex2 = $('my-table');
+
+      expect(parse1.verb).to.equal('SELECT');
+      expect(parse1.table).to.equal('my-table');
+      expect(parse1.expression.toJS()).to.deep.equal(ex2.toJS());
+      expect(parse2.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("should parse a total expression with all sorts of applies", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
         a = b AS aISb1,
         a IS b AS aISb2,
         a <=> b AS aISb3,
-        COUNT()  AS Count1,
+        COUNT() Count1,
         COUNT(*) AS Count2,
         COUNT(1) AS Count3,
         COUNT(\`visitor\`) AS Count4,
