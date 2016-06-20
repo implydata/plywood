@@ -3,7 +3,7 @@ module Plywood {
 
   export type PlywoodRange = Range<number | Date>;
 
-  export class Range<T> {
+  export abstract class Range<T> {
     static DEFAULT_BOUNDS = '[)';
 
     static isRange(candidate: any): candidate is PlywoodRange {
@@ -73,6 +73,8 @@ module Plywood {
         this._endpointEqual(this.start, other.start) &&
         this._endpointEqual(this.end, other.end);
     }
+
+    public abstract equals(other: Range<T>): boolean;
 
     public toString(): string {
       var bounds = this.bounds;
@@ -255,5 +257,10 @@ module Plywood {
 
       return new (<any>this.constructor)({start: start, end: end, bounds: startBound + endBound});
     }
+
+    /**
+     * Computes the midpoint of the range
+     */
+    public abstract midpoint(): T;
   }
 }
