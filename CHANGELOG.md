@@ -2,6 +2,13 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.11.2
+
+- Made `Range` and abstract class
+- PlyQL: Fixed `AS` for tables, also `"AS"` keyword is now optional (like in MySQL)
+- Added `.cardinality()` action
+- Added `CARDINALITY` to PlyQL
+
 ## 0.11.1
 
 - Takes advantage of most features in Druid 0.9.1
