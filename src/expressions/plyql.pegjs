@@ -671,16 +671,18 @@ ComparisonExpressionRhs
     }
 
 ComparisonExpressionRhsNotable
-  = BetweenToken start:(LiteralExpression / FunctionCallExpression) AndToken end:(LiteralExpression / FunctionCallExpression)
+  = BetweenToken start:(FunctionCallExpression) AndToken end:(FunctionCallExpression)
     {
-      if (start instanceof ChainExpression && end instanceof ChainExpression) {
-        if (start.getSingleAction('cast') && end.getSingleAction('cast')) {
-          return function(ex) { return ex.greaterThan(start).and(ex.lessThan(end)); };
-        }
+      if (start.getSingleAction('cast') && end.getSingleAction('cast')) {
+        return function(ex) { return ex.greaterThan(start).and(ex.lessThan(end)); };
       } else {
-        var range = { start: start.value, end: end.value, bounds: '[]' };
-        return function(ex) { return ex.in(range); };
+        error('unsupported function call');
       }
+    }
+  / BetweenToken start:(LiteralExpression) AndToken end:(LiteralExpression)
+    {
+      var range = { start: start.value, end: end.value, bounds: '[]' };
+      return function(ex) { return ex.in(range); };
     }
   / InToken list:(InSetLiteralExpression / AdditiveExpression)
     {
