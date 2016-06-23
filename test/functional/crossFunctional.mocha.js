@@ -89,7 +89,7 @@ var druidExecutor = basicExecutorFactory({
       context: {
         // useCache: false,
         // populateCache: false,
-        timeout: 10000
+        timeout: 100000
       },
       attributes,
       derivedAttributes,
@@ -107,7 +107,7 @@ var druidLegacyExecutor = basicExecutorFactory({
       source: 'wikipedia',
       timeAttribute: 'time',
       context: {
-        timeout: 10001 // Put a different timeout here so we can tell queries apart from non-legacy druid
+        timeout: 100001 // Put a different timeout here so we can tell queries apart from non-legacy druid
       },
       attributes,
       derivedAttributes,
@@ -148,7 +148,7 @@ var equalityTest = utils.makeEqualityTest({
 });
 
 describe("Cross Functional", function() {
-  this.timeout(10000);
+  this.timeout(100000);
 
   describe("filters", () => {
     it('works with empty filter', equalityTest({
@@ -335,10 +335,20 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with cast and primary time filter (single range)', equalityTest({
+    it('works with cast from number to time and primary time filter (single range)', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
       expression:  ply()
         .apply('wiki', $('wiki').filter($('time').greaterThan(r(1447430881).cast('TIME')).and($('time').lessThan(r(1547430881).cast('TIME')))))
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with cast from time to number and primary time filter (single range)', equalityTest({
+      // 1442049630 -> 09/12/2015 09:20:30
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
+      expression:  ply()
+        .apply('unixTimestamp', r(1442049630))
+        .apply('wiki', $('wiki').filter($('unixTimestamp').greaterThan(r(new Date('2015-09-12T00:00:00.000Z')).cast('NUMBER')).and($('unixTimestamp').lessThan(r(new Date('2015-09-12T11:59:30.000Z')).cast('NUMBER')))))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -801,12 +811,21 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
-    it('works with time cast action on split', equalityTest({
+    it('works with time cast action from number to time on split', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split({ 'commentLengthToDate': '$commentLength.cast("TIME")', 'Page': '$page' })
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(5)
+    }));
+
+    it('works with time cast action from time to number on split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split({ 'time': '$time.cast("NUMBER")', 'Comment': '$comment' })
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(4)
     }));
 
   });
@@ -945,12 +964,20 @@ describe("Cross Functional", function() {
     }));
 
     // min and maxes dont work for stuff that's not primary time column
-    it('works with cast in apply', equalityTest({
+    it('works with cast from number to time in apply', equalityTest({
       executorNames: ['druid', 'postgres'],
       expression: $('wiki').filter('$cityName == "El Paso"')
         .select('page', 'commentLength', 'comment', 'added')
         .sort('$comment', 'descending')
         .apply('castTime', '$commentLength.cast("TIME")')
+    }));
+
+    it('works with cast from time to number in apply', equalityTest({
+      executorNames: ['druid', 'postgres'],
+      expression: $('wiki').filter('$cityName == "El Paso"')
+        .select('page', 'time', 'comment', 'added')
+        .sort('$comment', 'descending')
+        .apply('castTime', '$wiki.max($time.cast("NUMBER"))')
     }));
 
   });

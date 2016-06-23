@@ -1,15 +1,19 @@
 module Plywood {
 
   interface Caster {
-    (d: number): Date;
+    TIME: (n: number) => Date;
+    NUMBER: (d: Date) => number;
+    [propName: string]: (v: number | Date) => number | Date;
   }
 
-  const CAST_TYPE_TO_FN: Lookup<Caster> = {
-    TIME: d => new Date(d*1000)
+  const CAST_TYPE_TO_FN: Caster = {
+    TIME: n => new Date(n*1000),
+    NUMBER: (d) => Date.parse(d.toString()) / 1000
   };
 
   const CAST_TYPE_TO_JS: Lookup<(inputJS: string)=> string> = {
-    TIME: (inputJS) => `new Date(${inputJS}*1000)`
+    TIME: (inputJS) => `new Date(${inputJS}*1000)`,
+    NUMBER: (inputJS) => `${inputJS} / 1000` // we get the time in ms as argument in extractionFn
   };
 
   export class CastAction extends Action {
@@ -19,7 +23,7 @@ module Plywood {
       return new CastAction(value);
     }
 
-    public castType: string;
+    public castType: PlyType;
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
@@ -53,14 +57,32 @@ module Plywood {
 
 
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'NUMBER');
-      return 'TIME';
+      var castType = this.castType;
+      if (inputType) {
+        if (!(
+          (inputType === 'NUMBER' && castType === 'TIME') ||
+          (inputType === 'TIME' && castType === 'NUMBER')
+        )) {
+          throw new TypeError(`cast action has a bad type combination ${inputType} CAST ${castType}`);
+        }
+      }
+      return castType as PlyType;
     }
 
     public _fillRefSubstitutions(): FullType {
-      return {
-        type: 'TIME',
-      };
+      var castType = this.castType;
+
+      if (castType === 'TIME') {
+        return {
+          type: 'TIME',
+        };
+      } else if (castType === 'NUMBER') {
+        return {
+          type: 'NUMBER',
+        };
+      }
+
+      throw new Error(`unrecognized cast type ${castType}`);
     }
 
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {

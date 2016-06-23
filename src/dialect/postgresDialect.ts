@@ -42,7 +42,8 @@ module Plywood {
     };
 
     static CAST_TO_FUNCTION: Lookup<string> = {
-      TIME: 'TO_TIMESTAMP($$)::timestamp'
+      TIME: 'TO_TIMESTAMP($$)::timestamp',
+      NUMBER: "EXTRACT(EPOCH FROM $$)"
     };
 
     constructor() {

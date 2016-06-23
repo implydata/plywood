@@ -445,11 +445,16 @@ var ex = $('time').timePart('DAY_OF_WEEK');
 
 *operand*.**cast**(castType: string)
 
-Casts a number to a supported cast type.  Currently, only casting from number to Date (castType: `TIME`) is supported.
+Casts a number to a supported cast type.  Currently, only casting from number to Date (castType: `TIME`) and Date to number (castType: `NUMBER`) is supported.
 
 ```javascript
+// number to date
 var ex = r(1442016000).cast('TIME');
 ex.compute().then(console.log); // => 2015-09-12T00:00:00.000Z
+
+// date to number
+var ex2 = r(new Date('2015-09-12T00:00:00.000Z')).cast('NUMBER');
+ex2.compute().then(console.log); // => 2015-09-12T00:00:00.000Z
 ```
 
 

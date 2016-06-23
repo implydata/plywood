@@ -40,7 +40,8 @@ module Plywood {
     };
 
     static CAST_TO_FUNCTION: Lookup<string> = {
-      TIME: 'FROM_UNIXTIME($$)'
+      TIME: 'FROM_UNIXTIME($$)',
+      NUMBER: 'UNIX_TIMESTAMP($$)'
     };
 
     constructor() {

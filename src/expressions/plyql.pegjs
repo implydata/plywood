@@ -204,6 +204,14 @@ function makeDate(type, v) {
   }
 }
 
+function handleFunctionCallComparison(start, end) {
+  if (start.getSingleAction('cast') && end.getSingleAction('cast')) {
+    return function(ex) { return ex.greaterThan(start).and(ex.lessThan(end)); };
+  } else {
+    error('unsupported function call');
+  }
+}
+
 function getFromTable(from) {
   if (!from) return null;
   if (from.verb === 'SELECT') return from.table; // From is a sub-query
@@ -673,11 +681,7 @@ ComparisonExpressionRhs
 ComparisonExpressionRhsNotable
   = BetweenToken start:(FunctionCallExpression) AndToken end:(FunctionCallExpression)
     {
-      if (start.getSingleAction('cast') && end.getSingleAction('cast')) {
-        return function(ex) { return ex.greaterThan(start).and(ex.lessThan(end)); };
-      } else {
-        error('unsupported function call');
-      }
+      return handleFunctionCallComparison(start, end);
     }
   / BetweenToken start:(LiteralExpression) AndToken end:(LiteralExpression)
     {

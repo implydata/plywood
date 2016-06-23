@@ -980,8 +980,8 @@ module Plywood {
       return this.bumpStringLiteralToTime().performAction(new TimePartAction({ part: getString(part), timezone }));
     }
 
-    public cast(castType: string, timezone?: any): ChainExpression {
-      return this.performAction(new CastAction({ castType: getString(castType), timezone }));
+    public cast(castType: PlyType): ChainExpression {
+      return this.performAction(new CastAction({ castType: getString(castType) as PlyType }));
     }
 
     // Set operations

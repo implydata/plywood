@@ -117,6 +117,27 @@ describe("compute native", () => {
       .done();
   });
 
+  it("casts from time to number", (testComplete) => {
+    // 1442016000 -> 09/12/2015 00:00:00
+    // 1442059199 -> 09/12/2015 11:59:59
+
+    var ex = ply()
+      .apply('unixTimestamp', r(1442049630))
+      .apply('between', $('unixTimestamp').greaterThan(r(new Date('2015-09-12T00:00:00.000Z')).cast('NUMBER')).and($('unixTimestamp').lessThan(r(new Date('2015-09-12T11:59:30.000Z')).cast('NUMBER'))));
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "between": true,
+            "unixTimestamp": 1442049630
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
   it("doesn't fallback if not null", (testComplete) => {
     var ex = $('x').fallback(5);
     ex.compute({ x: 2 })
