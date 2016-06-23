@@ -39,6 +39,10 @@ module Plywood {
       YEAR: 'YEAR($$)'
     };
 
+    static CAST_TO_FUNCTION: Lookup<string> = {
+      TIME: 'FROM_UNIXTIME($$)'
+    };
+
     constructor() {
       super();
     }
@@ -75,6 +79,12 @@ module Plywood {
 
     public regexpExpression(expression: string, regexp: string): string {
       return `(${expression} REGEXP '${regexp}')`; // ToDo: escape this.regexp
+    }
+
+    public castExpression(operand: string, cast: string): string {
+      var castFunction = MySQLDialect.CAST_TO_FUNCTION[cast];
+      if (!castFunction) throw new Error(`unsupported cast type ${cast} in MySQL dialect`);
+      return castFunction.replace(/\$\$/g,operand)
     }
 
     public utcToWalltime(operand: string, timezone: Timezone): string {

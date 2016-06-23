@@ -3,6 +3,7 @@ var ply = plywood.ply;
 var $ = plywood.$;
 var r = plywood.r;
 var Expression = plywood.Expression;
+var ChainExpression = plywood.ChainExpression;
 var FilterAction = plywood.FilterAction;
 var ApplyAction = plywood.ApplyAction;
 var SortAction = plywood.SortAction;
@@ -139,6 +140,7 @@ var fns = {
   TIME: function() { error('time literals are not supported'); },
   DATE_ADD: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
   DATE_SUB: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
+  FROM_UNIXTIME: function(op, tz) { return upgrade(op).cast('TIME', tz) },
 
   // Information Functions
   BENCHMARK: function() { return r(0); },
@@ -669,8 +671,13 @@ ComparisonExpressionRhs
     }
 
 ComparisonExpressionRhsNotable
-  = BetweenToken start:LiteralExpression AndToken end:LiteralExpression
+  = BetweenToken start:(LiteralExpression / FunctionCallExpression) AndToken end:(LiteralExpression / FunctionCallExpression)
     {
+      if (start instanceof ChainExpression && end instanceof ChainExpression) {
+        if (start.getSingleAction('cast') && end.getSingleAction('cast')) {
+          return function(ex) { return ex.greaterThan(start).and(ex.lessThan(end)); };
+        }
+      }
       var range = { start: start.value, end: end.value, bounds: '[]' };
       return function(ex) { return ex.in(range); };
     }

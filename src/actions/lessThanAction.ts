@@ -38,7 +38,7 @@ module Plywood {
     }
 
     protected _specialSimplify(simpleExpression: Expression): Action {
-      var expression = this.expression;
+      var expression = this.expression.simplify();
       if (expression instanceof LiteralExpression) { // x < 5
         return new InAction({
           expression: new LiteralExpression({

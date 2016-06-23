@@ -93,6 +93,30 @@ describe("compute native", () => {
       .done();
   });
 
+  it("casts from number to time", (testComplete) => {
+    // 1442016000 -> 09/12/2015 00:00:00
+    // 1442059199 -> 09/12/2015 11:59:59
+
+    var ex = ply()
+      .apply('time', new Date('2015-09-12T09:20:30Z'))
+      .apply('between', $('time').greaterThan(r(1442016000).cast('TIME')).and($('time').lessThan(r(1442059199).cast('TIME'))))
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "between": true,
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-09-12T09:20:30.000Z')
+            }
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
   it("doesn't fallback if not null", (testComplete) => {
     var ex = $('x').fallback(5);
     ex.compute({ x: 2 })

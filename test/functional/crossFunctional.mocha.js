@@ -335,6 +335,14 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with cast and primary time filter (single range)', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter($('time').greaterThan(r(1447430881).cast('TIME')).and($('time').lessThan(r(1547430881).cast('TIME')))))
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with .lessThan()', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
       expression: ply()
@@ -793,6 +801,14 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
+    it('works with time cast action on split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split({ 'commentLengthToDate': '$commentLength.cast("TIME")', 'Page': '$page' })
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
   });
 
 
@@ -926,6 +942,15 @@ describe("Cross Functional", function() {
         .apply('SIZE', ('$wiki.max($userChars.cardinality())'))
         .sort('$Channel', 'descending')
         .limit(5)
+    }));
+
+    // min and maxes dont work for stuff that's not primary time column
+    it('works with cast in apply', equalityTest({
+      executorNames: ['druid', 'postgres'],
+      expression: $('wiki').filter('$cityName == "El Paso"')
+        .select('page', 'commentLength', 'comment', 'added')
+        .sort('$comment', 'descending')
+        .apply('castTime', '$commentLength.cast("TIME")')
     }));
 
   });
