@@ -48,8 +48,7 @@ module Plywood {
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      var ret = [this.castType];
-      return ret;
+      return [this.castType];
     }
 
 

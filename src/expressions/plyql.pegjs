@@ -677,9 +677,10 @@ ComparisonExpressionRhsNotable
         if (start.getSingleAction('cast') && end.getSingleAction('cast')) {
           return function(ex) { return ex.greaterThan(start).and(ex.lessThan(end)); };
         }
+      } else {
+        var range = { start: start.value, end: end.value, bounds: '[]' };
+        return function(ex) { return ex.in(range); };
       }
-      var range = { start: start.value, end: end.value, bounds: '[]' };
-      return function(ex) { return ex.in(range); };
     }
   / InToken list:(InSetLiteralExpression / AdditiveExpression)
     {
