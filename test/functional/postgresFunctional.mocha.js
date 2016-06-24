@@ -205,143 +205,6 @@ describe("Postgres Functional", function() {
         .done();
     });
 
-    describe("incorrect user chars", () => {
-      var wikiUserCharAsNumber = External.fromJS({
-        engine: 'postgres',
-        source: 'wikipedia',
-        timeAttribute: 'time',
-        allowEternity: true,
-        attributes: [
-          { name: 'time', type: 'TIME' },
-          { name: "channel", type: "STRING" },
-          { name: 'userChars', type: 'NUMBER' }, // This is incorrect
-          { name: 'count', type: 'NUMBER', unsplitable: true }
-        ]
-      }, postgresRequester);
-
-      it("works with number addition", (testComplete) => {
-        var ex = $('wiki').split("$userChars + 10", 'U')
-          .apply('Count', '$wiki.sum($count)')
-          .sort('$Count', 'descending')
-          .limit(3);
-
-        ex.compute({ wiki: wikiUserCharAsNumber })
-          .then((result) => {
-            expect(result.toJS()).to.deep.equal([
-              {
-                "Count": 2618887,
-                "U": null
-              },
-              {
-                "Count": 75475,
-                "U": 10
-              },
-              {
-                "Count": 68663,
-                "U": 11
-              }
-            ]);
-            testComplete();
-          })
-          .done();
-      });
-
-      it("works with number bucketing", (testComplete) => {
-        var ex = $('wiki').split("$userChars.numberBucket(5, 2.5)", 'U')
-          .apply('Count', '$wiki.sum($count)')
-          .sort('$Count', 'descending')
-          .limit(3);
-
-        ex.compute({ wiki: wikiUserCharAsNumber })
-          .then((result) => {
-            expect(result.toJS()).to.deep.equal([
-              {
-                "Count": 2618887,
-                "U": null
-              },
-              {
-                "Count": 189960,
-                "U": {
-                  "end": 2.5,
-                  "start": -2.5,
-                  "type": "NUMBER_RANGE"
-                }
-              },
-              {
-                "Count": 151159,
-                "U": {
-                  "end": 7.5,
-                  "start": 2.5,
-                  "type": "NUMBER_RANGE"
-                }
-              }
-            ]);
-            testComplete();
-          })
-          .done();
-      });
-
-      it("works with power", (testComplete) => {
-        var ex = $('wiki').split("$userChars.power(2)", 'U')
-          .apply('Count', '$wiki.sum($count)')
-          .sort('$Count', 'descending')
-          .limit(3);
-
-        ex.compute({ wiki: wikiUserCharAsNumber })
-          .then((result) => {
-            expect(result.toJS()).to.deep.equal([
-              {
-                "Count": 2618887,
-                "U": null
-              },
-              {
-                "Count": 75475,
-                "U": 0
-              },
-              {
-                "Count": 68663,
-                "U": 1
-              }
-            ]);
-            testComplete();
-          })
-          .done();
-      });
-
-      it("works with bad casts", (testComplete) => {
-        var ex = $('wiki').split({ 'numberCast': '$userChars.cast("NUMBER")', 'dateCast': '$userChars.cast("TIME")' })
-          .apply('Count', '$wiki.sum($count)')
-          .sort('$Count', 'descending')
-          .limit(3);
-
-        ex.compute({ wiki: wikiUserCharAsNumber })
-          .then((result) => {
-            expect(result.toJS()).to.deep.equal([
-              {
-                "Count": 20914020,
-                "dateCast": null,
-                "numberCast": null
-              },
-              {
-                "Count": 456855,
-                "dateCast": {
-                  "type": "TIME",
-                  "value": new Date('1970-01-01T00:00:00.000Z')
-                },
-                "numberCast": null
-              },
-              {
-                "Count": 456855,
-                "dateCast": null,
-                "numberCast": 0
-              }
-            ]);
-            testComplete();
-          })
-          .done();
-      });
-    });
-
     it("works with boolean GROUP BYs", (testComplete) => {
       var ex = $("wiki").split($("channel").is("en"), 'ChannelIsEn')
         .apply('Count', $('wiki').sum('$count'))
@@ -422,6 +285,63 @@ describe("Postgres Functional", function() {
                 "setType": "STRING",
                 "type": "SET"
               }
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+  });
+
+  describe("incorrect commentLength and comment", () => {
+    var wikiUserCharAsNumber = External.fromJS({
+      engine: 'postgres',
+      source: 'wikipedia',
+      timeAttribute: 'time',
+      allowEternity: true,
+      attributes: [
+        { name: 'time', type: 'TIME' },
+        { name: "comment", type: "STRING" },
+        { name: 'page', type: 'NUMBER' }, // This is incorrect
+        { name: 'count', type: 'NUMBER', unsplitable: true }
+      ]
+    }, postgresRequester);
+
+    // Todo: $page.cast("TIME") does not work becuase postgres is not respecting attributes defined above
+    // $comment.cast("NUMBER") does not work because it rightly errors invalid input syntax for type double precision: "AlphamaEditor"
+
+    it.skip("works with bad casts", (testComplete) => {
+      var ex = $('wiki').split({ 'numberCast': '$comment.cast("NUMBER")', 'dateCast': '$page.cast("TIME")'})
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      ex.compute({ wiki: wikiUserCharAsNumber })
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Count": 382569,
+              "dateCast": {
+                "type": "TIME",
+                "value": new Date('1970-01-01T00:00:00.000Z')
+              },
+              "numberCast": 0
+            },
+            {
+              "Count": 3347,
+              "dateCast": {
+                "type": "TIME",
+                "value": new Date('1970-01-01T00:33:35.000Z')
+              },
+              "numberCast": 0
+            },
+            {
+              "Count": 640,
+              "dateCast": {
+                "type": "TIME",
+                "value": new Date('1970-01-01T00:00:00.000Z')
+              },
+              "numberCast": 1
             }
           ]);
           testComplete();

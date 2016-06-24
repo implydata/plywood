@@ -265,7 +265,6 @@ module Plywood {
     public getJS(inputType: PlyType, inputJS: string, datumVar: string): string {
       var expression = this.expression;
       var expressionJS = expression ? expression.getJS(datumVar) : null;
-
       return this._getJSHelper(inputType, inputJS, expressionJS);
     }
 

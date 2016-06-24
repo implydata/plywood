@@ -39,7 +39,7 @@ module Plywood {
       YEAR: 'YEAR($$)'
     };
 
-    static CAST_TO_FUNCTION: {[castType: string]: any} = {
+    static CAST_TO_FUNCTION: {[castType: string]: {[inputType: string]: string}} = {
       TIME: {
         NUMBER: 'FROM_UNIXTIME($$)'
       },

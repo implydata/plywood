@@ -11,7 +11,7 @@ module Plywood {
     STRING: {
       UNIVERSAL: (v: any) => String;
     }
-    [castTo: string]: any;
+    [castTo: string]: {[inputType: string]: any};
   }
 
   const CAST_TYPE_TO_FN: Caster = {
