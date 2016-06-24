@@ -714,7 +714,7 @@ module Plywood {
       return {
         type: "javascript",
         dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
-        "function": ex.getJSFn('d')
+        "function": ex.getJSFn(null, 'd')
       };
     }
 
@@ -1331,7 +1331,7 @@ module Plywood {
         // Druid < 0.9.1 behaves badly on null https://github.com/druid-io/druid/issues/2706 (does not have nullHandling: 'returnNull')
         extractionFns.push({
           type: "javascript",
-          'function': Expression.concat(pattern).getJSFn('d'),
+          'function': Expression.concat(pattern).getJSFn(null, 'd'),
           injective: true
         });
         return;
@@ -1361,7 +1361,7 @@ module Plywood {
     public expressionToJavaScriptExtractionFn(ex: Expression, type?: PlyType): Druid.ExtractionFn {
       return {
         type: "javascript",
-        'function': ex.getJSFn('d', type)
+        'function': ex.getJSFn(type, 'd')
       };
     }
 
@@ -1583,7 +1583,7 @@ module Plywood {
           return {
             type: 'javascript',
             fieldNames: fieldNames,
-            'function': `function(${fieldNameRefs.map(RefExpression.toJavaScriptSafeName)}) { return ${ex.getJS(null, (ex as ChainExpression).expression.type)}; }`
+            'function': `function(${fieldNameRefs.map(RefExpression.toJavaScriptSafeName)}) { return ${ex.getJS((ex as ChainExpression).expression.type, null)}; }`
           };
         }
 
@@ -1765,7 +1765,7 @@ module Plywood {
         name,
         type: "javascript",
         fieldNames: fieldNames,
-        fnAggregate: `function($$,${simpleFieldNames.join(',')}) { return ${aggregateFunction('$$', aggregateExpression.getJS(null))}; }`,
+        fnAggregate: `function($$,${simpleFieldNames.join(',')}) { return ${aggregateFunction('$$', aggregateExpression.getJS(null, null))}; }`,
         fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
         fnReset: `function() { return ${zero}; }`
       }

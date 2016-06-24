@@ -264,7 +264,7 @@ module Plywood {
 
     public getJS(expressionType: PlyType, inputJS: string, datumVar: string): string {
       var expression = this.expression;
-      var expressionJS = expression ? expression.getJS(datumVar) : null;
+      var expressionJS = expression ? expression.getJS(null, datumVar) : null;
 
       return this._getJSHelper(expressionType, inputJS, expressionJS);
     }
@@ -274,9 +274,9 @@ module Plywood {
       throw new Error('can not call this directly');
     }
 
-    public getSQL(inputSQL: string, dialect: SQLDialect, inputType?: PlyType): string {
+    public getSQL(inputType: Plywood.PlyType, inputSQL: string, dialect: Plywood.SQLDialect): string {
       var expression = this.expression;
-      var expressionSQL = expression ? expression.getSQL(dialect) : null;
+      var expressionSQL = expression ? expression.getSQL(null, dialect) : null;
       return this._getSQLHelper(inputType, dialect, inputSQL, expressionSQL);
     }
 

@@ -40,11 +40,11 @@ module Plywood {
       throw new Error('should not call getFn on External');
     }
 
-    public getJS(datumVar: string): string {
+    public getJS(inputType: Plywood.PlyType, datumVar: string): string {
       throw new Error('should not call getJS on External');
     }
 
-    public getSQL(dialect: SQLDialect): string {
+    public getSQL(exprType: Plywood.PlyType, dialect: Plywood.SQLDialect): string {
       throw new Error('should not call getSQL on External');
     }
 

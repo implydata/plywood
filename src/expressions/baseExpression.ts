@@ -639,11 +639,11 @@ module Plywood {
 
     public abstract getFn(): ComputeFn
 
-    public abstract getJS(datumVar: string, exprType?: PlyType): string
+    public abstract getJS(inputType: Plywood.PlyType, datumVar: string): string
 
-    public getJSFn(datumVar: string = 'd[]', exprType?: PlyType): string {
+    public getJSFn(inputType: Plywood.PlyType, datumVar: string = 'd[]'): string {
       const { type } = this;
-      var jsEx = this.getJS(datumVar, exprType);
+      var jsEx = this.getJS(inputType, datumVar);
       var body: string;
       if (type === 'NUMBER' || type === 'NUMBER_RANGE') {
         body = `_=${jsEx};return isNaN(_)?null:_`;
@@ -653,7 +653,7 @@ module Plywood {
       return `function(${datumVar.replace('[]', '')}){${body}}`;
     }
 
-    public abstract getSQL(dialect: SQLDialect): string
+    public abstract getSQL(exprType: Plywood.PlyType, dialect: Plywood.SQLDialect): string
 
     public extractFromAnd(matchFn: ExpressionMatchFn): ExtractAndRest {
       if (this.type !== 'BOOLEAN') return null;

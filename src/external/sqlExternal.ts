@@ -111,7 +111,7 @@ module Plywood {
       var filter = this.getQueryFilter();
       if (!filter.equals(Expression.TRUE)) {
         var exprType = (filter as ChainExpression).expression ? (filter as ChainExpression).expression.type : null;
-        from += '\nWHERE ' + (filter as ChainExpression).getSQL(dialect, exprType);
+        from += '\nWHERE ' + (filter as ChainExpression).getSQL(exprType, dialect);
       }
 
       switch (mode) {
@@ -135,7 +135,7 @@ module Plywood {
             selectedAttributes.map(a => {
               var name = a.name;
               if (derivedAttributes[name]) {
-                return new ApplyAction({ name, expression: derivedAttributes[name] }).getSQL('', dialect)
+                return new ApplyAction({ name, expression: derivedAttributes[name] }).getSQL(null, '', dialect)
               } else {
                 return dialect.escapeName(name);
               }
@@ -143,16 +143,16 @@ module Plywood {
             from
           );
           if (sort) {
-            query.push(sort.getSQL('', dialect));
+            query.push(sort.getSQL(null, '', dialect));
           }
           if (limit) {
-            query.push(limit.getSQL('', dialect));
+            query.push(limit.getSQL(null, '', dialect));
           }
           break;
 
         case 'value':
           query.push(
-            this.toValueApply().getSQL('', dialect),
+            this.toValueApply().getSQL(null, '', dialect),
             from,
             dialect.constantGroupBy()
           );
@@ -162,7 +162,7 @@ module Plywood {
         case 'total':
           zeroTotalApplies = applies;
           query.push(
-            applies.map(apply => apply.getSQL('', dialect)).join(',\n'),
+            applies.map(apply => apply.getSQL(null, '', dialect)).join(',\n'),
             from,
             dialect.constantGroupBy()
           );
@@ -172,19 +172,19 @@ module Plywood {
           var split = this.getQuerySplit();
           query.push(
             split.getSelectSQL(dialect)
-              .concat(applies.map(apply => apply.getSQL('', dialect)))
+              .concat(applies.map(apply => apply.getSQL(null, '', dialect)))
               .join(',\n'),
             from,
             split.getShortGroupBySQL()
           );
           if (!(this.havingFilter.equals(Expression.TRUE))) {
-            query.push('HAVING ' + this.havingFilter.getSQL(dialect));
+            query.push('HAVING ' + this.havingFilter.getSQL(null, dialect));
           }
           if (sort) {
-            query.push(sort.getSQL('', dialect));
+            query.push(sort.getSQL(null, '', dialect));
           }
           if (limit) {
-            query.push(limit.getSQL('', dialect));
+            query.push(limit.getSQL(null, '', dialect));
           }
           inflaters = getSplitInflaters(split);
           break;
