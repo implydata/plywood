@@ -156,7 +156,7 @@ describe("compute native", () => {
 
   it("casts from string to number", (testComplete) => {
     var ex = ply()
-      .apply('numberfiedString', r("casd").cast('NUMBER'));
+      .apply('numberfiedString', r("22345243").cast('NUMBER'));
 
     ex.compute()
       .then((v) => {

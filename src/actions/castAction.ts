@@ -129,7 +129,7 @@ module Plywood {
         if (typeof inV === 'string') return caster['STRING'](inV);
         if (typeof inV === 'number') return caster['NUMBER'](inV);
 
-        return caster(inV);
+        throw new Error(`unsupported input type ${inV}`)
       }
     }
 
