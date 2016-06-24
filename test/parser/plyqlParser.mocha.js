@@ -993,7 +993,7 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with mysql dialect time casting function", () => {
+    it("should work with time casting function", () => {
       var parse = Expression.parseSQL(sane`
         SELECT UNIX_TIMESTAMP(\`time\`) as Unix FROM \`wiki\`
         WHERE \`time\` BETWEEN FROM_UNIXTIME(1447430881) AND FROM_UNIXTIME(1547430881)
@@ -1007,17 +1007,28 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    // rethink this epoch thing, EXTRACT conflicts
-    it.skip("should work with an less than equal TO_TIMESTAMP function", () => {
+    it("should work number casting function", () => {
       var parse = Expression.parseSQL(sane`
-        SELECT EXTRACT(EPOCH FROM \`time\`) as Unix FROM \`wiki\`
-        WHERE TO_TIMESTAMP(1447430881) < \`time\` AND \`time\` < TO_TIMESTAMP(1547430881)
+        SELECT * FROM \`wiki\`
+        WHERE FROM_UNIXTIME(1447430881) < \`time\` AND \`time\` < FROM_UNIXTIME(1547430881)
+      `);
+
+      var ex2 = $('wiki').filter(
+        r(1447430881).cast('TIME').lessThan($('time')).and($('time').lessThan(r(1547430881).cast('TIME')))
+      );
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with number cast and string cast function", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT CAST(\`commentLength\` AS CHAR) as castedString, CAST(\`commentLengthStr\` AS SIGNED) as castedNumber FROM \`wiki\`
       `);
 
       var ex2 = $('wiki')
-        .filter(r(1447430881).cast('TIME').lessThan($('time')).and($('time').lessThan(r(1547430881).cast('TIME'))))
-        .apply('Unix', $('time').cast('NUMBER'))
-        .select('Unix');
+        .apply('castedString', $('commentLength').cast('STRING'))
+        .apply('castedNumber', $('commentLengthStr').cast('NUMBER'))
+        .select('castedString', 'castedNumber');
 
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());

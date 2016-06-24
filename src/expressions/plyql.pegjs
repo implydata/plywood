@@ -89,6 +89,12 @@ var dateFormats = {
   '%Y-01-01': 'P1Y',
 };
 
+
+var castTypes = {
+  CHAR: 'STRING',
+  SIGNED: 'NUMBER'
+}
+
 function upgrade(v) {
   if (!Expression.isExpression(v)) return r(v);
   return v;
@@ -139,8 +145,9 @@ var fns = {
   TIME: function() { error('time literals are not supported'); },
   DATE_ADD: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
   DATE_SUB: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
-  TIME_CAST: function(op, tz) { return upgrade(op).cast('TIME') },
+  TIME_CAST: function(op) { return upgrade(op).cast('TIME') },
   NUMBER_CAST: function(op) { return upgrade(op).cast('NUMBER') },
+  CAST: function(op, ct) { return upgrade(op).cast(castTypes[ct]) },
 
   // Information Functions
   BENCHMARK: function() { return r(0); },
@@ -182,7 +189,6 @@ fns.STDDEV_POP = fns.STD;
 
 // Casts
 fns.FROM_UNIXTIME = fns.TIME_CAST;
-fns.TO_TIMESTAMP = fns.TIME_CAST;
 fns.UNIX_TIMESTAMP = fns.NUMBER_CAST;
 
 // Information Functions
@@ -804,7 +810,7 @@ ExpressionMaybeFiltered
 
 
 FunctionCallExpression
-  = fn:Fn OpenParen params:Params CloseParen
+  = fn:Fn OpenParen params:(Expression As / Params) CloseParen
     { return fn.apply(null, params); }
 
 Fn
