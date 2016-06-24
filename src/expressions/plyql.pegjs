@@ -185,7 +185,6 @@ fns.STDDEV_POP = fns.STD;
 fns.FROM_UNIXTIME = fns.TIME_CAST;
 fns.TO_TIMESTAMP = fns.TIME_CAST;
 fns.UNIX_TIMESTAMP = fns.NUMBER_CAST;
-fns.EXTRACT = fns.NUMBER_CAST;
 
 // Information Functions
 fns.SESSION_USER = fns.USER;

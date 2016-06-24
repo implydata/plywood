@@ -1508,6 +1508,7 @@ describe("Druid Functional", function() {
               "cityName": "El Paso",
               "comment": "/* Early life */ spelling",
               "commentLength": 25,
+              "commentLengthStr": "25",
               "count": 1,
               "countryIsoCode": "US",
               "countryName": "United States",
