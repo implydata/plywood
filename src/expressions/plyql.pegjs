@@ -3,7 +3,6 @@ var ply = plywood.ply;
 var $ = plywood.$;
 var r = plywood.r;
 var Expression = plywood.Expression;
-var ChainExpression = plywood.ChainExpression;
 var FilterAction = plywood.FilterAction;
 var ApplyAction = plywood.ApplyAction;
 var SortAction = plywood.SortAction;
@@ -805,7 +804,7 @@ ExpressionMaybeFiltered
 
 
 FunctionCallExpression
-  = fn:Fn OpenParen t:(EpochToken FromToken)? params:Params CloseParen
+  = fn:Fn OpenParen params:Params CloseParen
     { return fn.apply(null, params); }
 
 Fn
@@ -927,8 +926,6 @@ ByToken            = "BY"i             !IdentifierPart _
 OrderToken         = "ORDER"i          !IdentifierPart _
 HavingToken        = "HAVING"i         !IdentifierPart _
 LimitToken         = "LIMIT"i          !IdentifierPart _
-
-EpochToken         = "EPOCH"i          !IdentifierPart _
 
 AscToken           = "ASC"i            !IdentifierPart _ { return SortAction.ASCENDING;  }
 DescToken          = "DESC"i           !IdentifierPart _ { return SortAction.DESCENDING; }

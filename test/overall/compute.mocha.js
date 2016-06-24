@@ -140,13 +140,29 @@ describe("compute native", () => {
 
   it("casts from number to string", (testComplete) => {
     var ex = ply()
-      .apply('stringifiedNumber', r(22345243).cast('STRING'))
+      .apply('stringifiedNumber', r(22345243).cast('STRING'));
 
     ex.compute()
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
             "stringifiedNumber": "22345243"
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("casts from string to number", (testComplete) => {
+    var ex = ply()
+      .apply('numberfiedString', r("casd").cast('NUMBER'));
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "numberfiedString": 22345243
           }
         ]);
         testComplete();

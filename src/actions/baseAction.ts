@@ -262,11 +262,11 @@ module Plywood {
       throw new Error('can not call this directly');
     }
 
-    public getJS(expressionType: PlyType, inputJS: string, datumVar: string): string {
+    public getJS(inputType: PlyType, inputJS: string, datumVar: string): string {
       var expression = this.expression;
       var expressionJS = expression ? expression.getJS(null, datumVar) : null;
 
-      return this._getJSHelper(expressionType, inputJS, expressionJS);
+      return this._getJSHelper(inputType, inputJS, expressionJS);
     }
 
 
