@@ -57,11 +57,11 @@ module Plywood {
       return (d: Datum, c: Datum) => inputFn(d, c) && expressionFn(d, c);
     }
 
-    protected _getJSHelper(inputJS: string, expressionJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
       return `(${inputJS}&&${expressionJS})`;
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `(${inputSQL} AND ${expressionSQL})`;
     }
 

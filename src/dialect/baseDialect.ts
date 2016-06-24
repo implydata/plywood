@@ -88,7 +88,7 @@ module Plywood {
       }
     }
 
-    public abstract castExpression(operand: string, cast: string): string
+    public abstract castExpression(inputType: PlyType, operand: string, cast: string): string
 
     public abstract lengthExpression(a: string): string;
 

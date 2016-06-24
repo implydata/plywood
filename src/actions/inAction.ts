@@ -44,7 +44,7 @@ module Plywood {
       }
     }
 
-    protected _getJSHelper(inputJS: string, expressionJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
       const { expression } = this;
       if (expression instanceof LiteralExpression) {
         switch (expression.type) {
@@ -77,7 +77,7 @@ module Plywood {
       throw new Error(`can not convert ${this} to JS function`);
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       var expression = this.expression;
       var expressionType = expression.type;
       switch (expressionType) {

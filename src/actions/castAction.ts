@@ -1,19 +1,43 @@
 module Plywood {
 
   interface Caster {
-    TIME: (n: number) => Date;
-    NUMBER: (d: Date) => number;
-    [propName: string]: (v: number | Date) => number | Date;
+    TIME: {
+      NUMBER: (n: number) => Date
+    };
+    NUMBER: {
+      TIME: (d: Date) => number;
+      STRING: (s: string) => number;
+    };
+    STRING: {
+      NUMBER: (n: number) => String
+    }
+    [propName: string]: any;
   }
 
   const CAST_TYPE_TO_FN: Caster = {
-    TIME: n => new Date(n*1000),
-    NUMBER: (d) => Date.parse(d.toString()) / 1000
+    TIME: {
+      NUMBER: n => new Date(n*1000)
+    },
+    NUMBER: {
+      TIME: (n) => Date.parse(n.toString()) / 1000,
+      STRING: (s) => Number(s)
+    },
+    STRING: {
+      NUMBER: (n: number) => ``+n
+    }
   };
 
-  const CAST_TYPE_TO_JS: Lookup<(inputJS: string)=> string> = {
-    TIME: (inputJS) => `new Date(${inputJS}*1000)`,
-    NUMBER: (inputJS) => `${inputJS} / 1000` // we get the time in ms as argument in extractionFn
+  const CAST_TYPE_TO_JS: Lookup<Lookup<(inputJS: string)=> string>> = {
+    TIME: {
+      NUMBER: (inputJS) => `new Date(${inputJS}*1000)`
+    },
+    NUMBER: {
+      TIME: (inputJS) => `${inputJS} / 1000`, // we get the time in ms as argument in extractionFn
+      STRING: (s) => `Number(${s})`
+    },
+    STRING: {
+      NUMBER: (inputJS) => `${inputJS}`
+    }
   };
 
   export class CastAction extends Action {
@@ -58,19 +82,15 @@ module Plywood {
 
     public getOutputType(inputType: PlyType): PlyType {
       var castType = this.castType;
-      if (inputType) {
-        if (!(
-          (inputType === 'NUMBER' && castType === 'TIME') ||
-          (inputType === 'TIME' && castType === 'NUMBER')
-        )) {
-          throw new TypeError(`cast action has a bad type combination ${inputType} CAST ${castType}`);
-        }
+      if (inputType && (!CAST_TYPE_TO_FN[castType][inputType])) {
+        throw new Error(`unsupported cast from ${inputType} to ${castType}`);
       }
+
       return castType as PlyType;
     }
 
     public _fillRefSubstitutions(): FullType {
-      var castType = this.castType;
+      const { castType } = this;
 
       if (castType === 'TIME') {
         return {
@@ -80,31 +100,48 @@ module Plywood {
         return {
           type: 'NUMBER',
         };
+      } else if (castType === 'STRING') {
+        return {
+          type: 'STRING',
+        };
       }
+
 
       throw new Error(`unrecognized cast type ${castType}`);
     }
 
+    protected _foldWithPrevAction(prevAction: Action): Action {
+      if (prevAction.equals(this)) {
+        return this;
+      }
+      return null;
+    }
+
+
     protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
       const { castType } = this;
-      var caster = CAST_TYPE_TO_FN[castType];
+      var caster = (CAST_TYPE_TO_FN as any)[castType];
       if (!caster) throw new Error(`unsupported cast type '${castType}'`);
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (!inV) return null;
+        if (isDate(inV)) return caster['TIME'](inV);
+        if (typeof inV === 'string') return caster['STRING'](inV);
+        if (typeof inV === 'number') return caster['NUMBER'](inV);
+
         return caster(inV);
       }
     }
 
-    protected _getJSHelper(inputJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
       const { castType } = this;
       var castJS = CAST_TYPE_TO_JS[castType];
-      if (!castJS) throw new Error(`unsupported cast type '${castType}'`);
-      return castJS(inputJS);
+      if (!castJS) throw new Error(`unsupported cast type in getJS '${castType}'`);
+      return castJS[inputType](inputJS);
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.castExpression(inputSQL, this.castType);
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+      return dialect.castExpression(inputType, inputSQL, this.castType);
     }
   }
 

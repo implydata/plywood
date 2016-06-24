@@ -92,22 +92,22 @@ module Plywood {
       return fn;
     }
 
-    public getJS(datumVar: string): string {
+    public getJS(datumVar: string, exprType?: PlyType): string {
       var expression = this.expression;
       var actions = this.actions;
       var js = expression.getJS(datumVar);
       for (let action of actions) {
-        js = action.getJS(js, datumVar);
+        js = action.getJS(exprType, js, datumVar);
       }
       return js;
     }
 
-    public getSQL(dialect: SQLDialect): string {
+    public getSQL(dialect: SQLDialect, exprType?: PlyType): string {
       var expression = this.expression;
       var actions = this.actions;
       var sql = expression.getSQL(dialect);
       for (let action of actions) {
-        sql = action.getSQL(sql, dialect);
+        sql = action.getSQL(sql, dialect, exprType);
       }
       return sql;
     }

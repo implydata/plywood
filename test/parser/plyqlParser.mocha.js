@@ -993,28 +993,31 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with a BETWEEN FROM_UNIXTIME function", () => {
+    it("should work with mysql dialect time casting function", () => {
       var parse = Expression.parseSQL(sane`
-        SELECT * FROM \`wiki\`
+        SELECT UNIX_TIMESTAMP(\`time\`) as Unix FROM \`wiki\`
         WHERE \`time\` BETWEEN FROM_UNIXTIME(1447430881) AND FROM_UNIXTIME(1547430881)
       `);
 
-      var ex2 = $('wiki').filter(
-        $('time').greaterThan(r(1447430881).cast('TIME')).and($('time').lessThan(r(1547430881).cast('TIME')))
-      );
+      var ex2 = $('wiki')
+        .filter($('time').greaterThan(r(1447430881).cast('TIME')).and($('time').lessThan(r(1547430881).cast('TIME'))))
+        .apply('Unix', $('time').cast('NUMBER'))
+        .select('Unix');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with an less than equal FROM_UNIXTIME function", () => {
+    it("should work with an less than equal TO_TIMESTAMP function", () => {
       var parse = Expression.parseSQL(sane`
-        SELECT * FROM \`wiki\`
-        WHERE FROM_UNIXTIME(1447430881) < \`time\` AND \`time\` < FROM_UNIXTIME(1547430881)
+        SELECT EXTRACT(EPOCH FROM \`time\`) as Unix FROM \`wiki\`
+        WHERE TO_TIMESTAMP(1447430881) < \`time\` AND \`time\` < TO_TIMESTAMP(1547430881)
       `);
 
-      var ex2 = $('wiki').filter(
-        r(1447430881).cast('TIME').lessThan($('time')).and($('time').lessThan(r(1547430881).cast('TIME')))
-      );
+      var ex2 = $('wiki')
+        .filter(r(1447430881).cast('TIME').lessThan($('time')).and($('time').lessThan(r(1547430881).cast('TIME'))))
+        .apply('Unix', $('time').cast('NUMBER'))
+        .select('Unix');
+
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });

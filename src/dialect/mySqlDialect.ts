@@ -39,9 +39,17 @@ module Plywood {
       YEAR: 'YEAR($$)'
     };
 
-    static CAST_TO_FUNCTION: Lookup<string> = {
-      TIME: 'FROM_UNIXTIME($$)',
-      NUMBER: 'UNIX_TIMESTAMP($$)'
+    static CAST_TO_FUNCTION: {[castType: string]: any} = {
+      TIME: {
+        NUMBER: 'FROM_UNIXTIME($$)'
+      },
+      NUMBER: {
+        TIME: 'UNIX_TIMESTAMP($$)',
+        STRING: 'CAST($$ AS SIGNED)'
+      },
+      STRING: {
+        NUMBER: 'CAST($$ AS CHAR)'
+      }
     };
 
     constructor() {
@@ -82,9 +90,9 @@ module Plywood {
       return `(${expression} REGEXP '${regexp}')`; // ToDo: escape this.regexp
     }
 
-    public castExpression(operand: string, cast: string): string {
-      var castFunction = MySQLDialect.CAST_TO_FUNCTION[cast];
-      if (!castFunction) throw new Error(`unsupported cast type ${cast} in MySQL dialect`);
+    public castExpression(inputType: PlyType, operand: string, cast: string): string {
+      var castFunction = MySQLDialect.CAST_TO_FUNCTION[cast][inputType];
+      if (!castFunction) throw new Error(`unsupported cast from ${inputType} to ${cast} in MySQL dialect`);
       return castFunction.replace(/\$\$/g,operand)
     }
 

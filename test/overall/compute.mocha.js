@@ -138,6 +138,22 @@ describe("compute native", () => {
       .done();
   });
 
+  it("casts from number to string", (testComplete) => {
+    var ex = ply()
+      .apply('stringifiedNumber', r(22345243).cast('STRING'))
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "stringifiedNumber": "22345243"
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
   it("doesn't fallback if not null", (testComplete) => {
     var ex = $('x').fallback(5);
     ex.compute({ x: 2 })

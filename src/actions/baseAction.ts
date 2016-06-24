@@ -258,25 +258,26 @@ module Plywood {
     }
 
 
-    protected _getJSHelper(inputJS: string, expressionJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
       throw new Error('can not call this directly');
     }
 
-    public getJS(inputJS: string, datumVar: string): string {
+    public getJS(expressionType: PlyType, inputJS: string, datumVar: string): string {
       var expression = this.expression;
       var expressionJS = expression ? expression.getJS(datumVar) : null;
-      return this._getJSHelper(inputJS, expressionJS);
+
+      return this._getJSHelper(expressionType, inputJS, expressionJS);
     }
 
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       throw new Error('can not call this directly');
     }
 
-    public getSQL(inputSQL: string, dialect: SQLDialect): string {
+    public getSQL(inputSQL: string, dialect: SQLDialect, inputType?: PlyType): string {
       var expression = this.expression;
       var expressionSQL = expression ? expression.getSQL(dialect) : null;
-      return this._getSQLHelper(dialect, inputSQL, expressionSQL);
+      return this._getSQLHelper(inputType, dialect, inputSQL, expressionSQL);
     }
 
 

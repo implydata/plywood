@@ -51,6 +51,7 @@ var attributes = [
   { name: "cityName", type: 'STRING' },
   { name: "comment", type: 'STRING' },
   { name: "commentLength", type: 'NUMBER' },
+  { name: "commentLengthStr", type: 'STRING' },
   { name: "countryIsoCode", type: 'STRING' },
   { name: "countryName", type: 'STRING' },
   { name: "deltaBucket100", type: 'NUMBER' },
@@ -351,6 +352,20 @@ describe("Cross Functional", function() {
         .apply('wiki', $('wiki').filter($('unixTimestamp').greaterThan(r(new Date('2015-09-12T00:00:00.000Z')).cast('NUMBER')).and($('unixTimestamp').lessThan(r(new Date('2015-09-12T11:59:30.000Z')).cast('NUMBER')))))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with cast from number to string in filter', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter($('commentLength').cast('STRING').is(r("15"))))
+        .apply('TotalEdits', '$wiki.sum($count)')
+    }));
+
+    it('works with cast from string to number in filter', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter($('commentLengthStr').cast('NUMBER').is(r(15))))
+        .apply('TotalEdits', '$wiki.sum($count)')
     }));
 
     it('works with .lessThan()', equalityTest({
@@ -811,18 +826,44 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
-    it('works with time cast action from number to time on split', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'],
+    it('works with cast action from number to time on split', equalityTest({
+      executorNames: ['druid', 'postgres'],
       expression: $('wiki').split({ 'commentLengthToDate': '$commentLength.cast("TIME")', 'Page': '$page' })
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(5)
     }));
 
-    it('works with time cast action from time to number on split', equalityTest({
+    it('works with cast action from time to number on split', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split({ 'time': '$time.cast("NUMBER")', 'Comment': '$comment' })
         .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(4)
+    }));
+
+    it('works with cast action from number to string on split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split({ 'time': '$commentLength.cast("STRING")', 'Comment': '$comment' })
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(4)
+    }));
+
+    it('works with cast action from number to string on split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split({ 'commentLength': '$commentLength.cast("STRING")', 'Comment': '$comment' })
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(4)
+    }));
+
+    it('works with cast action from string to number on split', equalityTest({
+      executorNames: ['druid', 'druidLegacy'],
+      expression: $('wiki').split({ 'commentLengthString': '$commentLengthStr.cast("NUMBER")', 'Comment': '$comment' })
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
         .limit(4)
@@ -978,6 +1019,22 @@ describe("Cross Functional", function() {
         .select('page', 'time', 'comment', 'added')
         .sort('$comment', 'descending')
         .apply('castTime', '$wiki.max($time.cast("NUMBER"))')
+    }));
+
+    it('works with cast from number to string in apply', equalityTest({
+      executorNames: ['druid', 'postgres'],
+      expression: $('wiki').filter('$cityName == "El Paso"')
+        .select('page', 'commentLength', 'comment', 'added')
+        .sort('$comment', 'descending')
+        .apply('castTime', '$commentLength.cast("STRING")')
+    }));
+
+    it('works with cast from string to number in apply', equalityTest({
+      executorNames: ['druid', 'postgres'],
+      expression: $('wiki').filter('$cityName == "El Paso"')
+        .select('page', 'commentLengthStr', 'comment', 'added')
+        .sort('$comment', 'descending')
+        .apply('castTime', '$wiki.max($commentLengthStr.cast("NUMBER"))')
     }));
 
   });

@@ -639,11 +639,11 @@ module Plywood {
 
     public abstract getFn(): ComputeFn
 
-    public abstract getJS(datumVar: string): string
+    public abstract getJS(datumVar: string, exprType?: PlyType): string
 
-    public getJSFn(datumVar: string = 'd[]'): string {
+    public getJSFn(datumVar: string = 'd[]', exprType?: PlyType): string {
       const { type } = this;
-      var jsEx = this.getJS(datumVar);
+      var jsEx = this.getJS(datumVar, exprType);
       var body: string;
       if (type === 'NUMBER' || type === 'NUMBER_RANGE') {
         body = `_=${jsEx};return isNaN(_)?null:_`;

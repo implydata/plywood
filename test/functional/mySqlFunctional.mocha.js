@@ -34,6 +34,7 @@ describe("MySQL Functional", function() {
     { "name": "cityName", "type": "STRING" },
     { "name": "comment", "type": "STRING" },
     { "name": "commentLength", "type": "NUMBER" },
+    { "name": "commentLengthStr", "type": "STRING" },
     { "name": "countryIsoCode", "type": "STRING" },
     { "name": "countryName", "type": "STRING" },
     { "name": "deltaBucket100", "type": "NUMBER" },

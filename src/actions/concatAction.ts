@@ -29,11 +29,11 @@ module Plywood {
       }
     }
 
-    protected _getJSHelper(inputJS: string, expressionJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
       return Expression.jsNullSafetyBinary(inputJS, expressionJS, (a, b) => { return `${a}+${b}` }, inputJS[0] === '"', expressionJS[0] === '"');
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return dialect.concatExpression(inputSQL, expressionSQL);
     }
 

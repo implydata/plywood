@@ -22,7 +22,7 @@ module Plywood {
       };
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `MAX(${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL)})`;
     }
 

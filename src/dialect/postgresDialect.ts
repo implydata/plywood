@@ -41,9 +41,17 @@ module Plywood {
       YEAR: "DATE_PART('year',$$)",
     };
 
-    static CAST_TO_FUNCTION: Lookup<string> = {
-      TIME: 'TO_TIMESTAMP($$)::timestamp',
-      NUMBER: "EXTRACT(EPOCH FROM $$)"
+    static CAST_TO_FUNCTION: {[castType: string]: any} = {
+      TIME: {
+        NUMBER: 'TO_TIMESTAMP($$)::timestamp'
+      },
+      NUMBER: {
+        TIME: "EXTRACT(EPOCH FROM $$)",
+        STRING: "$$::float"
+      },
+      STRING: {
+        NUMBER: "$$::text"
+      }
     };
 
     constructor() {
@@ -79,9 +87,9 @@ module Plywood {
       return `(${expression} ~ '${regexp}')`; // ToDo: escape this.regexp
     }
 
-    public castExpression(operand: string, cast: string): string {
-      var castFunction = PostgresDialect.CAST_TO_FUNCTION[cast];
-      if (!castFunction) throw new Error(`unsupported cast type ${cast} in Postgres dialect`);
+    public castExpression(inputType: PlyType, operand: string, cast: string): string {
+      var castFunction = PostgresDialect.CAST_TO_FUNCTION[cast][inputType];
+      if (!castFunction) throw new Error(`unsupported cast from ${inputType} to ${cast} in Postgres dialect`);
       return castFunction.replace(/\$\$/g, operand);
     }
 

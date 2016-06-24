@@ -54,7 +54,7 @@ module Plywood {
       }
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `LIMIT ${this.limit}`;
     }
 

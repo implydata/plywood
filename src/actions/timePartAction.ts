@@ -135,11 +135,11 @@ module Plywood {
       }
     }
 
-    protected _getJSHelper(inputJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
       throw new Error("implement me");
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return dialect.timePartExpression(inputSQL, this.part, this.getTimezone());
     }
 

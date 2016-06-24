@@ -140,7 +140,8 @@ var fns = {
   TIME: function() { error('time literals are not supported'); },
   DATE_ADD: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
   DATE_SUB: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
-  FROM_UNIXTIME: function(op, tz) { return upgrade(op).cast('TIME', tz) },
+  TIME_CAST: function(op, tz) { return upgrade(op).cast('TIME') },
+  NUMBER_CAST: function(op) { return upgrade(op).cast('NUMBER') },
 
   // Information Functions
   BENCHMARK: function() { return r(0); },
@@ -179,6 +180,12 @@ fns.ADDDATE = fns.DATE_ADD;
 fns.SUBDATE = fns.DATE_SUB;
 fns.STDDEV = fns.STD;
 fns.STDDEV_POP = fns.STD;
+
+// Casts
+fns.FROM_UNIXTIME = fns.TIME_CAST;
+fns.TO_TIMESTAMP = fns.TIME_CAST;
+fns.UNIX_TIMESTAMP = fns.NUMBER_CAST;
+fns.EXTRACT = fns.NUMBER_CAST;
 
 // Information Functions
 fns.SESSION_USER = fns.USER;
@@ -799,7 +806,7 @@ ExpressionMaybeFiltered
 
 
 FunctionCallExpression
-  = fn:Fn OpenParen params:Params CloseParen
+  = fn:Fn OpenParen t:(EpochToken FromToken)? params:Params CloseParen
     { return fn.apply(null, params); }
 
 Fn
@@ -921,6 +928,8 @@ ByToken            = "BY"i             !IdentifierPart _
 OrderToken         = "ORDER"i          !IdentifierPart _
 HavingToken        = "HAVING"i         !IdentifierPart _
 LimitToken         = "LIMIT"i          !IdentifierPart _
+
+EpochToken         = "EPOCH"i          !IdentifierPart _
 
 AscToken           = "ASC"i            !IdentifierPart _ { return SortAction.ASCENDING;  }
 DescToken          = "DESC"i           !IdentifierPart _ { return SortAction.DESCENDING; }

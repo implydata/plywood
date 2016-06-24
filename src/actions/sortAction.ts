@@ -63,7 +63,7 @@ module Plywood {
       }
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       var dir = this.direction === SortAction.DESCENDING ? 'DESC' : 'ASC';
       return `ORDER BY ${expressionSQL} ${dir}`;
     }

@@ -10,7 +10,7 @@ if (!WallTime.rules) {
 var { druidRequesterFactory } = require('plywood-druid-requester');
 
 var plywood = require('../../build/plywood');
-var { External, DruidExternal, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
+var { External, DruidExternal, TimeRange, $, ply, basicExecutorFactory, helper, r } = plywood;
 
 var info = require('../info');
 
@@ -32,6 +32,7 @@ describe("Druid Functional", function() {
     { "name": "cityName", "type": "STRING" },
     { "name": "comment", "type": "STRING" },
     { "name": "commentLength", "type": "NUMBER" },
+    { "name": "commentLengthStr", "type": "STRING" },
     { "name": "count", "makerAction":{"action": "count"}, "type": "NUMBER", "unsplitable":true },
     { "name": "countryIsoCode", "type": "STRING" },
     { "name": "countryName", "type": "STRING" },
@@ -1037,7 +1038,7 @@ describe("Druid Functional", function() {
         )
         .apply(
           'AbsSplitDesc',
-          $('wiki').split($('commentLength').absolute(), 'AbsCommentLength')
+          $('wiki').split($('commentLengthStr').cast("NUMBER"), 'AbsCommentLength')
             .apply('Count', '$wiki.sum($count)')
             .sort('$AbsCommentLength', 'descending')
             .limit(3)
@@ -1462,6 +1463,7 @@ describe("Druid Functional", function() {
               "cityName": "El Paso",
               "comment": "/* Clubs and organizations */",
               "commentLength": 29,
+              "commentLengthStr": "29",
               "count": 1,
               "countryIsoCode": "US",
               "countryName": "United States",

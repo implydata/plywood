@@ -1178,7 +1178,7 @@ module Plywood {
             extractionFn = this.actionToExtractionFn(curAction, nextAction);
             i++; // Skip it
           } else {
-            extractionFn = this.actionToExtractionFn(curAction, null);
+            extractionFn = this.actionToExtractionFn(curAction, null, (expression as ChainExpression).expression.type);
           }
           extractionFns.push(extractionFn);
           curAction = actions[++i];
@@ -1206,7 +1206,7 @@ module Plywood {
       }
     }
 
-    public actionToExtractionFn(action: Action, fallbackAction: FallbackAction): Druid.ExtractionFn {
+    public actionToExtractionFn(action: Action, fallbackAction: FallbackAction, expressionType?: PlyType): Druid.ExtractionFn {
       if (action.action === 'extract' || action.action === 'lookup') {
         var retainMissingValue = false;
         var replaceMissingValueWith: any = null;
@@ -1307,7 +1307,7 @@ module Plywood {
       }
 
       if (action instanceof AbsoluteAction || action instanceof PowerAction || action instanceof LengthAction || action instanceof CardinalityAction || action instanceof CastAction) {
-        return this.actionToJavaScriptExtractionFn(action);
+        return this.actionToJavaScriptExtractionFn(action, expressionType);
       }
 
       if (action instanceof FallbackAction && action.expression.isOp('literal')) {
@@ -1354,14 +1354,14 @@ module Plywood {
       })
     }
 
-    public actionToJavaScriptExtractionFn(action: Action): Druid.ExtractionFn {
-      return this.expressionToJavaScriptExtractionFn($('x').performAction(action));
+    public actionToJavaScriptExtractionFn(action: Action, type?: PlyType): Druid.ExtractionFn {
+      return this.expressionToJavaScriptExtractionFn($('x').performAction(action), type);
     }
 
-    public expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {
+    public expressionToJavaScriptExtractionFn(ex: Expression, type?: PlyType): Druid.ExtractionFn {
       return {
         type: "javascript",
-        'function': ex.getJSFn('d')
+        'function': ex.getJSFn('d', type)
       };
     }
 
@@ -1566,7 +1566,7 @@ module Plywood {
       } else if (ex instanceof ChainExpression) {
         var lastAction = ex.lastAction();
 
-        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction) {
+        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction || lastAction instanceof CastAction) {
           var fieldNameRefs = ex.getFreeReferences();
           var fieldNames = fieldNameRefs.map(fieldNameRef => {
             var accessType = this.getAccessType(aggregations, fieldNameRef);
@@ -1583,7 +1583,7 @@ module Plywood {
           return {
             type: 'javascript',
             fieldNames: fieldNames,
-            'function': `function(${fieldNameRefs.map(RefExpression.toJavaScriptSafeName)}) { return ${ex.getJS(null)}; }`
+            'function': `function(${fieldNameRefs.map(RefExpression.toJavaScriptSafeName)}) { return ${ex.getJS(null, (ex as ChainExpression).expression.type)}; }`
           };
         }
 
