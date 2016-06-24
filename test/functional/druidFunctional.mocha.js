@@ -1774,6 +1774,38 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works with bad casts", (testComplete) => {
+      var ex = $('wiki').split({ 'numberCast': '$userChars.cast("NUMBER")', 'dateCast': '$userChars.cast("TIME")' })
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      ex.compute({ wiki: wikiUserCharAsNumber })
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Count": 20914020,
+              "dateCast": null,
+              "numberCast": null
+            },
+            {
+              "Count": 456855,
+              "dateCast": {
+                "type": "TIME",
+                "value": new Date('1970-01-01T00:00:00.000Z')
+              },
+              "numberCast": null
+            },
+            {
+              "Count": 456855,
+              "dateCast": null,
+              "numberCast": 0
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
   });
 
 

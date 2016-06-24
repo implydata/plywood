@@ -363,6 +363,62 @@ describe("MySQL Functional", function() {
 
   });
 
+  describe("incorrect commentLength and comment", () => {
+    var wikiUserCharAsNumber = External.fromJS({
+      engine: 'mysql',
+      source: 'wikipedia',
+      timeAttribute: 'time',
+      allowEternity: true,
+      attributes: [
+        { name: 'time', type: 'TIME' },
+        { name: "comment", type: "STRING" },
+        { name: 'page', type: 'NUMBER' }, // This is incorrect
+        { name: 'count', type: 'NUMBER', unsplitable: true }
+      ]
+    }, mySqlRequester);
+
+    // Todo: invalid number casts return 0 in mysql. Also, something is happening when page is defined as a number that results in numbers being passed into the cast to date
+    it("works with bad casts", (testComplete) => {
+      var ex = $('wiki').split({ 'numberCast': '$comment.cast("NUMBER")', 'dateCast': '$page.cast("TIME")' })
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      ex.compute({ wiki: wikiUserCharAsNumber })
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Count": 382569,
+              "dateCast": {
+                "type": "TIME",
+                "value": new Date('1970-01-01T00:00:00.000Z')
+              },
+              "numberCast": 0
+            },
+            {
+              "Count": 3347,
+              "dateCast": {
+                "type": "TIME",
+                "value": new Date('1970-01-01T00:33:35.000Z')
+              },
+              "numberCast": 0
+            },
+            {
+              "Count": 640,
+              "dateCast": {
+                "type": "TIME",
+                "value": new Date('1970-01-01T00:00:00.000Z')
+              },
+              "numberCast": 1
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+  });
+
+
   describe("introspection", () => {
     var basicExecutor = basicExecutorFactory({
       datasets: {

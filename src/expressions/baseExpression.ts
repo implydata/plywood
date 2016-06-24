@@ -647,6 +647,8 @@ module Plywood {
       var body: string;
       if (type === 'NUMBER' || type === 'NUMBER_RANGE') {
         body = `_=${jsEx};return isNaN(_)?null:_`;
+      } else if (type === 'TIME') {
+        body = `_=${jsEx};return (!(_ instanceof Date && isFinite(d))) ?null:_`;
       } else {
         body = `return ${jsEx};`;
       }
