@@ -44,7 +44,7 @@ module Plywood {
       throw new Error('should not call getJS on External');
     }
 
-    public getSQL(dialect: Plywood.SQLDialect): string {
+    public getSQL(dialect: SQLDialect): string {
       throw new Error('should not call getSQL on External');
     }
 

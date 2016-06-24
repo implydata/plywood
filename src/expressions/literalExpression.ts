@@ -68,7 +68,7 @@ module Plywood {
       return JSON.stringify(this.value); // ToDo: what to do with higher objects?
     }
 
-    public getSQL(dialect: Plywood.SQLDialect): string {
+    public getSQL(dialect: SQLDialect): string {
       var value = this.value;
       if (value === null) return 'NULL';
 

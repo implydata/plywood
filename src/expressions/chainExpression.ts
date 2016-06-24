@@ -102,7 +102,7 @@ module Plywood {
       return js;
     }
 
-    public getSQL(dialect: Plywood.SQLDialect): string {
+    public getSQL(dialect: SQLDialect): string {
       var expression = this.expression;
       var actions = this.actions;
       var sql = expression.getSQL(dialect);

@@ -653,7 +653,7 @@ module Plywood {
       return `function(${datumVar.replace('[]', '')}){${body}}`;
     }
 
-    public abstract getSQL(dialect: Plywood.SQLDialect): string
+    public abstract getSQL(dialect: SQLDialect): string
 
     public extractFromAnd(matchFn: ExpressionMatchFn): ExtractAndRest {
       if (this.type !== 'BOOLEAN') return null;

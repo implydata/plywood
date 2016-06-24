@@ -274,7 +274,7 @@ module Plywood {
       throw new Error('can not call this directly');
     }
 
-    public getSQL(inputType: Plywood.PlyType, inputSQL: string, dialect: Plywood.SQLDialect): string {
+    public getSQL(inputType: Plywood.PlyType, inputSQL: string, dialect: SQLDialect): string {
       var expression = this.expression;
       var expressionSQL = expression ? expression.getSQL(dialect) : null;
       return this._getSQLHelper(inputType, dialect, inputSQL, expressionSQL);
