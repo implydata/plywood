@@ -110,9 +110,7 @@ module Plywood {
       var from = "FROM " + this.dialect.escapeName(source as string);
       var filter = this.getQueryFilter();
       if (!filter.equals(Expression.TRUE)) {
-        var innerExpression = (filter as ChainExpression).expression;
-        var exprType = innerExpression ? innerExpression.type : null;
-        from += '\nWHERE ' + (filter as ChainExpression).getSQL(dialect);
+        from += '\nWHERE ' + filter.getSQL(dialect);
       }
 
       switch (mode) {
