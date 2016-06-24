@@ -64,11 +64,11 @@ module Plywood {
       return () => value;
     }
 
-    public getJS(inputType: Plywood.PlyType, datumVar: string): string {
+    public getJS(datumVar: string): string {
       return JSON.stringify(this.value); // ToDo: what to do with higher objects?
     }
 
-    public getSQL(exprType: Plywood.PlyType, dialect: Plywood.SQLDialect): string {
+    public getSQL(dialect: Plywood.SQLDialect): string {
       var value = this.value;
       if (value === null) return 'NULL';
 

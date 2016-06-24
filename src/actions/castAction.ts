@@ -6,12 +6,12 @@ module Plywood {
     };
     NUMBER: {
       TIME: (d: Date) => number;
-      STRING: (s: string) => number;
+      UNIVERSAL: (v: any) => number;
     };
     STRING: {
-      NUMBER: (n: number) => String
+      UNIVERSAL: (v: any) => String;
     }
-    [propName: string]: any;
+    [castTo: string]: any;
   }
 
   const CAST_TYPE_TO_FN: Caster = {
@@ -19,11 +19,11 @@ module Plywood {
       NUMBER: n => new Date(n*1000)
     },
     NUMBER: {
-      TIME: (n) => Date.parse(n.toString()) / 1000,
-      STRING: (s) => Number(s)
+      TIME: (n: Date) => Date.parse(n.toString()) / 1000,
+      UNIVERSAL: (s: any) => Number(s)
     },
     STRING: {
-      NUMBER: (n: number) => ``+n
+      UNIVERSAL: (v: any) => ``+v
     }
   };
 
@@ -33,10 +33,10 @@ module Plywood {
     },
     NUMBER: {
       TIME: (inputJS) => `${inputJS} / 1000`, // we get the time in ms as argument in extractionFn
-      STRING: (s) => `Number(${s})`
+      UNIVERSAL: (s) => `Number(${s})`
     },
     STRING: {
-      NUMBER: (inputJS) => `${inputJS}`
+      UNIVERSAL: (inputJS) => `${inputJS}`
     }
   };
 
@@ -82,7 +82,7 @@ module Plywood {
 
     public getOutputType(inputType: PlyType): PlyType {
       var castType = this.castType;
-      if (inputType && (!CAST_TYPE_TO_FN[castType][inputType])) {
+      if (inputType && (!CAST_TYPE_TO_FN[castType][inputType]) && (!CAST_TYPE_TO_FN[castType]['UNIVERSAL'])) {
         throw new Error(`unsupported cast from ${inputType} to ${castType}`);
       }
 
@@ -91,23 +91,9 @@ module Plywood {
 
     public _fillRefSubstitutions(): FullType {
       const { castType } = this;
-
-      if (castType === 'TIME') {
-        return {
-          type: 'TIME',
-        };
-      } else if (castType === 'NUMBER') {
-        return {
-          type: 'NUMBER',
-        };
-      } else if (castType === 'STRING') {
-        return {
-          type: 'STRING',
-        };
-      }
-
-
-      throw new Error(`unrecognized cast type ${castType}`);
+      return {
+        type: castType as PlyTypeSimple
+      };
     }
 
     protected _foldWithPrevAction(prevAction: Action): Action {
@@ -125,11 +111,19 @@ module Plywood {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (!inV) return null;
-        if (isDate(inV)) return caster['TIME'](inV);
-        if (typeof inV === 'string') return caster['STRING'](inV);
-        if (typeof inV === 'number') return caster['NUMBER'](inV);
 
-        throw new Error(`unsupported input type ${inV}`)
+        var castFn: Function = null;
+        if (isDate(inV)) {
+          castFn = caster['TIME'];
+        } else {
+          // string or number?
+          castFn = caster[(typeof inV).toUpperCase()]
+        }
+
+        if (castFn) return castFn(inV);
+        if (caster['UNIVERSAL']) return caster['UNIVERSAL'](inV);
+
+        throw new Error(`could not cast input ${inV}`)
       }
     }
 
@@ -137,7 +131,9 @@ module Plywood {
       const { castType } = this;
       var castJS = CAST_TYPE_TO_JS[castType];
       if (!castJS) throw new Error(`unsupported cast type in getJS '${castType}'`);
-      return castJS[inputType](inputJS);
+      var js = castJS[inputType] || castJS['UNIVERSAL'];
+      if (!js) throw new Error(`unsupported combo in getJS ${inputType} to ${castType}`);
+      return js(inputJS);
     }
 
     protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

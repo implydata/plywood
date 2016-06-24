@@ -103,16 +103,16 @@ module Plywood {
     }
 
     public getSQL(inputType: PlyType, inputSQL: string, dialect: SQLDialect): string {
-      var groupBys = this.mapSplits((name, expression) => expression.getSQL(null, dialect));
+      var groupBys = this.mapSplits((name, expression) => expression.getSQL(dialect));
       return `GROUP BY ${groupBys.join(', ')}`;
     }
 
     public getSelectSQL(dialect: SQLDialect): string[] {
       return this.mapSplits((name, expression) => {
         if (expression instanceof ChainExpression) {
-          return `${expression.getSQL((expression as ChainExpression).expression.type, dialect)} AS ${dialect.escapeName(name)}`
+          return `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`
         } else {
-          return `${expression.getSQL(null, dialect)} AS ${dialect.escapeName(name)}`;
+          return `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`;
         }
       });
     }

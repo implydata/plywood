@@ -264,7 +264,7 @@ module Plywood {
 
     public getJS(inputType: PlyType, inputJS: string, datumVar: string): string {
       var expression = this.expression;
-      var expressionJS = expression ? expression.getJS(null, datumVar) : null;
+      var expressionJS = expression ? expression.getJS(datumVar) : null;
 
       return this._getJSHelper(inputType, inputJS, expressionJS);
     }
@@ -276,7 +276,7 @@ module Plywood {
 
     public getSQL(inputType: Plywood.PlyType, inputSQL: string, dialect: Plywood.SQLDialect): string {
       var expression = this.expression;
-      var expressionSQL = expression ? expression.getSQL(null, dialect) : null;
+      var expressionSQL = expression ? expression.getSQL(dialect) : null;
       return this._getSQLHelper(inputType, dialect, inputSQL, expressionSQL);
     }
 

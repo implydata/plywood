@@ -112,7 +112,7 @@ module Plywood {
       if (!filter.equals(Expression.TRUE)) {
         var innerExpression = (filter as ChainExpression).expression;
         var exprType = innerExpression ? innerExpression.type : null;
-        from += '\nWHERE ' + (filter as ChainExpression).getSQL(exprType, dialect);
+        from += '\nWHERE ' + (filter as ChainExpression).getSQL(dialect);
       }
 
       switch (mode) {
@@ -179,7 +179,7 @@ module Plywood {
             split.getShortGroupBySQL()
           );
           if (!(this.havingFilter.equals(Expression.TRUE))) {
-            query.push('HAVING ' + this.havingFilter.getSQL(null, dialect));
+            query.push('HAVING ' + this.havingFilter.getSQL(dialect));
           }
           if (sort) {
             query.push(sort.getSQL(null, '', dialect));

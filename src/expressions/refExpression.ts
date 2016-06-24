@@ -159,7 +159,7 @@ module Plywood {
       }
     }
 
-    public getJS(inputType: Plywood.PlyType, datumVar: string): string {
+    public getJS(datumVar: string): string {
       if (this.nest) throw new Error("can not call getJS on unresolved expression");
       var name = this.name;
       var expr: string;
@@ -173,7 +173,7 @@ module Plywood {
       return expr;
     }
 
-    public getSQL(inputType: PlyType, dialect: SQLDialect, minimal: boolean = false): string {
+    public getSQL(dialect: SQLDialect, minimal: boolean = false): string {
       if (this.nest) throw new Error(`can not call getSQL on unresolved expression: ${this}`);
       return dialect.escapeName(this.name);
     }

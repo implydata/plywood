@@ -1030,7 +1030,6 @@ describe("SQL parser", () => {
         .apply('castedNumber', $('commentLengthStr').cast('NUMBER'))
         .select('castedString', 'castedNumber');
 
-
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 

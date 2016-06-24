@@ -714,7 +714,7 @@ module Plywood {
       return {
         type: "javascript",
         dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
-        "function": ex.getJSFn(null, 'd')
+        "function": ex.getJSFn('d')
       };
     }
 
@@ -1331,7 +1331,7 @@ module Plywood {
         // Druid < 0.9.1 behaves badly on null https://github.com/druid-io/druid/issues/2706 (does not have nullHandling: 'returnNull')
         extractionFns.push({
           type: "javascript",
-          'function': Expression.concat(pattern).getJSFn(null, 'd'),
+          'function': Expression.concat(pattern).getJSFn('d'),
           injective: true
         });
         return;
@@ -1355,13 +1355,13 @@ module Plywood {
     }
 
     public actionToJavaScriptExtractionFn(action: Action, type?: PlyType): Druid.ExtractionFn {
-      return this.expressionToJavaScriptExtractionFn($('x').performAction(action), type);
+      return this.expressionToJavaScriptExtractionFn($('x', type).performAction(action));
     }
 
-    public expressionToJavaScriptExtractionFn(ex: Expression, type?: PlyType): Druid.ExtractionFn {
+    public expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {
       return {
         type: "javascript",
-        'function': ex.getJSFn(type, 'd')
+        'function': ex.getJSFn('d')
       };
     }
 
@@ -1583,7 +1583,7 @@ module Plywood {
           return {
             type: 'javascript',
             fieldNames: fieldNames,
-            'function': `function(${fieldNameRefs.map(RefExpression.toJavaScriptSafeName)}) { return ${ex.getJS((ex as ChainExpression).expression.type, null)}; }`
+            'function': `function(${fieldNameRefs.map(RefExpression.toJavaScriptSafeName)}) { return ${ex.getJS(null)}; }`
           };
         }
 
@@ -1765,7 +1765,7 @@ module Plywood {
         name,
         type: "javascript",
         fieldNames: fieldNames,
-        fnAggregate: `function($$,${simpleFieldNames.join(',')}) { return ${aggregateFunction('$$', aggregateExpression.getJS(null, null))}; }`,
+        fnAggregate: `function($$,${simpleFieldNames.join(',')}) { return ${aggregateFunction('$$', aggregateExpression.getJS(null))}; }`,
         fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
         fnReset: `function() { return ${zero}; }`
       }
