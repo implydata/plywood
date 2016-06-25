@@ -1,10 +1,14 @@
+# === Basic ===
 .DS_Store
+/node_modules/
+
+# === WebStorm ===
 /.idea/workspace.xml
 /.idea/tasks.xml
-/node_modules/
-/scratch/
+
+# === Dev ===
 /coverage/
 /package/
+/private/
 /build/
-/notes/
 /docs/examples/play.js

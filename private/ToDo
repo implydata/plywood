@@ -1,0 +1,75 @@
+ToDo with Druid 0.9.0:
+- Dimension having filters: https://github.com/druid-io/druid/pull/2043, https://github.com/druid-io/druid/pull/2130
+
+ToDo:
+- Re-implement fractal cache
+- Allow for multi-dataset joins
+
+other plywood tasks:
+- Add examples to docs
+- Add filtered aggregates to MySQLDataset
+- Add SQL mode to Inspector
+- Make Druid timeseries splits explicit (i.e. remove 0s)
+- Make bracketing saner
+
+
+// ToDo: make type a class
+/*
+  Have Type.STRING, Type.NUMBER  Type....
+  Type.flags = 'url' | 'image_blob'
+
+  interface TypeValue {
+    type: string;
+    subType: string:
+    datasetType: Lookup<any>;
+
+  }
+ */
+
+// ToDo:
+// native call expression (for calling native methods)
+
+# add = binary or nary ?
+
+Keep track of http://visualized.com/2015/
+
+    it "works with no attributes in time split dataset", (testComplete) ->
+      ex = $()
+        .apply('ByHour',
+          $('wiki').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
+            .sort('$TimeByHour', 'descending')
+            .limit(3)
+            .apply('Users',
+              $('wiki').split('$page', 'Page')
+                .apply('Count', $('wiki').count())
+                .sort('$Count', 'descending')
+                .limit(2)
+          )
+        )
+
+      basicDispatcher(ex).then((result) ->
+        expect(result.toJS()).to.deep.equal([
+
+
+Netflix Notes:
+ingest a dimension as paths and make a sankey diagrma:
+A->B->C->D
+A->C->D
+A->B->D e.t.c
+
+
+
+
+
+  /*
+  ToDo:
+  - make a render datatype, has no value but the side-effect is a rendering to the screen
+
+  - a man living a double life suddenly (magically) splits into two, how the two new clones interact?
+   */
+
+
+
+
+for \(var (\w+) = 0; \1 < (\w+)s\.length; \1\+\+\) \{\s+var \2 = \2s\[\1\];
+for (let $1 of $1s) {

@@ -713,7 +713,8 @@ module Plywood {
         immutableLookupsEqual(this.derivedAttributes, other.derivedAttributes) &&
         immutableArraysEqual(this.attributes, other.attributes) &&
         immutableArraysEqual(this.delegates, other.delegates) &&
-        this.concealBuckets === other.concealBuckets;
+        this.concealBuckets === other.concealBuckets &&
+        Boolean(this.requester) === Boolean(other.requester);
     }
 
     public equalBase(other: External): boolean {
