@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.11.3
+
+- Externals take account of `requester` for comparisons
+- Misc cleanup
+
 ## 0.11.2
 
 - Made `Range` and abstract class
