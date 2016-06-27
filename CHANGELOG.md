@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.11.4
+
+- Cleaned up npm package and updated dependencies
+
 ## 0.11.3
 
 - Externals take account of `requester` for comparisons
