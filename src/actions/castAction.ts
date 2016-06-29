@@ -16,27 +16,26 @@ module Plywood {
 
   const CAST_TYPE_TO_FN: Caster = {
     TIME: {
-      NUMBER: n => new Date(n*1000)
+      NUMBER: n => new Date(n)
     },
     NUMBER: {
-      TIME: (n: Date) => Date.parse(n.toString()) / 1000,
+      TIME: (n: Date) => Date.parse(n.toString()),
       UNIVERSAL: (s: any) => Number(s)
     },
     STRING: {
-      UNIVERSAL: (v: any) => ``+v
+      UNIVERSAL: (v: any) => `` + v
     }
   };
 
   const CAST_TYPE_TO_JS: Lookup<Lookup<(inputJS: string)=> string>> = {
     TIME: {
-      NUMBER: (inputJS) => `new Date(${inputJS}*1000)`
+      NUMBER: (inputJS) => `new Date(${inputJS})`
     },
     NUMBER: {
-      TIME: (inputJS) => `${inputJS} / 1000`, // we get the time in ms as argument in extractionFn
       UNIVERSAL: (s) => `Number(${s})`
     },
     STRING: {
-      UNIVERSAL: (inputJS) => `${inputJS}`
+      UNIVERSAL: (inputJS) => `` + inputJS
     }
   };
 

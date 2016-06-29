@@ -146,8 +146,10 @@ var fns = {
   DATE_ADD: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
   DATE_SUB: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
   TIME_CAST: function(op) { return upgrade(op).cast('TIME') },
+  FROM_UNIXTIME: function(op) { return upgrade(op * 1000).cast('TIME') },
   NUMBER_CAST: function(op) { return upgrade(op).cast('NUMBER') },
   CAST: function(op, ct) { return upgrade(op).cast(castTypes[ct]) },
+  UNIX_TIMESTAMP: function(op) { return upgrade(op).cast('NUMBER').divide(1000); },
 
   // Information Functions
   BENCHMARK: function() { return r(0); },
@@ -186,10 +188,6 @@ fns.ADDDATE = fns.DATE_ADD;
 fns.SUBDATE = fns.DATE_SUB;
 fns.STDDEV = fns.STD;
 fns.STDDEV_POP = fns.STD;
-
-// Casts
-fns.FROM_UNIXTIME = fns.TIME_CAST;
-fns.UNIX_TIMESTAMP = fns.NUMBER_CAST;
 
 // Information Functions
 fns.SESSION_USER = fns.USER;

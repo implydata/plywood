@@ -1789,7 +1789,7 @@ describe("Druid Functional", function() {
               "numberCast": null
             },
             {
-              "Count": 456855,
+              "Count": 1393814,
               "dateCast": {
                 "type": "TIME",
                 "value": new Date('1970-01-01T00:00:00.000Z')

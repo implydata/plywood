@@ -399,7 +399,7 @@ describe("MySQL Functional", function() {
               "Count": 3347,
               "dateCast": {
                 "type": "TIME",
-                "value": new Date('1970-01-01T00:33:35.000Z')
+                "value": new Date('1970-01-01T00:00:02.015Z')
               },
               "numberCast": 0
             },

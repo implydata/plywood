@@ -41,10 +41,10 @@ module Plywood {
 
     static CAST_TO_FUNCTION: {[castType: string]: {[inputType: string]: string}} = {
       TIME: {
-        NUMBER: 'FROM_UNIXTIME($$)'
+        NUMBER: 'FROM_UNIXTIME($$ / 1000)'
       },
       NUMBER: {
-        TIME: 'UNIX_TIMESTAMP($$)',
+        TIME: 'UNIX_TIMESTAMP($$) * 1000',
         STRING: 'CAST($$ AS SIGNED)'
       },
       STRING: {

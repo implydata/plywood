@@ -43,10 +43,10 @@ module Plywood {
 
     static CAST_TO_FUNCTION: {[castType: string]: {[inputType: string]: string}} = {
       TIME: {
-        NUMBER: 'TO_TIMESTAMP($$)::timestamp'
+        NUMBER: 'TO_TIMESTAMP($$::double precision / 1000)'
       },
       NUMBER: {
-        TIME: "EXTRACT(EPOCH FROM $$)",
+        TIME: "EXTRACT(EPOCH FROM $$) * 1000",
         STRING: "$$::float"
       },
       STRING: {
