@@ -85,7 +85,7 @@ module Plywood {
         throw new Error(`unsupported cast from ${inputType} to ${castType}`);
       }
 
-      return castType as PlyType;
+      return castType as PlyTypeSimple;
     }
 
     public _fillRefSubstitutions(): FullType {

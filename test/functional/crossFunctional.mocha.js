@@ -826,12 +826,12 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
-    it.skip('works with cast action from number to time on split', equalityTest({
-      executorNames: ['postgres', 'mysql', 'druid'], // druid time results truncate ms
-      expression: $('wiki').split({ 'commentLengthToDate': '$commentLength.cast("TIME")', 'CommentLength': '$commentLength' })
-        .apply('Count', '$wiki.sum($count)')
-        .sort('$Count', 'descending')
-        .limit(5)
+    it('works with cast action from number to time on split', equalityTest({
+      executorNames: ['postgres', 'mysql', 'druid'],
+      expression: $('wiki').filter('$deltaBucket100.in([1000, 2000, 3000, 8000])') // druid time is precise to seconds
+        .split({ 'deltaBucketToDate': '$deltaBucket100.cast(TIME)', 'DeltaBucket': '$deltaBucket100' })
+        .sort('$DeltaBucket', 'descending')
+        .limit(10)
     }));
 
     it('works with cast action from time to number on split', equalityTest({
