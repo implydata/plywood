@@ -23,7 +23,7 @@ module Plywood {
       UNIVERSAL: (s: any) => Number(s)
     },
     STRING: {
-      UNIVERSAL: (v: any) => `` + v
+      UNIVERSAL: (v: any) => '' + v
     }
   };
 
@@ -32,10 +32,10 @@ module Plywood {
       NUMBER: (inputJS) => `new Date(${inputJS})`
     },
     NUMBER: {
-      UNIVERSAL: (s) => `Number(${s})`
+      UNIVERSAL: (s) => `+(${s})`
     },
     STRING: {
-      UNIVERSAL: (inputJS) => `` + inputJS
+      UNIVERSAL: (inputJS) => `('' + ${inputJS})`
     }
   };
 

@@ -736,7 +736,7 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "height_bucket",
       "extractionFn": {
-        "function": "function(d){return (+d);}",
+        "function": "function(d){return ('' + (+d));}",
         "type": "javascript"
       },
       "type": "selector",
@@ -750,7 +750,7 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "height_bucket",
       "extractionFn": {
-        "function": "function(d){_=Number(Math.abs((+d)));return isNaN(_)?null:_}",
+        "function": "function(d){_=+(('' + Math.abs((+d))));return isNaN(_)?null:_}",
         "type": "javascript"
       },
       "type": "selector",
@@ -773,7 +773,7 @@ describe("simulate Druid", () => {
         {
           "dimension": "height_bucket",
           "extractionFn": {
-            "function": "function(d){_=new Date(Number(Math.abs((+d))));return isNaN(_)?null:_}",
+            "function": "function(d){_=new Date(+(('' + Math.abs((+d)))));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "TaxCode",
