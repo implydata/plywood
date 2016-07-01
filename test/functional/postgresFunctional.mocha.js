@@ -307,47 +307,6 @@ describe("Postgres Functional", function() {
       ]
     }, postgresRequester);
 
-    // Todo: $page.cast("TIME") does not work becuase postgres is not respecting attributes defined above
-    // $comment.cast("NUMBER") does not work because it rightly errors invalid input syntax for type double precision: "AlphamaEditor"
-
-    it.skip("works with bad casts", (testComplete) => {
-      var ex = $('wiki').split({ 'numberCast': '$comment.cast("NUMBER")', 'dateCast': '$page.cast("TIME")'})
-        .apply('Count', '$wiki.sum($count)')
-        .sort('$Count', 'descending')
-        .limit(3);
-
-      ex.compute({ wiki: wikiUserCharAsNumber })
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "Count": 382569,
-              "dateCast": {
-                "type": "TIME",
-                "value": new Date('1970-01-01T00:00:00.000Z')
-              },
-              "numberCast": 0
-            },
-            {
-              "Count": 3347,
-              "dateCast": {
-                "type": "TIME",
-                "value": new Date('1970-01-01T00:33:35.000Z')
-              },
-              "numberCast": 0
-            },
-            {
-              "Count": 640,
-              "dateCast": {
-                "type": "TIME",
-                "value": new Date('1970-01-01T00:00:00.000Z')
-              },
-              "numberCast": 1
-            }
-          ]);
-          testComplete();
-        })
-        .done();
-    });
   });
 
   describe("introspection", () => {
