@@ -17,6 +17,7 @@ var attributes = [
   { name: 'tags', type: 'SET/STRING' },
   { name: 'carat', type: 'NUMBER' },
   { name: 'height_bucket', type: 'NUMBER' },
+  { name: 'taxCode', type: 'NUMBER' },
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
   { name: 'vendor_id', special: 'unique', unsplitable: true },
@@ -727,6 +728,70 @@ describe("simulate Druid", () => {
       },
       "type": "selector",
       "value": true
+    });
+  });
+
+  it("works on cast number to string in filter", () => {
+    var ex = $('diamonds').filter($('height_bucket').cast('STRING').is(r("15")));
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "height_bucket",
+      "extractionFn": {
+        "function": "function(d){return (+d);}",
+        "type": "javascript"
+      },
+      "type": "selector",
+      "value": "15"
+    });
+  });
+
+  it("works on cast string to number in filter", () => {
+    var ex = $('diamonds').filter($('taxCode').absolute().cast('STRING').cast('NUMBER').is(r(555)));
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "taxCode",
+      "extractionFn": {
+        "function": "function(d){_=Number(Math.abs((+d)));return isNaN(_)?null:_}",
+        "type": "javascript"
+      },
+      "type": "selector",
+      "value": 555
+    });
+  });
+
+  it("works on cast number to time in split", () => {
+    var ex = $('diamonds').split('$taxCode.absolute().cast("STRING").cast("NUMBER").cast("TIME")', 'TaxCode');
+
+    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+      "aggregations": [
+        {
+          "name": "!DUMMY",
+          "type": "count"
+        }
+      ],
+      "dataSource": "diamonds",
+      "dimensions": [
+        {
+          "dimension": "taxCode",
+          "extractionFn": {
+            "function": "function(d){_=new Date(Number(Math.abs((+d))));return isNaN(_)?null:_}",
+            "type": "javascript"
+          },
+          "outputName": "TaxCode",
+          "type": "extraction"
+        }
+      ],
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "limitSpec": {
+        "columns": [
+          {
+            "dimension": "TaxCode"
+          }
+        ],
+        "type": "default"
+      },
+      "queryType": "groupBy"
     });
   });
 
