@@ -730,6 +730,70 @@ describe("simulate Druid", () => {
     });
   });
 
+  it("works on cast number to string in filter", () => {
+    var ex = $('diamonds').filter($('height_bucket').cast('STRING').is(r("15")));
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "height_bucket",
+      "extractionFn": {
+        "function": "function(d){return ('' + (+d));}",
+        "type": "javascript"
+      },
+      "type": "selector",
+      "value": "15"
+    });
+  });
+
+  it("works on cast string to number in filter", () => {
+    var ex = $('diamonds').filter($('height_bucket').absolute().cast('STRING').cast('NUMBER').is(r(555)));
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "height_bucket",
+      "extractionFn": {
+        "function": "function(d){_=+(('' + Math.abs((+d))));return isNaN(_)?null:_}",
+        "type": "javascript"
+      },
+      "type": "selector",
+      "value": 555
+    });
+  });
+
+  it("works on cast number to time in split", () => {
+    var ex = $('diamonds').split('$height_bucket.absolute().cast("STRING").cast("NUMBER").cast("TIME")', 'TaxCode');
+
+    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+      "aggregations": [
+        {
+          "name": "!DUMMY",
+          "type": "count"
+        }
+      ],
+      "dataSource": "diamonds",
+      "dimensions": [
+        {
+          "dimension": "height_bucket",
+          "extractionFn": {
+            "function": "function(d){_=new Date(+(('' + Math.abs((+d)))));return isNaN(_)?null:_}",
+            "type": "javascript"
+          },
+          "outputName": "TaxCode",
+          "type": "extraction"
+        }
+      ],
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "limitSpec": {
+        "columns": [
+          {
+            "dimension": "TaxCode"
+          }
+        ],
+        "type": "default"
+      },
+      "queryType": "groupBy"
+    });
+  });
+
   it("works with timePart (with limit)", () => {
     var ex = ply()
       .apply(

@@ -63,6 +63,8 @@ describe("Action", () => {
       { action: 'average', expression: { op: 'ref', name: 'myVar' } },
       { action: 'countDistinct', expression: { op: 'ref', name: 'myVar' } },
       { action: 'quantile', expression: { op: 'ref', name: 'myVar' }, quantile: 0.5 },
+      { action: 'cast', castType: 'TIME' },
+      { action: 'cast', castType: 'NUMBER' },
       { action: 'custom', custom: 'blah' },
 
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'normal' },

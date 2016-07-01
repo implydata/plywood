@@ -23,6 +23,7 @@ module Plywood {
     duration?: Duration;
     timezone?: Timezone;
     part?: string;
+    castType?: PlyTypeSimple;
     step?: number;
     position?: int;
     length?: int;
@@ -50,6 +51,7 @@ module Plywood {
     duration?: string;
     timezone?: string;
     part?: string;
+    castType?: PlyTypeSimple;
     step?: number;
     position?: int;
     length?: int;
@@ -241,7 +243,7 @@ module Plywood {
 
     public abstract _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType
 
-    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       var action = this.action;
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
@@ -249,32 +251,32 @@ module Plywood {
       }
     }
 
-    public getFn(inputFn: ComputeFn): ComputeFn {
+    public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       var expression = this.expression;
       var expressionFn = expression ? expression.getFn() : null;
-      return this._getFnHelper(inputFn, expressionFn);
+      return this._getFnHelper(inputType, inputFn, expressionFn);
     }
 
 
-    protected _getJSHelper(inputJS: string, expressionJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
       throw new Error('can not call this directly');
     }
 
-    public getJS(inputJS: string, datumVar: string): string {
+    public getJS(inputType: PlyType, inputJS: string, datumVar: string): string {
       var expression = this.expression;
       var expressionJS = expression ? expression.getJS(datumVar) : null;
-      return this._getJSHelper(inputJS, expressionJS);
+      return this._getJSHelper(inputType, inputJS, expressionJS);
     }
 
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       throw new Error('can not call this directly');
     }
 
-    public getSQL(inputSQL: string, dialect: SQLDialect): string {
+    public getSQL(inputType: PlyType, inputSQL: string, dialect: SQLDialect): string {
       var expression = this.expression;
       var expressionSQL = expression ? expression.getSQL(dialect) : null;
-      return this._getSQLHelper(dialect, inputSQL, expressionSQL);
+      return this._getSQLHelper(inputType, dialect, inputSQL, expressionSQL);
     }
 
 
@@ -312,7 +314,7 @@ module Plywood {
      * Remove action if possible
      * For example +0 and *1
      */
-    protected _removeAction(): boolean {
+    protected _removeAction(inputType: PlyType): boolean {
       return false;
     }
 
@@ -376,7 +378,7 @@ module Plywood {
       if (!this.simple) return this.simplify().performOnSimple(simpleExpression);
       if (!simpleExpression.simple) throw new Error('must get a simple expression');
 
-      if (this._removeAction()) return simpleExpression;
+      if (this._removeAction(simpleExpression.type)) return simpleExpression;
 
       var nukedExpression = this._nukeExpression(simpleExpression);
       if (nukedExpression) return nukedExpression;
@@ -392,7 +394,7 @@ module Plywood {
       if (simpleExpression instanceof LiteralExpression) {
         if (this.fullyDefined()) {
           return new LiteralExpression({
-            value: this.getFn(simpleExpression.getFn())(null, null)
+            value: this.getFn(simpleExpression.type, simpleExpression.getFn())(null, null)
           });
         }
 

@@ -21,14 +21,14 @@ module Plywood {
       };
     }
 
-    public getFn(inputFn: ComputeFn): ComputeFn {
+    public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         return inV ? inV.count() : 0;
       }
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return inputSQL.indexOf(' WHERE ') === -1 ? `COUNT(*)` : `SUM(${dialect.aggregateFilterIfNeeded(inputSQL, '1')})`;
     }
 

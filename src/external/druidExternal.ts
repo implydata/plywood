@@ -1171,6 +1171,7 @@ module Plywood {
           throw new Error(`can not convert complex: ${lead}`);
         }
 
+        var type = (expression as ChainExpression).expression.type;
         while (curAction) {
           var nextAction = actions[i + 1];
           var extractionFn: Druid.ExtractionFn;
@@ -1178,8 +1179,9 @@ module Plywood {
             extractionFn = this.actionToExtractionFn(curAction, nextAction);
             i++; // Skip it
           } else {
-            extractionFn = this.actionToExtractionFn(curAction, null);
+            extractionFn = this.actionToExtractionFn(curAction, null, type);
           }
+          type = curAction.getOutputType(type);
           extractionFns.push(extractionFn);
           curAction = actions[++i];
         }
@@ -1206,7 +1208,7 @@ module Plywood {
       }
     }
 
-    public actionToExtractionFn(action: Action, fallbackAction: FallbackAction): Druid.ExtractionFn {
+    public actionToExtractionFn(action: Action, fallbackAction: FallbackAction, expressionType?: PlyType): Druid.ExtractionFn {
       if (action.action === 'extract' || action.action === 'lookup') {
         var retainMissingValue = false;
         var replaceMissingValueWith: any = null;
@@ -1306,8 +1308,8 @@ module Plywood {
         return this.actionToJavaScriptExtractionFn(action);
       }
 
-      if (action instanceof AbsoluteAction || action instanceof PowerAction || action instanceof LengthAction || action instanceof CardinalityAction) {
-        return this.actionToJavaScriptExtractionFn(action);
+      if (action instanceof AbsoluteAction || action instanceof PowerAction || action instanceof LengthAction || action instanceof CardinalityAction || action instanceof CastAction) {
+        return this.actionToJavaScriptExtractionFn(action, expressionType);
       }
 
       if (action instanceof FallbackAction && action.expression.isOp('literal')) {
@@ -1354,8 +1356,8 @@ module Plywood {
       })
     }
 
-    public actionToJavaScriptExtractionFn(action: Action): Druid.ExtractionFn {
-      return this.expressionToJavaScriptExtractionFn($('x').performAction(action));
+    public actionToJavaScriptExtractionFn(action: Action, type?: PlyType): Druid.ExtractionFn {
+      return this.expressionToJavaScriptExtractionFn($('x', type).performAction(action));
     }
 
     public expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {
@@ -1566,7 +1568,7 @@ module Plywood {
       } else if (ex instanceof ChainExpression) {
         var lastAction = ex.lastAction();
 
-        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction) {
+        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction || lastAction instanceof CastAction) {
           var fieldNameRefs = ex.getFreeReferences();
           var fieldNames = fieldNameRefs.map(fieldNameRef => {
             var accessType = this.getAccessType(aggregations, fieldNameRef);

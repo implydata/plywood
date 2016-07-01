@@ -55,7 +55,7 @@ module Plywood {
       return inputType;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       if (this.compare === ContainsAction.NORMAL) {
         return (d: Datum, c: Datum) => {
           return String(inputFn(d, c)).indexOf(expressionFn(d, c)) > -1;
@@ -67,7 +67,7 @@ module Plywood {
       }
     }
 
-    protected _getJSHelper(inputJS: string, expressionJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
       var combine: (lhs: string, rhs: string) => string;
       if (this.compare === ContainsAction.NORMAL) {
         combine = (lhs, rhs) => `(''+${lhs}).indexOf(${rhs})>-1`;
@@ -77,7 +77,7 @@ module Plywood {
       return Expression.jsNullSafetyBinary(inputJS, expressionJS, combine, inputJS[0] === '"', expressionJS[0] === '"');
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       if (this.compare === ContainsAction.IGNORE_CASE) {
         expressionSQL = `LOWER(${expressionSQL})`;
         inputSQL = `LOWER(${inputSQL})`;

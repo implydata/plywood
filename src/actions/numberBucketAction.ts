@@ -54,7 +54,7 @@ module Plywood {
       };
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       var size = this.size;
       var offset = this.offset;
       return (d: Datum, c: Datum) => {
@@ -64,11 +64,11 @@ module Plywood {
       }
     }
 
-    protected _getJSHelper(inputJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
       return continuousFloorExpression(inputJS, "Math.floor", this.size, this.offset);
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return continuousFloorExpression(inputSQL, "FLOOR", this.size, this.offset);
     }
   }

@@ -75,7 +75,7 @@ module Plywood {
       };
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       var re = new RegExp(this.regexp);
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
@@ -85,11 +85,11 @@ module Plywood {
       }
     }
 
-    protected _getJSHelper(inputJS: string, expressionJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
       return `/${this.regexp}/.test(${inputJS})`;
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return dialect.regexpExpression(inputSQL, this.regexp);
     }
   }

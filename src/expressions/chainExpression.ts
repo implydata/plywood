@@ -84,30 +84,34 @@ module Plywood {
     }
 
     public getFn(): ComputeFn {
-      var fn = this.expression.getFn();
-      var actions = this.actions;
+      var { expression, actions} = this;
+      var fn = expression.getFn();
+      var type = expression.type;
       for (let action of actions) {
-        fn = action.getFn(fn);
+        fn = action.getFn(type, fn);
+        type = action.getOutputType(type);
       }
       return fn;
     }
 
     public getJS(datumVar: string): string {
-      var expression = this.expression;
-      var actions = this.actions;
+      var { expression, actions} = this;
       var js = expression.getJS(datumVar);
+      var type = expression.type;
       for (let action of actions) {
-        js = action.getJS(js, datumVar);
+        js = action.getJS(type, js, datumVar);
+        type = action.getOutputType(type); 
       }
       return js;
     }
 
     public getSQL(dialect: SQLDialect): string {
-      var expression = this.expression;
-      var actions = this.actions;
+      var { expression, actions} = this;
       var sql = expression.getSQL(dialect);
+      var type = expression.type;
       for (let action of actions) {
-        sql = action.getSQL(sql, dialect);
+        sql = action.getSQL(type, sql, dialect);
+        type = action.getOutputType(type);
       }
       return sql;
     }

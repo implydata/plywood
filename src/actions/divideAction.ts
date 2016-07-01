@@ -20,18 +20,18 @@ module Plywood {
       return inputType;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         var v = (inputFn(d, c) || 0) / (expressionFn(d, c) || 0);
         return isNaN(v) ? null : v;
       }
     }
 
-    protected _getJSHelper(inputJS: string, expressionJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
       return `(${inputJS}/${expressionJS})`;
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `(${inputSQL}/${expressionSQL})`;
     }
 

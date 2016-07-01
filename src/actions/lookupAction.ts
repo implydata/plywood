@@ -47,15 +47,15 @@ module Plywood {
       return false;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       throw new Error('can not express as JS');
     }
 
-    protected _getJSHelper(inputJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
       throw new Error('can not express as JS');
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       throw new Error('can not express as SQL');
     }
   }

@@ -46,11 +46,11 @@ module Plywood {
       };
     }
 
-    public getFn(inputFn: ComputeFn): ComputeFn {
+    public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       throw new Error('can not getFn on custom action');
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       throw new Error('custom action not implemented');
     }
 

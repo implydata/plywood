@@ -55,7 +55,7 @@ module Plywood {
       return typeContext;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       var direction = this.direction;
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
@@ -63,7 +63,7 @@ module Plywood {
       }
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       var dir = this.direction === SortAction.DESCENDING ? 'DESC' : 'ASC';
       return `ORDER BY ${expressionSQL} ${dir}`;
     }

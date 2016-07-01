@@ -34,6 +34,7 @@ describe("Postgres Functional", function() {
     { "name": "cityName", "type": "STRING" },
     { "name": "comment", "type": "STRING" },
     { "name": "commentLength", "type": "NUMBER" },
+    { "name": "commentLengthStr", "type": "STRING" },
     { "name": "countryIsoCode", "type": "STRING" },
     { "name": "countryName", "type": "STRING" },
     { "name": "deltaBucket100", "type": "NUMBER" },
@@ -290,6 +291,22 @@ describe("Postgres Functional", function() {
         })
         .done();
     });
+  });
+
+  describe("incorrect commentLength and comment", () => {
+    var wikiUserCharAsNumber = External.fromJS({
+      engine: 'postgres',
+      source: 'wikipedia',
+      timeAttribute: 'time',
+      allowEternity: true,
+      attributes: [
+        { name: 'time', type: 'TIME' },
+        { name: "comment", type: "STRING" },
+        { name: 'page', type: 'NUMBER' }, // This is incorrect
+        { name: 'count', type: 'NUMBER', unsplitable: true }
+      ]
+    }, postgresRequester);
+
   });
 
   describe("introspection", () => {

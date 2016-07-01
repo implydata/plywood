@@ -49,7 +49,7 @@ module Plywood {
       return inputType;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       const { position, length } = this;
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
@@ -58,12 +58,12 @@ module Plywood {
       }
     }
 
-    protected _getJSHelper(inputJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
       const { position, length } = this;
       return `(_=${inputJS},_==null?null:(''+_).substr(${position},${length}))`;
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `SUBSTR(${inputSQL},${this.position + 1},${this.length})`;
     }
   }

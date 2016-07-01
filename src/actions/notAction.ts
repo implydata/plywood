@@ -19,17 +19,17 @@ module Plywood {
       return inputType;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         return !inputFn(d, c);
       }
     }
 
-    protected _getJSHelper(inputJS: string): string {
+    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
       return `!(${inputJS})`;
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `NOT(${inputSQL})`;
     }
 

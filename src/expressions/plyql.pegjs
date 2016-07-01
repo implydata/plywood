@@ -89,6 +89,12 @@ var dateFormats = {
   '%Y-01-01': 'P1Y',
 };
 
+
+var castTypes = {
+  CHAR: 'STRING',
+  SIGNED: 'NUMBER'
+}
+
 function upgrade(v) {
   if (!Expression.isExpression(v)) return r(v);
   return v;
@@ -139,6 +145,9 @@ var fns = {
   TIME: function() { error('time literals are not supported'); },
   DATE_ADD: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
   DATE_SUB: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
+  FROM_UNIXTIME: function(op) { return upgrade(op).multiply(1000).cast('TIME') },
+  CAST: function(op, ct) { return upgrade(op).cast(castTypes[ct]) },
+  UNIX_TIMESTAMP: function(op) { return upgrade(op).cast('NUMBER').divide(1000); },
 
   // Information Functions
   BENCHMARK: function() { return r(0); },
@@ -546,7 +555,7 @@ Columns
     { return makeListMap1(head, tail); }
 
 Column
-  = ex:Expression as:As?
+  = ex:Expression as:AsOptional?
     {
       if (as == null) {
         as = text().trim();
@@ -558,11 +567,14 @@ Column
       });
     }
 
-As
+AsMandatory
+  = AsToken? name:(String / Ref) { return name; }
+
+AsOptional
   = AsToken? name:(String / Ref) { return name; }
 
 FromClause
-  = FromToken fc:FromContent As?
+  = FromToken fc:FromContent AsOptional?
     { return fc; }
 
 FromContent
@@ -669,10 +681,9 @@ ComparisonExpressionRhs
     }
 
 ComparisonExpressionRhsNotable
-  = BetweenToken start:LiteralExpression AndToken end:LiteralExpression
+  = BetweenToken start:(AdditiveExpression) AndToken end:(AdditiveExpression)
     {
-      var range = { start: start.value, end: end.value, bounds: '[]' };
-      return function(ex) { return ex.in(range); };
+      return function(ex) { return ex.greaterThan(start).and(ex.lessThan(end)); };
     }
   / InToken list:(InSetLiteralExpression / AdditiveExpression)
     {
@@ -785,7 +796,7 @@ ExpressionMaybeFiltered
 
 
 FunctionCallExpression
-  = fn:Fn OpenParen params:Params CloseParen
+  = fn:Fn OpenParen params:(Expression AsMandatory / Params) CloseParen
     { return fn.apply(null, params); }
 
 Fn

@@ -32,6 +32,7 @@ describe("Druid Functional", function() {
     { "name": "cityName", "type": "STRING" },
     { "name": "comment", "type": "STRING" },
     { "name": "commentLength", "type": "NUMBER" },
+    { "name": "commentLengthStr", "type": "STRING" },
     { "name": "count", "makerAction":{"action": "count"}, "type": "NUMBER", "unsplitable":true },
     { "name": "countryIsoCode", "type": "STRING" },
     { "name": "countryName", "type": "STRING" },
@@ -1462,6 +1463,7 @@ describe("Druid Functional", function() {
               "cityName": "El Paso",
               "comment": "/* Clubs and organizations */",
               "commentLength": 29,
+              "commentLengthStr": "29",
               "count": 1,
               "countryIsoCode": "US",
               "countryName": "United States",
@@ -1506,6 +1508,7 @@ describe("Druid Functional", function() {
               "cityName": "El Paso",
               "comment": "/* Early life */ spelling",
               "commentLength": 25,
+              "commentLengthStr": "25",
               "count": 1,
               "countryIsoCode": "US",
               "countryName": "United States",
@@ -1771,6 +1774,33 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works with bad casts", (testComplete) => {
+      var ex = $('wiki').split({ 'numberCast': '$channel.cast("NUMBER")', 'dateCast': '$userChars.cast("TIME")' })
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      ex.compute({ wiki: wikiUserCharAsNumber })
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Count": 2618887,
+              "dateCast": null,
+              "numberCast": null
+            },
+            {
+              "Count": 419520,
+              "dateCast": {
+                "type": "TIME",
+                "value": new Date('1970-01-01T00:00:00.000Z')
+              },
+              "numberCast": null
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
   });
 
 

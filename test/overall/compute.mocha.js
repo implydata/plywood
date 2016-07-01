@@ -93,6 +93,81 @@ describe("compute native", () => {
       .done();
   });
 
+  it("casts from number to time", (testComplete) => {
+    // 1442016000000 -> 09/12/2015 00:00:00
+    // 1442059199000 -> 09/12/2015 11:59:59
+
+    var ex = ply()
+      .apply('time', new Date('2015-09-12T09:20:30Z'))
+      .apply('between', $('time').greaterThan(r(1442016000000).cast('TIME')).and($('time').lessThan(r(1442059199000).cast('TIME'))))
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "between": true,
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-09-12T09:20:30.000Z')
+            }
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("casts from time to number", (testComplete) => {
+    // 1442049630000 -> 09/12/2015 02:20:30
+    var ex = ply()
+      .apply('unixTimestamp', r(1442049630000))
+      .apply('between', $('unixTimestamp').greaterThan(r(new Date('2015-09-12T00:00:00.000Z')).cast('NUMBER')).and($('unixTimestamp').lessThan(r(new Date('2015-09-12T11:59:30.000Z')).cast('NUMBER'))));
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "between": true,
+            "unixTimestamp": 1442049630000
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("casts from number to string", (testComplete) => {
+    var ex = ply()
+      .apply('stringifiedNumber', r(22345243).cast('STRING'));
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "stringifiedNumber": "22345243"
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("casts from string to number", (testComplete) => {
+    var ex = ply()
+      .apply('numberfiedString', r("22345243").cast('NUMBER'));
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "numberfiedString": 22345243
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
   it("doesn't fallback if not null", (testComplete) => {
     var ex = $('x').fallback(5);
     ex.compute({ x: 2 })

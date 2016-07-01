@@ -48,7 +48,7 @@ module Plywood {
       };
     }
 
-    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       var quantile = this.quantile;
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);

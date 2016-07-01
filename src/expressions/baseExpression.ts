@@ -645,7 +645,7 @@ module Plywood {
       const { type } = this;
       var jsEx = this.getJS(datumVar);
       var body: string;
-      if (type === 'NUMBER' || type === 'NUMBER_RANGE') {
+      if (type === 'NUMBER' || type === 'NUMBER_RANGE' || type === 'TIME') {
         body = `_=${jsEx};return isNaN(_)?null:_`;
       } else {
         body = `return ${jsEx};`;
@@ -978,6 +978,10 @@ module Plywood {
     public timePart(part: string, timezone?: any): ChainExpression {
       if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
       return this.bumpStringLiteralToTime().performAction(new TimePartAction({ part: getString(part), timezone }));
+    }
+
+    public cast(castType: PlyType): ChainExpression {
+      return this.performAction(new CastAction({ castType: getString(castType) as PlyTypeSimple }));
     }
 
     // Set operations

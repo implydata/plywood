@@ -48,7 +48,7 @@ module Plywood {
         this.name === other.name;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       var name = this.name;
       var type = this.expression.type;
       return (d: Datum, c: Datum) => {
@@ -57,7 +57,7 @@ module Plywood {
       }
     }
 
-    protected _getSQLHelper(dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       return `${expressionSQL} AS ${dialect.escapeName(this.name)}`;
     }
 

@@ -41,6 +41,19 @@ module Plywood {
       YEAR: "DATE_PART('year',$$)",
     };
 
+    static CAST_TO_FUNCTION: {[castType: string]: {[inputType: string]: string}} = {
+      TIME: {
+        NUMBER: 'TO_TIMESTAMP($$::double precision / 1000)'
+      },
+      NUMBER: {
+        TIME: "EXTRACT(EPOCH FROM $$) * 1000",
+        STRING: "$$::float"
+      },
+      STRING: {
+        NUMBER: "$$::text"
+      }
+    };
+
     constructor() {
       super();
     }
@@ -74,6 +87,12 @@ module Plywood {
       return `(${expression} ~ '${regexp}')`; // ToDo: escape this.regexp
     }
 
+    public castExpression(inputType: PlyType, operand: string, cast: string): string {
+      var castFunction = PostgresDialect.CAST_TO_FUNCTION[cast][inputType];
+      if (!castFunction) throw new Error(`unsupported cast from ${inputType} to ${cast} in Postgres dialect`);
+      return castFunction.replace(/\$\$/g, operand);
+    }
+
     public utcToWalltime(operand: string, timezone: Timezone): string {
       if (timezone.isUTC()) return operand;
       return `(${operand} AT TIME ZONE 'UTC' AT TIME ZONE '${timezone}')`;
@@ -96,7 +115,7 @@ module Plywood {
 
     public timePartExpression(operand: string, part: string, timezone: Timezone): string {
       var timePartFunction = PostgresDialect.TIME_PART_TO_FUNCTION[part];
-      if (!timePartFunction) throw new Error(`unsupported part ${part} in MySQL dialect`);
+      if (!timePartFunction) throw new Error(`unsupported part ${part} in Postgres dialect`);
       return timePartFunction.replace(/\$\$/g, this.utcToWalltime(operand, timezone));
     }
 

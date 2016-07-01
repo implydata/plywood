@@ -443,6 +443,34 @@ var ex = $('time').timePart('DAY_OF_WEEK');
 ```
 
 
+*operand*.**cast**(castType: string)
+
+Casts a number to a supported cast type.  Currently, the following actions are supported:
+ 
+ - from number to time (castType: `TIME`) 
+ - from number to string (castType: `STRING`) 
+ - from time to number (castType: `NUMBER`)
+ - from string to number (castType: `NUMBER`) 
+
+```javascript
+// number to date
+var ex = r(1442016000).cast('TIME');
+ex.compute().then(console.log); // => 2015-09-12T00:00:00.000Z
+
+// number to string
+var ex2 = r(5).cast('STRING');
+ex2.compute().then(console.log); // => "5"
+
+// date to number
+var ex3 = r(new Date('2015-09-12T00:00:00.000Z')).cast('NUMBER');
+ex3.compute().then(console.log); // => 2015-09-12T00:00:00.000Z
+
+// string to number
+var ex4 = r("5").cast('NUMBER');
+ex4.compute().then(console.log); // => 5
+```
+
+
 ### Split Apply Combine based transformations
 
 Let's pretend we have this simple dataset:
