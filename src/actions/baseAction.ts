@@ -243,7 +243,7 @@ module Plywood {
 
     public abstract _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): Plywood.ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       var action = this.action;
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
@@ -251,7 +251,7 @@ module Plywood {
       }
     }
 
-    public getFn(inputType: PlyType, inputFn: ComputeFn): Plywood.ComputeFn {
+    public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       var expression = this.expression;
       var expressionFn = expression ? expression.getFn() : null;
       return this._getFnHelper(inputType, inputFn, expressionFn);

@@ -46,7 +46,7 @@ module Plywood {
       };
     }
 
-    public getFn(inputType: PlyType, inputFn: ComputeFn): Plywood.ComputeFn {
+    public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       throw new Error('can not getFn on custom action');
     }
 

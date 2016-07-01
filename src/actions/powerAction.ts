@@ -20,7 +20,7 @@ module Plywood {
       return inputType;
     }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): Plywood.ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         return Math.pow((inputFn(d, c) || 0), (expressionFn(d, c) || 0));
       }

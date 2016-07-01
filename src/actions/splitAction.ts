@@ -93,7 +93,7 @@ module Plywood {
       };
     }
 
-    public getFn(inputType: PlyType, inputFn: ComputeFn): Plywood.ComputeFn {
+    public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       var { dataName } = this;
       var splitFns = this.mapSplitExpressions((ex) => ex.getFn());
       return (d: Datum, c: Datum) => {
@@ -108,13 +108,7 @@ module Plywood {
     }
 
     public getSelectSQL(dialect: SQLDialect): string[] {
-      return this.mapSplits((name, expression) => {
-        if (expression instanceof ChainExpression) {
-          return `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`
-        } else {
-          return `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`;
-        }
-      });
+      return this.mapSplits((name, expression) => `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`);
     }
 
     public getShortGroupBySQL(): string {

@@ -35,7 +35,7 @@ module Plywood {
       };
     }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): Plywood.ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         var exV = expressionFn(d, c);

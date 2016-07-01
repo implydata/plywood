@@ -46,7 +46,7 @@ module Plywood {
       return inputType;
     }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): Plywood.ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       var limit = this.limit;
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
