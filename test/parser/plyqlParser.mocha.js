@@ -1000,7 +1000,7 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki')
-        .filter($('time').greaterThan(r(1447430881000).cast('TIME')).and($('time').lessThan(r(1547430881000).cast('TIME'))))
+        .filter($('time').greaterThan(r(1447430881).multiply(1000).cast('TIME')).and($('time').lessThan(r(1547430881).multiply(1000).cast('TIME'))))
         .apply('Unix', $('time').cast('NUMBER').divide(1000))
         .select('Unix');
 
@@ -1014,7 +1014,7 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki').filter(
-        r(1447430881000).cast('TIME').lessThan($('time')).and($('time').lessThan(r(1547430881000).cast('TIME')))
+        r(1447430881).multiply(1000).cast('TIME').lessThan($('time')).and($('time').lessThan(r(1547430881).multiply(1000).cast('TIME')))
       );
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());

@@ -103,26 +103,14 @@ module Plywood {
     }
 
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       const { castType } = this;
-      var caster = (CAST_TYPE_TO_FN as any)[castType];
-      if (!caster) throw new Error(`unsupported cast type '${castType}'`);
+      var castFn = (CAST_TYPE_TO_FN as any)[castType][inputType] || (CAST_TYPE_TO_FN as any)[castType]['UNIVERSAL'];
+      if (!castFn) throw new Error(`unsupported cast from ${inputType} to '${castType}'`);
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (!inV) return null;
-
-        var castFn: Function = null;
-        if (isDate(inV)) {
-          castFn = caster['TIME'];
-        } else {
-          // string or number?
-          castFn = caster[(typeof inV).toUpperCase()]
-        }
-
-        if (castFn) return castFn(inV);
-        if (caster['UNIVERSAL']) return caster['UNIVERSAL'](inV);
-
-        throw new Error(`could not cast input ${inV}`)
+        return castFn(inV);
       }
     }
 

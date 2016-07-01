@@ -55,7 +55,7 @@ module Plywood {
       return inputType;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): Plywood.ComputeFn {
       if (this.compare === ContainsAction.NORMAL) {
         return (d: Datum, c: Datum) => {
           return String(inputFn(d, c)).indexOf(expressionFn(d, c)) > -1;

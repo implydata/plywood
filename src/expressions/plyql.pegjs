@@ -145,9 +145,7 @@ var fns = {
   TIME: function() { error('time literals are not supported'); },
   DATE_ADD: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
   DATE_SUB: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
-  TIME_CAST: function(op) { return upgrade(op).cast('TIME') },
-  FROM_UNIXTIME: function(op) { return upgrade(op * 1000).cast('TIME') },
-  NUMBER_CAST: function(op) { return upgrade(op).cast('NUMBER') },
+  FROM_UNIXTIME: function(op) { return upgrade(op).multiply(1000).cast('TIME') },
   CAST: function(op, ct) { return upgrade(op).cast(castTypes[ct]) },
   UNIX_TIMESTAMP: function(op) { return upgrade(op).cast('NUMBER').divide(1000); },
 
@@ -210,14 +208,6 @@ function makeDate(type, v) {
       return isoDate;
     }
     error(e.message);
-  }
-}
-
-function handleFunctionCallComparison(start, end) {
-  if (start.getSingleAction('cast') && end.getSingleAction('cast')) {
-    return function(ex) { return ex.greaterThan(start).and(ex.lessThan(end)); };
-  } else {
-    error('unsupported function call');
   }
 }
 
@@ -688,14 +678,9 @@ ComparisonExpressionRhs
     }
 
 ComparisonExpressionRhsNotable
-  = BetweenToken start:(FunctionCallExpression) AndToken end:(FunctionCallExpression)
+  = BetweenToken start:(AdditiveExpression) AndToken end:(AdditiveExpression)
     {
-      return handleFunctionCallComparison(start, end);
-    }
-  / BetweenToken start:(LiteralExpression) AndToken end:(LiteralExpression)
-    {
-      var range = { start: start.value, end: end.value, bounds: '[]' };
-      return function(ex) { return ex.in(range); };
+      return function(ex) { return ex.greaterThan(start).and(ex.lessThan(end)); };
     }
   / InToken list:(InSetLiteralExpression / AdditiveExpression)
     {

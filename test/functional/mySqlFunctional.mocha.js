@@ -363,7 +363,7 @@ describe("MySQL Functional", function() {
 
   });
 
-  describe("incorrect commentLength and comment", () => {
+  describe("incorrect page", () => {
     var wikiUserCharAsNumber = External.fromJS({
       engine: 'mysql',
       source: 'wikipedia',

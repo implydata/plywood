@@ -65,7 +65,7 @@ module Plywood {
       };
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       var duration = this.duration;
       var step = this.step;
       var timezone = this.getTimezone();

@@ -43,7 +43,7 @@ module Plywood {
       return inputType;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       var re = new RegExp(this.regexp);
       return (d: Datum, c: Datum) => {
         return (String(inputFn(d, c)).match(re) || [])[1] || null;

@@ -47,7 +47,7 @@ module Plywood {
       return false;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       throw new Error('can not express as JS');
     }
 

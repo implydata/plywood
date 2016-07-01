@@ -54,7 +54,7 @@ module Plywood {
       };
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       var size = this.size;
       var offset = this.offset;
       return (d: Datum, c: Datum) => {

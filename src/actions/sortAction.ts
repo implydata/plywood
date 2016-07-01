@@ -55,7 +55,7 @@ module Plywood {
       return typeContext;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): Plywood.ComputeFn {
       var direction = this.direction;
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);

@@ -93,7 +93,7 @@ module Plywood {
       };
     }
 
-    public getFn(inputFn: ComputeFn): ComputeFn {
+    public getFn(inputType: PlyType, inputFn: ComputeFn): Plywood.ComputeFn {
       var { dataName } = this;
       var splitFns = this.mapSplitExpressions((ex) => ex.getFn());
       return (d: Datum, c: Datum) => {

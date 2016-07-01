@@ -122,7 +122,7 @@ module Plywood {
       };
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       const { part } = this;
       const timezone = this.getTimezone();
       var parter = PART_TO_FUNCTION[part];

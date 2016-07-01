@@ -48,7 +48,7 @@ module Plywood {
         this.name === other.name;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): Plywood.ComputeFn {
       var name = this.name;
       var type = this.expression.type;
       return (d: Datum, c: Datum) => {

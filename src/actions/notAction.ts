@@ -19,7 +19,7 @@ module Plywood {
       return inputType;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn): ComputeFn {
+    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         return !inputFn(d, c);
       }
