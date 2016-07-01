@@ -1671,7 +1671,7 @@ describe("Druid Functional", function() {
   });
 
 
-  describe("incorrect user chars", () => {
+  describe.only("incorrect user chars", () => {
     var wikiUserCharAsNumber = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
@@ -1775,7 +1775,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with bad casts", (testComplete) => {
-      var ex = $('wiki').split({ 'numberCast': '$userChars.cast("NUMBER")', 'dateCast': '$userChars.cast("TIME")' })
+      var ex = $('wiki').split({ 'numberCast': '$channel.cast("NUMBER")', 'dateCast': '$userChars.cast("TIME")' })
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(3);
@@ -1784,22 +1784,17 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Count": 20914020,
+              "Count": 2618887,
               "dateCast": null,
               "numberCast": null
             },
             {
-              "Count": 1393814,
+              "Count": 419520,
               "dateCast": {
                 "type": "TIME",
                 "value": new Date('1970-01-01T00:00:00.000Z')
               },
               "numberCast": null
-            },
-            {
-              "Count": 456855,
-              "dateCast": null,
-              "numberCast": 0
             }
           ]);
           testComplete();
