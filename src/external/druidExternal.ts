@@ -1180,8 +1180,8 @@ module Plywood {
             i++; // Skip it
           } else {
             extractionFn = this.actionToExtractionFn(curAction, null, type);
-            type = curAction.getOutputType(type);
           }
+          type = curAction.getOutputType(type);
           extractionFns.push(extractionFn);
           curAction = actions[++i];
         }
