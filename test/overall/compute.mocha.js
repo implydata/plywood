@@ -62,7 +62,23 @@ describe("compute native", () => {
       })
       .done();
   });
-  
+
+  it("gets location of substring", (testComplete) => {
+    var ex = ply()
+      .apply('location', r('hey').indexOf('e'));
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            location: 1
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
   it("works with power and abs", (testComplete) => {
     var ex = ply()
       .apply('number', 256)

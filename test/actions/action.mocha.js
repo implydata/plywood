@@ -82,6 +82,7 @@ describe("Action", () => {
       { action: 'numberBucket', size: 5, offset: 1 },
 
       { action: 'length' },
+      { action: 'indexOf', expression: { op: 'literal', value: 'string' } },
       { action: 'cardinality' },
 
       { action: 'timeFloor', duration: 'P1D' },

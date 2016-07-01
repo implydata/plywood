@@ -143,6 +143,10 @@ module Plywood {
     public extractExpression(operand: string, regexp: string): string {
       throw new Error('MySQL must implement extractExpression (https://github.com/mysqludf/lib_mysqludf_preg)');
     }
+
+    public indexOfExpression(str: string, substr: string): string {
+      return `LOCATE(${substr}, ${str}) - 1`;
+    }
   }
 
 }

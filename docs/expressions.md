@@ -332,6 +332,16 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => '[Hello World]'
 ```
 
 
+*operand*.**indexOf**(substr: string)
+
+Returns the 0 based index of the substring in the operand. 
+
+```javascript
+var ex = r('hello').indexOf('e');
+ex.compute().then(console.log); // => 1
+```
+
+
 *operand*.**lookup**(lookup: string)
 
 Performs a lookup within the specified namespace.

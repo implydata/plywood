@@ -59,6 +59,17 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
+    it("str.indexOf(substr) > -1 should simplify to `CONTAINS(str, substr)`", () => {
+      var ex1 = $('page').indexOf('sdf').greaterThan(0);
+      var ex2 = $('page').contains('sdf');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it.skip("`str.indexOf(substr) !== -1` should simplify to `CONTAINS(str, substr)`", () => {
+      var ex1 = $('page').indexOf('sdf').isnt(-1);
+      var ex2 = $('page').contains('sdf');
+      simplifiesTo(ex1, ex2);
+    });
   });
 
 

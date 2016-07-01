@@ -124,6 +124,15 @@ module Plywood {
       if (setValue && 'SET/' + ex.type === expression.type && setValue.size() === 1) {
         return new IsAction({ expression: r(setValue.elements[0]) }).performOnSimple(ex);
       }
+
+      if (ex instanceof ChainExpression) {
+        var indexOfAction = (ex as ChainExpression).getSingleAction('indexOf');
+        var range: NumberRange = expression.getLiteralValue() as NumberRange;
+        if (indexOfAction && ((range.start < 0 && range.end === null) || (range.start === 0 && range.end === null && range.bounds === '()'))) {
+          return new ContainsAction({ expression: indexOfAction.expression }).performOnSimple((ex as ChainExpression).expression);
+        }
+      }
+
       return null;
     }
 

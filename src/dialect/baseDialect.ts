@@ -101,6 +101,9 @@ module Plywood {
     public abstract timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string
 
     public abstract extractExpression(operand: string, regexp: string): string
+
+    public abstract indexOfExpression(str: string, substr: string): string
+
   }
 
 }

@@ -141,6 +141,10 @@ module Plywood {
       return `(SELECT (REGEXP_MATCHES(${operand}, '${regexp}'))[1])`;
     }
 
+    public indexOfExpression(str: string, substr: string): string {
+      return `POSITION(${substr} IN ${str}) - 1`;
+    }
+
   }
 
 }
