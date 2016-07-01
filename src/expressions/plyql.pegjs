@@ -555,7 +555,7 @@ Columns
     { return makeListMap1(head, tail); }
 
 Column
-  = ex:Expression as:As?
+  = ex:Expression as:AsOptional?
     {
       if (as == null) {
         as = text().trim();
@@ -567,11 +567,14 @@ Column
       });
     }
 
-As
+AsMandatory
+  = AsToken? name:(String / Ref) { return name; }
+
+AsOptional
   = AsToken? name:(String / Ref) { return name; }
 
 FromClause
-  = FromToken fc:FromContent As?
+  = FromToken fc:FromContent AsOptional?
     { return fc; }
 
 FromContent
@@ -793,7 +796,7 @@ ExpressionMaybeFiltered
 
 
 FunctionCallExpression
-  = fn:Fn OpenParen params:(Expression As / Params) CloseParen
+  = fn:Fn OpenParen params:(Expression AsMandatory / Params) CloseParen
     { return fn.apply(null, params); }
 
 Fn
