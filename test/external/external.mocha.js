@@ -247,6 +247,10 @@ describe("External", () => {
       expect(External.extractVersion('lol: 0.9.1-iap1')).to.equal(null);
     });
 
+    it("works in extra numbers case", () => {
+      expect(External.extractVersion('0.9.1.1')).to.equal('0.9.1');
+    });
+
   });
 
 
