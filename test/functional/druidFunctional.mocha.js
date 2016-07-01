@@ -1671,7 +1671,7 @@ describe("Druid Functional", function() {
   });
 
 
-  describe.only("incorrect user chars", () => {
+  describe("incorrect user chars", () => {
     var wikiUserCharAsNumber = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
