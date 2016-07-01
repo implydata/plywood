@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.11.5
+
+- Core: Support for `.cast()` action
+- PlyQL: Support for `CAST`, `FROM_UNIXTIME`, `UNIX_TIMESTAMP` actions
+- DruidExternal: fix for `.cast('number').numberBucket()`
+
 ## 0.11.4
 
 - Cleaned up npm package and updated dependencies
