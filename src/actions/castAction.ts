@@ -78,9 +78,9 @@ module Plywood {
       return [this.castType];
     }
 
-
     public getOutputType(inputType: PlyType): PlyType {
       var castType = this.castType;
+      if (inputType === castType) return castType;
       if (inputType && (!CAST_TYPE_TO_FN[castType][inputType]) && (!CAST_TYPE_TO_FN[castType]['UNIVERSAL'])) {
         throw new Error(`unsupported cast from ${inputType} to ${castType}`);
       }
@@ -91,8 +91,12 @@ module Plywood {
     public _fillRefSubstitutions(): FullType {
       const { castType } = this;
       return {
-        type: castType as PlyTypeSimple
+        type: castType
       };
+    }
+
+    protected _removeAction(inputType: PlyType): boolean {
+      return this.castType === inputType;
     }
 
     protected _foldWithPrevAction(prevAction: Action): Action {
@@ -105,7 +109,8 @@ module Plywood {
 
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       const { castType } = this;
-      var castFn = (CAST_TYPE_TO_FN as any)[castType][inputType] || (CAST_TYPE_TO_FN as any)[castType]['UNIVERSAL'];
+      var caster = (CAST_TYPE_TO_FN as any)[castType];
+      var castFn = caster[inputType] || caster['UNIVERSAL'];
       if (!castFn) throw new Error(`unsupported cast from ${inputType} to '${castType}'`);
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
@@ -119,7 +124,7 @@ module Plywood {
       var castJS = CAST_TYPE_TO_JS[castType];
       if (!castJS) throw new Error(`unsupported cast type in getJS '${castType}'`);
       var js = castJS[inputType] || castJS['UNIVERSAL'];
-      if (!js) throw new Error(`unsupported combo in getJS ${inputType} to ${castType}`);
+      if (!js) throw new Error(`unsupported combo in getJS of cast action: ${inputType} to ${castType}`);
       return js(inputJS);
     }
 

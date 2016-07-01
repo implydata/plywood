@@ -1038,7 +1038,7 @@ describe("Druid Functional", function() {
         )
         .apply(
           'AbsSplitDesc',
-          $('wiki').split($('commentLengthStr').cast("NUMBER"), 'AbsCommentLength')
+          $('wiki').split($('commentLength').absolute(), 'AbsCommentLength')
             .apply('Count', '$wiki.sum($count)')
             .sort('$AbsCommentLength', 'descending')
             .limit(3)

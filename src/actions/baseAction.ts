@@ -314,7 +314,7 @@ module Plywood {
      * Remove action if possible
      * For example +0 and *1
      */
-    protected _removeAction(): boolean {
+    protected _removeAction(inputType: PlyType): boolean {
       return false;
     }
 
@@ -378,7 +378,7 @@ module Plywood {
       if (!this.simple) return this.simplify().performOnSimple(simpleExpression);
       if (!simpleExpression.simple) throw new Error('must get a simple expression');
 
-      if (this._removeAction()) return simpleExpression;
+      if (this._removeAction(simpleExpression.type)) return simpleExpression;
 
       var nukedExpression = this._nukeExpression(simpleExpression);
       if (nukedExpression) return nukedExpression;
