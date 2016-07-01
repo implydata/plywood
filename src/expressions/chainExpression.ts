@@ -96,8 +96,10 @@ module Plywood {
       var expression = this.expression;
       var actions = this.actions;
       var js = expression.getJS(datumVar);
+      var type = expression.type;
       for (let action of actions) {
-        js = action.getJS(expression.type, js, datumVar);
+        js = action.getJS(type, js, datumVar);
+        type = action.getOutputType(type); 
       }
       return js;
     }

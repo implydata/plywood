@@ -38,11 +38,10 @@ module Plywood {
     }
 
     protected _specialSimplify(simpleExpression: Expression): Action {
-      var expression = this.expression.simplify();
-      if (expression instanceof LiteralExpression) { // x < 5
+      if (simpleExpression instanceof LiteralExpression) { // x < 5
         return new InAction({
           expression: new LiteralExpression({
-            value: Range.fromJS({ start: null, end: expression.value, bounds: '()' })
+            value: Range.fromJS({ start: null, end: simpleExpression.value, bounds: '()' })
           })
         });
       }

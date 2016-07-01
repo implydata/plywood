@@ -1171,6 +1171,7 @@ module Plywood {
           throw new Error(`can not convert complex: ${lead}`);
         }
 
+        var type = (expression as ChainExpression).expression.type;
         while (curAction) {
           var nextAction = actions[i + 1];
           var extractionFn: Druid.ExtractionFn;
@@ -1178,7 +1179,8 @@ module Plywood {
             extractionFn = this.actionToExtractionFn(curAction, nextAction);
             i++; // Skip it
           } else {
-            extractionFn = this.actionToExtractionFn(curAction, null, (expression as ChainExpression).expression.type);
+            extractionFn = this.actionToExtractionFn(curAction, null, type);
+            type = curAction.getOutputType(type);
           }
           extractionFns.push(extractionFn);
           curAction = actions[++i];

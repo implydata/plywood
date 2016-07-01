@@ -645,10 +645,8 @@ module Plywood {
       const { type } = this;
       var jsEx = this.getJS(datumVar);
       var body: string;
-      if (type === 'NUMBER' || type === 'NUMBER_RANGE') {
+      if (type === 'NUMBER' || type === 'NUMBER_RANGE' || type === 'TIME') {
         body = `_=${jsEx};return isNaN(_)?null:_`;
-      } else if (type === 'TIME') {
-        body = `_=${jsEx};return (!(_ instanceof Date && isFinite(d))) ?null:_`;
       } else {
         body = `return ${jsEx};`;
       }
@@ -983,7 +981,7 @@ module Plywood {
     }
 
     public cast(castType: PlyType): ChainExpression {
-      return this.performAction(new CastAction({ castType: getString(castType) as PlyType }));
+      return this.performAction(new CastAction({ castType: getString(castType) as PlyTypeSimple }));
     }
 
     // Set operations

@@ -90,7 +90,7 @@ var druidExecutor = basicExecutorFactory({
       context: {
         // useCache: false,
         // populateCache: false,
-        timeout: 100000
+        timeout: 10000
       },
       attributes,
       derivedAttributes,
@@ -108,7 +108,7 @@ var druidLegacyExecutor = basicExecutorFactory({
       source: 'wikipedia',
       timeAttribute: 'time',
       context: {
-        timeout: 100001 // Put a different timeout here so we can tell queries apart from non-legacy druid
+        timeout: 10001 // Put a different timeout here so we can tell queries apart from non-legacy druid
       },
       attributes,
       derivedAttributes,
@@ -149,7 +149,7 @@ var equalityTest = utils.makeEqualityTest({
 });
 
 describe("Cross Functional", function() {
-  this.timeout(100000);
+  this.timeout(10000);
 
   describe("filters", () => {
     it('works with empty filter', equalityTest({
@@ -339,17 +339,7 @@ describe("Cross Functional", function() {
     it('works with cast from number to time and primary time filter (single range)', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
       expression:  ply()
-        .apply('wiki', $('wiki').filter($('time').greaterThan(r(1447430881).cast('TIME')).and($('time').lessThan(r(1547430881).cast('TIME')))))
-        .apply('TotalEdits', '$wiki.sum($count)')
-        .apply('TotalAdded', '$wiki.sum($added)')
-    }));
-
-    it('works with cast from time to number and primary time filter (single range)', equalityTest({
-      // 1442049630 -> 09/12/2015 09:20:30
-      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'],
-      expression:  ply()
-        .apply('unixTimestamp', r(1442049630))
-        .apply('wiki', $('wiki').filter($('unixTimestamp').greaterThan(r(new Date('2015-09-12T00:00:00.000Z')).cast('NUMBER')).and($('unixTimestamp').lessThan(r(new Date('2015-09-12T11:59:30.000Z')).cast('NUMBER')))))
+        .apply('wiki', $('wiki').filter(($('$deltaBucket100').absolute().cast('TIME')) > new Date('1970-01-01T00:00:02.000Z')))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -829,14 +819,14 @@ describe("Cross Functional", function() {
     it('works with cast action from number to time on split', equalityTest({
       executorNames: ['postgres', 'mysql', 'druid'],
       expression: $('wiki').filter('$deltaBucket100.in([1000, 2000, 3000, 8000])') // druid time is precise to seconds
-        .split({ 'deltaBucketToDate': '$deltaBucket100.cast(TIME)', 'DeltaBucket': '$deltaBucket100' })
-        .sort('$DeltaBucket', 'descending')
+        .split('$deltaBucket100.cast(TIME)',  'deltaBucketToDate')
+        .sort('$deltaBucketToDate', 'descending')
         .limit(10)
     }));
 
     it('works with cast action from time to number on split', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
-      expression: $('wiki').split({ 'time': '$time.cast("NUMBER")', 'Comment': '$comment' })
+      expression: $('wiki').split('$time.cast("NUMBER")', 'time')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
@@ -845,16 +835,7 @@ describe("Cross Functional", function() {
 
     it('works with cast action from number to string on split', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
-      expression: $('wiki').split({ 'time': '$commentLength.cast("STRING")', 'Comment': '$comment' })
-        .apply('TotalEdits', '$wiki.sum($count)')
-        .apply('TotalAdded', '$wiki.sum($added)')
-        .sort('$TotalAdded', 'descending')
-        .limit(4)
-    }));
-
-    it('works with cast action from number to string on split', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'],
-      expression: $('wiki').split({ 'commentLength': '$commentLength.cast("STRING")', 'Comment': '$comment' })
+      expression: $('wiki').split('$commentLength.cast("STRING")', 'StringifiedCommentLength')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
@@ -863,7 +844,7 @@ describe("Cross Functional", function() {
 
     it('works with cast action from string to number on split', equalityTest({
       executorNames: ['druid', 'druidLegacy'],
-      expression: $('wiki').split({ 'commentLengthString': '$commentLengthStr.cast("NUMBER")', 'Comment': '$comment' })
+      expression: $('wiki').split('$commentLengthStr.cast("NUMBER")', 'NumberfiedString')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
         .limit(4)

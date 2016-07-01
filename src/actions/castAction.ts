@@ -46,7 +46,7 @@ module Plywood {
       return new CastAction(value);
     }
 
-    public castType: PlyType;
+    public castType: PlyTypeSimple;
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
@@ -85,7 +85,7 @@ module Plywood {
         throw new Error(`unsupported cast from ${inputType} to ${castType}`);
       }
 
-      return castType as PlyTypeSimple;
+      return castType;
     }
 
     public _fillRefSubstitutions(): FullType {
