@@ -17,7 +17,6 @@ var attributes = [
   { name: 'tags', type: 'SET/STRING' },
   { name: 'carat', type: 'NUMBER' },
   { name: 'height_bucket', type: 'NUMBER' },
-  { name: 'taxCode', type: 'NUMBER' },
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
   { name: 'vendor_id', special: 'unique', unsplitable: true },
@@ -746,10 +745,10 @@ describe("simulate Druid", () => {
   });
 
   it("works on cast string to number in filter", () => {
-    var ex = $('diamonds').filter($('taxCode').absolute().cast('STRING').cast('NUMBER').is(r(555)));
+    var ex = $('diamonds').filter($('height_bucket').absolute().cast('STRING').cast('NUMBER').is(r(555)));
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
-      "dimension": "taxCode",
+      "dimension": "height_bucket",
       "extractionFn": {
         "function": "function(d){_=Number(Math.abs((+d)));return isNaN(_)?null:_}",
         "type": "javascript"
@@ -760,7 +759,7 @@ describe("simulate Druid", () => {
   });
 
   it("works on cast number to time in split", () => {
-    var ex = $('diamonds').split('$taxCode.absolute().cast("STRING").cast("NUMBER").cast("TIME")', 'TaxCode');
+    var ex = $('diamonds').split('$height_bucket.absolute().cast("STRING").cast("NUMBER").cast("TIME")', 'TaxCode');
 
     expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
       "aggregations": [
@@ -772,7 +771,7 @@ describe("simulate Druid", () => {
       "dataSource": "diamonds",
       "dimensions": [
         {
-          "dimension": "taxCode",
+          "dimension": "height_bucket",
           "extractionFn": {
             "function": "function(d){_=new Date(Number(Math.abs((+d))));return isNaN(_)?null:_}",
             "type": "javascript"
