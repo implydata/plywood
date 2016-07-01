@@ -53,7 +53,6 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-
     it("simplifies time range to in statement", () => {
       var ex1 = $('time').greaterThan(r(new Date('2015-11-13T16:08:01.000Z'))).and($('time').lessThan(r(new Date('2019-01-14T01:54:41.000Z'))));
       var ex2 = $('time').in(new NumberRange({start: new Date('2015-11-13T16:08:01.000Z'), end: new Date('2019-01-14T01:54:41.000Z'), bounds: '()'}));
