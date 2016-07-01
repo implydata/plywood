@@ -1555,7 +1555,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){_=Math.floor(((+d) - 1) / 10) * 10 + 1;return isNaN(_)?null:_}",
+          "function": "function(d){_=(_=(+d),(_==null?null:Math.floor((_ - 1) / 10) * 10 + 1));return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1574,7 +1574,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){_=Math.floor(Math.abs((+d)) / 10) * 10;return isNaN(_)?null:_}",
+          "function": "function(d){_=(_=Math.abs((+d)),(_==null?null:Math.floor(_ / 10) * 10));return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",

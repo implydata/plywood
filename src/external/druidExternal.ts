@@ -1418,14 +1418,10 @@ module Plywood {
         }
 
         if (splitAction instanceof NumberBucketAction) {
-          if (attributeInfo.type === 'NUMBER') {
-            //var floorExpression = continuousFloorExpression("d", "Math.floor", splitAction.size, splitAction.offset);
-            return {
-              dimension,
-              inflater: External.numberRangeInflaterFactory(label, splitAction.size)
-            };
-          }
-
+          return {
+            dimension,
+            inflater: External.numberRangeInflaterFactory(label, splitAction.size)
+          };
         }
 
         if (splitAction instanceof CardinalityAction) {

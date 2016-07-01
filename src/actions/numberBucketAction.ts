@@ -65,7 +65,7 @@ module Plywood {
     }
 
     protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-      return continuousFloorExpression(inputJS, "Math.floor", this.size, this.offset);
+      return Expression.jsNullSafetyUnary(inputJS, (n) => continuousFloorExpression(n, "Math.floor", this.size, this.offset));
     }
 
     protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

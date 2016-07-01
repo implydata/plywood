@@ -516,6 +516,16 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
+    it('works with chained number bucket', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki') // null handling varies
+        .split('$cityName.length().numberBucket(10)', 'cityNameBucket')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(20)
+    }));
+
     it('works with STRING split .fallback() no match', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split('$cityName.fallback("NoCity")', 'CityFallback')

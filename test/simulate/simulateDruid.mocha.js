@@ -461,7 +461,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "carat",
           "extractionFn": {
-            "function": "function(d){_=Math.floor((+d) / 0.25) * 0.25;return isNaN(_)?null:_}",
+            "function": "function(d){_=(_=(+d),(_==null?null:Math.floor(_ / 0.25) * 0.25));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "Carat",
@@ -1333,7 +1333,7 @@ describe("simulate Druid", () => {
         "dataSource": "diamonds",
         "dimension": {
           "extractionFn": {
-            "function": "function(d){_=Math.floor(((+d) - 0.5) / 2) * 2 + 0.5;return isNaN(_)?null:_}",
+            "function": "function(d){_=(_=(+d),(_==null?null:Math.floor((_ - 0.5) / 2) * 2 + 0.5));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "dimension": "height_bucket",
@@ -1766,7 +1766,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "carat",
           "extractionFn": {
-            "function": "function(d){_=Math.floor((+d) / 10) * 10;return isNaN(_)?null:_}",
+            "function": "function(d){_=(_=(+d),(_==null?null:Math.floor(_ / 10) * 10));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "CaratB10",
@@ -2368,7 +2368,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "carat",
           "extractionFn": {
-            "function": "function(d){_=Math.floor((+d) / 0.25) * 0.25;return isNaN(_)?null:_}",
+            "function": "function(d){_=(_=(+d),(_==null?null:Math.floor(_ / 0.25) * 0.25));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "Carat",

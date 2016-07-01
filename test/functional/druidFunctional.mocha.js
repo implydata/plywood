@@ -1163,6 +1163,86 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works with bucketed split on derived column", (testComplete) => {
+      var ex = ply()
+        .apply(
+          'BucketSplitAsc',
+          $('wiki').split($('comment').length().numberBucket(5), 'Bucket')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Bucket', 'ascending')
+            .limit(3)
+        )
+        .apply(
+          'BucketSplitDesc',
+          $('wiki').split($('comment').length().numberBucket(5), 'Bucket')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Bucket', 'descending')
+            .limit(3)
+        );
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "BucketSplitAsc": [
+                {
+                  "Bucket": {
+                    "end": 5,
+                    "start": 0,
+                    "type": "NUMBER_RANGE"
+                  },
+                  "Count": 6521
+                },
+                {
+                  "Bucket": {
+                    "end": 10,
+                    "start": 5,
+                    "type": "NUMBER_RANGE"
+                  },
+                  "Count": 15004
+                },
+                {
+                  "Bucket": {
+                    "end": 15,
+                    "start": 10,
+                    "type": "NUMBER_RANGE"
+                  },
+                  "Count": 70627
+                }
+              ],
+              "BucketSplitDesc": [
+                {
+                  "Bucket": {
+                    "end": 260,
+                    "start": 255,
+                    "type": "NUMBER_RANGE"
+                  },
+                  "Count": 193
+                },
+                {
+                  "Bucket": {
+                    "end": 255,
+                    "start": 250,
+                    "type": "NUMBER_RANGE"
+                  },
+                  "Count": 556
+                },
+                {
+                  "Bucket": {
+                    "end": 250,
+                    "start": 245,
+                    "type": "NUMBER_RANGE"
+                  },
+                  "Count": 1687
+                }
+              ]
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
     it("can timeBucket a primary time column", (testComplete) => {
       var ex = ply()
         .apply(
