@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.11.6
+
+- No JS globals in JS functions
+
 ## 0.11.5
 
 - Core: Support for `.cast()` action

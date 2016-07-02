@@ -121,7 +121,7 @@ describe("DruidExternal 0.9.0", () => {
               "type": "lookup"
             },
             {
-              "function": "function(d){return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"eN\").toLowerCase())>-1));}",
+              "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"eN\").toLowerCase())>-1));}",
               "type": "javascript"
             }
           ],
@@ -143,7 +143,7 @@ describe("DruidExternal 0.9.0", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
-          "function": "function(d){return (_=(_=d,(_==null)?null:(\"[%]\"+_)),(_==null)?null:(_+\"[%]\"));}",
+          "function": "function(d){var _,_2;return (_=(_=d,(_==null)?null:(\"[%]\"+_)),(_==null)?null:(_+\"[%]\"));}",
           "injective": true,
           "type": "javascript"
         },

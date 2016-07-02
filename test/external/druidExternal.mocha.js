@@ -1448,7 +1448,7 @@ describe("DruidExternal", () => {
               "type": "registeredLookup"
             },
             {
-              "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"lol\")>-1));}",
+              "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"lol\")>-1));}",
               "type": "javascript"
             }
           ],
@@ -1495,7 +1495,7 @@ describe("DruidExternal", () => {
               "type": "registeredLookup"
             },
             {
-              "function": "function(d){return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"lol\").toLowerCase())>-1));}",
+              "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"lol\").toLowerCase())>-1));}",
               "type": "javascript"
             }
           ],
@@ -1517,7 +1517,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){_=Math.abs((+d));return isNaN(_)?null:_}",
+          "function": "function(d){var _,_2;_=Math.abs((+d));return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1536,7 +1536,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){_=Math.pow((+d),2);return isNaN(_)?null:_}",
+          "function": "function(d){var _,_2;_=Math.pow((+d),2);return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1555,7 +1555,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){_=(_=(+d),(_==null?null:Math.floor((_ - 1) / 10) * 10 + 1));return isNaN(_)?null:_}",
+          "function": "function(d){var _,_2;_=(_=(+d),(_==null?null:Math.floor((_ - 1) / 10) * 10 + 1));return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1574,7 +1574,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){_=(_=Math.abs((+d)),(_==null?null:Math.floor(_ / 10) * 10));return isNaN(_)?null:_}",
+          "function": "function(d){var _,_2;_=(_=Math.abs((+d)),(_==null?null:Math.floor(_ / 10) * 10));return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",

@@ -46,7 +46,7 @@ describe("simulate Druid 0.8.3", () => {
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
-      "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"sup\\\"yo\")>-1));}",
+      "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"sup\\\"yo\")>-1));}",
       "type": "javascript"
     });
   });
