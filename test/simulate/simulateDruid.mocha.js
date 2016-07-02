@@ -461,7 +461,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "carat",
           "extractionFn": {
-            "function": "function(d){_=(_=(+d),(_==null?null:Math.floor(_ / 0.25) * 0.25));return isNaN(_)?null:_}",
+            "function": "function(d){var _,_2;_=(_=(+d),(_==null?null:Math.floor(_ / 0.25) * 0.25));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "Carat",
@@ -722,7 +722,7 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
-        "function": "function(d){return [\"D\",\"C\"].indexOf(d)>-1;}",
+        "function": "function(d){var _,_2;return [\"D\",\"C\"].indexOf(d)>-1;}",
         "type": "javascript"
       },
       "type": "selector",
@@ -736,7 +736,7 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "height_bucket",
       "extractionFn": {
-        "function": "function(d){return ('' + (+d));}",
+        "function": "function(d){var _,_2;return ('' + (+d));}",
         "type": "javascript"
       },
       "type": "selector",
@@ -750,7 +750,7 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "height_bucket",
       "extractionFn": {
-        "function": "function(d){_=+(('' + Math.abs((+d))));return isNaN(_)?null:_}",
+        "function": "function(d){var _,_2;_=+(('' + Math.abs((+d))));return isNaN(_)?null:_}",
         "type": "javascript"
       },
       "type": "selector",
@@ -773,7 +773,7 @@ describe("simulate Druid", () => {
         {
           "dimension": "height_bucket",
           "extractionFn": {
-            "function": "function(d){_=new Date(+(('' + Math.abs((+d)))));return isNaN(_)?null:_}",
+            "function": "function(d){var _,_2;_=new Date(+(('' + Math.abs((+d)))));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "TaxCode",
@@ -980,7 +980,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "color",
           "extractionFn": {
-            "function": "function(d){return (d===\"A\");}",
+            "function": "function(d){var _,_2;return (d===\"A\");}",
             "type": "javascript"
           },
           "outputName": "IsA",
@@ -1333,7 +1333,7 @@ describe("simulate Druid", () => {
         "dataSource": "diamonds",
         "dimension": {
           "extractionFn": {
-            "function": "function(d){_=(_=(+d),(_==null?null:Math.floor((_ - 0.5) / 2) * 2 + 0.5));return isNaN(_)?null:_}",
+            "function": "function(d){var _,_2;_=(_=(+d),(_==null?null:Math.floor((_ - 0.5) / 2) * 2 + 0.5));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "dimension": "height_bucket",
@@ -1766,7 +1766,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "carat",
           "extractionFn": {
-            "function": "function(d){_=(_=(+d),(_==null?null:Math.floor(_ / 10) * 10));return isNaN(_)?null:_}",
+            "function": "function(d){var _,_2;_=(_=(+d),(_==null?null:Math.floor(_ / 10) * 10));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "CaratB10",
@@ -2159,6 +2159,23 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("works with binary JS aggregate", () => {
+    var ex = ply()
+      .apply('Thing', '$diamonds.sum($price.absolute() * $carat.power(2))');
+
+    expect(ex.simulateQueryPlan(context)[0].aggregations[0]).to.deep.equal({
+      "fieldNames": [
+        "carat",
+        "price"
+      ],
+      "fnAggregate": "function($$,_carat,_price) { return $$+(Math.abs((+_price))*Math.pow((+_carat),2)); }",
+      "fnCombine": "function(a,b) { return a+b; }",
+      "fnReset": "function() { return 0; }",
+      "name": "Thing",
+      "type": "javascript"
+    });
+  });
+
   it("works on exact time filter (is)", () => {
     var ex = ply()
       .apply('diamonds', $('diamonds').filter($('time').is(new Date('2015-03-12T01:00:00.123Z'))))
@@ -2368,7 +2385,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "carat",
           "extractionFn": {
-            "function": "function(d){_=(_=(+d),(_==null?null:Math.floor(_ / 0.25) * 0.25));return isNaN(_)?null:_}",
+            "function": "function(d){var _,_2;_=(_=(+d),(_==null?null:Math.floor(_ / 0.25) * 0.25));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "Carat",

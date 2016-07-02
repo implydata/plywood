@@ -291,6 +291,10 @@ module Plywood {
       return returnExpression.simplify();
     }
 
+    static jsNullSafetyUnary(inputJS: string, ifNotNull: (str: string) => string): string {
+      return `(_=${inputJS},(_==null?null:${ifNotNull('_')}))`;
+    }
+
     static jsNullSafetyBinary(lhs: string, rhs: string, combine: (lhs: string, rhs: string) => string, lhsCantBeNull?: boolean, rhsCantBeNull?: boolean): string {
       if (lhsCantBeNull) {
         if (rhsCantBeNull) {
@@ -302,13 +306,9 @@ module Plywood {
         if (rhsCantBeNull) {
           return `(_=${lhs},(_==null)?null:(${combine('_', rhs)}))`;
         } else {
-          return `(_1=${rhs},_2=${lhs},(_1==null||_2==null)?null:(${combine('_1', '_2')})`;
+          return `(_=${rhs},_2=${lhs},(_==null||_2==null)?null:(${combine('_', '_2')})`;
         }
       }
-    }
-
-    static jsNullSafetyUnary(inputJS: string, ifNotNull: (str: string) => string): string {
-      return `(_=${inputJS},(_==null?null:${ifNotNull('_')}))`;
     }
 
     /**
@@ -650,7 +650,7 @@ module Plywood {
       } else {
         body = `return ${jsEx};`;
       }
-      return `function(${datumVar.replace('[]', '')}){${body}}`;
+      return `function(${datumVar.replace('[]', '')}){var _,_2;${body}}`;
     }
 
     public abstract getSQL(dialect: SQLDialect): string

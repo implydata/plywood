@@ -48,7 +48,7 @@ describe("simulate Druid 0.9.0", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
-        "function": "function(d){return /AB+/.test((_=(_=d,(_==null)?null:(\"A\"+_)),(_==null)?null:(_+\"Z\")));}",
+        "function": "function(d){var _,_2;return /AB+/.test((_=(_=d,(_==null)?null:(\"A\"+_)),(_==null)?null:(_+\"Z\")));}",
         "type": "javascript"
       },
       "type": "extraction",
@@ -64,7 +64,7 @@ describe("simulate Druid 0.9.0", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
-        "function": "function(d){return (_=(_=(_=d,(_==null)?null:(\"A\"+_)),(_==null)?null:(_+\"Z\")),(_==null)?null:((''+_).indexOf(\"AB\")>-1));}",
+        "function": "function(d){var _,_2;return (_=(_=(_=d,(_==null)?null:(\"A\"+_)),(_==null)?null:(_+\"Z\")),(_==null)?null:((''+_).indexOf(\"AB\")>-1));}",
         "type": "javascript"
       },
       "type": "extraction",
@@ -243,7 +243,7 @@ describe("simulate Druid 0.9.0", () => {
             "type": "lookup"
           },
           {
-            "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"hello\")>-1));}",
+            "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"hello\")>-1));}",
             "type": "javascript"
           }
         ],
@@ -273,7 +273,7 @@ describe("simulate Druid 0.9.0", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
-        "function": "function(d){return [\"D\",\"C\"].indexOf(d)>-1;}",
+        "function": "function(d){var _,_2;return [\"D\",\"C\"].indexOf(d)>-1;}",
         "type": "javascript"
       },
       "type": "extraction",
@@ -421,7 +421,7 @@ describe("simulate Druid 0.9.0", () => {
             "filter": {
               "dimension": "cut",
               "extractionFn": {
-                "function": "function(d){return (_=d,(_==null)?null:((''+_).indexOf(\"Good\")>-1));}",
+                "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"Good\")>-1));}",
                 "type": "javascript"
               },
               "type": "extraction",

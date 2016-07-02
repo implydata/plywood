@@ -94,7 +94,7 @@ describe("DruidExternal Legacy", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
-          "function": "function(d){return (_=(_=d,(_==null)?null:(\"[%]\"+_)),(_==null)?null:(_+\"[%]\"));}",
+          "function": "function(d){var _,_2;return (_=(_=d,(_==null)?null:(\"[%]\"+_)),(_==null)?null:(_+\"[%]\"));}",
           "injective": true,
           "type": "javascript"
         },
@@ -114,7 +114,7 @@ describe("DruidExternal Legacy", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
-          "function": "function(d){return (_=(_=d,(_==null)?null:(\"[%]\"+_)),(_==null)?null:(_+\"[%]\"));}",
+          "function": "function(d){var _,_2;return (_=(_=d,(_==null)?null:(\"[%]\"+_)),(_==null)?null:(_+\"[%]\"));}",
           "injective": true,
           "type": "javascript"
         },
@@ -134,7 +134,7 @@ describe("DruidExternal Legacy", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
-          "function": "function(d){return (_=d,_==null?null:(''+_).substr(3,5));}",
+          "function": "function(d){var _,_2;return (_=d,_==null?null:(''+_).substr(3,5));}",
           "type": "javascript"
         },
         "outputName": "Split",
