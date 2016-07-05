@@ -128,6 +128,7 @@ module Plywood {
       if (ex instanceof ChainExpression) {
         var indexOfAction = (ex as ChainExpression).getSingleAction('indexOf');
         var range: NumberRange = expression.getLiteralValue() as NumberRange;
+
         // contains could be either start less than 0 or start === 0 with inclusive bounds
         if (indexOfAction && ((range.start < 0 && range.end === null) || (range.start === 0 && range.end === null && range.bounds[0] === '['))) {
           return new ContainsAction({ expression: indexOfAction.expression }).performOnSimple((ex as ChainExpression).expression);

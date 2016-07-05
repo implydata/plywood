@@ -1052,20 +1052,6 @@ describe("SQL parser", () => {
       expect(parse.expression.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should work with a LOCATE function greater than 5", () => {
-      var parse = Expression.parseSQL(sane`
-        SELECT \`page\` AS 'Page',
-        SUM(added) AS 'TotalAdded'
-        FROM \`wiki\` WHERE LOCATE(\`page\`, 'title') > 5
-        GROUP BY 1
-      `);
-
-      var ex2 = $('wiki').filter($('page').indexOf('title').add(1).in({start: 5, end: null, bounds: '()'})).split("$page", 'Page', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
-
-      expect(parse.expression.simplify().toJS()).to.deep.equal(ex2.toJS());
-    });
-
     it("should work with EXTRACT function", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
