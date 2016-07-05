@@ -746,7 +746,7 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "height_bucket",
       "extractionFn": {
-        "function": "function(d){var _,_2;_=+(Math.abs((+d)));return isNaN(_)?null:_}",
+        "function": "function(d){var _,_2;_=+(('' + Math.abs((+d))));return isNaN(_)?null:_}",
         "type": "javascript"
       },
       "type": "selector",
@@ -769,7 +769,7 @@ describe("simulate Druid", () => {
         {
           "dimension": "height_bucket",
           "extractionFn": {
-            "function": "function(d){var _,_2;_=new Date(+(Math.abs((+d))));return isNaN(_)?null:_}",
+            "function": "function(d){var _,_2;_=new Date(+(('' + Math.abs((+d)))));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "TaxCode",

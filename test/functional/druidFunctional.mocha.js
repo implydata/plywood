@@ -1027,6 +1027,17 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works with string manipulation after cast action", (testComplete) => {
+      var ex = $('wiki').filter($('deltaBucket100').absolute().cast('STRING').substr(0,5).cast('NUMBER').is(1000)).sum('$count');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result).to.equal(1621);
+          testComplete();
+        })
+        .done();
+    });
+
     it("works with absolute number split", (testComplete) => {
       var ex = ply()
         .apply(
