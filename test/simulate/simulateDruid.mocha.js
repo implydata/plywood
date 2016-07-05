@@ -957,6 +957,41 @@ describe("simulate Druid", () => {
     });
   });
 
+  it("works with basic index of in split", () => {
+    var ex = ply()
+      .apply(
+        'Colors',
+        $("diamonds").split("$color.indexOf('p') != -1", 'Colors')
+          .apply('TotalPrice', '$diamonds.sum($price)')
+          .sort('$TotalPrice', 'descending')
+          .limit(3)
+      );
+
+    expect(ex.simulateQueryPlan(context)[0].dimension).to.deep.equal({
+      "dimension": "color",
+      "extractionFn": {
+        "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"p\")>-1));}",
+        "type": "javascript"
+      },
+      "outputName": "Colors",
+      "type": "extraction"
+    });
+  });
+
+  it("works with basic index of in filter", () => {
+    var ex = $("diamonds").filter("$color.indexOf('blah') != -1");
+
+    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+      "dimension": "color",
+      "query": {
+        "caseSensitive": true,
+        "type": "contains",
+        "value": "blah"
+      },
+      "type": "search"
+    });
+  });
+
   it("works with basic boolean split", () => {
     var ex = ply()
       .apply(

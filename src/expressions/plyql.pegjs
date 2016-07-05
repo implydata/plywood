@@ -115,6 +115,7 @@ var fns = {
   CONCAT: function() { return Expression.concat(Array.prototype.map.call(arguments, upgrade)); },
   SUBSTRING: function(op, i, n) { return upgrade(op).substr(i, n); },
   LENGTH: function(op) { return upgrade(op).length(); },
+  LOCATE: function(op, ex) { return upgrade(op).indexOf(ex).add(1); },
   TIME_FLOOR: function(op, d, tz) { return upgrade(op).timeFloor(d, tz); },
   TIME_SHIFT: function(op, d, s, tz) { return upgrade(op).timeShift(d, s, tz); },
   TIME_RANGE: function(op, d, s, tz) { return upgrade(op).timeRange(d, s, tz); },

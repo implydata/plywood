@@ -796,6 +796,10 @@ module Plywood {
         return this.makeJavaScriptFilter(ex.in(range));
       }
 
+      if (ex instanceof ChainExpression && ((ex as ChainExpression).getSingleAction() instanceof IndexOfAction || ex.popAction() instanceof IndexOfAction)) {
+        return this.makeJavaScriptFilter(ex.in(range));
+      }
+
       var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
       var extractionFn = this.expressionToExtractionFn(ex);
 
@@ -1308,7 +1312,7 @@ module Plywood {
         return this.actionToJavaScriptExtractionFn(action);
       }
 
-      if (action instanceof AbsoluteAction || action instanceof PowerAction || action instanceof LengthAction || action instanceof CardinalityAction || action instanceof CastAction) {
+      if (action instanceof AbsoluteAction || action instanceof PowerAction || action instanceof LengthAction || action instanceof CardinalityAction || action instanceof CastAction || action instanceof IndexOfAction) {
         return this.actionToJavaScriptExtractionFn(action, expressionType);
       }
 
@@ -1564,7 +1568,7 @@ module Plywood {
       } else if (ex instanceof ChainExpression) {
         var lastAction = ex.lastAction();
 
-        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction || lastAction instanceof CastAction) {
+        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction || lastAction instanceof CastAction || lastAction instanceof IndexOfAction) {
           var fieldNameRefs = ex.getFreeReferences();
           var fieldNames = fieldNameRefs.map(fieldNameRef => {
             var accessType = this.getAccessType(aggregations, fieldNameRef);

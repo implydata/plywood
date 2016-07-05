@@ -935,6 +935,11 @@ module Plywood {
       return this.performAction(new LookupAction({ lookup: getString(lookup) }));
     }
 
+    public indexOf(ex: any): ChainExpression {
+      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+      return this.performAction(new IndexOfAction({ expression: ex }));
+    }
+
     // Number manipulation
 
     public numberBucket(size: number, offset: number = 0): ChainExpression {

@@ -438,6 +438,16 @@ describe("Cross Functional", function() {
         .sort('$Count', 'descending')
         .limit(5)
     }));
+
+    it('works with indexOf action on filter', equalityTest({
+      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      expression: $('wiki').filter('$cityName.indexOf(x) > 5')
+        .split('$cityName', 'CityName')
+        .apply('Count', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
   });
 
 
@@ -486,6 +496,15 @@ describe("Cross Functional", function() {
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split('$channel', 'Channel')
         .sort('$Channel', 'ascending')
+        .limit(20)
+    }));
+
+    it('works with STRING indexOf action', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki').split('$page.indexOf(b)', 'BLocation')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
         .limit(20)
     }));
 
@@ -971,6 +990,22 @@ describe("Cross Functional", function() {
       expression: ply()
         .apply('MinCommentLength', '$wiki.min($commentLength)')
         .apply('MaxCommentLength', '$wiki.max($commentLength)')
+    }));
+
+    it('works with string indexOf in apply', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('BLocation', '$wiki.sum($page.indexOf(b))')
+        .sort('$BLocation', 'descending')
+        .limit(20)
+    }));
+
+    it('works with string indexOf in apply not found', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('BLocation', '$wiki.sum($page.indexOf(thisasdsczxczvdprobablydoesntexist))')
+        .sort('$BLocation', 'descending')
+        .limit(20)
     }));
 
     it('works with string length in apply', equalityTest({
