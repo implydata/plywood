@@ -36,6 +36,18 @@ module Plywood {
     return (type === 'NUMBER' || type === 'NUMBER_RANGE');
   }
 
+  function removeStringCast(ex: Expression): Expression {
+    if (!(ex instanceof ChainExpression)) return ex;
+    var filteredActions = (ex as ChainExpression).actions.filter((a) => !(a instanceof CastAction && a.castType === 'STRING'));
+    if (filteredActions.length !== (ex as ChainExpression).actions.length) {
+      var expressionValue = ex.valueOf();
+      expressionValue.actions = filteredActions;
+      return new ChainExpression(expressionValue);
+    } else {
+      return ex;
+    }
+  }
+
   export interface CustomDruidAggregation {
     aggregation: Druid.Aggregation;
     accessType?: string;
@@ -1364,18 +1376,10 @@ module Plywood {
     }
 
     public expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {
-      var filteredEx: Expression = null;
-      if (ex instanceof ChainExpression) {
-        var expressionValue = ex.valueOf();
-        expressionValue.actions = (ex as ChainExpression).actions.filter((a) => !(a instanceof CastAction && a.castType === 'STRING'));
-        if (expressionValue.actions.length !== (ex as ChainExpression).actions.length) {
-          filteredEx = new ChainExpression(expressionValue);
-        }
-      }
-
+      var filteredEx: Expression = removeStringCast(ex)
       return {
         type: "javascript",
-        'function': (filteredEx || ex).getJSFn('d')
+        'function': filteredEx.getJSFn('d')
       };
     }
 
