@@ -1178,6 +1178,9 @@ module Plywood {
           if (nextAction instanceof FallbackAction) {
             extractionFn = this.actionToExtractionFn(curAction, nextAction);
             i++; // Skip it
+          } else if (curAction instanceof CastAction && curAction.castType === 'STRING') {
+            if (!nextAction) break;
+            extractionFn = this.actionToExtractionFn(nextAction, null, type);
           } else {
             extractionFn = this.actionToExtractionFn(curAction, null, type);
           }
@@ -1361,9 +1364,18 @@ module Plywood {
     }
 
     public expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {
+      var filteredEx: Expression = null;
+      if (ex instanceof ChainExpression) {
+        var expressionValue = ex.valueOf();
+        expressionValue.actions = (ex as ChainExpression).actions.filter((a) => !(a instanceof CastAction && a.castType === 'STRING'));
+        if (expressionValue.actions.length !== (ex as ChainExpression).actions.length) {
+          filteredEx = new ChainExpression(expressionValue);
+        }
+      }
+
       return {
         type: "javascript",
-        'function': ex.getJSFn('d')
+        'function': (filteredEx || ex).getJSFn('d')
       };
     }
 
