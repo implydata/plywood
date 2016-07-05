@@ -1376,7 +1376,7 @@ module Plywood {
     }
 
     public expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {
-      var filteredEx: Expression = removeStringCast(ex)
+      var filteredEx = removeStringCast(ex);
       return {
         type: "javascript",
         'function': filteredEx.getJSFn('d')
