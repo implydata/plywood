@@ -93,6 +93,15 @@ module Plywood {
         return Expression.TRUE;
       }
 
+      var prevAction = chainExpression.lastAction();
+      var literalValue = this.getLiteralValue();
+
+      if (prevAction instanceof IndexOfAction && literalValue === -1) {
+        var precedingExpression = (chainExpression as ChainExpression).expression;
+        var actionExpression = prevAction.expression;
+        return precedingExpression.contains(actionExpression).not().simplify();
+      }
+
       return null;
     }
   }

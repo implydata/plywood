@@ -60,12 +60,24 @@ describe("Simplify", () => {
     });
 
     it("str.indexOf(substr) > -1 should simplify to `CONTAINS(str, substr)`", () => {
-      var ex1 = $('page').indexOf('sdf').greaterThan(0);
+      var ex1 = $('page').indexOf('sdf').greaterThan(-1);
       var ex2 = $('page').contains('sdf');
       simplifiesTo(ex1, ex2);
     });
 
-    it.skip("`str.indexOf(substr) !== -1` should simplify to `CONTAINS(str, substr)`", () => {
+    it("`str.indexOf(substr) >= 0` should simplify to `CONTAINS(str, substr)`", () => {
+      var ex1 = $('page').indexOf('sdf').greaterThanOrEqual(0);
+      var ex2 = $('page').contains('sdf');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("`str.indexOf(substr) < 1` should not simplify to contains`", () => {
+      var ex1 = $('page').indexOf('sdf').lessThan(1);
+      var ex2 = $('page').indexOf('sdf').in(new NumberRange({ start: null, end: 1, bounds: "()" }));
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("`str.indexOf(substr) !== -1` should simplify to `CONTAINS(str, substr)`", () => {
       var ex1 = $('page').indexOf('sdf').isnt(-1);
       var ex2 = $('page').contains('sdf');
       simplifiesTo(ex1, ex2);

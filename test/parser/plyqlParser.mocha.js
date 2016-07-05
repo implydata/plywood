@@ -1038,7 +1038,6 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    // todo: this should simplify better
     it("should work with a LOCATE function greater than 0", () => {
       var parse = Expression.parseSQL(sane`
         SELECT \`page\` AS 'Page',
@@ -1053,7 +1052,6 @@ describe("SQL parser", () => {
       expect(parse.expression.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    // todo: this should simplify better
     it("should work with a LOCATE function greater than 5", () => {
       var parse = Expression.parseSQL(sane`
         SELECT \`page\` AS 'Page',
