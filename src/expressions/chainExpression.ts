@@ -24,15 +24,16 @@ module Plywood {
       var expressionType = expression.type;
       var actions = parameters.actions;
       if (!actions.length) throw new Error('can not have empty actions');
-      var firstActionExpression = actions[0].expression || expression;
+      var actingOnExpression = actions[0].expression || expression;
+
       this._ensureOp('chain');
 
-      this.expression = expression.bumpStringLiteralToTimeIfCan(expressionType, firstActionExpression);
+      this.expression = expression.bumpStringLiteralToTimeIfCan(expressionType, actingOnExpression.type);
       var type = this.expression.type;
-
       var upgradeActions: Action[] = [];
       for (var action of actions) {
-        var upgraded = action.upgradeStringToTime(type, firstActionExpression);
+        var upgraded = action.upgradeStringToTime(type, actingOnExpression.type);
+        if (upgraded.expression) actingOnExpression = upgraded.expression;
         upgradeActions.push(upgraded);
         type = upgraded.getOutputType(type);
       }

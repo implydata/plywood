@@ -8,7 +8,30 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Expression, $, ply, r, Set } = plywood;
+var { Expression, $, ply, r, Set, Dataset } = plywood;
+
+function resolvesProperly(parse) {
+  resolvesProperlyString(parse);
+  resolvesProperlyTime(parse);
+}
+
+function resolvesProperlyString(parse) {
+  var resolveString = parse.expression.resolve({ t: 'STR' });
+  expect(resolveString.expression.type).to.deep.equal("STRING");
+}
+
+function resolvesProperlyTime(parse) {
+  var resolveTime = parse.expression.resolve({ t: new Date() });
+  expect(resolveTime.expression.type).to.deep.equal("TIME");
+}
+
+function resolvesProperlyDataset(parse) {
+  var resolveString = parse.expression.resolve({ t: 'STR', wiki: Dataset.fromJS([]) });
+  expect(resolveString.expression.type).to.deep.equal("DATASET");
+  var resolveTime = parse.expression.resolve({ t: new Date(), wiki: Dataset.fromJS([]) });
+  expect(resolveTime.expression.type).to.deep.equal("DATASET");
+}
+
 
 describe("SQL parser", () => {
   describe("basic expression", () => {
@@ -228,8 +251,8 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    describe("date literals", () => {
-      it.skip('works with inferred literals', () => {
+    describe("date literals - parse and resolve", () => {
+      it('works with inferred literals', () => {
         var tests = sane`
           '2015-01-01T00:00:00.000' <= t AND t < '2016-01-01T00:00:00.000'
           '2015-01-01T00:00:00.00' <= t AND t < '2016-01-01T00:00:00.00'
@@ -246,33 +269,15 @@ describe("SQL parser", () => {
           '2015' <= t AND t < '2016'
         `;
 
-        var ex = r(new Date('2015-01-01T00:00:00Z')).lessThanOrEqual('$t').and($('t').lessThan(new Date('2016-01-01T00:00:00Z')));
-
         tests.split('\n').forEach(test => {
           var parse = Expression.parseSQL(test);
+          var left = test.substring(1, test.indexOf("' <="));
+          var right = test.substring(test.indexOf('< ') + 3, test.length -1);
+          var ex = r(left).lessThanOrEqual('$t').and($('t').lessThan(r(right)));
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
+          resolvesProperly(parse)
         });
       });
-
-      describe("resolve test", () => {
-
-        it('works STR', () => {
-          var sql = `'2015-01-01T00:00:00.000' <= t`;
-
-          var parse = Expression.parseSQL(sql);
-          var resolveString = parse.expression.resolve({ t: 'STR' });
-          expect(resolveString.expression.type).to.deep.equal("STRING");
-        });
-
-        it('works TIME', () => {
-          var sql = `'2015-01-01T00:00:00.000' <= t`;
-
-          var parse = Expression.parseSQL(sql);
-          var resolveTime = parse.expression.resolve({ t: new Date() });
-          expect(resolveTime.expression.type).to.deep.equal("TIME");
-        });
-      });
-
 
       it('works with DATE', () => {
         var tests = sane`
@@ -364,11 +369,9 @@ describe("SQL parser", () => {
         }).to.throw('time literals are not supported');
       });
 
-      it.skip('works inside BETWEEN', () => {
+      it('works inside BETWEEN of timestamp', () => {
         var tests = sane`
           t BETWEEN TIMESTAMP '2015-09-12T10:30:00' AND TIMESTAMP '2015-09-12T12:30:00'
-          t BETWEEN '2015-09-12T10:30:00' AND '2015-09-12T12:30:00'
-          t BETWEEN '2015-09-12T10:30' AND '2015-09-12T12:30'
         `;
 
         var ex = $('t').greaterThan(new Date('2015-09-12T10:30:00Z')).and($('t').lessThan(new Date('2015-09-12T12:30:00Z')));
@@ -378,7 +381,25 @@ describe("SQL parser", () => {
         });
       });
 
-      it.skip('works inside BETWEEN of years', () => {
+      it('works inside BETWEEN of literals', () => {
+        var tests = sane`
+          t BETWEEN '2015-09-12T10:30:00' AND '2015-09-12T12:30:00'
+          t BETWEEN '2015-09-12T10:30' AND '2015-09-12T12:30'
+        `;
+
+        var exs = [
+          $('t').greaterThan(r('2015-09-12T10:30:00')).and($('t').lessThan(r('2015-09-12T12:30:00'))),
+          $('t').greaterThan(r('2015-09-12T10:30')).and($('t').lessThan(r('2015-09-12T12:30')))
+        ];
+
+        tests.split('\n').forEach((test, i) => {
+          var parse = Expression.parseSQL(test);
+          expect(parse.expression.toJS()).to.deep.equal(exs[i].toJS());
+          resolvesProperly(parse);
+        });
+      });
+
+      it('works inside BETWEEN of years', () => {
         var tests = sane`
           t BETWEEN '2015-01-01T00:00:00+00:00' AND '2016-01-01T00:00:00+00:00'
           t BETWEEN '2015-01-01T00:00:00-00:00' AND '2016-01-01T00:00:00-00:00'
@@ -396,12 +417,13 @@ describe("SQL parser", () => {
           t BETWEEN '2015' AND '2016'
         `;
 
-        var ex = $('t').greaterThan(new Date('2015-01-01T00:00:00Z')).and($('t').lessThan(new Date('2016-01-01T00:00:00Z')));
-
-
         tests.split('\n').forEach((test, i) => {
           var parse = Expression.parseSQL(test);
-          expect(parse.expression.toJS(), `#${i}`).to.deep.equal(ex.toJS());
+          var left = /(?:BETWEEN ')([0-9-+:TZ.\s]+)/g.exec(test)[1];
+          var right = /(?:AND ')([0-9-+:TZ.\s]+)/g.exec(test)[1];
+          var ex = $('t').greaterThan(r(left)).and($('t').lessThan(r(right)));
+          expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
+          resolvesProperly(parse);
         });
       });
 
@@ -682,26 +704,27 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it.skip("should work with a BETWEEN", () => {
+    it("should work with a BETWEEN", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
         SUM(added) AS 'TotalAdded'
-        WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'
+        WHERE \`language\`="en" AND \`t\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'
       `);
 
       var ex2 = ply()
         .apply('data', $('data').filter(
           $('language').is("en")
-            .and($('time').greaterThan(new Date('2015-01-01T10:30:00.000Z'))
-              .and($('time').lessThan(new Date('2015-01-02T12:30:00.000Z')))
+            .and($('t').greaterThan(r('2015-01-01T10:30:00'))
+              .and($('t').lessThan(r('2015-01-02T12:30:00')))
             )
         ))
         .apply('TotalAdded', '$data.sum($added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+      resolvesProperlyDataset(parse);
     });
 
-    it.skip("should work with <= <", () => {
+    it("should work with <= <", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
         SUM(added) AS 'TotalAdded'
@@ -716,7 +739,7 @@ describe("SQL parser", () => {
         ))
         .apply('TotalAdded', '$data.sum($added)');
 
-      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+      resolvesProperlyDataset(parse);
 
       //var ex2s = ply()
       //  .apply('data', $('data').filter(
@@ -730,7 +753,7 @@ describe("SQL parser", () => {
       //expect(parse.expression.simplify().toJS()).to.deep.equal(ex2s.toJS());
     });
 
-    it.skip("should work without top level GROUP BY", () => {
+    it("should work without top level GROUP BY", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
         \`page\` AS 'Page',
@@ -742,13 +765,15 @@ describe("SQL parser", () => {
 
       var ex2 = $('wiki').filter(
         $('language').is("en")
-          .and($('time').greaterThan(new Date('2015-01-01T10:30:00.000Z'))
-            .and($('time').lessThan(new Date('2015-01-02T12:30:00.000Z')))
+          .and($('time').greaterThan(r('2015-01-01T10:30:00'))
+            .and($('time').lessThan(r('2015-01-02T12:30:00')))
           )
       ).split('$page', 'Page', 'data')
         .apply('TotalAdded', '$data.sum($added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+      resolvesProperlyDataset(parse);
+
     });
 
     it("should work without top level GROUP BY with ORDER BY and LIMIT", () => {
@@ -1157,7 +1182,7 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it.skip("should work with fancy names", () => {
+    it("should work with fancy names", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
           \`page or else?\` AS 'Page',
@@ -1169,13 +1194,17 @@ describe("SQL parser", () => {
 
       var ex2 = $('wiki-tiki:taki').filter(
         $('language').is("en")
-            .and($('time').greaterThan(new Date('2015-01-01T10:30:00.000Z'))
-              .and($('time').lessThan(new Date('2015-01-02T12:30:00.000Z')))
+            .and($('time').greaterThan(r('2015-01-01T10:30:00'))
+              .and($('time').lessThan(r('2015-01-02T12:30:00')))
             )
       ).split('${page or else?}', 'Page', 'data')
         .apply('TotalAdded', '$data.sum($added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+      var resolveString = parse.expression.resolve({ t: 'STR', 'wiki-tiki:taki': Dataset.fromJS([]) });
+      expect(resolveString.expression.type).to.deep.equal("DATASET");
+      var resolveTime = parse.expression.resolve({ t: new Date(), 'wiki-tiki:taki': Dataset.fromJS([]) });
+      expect(resolveTime.expression.type).to.deep.equal("DATASET");
     });
 
     it("should work with FROM (sub query)", () => {
@@ -1280,7 +1309,7 @@ describe("SQL parser", () => {
 
 
   describe("SELECT (Tableau specific)", () => {
-    it.skip("should work with this filter query", () => {
+    it("should work with this filter query", () => {
       var parse = Expression.parseSQL(sane`
         SELECT SUM(\`wikipedia\`.\`added\`) AS \`sum_added_ok\`,
           ADDDATE( DATE_FORMAT( \`wikipedia\`.\`time\`, '%Y-%m-%d %H:%i:%s' ), INTERVAL 0 SECOND ) AS \`tsc_time_ok\`
