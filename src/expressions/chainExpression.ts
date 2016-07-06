@@ -24,7 +24,7 @@ module Plywood {
       var expressionType = expression.type;
       var actions = parameters.actions;
       if (!actions.length) throw new Error('can not have empty actions');
-      var firstActionExpression = actions[0].expression;
+      var firstActionExpression = actions[0].expression || expression;
       this._ensureOp('chain');
 
       this.expression = expression.bumpStringLiteralToTimeIfCan(expressionType, firstActionExpression);

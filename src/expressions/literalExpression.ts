@@ -158,13 +158,14 @@ module Plywood {
     }
 
     public bumpStringLiteralToTimeIfCan(inputType: PlyType, firstActionExpression: Expression): Expression {
-      if (firstActionExpression instanceof RefExpression || this.type !== 'STRING') return this;
+      if (this.type !== 'STRING') return this;
+      var firstActionExpType = firstActionExpression.type;
 
+      if (firstActionExpression instanceof RefExpression && firstActionExpType !== 'TIME') return this;
       if (firstActionExpression instanceof LiteralExpression) {
-        if (firstActionExpression.type !== 'TIME') return this;
+        if (firstActionExpType !== 'TIME' && inputType !== 'TIME') return this;
       }
 
-      if (this.type !== 'STRING') return this;
       var parse = parseISODate(this.value, defaultParserTimezone);
       return parse ? r(parse) : this;
     }

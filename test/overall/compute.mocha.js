@@ -422,9 +422,30 @@ describe("compute native", () => {
     ex.compute()
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
-          { cut: 'Good', price: 400, priceX2: 800 },
-          { cut: 'Great', price: 124, priceX2: 248 },
-          { cut: 'Wow', price: 160, priceX2: 320 }
+          {
+            "Added_NullCities": true,
+            "cut": "Good",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-01-03T00:00:00.000Z')
+            }
+          },
+          {
+            "Added_NullCities": false,
+            "cut": "Great",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2014-01-04T00:00:00.000Z')
+            }
+          },
+          {
+            "Added_NullCities": true,
+            "cut": "Wow",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-01-05T00:00:00.000Z')
+            }
+          }
         ]);
         testComplete();
       })

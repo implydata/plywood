@@ -37,7 +37,7 @@ describe("composition", () => {
     });
   });
 
-  it("it bumps lessThan to time", () => {
+  it.skip("it bumps lessThan to time", () => {
     var ex = r("2016").lessThan('$x');
     expect(ex.toJS()).to.deep.equal({
       "action": {
