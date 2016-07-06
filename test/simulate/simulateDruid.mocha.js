@@ -735,10 +735,6 @@ describe("simulate Druid", () => {
 
     expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
       "dimension": "height_bucket",
-      "extractionFn": {
-        "function": "function(d){var _,_2;return ('' + (+d));}",
-        "type": "javascript"
-      },
       "type": "selector",
       "value": "15"
     });
