@@ -499,10 +499,10 @@ module Plywood {
       return Infinity;
     }
 
-    public upgradeStringToTime(type: PlyType): Action {
+    public upgradeStringToTime(type: PlyType, firstActionExpression: Expression): Action {
       if (!this.shouldUpgradeStringToTime(type) || type !== 'TIME') return this;
       var { expression } = this;
-      return this.changeExpression(expression.bumpStringLiteralToTimeIfCan(type));
+      return this.changeExpression(expression.bumpStringLiteralToTimeIfCan(type, firstActionExpression));
     }
 
     protected shouldUpgradeStringToTime(type: PlyType): boolean {

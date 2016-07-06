@@ -855,7 +855,7 @@ describe("Cross Functional", function() {
 
     it('works with length action on split', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
-      expression: $('wiki').split({ 'PageLength': '$page.length()', 'Channel': '$channel' })
+      expression: $('wiki').split({ 'PageLength': '$page.length()' })
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(5)

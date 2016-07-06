@@ -409,6 +409,29 @@ describe("compute native", () => {
       .done();
   });
 
+  it("left side", (testComplete) => {
+    var ds = Dataset.fromJS([
+      { cut: 'Good', time: new Date('2015-01-03T00:00:00Z') },
+      { cut: 'Great', time: new Date('2014-01-04T00:00:00Z') },
+      { cut: 'Wow', time: new Date('2015-01-05T00:00:00Z') }
+    ]);
+
+    var ex = ply(ds)
+      .apply('Added_NullCities',  `'2015-01-01T00:00:00.000' <= $time`);
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          { cut: 'Good', price: 400, priceX2: 800 },
+          { cut: 'Great', price: 124, priceX2: 248 },
+          { cut: 'Wow', price: 160, priceX2: 320 }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+
   it("works with filter, select", (testComplete) => {
     var ds = Dataset.fromJS(data);
 

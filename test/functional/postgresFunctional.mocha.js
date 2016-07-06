@@ -107,14 +107,14 @@ describe("Postgres Functional", function() {
                 .limit(3)
             )
         );
-      // .apply(
-      //   'PagesHaving',
-      //   $("wiki").split("$page", 'Page')
-      //     .apply('Count', '$wiki.sum($count)')
-      //     .sort('$Count', 'descending')
-      //     .filter($('Count').lessThan(30))
-      //     .limit(3)
-      // );
+        // .apply(
+        //   'PagesHaving',
+        //   $("wiki").split("$page", 'Page')
+        //     .apply('Count', '$wiki.sum($count)')
+        //     .sort('$Count', 'descending')
+        //     .filter($('Count').lessThan(30))
+        //     .limit(3)
+        // );
 
       basicExecutor(ex)
         .then((result) => {
