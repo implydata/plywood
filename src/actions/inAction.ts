@@ -61,7 +61,6 @@ module Plywood {
       return this;
     }
 
-    protected _getFnHelper(inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
@@ -112,7 +111,7 @@ module Plywood {
         case 'NUMBER_RANGE':
         case 'TIME_RANGE':
           if (expression instanceof LiteralExpression) {
-            var range: PlywoodRange = expression.value;
+            var range: (NumberRange | TimeRange) = expression.value;
             return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
           }
           throw new Error(`can not convert action to SQL ${this}`);
@@ -132,7 +131,7 @@ module Plywood {
         case 'SET/TIME_RANGE':
           if (expression instanceof LiteralExpression) {
             var setOfRange: Set = expression.value;
-            return setOfRange.elements.map((range: PlywoodRange) => {
+            return setOfRange.elements.map((range: (NumberRange | TimeRange)) => {
               return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
             }).join(' OR ');
           }
