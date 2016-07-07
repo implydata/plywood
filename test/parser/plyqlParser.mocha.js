@@ -8,30 +8,14 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Expression, $, ply, r, Set, Dataset } = plywood;
+var { Expression, $, ply, r, Set, Dataset, External, ExternalExpression } = plywood;
 
 function resolvesProperly(parse) {
-  resolvesProperlyString(parse);
-  resolvesProperlyTime(parse);
-}
-
-function resolvesProperlyString(parse) {
   var resolveString = parse.expression.resolve({ t: 'STR' });
   expect(resolveString.expression.type).to.deep.equal("STRING");
-}
-
-function resolvesProperlyTime(parse) {
   var resolveTime = parse.expression.resolve({ t: new Date() });
   expect(resolveTime.expression.type).to.deep.equal("TIME");
 }
-
-function resolvesProperlyDataset(parse) {
-  var resolveString = parse.expression.resolve({ t: 'STR', wiki: Dataset.fromJS([]) });
-  expect(resolveString.expression.type).to.deep.equal("DATASET");
-  var resolveTime = parse.expression.resolve({ t: new Date(), wiki: Dataset.fromJS([]) });
-  expect(resolveTime.expression.type).to.deep.equal("DATASET");
-}
-
 
 describe("SQL parser", () => {
   describe("basic expression", () => {
@@ -271,6 +255,33 @@ describe("SQL parser", () => {
 
         tests.split('\n').forEach(test => {
           var parse = Expression.parseSQL(test);
+          var left = test.substring(1, test.indexOf("' <="));
+          var right = test.substring(test.indexOf('< ') + 3, test.length -1);
+          var ex = r(left).lessThanOrEqual('$t').and($('t').lessThan(r(right)));
+          expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
+          resolvesProperly(parse)
+        });
+      });
+
+      it('works with a custom Timezone in inferred literals', () => {
+        var tests = sane`
+          '2015-01-01T00:00:00.000' <= t AND t < '2016-01-01T00:00:00.000'
+          '2015-01-01T00:00:00.00' <= t AND t < '2016-01-01T00:00:00.00'
+          '2015-01-01T00:00:00.0' <= t AND t < '2016-01-01T00:00:00.0'
+          '2015-01-01T000000.0' <= t AND t < '2016-01-01T000000.0'
+          '2015-01-01T00:00:00' <= t AND t < '2016-01-01T00:00:00'
+          '2015-01-01T000000' <= t AND t < '2016-01-01T000000'
+          '2015-01-01T00:00' <= t AND t < '2016-01-01T00:00'
+          '2015-01-01T0000' <= t AND t < '2016-01-01T0000'
+          '2015-01-01T00' <= t AND t < '2016-01-01T00'
+          '2015-01-01' <= t AND t < '2016-01-01'
+          '20150101' <= t AND t < '20160101'
+          '2015-01' <= t AND t < '2016-01'
+          '2015' <= t AND t < '2016'
+        `;
+
+        tests.split('\n').forEach(test => {
+          var parse = Expression.parseSQL(test, Timezone.fromJS('America/New_York'));
           var left = test.substring(1, test.indexOf("' <="));
           var right = test.substring(test.indexOf('< ') + 3, test.length -1);
           var ex = r(left).lessThanOrEqual('$t').and($('t').lessThan(r(right)));
@@ -708,20 +719,19 @@ describe("SQL parser", () => {
       var parse = Expression.parseSQL(sane`
         SELECT
         SUM(added) AS 'TotalAdded'
-        WHERE \`language\`="en" AND \`t\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'
+        WHERE \`language\`="en" AND \`time\` BETWEEN '2015-01-01T10:30:00' AND '2015-01-02T12:30:00'
       `);
 
       var ex2 = ply()
         .apply('data', $('data').filter(
           $('language').is("en")
-            .and($('t').greaterThan(r('2015-01-01T10:30:00'))
-              .and($('t').lessThan(r('2015-01-02T12:30:00')))
+            .and($('time').greaterThan(r('2015-01-01T10:30:00'))
+              .and($('time').lessThan(r('2015-01-02T12:30:00')))
             )
         ))
         .apply('TotalAdded', '$data.sum($added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
-      resolvesProperlyDataset(parse);
     });
 
     it("should work with <= <", () => {
@@ -734,12 +744,12 @@ describe("SQL parser", () => {
       var ex2 = ply()
         .apply('data', $('data').filter(
           $('language').is("en")
-            .and(r(new Date('2015-01-01T10:30:00')).lessThanOrEqual($('time')))
-            .and($('time').lessThan(new Date('2015-01-02T12:30:00')))
+            .and(r('2015-01-01T10:30:00').lessThanOrEqual($('time')))
+            .and($('time').lessThan(r('2015-01-02T12:30:00')))
         ))
         .apply('TotalAdded', '$data.sum($added)');
 
-      resolvesProperlyDataset(parse);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
 
       //var ex2s = ply()
       //  .apply('data', $('data').filter(
@@ -772,8 +782,6 @@ describe("SQL parser", () => {
         .apply('TotalAdded', '$data.sum($added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
-      resolvesProperlyDataset(parse);
-
     });
 
     it("should work without top level GROUP BY with ORDER BY and LIMIT", () => {
@@ -1201,10 +1209,6 @@ describe("SQL parser", () => {
         .apply('TotalAdded', '$data.sum($added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
-      var resolveString = parse.expression.resolve({ t: 'STR', 'wiki-tiki:taki': Dataset.fromJS([]) });
-      expect(resolveString.expression.type).to.deep.equal("DATASET");
-      var resolveTime = parse.expression.resolve({ t: new Date(), 'wiki-tiki:taki': Dataset.fromJS([]) });
-      expect(resolveTime.expression.type).to.deep.equal("DATASET");
     });
 
     it("should work with FROM (sub query)", () => {
