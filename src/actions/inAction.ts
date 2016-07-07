@@ -39,23 +39,23 @@ module Plywood {
     protected shouldUpgradeStringToTime(): boolean {
       return true;
     }
-    
-    public upgradeStringToTime(): Action {
+
+    public upgradeStringToTime(type: PlyType, firstActingExpressionType: PlyType): Action {
       const { expression } = this;
+      if (type !== 'TIME' && firstActingExpressionType !== 'TIME_RANGE') return this;
       if (expression instanceof LiteralExpression) {
-        var type = expression.type;
-        if (type === 'STRING_RANGE') {
-          var range = expression.value;
-          var parseStart = parseISODate(range.start, defaultParserTimezone);
-          var parseEnd = parseISODate(range.end, defaultParserTimezone);
-          if (parseStart || parseEnd) {
-            return this.changeExpression(new LiteralExpression({
-              type: "TIME_RANGE",
-              value: TimeRange.fromJS({
-                start: parseStart, end: parseEnd, bounds: '[]'
-              })
-            }))
-          }
+        var exprType = expression.type;
+        if (exprType !== 'STRING_RANGE') return this;
+        var range = expression.value;
+        var parseStart = parseISODate(range.start, defaultParserTimezone);
+        var parseEnd = parseISODate(range.end, defaultParserTimezone);
+        if (parseStart || parseEnd) {
+          return this.changeExpression(new LiteralExpression({
+            type: "TIME_RANGE",
+            value: TimeRange.fromJS({
+              start: parseStart, end: parseEnd, bounds: '[]'
+            })
+          }))
         }
       }
       return this;
