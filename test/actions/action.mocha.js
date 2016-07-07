@@ -123,7 +123,6 @@ describe("Action", () => {
       name: 'Five',
       expression: { op: 'literal', value: 5 },
       hasOwnProperty: 'troll'
-
     }).toJS()).deep.equal({
       action: 'apply',
       name: 'Five',
