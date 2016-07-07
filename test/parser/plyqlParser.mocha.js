@@ -1038,15 +1038,6 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it.skip("should work with a LENGTH inside SUBSTRING function", () => {
-      var parse = Expression.parseSQL(sane`
-        SELECT 
-          SUBSTRING(\`user\`, 1, LEN(\`user\`))
-        FROM \`wiki\`
-        GROUP BY 1
-      `);
-    });
-
     it("should work with a LOWER and UPPER function", () => {
       var parse = Expression.parseSQL(sane`
         SELECT 

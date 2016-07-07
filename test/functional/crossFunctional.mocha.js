@@ -422,7 +422,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with dynamic derived attribute .is()', equalityTest({
+    it('works with attribute dynamically derived from substr .is()', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.apply(city3, $cityName.substr(0, 3)).filter($city3 == "San")')
@@ -430,7 +430,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with dynamic derived attribute .is()', equalityTest({
+    it('works with attribute dynamically derived from transformCase .is()', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.apply(city3, $cityName.transformCase("lowerCase")).filter($city3 == "SAN FRANCISCO")')
