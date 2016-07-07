@@ -1038,6 +1038,34 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it.skip("should work with a LENGTH inside SUBSTRING function", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT 
+          SUBSTRING(\`user\`, 1, LEN(\`user\`))
+        FROM \`wiki\`
+        GROUP BY 1
+      `);
+    });
+
+    it("should work with a LOWER and UPPER function", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT 
+          CONCAT(UPPER(SUBSTRING(\`user\`, 1, 1)), LCASE(SUBSTRING(\`user\`, 2, 5))) AS 'ProperName',
+          UPPER(\`page\`) AS 'Upper',
+          UCASE(\`channel\`) AS 'UCase',
+          SUM(added) AS 'TotalAdded'
+        FROM \`wiki\`
+        GROUP BY 1
+      `);
+
+      var ex2 = $('wiki').split("($user.substr(1, 1).transformCase('upperCase')).concat($user.substr(2,5).transformCase('lowerCase'))", 'ProperName', 'data')
+        .apply('Upper', '$page.transformCase("upperCase")')
+        .apply('UCase', '$channel.transformCase("upperCase")')
+        .apply('TotalAdded', '$data.sum($added)');
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("should work with a LOCATE function greater than 0", () => {
       var parse = Expression.parseSQL(sane`
         SELECT \`page\` AS 'Page',

@@ -79,6 +79,7 @@ node_modules/.bin/tsc --noImplicitAny --noEmitOnError --declaration --removeComm
   src/actions/timePartAction.ts \
   src/actions/timeRangeAction.ts \
   src/actions/timeShiftAction.ts \
+  src/actions/transformCaseAction.ts \
   \
   src/executor/basicExecutor.ts \
   \

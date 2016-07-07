@@ -82,6 +82,24 @@ describe("Simplify", () => {
       var ex2 = $('page').contains('sdf');
       simplifiesTo(ex1, ex2);
     });
+
+    it("`chained transform case simplifies to last one`", () => {
+      var ex1 = $('page').transformCase('lowerCase').transformCase('upperCase').transformCase('lowerCase').transformCase('upperCase');
+      var ex2 = $('page').transformCase('upperCase');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("`str.transformCase('lowerCase').contains(str.transformCase('lowerCase'))`", () => {
+      var ex1 = $('page').transformCase('lowerCase').contains($('comment').transformCase('lowerCase'));
+      var ex2 = $('page').contains('$comment', 'ignoreCase');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("mismatching transforms in contains will simplify to false", () => {
+      var ex1 = $('page').transformCase('upperCase').contains($('comment').transformCase('lowerCase'));
+      var ex2 = Expression.FALSE;
+      simplifiesTo(ex1, ex2);
+    });
   });
 
 

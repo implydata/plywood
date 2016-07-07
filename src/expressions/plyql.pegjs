@@ -114,6 +114,8 @@ var fns = {
   EXTRACT: function(op, reg) { return upgrade(op).extract(reg); },
   CONCAT: function() { return Expression.concat(Array.prototype.map.call(arguments, upgrade)); },
   SUBSTRING: function(op, i, n) { return upgrade(op).substr(i, n); },
+  UPPER: function(op) { return upgrade(op).transformCase('upperCase'); },
+  LOWER: function(op) { return upgrade(op).transformCase('lowerCase'); },
   LENGTH: function(op) { return upgrade(op).length(); },
   LOCATE: function(op, ex) { return upgrade(op).indexOf(ex).add(1); },
   TIME_FLOOR: function(op, d, tz) { return upgrade(op).timeFloor(d, tz); },
@@ -170,9 +172,11 @@ fns.CHAR_LENGTH = fns.LENGTH;
 fns.IFNULL = fns.FALLBACK;
 fns.SUBSTR = fns.SUBSTRING;
 fns.CURRENT_TIMESTAMP = fns.NOW;
+fns.LCASE = fns.LOWER;
 fns.LOCALTIME = fns.NOW;
 fns.LOCALTIMESTAMP = fns.NOW;
 fns.UTC_TIMESTAMP = fns.NOW;
+fns.UCASE = fns.UPPER;
 fns.SYSDATE = fns.NOW;
 fns.CURRENT_DATE = fns.CURDATE;
 fns.UTC_DATE = fns.CURDATE;

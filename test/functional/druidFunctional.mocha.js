@@ -311,6 +311,54 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works with case transform in filter split and apply", (testComplete) => {
+      var ex = $('wiki')
+        .filter($("channel").transformCase('upperCase').is('EN'))
+        .split($("page").transformCase('lowerCase'), 'page')
+        .apply('SumIndexA', $('wiki').sum($("page").transformCase('upperCase').indexOf("A")))
+        .limit(8);
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "SumIndexA": -1,
+              "page": "!t.o.o.h.!"
+            },
+            {
+              "SumIndexA": 1,
+              "page": "'ajde jano"
+            },
+            {
+              "SumIndexA": 1,
+              "page": "'asir region"
+            },
+            {
+              "SumIndexA": 1,
+              "page": "'asta bowen"
+            },
+            {
+              "SumIndexA": 1,
+              "page": "'atika wahbi al-khazraji"
+            },
+            {
+              "SumIndexA": -2,
+              "page": "'cue detective"
+            },
+            {
+              "SumIndexA": -1,
+              "page": "'from hell' letter"
+            },
+            {
+              "SumIndexA": 2,
+              "page": "'marriage, migration and gender'"
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
     it("works with uniques", (testComplete) => {
       var ex = ply()
         .apply('UniquePages1', $('wiki').countDistinct("$page"))

@@ -332,6 +332,16 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => '[Hello World]'
 ```
 
 
+*operand*.**transformCase**(transformType: 'upperCase' | 'lowerCase')
+
+Transforms the case of the operand
+
+```javascript
+var ex = $('str').transformCase('upperCase');
+ex.compute({ str: 'Hello World' }).then(console.log); // => 'HELLO WORLD'
+```
+
+
 *operand*.**indexOf**(substr: string)
 
 Returns the 0 based index of the substring in the operand. 
