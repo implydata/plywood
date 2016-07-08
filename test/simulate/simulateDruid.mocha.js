@@ -1067,6 +1067,39 @@ describe("simulate Druid", () => {
     });
   });
 
+
+  it("works with transform case", () => {
+    var ex = $("diamonds").split("$cut.transformCase('upperCase')", 'Cut')
+      .limit(10);
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds-compact",
+        "dimension": {
+          "dimension": "cut",
+          "extractionFn": {
+            "type": "upper"
+          },
+          "outputName": "Cut",
+          "type": "extraction"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "metric": {
+          "type": "lexicographic"
+        },
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
+  });
+
   it("works with lower bound only time filter", () => {
     var ex = ply()
       .apply('diamonds', $("diamonds").filter($("time").in({ start: new Date('2015-03-12T00:00:00'), end: null })))

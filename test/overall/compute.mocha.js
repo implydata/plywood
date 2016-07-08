@@ -79,6 +79,24 @@ describe("compute native", () => {
       .done();
   });
 
+  it("transforms case of a string", (testComplete) => {
+    var ex = ply()
+      .apply('upper', r('hey').transformCase('upperCase'))
+      .apply('lower', r('HEY').transformCase('lowerCase'));
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            upper: 'HEY',
+            lower: 'hey'
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
   it("works with power and abs", (testComplete) => {
     var ex = ply()
       .apply('number', 256)

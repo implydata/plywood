@@ -422,13 +422,22 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with dynamic derived attribute .is()', equalityTest({
+    it('works with attribute dynamically derived from substr .is()', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.apply(city3, $cityName.substr(0, 3)).filter($city3 == "San")')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
+
+    it('works with attribute dynamically derived from transformCase .is()', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.apply(city3, $cityName.transformCase("lowerCase")).filter($city3 == "SAN FRANCISCO")')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
 
     it('works with length action on filter', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
@@ -442,6 +451,15 @@ describe("Cross Functional", function() {
     it('works with indexOf action on filter', equalityTest({
       executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
       expression: $('wiki').filter('$cityName.indexOf(x) > 5')
+        .split('$cityName', 'CityName')
+        .apply('Count', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with transformCase action on filter', equalityTest({
+      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      expression: $('wiki').filter('$cityName.transformCase("lowerCase") == "el paso"')
         .split('$cityName', 'CityName')
         .apply('Count', '$wiki.sum($added)')
         .sort('$Count', 'descending')
@@ -502,6 +520,15 @@ describe("Cross Functional", function() {
     it('works with STRING indexOf action', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split('$page.indexOf(b)', 'BLocation')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(20)
+    }));
+
+    it('works with STRING transform case action', equalityTest({
+      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      expression: $('wiki').split('$cityName.transformCase("lowerCase")', 'CityLower')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
@@ -949,6 +976,8 @@ describe("Cross Functional", function() {
         .apply('Anon', '$wiki.filter($isAnonymous).count()')
         .apply('AbsDeltaX2', '$wiki.sum($delta.absolute()) * 2')
         .apply('SumAdded^0.6', '$wiki.sum($added) ^ 0.6')
+        .apply('SumAdded^0.6', '$wiki.sum($page.transformCase("upperCase").indexOf("A"))')
+
         //.apply('Sum(Added^0.6)', '$wiki.sum($added ^ 0.6)') // This is meaningless since added is aggregated
         .sort('$Channel', 'descending')
         .limit(50)

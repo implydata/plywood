@@ -107,6 +107,9 @@ describe("Action", () => {
       { action: 'timeRange', duration: 'P2D', step: 3, timezone: 'Etc/UTC' },
       { action: 'timeRange', duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' },
 
+      { action: 'transformCase', transformType: 'upperCase'},
+      { action: 'transformCase', transformType: 'lowerCase'},
+
       { action: 'custom', custom: 'lol1' },
       { action: 'custom', custom: 'lol2' }
     ], {

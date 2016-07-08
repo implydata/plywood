@@ -553,6 +553,11 @@ module Plywood {
       }
     }
 
+    static caseToDruid: Lookup<string> = {
+      upperCase: 'upper',
+      lowerCase: 'lower'
+    };
+
 
     public timeAttribute: string;
     public customAggregations: CustomDruidAggregations;
@@ -1310,6 +1315,14 @@ module Plywood {
         return DruidExternal.timePartToExtraction(action.part, action.getTimezone());
       }
 
+      if (action instanceof TransformCaseAction) {
+        var transformType = DruidExternal.caseToDruid[action.transformType];
+        if (!transformType) throw new Error(`unsupported case transformation '${transformType}'`);
+        return {
+          type: transformType
+        };
+      }
+
       if (action instanceof NumberBucketAction) {
         return this.actionToJavaScriptExtractionFn(action);
       }
@@ -1570,7 +1583,7 @@ module Plywood {
       } else if (ex instanceof ChainExpression) {
         var lastAction = ex.lastAction();
 
-        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction || lastAction instanceof CastAction || lastAction instanceof IndexOfAction) {
+        if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction || lastAction instanceof CastAction || lastAction instanceof IndexOfAction || lastAction instanceof TransformCaseAction) {
           var fieldNameRefs = ex.getFreeReferences();
           var fieldNames = fieldNameRefs.map(fieldNameRef => {
             var accessType = this.getAccessType(aggregations, fieldNameRef);

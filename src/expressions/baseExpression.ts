@@ -940,6 +940,10 @@ module Plywood {
       return this.performAction(new IndexOfAction({ expression: ex }));
     }
 
+    public transformCase(transformType: CaseType): ChainExpression {
+      return this.performAction(new TransformCaseAction({ transformType: getString(transformType) as CaseType }));
+    }
+
     // Number manipulation
 
     public numberBucket(size: number, offset: number = 0): ChainExpression {

@@ -36,6 +36,7 @@ module Plywood {
     lookup?: string;
     attributes?: string[];
     simple?: boolean;
+    transformType?: CaseType;
   }
 
   export interface ActionJS {
@@ -63,6 +64,7 @@ module Plywood {
     compare?: string;
     lookup?: string;
     attributes?: string[];
+    transformType?: CaseType;
   }
 
   export interface Environment {

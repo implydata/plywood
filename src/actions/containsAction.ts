@@ -84,6 +84,21 @@ module Plywood {
       }
       return dialect.containsExpression(expressionSQL, inputSQL);
     }
+
+    protected _performOnSimpleChain(chainExpression: ChainExpression): Expression {
+      var { expression } = this;
+      if (expression instanceof ChainExpression) {
+        var precedingAction = chainExpression.lastAction();
+        var succeedingAction = expression.lastAction();
+        if (precedingAction instanceof TransformCaseAction && succeedingAction instanceof TransformCaseAction) {
+          if (precedingAction.transformType === succeedingAction.transformType) {
+            var precedingExpression = chainExpression.expression;
+            return precedingExpression.contains(expression.expression, ContainsAction.IGNORE_CASE).simplify();
+          }
+        }
+      }
+      return null;
+    }
   }
 
   Action.register(ContainsAction);
