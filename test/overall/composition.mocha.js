@@ -38,14 +38,14 @@ describe("composition", () => {
   });
 
   it("it bumps lessThan to time", () => {
-    var ex = r("2016").lessThan(new Date("2016-07-07T00:00:00.000Z"));
+    var ex = r("2016").lessThan('$x:TIME');
     expect(ex.toJS()).to.deep.equal({
       "action": {
         "action": "lessThan",
         "expression": {
-          "op": "literal",
+          "name": "x",
           "type": "TIME",
-          "value": new Date('2016-07-07T00:00:00.000Z')
+          "op": "ref"
         }
       },
       "expression": {

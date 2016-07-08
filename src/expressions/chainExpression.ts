@@ -28,7 +28,7 @@ module Plywood {
       var type = expression.type;
       for (var i = 0; i < actions.length; i++) {
         var action = actions[i];
-        var upgradedAction = action.upgradeToOutputTypeIfCan(type);
+        var upgradedAction = action.getUpgradedType(type);
         if (upgradedAction !== action) {
           actions = actions.slice();
           actions[i] = action = upgradedAction;
@@ -72,7 +72,7 @@ module Plywood {
       var upgradedActions: Action[] = [];
       for (var i = actions.length - 1; i >= 0; i--) {
         var action = actions[i];
-        var upgradedAction = action.upgradeToOutputTypeIfCan(neededType);
+        var upgradedAction = action.getUpgradedType(neededType);
         upgradedActions.unshift(upgradedAction);
         neededType = upgradedAction.getNeededType();
       }

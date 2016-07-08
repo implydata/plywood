@@ -504,13 +504,7 @@ module Plywood {
     public maxPossibleSplitValues(): number {
       return Infinity;
     }
-
-    public upgradeToOutputTypeIfCan(desiredType: PlyType): Action {
-      var { expression } = this;
-      if (!expression) return this;
-      return this.changeExpression(expression.upgradeToType(desiredType));
-    }
-
+ 
     public getUpgradedType(type: PlyType): Action {
       return this;
     }

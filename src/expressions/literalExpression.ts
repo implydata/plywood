@@ -156,14 +156,6 @@ module Plywood {
       if (!parse) throw new Error(`could not parse '${this.value}' as time`);
       return r(parse);
     }
-
-    public bumpStringLiteralToTimeIfCan(inputType: PlyType, firstActionExpressionType: PlyType): Expression {
-      if (this.type !== 'STRING') return this;
-      if (firstActionExpressionType !== 'TIME' && inputType !== 'TIME') return this;
-
-      var parse = parseISODate(this.value, defaultParserTimezone);
-      return parse ? r(parse) : this;
-    }
     
     public bumpStringLiteralToSetString(): Expression {
       if (this.type !== 'STRING') return this;
