@@ -1317,7 +1317,7 @@ module Plywood {
 
       if (action instanceof TransformCaseAction) {
         var transformType = DruidExternal.caseToDruid[action.transformType];
-        if (!transformType) throw new Error(`unsupported case transformation '${transformType}': supported transformations are: ${Object.keys(DruidExternal.caseToDruid)}`);
+        if (!transformType) throw new Error(`unsupported case transformation '${transformType}'`);
         return {
           type: transformType
         };
