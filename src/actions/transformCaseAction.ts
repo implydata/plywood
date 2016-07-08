@@ -15,7 +15,7 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       var transformType = parameters.transformType;
-      if ((!transformType) || (transformType !== TransformCaseAction.UPPER_CASE && transformType !== TransformCaseAction.LOWER_CASE)) {
+      if (transformType !== TransformCaseAction.UPPER_CASE && transformType !== TransformCaseAction.LOWER_CASE) {
         throw new Error(`Must supply transform type of '${TransformCaseAction.UPPER_CASE}' or '${TransformCaseAction.LOWER_CASE}'`);
       }
       this.transformType = transformType;

@@ -95,9 +95,9 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it("mismatching transforms in contains will simplify to false", () => {
-      var ex1 = $('page').transformCase('upperCase').contains($('comment').transformCase('lowerCase'));
-      var ex2 = Expression.FALSE;
+    it("transform case is idempotent", () => {
+      var ex1 = $('page').transformCase('lowerCase').transformCase('lowerCase');
+      var ex2 = $('page').transformCase('lowerCase');
       simplifiesTo(ex1, ex2);
     });
   });

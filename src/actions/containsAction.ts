@@ -94,8 +94,6 @@ module Plywood {
           if (precedingAction.transformType === succeedingAction.transformType) {
             var precedingExpression = chainExpression.expression;
             return precedingExpression.contains(expression.expression, ContainsAction.IGNORE_CASE).simplify();
-          } else {
-            return Expression.FALSE;
           }
         }
       }
