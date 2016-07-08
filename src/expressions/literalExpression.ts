@@ -164,25 +164,20 @@ module Plywood {
 
     public upgradeToType(targetType: PlyType): Expression {
       const { type, value } = this;
-      if (type === targetType) return this;
-
-      if (targetType === 'TIME') {
-        if (type === 'STRING') {
-          var parse = parseISODate(this.value, defaultParserTimezone);
-          return parse ? r(parse) : this;
-        } else if (type === 'STRING_RANGE') {
-          var range = value;
-          var parseStart = parseISODate(range.start, defaultParserTimezone);
-          var parseEnd = parseISODate(range.end, defaultParserTimezone);
-          if (parseStart || parseEnd) {
-            return new LiteralExpression({
-              type: "TIME_RANGE",
-              value: TimeRange.fromJS({
-                start: parseStart, end: parseEnd, bounds: '[]'
-              })
+      if (type === targetType || targetType !== 'TIME') return this;
+      if (type === 'STRING') {
+        var parse = parseISODate(value, defaultParserTimezone);
+        return parse ? r(parse) : this;
+      } else if (type === 'STRING_RANGE') {
+        var parseStart = parseISODate(value.start, defaultParserTimezone);
+        var parseEnd = parseISODate(value.end, defaultParserTimezone);
+        if (parseStart || parseEnd) {
+          return new LiteralExpression({
+            type: "TIME_RANGE",
+            value: TimeRange.fromJS({
+              start: parseStart, end: parseEnd, bounds: '[]'
             })
-          }
-          return this;
+          });
         }
       }
       return this;
