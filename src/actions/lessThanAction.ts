@@ -23,8 +23,8 @@ module Plywood {
       };
     }
 
-    protected shouldUpgradeStringToTime(): boolean {
-      return true;
+    public getUpgradedType(type: PlyType): Action {
+      return this.changeExpression(this.expression.upgradeToType(type))
     }
 
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {

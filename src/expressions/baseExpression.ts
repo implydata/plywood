@@ -757,11 +757,11 @@ module Plywood {
       return this;
     }
 
-    public bumpStringLiteralToTimeIfCan(type: PlyType, firstActionExpType: PlyType): Expression {
+    public bumpStringLiteralToSetString(): Expression {
       return this;
     }
 
-    public bumpStringLiteralToSetString(): Expression {
+    public upgradeToType(targetType: PlyType): Expression {
       return this;
     }
 

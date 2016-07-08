@@ -40,6 +40,10 @@ module Plywood {
       return true;
     }
 
+    public getUpgradedType(type: PlyType): Action {
+      return this.changeExpression(this.expression.upgradeToType(type))
+    }
+
     public upgradeStringToTime(type: PlyType, firstActingExpressionType: PlyType): Action {
       const { expression } = this;
       if (type !== 'TIME' && firstActingExpressionType !== 'TIME_RANGE') return this;

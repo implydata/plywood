@@ -169,6 +169,32 @@ module Plywood {
       if (this.type !== 'STRING') return this;
       return r(Set.fromJS([this.value]));
     }
+
+    public upgradeToType(targetType: PlyType): Expression {
+      const { type, value } = this;
+      if (type === targetType) return this;
+
+      if (targetType === 'TIME') {
+        if (type === 'STRING') {
+          var parse = parseISODate(this.value, defaultParserTimezone);
+          return parse ? r(parse) : this;
+        } else if (type === 'STRING_RANGE') {
+          var range = value;
+          var parseStart = parseISODate(range.start, defaultParserTimezone);
+          var parseEnd = parseISODate(range.end, defaultParserTimezone);
+          if (parseStart || parseEnd) {
+            return new LiteralExpression({
+              type: "TIME_RANGE",
+              value: TimeRange.fromJS({
+                start: parseStart, end: parseEnd, bounds: '[]'
+              })
+            })
+          }
+          return this;
+        }
+      }
+      return this;
+    }
   }
 
   Expression.NULL = new LiteralExpression({ value: null });

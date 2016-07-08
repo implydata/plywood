@@ -241,6 +241,12 @@ module Plywood {
       return inputType;
     }
 
+    public getNeededType(): PlyType {
+      const { expression } = this;
+      if (expression) return expression.type;
+      return null;
+    }
+
     public abstract _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType
 
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
@@ -499,14 +505,14 @@ module Plywood {
       return Infinity;
     }
 
-    public upgradeStringToTime(type: PlyType, firstActingExpressionType: PlyType): Action {
-      if (!this.shouldUpgradeStringToTime(type) || type !== 'TIME') return this;
+    public upgradeToOutputTypeIfCan(desiredType: PlyType): Action {
       var { expression } = this;
-      return this.changeExpression(expression.bumpStringLiteralToTimeIfCan(type, firstActingExpressionType));
+      if (!expression) return this;
+      return this.changeExpression(expression.upgradeToType(desiredType));
     }
 
-    protected shouldUpgradeStringToTime(type: PlyType): boolean {
-      return false;
+    public getUpgradedType(type: PlyType): Action {
+      return this;
     }
 
     // Environment methods
