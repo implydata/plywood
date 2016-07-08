@@ -1,8 +1,8 @@
 module Plywood {
   export type CaseType = 'upperCase' | 'lowerCase';
   export class TransformCaseAction extends Action {
-    static UPPER = 'upperCase';
-    static LOWER = 'lowerCase';
+    static UPPER_CASE = 'upperCase';
+    static LOWER_CASE = 'lowerCase';
 
     static fromJS(parameters: ActionJS): TransformCaseAction {
       var value = Action.jsToValue(parameters);
@@ -15,8 +15,8 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       var transformType = parameters.transformType;
-      if ((!transformType) || (transformType !== TransformCaseAction.UPPER && transformType !== TransformCaseAction.LOWER)) {
-        throw new Error(`Must supply transform type of '${TransformCaseAction.UPPER}' or '${TransformCaseAction.LOWER}'`);
+      if ((!transformType) || (transformType !== TransformCaseAction.UPPER_CASE && transformType !== TransformCaseAction.LOWER_CASE)) {
+        throw new Error(`Must supply transform type of '${TransformCaseAction.UPPER_CASE}' or '${TransformCaseAction.LOWER_CASE}'`);
       }
       this.transformType = transformType;
       this._ensureAction("transformCase");
@@ -58,18 +58,18 @@ module Plywood {
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
       const { transformType } = this;
       return (d: Datum, c: Datum) => {
-        return transformType === TransformCaseAction.UPPER ? inputFn(d, c).toLocaleUpperCase() : inputFn(d, c).toLocaleLowerCase();
+        return transformType === TransformCaseAction.UPPER_CASE ? inputFn(d, c).toLocaleUpperCase() : inputFn(d, c).toLocaleLowerCase();
       }
     }
 
     protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
       const { transformType } = this;
-      return transformType === TransformCaseAction.UPPER ? `${inputJS}.toLocaleUpperCase()` : `${inputJS}.toLocaleLowerCase()`;
+      return transformType === TransformCaseAction.UPPER_CASE ? `${inputJS}.toLocaleUpperCase()` : `${inputJS}.toLocaleLowerCase()`;
     }
 
     protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string): string {
       const { transformType } = this;
-      return transformType === TransformCaseAction.UPPER ? `UPPER(${inputSQL})` : `LOWER(${inputSQL})`;
+      return transformType === TransformCaseAction.UPPER_CASE ? `UPPER(${inputSQL})` : `LOWER(${inputSQL})`;
     }
   }
 
