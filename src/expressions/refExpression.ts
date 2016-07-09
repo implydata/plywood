@@ -262,12 +262,16 @@ module Plywood {
 
     public upgradeToType(targetType: PlyType): Expression {
       const { type } = this;
-      if (type === 'STRING' && targetType === 'TIME') {
-        var value = this.valueOf();
-        value.type = targetType;
-        return new RefExpression(value);
+      if (!type || (type === 'STRING' && targetType === 'TIME')) {
+        return this.changeType(targetType)
       }
       return this;
+    }
+
+    private changeType(newType: PlyType) {
+      var value = this.valueOf();
+      value.type = newType;
+      return new RefExpression(value);
     }
   }
 
