@@ -286,7 +286,8 @@ describe("Postgres Functional", function() {
                 "type": "SET"
               }
             }]
-          )
+          );
+          testComplete();
         })
     });
 
