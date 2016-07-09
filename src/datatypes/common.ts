@@ -13,6 +13,7 @@ module Plywood {
       } else if (hasOwnProperty(value, 'start') && hasOwnProperty(value, 'end')) {
         if (isDate(value.start) || isDate(value.end)) return 'TIME_RANGE';
         if (typeof value.start === 'number' || typeof value.end === 'number') return 'NUMBER_RANGE';
+        if (typeof value.start === 'string' || typeof value.end === 'string') return 'STRING_RANGE';
         throw new Error("unrecognizable range");
       } else {
         var ctrType = value.constructor.type;
@@ -70,6 +71,9 @@ module Plywood {
 
         case 'NUMBER_RANGE':
           return NumberRange.fromJS(v);
+
+        case 'STRING_RANGE':
+          return StringRange.fromJS(v);
 
         case 'TIME':
           return typeOverride ? v : new Date(v.value);
@@ -164,7 +168,7 @@ module Plywood {
     return Q.all(promises).then(() => newDatum);
   }
 
-  export type PlyTypeSimple = 'NULL' | 'BOOLEAN' | 'NUMBER' | 'TIME' | 'STRING' | 'NUMBER_RANGE' | 'TIME_RANGE' | 'SET' | 'SET/NULL' | 'SET/BOOLEAN' | 'SET/NUMBER' | 'SET/TIME' | 'SET/STRING' | 'SET/NUMBER_RANGE' | 'SET/TIME_RANGE';
+  export type PlyTypeSimple = 'NULL' | 'BOOLEAN' | 'NUMBER' | 'TIME' | 'STRING' | 'NUMBER_RANGE' | 'TIME_RANGE' | 'STRING_RANGE' | 'SET' | 'SET/NULL' | 'SET/BOOLEAN' | 'SET/NUMBER' | 'SET/TIME' | 'SET/STRING' | 'SET/NUMBER_RANGE' | 'SET/TIME_RANGE';
 
   export type PlyType = PlyTypeSimple | 'DATASET';
 

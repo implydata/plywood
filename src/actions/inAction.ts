@@ -16,12 +16,13 @@ module Plywood {
         if (!(
           (!isSetType(inputType) && expression.canHaveType('SET')) ||
           (inputType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE')) ||
+          (inputType === 'STRING' && expression.canHaveType('STRING_RANGE')) ||
           (inputType === 'TIME' && expression.canHaveType('TIME_RANGE'))
         )) {
           throw new TypeError(`in action has a bad type combination ${inputType} IN ${expression.type || '*'}`);
         }
       } else {
-        if (!(expression.canHaveType('NUMBER_RANGE') || expression.canHaveType('TIME_RANGE') || expression.canHaveType('SET'))) {
+        if (!(expression.canHaveType('NUMBER_RANGE') || expression.canHaveType('STRING_RANGE') || expression.canHaveType('TIME_RANGE') || expression.canHaveType('SET'))) {
           throw new TypeError(`in action has invalid expression type ${expression.type}`);
         }
       }
@@ -33,6 +34,10 @@ module Plywood {
       return {
         type: 'BOOLEAN'
       };
+    }
+
+    public getUpgradedType(type: PlyType): Action {
+      return this.changeExpression(this.expression.upgradeToType(type))
     }
 
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
@@ -49,6 +54,7 @@ module Plywood {
       if (expression instanceof LiteralExpression) {
         switch (expression.type) {
           case 'NUMBER_RANGE':
+          case 'STRING_RANGE':
           case 'TIME_RANGE':
             var range: PlywoodRange = expression.value;
             var r0 = range.start;
@@ -84,8 +90,15 @@ module Plywood {
         case 'NUMBER_RANGE':
         case 'TIME_RANGE':
           if (expression instanceof LiteralExpression) {
-            var range: PlywoodRange = expression.value;
+            var range: (NumberRange | TimeRange) = expression.value;
             return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
+          }
+          throw new Error(`can not convert action to SQL ${this}`);
+
+        case 'STRING_RANGE':
+          if (expression instanceof LiteralExpression) {
+            var stringRange: StringRange = expression.value;
+            return dialect.inExpression(inputSQL, dialect.escapeLiteral(stringRange.start), dialect.escapeLiteral(stringRange.end), stringRange.bounds);
           }
           throw new Error(`can not convert action to SQL ${this}`);
 
@@ -97,7 +110,7 @@ module Plywood {
         case 'SET/TIME_RANGE':
           if (expression instanceof LiteralExpression) {
             var setOfRange: Set = expression.value;
-            return setOfRange.elements.map((range: PlywoodRange) => {
+            return setOfRange.elements.map((range: (NumberRange | TimeRange)) => {
               return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
             }).join(' OR ');
           }

@@ -243,6 +243,12 @@ module Plywood {
       return inputType;
     }
 
+    public getNeededType(): PlyType {
+      const { expression } = this;
+      if (expression) return expression.type;
+      return null;
+    }
+
     public abstract _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType
 
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
@@ -479,7 +485,7 @@ module Plywood {
 
     public changeExpression(newExpression: Expression): Action {
       var expression = this.expression;
-      if (!expression || expression === newExpression) return this;
+      if (!expression || expression.equals(newExpression)) return this;
       var value = this.valueOf();
       value.expression = newExpression;
       return Action.fromValue(value);
@@ -499,6 +505,10 @@ module Plywood {
 
     public maxPossibleSplitValues(): number {
       return Infinity;
+    }
+ 
+    public getUpgradedType(type: PlyType): Action {
+      return this;
     }
 
     // Environment methods

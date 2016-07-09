@@ -325,6 +325,152 @@ describe("compute native", () => {
       .done();
   });
 
+
+  it("will upgrade time for time data", (testComplete) => {
+    var ds = Dataset.fromJS([
+      { cut: 'Good', time: new Date('2015-01-03T00:00:00Z') },
+      { cut: 'Great', time: new Date('2014-01-04T00:00:00Z') },
+      { cut: 'Wow', time: new Date('2015-01-05T00:00:00Z') }
+    ]);
+
+    var ex = ply(ds)
+      .apply('laterThanJan01', $('time').greaterThan(`'2015-01-01T00:00:00.000'`))
+      .apply('laterThanOrEqualJan01', $('time').greaterThanOrEqual(`'2015-01-01T00:00:00.000'`))
+      .apply('earlierThanJan04', $('time').lessThan(`'2015-01-04T00:00:00.000'`))
+      .apply('earlierThanOrEqualJan04', $('time').lessThan(`'2015-01-04T00:00:00.000'`));
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "cut": "Good",
+            "earlierThanJan04": true,
+            "earlierThanOrEqualJan04": true,
+            "laterThanJan01": true,
+            "laterThanOrEqualJan01": true,
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-01-03T00:00:00.000Z')
+            }
+          },
+          {
+            "cut": "Great",
+            "earlierThanJan04": true,
+            "earlierThanOrEqualJan04": true,
+            "laterThanJan01": false,
+            "laterThanOrEqualJan01": false,
+            "time": {
+              "type": "TIME",
+              "value": new Date('2014-01-04T00:00:00.000Z')
+            }
+          },
+          {
+            "cut": "Wow",
+            "earlierThanJan04": false,
+            "earlierThanOrEqualJan04": false,
+            "laterThanJan01": true,
+            "laterThanOrEqualJan01": true,
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-01-05T00:00:00.000Z')
+            }
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("will not upgrade string for string data that can be parsed into time", (testComplete) => {
+    var ds = Dataset.fromJS([
+      { cut: 'Good', time: '2015-01-03T00:00:00Z' },
+      { cut: 'Great', time: '2014-01-04T00:00:00Z' },
+      { cut: 'Wow', time: '2015-01-05T00:00:00Z' }
+    ]);
+
+    var ex = ply(ds)
+      .apply('laterThanJan01', $('time').greaterThan(`'2015-01-03T00:00:00Z'`))
+      .apply('laterThanOrEqualJan01', $('time').greaterThanOrEqual(`'2015-01-03T00:00:00Z'`))
+      .apply('earlierThanJan04', $('time').lessThan(`'2015-01-03T00:00:00Z'`))
+      .apply('earlierThanOrEqualJan04', $('time').lessThan(`'2015-01-03T00:00:00Z'`));
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "cut": "Good",
+            "earlierThanJan04": false,
+            "earlierThanOrEqualJan04": false,
+            "laterThanJan01": false,
+            "laterThanOrEqualJan01": true,
+            "time": "2015-01-03T00:00:00Z"
+          },
+          {
+            "cut": "Great",
+            "earlierThanJan04": true,
+            "earlierThanOrEqualJan04": true,
+            "laterThanJan01": false,
+            "laterThanOrEqualJan01": false,
+            "time": "2014-01-04T00:00:00Z"
+          },
+          {
+            "cut": "Wow",
+            "earlierThanJan04": false,
+            "earlierThanOrEqualJan04": false,
+            "laterThanJan01": true,
+            "laterThanOrEqualJan01": true,
+            "time": "2015-01-05T00:00:00Z"
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("left side", (testComplete) => {
+    var ds = Dataset.fromJS([
+      { cut: 'Good', time: new Date('2015-01-03T00:00:00Z') },
+      { cut: 'Great', time: new Date('2014-01-04T00:00:00Z') },
+      { cut: 'Wow', time: new Date('2015-01-05T00:00:00Z') }
+    ]);
+
+    var ex = ply(ds)
+      .apply('Added_NullCities',  `'2015-01-01T00:00:00.000' <= $time`);
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "Added_NullCities": true,
+            "cut": "Good",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-01-03T00:00:00.000Z')
+            }
+          },
+          {
+            "Added_NullCities": false,
+            "cut": "Great",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2014-01-04T00:00:00.000Z')
+            }
+          },
+          {
+            "Added_NullCities": true,
+            "cut": "Wow",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-01-05T00:00:00.000Z')
+            }
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+
   it("works with filter, select", (testComplete) => {
     var ds = Dataset.fromJS(data);
 

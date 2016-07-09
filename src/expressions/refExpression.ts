@@ -259,6 +259,20 @@ module Plywood {
     public maxPossibleSplitValues(): number {
       return this.type === 'BOOLEAN' ? 3 : Infinity;
     }
+
+    public upgradeToType(targetType: PlyType): Expression {
+      const { type } = this;
+      if (targetType === 'TIME' && (!type || type === 'STRING')) {
+        return this.changeType(targetType)
+      }
+      return this;
+    }
+
+    private changeType(newType: PlyType) {
+      var value = this.valueOf();
+      value.type = newType;
+      return new RefExpression(value);
+    }
   }
 
   Expression.register(RefExpression);

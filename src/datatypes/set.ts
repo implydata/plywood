@@ -47,7 +47,8 @@ module Plywood {
 
   var typeUpgrades: Lookup<string> = {
     'NUMBER': 'NUMBER_RANGE',
-    'TIME': 'TIME_RANGE'
+    'TIME': 'TIME_RANGE',
+    'STRING': 'STRING_RANGE'
   };
 
   var check: Class<SetValue, SetJS>;
@@ -149,7 +150,7 @@ module Plywood {
         elements = newElements
       }
 
-      if (setType === 'NUMBER_RANGE' || setType === 'TIME_RANGE') {
+      if (setType === 'NUMBER_RANGE' || setType === 'TIME_RANGE' || setType === 'STRING_RANGE') {
         elements = unifyElements(elements);
       }
       this.elements = elements;
@@ -219,13 +220,18 @@ module Plywood {
           setType: 'TIME_RANGE',
           elements: this.elements.map(TimeRange.fromTime)
         })
+      } else if (this.setType === 'STRING') {
+        return Set.fromJS({
+          setType: 'STRING_RANGE',
+          elements: this.elements.map(StringRange.fromString)
+        })
       } else {
         return this;
       }
     }
 
     public downgradeType(): Set {
-      if (this.setType === 'NUMBER_RANGE' || this.setType === 'TIME_RANGE') {
+      if (this.setType === 'NUMBER_RANGE' || this.setType === 'TIME_RANGE' || this.setType === 'STRING_RANGE') {
         var elements = this.elements;
         var simpleElements: any[] = [];
         for (let element of elements) {
@@ -246,7 +252,7 @@ module Plywood {
       if (hasOwnProperty(typeUpgrades, setType)) {
         return this.upgradeType().extent();
       }
-      if (setType !== 'NUMBER_RANGE' && setType !== 'TIME_RANGE') return null;
+      if (setType !== 'NUMBER_RANGE' && setType !== 'TIME_RANGE' && setType !== 'STRING_RANGE') return null;
       var elements = this.elements;
       var extent: PlywoodRange = elements[0] || null;
       for (var i = 1; i < elements.length; i++) {
@@ -287,7 +293,7 @@ module Plywood {
 
       var thisElements = this.elements;
       var newElements: Array<any>;
-      if (setType === 'NUMBER_RANGE' || setType === 'TIME_RANGE') {
+      if (setType === 'NUMBER_RANGE' || setType === 'TIME_RANGE' || setType === 'STRING_RANGE') {
         var otherElements = other.elements;
         newElements = intersectElements(thisElements, otherElements);
       } else {
@@ -323,7 +329,9 @@ module Plywood {
     public contains(value: any): boolean {
       const { setType } = this;
       if ((setType === 'NUMBER_RANGE' && typeof value === 'number')
-        || (setType === 'TIME_RANGE' && isDate(value))) {
+        || (setType === 'TIME_RANGE' && isDate(value))
+        || (setType === 'STRING_RANGE' && typeof value === 'string')) {
+
         return this.containsWithin(value);
       }
       return hasOwnProperty(this.hash, this.keyFn(value));

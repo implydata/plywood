@@ -37,13 +37,14 @@ describe("composition", () => {
     });
   });
 
-  it("it bumps lessThan to time", () => {
-    var ex = r("2016").lessThan('$x');
+  it("it bumps lessThan to time, ref on right", () => {
+    var ex = r("2016").lessThan('$x:TIME');
     expect(ex.toJS()).to.deep.equal({
       "action": {
         "action": "lessThan",
         "expression": {
           "name": "x",
+          "type": "TIME",
           "op": "ref"
         }
       },
@@ -52,6 +53,27 @@ describe("composition", () => {
         "type": "TIME",
         "value": new Date('2016-01-01T00:00:00.000Z')
       },
+      "op": "chain"
+    });
+  });
+
+  it("it bumps lessThan to time, ref on left", () => {
+    var ex = $('x', 'TIME').lessThan(r("2016"));
+    expect(ex.toJS()).to.deep.equal({
+      "action": {
+        "action": "lessThan",
+        "expression": {
+          "op": "literal",
+          "type": "TIME",
+          "value": new Date('2016-01-01T00:00:00.000Z')
+        }
+      },
+      "expression": {
+        "name": "x",
+        "type": "TIME",
+        "op": "ref"
+      },
+
       "op": "chain"
     });
   });

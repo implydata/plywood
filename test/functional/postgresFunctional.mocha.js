@@ -285,6 +285,49 @@ describe("Postgres Functional", function() {
                 "setType": "STRING",
                 "type": "SET"
               }
+            }]
+          )
+        })
+    });
+
+    it("works string range", (testComplete) => {
+      var ex = $('wiki')
+        .filter($('cityName').greaterThan('Eagleton'))
+        .split('$cityName', 'CityName')
+        .sort('$CityName', 'descending')
+        .limit(10);
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "CityName": "Ōita"
+            },
+            {
+              "CityName": "Łódź"
+            },
+            {
+              "CityName": "İzmit"
+            },
+            {
+              "CityName": "České Budějovice"
+            },
+            {
+              "CityName": "Ürümqi"
+            },
+            {
+              "CityName": "Ústí nad Labem"
+            },
+            {
+              "CityName": "Évry"
+            },
+            {
+              "CityName": "Épinay-sur-Seine"
+            },
+            {
+              "CityName": "Épernay"
+            },
+            {
+              "CityName": "Élancourt"
             }
           ]);
           testComplete();

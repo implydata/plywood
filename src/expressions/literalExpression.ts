@@ -91,6 +91,9 @@ module Plywood {
         case 'TIME_RANGE':
           return `${dialect.timeToSQL(value.start)}`;
 
+        case 'STRING_RANGE':
+          return dialect.escapeLiteral(value.start);
+
         case 'SET/STRING':
         case 'SET/NUMBER':
           return '(' + (<Set>value).elements.map((v: any) => typeof v === 'number' ? v : dialect.escapeLiteral(v)).join(',') + ')';
@@ -157,6 +160,27 @@ module Plywood {
     public bumpStringLiteralToSetString(): Expression {
       if (this.type !== 'STRING') return this;
       return r(Set.fromJS([this.value]));
+    }
+
+    public upgradeToType(targetType: PlyType): Expression {
+      const { type, value } = this;
+      if (type === targetType || targetType !== 'TIME') return this;
+      if (type === 'STRING') {
+        var parse = parseISODate(value, defaultParserTimezone);
+        return parse ? r(parse) : this;
+      } else if (type === 'STRING_RANGE') {
+        var parseStart = parseISODate(value.start, defaultParserTimezone);
+        var parseEnd = parseISODate(value.end, defaultParserTimezone);
+        if (parseStart || parseEnd) {
+          return new LiteralExpression({
+            type: "TIME_RANGE",
+            value: TimeRange.fromJS({
+              start: parseStart, end: parseEnd, bounds: '[]'
+            })
+          });
+        }
+      }
+      return this;
     }
   }
 

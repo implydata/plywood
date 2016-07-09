@@ -21,17 +21,65 @@ module Plywood {
     constructor(parameters: ExpressionValue) {
       super(parameters, dummyObject);
       var expression = parameters.expression;
-      this.expression = expression;
       var actions = parameters.actions;
       if (!actions.length) throw new Error('can not have empty actions');
-      this.actions = actions;
       this._ensureOp('chain');
 
       var type = expression.type;
-      for (var action of actions) {
-        type = action.getOutputType(type);
+      for (var i = 0; i < actions.length; i++) {
+        var action = actions[i];
+        var upgradedAction = action.getUpgradedType(type);
+        if (upgradedAction !== action) {
+          actions = actions.slice();
+          actions[i] = action = upgradedAction;
+        }
+
+        try {
+          type = action.getOutputType(type);
+        } catch (e) {
+          var pattern = e.message.match(/(?:\w+ must have input of type) ([A-Z_]+)/);
+          if (!pattern) {
+            pattern =  e.message.match(/(?:\w+ has a bad type combination) ([A-Z_]+) IN ([A-Z_]+)/);
+            if (!pattern) throw e;
+            type = pattern[2];
+          }
+
+          var neededType = pattern[1];
+
+          if (i === 0) {
+              expression = expression.upgradeToType(neededType);
+              type = expression.type;
+          } else {
+              var upgradedChain = new ChainExpression({
+                expression,
+                actions: actions.slice(0, i)
+              }).upgradeToType(neededType);
+              expression = (upgradedChain as ChainExpression).expression;
+              actions = (upgradedChain as ChainExpression).actions;
+              type = upgradedChain.type;
+          }
+
+          type = action.getOutputType(type);
+        }
       }
+      this.expression = expression;
+      this.actions = actions;
       this.type = type;
+    }
+
+    public upgradeToType(neededType: PlyType): Expression {
+      const actions = this.actions;
+      var upgradedActions: Action[] = [];
+      for (var i = actions.length - 1; i >= 0; i--) {
+        var action = actions[i];
+        var upgradedAction = action.getUpgradedType(neededType);
+        upgradedActions.unshift(upgradedAction);
+        neededType = upgradedAction.getNeededType();
+      }
+      var value = this.valueOf();
+      value.actions = upgradedActions;
+      value.expression = this.expression.upgradeToType(neededType);
+      return new ChainExpression(value);
     }
 
     public valueOf(): ExpressionValue {

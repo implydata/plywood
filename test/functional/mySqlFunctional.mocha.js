@@ -361,6 +361,66 @@ describe("MySQL Functional", function() {
         .done();
     });
 
+
+    it("works string range", (testComplete) => {
+      var ex = $('wiki')
+        .filter($('cityName').greaterThan('Kab').and($('cityName').lessThan('Kar')))
+        .split('$cityName', 'City')
+        .limit(5);
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "City": "Kadelburg"
+            },
+            {
+              "City": "Kaduwela"
+            },
+            {
+              "City": "Kagoshima"
+            },
+            {
+              "City": "Kailua"
+            },
+            {
+              "City": "Kainan"
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works string range", (testComplete) => {
+      var ex = $('wiki')
+        .filter($('cityName').lessThan('P'))
+        .filter('$comment < "zebra"')
+        .split('$cityName', 'City')
+        .limit(5);
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "City": "'Ewa Beach"
+            },
+            {
+              "City": "A Coruña"
+            },
+            {
+              "City": "Aachen"
+            },
+            {
+              "City": "Aalborg"
+            },
+            {
+              "City": "Aarhus"
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
   });
 
   describe("incorrect page", () => {
