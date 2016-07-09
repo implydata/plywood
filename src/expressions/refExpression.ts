@@ -262,7 +262,7 @@ module Plywood {
 
     public upgradeToType(targetType: PlyType): Expression {
       const { type } = this;
-      if (!type || (type === 'STRING' && targetType === 'TIME')) {
+      if (targetType === 'TIME' && (!type || type === 'STRING')) {
         return this.changeType(targetType)
       }
       return this;
