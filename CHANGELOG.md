@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.11.7
+
+- Added `STRING_RANGE` type
+- Core: Support for `.indexOf()`, `.transformCase()` action
+- PlyQL: Support for `LOCATE`, `UCASE`, `LCASE`
+
 ## 0.11.6
 
 - No JS globals in JS functions
