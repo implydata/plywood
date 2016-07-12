@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.11.8
+
+- Updated file notice headers
+- Updated dependencies
+
 ## 0.11.7
 
 - Added `STRING_RANGE` type
