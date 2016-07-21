@@ -53,15 +53,8 @@ module Plywood {
         try {
           type = action.getOutputType(type);
         } catch (e) {
-          var pattern = e.message.match(/(?:\w+ must have input of type) ([A-Z_]+)/);
-          if (!pattern) {
-            pattern =  e.message.match(/(?:\w+ has a bad type combination) ([A-Z_]+) IN ([A-Z_]+)/);
-            if (!pattern) throw e;
-            type = pattern[2];
-          }
-
-          var neededType = pattern[1];
-
+          var neededType: PlyType = action.getNecessaryInputTypes() as PlyType;
+          // todo: neededType could be more than 1 value, just so happens that with current tests cases neededType always returns one value
           if (i === 0) {
               expression = expression.upgradeToType(neededType);
               type = expression.type;

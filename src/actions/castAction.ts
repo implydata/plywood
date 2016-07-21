@@ -101,14 +101,14 @@ module Plywood {
       return [this.outputType];
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      var outputType = this.outputType;
-      if (inputType === outputType) return outputType;
-      if (inputType && (!CAST_TYPE_TO_FN[outputType][inputType]) && (!CAST_TYPE_TO_FN[outputType]['UNIVERSAL'])) {
-        throw new Error(`unsupported cast from ${inputType} to ${outputType}`);
-      }
+    public getNecessaryInputTypes(): PlyTypeSimple[] {
+      var castType = this.outputType;
+      var lookup = CAST_TYPE_TO_FN[castType] || CAST_TYPE_TO_FN[castType]['UNIVERSAL'];
+      return Object.keys(lookup) as PlyTypeSimple[];
+    }
 
-      return outputType;
+    public getOutputType(inputType: PlyType): PlyType {
+      return this.outputType;
     }
 
     public _fillRefSubstitutions(): FullType {

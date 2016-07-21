@@ -51,6 +51,10 @@ module Plywood {
       return [String(this.lookup)];
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return this._stringTransformInputType;
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
       return this._stringTransformOutputType(inputType);
     }

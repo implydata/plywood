@@ -26,8 +26,12 @@ module Plywood {
       this._checkNoExpression();
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return 'NUMBER' as PlyType;
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'NUMBER');
+      this._checkInputTypes(inputType);
       return 'NUMBER';
     }
 

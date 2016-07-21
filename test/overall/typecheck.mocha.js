@@ -78,6 +78,6 @@ describe("typecheck", () => {
   it("should throw on overlay type mismatch", () => {
     expect(() => {
       $('x', 'NUMBER').overlap($('y', 'SET/STRING'));
-    }).to.throw('type mismatch in overlap action: NUMBER is incompatible with SET/STRING');
+    }).to.throw('overlap must have input of type SET/STRING or STRING (is NUMBER)');
   });
 });

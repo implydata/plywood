@@ -27,9 +27,13 @@ module Plywood {
       this._checkExpressionTypes('NUMBER', 'TIME', 'STRING');
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return this.expression.type;
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
-      var expressionType = this.expression.type;
-      if (expressionType) this._checkInputTypes(inputType, expressionType);
+      var expressionType = this.getNecessaryInputTypes();
+      if (expressionType) this._checkInputTypes(inputType);
       return 'BOOLEAN';
     }
 

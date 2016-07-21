@@ -60,8 +60,12 @@ module Plywood {
       return params;
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return ['NUMBER' as PlyType, 'NUMBER_RANGE' as PlyType];
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'NUMBER', 'NUMBER_RANGE');
+      this._checkInputTypes(inputType);
       return 'NUMBER_RANGE';
     }
 

@@ -55,8 +55,12 @@ module Plywood {
         this.transformType === other.transformType;
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return 'STRING';
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'STRING');
+      this._checkInputTypes(inputType);
       return 'STRING';
     }
 

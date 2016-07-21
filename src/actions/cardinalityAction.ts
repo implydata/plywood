@@ -26,8 +26,12 @@ module Plywood {
       this._checkNoExpression();
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return getAllSetTypes();
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'SET/STRING', 'SET/STRING_RANGE', 'SET/NUMBER', 'SET/NUMBER_RANGE', 'SET/TIME', 'SET/TIME_RANGE');
+      this._checkInputTypes(inputType);
       return 'NUMBER';
     }
 

@@ -225,12 +225,15 @@ module Plywood {
       return false;
     }
 
-    protected _checkInputTypes(inputType: string, ...neededTypes: string[]) {
+    protected _checkInputTypes(inputType: PlyType) {
+      var neededTypes: PlyType | PlyType[] = this.getNecessaryInputTypes();
+
+      if (typeof neededTypes === 'string') neededTypes = [neededTypes as PlyType];
       if (inputType && inputType !== 'NULL' && neededTypes.indexOf(inputType) === -1) {
         if (neededTypes.length === 1) {
           throw new Error(`${this.action} must have input of type ${neededTypes[0]} (is ${inputType})`);
         } else {
-          throw new Error(`${this.action} must have input of type ${neededTypes.join(' or ')} (is ${inputType})`);
+          throw new Error(`${this.action} must have input of type ${(neededTypes as PlyType[]).join(' or ')} (is ${inputType})`);
         }
       }
     }
@@ -254,8 +257,11 @@ module Plywood {
 
     public abstract getOutputType(inputType: PlyType): PlyType
 
+    public abstract getNecessaryInputTypes(): PlyType | PlyType[]
+
+    protected _stringTransformInputType = ['STRING' as PlyType, 'SET/STRING' as PlyType];
     protected _stringTransformOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'STRING', 'SET/STRING');
+      this._checkInputTypes(inputType);
       return inputType;
     }
 
