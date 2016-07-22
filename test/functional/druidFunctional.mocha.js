@@ -380,14 +380,14 @@ describe("Druid Functional", function() {
       var ex = $('wiki')
         .filter($("page").customTransform('_.slice(-1)').is('z'))
         .split($("page").customTransform('_.charAt(_.length - 1)'), 'page')
-        .apply('SumZCharCode', $('wiki').sum($("page").customTransform('_.charCodeAt(0)')))
+        .apply('SumCharCode', $('wiki').sum($("page").customTransform('_.charCodeAt(0)')))
         .limit(8);
 
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "SumZCharCode": 188669,
+              "SumCharCode": 188669,
               "page": "z"
             }
           ]);

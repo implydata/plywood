@@ -138,16 +138,16 @@ describe("compute native", () => {
       .apply('startsWithH', r('hey').customTransform('_.startsWith("h")'))
       .apply('charCodeAt', r('hey').customTransform('_.charCodeAt(1)'))
       .apply('trimmed', r('  hey    ').customTransform('_.trim()'))
-      .apply('nullIsOk', r('hey').customTransform('null'))
-      .apply('nullIsOk2', r(null).customTransform('_.indexOf()'));
+      .apply('nullStatementIsOk', r('hey').customTransform('null'))
+      .apply('nullOperandIsOk', r(null).customTransform('_.indexOf()'));
 
     ex.compute()
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
             "charCodeAt": 101,
-            "nullIsOk": null,
-            "nullIsOk2": null,
+            "nullStatementIsOk": null,
+            "nullOperandIsOk": null,
             "startsWithH": true,
             "trimmed": "hey",
             "upper": "HEY"

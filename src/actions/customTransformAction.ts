@@ -94,7 +94,7 @@ module Plywood {
     }
 
     protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      throw new Error(" not supported in SQL");
+      throw new Error("Custom transform not supported in SQL");
     }
 
     private getTransformFunction(): Function {
