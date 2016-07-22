@@ -1332,6 +1332,13 @@ module Plywood {
         return DruidExternal.timePartToExtraction(action.part, action.getTimezone());
       }
 
+      if (action instanceof CustomTransformAction) {
+        return {
+          type: 'javascript',
+          'function': `function(${CustomTransformAction.argumentName}){ try { return ${action.jsStatement} } catch(e){ return null }}`
+        }
+      }
+
       if (action instanceof TransformCaseAction) {
         var transformType = DruidExternal.caseToDruid[action.transformType];
         if (!transformType) throw new Error(`unsupported case transformation '${transformType}'`);

@@ -614,6 +614,7 @@ describe("SQL parser", () => {
         COUNT(1) AS Count3,
         COUNT(\`visitor\`) AS Count4,
         MATCH(\`visitor\`, "[0-9A-F]") AS 'Match',
+        CUSTOM_TRANSFORM(\`visitor\`, "_.concat('blah')") AS 'CustomTransform',
         SUM(added) AS 'TotalAdded',
         DATE '2014-01-02' AS 'Date',
         SUM(\`wiki\`.\`added\`) / 4 AS TotalAddedOver4,
@@ -650,6 +651,7 @@ describe("SQL parser", () => {
         .apply('Count3', '$data.filter(1 != null).count()')
         .apply('Count4', '$data.filter($visitor != null).count()')
         .apply('Match', $('visitor').match("[0-9A-F]"))
+        .apply('CustomTransform', $('visitor').customTransform("_.concat('blah')"))
         .apply('TotalAdded', '$data.sum($added)')
         .apply('Date', new Date('2014-01-02T00:00:00.000Z'))
         .apply('TotalAddedOver4', '$data.sum($added) / 4')

@@ -967,6 +967,11 @@ module Plywood {
       return this.performAction(new TransformCaseAction({ transformType: getString(transformType) as CaseType }));
     }
 
+    public customTransform(jsStatement: string): ChainExpression {
+      var jsStatement = jsStatement ? getString(jsStatement) : null;
+      return this.performAction(new CustomTransformAction({ jsStatement }));
+    }
+
     // Number manipulation
 
     public numberBucket(size: number, offset: number = 0): ChainExpression {

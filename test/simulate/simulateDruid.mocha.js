@@ -1117,6 +1117,58 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("works with custom transform", () => {
+    var ex = $("diamonds")
+      .filter($("cut").customTransform('_.slice(-1)').is('z'))
+      .split("$cut.customTransform('decodeURIComponent(_).toLowerCase().trim()')", 'Cut')
+      .apply('SumZCharCode', $('diamonds').sum($("color").customTransform('_.charCodeAt(0)')))
+
+      .limit(10);
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldNames": [
+              "color"
+            ],
+            "fnAggregate": "function($$,_color) { return $$+(_color==null?null:_color.charCodeAt(0)); }",
+            "fnCombine": "function(a,b) { return a+b; }",
+            "fnReset": "function() { return 0; }",
+            "name": "SumZCharCode",
+            "type": "javascript"
+          }
+        ],
+        "dataSource": "diamonds-compact",
+        "dimension": {
+          "dimension": "cut",
+          "extractionFn": {
+            "function": "function(_){ try { return decodeURIComponent(_).toLowerCase().trim() } catch(e){ return null }}",
+            "type": "javascript"
+          },
+          "outputName": "Cut",
+          "type": "extraction"
+        },
+        "filter": {
+          "dimension": "cut",
+          "extractionFn": {
+            "function": "function(_){ try { return _.slice(-1) } catch(e){ return null }}",
+            "type": "javascript"
+          },
+          "type": "selector",
+          "value": "z"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "metric": {
+          "type": "lexicographic"
+        },
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
+  });
+
   it("works with lower bound only time filter", () => {
     var ex = ply()
       .apply('diamonds', $("diamonds").filter($("time").in({ start: new Date('2015-03-12T00:00:00'), end: null })))

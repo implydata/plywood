@@ -367,6 +367,7 @@ ex.compute({ str: 'kafka-0.7.2' }).then(console.log); // => '0.7.2'
 ex.compute({ str: 'Web 2.0' }).then(console.log); // => 'missing'
 ```
 
+
 *operand*.**length**()
 
 Returns the length of the string
@@ -374,6 +375,16 @@ Returns the length of the string
 ```javascript
 var ex = $('str').length();
 ex.compute({ str: 'morning' }).then(console.log); // => 7
+```
+
+
+*operand*.**customTransform**(javascriptStatement: string)
+
+Executes a transformative javascript statement on a string with argument name `_`
+
+```javascript
+var ex = $('str').customTransform('_.slice(1,4);');
+ex.compute({ str: 'morning' }).then(console.log); // => "orn"
 ```
 
 

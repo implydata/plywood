@@ -376,6 +376,26 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works with custom transform in filter split and apply", (testComplete) => {
+      var ex = $('wiki')
+        .filter($("page").customTransform('_.slice(-1)').is('z'))
+        .split($("page").customTransform('_.charAt(_.length - 1)'), 'page')
+        .apply('SumZCharCode', $('wiki').sum($("page").customTransform('_.charCodeAt(0)')))
+        .limit(8);
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "SumZCharCode": 188669,
+              "page": "z"
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
     it("works with uniques", (testComplete) => {
       var ex = ply()
         .apply('UniquePages1', $('wiki').countDistinct("$page"))

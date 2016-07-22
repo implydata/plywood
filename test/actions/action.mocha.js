@@ -83,6 +83,8 @@ describe("Action", () => {
       { action: 'cast', castType: 'TIME' },
       { action: 'cast', castType: 'NUMBER' },
       { action: 'custom', custom: 'blah' },
+      { action: 'customTransform', jsStatement: 'decodeURIComponent(_).toLowerCase().trim()' },
+
 
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'normal' },
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'ignoreCase' },
