@@ -114,50 +114,6 @@ describe("compute native", () => {
       .done();
   });
 
-  it("throws for custom transform action using random argument name", () => {
-    expect(() => {
-      r("str").customTransform('b.toLocaleLowerCase()');
-    }).to.throw(`Couldn't evaluate return value of 'b.toLocaleLowerCase()': b is not defined`);
-  });
-
-  it("throws for custom transform action with unsupported return type", () => {
-    expect(() => {
-      r("str").customTransform('_.split("/")');
-    }).to.throw(`Unsupported return type: array from '_.split("/")'`);
-    expect(() => {
-      r("str").customTransform('_.invalid()');
-    }).to.throw(`Couldn't evaluate return value of '_.invalid()': _.invalid is not a function`);
-    expect(() => {
-      r("str").customTransform('{k: "v"}["x"]');
-    }).to.throw(`Unsupported return type: UNDEFINED from '{k: "v"}["x"]'`);
-  });
-
-  it("transforms custom with different return types", (testComplete) => {
-    var ex = ply()
-      .apply('upper', r('hey').customTransform('_.toUpperCase()'))
-      .apply('startsWithH', r('hey').customTransform('_.startsWith("h")'))
-      .apply('charCodeAt', r('hey').customTransform('_.charCodeAt(1)'))
-      .apply('trimmed', r('  hey    ').customTransform('_.trim()'))
-      .apply('nullStatementIsOk', r('hey').customTransform('null'))
-      .apply('nullOperandIsOk', r(null).customTransform('_.indexOf()'));
-
-    ex.compute()
-      .then((v) => {
-        expect(v.toJS()).to.deep.equal([
-          {
-            "charCodeAt": 101,
-            "nullStatementIsOk": null,
-            "nullOperandIsOk": null,
-            "startsWithH": true,
-            "trimmed": "hey",
-            "upper": "HEY"
-          }
-        ]);
-        testComplete();
-      })
-      .done();
-  });
-
   it("works with power and abs", (testComplete) => {
     var ex = ply()
       .apply('number', 256)

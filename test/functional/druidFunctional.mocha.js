@@ -376,11 +376,7 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it("works with custom transform in filter split and apply", (testComplete) => {
       var ex = $('wiki')
-        .filter($("page").customTransform('_.slice(-1)').is('z'))
-        .split($("page").customTransform('_.charAt(_.length - 1)'), 'page')
-        .apply('SumCharCode', $('wiki').sum($("page").customTransform('_.charCodeAt(0)')))
         .limit(8);
 
       basicExecutor(ex)

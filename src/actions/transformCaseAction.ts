@@ -22,37 +22,37 @@ module Plywood {
 
     static fromJS(parameters: ActionJS): TransformCaseAction {
       var value = Action.jsToValue(parameters);
-      value.transformType = parameters.transformType;
+      value.transformCaseType = parameters.transformCaseType;
       return new TransformCaseAction(value);
     }
 
-    public transformType: CaseType;
+    public transformCaseType: CaseType;
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
-      var transformType = parameters.transformType;
-      if (transformType !== TransformCaseAction.UPPER_CASE && transformType !== TransformCaseAction.LOWER_CASE) {
+      var transformCaseType = parameters.transformCaseType;
+      if (transformCaseType !== TransformCaseAction.UPPER_CASE && transformCaseType !== TransformCaseAction.LOWER_CASE) {
         throw new Error(`Must supply transform type of '${TransformCaseAction.UPPER_CASE}' or '${TransformCaseAction.LOWER_CASE}'`);
       }
-      this.transformType = transformType;
+      this.transformCaseType = transformCaseType;
       this._ensureAction("transformCase");
     }
 
     public valueOf(): ActionValue {
       var value = super.valueOf();
-      value.transformType = this.transformType;
+      value.transformCaseType = this.transformCaseType;
       return value;
     }
 
     public toJS(): ActionJS {
       var js = super.toJS();
-      js.transformType = this.transformType;
+      js.transformCaseType = this.transformCaseType;
       return js;
     }
 
     public equals(other: TransformCaseAction): boolean {
       return super.equals(other) &&
-        this.transformType === other.transformType;
+        this.transformCaseType === other.transformCaseType;
     }
 
     public getOutputType(inputType: PlyType): PlyType {
@@ -72,20 +72,20 @@ module Plywood {
     }
 
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      const { transformType } = this;
+      const { transformCaseType } = this;
       return (d: Datum, c: Datum) => {
-        return transformType === TransformCaseAction.UPPER_CASE ? inputFn(d, c).toLocaleUpperCase() : inputFn(d, c).toLocaleLowerCase();
+        return transformCaseType === TransformCaseAction.UPPER_CASE ? inputFn(d, c).toLocaleUpperCase() : inputFn(d, c).toLocaleLowerCase();
       }
     }
 
     protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-      const { transformType } = this;
-      return transformType === TransformCaseAction.UPPER_CASE ? `${inputJS}.toLocaleUpperCase()` : `${inputJS}.toLocaleLowerCase()`;
+      const { transformCaseType } = this;
+      return transformCaseType === TransformCaseAction.UPPER_CASE ? `${inputJS}.toLocaleUpperCase()` : `${inputJS}.toLocaleLowerCase()`;
     }
 
     protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string): string {
-      const { transformType } = this;
-      return transformType === TransformCaseAction.UPPER_CASE ? `UPPER(${inputSQL})` : `LOWER(${inputSQL})`;
+      const { transformCaseType } = this;
+      return transformCaseType === TransformCaseAction.UPPER_CASE ? `UPPER(${inputSQL})` : `LOWER(${inputSQL})`;
     }
   }
 

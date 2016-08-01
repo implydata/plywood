@@ -963,13 +963,14 @@ module Plywood {
       return this.performAction(new IndexOfAction({ expression: ex }));
     }
 
-    public transformCase(transformType: CaseType): ChainExpression {
-      return this.performAction(new TransformCaseAction({ transformType: getString(transformType) as CaseType }));
+    public transformCase(transformCaseType: CaseType): ChainExpression {
+      return this.performAction(new TransformCaseAction({ transformCaseType: getString(transformCaseType) as CaseType }));
     }
 
-    public customTransform(jsStatement: string): ChainExpression {
-      var jsStatement = jsStatement ? getString(jsStatement) : null;
-      return this.performAction(new CustomTransformAction({ jsStatement }));
+    public customTransform(transformFnName: string, transformType?: PlyTypeSingleValue): ChainExpression {
+      if (!transformFnName) throw new Error("Must provide an extraction function name for custom transform");
+      var transformType = transformType !== undefined ? getString(transformType) as PlyTypeSingleValue : null;
+      return this.performAction(new CustomTransformAction({ transformFnName: getString(transformFnName), transformType }));
     }
 
     // Number manipulation

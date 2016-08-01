@@ -188,6 +188,7 @@ module Plywood {
 
     timeAttribute?: string;
     customAggregations?: CustomDruidAggregations;
+    customExtractionFns?: CustomDruidExtractionFns;
     allowEternity?: boolean;
     allowSelectQueries?: boolean;
     introspectionStrategy?: string;
@@ -214,6 +215,7 @@ module Plywood {
 
     timeAttribute?: string;
     customAggregations?: CustomDruidAggregations;
+    customExtractionFns?: CustomDruidExtractionFns;
     allowEternity?: boolean;
     allowSelectQueries?: boolean;
     introspectionStrategy?: string;

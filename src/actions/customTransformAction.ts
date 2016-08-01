@@ -1,5 +1,4 @@
 /*
- * Copyright 2012-2015 Metamarkets Group Inc.
  * Copyright 2015-2016 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,86 +18,68 @@ module Plywood {
   export class CustomTransformAction extends Action {
     static fromJS(parameters: ActionJS): CustomTransformAction {
       var value = Action.jsToValue(parameters);
-      value.jsStatement = parameters.jsStatement;
+      value.transformFnName = parameters.transformFnName;
+      if (parameters.transformType) value.transformType = parameters.transformType;
       return new CustomTransformAction(value);
     }
 
-    static argumentName = "_";
-    static allowedFnReturnTypes = ['STRING', 'NUMBER', 'BOOLEAN', 'NULL'];
+    public transformFnName: string;
+    public transformType: PlyTypeSingleValue;
 
-    public jsStatement: string;
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
-      this.jsStatement = parameters.jsStatement;
+      this.transformFnName = parameters.transformFnName;
+      if (parameters.transformType) this.transformType = parameters.transformType;
       this._ensureAction("customTransform");
     }
 
     public valueOf(): ActionValue {
       var value = super.valueOf();
-      value.jsStatement = this.jsStatement;
+      value.transformFnName = this.transformFnName;
+      if (this.transformType) value.transformType = this.transformType;
       return value;
     }
 
     public toJS(): ActionJS {
       var js = super.toJS();
-      js.jsStatement = this.jsStatement;
+      js.transformFnName = this.transformFnName;
+      if (this.transformType) js.transformType = this.transformType;
       return js;
     }
 
     public equals(other: CustomTransformAction): boolean {
       return super.equals(other) &&
-        this.jsStatement === other.jsStatement;
+        this.transformFnName === other.transformFnName &&
+        this.transformType === other.transformType;
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      return [`function(_) { return ${this.jsStatement} }`];
+      var param = [`${this.transformFnName} }`];
+      if (this.transformType) param.push(this.transformType);
+      return param;
     }
 
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'STRING');
-
-      try {
-        var testReturnVal = this.getTransformFunction()('str');
-      } catch(e) {
-        throw new Error(`Couldn't evaluate return value of '${this.jsStatement}': ${e.message}`);
-      }
-
-      var returnType = (typeof testReturnVal).toUpperCase();
-      if (Array.isArray(testReturnVal)) returnType = "array"; // no PlyType to support str.split()
-      if (testReturnVal === null) returnType = "NULL";
-      if (CustomTransformAction.allowedFnReturnTypes.indexOf(returnType) === -1) {
-        throw new Error(`Unsupported return type: ${returnType} from '${this.jsStatement}'`);
-      }
-
-      return returnType as PlyType;
+      this._checkInputTypes(inputType, 'NULL', 'BOOLEAN', 'NUMBER', 'TIME', 'STRING');
+      return this.transformType || inputType;
     }
 
     public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
       return inputType;
     }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        if (inV === null) return null;
-        return this.getTransformFunction()(inV);
-      }
-    }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-      var { jsStatement } = this;
-      var regex = new RegExp(CustomTransformAction.argumentName, "g");
-      jsStatement = `(${CustomTransformAction.argumentName}==null?null:${jsStatement})`;
-      return jsStatement.replace(regex, inputJS);
+    public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+      throw new Error('can not getFn on custom transform action');
     }
 
     protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
       throw new Error("Custom transform not supported in SQL");
     }
 
-    private getTransformFunction(): Function {
-      return new Function(CustomTransformAction.argumentName, `return ${this.jsStatement}`);
+    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
+      throw new Error("Custom transform can't yet be expressed as JS");
     }
   }
 

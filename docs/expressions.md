@@ -332,7 +332,7 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => '[Hello World]'
 ```
 
 
-*operand*.**transformCase**(transformType: 'upperCase' | 'lowerCase')
+*operand*.**transformCase**(transformCaseType: 'upperCase' | 'lowerCase')
 
 Transforms the case of the operand
 
@@ -378,15 +378,11 @@ ex.compute({ str: 'morning' }).then(console.log); // => 7
 ```
 
 
-*operand*.**customTransform**(javascriptStatement: string)
+*operand*.**customTransform**(transformFnName: string, transformType?: 'NULL', 'BOOLEAN', 'NUMBER', 'TIME', 'STRING')
 
-Executes a transformative javascript statement on a string with argument name `_`
-
-```javascript
-var ex = $('str').customTransform('_.slice(1,4);');
-ex.compute({ str: 'morning' }).then(console.log); // => "orn"
-```
-
+Applies a custom transformative function on a value.
+`transformFnName` maps to a function defined in the specified namespace.
+`transformType` is an optional argument specifying the function's return type. If not specified defaults to the input value type. 
 
 ### Number manipulation
 

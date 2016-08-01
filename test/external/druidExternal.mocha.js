@@ -74,6 +74,23 @@ var context = {
           globalWarming: 'hoax'
         }
       }
+    },
+    customExtractionFns: {
+      makeFrenchCanadian: {
+        type: 'extraction',
+        outputName: 'sometimeLater',
+        extractionFn : {
+          "type" : "timeFormat",
+          "format" : "EEEE",
+          "timeZone" : "America/Montreal",
+          "locale" : "fr"
+        }
+      },
+      makeExcited: {
+        "type" : "javascript",
+        "function" : "function(str) { return str + '!!!'; }",
+        "injective" : true
+      }
     }
   })
 };
@@ -1694,6 +1711,51 @@ describe("DruidExternal", () => {
         },
         "outputName": "Split1",
         "type": "extraction"
+      });
+    });
+
+    // todo: this doesn't work.
+    it.skip("works with custom transform split", () => {
+      var ex = $('wiki')
+        .split($('time').customTransform('makeFrenchCanadian').cast('STRING').concat($('time').customTransform('makeExcited').cast('STRING')), 'FancyTime');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query).to.deep.equal({
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "wikipedia",
+        "dimensions": [
+          {
+            "dimension": "__time",
+            "extractionFn": {
+              "format": "EEEE",
+              "locale": "fr",
+              "timeZone": "America/Montreal",
+              "type": "timeFormat"
+            },
+            "outputName": "FancyTime",
+            "type": "extraction"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "FancyTime"
+            }
+          ],
+          "type": "default"
+        },
+        "queryType": "groupBy"
       });
     });
 

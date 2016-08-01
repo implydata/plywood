@@ -52,8 +52,9 @@ module Plywood {
     lookup?: string;
     attributes?: string[];
     simple?: boolean;
-    transformType?: CaseType;
-    jsStatement?: string;
+    transformCaseType?: CaseType;
+    transformFnName?: string;
+    transformType?: PlyTypeSingleValue;
   }
 
   export interface ActionJS {
@@ -81,8 +82,9 @@ module Plywood {
     compare?: string;
     lookup?: string;
     attributes?: string[];
-    transformType?: CaseType;
-    jsStatement?: string;
+    transformCaseType?: CaseType;
+    transformFnName?: string;
+    transformType?: PlyTypeSingleValue;
   }
 
   export interface Environment {

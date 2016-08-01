@@ -71,8 +71,8 @@ describe("typecheck", () => {
 
   it("should throw on bad custom transform action input", () => {
     expect(() => {
-      r(5).customTransform('_.length()');
-    }).to.throw('customTransform must have input of type STRING (is NUMBER)');
+      r(['A', 'B']).customTransform('myCustomTransformName');
+    }).to.throw('customTransform must have input of type NULL or BOOLEAN or NUMBER or TIME or STRING (is SET/STRING)');
   });
 
   it("should throw on overlay type mismatch", () => {

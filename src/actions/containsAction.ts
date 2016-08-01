@@ -108,7 +108,7 @@ module Plywood {
         var precedingAction = chainExpression.lastAction();
         var succeedingAction = expression.lastAction();
         if (precedingAction instanceof TransformCaseAction && succeedingAction instanceof TransformCaseAction) {
-          if (precedingAction.transformType === succeedingAction.transformType) {
+          if (precedingAction.transformCaseType === succeedingAction.transformCaseType) {
             var precedingExpression = chainExpression.expression;
             return precedingExpression.contains(expression.expression, ContainsAction.IGNORE_CASE).simplify();
           }
