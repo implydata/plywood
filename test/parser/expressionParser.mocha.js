@@ -173,6 +173,13 @@ describe("expression parser", () => {
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("works with pure JSON", () => {
+      var ex1 = Expression.parse('{ "op": "ref", "name": "authors" }');
+      var ex2 = $('authors');
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("works with a fancy number expression", () => {
       var ex1 = Expression.parse(" -5e-2 ");
       var ex2 = r(-5e-2);

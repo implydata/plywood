@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.11.9
+
+- Expressions can parse pure JSON also
+
 ## 0.11.8
 
 - Updated file notice headers

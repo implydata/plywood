@@ -211,6 +211,10 @@ module Plywood {
      * @param timezone The timezone within which to evaluate any untimezoned date strings
      */
     static parse(str: string, timezone?: Timezone): Expression {
+      if (str[0] === '{' && str[str.length - 1] === '}') {
+        return Expression.fromJS(JSON.parse(str));
+      }
+
       var original = defaultParserTimezone;
       if (timezone) defaultParserTimezone = timezone;
       try {
