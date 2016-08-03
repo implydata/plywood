@@ -60,7 +60,6 @@ module Plywood {
 
   export interface CustomDruidExtractionFn {
     extractionFn: Druid.ExtractionFn;
-    outputType?: PlyTypeSingleValue;
   }
 
   export type CustomDruidAggregations = Lookup<CustomDruidAggregation>;
