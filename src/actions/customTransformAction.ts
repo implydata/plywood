@@ -18,51 +18,51 @@ module Plywood {
   export class CustomTransformAction extends Action {
     static fromJS(parameters: ActionJS): CustomTransformAction {
       var value = Action.jsToValue(parameters);
-      value.transformFnName = parameters.transformFnName;
-      if (parameters.transformType) value.transformType = parameters.transformType;
+      value.custom = parameters.custom;
+      if (parameters.outputType) value.outputType = parameters.outputType;
       return new CustomTransformAction(value);
     }
 
-    public transformFnName: string;
-    public transformType: PlyTypeSingleValue;
+    public custom: string;
+    public outputType: PlyTypeSingleValue;
 
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
-      this.transformFnName = parameters.transformFnName;
-      if (parameters.transformType) this.transformType = parameters.transformType;
+      this.custom = parameters.custom;
+      if (parameters.outputType) this.outputType = parameters.outputType;
       this._ensureAction("customTransform");
     }
 
     public valueOf(): ActionValue {
       var value = super.valueOf();
-      value.transformFnName = this.transformFnName;
-      if (this.transformType) value.transformType = this.transformType;
+      value.custom = this.custom;
+      if (this.outputType) value.outputType = this.outputType;
       return value;
     }
 
     public toJS(): ActionJS {
       var js = super.toJS();
-      js.transformFnName = this.transformFnName;
-      if (this.transformType) js.transformType = this.transformType;
+      js.custom = this.custom;
+      if (this.outputType) js.outputType = this.outputType;
       return js;
     }
 
     public equals(other: CustomTransformAction): boolean {
       return super.equals(other) &&
-        this.transformFnName === other.transformFnName &&
-        this.transformType === other.transformType;
+        this.custom === other.custom &&
+        this.outputType === other.outputType;
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      var param = [`${this.transformFnName} }`];
-      if (this.transformType) param.push(this.transformType);
+      var param = [`${this.custom} }`];
+      if (this.outputType) param.push(this.outputType);
       return param;
     }
 
     public getOutputType(inputType: PlyType): PlyType {
       this._checkInputTypes(inputType, 'NULL', 'BOOLEAN', 'NUMBER', 'TIME', 'STRING');
-      return this.transformType || inputType;
+      return this.outputType || inputType;
     }
 
     public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {

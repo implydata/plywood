@@ -60,7 +60,7 @@ module Plywood {
 
   export interface CustomDruidExtractionFn {
     extractionFn: Druid.ExtractionFn;
-    transformType?: PlyTypeSingleValue;
+    outputType?: PlyTypeSingleValue;
   }
 
   export type CustomDruidAggregations = Lookup<CustomDruidAggregation>;
@@ -1354,10 +1354,10 @@ module Plywood {
       }
 
       if (action instanceof TransformCaseAction) {
-        var transformCaseType = DruidExternal.caseToDruid[action.transformCaseType];
-        if (!transformCaseType) throw new Error(`unsupported case transformation '${transformCaseType}'`);
+        var transformType = DruidExternal.caseToDruid[action.transformType];
+        if (!transformType) throw new Error(`unsupported case transformation '${transformType}'`);
         return {
-          type: transformCaseType
+          type: transformType
         };
       }
 
@@ -1414,17 +1414,17 @@ module Plywood {
     }
 
     private customTransformToExtractionFn(action: CustomTransformAction) {
-      var transformFnName = action.transformFnName;
-      var customExtractionFn = this.customExtractionFns[transformFnName];
-      if (!customExtractionFn) throw new Error(`could not find extraction function: '${transformFnName}'`);
+      var custom = action.custom;
+      var customExtractionFn = this.customExtractionFns[custom];
+      if (!customExtractionFn) throw new Error(`could not find extraction function: '${custom}'`);
       var extractionFn = customExtractionFn.extractionFn;
 
-      if (typeof extractionFn.type !== 'string') throw new Error(`must have type in custom extraction fn '${transformFnName}'`);
+      if (typeof extractionFn.type !== 'string') throw new Error(`must have type in custom extraction fn '${custom}'`);
 
       try {
         JSON.parse(JSON.stringify(customExtractionFn));
       } catch (e) {
-        throw new Error(`must have JSON extraction Fn '${transformFnName}'`);
+        throw new Error(`must have JSON extraction Fn '${custom}'`);
       }
 
       return extractionFn;

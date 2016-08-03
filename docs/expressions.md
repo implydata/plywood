@@ -332,7 +332,7 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => '[Hello World]'
 ```
 
 
-*operand*.**transformCase**(transformCaseType: 'upperCase' | 'lowerCase')
+*operand*.**transformCase**(transformType: 'upperCase' | 'lowerCase')
 
 Transforms the case of the operand
 
@@ -378,11 +378,11 @@ ex.compute({ str: 'morning' }).then(console.log); // => 7
 ```
 
 
-*operand*.**customTransform**(transformFnName: string, transformType?: 'NULL', 'BOOLEAN', 'NUMBER', 'TIME', 'STRING')
+*operand*.**customTransform**(custom: string, outputType?: 'NULL', 'BOOLEAN', 'NUMBER', 'TIME', 'STRING')
 
 Applies a custom transformative function on a value.
-`transformFnName` maps to a function defined in the specified namespace.
-`transformType` is an optional argument specifying the function's return type. If not specified defaults to the input value type. 
+`custom` maps to a function defined in the specified namespace.
+`outputType` is an optional argument specifying the function's return type. If not specified defaults to the input value type. 
 
 ### Number manipulation
 

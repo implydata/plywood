@@ -83,8 +83,8 @@ describe("Action", () => {
       { action: 'cast', castType: 'TIME' },
       { action: 'cast', castType: 'NUMBER' },
       { action: 'custom', custom: 'blah' },
-      { action: 'customTransform', transformFnName: 'decodeURIComponentToLowerCaseAndTrim' },
-      { action: 'customTransform', transformFnName: 'includes', transformType: 'BOOLEAN' },
+      { action: 'customTransform', custom: 'decodeURIComponentToLowerCaseAndTrim' },
+      { action: 'customTransform', custom: 'includes', outputType: 'BOOLEAN' },
 
 
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'normal' },
@@ -127,8 +127,8 @@ describe("Action", () => {
       { action: 'timeRange', duration: 'P2D', step: 3, timezone: 'Etc/UTC' },
       { action: 'timeRange', duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' },
 
-      { action: 'transformCase', transformCaseType: 'upperCase'},
-      { action: 'transformCase', transformCaseType: 'lowerCase'},
+      { action: 'transformCase', transformType: 'upperCase'},
+      { action: 'transformCase', transformType: 'lowerCase'},
 
       { action: 'custom', custom: 'lol1' },
       { action: 'custom', custom: 'lol2' }
