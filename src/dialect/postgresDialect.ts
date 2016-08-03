@@ -57,7 +57,7 @@ module Plywood {
       YEAR: "DATE_PART('year',$$)",
     };
 
-    static CAST_TO_FUNCTION: {[castType: string]: {[inputType: string]: string}} = {
+    static CAST_TO_FUNCTION: {[outputType: string]: {[inputType: string]: string}} = {
       TIME: {
         NUMBER: 'TO_TIMESTAMP($$::double precision / 1000)'
       },

@@ -1221,7 +1221,7 @@ module Plywood {
           if (nextAction instanceof FallbackAction) {
             extractionFn = this.actionToExtractionFn(curAction, nextAction);
             i++; // Skip it
-          } else if (curAction instanceof CastAction && curAction.castType === 'STRING' && !nextAction) {
+          } else if (curAction instanceof CastAction && curAction.outputType === 'STRING' && !nextAction) {
             break; // Don't need to add extractionFn if last action is string cast
           } else {
             extractionFn = this.actionToExtractionFn(curAction, null, type);

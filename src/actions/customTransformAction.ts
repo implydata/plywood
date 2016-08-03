@@ -30,7 +30,7 @@ module Plywood {
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
       this.custom = parameters.custom;
-      if (parameters.outputType) this.outputType = parameters.outputType;
+      if (parameters.outputType) this.outputType = parameters.outputType as PlyTypeSingleValue;
       this._ensureAction("customTransform");
     }
 

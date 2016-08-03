@@ -80,8 +80,9 @@ describe("Action", () => {
       { action: 'average', expression: { op: 'ref', name: 'myVar' } },
       { action: 'countDistinct', expression: { op: 'ref', name: 'myVar' } },
       { action: 'quantile', expression: { op: 'ref', name: 'myVar' }, quantile: 0.5 },
-      { action: 'cast', castType: 'TIME' },
-      { action: 'cast', castType: 'NUMBER' },
+      { action: 'cast', outputType: 'TIME' },
+      { action: 'cast', outputType: 'NUMBER' },
+
       { action: 'custom', custom: 'blah' },
       { action: 'customTransform', custom: 'decodeURIComponentToLowerCaseAndTrim' },
       { action: 'customTransform', custom: 'includes', outputType: 'BOOLEAN' },

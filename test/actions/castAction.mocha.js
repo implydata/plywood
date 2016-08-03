@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-const DOCKER_MACHINE = '192.168.99.100';
+var { expect } = require("chai");
 
-exports.druidVersion = '0.9.1-rc4';
-exports.druidHost = `${DOCKER_MACHINE}:8082`;
+var plywood = require('../../build/plywood');
+var { $, CastAction } = plywood;
 
-exports.mySqlVersion = '5.7.12';
-exports.mySqlHost = `${DOCKER_MACHINE}:3306`;
-exports.mySqlDatabase = 'datazoo';
-exports.mySqlUser = 'root';
-exports.mySqlPassword = '';
-
-exports.postgresVersion = '9.5.3';
-exports.postgresHost = `${DOCKER_MACHINE}:5432`;
-exports.postgresDatabase = 'datazoo';
-exports.postgresUser = 'root';
-exports.postgresPassword = 'datazoo';
+describe("CastAction", () => {
+  it("back compat", () => {
+    expect(CastAction.fromJS({
+      action: 'cast',
+      castType: 'TIME'
+    }).toJS()).to.deep.equal({
+      action: 'cast',
+      outputType: 'TIME'
+    });
+  });
+});

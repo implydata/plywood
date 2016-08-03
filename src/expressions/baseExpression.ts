@@ -1018,8 +1018,8 @@ module Plywood {
       return this.bumpStringLiteralToTime().performAction(new TimePartAction({ part: getString(part), timezone }));
     }
 
-    public cast(castType: PlyType): ChainExpression {
-      return this.performAction(new CastAction({ castType: getString(castType) as PlyTypeSimple }));
+    public cast(outputType: PlyType): ChainExpression {
+      return this.performAction(new CastAction({ outputType: getString(outputType) as PlyTypeSimple }));
     }
 
     // Set operations
