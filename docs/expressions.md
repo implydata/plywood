@@ -367,6 +367,7 @@ ex.compute({ str: 'kafka-0.7.2' }).then(console.log); // => '0.7.2'
 ex.compute({ str: 'Web 2.0' }).then(console.log); // => 'missing'
 ```
 
+
 *operand*.**length**()
 
 Returns the length of the string
@@ -376,6 +377,12 @@ var ex = $('str').length();
 ex.compute({ str: 'morning' }).then(console.log); // => 7
 ```
 
+
+*operand*.**customTransform**(custom: string, outputType?: 'NULL', 'BOOLEAN', 'NUMBER', 'TIME', 'STRING')
+
+Applies a custom transformative function on a value.
+`custom` maps to a function defined in the specified namespace.
+`outputType` is an optional argument specifying the function's return type. If not specified defaults to the input value type. 
 
 ### Number manipulation
 

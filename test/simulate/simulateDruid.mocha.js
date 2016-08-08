@@ -42,6 +42,33 @@ var attributes = [
   { name: 'a+b', type: 'NUMBER' } // Added here because it is invalid JS without escaping
 ];
 
+var customExtractionFns = {
+  sliceLastChar: {
+    extractionFn: {
+      "type" : "javascript",
+      "function" : "function(x) { return x.slice(-1) }"
+    }
+  },
+  getLastChar: {
+    extractionFn: {
+      "type" : "javascript",
+      "function" : "function(x) { return x.charAt(x.length - 1) }"
+    }
+  },
+  timesTwo: {
+    extractionFn: {
+      "type" : "javascript",
+      "function" : "function(x) { return x * 2 }"
+    }
+  },
+  concatWithConcat: {
+    extractionFn: {
+      "type" : "javascript",
+      "function" : "function(x) { return x.concat('concat') }"
+    }
+  }
+};
+
 var diamondsCompact = External.fromJS({
   engine: 'druid',
   version: '0.9.2',
@@ -53,6 +80,7 @@ var diamondsCompact = External.fromJS({
     { name: 'cut', type: 'STRING' },
     { name: 'price', type: 'NUMBER', unsplitable: true }
   ],
+  customExtractionFns,
   concealBuckets: true,
   allowSelectQueries: true,
   filter: $("time").in({
@@ -80,6 +108,7 @@ var context = {
     source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
+    customExtractionFns,
     allowSelectQueries: true,
     filter: $("time").in({
       start: new Date('2015-03-12T00:00:00'),
@@ -1105,6 +1134,50 @@ describe("simulate Druid", () => {
           },
           "outputName": "Cut",
           "type": "extraction"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "metric": {
+          "type": "lexicographic"
+        },
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
+  });
+
+  it("works with custom transform in filter and split", () => {
+    var ex = $("diamonds")
+      .filter($("cut").customTransform('sliceLastChar').is('z'))
+      .split($("cut").customTransform('sliceLastChar').is('z'), 'lastChar')
+      .limit(10);
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds-compact",
+        "dimension": {
+          "dimension": "cut",
+          "extractionFn": {
+            "function": "function(x) { return x.slice(-1) }",
+            "type": "javascript"
+          },
+          "outputName": "lastChar",
+          "type": "extraction"
+        },
+        "filter": {
+          "dimension": "cut",
+          "extractionFn": {
+            "function": "function(x) { return x.slice(-1) }",
+            "type": "javascript"
+          },
+          "type": "selector",
+          "value": "z"
         },
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",

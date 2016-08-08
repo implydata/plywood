@@ -58,9 +58,18 @@ module Plywood {
     accessType?: string;
   }
 
+  export interface CustomDruidExtractionFn {
+    extractionFn: Druid.ExtractionFn;
+  }
+
   export type CustomDruidAggregations = Lookup<CustomDruidAggregation>;
+  export type CustomDruidExtractionFns = Lookup<CustomDruidExtractionFn>;
 
   function customAggregationsEqual(customA: CustomDruidAggregations, customB: CustomDruidAggregations): boolean {
+    return JSON.stringify(customA) === JSON.stringify(customB); // ToDo: fill this in;
+  }
+
+  function customExtractionFnsEqual(customA: CustomDruidExtractionFns, customB: CustomDruidExtractionFns): boolean {
     return JSON.stringify(customA) === JSON.stringify(customB); // ToDo: fill this in;
   }
 
@@ -416,6 +425,7 @@ module Plywood {
       var value: ExternalValue = External.jsToValue(parameters, requester);
       value.timeAttribute = parameters.timeAttribute;
       value.customAggregations = parameters.customAggregations || {};
+      value.customExtractionFns = parameters.customExtractionFns || {};
       value.allowEternity = Boolean(parameters.allowEternity);
       value.allowSelectQueries = Boolean(parameters.allowSelectQueries);
       value.introspectionStrategy = parameters.introspectionStrategy;
@@ -578,6 +588,7 @@ module Plywood {
 
     public timeAttribute: string;
     public customAggregations: CustomDruidAggregations;
+    public customExtractionFns: CustomDruidExtractionFns;
     public allowEternity: boolean;
     public allowSelectQueries: boolean;
     public introspectionStrategy: string;
@@ -590,6 +601,7 @@ module Plywood {
       this._ensureMinVersion("0.8.0");
       this.timeAttribute = parameters.timeAttribute || TIME_ATTRIBUTE;
       this.customAggregations = parameters.customAggregations;
+      this.customExtractionFns = parameters.customExtractionFns;
       this.allowEternity = parameters.allowEternity;
       this.allowSelectQueries = parameters.allowSelectQueries;
 
@@ -607,6 +619,7 @@ module Plywood {
       var value: ExternalValue = super.valueOf();
       value.timeAttribute = this.timeAttribute;
       value.customAggregations = this.customAggregations;
+      value.customExtractionFns = this.customExtractionFns;
       value.allowEternity = this.allowEternity;
       value.allowSelectQueries = this.allowSelectQueries;
       value.introspectionStrategy = this.introspectionStrategy;
@@ -619,6 +632,7 @@ module Plywood {
       var js: ExternalJS = super.toJS();
       if (this.timeAttribute !== TIME_ATTRIBUTE) js.timeAttribute = this.timeAttribute;
       if (helper.nonEmptyLookup(this.customAggregations)) js.customAggregations = this.customAggregations;
+      if (helper.nonEmptyLookup(this.customExtractionFns)) js.customExtractionFns = this.customExtractionFns;
       if (this.allowEternity) js.allowEternity = true;
       if (this.allowSelectQueries) js.allowSelectQueries = true;
       if (this.introspectionStrategy !== DruidExternal.DEFAULT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
@@ -631,6 +645,7 @@ module Plywood {
       return super.equals(other) &&
         this.timeAttribute === other.timeAttribute &&
         customAggregationsEqual(this.customAggregations, other.customAggregations) &&
+        customExtractionFnsEqual(this.customExtractionFns, other.customExtractionFns) &&
         this.allowEternity === other.allowEternity &&
         this.allowSelectQueries === other.allowSelectQueries &&
         this.introspectionStrategy === other.introspectionStrategy &&
@@ -1187,11 +1202,12 @@ module Plywood {
             curAction = actions[++i];
           }
           this._processConcatExtractionFn(concatPrefix, extractionFns);
-
+        } else if (curAction.action === 'customTransform') {
+          extractionFns.push(this.customTransformToExtractionFn(curAction as CustomTransformAction));
+          return;
         } else if (lead.type === 'NUMBER' && (expression.type === 'NUMBER' || expression.type === 'NUMBER_RANGE')) {
           extractionFns.push(this.expressionToJavaScriptExtractionFn(expression));
           return;
-
         } else if (!lead.isOp('ref')) {
           // Concat is the only thing allowed to have a non leading ref, the rest must be $ref.someFunction
           throw new Error(`can not convert complex: ${lead}`);
@@ -1204,7 +1220,7 @@ module Plywood {
           if (nextAction instanceof FallbackAction) {
             extractionFn = this.actionToExtractionFn(curAction, nextAction);
             i++; // Skip it
-          } else if (curAction instanceof CastAction && curAction.castType === 'STRING' && !nextAction) {
+          } else if (curAction instanceof CastAction && curAction.outputType === 'STRING' && !nextAction) {
             break; // Don't need to add extractionFn if last action is string cast
           } else {
             extractionFn = this.actionToExtractionFn(curAction, null, type);
@@ -1332,6 +1348,10 @@ module Plywood {
         return DruidExternal.timePartToExtraction(action.part, action.getTimezone());
       }
 
+      if (action instanceof CustomTransformAction) {
+        return this.customTransformToExtractionFn(action);
+      }
+
       if (action instanceof TransformCaseAction) {
         var transformType = DruidExternal.caseToDruid[action.transformType];
         if (!transformType) throw new Error(`unsupported case transformation '${transformType}'`);
@@ -1390,6 +1410,23 @@ module Plywood {
         format,
         nullHandling: 'returnNull'
       })
+    }
+
+    private customTransformToExtractionFn(action: CustomTransformAction) {
+      var custom = action.custom;
+      var customExtractionFn = this.customExtractionFns[custom];
+      if (!customExtractionFn) throw new Error(`could not find extraction function: '${custom}'`);
+      var extractionFn = customExtractionFn.extractionFn;
+
+      if (typeof extractionFn.type !== 'string') throw new Error(`must have type in custom extraction fn '${custom}'`);
+
+      try {
+        JSON.parse(JSON.stringify(customExtractionFn));
+      } catch (e) {
+        throw new Error(`must have JSON extraction Fn '${custom}'`);
+      }
+
+      return extractionFn;
     }
 
     public actionToJavaScriptExtractionFn(action: Action, type?: PlyType): Druid.ExtractionFn {

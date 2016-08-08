@@ -39,7 +39,6 @@ module Plywood {
     duration?: Duration;
     timezone?: Timezone;
     part?: string;
-    castType?: PlyTypeSimple;
     step?: number;
     position?: int;
     length?: int;
@@ -53,6 +52,7 @@ module Plywood {
     attributes?: string[];
     simple?: boolean;
     transformType?: CaseType;
+    outputType?: PlyTypeSimple;
   }
 
   export interface ActionJS {
@@ -68,7 +68,6 @@ module Plywood {
     duration?: string;
     timezone?: string;
     part?: string;
-    castType?: PlyTypeSimple;
     step?: number;
     position?: int;
     length?: int;
@@ -81,6 +80,7 @@ module Plywood {
     lookup?: string;
     attributes?: string[];
     transformType?: CaseType;
+    outputType?: PlyTypeSimple;
   }
 
   export interface Environment {

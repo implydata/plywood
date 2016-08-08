@@ -78,6 +78,33 @@ describe("Druid Functional", function() {
     { "name": "user_unique", "special": "unique", "type": "STRING" }
   ];
 
+  var customExtractionFns = {
+      sliceLastChar: {
+        extractionFn: {
+          "type" : "javascript",
+          "function" : "function(x) { return x.slice(-1) }"
+        }
+      },
+      getLastChar: {
+        extractionFn: {
+          "type" : "javascript",
+          "function" : "function(x) { return x.charAt(x.length - 1) }"
+        }
+      },
+      timesTwo: {
+        extractionFn: {
+          "type" : "javascript",
+          "function" : "function(x) { return x * 2 }"
+        }
+      },
+      concatWithConcat: {
+        extractionFn: {
+          "type" : "javascript",
+          "function" : "function(x) { return x.concat('concat') }"
+        }
+      }
+    };
+
   describe("source list", () => {
     it("does a source list", (testComplete) => {
       DruidExternal.getSourceList(druidRequester)
@@ -101,6 +128,7 @@ describe("Druid Functional", function() {
         populateCache: false
       },
       attributes: wikiAttributes,
+      customExtractionFns,
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
@@ -137,6 +165,7 @@ describe("Druid Functional", function() {
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       })),
+      customExtractionFns,
       concealBuckets: true,
       version: info.druidVersion,
       allowSelectQueries: true
@@ -369,6 +398,42 @@ describe("Druid Functional", function() {
             {
               "SumIndexA": 2,
               "page": "'marriage, migration and gender'"
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with custom transform in filter and split", (testComplete) => {
+      var ex = $('wiki')
+        .filter($("page").customTransform('sliceLastChar').is('z'))
+        .split($("page").customTransform('getLastChar'), 'lastChar')
+        .limit(8);
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "lastChar": "z"
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with custom transform in filter and split for numeric dimension", (testComplete) => {
+      var ex = $('wiki')
+        .filter($("commentLength").customTransform('concatWithConcat', 'STRING').is("'100concat'"))
+        .split($("commentLength").customTransform('timesTwo', 'STRING'), "Times Two")
+        .limit(8);
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Times Two": "200"
             }
           ]);
           testComplete();

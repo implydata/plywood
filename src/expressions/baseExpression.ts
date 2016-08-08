@@ -971,6 +971,12 @@ module Plywood {
       return this.performAction(new TransformCaseAction({ transformType: getString(transformType) as CaseType }));
     }
 
+    public customTransform(custom: string, outputType?: PlyTypeSingleValue): ChainExpression {
+      if (!custom) throw new Error("Must provide an extraction function name for custom transform");
+      var outputType = outputType !== undefined ? getString(outputType) as PlyTypeSingleValue : null;
+      return this.performAction(new CustomTransformAction({ custom: getString(custom), outputType }));
+    }
+
     // Number manipulation
 
     public numberBucket(size: number, offset: number = 0): ChainExpression {
@@ -1016,8 +1022,8 @@ module Plywood {
       return this.bumpStringLiteralToTime().performAction(new TimePartAction({ part: getString(part), timezone }));
     }
 
-    public cast(castType: PlyType): ChainExpression {
-      return this.performAction(new CastAction({ castType: getString(castType) as PlyTypeSimple }));
+    public cast(outputType: PlyType): ChainExpression {
+      return this.performAction(new CastAction({ outputType: getString(outputType) as PlyTypeSimple }));
     }
 
     // Set operations

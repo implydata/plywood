@@ -58,61 +58,68 @@ module Plywood {
   export class CastAction extends Action {
     static fromJS(parameters: ActionJS): CastAction {
       var value = Action.jsToValue(parameters);
-      value.castType = parameters.castType;
+      var outputType = parameters.outputType || (parameters as any).castType;
+
+      // Back compat
+      if (!outputType && hasOwnProperty(parameters, 'castType')) {
+        outputType = (parameters as any).castType;
+      }
+      value.outputType = outputType;
+
       return new CastAction(value);
     }
 
-    public castType: PlyTypeSimple;
+    public outputType: PlyTypeSimple;
 
     constructor(parameters: ActionValue) {
       super(parameters, dummyObject);
-      this.castType = parameters.castType;
+      this.outputType = parameters.outputType;
       this._ensureAction("cast");
-      if (typeof this.castType !== 'string') {
-        throw new Error("`castType` must be a string");
+      if (typeof this.outputType !== 'string') {
+        throw new Error("`outputType` must be a string");
       }
     }
 
     public valueOf(): ActionValue {
       var value = super.valueOf();
-      value.castType = this.castType;
+      value.outputType = this.outputType;
       return value;
     }
 
     public toJS(): ActionJS {
       var js = super.toJS();
-      js.castType = this.castType;
+      js.outputType = this.outputType;
       return js;
     }
 
     public equals(other: CastAction): boolean {
       return super.equals(other) &&
-        this.castType === other.castType;
+        this.outputType === other.outputType;
     }
 
     protected _toStringParameters(expressionString: string): string[] {
-      return [this.castType];
+      return [this.outputType];
     }
 
     public getOutputType(inputType: PlyType): PlyType {
-      var castType = this.castType;
-      if (inputType === castType) return castType;
-      if (inputType && (!CAST_TYPE_TO_FN[castType][inputType]) && (!CAST_TYPE_TO_FN[castType]['UNIVERSAL'])) {
-        throw new Error(`unsupported cast from ${inputType} to ${castType}`);
+      var outputType = this.outputType;
+      if (inputType === outputType) return outputType;
+      if (inputType && (!CAST_TYPE_TO_FN[outputType][inputType]) && (!CAST_TYPE_TO_FN[outputType]['UNIVERSAL'])) {
+        throw new Error(`unsupported cast from ${inputType} to ${outputType}`);
       }
 
-      return castType;
+      return outputType;
     }
 
     public _fillRefSubstitutions(): FullType {
-      const { castType } = this;
+      const { outputType } = this;
       return {
-        type: castType
+        type: outputType
       };
     }
 
     protected _removeAction(inputType: PlyType): boolean {
-      return this.castType === inputType;
+      return this.outputType === inputType;
     }
 
     protected _foldWithPrevAction(prevAction: Action): Action {
@@ -124,10 +131,10 @@ module Plywood {
 
 
     protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      const { castType } = this;
-      var caster = (CAST_TYPE_TO_FN as any)[castType];
+      const { outputType } = this;
+      var caster = (CAST_TYPE_TO_FN as any)[outputType];
       var castFn = caster[inputType] || caster['UNIVERSAL'];
-      if (!castFn) throw new Error(`unsupported cast from ${inputType} to '${castType}'`);
+      if (!castFn) throw new Error(`unsupported cast from ${inputType} to '${outputType}'`);
       return (d: Datum, c: Datum) => {
         var inV = inputFn(d, c);
         if (!inV) return null;
@@ -136,16 +143,16 @@ module Plywood {
     }
 
     protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-      const { castType } = this;
-      var castJS = CAST_TYPE_TO_JS[castType];
-      if (!castJS) throw new Error(`unsupported cast type in getJS '${castType}'`);
+      const { outputType } = this;
+      var castJS = CAST_TYPE_TO_JS[outputType];
+      if (!castJS) throw new Error(`unsupported cast type in getJS '${outputType}'`);
       var js = castJS[inputType] || castJS['UNIVERSAL'];
-      if (!js) throw new Error(`unsupported combo in getJS of cast action: ${inputType} to ${castType}`);
+      if (!js) throw new Error(`unsupported combo in getJS of cast action: ${inputType} to ${outputType}`);
       return js(inputJS);
     }
 
     protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.castExpression(inputType, inputSQL, this.castType);
+      return dialect.castExpression(inputType, inputSQL, this.outputType);
     }
   }
 

@@ -69,6 +69,12 @@ describe("typecheck", () => {
     }).to.throw('sum must have expression of type NUMBER (is STRING)');
   });
 
+  it("should throw on bad custom transform action input", () => {
+    expect(() => {
+      r(['A', 'B']).customTransform('myCustomTransformName');
+    }).to.throw('customTransform must have input of type NULL or BOOLEAN or NUMBER or TIME or STRING (is SET/STRING)');
+  });
+
   it("should throw on overlay type mismatch", () => {
     expect(() => {
       $('x', 'NUMBER').overlap($('y', 'SET/STRING'));

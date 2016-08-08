@@ -74,6 +74,25 @@ var context = {
           globalWarming: 'hoax'
         }
       }
+    },
+    customExtractionFns: {
+      makeFrenchCanadian: {
+        type: 'extraction',
+        outputName: 'sometimeLater',
+        extractionFn: {
+          "type": "timeFormat",
+          "format": "EEEE",
+          "timeZone": "America/Montreal",
+          "locale": "fr"
+        }
+      },
+      makeExcited: {
+        extractionFn: {
+          type: "javascript",
+          "function": "function(str) { return str + '!!!'; }"
+        },
+        injective: true
+      }
     }
   })
 };
@@ -716,9 +735,7 @@ describe("DruidExternal", () => {
 
       expect(ex.op).to.equal('external');
       var druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
-
-      });
+      expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({});
     });
 
   });
@@ -1697,8 +1714,92 @@ describe("DruidExternal", () => {
       });
     });
 
-  });
+    it("works with custom transform split with time format extraction fn", () => {
+      var ex = $('wiki')
+        .split($('time').customTransform('makeFrenchCanadian').cast('STRING'), 'FrenchCanadian');
 
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query).to.deep.equal({
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "wikipedia",
+        "dimensions": [
+          {
+            "dimension": "__time",
+            "extractionFn": {
+              "format": "EEEE",
+              "locale": "fr",
+              "timeZone": "America/Montreal",
+              "type": "timeFormat"
+            },
+            "outputName": "FrenchCanadian",
+            "type": "extraction"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "FrenchCanadian"
+            }
+          ],
+          "type": "default"
+        },
+        "queryType": "groupBy"
+      });
+    });
+
+    it("works with custom transform split with javascript extraction fn", () => {
+      var ex = $('wiki')
+        .split($('time').customTransform('makeExcited'), 'Excited');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query).to.deep.equal({
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "wikipedia",
+        "dimensions": [
+          {
+            "dimension": "__time",
+            "extractionFn": {
+              "function": "function(str) { return str + '!!!'; }",
+              "type": "javascript"
+            },
+            "outputName": "Excited",
+            "type": "extraction"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "Excited"
+            }
+          ],
+          "type": "default"
+        },
+        "queryType": "groupBy"
+      });
+    });
+  });
 
   describe("applies", () => {
     it("works with ref filtered agg", () => {
@@ -1823,7 +1924,7 @@ describe("DruidExternal", () => {
         { name: 'added', type: 'NUMBER' }
       ],
       filter: timeFilter
-    }, ({query}) => {
+    }, ({ query }) => {
       if (query.queryType === 'select') {
         return Q([
           {
