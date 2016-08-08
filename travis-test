@@ -12,6 +12,8 @@ if grep -rq 'it\.only' ./test
     exit 1
 fi
 
+./compile
+
 mocha \
   test/actions/* \
   test/datatypes/* \
