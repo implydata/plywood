@@ -111,7 +111,7 @@ describe("External", () => {
         },
         customExtractionFns: {
           test: {
-            extractionFn: { type: 'javascript', function: "function(str) { return str + '!!!'; }" }
+            extractionFn: { type: 'javascript', "function": "function(str) { return str + '!!!'; }" }
           }
         }
       },

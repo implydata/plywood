@@ -39,7 +39,6 @@ module Plywood {
     duration?: Duration;
     timezone?: Timezone;
     part?: string;
-    castType?: PlyTypeSimple;
     step?: number;
     position?: int;
     length?: int;
@@ -69,7 +68,6 @@ module Plywood {
     duration?: string;
     timezone?: string;
     part?: string;
-    castType?: PlyTypeSimple;
     step?: number;
     position?: int;
     length?: int;

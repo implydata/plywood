@@ -89,7 +89,7 @@ var context = {
       makeExcited: {
         extractionFn: {
           type: "javascript",
-          function: "function(str) { return str + '!!!'; }"
+          "function": "function(str) { return str + '!!!'; }"
         },
         injective: true
       }
