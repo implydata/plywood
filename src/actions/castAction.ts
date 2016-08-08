@@ -103,8 +103,7 @@ module Plywood {
 
     public getNecessaryInputTypes(): PlyTypeSimple[] {
       var castType = this.outputType;
-      var lookup = CAST_TYPE_TO_FN[castType] || CAST_TYPE_TO_FN[castType]['UNIVERSAL'];
-      return Object.keys(lookup) as PlyTypeSimple[];
+      return Object.keys(CAST_TYPE_TO_FN[castType]) as PlyTypeSimple[];
     }
 
     public getOutputType(inputType: PlyType): PlyType {
