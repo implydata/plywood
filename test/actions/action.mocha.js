@@ -87,6 +87,7 @@ describe("Action", () => {
       { action: 'customTransform', custom: 'decodeURIComponentToLowerCaseAndTrim' },
       { action: 'customTransform', custom: 'includes', outputType: 'BOOLEAN' },
 
+      { action: 'concat', expression: { op: 'literal', value: 'myVar' } },
 
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'normal' },
       { action: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'ignoreCase' },

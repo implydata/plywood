@@ -28,15 +28,25 @@ module Plywood {
       }
     }
 
-    public getOutputType(inputType: PlyType): PlyType {
+    public getNecessaryInputTypes(): PlyType[] {
       var expressionType = this.expression.type;
-      if (expressionType && expressionType !== 'NULL' && expressionType !== 'SET/NULL' && inputType && inputType !== 'NULL') {
-        var setInputType = wrapSetType(inputType);
+      if (expressionType && expressionType !== 'NULL' && expressionType !== 'SET/NULL') {
         var setExpressionType = wrapSetType(expressionType);
-        if (setInputType !== setExpressionType) {
-          throw new Error(`type mismatch in overlap action: ${inputType} is incompatible with ${expressionType}`);
-        }
+        var unwrapped = unwrapSetType(setExpressionType);
+        return [setExpressionType, unwrapped] as PlyType[];
+      } else {
+        // if it's null, accept anything
+        return [
+          'NULL', 'BOOLEAN', 'NUMBER', 'TIME', 'STRING', 'NUMBER_RANGE', 'TIME_RANGE', 'STRING_RANGE',
+          'SET', 'SET/NULL', 'SET/BOOLEAN', 'SET/NUMBER', 'SET/TIME', 'SET/STRING',
+          'SET/NUMBER_RANGE', 'SET/TIME_RANGE', 'DATASET'
+        ] as PlyType[];
       }
+
+    }
+
+    public getOutputType(inputType: PlyType): PlyType {
+      this._checkInputTypes(inputType);
       return 'BOOLEAN';
     }
 

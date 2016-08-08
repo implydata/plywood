@@ -62,8 +62,12 @@ module Plywood {
       return [expressionString, this.compare];
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return ['STRING' as PlyType, 'SET/STRING' as PlyType];
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'STRING', 'SET/STRING');
+      this._checkInputTypes(inputType);
       return 'BOOLEAN';
     }
 

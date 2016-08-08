@@ -203,6 +203,17 @@ module Plywood {
     return isSetType(type) ? <PlyType>type.substr(4) : type;
   }
 
+  export function getAllSetTypes(): PlyTypeSimple[] {
+    return [
+      'SET/STRING' as PlyTypeSimple,
+      'SET/STRING_RANGE' as PlyTypeSimple,
+      'SET/NUMBER' as PlyTypeSimple,
+      'SET/NUMBER_RANGE' as PlyTypeSimple,
+      'SET/TIME' as PlyTypeSimple,
+      'SET/TIME_RANGE' as PlyTypeSimple
+    ];
+  }
+
   export interface SimpleFullType {
     type: PlyTypeSimple;
   }

@@ -27,6 +27,10 @@ module Plywood {
       this._ensureAction("in");
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return this.expression.type;
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
       var expression = this.expression;
       if (inputType) {

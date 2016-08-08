@@ -34,6 +34,10 @@ module Plywood {
       this._ensureAction("customTransform");
     }
 
+    public getNecessaryInputTypes(): PlyType[] {
+      return ['NULL' as PlyTypeSimple, 'BOOLEAN' as PlyTypeSimple, 'NUMBER' as PlyTypeSimple, 'TIME' as PlyTypeSimple, 'STRING' as PlyTypeSimple]
+    }
+
     public valueOf(): ActionValue {
       var value = super.valueOf();
       value.custom = this.custom;
@@ -61,7 +65,7 @@ module Plywood {
     }
 
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'NULL', 'BOOLEAN', 'NUMBER', 'TIME', 'STRING');
+      this._checkInputTypes(inputType);
       return this.outputType || inputType;
     }
 

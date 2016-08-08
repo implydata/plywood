@@ -27,8 +27,12 @@ module Plywood {
       if(!this.expression.canHaveType('DATASET')) throw new TypeError('expression must be a DATASET');
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return 'DATASET';
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'DATASET');
+      this._checkInputTypes(inputType);
       return 'DATASET';
     }
 

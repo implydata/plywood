@@ -51,8 +51,12 @@ module Plywood {
       return [this.custom]; // ToDo: escape this
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return 'DATASET';
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'DATASET');
+      this._checkInputTypes(inputType);
       return 'NUMBER';
     }
 

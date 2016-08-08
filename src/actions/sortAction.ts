@@ -62,8 +62,12 @@ module Plywood {
       return [expressionString, this.direction];
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return 'DATASET';
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'DATASET');
+      this._checkInputTypes(inputType);
       return 'DATASET';
     }
 

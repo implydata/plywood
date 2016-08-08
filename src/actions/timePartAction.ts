@@ -127,9 +127,12 @@ module Plywood {
       return ret;
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return 'TIME';
+    }
 
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'TIME');
+      this._checkInputTypes(inputType);
       return 'NUMBER';
     }
 

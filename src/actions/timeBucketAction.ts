@@ -67,8 +67,12 @@ module Plywood {
       return ret;
     }
 
+    public getNecessaryInputTypes(): PlyType | PlyType[] {
+      return ['TIME' as PlyType, 'TIME_RANGE' as PlyType];
+    }
+
     public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType, 'TIME', 'TIME_RANGE');
+      this._checkInputTypes(inputType);
       return 'TIME_RANGE';
     }
 
