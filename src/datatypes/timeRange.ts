@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { Class, Instance, isInstanceOf } from 'immutable-class';
 
 export interface TimeRangeValue {
   start: Date;

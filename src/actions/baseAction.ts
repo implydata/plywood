@@ -22,6 +22,7 @@ import { dummyObject } from '../helper/dummy';
 import { Expression, ExpressionJS, Indexer, Alterations } from '../expressions/baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { Datum, ComputeFn } from '../datatypes/dataset';
+import { hasOwnProperty, repeat } from '../helper/utils';
 
 export interface Splits {
   [name: string]: Expression;

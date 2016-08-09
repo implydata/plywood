@@ -15,9 +15,25 @@
  * limitations under the License.
  */
 
+import { Timezone, Duration } from 'chronoshift';
 import { Class, Instance, isInstanceOf } from 'immutable-class';
 import { LiteralExpression } from './literalExpression';
+import { ChainExpression } from './chainExpression';
+import { RefExpression } from './refExpression';
 import { SQLDialect } from '../dialect/baseDialect';
+import {
+  Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
+  CardinalityAction, CastAction, ConcatAction, ContainsAction, CountAction, CountDistinctAction, CustomAction, CustomTransformAction,
+  DivideAction, ExtractAction, FallbackAction, FilterAction,
+  GreaterThanAction, GreaterThanOrEqualAction, InAction, Index, IndexOfAction, IsAction,
+  JoinAction, LengthAction, LessThanAction, LessThanOrEqualAction, LimitAction, LookupAction,
+  MatchAction, MaxAction, MinAction, MultiplyAction, NotAction, NumberBucketAction,
+  OrAction, OverlapAction, PowerAction, QuantileAction,
+  SelectAction, SortAction, SplitAction, SubstrAction, SubtractAction, SumAction,
+  TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction
+} from '../actions/index';
+import { hasOwnProperty, repeat } from '../helper/utils';
+import { Dataset, Datum, PlywoodValue, External, ExternalJS, NumberRange, Range, Set, StringRange, TimeRange } from '../datatypes/index';
 
 export interface BooleanExpressionIterator {
   (ex?: Expression, index?: int, depth?: int, nestDiff?: int): boolean;

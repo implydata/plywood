@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { hasOwnProperty } from '../helper/utils';
+import { Expression } from '../expressions/baseExpression';
 
 export interface PostProcess {
   (result: any): PlywoodValue;

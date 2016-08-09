@@ -14,10 +14,24 @@
  * limitations under the License.
  */
 
+import { immutableArraysEqual } from 'immutable-class';
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
 import { dummyObject } from '../helper/dummy';
-import { Action } from '../actions/baseAction';
+import {
+  Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
+  CardinalityAction, CastAction, ConcatAction, ContainsAction, CountAction, CountDistinctAction, CustomAction, CustomTransformAction,
+  DivideAction, ExtractAction, FallbackAction, FilterAction,
+  GreaterThanAction, GreaterThanOrEqualAction, InAction, IndexOfAction, IsAction,
+  JoinAction, LengthAction, LessThanAction, LessThanOrEqualAction, LimitAction, LookupAction,
+  MatchAction, MaxAction, MinAction, MultiplyAction, NotAction, NumberBucketAction,
+  OrAction, OverlapAction, PowerAction, QuantileAction,
+  SelectAction, SortAction, SplitAction, SubstrAction, SubtractAction, SumAction,
+  TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction
+} from '../actions/index';
+import { Dataset, Datum } from '../datatypes/index';
+
 import { SQLDialect } from '../dialect/baseDialect';
+import { hasOwnProperty, repeat, arraysEqual } from '../helper/utils';
 
 export class ChainExpression extends Expression {
   static fromJS(parameters: ExpressionJS): ChainExpression {

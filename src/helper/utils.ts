@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
+import { Expression } from '../expressions/baseExpression';
+
 var objectHasOwnProperty = Object.prototype.hasOwnProperty;
-function hasOwnProperty(obj: any, key: string): boolean {
+export function hasOwnProperty(obj: any, key: string): boolean {
   return objectHasOwnProperty.call(obj, key);
 }
 
-function repeat(str: string, times: int): string {
+export function repeat(str: string, times: int): string {
   return new Array(times + 1).join(str);
 }
 
-function arraysEqual<T>(a: Array<T>, b: Array<T>): boolean {
+export function arraysEqual<T>(a: Array<T>, b: Array<T>): boolean {
   if (a === b) return true;
   var length = a.length;
   if (length !== b.length) return false;
@@ -33,7 +35,7 @@ function arraysEqual<T>(a: Array<T>, b: Array<T>): boolean {
   return true;
 }
 
-function dictEqual(dictA: Lookup<any>, dictB: Lookup<any>): boolean {
+export function dictEqual(dictA: Lookup<any>, dictB: Lookup<any>): boolean {
   if (dictA === dictB) return true;
   if (!dictA !== !dictB) return false;
   var keys = Object.keys(dictA);

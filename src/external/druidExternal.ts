@@ -16,8 +16,23 @@
  */
 
 import { Timezone, Duration, isDate } from 'chronoshift';
-import { External, ExternalJS, ExternalValue } from '../datatypes/external';
-import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
+import { hasOwnProperty, dictEqual } from '../helper/utils';
+import { $, Expression, ChainExpression, ExternalExpression, LiteralExpression, RefExpression } from '../expressions/index';
+import {
+  Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
+  CardinalityAction, CastAction, ConcatAction, ContainsAction, CountAction, CountDistinctAction, CustomAction, CustomTransformAction,
+  DivideAction, ExtractAction, FallbackAction, FilterAction,
+  GreaterThanAction, GreaterThanOrEqualAction, InAction, Index, IndexOfAction, IsAction,
+  JoinAction, LengthAction, LessThanAction, LessThanOrEqualAction, LimitAction, LookupAction,
+  MatchAction, MaxAction, MinAction, MultiplyAction, NotAction, NumberBucketAction,
+  OrAction, OverlapAction, PowerAction, QuantileAction,
+  SelectAction, SortAction, SplitAction, SubstrAction, SubtractAction, SumAction,
+  TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction
+} from '../actions/index';
+import {
+  AttributeInfo, Attributes, UniqueAttributeInfo, HistogramAttributeInfo,
+  Dataset, Datum, External, ExternalJS, ExternalValue, NumberRange, Range, Set, StringRange, TimeRange
+} from '../datatypes/index';
 
 const DUMMY_NAME = '!DUMMY';
 

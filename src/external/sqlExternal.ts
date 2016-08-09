@@ -17,7 +17,18 @@
 
 import * as Q from 'q';
 import { External, ExternalJS, ExternalValue, Inflater } from '../datatypes/external';
-
+import { Expression } from '../expressions/baseExpression';
+import {
+  Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
+  CardinalityAction, CastAction, ConcatAction, ContainsAction, CountAction, CountDistinctAction, CustomAction, CustomTransformAction,
+  DivideAction, ExtractAction, FallbackAction, FilterAction,
+  GreaterThanAction, GreaterThanOrEqualAction, InAction, Index, IndexOfAction, IsAction,
+  JoinAction, LengthAction, LessThanAction, LessThanOrEqualAction, LimitAction, LookupAction,
+  MatchAction, MaxAction, MinAction, MultiplyAction, NotAction, NumberBucketAction,
+  OrAction, OverlapAction, PowerAction, QuantileAction,
+  SelectAction, SortAction, SplitAction, SubstrAction, SubtractAction, SumAction,
+  TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction
+} from '../actions/index';
 
 function correctResult(result: any[]): boolean {
   return Array.isArray(result) && (result.length === 0 || typeof result[0] === 'object');

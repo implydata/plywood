@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { hasOwnProperty } from '../helper/utils';
 
 export function foldContext(d: Datum, c: Datum): Datum {
   var newContext = Object.create(c);

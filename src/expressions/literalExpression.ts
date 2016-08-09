@@ -16,9 +16,11 @@
  */
 
 import { parseISODate } from 'chronoshift';
-import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
+import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
 import { dummyObject } from '../helper/dummy';
 import { SQLDialect } from '../dialect/baseDialect';
+import { hasOwnProperty } from '../helper/utils';
+import { Dataset, Set, TimeRange } from '../datatypes/index';
 
 export class LiteralExpression extends Expression {
   static fromJS(parameters: ExpressionJS): LiteralExpression {

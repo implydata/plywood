@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { Class, Instance, isInstanceOf } from 'immutable-class';
 
 const BOUNDS_REG_EXP = /^[\[(][\])]$/;
 

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { hasOwnProperty } from '../helper/utils';
 
 function isInteger(n: any): boolean {
   return !isNaN(n) && n % 1 === 0;

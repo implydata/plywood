@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { hasOwnProperty } from '../helper/utils';
 
 export interface SetValue {
   setType: string;

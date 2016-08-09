@@ -1,4 +1,5 @@
-//  ./compile | grep hasOwnProperty | cut -d'(' -f 1 | sort | uniq
+//  ./compile-tsc | grep "Cannot find name 'Expression'"
+//  ./compile-tsc | grep "Cannot find name 'Expression'" | cut -d'(' -f 1 | sort | uniq | xargs -n 1 node modulator.js Expression src/expressions/baseExpression.ts
 
 var path = require('path');
 var fs = require('fs');
@@ -20,6 +21,7 @@ console.log('absoluteTarget', absoluteTarget);
 console.log('absoluteSource', absoluteSource);
 
 var sourceRelative = path.relative(path.dirname(absoluteTarget), absoluteSource).replace(/\.ts$/, '');
+if (sourceRelative[0] !== '.') sourceRelative = `./${sourceRelative}`;
 console.log('sourceRelative', sourceRelative);
 
 var insertFull;

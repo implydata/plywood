@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { hasOwnProperty } from '../helper/utils';
+import { Expression } from '../expressions/baseExpression';
 
 export function isDate(dt: any): dt is Date {
   return !!(dt && dt.toISOString);
