@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf } from 'immutable-class';
-import { Range } from './range';
+import { Class, Instance, isInstanceOf } from "immutable-class";
+import { Range } from "./range";
 
 export interface StringRangeValue {
   start: string;

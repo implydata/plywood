@@ -15,11 +15,14 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf } from 'immutable-class';
-import { hasOwnProperty } from '../helper/utils';
-import { PlywoodRange } from '../datatypes/range';
-import { NumberRange } from '../datatypes/numberRange';
-import { TimeRange } from '../datatypes/timeRange';
+import { Class, Instance, isInstanceOf } from "immutable-class";
+import { hasOwnProperty } from "../helper/utils";
+import { PlywoodRange } from "../datatypes/range";
+import { NumberRange } from "../datatypes/numberRange";
+import { TimeRange } from "../datatypes/timeRange";
+import { getValueType, isSetType, valueToJS, valueFromJS } from "./common";
+import { StringRange } from "./stringRange";
+import { isDate } from "chronoshift";
 
 export interface SetValue {
   setType: string;

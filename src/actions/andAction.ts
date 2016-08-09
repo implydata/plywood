@@ -15,12 +15,15 @@
  * limitations under the License.
  */
 
-import { dummyObject } from '../helper/dummy';
-import { Action, ActionJS, ActionValue } from './baseAction';
-import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn } from '../datatypes/dataset';
-import { arraysEqual } from '../helper/utils';
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { arraysEqual } from "../helper/utils";
+import { ChainExpression } from "../expressions/chainExpression";
+import { Set } from "../datatypes/set";
+import { LiteralExpression } from "../expressions/literalExpression";
 
 const IS_OR_IN_ACTION: Lookup<boolean> = {
   'is': true,

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from 'chronoshift';
-import { SQLDialect } from './baseDialect';
+import { Timezone, Duration } from "chronoshift";
+import { SQLDialect } from "./baseDialect";
 
 export class PostgresDialect extends SQLDialect {
   static TIME_BUCKETING: Lookup<string> = {

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from 'chronoshift';
+import { Timezone, Duration } from "chronoshift";
 
 
 export abstract class SQLDialect {

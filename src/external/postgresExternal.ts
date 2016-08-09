@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from 'chronoshift';
-import { External, ExternalJS, ExternalValue } from '../datatypes/external';
-import { SQLExternal } from './sqlExternal';
-import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
+import { External, ExternalJS, ExternalValue } from "../datatypes/external";
+import { SQLExternal } from "./sqlExternal";
+import { AttributeInfo, Attributes } from "../datatypes/attributeInfo";
+import { PostgresDialect } from "../dialect/postgresDialect";
+import { PseudoDatum } from "../datatypes/dataset";
 
 interface SQLDescribeRow {
   name: string;

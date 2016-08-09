@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf } from 'immutable-class';
-import { hasOwnProperty } from '../helper/utils';
-import { Attributes, AttributeInfo } from './attributeInfo';
-import { Dataset } from './dataset';
-import { NumberRange } from './numberRange';
-import { Set } from './set';
-import { StringRange } from './stringRange';
-import { TimeRange } from './timeRange';
-
+import { Class, Instance, isInstanceOf, generalEqual } from "immutable-class";
+import { hasOwnProperty, find, findByName, overrideByName } from "../helper/utils";
+import { Attributes, AttributeInfo, AttributeJSs } from "./attributeInfo";
+import { NumberRange } from "./numberRange";
+import { Set } from "./set";
+import { StringRange } from "./stringRange";
+import { TimeRange } from "./timeRange";
+import { valueFromJS, valueToJSInlineType, datumHasExternal } from "./common";
+import { External } from "./external";
+import { isDate } from "chronoshift";
 
 export function foldContext(d: Datum, c: Datum): Datum {
   var newContext = Object.create(c);

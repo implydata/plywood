@@ -16,11 +16,21 @@
  */
 
 
-import { dummyObject } from '../helper/dummy';
-import { Action, ActionJS, ActionValue } from './baseAction';
-import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn } from '../datatypes/dataset';
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { InAction } from "./inAction";
+import { TimeBucketAction } from "./timeBucketAction";
+import { TimeRange } from "../datatypes/timeRange";
+import { NumberBucketAction } from "./numberBucketAction";
+import { NumberRange } from "../datatypes/numberRange";
+import { ChainExpression } from "../expressions/chainExpression";
+import { IndexOfAction } from "./indexOfAction";
+import { FallbackAction } from "./fallbackAction";
+import { LiteralExpression } from "../expressions/literalExpression";
+import { RefExpression } from "../expressions/refExpression";
 
 export class IsAction extends Action {
   static fromJS(parameters: ActionJS): IsAction {

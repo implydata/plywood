@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf } from 'immutable-class';
-import { hasOwnProperty } from '../helper/utils';
+import { Class, Instance, isInstanceOf } from "immutable-class";
+import { hasOwnProperty, overridesByName } from "../helper/utils";
+import { ActionJS, Action } from "../actions/baseAction";
+import { RefExpression } from "../expressions/refExpression";
 
 function isInteger(n: any): boolean {
   return !isNaN(n) && n % 1 === 0;

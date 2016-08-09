@@ -17,6 +17,7 @@
 
 // --------------------------------------------------------
 
+import { Timezone } from "chronoshift";
 interface PEGParserOptions {
   cache?: boolean;
   allowedStartRules?: string;

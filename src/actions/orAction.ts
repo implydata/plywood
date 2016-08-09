@@ -17,6 +17,16 @@
 
 
 
+import { Set } from "../datatypes/set";
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { arraysEqual } from "../helper/utils";
+import { ChainExpression } from "../expressions/chainExpression";
+import { LiteralExpression } from "../expressions/literalExpression";
+
 function mergeOr(ex1: Expression, ex2: Expression): Expression {
   if (
     !ex1.isOp('chain') ||
@@ -39,14 +49,6 @@ function mergeOr(ex1: Expression, ex2: Expression): Expression {
 
   return Expression.inOrIs((<ChainExpression>ex1).expression, intersect);
 }
-
-
-import { dummyObject } from '../helper/dummy';
-import { Action, ActionJS, ActionValue } from './baseAction';
-import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn } from '../datatypes/dataset';
-import { arraysEqual } from '../helper/utils';
 
 export class OrAction extends Action {
   static fromJS(parameters: ActionJS): OrAction {

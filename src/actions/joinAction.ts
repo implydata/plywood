@@ -16,12 +16,12 @@
  */
 
 
-import { dummyObject } from '../helper/dummy';
-import { Action, ActionJS, ActionValue } from './baseAction';
-import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn } from '../datatypes/dataset';
-import { hasOwnProperty } from '../helper/utils';
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Indexer, Alterations } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { hasOwnProperty } from "../helper/utils";
 
 export class JoinAction extends Action {
   static fromJS(parameters: ActionJS): JoinAction {

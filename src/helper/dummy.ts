@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-interface Dummy {}
+export interface Dummy {}
 
 export const dummyObject: Dummy = {};

@@ -16,12 +16,12 @@
  */
 
 
-import { Timezone, Duration } from 'chronoshift';
-import { dummyObject } from '../helper/dummy';
-import { Action, ActionJS, ActionValue } from './baseAction';
-import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn } from '../datatypes/dataset';
+import { Timezone, Duration } from "chronoshift";
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue, Environment } from "./baseAction";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { immutableEqual } from "immutable-class";
 
 export class TimeShiftAction extends Action {
   static DEFAULT_STEP = 1;

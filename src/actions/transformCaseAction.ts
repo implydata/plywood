@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { dummyObject } from '../helper/dummy';
-import { Action, ActionJS, ActionValue, CaseType } from './baseAction';
-import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn } from '../datatypes/dataset';
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue, CaseType } from "./baseAction";
+import { Indexer, Alterations } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
 
 export class TransformCaseAction extends Action {
   static UPPER_CASE = 'upperCase';

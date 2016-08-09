@@ -17,12 +17,25 @@
 /// <reference path="../datatypes/dataset.ts" />
 /// <reference path="../expressions/baseExpression.ts" />
 
-import { Timezone, Duration } from 'chronoshift';
-import { dummyObject } from '../helper/dummy';
-import { Expression, ExpressionJS, Indexer, Alterations } from '../expressions/baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn } from '../datatypes/dataset';
-import { hasOwnProperty, repeat, deduplicateSort } from '../helper/utils';
+import { Timezone, Duration } from "chronoshift";
+import { dummyObject, Dummy } from "../helper/dummy";
+import {
+  Expression,
+  ExpressionJS,
+  Indexer,
+  Alterations,
+  BooleanExpressionIterator,
+  SubstitutionFn
+} from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn, foldContext } from "../datatypes/dataset";
+import { hasOwnProperty, repeat, deduplicateSort } from "../helper/utils";
+import { Instance } from "immutable-class";
+import { ApplyAction } from "./applyAction";
+import { isInstanceOf } from "immutable-class/utils";
+import { LiteralExpression } from "../expressions/literalExpression";
+import { RefExpression } from "../expressions/refExpression";
+import { ChainExpression } from "../expressions/chainExpression";
 
 export interface Splits {
   [name: string]: Expression;

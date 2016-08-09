@@ -16,12 +16,14 @@
  */
 
 
-import { dummyObject } from '../helper/dummy';
-import { Action, ActionJS, ActionValue } from './baseAction';
-import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn } from '../datatypes/dataset';
-import { hasOwnProperty } from '../helper/utils';
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Expression } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { hasOwnProperty } from "../helper/utils";
+import { NumberRange } from "../datatypes/numberRange";
+import { continuousFloorExpression } from "../init";
 
 export class NumberBucketAction extends Action {
   static fromJS(parameters: ActionJS): NumberBucketAction {

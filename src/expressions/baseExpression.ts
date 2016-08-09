@@ -15,27 +15,77 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration, parseISODate } from 'chronoshift';
-import { Class, Instance, isInstanceOf } from 'immutable-class';
-import { LiteralExpression } from './literalExpression';
-import { ChainExpression } from './chainExpression';
-import { RefExpression } from './refExpression';
-import { ExternalExpression } from './externalExpression';
-import { SQLDialect } from '../dialect/baseDialect';
+import { Timezone, Duration, parseISODate } from "chronoshift";
+import { Instance, isInstanceOf, isImmutableClass } from "immutable-class";
+import { LiteralExpression } from "./literalExpression";
+import { ChainExpression } from "./chainExpression";
+import { RefExpression } from "./refExpression";
+import { ExternalExpression } from "./externalExpression";
+import { SQLDialect } from "../dialect/baseDialect";
 import {
-  Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
-  CardinalityAction, CastAction, ConcatAction, ContainsAction, CountAction, CountDistinctAction, CustomAction, CustomTransformAction,
-  DivideAction, ExtractAction, FallbackAction, FilterAction,
-  GreaterThanAction, GreaterThanOrEqualAction, InAction, IndexOfAction, IsAction,
-  JoinAction, LengthAction, LessThanAction, LessThanOrEqualAction, LimitAction, LookupAction,
-  MatchAction, MaxAction, MinAction, MultiplyAction, NotAction, NumberBucketAction,
-  OrAction, OverlapAction, PowerAction, QuantileAction,
-  SelectAction, SortAction, SplitAction, SubstrAction, SubtractAction, SumAction,
-  TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction,
+  Action,
+  AbsoluteAction,
+  ApplyAction,
+  AverageAction,
+  CardinalityAction,
+  CastAction,
+  ContainsAction,
+  CountAction,
+  CountDistinctAction,
+  CustomAction,
+  CustomTransformAction,
+  ExtractAction,
+  FallbackAction,
+  FilterAction,
+  GreaterThanAction,
+  GreaterThanOrEqualAction,
+  InAction,
+  IndexOfAction,
+  IsAction,
+  JoinAction,
+  LengthAction,
+  LessThanAction,
+  LessThanOrEqualAction,
+  LimitAction,
+  LookupAction,
+  MatchAction,
+  MaxAction,
+  MinAction,
+  NotAction,
+  NumberBucketAction,
+  OverlapAction,
+  QuantileAction,
+  SelectAction,
+  SortAction,
+  SplitAction,
+  SubstrAction,
+  SumAction,
+  TimeBucketAction,
+  TimeFloorAction,
+  TimePartAction,
+  TimeRangeAction,
+  TimeShiftAction,
+  TransformCaseAction,
   Environment
-} from '../actions/index';
-import { hasOwnProperty, repeat } from '../helper/utils';
-import { Dataset, Datum, PlywoodValue, External, ExternalJS, NumberRange, Range, Set, StringRange, TimeRange } from '../datatypes/index';
+} from "../actions/index";
+import { hasOwnProperty, repeat, emptyLookup, find, deduplicateSort } from "../helper/utils";
+import {
+  Dataset,
+  Datum,
+  PlywoodValue,
+  External,
+  ExternalJS,
+  NumberRange,
+  Range,
+  Set,
+  StringRange,
+  TimeRange
+} from "../datatypes/index";
+import { ActionJS, CaseType, Splits } from "../actions/baseAction";
+import { defaultParserTimezone } from "../init";
+import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from "../datatypes/common";
+import { ComputeFn } from "../datatypes/dataset";
+import { Dummy, dummyObject } from "../helper/dummy";
 
 export interface BooleanExpressionIterator {
   (ex?: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
@@ -180,7 +230,7 @@ export function $(name: string, type?: PlyType): RefExpression;
 export function $(name: string, nest?: any, type?: PlyType): RefExpression {
   if (typeof name !== 'string') throw new TypeError('$() argument must be a string');
   if (typeof nest === 'string') {
-    type = nest;
+    type = nest as PlyType;
     nest = 0;
   }
   return new RefExpression({
@@ -1347,7 +1397,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param context The context within which to compute the expression
    * @param environment The environment for the default of the expression
    */
-  public simulate(context: Datum = {}, environment:  = {}): PlywoodValue {
+  public simulate(context: Datum = {}, environment: Environment = {}): PlywoodValue {
     var readyExpression = this._initialPrepare(context, environment);
     if (readyExpression instanceof ExternalExpression) {
       // Top level externals need to be unsuppressed

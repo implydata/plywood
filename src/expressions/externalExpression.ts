@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
-import { dummyObject } from '../helper/dummy';
-import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, External } from '../datatypes/index';
+import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
+import { dummyObject } from "../helper/dummy";
+import { SQLDialect } from "../dialect/baseDialect";
+import { PlywoodValue, External } from "../datatypes/index";
+import { Action } from "../actions/baseAction";
+import { ComputeFn } from "../datatypes/dataset";
 
 export class ExternalExpression extends Expression {
   static fromJS(parameters: ExpressionJS): Expression {

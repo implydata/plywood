@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Expression } from '../expressions/baseExpression';
+import { Expression, ExpressionJS } from "../expressions/baseExpression";
 
 var objectHasOwnProperty = Object.prototype.hasOwnProperty;
 export function hasOwnProperty(obj: any, key: string): boolean {

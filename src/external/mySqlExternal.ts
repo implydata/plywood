@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from 'chronoshift';
-import { External, ExternalJS, ExternalValue } from '../datatypes/external';
-import { SQLExternal } from './sqlExternal';
-import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
+import { External, ExternalJS, ExternalValue } from "../datatypes/external";
+import { SQLExternal } from "./sqlExternal";
+import { AttributeInfo, Attributes } from "../datatypes/attributeInfo";
+import { PseudoDatum } from "../datatypes/dataset";
+import { MySQLDialect } from "../dialect/mySqlDialect";
 
 interface SQLDescribeRow {
   Field: string;

@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from 'chronoshift';
-import { dummyObject } from '../helper/dummy';
-import { Action, ActionJS, ActionValue } from './baseAction';
-import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn } from '../datatypes/dataset';
+import { Timezone, Duration } from "chronoshift";
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue, Environment } from "./baseAction";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { TimeRange } from "../datatypes/timeRange";
+import { immutableEqual } from "immutable-class";
 
 export class TimeBucketAction extends Action {
   static fromJS(parameters: ActionJS): TimeBucketAction {

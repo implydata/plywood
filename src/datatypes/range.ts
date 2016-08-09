@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { isInstanceOf } from "immutable-class";
+import { StringRange } from "./stringRange";
+import { TimeRange } from "./timeRange";
+import { NumberRange } from "./numberRange";
 
 const BOUNDS_REG_EXP = /^[\[(][\])]$/;
 

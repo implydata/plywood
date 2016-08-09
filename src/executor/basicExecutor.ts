@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { Expression } from '../expressions/baseExpression';
-import { PlywoodValue, Datum } from '../datatypes/index';
+import { Expression } from "../expressions/baseExpression";
+import { PlywoodValue, Datum } from "../datatypes/index";
+import { Environment } from "../actions/baseAction";
 
 export interface Executor {
   (ex: Expression, env?: Environment): Q.Promise<PlywoodValue>;

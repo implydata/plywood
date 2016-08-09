@@ -15,25 +15,68 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration, isDate } from 'chronoshift';
-import { hasOwnProperty, dictEqual } from '../helper/utils';
-import { dummyObject, shallowCopy } from '../helper/dummy';
-import { $, Expression, ChainExpression, ExternalExpression, LiteralExpression, RefExpression } from '../expressions/index';
+import { Timezone, Duration, isDate } from "chronoshift";
+import { hasOwnProperty, dictEqual, nonEmptyLookup, shallowCopy } from "../helper/utils";
+import { dummyObject } from "../helper/dummy";
+import { $, Expression, ChainExpression, LiteralExpression, RefExpression } from "../expressions/index";
 import {
-  Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
-  CardinalityAction, CastAction, ConcatAction, ContainsAction, CountAction, CountDistinctAction, CustomAction, CustomTransformAction,
-  DivideAction, ExtractAction, FallbackAction, FilterAction,
-  GreaterThanAction, GreaterThanOrEqualAction, InAction, IndexOfAction, IsAction,
-  JoinAction, LengthAction, LessThanAction, LessThanOrEqualAction, LimitAction, LookupAction,
-  MatchAction, MaxAction, MinAction, MultiplyAction, NotAction, NumberBucketAction,
-  OrAction, OverlapAction, PowerAction, QuantileAction,
-  SelectAction, SortAction, SplitAction, SubstrAction, SubtractAction, SumAction,
-  TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction
-} from '../actions/index';
+  Action,
+  AbsoluteAction,
+  ApplyAction,
+  CardinalityAction,
+  CastAction,
+  ContainsAction,
+  CountAction,
+  CountDistinctAction,
+  CustomAction,
+  CustomTransformAction,
+  ExtractAction,
+  FallbackAction,
+  FilterAction,
+  InAction,
+  IndexOfAction,
+  IsAction,
+  LengthAction,
+  LimitAction,
+  LookupAction,
+  MatchAction,
+  MaxAction,
+  MinAction,
+  NotAction,
+  NumberBucketAction,
+  OverlapAction,
+  PowerAction,
+  QuantileAction,
+  SortAction,
+  SplitAction,
+  SubstrAction,
+  SumAction,
+  TimeBucketAction,
+  TimeFloorAction,
+  TimePartAction,
+  TransformCaseAction
+} from "../actions/index";
 import {
-  AttributeInfo, Attributes, UniqueAttributeInfo, HistogramAttributeInfo, ThetaAttributeInfo,
-  Dataset, Datum, External, ExternalJS, ExternalValue, NumberRange, Range, Set, StringRange, TimeRange, PlywoodValue
-} from '../datatypes/index';
+  AttributeInfo,
+  Attributes,
+  UniqueAttributeInfo,
+  HistogramAttributeInfo,
+  ThetaAttributeInfo,
+  Dataset,
+  Datum,
+  External,
+  ExternalJS,
+  ExternalValue,
+  NumberRange,
+  Range,
+  Set,
+  TimeRange,
+  PlywoodValue
+} from "../datatypes/index";
+import { ExtendableError } from "../init";
+import { Inflater, NextFn, PostProcess, QueryAndPostProcess } from "../datatypes/external";
+import { unwrapSetType } from "../datatypes/common";
+import { PlywoodRange } from "../datatypes/range";
 
 const DUMMY_NAME = '!DUMMY';
 
@@ -874,11 +917,11 @@ export class DruidExternal extends External {
     if (NumberRange.isNumberRange(range)) boundFilter.alphaNumeric = true;
 
     if (r0 != null) {
-      boundFilter.lower = isDate(r0) ? r0.toISOString() : r0;
+      boundFilter.lower = isDate(r0) ? (r0 as Date).toISOString() : (r0 as number | string);
       if (bounds[0] === '(') boundFilter.lowerStrict = true;
     }
     if (r1 != null) {
-      boundFilter.upper = isDate(r1) ? r1.toISOString() : r1;
+      boundFilter.upper = isDate(r1) ? (r1 as Date).toISOString() : (r1 as number | string);
       if (bounds[1] === ')') boundFilter.upperStrict = true;
     }
     return boundFilter;
@@ -2020,7 +2063,7 @@ export class DruidExternal extends External {
               havingSpecs: rhs.value.elements.map((value: string) => {
                 return {
                   type: "equalTo",
-                  aggregation: lhs.name,
+                  aggregation: (lhs as RefExpression).name,
                   value: value
                 }
               })
@@ -2030,7 +2073,7 @@ export class DruidExternal extends External {
             return {
               type: "or",
               havingSpecs: rhs.value.elements.map((value: NumberRange) => {
-                return this.inToHavingFilter(lhs.name, value);
+                return this.inToHavingFilter((lhs as RefExpression).name, value);
               }, this)
             };
 
