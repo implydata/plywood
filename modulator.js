@@ -32,9 +32,9 @@ if ((idx = data.indexOf(` } from '${sourceRelative}'`)) !== -1) {
 } else if ((idx = data.lastIndexOf('import {')) !== -1) {
   insertFull = true;
   insertPoint = data.indexOf('\n', idx) + 1;
-} else if ((idx = data.lastIndexOf(' */\n')) !== -1) {
+} else if ((idx = data.indexOf('\n */\n')) !== -1) {
   insertFull = true;
-  insertPoint = data.indexOf('\n', idx) + 2;
+  insertPoint = data.indexOf('\n', idx + 1) + 2;
 } else {
   throw new Error('no insert point');
 }
@@ -46,9 +46,10 @@ function strSplice(str, idx, newSubStr) {
 // data = strSplice(data, insertPoint, '<>');
 
 if (insertFull) {
-  data = strSplice(data, insertPoint, `insert { ${prop} } from '${sourceRelative}';\n`);
+  data = strSplice(data, insertPoint, `import { ${prop} } from '${sourceRelative}';\n`);
 } else {
   data = strSplice(data, insertPoint, `, ${prop}`);
 }
 
-console.log(data)
+//console.log(data)
+fs.writeFileSync(target, data);
