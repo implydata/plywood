@@ -15,52 +15,58 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class NotAction extends Action {
-    static fromJS(parameters: ActionJS): NotAction {
-      return new NotAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("not");
-      this._checkNoExpression();
-    }
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Expression } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { AndAction } from "./andAction";
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'BOOLEAN';
-    }
+export class NotAction extends Action {
+  static fromJS(parameters: ActionJS): NotAction {
+    return new NotAction(Action.jsToValue(parameters));
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'BOOLEAN';
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("not");
+    this._checkNoExpression();
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'BOOLEAN';
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        return !inputFn(d, c);
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'BOOLEAN';
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-      return `!(${inputJS})`;
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
+    return inputType;
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `NOT(${inputSQL})`;
-    }
-
-    protected _foldWithPrevAction(prevAction: Action): Action {
-      if (prevAction instanceof NotAction) {
-        return new AndAction({ expression: Expression.TRUE }); // Boolean noop
-      }
-      return null;
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      return !inputFn(d, c);
     }
   }
 
-  Action.register(NotAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string): string {
+    return `!(${inputJS})`;
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `NOT(${inputSQL})`;
+  }
+
+  protected _foldWithPrevAction(prevAction: Action): Action {
+    if (prevAction instanceof NotAction) {
+      return new AndAction({ expression: Expression.TRUE }); // Boolean noop
+    }
+    return null;
+  }
 }
+
+Action.register(NotAction);

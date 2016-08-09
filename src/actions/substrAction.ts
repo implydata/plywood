@@ -15,79 +15,83 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class SubstrAction extends Action {
-    static fromJS(parameters: ActionJS): SubstrAction {
-      var value = Action.jsToValue(parameters);
-      value.position = parameters.position;
-      value.length = parameters.length;
-      return new SubstrAction(value);
-    }
 
-    public position: int;
-    public length: int;
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this.position = parameters.position;
-      this.length = parameters.length;
-      this._ensureAction("substr");
-    }
+export class SubstrAction extends Action {
+  static fromJS(parameters: ActionJS): SubstrAction {
+    var value = Action.jsToValue(parameters);
+    value.position = parameters.position;
+    value.length = parameters.length;
+    return new SubstrAction(value);
+  }
 
-    public valueOf(): ActionValue {
-      var value = super.valueOf();
-      value.position = this.position;
-      value.length = this.length;
-      return value;
-    }
+  public position: int;
+  public length: int;
 
-    public toJS(): ActionJS {
-      var js = super.toJS();
-      js.position = this.position;
-      js.length = this.length;
-      return js;
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this.position = parameters.position;
+    this.length = parameters.length;
+    this._ensureAction("substr");
+  }
 
-    public equals(other: SubstrAction): boolean {
-      return super.equals(other) &&
-        this.position === other.position &&
-        this.length === other.length;
-    }
+  public valueOf(): ActionValue {
+    var value = super.valueOf();
+    value.position = this.position;
+    value.length = this.length;
+    return value;
+  }
 
-    protected _toStringParameters(expressionString: string): string[] {
-      return [String(this.position), String(this.length)];
-    }
+  public toJS(): ActionJS {
+    var js = super.toJS();
+    js.position = this.position;
+    js.length = this.length;
+    return js;
+  }
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return this._stringTransformInputType;
-    }
+  public equals(other: SubstrAction): boolean {
+    return super.equals(other) &&
+      this.position === other.position &&
+      this.length === other.length;
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      return this._stringTransformOutputType(inputType);
-    }
+  protected _toStringParameters(expressionString: string): string[] {
+    return [String(this.position), String(this.length)];
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return this._stringTransformInputType;
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      const { position, length } = this;
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        if (inV === null) return null;
-        return inV.substr(position, length);
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    return this._stringTransformOutputType(inputType);
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-      const { position, length } = this;
-      return `(_=${inputJS},_==null?null:(''+_).substr(${position},${length}))`;
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
+    return inputType;
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `SUBSTR(${inputSQL},${this.position + 1},${this.length})`;
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+    const { position, length } = this;
+    return (d: Datum, c: Datum) => {
+      var inV = inputFn(d, c);
+      if (inV === null) return null;
+      return inV.substr(position, length);
     }
   }
 
-  Action.register(SubstrAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string): string {
+    const { position, length } = this;
+    return `(_=${inputJS},_==null?null:(''+_).substr(${position},${length}))`;
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `SUBSTR(${inputSQL},${this.position + 1},${this.length})`;
+  }
 }
+
+Action.register(SubstrAction);

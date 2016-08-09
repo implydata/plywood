@@ -15,84 +15,91 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class NumberBucketAction extends Action {
-    static fromJS(parameters: ActionJS): NumberBucketAction {
-      var value = Action.jsToValue(parameters);
-      value.size = parameters.size;
-      value.offset = hasOwnProperty(parameters, 'offset') ? parameters.offset : 0;
-      return new NumberBucketAction(value);
-    }
 
-    public size: number;
-    public offset: number;
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Expression } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { hasOwnProperty, continuousFloorExpression } from "../helper/utils";
+import { NumberRange } from "../datatypes/numberRange";
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this.size = parameters.size;
-      this.offset = parameters.offset;
-      this._ensureAction("numberBucket");
-    }
+export class NumberBucketAction extends Action {
+  static fromJS(parameters: ActionJS): NumberBucketAction {
+    var value = Action.jsToValue(parameters);
+    value.size = parameters.size;
+    value.offset = hasOwnProperty(parameters, 'offset') ? parameters.offset : 0;
+    return new NumberBucketAction(value);
+  }
 
-    public valueOf(): ActionValue {
-      var value = super.valueOf();
-      value.size = this.size;
-      value.offset = this.offset;
-      return value;
-    }
+  public size: number;
+  public offset: number;
 
-    public toJS(): ActionJS {
-      var js = super.toJS();
-      js.size = this.size;
-      if (this.offset) js.offset = this.offset;
-      return js;
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this.size = parameters.size;
+    this.offset = parameters.offset;
+    this._ensureAction("numberBucket");
+  }
 
-    public equals(other: NumberBucketAction): boolean {
-      return super.equals(other) &&
-        this.size === other.size &&
-        this.offset === other.offset;
-    }
+  public valueOf(): ActionValue {
+    var value = super.valueOf();
+    value.size = this.size;
+    value.offset = this.offset;
+    return value;
+  }
 
-    protected _toStringParameters(expressionString: string): string[] {
-      var params: string[] = [String(this.size)];
-      if (this.offset) params.push(String(this.offset));
-      return params;
-    }
+  public toJS(): ActionJS {
+    var js = super.toJS();
+    js.size = this.size;
+    if (this.offset) js.offset = this.offset;
+    return js;
+  }
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return ['NUMBER' as PlyType, 'NUMBER_RANGE' as PlyType];
-    }
+  public equals(other: NumberBucketAction): boolean {
+    return super.equals(other) &&
+      this.size === other.size &&
+      this.offset === other.offset;
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER_RANGE';
-    }
+  protected _toStringParameters(expressionString: string): string[] {
+    var params: string[] = [String(this.size)];
+    if (this.offset) params.push(String(this.offset));
+    return params;
+  }
 
-    public _fillRefSubstitutions(): FullType {
-      return {
-        type: 'NUMBER_RANGE',
-      };
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return ['NUMBER' as PlyType, 'NUMBER_RANGE' as PlyType];
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      var size = this.size;
-      var offset = this.offset;
-      return (d: Datum, c: Datum) => {
-        var num = inputFn(d, c);
-        if (num === null) return null;
-        return NumberRange.numberBucket(num, size, offset);
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER_RANGE';
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-      return Expression.jsNullSafetyUnary(inputJS, (n) => continuousFloorExpression(n, "Math.floor", this.size, this.offset));
-    }
+  public _fillRefSubstitutions(): FullType {
+    return {
+      type: 'NUMBER_RANGE',
+    };
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return continuousFloorExpression(inputSQL, "FLOOR", this.size, this.offset);
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+    var size = this.size;
+    var offset = this.offset;
+    return (d: Datum, c: Datum) => {
+      var num = inputFn(d, c);
+      if (num === null) return null;
+      return NumberRange.numberBucket(num, size, offset);
     }
   }
 
-  Action.register(NumberBucketAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string): string {
+    return Expression.jsNullSafetyUnary(inputJS, (n) => continuousFloorExpression(n, "Math.floor", this.size, this.offset));
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return continuousFloorExpression(inputSQL, "FLOOR", this.size, this.offset);
+  }
 }
+
+Action.register(NumberBucketAction);

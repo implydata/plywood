@@ -15,73 +15,79 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class ConcatAction extends Action {
-    static fromJS(parameters: ActionJS): ConcatAction {
-      return new ConcatAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("concat");
-      this._checkExpressionTypes('STRING');
-    }
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { r, Expression, Indexer, Alterations } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { LiteralExpression } from "../expressions/literalExpression";
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return this._stringTransformInputType;
-    }
+export class ConcatAction extends Action {
+  static fromJS(parameters: ActionJS): ConcatAction {
+    return new ConcatAction(Action.jsToValue(parameters));
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      return this._stringTransformOutputType(inputType);
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("concat");
+    this._checkExpressionTypes('STRING');
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return this._stringTransformInputType;
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        if (inV === null) return null;
-        var exV = expressionFn(d, c);
-        if (exV === null) return null;
-        return '' + inV + exV;
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    return this._stringTransformOutputType(inputType);
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-      return Expression.jsNullSafetyBinary(inputJS, expressionJS, (a, b) => { return `${a}+${b}` }, inputJS[0] === '"', expressionJS[0] === '"');
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return inputType;
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.concatExpression(inputSQL, expressionSQL);
-    }
-
-    protected _removeAction(): boolean {
-      return this.expression.equals(Expression.EMPTY_STRING);
-    }
-
-    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
-      if (literalExpression.equals(Expression.EMPTY_STRING)) {
-        return this.expression;
-      }
-      return null;
-    }
-
-    protected _foldWithPrevAction(prevAction: Action): Action {
-      if (prevAction instanceof ConcatAction) {
-        var prevValue = prevAction.expression.getLiteralValue();
-        var myValue = this.expression.getLiteralValue();
-        if (typeof prevValue === 'string' && typeof myValue === 'string') {
-          return new ConcatAction({
-            expression: r(prevValue + myValue)
-          });
-        }
-      }
-      return null;
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      var inV = inputFn(d, c);
+      if (inV === null) return null;
+      var exV = expressionFn(d, c);
+      if (exV === null) return null;
+      return '' + inV + exV;
     }
   }
 
-  Action.register(ConcatAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
+    return Expression.jsNullSafetyBinary(inputJS, expressionJS, (a, b) => { return `${a}+${b}` }, inputJS[0] === '"', expressionJS[0] === '"');
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return dialect.concatExpression(inputSQL, expressionSQL);
+  }
+
+  protected _removeAction(): boolean {
+    return this.expression.equals(Expression.EMPTY_STRING);
+  }
+
+  protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    if (literalExpression.equals(Expression.EMPTY_STRING)) {
+      return this.expression;
+    }
+    return null;
+  }
+
+  protected _foldWithPrevAction(prevAction: Action): Action {
+    if (prevAction instanceof ConcatAction) {
+      var prevValue = prevAction.expression.getLiteralValue();
+      var myValue = this.expression.getLiteralValue();
+      if (typeof prevValue === 'string' && typeof myValue === 'string') {
+        return new ConcatAction({
+          expression: r(prevValue + myValue)
+        });
+      }
+    }
+    return null;
+  }
 }
+
+Action.register(ConcatAction);

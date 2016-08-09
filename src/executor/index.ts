@@ -1,5 +1,4 @@
 /*
- * Copyright 2012-2015 Metamarkets Group Inc.
  * Copyright 2015-2016 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +14,4 @@
  * limitations under the License.
  */
 
-expressionParser = (<PEGParserFactory>require("./expressionParser"))(Plywood, Chronoshift);
-plyqlParser = (<PEGParserFactory>require("./plyqlParser"))(Plywood, Chronoshift);
-
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-  module.exports = Plywood;
-
-  // Make Chronoshift available outside of Plywood as well
-  module.exports.Chronoshift = Chronoshift;
-}
+export * from './basicExecutor';

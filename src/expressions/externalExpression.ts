@@ -14,101 +14,107 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class ExternalExpression extends Expression {
-    static fromJS(parameters: ExpressionJS): Expression {
-      var value: ExpressionValue = {
-        op: parameters.op
-      };
-      value.external = External.fromJS(parameters.external);
-      return new ExternalExpression(value);
-    }
+import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
+import { dummyObject } from "../helper/dummy";
+import { SQLDialect } from "../dialect/baseDialect";
+import { PlywoodValue } from "../datatypes/index";
+import { Action } from "../actions/baseAction";
+import { ComputeFn } from "../datatypes/dataset";
+import { External } from "../external/baseExternal"
 
-    public external: External;
+export class ExternalExpression extends Expression {
+  static fromJS(parameters: ExpressionJS): Expression {
+    var value: ExpressionValue = {
+      op: parameters.op
+    };
+    value.external = External.fromJS(parameters.external);
+    return new ExternalExpression(value);
+  }
 
-    constructor(parameters: ExpressionValue) {
-      super(parameters, dummyObject);
-      var external = parameters.external;
-      if (!external) throw new Error('must have an external');
-      this.external = external;
-      this._ensureOp('external');
-      this.type = external.mode === 'value' ? 'NUMBER' : 'DATASET'; // ToDo: not always number
-      this.simple = true;
-    }
+  public external: External;
 
-    public valueOf(): ExpressionValue {
-      var value = super.valueOf();
-      value.external = this.external;
-      return value;
-    }
+  constructor(parameters: ExpressionValue) {
+    super(parameters, dummyObject);
+    var external = parameters.external;
+    if (!external) throw new Error('must have an external');
+    this.external = external;
+    this._ensureOp('external');
+    this.type = external.mode === 'value' ? 'NUMBER' : 'DATASET'; // ToDo: not always number
+    this.simple = true;
+  }
 
-    public toJS(): ExpressionJS {
-      var js = super.toJS();
-      js.external = this.external.toJS();
-      return js;
-    }
+  public valueOf(): ExpressionValue {
+    var value = super.valueOf();
+    value.external = this.external;
+    return value;
+  }
 
-    public toString(): string {
-      return `E:${this.external}`;
-    }
+  public toJS(): ExpressionJS {
+    var js = super.toJS();
+    js.external = this.external.toJS();
+    return js;
+  }
 
-    public getFn(): ComputeFn {
-      throw new Error('should not call getFn on External');
-    }
+  public toString(): string {
+    return `E:${this.external}`;
+  }
 
-    public getJS(datumVar: string): string {
-      throw new Error('should not call getJS on External');
-    }
+  public getFn(): ComputeFn {
+    throw new Error('should not call getFn on External');
+  }
 
-    public getSQL(dialect: SQLDialect): string {
-      throw new Error('should not call getSQL on External');
-    }
+  public getJS(datumVar: string): string {
+    throw new Error('should not call getJS on External');
+  }
 
-    public equals(other: ExternalExpression): boolean {
-      return super.equals(other) &&
-        this.external.equals(other.external);
-    }
+  public getSQL(dialect: SQLDialect): string {
+    throw new Error('should not call getSQL on External');
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
-      indexer.index++;
-      const { external } = this;
-      if (external.mode === 'value') {
-        return { type: 'NUMBER' };
-      } else {
-        var newTypeContext = this.external.getFullType();
-        newTypeContext.parent = typeContext;
-        return newTypeContext;
-      }
-    }
+  public equals(other: ExternalExpression): boolean {
+    return super.equals(other) &&
+      this.external.equals(other.external);
+  }
 
-    public _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue {
-      var external = this.external;
-      if (external.suppress) return external;
-      return external.simulateValue(lastNode, simulatedQueries);
-    }
-
-    public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
-      var external = this.external;
-      if (external.suppress) return Q(external);
-      return external.queryValue(lastNode);
-    }
-
-    public unsuppress(): ExternalExpression {
-      var value = this.valueOf();
-      value.external = this.external.show();
-      return new ExternalExpression(value);
-    }
-
-    public addAction(action: Action): ExternalExpression {
-      var newExternal = this.external.addAction(action);
-      if (!newExternal) return null;
-      return new ExternalExpression({ external: newExternal });
-    }
-
-    public maxPossibleSplitValues(): number {
-      return Infinity;
+  public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
+    indexer.index++;
+    const { external } = this;
+    if (external.mode === 'value') {
+      return { type: 'NUMBER' };
+    } else {
+      var newTypeContext = this.external.getFullType();
+      newTypeContext.parent = typeContext;
+      return newTypeContext;
     }
   }
 
-  Expression.register(ExternalExpression);
+  public _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue {
+    var external = this.external;
+    if (external.suppress) return external;
+    return external.simulateValue(lastNode, simulatedQueries);
+  }
+
+  public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
+    var external = this.external;
+    if (external.suppress) return Q(external);
+    return external.queryValue(lastNode);
+  }
+
+  public unsuppress(): ExternalExpression {
+    var value = this.valueOf();
+    value.external = this.external.show();
+    return new ExternalExpression(value);
+  }
+
+  public addAction(action: Action): ExternalExpression {
+    var newExternal = this.external.addAction(action);
+    if (!newExternal) return null;
+    return new ExternalExpression({ external: newExternal });
+  }
+
+  public maxPossibleSplitValues(): number {
+    return Infinity;
+  }
 }
+
+Expression.register(ExternalExpression);

@@ -14,48 +14,54 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class CardinalityAction extends Action {
-    static fromJS(parameters: ActionJS): CardinalityAction {
-      return new CardinalityAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("cardinality");
-      this._checkNoExpression();
-    }
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Expression } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { getAllSetTypes } from "../datatypes/common";
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return getAllSetTypes();
-    }
+export class CardinalityAction extends Action {
+  static fromJS(parameters: ActionJS): CardinalityAction {
+    return new CardinalityAction(Action.jsToValue(parameters));
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("cardinality");
+    this._checkNoExpression();
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return getAllSetTypes();
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        if (inV === null) return null;
-        if (Array.isArray(inV)) return inV.length; // this is to allow passing an array into .compute()
-        return inV.cardinality();
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-      return Expression.jsNullSafetyUnary(inputJS, (input: string) => `${input}.length`);
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
+    return inputType;
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `cardinality(${inputSQL})`
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      var inV = inputFn(d, c);
+      if (inV === null) return null;
+      if (Array.isArray(inV)) return inV.length; // this is to allow passing an array into .compute()
+      return inV.cardinality();
     }
   }
 
-  Action.register(CardinalityAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string): string {
+    return Expression.jsNullSafetyUnary(inputJS, (input: string) => `${input}.length`);
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `cardinality(${inputSQL})`
+  }
 }
+
+Action.register(CardinalityAction);

@@ -14,70 +14,76 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class ExtractAction extends Action {
-    static fromJS(parameters: ActionJS): ExtractAction {
-      var value = Action.jsToValue(parameters);
-      value.regexp = parameters.regexp;
-      return new ExtractAction(value);
-    }
 
-    public regexp: string;
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Indexer, Alterations } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { MatchAction } from "./matchAction";
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this.regexp = parameters.regexp;
-      this._ensureAction("extract");
-    }
+export class ExtractAction extends Action {
+  static fromJS(parameters: ActionJS): ExtractAction {
+    var value = Action.jsToValue(parameters);
+    value.regexp = parameters.regexp;
+    return new ExtractAction(value);
+  }
 
-    public valueOf(): ActionValue {
-      var value = super.valueOf();
-      value.regexp = this.regexp;
-      return value;
-    }
+  public regexp: string;
 
-    public toJS(): ActionJS {
-      var js = super.toJS();
-      js.regexp = this.regexp;
-      return js;
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this.regexp = parameters.regexp;
+    this._ensureAction("extract");
+  }
 
-    public equals(other: MatchAction): boolean {
-      return super.equals(other) &&
-        this.regexp === other.regexp;
-    }
+  public valueOf(): ActionValue {
+    var value = super.valueOf();
+    value.regexp = this.regexp;
+    return value;
+  }
 
-    protected _toStringParameters(expressionString: string): string[] {
-      return [this.regexp];
-    }
+  public toJS(): ActionJS {
+    var js = super.toJS();
+    js.regexp = this.regexp;
+    return js;
+  }
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return this._stringTransformInputType;
-    }
+  public equals(other: MatchAction): boolean {
+    return super.equals(other) &&
+      this.regexp === other.regexp;
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      return this._stringTransformOutputType(inputType);
-    }
+  protected _toStringParameters(expressionString: string): string[] {
+    return [this.regexp];
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return this._stringTransformInputType;
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      var re = new RegExp(this.regexp);
-      return (d: Datum, c: Datum) => {
-        return (String(inputFn(d, c)).match(re) || [])[1] || null;
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    return this._stringTransformOutputType(inputType);
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-      return `((''+${inputJS}).match(/${this.regexp}/) || [])[1] || null`;
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    return inputType;
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.extractExpression(inputSQL, this.regexp);
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+    var re = new RegExp(this.regexp);
+    return (d: Datum, c: Datum) => {
+      return (String(inputFn(d, c)).match(re) || [])[1] || null;
     }
   }
 
-  Action.register(ExtractAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
+    return `((''+${inputJS}).match(/${this.regexp}/) || [])[1] || null`;
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return dialect.extractExpression(inputSQL, this.regexp);
+  }
 }
+
+Action.register(ExtractAction);

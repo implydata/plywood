@@ -15,105 +15,109 @@
  * limitations under the License.
  */
 
-module Plywood {
-  const REGEXP_SPECIAL = "\\^$.|?*+()[{";
 
-  export class MatchAction extends Action {
+const REGEXP_SPECIAL = "\\^$.|?*+()[{";
 
-    static likeToRegExp(like: string, escapeChar: string = '\\'): string {
-      var regExp: string[] = ['^'];
-      for (var i = 0; i < like.length; i++) {
-        var char = like[i];
-        if (char === escapeChar) {
-          var nextChar = like[i + 1];
-          if (!nextChar) throw new Error(`invalid LIKE string '${like}'`);
-          char = nextChar;
-          i++;
-        } else if (char === '%') {
-          regExp.push('.*');
-          continue;
-        } else if (char === '_') {
-          regExp.push('.');
-          continue;
-        }
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
 
-        if (REGEXP_SPECIAL.indexOf(char) !== -1) {
-          regExp.push('\\');
-        }
-        regExp.push(char);
+export class MatchAction extends Action {
+
+  static likeToRegExp(like: string, escapeChar: string = '\\'): string {
+    var regExp: string[] = ['^'];
+    for (var i = 0; i < like.length; i++) {
+      var char = like[i];
+      if (char === escapeChar) {
+        var nextChar = like[i + 1];
+        if (!nextChar) throw new Error(`invalid LIKE string '${like}'`);
+        char = nextChar;
+        i++;
+      } else if (char === '%') {
+        regExp.push('.*');
+        continue;
+      } else if (char === '_') {
+        regExp.push('.');
+        continue;
       }
-      regExp.push('$');
-      return regExp.join('');
-    }
 
-    static fromJS(parameters: ActionJS): MatchAction {
-      var value = Action.jsToValue(parameters);
-      value.regexp = parameters.regexp;
-      return new MatchAction(value);
-    }
-
-    public regexp: string;
-
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this.regexp = parameters.regexp;
-      this._ensureAction("match");
-    }
-
-    public valueOf(): ActionValue {
-      var value = super.valueOf();
-      value.regexp = this.regexp;
-      return value;
-    }
-
-    public toJS(): ActionJS {
-      var js = super.toJS();
-      js.regexp = this.regexp;
-      return js;
-    }
-
-    public equals(other: MatchAction): boolean {
-      return super.equals(other) &&
-        this.regexp === other.regexp;
-    }
-
-    protected _toStringParameters(expressionString: string): string[] {
-      return [this.regexp];
-    }
-
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return this._stringTransformInputType;
-    }
-
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'BOOLEAN';
-    }
-
-    public _fillRefSubstitutions(): FullType {
-      return {
-        type: 'BOOLEAN',
-      };
-    }
-
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      var re = new RegExp(this.regexp);
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        if (!inV) return null;
-        if (inV === null) return null;
-        return re.test(inV);
+      if (REGEXP_SPECIAL.indexOf(char) !== -1) {
+        regExp.push('\\');
       }
+      regExp.push(char);
     }
+    regExp.push('$');
+    return regExp.join('');
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-      return `/${this.regexp}/.test(${inputJS})`;
-    }
+  static fromJS(parameters: ActionJS): MatchAction {
+    var value = Action.jsToValue(parameters);
+    value.regexp = parameters.regexp;
+    return new MatchAction(value);
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.regexpExpression(inputSQL, this.regexp);
+  public regexp: string;
+
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this.regexp = parameters.regexp;
+    this._ensureAction("match");
+  }
+
+  public valueOf(): ActionValue {
+    var value = super.valueOf();
+    value.regexp = this.regexp;
+    return value;
+  }
+
+  public toJS(): ActionJS {
+    var js = super.toJS();
+    js.regexp = this.regexp;
+    return js;
+  }
+
+  public equals(other: MatchAction): boolean {
+    return super.equals(other) &&
+      this.regexp === other.regexp;
+  }
+
+  protected _toStringParameters(expressionString: string): string[] {
+    return [this.regexp];
+  }
+
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return this._stringTransformInputType;
+  }
+
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'BOOLEAN';
+  }
+
+  public _fillRefSubstitutions(): FullType {
+    return {
+      type: 'BOOLEAN',
+    };
+  }
+
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+    var re = new RegExp(this.regexp);
+    return (d: Datum, c: Datum) => {
+      var inV = inputFn(d, c);
+      if (!inV) return null;
+      if (inV === null) return null;
+      return re.test(inV);
     }
   }
 
-  Action.register(MatchAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
+    return `/${this.regexp}/.test(${inputJS})`;
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return dialect.regexpExpression(inputSQL, this.regexp);
+  }
 }
+
+Action.register(MatchAction);

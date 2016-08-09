@@ -15,50 +15,55 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class SubtractAction extends Action {
-    static fromJS(parameters: ActionJS): SubtractAction {
-      return new SubtractAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("subtract");
-      this._checkExpressionTypes('NUMBER');
-    }
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'NUMBER';
-    }
+export class SubtractAction extends Action {
+  static fromJS(parameters: ActionJS): SubtractAction {
+    return new SubtractAction(Action.jsToValue(parameters));
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("subtract");
+    this._checkExpressionTypes('NUMBER');
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'NUMBER';
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        return (inputFn(d, c) || 0) - (expressionFn(d, c) || 0);
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-      return `(${inputJS}-${expressionJS})`;
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return inputType;
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `(${inputSQL}-${expressionSQL})`;
-    }
-
-    protected _removeAction(): boolean {
-      return this.expression.equals(Expression.ZERO);
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      return (inputFn(d, c) || 0) - (expressionFn(d, c) || 0);
     }
   }
 
-  Action.register(SubtractAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
+    return `(${inputJS}-${expressionJS})`;
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `(${inputSQL}-${expressionSQL})`;
+  }
+
+  protected _removeAction(): boolean {
+    return this.expression.equals(Expression.ZERO);
+  }
 }
+
+Action.register(SubtractAction);

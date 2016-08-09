@@ -15,46 +15,50 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class MinAction extends Action {
-    static fromJS(parameters: ActionJS): MinAction {
-      return new MinAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("min");
-      this._checkExpressionTypes('NUMBER', 'TIME');
-    }
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Indexer, Alterations } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'DATASET';
-    }
-
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
-
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return {
-        type: 'NUMBER',
-      };
-    }
-
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `MIN(${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL)})`;
-    }
-
-    public isAggregate(): boolean {
-      return true;
-    }
-
-    public isNester(): boolean {
-      return true;
-    }
+export class MinAction extends Action {
+  static fromJS(parameters: ActionJS): MinAction {
+    return new MinAction(Action.jsToValue(parameters));
   }
 
-  Action.register(MinAction);
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("min");
+    this._checkExpressionTypes('NUMBER', 'TIME');
+  }
+
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'DATASET';
+  }
+
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
+
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return {
+      type: 'NUMBER',
+    };
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `MIN(${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL)})`;
+  }
+
+  public isAggregate(): boolean {
+    return true;
+  }
+
+  public isNester(): boolean {
+    return true;
+  }
 }
+
+Action.register(MinAction);

@@ -14,54 +14,57 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class AbsoluteAction extends Action {
-    static fromJS(parameters: ActionJS): AbsoluteAction {
-      return new AbsoluteAction(Action.jsToValue(parameters));
-    }
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("absolute");
-      this._checkNoExpression();
-    }
+export class AbsoluteAction extends Action {
+  static fromJS(parameters: ActionJS): AbsoluteAction {
+    return new AbsoluteAction(Action.jsToValue(parameters));
+  }
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'NUMBER' as PlyType;
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("absolute");
+    this._checkNoExpression();
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'NUMBER' as PlyType;
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
-      return inputType;
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        if (inV === null) return null;
-        return Math.abs(inV);
-      }
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
+    return inputType;
+  }
 
-    protected _foldWithPrevAction(prevAction: Action): Action {
-      if (prevAction.equals(this)) {
-        return this;
-      }
-      return null;
-    }
-
-    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-      return `Math.abs(${inputJS})`
-    }
-
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `ABS(${inputSQL})`
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      var inV = inputFn(d, c);
+      if (inV === null) return null;
+      return Math.abs(inV);
     }
   }
 
-  Action.register(AbsoluteAction);
+  protected _foldWithPrevAction(prevAction: Action): Action {
+    if (prevAction.equals(this)) {
+      return this;
+    }
+    return null;
+  }
+
+  protected _getJSHelper(inputType: PlyType, inputJS: string): string {
+    return `Math.abs(${inputJS})`
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `ABS(${inputSQL})`
+  }
 }
+
+Action.register(AbsoluteAction);

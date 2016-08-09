@@ -15,46 +15,50 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class AverageAction extends Action {
-    static fromJS(parameters: ActionJS): AverageAction {
-      return new AverageAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("average");
-      this._checkExpressionTypes('NUMBER');
-    }
+import { dummyObject } from "../helper/dummy";
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { Indexer, Alterations } from "../expressions/baseExpression";
+import { SQLDialect } from "../dialect/baseDialect";
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'DATASET';
-    }
- 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
-
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return {
-        type: 'NUMBER',
-      };
-    }
-
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `AVG(${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL)})`;
-    }
-
-    public isAggregate(): boolean {
-      return true;
-    }
-
-    public isNester(): boolean {
-      return true;
-    }
+export class AverageAction extends Action {
+  static fromJS(parameters: ActionJS): AverageAction {
+    return new AverageAction(Action.jsToValue(parameters));
   }
 
-  Action.register(AverageAction);
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("average");
+    this._checkExpressionTypes('NUMBER');
+  }
+
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'DATASET';
+  }
+
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
+
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return {
+      type: 'NUMBER',
+    };
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `AVG(${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL)})`;
+  }
+
+  public isAggregate(): boolean {
+    return true;
+  }
+
+  public isNester(): boolean {
+    return true;
+  }
 }
+
+Action.register(AverageAction);

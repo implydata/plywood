@@ -15,19 +15,21 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export interface Executor {
-    (ex: Expression, env?: Environment): Q.Promise<PlywoodValue>;
-  }
+import { Expression } from "../expressions/baseExpression";
+import { PlywoodValue, Datum } from "../datatypes/index";
+import { Environment } from "../actions/baseAction";
 
-  export interface BasicExecutorParameters {
-    datasets: Datum;
-  }
+export interface Executor {
+  (ex: Expression, env?: Environment): Q.Promise<PlywoodValue>;
+}
 
-  export function basicExecutorFactory(parameters: BasicExecutorParameters): Executor {
-    var datasets = parameters.datasets;
-    return (ex: Expression, env: Environment = {}) => {
-      return ex.compute(datasets, env);
-    }
+export interface BasicExecutorParameters {
+  datasets: Datum;
+}
+
+export function basicExecutorFactory(parameters: BasicExecutorParameters): Executor {
+  var datasets = parameters.datasets;
+  return (ex: Expression, env: Environment = {}) => {
+    return ex.compute(datasets, env);
   }
 }
