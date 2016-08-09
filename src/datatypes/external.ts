@@ -18,12 +18,11 @@ import { Timezone, Duration } from "chronoshift";
 import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual } from "immutable-class";
 import {
   hasOwnProperty,
-  expressionLookupFromJS,
   overrideByName,
   nonEmptyLookup,
   find,
   findByName,
-  expressionLookupToJS, safeAdd
+  safeAdd
 } from "../helper/utils";
 import { $, Expression, RefExpression, ChainExpression, ExternalExpression } from "../expressions/index";
 import { PlywoodValue, Datum, Dataset } from "./dataset";
@@ -527,7 +526,7 @@ export abstract class External {
       value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
     }
     if (parameters.derivedAttributes) {
-      value.derivedAttributes = expressionLookupFromJS(parameters.derivedAttributes);
+      value.derivedAttributes = Expression.expressionLookupFromJS(parameters.derivedAttributes);
     }
 
     value.filter = parameters.filter ? Expression.fromJS(parameters.filter) : Expression.TRUE;
@@ -733,7 +732,7 @@ export abstract class External {
     if (this.rollup) js.rollup = true;
     if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
     if (this.attributeOverrides) js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
-    if (nonEmptyLookup(this.derivedAttributes)) js.derivedAttributes = expressionLookupToJS(this.derivedAttributes);
+    if (nonEmptyLookup(this.derivedAttributes)) js.derivedAttributes = Expression.expressionLookupToJS(this.derivedAttributes);
     if (this.concealBuckets) js.concealBuckets = true;
 
     if (this.rawAttributes) js.rawAttributes = AttributeInfo.toJSs(this.rawAttributes);

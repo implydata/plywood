@@ -2,7 +2,10 @@ export default {
   entry: 'build/index.js',
   format: 'cjs',
   dest: 'build/plywood.js',
+  treeshake: false,
   external: [
-    'immutable-class'
+    'chronoshift',
+    'immutable-class',
+    'q'
   ]
 };

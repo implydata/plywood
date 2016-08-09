@@ -7,7 +7,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "strictNullChecks": false,
-    "target": "es5",
+    "target": "es6",
     "module": "es6",
     "rootDir": "src",
     "outDir": "build"

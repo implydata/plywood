@@ -281,6 +281,24 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return isInstanceOf(candidate, Expression);
   }
 
+  static expressionLookupFromJS(expressionJSs: Lookup<ExpressionJS>): Lookup<Expression> {
+    var expressions: Lookup<Expression> = Object.create(null);
+    for (var name in expressionJSs) {
+      if (!hasOwnProperty(expressionJSs, name)) continue;
+      expressions[name] = Expression.fromJSLoose(expressionJSs[name]);
+    }
+    return expressions;
+  }
+
+  static expressionLookupToJS(expressions: Lookup<Expression>): Lookup<ExpressionJS> {
+    var expressionsJSs: Lookup<ExpressionJS> = {};
+    for (var name in expressions) {
+      if (!hasOwnProperty(expressions, name)) continue;
+      expressionsJSs[name] = expressions[name].toJS();
+    }
+    return expressionsJSs;
+  }
+
   /**
    * Parses an expression
    * @param str The expression to parse

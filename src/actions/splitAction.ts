@@ -22,7 +22,7 @@ import { Action, ActionJS, ActionValue, Splits, SplitsJS } from "./baseAction";
 import { Expression, Indexer, Alterations, r, SubstitutionFn } from "../expressions/baseExpression";
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn } from "../datatypes/dataset";
-import { hasOwnProperty, expressionLookupToJS, expressionLookupFromJS } from "../helper/utils";
+import { hasOwnProperty } from "../helper/utils";
 import { immutableLookupsEqual } from "immutable-class";
 import { isSetType } from "../datatypes/common";
 
@@ -37,7 +37,7 @@ export class SplitAction extends Action {
     } else {
       splits = parameters.splits;
     }
-    value.splits = expressionLookupFromJS(splits);
+    value.splits = Expression.expressionLookupFromJS(splits);
     value.dataName = parameters.dataName;
     return new SplitAction(value);
   }
@@ -69,7 +69,7 @@ export class SplitAction extends Action {
 
     var js = super.toJS();
     if (this.isMultiSplit()) {
-      js.splits = expressionLookupToJS(splits);
+      js.splits = Expression.expressionLookupToJS(splits);
     } else {
       for (var name in splits) {
         js.name = name;

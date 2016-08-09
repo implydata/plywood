@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-export * from './attributeInfo';
-export * from './common';
-export * from './dataset';
-export * from './external';
-export * from './set';
-export * from './range';
-export * from './numberRange';
-export * from './timeRange';
-export * from './stringRange';
+export * from './baseDialect';
+export * from './mySqlDialect';
+export * from './postgresDialect';
