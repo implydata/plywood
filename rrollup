@@ -2,7 +2,6 @@
 
 cat \
   extra/prefix.js \
-  build/helper/simpleLocator.js \
   build/helper/verboseRequester.js \
   build/helper/retryRequester.js \
   build/helper/concurrentLimitRequester.js \
@@ -83,7 +82,8 @@ cat \
   build/actions/transformCaseAction.js \
   build/executor/basicExecutor.js \
   extra/postfix.js \
-  | f 'l.replace(/^import .*$/, "")' \
-  | f 'l.replace(/^export function ([\w$]+)\(/, "var $1 = exports.$1 = function(")' \
-  | f 'l.replace(/^export var ([\w$]+) =/, "var $1 = exports.$1 =")' \
+  | ./node_modules/.bin/f 'l.replace(/^import .*$/, "")' \
+  | ./node_modules/.bin/f 'l.replace(/^export function ([\w$]+)\(/, "var $1 = exports.$1 = function(")' \
+  | ./node_modules/.bin/f 'l.replace(/^export var ([\w$]+) =/, "var $1 = exports.$1 =")' \
   > build/plywood.js
+
