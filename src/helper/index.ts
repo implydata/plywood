@@ -18,6 +18,5 @@ export * from './concurrentLimitRequester';
 export * from './dummy';
 export * from './promiseWhile';
 export * from './retryRequester';
-export * from './simpleLocator';
 export * from './utils';
 export * from './verboseRequester';

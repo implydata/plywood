@@ -23,7 +23,7 @@ import { Set } from "./set";
 import { TimeRange } from "./timeRange";
 import { StringRange } from "./stringRange";
 import { NumberRange } from "./numberRange";
-import { External } from "./external";
+import { External } from "../external/baseExternal";
 
 export function getValueType(value: any): PlyType {
   var typeofValue = typeof value;

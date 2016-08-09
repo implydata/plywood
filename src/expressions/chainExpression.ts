@@ -260,7 +260,7 @@ export class ChainExpression extends Expression {
           }).simplify();
 
           if (substitutedAction.expression instanceof ExternalExpression) {
-            var externalMode = (<ExternalExpression>action.expression).external.mode;
+            var externalMode = (<ExternalExpression>substitutedAction.expression).external.mode;
             if (externalMode === 'raw') {
               dataDefinitions[substitutedAction.name] = <ExternalExpression>substitutedAction.expression;
             } else if (externalMode === 'value') {

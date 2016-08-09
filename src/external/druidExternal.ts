@@ -64,16 +64,13 @@ import {
   ThetaAttributeInfo,
   Dataset,
   Datum,
-  External,
-  ExternalJS,
-  ExternalValue,
   NumberRange,
   Range,
   Set,
   TimeRange,
   PlywoodValue
 } from "../datatypes/index";
-import { Inflater, NextFn, PostProcess, QueryAndPostProcess } from "../datatypes/external";
+import { External, ExternalJS, ExternalValue, Inflater, NextFn, PostProcess, QueryAndPostProcess } from "./baseExternal";
 import { unwrapSetType } from "../datatypes/common";
 import { PlywoodRange } from "../datatypes/range";
 
@@ -167,302 +164,10 @@ export interface DruidSplit {
   postProcess: PostProcess;
 }
 
-function cleanDatumInPlace(datum: Datum): void {
-  for (var k in datum) {
-    if (k[0] === '!') delete datum[k];
-  }
-}
-
-function correctTimeBoundaryResult(result: Druid.TimeBoundaryResults): boolean {
-  return Array.isArray(result) && result.length === 1 && typeof result[0].result === 'object';
-}
-
-function correctTimeseriesResult(result: Druid.TimeseriesResults): boolean {
-  return Array.isArray(result) && (result.length === 0 || typeof result[0].result === 'object');
-}
-
-function correctTopNResult(result: Druid.DruidResults): boolean {
-  return Array.isArray(result) && (result.length === 0 || Array.isArray(result[0].result));
-}
-
-function correctGroupByResult(result: Druid.GroupByResults): boolean {
-  return Array.isArray(result) && (result.length === 0 || typeof result[0].event === 'object');
-}
-
-function correctSelectResult(result: Druid.SelectResults): boolean {
-  return Array.isArray(result) && (result.length === 0 || typeof result[0].result === 'object');
-}
-
-function correctStatusResult(result: Druid.StatusResult): boolean {
-  return result && typeof result.version === 'string';
-}
-
-function timeBoundaryPostProcessFactory(applies: ApplyAction[]): PostProcess {
-  return (res: Druid.TimeBoundaryResults): Dataset => {
-    if (!correctTimeBoundaryResult(res)) throw new InvalidResultError("unexpected result from Druid (timeBoundary)", res);
-
-    var result = res[0].result;
-    var datum: Datum = {};
-    for (let apply of applies) {
-      let name = apply.name;
-      let aggregate = (<ChainExpression>apply.expression).actions[0].action;
-      if (typeof result === 'string') {
-        datum[name] = new Date(result);
-      } else {
-        if (aggregate === 'max') {
-          datum[name] = new Date(<string>(result['maxIngestedEventTime'] || result['maxTime']));
-        } else {
-          datum[name] = new Date(<string>(result['minTime']));
-        }
-      }
-    }
-
-    return new Dataset({ data: [datum] });
-  };
-}
-
-function valuePostProcess(res: Druid.TimeseriesResults): PlywoodValue {
-  if (!correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (all / value)", res);
-
-  if (!res.length) return 0;
-  return res[0].result[External.VALUE_NAME];
-}
-
-function totalPostProcessFactory(applies: ApplyAction[]) {
-  return (res: Druid.TimeseriesResults): Dataset => {
-    if (!correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (all)", res);
-
-    if (!res.length) return new Dataset({ data: [External.makeZeroDatum(applies)] });
-
-    var datum = res[0].result;
-    cleanDatumInPlace(datum);
-    return new Dataset({ data: [datum] });
-  };
-}
-
-function wrapFunctionTryCatch(lines: string[]): string {
-  return 'function(s){try{\n' + lines.filter(Boolean).join('\n') + '\n}catch(e){return null;}}';
-}
-
-// ==========================
-
-function timeseriesNormalizerFactory(timestampLabel: string = null): Normalizer {
-  return (res: Druid.TimeseriesResults): Datum[] => {
-    if (!correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (timeseries)", res);
-
-    return res.map(r => {
-      var datum: Datum = r.result;
-      cleanDatumInPlace(datum);
-      if (timestampLabel) datum[timestampLabel] = r.timestamp;
-      return datum;
-    })
-  }
-}
-
-function topNNormalizer(res: Druid.DruidResults): Datum[] {
-  if (!correctTopNResult(res)) throw new InvalidResultError("unexpected result from Druid (topN)", res);
-
-  var data = res.length ? res[0].result : [];
-  for (var d of data) cleanDatumInPlace(d);
-  return data;
-}
-
-function groupByNormalizerFactory(timestampLabel: string = null): Normalizer {
-  return (res: Druid.GroupByResults): Datum[] => {
-    if (!correctGroupByResult(res)) throw new InvalidResultError("unexpected result from Druid (groupBy)", res);
-
-    return res.map(r => {
-      var datum: Datum = r.event;
-      cleanDatumInPlace(datum);
-      if (timestampLabel) datum[timestampLabel] = r.timestamp;
-      return datum;
-    });
-  }
-}
-
-function selectNormalizerFactory(timestampLabel: string): Normalizer {
-  return (results: Druid.SelectResults[]): Datum[] => {
-    var data: Datum[] = [];
-    for (var result of results) {
-      if (!correctSelectResult(result)) throw new InvalidResultError("unexpected result from Druid (select)", result);
-
-      if (result.length === 0) continue;
-      var events = result[0].result.events;
-      for (var event of events) {
-        var datum: Datum = event.event;
-        if (timestampLabel != null) {
-          // The __time dimension always returns as 'timestamp' for some reason
-          datum[timestampLabel] = datum['timestamp'];
-        }
-        delete datum['timestamp'];
-        cleanDatumInPlace(datum);
-        data.push(datum);
-      }
-    }
-    return data;
-  };
-}
-
-function postProcessFactory(normalizer: Normalizer, inflaters: Inflater[], attributes: Attributes) {
-  return (res: any): Dataset => {
-    var data = normalizer(res);
-    var n = data.length;
-    for (var inflater of inflaters) {
-      for (var i = 0; i < n; i++) {
-        inflater(data[i], i, data);
-      }
-    }
-    return new Dataset({ data, attributes });
-  };
-}
-
-function selectNextFactory(limit: number, descending: boolean): NextFn<Druid.Query, Druid.SelectResults> {
-  var resultsSoFar = 0;
-  return (prevQuery, prevResult) => {
-    if (!correctSelectResult(prevResult)) throw new InvalidResultError("unexpected result from Druid (select / partial)", prevResult);
-
-    if (prevResult.length === 0) return null; // Out of results: done!
-
-    var { pagingIdentifiers, events } = prevResult[0].result;
-    if (events.length < prevQuery.pagingSpec.threshold) return null; // Less results than asked for: done!
-
-    resultsSoFar += events.length;
-    if (resultsSoFar >= limit) return null; // Got enough results overall: done!
-
-    var pagingIdentifiers = DruidExternal.movePagingIdentifiers(pagingIdentifiers, descending ? -1 : 1);
-    prevQuery.pagingSpec.pagingIdentifiers = pagingIdentifiers;
-    prevQuery.pagingSpec.threshold = Math.min(limit - resultsSoFar, DruidExternal.SELECT_MAX_LIMIT);
-    return prevQuery;
-  }
-}
-
-// Introspect
-
 export interface IntrospectPostProcess {
   (result: any): Attributes;
 }
 
-function generateMakerAction(aggregation: Druid.Aggregation): Action {
-  if (!aggregation) return null;
-  var { type, fieldName } = aggregation;
-
-  // Hacky way to guess at a count
-  if (type === 'longSum' && fieldName === 'count') {
-    return new CountAction({});
-  }
-
-  if (!fieldName) {
-    var { fieldNames } = aggregation;
-    if (!Array.isArray(fieldNames) || fieldNames.length !== 1) return null;
-    fieldName = fieldNames[0];
-  }
-
-  var expression = $(fieldName);
-  switch (type) {
-    case "count":
-      return new CountAction({});
-
-    case "doubleSum":
-    case "longSum":
-      return new SumAction({ expression });
-
-    case "javascript":
-      const { fnAggregate, fnCombine } = aggregation;
-      if (fnAggregate !== fnCombine || fnCombine.indexOf('+') === -1) return null;
-      return new SumAction({ expression });
-
-    case "doubleMin":
-    case "longMin":
-      return new MinAction({ expression });
-
-    case "doubleMax":
-    case "longMax":
-      return new MaxAction({ expression });
-
-    default:
-      return null;
-  }
-}
-
-function segmentMetadataPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
-  return (res: Druid.SegmentMetadataResults): Attributes => {
-    var res0 = res[0];
-    if (!res0 || !res0.columns) throw new InvalidResultError('malformed segmentMetadata response', res);
-    var columns = res0.columns;
-    var aggregators = res0.aggregators || {};
-
-    var foundTime = false;
-    var attributes: Attributes = [];
-    for (var name in columns) {
-      if (!hasOwnProperty(columns, name)) continue;
-      var columnData = columns[name];
-
-      // Error conditions
-      if (columnData.errorMessage || columnData.size < 0) continue;
-
-      if (name === TIME_ATTRIBUTE) {
-        attributes.push(new AttributeInfo({ name: timeAttribute, type: 'TIME' }));
-        foundTime = true;
-      } else {
-        if (name === timeAttribute) continue; // Ignore dimensions and metrics that clash with the timeAttribute name
-        switch (columnData.type) {
-          case 'FLOAT':
-          case 'LONG':
-            attributes.push(new AttributeInfo({
-              name,
-              type: 'NUMBER',
-              unsplitable: true,
-              makerAction: generateMakerAction(aggregators[name])
-            }));
-            break;
-
-          case 'STRING':
-            attributes.push(new AttributeInfo({
-              name,
-              type: columnData.hasMultipleValues ? 'SET/STRING' : 'STRING'
-            }));
-            break;
-
-          case 'hyperUnique':
-            attributes.push(new UniqueAttributeInfo({ name }));
-            break;
-
-          case 'approximateHistogram':
-            attributes.push(new HistogramAttributeInfo({ name }));
-            break;
-
-          case 'thetaSketch':
-            attributes.push(new ThetaAttributeInfo({ name }));
-            break;
-        }
-      }
-    }
-
-    if (!foundTime) throw new Error(`no valid ${TIME_ATTRIBUTE} in segmentMetadata response`);
-    return attributes;
-  }
-}
-
-function introspectPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
-  return (res: Druid.DatasourceIntrospectResult): Attributes => {
-    if (!Array.isArray(res.dimensions) || !Array.isArray(res.metrics)) {
-      throw new InvalidResultError('malformed GET introspect response', res);
-    }
-
-    var attributes: Attributes = [
-      new AttributeInfo({ name: timeAttribute, type: 'TIME' })
-    ];
-    res.dimensions.forEach(dimension => {
-      if (dimension === timeAttribute) return; // Ignore dimensions that clash with the timeAttribute name
-      attributes.push(new AttributeInfo({ name: dimension, type: 'STRING' }));
-    });
-    res.metrics.forEach(metric => {
-      if (metric === timeAttribute) return; // Ignore metrics that clash with the timeAttribute name
-      attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', unsplitable: true }));
-    });
-    return attributes;
-  }
-}
 
 export class DruidExternal extends External {
   static type = 'DATASET';
@@ -510,9 +215,300 @@ export class DruidExternal extends External {
       }
     })
       .then((res) => {
-        if (!correctStatusResult(res)) throw new InvalidResultError('unexpected result from /status', res);
+        if (!DruidExternal.correctStatusResult(res)) throw new InvalidResultError('unexpected result from /status', res);
         return res.version
       });
+  }
+
+  static cleanDatumInPlace(datum: Datum): void {
+    for (var k in datum) {
+      if (k[0] === '!') delete datum[k];
+    }
+  }
+
+  static correctTimeBoundaryResult(result: Druid.TimeBoundaryResults): boolean {
+    return Array.isArray(result) && result.length === 1 && typeof result[0].result === 'object';
+  }
+
+  static correctTimeseriesResult(result: Druid.TimeseriesResults): boolean {
+    return Array.isArray(result) && (result.length === 0 || typeof result[0].result === 'object');
+  }
+
+  static correctTopNResult(result: Druid.DruidResults): boolean {
+    return Array.isArray(result) && (result.length === 0 || Array.isArray(result[0].result));
+  }
+
+  static correctGroupByResult(result: Druid.GroupByResults): boolean {
+    return Array.isArray(result) && (result.length === 0 || typeof result[0].event === 'object');
+  }
+
+  static correctSelectResult(result: Druid.SelectResults): boolean {
+    return Array.isArray(result) && (result.length === 0 || typeof result[0].result === 'object');
+  }
+
+  static correctStatusResult(result: Druid.StatusResult): boolean {
+    return result && typeof result.version === 'string';
+  }
+
+  static timeBoundaryPostProcessFactory(applies: ApplyAction[]): PostProcess {
+    return (res: Druid.TimeBoundaryResults): Dataset => {
+      if (!DruidExternal.correctTimeBoundaryResult(res)) throw new InvalidResultError("unexpected result from Druid (timeBoundary)", res);
+
+      var result = res[0].result;
+      var datum: Datum = {};
+      for (let apply of applies) {
+        let name = apply.name;
+        let aggregate = (<ChainExpression>apply.expression).actions[0].action;
+        if (typeof result === 'string') {
+          datum[name] = new Date(result);
+        } else {
+          if (aggregate === 'max') {
+            datum[name] = new Date(<string>(result['maxIngestedEventTime'] || result['maxTime']));
+          } else {
+            datum[name] = new Date(<string>(result['minTime']));
+          }
+        }
+      }
+
+      return new Dataset({ data: [datum] });
+    };
+  }
+
+  static valuePostProcess(res: Druid.TimeseriesResults): PlywoodValue {
+    if (!DruidExternal.correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (all / value)", res);
+
+    if (!res.length) return 0;
+    return res[0].result[External.VALUE_NAME];
+  }
+
+  static totalPostProcessFactory(applies: ApplyAction[]) {
+    return (res: Druid.TimeseriesResults): Dataset => {
+      if (!DruidExternal.correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (all)", res);
+
+      if (!res.length) return new Dataset({ data: [External.makeZeroDatum(applies)] });
+
+      var datum = res[0].result;
+      DruidExternal.cleanDatumInPlace(datum);
+      return new Dataset({ data: [datum] });
+    };
+  }
+
+  static wrapFunctionTryCatch(lines: string[]): string {
+    return 'function(s){try{\n' + lines.filter(Boolean).join('\n') + '\n}catch(e){return null;}}';
+  }
+
+  // ==========================
+
+  static timeseriesNormalizerFactory(timestampLabel: string = null): Normalizer {
+    return (res: Druid.TimeseriesResults): Datum[] => {
+      if (!DruidExternal.correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (timeseries)", res);
+
+      return res.map(r => {
+        var datum: Datum = r.result;
+        DruidExternal.cleanDatumInPlace(datum);
+        if (timestampLabel) datum[timestampLabel] = r.timestamp;
+        return datum;
+      })
+    }
+  }
+
+  static topNNormalizer(res: Druid.DruidResults): Datum[] {
+    if (!DruidExternal.correctTopNResult(res)) throw new InvalidResultError("unexpected result from Druid (topN)", res);
+
+    var data = res.length ? res[0].result : [];
+    for (var d of data) DruidExternal.cleanDatumInPlace(d);
+    return data;
+  }
+
+  static groupByNormalizerFactory(timestampLabel: string = null): Normalizer {
+    return (res: Druid.GroupByResults): Datum[] => {
+      if (!DruidExternal.correctGroupByResult(res)) throw new InvalidResultError("unexpected result from Druid (groupBy)", res);
+
+      return res.map(r => {
+        var datum: Datum = r.event;
+        DruidExternal.cleanDatumInPlace(datum);
+        if (timestampLabel) datum[timestampLabel] = r.timestamp;
+        return datum;
+      });
+    }
+  }
+
+  static selectNormalizerFactory(timestampLabel: string): Normalizer {
+    return (results: Druid.SelectResults[]): Datum[] => {
+      var data: Datum[] = [];
+      for (var result of results) {
+        if (!DruidExternal.correctSelectResult(result)) throw new InvalidResultError("unexpected result from Druid (select)", result);
+
+        if (result.length === 0) continue;
+        var events = result[0].result.events;
+        for (var event of events) {
+          var datum: Datum = event.event;
+          if (timestampLabel != null) {
+            // The __time dimension always returns as 'timestamp' for some reason
+            datum[timestampLabel] = datum['timestamp'];
+          }
+          delete datum['timestamp'];
+          DruidExternal.cleanDatumInPlace(datum);
+          data.push(datum);
+        }
+      }
+      return data;
+    };
+  }
+
+  static postProcessFactory(normalizer: Normalizer, inflaters: Inflater[], attributes: Attributes) {
+    return (res: any): Dataset => {
+      var data = normalizer(res);
+      var n = data.length;
+      for (var inflater of inflaters) {
+        for (var i = 0; i < n; i++) {
+          inflater(data[i], i, data);
+        }
+      }
+      return new Dataset({ data, attributes });
+    };
+  }
+
+  static selectNextFactory(limit: number, descending: boolean): NextFn<Druid.Query, Druid.SelectResults> {
+    var resultsSoFar = 0;
+    return (prevQuery, prevResult) => {
+      if (!DruidExternal.correctSelectResult(prevResult)) throw new InvalidResultError("unexpected result from Druid (select / partial)", prevResult);
+
+      if (prevResult.length === 0) return null; // Out of results: done!
+
+      var { pagingIdentifiers, events } = prevResult[0].result;
+      if (events.length < prevQuery.pagingSpec.threshold) return null; // Less results than asked for: done!
+
+      resultsSoFar += events.length;
+      if (resultsSoFar >= limit) return null; // Got enough results overall: done!
+
+      var pagingIdentifiers = DruidExternal.movePagingIdentifiers(pagingIdentifiers, descending ? -1 : 1);
+      prevQuery.pagingSpec.pagingIdentifiers = pagingIdentifiers;
+      prevQuery.pagingSpec.threshold = Math.min(limit - resultsSoFar, DruidExternal.SELECT_MAX_LIMIT);
+      return prevQuery;
+    }
+  }
+
+  static generateMakerAction(aggregation: Druid.Aggregation): Action {
+    if (!aggregation) return null;
+    var { type, fieldName } = aggregation;
+
+    // Hacky way to guess at a count
+    if (type === 'longSum' && fieldName === 'count') {
+      return new CountAction({});
+    }
+
+    if (!fieldName) {
+      var { fieldNames } = aggregation;
+      if (!Array.isArray(fieldNames) || fieldNames.length !== 1) return null;
+      fieldName = fieldNames[0];
+    }
+
+    var expression = $(fieldName);
+    switch (type) {
+      case "count":
+        return new CountAction({});
+
+      case "doubleSum":
+      case "longSum":
+        return new SumAction({ expression });
+
+      case "javascript":
+        const { fnAggregate, fnCombine } = aggregation;
+        if (fnAggregate !== fnCombine || fnCombine.indexOf('+') === -1) return null;
+        return new SumAction({ expression });
+
+      case "doubleMin":
+      case "longMin":
+        return new MinAction({ expression });
+
+      case "doubleMax":
+      case "longMax":
+        return new MaxAction({ expression });
+
+      default:
+        return null;
+    }
+  }
+
+  static segmentMetadataPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
+    return (res: Druid.SegmentMetadataResults): Attributes => {
+      var res0 = res[0];
+      if (!res0 || !res0.columns) throw new InvalidResultError('malformed segmentMetadata response', res);
+      var columns = res0.columns;
+      var aggregators = res0.aggregators || {};
+
+      var foundTime = false;
+      var attributes: Attributes = [];
+      for (var name in columns) {
+        if (!hasOwnProperty(columns, name)) continue;
+        var columnData = columns[name];
+
+        // Error conditions
+        if (columnData.errorMessage || columnData.size < 0) continue;
+
+        if (name === TIME_ATTRIBUTE) {
+          attributes.push(new AttributeInfo({ name: timeAttribute, type: 'TIME' }));
+          foundTime = true;
+        } else {
+          if (name === timeAttribute) continue; // Ignore dimensions and metrics that clash with the timeAttribute name
+          switch (columnData.type) {
+            case 'FLOAT':
+            case 'LONG':
+              attributes.push(new AttributeInfo({
+                name,
+                type: 'NUMBER',
+                unsplitable: true,
+                makerAction: DruidExternal.generateMakerAction(aggregators[name])
+              }));
+              break;
+
+            case 'STRING':
+              attributes.push(new AttributeInfo({
+                name,
+                type: columnData.hasMultipleValues ? 'SET/STRING' : 'STRING'
+              }));
+              break;
+
+            case 'hyperUnique':
+              attributes.push(new UniqueAttributeInfo({ name }));
+              break;
+
+            case 'approximateHistogram':
+              attributes.push(new HistogramAttributeInfo({ name }));
+              break;
+
+            case 'thetaSketch':
+              attributes.push(new ThetaAttributeInfo({ name }));
+              break;
+          }
+        }
+      }
+
+      if (!foundTime) throw new Error(`no valid ${TIME_ATTRIBUTE} in segmentMetadata response`);
+      return attributes;
+    }
+  }
+
+  static introspectPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
+    return (res: Druid.DatasourceIntrospectResult): Attributes => {
+      if (!Array.isArray(res.dimensions) || !Array.isArray(res.metrics)) {
+        throw new InvalidResultError('malformed GET introspect response', res);
+      }
+
+      var attributes: Attributes = [
+        new AttributeInfo({ name: timeAttribute, type: 'TIME' })
+      ];
+      res.dimensions.forEach(dimension => {
+        if (dimension === timeAttribute) return; // Ignore dimensions that clash with the timeAttribute name
+        attributes.push(new AttributeInfo({ name: dimension, type: 'STRING' }));
+      });
+      res.metrics.forEach(metric => {
+        if (metric === timeAttribute) return; // Ignore metrics that clash with the timeAttribute name
+        attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', unsplitable: true }));
+      });
+      return attributes;
+    }
   }
 
   /**
@@ -584,7 +580,7 @@ export class DruidExternal extends External {
       if (!expr) throw new Error(`can not part on ${part}`);
       return {
         type: 'javascript',
-        'function': wrapFunctionTryCatch([
+        'function': DruidExternal.wrapFunctionTryCatch([
           'var d = new org.joda.time.DateTime(s);',
           timezone.isUTC() ? null : `d = d.withZone(org.joda.time.DateTimeZone.forID(${JSON.stringify(timezone)}));`,
           `d = ${expr};`,
@@ -630,7 +626,7 @@ export class DruidExternal extends External {
       if (!prop) throw new Error(`can not floor on ${duration}`);
       return {
         type: 'javascript',
-        'function': wrapFunctionTryCatch([
+        'function': DruidExternal.wrapFunctionTryCatch([
           'var d = new org.joda.time.DateTime(s);',
           timezone.isUTC() ? null : `d = d.withZone(org.joda.time.DateTimeZone.forID(${JSON.stringify(timezone)}));`,
           `d = d.${prop}().roundFloorCopy();`,
@@ -1607,8 +1603,8 @@ export class DruidExternal extends External {
         dimensions: dimensions,
         timestampLabel,
         granularity: granularity || 'all',
-        postProcess: postProcessFactory(
-          groupByNormalizerFactory(timestampLabel),
+        postProcess: DruidExternal.postProcessFactory(
+          DruidExternal.groupByNormalizerFactory(timestampLabel),
           inflaters,
           null
         )
@@ -1624,8 +1620,8 @@ export class DruidExternal extends External {
       return {
         queryType: 'timeseries',
         granularity: granularityInflater.granularity,
-        postProcess: postProcessFactory(
-          timeseriesNormalizerFactory(label),
+        postProcess: DruidExternal.postProcessFactory(
+          DruidExternal.timeseriesNormalizerFactory(label),
           [granularityInflater.inflater],
           null
         )
@@ -1643,7 +1639,7 @@ export class DruidExternal extends External {
         queryType: 'topN',
         dimension: dimensionInflater.dimension,
         granularity: 'all',
-        postProcess: postProcessFactory(topNNormalizer, inflaters, null)
+        postProcess: DruidExternal.postProcessFactory(DruidExternal.topNNormalizer, inflaters, null)
       };
     }
 
@@ -1651,7 +1647,7 @@ export class DruidExternal extends External {
       queryType: 'groupBy',
       dimensions: [dimensionInflater.dimension],
       granularity: 'all',
-      postProcess: postProcessFactory(groupByNormalizerFactory(), inflaters, null)
+      postProcess: DruidExternal.postProcessFactory(DruidExternal.groupByNormalizerFactory(), inflaters, null)
     };
   }
 
@@ -2129,7 +2125,7 @@ export class DruidExternal extends External {
 
     return {
       query: druidQuery,
-      postProcess: timeBoundaryPostProcessFactory(applies)
+      postProcess: DruidExternal.timeBoundaryPostProcessFactory(applies)
     };
   }
 
@@ -2234,8 +2230,8 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
-          postProcess: postProcessFactory(selectNormalizerFactory(selectedTimeAttribute), inflaters, selectedAttributes),
-          next: selectNextFactory(resultLimit, descending)
+          postProcess: DruidExternal.postProcessFactory(DruidExternal.selectNormalizerFactory(selectedTimeAttribute), inflaters, selectedAttributes),
+          next: DruidExternal.selectNextFactory(resultLimit, descending)
         };
 
       case 'value':
@@ -2249,7 +2245,7 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
-          postProcess: valuePostProcess
+          postProcess: DruidExternal.valuePostProcess
         };
 
       case 'total':
@@ -2263,7 +2259,7 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
-          postProcess: totalPostProcessFactory(applies)
+          postProcess: DruidExternal.totalPostProcessFactory(applies)
         };
 
       case 'split':
@@ -2404,7 +2400,7 @@ export class DruidExternal extends External {
       query.dataSource = (query.dataSource as Druid.DataSourceFull).dataSources[0];
     }
 
-    return requester({ query }).then(segmentMetadataPostProcessFactory(timeAttribute));
+    return requester({ query }).then(DruidExternal.segmentMetadataPostProcessFactory(timeAttribute));
   }
 
   protected getIntrospectAttributesWithGet(): Q.Promise<Attributes> {
@@ -2416,7 +2412,7 @@ export class DruidExternal extends External {
         dataSource: this.getDruidDataSource()
       }
     })
-      .then(introspectPostProcessFactory(timeAttribute))
+      .then(DruidExternal.introspectPostProcessFactory(timeAttribute))
   }
 
   protected getIntrospectAttributes(): Q.Promise<Attributes> {

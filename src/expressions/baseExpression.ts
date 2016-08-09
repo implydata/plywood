@@ -73,8 +73,6 @@ import {
   Dataset,
   Datum,
   PlywoodValue,
-  External,
-  ExternalJS,
   NumberRange,
   Range,
   Set,
@@ -84,6 +82,7 @@ import {
 import { ActionJS, CaseType, Splits } from "../actions/baseAction";
 import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from "../datatypes/common";
 import { ComputeFn } from "../datatypes/dataset";
+import { External, ExternalJS } from "../external/baseExternal"
 import { Dummy, dummyObject } from "../helper/dummy";
 
 export interface BooleanExpressionIterator {

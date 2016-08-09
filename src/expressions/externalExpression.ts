@@ -17,9 +17,10 @@
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
 import { dummyObject } from "../helper/dummy";
 import { SQLDialect } from "../dialect/baseDialect";
-import { PlywoodValue, External } from "../datatypes/index";
+import { PlywoodValue } from "../datatypes/index";
 import { Action } from "../actions/baseAction";
 import { ComputeFn } from "../datatypes/dataset";
+import { External } from "../external/baseExternal"
 
 export class ExternalExpression extends Expression {
   static fromJS(parameters: ExpressionJS): Expression {

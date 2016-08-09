@@ -16,7 +16,7 @@
  */
 
 import * as Q from "q";
-import { External, ExternalValue, Inflater, PlywoodValue, Dataset } from "../datatypes/index";
+import { PlywoodValue, Dataset } from "../datatypes/index";
 import { Expression } from "../expressions/baseExpression";
 import {
   ApplyAction,
@@ -27,7 +27,7 @@ import {
   TimeBucketAction
 } from "../actions/index";
 import { Attributes } from "../datatypes/attributeInfo";
-import { QueryAndPostProcess, PostProcess } from "../datatypes/external";
+import { External, ExternalValue, Inflater, QueryAndPostProcess, PostProcess } from "./baseExternal";
 import { ChainExpression } from "../expressions/chainExpression";
 import { SQLDialect } from "../dialect/baseDialect";
 import { dummyObject } from "../helper/dummy";
@@ -53,7 +53,7 @@ function getSplitInflaters(split: SplitAction): Inflater[] {
       }
     }
 
-    return null;
+    return undefined;
   })
 }
 

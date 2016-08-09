@@ -23,7 +23,7 @@ import { Set } from "./set";
 import { StringRange } from "./stringRange";
 import { TimeRange } from "./timeRange";
 import { valueFromJS, valueToJSInlineType, datumHasExternal } from "./common";
-import { External } from "./external";
+import { External } from "../external/baseExternal";
 import { isDate } from "chronoshift";
 
 export function foldContext(d: Datum, c: Datum): Datum {

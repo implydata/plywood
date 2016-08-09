@@ -14,43 +14,16 @@
  * limitations under the License.
  */
 
-import { External, ExternalJS, ExternalValue } from "../datatypes/external";
+import { External, ExternalJS, ExternalValue } from "./baseExternal";
 import { SQLExternal } from "./sqlExternal";
 import { AttributeInfo, Attributes } from "../datatypes/attributeInfo";
 import { PostgresDialect } from "../dialect/postgresDialect";
 import { PseudoDatum } from "../datatypes/dataset";
 
-interface SQLDescribeRow {
+export interface PostgresSQLDescribeRow {
   name: string;
   sqlType: string;
   arrayType?: string;
-}
-
-function postProcessIntrospect(columns: SQLDescribeRow[]): Attributes {
-  return columns.map((column: SQLDescribeRow) => {
-    var name = column.name;
-    var sqlType = column.sqlType.toLowerCase();
-    if (sqlType.indexOf('timestamp') !== -1) {
-      return new AttributeInfo({ name, type: 'TIME' });
-    } else if (sqlType === 'character varying') {
-      return new AttributeInfo({ name, type: 'STRING' });
-    } else if (sqlType === 'integer' || sqlType === 'bigint') {
-      // ToDo: make something special for integers
-      return new AttributeInfo({ name, type: 'NUMBER' });
-    } else if (sqlType === 'double precision' || sqlType === 'float') {
-      return new AttributeInfo({ name, type: 'NUMBER' });
-    } else if (sqlType === 'boolean') {
-      return new AttributeInfo({ name, type: 'BOOLEAN' });
-    } else if (sqlType === 'array') {
-      var arrayType = column.arrayType.toLowerCase();
-      if (arrayType === 'character') return new AttributeInfo({ name, type: 'SET/STRING' });
-      else if (arrayType === 'timestamp') return new AttributeInfo({ name, type: 'SET/TIME' });
-      else if (arrayType === 'integer' || arrayType === 'bigint' || sqlType === 'double precision' || sqlType === 'float') return new AttributeInfo({ name, type: 'SET/NUMBER' });
-      else if (arrayType === 'boolean') return new AttributeInfo({ name, type: 'SET/BOOLEAN' });
-      return null;
-    }
-    return null;
-  }).filter(Boolean);
 }
 
 export class PostgresExternal extends SQLExternal {
@@ -59,6 +32,33 @@ export class PostgresExternal extends SQLExternal {
   static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): PostgresExternal {
     var value: ExternalValue = External.jsToValue(parameters, requester);
     return new PostgresExternal(value);
+  }
+
+  static postProcessIntrospect(columns: PostgresSQLDescribeRow[]): Attributes {
+    return columns.map((column: PostgresSQLDescribeRow) => {
+      var name = column.name;
+      var sqlType = column.sqlType.toLowerCase();
+      if (sqlType.indexOf('timestamp') !== -1) {
+        return new AttributeInfo({ name, type: 'TIME' });
+      } else if (sqlType === 'character varying') {
+        return new AttributeInfo({ name, type: 'STRING' });
+      } else if (sqlType === 'integer' || sqlType === 'bigint') {
+        // ToDo: make something special for integers
+        return new AttributeInfo({ name, type: 'NUMBER' });
+      } else if (sqlType === 'double precision' || sqlType === 'float') {
+        return new AttributeInfo({ name, type: 'NUMBER' });
+      } else if (sqlType === 'boolean') {
+        return new AttributeInfo({ name, type: 'BOOLEAN' });
+      } else if (sqlType === 'array') {
+        var arrayType = column.arrayType.toLowerCase();
+        if (arrayType === 'character') return new AttributeInfo({ name, type: 'SET/STRING' });
+        else if (arrayType === 'timestamp') return new AttributeInfo({ name, type: 'SET/TIME' });
+        else if (arrayType === 'integer' || arrayType === 'bigint' || sqlType === 'double precision' || sqlType === 'float') return new AttributeInfo({ name, type: 'SET/NUMBER' });
+        else if (arrayType === 'boolean') return new AttributeInfo({ name, type: 'SET/BOOLEAN' });
+        return null;
+      }
+      return null;
+    }).filter(Boolean);
   }
 
   static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
@@ -98,7 +98,7 @@ export class PostgresExternal extends SQLExternal {
        ON ((c.table_catalog, c.table_schema, c.table_name, 'TABLE', c.dtd_identifier)
        = (e.object_catalog, e.object_schema, e.object_name, e.object_type, e.collection_type_identifier))
        WHERE table_name = ${this.dialect.escapeLiteral(this.source as string)}`,
-    }).then(postProcessIntrospect);
+    }).then(PostgresExternal.postProcessIntrospect);
   }
 }
 

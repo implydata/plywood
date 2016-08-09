@@ -25,8 +25,8 @@ import {
   safeAdd
 } from "../helper/utils";
 import { $, Expression, RefExpression, ChainExpression, ExternalExpression } from "../expressions/index";
-import { PlywoodValue, Datum, Dataset } from "./dataset";
-import { Attributes, AttributeInfo, AttributeJSs } from "./attributeInfo";
+import { PlywoodValue, Datum, Dataset } from "../datatypes/dataset";
+import { Attributes, AttributeInfo, AttributeJSs } from "../datatypes/attributeInfo";
 import {
   Action,
   ApplyAction,
@@ -38,14 +38,14 @@ import {
   SplitAction,
   TimeBucketAction
 } from "../actions/index";
-import { NumberRange } from "./numberRange";
-import { unwrapSetType } from "./common";
-import { CustomDruidAggregations, CustomDruidExtractionFns } from "../external/druidExternal";
+import { NumberRange } from "../datatypes/numberRange";
+import { unwrapSetType } from "../datatypes/common";
+import { CustomDruidAggregations, CustomDruidExtractionFns } from "./druidExternal";
 import { ExpressionJS } from "../expressions/baseExpression";
-import { Set } from "./set";
-import { StringRange } from "./stringRange";
+import { Set } from "../datatypes/set";
+import { StringRange } from "../datatypes/stringRange";
 import { dummyObject, Dummy } from "../helper/dummy";
-import { TimeRange } from "./timeRange";
+import { TimeRange } from "../datatypes/timeRange";
 import { promiseWhile } from "../helper/promiseWhile";
 
 export interface PostProcess {
