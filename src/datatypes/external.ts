@@ -23,7 +23,7 @@ import {
   nonEmptyLookup,
   find,
   findByName,
-  expressionLookupToJS
+  expressionLookupToJS, safeAdd
 } from "../helper/utils";
 import { $, Expression, RefExpression, ChainExpression, ExternalExpression } from "../expressions/index";
 import { PlywoodValue, Datum, Dataset } from "./dataset";
@@ -40,7 +40,6 @@ import {
   TimeBucketAction
 } from "../actions/index";
 import { NumberRange } from "./numberRange";
-import { safeAdd } from "../init";
 import { unwrapSetType } from "./common";
 import { CustomDruidAggregations, CustomDruidExtractionFns } from "../external/druidExternal";
 import { ExpressionJS } from "../expressions/baseExpression";
@@ -749,7 +748,8 @@ export abstract class External {
   }
 
   public toString(): string {
-    switch (this.mode) {
+    const { mode } = this;
+    switch (mode) {
       case 'raw':
         return `ExternalRaw(${this.filter})`;
 
@@ -763,7 +763,7 @@ export abstract class External {
         return `ExternalSplit(${this.split}, ${this.applies.length})`;
 
       default:
-        throw new Error(`unknown mode: ${this.mode}`);
+        throw new Error(`unknown mode: ${mode}`);
     }
 
   }

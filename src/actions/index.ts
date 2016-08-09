@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
+export * from './baseAction';
 export * from './absoluteAction';
 export * from './addAction';
 export * from './andAction';
 export * from './applyAction';
 export * from './averageAction';
-export * from './baseAction';
 export * from './cardinalityAction';
 export * from './castAction';
 export * from './concatAction';

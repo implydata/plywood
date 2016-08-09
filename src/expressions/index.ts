@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-export * from './baseExpression.ts';
-export * from './chainExpression.ts';
-export * from './externalExpression.ts';
-export * from './literalExpression.ts';
-export * from './refExpression.ts';
+export * from './baseExpression';
+export * from './chainExpression';
+export * from './externalExpression';
+export * from './literalExpression';
+export * from './refExpression';

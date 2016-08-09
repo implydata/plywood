@@ -250,20 +250,6 @@ export class ChainExpression extends Expression {
       var undigestedActions: Action[] = [];
       var allActions: Action[] = [];
 
-      function addExternalApply(action: ApplyAction) {
-        var externalMode = (<ExternalExpression>action.expression).external.mode;
-        if (externalMode === 'raw') {
-          dataDefinitions[action.name] = <ExternalExpression>action.expression;
-        } else if (externalMode === 'value') {
-          applies.push(action);
-          allActions.push(action);
-          hasExternalValueApply = true;
-        } else {
-          undigestedActions.push(action);
-          allActions.push(action);
-        }
-      }
-
       for (let action of actions) {
         if (action instanceof ApplyAction) {
           var substitutedAction = <ApplyAction>action.substitute((ex, index, depth, nestDiff) => {
@@ -274,7 +260,17 @@ export class ChainExpression extends Expression {
           }).simplify();
 
           if (substitutedAction.expression instanceof ExternalExpression) {
-            addExternalApply(substitutedAction);
+            var externalMode = (<ExternalExpression>action.expression).external.mode;
+            if (externalMode === 'raw') {
+              dataDefinitions[substitutedAction.name] = <ExternalExpression>substitutedAction.expression;
+            } else if (externalMode === 'value') {
+              applies.push(substitutedAction);
+              allActions.push(substitutedAction);
+              hasExternalValueApply = true;
+            } else {
+              undigestedActions.push(substitutedAction);
+              allActions.push(substitutedAction);
+            }
           } else if (substitutedAction.expression.type !== 'DATASET') {
             applies.push(substitutedAction);
             allActions.push(substitutedAction);

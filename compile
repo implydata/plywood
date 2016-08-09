@@ -11,5 +11,8 @@ echo "Compiling PEG.js"
 echo "Compiling TypeScript"
 ./compile-tsc
 
+echo "Combine with rollup"
+node_modules/.bin/rollup -c
+
 echo "Compiling package"
 ./compile-package

@@ -22,7 +22,6 @@ import { dummyObject } from "../helper/dummy";
 import { SQLDialect } from "../dialect/baseDialect";
 import { hasOwnProperty } from "../helper/utils";
 import { Dataset, Set, TimeRange, PlywoodValue } from "../datatypes/index";
-import { defaultParserTimezone } from "../init";
 import { isSetType, valueFromJS, getValueType } from "../datatypes/common";
 import { ComputeFn } from "../datatypes/dataset";
 
@@ -179,7 +178,7 @@ export class LiteralExpression extends Expression {
 
   public bumpStringLiteralToTime(): Expression {
     if (this.type !== 'STRING') return this;
-    var parse = parseISODate(this.value, defaultParserTimezone);
+    var parse = parseISODate(this.value, Expression.defaultParserTimezone);
     if (!parse) throw new Error(`could not parse '${this.value}' as time`);
     return r(parse);
   }
@@ -193,11 +192,11 @@ export class LiteralExpression extends Expression {
     const { type, value } = this;
     if (type === targetType || targetType !== 'TIME') return this;
     if (type === 'STRING') {
-      var parse = parseISODate(value, defaultParserTimezone);
+      var parse = parseISODate(value, Expression.defaultParserTimezone);
       return parse ? r(parse) : this;
     } else if (type === 'STRING_RANGE') {
-      var parseStart = parseISODate(value.start, defaultParserTimezone);
-      var parseEnd = parseISODate(value.end, defaultParserTimezone);
+      var parseStart = parseISODate(value.start, Expression.defaultParserTimezone);
+      var parseEnd = parseISODate(value.end, Expression.defaultParserTimezone);
       if (parseStart || parseEnd) {
         return new LiteralExpression({
           type: "TIME_RANGE",

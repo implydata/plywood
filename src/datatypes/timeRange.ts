@@ -18,7 +18,7 @@
 import { Timezone, Duration, parseISODate } from "chronoshift";
 import { Class, Instance, isInstanceOf } from "immutable-class";
 import { Range } from "./range";
-import { defaultParserTimezone } from "../init";
+import { Expression } from "../expressions/baseExpression";
 
 export interface TimeRangeValue {
   start: Date;
@@ -35,7 +35,7 @@ export interface TimeRangeJS {
 function toDate(date: any, name: string): Date {
   if (date === null) return null;
   if (typeof date === "undefined") throw new TypeError(`timeRange must have a ${name}`);
-  if (typeof date === 'string' || typeof date === 'number') date = parseISODate(date as string, defaultParserTimezone);
+  if (typeof date === 'string' || typeof date === 'number') date = parseISODate(date as string, Expression.defaultParserTimezone);
   if (!date.getDay) throw new TypeError(`timeRange must have a ${name} that is a Date`);
   return date;
 }

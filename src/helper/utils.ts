@@ -179,3 +179,50 @@ export function expressionLookupToJS(expressions: Lookup<Expression>): Lookup<Ex
   return expressionsJSs;
 }
 
+export function safeAdd(num: number, delta: number): number {
+  var stringDelta = String(delta);
+  var dotIndex = stringDelta.indexOf(".");
+  if (dotIndex === -1 || stringDelta.length === 18) {
+    return num + delta;
+  } else {
+    var scale = Math.pow(10, stringDelta.length - dotIndex - 1);
+    return (num * scale + delta * scale) / scale;
+  }
+}
+
+export function continuousFloorExpression(variable: string, floorFn: string, size: number, offset: number): string {
+  var expr = variable;
+  if (offset !== 0) {
+    expr = expr + " - " + offset;
+  }
+  if (offset !== 0 && size !== 1) {
+    expr = "(" + expr + ")";
+  }
+  if (size !== 1) {
+    expr = expr + " / " + size;
+  }
+  expr = floorFn + "(" + expr + ")";
+  if (size !== 1) {
+    expr = expr + " * " + size;
+  }
+  if (offset !== 0) {
+    expr = expr + " + " + offset;
+  }
+  return expr;
+}
+
+// Taken from: https://stackoverflow.com/questions/31089801/extending-error-in-javascript-with-es6-syntax
+export class ExtendableError extends Error {
+  public stack: string;
+
+  constructor(message: string) {
+    super(message);
+    this.name = (this.constructor as any).name;
+    this.message = message;
+    if (typeof (Error as any).captureStackTrace === 'function') {
+      (Error as any).captureStackTrace(this, this.constructor);
+    } else {
+      this.stack = (new Error(message) as any).stack;
+    }
+  }
+}

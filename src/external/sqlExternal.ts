@@ -53,7 +53,7 @@ function getSplitInflaters(split: SplitAction): Inflater[] {
       }
     }
 
-    return;
+    return null;
   })
 }
 

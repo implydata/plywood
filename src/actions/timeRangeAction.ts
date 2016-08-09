@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-
+import { immutableEqual } from "immutable-class";
 import { Timezone, Duration } from "chronoshift";
 import { dummyObject } from "../helper/dummy";
 import { Action, ActionJS, ActionValue, Environment } from "./baseAction";
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn } from "../datatypes/dataset";
-import { immutableEqual } from "immutable-class/equality";
 import { TimeRange } from "../datatypes/timeRange";
 
 export class TimeRangeAction extends Action {

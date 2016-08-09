@@ -1,6 +1,6 @@
 #!/bin/bash
 
+rm -rf build/*
 mkdir -p build
 
 node_modules/.bin/tsc
-#  node extra/extra.js;

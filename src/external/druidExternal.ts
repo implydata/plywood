@@ -16,7 +16,7 @@
  */
 
 import { Timezone, Duration, isDate } from "chronoshift";
-import { hasOwnProperty, dictEqual, nonEmptyLookup, shallowCopy } from "../helper/utils";
+import { hasOwnProperty, dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from "../helper/utils";
 import { dummyObject } from "../helper/dummy";
 import { $, Expression, ChainExpression, LiteralExpression, RefExpression } from "../expressions/index";
 import {
@@ -73,7 +73,6 @@ import {
   TimeRange,
   PlywoodValue
 } from "../datatypes/index";
-import { ExtendableError } from "../init";
 import { Inflater, NextFn, PostProcess, QueryAndPostProcess } from "../datatypes/external";
 import { unwrapSetType } from "../datatypes/common";
 import { PlywoodRange } from "../datatypes/range";

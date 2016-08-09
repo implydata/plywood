@@ -82,7 +82,6 @@ import {
   TimeRange
 } from "../datatypes/index";
 import { ActionJS, CaseType, Splits } from "../actions/baseAction";
-import { defaultParserTimezone } from "../init";
 import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from "../datatypes/common";
 import { ComputeFn } from "../datatypes/dataset";
 import { Dummy, dummyObject } from "../helper/dummy";
@@ -272,6 +271,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   static EMPTY_STRING: LiteralExpression;
   static EMPTY_SET: LiteralExpression;
 
+  static expressionParser: PEGParser;
+  static plyqlParser: PEGParser;
+  // The default timezone within which dates in expressions are parsed
+  static defaultParserTimezone: Timezone = Timezone.UTC;
+
+
   static isExpression(candidate: any): candidate is Expression {
     return isInstanceOf(candidate, Expression);
   }
@@ -286,15 +291,15 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       return Expression.fromJS(JSON.parse(str));
     }
 
-    var original = defaultParserTimezone;
-    if (timezone) defaultParserTimezone = timezone;
+    var original = Expression.defaultParserTimezone;
+    if (timezone) Expression.defaultParserTimezone = timezone;
     try {
-      return expressionParser.parse(str);
+      return Expression.expressionParser.parse(str);
     } catch (e) {
       // Re-throw to add the stacktrace
       throw new Error(`Expression parse error: ${e.message} on '${str}'`);
     } finally {
-      defaultParserTimezone = original;
+      Expression.defaultParserTimezone = original;
     }
   }
 
@@ -304,15 +309,15 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param timezone The timezone within which to evaluate any untimezoned date strings
    */
   static parseSQL(str: string, timezone?: Timezone): SQLParse {
-    var original = defaultParserTimezone;
-    if (timezone) defaultParserTimezone = timezone;
+    var original = Expression.defaultParserTimezone;
+    if (timezone) Expression.defaultParserTimezone = timezone;
     try {
-      return plyqlParser.parse(str);
+      return Expression.plyqlParser.parse(str);
     } catch (e) {
       // Re-throw to add the stacktrace
       throw new Error(`SQL parse error: ${e.message} on '${str}'`);
     } finally {
-      defaultParserTimezone = original;
+      Expression.defaultParserTimezone = original;
     }
   }
 
@@ -975,12 +980,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       snd = getValue(snd);
 
       if (typeof ex === 'string') {
-        var parse = parseISODate(ex, defaultParserTimezone);
+        var parse = parseISODate(ex, Expression.defaultParserTimezone);
         if (parse) ex = parse;
       }
 
       if (typeof snd === 'string') {
-        var parse = parseISODate(snd, defaultParserTimezone);
+        var parse = parseISODate(snd, Expression.defaultParserTimezone);
         if (parse) snd = parse;
       }
 

@@ -30,9 +30,8 @@ import {
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn, foldContext } from "../datatypes/dataset";
 import { hasOwnProperty, repeat, deduplicateSort } from "../helper/utils";
-import { Instance } from "immutable-class";
+import { Instance, isInstanceOf } from "immutable-class";
 import { ApplyAction } from "./applyAction";
-import { isInstanceOf } from "immutable-class/utils";
 import { LiteralExpression } from "../expressions/literalExpression";
 import { RefExpression } from "../expressions/refExpression";
 import { ChainExpression } from "../expressions/chainExpression";
