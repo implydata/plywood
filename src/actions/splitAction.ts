@@ -35,7 +35,7 @@ export class SplitAction extends Action {
     } else {
       splits = parameters.splits;
     }
-    value.splits = helper.expressionLookupFromJS(splits);
+    value.splits = expressionLookupFromJS(splits);
     value.dataName = parameters.dataName;
     return new SplitAction(value);
   }
@@ -67,7 +67,7 @@ export class SplitAction extends Action {
 
     var js = super.toJS();
     if (this.isMultiSplit()) {
-      js.splits = helper.expressionLookupToJS(splits);
+      js.splits = expressionLookupToJS(splits);
     } else {
       for (var name in splits) {
         js.name = name;

@@ -15,22 +15,24 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from 'chronoshift';
+import { Timezone, Duration, parseISODate } from 'chronoshift';
 import { Class, Instance, isInstanceOf } from 'immutable-class';
 import { LiteralExpression } from './literalExpression';
 import { ChainExpression } from './chainExpression';
 import { RefExpression } from './refExpression';
+import { ExternalExpression } from './externalExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import {
   Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
   CardinalityAction, CastAction, ConcatAction, ContainsAction, CountAction, CountDistinctAction, CustomAction, CustomTransformAction,
   DivideAction, ExtractAction, FallbackAction, FilterAction,
-  GreaterThanAction, GreaterThanOrEqualAction, InAction, Index, IndexOfAction, IsAction,
+  GreaterThanAction, GreaterThanOrEqualAction, InAction, IndexOfAction, IsAction,
   JoinAction, LengthAction, LessThanAction, LessThanOrEqualAction, LimitAction, LookupAction,
   MatchAction, MaxAction, MinAction, MultiplyAction, NotAction, NumberBucketAction,
   OrAction, OverlapAction, PowerAction, QuantileAction,
   SelectAction, SortAction, SplitAction, SubstrAction, SubtractAction, SumAction,
-  TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction
+  TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction,
+  Environment
 } from '../actions/index';
 import { hasOwnProperty, repeat } from '../helper/utils';
 import { Dataset, Datum, PlywoodValue, External, ExternalJS, NumberRange, Range, Set, StringRange, TimeRange } from '../datatypes/index';
@@ -555,7 +557,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         freeReferences.push(repeat('^', ex.nest - nestDiff) + ex.name);
       }
     });
-    return helper.deduplicateSort(freeReferences);
+    return deduplicateSort(freeReferences);
   }
 
   /**
@@ -723,7 +725,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       var externals = ex.getBaseExternals();
       if (externals.length !== 1) return null;
 
-      var existingApply = helper.find(singleDatasetActions, (apply) => apply.expression.equals(ex));
+      var existingApply = find(singleDatasetActions, (apply) => apply.expression.equals(ex));
 
       var tempName: string;
       if (existingApply) {
@@ -1208,7 +1210,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public referenceCheckInTypeContext(typeContext: DatasetFullType): Expression {
     var alterations: Alterations = {};
     this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This returns the final type
-    if (helper.emptyLookup(alterations)) return this;
+    if (emptyLookup(alterations)) return this;
     return this.substitute((ex: Expression, index: int): Expression => alterations[index] || null);
   }
 
@@ -1345,7 +1347,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param context The context within which to compute the expression
    * @param environment The environment for the default of the expression
    */
-  public simulate(context: Datum = {}, environment: Environment = {}): PlywoodValue {
+  public simulate(context: Datum = {}, environment:  = {}): PlywoodValue {
     var readyExpression = this._initialPrepare(context, environment);
     if (readyExpression instanceof ExternalExpression) {
       // Top level externals need to be unsuppressed

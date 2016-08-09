@@ -1,5 +1,5 @@
-//  ./compile-tsc | grep "Cannot find name 'Expression'"
-//  ./compile-tsc | grep "Cannot find name 'Expression'" | cut -d'(' -f 1 | sort | uniq | xargs -n 1 node modulator.js Expression src/expressions/baseExpression.ts
+//  ./compile-tsc | grep "Cannot find name 'PlywoodValue'"
+//  ./compile-tsc | grep "Cannot find name 'PlywoodValue'" | cut -d'(' -f 1 | sort | uniq | xargs -n 1 node modulator.js PlywoodValue src/datatypes/index.ts
 
 var path = require('path');
 var fs = require('fs');

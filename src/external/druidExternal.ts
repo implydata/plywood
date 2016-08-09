@@ -17,12 +17,13 @@
 
 import { Timezone, Duration, isDate } from 'chronoshift';
 import { hasOwnProperty, dictEqual } from '../helper/utils';
+import { dummyObject, shallowCopy } from '../helper/dummy';
 import { $, Expression, ChainExpression, ExternalExpression, LiteralExpression, RefExpression } from '../expressions/index';
 import {
   Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
   CardinalityAction, CastAction, ConcatAction, ContainsAction, CountAction, CountDistinctAction, CustomAction, CustomTransformAction,
   DivideAction, ExtractAction, FallbackAction, FilterAction,
-  GreaterThanAction, GreaterThanOrEqualAction, InAction, Index, IndexOfAction, IsAction,
+  GreaterThanAction, GreaterThanOrEqualAction, InAction, IndexOfAction, IsAction,
   JoinAction, LengthAction, LessThanAction, LessThanOrEqualAction, LimitAction, LookupAction,
   MatchAction, MaxAction, MinAction, MultiplyAction, NotAction, NumberBucketAction,
   OrAction, OverlapAction, PowerAction, QuantileAction,
@@ -30,8 +31,8 @@ import {
   TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction
 } from '../actions/index';
 import {
-  AttributeInfo, Attributes, UniqueAttributeInfo, HistogramAttributeInfo,
-  Dataset, Datum, External, ExternalJS, ExternalValue, NumberRange, Range, Set, StringRange, TimeRange
+  AttributeInfo, Attributes, UniqueAttributeInfo, HistogramAttributeInfo, ThetaAttributeInfo,
+  Dataset, Datum, External, ExternalJS, ExternalValue, NumberRange, Range, Set, StringRange, TimeRange, PlywoodValue
 } from '../datatypes/index';
 
 const DUMMY_NAME = '!DUMMY';
@@ -649,8 +650,8 @@ export class DruidExternal extends External {
   public toJS(): ExternalJS {
     var js: ExternalJS = super.toJS();
     if (this.timeAttribute !== TIME_ATTRIBUTE) js.timeAttribute = this.timeAttribute;
-    if (helper.nonEmptyLookup(this.customAggregations)) js.customAggregations = this.customAggregations;
-    if (helper.nonEmptyLookup(this.customExtractionFns)) js.customExtractionFns = this.customExtractionFns;
+    if (nonEmptyLookup(this.customAggregations)) js.customAggregations = this.customAggregations;
+    if (nonEmptyLookup(this.customExtractionFns)) js.customExtractionFns = this.customExtractionFns;
     if (this.allowEternity) js.allowEternity = true;
     if (this.allowSelectQueries) js.allowSelectQueries = true;
     if (this.introspectionStrategy !== DruidExternal.DEFAULT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
@@ -2104,7 +2105,7 @@ export class DruidExternal extends External {
     };
 
     if (context) {
-      druidQuery.context = helper.shallowCopy(context);
+      druidQuery.context = shallowCopy(context);
     }
 
     // Filter

@@ -19,6 +19,7 @@ import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from 
 import { dummyObject } from '../helper/dummy';
 import { SQLDialect } from '../dialect/baseDialect';
 import { hasOwnProperty, repeat } from '../helper/utils';
+import { PlywoodValue } from '../datatypes/index';
 
 export const POSSIBLE_TYPES: Lookup<number> = {
   'NULL': 1,

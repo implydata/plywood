@@ -124,7 +124,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   static override(attributes: Attributes, attributeOverrides: Attributes): Attributes {
-    return helper.overridesByName(attributes, attributeOverrides);
+    return overridesByName(attributes, attributeOverrides);
   }
 
 

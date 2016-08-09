@@ -16,6 +16,7 @@
  */
 
 import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { Range } from './range';
 
 export interface NumberRangeValue {
   start: number;

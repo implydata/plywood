@@ -20,7 +20,6 @@ import { Action, ActionJS, ActionValue } from './baseAction';
 import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { Datum, ComputeFn } from '../datatypes/dataset';
-import { dummyObject } from '../helper/dummy';
 
 export class ExtractAction extends Action {
   static fromJS(parameters: ActionJS): ExtractAction {

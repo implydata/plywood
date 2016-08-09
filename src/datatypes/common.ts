@@ -15,12 +15,10 @@
  * limitations under the License.
  */
 
+import { isDate } from 'chronoshift';
 import { hasOwnProperty } from '../helper/utils';
 import { Expression } from '../expressions/baseExpression';
-
-export function isDate(dt: any): dt is Date {
-  return !!(dt && dt.toISOString);
-}
+import { Dataset } from './dataset';
 
 export function getValueType(value: any): PlyType {
   var typeofValue = typeof value;

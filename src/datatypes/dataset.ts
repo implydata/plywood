@@ -17,6 +17,13 @@
 
 import { Class, Instance, isInstanceOf } from 'immutable-class';
 import { hasOwnProperty } from '../helper/utils';
+import { Attributes, AttributeInfo } from './attributeInfo';
+import { Dataset } from './dataset';
+import { NumberRange } from './numberRange';
+import { Set } from './set';
+import { StringRange } from './stringRange';
+import { TimeRange } from './timeRange';
+
 
 export function foldContext(d: Datum, c: Datum): Datum {
   var newContext = Object.create(c);
@@ -462,7 +469,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     var attrLookup: Lookup<boolean> = Object.create(null);
     for (var attr of attrs) {
       attrLookup[attr] = true;
-      var existingAttribute = helper.findByName(attributes, attr);
+      var existingAttribute = findByName(attributes, attr);
       if (existingAttribute) newAttributes.push(existingAttribute)
     }
 
@@ -506,7 +513,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     // End Hack
 
     var value = this.valueOf();
-    value.attributes = helper.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
+    value.attributes = overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
     value.data = newData;
     return new Dataset(value);
   }
@@ -727,7 +734,7 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public findDatumByAttribute(attribute: string, value: any): Datum {
-    return helper.find(this.data, (d) => generalEqual(d[attribute], value));
+    return find(this.data, (d) => generalEqual(d[attribute], value));
   }
 
   public getNestedColumns(): Column[] {

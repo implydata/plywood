@@ -14,9 +14,23 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { Timezone, Duration } from 'chronoshift';
+import { Class, Instance, isInstanceOf, immutableArraysEqual } from 'immutable-class';
 import { hasOwnProperty } from '../helper/utils';
-import { Expression } from '../expressions/baseExpression';
+import { $, Expression, RefExpression, ChainExpression, ExternalExpression } from '../expressions/index';
+import { PlywoodValue } from './dataset';
+import { Attributes, AttributeInfo } from './attributeInfo';
+import {
+  Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
+  CardinalityAction, CastAction, ConcatAction, ContainsAction, CountAction, CountDistinctAction, CustomAction, CustomTransformAction,
+  DivideAction, ExtractAction, FallbackAction, FilterAction,
+  GreaterThanAction, GreaterThanOrEqualAction, InAction, IndexOfAction, IsAction,
+  JoinAction, LengthAction, LessThanAction, LessThanOrEqualAction, LimitAction, LookupAction,
+  MatchAction, MaxAction, MinAction, MultiplyAction, NotAction, NumberBucketAction,
+  OrAction, OverlapAction, PowerAction, QuantileAction,
+  SelectAction, SortAction, SplitAction, SubstrAction, SubtractAction, SumAction,
+  TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction
+} from '../actions/index';
 
 export interface PostProcess {
   (result: any): PlywoodValue;
@@ -293,8 +307,8 @@ export abstract class External {
     apply = <ApplyAction>apply.changeExpression(apply.expression.resolveWithExpressions(expressions, 'leave').simplify());
 
     return {
-      attributes: helper.overrideByName(attributes, new AttributeInfo({ name: apply.name, type: apply.expression.type })),
-      applies: helper.overrideByName(applies, apply)
+      attributes: overrideByName(attributes, new AttributeInfo({ name: apply.name, type: apply.expression.type })),
+      applies: overrideByName(applies, apply)
     }
   }
 
@@ -496,7 +510,7 @@ export abstract class External {
       value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
     }
     if (parameters.derivedAttributes) {
-      value.derivedAttributes = helper.expressionLookupFromJS(parameters.derivedAttributes);
+      value.derivedAttributes = expressionLookupFromJS(parameters.derivedAttributes);
     }
 
     value.filter = parameters.filter ? Expression.fromJS(parameters.filter) : Expression.TRUE;
@@ -654,7 +668,7 @@ export abstract class External {
     if (this.suppress) value.suppress = this.suppress;
     if (this.attributes) value.attributes = this.attributes;
     if (this.attributeOverrides) value.attributeOverrides = this.attributeOverrides;
-    if (helper.nonEmptyLookup(this.derivedAttributes)) value.derivedAttributes = this.derivedAttributes;
+    if (nonEmptyLookup(this.derivedAttributes)) value.derivedAttributes = this.derivedAttributes;
     if (this.delegates) value.delegates = this.delegates;
     value.concealBuckets = this.concealBuckets;
 
@@ -702,7 +716,7 @@ export abstract class External {
     if (this.rollup) js.rollup = true;
     if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
     if (this.attributeOverrides) js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
-    if (helper.nonEmptyLookup(this.derivedAttributes)) js.derivedAttributes = helper.expressionLookupToJS(this.derivedAttributes);
+    if (nonEmptyLookup(this.derivedAttributes)) js.derivedAttributes = expressionLookupToJS(this.derivedAttributes);
     if (this.concealBuckets) js.concealBuckets = true;
 
     if (this.rawAttributes) js.rawAttributes = AttributeInfo.toJSs(this.rawAttributes);
@@ -774,7 +788,7 @@ export abstract class External {
 
   public getAttributesInfo(attributeName: string) {
     var attributes = this.rawAttributes || this.attributes;
-    return helper.findByName(attributes, attributeName);
+    return findByName(attributes, attributeName);
   }
 
   public updateAttribute(newAttribute: AttributeInfo): External {
@@ -792,7 +806,7 @@ export abstract class External {
 
   public hasAttribute(name: string): boolean {
     const { attributes, rawAttributes, derivedAttributes } = this;
-    if (helper.find(rawAttributes || attributes, (a) => a.name === name)) return true;
+    if (find(rawAttributes || attributes, (a) => a.name === name)) return true;
     return hasOwnProperty(derivedAttributes, name);
   }
 
@@ -1335,7 +1349,7 @@ export abstract class External {
     var finalResult: Q.Promise<PlywoodValue>;
     if (next) {
       var results: any[] = [];
-      finalResult = helper.promiseWhile(
+      finalResult = promiseWhile(
         () => query,
         () => {
           return requester({ query })

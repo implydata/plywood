@@ -16,13 +16,13 @@
  */
 
 import * as Q from 'q';
-import { External, ExternalJS, ExternalValue, Inflater } from '../datatypes/external';
+import { External, ExternalJS, ExternalValue, Inflater, PlywoodValue, Dataset } from '../datatypes/index';
 import { Expression } from '../expressions/baseExpression';
 import {
   Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
   CardinalityAction, CastAction, ConcatAction, ContainsAction, CountAction, CountDistinctAction, CustomAction, CustomTransformAction,
   DivideAction, ExtractAction, FallbackAction, FilterAction,
-  GreaterThanAction, GreaterThanOrEqualAction, InAction, Index, IndexOfAction, IsAction,
+  GreaterThanAction, GreaterThanOrEqualAction, InAction, IndexOfAction, IsAction,
   JoinAction, LengthAction, LessThanAction, LessThanOrEqualAction, LimitAction, LookupAction,
   MatchAction, MaxAction, MinAction, MultiplyAction, NotAction, NumberBucketAction,
   OrAction, OverlapAction, PowerAction, QuantileAction,

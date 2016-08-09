@@ -22,7 +22,7 @@ import { dummyObject } from '../helper/dummy';
 import { Expression, ExpressionJS, Indexer, Alterations } from '../expressions/baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { Datum, ComputeFn } from '../datatypes/dataset';
-import { hasOwnProperty, repeat } from '../helper/utils';
+import { hasOwnProperty, repeat, deduplicateSort } from '../helper/utils';
 
 export interface Splits {
   [name: string]: Expression;
@@ -474,7 +474,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
     this.getExpressions().forEach((ex) => {
       freeReferences = freeReferences.concat(ex.getFreeReferences());
     });
-    return helper.deduplicateSort(freeReferences);
+    return deduplicateSort(freeReferences);
   }
 
   public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {

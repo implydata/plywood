@@ -16,11 +16,12 @@
  */
 
 import { parseISODate } from 'chronoshift';
+import { isImmutableClass } from 'immutable-class';
 import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
 import { dummyObject } from '../helper/dummy';
 import { SQLDialect } from '../dialect/baseDialect';
 import { hasOwnProperty } from '../helper/utils';
-import { Dataset, Set, TimeRange } from '../datatypes/index';
+import { Dataset, Set, TimeRange, PlywoodValue } from '../datatypes/index';
 
 export class LiteralExpression extends Expression {
   static fromJS(parameters: ExpressionJS): LiteralExpression {

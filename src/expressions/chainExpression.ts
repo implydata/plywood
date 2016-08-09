@@ -15,7 +15,8 @@
  */
 
 import { immutableArraysEqual } from 'immutable-class';
-import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
+import { r, ply, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
+import { ExternalExpression } from './externalExpression';
 import { dummyObject } from '../helper/dummy';
 import {
   Action, AbsoluteAction, AddAction, AndAction, ApplyAction, AverageAction,
@@ -28,7 +29,7 @@ import {
   SelectAction, SortAction, SplitAction, SubstrAction, SubtractAction, SumAction,
   TimeBucketAction, TimeFloorAction, TimePartAction, TimeRangeAction, TimeShiftAction, TransformCaseAction
 } from '../actions/index';
-import { Dataset, Datum } from '../datatypes/index';
+import { Dataset, Datum, PlywoodValue } from '../datatypes/index';
 
 import { SQLDialect } from '../dialect/baseDialect';
 import { hasOwnProperty, repeat, arraysEqual } from '../helper/utils';

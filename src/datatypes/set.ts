@@ -17,6 +17,9 @@
 
 import { Class, Instance, isInstanceOf } from 'immutable-class';
 import { hasOwnProperty } from '../helper/utils';
+import { PlywoodRange } from '../datatypes/range';
+import { NumberRange } from '../datatypes/numberRange';
+import { TimeRange } from '../datatypes/timeRange';
 
 export interface SetValue {
   setType: string;

@@ -16,8 +16,8 @@
 
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
 import { dummyObject } from '../helper/dummy';
-import { External } from '../datatypes/external';
 import { SQLDialect } from '../dialect/baseDialect';
+import { PlywoodValue, External } from '../datatypes/index';
 
 export class ExternalExpression extends Expression {
   static fromJS(parameters: ExpressionJS): Expression {
