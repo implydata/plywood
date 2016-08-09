@@ -15,68 +15,73 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class MultiplyAction extends Action {
-    static fromJS(parameters: ActionJS): MultiplyAction {
-      return new MultiplyAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("multiply");
-      this._checkExpressionTypes('NUMBER');
-    }
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'NUMBER';
-    }
+export class MultiplyAction extends Action {
+  static fromJS(parameters: ActionJS): MultiplyAction {
+    return new MultiplyAction(Action.jsToValue(parameters));
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("multiply");
+    this._checkExpressionTypes('NUMBER');
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'NUMBER';
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        return (inputFn(d, c) || 0) * (expressionFn(d, c) || 0);
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-      return `(${inputJS}*${expressionJS})`;
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return inputType;
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `(${inputSQL}*${expressionSQL})`;
-    }
-
-    protected _removeAction(): boolean {
-      return this.expression.equals(Expression.ONE);
-    }
-
-    protected _nukeExpression(): Expression {
-      if (this.expression.equals(Expression.ZERO)) return Expression.ZERO;
-      return null;
-    }
-
-    protected _distributeAction(): Action[] {
-      return this.expression.actionize(this.action);
-    }
-
-    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
-      if (literalExpression.equals(Expression.ONE)) {
-        return this.expression;
-      } else if (literalExpression.equals(Expression.ZERO)) {
-        return Expression.ZERO;
-      }
-      return null;
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      return (inputFn(d, c) || 0) * (expressionFn(d, c) || 0);
     }
   }
 
-  Action.register(MultiplyAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
+    return `(${inputJS}*${expressionJS})`;
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `(${inputSQL}*${expressionSQL})`;
+  }
+
+  protected _removeAction(): boolean {
+    return this.expression.equals(Expression.ONE);
+  }
+
+  protected _nukeExpression(): Expression {
+    if (this.expression.equals(Expression.ZERO)) return Expression.ZERO;
+    return null;
+  }
+
+  protected _distributeAction(): Action[] {
+    return this.expression.actionize(this.action);
+  }
+
+  protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    if (literalExpression.equals(Expression.ONE)) {
+      return this.expression;
+    } else if (literalExpression.equals(Expression.ZERO)) {
+      return Expression.ZERO;
+    }
+    return null;
+  }
 }
+
+Action.register(MultiplyAction);

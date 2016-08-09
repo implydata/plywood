@@ -1,5 +1,4 @@
 /*
- * Copyright 2012-2015 Metamarkets Group Inc.
  * Copyright 2015-2016 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,18 +14,6 @@
  * limitations under the License.
  */
 
+interface Dummy {}
 
-export interface Executor {
-  (ex: Expression, env?: Environment): Q.Promise<PlywoodValue>;
-}
-
-export interface BasicExecutorParameters {
-  datasets: Datum;
-}
-
-export function basicExecutorFactory(parameters: BasicExecutorParameters): Executor {
-  var datasets = parameters.datasets;
-  return (ex: Expression, env: Environment = {}) => {
-    return ex.compute(datasets, env);
-  }
-}
+export const dummyObject: Dummy = {};

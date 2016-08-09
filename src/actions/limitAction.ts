@@ -15,86 +15,91 @@
  * limitations under the License.
  */
 
-module Plywood {
 
-  export class LimitAction extends Action {
-    static fromJS(parameters: ActionJS): LimitAction {
-      return new LimitAction({
-        action: parameters.action,
-        limit: parameters.limit
-      });
-    }
 
-    public limit: int;
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-    constructor(parameters: ActionValue = {}) {
-      super(parameters, dummyObject);
-      this.limit = parameters.limit;
-      this._ensureAction("limit");
-    }
+export class LimitAction extends Action {
+  static fromJS(parameters: ActionJS): LimitAction {
+    return new LimitAction({
+      action: parameters.action,
+      limit: parameters.limit
+    });
+  }
 
-    public valueOf(): ActionValue {
-      var value = super.valueOf();
-      value.limit = this.limit;
-      return value;
-    }
+  public limit: int;
 
-    public toJS(): ActionJS {
-      var js = super.toJS();
-      js.limit = this.limit;
-      return js;
-    }
+  constructor(parameters: ActionValue = {}) {
+    super(parameters, dummyObject);
+    this.limit = parameters.limit;
+    this._ensureAction("limit");
+  }
 
-    public equals(other: LimitAction): boolean {
-      return super.equals(other) &&
-        this.limit === other.limit;
-    }
+  public valueOf(): ActionValue {
+    var value = super.valueOf();
+    value.limit = this.limit;
+    return value;
+  }
 
-    protected _toStringParameters(expressionString: string): string[] {
-      return [String(this.limit)];
-    }
+  public toJS(): ActionJS {
+    var js = super.toJS();
+    js.limit = this.limit;
+    return js;
+  }
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'DATASET';
-    }
+  public equals(other: LimitAction): boolean {
+    return super.equals(other) &&
+      this.limit === other.limit;
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'DATASET';
-    }
+  protected _toStringParameters(expressionString: string): string[] {
+    return [String(this.limit)];
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'DATASET';
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-      var limit = this.limit;
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        return inV ? inV.limit(limit) : null;
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'DATASET';
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `LIMIT ${this.limit}`;
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    return inputType;
+  }
 
-    protected _foldWithPrevAction(prevAction: Action): Action {
-      if (prevAction instanceof LimitAction) {
-        return new LimitAction({
-          limit: Math.min(prevAction.limit, this.limit)
-        });
-      }
-      return null;
-    }
-
-    protected _putBeforeLastAction(lastAction: Action): Action {
-      if (lastAction instanceof ApplyAction) {
-        return this;
-      }
-      return null;
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    var limit = this.limit;
+    return (d: Datum, c: Datum) => {
+      var inV = inputFn(d, c);
+      return inV ? inV.limit(limit) : null;
     }
   }
 
-  Action.register(LimitAction);
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `LIMIT ${this.limit}`;
+  }
+
+  protected _foldWithPrevAction(prevAction: Action): Action {
+    if (prevAction instanceof LimitAction) {
+      return new LimitAction({
+        limit: Math.min(prevAction.limit, this.limit)
+      });
+    }
+    return null;
+  }
+
+  protected _putBeforeLastAction(lastAction: Action): Action {
+    if (lastAction instanceof ApplyAction) {
+      return this;
+    }
+    return null;
+  }
 }
+
+Action.register(LimitAction);

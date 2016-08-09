@@ -14,48 +14,53 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class IndexOfAction extends Action {
-    static fromJS(parameters: ActionJS): IndexOfAction {
-      return new IndexOfAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("indexOf");
-      this._checkExpressionTypes('STRING');
-    }
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'STRING';
-    }
+export class IndexOfAction extends Action {
+  static fromJS(parameters: ActionJS): IndexOfAction {
+    return new IndexOfAction(Action.jsToValue(parameters));
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("indexOf");
+    this._checkExpressionTypes('STRING');
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'STRING';
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        if (inV === null) return null;
-        return inV.indexOf(expressionFn(d, c));
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-      return Expression.jsNullSafetyBinary(inputJS, expressionJS, (a, b) => { return `${a}.indexOf(${b})` }, inputJS[0] === '"', expressionJS[0] === '"');
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return inputType;
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.indexOfExpression(inputSQL, expressionSQL);
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      var inV = inputFn(d, c);
+      if (inV === null) return null;
+      return inV.indexOf(expressionFn(d, c));
     }
   }
 
-  Action.register(IndexOfAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
+    return Expression.jsNullSafetyBinary(inputJS, expressionJS, (a, b) => { return `${a}.indexOf(${b})` }, inputJS[0] === '"', expressionJS[0] === '"');
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return dialect.indexOfExpression(inputSQL, expressionSQL);
+  }
 }
+
+Action.register(IndexOfAction);

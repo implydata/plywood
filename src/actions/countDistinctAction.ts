@@ -15,45 +15,50 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class CountDistinctAction extends Action {
-    static fromJS(parameters: ActionJS): CountDistinctAction {
-      return new CountDistinctAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("countDistinct");
-    }
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'DATASET';
-    }
-
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
-
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return {
-        type: 'NUMBER',
-      };
-    }
-
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `COUNT(DISTINCT ${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL, 'NULL')})`;
-    }
-
-    public isAggregate(): boolean {
-      return true;
-    }
-
-    public isNester(): boolean {
-      return true;
-    }
+export class CountDistinctAction extends Action {
+  static fromJS(parameters: ActionJS): CountDistinctAction {
+    return new CountDistinctAction(Action.jsToValue(parameters));
   }
 
-  Action.register(CountDistinctAction);
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("countDistinct");
+  }
+
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'DATASET';
+  }
+
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
+
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return {
+      type: 'NUMBER',
+    };
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `COUNT(DISTINCT ${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL, 'NULL')})`;
+  }
+
+  public isAggregate(): boolean {
+    return true;
+  }
+
+  public isNester(): boolean {
+    return true;
+  }
 }
+
+Action.register(CountDistinctAction);

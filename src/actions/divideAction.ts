@@ -15,51 +15,56 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class DivideAction extends Action {
-    static fromJS(parameters: ActionJS): DivideAction {
-      return new DivideAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("divide");
-      this._checkExpressionTypes('NUMBER');
-    }
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'NUMBER';
-    }
+export class DivideAction extends Action {
+  static fromJS(parameters: ActionJS): DivideAction {
+    return new DivideAction(Action.jsToValue(parameters));
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("divide");
+    this._checkExpressionTypes('NUMBER');
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'NUMBER';
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        var v = (inputFn(d, c) || 0) / (expressionFn(d, c) || 0);
-        return isNaN(v) ? null : v;
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-      return `(${inputJS}/${expressionJS})`;
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return inputType;
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `(${inputSQL}/${expressionSQL})`;
-    }
-
-    protected _removeAction(): boolean {
-      return this.expression.equals(Expression.ONE);
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      var v = (inputFn(d, c) || 0) / (expressionFn(d, c) || 0);
+      return isNaN(v) ? null : v;
     }
   }
 
-  Action.register(DivideAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
+    return `(${inputJS}/${expressionJS})`;
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `(${inputSQL}/${expressionSQL})`;
+  }
+
+  protected _removeAction(): boolean {
+    return this.expression.equals(Expression.ONE);
+  }
 }
+
+Action.register(DivideAction);

@@ -15,76 +15,81 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class QuantileAction extends Action {
-    static fromJS(parameters: ActionJS): QuantileAction {
-      var value = Action.jsToValue(parameters);
-      value.quantile = parameters.quantile;
-      return new QuantileAction(value);
-    }
 
-    public quantile: number;
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this.quantile = parameters.quantile;
-      this._ensureAction("quantile");
-      this._checkExpressionTypes('NUMBER');
-    }
+export class QuantileAction extends Action {
+  static fromJS(parameters: ActionJS): QuantileAction {
+    var value = Action.jsToValue(parameters);
+    value.quantile = parameters.quantile;
+    return new QuantileAction(value);
+  }
 
-    public valueOf(): ActionValue {
-      var value = super.valueOf();
-      value.quantile = this.quantile;
-      return value;
-    }
+  public quantile: number;
 
-    public toJS(): ActionJS {
-      var js = super.toJS();
-      js.quantile = this.quantile;
-      return js;
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this.quantile = parameters.quantile;
+    this._ensureAction("quantile");
+    this._checkExpressionTypes('NUMBER');
+  }
 
-    public equals(other: QuantileAction): boolean {
-      return super.equals(other) &&
-        this.quantile === other.quantile;
-    }
+  public valueOf(): ActionValue {
+    var value = super.valueOf();
+    value.quantile = this.quantile;
+    return value;
+  }
 
-    protected _toStringParameters(expressionString: string): string[] {
-      return [expressionString, String(this.quantile)];
-    }
+  public toJS(): ActionJS {
+    var js = super.toJS();
+    js.quantile = this.quantile;
+    return js;
+  }
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'DATASET';
-    }
+  public equals(other: QuantileAction): boolean {
+    return super.equals(other) &&
+      this.quantile === other.quantile;
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
+  protected _toStringParameters(expressionString: string): string[] {
+    return [expressionString, String(this.quantile)];
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return {
-        type: 'NUMBER'
-      };
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'DATASET';
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-      var quantile = this.quantile;
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        return inV ? inV.quantile(expressionFn, quantile, foldContext(d, c)) : null;
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
 
-    public isAggregate(): boolean {
-      return true;
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return {
+      type: 'NUMBER'
+    };
+  }
 
-    public isNester(): boolean {
-      return true;
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    var quantile = this.quantile;
+    return (d: Datum, c: Datum) => {
+      var inV = inputFn(d, c);
+      return inV ? inV.quantile(expressionFn, quantile, foldContext(d, c)) : null;
     }
   }
 
-  Action.register(QuantileAction);
+  public isAggregate(): boolean {
+    return true;
+  }
+
+  public isNester(): boolean {
+    return true;
+  }
 }
+
+Action.register(QuantileAction);

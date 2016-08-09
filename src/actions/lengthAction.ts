@@ -14,47 +14,52 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class LengthAction extends Action {
-    static fromJS(parameters: ActionJS): LengthAction {
-      return new LengthAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("length");
-      this._checkNoExpression();
-    }
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'STRING';
-    }
+export class LengthAction extends Action {
+  static fromJS(parameters: ActionJS): LengthAction {
+    return new LengthAction(Action.jsToValue(parameters));
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("length");
+    this._checkNoExpression();
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
-      return inputType;
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'STRING';
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        if (inV === null) return null;
-        return inV.length;
-      }
-    }
-    
-    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-      return Expression.jsNullSafetyUnary(inputJS, (input: string) => `${input}.length`);
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return dialect.lengthExpression(inputSQL);
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
+    return inputType;
+  }
+
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      var inV = inputFn(d, c);
+      if (inV === null) return null;
+      return inV.length;
     }
   }
 
-  Action.register(LengthAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string): string {
+    return Expression.jsNullSafetyUnary(inputJS, (input: string) => `${input}.length`);
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return dialect.lengthExpression(inputSQL);
+  }
 }
+
+Action.register(LengthAction);

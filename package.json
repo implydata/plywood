@@ -26,24 +26,24 @@
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
-    "immutable-class": "0.4.6",
+    "immutable-class": "0.5.2",
     "q": "1.4.1"
   },
   "peerDependencies": {
-    "chronoshift": "0.4.x"
+    "chronoshift": "0.5.x"
   },
   "devDependencies": {
-    "browserify": "13.0.1",
+    "browserify": "13.1.0",
     "chai": "3.5.0",
-    "chronoshift": "0.4.6",
+    "chronoshift": "0.5.4",
     "istanbul": "0.4.4",
-    "mocha": "2.5.3",
+    "mocha": "3.0.2",
     "pegjs": "0.9.0",
-    "plywood-druid-requester": "1.4.4",
-    "plywood-mysql-requester": "1.2.5",
-    "plywood-postgres-requester": "0.8.7",
-    "tslint": "3.13.0",
-    "typescript": "1.8.10",
+    "plywood-druid-requester": "1.4.6",
+    "plywood-mysql-requester": "1.2.6",
+    "plywood-postgres-requester": "0.8.8",
+    "tslint": "3.14.0",
+    "typescript": "beta",
     "underscore": "1.8.3",
     "walltime-js": "0.1.2"
   }

@@ -14,78 +14,83 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class CustomTransformAction extends Action {
-    static fromJS(parameters: ActionJS): CustomTransformAction {
-      var value = Action.jsToValue(parameters);
-      value.custom = parameters.custom;
-      if (parameters.outputType) value.outputType = parameters.outputType;
-      return new CustomTransformAction(value);
-    }
 
-    public custom: string;
-    public outputType: PlyTypeSingleValue;
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this.custom = parameters.custom;
-      if (parameters.outputType) this.outputType = parameters.outputType as PlyTypeSingleValue;
-      this._ensureAction("customTransform");
-    }
-
-    public getNecessaryInputTypes(): PlyType[] {
-      return ['NULL' as PlyTypeSimple, 'BOOLEAN' as PlyTypeSimple, 'NUMBER' as PlyTypeSimple, 'TIME' as PlyTypeSimple, 'STRING' as PlyTypeSimple]
-    }
-
-    public valueOf(): ActionValue {
-      var value = super.valueOf();
-      value.custom = this.custom;
-      if (this.outputType) value.outputType = this.outputType;
-      return value;
-    }
-
-    public toJS(): ActionJS {
-      var js = super.toJS();
-      js.custom = this.custom;
-      if (this.outputType) js.outputType = this.outputType;
-      return js;
-    }
-
-    public equals(other: CustomTransformAction): boolean {
-      return super.equals(other) &&
-        this.custom === other.custom &&
-        this.outputType === other.outputType;
-    }
-
-    protected _toStringParameters(expressionString: string): string[] {
-      var param = [`${this.custom} }`];
-      if (this.outputType) param.push(this.outputType);
-      return param;
-    }
-
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return this.outputType || inputType;
-    }
-
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
-      return inputType;
-    }
-
-
-    public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      throw new Error('can not getFn on custom transform action');
-    }
-
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      throw new Error("Custom transform not supported in SQL");
-    }
-
-    protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-      throw new Error("Custom transform can't yet be expressed as JS");
-    }
+export class CustomTransformAction extends Action {
+  static fromJS(parameters: ActionJS): CustomTransformAction {
+    var value = Action.jsToValue(parameters);
+    value.custom = parameters.custom;
+    if (parameters.outputType) value.outputType = parameters.outputType;
+    return new CustomTransformAction(value);
   }
 
-  Action.register(CustomTransformAction);
+  public custom: string;
+  public outputType: PlyTypeSingleValue;
+
+
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this.custom = parameters.custom;
+    if (parameters.outputType) this.outputType = parameters.outputType as PlyTypeSingleValue;
+    this._ensureAction("customTransform");
+  }
+
+  public getNecessaryInputTypes(): PlyType[] {
+    return ['NULL' as PlyTypeSimple, 'BOOLEAN' as PlyTypeSimple, 'NUMBER' as PlyTypeSimple, 'TIME' as PlyTypeSimple, 'STRING' as PlyTypeSimple]
+  }
+
+  public valueOf(): ActionValue {
+    var value = super.valueOf();
+    value.custom = this.custom;
+    if (this.outputType) value.outputType = this.outputType;
+    return value;
+  }
+
+  public toJS(): ActionJS {
+    var js = super.toJS();
+    js.custom = this.custom;
+    if (this.outputType) js.outputType = this.outputType;
+    return js;
+  }
+
+  public equals(other: CustomTransformAction): boolean {
+    return super.equals(other) &&
+      this.custom === other.custom &&
+      this.outputType === other.outputType;
+  }
+
+  protected _toStringParameters(expressionString: string): string[] {
+    var param = [`${this.custom} }`];
+    if (this.outputType) param.push(this.outputType);
+    return param;
+  }
+
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return this.outputType || inputType;
+  }
+
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType): FullType {
+    return inputType;
+  }
+
+
+  public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+    throw new Error('can not getFn on custom transform action');
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    throw new Error("Custom transform not supported in SQL");
+  }
+
+  protected _getJSHelper(inputType: PlyType, inputJS: string): string {
+    throw new Error("Custom transform can't yet be expressed as JS");
+  }
 }
+
+Action.register(CustomTransformAction);

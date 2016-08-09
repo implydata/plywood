@@ -15,74 +15,80 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class AddAction extends Action {
-    static fromJS(parameters: ActionJS): AddAction {
-      return new AddAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("add");
-      this._checkExpressionTypes('NUMBER');
-    }
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'NUMBER';
-    }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
+export class AddAction extends Action {
+  static fromJS(parameters: ActionJS): AddAction {
+    return new AddAction(Action.jsToValue(parameters));
+  }
 
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return inputType;
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("add");
+    this._checkExpressionTypes('NUMBER');
+  }
 
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        return (inputFn(d, c) || 0) + (expressionFn(d, c) || 0);
-      }
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'NUMBER';
+  }
 
-    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-      return `(${inputJS}+${expressionJS})`;
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `(${inputSQL}+${expressionSQL})`;
-    }
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return inputType;
+  }
 
-    protected _removeAction(): boolean {
-      return this.expression.equals(Expression.ZERO);
-    }
-
-    protected _distributeAction(): Action[] {
-      return this.expression.actionize(this.action);
-    }
-
-    protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
-      if (literalExpression.equals(Expression.ZERO)) {
-        return this.expression;
-      }
-      return null;
-    }
-
-    protected _foldWithPrevAction(prevAction: Action): Action {
-      if (prevAction instanceof AddAction) {
-        var prevValue = prevAction.expression.getLiteralValue();
-        var myValue = this.expression.getLiteralValue();
-        if (typeof prevValue === 'number' && typeof myValue === 'number') {
-          return new AddAction({
-            expression: r(prevValue + myValue)
-          });
-        }
-      }
-      return null;
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      return (inputFn(d, c) || 0) + (expressionFn(d, c) || 0);
     }
   }
 
-  Action.register(AddAction);
+  protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
+    return `(${inputJS}+${expressionJS})`;
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `(${inputSQL}+${expressionSQL})`;
+  }
+
+  protected _removeAction(): boolean {
+    return this.expression.equals(Expression.ZERO);
+  }
+
+  protected _distributeAction(): Action[] {
+    return this.expression.actionize(this.action);
+  }
+
+  protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    if (literalExpression.equals(Expression.ZERO)) {
+      return this.expression;
+    }
+    return null;
+  }
+
+  protected _foldWithPrevAction(prevAction: Action): Action {
+    if (prevAction instanceof AddAction) {
+      var prevValue = prevAction.expression.getLiteralValue();
+      var myValue = this.expression.getLiteralValue();
+      if (typeof prevValue === 'number' && typeof myValue === 'number') {
+        return new AddAction({
+          expression: r(prevValue + myValue)
+        });
+      }
+    }
+    return null;
+  }
 }
+
+Action.register(AddAction);

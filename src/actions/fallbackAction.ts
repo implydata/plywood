@@ -14,55 +14,60 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class FallbackAction extends Action {
-    static fromJS(parameters: ActionJS): FallbackAction {
-      return new FallbackAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue = {}) {
-      super(parameters, dummyObject);
-      this._ensureAction("fallback");
-    }
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return this.expression.type;
-    }
-
-    public getOutputType(inputType: PlyType): PlyType {
-      var expressionType = this.expression.type;
-      if (expressionType && expressionType !== 'NULL') this._checkInputTypes(inputType);
-      return expressionType;
-    }
-
-    public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-      this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-      return inputType;
-    }
-
-    protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        var val = inputFn(d, c);
-        if (val === null) {
-          return expressionFn(d, c);
-        }
-        return val;
-      }
-    }
-
-    protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-      return `(_ = ${inputJS}, (_ === null ? ${expressionJS} : _))`
-    }
-
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return `COALESCE(${inputSQL}, ${expressionSQL})`;
-    }
-
-    protected _removeAction(): boolean {
-      return this.expression.equals(Expression.NULL);
-    }
-
+export class FallbackAction extends Action {
+  static fromJS(parameters: ActionJS): FallbackAction {
+    return new FallbackAction(Action.jsToValue(parameters));
   }
 
-  Action.register(FallbackAction);
+  constructor(parameters: ActionValue = {}) {
+    super(parameters, dummyObject);
+    this._ensureAction("fallback");
+  }
+
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return this.expression.type;
+  }
+
+  public getOutputType(inputType: PlyType): PlyType {
+    var expressionType = this.expression.type;
+    if (expressionType && expressionType !== 'NULL') this._checkInputTypes(inputType);
+    return expressionType;
+  }
+
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    return inputType;
+  }
+
+  protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      var val = inputFn(d, c);
+      if (val === null) {
+        return expressionFn(d, c);
+      }
+      return val;
+    }
+  }
+
+  protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
+    return `(_ = ${inputJS}, (_ === null ? ${expressionJS} : _))`
+  }
+
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return `COALESCE(${inputSQL}, ${expressionSQL})`;
+  }
+
+  protected _removeAction(): boolean {
+    return this.expression.equals(Expression.NULL);
+  }
+
 }
+
+Action.register(FallbackAction);

@@ -15,48 +15,53 @@
  * limitations under the License.
  */
 
-module Plywood {
-  export class CountAction extends Action {
-    static fromJS(parameters: ActionJS): CountAction {
-      return new CountAction(Action.jsToValue(parameters));
-    }
 
-    constructor(parameters: ActionValue) {
-      super(parameters, dummyObject);
-      this._ensureAction("count");
-      this._checkNoExpression();
-    }
+import { dummyObject } from '../helper/dummy';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
-    public getNecessaryInputTypes(): PlyType | PlyType[] {
-      return 'DATASET';
-    }
+export class CountAction extends Action {
+  static fromJS(parameters: ActionJS): CountAction {
+    return new CountAction(Action.jsToValue(parameters));
+  }
 
-    public getOutputType(inputType: PlyType): PlyType {
-      this._checkInputTypes(inputType);
-      return 'NUMBER';
-    }
+  constructor(parameters: ActionValue) {
+    super(parameters, dummyObject);
+    this._ensureAction("count");
+    this._checkNoExpression();
+  }
 
-    public _fillRefSubstitutions(): FullType {
-      return {
-        type: 'NUMBER',
-      };
-    }
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'DATASET';
+  }
 
-    public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-      return (d: Datum, c: Datum) => {
-        var inV = inputFn(d, c);
-        return inV ? inV.count() : 0;
-      }
-    }
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
 
-    protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-      return inputSQL.indexOf(' WHERE ') === -1 ? `COUNT(*)` : `SUM(${dialect.aggregateFilterIfNeeded(inputSQL, '1')})`;
-    }
+  public _fillRefSubstitutions(): FullType {
+    return {
+      type: 'NUMBER',
+    };
+  }
 
-    public isAggregate(): boolean {
-      return true;
+  public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
+    return (d: Datum, c: Datum) => {
+      var inV = inputFn(d, c);
+      return inV ? inV.count() : 0;
     }
   }
 
-  Action.register(CountAction);
+  protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
+    return inputSQL.indexOf(' WHERE ') === -1 ? `COUNT(*)` : `SUM(${dialect.aggregateFilterIfNeeded(inputSQL, '1')})`;
+  }
+
+  public isAggregate(): boolean {
+    return true;
+  }
 }
+
+Action.register(CountAction);
