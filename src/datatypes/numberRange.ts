@@ -105,3 +105,4 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
   }
 }
 check = NumberRange;
+Range.register(NumberRange);

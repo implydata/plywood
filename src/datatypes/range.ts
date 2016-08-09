@@ -16,9 +16,6 @@
  */
 
 import { isInstanceOf } from "immutable-class";
-import { StringRange } from "./stringRange";
-import { TimeRange } from "./timeRange";
-import { NumberRange } from "./numberRange";
 
 const BOUNDS_REG_EXP = /^[\[(][\])]$/;
 
@@ -31,15 +28,24 @@ export abstract class Range<T> {
     return isInstanceOf(candidate, Range);
   }
 
+  static classMap: Lookup<typeof Range> = {};
+
+  static register(ctr: typeof Range): void {
+    var rangeName = (<any>ctr).name.replace('Range', '').replace(/^\w/, (s: string) => s.toLowerCase());
+    Range.classMap[rangeName] = ctr;
+  }
+
   // ToDo: enforce stricter typing here
   static fromJS(parameters: any): PlywoodRange {
+    var ctr: string;
     if (typeof parameters.start === 'number' || typeof parameters.end === 'number') {
-      return NumberRange.fromJS(parameters);
+      ctr = 'number';
     } else if (typeof parameters.start === 'string' || typeof parameters.end === 'string') {
-      return StringRange.fromJS(parameters);
+      ctr = 'string';
     } else {
-      return TimeRange.fromJS(parameters);
+      ctr = 'time';
     }
+    return (Range.classMap[ctr] as any).fromJS(parameters);
   }
 
   public start: T;

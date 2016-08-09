@@ -163,3 +163,4 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
   }
 }
 check = TimeRange;
+Range.register(TimeRange);

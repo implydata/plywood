@@ -95,3 +95,4 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
   }
 }
 check = StringRange;
+Range.register(StringRange);
