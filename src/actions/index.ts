@@ -26,7 +26,7 @@ export * from './concatAction';
 export * from './containsAction';
 export * from './countAction';
 export * from './countDistinctAction';
-export * from './customAction';
+export * from './customAggregateAction';
 export * from './customTransformAction';
 export * from './divideAction';
 export * from './extractAction';

@@ -636,7 +636,8 @@ describe("SQL parser", () => {
         TIME_SHIFT(time, PT1H, 3) AS 'TimeShift3',
         TIME_RANGE(time, PT1H, 3) AS 'TimeRange3',
         OVERLAP(x, y) AS 'Overlap',
-        CUSTOM('blah') AS 'Custom1'
+        CUSTOM('blah') AS 'Custom1',
+        CUSTOM_AGGREGATE('blah') AS 'Custom2'
         FROM \`wiki\`
         WHERE \`language\`="en"  ;  -- This is just some comment
       `);
@@ -673,7 +674,8 @@ describe("SQL parser", () => {
         .apply('TimeShift3', $('time').timeShift('PT1H', 3))
         .apply('TimeRange3', $('time').timeRange('PT1H', 3))
         .apply('Overlap', $('x').overlap('$y'))
-        .apply('Custom1', $('data').custom('blah'));
+        .apply('Custom1', $('data').customAggregate('blah'))
+        .apply('Custom2', $('data').customAggregate('blah'));
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });

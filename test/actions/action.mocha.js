@@ -83,7 +83,7 @@ describe("Action", () => {
       { action: 'cast', outputType: 'TIME' },
       { action: 'cast', outputType: 'NUMBER' },
 
-      { action: 'custom', custom: 'blah' },
+      { action: 'customAggregate', custom: 'blah' },
       { action: 'customTransform', custom: 'decodeURIComponentToLowerCaseAndTrim' },
       { action: 'customTransform', custom: 'includes', outputType: 'BOOLEAN' },
 
@@ -132,8 +132,9 @@ describe("Action", () => {
       { action: 'transformCase', transformType: 'upperCase'},
       { action: 'transformCase', transformType: 'lowerCase'},
 
-      { action: 'custom', custom: 'lol1' },
-      { action: 'custom', custom: 'lol2' }
+      { action: 'customAggregate', custom: 'lol1' },
+      { action: 'customAggregate', custom: 'lol2' }
+
     ], {
       newThrows: true
     });

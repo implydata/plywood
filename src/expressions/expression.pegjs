@@ -30,6 +30,7 @@ for (var key in Action.classMap) possibleCalls[key] = 1;
 possibleCalls['negate'] = 1;
 possibleCalls['isnt'] = 1;
 possibleCalls['sqrt'] = 1;
+possibleCalls['custom'] = 1; // back compat
 
 function makeListMap1(head, tail) {
   return [head].concat(tail.map(function(t) { return t[1] }));

@@ -717,10 +717,10 @@ Does not expect the input data to be sorted.
 
 Note that the 0.5 quantile is also known as the median.
 
-*operand*.**custom**(custom: string)
+*operand*.**customAggregate**(custom: string)
 
 Computes the custom of the given expression in the operand dataset
 
 ```javascript
-var ex = $('data').custom('customAggregator');
+var ex = $('data').customAggregate('customAggregator');
 ```

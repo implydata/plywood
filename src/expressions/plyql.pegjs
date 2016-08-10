@@ -799,11 +799,11 @@ AggregateExpression
       if (exd.ex === '*') error('can not use * for quantile aggregator');
       return exd.data.quantile(exd.ex, value);
     }
-  / CustomToken OpenParen value:String filter:WhereClause? CloseParen
+  / (CustomAggregateToken / CustomToken) OpenParen value:String filter:WhereClause? CloseParen
     {
       var d = dataRef;
       if (filter) d = d.filter(filter);
-      return d.custom(value);
+      return d.customAggregate(value);
     }
 
 AggregateFn
@@ -891,7 +891,6 @@ InSetLiteralExpression
 
 StringOrNumber = String / Number
 
-
 String "String"
   = "'" chars:NotSQuote "'" _ { return chars; }
   / "'" chars:NotSQuote { error("Unmatched single quote"); }
@@ -967,7 +966,8 @@ AvgToken           = "AVG"i            !IdentifierPart _ { return 'average'; }
 MinToken           = "MIN"i            !IdentifierPart _ { return 'min'; }
 MaxToken           = "MAX"i            !IdentifierPart _ { return 'max'; }
 QuantileToken      = "QUANTILE"i       !IdentifierPart _ { return 'quantile'; }
-CustomToken        = "CUSTOM"i         !IdentifierPart _ { return 'custom'; }
+CustomToken        = "CUSTOM"i         !IdentifierPart _ { return 'customAggregate'; }
+CustomAggregateToken = "CUSTOM_AGGREGATE"i  !IdentifierPart _ { return 'customAggregate'; }
 
 DateToken          = "DATE"i           !IdentifierPart _ { return 'd'; }
 TimeToken          = "TIME"i           !IdentifierPart _ { return 't'; }

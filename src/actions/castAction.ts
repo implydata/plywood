@@ -62,7 +62,7 @@ const CAST_TYPE_TO_JS: Lookup<Lookup<(inputJS: string)=> string>> = {
 export class CastAction extends Action {
   static fromJS(parameters: ActionJS): CastAction {
     var value = Action.jsToValue(parameters);
-    var outputType = parameters.outputType || (parameters as any).castType;
+    var outputType = parameters.outputType;
 
     // Back compat
     if (!outputType && hasOwnProperty(parameters, 'castType')) {

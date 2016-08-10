@@ -107,8 +107,9 @@ describe("stringification", () => {
   });
 
   it("works with custom", () => {
-    var ex = $('x').custom('lol');
-    expect(ex.toString(2)).to.equal("$x.custom(lol)");
+    var ex = $('x').customAggregate('lol');
+    var exBack = $('x').custom('lol');
+    expect(ex.toString(2)).to.equal("$x.customAggregate(lol)").to.equal(exBack.toString(2));
   });
 
   it("works with substr", () => {

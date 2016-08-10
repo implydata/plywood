@@ -150,6 +150,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
     if (typeof action !== "string") {
       throw new Error("action must be a string");
     }
+    if (action === 'custom') actionJS.action = action = 'customAggregate';
     var ClassFn = Action.classMap[action];
     if (!ClassFn) {
       throw new Error(`unsupported action '${action}'`);
