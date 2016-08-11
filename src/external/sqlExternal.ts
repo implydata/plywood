@@ -30,7 +30,6 @@ import { Attributes } from "../datatypes/attributeInfo";
 import { External, ExternalValue, Inflater, QueryAndPostProcess, PostProcess } from "./baseExternal";
 import { ChainExpression } from "../expressions/chainExpression";
 import { SQLDialect } from "../dialect/baseDialect";
-import { dummyObject } from "../helper/dummy";
 
 function correctResult(result: any[]): boolean {
   return Array.isArray(result) && (result.length === 0 || typeof result[0] === 'object');

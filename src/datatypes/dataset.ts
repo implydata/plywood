@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as Q from 'q';
+import { isDate } from "chronoshift";
 import { Class, Instance, isInstanceOf, generalEqual } from "immutable-class";
 import { hasOwnProperty, find, findByName, overrideByName } from "../helper/utils";
 import { Attributes, AttributeInfo, AttributeJSs } from "./attributeInfo";
@@ -24,7 +26,6 @@ import { StringRange } from "./stringRange";
 import { TimeRange } from "./timeRange";
 import { valueFromJS, valueToJSInlineType, datumHasExternal } from "./common";
 import { External } from "../external/baseExternal";
-import { isDate } from "chronoshift";
 
 export function foldContext(d: Datum, c: Datum): Datum {
   var newContext = Object.create(c);
@@ -343,6 +344,32 @@ export class Dataset implements Instance<DatasetValue, any> {
     });
 
     return attributes;
+  }
+
+  static parseJSON(text: string): any[] {
+    text = text.trim();
+    var firstChar = text[0];
+
+    if (firstChar[0] === '[') {
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        throw new Error(`could not parse`);
+      }
+
+    } else if (firstChar[0] === '{') { // Also support line json
+      return text.split(/\r?\n/).map((line, i) => {
+        try {
+          return JSON.parse(line);
+        } catch (e) {
+          throw new Error(`problem in line: ${i}: '${line}'`);
+        }
+      });
+
+    } else {
+      throw new Error(`Unsupported start, starts with '${firstChar[0]}'`);
+
+    }
   }
 
   static fromJS(parameters: any): Dataset {

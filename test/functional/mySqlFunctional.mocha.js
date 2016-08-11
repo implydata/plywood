@@ -26,7 +26,7 @@ if (!WallTime.rules) {
 var { mySqlRequesterFactory } = require('plywood-mysql-requester');
 
 var plywood = require('../../build/plywood');
-var { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
+var { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
 var info = require('../info');
 
@@ -37,7 +37,7 @@ var mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 });
 
-//mySqlRequester = helper.verboseRequesterFactory({
+//mySqlRequester = verboseRequesterFactory({
 //  requester: mySqlRequester
 //});
 

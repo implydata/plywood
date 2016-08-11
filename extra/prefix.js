@@ -17,3 +17,5 @@ var WallTime = Chronoshift.WallTime;
 var isDate = Chronoshift.isDate;
 var parseISODate = Chronoshift.parseISODate;
 
+var dummyObject = {};
+

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 
 if grep -rq 'describe\.only' ./test
   then

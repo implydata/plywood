@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as Q from 'q';
 import { immutableArraysEqual } from "immutable-class";
 import {
   r,
@@ -29,7 +30,6 @@ import {
   BooleanExpressionIterator
 } from "./baseExpression";
 import { ExternalExpression } from "./externalExpression";
-import { dummyObject } from "../helper/dummy";
 import { Action, ApplyAction, FilterAction, LimitAction, SelectAction, SortAction } from "../actions/index";
 import { Dataset, Datum, PlywoodValue } from "../datatypes/index";
 import { SQLDialect } from "../dialect/baseDialect";

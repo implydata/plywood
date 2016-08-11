@@ -15,16 +15,13 @@
  * limitations under the License.
  */
 
+import * as Q from 'q';
+
 export interface RetryRequesterParameters<T> {
   requester: Requester.PlywoodRequester<T>;
   delay?: number;
   retry?: int;
   retryOnTimeout?: boolean;
-}
-
-export function retryRequester<T>(parameters: RetryRequesterParameters<T>): Requester.PlywoodRequester<T> {
-  console.warn('retryRequester has been renamed to retryRequesterFactory and will soon be deprecated');
-  return retryRequesterFactory(parameters);
 }
 
 export function retryRequesterFactory<T>(parameters: RetryRequesterParameters<T>): Requester.PlywoodRequester<T> {

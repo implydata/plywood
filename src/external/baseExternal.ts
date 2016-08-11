@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as Q from 'q';
 import { Timezone, Duration } from "chronoshift";
 import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual } from "immutable-class";
 import {
@@ -44,7 +45,6 @@ import { CustomDruidAggregations, CustomDruidExtractionFns } from "./druidExtern
 import { ExpressionJS } from "../expressions/baseExpression";
 import { Set } from "../datatypes/set";
 import { StringRange } from "../datatypes/stringRange";
-import { dummyObject, Dummy } from "../helper/dummy";
 import { TimeRange } from "../datatypes/timeRange";
 import { promiseWhile } from "../helper/promiseWhile";
 

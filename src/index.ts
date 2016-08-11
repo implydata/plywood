@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-export const version = '###_VERSION_###';
-
+export * from './version';
 export * from './helper/index';
 export * from './dialect/index';
 export * from './datatypes/index';

@@ -20,7 +20,7 @@ var fs = require('fs');
 var path = require('path');
 
 var plywood = require('../../build/plywood');
-var { Expression, Dataset, $, ply, r, helper } = plywood;
+var { Expression, Dataset, $, ply, r } = plywood;
 
 var chronoshift = require("chronoshift");
 
@@ -30,7 +30,7 @@ if (!chronoshift.WallTime.rules) {
 }
 
 var rawData = fs.readFileSync(path.join(__dirname, '../../resources/wikipedia-sampled.json'), 'utf-8');
-var wikiDayData = helper.parseJSON(rawData);
+var wikiDayData = Dataset.parseJSON(rawData);
 
 wikiDayData.forEach((d, i) => {
   d['time'] = new Date(d['time']);

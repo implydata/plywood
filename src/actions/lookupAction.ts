@@ -15,7 +15,6 @@
  */
 
 
-import { dummyObject } from "../helper/dummy";
 import { Action, ActionJS, ActionValue } from "./baseAction";
 import { SQLDialect } from "../dialect/baseDialect";
 import { ComputeFn } from "../datatypes/dataset";

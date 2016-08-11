@@ -27,7 +27,7 @@ if (!WallTime.rules) {
 var { druidRequesterFactory } = require('plywood-druid-requester');
 
 var plywood = require('../../build/plywood');
-var { External, DruidExternal, TimeRange, $, ply, basicExecutorFactory, helper, Expression } = plywood;
+var { External, DruidExternal, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
 
 var info = require('../info');
 
@@ -35,7 +35,7 @@ var druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
-// druidRequester = helper.verboseRequesterFactory({
+// druidRequester = verboseRequesterFactory({
 //   requester: druidRequester
 // });
 

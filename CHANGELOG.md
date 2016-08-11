@@ -2,6 +2,31 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.12.1
+
+- Changed to build to use external modules
+- Moved methods out of `plywood.helper`, specifically:
+  * `helper.parseJSON` to `Dataset.parseJSON`
+  * `helper.expressionLookupFromJS` to `Expression.expressionLookupFromJS`
+  * `helper.expressionLookupToJS` to `Expression.expressionLookupToJS`
+  * `helper.find` to `plywood.find`
+  * `helper.findIndex` to `plywood.findIndex`
+  * `helper.findByName` to `plywood.findByName`
+  * `helper.findIndexByName` to `plywood.findIndexByName`
+  * `helper.overrideByName` to `plywood.overrideByName`
+  * `helper.overridesByName` to `plywood.overridesByName`
+  * `helper.shallowCopy` to `plywood.shallowCopy`
+  * `helper.deduplicateSort` to `plywood.deduplicateSort`
+  * `helper.mapLookup` to `plywood.mapLookup`
+  * `helper.emptyLookup` to `plywood.emptyLookup`
+  * `helper.nonEmptyLookup` to `plywood.nonEmptyLookup`
+  * `helper.verboseRequesterFactory` to `plywood.verboseRequesterFactory`
+  * `helper.retryRequesterFactory` to `plywood.retryRequesterFactory`
+  * `helper.concurrentLimitRequesterFactory` to `plywood.concurrentLimitRequesterFactory`
+  * `helper.promiseWhile` to `plywood.promiseWhile`
+- Moved `simpleLocator` out
+- Removed `retryRequester` which was deprecated
+
 ## 0.11.9
 
 - Expressions can parse pure JSON also

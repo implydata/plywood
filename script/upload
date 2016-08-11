@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -eu
 
 if [ "$(git status --porcelain)" != "" ]
 then

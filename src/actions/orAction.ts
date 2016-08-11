@@ -18,7 +18,6 @@
 
 
 import { Set } from "../datatypes/set";
-import { dummyObject } from "../helper/dummy";
 import { Action, ActionJS, ActionValue } from "./baseAction";
 import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
 import { SQLDialect } from "../dialect/baseDialect";
