@@ -17,14 +17,14 @@
 var { expect } = require("chai");
 
 var Q = require('q');
-var { helper } = require("../../build/plywood");
+var { promiseWhile } = require("../../build/plywood");
 
 describe('Promise While', () => {
 
   it('should loop three times asynchronously', (testComplete) => {
     var res = [];
     var i = 0;
-    helper.promiseWhile(
+    promiseWhile(
       function () {
         return i < 3
       },
@@ -47,7 +47,7 @@ describe('Promise While', () => {
   it('should propagate rejection', (testComplete) => {
     function TestError() {}
 
-    helper.promiseWhile(
+    promiseWhile(
       function () {
         return true;
       },
@@ -68,7 +68,7 @@ describe('Promise While', () => {
   it('should propagate conditions throw', (testComplete) => {
     function TestError() {}
 
-    helper.promiseWhile(
+    promiseWhile(
       function () {
         throw new TestError('test');
       },
@@ -89,7 +89,7 @@ describe('Promise While', () => {
   it('should propagate action throw', (testComplete) => {
     function TestError() {}
 
-    helper.promiseWhile(
+    promiseWhile(
       function () {
         return true;
       },

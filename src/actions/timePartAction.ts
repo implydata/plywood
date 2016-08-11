@@ -17,7 +17,6 @@
 
 
 import { Timezone, WallTime } from "chronoshift";
-import { dummyObject } from "../helper/dummy";
 import { Action, ActionJS, ActionValue, Environment } from "./baseAction";
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn } from "../datatypes/dataset";

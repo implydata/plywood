@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { dummyObject } from "../helper/dummy";
 import { Action, ActionJS, ActionValue, CaseType } from "./baseAction";
 import { Indexer, Alterations } from "../expressions/baseExpression";
 import { SQLDialect } from "../dialect/baseDialect";

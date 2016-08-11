@@ -1,13 +1,17 @@
-#!/bin/bash -e
+#!/bin/bash -eu
+
+# Add the version information
+export PLYWOOD_VERSION=`node ./extra/get-version.js`
+echo "export var version = '$PLYWOOD_VERSION';" > build/version.js
 
 cat \
   extra/prefix.js \
+  build/version.js \
   build/helper/verboseRequester.js \
   build/helper/retryRequester.js \
   build/helper/concurrentLimitRequester.js \
   build/helper/promiseWhile.js \
   build/helper/utils.js \
-  build/helper/dummy.js \
   build/dialect/baseDialect.js \
   build/dialect/mySqlDialect.js \
   build/dialect/postgresDialect.js \

@@ -25,7 +25,7 @@ if (!WallTime.rules) {
 var { postgresRequesterFactory } = require('plywood-postgres-requester');
 
 var plywood = require('../../build/plywood');
-var { External, PostgresExternal, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
+var { External, PostgresExternal, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
 var info = require('../info');
 
@@ -36,7 +36,7 @@ var postgresRequester = postgresRequesterFactory({
   password: info.postgresPassword
 });
 
-// postgresRequester = helper.verboseRequesterFactory({
+// postgresRequester = verboseRequesterFactory({
 //  requester: postgresRequester
 // });
 

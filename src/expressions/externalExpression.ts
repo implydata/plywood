@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+import * as Q from 'q';
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
-import { dummyObject } from "../helper/dummy";
 import { SQLDialect } from "../dialect/baseDialect";
 import { PlywoodValue } from "../datatypes/index";
 import { Action } from "../actions/baseAction";

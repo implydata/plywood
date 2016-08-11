@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/bin/bash -eu
 ./compile
 mocha test/*/*

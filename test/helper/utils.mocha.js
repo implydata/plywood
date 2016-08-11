@@ -16,7 +16,7 @@
 
 var { expect } = require("chai");
 
-var { helper } = require("../../build/plywood");
+var { overrideByName } = require("../../build/plywood");
 
 describe("utils", () => {
   describe("overrideByName", () => {
@@ -27,7 +27,7 @@ describe("utils", () => {
     ];
 
     it('overrides (in order)', () => {
-      expect(helper.overrideByName(someList, { name: 'USA', score: 5 })).to.deep.equal([
+      expect(overrideByName(someList, { name: 'USA', score: 5 })).to.deep.equal([
         { name: 'UK', score: 1 },
         { name: 'USA', score: 5 },
         { name: 'Italy', score: 3 }
@@ -35,7 +35,7 @@ describe("utils", () => {
     });
 
     it('overrides appends', () => {
-      expect(helper.overrideByName(someList, { name: 'Russia', score: 5 })).to.deep.equal([
+      expect(overrideByName(someList, { name: 'Russia', score: 5 })).to.deep.equal([
         { name: 'UK', score: 1 },
         { name: 'USA', score: 2 },
         { name: 'Italy', score: 3 },

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import * as Q from 'q';
 import { Timezone, Duration, parseISODate } from "chronoshift";
 import { Instance, isInstanceOf, isImmutableClass } from "immutable-class";
 import { LiteralExpression } from "./literalExpression";
@@ -83,7 +84,6 @@ import { ActionJS, CaseType, Splits } from "../actions/baseAction";
 import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from "../datatypes/common";
 import { ComputeFn } from "../datatypes/dataset";
 import { External, ExternalJS } from "../external/baseExternal"
-import { Dummy, dummyObject } from "../helper/dummy";
 
 export interface BooleanExpressionIterator {
   (ex?: Expression, index?: int, depth?: int, nestDiff?: int): boolean;

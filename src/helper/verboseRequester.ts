@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as Q from 'q';
+
 export interface VerboseRequesterParameters<T> {
   requester: Requester.PlywoodRequester<T>;
   printLine?: (line: string) => void;

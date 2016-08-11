@@ -19,8 +19,7 @@ var { expect } = require("chai");
 
 var Q = require('q');
 
-var plywood = require("../../build/plywood");
-var { verboseRequesterFactory } = plywood.helper;
+var { verboseRequesterFactory } = require("../../build/plywood");
 
 describe("Verbose requester", () => {
   var requester = (request) => {

@@ -17,7 +17,6 @@
 
 
 
-import { dummyObject } from "../helper/dummy";
 import { Action, ActionJS, ActionValue, Splits, SplitsJS } from "./baseAction";
 import { Expression, Indexer, Alterations, r, SubstitutionFn } from "../expressions/baseExpression";
 import { SQLDialect } from "../dialect/baseDialect";

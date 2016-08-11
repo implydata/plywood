@@ -19,8 +19,7 @@ var { expect } = require("chai");
 
 var Q = require('q');
 
-var plywood = require("../../build/plywood");
-var { retryRequesterFactory } = plywood.helper;
+var { retryRequesterFactory } = require("../../build/plywood");
 
 describe("Retry requester", () => {
   var makeRequester = (failNumber, isTimeout) => {

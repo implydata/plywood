@@ -18,7 +18,6 @@
 /// <reference path="../expressions/baseExpression.ts" />
 
 import { Timezone, Duration } from "chronoshift";
-import { dummyObject, Dummy } from "../helper/dummy";
 import {
   Expression,
   ExpressionJS,

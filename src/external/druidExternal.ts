@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
+import * as Q from 'q';
 import { Timezone, Duration, isDate } from "chronoshift";
 import { hasOwnProperty, dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from "../helper/utils";
-import { dummyObject } from "../helper/dummy";
 import { $, Expression, ChainExpression, LiteralExpression, RefExpression } from "../expressions/index";
 import {
   Action,

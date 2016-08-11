@@ -26,7 +26,7 @@ var { druidRequesterFactory } = require('plywood-druid-requester');
 var { mySqlRequesterFactory } = require('plywood-mysql-requester');
 
 var plywood = require('../../build/plywood');
-var { External, TimeRange, $, ply, basicExecutorFactory, helper } = plywood;
+var { External, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
 var utils = require('../utils');
 var info = require('../info');
@@ -42,10 +42,10 @@ var mySqlRequester = mySqlRequesterFactory({
   password: info.mySqlPassword
 });
 
-//druidRequester = helper.verboseRequesterFactory({
+//druidRequester = verboseRequesterFactory({
 //  requester: druidRequester
 //});
-//mySqlRequester = helper.verboseRequesterFactory({
+//mySqlRequester = verboseRequesterFactory({
 //  requester: mySqlRequester
 //});
 
