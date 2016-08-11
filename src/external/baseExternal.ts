@@ -17,6 +17,7 @@
 import * as Q from 'q';
 import { Timezone, Duration } from "chronoshift";
 import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual } from "immutable-class";
+import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";
 import {
   hasOwnProperty,
   overrideByName,
@@ -596,7 +597,7 @@ export abstract class External {
   public limit: LimitAction;
   public havingFilter: Expression;
 
-  constructor(parameters: ExternalValue, dummy: Dummy = null) {
+  constructor(parameters: ExternalValue, dummy: any = null) {
     if (dummy !== dummyObject) {
       throw new TypeError("can not call `new External` directly use External.fromJS instead");
     }

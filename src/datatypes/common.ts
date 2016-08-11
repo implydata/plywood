@@ -25,6 +25,7 @@ import { TimeRange } from "./timeRange";
 import { StringRange } from "./stringRange";
 import { NumberRange } from "./numberRange";
 import { External } from "../external/baseExternal";
+import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";
 
 export function getValueType(value: any): PlyType {
   var typeofValue = typeof value;

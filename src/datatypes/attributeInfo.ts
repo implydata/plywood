@@ -16,6 +16,7 @@
  */
 
 import { Class, Instance, isInstanceOf } from "immutable-class";
+import { PlyType, FullType } from "../types";
 import { hasOwnProperty, overridesByName } from "../helper/utils";
 import { ActionJS, Action } from "../actions/baseAction";
 import { RefExpression } from "../expressions/refExpression";

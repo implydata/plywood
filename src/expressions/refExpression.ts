@@ -17,6 +17,7 @@
 
 import * as Q from 'q';
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
 import { SQLDialect } from "../dialect/baseDialect";
 import { hasOwnProperty, repeat } from "../helper/utils";
 import { PlywoodValue } from "../datatypes/index";

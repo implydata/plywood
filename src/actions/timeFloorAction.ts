@@ -16,6 +16,7 @@
 
 import { Timezone, Duration } from "chronoshift";
 import { Action, ActionJS, ActionValue, Environment } from "./baseAction";
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn } from "../datatypes/dataset";
 import { InAction } from "./inAction";

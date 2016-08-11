@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-
+import { Action, ActionJS, ActionValue } from "./baseAction";
+import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";
+import { SQLDialect } from "../dialect/baseDialect";
+import { Datum, ComputeFn } from "../datatypes/dataset";
+import { hasOwnProperty } from "../helper/utils";
 
 interface Caster {
   TIME: {
@@ -54,11 +58,6 @@ const CAST_TYPE_TO_JS: Lookup<Lookup<(inputJS: string)=> string>> = {
     UNIVERSAL: (inputJS) => `('' + ${inputJS})`
   }
 };
-
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
-import { hasOwnProperty } from "../helper/utils";
 
 export class CastAction extends Action {
   static fromJS(parameters: ActionJS): CastAction {

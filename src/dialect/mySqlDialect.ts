@@ -17,6 +17,7 @@
 
 import { Timezone, Duration } from "chronoshift";
 import { SQLDialect } from "./baseDialect";
+import { PlyType } from "../types";
 
 export class MySQLDialect extends SQLDialect {
   static TIME_BUCKETING: Lookup<string> = {

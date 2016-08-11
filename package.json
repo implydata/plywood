@@ -18,9 +18,7 @@
     "url": "http://github.com/implydata/plywood.git"
   },
   "main": "build/plywood.js",
-  "typescript": {
-    "definition": "build/plywood.d.ts"
-  },
+  "typings": "build/index.d.ts",
   "scripts": {
     "prepublish": "./prepublish"
   },
@@ -45,7 +43,7 @@
     "plywood-mysql-requester": "1.2.6",
     "plywood-postgres-requester": "0.8.8",
     "tslint": "3.14.0",
-    "typescript": "beta",
+    "typescript": "2.0.0",
     "underscore": "1.8.3",
     "walltime-js": "0.1.2"
   }

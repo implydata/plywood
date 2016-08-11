@@ -16,6 +16,7 @@
 
 
 import { Action, ActionJS, ActionValue } from "./baseAction";
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
 import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
 import { Datum, ComputeFn } from "../datatypes/dataset";
 import { InAction } from "./inAction";

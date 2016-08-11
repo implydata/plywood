@@ -26,6 +26,7 @@ import {
   BooleanExpressionIterator,
   SubstitutionFn
 } from "../expressions/baseExpression";
+import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn, foldContext } from "../datatypes/dataset";
 import { hasOwnProperty, repeat, deduplicateSort } from "../helper/utils";
@@ -166,7 +167,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   public expression: Expression;
   public simple: boolean;
 
-  constructor(parameters: ActionValue, dummy: Dummy = null) {
+  constructor(parameters: ActionValue, dummy: any = null) {
     if (dummy !== dummyObject) {
       throw new TypeError("can not call `new Action` directly use Action.fromJS instead");
     }

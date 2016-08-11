@@ -29,6 +29,7 @@ import {
   SubstitutionFn,
   BooleanExpressionIterator
 } from "./baseExpression";
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
 import { ExternalExpression } from "./externalExpression";
 import { Action, ApplyAction, FilterAction, LimitAction, SelectAction, SortAction } from "../actions/index";
 import { Dataset, Datum, PlywoodValue } from "../datatypes/index";

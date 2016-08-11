@@ -18,6 +18,7 @@
 import * as Q from 'q';
 import { parseISODate } from "chronoshift";
 import { isImmutableClass } from "immutable-class";
+import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from "../types";
 import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
 import { SQLDialect } from "../dialect/baseDialect";
 import { hasOwnProperty } from "../helper/utils";

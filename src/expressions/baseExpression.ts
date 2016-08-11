@@ -18,6 +18,7 @@
 import * as Q from 'q';
 import { Timezone, Duration, parseISODate } from "chronoshift";
 import { Instance, isInstanceOf, isImmutableClass } from "immutable-class";
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple } from "../types";
 import { LiteralExpression } from "./literalExpression";
 import { ChainExpression } from "./chainExpression";
 import { RefExpression } from "./refExpression";
@@ -257,6 +258,19 @@ function chainVia(op: string, expressions: Expression[], zero: Expression): Expr
   return acc;
 }
 
+export interface PEGParserOptions {
+  cache?: boolean;
+  allowedStartRules?: string;
+  output?: string;
+  optimize?: string;
+  plugins?: any;
+  [key: string]: any;
+}
+
+export interface PEGParser {
+  parse: (str: string, options?: PEGParserOptions) => any;
+}
+
 /**
  * Provides a way to express arithmetic operations, aggregations and database operators.
  * This class is the backbone of plywood
@@ -272,8 +286,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   static expressionParser: PEGParser;
   static plyqlParser: PEGParser;
-  // The default timezone within which dates in expressions are parsed
-  static defaultParserTimezone: Timezone = Timezone.UTC;
+  static defaultParserTimezone: Timezone = Timezone.UTC; // The default timezone within which dates in expressions are parsed
 
 
   static isExpression(candidate: any): candidate is Expression {
@@ -499,7 +512,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public type: PlyType;
   public simple: boolean;
 
-  constructor(parameters: ExpressionValue, dummy: Dummy = null) {
+  constructor(parameters: ExpressionValue, dummy: any = null) {
     this.op = parameters.op;
     if (dummy !== dummyObject) {
       throw new TypeError("can not call `new Expression` directly use Expression.fromJS instead");

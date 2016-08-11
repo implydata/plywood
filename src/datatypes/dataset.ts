@@ -18,6 +18,7 @@
 import * as Q from 'q';
 import { isDate } from "chronoshift";
 import { Class, Instance, isInstanceOf, generalEqual } from "immutable-class";
+import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from "../types";
 import { hasOwnProperty, find, findByName, overrideByName } from "../helper/utils";
 import { Attributes, AttributeInfo, AttributeJSs } from "./attributeInfo";
 import { NumberRange } from "./numberRange";

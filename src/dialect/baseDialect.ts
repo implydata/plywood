@@ -16,6 +16,7 @@
  */
 
 import { Timezone, Duration } from "chronoshift";
+import { PlyType, PlyTypeSimple } from "../types";
 
 
 export abstract class SQLDialect {
