@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.12.2
+
+- Renamed `customExtractionFns` to `customTransforms`
+- Using lowercase `alphanumeric` in `dimensionOrder`
+
 ## 0.12.1
 
 - Changed to build to use external modules

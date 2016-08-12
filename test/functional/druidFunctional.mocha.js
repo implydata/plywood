@@ -78,7 +78,7 @@ describe("Druid Functional", function() {
     { "name": "user_unique", "special": "unique", "type": "STRING" }
   ];
 
-  var customExtractionFns = {
+  var customTransforms = {
       sliceLastChar: {
         extractionFn: {
           "type" : "javascript",
@@ -128,7 +128,7 @@ describe("Druid Functional", function() {
         populateCache: false
       },
       attributes: wikiAttributes,
-      customExtractionFns,
+      customTransforms,
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
@@ -165,7 +165,7 @@ describe("Druid Functional", function() {
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       })),
-      customExtractionFns,
+      customTransforms,
       concealBuckets: true,
       version: info.druidVersion,
       allowSelectQueries: true

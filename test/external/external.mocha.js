@@ -109,7 +109,7 @@ describe("External", () => {
             aggregation: { type: 'longSum', fieldName: 'count' }
           }
         },
-        customExtractionFns: {
+        customTransforms: {
           test: {
             extractionFn: { type: 'javascript', "function": "function(str) { return str + '!!!'; }" }
           }

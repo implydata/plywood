@@ -75,7 +75,7 @@ var context = {
         }
       }
     },
-    customExtractionFns: {
+    customTransforms: {
       makeFrenchCanadian: {
         type: 'extraction',
         outputName: 'sometimeLater',
