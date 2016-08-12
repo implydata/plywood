@@ -6,6 +6,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 - Renamed `customExtractionFns` to `customTransforms`
 - Using lowercase `alphanumeric` in `dimensionOrder`
+- Renamed `customAction` to `customAggregationAction`
 
 ## 0.12.1
 
