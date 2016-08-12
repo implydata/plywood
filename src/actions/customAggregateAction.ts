@@ -21,11 +21,13 @@ import { Indexer, Alterations } from "../expressions/baseExpression";
 import { SQLDialect } from "../dialect/baseDialect";
 import { ComputeFn } from "../datatypes/dataset";
 
-export class CustomAction extends Action {
-  static fromJS(parameters: ActionJS): CustomAction {
+export class CustomAggregateAction extends Action {
+  static fromJS(parameters: ActionJS): CustomAggregateAction {
     var value = Action.jsToValue(parameters);
     value.custom = parameters.custom;
-    return new CustomAction(value);
+    if (value.action === 'custom') value.action = 'customAggregate'; // back compat?
+
+    return new CustomAggregateAction(value);
   }
 
   public custom: string;
@@ -33,7 +35,7 @@ export class CustomAction extends Action {
   constructor(parameters: ActionValue) {
     super(parameters, dummyObject);
     this.custom = parameters.custom;
-    this._ensureAction("custom");
+    this._ensureAction("customAggregate");
   }
 
   public valueOf(): ActionValue {
@@ -48,7 +50,7 @@ export class CustomAction extends Action {
     return js;
   }
 
-  public equals(other: CustomAction): boolean {
+  public equals(other: CustomAggregateAction): boolean {
     return super.equals(other) &&
       this.custom === other.custom;
   }
@@ -85,4 +87,4 @@ export class CustomAction extends Action {
   }
 }
 
-Action.register(CustomAction);
+Action.register(CustomAggregateAction);

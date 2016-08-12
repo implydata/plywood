@@ -45,7 +45,7 @@ cat \
   build/actions/containsAction.js \
   build/actions/countAction.js \
   build/actions/countDistinctAction.js \
-  build/actions/customAction.js \
+  build/actions/customAggregateAction.js \
   build/actions/customTransformAction.js \
   build/actions/divideAction.js \
   build/actions/extractAction.js \

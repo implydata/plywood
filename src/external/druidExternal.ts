@@ -29,7 +29,7 @@ import {
   ContainsAction,
   CountAction,
   CountDistinctAction,
-  CustomAction,
+  CustomAggregateAction,
   CustomTransformAction,
   ExtractAction,
   FallbackAction,
@@ -1837,7 +1837,7 @@ export class DruidExternal extends External {
     }
   }
 
-  public makeCustomAggregation(name: string, action: CustomAction): Druid.Aggregation {
+  public makeCustomAggregation(name: string, action: CustomAggregateAction): Druid.Aggregation {
     var customAggregationName = action.custom;
     var customAggregation = this.customAggregations[customAggregationName];
     if (!customAggregation) throw new Error(`could not find '${customAggregationName}'`);
@@ -1938,8 +1938,8 @@ export class DruidExternal extends External {
         aggregation = this.makeQuantileAggregation(action.name, <QuantileAction>aggregateAction, postAggregations);
         break;
 
-      case "custom":
-        aggregation = this.makeCustomAggregation(action.name, <CustomAction>aggregateAction);
+      case "customAggregate":
+        aggregation = this.makeCustomAggregation(action.name, <CustomAggregateAction>aggregateAction);
         break;
 
       default:

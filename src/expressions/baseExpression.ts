@@ -34,7 +34,7 @@ import {
   ContainsAction,
   CountAction,
   CountDistinctAction,
-  CustomAction,
+  CustomAggregateAction,
   CustomTransformAction,
   ExtractAction,
   FallbackAction,
@@ -1240,7 +1240,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public custom(custom: string): ChainExpression {
-    return this.performAction(new CustomAction({ custom: getString(custom) }));
+    return this.performAction(new CustomAggregateAction({ custom: getString(custom) }));
+  }
+
+  public customAggregate(custom: string): ChainExpression {
+    return this.performAction(new CustomAggregateAction({ custom: getString(custom) }));
   }
 
   // Undocumented (for now)

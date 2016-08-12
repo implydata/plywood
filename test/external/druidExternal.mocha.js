@@ -391,7 +391,8 @@ describe("DruidExternal", () => {
 
     it("processes a split with custom aggregations", () => {
       var ex = $('wiki').split("$page", 'Page')
-        .apply('CrazyStupid', '$wiki.custom(crazy) * $wiki.custom(stupid)')
+        .apply('CrazyStupid', '$wiki.customAggregate(crazy) * $wiki.customAggregate(stupid)')
+        .apply('CrazyStupidBackCompat', '$wiki.custom(crazy) * $wiki.custom(stupid)')
         .sort('$CrazyStupid', 'descending')
         .limit(5);
 
@@ -437,6 +438,21 @@ describe("DruidExternal", () => {
             ],
             "fn": "*",
             "name": "CrazyStupid",
+            "type": "arithmetic"
+          },
+          {
+            "fields": [
+              {
+                "fieldName": "!T_0",
+                "type": "getSomeCrazy"
+              },
+              {
+                "fieldName": "!T_1",
+                "type": "iAmWithStupid"
+              }
+            ],
+            "fn": "*",
+            "name": "CrazyStupidBackCompat",
             "type": "arithmetic"
           }
         ],
