@@ -117,18 +117,18 @@ export interface CustomDruidAggregation {
   accessType?: string;
 }
 
-export interface CustomDruidExtractionFn {
+export interface CustomDruidTransform {
   extractionFn: Druid.ExtractionFn;
 }
 
 export type CustomDruidAggregations = Lookup<CustomDruidAggregation>;
-export type CustomDruidExtractionFns = Lookup<CustomDruidExtractionFn>;
+export type CustomDruidTransforms = Lookup<CustomDruidTransform>;
 
 function customAggregationsEqual(customA: CustomDruidAggregations, customB: CustomDruidAggregations): boolean {
   return JSON.stringify(customA) === JSON.stringify(customB); // ToDo: fill this in;
 }
 
-function customExtractionFnsEqual(customA: CustomDruidExtractionFns, customB: CustomDruidExtractionFns): boolean {
+function customTransformsEqual(customA: CustomDruidTransforms, customB: CustomDruidTransforms): boolean {
   return JSON.stringify(customA) === JSON.stringify(customB); // ToDo: fill this in;
 }
 
@@ -192,7 +192,7 @@ export class DruidExternal extends External {
     var value: ExternalValue = External.jsToValue(parameters, requester);
     value.timeAttribute = parameters.timeAttribute;
     value.customAggregations = parameters.customAggregations || {};
-    value.customExtractionFns = parameters.customExtractionFns || {};
+    value.customTransforms = parameters.customTransforms || {};
     value.allowEternity = Boolean(parameters.allowEternity);
     value.allowSelectQueries = Boolean(parameters.allowSelectQueries);
     value.introspectionStrategy = parameters.introspectionStrategy;
@@ -646,7 +646,7 @@ export class DruidExternal extends External {
 
   public timeAttribute: string;
   public customAggregations: CustomDruidAggregations;
-  public customExtractionFns: CustomDruidExtractionFns;
+  public customTransforms: CustomDruidTransforms;
   public allowEternity: boolean;
   public allowSelectQueries: boolean;
   public introspectionStrategy: string;
@@ -659,7 +659,7 @@ export class DruidExternal extends External {
     this._ensureMinVersion("0.8.0");
     this.timeAttribute = parameters.timeAttribute || TIME_ATTRIBUTE;
     this.customAggregations = parameters.customAggregations;
-    this.customExtractionFns = parameters.customExtractionFns;
+    this.customTransforms = parameters.customTransforms;
     this.allowEternity = parameters.allowEternity;
     this.allowSelectQueries = parameters.allowSelectQueries;
 
@@ -677,7 +677,7 @@ export class DruidExternal extends External {
     var value: ExternalValue = super.valueOf();
     value.timeAttribute = this.timeAttribute;
     value.customAggregations = this.customAggregations;
-    value.customExtractionFns = this.customExtractionFns;
+    value.customTransforms = this.customTransforms;
     value.allowEternity = this.allowEternity;
     value.allowSelectQueries = this.allowSelectQueries;
     value.introspectionStrategy = this.introspectionStrategy;
@@ -690,7 +690,7 @@ export class DruidExternal extends External {
     var js: ExternalJS = super.toJS();
     if (this.timeAttribute !== TIME_ATTRIBUTE) js.timeAttribute = this.timeAttribute;
     if (nonEmptyLookup(this.customAggregations)) js.customAggregations = this.customAggregations;
-    if (nonEmptyLookup(this.customExtractionFns)) js.customExtractionFns = this.customExtractionFns;
+    if (nonEmptyLookup(this.customTransforms)) js.customTransforms = this.customTransforms;
     if (this.allowEternity) js.allowEternity = true;
     if (this.allowSelectQueries) js.allowSelectQueries = true;
     if (this.introspectionStrategy !== DruidExternal.DEFAULT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
@@ -703,7 +703,7 @@ export class DruidExternal extends External {
     return super.equals(other) &&
       this.timeAttribute === other.timeAttribute &&
       customAggregationsEqual(this.customAggregations, other.customAggregations) &&
-      customExtractionFnsEqual(this.customExtractionFns, other.customExtractionFns) &&
+      customTransformsEqual(this.customTransforms, other.customTransforms) &&
       this.allowEternity === other.allowEternity &&
       this.allowSelectQueries === other.allowSelectQueries &&
       this.introspectionStrategy === other.introspectionStrategy &&
@@ -1472,7 +1472,7 @@ export class DruidExternal extends External {
 
   private customTransformToExtractionFn(action: CustomTransformAction) {
     var custom = action.custom;
-    var customExtractionFn = this.customExtractionFns[custom];
+    var customExtractionFn = this.customTransforms[custom];
     if (!customExtractionFn) throw new Error(`could not find extraction function: '${custom}'`);
     var extractionFn = customExtractionFn.extractionFn;
 
@@ -2339,7 +2339,7 @@ export class DruidExternal extends External {
               };
               if (this.sortOnLabel()) {
                 if (expressionNeedsAlphaNumericSort(split.splits[col])) {
-                  orderByColumn.dimensionOrder = 'alphaNumeric';
+                  orderByColumn.dimensionOrder = 'alphanumeric';
                 }
               }
             } else { // Going to sortOnLabel implicitly
@@ -2353,7 +2353,7 @@ export class DruidExternal extends External {
                 dimension: splitKey,
               };
               if (expressionNeedsAlphaNumericSort(keyExpression)) {
-                orderByColumn.dimensionOrder = 'alphaNumeric';
+                orderByColumn.dimensionOrder = 'alphanumeric';
               }
             }
 

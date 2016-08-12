@@ -106,6 +106,7 @@ var druidExecutor = basicExecutorFactory({
       context: {
         // useCache: false,
         // populateCache: false,
+        // groupByStrategy: "v2",
         timeout: 10000
       },
       attributes,

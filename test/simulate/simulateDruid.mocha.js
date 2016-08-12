@@ -42,7 +42,7 @@ var attributes = [
   { name: 'a+b', type: 'NUMBER' } // Added here because it is invalid JS without escaping
 ];
 
-var customExtractionFns = {
+var customTransforms = {
   sliceLastChar: {
     extractionFn: {
       "type" : "javascript",
@@ -80,7 +80,7 @@ var diamondsCompact = External.fromJS({
     { name: 'cut', type: 'STRING' },
     { name: 'price', type: 'NUMBER', unsplitable: true }
   ],
-  customExtractionFns,
+  customTransforms,
   concealBuckets: true,
   allowSelectQueries: true,
   filter: $("time").in({
@@ -108,7 +108,7 @@ var context = {
     source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
-    customExtractionFns,
+    customTransforms,
     allowSelectQueries: true,
     filter: $("time").in({
       start: new Date('2015-03-12T00:00:00'),
@@ -944,7 +944,7 @@ describe("simulate Druid", () => {
           "columns": [
             {
               "dimension": "HourOfDay",
-              "dimensionOrder": "alphaNumeric",
+              "dimensionOrder": "alphanumeric",
               "direction": "ascending"
             }
           ],

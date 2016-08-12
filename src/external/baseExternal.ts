@@ -42,7 +42,7 @@ import {
 } from "../actions/index";
 import { NumberRange } from "../datatypes/numberRange";
 import { unwrapSetType } from "../datatypes/common";
-import { CustomDruidAggregations, CustomDruidExtractionFns } from "./druidExternal";
+import { CustomDruidAggregations, CustomDruidTransforms } from "./druidExternal";
 import { ExpressionJS } from "../expressions/baseExpression";
 import { Set } from "../datatypes/set";
 import { StringRange } from "../datatypes/stringRange";
@@ -222,7 +222,7 @@ export interface ExternalValue {
 
   timeAttribute?: string;
   customAggregations?: CustomDruidAggregations;
-  customExtractionFns?: CustomDruidExtractionFns;
+  customTransforms?: CustomDruidTransforms;
   allowEternity?: boolean;
   allowSelectQueries?: boolean;
   introspectionStrategy?: string;
@@ -249,7 +249,7 @@ export interface ExternalJS {
 
   timeAttribute?: string;
   customAggregations?: CustomDruidAggregations;
-  customExtractionFns?: CustomDruidExtractionFns;
+  customTransforms?: CustomDruidTransforms;
   allowEternity?: boolean;
   allowSelectQueries?: boolean;
   introspectionStrategy?: string;
