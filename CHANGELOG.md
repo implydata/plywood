@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.12.3
+
+- Transitioned to newer immutable tester
+
 ## 0.12.2
 
 - Renamed `customExtractionFns` to `customTransforms`

@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var { testImmutableClass } = require("immutable-class/build/tester");
+var { testImmutableClass } = require("immutable-class-tester");
 
 var { WallTime } = require('chronoshift');
 if (!WallTime.rules) {

@@ -18,7 +18,7 @@
 var { expect } = require("chai");
 var { sane } = require('../utils');
 
-var { testImmutableClass } = require("immutable-class/build/tester");
+var { testImmutableClass } = require("immutable-class-tester");
 
 var plywood = require('../../build/plywood');
 var { Dataset, AttributeInfo, $, Set, r } = plywood;

@@ -23,7 +23,7 @@ if (!WallTime.rules) {
   WallTime.init(tzData.rules, tzData.zones);
 }
 
-var { testImmutableClass } = require("immutable-class/build/tester");
+var { testImmutableClass } = require("immutable-class-tester");
 
 var plywood = require('../../build/plywood');
 var { Action, $, ply, r, MatchAction } = plywood;

@@ -24,7 +24,7 @@
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
-    "immutable-class": "0.5.2",
+    "immutable-class": "0.6.x",
     "q": "1.4.1"
   },
   "peerDependencies": {
@@ -34,12 +34,13 @@
     "@types/q": "0.0.28",
     "browserify": "13.1.0",
     "chai": "3.5.0",
-    "chronoshift": "0.5.6",
+    "chronoshift": "0.5.7",
     "f-tool": "0.1.3",
+    "immutable-class-tester": "0.5.1",
     "istanbul": "0.4.4",
     "mocha": "3.0.2",
     "pegjs": "0.9.0",
-    "plywood-druid-requester": "1.5.3",
+    "plywood-druid-requester": "1.5.4",
     "plywood-mysql-requester": "1.3.1",
     "plywood-postgres-requester": "0.9.1",
     "tslint": "3.14.0",

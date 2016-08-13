@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var { testImmutableClass } = require("immutable-class/build/tester");
+var { testImmutableClass } = require("immutable-class-tester");
 
 var { WallTime } = require('chronoshift');
 if (!WallTime.rules) {
@@ -329,7 +329,7 @@ describe("Expression", () => {
       expect(RefExpression.toJavaScriptSafeName('i-love-you')).to.equal('_i$45love$45you');
       expect(RefExpression.toJavaScriptSafeName('ру́сский')).to.equal('_$1088$1091$769$1089$1089$1082$1080$1081');
     });
-    
+
   });
 
 });
