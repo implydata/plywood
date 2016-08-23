@@ -7,6 +7,7 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "strictNullChecks": false,
+    "skipLibCheck": true,
     "target": "es5",
     "module": "es6",
     "rootDir": "src",
