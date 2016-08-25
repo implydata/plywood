@@ -21,14 +21,6 @@ import { hasOwnProperty, overridesByName } from "../helper/utils";
 import { ActionJS, Action } from "../actions/baseAction";
 import { RefExpression } from "../expressions/refExpression";
 
-function isInteger(n: any): boolean {
-  return !isNaN(n) && n % 1 === 0;
-}
-
-function isPositiveInteger(n: any): boolean {
-  return isInteger(n) && 0 < n;
-}
-
 export type Attributes = AttributeInfo[];
 export type AttributeJSs = AttributeInfoJS[];
 
