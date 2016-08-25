@@ -221,6 +221,17 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   public serialize(value: any): any {
     return value;
   }
+
+  public change(propertyName: string, newValue: any): AttributeInfo {
+    var v = this.valueOf();
+
+    if (!v.hasOwnProperty(propertyName)) {
+      throw new Error(`Unknown property : ${propertyName}`);
+    }
+
+    (v as any)[propertyName] = newValue;
+    return new AttributeInfo(v);
+  }
 }
 check = AttributeInfo;
 
