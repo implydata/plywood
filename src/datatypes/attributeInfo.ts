@@ -139,7 +139,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   public makerAction: Action;
 
   constructor(parameters: AttributeInfoValue) {
-    if (parameters.special) this.special = parameters.special;
+    this.special = parameters.special;
 
     if (typeof parameters.name !== "string") {
       throw new Error("name must be a string");
@@ -214,12 +214,24 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       this.special === other.special &&
       this.name === other.name &&
       this.type === other.type &&
+      this.unsplitable === other.unsplitable &&
       Boolean(this.makerAction) === Boolean(other.makerAction) &&
       (!this.makerAction || this.makerAction.equals(other.makerAction));
   }
 
   public serialize(value: any): any {
     return value;
+  }
+
+  public change(propertyName: string, newValue: any): AttributeInfo {
+    var v = this.valueOf();
+
+    if (!v.hasOwnProperty(propertyName)) {
+      throw new Error(`Unknown property : ${propertyName}`);
+    }
+
+    (v as any)[propertyName] = newValue;
+    return new AttributeInfo(v);
   }
 }
 check = AttributeInfo;
