@@ -371,7 +371,7 @@ describe("DruidExternal Introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
-      timeAttribute: 'time',
+      timeAttribute: 'time'
     }, requesterDruid_0_9_0);
 
     return wikiExternal.introspect()
