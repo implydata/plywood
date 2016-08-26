@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.12.5
+
+- Fixes in `AttributeInfo#valueOf`
+
 ## 0.12.4
 
 - Added `AttributeInfo#change`
