@@ -174,15 +174,14 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public valueOf(): AttributeInfoValue {
-    var value: AttributeInfoValue = {
+    return {
       name: this.name,
       type: this.type,
-      unsplitable: this.unsplitable
+      unsplitable: this.unsplitable,
+      special: this.special,
+      datasetType: this.datasetType,
+      makerAction: this.makerAction
     };
-    if (this.special) value.special = this.special;
-    if (this.datasetType) value.datasetType = this.datasetType;
-    if (this.makerAction) value.makerAction = this.makerAction;
-    return value;
   }
 
   public toJS(): AttributeInfoJS {
