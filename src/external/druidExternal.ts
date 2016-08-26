@@ -2381,7 +2381,7 @@ export class DruidExternal extends External {
   }
 
   protected getIntrospectAttributesWithSegmentMetadata(): Q.Promise<Attributes> {
-    var { requester, timeAttribute } = this;
+    var { requester, timeAttribute, context } = this;
 
     var query: Druid.Query = {
       queryType: 'segmentMetadata',
@@ -2390,6 +2390,10 @@ export class DruidExternal extends External {
       analysisTypes: ['aggregators'],
       lenientAggregatorMerge: true
     };
+
+    if (context) {
+      query.context = context;
+    }
 
     if (this.versionBefore('0.9.0')) {
       query.analysisTypes = [];

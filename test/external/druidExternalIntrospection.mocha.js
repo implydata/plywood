@@ -176,6 +176,9 @@ describe("DruidExternal Introspection", () => {
     if (query.queryType === 'segmentMetadata') {
       expect(query.merge).to.equal(true);
       expect(query.analysisTypes).to.be.an('array');
+      expect(query.context).to.deep.equal({
+        hello: 'world'
+      });
 
       var merged = {
         "id": "merged",
@@ -368,7 +371,7 @@ describe("DruidExternal Introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
-      timeAttribute: 'time'
+      timeAttribute: 'time',
     }, requesterDruid_0_9_0);
 
     return wikiExternal.introspect()
@@ -447,7 +450,10 @@ describe("DruidExternal Introspection", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
-      timeAttribute: 'time'
+      timeAttribute: 'time',
+      context: {
+        hello: 'world'
+      }
     }, requesterDruid_0_8_3);
 
     return wikiExternal.introspect()
@@ -735,7 +741,7 @@ describe("DruidExternal Introspection", () => {
       .done();
   });
 
-  it("does a context based query", (testComplete) => {
+  it("does a version aware based query", (testComplete) => {
     var selectRequesterDruid = ({query}) => {
       if (query.queryType !== 'select') return requesterDruid_0_9_0({query});
       expect(query).to.deep.equal({

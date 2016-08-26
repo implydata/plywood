@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.12.6
+
+- SegmentMetadata passes context also
+
 ## 0.12.5
 
 - Fixes in `AttributeInfo#valueOf`
