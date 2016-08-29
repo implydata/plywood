@@ -240,4 +240,48 @@ describe("resolve", () => {
     });
   });
 
+  describe("sql resolve", () => {
+    it("finds the right column", () => {
+      var parse = Expression.parseSQL("CITYnAME = 'San Francisco'");
+      var resolveString = parse.expression.resolve({ cityName: "" });
+
+      var parse2 = Expression.parseSQL("NOTACOLUMN = 'San Francisco'");
+
+      expect(resolveString).to.not.deep.equal(null);
+      expect(() => {
+        parse2.expression.resolve({ cityName: "" });
+      }).to.throw('could not resolve $NOTACOLUMN because is was not in the context');
+    });
+
+    it("could not find something in context", () => {
+      var ex = ply()
+        .apply('num', '$^foo + 1')
+        .apply(
+          'subData',
+          ply()
+            .apply('x', '$^num * 3')
+            .apply('y', '$^^foobar * 10')
+        );
+
+      expect(() => {
+        ex.resolve({ foo: 7 });
+      }).to.throw('could not resolve $^^foobar because is was not in the context');
+    });
+
+    it("ended up with bad types", () => {
+      var ex = ply()
+        .apply('num', '$^foo + 1')
+        .apply(
+          'subData',
+          ply()
+            .apply('x', '$^num * 3')
+            .apply('y', '$^^foo * 10')
+        );
+
+      expect(() => {
+        ex.resolve({ foo: 'bar' });
+      }).to.throw('add must have input of type NUMBER (is STRING)');
+    });
+  });
+
 });

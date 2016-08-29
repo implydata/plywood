@@ -173,9 +173,9 @@ BasicExpression
 
 
 RefExpression
-  = "$" name:$("^"* NamePart (":" TypeName)?) _
-    { return RefExpression.parse(name); }
-  / "$" name:$("^"* "{" [^}]+ "}" (":" TypeName)?) _
+  = "i$" name:RefExpName
+    { return RefExpression.parse(name).toCaseInsensitive(); }
+  / "$" name:RefExpName
     { return RefExpression.parse(name); }
 
 LiteralExpression
@@ -272,6 +272,10 @@ ReservedWord
 
 Name "Name"
   = name:NamePart _ { return name; }
+
+RefExpName
+  = name: $("^"* NamePart (":" TypeName)?) _ { return name; }
+  / name: $("^"* "{" [^}]+ "}" (":" TypeName)?) _ { return name; }
 
 NamePart
   = $(!ReservedWord [a-z_]i [a-z0-9_]i*)

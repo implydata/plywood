@@ -25,7 +25,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Expression, $, ply, r, Set, Dataset, External, ExternalExpression } = plywood;
+var { Expression, i$, $, ply, r, Set, Dataset, External, ExternalExpression } = plywood;
 
 function resolvesProperly(parse) {
   var resolveString = parse.expression.resolve({ t: 'STR' });
@@ -98,7 +98,7 @@ describe("SQL parser", () => {
     it("works with a filtered COUNT expression", () => {
       var parse = Expression.parseSQL("COUNT(* WHERE cityName = 'San Francisco')");
 
-      var ex2 = $('data').filter("$cityName == 'San Francisco'").count();
+      var ex2 = $('data').filter("i$cityName == 'San Francisco'").count();
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -109,7 +109,7 @@ describe("SQL parser", () => {
       var parse2 = Expression.parseSQL("LEN(`page`)");
       var parse3 = Expression.parseSQL("CHAR_LENGTH(`page`)");
 
-      var ex2 = $('page').length();
+      var ex2 = i$('page').length();
 
       expect(parse.verb).to.equal(null);
       expect(parse2.verb).to.equal(null);
@@ -122,7 +122,7 @@ describe("SQL parser", () => {
     it("works with a YEAR expression", () => {
       var parse = Expression.parseSQL("YEAR(time)");
 
-      var ex2 = $('time').timePart('YEAR');
+      var ex2 = i$('time').timePart('YEAR');
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -140,7 +140,7 @@ describe("SQL parser", () => {
     it("works with a filtered SUM 1 expression", () => {
       var parse = Expression.parseSQL("SUM(1 WHERE cityName = 'San Francisco')");
 
-      var ex2 = $('data').filter("$cityName == 'San Francisco'").sum(1);
+      var ex2 = $('data').filter("i$cityName == 'San Francisco'").sum(1);
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -149,7 +149,7 @@ describe("SQL parser", () => {
     it("works with a filtered SUM expression", () => {
       var parse = Expression.parseSQL("SUM(added WHERE cityName = 'San Francisco')");
 
-      var ex2 = $('data').filter("$cityName == 'San Francisco'").sum('$added');
+      var ex2 = $('data').filter("i$cityName == 'San Francisco'").sum('i$added');
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -158,7 +158,7 @@ describe("SQL parser", () => {
     it("works with a filtered QUANTILE expression", () => {
       var parse = Expression.parseSQL("QUANTILE(added WHERE cityName = 'San Francisco', 0.99)");
 
-      var ex2 = $('data').filter("$cityName == 'San Francisco'").quantile('$added', 0.99);
+      var ex2 = $('data').filter("i$cityName == 'San Francisco'").quantile('i$added', 0.99);
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -176,7 +176,7 @@ describe("SQL parser", () => {
     it("works with an arithmetic expression", () => {
       var parse = Expression.parseSQL("SUM(`added`) + 5 + SUM(deleted) / 2");
 
-      var ex2 = $data.sum('$added').add(5, '$data.sum($deleted) / 2');
+      var ex2 = $data.sum('i$added').add(5, '$data.sum(i$deleted) / 2');
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -185,7 +185,7 @@ describe("SQL parser", () => {
     it("works with IN expression (value list)", () => {
       var parse = Expression.parseSQL("language IN ( 'ca', 'cs', 'da', 'el' )");
 
-      var ex2 = $('language').in(['ca', 'cs', 'da', 'el']);
+      var ex2 = i$('language').in(['ca', 'cs', 'da', 'el']);
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -194,7 +194,7 @@ describe("SQL parser", () => {
     it("works with IN expression (list literal)", () => {
       var parse = Expression.parseSQL("language IN { 'ca', 'cs', 'da', 'el' }");
 
-      var ex2 = $('language').in(['ca', 'cs', 'da', 'el']);
+      var ex2 = i$('language').in(['ca', 'cs', 'da', 'el']);
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -203,7 +203,7 @@ describe("SQL parser", () => {
     it("works with IN expression (variable)", () => {
       var parse = Expression.parseSQL("language IN languages");
 
-      var ex2 = $('language').in('$languages');
+      var ex2 = i$('language').in('i$languages');
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -212,7 +212,7 @@ describe("SQL parser", () => {
     it("should handle --", () => {
       var parse = Expression.parseSQL("x--3");
 
-      var ex2 = $('x').subtract(-3);
+      var ex2 = i$('x').subtract(-3);
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -225,8 +225,8 @@ describe("SQL parser", () => {
       var parse4 = Expression.parseSQL("FALLBACK(SUM(`added`), SUM(deleted))");
 
       var ex = r(null).fallback('fallback');
-      var ex2 = r(null).fallback('$data.sum($deleted)');
-      var ex3 = $data.sum('$added').fallback('$data.sum($deleted)');
+      var ex2 = r(null).fallback('$data.sum(i$deleted)');
+      var ex3 = $data.sum('i$added').fallback('$data.sum(i$deleted)');
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
@@ -246,7 +246,7 @@ describe("SQL parser", () => {
     it("it works with raw aggregate", () => {
       var parse = Expression.parseSQL("(SUM(added) + 1000) / 2");
 
-      var ex2 = $('data').sum('$added').add(1000).divide(2);
+      var ex2 = $('data').sum('i$added').add(1000).divide(2);
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -274,7 +274,7 @@ describe("SQL parser", () => {
           var parse = Expression.parseSQL(test);
           var left = test.substring(1, test.indexOf("' <="));
           var right = test.substring(test.indexOf('< ') + 3, test.length -1);
-          var ex = r(left).lessThanOrEqual('$t').and($('t').lessThan(r(right)));
+          var ex = r(left).lessThanOrEqual('i$t').and(i$('t').lessThan(r(right)));
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
           resolvesProperly(parse)
         });
@@ -301,7 +301,7 @@ describe("SQL parser", () => {
           var parse = Expression.parseSQL(test, Timezone.fromJS('America/New_York'));
           var left = test.substring(1, test.indexOf("' <="));
           var right = test.substring(test.indexOf('< ') + 3, test.length -1);
-          var ex = r(left).lessThanOrEqual('$t').and($('t').lessThan(r(right)));
+          var ex = r(left).lessThanOrEqual('i$t').and(i$('t').lessThan(r(right)));
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
           resolvesProperly(parse)
         });
@@ -402,7 +402,7 @@ describe("SQL parser", () => {
           t BETWEEN TIMESTAMP '2015-09-12T10:30:00' AND TIMESTAMP '2015-09-12T12:30:00'
         `;
 
-        var ex = $('t').greaterThan(new Date('2015-09-12T10:30:00Z')).and($('t').lessThan(new Date('2015-09-12T12:30:00Z')));
+        var ex = i$('t').greaterThan(new Date('2015-09-12T10:30:00Z')).and(i$('t').lessThan(new Date('2015-09-12T12:30:00Z')));
         tests.split('\n').forEach(test => {
           var parse = Expression.parseSQL(test);
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
@@ -416,8 +416,8 @@ describe("SQL parser", () => {
         `;
 
         var exs = [
-          $('t').greaterThan(r('2015-09-12T10:30:00')).and($('t').lessThan(r('2015-09-12T12:30:00'))),
-          $('t').greaterThan(r('2015-09-12T10:30')).and($('t').lessThan(r('2015-09-12T12:30')))
+          i$('t').greaterThan(r('2015-09-12T10:30:00')).and(i$('t').lessThan(r('2015-09-12T12:30:00'))),
+          i$('t').greaterThan(r('2015-09-12T10:30')).and(i$('t').lessThan(r('2015-09-12T12:30')))
         ];
 
         tests.split('\n').forEach((test, i) => {
@@ -449,7 +449,7 @@ describe("SQL parser", () => {
           var parse = Expression.parseSQL(test);
           var left = /(?:BETWEEN ')([0-9-+:TZ.\s]+)/g.exec(test)[1];
           var right = /(?:AND ')([0-9-+:TZ.\s]+)/g.exec(test)[1];
-          var ex = $('t').greaterThan(r(left)).and($('t').lessThan(r(right)));
+          var ex = i$('t').greaterThan(r(left)).and(i$('t').lessThan(r(right)));
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
           resolvesProperly(parse);
         });
@@ -572,7 +572,7 @@ describe("SQL parser", () => {
 
       var ex2 = ply()
         .apply('data', '$data')
-        .apply('COUNT(page)', '$data.filter($page.isnt(null)).count()');
+        .apply('COUNT(page)', '$data.filter(i$page.isnt(null)).count()');
 
       expect(parse.verb).to.equal('SELECT');
       expect(parse.table).to.equal(null);
@@ -643,37 +643,37 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = ply()
-        .apply('data', '$wiki.filter($language == "en")')
-        .apply('aISb1', '$a.is($b)')
-        .apply('aISb2', '$a.is($b)')
-        .apply('aISb3', '$a.is($b)')
+        .apply('data', '$wiki.filter(i$language == "en")')
+        .apply('aISb1', 'i$a.is(i$b)')
+        .apply('aISb2', 'i$a.is(i$b)')
+        .apply('aISb3', 'i$a.is(i$b)')
         .apply('Count1', '$data.count()')
         .apply('Count2', '$data.count()')
         .apply('Count3', '$data.filter(1 != null).count()')
-        .apply('Count4', '$data.filter($visitor != null).count()')
-        .apply('Match', $('visitor').match("[0-9A-F]"))
-        .apply('CustomTransform', $('visitor').customTransform("visitor_custom"))
-        .apply('TotalAdded', '$data.sum($added)')
+        .apply('Count4', '$data.filter(i$visitor != null).count()')
+        .apply('Match', i$('visitor').match("[0-9A-F]"))
+        .apply('CustomTransform', i$('visitor').customTransform("visitor_custom"))
+        .apply('TotalAdded', '$data.sum(i$added)')
         .apply('Date', new Date('2014-01-02T00:00:00.000Z'))
-        .apply('TotalAddedOver4', '$data.sum($added) / 4')
+        .apply('TotalAddedOver4', '$data.sum(i$added) / 4')
         .apply('False', r(true).not())
-        .apply('MinusAdded', '-$data.sum($added)')
-        .apply('AbsAdded', '$MinusAdded.absolute()')
-        .apply('AbsoluteAdded', '$MinusAdded.absolute()')
-        .apply('SqRtAdded', '$MinusAdded.power(0.5)')
-        .apply('SqRtAdded2', '$MinusAdded.power(0.5)')
-        .apply('SquareRoot', '$TotalAddedOver4.power(0.5)')
+        .apply('MinusAdded', '-$data.sum(i$added)')
+        .apply('AbsAdded', 'i$MinusAdded.absolute()')
+        .apply('AbsoluteAdded', 'i$MinusAdded.absolute()')
+        .apply('SqRtAdded', 'i$MinusAdded.power(0.5)')
+        .apply('SqRtAdded2', 'i$MinusAdded.power(0.5)')
+        .apply('SquareRoot', 'i$TotalAddedOver4.power(0.5)')
         .apply('One', r(Math.E).power(0))
-        .apply('SimplyAdded', '$data.sum($added)')
-        .apply('Median', $('data').quantile('$added', 0.5))
-        .apply('Unique1', $('data').countDistinct('$visitor'))
-        .apply('Unique2', $('data').countDistinct('$visitor'))
-        .apply('Unique3', $('data').countDistinct('$visitor'))
-        .apply('TimeBucket', $('time').timeBucket('PT1H'))
-        .apply('TimeFloor', $('time').timeFloor('PT1H'))
-        .apply('TimeShift3', $('time').timeShift('PT1H', 3))
-        .apply('TimeRange3', $('time').timeRange('PT1H', 3))
-        .apply('Overlap', $('x').overlap('$y'))
+        .apply('SimplyAdded', '$data.sum(i$added)')
+        .apply('Median', $('data').quantile('i$added', 0.5))
+        .apply('Unique1', $('data').countDistinct('i$visitor'))
+        .apply('Unique2', $('data').countDistinct('i$visitor'))
+        .apply('Unique3', $('data').countDistinct('i$visitor'))
+        .apply('TimeBucket', i$('time').timeBucket('PT1H'))
+        .apply('TimeFloor', i$('time').timeFloor('PT1H'))
+        .apply('TimeShift3', i$('time').timeShift('PT1H', 3))
+        .apply('TimeRange3', i$('time').timeRange('PT1H', 3))
+        .apply('Overlap', i$('x').overlap('i$y'))
         .apply('Custom1', $('data').customAggregate('blah'))
         .apply('Custom2', $('data').customAggregate('blah'));
 
@@ -689,8 +689,8 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = ply()
-        .apply('data', '$wiki.filter($language == "en")')
-        .apply('TotalAdded', '$data.sum($added)');
+        .apply('data', '$wiki.filter(i$language == "en")')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -716,8 +716,8 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = ply()
-        .apply('data', '$wiki.filter($language == "en")')
-        .apply('TotalAdded', '$data.sum($added) - -1');
+        .apply('data', '$wiki.filter(i$language == "en")')
+        .apply('TotalAdded', '$data.sum(i$added) - -1');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -730,8 +730,8 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = ply()
-        .apply('data', '$data.filter($language == "en")')
-        .apply('TotalAdded', '$data.sum($added)');
+        .apply('data', '$data.filter(i$language == "en")')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -745,12 +745,12 @@ describe("SQL parser", () => {
 
       var ex2 = ply()
         .apply('data', $('data').filter(
-          $('language').is("en")
-            .and($('time').greaterThan(r('2015-01-01T10:30:00'))
-              .and($('time').lessThan(r('2015-01-02T12:30:00')))
+          i$('language').is("en")
+            .and(i$('time').greaterThan(r('2015-01-01T10:30:00'))
+              .and(i$('time').lessThan(r('2015-01-02T12:30:00')))
             )
         ))
-        .apply('TotalAdded', '$data.sum($added)');
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -764,11 +764,11 @@ describe("SQL parser", () => {
 
       var ex2 = ply()
         .apply('data', $('data').filter(
-          $('language').is("en")
-            .and(r('2015-01-01T10:30:00').lessThanOrEqual($('time')))
-            .and($('time').lessThan(r('2015-01-02T12:30:00')))
+          i$('language').is("en")
+            .and(r('2015-01-01T10:30:00').lessThanOrEqual(i$('time')))
+            .and(i$('time').lessThan(r('2015-01-02T12:30:00')))
         ))
-        .apply('TotalAdded', '$data.sum($added)');
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
 
@@ -795,12 +795,12 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki').filter(
-        $('language').is("en")
-          .and($('time').greaterThan(r('2015-01-01T10:30:00'))
-            .and($('time').lessThan(r('2015-01-02T12:30:00')))
+        i$('language').is("en")
+          .and(i$('time').greaterThan(r('2015-01-01T10:30:00'))
+            .and(i$('time').lessThan(r('2015-01-02T12:30:00')))
           )
-      ).split('$page', 'Page', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+      ).split('i$page', 'Page', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -816,9 +816,9 @@ describe("SQL parser", () => {
         LIMIT 5
       `);
 
-      var ex2 = $('wiki').split('$page', 'Page', 'data')
-        .apply('TotalAdded', '$data.sum($added)')
-        .sort('$TotalAdded', 'ascending')
+      var ex2 = $('wiki').split('i$page', 'Page', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)')
+        .sort('i$TotalAdded', 'ascending')
         .limit(5);
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -831,7 +831,7 @@ describe("SQL parser", () => {
 
       var ex2 = ply()
         .apply('data', '$wiki')
-        .apply('TotalAdded', '$data.sum($added)')
+        .apply('TotalAdded', '$data.sum(i$added)')
         .limit(5);
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -847,8 +847,8 @@ describe("SQL parser", () => {
         LIMIT 5
       `);
 
-      var ex2 = $('wiki').split('$page', 'Page', 'data')
-        .apply('TotalAdded', '$data.sum($added)')
+      var ex2 = $('wiki').split('i$page', 'Page', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)')
         .limit(5);
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -859,7 +859,7 @@ describe("SQL parser", () => {
         SELECT \`page\`, \`user\` FROM \`wiki\` GROUP BY \`page\`, \`user\`
       `);
 
-      var ex2 = $('wiki').split({ page: '$page', user: '$user' }, 'data');
+      var ex2 = $('wiki').split({ page: 'i$page', user: 'i$user' }, 'data');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -869,7 +869,7 @@ describe("SQL parser", () => {
         SELECT DISTINCT \`page\`, \`user\` FROM \`wiki\`
       `);
 
-      var ex2 = $('wiki').split({ page: '$page', user: '$user' }, 'data');
+      var ex2 = $('wiki').split({ page: 'i$page', user: 'i$user' }, 'data');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -879,8 +879,8 @@ describe("SQL parser", () => {
         SELECT\`page\`AS'Page'FROM\`wiki\`GROUP BY\`page\`ORDER BY\`Page\`LIMIT 5
       `);
 
-      var ex2 = $('wiki').split('$page', 'Page', 'data')
-        .sort('$Page', 'ascending')
+      var ex2 = $('wiki').split('i$page', 'Page', 'data')
+        .sort('i$Page', 'ascending')
         .limit(5);
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -895,39 +895,39 @@ describe("SQL parser", () => {
         GROUP BY 1
       `);
 
-      var ex2 = $('wiki').split($('time').timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+      var ex2 = $('wiki').split(i$('time').timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("should work with a DATE_FORMAT function (PT1S)", () => {
       var parse = Expression.parseSQL("DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d %H:%i:%s' )");
-      var ex2 = $('time').timeFloor('PT1S');
+      var ex2 = i$('time').timeFloor('PT1S');
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("should work with a DATE_FORMAT function (PT1M)", () => {
       var parse = Expression.parseSQL("DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d %H:%i:00' )");
-      var ex2 = $('time').timeFloor('PT1M');
+      var ex2 = i$('time').timeFloor('PT1M');
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("should work with a DATE_FORMAT function (PTD)", () => {
       var parse = Expression.parseSQL("DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d' )");
-      var ex2 = $('time').timeFloor('P1D');
+      var ex2 = i$('time').timeFloor('P1D');
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("should work with a DATE_FORMAT function (PTD)", () => {
       var parse = Expression.parseSQL("DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d' )");
-      var ex2 = $('time').timeFloor('P1D');
+      var ex2 = i$('time').timeFloor('P1D');
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
     it("should work with a ADDDATE(DATE_FORMAT) function (PTD)", () => {
       var parse = Expression.parseSQL("ADDDATE(DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d' ), INTERVAL 0 SECOND )");
-      var ex2 = $('time').timeFloor('P1D');
+      var ex2 = i$('time').timeFloor('P1D');
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
@@ -953,7 +953,7 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki')
-        .filter('$language == "en"');
+        .filter('i$language == "en"');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -969,10 +969,10 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki')
-        .filter('$language == en')
-        .apply('page', '$page')
-        .apply('IsNew', '$isNew')
-        .apply('Added', '$added')
+        .filter('i$language == en')
+        .apply('page', 'i$page')
+        .apply('IsNew', 'i$isNew')
+        .apply('Added', 'i$added')
         .select('page', 'IsNew', 'Added');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -991,12 +991,12 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki')
-        .filter('$language == "en"')
-        .apply('Page', '$page.concat(lol)')
-        .apply('added', '$added + 1')
+        .filter('i$language == "en"')
+        .apply('Page', 'i$page.concat(lol)')
+        .apply('added', 'i$added + 1')
         .select('Page', 'added')
-        .filter('$added > 100')
-        .sort('$page', 'descending')
+        .filter('i$added > 100')
+        .sort('i$page', 'descending')
         .limit(10);
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -1011,8 +1011,8 @@ describe("SQL parser", () => {
         GROUP BY 1
       `);
 
-      var ex2 = $('wiki').split($('added').numberBucket(10, 1), 'AddedBucket', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+      var ex2 = $('wiki').split(i$('added').numberBucket(10, 1), 'AddedBucket', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1026,8 +1026,8 @@ describe("SQL parser", () => {
         GROUP BY 1
       `);
 
-      var ex2 = $('wiki').split($('time').timePart('DAY_OF_WEEK', 'Etc/UTC'), 'DayOfWeek', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+      var ex2 = $('wiki').split(i$('time').timePart('DAY_OF_WEEK', 'Etc/UTC'), 'DayOfWeek', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1039,8 +1039,8 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki')
-        .filter($('time').greaterThan(r(1447430881).multiply(1000).cast('TIME')).and($('time').lessThan(r(1547430881).multiply(1000).cast('TIME'))))
-        .apply('Unix', $('time').cast('NUMBER').divide(1000))
+        .filter(i$('time').greaterThan(r(1447430881).multiply(1000).cast('TIME')).and(i$('time').lessThan(r(1547430881).multiply(1000).cast('TIME'))))
+        .apply('Unix', i$('time').cast('NUMBER').divide(1000))
         .select('Unix');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -1053,7 +1053,7 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki').filter(
-        r(1447430881).multiply(1000).cast('TIME').lessThan($('time')).and($('time').lessThan(r(1547430881).multiply(1000).cast('TIME')))
+        r(1447430881).multiply(1000).cast('TIME').lessThan(i$('time')).and(i$('time').lessThan(r(1547430881).multiply(1000).cast('TIME')))
       );
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -1065,8 +1065,8 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki')
-        .apply('castedString', $('commentLength').cast('STRING'))
-        .apply('castedNumber', $('commentLengthStr').cast('NUMBER'))
+        .apply('castedString', i$('commentLength').cast('STRING'))
+        .apply('castedNumber', i$('commentLengthStr').cast('NUMBER'))
         .select('castedString', 'castedNumber');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -1081,8 +1081,8 @@ describe("SQL parser", () => {
         GROUP BY 1
       `);
 
-      var ex2 = $('wiki').split("'[' ++ $page.substr(0, 3).substr(1, 2) ++ ']'", 'Crazy', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+      var ex2 = $('wiki').split("'[' ++ i$page.substr(0, 3).substr(1, 2) ++ ']'", 'Crazy', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1098,10 +1098,10 @@ describe("SQL parser", () => {
         GROUP BY 1
       `);
 
-      var ex2 = $('wiki').split("($user.substr(1, 1).transformCase('upperCase')).concat($user.substr(2,5).transformCase('lowerCase'))", 'ProperName', 'data')
-        .apply('Upper', '$page.transformCase("upperCase")')
-        .apply('UCase', '$channel.transformCase("upperCase")')
-        .apply('TotalAdded', '$data.sum($added)');
+      var ex2 = $('wiki').split("(i$user.substr(1, 1).transformCase('upperCase')).concat(i$user.substr(2,5).transformCase('lowerCase'))", 'ProperName', 'data')
+        .apply('Upper', 'i$page.transformCase("upperCase")')
+        .apply('UCase', 'i$channel.transformCase("upperCase")')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1114,8 +1114,8 @@ describe("SQL parser", () => {
         GROUP BY 1
       `);
 
-      var ex2 = $('wiki').filter($('page').indexOf('title').add(1).in({start: 0, end: null, bounds: '()'})).split("$page", 'Page', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+      var ex2 = $('wiki').filter(i$('page').indexOf('title').add(1).in({start: 0, end: null, bounds: '()'})).split("i$page", 'Page', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.simplify().toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1129,8 +1129,8 @@ describe("SQL parser", () => {
         GROUP BY 1
       `);
 
-      var ex2 = $('wiki').split("$page.extract('^Wiki(.+)$')", 'Extract', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+      var ex2 = $('wiki').split("i$page.extract('^Wiki(.+)$')", 'Extract', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1144,8 +1144,8 @@ describe("SQL parser", () => {
         GROUP BY 1
       `);
 
-      var ex2 = $('wiki').split("$language.lookup('language-lookup')", 'Lookup', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+      var ex2 = $('wiki').split("i$language.lookup('language-lookup')", 'Lookup', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1173,21 +1173,21 @@ describe("SQL parser", () => {
         .apply(
           'data',
           $('wiki').filter(
-            $('user').is(r("Bot Master 1"))
-              .and($('page').isnt(r("Hello World")))
-              .and($('added').lessThan(5))
-              .and($('language').in(['ca', 'cs', 'da', 'el']))
-              .and($('language').in(['ca', 'cs', 'da', 'el']))
-              .and($('language').in('$languages'))
-              .and($('namespace').in(['simple', 'dict']).not())
-              .and($('geo').isnt(null))
-              .and($('page').contains('World', 'ignoreCase'))
-              .and($('page').match('^.*Hello_World.*$'))
-              .and($('page').match('^.*Hello_World.*$'))
-              .and($('page').match('W[od]'))
+            i$('user').is(r("Bot Master 1"))
+              .and(i$('page').isnt(r("Hello World")))
+              .and(i$('added').lessThan(5))
+              .and(i$('language').in(['ca', 'cs', 'da', 'el']))
+              .and(i$('language').in(['ca', 'cs', 'da', 'el']))
+              .and(i$('language').in('i$languages'))
+              .and(i$('namespace').in(['simple', 'dict']).not())
+              .and(i$('geo').isnt(null))
+              .and(i$('page').contains('World', 'ignoreCase'))
+              .and(i$('page').match('^.*Hello_World.*$'))
+              .and(i$('page').match('^.*Hello_World.*$'))
+              .and(i$('page').match('W[od]'))
           )
         )
-        .apply('TotalAdded', '$data.sum($added)');
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1213,17 +1213,17 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = ply()
-        .apply('data', '$wiki.filter($language == "en")')
-        .apply('TotalAdded', '$data.sum($added)')
+        .apply('data', '$wiki.filter(i$language == "en")')
+        .apply('TotalAdded', '$data.sum(i$added)')
         .apply(
           'Pages',
-          $('data').split('$page', 'Page')
+          $('data').split('i$page', 'Page')
             .apply('Count', '$data.count()')
-            .apply('TotalAdded', '$data.sum($added)')
-            .apply('MinAdded', '$data.min($added)')
-            .apply('MaxAdded', '$data.max($added)')
-            .filter('$TotalAdded > 100')
-            .sort('$Count', 'descending')
+            .apply('TotalAdded', '$data.sum(i$added)')
+            .apply('MinAdded', '$data.min(i$added)')
+            .apply('MaxAdded', '$data.max(i$added)')
+            .filter('i$TotalAdded > 100')
+            .sort('i$Count', 'descending')
             .limit(10)
         );
 
@@ -1241,12 +1241,12 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki-tiki:taki').filter(
-        $('language').is("en")
-            .and($('time').greaterThan(r('2015-01-01T10:30:00'))
-              .and($('time').lessThan(r('2015-01-02T12:30:00')))
+        i$('language').is("en")
+            .and(i$('time').greaterThan(r('2015-01-01T10:30:00'))
+              .and(i$('time').lessThan(r('2015-01-02T12:30:00')))
             )
-      ).split('${page or else?}', 'Page', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+      ).split('i${page or else?}', 'Page', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1264,9 +1264,9 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki')
-        .filter($('language').is("en"))
-        .split('$page', 'Page', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+        .filter(i$('language').is("en"))
+        .split('i$page', 'Page', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1284,9 +1284,9 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki')
-        .filter($('language').is("en"))
-        .split('$page', 'Page', 'data')
-        .apply('TotalAdded', '$data.sum($added)');
+        .filter(i$('language').is("en"))
+        .split('i$page', 'Page', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1309,11 +1309,11 @@ describe("SQL parser", () => {
         .apply(
           'data',
           $('wiki')
-            .filter($('language').is("en"))
-            .split('$page', 'Page', 'data')
-            .apply('TotalAdded', '$data.sum($added)')
+            .filter(i$('language').is("en"))
+            .split('i$page', 'Page', 'data')
+            .apply('TotalAdded', '$data.sum(i$added)')
         )
-        .apply('SumTotalAdded', '$data.sum($TotalAdded)');
+        .apply('SumTotalAdded', '$data.sum(i$TotalAdded)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1338,12 +1338,12 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki')
-        .filter($('language').is("en"))
-        .split({ Page: '$page', User: '$user' }, 'data')
-        .apply('TotalAdded', '$data.sum($added)')
-        .filter($('TotalAdded').isnt(5))
-        .split('$Page', 'Page', 'data')
-          .apply('SumTotalAdded', '$data.sum($TotalAdded)')
+        .filter(i$('language').is("en"))
+        .split({ Page: 'i$page', User: 'i$user' }, 'data')
+        .apply('TotalAdded', '$data.sum(i$added)')
+        .filter(i$('TotalAdded').isnt(5))
+        .split('i$Page', 'Page', 'data')
+          .apply('SumTotalAdded', '$data.sum(i$TotalAdded)')
           .limit(5);
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -1363,9 +1363,9 @@ describe("SQL parser", () => {
         GROUP BY 2
       `);
 
-      var ex2 = $('wikipedia').filter("$time.timeFloor(PT1H) >= '2015-09-12 00:00:00' and $time.timeFloor(PT1H) <= '2015-09-12 23:00:00'")
-        .split('$time.timeFloor(PT1S)', 'tsc_time_ok', 'data')
-        .apply('sum_added_ok', '$data.sum($added)');
+      var ex2 = $('wikipedia').filter("i$time.timeFloor(PT1H) >= '2015-09-12 00:00:00' and i$time.timeFloor(PT1H) <= '2015-09-12 23:00:00'")
+        .split('i$time.timeFloor(PT1S)', 'tsc_time_ok', 'data')
+        .apply('sum_added_ok', '$data.sum(i$added)');
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
@@ -1396,7 +1396,7 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('GLOBAL_VARIABLES')
-        .filter($('Variable_name').is(r('language')).or($('Variable_name').is(r('net_write_timeout'))))
+        .filter(i$('Variable_name').is(r('language')).or(i$('Variable_name').is(r('net_write_timeout'))))
         .apply('Variable_name', $('VARIABLE_NAME'))
         .apply('Value', $('VARIABLE_VALUE'))
         .select('Variable_name', 'Value');

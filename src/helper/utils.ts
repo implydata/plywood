@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
+import { SimpleArray } from 'immutable-class';
+
 var objectHasOwnProperty = Object.prototype.hasOwnProperty;
 export function hasOwnProperty(obj: any, key: string): boolean {
   return objectHasOwnProperty.call(obj, key);
 }
+
+export function findProperty(obj: any, key: string): any {
+  return hasOwnProperty(obj, key) ? key : null;
+}
+
+export function findPropertyCI(obj: any, key: string): any {
+  return SimpleArray.find(Object.keys(obj), (v) => v.toLowerCase() === key.toLowerCase());
+}
+
 
 export function repeat(str: string, times: int): string {
   return new Array(times + 1).join(str);
@@ -60,7 +71,7 @@ export function deduplicateSort(a: string[]): string[] {
     if (v !== last) newA.push(v);
     last = v;
   }
-  return newA
+  return newA;
 }
 
 export function mapLookup<T, U>(thing: Lookup<T>, fn: (x: T) => U): Lookup<U> {

@@ -25,7 +25,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { External, $, ply, r } = plywood;
+var { External, $, ply, r, Expression } = plywood;
 
 var context = {
   diamonds: External.fromJS({
@@ -240,6 +240,26 @@ describe("simulate MySQL", () => {
       LIMIT 10
     `);
   });
+
+  it("should be able to find column name case insensitively", () => {
+    var ex = Expression.parseSQL(`
+        SELECT
+        SUM(PrIcE) AS 'TotalPrice'
+        FROM \`diamonds\`
+      `);
+
+
+    var queryPlan = ex.expression.simulateQueryPlan(context);
+    expect(queryPlan).to.have.length(1);
+
+    expect(queryPlan[0]).to.equal(sane`
+      SELECT
+      SUM(\`price\`) AS \`TotalPrice\`
+      FROM \`diamonds\`
+      GROUP BY ''
+    `);
+  });
+
 
   it("works with value query", () => {
     var ex = $('diamonds').filter('$color == "D"').sum('$price');
