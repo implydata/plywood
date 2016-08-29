@@ -44,57 +44,6 @@ export function dictEqual(dictA: Lookup<any>, dictB: Lookup<any>): boolean {
   return true;
 }
 
-export function find<T>(array: T[], fn: (value: T, index: int, array: T[]) => boolean): T {
-  for (let i = 0, n = array.length; i < n; i++) {
-    let a = array[i];
-    if (fn.call(array, a, i)) return a;
-  }
-  return null;
-}
-
-export function findIndex<T>(array: T[], fn: (value: T, index: int, array: T[]) => boolean): int {
-  for (let i = 0, n = array.length; i < n; i++) {
-    let a = array[i];
-    if (fn.call(array, a, i)) return i;
-  }
-  return -1;
-}
-
-export interface Nameable {
-  name: string;
-}
-
-export function findByName<T extends Nameable>(array: T[], name: string): T {
-  return find(array, (x) => x.name === name);
-}
-
-export function findIndexByName<T extends Nameable>(array: T[], name: string): int {
-  return findIndex(array, (x) => x.name === name);
-}
-
-export function overrideByName<T extends Nameable>(things: T[], thingOverride: T): T[] {
-  var overrideName = thingOverride.name;
-  var added = false;
-  things = things.map(t => {
-    if (t.name === overrideName) {
-      added = true;
-      return thingOverride;
-    } else {
-      return t;
-    }
-  });
-  if (!added) things.push(thingOverride);
-  return things;
-}
-
-export function overridesByName<T extends Nameable>(things: T[], thingOverrides: T[]): T[] {
-  for (var thingOverride of thingOverrides) {
-    things = overrideByName(things, thingOverride);
-  }
-  return things;
-}
-
-
 export function shallowCopy<T>(thing: Lookup<T>): Lookup<T> {
   var newThing: Lookup<T> = {};
   for (var k in thing) {

@@ -16,16 +16,9 @@
 
 import * as Q from 'q';
 import { Timezone, Duration } from "chronoshift";
-import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual } from "immutable-class";
+import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from "immutable-class";
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";
-import {
-  hasOwnProperty,
-  overrideByName,
-  nonEmptyLookup,
-  find,
-  findByName,
-  safeAdd
-} from "../helper/utils";
+import { hasOwnProperty, nonEmptyLookup, safeAdd } from "../helper/utils";
 import { $, Expression, RefExpression, ChainExpression, ExternalExpression } from "../expressions/index";
 import { PlywoodValue, Datum, Dataset } from "../datatypes/dataset";
 import { Attributes, AttributeInfo, AttributeJSs } from "../datatypes/attributeInfo";
@@ -54,7 +47,7 @@ export interface PostProcess {
 }
 
 export interface NextFn<Q, R> {
-  (prevQuery: Q, prevResult: R): Q
+  (prevQuery: Q, prevResult: R): Q;
 }
 
 export interface QueryAndPostProcess<T> {
@@ -228,7 +221,6 @@ export interface ExternalValue {
   introspectionStrategy?: string;
   exactResultsOnly?: boolean;
   context?: Lookup<any>;
-  finalizers? : Druid.PostAggregation[];
 
   requester?: Requester.PlywoodRequester<any>;
 }
@@ -324,9 +316,9 @@ export abstract class External {
     apply = <ApplyAction>apply.changeExpression(apply.expression.resolveWithExpressions(expressions, 'leave').simplify());
 
     return {
-      attributes: overrideByName(attributes, new AttributeInfo({ name: apply.name, type: apply.expression.type })),
-      applies: overrideByName(applies, apply)
-    }
+      attributes: NamedArray.overrideByName(attributes, new AttributeInfo({ name: apply.name, type: apply.expression.type })),
+      applies: NamedArray.overrideByName(applies, apply)
+    };
   }
 
   static segregationAggregateApplies(applies: ApplyAction[]): ApplySegregation {
@@ -443,7 +435,7 @@ export abstract class External {
       }
 
       var start = new Date(v);
-      d[label] = new TimeRange({ start, end: duration.shift(start, timezone) })
+      d[label] = new TimeRange({ start, end: duration.shift(start, timezone) });
     };
   }
 
@@ -460,7 +452,7 @@ export abstract class External {
         start: start,
         end: safeAdd(start, rangeSize)
       });
-    }
+    };
   }
 
   static numberInflaterFactory(label: string): Inflater  {
@@ -472,7 +464,7 @@ export abstract class External {
       }
 
       d[label] = Number(v);
-    }
+    };
   }
 
   static timeInflaterFactory(label: string): Inflater  {
@@ -484,7 +476,7 @@ export abstract class External {
       }
 
       d[label] = new Date(v);
-    }
+    };
   }
 
   static setStringInflaterFactory(label: string): Inflater  {
@@ -500,14 +492,14 @@ export abstract class External {
         setType: 'STRING',
         elements: v
       });
-    }
+    };
   }
 
   static setCardinalityInflaterFactory(label: string): Inflater  {
     return (d: any) => {
       var v = d[label];
-      d[label] = Array.isArray(v) ? v.length : 1
-    }
+      d[label] = Array.isArray(v) ? v.length : 1;
+    };
   }
 
   static jsToValue(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): ExternalValue {
@@ -806,7 +798,7 @@ export abstract class External {
 
   public getAttributesInfo(attributeName: string) {
     var attributes = this.rawAttributes || this.attributes;
-    return findByName(attributes, attributeName);
+    return NamedArray.get(attributes, attributeName);
   }
 
   public updateAttribute(newAttribute: AttributeInfo): External {
@@ -824,7 +816,7 @@ export abstract class External {
 
   public hasAttribute(name: string): boolean {
     const { attributes, rawAttributes, derivedAttributes } = this;
-    if (find(rawAttributes || attributes, (a) => a.name === name)) return true;
+    if (SimpleArray.find(rawAttributes || attributes, (a) => a.name === name)) return true;
     return hasOwnProperty(derivedAttributes, name);
   }
 
@@ -1179,7 +1171,7 @@ export abstract class External {
           return ex.filter(extraFilter);
         }
         return null;
-      })
+      });
     }
 
     return ex;
@@ -1217,7 +1209,7 @@ export abstract class External {
       } else {
         return null;
       }
-    })
+    });
   }
 
   public inlineDerivedAttributesInAggregate(expression: Expression): Expression {
@@ -1260,7 +1252,7 @@ export abstract class External {
   public getQuerySplit(): SplitAction {
     return this.split.transformExpressions((ex) => {
       return this.inlineDerivedAttributes(ex);
-    })
+    });
   }
 
   public getQueryFilter(): Expression {
@@ -1374,12 +1366,12 @@ export abstract class External {
             .then((result) => {
               results.push(result);
               query = next(query, result);
-            })
+            });
         }
       )
         .then(() => {
           return queryAndPostProcess.postProcess(results);
-        })
+        });
     } else {
       finalResult = requester({ query })
         .then(queryAndPostProcess.postProcess);
@@ -1437,7 +1429,7 @@ export abstract class External {
     var { attributes, rawAttributes, derivedAttributes } = this;
     if (!attributes) throw new Error("dataset has not been introspected");
 
-    if (!rawAttributes) rawAttributes = attributes
+    if (!rawAttributes) rawAttributes = attributes;
 
     var myDatasetType: Lookup<FullType> = {};
     for (var rawAttribute of rawAttributes) {

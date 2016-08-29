@@ -17,9 +17,9 @@
 
 import * as Q from 'q';
 import { isDate } from "chronoshift";
-import { Class, Instance, isInstanceOf, generalEqual } from "immutable-class";
+import { Class, Instance, isInstanceOf, generalEqual, SimpleArray, NamedArray } from "immutable-class";
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from "../types";
-import { hasOwnProperty, find, findByName, overrideByName } from "../helper/utils";
+import { hasOwnProperty } from "../helper/utils";
 import { Attributes, AttributeInfo, AttributeJSs } from "./attributeInfo";
 import { NumberRange } from "./numberRange";
 import { Set } from "./set";
@@ -498,8 +498,8 @@ export class Dataset implements Instance<DatasetValue, any> {
     var attrLookup: Lookup<boolean> = Object.create(null);
     for (var attr of attrs) {
       attrLookup[attr] = true;
-      var existingAttribute = findByName(attributes, attr);
-      if (existingAttribute) newAttributes.push(existingAttribute)
+      var existingAttribute = NamedArray.get(attributes, attr);
+      if (existingAttribute) newAttributes.push(existingAttribute);
     }
 
     var data = this.data;
@@ -542,7 +542,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     // End Hack
 
     var value = this.valueOf();
-    value.attributes = overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
+    value.attributes = NamedArray.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
     value.data = newData;
     return new Dataset(value);
   }
@@ -763,7 +763,7 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public findDatumByAttribute(attribute: string, value: any): Datum {
-    return find(this.data, (d) => generalEqual(d[attribute], value));
+    return SimpleArray.find(this.data, (d) => generalEqual(d[attribute], value));
   }
 
   public getNestedColumns(): Column[] {

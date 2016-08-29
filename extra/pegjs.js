@@ -16,49 +16,28 @@
  */
 
 var fs = require('fs');
-var PEG = require("pegjs");
+var peg = require("pegjs");
 
-var prefixToRemove = '(function() {\n  "use strict";\n';
-var postfixToRemove = '})()';
+function mkParser(pegjsFilename, outputFilename) {
+  var grammar = fs.readFileSync(pegjsFilename, 'utf8');
+
+  try {
+    var parserSrc = peg.generate(grammar, {
+      format: 'bare',
+      output: 'source',
+      optimize: "speed" // or "size"
+    });
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
+
+  parserSrc = 'module.exports =\n' + parserSrc.replace("\n(function() {\n", "\nfunction(plywood, chronoshift) {\n").replace("\n})()", "\n}");
+
+  fs.writeFileSync(outputFilename, parserSrc, 'utf8');
+}
 
 // Expressions
 
-var expressionGrammarFilename = './src/expressions/expression.pegjs';
-var expressionGrammar = fs.readFileSync(expressionGrammarFilename, 'utf8');
-
-try {
-  var expressionParser = PEG.buildParser(expressionGrammar, {
-    output: 'source',
-    optimize: "speed" // or "size"
-  });
-} catch (e) {
-  console.error(e);
-  process.exit(1);
-}
-
-expressionParser = expressionParser.substring(prefixToRemove.length, expressionParser.length - postfixToRemove.length);
-
-expressionParser = '"use strict";\nmodule.exports = function(plywood, chronoshift) {' + expressionParser + '};\n';
-
-fs.writeFileSync('./build/expressionParser.js', expressionParser, 'utf8');
-
-// SQL
-
-var plyqlGrammarFilename = './src/expressions/plyql.pegjs';
-var plyqlGrammar = fs.readFileSync(plyqlGrammarFilename, 'utf8');
-
-try {
-  var plyqlParser = PEG.buildParser(plyqlGrammar, {
-    output: 'source',
-    optimize: "speed" // or "size"
-  });
-} catch (e) {
-  console.error(e);
-  process.exit(1);
-}
-
-plyqlParser = plyqlParser.substring(prefixToRemove.length, plyqlParser.length - postfixToRemove.length);
-
-plyqlParser = '"use strict";\nmodule.exports = function(plywood, chronoshift) {' + plyqlParser + '};\n';
-
-fs.writeFileSync('./build/plyqlParser.js', plyqlParser, 'utf8');
+mkParser('./src/expressions/expression.pegjs', './build/expressionParser.js');
+mkParser('./src/expressions/plyql.pegjs', './build/plyqlParser.js');

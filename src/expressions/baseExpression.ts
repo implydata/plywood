@@ -17,7 +17,7 @@
 
 import * as Q from 'q';
 import { Timezone, Duration, parseISODate } from "chronoshift";
-import { Instance, isInstanceOf, isImmutableClass } from "immutable-class";
+import { Instance, isInstanceOf, isImmutableClass, SimpleArray } from "immutable-class";
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple } from "../types";
 import { LiteralExpression } from "./literalExpression";
 import { ChainExpression } from "./chainExpression";
@@ -70,7 +70,7 @@ import {
   TransformCaseAction,
   Environment
 } from "../actions/index";
-import { hasOwnProperty, repeat, emptyLookup, find, deduplicateSort } from "../helper/utils";
+import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from "../helper/utils";
 import {
   Dataset,
   Datum,
@@ -82,9 +82,10 @@ import {
   TimeRange
 } from "../datatypes/index";
 import { ActionJS, CaseType, Splits } from "../actions/baseAction";
+import { Direction } from "../actions/sortAction";
 import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from "../datatypes/common";
 import { ComputeFn } from "../datatypes/dataset";
-import { External, ExternalJS } from "../external/baseExternal"
+import { External, ExternalJS } from "../external/baseExternal";
 
 export interface BooleanExpressionIterator {
   (ex?: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
@@ -121,7 +122,7 @@ export interface Digest {
 }
 
 export interface Indexer {
-  index: int
+  index: int;
 }
 
 export type Alterations = Lookup<Expression>;
@@ -768,7 +769,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public abstract getJS(datumVar: string): string
 
-  public getJSFn(datumVar: string = 'd[]'): string {
+  public getJSFn(datumVar = 'd[]'): string {
     const { type } = this;
     var jsEx = this.getJS(datumVar);
     var body: string;
@@ -788,12 +789,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       return {
         extract: this,
         rest: Expression.TRUE
-      }
+      };
     } else {
       return {
         extract: Expression.TRUE,
         rest: this
-      }
+      };
     }
   }
 
@@ -810,7 +811,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       var externals = ex.getBaseExternals();
       if (externals.length !== 1) return null;
 
-      var existingApply = find(singleDatasetActions, (apply) => apply.expression.equals(ex));
+      var existingApply = SimpleArray.find(singleDatasetActions, (apply) => apply.expression.equals(ex));
 
       var tempName: string;
       if (existingApply) {
@@ -828,12 +829,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         op: 'ref',
         name: tempName,
         nest: 0
-      })
+      });
     });
     return {
       combineExpression: combine,
       singleDatasetActions: singleDatasetActions
-    }
+    };
   }
 
   public actionize(containingAction: string): Action[] {
@@ -1085,7 +1086,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   // Number manipulation
 
-  public numberBucket(size: number, offset: number = 0): ChainExpression {
+  public numberBucket(size: number, offset = 0): ChainExpression {
     return this.performAction(new NumberBucketAction({ size: getNumber(size), offset: getNumber(offset) }));
   }
 
@@ -1187,9 +1188,9 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return this.performAction(new ApplyAction({ name: getString(name), expression: ex }));
   }
 
-  public sort(ex: any, direction: string = 'ascending'): ChainExpression {
+  public sort(ex: any, direction: Direction = 'ascending'): ChainExpression {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new SortAction({ expression: ex, direction: getString(direction) }));
+    return this.performAction(new SortAction({ expression: ex, direction: (getString(direction) as Direction) }));
   }
 
   public limit(limit: number): ChainExpression {
@@ -1341,7 +1342,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         var nest = ex.nest;
         if (nestDiff === nest) {
           var foundExpression: Expression = null;
-          var valueFound: boolean = false;
+          var valueFound = false;
           if (hasOwnProperty(expressions, ex.name)) {
             foundExpression = expressions[ex.name];
             valueFound = true;
@@ -1376,7 +1377,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return this.every((ex: Expression, index: int, depth: int, nestDiff: int) => {
       if (ex instanceof RefExpression) {
         var nest = ex.nest;
-        return nestDiff >= nest
+        return nestDiff >= nest;
       }
       return null;
     });

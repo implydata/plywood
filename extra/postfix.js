@@ -1,29 +1,35 @@
 Expression.expressionParser = require("./expressionParser")(exports, Chronoshift);
 Expression.plyqlParser = require("./plyqlParser")(exports, Chronoshift);
 
-var helper = {};
-function addHasMoved(name, fn) {
-  helper[name] = function() {
+function addHasMoved(obj, name, fn) {
+  obj[name] = function() {
     console.warn(name + ' has moved, please update your code');
     return fn.apply(this, arguments);
   };
 }
 
-addHasMoved('parseJSON', Dataset.parseJSON);
-addHasMoved('find', find);
-addHasMoved('findIndex', findIndex);
-addHasMoved('findByName', findByName);
-addHasMoved('findIndexByName', findIndexByName);
-addHasMoved('overrideByName', overrideByName);
-addHasMoved('overridesByName', overridesByName);
-addHasMoved('shallowCopy', shallowCopy);
-addHasMoved('deduplicateSort', deduplicateSort);
-addHasMoved('mapLookup', mapLookup);
-addHasMoved('emptyLookup', emptyLookup);
-addHasMoved('nonEmptyLookup', nonEmptyLookup);
-addHasMoved('verboseRequesterFactory', verboseRequesterFactory);
-addHasMoved('retryRequesterFactory', retryRequesterFactory);
-addHasMoved('concurrentLimitRequesterFactory', concurrentLimitRequesterFactory);
-addHasMoved('promiseWhile', promiseWhile);
+var helper = {};
+addHasMoved(helper, 'parseJSON', Dataset.parseJSON);
+addHasMoved(helper, 'find', SimpleArray.find);
+addHasMoved(helper, 'findIndex', SimpleArray.findIndex);
+addHasMoved(helper, 'findByName', NamedArray.findByName);
+addHasMoved(helper, 'findIndexByName', NamedArray.findIndexByName);
+addHasMoved(helper, 'overrideByName', NamedArray.overrideByName);
+addHasMoved(helper, 'overridesByName', NamedArray.overridesByName);
+addHasMoved(helper, 'shallowCopy', shallowCopy);
+addHasMoved(helper, 'deduplicateSort', deduplicateSort);
+addHasMoved(helper, 'mapLookup', mapLookup);
+addHasMoved(helper, 'emptyLookup', emptyLookup);
+addHasMoved(helper, 'nonEmptyLookup', nonEmptyLookup);
+addHasMoved(helper, 'verboseRequesterFactory', verboseRequesterFactory);
+addHasMoved(helper, 'retryRequesterFactory', retryRequesterFactory);
+addHasMoved(helper, 'concurrentLimitRequesterFactory', concurrentLimitRequesterFactory);
+addHasMoved(helper, 'promiseWhile', promiseWhile);
 
 exports.helper = helper;
+addHasMoved(exports, 'find', SimpleArray.find);
+addHasMoved(exports, 'findIndex', SimpleArray.findIndex);
+addHasMoved(exports, 'findByName', NamedArray.findByName);
+addHasMoved(exports, 'findIndexByName', NamedArray.findIndexByName);
+addHasMoved(exports, 'overrideByName', NamedArray.overrideByName);
+addHasMoved(exports, 'overridesByName', NamedArray.overridesByName);

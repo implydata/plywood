@@ -23,9 +23,11 @@ import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn } from "../datatypes/dataset";
 import { RefExpression } from "../expressions/refExpression";
 
+export type Direction = 'ascending' | 'descending';
+
 export class SortAction extends Action {
-  static DESCENDING = 'descending';
-  static ASCENDING = 'ascending';
+  static DESCENDING: Direction = 'descending';
+  static ASCENDING: Direction = 'ascending';
 
   static fromJS(parameters: ActionJS): SortAction {
     var value = Action.jsToValue(parameters);
@@ -33,7 +35,7 @@ export class SortAction extends Action {
     return new SortAction(value);
   }
 
-  public direction: string;
+  public direction: Direction;
 
   constructor(parameters: ActionValue = {}) {
     super(parameters, dummyObject);

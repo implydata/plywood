@@ -48,7 +48,7 @@ export class AbsoluteAction extends Action {
       var inV = inputFn(d, c);
       if (inV === null) return null;
       return Math.abs(inV);
-    }
+    };
   }
 
   protected _foldWithPrevAction(prevAction: Action): Action {
@@ -59,11 +59,11 @@ export class AbsoluteAction extends Action {
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {
-    return `Math.abs(${inputJS})`
+    return `Math.abs(${inputJS})`;
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-    return `ABS(${inputSQL})`
+    return `ABS(${inputSQL})`;
   }
 }
 
