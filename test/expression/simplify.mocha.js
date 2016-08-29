@@ -339,6 +339,18 @@ describe("Simplify", () => {
       var ex2 = $('flight').is(5).and($('x').is(1));
       simplifiesTo(ex1, ex2);
     });
+
+    it("works with match", () => {
+      var ex1 = $('cityName').match("San").and($('cityName').match("Hello"));
+      simplifiesTo(ex1, ex1);
+    });
+
+    it("works with same expression", () => {
+      var ex1 = $('cityName').match("San").and($('cityName').match("San"));
+      var ex2 = $('cityName').match("San");
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 
@@ -420,6 +432,18 @@ describe("Simplify", () => {
       var ex2 = $('flight').is(5).or($('x').is(1));
       simplifiesTo(ex1, ex2);
     });
+
+    it("works with match", () => {
+      var ex1 = $('cityName').match("San").or($('cityName').match("Hello"));
+      simplifiesTo(ex1, ex1);
+    });
+
+    it("works with same expression", () => {
+      var ex1 = $('cityName').match("San").or($('cityName').match("San"));
+      var ex2 = $('cityName').match("San");
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 

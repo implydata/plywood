@@ -266,9 +266,18 @@ describe("Cross Functional", function() {
     }));
 
     it('works with OR filter', equalityTest({
+      verbose: true,
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter($channel == "en" or $cityName == "Tel Aviv")')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with OR filter of identical match', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($cityName.match("San") or $cityName.match("San"))')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
