@@ -18,7 +18,7 @@
 var { expect } = require("chai");
 
 var plywood = require('../../build/plywood');
-var { Expression, Dataset, External, ExternalExpression, $, ply, r } = plywood;
+var { Expression, Dataset, External, ExternalExpression, $, i$, ply, r } = plywood;
 
 describe("resolve", () => {
   describe("errors if", () => {
@@ -241,47 +241,60 @@ describe("resolve", () => {
   });
 
   describe("sql resolve", () => {
-    it("finds the right column", () => {
+    var external = External.fromJS({
+      engine: 'druid',
+      source: 'diamonds',
+      attributes: [
+        { name: '__time', type: 'TIME' },
+        { name: 'color', type: 'STRING' },
+        { name: 'cut', type: 'STRING' },
+        { name: 'carat', type: 'NUMBER' }
+      ]
+    });
+
+    var datum = {
+      Count: 5,
+      diamonds: external
+    };
+
+    it("finds the right column with inline resolve", () => {
       var parse = Expression.parseSQL("CITYnAME = 'San Francisco'");
       var resolveString = parse.expression.resolve({ cityName: "" });
+      expect(resolveString).to.not.deep.equal(null);
 
       var parse2 = Expression.parseSQL("NOTACOLUMN = 'San Francisco'");
 
-      expect(resolveString).to.not.deep.equal(null);
       expect(() => {
         parse2.expression.resolve({ cityName: "" });
       }).to.throw('could not resolve $NOTACOLUMN because is was not in the context');
     });
 
-    it("could not find something in context", () => {
-      var ex = ply()
-        .apply('num', '$^foo + 1')
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$^num * 3')
-            .apply('y', '$^^foobar * 10')
-        );
-
+    it("does not allow for improperly cased table names", () => {
+      var parse = Expression.parseSQL("SELECT __time FROM dIaMoNds");
       expect(() => {
-        ex.resolve({ foo: 7 });
-      }).to.throw('could not resolve $^^foobar because is was not in the context');
+        parse.expression.resolve(datum)
+      }).to.throw('could not resolve $dIaMoNds because is was not in the context');
     });
 
-    it("ended up with bad types", () => {
-      var ex = ply()
-        .apply('num', '$^foo + 1')
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$^num * 3')
-            .apply('y', '$^^foo * 10')
-        );
+    it("respects alias casing", () => {
 
+      var ex = Expression.parseSQL("SELECT __TIME from diamonds AS tIMe where tIMe > '2015-01-01T000000.0'");
+      ex = ex.expression.resolve(datum);
+
+      var externalExpression = new ExternalExpression({ external });
+      expect(ex.toJS()).to.deep.equal(
+        externalExpression
+          .apply("tIMe", i$('time'))
+          .filter($("tIMe").greaterThan(r('2015-01-01T000000.0')))
+          .toJS()
+      );
+
+      expect(resolveString).to.deep.equal({});
       expect(() => {
-        ex.resolve({ foo: 'bar' });
-      }).to.throw('add must have input of type NUMBER (is STRING)');
+        parse.expression.resolve(datum)
+      }).to.throw('could not resolve $dIaMoNds because is was not in the context');
     });
+
   });
 
 });
