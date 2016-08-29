@@ -64,7 +64,7 @@ export class RefExpression extends Expression {
     return new RefExpression(value);
   }
 
-  static fromCIName(name: string) {
+  static fromNameIgnoreCase(name: string) {
     return new RefExpression({
       name,
       ignoreCase: true,

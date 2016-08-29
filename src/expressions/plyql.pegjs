@@ -835,7 +835,7 @@ Params
 Param = Number / String / Interval / Expression;
 
 RefExpression
-  = ref:NamespacedRef { return RefExpression.fromCIName(ref.name); }
+  = ref:NamespacedRef { return RefExpression.fromNameIgnoreCase(ref.name); }
 
 RelaxedNamespacedRef
   = ns:(Ref Dot)? name:RelaxedRef
