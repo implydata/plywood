@@ -266,7 +266,6 @@ describe("Cross Functional", function() {
     }));
 
     it('works with OR filter', equalityTest({
-      verbose: true,
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter($channel == "en" or $cityName == "Tel Aviv")')
