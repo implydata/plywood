@@ -18,7 +18,7 @@
 
 import { Timezone, Duration } from "chronoshift";
 import { Action, ActionJS, ActionValue, Environment } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
+import { PlyType, FullType } from "../types";
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn } from "../datatypes/dataset";
 import { immutableEqual } from "immutable-class";
@@ -89,7 +89,7 @@ export class TimeShiftAction extends Action {
 
   public _fillRefSubstitutions(): FullType {
     return {
-      type: 'TIME',
+      type: 'TIME'
     };
   }
 
@@ -101,7 +101,7 @@ export class TimeShiftAction extends Action {
       var inV = inputFn(d, c);
       if (inV === null) return null;
       return duration.shift(inV, timezone, step);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {

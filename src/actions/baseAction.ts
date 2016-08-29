@@ -32,6 +32,7 @@ import { Datum, ComputeFn, foldContext } from "../datatypes/dataset";
 import { hasOwnProperty, repeat, deduplicateSort } from "../helper/utils";
 import { Instance, isInstanceOf } from "immutable-class";
 import { ApplyAction } from "./applyAction";
+import { Direction } from "./sortAction";
 import { LiteralExpression } from "../expressions/literalExpression";
 import { RefExpression } from "../expressions/refExpression";
 import { ChainExpression } from "../expressions/chainExpression";
@@ -52,7 +53,7 @@ export interface ActionValue {
   dataName?: string;
   expression?: Expression;
   splits?: Splits;
-  direction?: string;
+  direction?: Direction;
   limit?: int;
   size?: number;
   offset?: number;
@@ -81,7 +82,7 @@ export interface ActionJS {
   dataName?: string;
   expression?: ExpressionJS;
   splits?: SplitsJS;
-  direction?: string;
+  direction?: Direction;
   limit?: int;
   size?: number;
   offset?: number;
@@ -239,7 +240,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
     return Action.isAction(other) &&
       this.action === other.action &&
       Boolean(this.expression) === Boolean(other.expression) &&
-      (!this.expression || this.expression.equals(other.expression))
+      (!this.expression || this.expression.equals(other.expression));
   }
 
   public isAggregate(): boolean {
@@ -299,7 +300,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
     return (d: Datum, c: Datum) => {
       var inV = inputFn(d, c);
       return inV ? inV[action](expressionFn, foldContext(d, c)) : null;
-    }
+    };
   }
 
   public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {

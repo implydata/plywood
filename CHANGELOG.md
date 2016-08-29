@@ -5,6 +5,15 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.12.6
 
 - SegmentMetadata passes context also
+- Upgraded to latest PEG.js
+- Fixed bug in OR action
+- Moved methods out of `plywood` and into `immutable-class`:
+  * `plywood.find` to `SimpleArray.find`
+  * `plywood.findIndex` to `SimpleArray.findIndex`
+  * `plywood.findByName` to `NamedArray.findByName`
+  * `plywood.findIndexByName` to `NamedArray.findIndexByName`
+  * `plywood.overrideByName` to `NamedArray.overrideByName`
+  * `plywood.overridesByName` to `NamedArray.overridesByName`
 
 ## 0.12.5
 

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf } from "immutable-class";
+import { Class, Instance, isInstanceOf, NamedArray } from "immutable-class";
 import { PlyType, FullType } from "../types";
-import { hasOwnProperty, overridesByName } from "../helper/utils";
+import { hasOwnProperty } from "../helper/utils";
 import { ActionJS, Action } from "../actions/baseAction";
 import { RefExpression } from "../expressions/refExpression";
 
@@ -119,7 +119,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   static override(attributes: Attributes, attributeOverrides: Attributes): Attributes {
-    return overridesByName(attributes, attributeOverrides);
+    return NamedArray.overridesByName(attributes, attributeOverrides);
   }
 
 

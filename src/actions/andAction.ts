@@ -31,6 +31,8 @@ const IS_OR_IN_ACTION: Lookup<boolean> = {
 };
 
 function mergeAnd(ex1: Expression, ex2: Expression): Expression {
+  if (ex1.equals(ex2)) return ex1;
+
   if (
     !ex1.isOp('chain') ||
     !ex2.isOp('chain') ||

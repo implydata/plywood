@@ -273,6 +273,14 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with OR filter of identical match', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($cityName.match("San") or $cityName.match("San"))')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with .contains(,normal)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: ply()
