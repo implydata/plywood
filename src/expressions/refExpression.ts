@@ -180,7 +180,7 @@ export class RefExpression extends Expression {
     if (this.type) {
       str += ':' + this.type;
     }
-    return this.ignoreCase ? 'i$' + str : '$' + str;
+    return (this.ignoreCase ? 'i$' : '$') + str;
   }
 
   public getFn(): ComputeFn {
@@ -196,7 +196,7 @@ export class RefExpression extends Expression {
           return null;
         }
       }
-    }
+    };
   }
 
   public getJS(datumVar: string): string {
