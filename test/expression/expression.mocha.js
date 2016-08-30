@@ -263,6 +263,13 @@ describe("Expression", () => {
     });
   });
 
+  describe("#getJS", () => {
+    it('throws with case insensitive flag still set', () => {
+      var exp = Expression.parse("i$cUT");
+      expect(() => exp.getJS()).to.throw('can not express ignore case as js expression');
+    });
+  });
+
 
   describe('#decomposeAverage', () => {
     it('works in simple case', () => {
