@@ -88,7 +88,7 @@ describe("stringification", () => {
 
   it("works with case insensitive refs", () => {
     var ex = i$('x').substr(1, 5);
-    expect(ex.toString(2)).to.equal("$x: ignoreCase.substr(1,5)");
+    expect(ex.toString(2)).to.equal("i$x.substr(1,5)");
   });
 
   it("works with lookup", () => {

@@ -180,10 +180,7 @@ export class RefExpression extends Expression {
     if (this.type) {
       str += ':' + this.type;
     }
-    if (this.ignoreCase) {
-      str += ':ignoreCase';
-    }
-    return '$' + str;
+    return this.ignoreCase ? 'i$' + str : '$' + str;
   }
 
   public getFn(): ComputeFn {
