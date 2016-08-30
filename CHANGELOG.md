@@ -7,6 +7,8 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - SegmentMetadata passes context also
 - Upgraded to latest PEG.js
 - Fixed bug in OR action
+- Support case insensitive RefExpression
+- PlyQL `SHOW` query rewriting is case insensitive
 - Moved methods out of `plywood` and into `immutable-class`:
   * `plywood.find` to `SimpleArray.find`
   * `plywood.findIndex` to `SimpleArray.findIndex`

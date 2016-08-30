@@ -266,30 +266,11 @@ describe("resolve", () => {
 
       expect(() => {
         parse2.expression.resolve({ cityName: "" });
-      }).to.throw('could not resolve $NOTACOLUMN because is was not in the context');
+      }).to.throw('could not resolve i$NOTACOLUMN because is was not in the context');
     });
 
     it("does not allow for improperly cased table names", () => {
       var parse = Expression.parseSQL("SELECT __time FROM dIaMoNds");
-      expect(() => {
-        parse.expression.resolve(datum)
-      }).to.throw('could not resolve $dIaMoNds because is was not in the context');
-    });
-
-    it("respects alias casing and replaces", () => {
-
-      var ex = Expression.parseSQL("SELECT __TIME from diamonds AS tIMe where tIMe > '2015-01-01T000000.0'");
-      ex = ex.expression.resolve(datum);
-
-      var externalExpression = new ExternalExpression({ external });
-      expect(ex.toJS()).to.deep.equal(
-        externalExpression
-          .filter($("time").greaterThan(r('2015-01-01T000000.0')))
-          .apply("tIMe", i$('time'))
-          .toJS()
-      );
-
-      expect(resolveString).to.deep.equal({});
       expect(() => {
         parse.expression.resolve(datum)
       }).to.throw('could not resolve $dIaMoNds because is was not in the context');

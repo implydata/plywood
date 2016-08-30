@@ -20,7 +20,7 @@ var { expect } = require("chai");
 var plywood = require('../../build/plywood');
 var { Expression, Action, Dataset, $, ply, r } = plywood;
 
-describe("reference check", () => {
+describe("free references", () => {
   var context = {
     diamonds: Dataset.fromJS([
       { color: 'A', cut: 'great', carat: 1.1, price: 300 }

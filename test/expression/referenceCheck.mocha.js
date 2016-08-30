@@ -414,7 +414,7 @@ describe("reference check", () => {
       var ex1 = i$('blah');
       expect(() => {
         ex1.referenceCheck({'null': 'STRING'})
-      }).to.throw('could not resolve $blah');
+      }).to.throw('could not resolve i$blah');
     });
 
     it("key with name null can still be a valid reference to", () => {
