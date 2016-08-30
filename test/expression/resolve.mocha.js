@@ -276,7 +276,7 @@ describe("resolve", () => {
       }).to.throw('could not resolve $dIaMoNds because is was not in the context');
     });
 
-    it("respects alias casing", () => {
+    it("respects alias casing and replaces", () => {
 
       var ex = Expression.parseSQL("SELECT __TIME from diamonds AS tIMe where tIMe > '2015-01-01T000000.0'");
       ex = ex.expression.resolve(datum);
@@ -284,8 +284,8 @@ describe("resolve", () => {
       var externalExpression = new ExternalExpression({ external });
       expect(ex.toJS()).to.deep.equal(
         externalExpression
+          .filter($("time").greaterThan(r('2015-01-01T000000.0')))
           .apply("tIMe", i$('time'))
-          .filter($("tIMe").greaterThan(r('2015-01-01T000000.0')))
           .toJS()
       );
 

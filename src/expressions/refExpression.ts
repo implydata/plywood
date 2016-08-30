@@ -16,10 +16,11 @@
  */
 
 import * as Q from 'q';
+import { SimpleArray } from 'immutable-class';
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
 import { SQLDialect } from "../dialect/baseDialect";
-import { hasOwnProperty, repeat, findPropertyCI } from "../helper/utils";
+import { hasOwnProperty, repeat } from "../helper/utils";
 import { PlywoodValue } from "../datatypes/index";
 import { Datum, ComputeFn } from "../datatypes/dataset";
 
@@ -102,6 +103,16 @@ export class RefExpression extends Expression {
     return '_' + variableName;
   }
 
+  static findProperty(obj: any, key: string): any {
+    return hasOwnProperty(obj, key) ? key : null;
+  }
+
+  static findPropertyCI(obj: any, key: string): any {
+    var lowerKey = key.toLowerCase();
+    return SimpleArray.find(Object.keys(obj), (v) => v.toLowerCase() === lowerKey);
+  }
+
+
   public nest: int;
   public name: string;
   public remote: boolean;
@@ -169,6 +180,9 @@ export class RefExpression extends Expression {
     if (this.type) {
       str += ':' + this.type;
     }
+    if (this.ignoreCase) {
+      str += ':ignoreCase';
+    }
     return '$' + str;
   }
 
@@ -230,11 +244,11 @@ export class RefExpression extends Expression {
       if (!myTypeContext) throw new Error('went too deep on ' + this.toString());
     }
 
-    var myName = ignoreCase ? findPropertyCI(myTypeContext.datasetType, name) : name;
-
+    var myName = ignoreCase ? RefExpression.findPropertyCI(myTypeContext.datasetType, name) : name;
+    if (myName == null) throw new Error('could not resolve ' + this.toString());
     // Look for the reference in the parent chain
     var nestDiff = 0;
-    while (myTypeContext && !myTypeContext.datasetType[myName]) {
+    while (myTypeContext && !hasOwnProperty(myTypeContext.datasetType, myName)) {
       myTypeContext = myTypeContext.parent;
       nestDiff++;
     }
@@ -251,7 +265,7 @@ export class RefExpression extends Expression {
     }
 
     // Check if it needs to be replaced
-    if (!this.type || nestDiff > 0 || this.remote !== myRemote) {
+    if (!this.type || nestDiff > 0 || this.remote !== myRemote || ignoreCase) {
       alterations[myIndex] = new RefExpression({
         name: myName,
         nest: this.nest + nestDiff,
@@ -293,7 +307,7 @@ export class RefExpression extends Expression {
   public upgradeToType(targetType: PlyType): Expression {
     const { type } = this;
     if (targetType === 'TIME' && (!type || type === 'STRING')) {
-      return this.changeType(targetType)
+      return this.changeType(targetType);
     }
     return this;
   }

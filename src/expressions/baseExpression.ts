@@ -71,7 +71,7 @@ import {
   Environment
 } from "../actions/index";
 import {
-  hasOwnProperty, repeat, emptyLookup, deduplicateSort, findPropertyCI, findProperty
+  hasOwnProperty, repeat, emptyLookup, deduplicateSort
 } from "../helper/utils";
 import {
   Dataset,
@@ -245,6 +245,12 @@ export function $(name: string, nest?: any, type?: PlyType): RefExpression {
 }
 
 export function i$(name: string, nest?: number, type?: PlyType): RefExpression {
+  if (typeof name !== 'string') throw new TypeError('$() argument must be a string');
+  if (typeof nest === 'string') {
+    type = nest as PlyType;
+    nest = 0;
+  }
+
   return new RefExpression({
     name,
     nest: nest != null ? nest : 0,
@@ -1357,8 +1363,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         if (nestDiff === nest) {
           var foundExpression: Expression = null;
           var valueFound = false;
-          var property = ignoreCase ? findPropertyCI(expressions, name) : findProperty(expressions, name);
-          if (property !== null) {
+          var property = ignoreCase ? RefExpression.findPropertyCI(expressions, name) : RefExpression.findProperty(expressions, name);
+          if (property != null) {
             foundExpression = expressions[property];
             valueFound = true;
           } else {

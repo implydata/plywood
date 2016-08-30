@@ -24,7 +24,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Dataset, $, ply, r, AttributeInfo, External } = plywood;
+var { Dataset, $, i$, ply, r, AttributeInfo, External } = plywood;
 
 // used to trigger routes with external
 var dummyExternal = External.fromJS({
@@ -487,6 +487,48 @@ describe("compute native", () => {
       .done();
   });
 
+  it("case insensitivity is respected", (testComplete) => {
+    var ds = Dataset.fromJS([
+      { cut: 'Good', time: new Date('2015-01-03T00:00:00Z') },
+      { cut: 'Great', time: new Date('2014-01-04T00:00:00Z') },
+      { cut: 'Wow', time: new Date('2015-01-05T00:00:00Z') }
+    ]);
+
+    var ex = ply(ds)
+      .apply('LessThanM',  `'M' <= i$cUt`);
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "LessThanM": false,
+            "cut": "Good",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-01-03T00:00:00.000Z')
+            }
+          },
+          {
+            "LessThanM": false,
+            "cut": "Great",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2014-01-04T00:00:00.000Z')
+            }
+          },
+          {
+            "LessThanM": true,
+            "cut": "Wow",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-01-05T00:00:00.000Z')
+            }
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
 
   it("works with filter, select", (testComplete) => {
     var ds = Dataset.fromJS(data);

@@ -21,15 +21,6 @@ export function hasOwnProperty(obj: any, key: string): boolean {
   return objectHasOwnProperty.call(obj, key);
 }
 
-export function findProperty(obj: any, key: string): any {
-  return hasOwnProperty(obj, key) ? key : null;
-}
-
-export function findPropertyCI(obj: any, key: string): any {
-  var lowerKey = key.toLowerCase();
-  return SimpleArray.find(Object.keys(obj), (v) => v.toLowerCase() === lowerKey);
-}
-
 export function repeat(str: string, times: int): string {
   return new Array(times + 1).join(str);
 }

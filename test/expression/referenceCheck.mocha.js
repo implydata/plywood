@@ -18,7 +18,7 @@
 var { expect } = require("chai");
 
 var plywood = require('../../build/plywood');
-var { External, Dataset, $, ply, r } = plywood;
+var { External, Dataset, $, i$, ply, r } = plywood;
 
 describe("reference check", () => {
   var context = {
@@ -38,7 +38,8 @@ describe("reference check", () => {
         { name: 'commentLength', type: 'NUMBER' },
         { name: 'isRobot', type: 'BOOLEAN' },
         { name: 'count', type: 'NUMBER', unsplitable: true },
-        { name: 'added', type: 'NUMBER', unsplitable: true }
+        { name: 'added', type: 'NUMBER', unsplitable: true },
+        { name: 'null', type: 'STRING', unsplitable: true }
       ],
       derivedAttributes: {
         pageExtract: '$page.extract("^(lol)")'
@@ -407,6 +408,22 @@ describe("reference check", () => {
         );
 
       expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("key with name null should not return false positive", () => {
+      var ex1 = i$('blah');
+      expect(() => {
+        ex1.referenceCheck({'null': 'STRING'})
+      }).to.throw('could not resolve $blah');
+    });
+
+    it("key with name null can still be a valid reference to", () => {
+      var ex1 = i$('null');
+      expect(ex1.referenceCheck({'null': 'STRING'}).toJS()).to.deep.equal({
+        "name": "null",
+        "op": "ref",
+        "type": "STRING"
+      });
     });
   });
 });
