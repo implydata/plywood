@@ -24,7 +24,7 @@ if (!WallTime.rules) {
 }
 
 var plywood = require('../../build/plywood');
-var { Expression, External, TimeRange, $, ply, r } = plywood;
+var { Expression, External, TimeRange, $, i$, ply, r } = plywood;
 
 var context = {
   rankings: External.fromJS({
@@ -70,9 +70,9 @@ describe("simulate Druid for amplab benchmark", () => {
 
     expect(ex.toJS()).to.deep.equal(
       $('rankings')
-        .filter('$pageRank > 5')
-        .apply('pageURL', '$pageURL')
-        .apply('pageRank', '$pageRank')
+        .filter('i$pageRank > 5')
+        .apply('pageURL', 'i$pageURL')
+        .apply('pageRank', 'i$pageRank')
         .select('pageURL', 'pageRank')
         .toJS()
     );
@@ -111,9 +111,9 @@ describe("simulate Druid for amplab benchmark", () => {
     var ex = Expression.parseSQL(sql).expression;
 
     expect(ex.toJS()).to.deep.equal(
-      $('rankings').split('$pageURL', 'pageURL', 'data')
-        .apply('pageRank', '$data.sum($pageRank)')
-        .filter('$pageRank > 5')
+      $('rankings').split('i$pageURL', 'pageURL', 'data')
+        .apply('pageRank', '$data.sum(i$pageRank)')
+        .filter('i$pageRank > 5')
         .toJS()
     );
 
@@ -163,8 +163,8 @@ describe("simulate Druid for amplab benchmark", () => {
     var ex = Expression.parseSQL(sql).expression;
 
     expect(ex.toJS()).to.deep.equal(
-      $('uservisits').split('$sourceIP.substr(1, 5)', 'SUBSTR(sourceIP, 1, 5)', 'data')
-        .apply('SUM(adRevenue)', '$data.sum($adRevenue)')
+      $('uservisits').split('i$sourceIP.substr(1, 5)', 'SUBSTR(sourceIP, 1, 5)', 'data')
+        .apply('SUM(adRevenue)', '$data.sum(i$adRevenue)')
         .toJS()
     );
 

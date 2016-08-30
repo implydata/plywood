@@ -70,7 +70,9 @@ import {
   TransformCaseAction,
   Environment
 } from "../actions/index";
-import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from "../helper/utils";
+import {
+  hasOwnProperty, repeat, emptyLookup, deduplicateSort
+} from "../helper/utils";
 import {
   Dataset,
   Datum,
@@ -146,6 +148,7 @@ export interface ExpressionValue {
   external?: External;
   expression?: Expression;
   actions?: Action[];
+  ignoreCase?: boolean;
 
   remote?: boolean;
 }
@@ -160,6 +163,7 @@ export interface ExpressionJS {
   expression?: ExpressionJS;
   action?: ActionJS;
   actions?: ActionJS[];
+  ignoreCase?: boolean;
 }
 
 export interface ExtractAndRest {
@@ -239,6 +243,22 @@ export function $(name: string, nest?: any, type?: PlyType): RefExpression {
     type
   });
 }
+
+export function i$(name: string, nest?: number, type?: PlyType): RefExpression {
+  if (typeof name !== 'string') throw new TypeError('$() argument must be a string');
+  if (typeof nest === 'string') {
+    type = nest as PlyType;
+    nest = 0;
+  }
+
+  return new RefExpression({
+    name,
+    nest: nest != null ? nest : 0,
+    type,
+    ignoreCase: true
+  });
+}
+
 
 export function r(value: any): LiteralExpression {
   if (External.isExternal(value)) throw new TypeError('r can not accept externals');
@@ -1339,12 +1359,13 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public resolveWithExpressions(expressions: Lookup<Expression>, ifNotFound: IfNotFound = 'throw'): Expression {
     return this.substitute((ex: Expression, index: int, depth: int, nestDiff: int) => {
       if (ex instanceof RefExpression) {
-        var nest = ex.nest;
+        var { nest, ignoreCase, name } = ex;
         if (nestDiff === nest) {
           var foundExpression: Expression = null;
           var valueFound = false;
-          if (hasOwnProperty(expressions, ex.name)) {
-            foundExpression = expressions[ex.name];
+          var property = ignoreCase ? RefExpression.findPropertyCI(expressions, name) : RefExpression.findProperty(expressions, name);
+          if (property != null) {
+            foundExpression = expressions[property];
             valueFound = true;
           } else {
             valueFound = false;

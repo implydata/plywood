@@ -20,6 +20,8 @@ var ply = plywood.ply;
 var $ = plywood.$;
 var r = plywood.r;
 var Expression = plywood.Expression;
+var i$ = plywood.i$;
+
 var FilterAction = plywood.FilterAction;
 var ApplyAction = plywood.ApplyAction;
 var SortAction = plywood.SortAction;
@@ -833,7 +835,7 @@ Params
 Param = Number / String / Interval / Expression;
 
 RefExpression
-  = ref:NamespacedRef { return $(ref.name); }
+  = ref:NamespacedRef { return i$(ref.name); }
 
 RelaxedNamespacedRef
   = ns:(Ref Dot)? name:RelaxedRef

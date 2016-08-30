@@ -52,7 +52,7 @@ describe("Expression", () => {
       { op: 'ref', name: 'timestamp', nest: 2 },
       { op: 'ref', name: 'make', type: 'STRING' },
       { op: 'ref', name: 'a fish will "save" you - lol / (or not)' },
-
+      { op: 'ref', name: 'a thing', ignoreCase: true },
       {
         op: 'chain',
         expression: { op: 'ref', name: 'diamonds' },

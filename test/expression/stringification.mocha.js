@@ -19,7 +19,7 @@ var { expect } = require("chai");
 var { sane } = require('../utils');
 
 var plywood = require('../../build/plywood');
-var { Expression, Dataset, $, ply, r } = plywood;
+var { Expression, Dataset, $, i$, ply, r } = plywood;
 
 describe("stringification", () => {
   it("works in advanced case", () => {
@@ -84,6 +84,11 @@ describe("stringification", () => {
   it("works with fancy ref", () => {
     var ex = $('!T_0');
     expect(ex.toString()).to.equal('${!T_0}');
+  });
+
+  it("works with case insensitive refs", () => {
+    var ex = i$('x').substr(1, 5);
+    expect(ex.toString(2)).to.equal("i$x.substr(1,5)");
   });
 
   it("works with lookup", () => {

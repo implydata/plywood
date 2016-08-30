@@ -18,7 +18,7 @@
 var { expect } = require("chai");
 
 var plywood = require('../../build/plywood');
-var { Expression, Dataset, External, ExternalExpression, $, ply, r } = plywood;
+var { Expression, Dataset, External, ExternalExpression, $, i$, ply, r } = plywood;
 
 describe("resolve", () => {
   describe("errors if", () => {
@@ -238,6 +238,63 @@ describe("resolve", () => {
           .toJS()
       );
     });
+  });
+
+  describe("sql resolve", () => {
+    var external = External.fromJS({
+      engine: 'druid',
+      source: 'diamonds',
+      attributes: [
+        { name: '__time', type: 'TIME' },
+        { name: 'color', type: 'STRING' },
+        { name: 'cut', type: 'STRING' },
+        { name: 'carat', type: 'NUMBER' }
+      ]
+    });
+
+    var datum = {
+      Count: 5,
+      diamonds: external
+    };
+
+    it("finds the right column with inline resolve", () => {
+      var parse = Expression.parseSQL("CITYnAME = 'San Francisco'");
+      var resolveString = parse.expression.resolve({ cityName: "" });
+      expect(resolveString).to.not.deep.equal(null);
+
+      var parse2 = Expression.parseSQL("NOTACOLUMN = 'San Francisco'");
+
+      expect(() => {
+        parse2.expression.resolve({ cityName: "" });
+      }).to.throw('could not resolve $NOTACOLUMN because is was not in the context');
+    });
+
+    it("does not allow for improperly cased table names", () => {
+      var parse = Expression.parseSQL("SELECT __time FROM dIaMoNds");
+      expect(() => {
+        parse.expression.resolve(datum)
+      }).to.throw('could not resolve $dIaMoNds because is was not in the context');
+    });
+
+    it("respects alias casing and replaces", () => {
+
+      var ex = Expression.parseSQL("SELECT __TIME from diamonds AS tIMe where tIMe > '2015-01-01T000000.0'");
+      ex = ex.expression.resolve(datum);
+
+      var externalExpression = new ExternalExpression({ external });
+      expect(ex.toJS()).to.deep.equal(
+        externalExpression
+          .filter($("time").greaterThan(r('2015-01-01T000000.0')))
+          .apply("tIMe", i$('time'))
+          .toJS()
+      );
+
+      expect(resolveString).to.deep.equal({});
+      expect(() => {
+        parse.expression.resolve(datum)
+      }).to.throw('could not resolve $dIaMoNds because is was not in the context');
+    });
+
   });
 
 });

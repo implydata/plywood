@@ -1250,6 +1250,51 @@ describe("simulate Druid", () => {
 
   });
 
+  it("Should be able to find column name case insensitively", () => {
+    var ex = Expression.parseSQL(`
+        SELECT
+        SUM(prIcE) AS 'TotalPrice'
+        FROM \`diamonds\`
+        WHERE '2015-01-02T12:30:00' <= \`cut\` 
+        AND '2015-01-01T10:30:00' > \`color\` 
+        AND '2015-01-01T10:30:00' <= \`time\` AND \`time\` < '2015-01-02T12:30:00'
+      `);
+
+
+    expect(ex.expression.simulateQueryPlan(contextUnfiltered)).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldName": "price",
+            "name": "TotalPrice",
+            "type": "doubleSum"
+          }
+        ],
+        "dataSource": "diamonds",
+        "filter": {
+          "fields": [
+            {
+              "dimension": "cut",
+              "lower": "2015-01-02T12:30:00",
+              "type": "bound"
+            },
+            {
+              "dimension": "color",
+              "type": "bound",
+              "upper": "2015-01-01T10:30:00",
+              "upperStrict": true
+            }
+          ],
+          "type": "and"
+        },
+        "granularity": "all",
+        "intervals": "2015-01-01T10:30Z/2015-01-02T12:30Z",
+        "queryType": "timeseries"
+      }
+    ]);
+
+  });
+
   it("works with numeric split", () => {
     var ex = ply()
       .apply(

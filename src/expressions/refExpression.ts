@@ -16,6 +16,7 @@
  */
 
 import * as Q from 'q';
+import { SimpleArray } from 'immutable-class';
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
 import { SQLDialect } from "../dialect/baseDialect";
@@ -57,7 +58,8 @@ export class RefExpression extends Expression {
         op: 'ref',
         nest: 0,
         name: parameters.name,
-        type: parameters.type
+        type: parameters.type,
+        ignoreCase: parameters.ignoreCase
       }
     }
     return new RefExpression(value);
@@ -101,9 +103,20 @@ export class RefExpression extends Expression {
     return '_' + variableName;
   }
 
+  static findProperty(obj: any, key: string): any {
+    return hasOwnProperty(obj, key) ? key : null;
+  }
+
+  static findPropertyCI(obj: any, key: string): any {
+    var lowerKey = key.toLowerCase();
+    return SimpleArray.find(Object.keys(obj), (v) => v.toLowerCase() === lowerKey);
+  }
+
+
   public nest: int;
   public name: string;
   public remote: boolean;
+  public ignoreCase: boolean;
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
@@ -134,6 +147,7 @@ export class RefExpression extends Expression {
 
     this.remote = Boolean(parameters.remote);
     this.simple = true;
+    this.ignoreCase = parameters.ignoreCase;
   }
 
   public valueOf(): ExpressionValue {
@@ -142,6 +156,7 @@ export class RefExpression extends Expression {
     value.nest = this.nest;
     if (this.type) value.type = this.type;
     if (this.remote) value.remote = true;
+    if (this.ignoreCase) value.ignoreCase = true;
     return value;
   }
 
@@ -150,6 +165,7 @@ export class RefExpression extends Expression {
     js.name = this.name;
     if (this.nest) js.nest = this.nest;
     if (this.type) js.type = this.type;
+    if (this.ignoreCase) js.ignoreCase = true;
     return js;
   }
 
@@ -164,7 +180,7 @@ export class RefExpression extends Expression {
     if (this.type) {
       str += ':' + this.type;
     }
-    return '$' + str;
+    return this.ignoreCase ? 'i$' + str : '$' + str;
   }
 
   public getFn(): ComputeFn {
@@ -206,7 +222,8 @@ export class RefExpression extends Expression {
     return super.equals(other) &&
       this.name === other.name &&
       this.nest === other.nest &&
-      this.remote === other.remote;
+      this.remote === other.remote &&
+      this.ignoreCase === other.ignoreCase;
   }
 
   public isRemote(): boolean {
@@ -216,8 +233,7 @@ export class RefExpression extends Expression {
   public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
     var myIndex = indexer.index;
     indexer.index++;
-    var nest = this.nest;
-
+    var { nest, ignoreCase, name } = this;
     // Step the parentContext back; once for each generation
     var myTypeContext = typeContext;
     while (nest--) {
@@ -225,9 +241,11 @@ export class RefExpression extends Expression {
       if (!myTypeContext) throw new Error('went too deep on ' + this.toString());
     }
 
+    var myName = ignoreCase ? RefExpression.findPropertyCI(myTypeContext.datasetType, name) : name;
+    if (myName == null) throw new Error('could not resolve ' + this.toString());
     // Look for the reference in the parent chain
     var nestDiff = 0;
-    while (myTypeContext && !myTypeContext.datasetType[this.name]) {
+    while (myTypeContext && !hasOwnProperty(myTypeContext.datasetType, myName)) {
       myTypeContext = myTypeContext.parent;
       nestDiff++;
     }
@@ -235,8 +253,7 @@ export class RefExpression extends Expression {
       throw new Error('could not resolve ' + this.toString());
     }
 
-    var myFullType = myTypeContext.datasetType[this.name];
-
+    var myFullType = myTypeContext.datasetType[myName];
     var myType = myFullType.type;
     var myRemote = Boolean((myFullType as DatasetFullType).remote);
 
@@ -245,9 +262,9 @@ export class RefExpression extends Expression {
     }
 
     // Check if it needs to be replaced
-    if (!this.type || nestDiff > 0 || this.remote !== myRemote) {
+    if (!this.type || nestDiff > 0 || this.remote !== myRemote || ignoreCase) {
       alterations[myIndex] = new RefExpression({
-        name: this.name,
+        name: myName,
         nest: this.nest + nestDiff,
         type: myType,
         remote: myRemote
@@ -287,9 +304,15 @@ export class RefExpression extends Expression {
   public upgradeToType(targetType: PlyType): Expression {
     const { type } = this;
     if (targetType === 'TIME' && (!type || type === 'STRING')) {
-      return this.changeType(targetType)
+      return this.changeType(targetType);
     }
     return this;
+  }
+
+  public toCaseInsensitive(): Expression {
+    var value = this.valueOf();
+    value.ignoreCase = true;
+    return new RefExpression(value);
   }
 
   private changeType(newType: PlyType) {
