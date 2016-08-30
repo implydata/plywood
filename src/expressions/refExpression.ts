@@ -109,6 +109,7 @@ export class RefExpression extends Expression {
 
   static findPropertyCI(obj: any, key: string): any {
     var lowerKey = key.toLowerCase();
+    if (obj == null) return null;
     return SimpleArray.find(Object.keys(obj), (v) => v.toLowerCase() === lowerKey);
   }
 
@@ -170,38 +171,41 @@ export class RefExpression extends Expression {
   }
 
   public toString(): string {
-    var str = this.name;
-    if (!RefExpression.SIMPLE_NAME_REGEXP.test(str)) {
+    const { name, nest, type, ignoreCase } = this;
+    let str = name;
+
+    if (!RefExpression.SIMPLE_NAME_REGEXP.test(name)) {
       str = '{' + str + '}';
     }
-    if (this.nest) {
-      str = repeat('^', this.nest) + str;
+    if (nest) {
+      str = repeat('^', nest) + str;
     }
-    if (this.type) {
-      str += ':' + this.type;
+    if (type) {
+      str += ':' + type;
     }
-    return (this.ignoreCase ? 'i$' : '$') + str;
+    return (ignoreCase ? 'i$' : '$') + str;
   }
 
   public getFn(): ComputeFn {
-    var name = this.name;
-    var nest = this.nest;
+    const { name, nest, ignoreCase } = this;
+    let property: string = null;
+
     return (d: Datum, c: Datum) => {
       if (nest) {
-        return c[name];
+        property = ignoreCase ? RefExpression.findPropertyCI(c, name) : name;
+        return c[property];
       } else {
-        if (hasOwnProperty(d, name)) {
-          return d[name];
-        } else {
-          return null;
-        }
+        property = ignoreCase ? RefExpression.findPropertyCI(d, name) : RefExpression.findProperty(d, name);
+        return property != null ? d[property] : null;
       }
     };
   }
 
   public getJS(datumVar: string): string {
-    if (this.nest) throw new Error("can not call getJS on unresolved expression");
-    var name = this.name;
+    const { name, nest, ignoreCase } = this;
+    if (nest) throw new Error("can not call getJS on unresolved expression");
+    if (ignoreCase) throw new Error("can not express ignore case as js expression");
+
     var expr: string;
     if (datumVar) {
       expr = datumVar.replace('[]', "[" + JSON.stringify(name) + "]");

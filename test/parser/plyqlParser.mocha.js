@@ -26,6 +26,7 @@ if (!WallTime.rules) {
 
 var plywood = require('../../build/plywood');
 var { Expression, i$, $, ply, r, Set, Dataset, External, ExternalExpression } = plywood;
+var { Expression, i$, $, ply, r, Set, Dataset, External, ExternalExpression } = plywood;
 
 function resolvesProperly(parse) {
   var resolveString = parse.expression.resolve({ t: 'STR' });
@@ -1379,10 +1380,10 @@ describe("SQL parser", () => {
         SHOW VARIABLES like 'collation_server'
       `);
 
-      var ex2 = $('GLOBAL_VARIABLES')
-        .filter($('VARIABLE_NAME').match('^collation.server$'))
-        .apply('Variable_name', $('VARIABLE_NAME'))
-        .apply('Value', $('VARIABLE_VALUE'))
+      var ex2 = i$('GLOBAL_VARIABLES')
+        .filter(i$('VARIABLE_NAME').match('^collation.server$'))
+        .apply('Variable_name', i$('VARIABLE_NAME'))
+        .apply('Value', i$('VARIABLE_VALUE'))
         .select('Variable_name', 'Value');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1395,10 +1396,10 @@ describe("SQL parser", () => {
         SHOW SESSION VARIABLES WHERE Variable_name ='language' OR Variable_name = 'net_write_timeout'
       `);
 
-      var ex2 = $('GLOBAL_VARIABLES')
+      var ex2 = i$('GLOBAL_VARIABLES')
         .filter(i$('Variable_name').is(r('language')).or(i$('Variable_name').is(r('net_write_timeout'))))
-        .apply('Variable_name', $('VARIABLE_NAME'))
-        .apply('Value', $('VARIABLE_VALUE'))
+        .apply('Variable_name', i$('VARIABLE_NAME'))
+        .apply('Value', i$('VARIABLE_VALUE'))
         .select('Variable_name', 'Value');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1411,8 +1412,8 @@ describe("SQL parser", () => {
         SHOW DATABASES
       `);
 
-      var ex2 = $('SCHEMATA')
-        .apply('Database', $('SCHEMA_NAME'))
+      var ex2 = i$('SCHEMATA')
+        .apply('Database', i$('SCHEMA_NAME'))
         .select('Database');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1425,9 +1426,9 @@ describe("SQL parser", () => {
         SHOW SCHEMAS LIKE "Vannie%"
       `);
 
-      var ex2 = $('SCHEMATA')
-        .filter($('SCHEMA_NAME').match('^Vannie.*$'))
-        .apply('Database', $('SCHEMA_NAME'))
+      var ex2 = i$('SCHEMATA')
+        .filter(i$('SCHEMA_NAME').match('^Vannie.*$'))
+        .apply('Database', i$('SCHEMA_NAME'))
         .select('Database');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1440,9 +1441,9 @@ describe("SQL parser", () => {
         SHOW TABLES IN my_db
       `);
 
-      var ex2 = $('TABLES')
-        .filter($('TABLE_SCHEMA').is('my_db'))
-        .apply('Tables_in_database', $('TABLE_NAME'))
+      var ex2 = i$('TABLES')
+        .filter(i$('TABLE_SCHEMA').is('my_db'))
+        .apply('Tables_in_database', i$('TABLE_NAME'))
         .select('Tables_in_database');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1455,11 +1456,11 @@ describe("SQL parser", () => {
         SHOW FULL TABLES FROM \`my_db\` LIKE '%'
       `);
 
-      var ex2 = $('TABLES')
-        .filter($('TABLE_SCHEMA').is('my_db'))
-        .filter($('TABLE_NAME').match('^.*$'))
-        .apply('Tables_in_database', $('TABLE_NAME'))
-        .apply('Table_type', $('TABLE_TYPE'))
+      var ex2 = i$('TABLES')
+        .filter(i$('TABLE_SCHEMA').is('my_db'))
+        .filter(i$('TABLE_NAME').match('^.*$'))
+        .apply('Tables_in_database', i$('TABLE_NAME'))
+        .apply('Table_type', i$('TABLE_TYPE'))
         .select('Tables_in_database', 'Table_type');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1472,15 +1473,15 @@ describe("SQL parser", () => {
         SHOW COLUMNS IN my_table IN my_db
       `);
 
-      var ex2 = $('COLUMNS')
-        .filter($('TABLE_NAME').is('my_table'))
-        .filter($('TABLE_SCHEMA').is('my_db'))
-        .apply('Field', $('COLUMN_NAME'))
-        .apply('Type', $('COLUMN_TYPE'))
-        .apply('Null', $('IS_NULLABLE'))
-        .apply('Key', $('COLUMN_KEY'))
-        .apply('Default', $('COLUMN_DEFAULT'))
-        .apply('Extra', $('EXTRA'))
+      var ex2 = i$('COLUMNS')
+        .filter(i$('TABLE_NAME').is('my_table'))
+        .filter(i$('TABLE_SCHEMA').is('my_db'))
+        .apply('Field', i$('COLUMN_NAME'))
+        .apply('Type', i$('COLUMN_TYPE'))
+        .apply('Null', i$('IS_NULLABLE'))
+        .apply('Key', i$('COLUMN_KEY'))
+        .apply('Default', i$('COLUMN_DEFAULT'))
+        .apply('Extra', i$('EXTRA'))
         .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1493,19 +1494,19 @@ describe("SQL parser", () => {
         SHOW FULL COLUMNS IN my_table IN my_db LIKE "T%"
       `);
 
-      var ex2 = $('COLUMNS')
-        .filter($('TABLE_NAME').is('my_table'))
-        .filter($('TABLE_SCHEMA').is('my_db'))
-        .filter($('COLUMN_NAME').match('^T.*$'))
-        .apply('Field', $('COLUMN_NAME'))
-        .apply('Type', $('COLUMN_TYPE'))
-        .apply('Null', $('IS_NULLABLE'))
-        .apply('Key', $('COLUMN_KEY'))
-        .apply('Default', $('COLUMN_DEFAULT'))
-        .apply('Extra', $('EXTRA'))
-        .apply('Collation', $('COLLATION_NAME'))
-        .apply('Privileges', $('PRIVILEGES'))
-        .apply('Comment', $('COLUMN_COMMENT'))
+      var ex2 = i$('COLUMNS')
+        .filter(i$('TABLE_NAME').is('my_table'))
+        .filter(i$('TABLE_SCHEMA').is('my_db'))
+        .filter(i$('COLUMN_NAME').match('^T.*$'))
+        .apply('Field', i$('COLUMN_NAME'))
+        .apply('Type', i$('COLUMN_TYPE'))
+        .apply('Null', i$('IS_NULLABLE'))
+        .apply('Key', i$('COLUMN_KEY'))
+        .apply('Default', i$('COLUMN_DEFAULT'))
+        .apply('Extra', i$('EXTRA'))
+        .apply('Collation', i$('COLLATION_NAME'))
+        .apply('Privileges', i$('PRIVILEGES'))
+        .apply('Comment', i$('COLUMN_COMMENT'))
         .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra', 'Collation', 'Privileges', 'Comment');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1520,15 +1521,15 @@ describe("SQL parser", () => {
     it("works with DESCRIBE query", () => {
       var parse = Expression.parseSQL("DESCRIBE wikipedia");
 
-      var ex2 = $('COLUMNS')
-        .filter($('TABLE_NAME').is('wikipedia'))
+      var ex2 = i$('COLUMNS')
+        .filter(i$('TABLE_NAME').is('wikipedia'))
         //.filter($('TABLE_SCHEMA').is('my_db'))
-        .apply('Field', $('COLUMN_NAME'))
-        .apply('Type', $('COLUMN_TYPE'))
-        .apply('Null', $('IS_NULLABLE'))
-        .apply('Key', $('COLUMN_KEY'))
-        .apply('Default', $('COLUMN_DEFAULT'))
-        .apply('Extra', $('EXTRA'))
+        .apply('Field', i$('COLUMN_NAME'))
+        .apply('Type', i$('COLUMN_TYPE'))
+        .apply('Null', i$('IS_NULLABLE'))
+        .apply('Key', i$('COLUMN_KEY'))
+        .apply('Default', i$('COLUMN_DEFAULT'))
+        .apply('Extra', i$('EXTRA'))
         .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1539,15 +1540,15 @@ describe("SQL parser", () => {
     it("works with a relaxed table name DESCRIBE query", () => {
       var parse = Expression.parseSQL("DESCRIBE my_db.my-table*is:the/best_table; ");
 
-      var ex2 = $('COLUMNS')
-        .filter($('TABLE_NAME').is(r('my-table*is:the/best_table')))
-        .filter($('TABLE_SCHEMA').is('my_db'))
-        .apply('Field', $('COLUMN_NAME'))
-        .apply('Type', $('COLUMN_TYPE'))
-        .apply('Null', $('IS_NULLABLE'))
-        .apply('Key', $('COLUMN_KEY'))
-        .apply('Default', $('COLUMN_DEFAULT'))
-        .apply('Extra', $('EXTRA'))
+      var ex2 = i$('COLUMNS')
+        .filter(i$('TABLE_NAME').is(r('my-table*is:the/best_table')))
+        .filter(i$('TABLE_SCHEMA').is('my_db'))
+        .apply('Field', i$('COLUMN_NAME'))
+        .apply('Type', i$('COLUMN_TYPE'))
+        .apply('Null', i$('IS_NULLABLE'))
+        .apply('Key', i$('COLUMN_KEY'))
+        .apply('Default', i$('COLUMN_DEFAULT'))
+        .apply('Extra', i$('EXTRA'))
         .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1558,16 +1559,16 @@ describe("SQL parser", () => {
     it("works with a relaxed column name", () => {
       var parse = Expression.parseSQL("DESCRIBE my_db.my-table cityName; ");
 
-      var ex2 = $('COLUMNS')
-        .filter($('TABLE_NAME').is(r('my-table')))
-        .filter($('TABLE_SCHEMA').is('my_db'))
-        .filter($('COLUMN_NAME').is('cityName'))
-        .apply('Field', $('COLUMN_NAME'))
-        .apply('Type', $('COLUMN_TYPE'))
-        .apply('Null', $('IS_NULLABLE'))
-        .apply('Key', $('COLUMN_KEY'))
-        .apply('Default', $('COLUMN_DEFAULT'))
-        .apply('Extra', $('EXTRA'))
+      var ex2 = i$('COLUMNS')
+        .filter(i$('TABLE_NAME').is(r('my-table')))
+        .filter(i$('TABLE_SCHEMA').is('my_db'))
+        .filter(i$('COLUMN_NAME').is('cityName'))
+        .apply('Field', i$('COLUMN_NAME'))
+        .apply('Type', i$('COLUMN_TYPE'))
+        .apply('Null', i$('IS_NULLABLE'))
+        .apply('Key', i$('COLUMN_KEY'))
+        .apply('Default', i$('COLUMN_DEFAULT'))
+        .apply('Extra', i$('EXTRA'))
         .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1578,16 +1579,16 @@ describe("SQL parser", () => {
     it("works with a wild card (also EXPLAIN)", () => {
       var parse = Expression.parseSQL("EXPLAIN my_db.my-table 'city%'; ");
 
-      var ex2 = $('COLUMNS')
-        .filter($('TABLE_NAME').is(r('my-table')))
-        .filter($('TABLE_SCHEMA').is('my_db'))
-        .filter($('COLUMN_NAME').match('^city.*$'))
-        .apply('Field', $('COLUMN_NAME'))
-        .apply('Type', $('COLUMN_TYPE'))
-        .apply('Null', $('IS_NULLABLE'))
-        .apply('Key', $('COLUMN_KEY'))
-        .apply('Default', $('COLUMN_DEFAULT'))
-        .apply('Extra', $('EXTRA'))
+      var ex2 = i$('COLUMNS')
+        .filter(i$('TABLE_NAME').is(r('my-table')))
+        .filter(i$('TABLE_SCHEMA').is('my_db'))
+        .filter(i$('COLUMN_NAME').match('^city.*$'))
+        .apply('Field', i$('COLUMN_NAME'))
+        .apply('Type', i$('COLUMN_TYPE'))
+        .apply('Null', i$('IS_NULLABLE'))
+        .apply('Key', i$('COLUMN_KEY'))
+        .apply('Default', i$('COLUMN_DEFAULT'))
+        .apply('Extra', i$('EXTRA'))
         .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
 
       expect(parse.verb).to.equal('SELECT');

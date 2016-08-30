@@ -247,6 +247,27 @@ describe("Expression", () => {
       expect(exFn({ x: 5, y: 1 })).to.equal(11);
       expect(exFn({ x: 8, y: -3 })).to.equal(10);
     });
+
+    it('works with case insensitive', () => {
+      var exp = Expression.parse("i$cUT");
+      expect(exp.toJS()).to.deep.equal({
+        "ignoreCase": true,
+        "name": "cUT",
+        "op": "ref",
+      });
+
+      expect(exp.getFn()({ cut : 'good'})).to.equal('good');
+      expect(exp.getFn()({ cutS : 'good'})).to.equal(null);
+      expect(exp.getFn()({})).to.equal(null);
+      expect(exp.getFn()(null)).to.equal(null);
+    });
+  });
+
+  describe("#getJS", () => {
+    it('throws with case insensitive flag still set', () => {
+      var exp = Expression.parse("i$cUT");
+      expect(() => exp.getJS()).to.throw('can not express ignore case as js expression');
+    });
   });
 
 

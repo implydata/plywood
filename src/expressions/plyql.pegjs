@@ -434,35 +434,35 @@ ShowQueryExpression
   = (GlobalToken / SessionToken)? VariablesToken like:LikeRhs? where:WhereClause?
     {
       // https://dev.mysql.com/doc/refman/5.7/en/show-variables.html
-      var ex = $('GLOBAL_VARIABLES')
-      if (like) ex = ex.filter(like($('VARIABLE_NAME')));
+      var ex = i$('GLOBAL_VARIABLES')
+      if (like) ex = ex.filter(like(i$('VARIABLE_NAME')));
       if (where) ex = ex.filter(where);
       return ex
-        .apply('Variable_name', $('VARIABLE_NAME'))
-        .apply('Value', $('VARIABLE_VALUE'))
+        .apply('Variable_name', i$('VARIABLE_NAME'))
+        .apply('Value', i$('VARIABLE_VALUE'))
         .select('Variable_name', 'Value');
     }
   / (SchemasToken / DatabasesToken) like:LikeRhs?
     {
       // https://dev.mysql.com/doc/refman/5.0/en/schemata-table.html
-      var ex = $('SCHEMATA')
-      if (like) ex = ex.filter(like($('SCHEMA_NAME')));
+      var ex = i$('SCHEMATA')
+      if (like) ex = ex.filter(like(i$('SCHEMA_NAME')));
       return ex
-        .apply('Database', $('SCHEMA_NAME'))
+        .apply('Database', i$('SCHEMA_NAME'))
         .select('Database');
     }
   / full:FullToken? TablesToken db:(FromOrIn Ref)? like:LikeRhs?
     {
       // https://dev.mysql.com/doc/refman/5.0/en/tables-table.html
-      var ex = $('TABLES')
-      if (db) ex= ex.filter($('TABLE_SCHEMA').is(r(db[1])));
-      if (like) ex = ex.filter(like($('TABLE_NAME')));
+      var ex = i$('TABLES')
+      if (db) ex= ex.filter(i$('TABLE_SCHEMA').is(r(db[1])));
+      if (like) ex = ex.filter(like(i$('TABLE_NAME')));
       ex = ex
-        .apply('Tables_in_database', $('TABLE_NAME'));
+        .apply('Tables_in_database', i$('TABLE_NAME'));
 
       if (full) {
         ex = ex
-          .apply('Table_type', $('TABLE_TYPE'))
+          .apply('Table_type', i$('TABLE_TYPE'))
           .select('Tables_in_database', 'Table_type');
       } else {
         ex = ex.select('Tables_in_database');
@@ -473,24 +473,24 @@ ShowQueryExpression
   / full:FullToken? ColumnsToken FromOrIn table:RelaxedNamespacedRef db:(FromOrIn Ref)? like:LikeRhs? where:WhereClause?
     {
       // https://dev.mysql.com/doc/refman/5.0/en/columns-table.html
-      var ex = $('COLUMNS').filter($('TABLE_NAME').is(r(table.name)));
+      var ex = i$('COLUMNS').filter(i$('TABLE_NAME').is(r(table.name)));
       db = db ? db[1] : table.namespace;
-      if (db) ex = ex.filter($('TABLE_SCHEMA').is(r(db)));
-      if (like) ex = ex.filter(like($('COLUMN_NAME')));
+      if (db) ex = ex.filter(i$('TABLE_SCHEMA').is(r(db)));
+      if (like) ex = ex.filter(like(i$('COLUMN_NAME')));
       if (where) ex = ex.filter(where);
       ex = ex
-        .apply('Field', $('COLUMN_NAME'))
-        .apply('Type', $('COLUMN_TYPE'))
-        .apply('Null', $('IS_NULLABLE'))
-        .apply('Key', $('COLUMN_KEY'))
-        .apply('Default', $('COLUMN_DEFAULT'))
-        .apply('Extra', $('EXTRA'))
+        .apply('Field', i$('COLUMN_NAME'))
+        .apply('Type', i$('COLUMN_TYPE'))
+        .apply('Null', i$('IS_NULLABLE'))
+        .apply('Key', i$('COLUMN_KEY'))
+        .apply('Default', i$('COLUMN_DEFAULT'))
+        .apply('Extra', i$('EXTRA'))
 
       if (full) {
         ex = ex
-          .apply('Collation', $('COLLATION_NAME'))
-          .apply('Privileges', $('PRIVILEGES'))
-          .apply('Comment', $('COLUMN_COMMENT'))
+          .apply('Collation', i$('COLLATION_NAME'))
+          .apply('Privileges', i$('PRIVILEGES'))
+          .apply('Comment', i$('COLUMN_COMMENT'))
           .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra', 'Collation', 'Privileges', 'Comment')
       } else {
         ex = ex.select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra')
@@ -523,21 +523,21 @@ UseQuery
 DescribeQuery
   = (DescribeToken / DescToken) table:RelaxedNamespacedRef colRef:Ref? wild:String?
     {
-      var ex = $('COLUMNS').filter($('TABLE_NAME').is(r(table.name)));
-      if (table.namespace) ex = ex.filter($('TABLE_SCHEMA').is(r(table.namespace)));
+      var ex = i$('COLUMNS').filter(i$('TABLE_NAME').is(r(table.name)));
+      if (table.namespace) ex = ex.filter(i$('TABLE_SCHEMA').is(r(table.namespace)));
       if (colRef) {
-        ex = ex.filter($('COLUMN_NAME').is(r(colRef)));
+        ex = ex.filter(i$('COLUMN_NAME').is(r(colRef)));
       } else if (wild) {
-        ex = ex.filter($('COLUMN_NAME').match(MatchAction.likeToRegExp(wild)));
+        ex = ex.filter(i$('COLUMN_NAME').match(MatchAction.likeToRegExp(wild)));
       }
 
       ex = ex
-        .apply('Field', $('COLUMN_NAME'))
-        .apply('Type', $('COLUMN_TYPE'))
-        .apply('Null', $('IS_NULLABLE'))
-        .apply('Key', $('COLUMN_KEY'))
-        .apply('Default', $('COLUMN_DEFAULT'))
-        .apply('Extra', $('EXTRA'))
+        .apply('Field', i$('COLUMN_NAME'))
+        .apply('Type', i$('COLUMN_TYPE'))
+        .apply('Null', i$('IS_NULLABLE'))
+        .apply('Key', i$('COLUMN_KEY'))
+        .apply('Default', i$('COLUMN_DEFAULT'))
+        .apply('Extra', i$('EXTRA'))
         .select('Field', 'Type', 'Null', 'Key', 'Default', 'Extra');
 
       return {
