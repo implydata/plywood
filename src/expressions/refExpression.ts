@@ -64,14 +64,6 @@ export class RefExpression extends Expression {
     return new RefExpression(value);
   }
 
-  static fromNameIgnoreCase(name: string) {
-    return new RefExpression({
-      name,
-      ignoreCase: true,
-      nest: 0
-    });
-  }
-
   static parse(str: string): RefExpression {
     var refValue: ExpressionValue = { op: 'ref' };
     var match: RegExpMatchArray;
@@ -162,7 +154,7 @@ export class RefExpression extends Expression {
     js.name = this.name;
     if (this.nest) js.nest = this.nest;
     if (this.type) js.type = this.type;
-    if (this.ignoreCase !== null && this.ignoreCase !== undefined) js.ignoreCase = this.ignoreCase;
+    if (this.ignoreCase) js.ignoreCase = true;
     return js;
   }
 

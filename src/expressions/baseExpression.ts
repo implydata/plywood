@@ -1358,7 +1358,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
           var foundExpression: Expression = null;
           var valueFound = false;
           var property = ignoreCase ? findPropertyCI(expressions, name) : findProperty(expressions, name);
-          if (property) {
+          if (property !== null) {
             foundExpression = expressions[property];
             valueFound = true;
           } else {
