@@ -31,7 +31,7 @@ export class JoinAction extends Action {
   constructor(parameters: ActionValue) {
     super(parameters, dummyObject);
     this._ensureAction("join");
-    if(!this.expression.canHaveType('DATASET')) throw new TypeError('expression must be a DATASET');
+    if (!this.expression.canHaveType('DATASET')) throw new TypeError('expression must be a DATASET');
   }
 
   public getNecessaryInputTypes(): PlyType | PlyType[] {

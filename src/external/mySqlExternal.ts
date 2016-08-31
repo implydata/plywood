@@ -82,7 +82,7 @@ export class MySQLExternal extends SQLExternal {
   }
 
   protected getIntrospectAttributes(): Q.Promise<Attributes> {
-    return this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.source as string)}`, }).then(MySQLExternal.postProcessIntrospect);
+    return this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.source as string)}` }).then(MySQLExternal.postProcessIntrospect);
   }
 }
 

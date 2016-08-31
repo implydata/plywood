@@ -43,7 +43,7 @@ export class CountAction extends Action {
 
   public _fillRefSubstitutions(): FullType {
     return {
-      type: 'NUMBER',
+      type: 'NUMBER'
     };
   }
 

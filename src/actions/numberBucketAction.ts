@@ -79,7 +79,7 @@ export class NumberBucketAction extends Action {
 
   public _fillRefSubstitutions(): FullType {
     return {
-      type: 'NUMBER_RANGE',
+      type: 'NUMBER_RANGE'
     };
   }
 

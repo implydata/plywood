@@ -57,7 +57,7 @@ export class PostgresDialect extends SQLDialect {
     WEEK_OF_YEAR: "DATE_PART('week',$$)",
 
     MONTH_OF_YEAR: "DATE_PART('month',$$)",
-    YEAR: "DATE_PART('year',$$)",
+    YEAR: "DATE_PART('year',$$)"
   };
 
   static CAST_TO_FUNCTION: Lookup<Lookup<string>> = {

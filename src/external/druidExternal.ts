@@ -87,9 +87,9 @@ const AGGREGATE_TO_DRUID: Lookup<string> = {
 };
 
 const AGGREGATE_TO_FUNCTION: Lookup<Function> = {
-  sum: (a: string, b:string) => `${a}+${b}`,
-  min: (a: string, b:string) => `Math.min(${a},${b})`,
-  max: (a: string, b:string) => `Math.max(${a},${b})`
+  sum: (a: string, b: string) => `${a}+${b}`,
+  min: (a: string, b: string) => `Math.min(${a},${b})`,
+  max: (a: string, b: string) => `Math.max(${a},${b})`
 };
 
 const AGGREGATE_TO_ZERO: Lookup<string> = {
@@ -1422,7 +1422,14 @@ export class DruidExternal extends External {
       return this.actionToJavaScriptExtractionFn(action);
     }
 
-    if (action instanceof AbsoluteAction || action instanceof PowerAction || action instanceof LengthAction || action instanceof CardinalityAction || action instanceof CastAction || action instanceof IndexOfAction) {
+    if (
+      action instanceof AbsoluteAction ||
+      action instanceof PowerAction ||
+      action instanceof LengthAction ||
+      action instanceof CardinalityAction ||
+      action instanceof CastAction ||
+      action instanceof IndexOfAction
+    ) {
       return this.actionToJavaScriptExtractionFn(action, expressionType);
     }
 
@@ -1695,7 +1702,14 @@ export class DruidExternal extends External {
     } else if (ex instanceof ChainExpression) {
       var lastAction = ex.lastAction();
 
-      if (lastAction instanceof AbsoluteAction || lastAction instanceof PowerAction || lastAction instanceof FallbackAction || lastAction instanceof CastAction || lastAction instanceof IndexOfAction || lastAction instanceof TransformCaseAction) {
+      if (
+        lastAction instanceof AbsoluteAction ||
+        lastAction instanceof PowerAction ||
+        lastAction instanceof FallbackAction ||
+        lastAction instanceof CastAction ||
+        lastAction instanceof IndexOfAction ||
+        lastAction instanceof TransformCaseAction
+      ) {
         var fieldNameRefs = ex.getFreeReferences();
         var fieldNames = fieldNameRefs.map(fieldNameRef => {
           var accessType = this.getAccessType(aggregations, fieldNameRef);
@@ -2350,7 +2364,7 @@ export class DruidExternal extends External {
               var splitKey = splitKeys[0];
               var keyExpression = split.splits[splitKey];
               orderByColumn = {
-                dimension: splitKey,
+                dimension: splitKey
               };
               if (expressionNeedsAlphaNumericSort(keyExpression)) {
                 orderByColumn.dimensionOrder = 'alphanumeric';

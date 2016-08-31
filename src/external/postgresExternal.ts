@@ -52,10 +52,15 @@ export class PostgresExternal extends SQLExternal {
         return new AttributeInfo({ name, type: 'BOOLEAN' });
       } else if (sqlType === 'array') {
         var arrayType = column.arrayType.toLowerCase();
-        if (arrayType === 'character') return new AttributeInfo({ name, type: 'SET/STRING' });
-        else if (arrayType === 'timestamp') return new AttributeInfo({ name, type: 'SET/TIME' });
-        else if (arrayType === 'integer' || arrayType === 'bigint' || sqlType === 'double precision' || sqlType === 'float') return new AttributeInfo({ name, type: 'SET/NUMBER' });
-        else if (arrayType === 'boolean') return new AttributeInfo({ name, type: 'SET/BOOLEAN' });
+        if (arrayType === 'character') {
+          return new AttributeInfo({ name, type: 'SET/STRING' });
+        } else if (arrayType === 'timestamp') {
+          return new AttributeInfo({ name, type: 'SET/TIME' });
+        } else if (arrayType === 'integer' || arrayType === 'bigint' || sqlType === 'double precision' || sqlType === 'float') {
+          return new AttributeInfo({ name, type: 'SET/NUMBER' });
+        } else if (arrayType === 'boolean') {
+          return new AttributeInfo({ name, type: 'SET/BOOLEAN' });
+        }
         return null;
       }
       return null;
@@ -98,7 +103,7 @@ export class PostgresExternal extends SQLExternal {
        FROM information_schema.columns c LEFT JOIN information_schema.element_types e
        ON ((c.table_catalog, c.table_schema, c.table_name, 'TABLE', c.dtd_identifier)
        = (e.object_catalog, e.object_schema, e.object_name, e.object_type, e.collection_type_identifier))
-       WHERE table_name = ${this.dialect.escapeLiteral(this.source as string)}`,
+       WHERE table_name = ${this.dialect.escapeLiteral(this.source as string)}`
     }).then(PostgresExternal.postProcessIntrospect);
   }
 }

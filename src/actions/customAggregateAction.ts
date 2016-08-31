@@ -70,7 +70,7 @@ export class CustomAggregateAction extends Action {
 
   public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
     return {
-      type: 'NUMBER',
+      type: 'NUMBER'
     };
   }
 

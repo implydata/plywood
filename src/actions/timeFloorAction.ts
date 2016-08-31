@@ -88,7 +88,7 @@ export class TimeFloorAction extends Action {
 
   public _fillRefSubstitutions(): FullType {
     return {
-      type: 'TIME',
+      type: 'TIME'
     };
   }
 

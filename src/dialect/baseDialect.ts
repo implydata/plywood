@@ -65,7 +65,7 @@ export abstract class SQLDialect {
 
   public abstract timeToSQL(date: Date): string;
 
-  public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, zeroSQL: string = '0'): string {
+  public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, zeroSQL = '0'): string {
     var whereIndex = inputSQL.indexOf(' WHERE ');
     if (whereIndex === -1) return expressionSQL;
     var filterSQL = inputSQL.substr(whereIndex + 7);

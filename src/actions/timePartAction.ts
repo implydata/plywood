@@ -145,7 +145,7 @@ export class TimePartAction extends Action {
 
   public _fillRefSubstitutions(): FullType {
     return {
-      type: 'NUMBER',
+      type: 'NUMBER'
     };
   }
 

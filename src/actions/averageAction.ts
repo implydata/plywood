@@ -44,7 +44,7 @@ export class AverageAction extends Action {
   public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
     this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
     return {
-      type: 'NUMBER',
+      type: 'NUMBER'
     };
   }
 

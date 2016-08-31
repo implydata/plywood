@@ -47,7 +47,7 @@ const CAST_TYPE_TO_FN: Caster = {
   }
 };
 
-const CAST_TYPE_TO_JS: Lookup<Lookup<(inputJS: string)=> string>> = {
+const CAST_TYPE_TO_JS: Lookup<Lookup<(inputJS: string) => string>> = {
   TIME: {
     NUMBER: (inputJS) => `new Date(${inputJS})`
   },

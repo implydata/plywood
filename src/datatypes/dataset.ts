@@ -770,7 +770,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     var nestedColumns: Column[] = [];
     var attributes = this.attributes;
 
-    var subDatasetAdded: boolean = false;
+    var subDatasetAdded = false;
     for (var attribute of attributes) {
       var column: Column = {
         name: attribute.name,

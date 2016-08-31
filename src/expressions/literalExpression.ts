@@ -151,7 +151,7 @@ export class LiteralExpression extends Expression {
 
   public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
     indexer.index++;
-    if (this.type == 'DATASET') {
+    if (this.type === 'DATASET') {
       var newTypeContext = (<Dataset>this.value).getFullType();
       newTypeContext.parent = typeContext;
       return newTypeContext;

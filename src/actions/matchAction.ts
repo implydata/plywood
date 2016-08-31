@@ -25,7 +25,7 @@ import { Datum, ComputeFn } from "../datatypes/dataset";
 
 export class MatchAction extends Action {
 
-  static likeToRegExp(like: string, escapeChar: string = '\\'): string {
+  static likeToRegExp(like: string, escapeChar = '\\'): string {
     var regExp: string[] = ['^'];
     for (var i = 0; i < like.length; i++) {
       var char = like[i];
@@ -97,7 +97,7 @@ export class MatchAction extends Action {
 
   public _fillRefSubstitutions(): FullType {
     return {
-      type: 'BOOLEAN',
+      type: 'BOOLEAN'
     };
   }
 

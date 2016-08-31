@@ -89,7 +89,7 @@ export class TimeRangeAction extends Action {
 
   public _fillRefSubstitutions(): FullType {
     return {
-      type: 'TIME_RANGE',
+      type: 'TIME_RANGE'
     };
   }
 

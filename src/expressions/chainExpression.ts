@@ -352,7 +352,7 @@ export class ChainExpression extends Expression {
     if (!expression._everyHelper(iter, thisArg, indexer, depth, nestDiff)) return false;
 
     var actions = this.actions;
-    var every: boolean = true;
+    var every = true;
     for (let action of actions) {
       if (every) {
         every = action._everyHelper(iter, thisArg, indexer, depth, nestDiff);
