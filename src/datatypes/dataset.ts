@@ -178,19 +178,19 @@ export interface Formatter extends Lookup<Function> {
 }
 
 var defaultFormatter: Formatter = {
-  'NULL': (v: any) => { return 'NULL'; },
-  'TIME': (v: Date) => { return v.toISOString(); },
-  'TIME_RANGE': (v: TimeRange) => { return '' + v; },
-  'SET/TIME': (v: Set) => { return '' + v; },
-  'SET/TIME_RANGE': (v: Set) => { return '' + v; },
-  'STRING': (v: string) => { return '' + v; },
-  'SET/STRING': (v: Set) => { return '' + v; },
-  'BOOLEAN': (v: boolean) => { return '' + v; },
-  'NUMBER': (v: number) => { return '' + v; },
-  'NUMBER_RANGE': (v: NumberRange) => { return '' + v; },
-  'SET/NUMBER': (v: Set) => { return '' + v; },
-  'SET/NUMBER_RANGE': (v: Set) => { return '' + v; },
-  'DATASET': (v: Dataset) => { return 'DATASET'; }
+  'NULL': (v: any) => 'NULL',
+  'TIME': (v: Date) => v.toISOString(),
+  'TIME_RANGE': (v: TimeRange) => '' + v,
+  'SET/TIME': (v: Set) => '' + v,
+  'SET/TIME_RANGE': (v: Set) => '' + v,
+  'STRING': (v: string) => '' + v,
+  'SET/STRING': (v: Set) => '' + v,
+  'BOOLEAN': (v: boolean) => '' + v,
+  'NUMBER': (v: number) => '' + v,
+  'NUMBER_RANGE': (v: NumberRange) => '' + v,
+  'SET/NUMBER': (v: Set) => '' + v,
+  'SET/NUMBER_RANGE': (v: Set) => '' + v,
+  'DATASET': (v: Dataset) => 'DATASET'
 };
 
 export interface FlattenOptions {

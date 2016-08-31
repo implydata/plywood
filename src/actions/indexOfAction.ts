@@ -55,7 +55,7 @@ export class IndexOfAction extends Action {
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-    return Expression.jsNullSafetyBinary(inputJS, expressionJS, (a, b) => { return `${a}.indexOf(${b})`; }, inputJS[0] === '"', expressionJS[0] === '"');
+    return Expression.jsNullSafetyBinary(inputJS, expressionJS, ((a, b) => `${a}.indexOf(${b})`), inputJS[0] === '"', expressionJS[0] === '"');
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
