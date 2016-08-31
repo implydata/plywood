@@ -159,7 +159,7 @@ export class TimePartAction extends Action {
       if (!inV) return null;
       inV = WallTime.UTCToWallTime(inV, timezone.toString());
       return parter(inV);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {

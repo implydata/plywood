@@ -75,7 +75,7 @@ export class InAction extends Action {
   }
 
   public getUpgradedType(type: PlyType): Action {
-    return this.changeExpression(this.expression.upgradeToType(type))
+    return this.changeExpression(this.expression.upgradeToType(type));
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
@@ -84,7 +84,7 @@ export class InAction extends Action {
       var exV = expressionFn(d, c);
       if (!exV) return null;
       return (<any>exV).contains(inV);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {

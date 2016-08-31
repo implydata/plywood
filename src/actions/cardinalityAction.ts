@@ -52,7 +52,7 @@ export class CardinalityAction extends Action {
       if (inV === null) return null;
       if (Array.isArray(inV)) return inV.length; // this is to allow passing an array into .compute()
       return inV.cardinality();
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {
@@ -60,7 +60,7 @@ export class CardinalityAction extends Action {
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-    return `cardinality(${inputSQL})`
+    return `cardinality(${inputSQL})`;
   }
 }
 

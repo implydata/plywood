@@ -567,7 +567,7 @@ export class ChainExpression extends Expression {
         }
 
         throw new Error(`could not execute action ${action}`);
-      }
+      };
     }
 
     var promise = expression._computeResolved(false);

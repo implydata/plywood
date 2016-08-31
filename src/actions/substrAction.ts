@@ -81,7 +81,7 @@ export class SubstrAction extends Action {
       var inV = inputFn(d, c);
       if (inV === null) return null;
       return inV.substr(position, length);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {

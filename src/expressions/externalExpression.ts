@@ -21,7 +21,7 @@ import { SQLDialect } from "../dialect/baseDialect";
 import { PlywoodValue } from "../datatypes/index";
 import { Action } from "../actions/baseAction";
 import { ComputeFn } from "../datatypes/dataset";
-import { External } from "../external/baseExternal"
+import { External } from "../external/baseExternal";
 
 export class ExternalExpression extends Expression {
   static fromJS(parameters: ExpressionJS): Expression {

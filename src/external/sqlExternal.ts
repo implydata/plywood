@@ -53,7 +53,7 @@ function getSplitInflaters(split: SplitAction): Inflater[] {
     }
 
     return undefined;
-  })
+  });
 }
 
 function valuePostProcess(data: any[]): PlywoodValue {
@@ -86,7 +86,7 @@ function postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyAction
     }
 
     return new Dataset({ data });
-  }
+  };
 }
 
 export abstract class SQLExternal extends External {
@@ -166,7 +166,7 @@ export abstract class SQLExternal extends External {
           selectedAttributes.map(a => {
             var name = a.name;
             if (derivedAttributes[name]) {
-              return new ApplyAction({ name, expression: derivedAttributes[name] }).getSQL(null, '', dialect)
+              return new ApplyAction({ name, expression: derivedAttributes[name] }).getSQL(null, '', dialect);
             } else {
               return dialect.escapeName(name);
             }

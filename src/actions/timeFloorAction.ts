@@ -99,7 +99,7 @@ export class TimeFloorAction extends Action {
       var inV = inputFn(d, c);
       if (inV === null) return null;
       return duration.floor(inV, timezone);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {

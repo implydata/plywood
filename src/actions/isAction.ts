@@ -62,7 +62,7 @@ export class IsAction extends Action {
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     return (d: Datum, c: Datum) => {
       return inputFn(d, c) === expressionFn(d, c);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
@@ -100,7 +100,7 @@ export class IsAction extends Action {
 
     if (prevAction instanceof NumberBucketAction && literalValue instanceof NumberRange) {
       if (!(literalValue.start !== null && NumberRange.numberBucket(literalValue.start, prevAction.size, prevAction.offset).equals(literalValue))) return null;
-      return new InAction({ expression: this.expression })
+      return new InAction({ expression: this.expression });
     }
 
     if (prevAction instanceof FallbackAction && prevAction.expression.isOp('literal') && this.expression.isOp('literal') && !prevAction.expression.equals(this.expression)) {

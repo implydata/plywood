@@ -51,7 +51,7 @@ export class DivideAction extends Action {
     return (d: Datum, c: Datum) => {
       var v = (inputFn(d, c) || 0) / (expressionFn(d, c) || 0);
       return isNaN(v) ? null : v;
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {

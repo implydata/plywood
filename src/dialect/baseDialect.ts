@@ -73,7 +73,7 @@ export abstract class SQLDialect {
   }
 
   public conditionalExpression(condition: string, thenPart: string, elsePart: string): string {
-    return `IF(${condition},${thenPart},${elsePart})`
+    return `IF(${condition},${thenPart},${elsePart})`;
   }
 
   public concatExpression(a: string, b: string): string {

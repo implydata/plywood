@@ -125,11 +125,11 @@ export abstract class Range<T> {
   }
 
   public empty(): boolean {
-    return this._endpointEqual(this.start, this.end) && this.bounds === '[)'
+    return this._endpointEqual(this.start, this.end) && this.bounds === '[)';
   }
 
   public degenerate(): boolean {
-    return this._endpointEqual(this.start, this.end) && this.bounds === '[]'
+    return this._endpointEqual(this.start, this.end) && this.bounds === '[]';
   }
 
   public contains(val: T): boolean {

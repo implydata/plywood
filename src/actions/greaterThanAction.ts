@@ -54,13 +54,13 @@ export class GreaterThanAction extends Action {
   }
 
   public getUpgradedType(type: PlyType): Action {
-    return this.changeExpression(this.expression.upgradeToType(type))
+    return this.changeExpression(this.expression.upgradeToType(type));
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     return (d: Datum, c: Datum) => {
       return inputFn(d, c) > expressionFn(d, c);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {

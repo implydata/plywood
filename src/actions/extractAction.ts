@@ -74,7 +74,7 @@ export class ExtractAction extends Action {
     var re = new RegExp(this.regexp);
     return (d: Datum, c: Datum) => {
       return (String(inputFn(d, c)).match(re) || [])[1] || null;
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {

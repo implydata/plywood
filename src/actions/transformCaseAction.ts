@@ -83,7 +83,7 @@ export class TransformCaseAction extends Action {
     const { transformType } = this;
     return (d: Datum, c: Datum) => {
       return transformType === TransformCaseAction.UPPER_CASE ? inputFn(d, c).toLocaleUpperCase() : inputFn(d, c).toLocaleLowerCase();
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {

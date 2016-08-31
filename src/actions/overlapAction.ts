@@ -74,7 +74,7 @@ export class OverlapAction extends Action {
       var exV = expressionFn(d, c);
       if (exV == null) return null;
       return Set.isSet(inV) ? inV.overlap(exV) : exV.contains(inV);
-    }
+    };
   }
 
   //protected _getJSHelper(inputJS: string, expressionJS: string): string {

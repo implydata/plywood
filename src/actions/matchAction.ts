@@ -108,7 +108,7 @@ export class MatchAction extends Action {
       if (!inV) return null;
       if (inV === null) return null;
       return re.test(inV);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {

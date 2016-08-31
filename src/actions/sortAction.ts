@@ -90,7 +90,7 @@ export class SortAction extends Action {
     return (d: Datum, c: Datum) => {
       var inV = inputFn(d, c);
       return inV ? inV.sort(expressionFn, direction) : null;
-    }
+    };
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

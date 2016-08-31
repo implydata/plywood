@@ -50,7 +50,7 @@ export class NotAction extends Action {
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     return (d: Datum, c: Datum) => {
       return !inputFn(d, c);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {

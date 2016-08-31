@@ -50,7 +50,7 @@ export class LengthAction extends Action {
       var inV = inputFn(d, c);
       if (inV === null) return null;
       return inV.length;
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {

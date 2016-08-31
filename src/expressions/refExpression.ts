@@ -60,7 +60,7 @@ export class RefExpression extends Expression {
         name: parameters.name,
         type: parameters.type,
         ignoreCase: parameters.ignoreCase
-      }
+      };
     }
     return new RefExpression(value);
   }
@@ -272,7 +272,7 @@ export class RefExpression extends Expression {
         nest: this.nest + nestDiff,
         type: myType,
         remote: myRemote
-      })
+      });
     }
 
     if (myType === 'DATASET') {

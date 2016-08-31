@@ -53,11 +53,11 @@ export class FallbackAction extends Action {
         return expressionFn(d, c);
       }
       return val;
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-    return `(_ = ${inputJS}, (_ === null ? ${expressionJS} : _))`
+    return `(_ = ${inputJS}, (_ === null ? ${expressionJS} : _))`;
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

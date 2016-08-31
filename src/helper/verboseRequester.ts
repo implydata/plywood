@@ -66,5 +66,5 @@ export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameter
         onError(error, Date.now() - startTime, request.query, myQueryNumber);
         throw error;
       });
-  }
+  };
 }

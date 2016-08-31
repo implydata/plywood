@@ -90,7 +90,7 @@ export class NumberBucketAction extends Action {
       var num = inputFn(d, c);
       if (num === null) return null;
       return NumberRange.numberBucket(num, size, offset);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {

@@ -79,7 +79,7 @@ export class LimitAction extends Action {
     return (d: Datum, c: Datum) => {
       var inV = inputFn(d, c);
       return inV ? inV.limit(limit) : null;
-    }
+    };
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

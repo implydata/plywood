@@ -77,7 +77,7 @@ export class JoinAction extends Action {
     return (d: Datum, c: Datum) => {
       var inV = inputFn(d, c);
       return inV ? inV.join(expressionFn(d, c)) : inV;
-    }
+    };
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

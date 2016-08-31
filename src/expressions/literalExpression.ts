@@ -50,7 +50,7 @@ export class LiteralExpression extends Expression {
     this.value = value;
     this._ensureOp("literal");
     if (typeof this.value === 'undefined') {
-      throw new TypeError("must have a `value`")
+      throw new TypeError("must have a `value`");
     }
     this.type = getValueType(value);
     this.simple = true;

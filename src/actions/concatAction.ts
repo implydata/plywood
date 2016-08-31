@@ -54,11 +54,11 @@ export class ConcatAction extends Action {
       var exV = expressionFn(d, c);
       if (exV === null) return null;
       return '' + inV + exV;
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-    return Expression.jsNullSafetyBinary(inputJS, expressionJS, (a, b) => { return `${a}+${b}` }, inputJS[0] === '"', expressionJS[0] === '"');
+    return Expression.jsNullSafetyBinary(inputJS, expressionJS, (a, b) => { return `${a}+${b}`; }, inputJS[0] === '"', expressionJS[0] === '"');
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

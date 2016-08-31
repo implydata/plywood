@@ -79,7 +79,7 @@ export class QuantileAction extends Action {
     return (d: Datum, c: Datum) => {
       var inV = inputFn(d, c);
       return inV ? inV.quantile(expressionFn, quantile, foldContext(d, c)) : null;
-    }
+    };
   }
 
   public isAggregate(): boolean {

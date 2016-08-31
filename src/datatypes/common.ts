@@ -133,7 +133,7 @@ export function valueToJS(v: any): any {
         return v.toJS();
       }
     } else if (typeofV === 'number' && !isFinite(v)) {
-      return String(v)
+      return String(v);
     }
   }
   return v;

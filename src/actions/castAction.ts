@@ -30,7 +30,7 @@ interface Caster {
   };
   STRING: {
     UNIVERSAL: (v: any) => String;
-  }
+  };
   [castTo: string]: {[inputType: string]: any};
 }
 
@@ -142,7 +142,7 @@ export class CastAction extends Action {
       var inV = inputFn(d, c);
       if (!inV) return null;
       return castFn(inV);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {

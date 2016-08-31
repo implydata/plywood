@@ -387,7 +387,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         if (param === null) {
           return Expression.NULL;
         } else if (Expression.isExpression(param)) {
-          return param
+          return param;
         } else if (isImmutableClass(param)) {
           if (param.constructor.type) {
             // Must be a datatype
@@ -1391,7 +1391,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public resolved(): boolean {
     return this.every((ex: Expression) => {
       return (ex instanceof RefExpression) ? ex.nest === 0 : null; // Search within
-    })
+    });
   }
 
   public contained(): boolean {
@@ -1415,7 +1415,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       },
       (preEx: Expression, action: Action) => {
         var expression = action.expression;
-        return preEx.sum(expression).divide(countEx ? preEx.sum(countEx) : preEx.count())
+        return preEx.sum(expression).divide(countEx ? preEx.sum(countEx) : preEx.count());
       }
     );
   }
@@ -1509,7 +1509,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         var readyExpression = this._initialPrepare(introspectedContext, environment);
         if (readyExpression instanceof ExternalExpression) {
           // Top level externals need to be unsuppressed
-          readyExpression = (<ExternalExpression>readyExpression).unsuppress()
+          readyExpression = (<ExternalExpression>readyExpression).unsuppress();
         }
         return readyExpression._computeResolved(true);
       });

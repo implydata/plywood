@@ -32,5 +32,5 @@ export function basicExecutorFactory(parameters: BasicExecutorParameters): Execu
   var datasets = parameters.datasets;
   return (ex: Expression, env: Environment = {}) => {
     return ex.compute(datasets, env);
-  }
+  };
 }

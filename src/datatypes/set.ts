@@ -172,7 +172,7 @@ export class Set implements Instance<SetValue, SetJS> {
     }
 
     if (newElements) {
-      elements = newElements
+      elements = newElements;
     }
 
     if (setType === 'NUMBER_RANGE' || setType === 'TIME_RANGE' || setType === 'STRING_RANGE') {
@@ -239,17 +239,17 @@ export class Set implements Instance<SetValue, SetJS> {
       return Set.fromJS({
         setType: 'NUMBER_RANGE',
         elements: this.elements.map(NumberRange.fromNumber)
-      })
+      });
     } else if (this.setType === 'TIME') {
       return Set.fromJS({
         setType: 'TIME_RANGE',
         elements: this.elements.map(TimeRange.fromTime)
-      })
+      });
     } else if (this.setType === 'STRING') {
       return Set.fromJS({
         setType: 'STRING_RANGE',
         elements: this.elements.map(StringRange.fromString)
-      })
+      });
     } else {
       return this;
     }
@@ -266,7 +266,7 @@ export class Set implements Instance<SetValue, SetJS> {
           return this;
         }
       }
-      return Set.fromJS(simpleElements)
+      return Set.fromJS(simpleElements);
     } else {
       return this;
     }

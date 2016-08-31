@@ -206,7 +206,7 @@ export class DruidExternal extends External {
       .then((sources) => {
         if (!Array.isArray(sources)) throw new InvalidResultError('invalid sources response', sources);
         return sources.sort();
-      })
+      });
   }
 
   static getVersion(requester: Requester.PlywoodRequester<any>): Q.Promise<string> {
@@ -217,7 +217,7 @@ export class DruidExternal extends External {
     })
       .then((res) => {
         if (!DruidExternal.correctStatusResult(res)) throw new InvalidResultError('unexpected result from /status', res);
-        return res.version
+        return res.version;
       });
   }
 
@@ -309,8 +309,8 @@ export class DruidExternal extends External {
         DruidExternal.cleanDatumInPlace(datum);
         if (timestampLabel) datum[timestampLabel] = r.timestamp;
         return datum;
-      })
-    }
+      });
+    };
   }
 
   static topNNormalizer(res: Druid.DruidResults): Datum[] {
@@ -331,7 +331,7 @@ export class DruidExternal extends External {
         if (timestampLabel) datum[timestampLabel] = r.timestamp;
         return datum;
       });
-    }
+    };
   }
 
   static selectNormalizerFactory(timestampLabel: string): Normalizer {
@@ -387,7 +387,7 @@ export class DruidExternal extends External {
       prevQuery.pagingSpec.pagingIdentifiers = pagingIdentifiers;
       prevQuery.pagingSpec.threshold = Math.min(limit - resultsSoFar, DruidExternal.SELECT_MAX_LIMIT);
       return prevQuery;
-    }
+    };
   }
 
   static generateMakerAction(aggregation: Druid.Aggregation): Action {
@@ -488,7 +488,7 @@ export class DruidExternal extends External {
 
       if (!foundTime) throw new Error(`no valid ${TIME_ATTRIBUTE} in segmentMetadata response`);
       return attributes;
-    }
+    };
   }
 
   static introspectPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
@@ -509,7 +509,7 @@ export class DruidExternal extends External {
         attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', unsplitable: true }));
       });
       return attributes;
-    }
+    };
   }
 
   /**
@@ -575,7 +575,7 @@ export class DruidExternal extends External {
         "locale": "en-US",
         "timeZone": timezone.toString(),
         "type": "timeFormat"
-      }
+      };
     } else {
       var expr = DruidExternal.TIME_PART_TO_EXPR[part];
       if (!expr) throw new Error(`can not part on ${part}`);
@@ -587,7 +587,7 @@ export class DruidExternal extends External {
           `d = ${expr};`,
           'return d;'
         ])
-      }
+      };
     }
   }
 
@@ -621,7 +621,7 @@ export class DruidExternal extends External {
         "locale": "en-US",
         "timeZone": timezone.toString(),
         "type": "timeFormat"
-      }
+      };
     } else {
       var prop = DruidExternal.SPAN_TO_PROPERTY[singleSpan];
       if (!prop) throw new Error(`can not floor on ${duration}`);
@@ -634,7 +634,7 @@ export class DruidExternal extends External {
           `d = d.${prop}().setCopy(Math.floor(d.${prop}().get() / ${spanValue}) * ${spanValue});`,
           'return d;'
         ])
-      }
+      };
     }
   }
 
@@ -824,14 +824,14 @@ export class DruidExternal extends External {
       dimension: this.getDimensionNameForAttribureInfo(attributeInfo),
       extractionFn: extractionFn,
       value: "true"
-    }
+    };
   }
 
   // Makes a filter of (ex = value) or (value in ex) which are the same in Druid
   public makeSelectorFilter(ex: Expression, value: any): Druid.Filter {
     var attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     if (attributeInfo.unsplitable) {
-      throw new Error(`can not convert ${ex} = ${value} to filter because it references an un-filterable metric '${attributeInfo.name}' which is most likely rolled up.`)
+      throw new Error(`can not convert ${ex} = ${value} to filter because it references an un-filterable metric '${attributeInfo.name}' which is most likely rolled up.`);
     }
 
     var extractionFn = this.expressionToExtractionFn(ex);
@@ -958,7 +958,7 @@ export class DruidExternal extends External {
               type: "insensitive_contains",
               value: rhs.value
             }
-          }
+          };
         } else {
           return this.makeJavaScriptFilter(lhs.contains(rhs, compare));
         }
@@ -1047,7 +1047,7 @@ export class DruidExternal extends External {
       var referenceName = freeReferences[0];
       var attributeInfo = this.getAttributesInfo(referenceName);
       if (attributeInfo.unsplitable) {
-        throw new Error(`can not convert ${filter} to filter because it references an un-filterable metric '${referenceName}' which is most likely rolled up.`)
+        throw new Error(`can not convert ${filter} to filter because it references an un-filterable metric '${referenceName}' which is most likely rolled up.`);
       }
 
       if (filterAction instanceof InAction || filterAction instanceof OverlapAction) {
@@ -1150,7 +1150,7 @@ export class DruidExternal extends External {
       return {
         intervals: DruidExternal.FALSE_INTERVAL,
         filter: null
-      }
+      };
     } else {
       const { timeAttribute } = this;
       const { extract, rest } = filter.extractFromAnd(ex => {
@@ -1168,7 +1168,7 @@ export class DruidExternal extends External {
       return {
         intervals: this.timeFilterToIntervals(extract),
         filter: this.timelessFilterToDruid(rest, false)
-      }
+      };
     }
   }
 
@@ -1467,7 +1467,7 @@ export class DruidExternal extends External {
       type: 'stringFormat',
       format,
       nullHandling: 'returnNull'
-    })
+    });
   }
 
   private customTransformToExtractionFn(action: CustomTransformAction) {
@@ -1507,7 +1507,7 @@ export class DruidExternal extends External {
 
     var attributeInfo = this.getAttributesInfo(referenceName);
     if (attributeInfo.unsplitable) {
-      throw new Error(`can not convert ${expression} to split because it references an un-splitable metric '${referenceName}' which is most likely rolled up.`)
+      throw new Error(`can not convert ${expression} to split because it references an un-splitable metric '${referenceName}' which is most likely rolled up.`);
     }
 
     var extractionFn = this.expressionToExtractionFn(expression);
@@ -1897,7 +1897,7 @@ export class DruidExternal extends External {
       fnAggregate: `function($$,${simpleFieldNames.join(',')}) { return ${aggregateFunction('$$', aggregateExpression.getJS(null))}; }`,
       fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
       fnReset: `function() { return ${zero}; }`
-    }
+    };
   }
 
   public applyToAggregation(action: ApplyAction, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
@@ -2061,7 +2061,7 @@ export class DruidExternal extends External {
                   type: "equalTo",
                   aggregation: (lhs as RefExpression).name,
                   value: value
-                }
+                };
               })
             };
 
@@ -2417,7 +2417,7 @@ export class DruidExternal extends External {
         dataSource: this.getDruidDataSource()
       }
     })
-      .then(DruidExternal.introspectPostProcessFactory(timeAttribute))
+      .then(DruidExternal.introspectPostProcessFactory(timeAttribute));
   }
 
   protected getIntrospectAttributes(): Q.Promise<Attributes> {

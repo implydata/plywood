@@ -153,7 +153,7 @@ export class PostgresDialect extends SQLDialect {
       var expr = String(spans.day || 0) + " " + [spans.hour || 0, spans.minute || 0, spans.second || 0].join(':');
       operand = sqlFn + operand + ", INTERVAL '" + expr + "' DAY_SECOND)";
     }
-    return operand
+    return operand;
   }
 
   public extractExpression(operand: string, regexp: string): string {

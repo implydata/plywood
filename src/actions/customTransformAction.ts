@@ -40,7 +40,7 @@ export class CustomTransformAction extends Action {
   }
 
   public getNecessaryInputTypes(): PlyType[] {
-    return ['NULL' as PlyTypeSimple, 'BOOLEAN' as PlyTypeSimple, 'NUMBER' as PlyTypeSimple, 'TIME' as PlyTypeSimple, 'STRING' as PlyTypeSimple]
+    return ['NULL' as PlyTypeSimple, 'BOOLEAN' as PlyTypeSimple, 'NUMBER' as PlyTypeSimple, 'TIME' as PlyTypeSimple, 'STRING' as PlyTypeSimple];
   }
 
   public valueOf(): ActionValue {

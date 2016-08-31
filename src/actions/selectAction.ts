@@ -86,11 +86,11 @@ export class SelectAction extends Action {
     return (d: Datum, c: Datum) => {
       var inV: Dataset = inputFn(d, c);
       return inV ? inV.select(attributes) : null;
-    }
+    };
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-    throw new Error('can not be expressed as SQL directly')
+    throw new Error('can not be expressed as SQL directly');
   }
 
   protected _foldWithPrevAction(prevAction: Action): Action {

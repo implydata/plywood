@@ -341,7 +341,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     attributes.sort((a, b) => {
       var typeDiff = typeOrder[a.type] - typeOrder[b.type];
       if (typeDiff) return typeDiff;
-      return a.name.localeCompare(b.name)
+      return a.name.localeCompare(b.name);
     });
 
     return attributes;
@@ -375,11 +375,11 @@ export class Dataset implements Instance<DatasetValue, any> {
 
   static fromJS(parameters: any): Dataset {
     if (Array.isArray(parameters)) {
-      parameters = { data: parameters }
+      parameters = { data: parameters };
     }
 
     if (!Array.isArray(parameters.data)) {
-      throw new Error('must have data')
+      throw new Error('must have data');
     }
 
     var value: DatasetValue = {};
@@ -392,7 +392,7 @@ export class Dataset implements Instance<DatasetValue, any> {
 
     value.keys = parameters.keys;
     value.data = parameters.data.map(datumFromJS);
-    return new Dataset(value)
+    return new Dataset(value);
   }
 
   public suppress: boolean;
@@ -565,7 +565,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     var value = this.valueOf();
     var directionFn = directionFns[direction];
     value.data = this.data.sort((a, b) => { // Note: this modifies the original, fix if needed
-      return directionFn(exFn(a, context), exFn(b, context))
+      return directionFn(exFn(a, context), exFn(b, context));
     });
     return new Dataset(value);
   }
@@ -677,7 +677,7 @@ export class Dataset implements Instance<DatasetValue, any> {
         }
         finalDataset.push(datumGroups[key] = [datum]);
         splits[key] = newDatum;
-        finalData.push(newDatum)
+        finalData.push(newDatum);
       }
     }
 

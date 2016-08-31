@@ -127,7 +127,7 @@ export class SplitAction extends Action {
     return (d: Datum, c: Datum) => {
       var inV = inputFn(d, c);
       return inV ? inV.split(splitFns, dataName) : null;
-    }
+    };
   }
 
   public getSQL(inputType: PlyType, inputSQL: string, dialect: SQLDialect): string {

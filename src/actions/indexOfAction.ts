@@ -51,11 +51,11 @@ export class IndexOfAction extends Action {
       var inV = inputFn(d, c);
       if (inV === null) return null;
       return inV.indexOf(expressionFn(d, c));
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-    return Expression.jsNullSafetyBinary(inputJS, expressionJS, (a, b) => { return `${a}.indexOf(${b})` }, inputJS[0] === '"', expressionJS[0] === '"');
+    return Expression.jsNullSafetyBinary(inputJS, expressionJS, (a, b) => { return `${a}.indexOf(${b})`; }, inputJS[0] === '"', expressionJS[0] === '"');
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

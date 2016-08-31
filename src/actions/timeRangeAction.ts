@@ -106,7 +106,7 @@ export class TimeRangeAction extends Action {
       } else {
         return new TimeRange({ start: other, end: inV });
       }
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {

@@ -83,7 +83,7 @@ export class ApplyAction extends Action {
     return (d: Datum, c: Datum) => {
       var inV = inputFn(d, c);
       return inV ? inV.apply(name, expressionFn, type, foldContext(d, c)) : null;
-    }
+    };
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {

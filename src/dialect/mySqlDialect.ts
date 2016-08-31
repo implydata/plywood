@@ -114,7 +114,7 @@ export class MySQLDialect extends SQLDialect {
   public castExpression(inputType: PlyType, operand: string, cast: string): string {
     var castFunction = MySQLDialect.CAST_TO_FUNCTION[cast][inputType];
     if (!castFunction) throw new Error(`unsupported cast from ${inputType} to ${cast} in MySQL dialect`);
-    return castFunction.replace(/\$\$/g,operand)
+    return castFunction.replace(/\$\$/g,operand);
   }
 
   public utcToWalltime(operand: string, timezone: Timezone): string {
@@ -158,7 +158,7 @@ export class MySQLDialect extends SQLDialect {
       var expr = String(spans.day || 0) + " " + [spans.hour || 0, spans.minute || 0, spans.second || 0].join(':');
       operand = sqlFn + operand + ", INTERVAL '" + expr + "' DAY_SECOND)";
     }
-    return operand
+    return operand;
   }
 
   public extractExpression(operand: string, regexp: string): string {

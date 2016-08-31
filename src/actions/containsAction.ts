@@ -88,11 +88,11 @@ export class ContainsAction extends Action {
     if (this.compare === ContainsAction.NORMAL) {
       return (d: Datum, c: Datum) => {
         return String(inputFn(d, c)).indexOf(expressionFn(d, c)) > -1;
-      }
+      };
     } else {
       return (d: Datum, c: Datum) => {
         return String(inputFn(d, c)).toLowerCase().indexOf(String(expressionFn(d, c)).toLowerCase()) > -1;
-      }
+      };
     }
   }
 

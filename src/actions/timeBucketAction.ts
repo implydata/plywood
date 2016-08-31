@@ -96,7 +96,7 @@ export class TimeBucketAction extends Action {
       var inV = inputFn(d, c);
       if (inV === null) return null;
       return TimeRange.timeBucket(inV, duration, timezone);
-    }
+    };
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {
