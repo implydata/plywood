@@ -1011,7 +1011,6 @@ describe("SQL parser", () => {
     });
 
     it("should add a select to the end of group by queries ()", () => {
-      // what should happen for split without explicit name?
       var parse = Expression.parseSQL(sane`
           SELECT isRobot as "isRobot", isNew as "isNew", COUNT() AS "Count" from data group by isNew, isRobot, page limit 2
       `);
