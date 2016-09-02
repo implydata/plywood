@@ -162,6 +162,7 @@ export interface DruidSplit {
   granularity: Druid.Granularity | string;
   dimension?: Druid.DimensionSpec;
   dimensions?: Druid.DimensionSpec[];
+  leftoverHavingFilter?: Expression;
   postProcess: PostProcess;
 }
 
@@ -1582,6 +1583,8 @@ export class DruidExternal extends External {
   }
 
   public splitToDruid(split: SplitAction): DruidSplit {
+    var leftoverHavingFilter = this.havingFilter;
+
     if (split.isMultiSplit()) {
       var timestampLabel: string = null;
       var granularity: Druid.Granularity = null;
@@ -1611,6 +1614,7 @@ export class DruidExternal extends External {
         dimensions: dimensions,
         timestampLabel,
         granularity: granularity || 'all',
+        leftoverHavingFilter,
         postProcess: DruidExternal.postProcessFactory(
           DruidExternal.groupByNormalizerFactory(timestampLabel),
           inflaters,
@@ -1628,6 +1632,7 @@ export class DruidExternal extends External {
       return {
         queryType: 'timeseries',
         granularity: granularityInflater.granularity,
+        leftoverHavingFilter,
         postProcess: DruidExternal.postProcessFactory(
           DruidExternal.timeseriesNormalizerFactory(label),
           [granularityInflater.inflater],
@@ -1637,9 +1642,28 @@ export class DruidExternal extends External {
     }
 
     var dimensionInflater = this.expressionToDimensionInflater(splitExpression, label);
+    if (splitExpression instanceof RefExpression && splitExpression.type === 'SET/STRING' && leftoverHavingFilter instanceof ChainExpression) {
+      var leftoverHavingFilterExpression = leftoverHavingFilter.expression;
+      var leftoverHavingFilterActions = leftoverHavingFilter.actions;
+      if (leftoverHavingFilterExpression instanceof RefExpression && leftoverHavingFilterExpression.name === label && leftoverHavingFilterActions.length === 1) {
+        var leftoverHavingFilterAction = leftoverHavingFilterActions[0];
+        if (leftoverHavingFilterAction instanceof MatchAction) {
+          dimensionInflater = {
+            dimension: {
+              type: "regexFiltered",
+              delegate: dimensionInflater.dimension,
+              pattern: leftoverHavingFilterAction.regexp
+            },
+            inflater: dimensionInflater.inflater
+          };
+          leftoverHavingFilter = Expression.TRUE;
+        }
+      }
+    }
+
     var inflaters = [dimensionInflater.inflater].filter(Boolean);
     if (
-      this.havingFilter.equals(Expression.TRUE) && // There is no having filter
+      leftoverHavingFilter.equals(Expression.TRUE) && // There is no leftover having filter
       (this.limit || split.maxBucketNumber() < 1000) && // There is a limit (or the split range is limited)
       !this.exactResultsOnly // We do not care about exact results
     ) {
@@ -1647,6 +1671,7 @@ export class DruidExternal extends External {
         queryType: 'topN',
         dimension: dimensionInflater.dimension,
         granularity: 'all',
+        leftoverHavingFilter,
         postProcess: DruidExternal.postProcessFactory(DruidExternal.topNNormalizer, inflaters, null)
       };
     }
@@ -1655,6 +1680,7 @@ export class DruidExternal extends External {
       queryType: 'groupBy',
       dimensions: [dimensionInflater.dimension],
       granularity: 'all',
+      leftoverHavingFilter,
       postProcess: DruidExternal.postProcessFactory(DruidExternal.groupByNormalizerFactory(), inflaters, null)
     };
   }
@@ -2061,7 +2087,7 @@ export class DruidExternal extends External {
           };
 
         } else {
-          throw new Error(`can not convert ${filter} to Druid filter`);
+          throw new Error(`can not convert ${filter} to Druid having filter`);
         }
 
       } else if (filterAction instanceof InAction) {
@@ -2104,7 +2130,7 @@ export class DruidExternal extends External {
 
     }
 
-    throw new Error(`could not convert filter ${filter} to Druid filter`);
+    throw new Error(`could not convert filter ${filter} to Druid having filter`);
   }
 
   public isMinMaxTimeApply(apply: ApplyAction): boolean {
@@ -2285,6 +2311,7 @@ export class DruidExternal extends External {
         druidQuery.granularity = splitSpec.granularity;
         if (splitSpec.dimension) druidQuery.dimension = splitSpec.dimension;
         if (splitSpec.dimensions) druidQuery.dimensions = splitSpec.dimensions;
+        var leftoverHavingFilter = splitSpec.leftoverHavingFilter;
         var postProcess = splitSpec.postProcess;
 
         // Apply
@@ -2378,8 +2405,8 @@ export class DruidExternal extends External {
             if (limit) {
               druidQuery.limitSpec.limit = limit.limit;
             }
-            if (!this.havingFilter.equals(Expression.TRUE)) {
-              druidQuery.having = this.havingFilterToDruid(this.havingFilter);
+            if (!leftoverHavingFilter.equals(Expression.TRUE)) {
+              druidQuery.having = this.havingFilterToDruid(leftoverHavingFilter);
             }
             break;
         }

@@ -1113,6 +1113,44 @@ describe("simulate Druid", () => {
     });
   });
 
+  it("works with multi-value dimension regexp having filter", () => {
+    var ex = $("diamonds")
+      .filter('$tags.match("[ab]+")')
+      .split("$tags", 'Tag')
+      .filter('$Tag.match("a+")')
+      .limit(10);
+
+    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+      "aggregations": [
+        {
+          "name": "!DUMMY",
+          "type": "count"
+        }
+      ],
+      "dataSource": "diamonds",
+      "dimension": {
+        "delegate": {
+          "dimension": "tags",
+          "outputName": "Tag",
+          "type": "default"
+        },
+        "pattern": "a+",
+        "type": "regexFiltered"
+      },
+      "filter": {
+        "dimension": "tags",
+        "pattern": "[ab]+",
+        "type": "regex"
+      },
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "metric": {
+        "type": "lexicographic"
+      },
+      "queryType": "topN",
+      "threshold": 10
+    });
+  });
 
   it("works with transform case", () => {
     var ex = $("diamonds").split("$cut.transformCase('upperCase')", 'Cut')

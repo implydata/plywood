@@ -253,6 +253,15 @@ export class SplitAction extends Action {
     return hasOwnProperty(this.splits, key);
   }
 
+  public isLinear(): boolean {
+    var { splits, keys } = this;
+    for (var k of keys) {
+      var split = splits[k];
+      if (isSetType(split.type)) return false;
+    }
+    return true;
+  }
+
   public maxBucketNumber(): number {
     var { splits, keys } = this;
     var num = 1;
