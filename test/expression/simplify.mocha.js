@@ -756,17 +756,17 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it('it can move past a split', () => {
+    it('can move past a linear split', () => {
       var ex1 = $('wiki')
-        .split('$page', 'Page')
+        .split('$page:STRING', 'Page')
         .apply('Deleted', '$wiki.sum($deleted)')
         .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-        .filter('$Page == "hello world"');
+        .filter('$Page.contains("hello world")');
 
       var ex2 = $('wiki')
-        .filter('$page == "hello world"')
-        .split('$page', 'Page')
+        .filter('$page:STRING.contains("hello world")')
+        .split('$page:STRING', 'Page')
         .apply('Deleted', '$wiki.sum($deleted)')
         .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
@@ -774,7 +774,25 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it('it can move past a fancy split', () => {
+    it('can not move past a non linear split', () => {
+      var ex1 = $('wiki')
+        .split('$page:SET/STRING', 'Page')
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .filter('$Page.contains("hello world")');
+
+      var ex2 = $('wiki')
+        .split('$page:SET/STRING', 'Page')
+        .filter('$Page.contains("hello world")')
+        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('can move past a fancy split', () => {
       var ex1 = $('wiki')
         .split('$time.timeBucket(P1D)', 'TimeByDay')
         .apply('Deleted', '$wiki.sum($deleted)')
@@ -792,7 +810,7 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it('it can move past a sort', () => {
+    it('can move past a sort', () => {
       var ex1 = ply()
         .sort('$deleted', 'ascending')
         .filter('$AddedByDeleted == 1');

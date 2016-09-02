@@ -1,3 +1,8 @@
+// Type definitions for druid.io (version 0.9.2)
+// Project: http://druid.io/
+// Definitions by: Vadim Ogievetsky <https://github.com/vogievetsky/>
+// Definitions: https://github.com/implyio/druid.d.ts
+
 /*
  * Copyright 2015-2015 Metamarkets Group Inc.
  * Copyright 2015-2016 Imply Data, Inc.
@@ -14,11 +19,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// Type definitions for druid.io (version 0.9.2)
-// Project: http://druid.io/
-// Definitions by: Vadim Ogievetsky <https://github.com/vogievetsky/>
-// Definitions: https://github.com/implyio/druid.d.ts
 
 declare module Druid {
     /* ----------------------- *\
@@ -301,6 +301,12 @@ declare module Druid {
         // Specific to type: "extraction"
         extractionFn?: ExtractionFn;
         dimExtractionFn?: ExtractionFn; // This will be deprecated soon
+
+        // Specific to type: "listFiltered" | "regexFiltered"
+        delegate?: DimensionSpec;
+        pattern?: string;
+        values?: string[];
+        isWhitelist?: boolean;
     }
 
     // http://druid.io/docs/latest/TopNMetricSpec.html

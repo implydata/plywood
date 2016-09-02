@@ -77,7 +77,7 @@ export class FilterAction extends Action {
       return freeReferences.indexOf(lastAction.name) === -1 ? this : null;
     }
 
-    if (lastAction instanceof SplitAction) {
+    if (lastAction instanceof SplitAction && lastAction.isLinear()) {
       var splits = lastAction.splits;
       return new FilterAction({
         expression: this.expression.substitute((ex) => {

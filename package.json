@@ -24,7 +24,7 @@
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
-    "immutable-class": "0.6.x",
+    "immutable-class": ">=0.6.10",
     "q": "1.4.1"
   },
   "peerDependencies": {
@@ -34,7 +34,7 @@
     "@types/q": "0.0.30",
     "browserify": "13.1.0",
     "chai": "3.5.0",
-    "chronoshift": "0.5.7",
+    "chronoshift": "0.5.8",
     "f-tool": "0.1.3",
     "immutable-class-tester": "0.5.3",
     "istanbul": "0.4.5",

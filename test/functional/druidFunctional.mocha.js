@@ -1917,6 +1917,24 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("works with multi-value dimension regexp having filter", (testComplete) => {
+      var ex = $("wiki")
+        .filter('$userChars.match("[ABN]")')
+        .split("$userChars", 'userChar')
+        .filter('$userChar.match("B|N")')
+        .limit(5);
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            { "userChar": "B" },
+            { "userChar": "N" }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
     describe("plyql end to end", () => {
       it("should work with <= <", (testComplete) => {
         var ex = Expression.parseSQL(sane`
