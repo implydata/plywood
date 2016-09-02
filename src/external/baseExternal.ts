@@ -1267,7 +1267,7 @@ export abstract class External {
     }
     if (!select) return attributes;
     const selectAttributes = select.attributes;
-    return attributes.filter(a => selectAttributes.indexOf(a.name) !== -1);
+    return selectAttributes.map(s => NamedArray.findByName(attributes, s));
   }
 
   // -----------------
