@@ -16,7 +16,7 @@
  */
 
 var { expect } = require("chai");
-var { sane, arrayShuffle } = require('../utils');
+var { sane } = require('../utils');
 
 var { WallTime } = require('chronoshift');
 if (!WallTime.rules) {
@@ -200,17 +200,46 @@ describe("Druid Functional", function() {
         .done();
     });
 
-    it("aggregate and splits plus select work with ordering", (testComplete) => {
-      var columns = arrayShuffle(['Count', 'isRobot', 'Page', 'isNew']);
+    it("aggregate and splits plus select work with ordering last split first", (testComplete) => {
       var ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
         .apply('Page', $("wiki").split("$page", 'Page'))
-        .select(columns[0], columns[1], columns[2], columns[3] )
+        .select('Page', 'Count', 'isRobot', 'isNew')
         .limit(1);
       basicExecutor(ex)
         .then((result) => {
-          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(columns);
+          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Page', 'Count', 'isRobot', 'isNew']);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("aggregate and splits plus select work with ordering 2", (testComplete) => {
+      var ex = $('wiki')
+        .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Page', $("wiki").split("$page", 'Page'))
+        .select('isRobot', 'Page', 'isNew', 'Count')
+        .limit(1);
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['isRobot', 'Page', 'isNew', 'Count']);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("aggregate and splits plus select work with ordering, aggregate first", (testComplete) => {
+      var ex = $('wiki')
+        .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Page', $("wiki").split("$page", 'Page'))
+        .select('Count', 'isRobot', 'Page', 'isNew')
+        .limit(1);
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Count', 'isRobot', 'Page', 'isNew']);
           testComplete();
         })
         .done();
