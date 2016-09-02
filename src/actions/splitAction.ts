@@ -16,10 +16,11 @@
  */
 
 import { Action, ActionJS, ActionValue, Splits, SplitsJS } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
+import { PlyType, DatasetFullType, SimpleFullType, FullType } from "../types";
 import { Expression, Indexer, Alterations, r, SubstitutionFn } from "../expressions/baseExpression";
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn } from "../datatypes/dataset";
+import { unwrapSetType } from "../datatypes/common";
 import { hasOwnProperty } from "../helper/utils";
 import { immutableLookupsEqual } from "immutable-class";
 import { isSetType } from "../datatypes/common";
@@ -109,7 +110,10 @@ export class SplitAction extends Action {
   public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
     var newDatasetType: Lookup<FullType> = {};
     this.mapSplits((name, expression) => {
-      newDatasetType[name] = expression._fillRefSubstitutions(typeContext, indexer, alterations);
+      var fullType = expression._fillRefSubstitutions(typeContext, indexer, alterations) as SimpleFullType;
+      newDatasetType[name] = {
+        type: unwrapSetType(fullType.type)
+      } as any;
     });
     newDatasetType[this.dataName] = typeContext;
 

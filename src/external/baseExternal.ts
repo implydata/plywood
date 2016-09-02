@@ -1047,7 +1047,7 @@ export abstract class External {
     value.dataName = splitAction.dataName;
     value.split = splitAction;
     value.rawAttributes = value.attributes;
-    value.attributes = splitAction.mapSplits((name, expression) => new AttributeInfo({ name, type: expression.type }));
+    value.attributes = splitAction.mapSplits((name, expression) => new AttributeInfo({ name, type: unwrapSetType(expression.type) }));
     value.delegates = nullMap(value.delegates, (e) => e._addSplitAction(splitAction));
     return External.fromValue(value);
   }

@@ -156,6 +156,10 @@ export interface DimensionInflater {
   inflater?: Inflater;
 }
 
+export interface DimensionInflaterHaving extends DimensionInflater {
+  having?: Expression;
+}
+
 export interface DruidSplit {
   queryType: string;
   timestampLabel?: string;
@@ -1582,6 +1586,63 @@ export class DruidExternal extends External {
     throw new Error(`could not convert ${expression} to a Druid dimension`);
   }
 
+  public expressionToDimensionInflaterHaving(expression: Expression, label: string, havingFilter: Expression): DimensionInflaterHaving {
+    var dimensionInflater: DimensionInflaterHaving = this.expressionToDimensionInflater(expression, label);
+    dimensionInflater.having = havingFilter;
+    if (expression.type !== 'SET/STRING') return dimensionInflater;
+
+    const { extract, rest } = havingFilter.extractFromAnd((hf) => {
+      if (hf instanceof ChainExpression) {
+        var hfExpression = hf.expression;
+        var hfActions = hf.actions;
+        if (hfExpression instanceof RefExpression && hfExpression.name === label && hfActions.length === 1) {
+          var hfAction = hfActions[0;
+          var hfActionName = hfAction.action;
+          if (hfActionName === 'match') return true;
+          if (hfActionName === 'is' || hfActionName === 'in') return hfAction.expression instanceof LiteralExpression;
+        }
+      }
+      return false;
+    });
+
+    if (extract.equals(Expression.TRUE)) return dimensionInflater;
+
+    var firstAction = (extract as ChainExpression).actions[0];
+    if (firstAction instanceof MatchAction) {
+      return {
+        dimension: {
+          type: "regexFiltered",
+          delegate: dimensionInflater.dimension,
+          pattern: firstAction.regexp
+        },
+        inflater: dimensionInflater.inflater,
+        having: rest
+      };
+    } else if (firstAction instanceof IsAction) {
+      return {
+        dimension: {
+          type: "listFiltered",
+          delegate: dimensionInflater.dimension,
+          values: [firstAction.expression.getLiteralValue()]
+        },
+        inflater: dimensionInflater.inflater,
+        having: rest
+      };
+    } else if (firstAction instanceof InAction) {
+      return {
+        dimension: {
+          type: "listFiltered",
+          delegate: dimensionInflater.dimension,
+          values: firstAction.expression.getLiteralValue().elements
+        },
+        inflater: dimensionInflater.inflater,
+        having: rest
+      };
+    }
+
+    return dimensionInflater;
+  }
+
   public splitToDruid(split: SplitAction): DruidSplit {
     var leftoverHavingFilter = this.havingFilter;
 
@@ -1603,7 +1664,8 @@ export class DruidExternal extends External {
           }
         }
 
-        var { dimension, inflater } = this.expressionToDimensionInflater(expression, name);
+        var { dimension, inflater, having } = this.expressionToDimensionInflaterHaving(expression, name, leftoverHavingFilter);
+        leftoverHavingFilter = having;
         dimensions.push(dimension);
         if (inflater) {
           inflaters.push(inflater);
@@ -1641,25 +1703,8 @@ export class DruidExternal extends External {
       };
     }
 
-    var dimensionInflater = this.expressionToDimensionInflater(splitExpression, label);
-    if (splitExpression instanceof RefExpression && splitExpression.type === 'SET/STRING' && leftoverHavingFilter instanceof ChainExpression) {
-      var leftoverHavingFilterExpression = leftoverHavingFilter.expression;
-      var leftoverHavingFilterActions = leftoverHavingFilter.actions;
-      if (leftoverHavingFilterExpression instanceof RefExpression && leftoverHavingFilterExpression.name === label && leftoverHavingFilterActions.length === 1) {
-        var leftoverHavingFilterAction = leftoverHavingFilterActions[0];
-        if (leftoverHavingFilterAction instanceof MatchAction) {
-          dimensionInflater = {
-            dimension: {
-              type: "regexFiltered",
-              delegate: dimensionInflater.dimension,
-              pattern: leftoverHavingFilterAction.regexp
-            },
-            inflater: dimensionInflater.inflater
-          };
-          leftoverHavingFilter = Expression.TRUE;
-        }
-      }
-    }
+    var dimensionInflater = this.expressionToDimensionInflaterHaving(splitExpression, label, leftoverHavingFilter);
+    leftoverHavingFilter = dimensionInflater.having;
 
     var inflaters = [dimensionInflater.inflater].filter(Boolean);
     if (
