@@ -200,6 +200,51 @@ describe("Druid Functional", function() {
         .done();
     });
 
+    it("aggregate and splits plus select work with ordering last split first", (testComplete) => {
+      var ex = $('wiki')
+        .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Page', $("wiki").split("$page", 'Page'))
+        .select('Page', 'Count', 'isRobot', 'isNew')
+        .limit(1);
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Page', 'Count', 'isRobot', 'isNew']);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("aggregate and splits plus select work with ordering 2", (testComplete) => {
+      var ex = $('wiki')
+        .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Page', $("wiki").split("$page", 'Page'))
+        .select('isRobot', 'Page', 'isNew', 'Count')
+        .limit(1);
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['isRobot', 'Page', 'isNew', 'Count']);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("aggregate and splits plus select work with ordering, aggregate first", (testComplete) => {
+      var ex = $('wiki')
+        .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Page', $("wiki").split("$page", 'Page'))
+        .select('Count', 'isRobot', 'Page', 'isNew')
+        .limit(1);
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Count', 'isRobot', 'Page', 'isNew']);
+          testComplete();
+        })
+        .done();
+    });
+
     it("works timePart case", (testComplete) => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))

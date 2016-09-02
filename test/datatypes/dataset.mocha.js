@@ -866,6 +866,34 @@ describe("Dataset", () => {
           2	wo rld, mo on
         `);
       });
-    })
+    });
+
+    describe("#select", () => {
+      it("respects order", () => {
+        var carDataset = Dataset.fromJS([
+          {
+            time: new Date('2015-01-04T12:32:43'),
+            make: 'Honda',
+            model: 'Civic',
+            price: 10000
+          },
+          {
+            time: new Date('2015-01-04T14:00:40'),
+            make: 'Toyota',
+            model: 'Prius',
+            price: 20000
+          }
+        ]);
+
+        expect(carDataset.select(['time', 'model', 'make', 'price']).getColumns().map(c => c.name)).to.deep.equal([
+          "time",
+          "model",
+          "make",
+          "price"
+        ]);
+      });
+
+    });
+
   });
 });

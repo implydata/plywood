@@ -113,6 +113,7 @@ describe("simulate Druid for amplab benchmark", () => {
     expect(ex.toJS()).to.deep.equal(
       $('rankings').split('i$pageURL', 'pageURL', 'data')
         .apply('pageRank', '$data.sum(i$pageRank)')
+        .select('pageURL', 'pageRank')
         .filter('i$pageRank > 5')
         .toJS()
     );
@@ -165,6 +166,7 @@ describe("simulate Druid for amplab benchmark", () => {
     expect(ex.toJS()).to.deep.equal(
       $('uservisits').split('i$sourceIP.substr(1, 5)', 'SUBSTR(sourceIP, 1, 5)', 'data')
         .apply('SUM(adRevenue)', '$data.sum(i$adRevenue)')
+        .select('SUBSTR(sourceIP, 1, 5)', 'SUM(adRevenue)')
         .toJS()
     );
 

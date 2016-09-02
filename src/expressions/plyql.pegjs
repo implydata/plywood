@@ -309,7 +309,7 @@ function staticColumn(column) {
 
 function constructQuery(distinct, columns, from, where, groupBys, having, orderBy, limit) {
   if (!columns) error('Can not have empty column list');
-
+  var originalColumns = Array.isArray(columns) ? columns.map((c) => c.name) : [];
   var query = null;
 
   if (!distinct && Array.isArray(columns) && !from && !where && !groupBys && columns.every(staticColumn)) {
@@ -365,6 +365,8 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
           query = query.performAction(columns[i]);
         }
       }
+
+      if (originalColumns.length > 1) query = query.select.apply(query, originalColumns);
     }
   }
 
