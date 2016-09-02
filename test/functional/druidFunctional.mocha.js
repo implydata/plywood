@@ -16,7 +16,7 @@
  */
 
 var { expect } = require("chai");
-var { sane } = require('../utils');
+var { sane, arrayShuffle } = require('../utils');
 
 var { WallTime } = require('chronoshift');
 if (!WallTime.rules) {
@@ -195,6 +195,22 @@ describe("Druid Functional", function() {
             null,31529720
             Mineola,50836
           `);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("aggregate and splits plus select work with ordering", (testComplete) => {
+      var columns = arrayShuffle(['Count', 'isRobot', 'Page', 'isNew']);
+      var ex = $('wiki')
+        .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Page', $("wiki").split("$page", 'Page'))
+        .select(columns[0], columns[1], columns[2], columns[3] )
+        .limit(1);
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(columns);
           testComplete();
         })
         .done();
