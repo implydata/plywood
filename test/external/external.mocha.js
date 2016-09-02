@@ -1441,5 +1441,29 @@ describe("External", () => {
 
     });
 
+    describe("attribute order is respected", () => {
+      it("pure select: get selected attributes respects order", () => {
+        var ex = $('wiki')
+          .select("page", "language", "user")
+          .limit(5);
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+        var external = ex.external;
+        expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([ 'page', 'language', 'user' ]);
+      });
+
+      it("pure select: dimension order reflects select order", () => {
+        var ex = $('wiki')
+          .select("page", "language", "user")
+          .limit(5);
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+        var external = ex.external;
+        external.allowSelectQueries = true;
+        expect(external.getQueryAndPostProcess().query.dimensions).to.deep.equal([ 'page', 'language', 'user' ]);
+      });
+
+    });
+
   });
 });
