@@ -1596,7 +1596,7 @@ export class DruidExternal extends External {
         var hfExpression = hf.expression;
         var hfActions = hf.actions;
         if (hfExpression instanceof RefExpression && hfExpression.name === label && hfActions.length === 1) {
-          var hfAction = hfActions[0;
+          var hfAction = hfActions[0];
           var hfActionName = hfAction.action;
           if (hfActionName === 'match') return true;
           if (hfActionName === 'is' || hfActionName === 'in') return hfAction.expression instanceof LiteralExpression;
