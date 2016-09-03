@@ -32,6 +32,7 @@ var attributes = [
   { name: 'cut', type: 'STRING' },
   { name: 'isNice', type: 'BOOLEAN' },
   { name: 'tags', type: 'SET/STRING' },
+  { name: 'pugs', type: 'SET/STRING' },
   { name: 'carat', type: 'NUMBER' },
   { name: 'height_bucket', type: 'NUMBER' },
   { name: 'price', type: 'NUMBER', unsplitable: true },
@@ -1149,6 +1150,171 @@ describe("simulate Druid", () => {
       },
       "queryType": "topN",
       "threshold": 10
+    });
+  });
+
+  it("works with multi-value, multi-dim dimension regexp having filter", () => {
+    var ex = $("diamonds")
+      .filter('$tags.match("[ab]+")')
+      .split({ Tag: "$tags", Cut: "$cut" })
+      .filter('$Tag.match("a+")')
+      .limit(10);
+
+    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+      "aggregations": [
+        {
+          "name": "!DUMMY",
+          "type": "count"
+        }
+      ],
+      "dataSource": "diamonds",
+      "dimensions": [
+        {
+          "dimension": "cut",
+          "outputName": "Cut",
+          "type": "default"
+        },
+        {
+          "delegate": {
+            "dimension": "tags",
+            "outputName": "Tag",
+            "type": "default"
+          },
+          "pattern": "a+",
+          "type": "regexFiltered"
+        }
+      ],
+      "filter": {
+        "dimension": "tags",
+        "pattern": "[ab]+",
+        "type": "regex"
+      },
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "limitSpec": {
+        "columns": [
+          {
+            "dimension": "Cut"
+          }
+        ],
+        "limit": 10,
+        "type": "default"
+      },
+      "queryType": "groupBy"
+    });
+  });
+
+  it("works with multi-value, multi-dim dimension regexp having filter x2", () => {
+    var ex = $("diamonds")
+      .filter('$tags.match("[ab]+")')
+      .split({ Tag: "$tags", Pug: "$pugs" })
+      .filter('$Tag.match("a+") and $Pug == "b"')
+      .limit(10);
+
+    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+      "aggregations": [
+        {
+          "name": "!DUMMY",
+          "type": "count"
+        }
+      ],
+      "dataSource": "diamonds",
+      "dimensions": [
+        {
+          "delegate": {
+            "dimension": "pugs",
+            "outputName": "Pug",
+            "type": "default"
+          },
+          "type": "listFiltered",
+          "values": [
+            "b"
+          ]
+        },
+        {
+          "delegate": {
+            "dimension": "tags",
+            "outputName": "Tag",
+            "type": "default"
+          },
+          "pattern": "a+",
+          "type": "regexFiltered"
+        }
+      ],
+      "filter": {
+        "dimension": "tags",
+        "pattern": "[ab]+",
+        "type": "regex"
+      },
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "limitSpec": {
+        "columns": [
+          {
+            "dimension": "Pug"
+          }
+        ],
+        "limit": 10,
+        "type": "default"
+      },
+      "queryType": "groupBy"
+    });
+  });
+
+  it("works with multi-value, multi-dim dimension regexp having filter and extra having filters", () => {
+    var ex = $("diamonds")
+      .filter('$tags.match("[ab]+")')
+      .split({ Tag: "$tags", Cut: "$cut" })
+      .apply('Count', '$diamonds.count()')
+      .filter('$Tag.match("a+") and $Count > 100')
+      .limit(10);
+
+    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+      "aggregations": [
+        {
+          "name": "Count",
+          "type": "count"
+        }
+      ],
+      "dataSource": "diamonds",
+      "dimensions": [
+        {
+          "dimension": "cut",
+          "outputName": "Cut",
+          "type": "default"
+        },
+        {
+          "delegate": {
+            "dimension": "tags",
+            "outputName": "Tag",
+            "type": "default"
+          },
+          "pattern": "a+",
+          "type": "regexFiltered"
+        }
+      ],
+      "filter": {
+        "dimension": "tags",
+        "pattern": "[ab]+",
+        "type": "regex"
+      },
+      "granularity": "all",
+      "having": {
+        "aggregation": "Count",
+        "type": "greaterThan",
+        "value": 100
+      },
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "limitSpec": {
+        "columns": [
+          {
+            "dimension": "Cut"
+          }
+        ],
+        "limit": 10,
+        "type": "default"
+      },
+      "queryType": "groupBy"
     });
   });
 
@@ -2524,6 +2690,7 @@ describe("simulate Druid", () => {
           "cut",
           "isNice",
           "tags",
+          "pugs",
           "carat",
           "height_bucket",
           "try",

@@ -24,7 +24,7 @@ describe("reference check", () => {
   var context = {
     seventy: 70,
     diamonds: Dataset.fromJS([
-      { color: 'A', cut: 'great', carat: 1.1, price: 300 }
+      { color: 'A', cut: 'great', carat: 1.1, price: 300, tags: ['A', 'B'] }
     ]),
     wiki: External.fromJS({
       engine: 'druid',
@@ -338,6 +338,30 @@ describe("reference check", () => {
       var ex2 = $('wiki', 'DATASET')
         .apply('page3', '$page:STRING.substr(0, 3)')
         .filter('$page3:STRING == wik');
+
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("multi-value split", () => {
+      var ex1 = ply()
+        .apply(
+          'Ts',
+          $("diamonds").split("$tags", 'Tag')
+            .apply('Count', $('diamonds').count())
+            .sort('$Count', 'descending')
+            .filter('$Tag == "A"')
+            .limit(2)
+        );
+
+      var ex2 = ply()
+        .apply(
+          'Ts',
+          $("diamonds", 1, "DATASET").split("$tags:SET/STRING", 'Tag')
+            .apply('Count', $('diamonds', 'DATASET').count())
+            .sort('$Count:NUMBER', 'descending')
+            .filter('$Tag:STRING == "A"')
+            .limit(2)
+        );
 
       expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
