@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Q from 'q-tsc';
 import { Timezone, Duration } from "chronoshift";
 import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from "immutable-class";
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";

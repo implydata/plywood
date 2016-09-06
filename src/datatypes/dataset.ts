@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Q from 'q-tsc';
 import { isDate } from "chronoshift";
 import { Class, Instance, isInstanceOf, generalEqual, SimpleArray, NamedArray } from "immutable-class";
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from "../types";

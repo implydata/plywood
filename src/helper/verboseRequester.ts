@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Q from 'q-tsc';
 
 export interface VerboseRequesterParameters<T> {
   requester: Requester.PlywoodRequester<T>;

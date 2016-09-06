@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Q from 'q-tsc';
 
 export function promiseWhile(condition: () => boolean, action: () => Q.Promise<any>): Q.Promise<any> {
   var loop = (): Q.Promise<any> => {

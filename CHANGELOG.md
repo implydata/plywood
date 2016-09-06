@@ -2,6 +2,18 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.12.9
+
+- Transition to better build system
+
+## 0.12.8
+
+- Support Druid `regexFiltered` and `listFiltered` dim specs
+
+## 0.12.7
+
+- Respect PlyQL column ordering by generating extra select statements
+
 ## 0.12.6
 
 - SegmentMetadata passes context also
@@ -146,7 +158,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.10.26
 
-- DruidExternal: Ability to split on a secondary time dimension by `PT2H` e.t.c. 
+- DruidExternal: Ability to split on a secondary time dimension by `PT2H` e.t.c.
 - PlyQL: `SHOW FULL TABLES` rewrites correctly
 
 ## 0.10.23
@@ -157,7 +169,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.10.22
 
 - Better simplification of `.is(TimeRange)` and `.is(NumberRange)`
-- Removed some dead code 
+- Removed some dead code
 
 ## 0.10.21
 
@@ -176,7 +188,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.10.19
 
 - Made filters on non primary time dimensions work in DruidExternal
-- Added basic tests for legacy Druid versions 
+- Added basic tests for legacy Druid versions
 
 ## 0.10.18
 
@@ -213,7 +225,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Added `DruidExternal.getVersion`
 - Fixed post computation tasks
 - Added support for `USE` on PlyQL
-- PlyQL allows `NULL` in set literal e.g. `{'a', 'b', NULL}` 
+- PlyQL allows `NULL` in set literal e.g. `{'a', 'b', NULL}`
 
 ## 0.10.11
 
@@ -223,7 +235,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 - Fixed problem with DruidExternal having filter generating an OR instead of an AND for time ranges
 
-## 0.10.9 
+## 0.10.9
 
 - Fixed problem with filtering on multi-dimensional dimensions with a lookup
 - Added `Dataset#findDatumByAttribute`
@@ -252,7 +264,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Made Dataset#apply and Dataset#select truly immutable
 - Fix Druid introspection bug on JS ingestion aggregators
 - Allow data-less PlyQL queries like `SELECT 1+1`
-- Default PlyQL `AS` text now matches SQL implementation.  
+- Default PlyQL `AS` text now matches SQL implementation.
 
 ## 0.10.3
 
@@ -270,7 +282,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Changed `helper.overrideByName` to `helper.overridesByName`, `helper.overrideByName` now does a single override
 - Added `finalLineBreak` option to `Dataset#toTabular`, `Dataset#toCSV`, `Dataset#toTSV` (default to 'include' for tabular and 'suppress' for toCSV and toTSV)
 - `Dataset` now always has introspected dimensions
-- Support for zero Intervals in PlyQL 
+- Support for zero Intervals in PlyQL
 - Support for `DATE_FORMAT` in PlyQL as used in MySQL for `TIME_FLOOR`
 
 
@@ -292,13 +304,13 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.9.23
 
-- Fix .match() not working on SET/STRING 
+- Fix .match() not working on SET/STRING
 
 ## 0.9.22
 
 - Moved date parsing to Chronoshift and updated to latest Chronoshift
 - Parser can now configure a timezone within which it will parse 'local' date strings
-- Optimized post processing by not calculating the filter for final splits 
+- Optimized post processing by not calculating the filter for final splits
 
 ## 0.9.21
 
@@ -314,7 +326,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.9.19
 
-- Fixed null handling in extractionFns for Druid 0.8.3 
+- Fixed null handling in extractionFns for Druid 0.8.3
 
 ## 0.9.18
 
@@ -368,7 +380,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.9.8
 
 - Using Imply Analytics Platform 1.1.1 docker image for Druid tests
-- Derived columns in Druid select will now trigger if version is `/^0.9.0-iap/` 
+- Derived columns in Druid select will now trigger if version is `/^0.9.0-iap/`
 
 ## 0.9.7
 
@@ -391,7 +403,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.9.4
 
-- Set `skipEmptyBuckets: "true"` in timeseries queries to get the Plywood expected behaviour 
+- Set `skipEmptyBuckets: "true"` in timeseries queries to get the Plywood expected behaviour
 
 ## 0.9.3
 
@@ -441,7 +453,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.8.14
 
 - DruidExternal will use topNs for defined small splits even when there is no limit set (like `BOOLEAN`, `timeBucket(HOUR_OF_DAY)`)
-- Fixed bug for MySQLExternal not dealing well with BOOLEAN splits 
+- Fixed bug for MySQLExternal not dealing well with BOOLEAN splits
 
 ## 0.8.13
 
@@ -468,7 +480,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 - Add `absolute`, `power`, `sqrt`, `fallback` action
 - Corresponding `ABS`, `POW/POWER`, `EXP`, `SQRT`, and `IFNULL/FALLBACK` to PlyQL
-- Fixed type checking in `InAction` 
+- Fixed type checking in `InAction`
 
 ## 0.8.8
 
@@ -487,8 +499,8 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Add `timeFloor` action (`TIME_FLOOR` in PlyQL) - not supported by DruidExternal yet
 - Rename unused `offsetTime` action to `timeShift` (`TIME_SHIFT` in PlyQL) and add `step` parameter - not supported by DruidExternal yet
 - Fixed how `concat` works on nulls to return null
-- Added `.isnt` and `.negate` to expression parsing grammar (they were mistakenly excluded) 
-- Added `MATCH` function to PlyQL 
+- Added `.isnt` and `.negate` to expression parsing grammar (they were mistakenly excluded)
+- Added `MATCH` function to PlyQL
 - Timezone parameter is now optional in all the `time*` functions in Plywood and PlyQL
 - Added `NOW()` to PlyQL
 - Better DruidExternal column introspection error detection
@@ -515,13 +527,13 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.7.30
 
-- Fixed interval conversion to add a millisecond and not a second  
+- Fixed interval conversion to add a millisecond and not a second
 - Allow for filtering on exact date in DruidExternal
 - Fixed missing error message when invalid interval is given
 
 ## 0.7.29
 
-- In DruidExternal a time attribute will no longer collide with an existing attribute 
+- In DruidExternal a time attribute will no longer collide with an existing attribute
 
 ## 0.7.28
 
@@ -553,7 +565,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - In PlyQL `COUNT(blah)` returns the count where blah is not `null` in accordance with SQL standard.
 - Added query IDs to `verboseRequester`
 - Flashed out PlyQL docs
-- Fixed bug in parameter parsing with leading numbers 
+- Fixed bug in parameter parsing with leading numbers
 
 ## 0.7.22
 
@@ -619,16 +631,16 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.7.10
 
 - Fixed `Dataset#average`
-- Latest Chronoshift allows for PT15M bucketing, e.t.c. 
+- Latest Chronoshift allows for PT15M bucketing, e.t.c.
 
 ## 0.7.9
 
-- Better apply, filter, limit sorting 
-- Multi-dim group dy uses granularity when it can. 
+- Better apply, filter, limit sorting
+- Multi-dim group dy uses granularity when it can.
 
 ## 0.7.8
 
-- Fixed bug in `Set#add` 
+- Fixed bug in `Set#add`
 
 ## 0.7.7
 
@@ -662,12 +674,12 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.6.3
 
-- Changed JS fallbacks in DruidExternal to use native code generators and removed some null bugs. 
+- Changed JS fallbacks in DruidExternal to use native code generators and removed some null bugs.
 
 ## 0.6.2
 
 - Added more rules to the SQL parser: `IS`, `LIKE`, and awareness of `UPDATE`, `SET`, e.t.c
- 
+
 ## 0.6.1
 
 - Changed the return type of `Expression.parseSQL` to return and object with the keys `verb`, `expression`, and `table`
@@ -692,4 +704,4 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.4
 
-- Changed attribute definitions to be an array instead of an object and added deprecation message. 
+- Changed attribute definitions to be an array instead of an object and added deprecation message.

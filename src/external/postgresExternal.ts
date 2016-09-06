@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Q from 'q-tsc';
 import { External, ExternalJS, ExternalValue } from "./baseExternal";
 import { SQLExternal } from "./sqlExternal";
 import { AttributeInfo, Attributes } from "../datatypes/attributeInfo";

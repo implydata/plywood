@@ -18,12 +18,6 @@
 var { expect } = require("chai");
 var { sane } = require('../utils');
 
-var { WallTime } = require('chronoshift');
-if (!WallTime.rules) {
-  var tzData = require("chronoshift/lib/walltime/walltime-data.js");
-  WallTime.init(tzData.rules, tzData.zones);
-}
-
 var { druidRequesterFactory } = require('plywood-druid-requester');
 
 var plywood = require('../../build/plywood');
@@ -204,9 +198,10 @@ describe("Druid Functional", function() {
       var ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
-        .apply('Page', $("wiki").split("$page", 'Page'))
+        .apply('Page', $("wiki").split("$page", 'Page').limit(3))
         .select('Page', 'Count', 'isRobot', 'isNew')
         .limit(1);
+
       basicExecutor(ex)
         .then((result) => {
           expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Page', 'Count', 'isRobot', 'isNew']);
@@ -219,9 +214,10 @@ describe("Druid Functional", function() {
       var ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
-        .apply('Page', $("wiki").split("$page", 'Page'))
+        .apply('Page', $("wiki").split("$page", 'Page').limit(3))
         .select('isRobot', 'Page', 'isNew', 'Count')
         .limit(1);
+
       basicExecutor(ex)
         .then((result) => {
           expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['isRobot', 'Page', 'isNew', 'Count']);
@@ -234,9 +230,10 @@ describe("Druid Functional", function() {
       var ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
-        .apply('Page', $("wiki").split("$page", 'Page'))
+        .apply('Page', $("wiki").split("$page", 'Page').limit(3))
         .select('Count', 'isRobot', 'Page', 'isNew')
         .limit(1);
+
       basicExecutor(ex)
         .then((result) => {
           expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Count', 'isRobot', 'Page', 'isNew']);

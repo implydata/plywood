@@ -17,12 +17,6 @@
 
 var { expect } = require("chai");
 
-var { WallTime } = require('chronoshift');
-if (!WallTime.rules) {
-  var tzData = require("chronoshift/lib/walltime/walltime-data.js");
-  WallTime.init(tzData.rules, tzData.zones);
-}
-
 var { testImmutableClass } = require("immutable-class-tester");
 
 var plywood = require('../../build/plywood');

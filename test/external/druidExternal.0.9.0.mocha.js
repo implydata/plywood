@@ -18,12 +18,6 @@ var { expect } = require("chai");
 var Q = require('q');
 var { sane } = require('../utils');
 
-var { WallTime } = require('chronoshift');
-if (!WallTime.rules) {
-  var tzData = require("chronoshift/lib/walltime/walltime-data.js");
-  WallTime.init(tzData.rules, tzData.zones);
-}
-
 var plywood = require('../../build/plywood');
 var { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 

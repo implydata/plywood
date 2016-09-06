@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Q from 'q-tsc';
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
 import { SQLDialect } from "../dialect/baseDialect";

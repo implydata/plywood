@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-
-import { Timezone, WallTime } from "chronoshift";
+import { Moment } from "moment-timezone-tsc";
+import * as moment from "moment-timezone-tsc";
+import { Timezone } from "chronoshift";
 import { Action, ActionJS, ActionValue, Environment } from "./baseAction";
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
 import { SQLDialect } from "../dialect/baseDialect";
@@ -24,37 +25,37 @@ import { Datum, ComputeFn } from "../datatypes/dataset";
 import { immutableEqual } from "immutable-class";
 
 interface Parter {
-  (d: Date): number;
+  (d: Moment): number;
 }
 
 const PART_TO_FUNCTION: Lookup<Parter> = {
-  SECOND_OF_MINUTE: d => d.getSeconds(),
-  SECOND_OF_HOUR: d => d.getMinutes() * 60 + d.getSeconds(),
-  SECOND_OF_DAY: d => (d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds(),
-  SECOND_OF_WEEK: d => ((d.getDay() * 24) + d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds(),
-  SECOND_OF_MONTH: d => (((d.getDate() - 1) * 24) + d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds(),
+  SECOND_OF_MINUTE: d => d.seconds(),
+  SECOND_OF_HOUR: d => d.minutes() * 60 + d.seconds(),
+  SECOND_OF_DAY: d => (d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
+  SECOND_OF_WEEK: d => ((d.day() * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
+  SECOND_OF_MONTH: d => (((d.date() - 1) * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
   SECOND_OF_YEAR: null,
 
-  MINUTE_OF_HOUR: d => d.getMinutes(),
-  MINUTE_OF_DAY: d => d.getHours() * 60 + d.getMinutes(),
-  MINUTE_OF_WEEK: d => (d.getDay() * 24) + d.getHours() * 60 + d.getMinutes(),
-  MINUTE_OF_MONTH: d => ((d.getDate() - 1) * 24) + d.getHours() * 60 + d.getMinutes(),
+  MINUTE_OF_HOUR: d => d.minutes(),
+  MINUTE_OF_DAY: d => d.hours() * 60 + d.minutes(),
+  MINUTE_OF_WEEK: d => (d.day() * 24) + d.hours() * 60 + d.minutes(),
+  MINUTE_OF_MONTH: d => ((d.date() - 1) * 24) + d.hours() * 60 + d.minutes(),
   MINUTE_OF_YEAR: null,
 
-  HOUR_OF_DAY: d => d.getHours(),
-  HOUR_OF_WEEK: d => d.getDay() * 24 + d.getHours(),
-  HOUR_OF_MONTH: d => (d.getDate() - 1) * 24 + d.getHours(),
+  HOUR_OF_DAY: d => d.hours(),
+  HOUR_OF_WEEK: d => d.day() * 24 + d.hours(),
+  HOUR_OF_MONTH: d => (d.date() - 1) * 24 + d.hours(),
   HOUR_OF_YEAR: null,
 
-  DAY_OF_WEEK: d => d.getDay() || 7, // fix Sunday [0 -> 7]
-  DAY_OF_MONTH: d => d.getDate(),
+  DAY_OF_WEEK: d => d.day() || 7, // fix Sunday [0 -> 7]
+  DAY_OF_MONTH: d => d.date(),
   DAY_OF_YEAR: null,
 
   WEEK_OF_MONTH: null,
   WEEK_OF_YEAR: null,
 
-  MONTH_OF_YEAR: d => d.getMonth(),
-  YEAR: d => d.getFullYear()
+  MONTH_OF_YEAR: d => d.month(),
+  YEAR: d => d.year()
 };
 
 const PART_TO_MAX_VALUES: Lookup<number> = {
@@ -157,7 +158,7 @@ export class TimePartAction extends Action {
     return (d: Datum, c: Datum) => {
       var inV = inputFn(d, c);
       if (!inV) return null;
-      inV = WallTime.UTCToWallTime(inV, timezone.toString());
+      inV = moment.tz(inV, timezone.toString());
       return parter(inV);
     };
   }

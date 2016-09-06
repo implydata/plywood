@@ -24,11 +24,6 @@ var { Expression, Dataset, $, ply, r } = plywood;
 
 var chronoshift = require("chronoshift");
 
-if (!chronoshift.WallTime.rules) {
-  var tzData = require("chronoshift/lib/walltime/walltime-data.js");
-  chronoshift.WallTime.init(tzData.rules, tzData.zones);
-}
-
 var rawData = fs.readFileSync(path.join(__dirname, '../../resources/wikipedia-sampled.json'), 'utf-8');
 var wikiDayData = Dataset.parseJSON(rawData);
 

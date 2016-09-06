@@ -17,12 +17,6 @@
 
 var { expect } = require("chai");
 
-var { WallTime } = require('chronoshift');
-if (!WallTime.rules) {
-  var tzData = require("chronoshift/lib/walltime/walltime-data.js");
-  WallTime.init(tzData.rules, tzData.zones);
-}
-
 var plywood = require('../../build/plywood');
 var { Dataset, $, i$, ply, r, AttributeInfo, External } = plywood;
 

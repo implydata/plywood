@@ -15,7 +15,7 @@ var NamedArray = immutableClass.NamedArray;
 var Chronoshift = require('chronoshift');
 var Timezone = Chronoshift.Timezone;
 var Duration = Chronoshift.Duration;
-var WallTime = Chronoshift.WallTime;
+var moment = Chronoshift.moment;
 var isDate = Chronoshift.isDate;
 var parseISODate = Chronoshift.parseISODate;
 

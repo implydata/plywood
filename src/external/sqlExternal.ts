@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Q from "q";
+import * as Q from 'q-tsc';
 import { PlywoodValue, Dataset } from "../datatypes/index";
 import { Expression } from "../expressions/baseExpression";
 import {

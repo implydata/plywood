@@ -18,11 +18,7 @@
 var { expect } = require("chai");
 var { sane } = require('../utils');
 
-var { WallTime, Timezone } = require('chronoshift');
-if (!WallTime.rules) {
-  var tzData = require("chronoshift/lib/walltime/walltime-data.js");
-  WallTime.init(tzData.rules, tzData.zones);
-}
+var { Timezone } = require('chronoshift');
 
 var plywood = require('../../build/plywood');
 var { Expression, i$, $, ply, r, Set, Dataset, External, ExternalExpression } = plywood;

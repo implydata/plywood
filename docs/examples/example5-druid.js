@@ -5,12 +5,6 @@ var $ = plywood.$;
 var External = plywood.External;
 var helper = plywood.helper;
 
-WallTime = require('chronoshift').WallTime;
-if (!WallTime.rules) {
-  tzData = require("chronoshift/lib/walltime/walltime-data.js");
-  WallTime.init(tzData.rules, tzData.zones);
-}
-
 var druidRequester = druidRequesterFactory({
   host: 'localhost:8082' // Where ever your Druid may be
 });
