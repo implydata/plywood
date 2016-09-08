@@ -830,6 +830,7 @@ FunctionCallExpression
 Fn
   = name:Name &{ return fns[name.toUpperCase()]; }
     { return fns[name.toUpperCase()]; }
+  / isNull:IsNullToken { return function(ex) { return ex.is(null) } }
 
 Params
   = head:Param? tail:(Comma Param)*
