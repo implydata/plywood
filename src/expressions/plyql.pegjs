@@ -129,6 +129,7 @@ var fns = {
   NOW: function() { return r(new Date()); },
   CURDATE: function() { return r(chronoshift.day.floor(new Date(), Timezone.UTC)); },
   CUSTOM_TRANSFORM: function(op, fn) { return upgrade(op).customTransform(fn); },
+  ISNULL: return function(ex) { return ex.is(null) },
   FALLBACK: function(op, ex) { return upgrade(op).fallback(ex); },
   MATCH: function(op, reg) { return upgrade(op).match(reg); },
   EXTRACT: function(op, reg) { return upgrade(op).extract(reg); },
@@ -829,7 +830,6 @@ FunctionCallExpression
 Fn
   = name:Name &{ return fns[name.toUpperCase()]; }
     { return fns[name.toUpperCase()]; }
-  / isNull:IsNullToken { return function(ex) { return ex.is(null) } }
 
 Params
   = head:Param? tail:(Comma Param)*
@@ -952,7 +952,6 @@ DescToken          = "DESC"i           !IdentifierPart _ { return SortAction.DES
 BetweenToken       = "BETWEEN"i        !IdentifierPart _
 InToken            = "IN"i             !IdentifierPart _
 IsToken            = "IS"i             !IdentifierPart _
-IsNullToken        = "ISNULL"i         !IdentifierPart _
 LikeToken          = "LIKE"i           !IdentifierPart _
 ContainsToken      = "CONTAINS"i       !IdentifierPart _
 RegExpToken        = "REGEXP"i         !IdentifierPart _
