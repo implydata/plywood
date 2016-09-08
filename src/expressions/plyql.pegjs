@@ -775,6 +775,7 @@ BasicExpression
   / AggregateExpression
   / FunctionCallExpression
   / OpenParen sub:(Expression / SelectSubQuery) CloseParen { return sub; }
+  / IsNullToken OpenParen ex:RefExpression CloseParen { return ex.is(null) }
   / RefExpression
 
 
@@ -951,6 +952,7 @@ DescToken          = "DESC"i           !IdentifierPart _ { return SortAction.DES
 BetweenToken       = "BETWEEN"i        !IdentifierPart _
 InToken            = "IN"i             !IdentifierPart _
 IsToken            = "IS"i             !IdentifierPart _
+IsNullToken        = "ISNULL"i         !IdentifierPart _
 LikeToken          = "LIKE"i           !IdentifierPart _
 ContainsToken      = "CONTAINS"i       !IdentifierPart _
 RegExpToken        = "REGEXP"i         !IdentifierPart _
