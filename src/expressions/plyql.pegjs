@@ -775,7 +775,6 @@ BasicExpression
   / AggregateExpression
   / FunctionCallExpression
   / OpenParen sub:(Expression / SelectSubQuery) CloseParen { return sub; }
-  / IsNullToken OpenParen ex:RefExpression CloseParen { return ex.is(null) }
   / RefExpression
 
 
