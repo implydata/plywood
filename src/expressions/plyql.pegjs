@@ -129,6 +129,7 @@ var fns = {
   NOW: function() { return r(new Date()); },
   CURDATE: function() { return r(chronoshift.day.floor(new Date(), Timezone.UTC)); },
   CUSTOM_TRANSFORM: function(op, fn) { return upgrade(op).customTransform(fn); },
+  ISNULL: function(ex) { return ex.is(null); },
   FALLBACK: function(op, ex) { return upgrade(op).fallback(ex); },
   MATCH: function(op, reg) { return upgrade(op).match(reg); },
   EXTRACT: function(op, reg) { return upgrade(op).extract(reg); },
