@@ -695,6 +695,18 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should parse ISNULL", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT * FROM wikipedia WHERE NOT ISNULL(cityName) LIMIT 10
+      `);
+
+      var ex2 = $('wikipedia')
+        .filter('i$cityName.is(null).not()')
+        .limit(10);
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("should work with all sorts of comments", () => {
       var parse = Expression.parseSQL(`/*
         Multiline comments
