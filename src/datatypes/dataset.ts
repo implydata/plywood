@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
 import { isDate } from "chronoshift";
 import { Class, Instance, isInstanceOf, generalEqual, SimpleArray, NamedArray } from "immutable-class";
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from "../types";
@@ -26,6 +25,7 @@ import { Set } from "./set";
 import { StringRange } from "./stringRange";
 import { TimeRange } from "./timeRange";
 import { valueFromJS, valueToJSInlineType, datumHasExternal } from "./common";
+import { Expression } from "../expressions/baseExpression";
 import { External } from "../external/baseExternal";
 
 export function foldContext(d: Datum, c: Datum): Datum {
@@ -44,10 +44,6 @@ export interface SplitFns {
   [name: string]: ComputeFn;
 }
 
-export interface ComputePromiseFn {
-  (d: Datum, c: Datum): Q.Promise<any>;
-}
-
 export interface DirectionFn {
   (a: any, b: any): number;
 }
@@ -59,7 +55,7 @@ export interface PseudoDatum {
 }
 
 export interface Datum {
-  [attribute: string]: PlywoodValue;
+  [attribute: string]: PlywoodValue | Expression;
 }
 
 var directionFns: Lookup<DirectionFn> = {
@@ -537,7 +533,12 @@ export class Dataset implements Instance<DatasetValue, any> {
     // Hack
     var datasetType: Lookup<FullType> = null;
     if (type === 'DATASET' && newData[0] && newData[0][name]) {
-      datasetType = (newData[0][name] as any).getFullType().datasetType;
+      var thing: any = newData[0][name];
+      if (thing instanceof Dataset) {
+        datasetType = thing.getFullType().datasetType;
+      } else {
+        datasetType = {}; // Temp hack, (a hack within a hack), technically this should be dataset type;
+      }
     }
     // End Hack
 
@@ -545,14 +546,6 @@ export class Dataset implements Instance<DatasetValue, any> {
     value.attributes = NamedArray.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
     value.data = newData;
     return new Dataset(value);
-  }
-
-  public applyPromise(name: string, exFn: ComputePromiseFn, type: PlyType, context: Datum): Q.Promise<Dataset> {
-    var value = this.valueOf();
-    var promises = value.data.map(datum => exFn(datum, context));
-    return Q.all(promises).then(values => {
-      return this.apply(name, ((d, c, i) => values[i]), type, context);
-    });
   }
 
   public filter(exFn: ComputeFn, context: Datum): Dataset {

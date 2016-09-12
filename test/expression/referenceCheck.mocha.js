@@ -318,18 +318,6 @@ describe("reference check", () => {
       expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it.skip("works with static derived attribute", () => {
-      var ex1 = $('wiki')
-        .apply('pageEx', '$pageExtract')
-        .filter('$pageEx == wik');
-
-      var ex2 = $('wiki', 'DATASET')
-        .apply('pageEx', '$pageExtract')
-        .filter('$pageEx:STRING == wik');
-
-      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
-    });
-
     it("works with dynamic derived attribute", () => {
       var ex1 = $('wiki')
         .apply('page3', '$page.substr(0, 3)')

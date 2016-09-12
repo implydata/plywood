@@ -19,11 +19,13 @@
 
 import { Action, ActionJS, ActionValue } from "./baseAction";
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Indexer, Alterations } from "../expressions/baseExpression";
+import { Indexer, Alterations, r, Expression } from "../expressions/baseExpression";
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn, foldContext } from "../datatypes/dataset";
 import { RefExpression } from "../expressions/refExpression";
+import { LiteralExpression } from "../expressions/literalExpression";
 import { ChainExpression } from "../expressions/chainExpression";
+import { ExternalExpression } from "../expressions/externalExpression";
 
 export class ApplyAction extends Action {
   static fromJS(parameters: ActionJS): ApplyAction {
@@ -123,6 +125,21 @@ export class ApplyAction extends Action {
     return null;
   }
 
+  protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    const { expression } = this;
+    if (!expression.resolved()) return null;
+    if (literalExpression.value === null) return Expression.NULL;
+    var dataset = literalExpression.value;
+
+    dataset = dataset.apply(this.name, (d: Datum): any => {
+      var simp = expression.resolve(d).simplify();
+      if (simp instanceof ExternalExpression) return simp.external;
+      if (simp instanceof LiteralExpression) return simp.value;
+      return simp;
+    }, expression.type, null);
+
+    return r(dataset);
+  }
 }
 
 Action.register(ApplyAction);

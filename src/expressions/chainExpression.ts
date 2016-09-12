@@ -547,10 +547,10 @@ export class ChainExpression extends Expression {
 
         } else if (action instanceof ApplyAction) {
           if (actionExpression.hasExternal()) {
-            return dataset.applyPromise(action.name, (d: Datum) => {
-              var simpleExpression = actionExpression.resolve(d).simplify();
-              return simpleExpression._computeResolved(simpleExpression.isOp('external'));
-            }, actionExpression.type, null);
+            // return dataset.applyPromise(action.name, (d: Datum) => {
+            //   var simpleExpression = actionExpression.resolve(d).simplify();
+            //   return simpleExpression._computeResolved(simpleExpression.isOp('external'));
+            // }, actionExpression.type, null);
           } else {
             return dataset.apply(action.name, actionExpression.getFn(), actionExpression.type, null);
           }

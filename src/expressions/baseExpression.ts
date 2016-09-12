@@ -1389,8 +1389,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public resolved(): boolean {
-    return this.every((ex: Expression) => {
-      return (ex instanceof RefExpression) ? ex.nest === 0 : null; // Search within
+    return this.every((ex, index, depth, nestDiff) => {
+      return (ex instanceof RefExpression) ? ex.nest <= nestDiff : null; // Search within
     });
   }
 

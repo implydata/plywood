@@ -2997,4 +2997,14 @@ describe("simulate Druid", () => {
     testComplete();
   });
 
+  it.skip("works on query filters", () => {
+    var ex = ply()
+      .apply('diamonds', $('diamonds').filter('$carat > $diamonds.average($carat)'))
+      .apply('Count', '$diamonds.count()');
+
+    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+
+    ]);
+  });
+
 });
