@@ -321,7 +321,7 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
     }
 
   } else {
-    var fromEx = from ? (from.verb === 'SELECT' ? from.expression : $(from.name)) : dataRef;
+    var fromEx = from ? (from.verb === 'SELECT' ? from.expression : i$(from.name)) : dataRef;
 
     if (where) {
       fromEx = fromEx.filter(where);
@@ -526,7 +526,7 @@ UseQuery
 DescribeQuery
   = (DescribeToken / DescToken) table:RelaxedNamespacedRef colRef:Ref? wild:String?
     {
-      var ex = i$('COLUMNS').filter(i$('TABLE_NAME').is(r(table.name)));
+      var ex = i$('COLUMNS').filter(i$('TABLE_NAME').is(i$(table.name)));
       if (table.namespace) ex = ex.filter(i$('TABLE_SCHEMA').is(r(table.namespace)));
       if (colRef) {
         ex = ex.filter(i$('COLUMN_NAME').is(r(colRef)));
