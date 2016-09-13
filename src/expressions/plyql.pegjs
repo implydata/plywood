@@ -106,6 +106,7 @@ var dateFormats = {
   '%Y-%m-%d': 'P1D',
   '%Y-%m-01': 'P1M',
   '%Y-01-01': 'P1Y',
+  '%Y-': 'P1Y'
 };
 
 
@@ -155,6 +156,7 @@ var fns = {
   },
 
   YEAR: function(op, tz) { return upgrade(op).timePart('YEAR', tz); },
+  QUARTER: function(op, tz) { return upgrade(op).timePart('QUARTER', tz) },
   MONTH: function(op, tz) { return upgrade(op).timePart('MONTH_OF_YEAR', tz); },
   WEEK_OF_YEAR: function(op, tz) { return upgrade(op).timePart('WEEK_OF_YEAR', tz); },
   DAY_OF_YEAR: function(op, tz) { return upgrade(op).timePart('DAY_OF_YEAR', tz); },
@@ -321,7 +323,7 @@ function constructQuery(distinct, columns, from, where, groupBys, having, orderB
     }
 
   } else {
-    var fromEx = from ? (from.verb === 'SELECT' ? from.expression : i$(from.name)) : dataRef;
+    var fromEx = from ? (from.verb === 'SELECT' ? from.expression : $(from.name)) : dataRef;
 
     if (where) {
       fromEx = fromEx.filter(where);
@@ -461,7 +463,7 @@ ShowQueryExpression
       if (db) ex= ex.filter(i$('TABLE_SCHEMA').is(r(db[1])));
       if (like) ex = ex.filter(like(i$('TABLE_NAME')));
       ex = ex
-        .apply('Tables_in_database', i$('TABLE_NAME'));
+        .apply('Tables_in_database', $('TABLE_NAME'));
 
       if (full) {
         ex = ex
@@ -476,9 +478,9 @@ ShowQueryExpression
   / full:FullToken? ColumnsToken FromOrIn table:RelaxedNamespacedRef db:(FromOrIn Ref)? like:LikeRhs? where:WhereClause?
     {
       // https://dev.mysql.com/doc/refman/5.0/en/columns-table.html
-      var ex = i$('COLUMNS').filter(i$('TABLE_NAME').is(r(table.name)));
+      var ex = $('COLUMNS').filter($('TABLE_NAME').is(r(table.name)));
       db = db ? db[1] : table.namespace;
-      if (db) ex = ex.filter(i$('TABLE_SCHEMA').is(r(db)));
+      if (db) ex = ex.filter($('TABLE_SCHEMA').is(r(db)));
       if (like) ex = ex.filter(like(i$('COLUMN_NAME')));
       if (where) ex = ex.filter(where);
       ex = ex
@@ -526,8 +528,8 @@ UseQuery
 DescribeQuery
   = (DescribeToken / DescToken) table:RelaxedNamespacedRef colRef:Ref? wild:String?
     {
-      var ex = i$('COLUMNS').filter(i$('TABLE_NAME').is(i$(table.name)));
-      if (table.namespace) ex = ex.filter(i$('TABLE_SCHEMA').is(r(table.namespace)));
+      var ex = $('COLUMNS').filter($('TABLE_NAME').is(r(table.name)));
+      if (table.namespace) ex = ex.filter($('TABLE_SCHEMA').is(r(table.namespace)));
       if (colRef) {
         ex = ex.filter(i$('COLUMN_NAME').is(r(colRef)));
       } else if (wild) {

@@ -1431,6 +1431,42 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should work with this quarter query", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT QUARTER(wikipedia.__time) AS qr___time_ok,
+        SUM(wikipedia.added) AS sum_added_ok
+        FROM wikipedia
+        GROUP BY 1
+      `);
+
+      var ex2 = $('wikipedia')
+        .split('i$__time.timePart(QUARTER)', 'qr___time_ok', 'data')
+        .apply('sum_added_ok', '$data.sum(i$added)')
+        .select("qr___time_ok", "sum_added_ok");
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it.skip("should work with this fancy quarter query", () => {
+      var parse = Expression.parseSQL(sane`
+        SELECT SUM(wikipedia.added) AS sum_added_ok,
+        ADDDATE( CONCAT( 
+                  DATE_FORMAT( wikipedia.__time, '%Y-' ), 
+                  (3*(QUARTER(wikipedia.__time)-1)+1), '-01 00:00:00' ), 
+                  INTERVAL 0 SECOND ) 
+          AS tqr___time_ok
+        FROM wikipedia
+        GROUP BY 2
+      `);
+
+      var ex2 = $('wikipedia')
+        .split('i$__time.timePart(QUARTER)', 'qr___time_ok', 'data')
+        .apply('sum_added_ok', '$data.sum(i$added)')
+        .select("qr___time_ok", "sum_added_ok");
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
   });
 
 
@@ -1503,7 +1539,7 @@ describe("SQL parser", () => {
 
       var ex2 = i$('TABLES')
         .filter(i$('TABLE_SCHEMA').is('my_db'))
-        .apply('Tables_in_database', i$('TABLE_NAME'))
+        .apply('Tables_in_database', $('TABLE_NAME'))
         .select('Tables_in_database');
 
       expect(parse.verb).to.equal('SELECT');
@@ -1519,7 +1555,7 @@ describe("SQL parser", () => {
       var ex2 = i$('TABLES')
         .filter(i$('TABLE_SCHEMA').is('my_db'))
         .filter(i$('TABLE_NAME').match('^.*$'))
-        .apply('Tables_in_database', i$('TABLE_NAME'))
+        .apply('Tables_in_database', $('TABLE_NAME'))
         .apply('Table_type', i$('TABLE_TYPE'))
         .select('Tables_in_database', 'Table_type');
 
@@ -1533,9 +1569,9 @@ describe("SQL parser", () => {
         SHOW COLUMNS IN my_table IN my_db
       `);
 
-      var ex2 = i$('COLUMNS')
-        .filter(i$('TABLE_NAME').is('my_table'))
-        .filter(i$('TABLE_SCHEMA').is('my_db'))
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is('my_table'))
+        .filter($('TABLE_SCHEMA').is('my_db'))
         .apply('Field', i$('COLUMN_NAME'))
         .apply('Type', i$('COLUMN_TYPE'))
         .apply('Null', i$('IS_NULLABLE'))
@@ -1554,9 +1590,9 @@ describe("SQL parser", () => {
         SHOW FULL COLUMNS IN my_table IN my_db LIKE "T%"
       `);
 
-      var ex2 = i$('COLUMNS')
-        .filter(i$('TABLE_NAME').is('my_table'))
-        .filter(i$('TABLE_SCHEMA').is('my_db'))
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is('my_table'))
+        .filter($('TABLE_SCHEMA').is('my_db'))
         .filter(i$('COLUMN_NAME').match('^T.*$'))
         .apply('Field', i$('COLUMN_NAME'))
         .apply('Type', i$('COLUMN_TYPE'))
@@ -1581,8 +1617,8 @@ describe("SQL parser", () => {
     it("works with DESCRIBE query", () => {
       var parse = Expression.parseSQL("DESCRIBE wikipedia");
 
-      var ex2 = i$('COLUMNS')
-        .filter(i$('TABLE_NAME').is('wikipedia'))
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is('wikipedia'))
         //.filter($('TABLE_SCHEMA').is('my_db'))
         .apply('Field', i$('COLUMN_NAME'))
         .apply('Type', i$('COLUMN_TYPE'))
@@ -1600,9 +1636,9 @@ describe("SQL parser", () => {
     it("works with a relaxed table name DESCRIBE query", () => {
       var parse = Expression.parseSQL("DESCRIBE my_db.my-table*is:the/best_table; ");
 
-      var ex2 = i$('COLUMNS')
-        .filter(i$('TABLE_NAME').is(r('my-table*is:the/best_table')))
-        .filter(i$('TABLE_SCHEMA').is('my_db'))
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is(r('my-table*is:the/best_table')))
+        .filter($('TABLE_SCHEMA').is('my_db'))
         .apply('Field', i$('COLUMN_NAME'))
         .apply('Type', i$('COLUMN_TYPE'))
         .apply('Null', i$('IS_NULLABLE'))
@@ -1619,9 +1655,9 @@ describe("SQL parser", () => {
     it("works with a relaxed column name", () => {
       var parse = Expression.parseSQL("DESCRIBE my_db.my-table cityName; ");
 
-      var ex2 = i$('COLUMNS')
-        .filter(i$('TABLE_NAME').is(r('my-table')))
-        .filter(i$('TABLE_SCHEMA').is('my_db'))
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is(r('my-table')))
+        .filter($('TABLE_SCHEMA').is('my_db'))
         .filter(i$('COLUMN_NAME').is('cityName'))
         .apply('Field', i$('COLUMN_NAME'))
         .apply('Type', i$('COLUMN_TYPE'))
@@ -1639,9 +1675,9 @@ describe("SQL parser", () => {
     it("works with a wild card (also EXPLAIN)", () => {
       var parse = Expression.parseSQL("EXPLAIN my_db.my-table 'city%'; ");
 
-      var ex2 = i$('COLUMNS')
-        .filter(i$('TABLE_NAME').is(r('my-table')))
-        .filter(i$('TABLE_SCHEMA').is('my_db'))
+      var ex2 = $('COLUMNS')
+        .filter($('TABLE_NAME').is(r('my-table')))
+        .filter($('TABLE_SCHEMA').is('my_db'))
         .filter(i$('COLUMN_NAME').match('^city.*$'))
         .apply('Field', i$('COLUMN_NAME'))
         .apply('Type', i$('COLUMN_TYPE'))

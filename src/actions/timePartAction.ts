@@ -55,7 +55,9 @@ const PART_TO_FUNCTION: Lookup<Parter> = {
   WEEK_OF_YEAR: null,
 
   MONTH_OF_YEAR: d => d.month(),
-  YEAR: d => d.year()
+  YEAR: d => d.year(),
+
+  QUARTER: d => d.quarter()
 };
 
 const PART_TO_MAX_VALUES: Lookup<number> = {
