@@ -807,26 +807,21 @@ BasicExpression
   / RefExpression
 
 SpecialFunctionCallExpression
-  = 'ADDDATE' OpenParen 'CONCAT' OpenParen args:(ConcatPiece)* CloseParen Comma Interval CloseParen
+  = 'ADDDATE' OpenParen 'CONCAT' OpenParen exp:FunctionCallExpression Comma ConcatPieceComma* CloseParen Comma Interval CloseParen
   {
-    var firstExp = args[0];
-    var yrQuarterFormat = firstExp.expression.timePart('YEAR').cast('STRING').concat(r('-'));
-    if (firstExp.equals(yrQuarterFormat)) {
-      return firstExp.expression.timeFloor('P3M');
+    var yrQuarterFormat = exp.expression.timePart('YEAR').cast('STRING').concat(r('-'));
+    if (exp.equals(yrQuarterFormat)) {
+      return exp.expression.timeFloor('P3M');
     }
-
+    error("unsupported ADDDATE function");
   }
+
+ConcatPieceComma
+  = p:ConcatPiece Comma* { return p }
 
 ConcatPiece
-  = OpenParen p:AdditiveExpression CloseParen Comma?
-  / p:FunctionCallExpression Comma?
-  {
-    return p;
-  }
-  / p:String Comma?
-  {
-    return p;
-  }
+  = OpenParen AdditiveExpression CloseParen
+  / String
 
 AggregateExpression
   = CountToken OpenParen distinct:DistinctToken? exd:ExpressionMaybeFiltered? CloseParen
