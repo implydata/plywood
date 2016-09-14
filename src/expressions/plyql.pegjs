@@ -1069,9 +1069,6 @@ Dot
 Name "Name"
   = name:$([a-z_]i [a-z0-9_]i*) _ { return name; }
 
-UpperName "Name"
-  = name:$([A-Z_]i [A-Z0-9_]i*) { return name; }
-
 RelaxedName "RelaxedName"
   = name:$([a-z_\-:*/]i [a-z0-9_\-:*/]i*) _ { return name; }
 
