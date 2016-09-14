@@ -99,16 +99,18 @@ var intervalUnits = {
   YEAR: 1
 }
 
-var dateFormats = {
+var durationFormats = {
   '%Y-%m-%d %H:%i:%s': 'PT1S',
   '%Y-%m-%d %H:%i:00': 'PT1M',
   '%Y-%m-%d %H:00:00': 'PT1H',
   '%Y-%m-%d': 'P1D',
   '%Y-%m-01': 'P1M',
-  '%Y-01-01': 'P1Y',
-  '%Y-': 'P1Y'
+  '%Y-01-01': 'P1Y'
 };
 
+var timePartFormats = {
+  '%Y': 'YEAR'
+};
 
 var castTypes = {
   CHAR: 'STRING',
@@ -150,8 +152,12 @@ var fns = {
   PI: function() { return r(Math.PI); },
   STD: notImplemented,
   DATE_FORMAT: function(op, format) {
-    var duration = dateFormats[format.replace(/ 00:00:00$/, '')];
-    if (!duration) error('unsupported format: ' + format);
+    var duration = durationFormats[format.replace(/ 00:00:00$/, '')];
+    if (!duration) {
+      var fmt = findFormat(format);
+      if (!fmt) error('unsupported format: ' + format);
+      return upgrade(op).timePart(fmt.part).cast("STRING").concat(r(fmt.rest));
+    }
     return upgrade(op).timeFloor(duration);
   },
 
@@ -237,6 +243,18 @@ function makeDate(type, v) {
     }
     error(e.message);
   }
+}
+
+function findFormat(fmt) {
+  for (var i=fmt.length; i >= 0; i--) {
+    var test = fmt.substring(0, i);
+    if (timePartFormats[test]) {
+      return {
+        part: timePartFormats[test],
+        rest: fmt.substring(i)
+       }
+     }
+   }
 }
 
 function getFromTable(from) {
@@ -685,11 +703,34 @@ NotExpression
 
 
 ComparisonExpression
-  = ex:AdditiveExpression rhs:ComparisonExpressionRhs?
+  = 'ADDDATE' OpenParen fn:FormatByConcatExpression CloseParen Comma Interval CloseParen
+   {
+     return fn;
+   }
+  / ex:AdditiveExpression rhs:ComparisonExpressionRhs?
     {
       if (rhs) ex = rhs(ex);
       return ex;
     }
+
+FormatByConcatExpression
+  = 'CONCAT' OpenParen tail:(quat:ConcatPiece Comma?)*
+  {
+    return tail.reduce((a, b) => {
+      return a[0] ? a[0].concat(b[0]) : a.concat(b[0]);
+    })
+  }
+
+ConcatPiece
+  = p:(FunctionCallExpression / NestedAdditive / String)
+  {
+    return typeof p === 'string' ? upgrade(p) : p.cast("STRING")
+  }
+
+NestedAdditive
+  = OpenParen col:(AdditiveExpression / Params) CloseParen
+  { return col }
+
 
 ComparisonExpressionRhs
   = not:NotToken? rhs:ComparisonExpressionRhsNotable
@@ -906,7 +947,8 @@ String "String"
 
 
 Interval
-  = IntervalToken n:Number unit:Name &{ return intervalUnits[unit] }
+  = IntervalToken n:Number unit:UpperName _
+  / IntervalToken n:Number unit:Name &{ return intervalUnits[unit] }
     {
       if (n !== 0) error('only zero intervals supported for now');
       return 0;
@@ -1031,6 +1073,9 @@ Dot
 
 Name "Name"
   = name:$([a-z_]i [a-z0-9_]i*) _ { return name; }
+
+UpperName "Name"
+  = name:$([A-Z_]i [A-Z0-9_]i*) { return name; }
 
 RelaxedName "RelaxedName"
   = name:$([a-z_\-:*/]i [a-z0-9_\-:*/]i*) _ { return name; }

@@ -581,6 +581,45 @@ describe("compute native", () => {
       .done();
   });
 
+  it("computes fancy quarters", (testComplete) => {
+    var ds = Dataset.fromJS([
+      { cut: 'Good', time: new Date('2015-03-31T19:00:00Z') },
+      { cut: 'Great', time: new Date('2015-06-30T19:00:00Z') },
+      { cut: 'Wow', time: new Date('2015-09-05T00:00:00Z') },
+      { cut: 'Wow', time: new Date('2015-12-05T00:00:00Z') }
+    ]);
+
+    var ex = ply(ds)
+      .split((
+          i$('time').timePart('YEAR').cast("STRING").concat(r("-")).cast("STRING")
+            .concat(r(3).multiply(i$('time').timePart('QUARTER').subtract(r(1))).add(1)
+              .cast("STRING"))
+            .concat(r('-01 00:00:00'))
+        )
+        , 'tqr___time_ok'
+        , 'data')
+      .select("tqr___time_ok");
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "tqr___time_ok": "2015-1-01 00:00:00"
+          },
+          {
+            "tqr___time_ok": "2015-4-01 00:00:00"
+          },
+          {
+            "tqr___time_ok": "2015-7-01 00:00:00"
+          },
+          {
+            "tqr___time_ok": "2015-10-01 00:00:00"
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
   it("works with filter, select", (testComplete) => {
     var ds = Dataset.fromJS(data);
 

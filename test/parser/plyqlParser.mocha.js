@@ -1447,7 +1447,7 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it.skip("should work with this fancy quarter query", () => {
+    it("should work with this fancy quarter query", () => {
       var parse = Expression.parseSQL(sane`
         SELECT SUM(wikipedia.added) AS sum_added_ok,
         ADDDATE( CONCAT( 
@@ -1460,9 +1460,16 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wikipedia')
-        .split('i$__time.timePart(QUARTER)', 'qr___time_ok', 'data')
+        .split((
+          i$('__time').timePart('YEAR').cast("STRING").concat(r("-")).cast("STRING")
+            .concat(r(3).multiply(i$('__time').timePart('QUARTER').subtract(r(1))).add(1)
+              .cast("STRING"))
+            .concat(r('-01 00:00:00'))
+          )
+          , 'tqr___time_ok'
+          , 'data')
         .apply('sum_added_ok', '$data.sum(i$added)')
-        .select("qr___time_ok", "sum_added_ok");
+        .select("sum_added_ok", "tqr___time_ok");
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
