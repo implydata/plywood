@@ -809,21 +809,23 @@ BasicExpression
 SpecialFunctionCallExpression
   = 'ADDDATE' OpenParen 'CONCAT' OpenParen args:(ConcatPiece)* CloseParen Comma Interval CloseParen
   {
-    return args.reduce((a, b) => a.concat(b.cast("STRING")))
+    var firstExp = args[0];
+    var yrQuarterFormat = firstExp.expression.timePart('YEAR').cast('STRING').concat(r('-'));
+    if (firstExp.equals(yrQuarterFormat)) {
+      return firstExp.expression.timeFloor('P3M');
+    }
+
   }
 
 ConcatPiece
   = OpenParen p:AdditiveExpression CloseParen Comma?
+  / p:FunctionCallExpression Comma?
   {
-    return p
-  }
-  / p:(FunctionCallExpression) Comma?
-  {
-    return p
+    return p;
   }
   / p:String Comma?
   {
-    return upgrade(p)
+    return upgrade(p);
   }
 
 AggregateExpression

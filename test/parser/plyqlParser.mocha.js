@@ -1452,21 +1452,16 @@ describe("SQL parser", () => {
         SELECT SUM(wikipedia.added) AS sum_added_ok,
         ADDDATE( CONCAT( 
                   DATE_FORMAT( wikipedia.__time, '%Y-' ), 
-                  (3*(QUARTER(wikipedia.__time)-1)+1), '-01 00:00:00' ), 
-                  INTERVAL 0 SECOND ) 
+                  (3*(QUARTER(wikipedia.__time)-1)+1), 
+                  '-01 00:00:00' ), 
+        INTERVAL 0 SECOND ) 
           AS tqr___time_ok
         FROM wikipedia
         GROUP BY 2
       `);
 
       var ex2 = $('wikipedia')
-        .split((
-          i$('__time').timePart('YEAR').cast("STRING").concat(r("-"))
-            .concat(r(3).multiply(i$('__time').timePart('QUARTER').subtract(r(1))).add(1)
-              .cast("STRING"))
-            .concat(r('-01 00:00:00').cast("STRING"))
-          )
-          , 'tqr___time_ok'
+        .split(i$('__time').timeFloor('P3M'), 'tqr___time_ok'
           , 'data')
         .apply('sum_added_ok', '$data.sum(i$added)')
         .select("sum_added_ok", "tqr___time_ok");

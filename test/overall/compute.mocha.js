@@ -590,29 +590,35 @@ describe("compute native", () => {
     ]);
 
     var ex = ply(ds)
-      .split((
-          i$('time').timePart('YEAR').cast("STRING").concat(r("-")).cast("STRING")
-            .concat(r(3).multiply(i$('time').timePart('QUARTER').subtract(r(1))).add(1)
-              .cast("STRING"))
-            .concat(r('-01 00:00:00'))
-        )
-        , 'tqr___time_ok'
+      .split(i$('time').timeFloor('P3M'), 'tqr___time_ok'
         , 'data')
       .select("tqr___time_ok");
     ex.compute()
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
-            "tqr___time_ok": "2015-1-01 00:00:00"
+            "tqr___time_ok": {
+              "type": "TIME",
+              "value": new Date('2015-01-01T00:00:00.000Z')
+            }
           },
           {
-            "tqr___time_ok": "2015-4-01 00:00:00"
+            "tqr___time_ok": {
+              "type": "TIME",
+              "value": new Date('2015-04-01T00:00:00.000Z')
+            }
           },
           {
-            "tqr___time_ok": "2015-7-01 00:00:00"
+            "tqr___time_ok": {
+              "type": "TIME",
+              "value": new Date('2015-07-01T00:00:00.000Z')
+            }
           },
           {
-            "tqr___time_ok": "2015-10-01 00:00:00"
+            "tqr___time_ok": {
+              "type": "TIME",
+              "value": new Date('2015-10-01T00:00:00.000Z')
+            }
           }
         ]);
         testComplete();
