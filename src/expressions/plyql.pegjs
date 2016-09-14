@@ -156,7 +156,11 @@ var fns = {
     if (!duration) {
       var timePart = findFormat(format, timePartFormats);
       if (!timePart) error('unsupported format: ' + format);
-      return upgrade(op).timePart(timePart.part).cast("STRING").concat(r(timePart.rest));
+      var ex = upgrade(op).timePart(timePart.part);
+      if (timePart.pre || timePart.post) ex = ex.cast("STRING");
+      if (timePart.pre) ex = r(timePart.pre).concat(ex);
+      if (timePart.post) ex = ex.concat(r(timePart.post));
+      return ex;
     }
     return upgrade(op).timeFloor(duration);
   },
@@ -246,14 +250,17 @@ function makeDate(type, v) {
 }
 
 function findFormat(fmt, lookup) {
-  for (var i=fmt.length; i >= 0; i--) {
-    var test = fmt.substring(0, i);
-    if (lookup[test]) {
+  var fmts = Object.keys(lookup);
+  for (var i=0; i < fmts.length; i++) {
+    var possibleFmt = fmts[i];
+    if (fmt.indexOf(possibleFmt) !== -1) {
       return {
-        part: lookup[test],
-        rest: fmt.substring(i)
+        pre: fmt.substring(0, fmt.indexOf(possibleFmt)),
+        part: lookup[possibleFmt],
+        post: fmt.substring(possibleFmt.length)
        }
-     }
+    }
+    return null;
    }
 }
 
@@ -794,26 +801,27 @@ UnaryExpression
 BasicExpression
   = LiteralExpression
   / AggregateExpression
-  / 'ADDDATE' OpenParen fmtFn:FormatByConcatExpression CloseParen Comma Interval CloseParen { return fmtFn }
+  / SpecialFunctionCallExpression
   / FunctionCallExpression
   / OpenParen sub:(Expression / SelectSubQuery) CloseParen { return sub; }
   / RefExpression
 
-FormatByConcatExpression
-  = 'CONCAT' OpenParen tail:(quat:ConcatPiece Comma?)*
+SpecialFunctionCallExpression
+  = 'ADDDATE' OpenParen 'CONCAT' OpenParen args:(ConcatPiece)* CloseParen Comma Interval CloseParen
   {
-    return tail.reduce((a, b) => {
-      return Array.isArray(a) ? a[0].cast("STRING").concat(b[0].cast("STRING")) : a.concat(b[0]);
-    })
+    return args.reduce((a, b) => a.concat(b.cast("STRING")))
   }
 
 ConcatPiece
-  = p:(FunctionCallExpression)
-    / OpenParen p:(AdditiveExpression) CloseParen
+  = OpenParen p:AdditiveExpression CloseParen Comma?
   {
     return p
   }
-  / p:String
+  / p:(FunctionCallExpression) Comma?
+  {
+    return p
+  }
+  / p:String Comma?
   {
     return upgrade(p)
   }

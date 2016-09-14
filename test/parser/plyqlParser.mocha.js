@@ -1461,42 +1461,15 @@ describe("SQL parser", () => {
 
       var ex2 = $('wikipedia')
         .split((
-          i$('__time').timePart('YEAR').cast("STRING").concat(r("-")).cast("STRING")
+          i$('__time').timePart('YEAR').cast("STRING").concat(r("-"))
             .concat(r(3).multiply(i$('__time').timePart('QUARTER').subtract(r(1))).add(1)
               .cast("STRING"))
-            .concat(r('-01 00:00:00'))
+            .concat(r('-01 00:00:00').cast("STRING"))
           )
           , 'tqr___time_ok'
           , 'data')
         .apply('sum_added_ok', '$data.sum(i$added)')
         .select("sum_added_ok", "tqr___time_ok");
-
-      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
-    });
-
-    it("should work with this fancier query", () => {
-      var parse = Expression.parseSQL(sane`
-        SELECT MIN(wikipedia.deleted) AS min_deleted_ok,
-        ADDDATE( CONCAT( 
-                  DATE_FORMAT( wikipedia.__time, '%Y-%m-%d %H:00:00' ), 
-                  (3*(YEAR(wikipedia.__time)-1)+1), 'MYRANDOMTIMEFORMAT' ), 
-                  INTERVAL 0 SECOND ) 
-          AS tqr___time_ok
-        FROM wikipedia
-        GROUP BY 2
-      `);
-
-      var ex2 = $('wikipedia')
-        .split((
-            i$('__time').timeFloor('PT1H').cast("STRING")
-              .concat(r(3).multiply(i$('__time').timePart('YEAR').subtract(r(1))).add(1)
-                .cast("STRING"))
-              .concat(r('MYRANDOMTIMEFORMAT'))
-          )
-          , 'tqr___time_ok'
-          , 'data')
-        .apply('min_deleted_ok', '$data.min(i$deleted)')
-        .select("min_deleted_ok", "tqr___time_ok");
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
