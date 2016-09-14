@@ -950,7 +950,7 @@ describe("SQL parser", () => {
     it("throws on non zero interval", () => {
       expect(() => {
         Expression.parseSQL("ADDDATE(DATE_FORMAT(`wikipedia`.`time`, '%Y-%m-%d' ), INTERVAL 1 SECOND )");
-      }).to.throw('only zero intervals supported for now');
+      }).to.throw(`SQL parse error: only zero intervals supported for now on 'ADDDATE(DATE_FORMAT(\`wikipedia\`.\`time\`, '%Y-%m-%d' ), INTERVAL 1 SECOND )'`);
     });
 
     it("should work with SELECT *", () => {

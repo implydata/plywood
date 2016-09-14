@@ -154,7 +154,7 @@ var fns = {
   DATE_FORMAT: function(op, format) {
     var duration = durationFormats[format.replace(/ 00:00:00$/, '')];
     if (!duration) {
-      var fmt = findFormat(format);
+      var fmt = findFormat(format, timePartFormats);
       if (!fmt) error('unsupported format: ' + format);
       return upgrade(op).timePart(fmt.part).cast("STRING").concat(r(fmt.rest));
     }
@@ -245,12 +245,12 @@ function makeDate(type, v) {
   }
 }
 
-function findFormat(fmt) {
+function findFormat(fmt, lookup) {
   for (var i=fmt.length; i >= 0; i--) {
     var test = fmt.substring(0, i);
-    if (timePartFormats[test]) {
+    if (lookup[test]) {
       return {
-        part: timePartFormats[test],
+        part: lookup[test],
         rest: fmt.substring(i)
        }
      }
@@ -947,8 +947,7 @@ String "String"
 
 
 Interval
-  = IntervalToken n:Number unit:UpperName _
-  / IntervalToken n:Number unit:Name &{ return intervalUnits[unit] }
+  = IntervalToken n:Number unit:Name &{ return intervalUnits[unit] }
     {
       if (n !== 0) error('only zero intervals supported for now');
       return 0;
