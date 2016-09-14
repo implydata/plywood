@@ -154,9 +154,9 @@ var fns = {
   DATE_FORMAT: function(op, format) {
     var duration = durationFormats[format.replace(/ 00:00:00$/, '')];
     if (!duration) {
-      var fmt = findFormat(format, timePartFormats);
-      if (!fmt) error('unsupported format: ' + format);
-      return upgrade(op).timePart(fmt.part).cast("STRING").concat(r(fmt.rest));
+      var timePart = findFormat(format, timePartFormats);
+      if (!timePart) error('unsupported format: ' + format);
+      return upgrade(op).timePart(timePart.part).cast("STRING").concat(r(timePart.rest));
     }
     return upgrade(op).timeFloor(duration);
   },
