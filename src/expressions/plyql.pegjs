@@ -154,7 +154,7 @@ var fns = {
   DATE_FORMAT: function(op, format) {
     var duration = durationFormats[format.replace(/ 00:00:00$/, '')];
     if (!duration) {
-      var timePart = findFormat(format, timePartFormats);
+      var timePart = findTimePart(format, timePartFormats);
       if (!timePart) error('unsupported format: ' + format);
       var ex = upgrade(op).timePart(timePart.part);
       if (timePart.pre || timePart.post) ex = ex.cast("STRING");
@@ -249,7 +249,7 @@ function makeDate(type, v) {
   }
 }
 
-function findFormat(fmt, lookup) {
+function findTimePart(fmt, lookup) {
   var fmts = Object.keys(lookup);
   for (var i=0; i < fmts.length; i++) {
     var possibleFmt = fmts[i];
