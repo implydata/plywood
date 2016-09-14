@@ -703,34 +703,11 @@ NotExpression
 
 
 ComparisonExpression
-  = 'ADDDATE' OpenParen fn:FormatByConcatExpression CloseParen Comma Interval CloseParen
-   {
-     return fn;
-   }
-  / ex:AdditiveExpression rhs:ComparisonExpressionRhs?
+  = ex:AdditiveExpression rhs:ComparisonExpressionRhs?
     {
       if (rhs) ex = rhs(ex);
       return ex;
     }
-
-FormatByConcatExpression
-  = 'CONCAT' OpenParen tail:(quat:ConcatPiece Comma?)*
-  {
-    return tail.reduce((a, b) => {
-      return a[0] ? a[0].concat(b[0]) : a.concat(b[0]);
-    })
-  }
-
-ConcatPiece
-  = p:(FunctionCallExpression / NestedAdditive / String)
-  {
-    return typeof p === 'string' ? upgrade(p) : p.cast("STRING")
-  }
-
-NestedAdditive
-  = OpenParen col:(AdditiveExpression / Params) CloseParen
-  { return col }
-
 
 ComparisonExpressionRhs
   = not:NotToken? rhs:ComparisonExpressionRhsNotable
@@ -817,10 +794,29 @@ UnaryExpression
 BasicExpression
   = LiteralExpression
   / AggregateExpression
+  / 'ADDDATE' OpenParen fmtFn:FormatByConcatExpression CloseParen Comma Interval CloseParen { return fmtFn }
   / FunctionCallExpression
   / OpenParen sub:(Expression / SelectSubQuery) CloseParen { return sub; }
   / RefExpression
 
+FormatByConcatExpression
+  = 'CONCAT' OpenParen tail:(quat:ConcatPiece Comma?)*
+  {
+    return tail.reduce((a, b) => {
+      return Array.isArray(a) ? a[0].cast("STRING").concat(b[0].cast("STRING")) : a.concat(b[0]);
+    })
+  }
+
+ConcatPiece
+  = p:(FunctionCallExpression)
+    / OpenParen p:(AdditiveExpression) CloseParen
+  {
+    return p
+  }
+  / p:String
+  {
+    return upgrade(p)
+  }
 
 AggregateExpression
   = CountToken OpenParen distinct:DistinctToken? exd:ExpressionMaybeFiltered? CloseParen
