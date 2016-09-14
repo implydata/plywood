@@ -590,7 +590,7 @@ describe("compute native", () => {
     ]);
 
     var ex = ply(ds)
-      .split(i$('time').timeFloor('P3M'), 'tqr___time_ok'
+      .split(i$('time').timeFloor('P3M').timePart('SECOND_OF_YEAR'), 'tqr___time_ok'
         , 'data')
       .select("tqr___time_ok");
     ex.compute()

@@ -825,7 +825,7 @@ ConcatPiece
   }
   / p:String Comma?
   {
-    return upgrade(p);
+    return p;
   }
 
 AggregateExpression
