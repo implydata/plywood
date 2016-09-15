@@ -150,7 +150,7 @@ export function valueToJSInlineType(v: any): any {
       } else {
         var js = v.toJS();
         if (!Array.isArray(js)) {
-          js.type = v.constructor.type;
+          js.type = v.constructor.type || 'EXPRESSION';
         }
         return js;
       }

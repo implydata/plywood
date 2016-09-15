@@ -25,7 +25,7 @@ import { Set } from "./set";
 import { StringRange } from "./stringRange";
 import { TimeRange } from "./timeRange";
 import { valueFromJS, valueToJSInlineType, datumHasExternal } from "./common";
-import { Expression } from "../expressions/baseExpression";
+import { Expression, ExpressionExternalAlteration } from "../expressions/baseExpression";
 import { External } from "../external/baseExternal";
 
 export function foldContext(d: Datum, c: Datum): Datum {
@@ -56,6 +56,55 @@ export interface PseudoDatum {
 
 export interface Datum {
   [attribute: string]: PlywoodValue | Expression;
+}
+
+export interface DatasetExternalAlteration {
+  index: number;
+  key: string;
+  external?: External;
+  result?: any;
+  datasetAlterations?: DatasetExternalAlterations;
+  expressionAlterations?: ExpressionExternalAlteration;
+}
+
+export type DatasetExternalAlterations = DatasetExternalAlteration[];
+
+/*
+ export interface ExpressionExternalAlterationSimple {
+
+ }
+
+ export type ExpressionExternalAlteration = Lookup<ExpressionExternalAlterationSimple | DatasetExternalAlterations>;
+ */
+
+
+export interface AlterationFiller {
+  (external: External): any;
+}
+
+export function fillExpressionExternalAlteration(alteration: ExpressionExternalAlteration, filler: AlterationFiller): void {
+  for (var k in alteration) {
+    var thing = alteration[k];
+    if (Array.isArray(thing)) {
+      fillDatasetExternalAlterations(thing, filler);
+    } else {
+      thing.result = filler(thing.external);
+    }
+  }
+}
+
+export function fillDatasetExternalAlterations(alterations: DatasetExternalAlterations, filler: AlterationFiller): void {
+  for (var alteration of alterations) {
+    if (alteration.external) {
+      alteration.result = filler(alteration.external);
+    } else if (alteration.datasetAlterations) {
+      fillDatasetExternalAlterations(alteration.datasetAlterations, filler);
+    } else if (alteration.expressionAlterations) {
+      fillExpressionExternalAlteration(alteration.expressionAlterations, filler);
+    } else {
+      throw new Error('fell through');
+    }
+  }
 }
 
 var directionFns: Lookup<DirectionFn> = {
@@ -705,17 +754,63 @@ export class Dataset implements Instance<DatasetValue, any> {
     console.error('introspection is always done, `.introspect()` method never needs to be called');
   }
 
-  public getExternals(): External[] {
-    if (this.data.length === 0) return [];
-    var datum = this.data[0];
-    var externals: External[] = [];
-    Object.keys(datum).forEach(applyName => {
-      var applyValue = datum[applyName];
-      if (applyValue instanceof Dataset) {
-        externals.push(...applyValue.getExternals());
+  public getReadyExternals(): DatasetExternalAlterations {
+    var externalAlterations: DatasetExternalAlterations = [];
+    const { data, attributes } = this;
+
+    for (var i = 0; i < data.length; i++) {
+      var datum = data[i];
+      for (var attribute of attributes) {
+        var value = datum[attribute.name];
+        if (value instanceof Expression) {
+          externalAlterations.push({
+            index: i,
+            key: attribute.name,
+            expressionAlterations: value.getReadyExternals()
+          });
+
+        } else if (value instanceof Dataset) {
+          var subDatasetAlterations = value.getReadyExternals();
+          if (subDatasetAlterations.length) {
+            externalAlterations.push({
+              index: i,
+              key: attribute.name,
+              datasetAlterations: subDatasetAlterations
+            });
+          }
+
+        } else if (value instanceof External) {
+          if (!value.suppress) {
+            externalAlterations.push({
+              index: i,
+              key: attribute.name,
+              external: value
+            });
+          }
+
+        }
       }
-    });
-    return External.deduplicateExternals(externals);
+    }
+    return externalAlterations;
+  }
+
+  public applyReadyExternals(alterations: DatasetExternalAlterations): Dataset {
+    var data = this.data;
+    for (var alteration of alterations) {
+      var datum = data[alteration.index];
+      var key = alteration.key;
+
+      if (alteration.external) {
+        datum[key] = alteration.result;
+      } else if (alteration.datasetAlterations) {
+        datum[key] = (datum[key] as Dataset).applyReadyExternals(alteration.datasetAlterations);
+      } else if (alteration.expressionAlterations) {
+        datum[key] = (datum[key] as Expression).applyReadyExternals(alteration.expressionAlterations);
+      } else {
+        throw new Error('fell through');
+      }
+    }
+    return this; // hack, in place for now
   }
 
   public join(other: Dataset): Dataset {

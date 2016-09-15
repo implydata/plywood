@@ -70,24 +70,20 @@ import {
   TransformCaseAction,
   Environment
 } from "../actions/index";
-import {
-  hasOwnProperty, repeat, emptyLookup, deduplicateSort
-} from "../helper/utils";
-import {
-  Dataset,
-  Datum,
-  PlywoodValue,
-  NumberRange,
-  Range,
-  Set,
-  StringRange,
-  TimeRange
-} from "../datatypes/index";
+import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from "../helper/utils";
+import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from "../datatypes/index";
 import { ActionJS, CaseType, Splits } from "../actions/baseAction";
 import { Direction } from "../actions/sortAction";
 import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from "../datatypes/common";
 import { ComputeFn } from "../datatypes/dataset";
 import { External, ExternalJS } from "../external/baseExternal";
+
+export interface ExpressionExternalAlterationSimple {
+  external: External;
+  result?: any;
+}
+
+export type ExpressionExternalAlteration = Lookup<ExpressionExternalAlterationSimple | DatasetExternalAlterations>;
 
 export interface BooleanExpressionIterator {
   (ex?: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
@@ -629,7 +625,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Check if the expression contains externals
    */
   public hasExternal(): boolean {
-    return this.some(function(ex: Expression) {
+    return this.some((ex: Expression) => {
       if (ex instanceof ExternalExpression) return true;
       if (ex instanceof RefExpression) return ex.isRemote();
       return null; // search further
@@ -638,7 +634,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public getBaseExternals(): External[] {
     var externals: External[] = [];
-    this.forEach(function(ex: Expression) {
+    this.forEach((ex: Expression) => {
       if (ex instanceof ExternalExpression) externals.push(ex.external.getBase());
     });
     return External.deduplicateExternals(externals);
@@ -646,10 +642,48 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public getRawExternals(): External[] {
     var externals: External[] = [];
-    this.forEach(function(ex: Expression) {
+    this.forEach((ex: Expression) => {
       if (ex instanceof ExternalExpression) externals.push(ex.external.getRaw());
     });
     return External.deduplicateExternals(externals);
+  }
+
+  // New!!!!!!!!!!!!!!!
+
+  public getReadyExternals(): ExpressionExternalAlteration {
+    var externalsByIndex: ExpressionExternalAlteration = {};
+    this.every((ex: Expression, index: int) => {
+      if (ex instanceof ExternalExpression) {
+        if (!ex.external.suppress) {
+          externalsByIndex[index] = { external: ex.external };
+        }
+
+      } else if (ex instanceof ChainExpression) {
+        var exExpression = ex.expression;
+        if (exExpression instanceof ExternalExpression) {
+          externalsByIndex[index + 1] = { external: exExpression.external };
+          return true;
+        }
+
+      } else if (ex instanceof LiteralExpression && ex.type === 'DATASET') {
+        externalsByIndex[index] = ex.value.getReadyExternals();
+        return null;
+      }
+      return null;
+    });
+    return externalsByIndex;
+  }
+
+  public applyReadyExternals(alterations: ExpressionExternalAlteration): Expression {
+    return this.substitute((ex, index) => {
+      var alteration = alterations[index];
+      if (!alteration) return null;
+      if (Array.isArray(alteration)) {
+        return r((ex.getLiteralValue() as Dataset).applyReadyExternals(alteration));
+      } else {
+        return r(alteration.result);
+      }
+    }).simplify();
   }
 
   /**
@@ -1509,7 +1543,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         var readyExpression = this._initialPrepare(introspectedContext, environment);
         if (readyExpression instanceof ExternalExpression) {
           // Top level externals need to be unsuppressed
-          readyExpression = (<ExternalExpression>readyExpression).unsuppress();
+          readyExpression = readyExpression.unsuppress();
         }
         return readyExpression._computeResolved(true);
       });

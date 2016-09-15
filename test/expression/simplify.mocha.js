@@ -955,7 +955,12 @@ describe("Simplify", () => {
         .apply('diamonds', diamondEx)
         .apply('Total', '$diamonds.count()')
         .apply('TotalX2', '$Total * 2')
-        .apply('SomeSplit', $('diamonds').split('$cut:STRING', 'Cut').limit(10));
+        .apply('SomeSplit', $('diamonds').split('$cut:STRING', 'Cut').limit(10))
+        .apply('SomeNestedSplit',
+          $('diamonds').split('$color:STRING', 'Color')
+            .limit(10)
+            .apply('SubSplit', $('diamonds').split('$cut:STRING', 'SubCut').limit(5))
+        );
 
       var ex2 = ex1.simplify();
       var data = ex2.value.data;
@@ -964,6 +969,8 @@ describe("Simplify", () => {
       expect(data[0].Total.mode).to.equal('value');
       expect(data[0].TotalX2.mode).to.equal('value');
       expect(data[0].SomeSplit.mode).to.equal('split');
+      expect(data[0].SomeNestedSplit.op).to.equal('chain');
+      expect(data[0].SomeNestedSplit.actions.length).to.equal(1);
     });
 
   });
