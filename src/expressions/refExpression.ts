@@ -293,14 +293,6 @@ export class RefExpression extends Expression {
     return new RefExpression(value);
   }
 
-  public _computeResolvedSimulate(): PlywoodValue {
-    throw new Error('should never get here');
-  }
-
-  public _computeResolved(): Q.Promise<PlywoodValue> {
-    throw new Error('should never get here');
-  }
-
   public maxPossibleSplitValues(): number {
     return this.type === 'BOOLEAN' ? 3 : Infinity;
   }

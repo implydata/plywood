@@ -25,7 +25,7 @@ import { Set } from "./set";
 import { StringRange } from "./stringRange";
 import { TimeRange } from "./timeRange";
 import { valueFromJS, valueToJSInlineType, datumHasExternal } from "./common";
-import { Expression, ExpressionExternalAlteration } from "../expressions/baseExpression";
+import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression } from "../expressions/index";
 import { External } from "../external/baseExternal";
 
 export function foldContext(d: Datum, c: Datum): Datum {
@@ -805,7 +805,14 @@ export class Dataset implements Instance<DatasetValue, any> {
       } else if (alteration.datasetAlterations) {
         datum[key] = (datum[key] as Dataset).applyReadyExternals(alteration.datasetAlterations);
       } else if (alteration.expressionAlterations) {
-        datum[key] = (datum[key] as Expression).applyReadyExternals(alteration.expressionAlterations);
+        var exAlt = (datum[key] as Expression).applyReadyExternals(alteration.expressionAlterations);
+        if (exAlt instanceof ExternalExpression) {
+          datum[key] = exAlt.external;
+        } else if (exAlt instanceof LiteralExpression) {
+          datum[key] = exAlt.getLiteralValue();
+        } else {
+          datum[key] = exAlt;
+        }
       } else {
         throw new Error('fell through');
       }

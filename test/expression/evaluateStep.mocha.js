@@ -97,7 +97,7 @@ describe("evaluate step", () => {
     });
 
     fillExpressionExternalAlteration(readyExternals, (external) => `Ex(${external.mode})`);
-    expect(JSON.parse(JSON.stringify(readyExternals, stringExternals))).to.deep.equal({
+    expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E1').to.deep.equal({
       "0": [
         {
           "external": "External",
@@ -131,7 +131,7 @@ describe("evaluate step", () => {
     });
 
     fillExpressionExternalAlteration(readyExternals, (external) => external.simulateValue(false, []));
-    expect(JSON.parse(JSON.stringify(readyExternals, stringExternals))).to.deep.equal({
+    expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E2').to.deep.equal({
       "0": [
         {
           "external": "External",
@@ -173,51 +173,17 @@ describe("evaluate step", () => {
     });
 
     var ex3 = ex2.applyReadyExternals(readyExternals);
-    expect(ex3.toJS()).to.deep.equal({
+    expect(JSON.parse(JSON.stringify(ex3, stringExternals)), 'E3').to.deep.equal({
       "op": "literal",
       "type": "DATASET",
       "value": [
         {
-          "SomeNestedSplit": {
-            "action": {
-              "action": "apply",
-              "expression": {
-                "actions": [
-                  {
-                    "action": "split",
-                    "dataName": "diamonds",
-                    "expression": {
-                      "name": "cut",
-                      "op": "ref",
-                      "type": "STRING"
-                    },
-                    "name": "SubCut"
-                  },
-                  {
-                    "action": "limit",
-                    "limit": 5
-                  }
-                ],
-                "expression": {
-                  "name": "diamonds",
-                  "op": "ref"
-                },
-                "op": "chain"
-              },
-              "name": "SubSplit"
-            },
-            "expression": {
-              "op": "literal",
-              "type": "DATASET",
-              "value": [
-                {
-                  "Color": "some_color"
-                }
-              ]
-            },
-            "op": "chain",
-            "type": "EXPRESSION"
-          },
+          "SomeNestedSplit":  [
+            {
+              "Color": "some_color",
+              "SubSplit": "External"
+            }
+          ],
           "SomeSplit": [
             {
               "Cut": "some_cut"
@@ -228,6 +194,79 @@ describe("evaluate step", () => {
         }
       ]
     });
+
+    // ---------------------
+
+    var readyExternals = ex3.getReadyExternals();
+    expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E4').to.deep.equal({
+      "0": [
+        {
+          "datasetAlterations": [
+            {
+              "external": "External",
+              "index": 0,
+              "key": "SubSplit"
+            }
+          ],
+          "index": 0,
+          "key": "SomeNestedSplit"
+        }
+      ]
+    });
+
+    fillExpressionExternalAlteration(readyExternals, (external) => external.simulateValue(false, []));
+    expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E5').to.deep.equal({
+      "0": [
+        {
+          "datasetAlterations": [
+            {
+              "external": "External",
+              "index": 0,
+              "key": "SubSplit",
+              "result": [
+                {
+                  "SubCut": "some_cut"
+                }
+              ]
+            }
+          ],
+          "index": 0,
+          "key": "SomeNestedSplit"
+        }
+      ]
+    });
+
+    var ex4 = ex3.applyReadyExternals(readyExternals);
+    expect(JSON.parse(JSON.stringify(ex4, stringExternals)), 'E6').to.deep.equal({
+      "op": "literal",
+      "type": "DATASET",
+      "value": [
+        {
+          "SomeNestedSplit": [
+            {
+              "Color": "some_color",
+              "SubSplit": [
+                {
+                  "SubCut": "some_cut"
+                }
+              ]
+            }
+          ],
+          "SomeSplit": [
+            {
+              "Cut": "some_cut"
+            }
+          ],
+          "Total": 4,
+          "TotalX2": 4
+        }
+      ]
+    });
+
+    // ---------------------
+
+    var readyExternals = ex4.getReadyExternals();
+    expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E7').to.deep.equal({}); // all done
 
   });
 

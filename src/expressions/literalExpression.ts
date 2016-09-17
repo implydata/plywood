@@ -164,14 +164,6 @@ export class LiteralExpression extends Expression {
     return this.value;
   }
 
-  public _computeResolvedSimulate(): PlywoodValue {
-    return this.value;
-  }
-
-  public _computeResolved(): Q.Promise<PlywoodValue> {
-    return Q(this.value);
-  }
-
   public maxPossibleSplitValues(): number {
     const { value } = this;
     return Set.isSet(value) ? value.size() : 1;

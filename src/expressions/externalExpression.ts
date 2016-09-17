@@ -89,18 +89,6 @@ export class ExternalExpression extends Expression {
     }
   }
 
-  public _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue {
-    var external = this.external;
-    if (external.suppress) return external;
-    return external.simulateValue(lastNode, simulatedQueries);
-  }
-
-  public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
-    var external = this.external;
-    if (external.suppress) return Q(external);
-    return external.queryValue(lastNode);
-  }
-
   public unsuppress(): ExternalExpression {
     var value = this.valueOf();
     value.external = this.external.show();
