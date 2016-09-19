@@ -26,7 +26,7 @@ import { StringRange } from "./stringRange";
 import { TimeRange } from "./timeRange";
 import { valueFromJS, valueToJSInlineType, datumHasExternal } from "./common";
 import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression } from "../expressions/index";
-import { External } from "../external/baseExternal";
+import { External, TotalContainer } from "../external/baseExternal";
 
 export function foldContext(d: Datum, c: Datum): Datum {
   var newContext = Object.create(c);
@@ -575,7 +575,21 @@ export class Dataset implements Instance<DatasetValue, any> {
       var datum = data[i];
       var newDatum = Object.create(null);
       for (let key in datum) newDatum[key] = datum[key];
-      newDatum[name] = exFn(datum, context, i);
+      var newValue = exFn(datum, context, i);
+      if (newValue instanceof External && newValue.mode === 'value') {
+        for (let key in datum) {
+          let possibleExternal = datum[key];
+          if (possibleExternal instanceof External) {
+            var totalExternal = possibleExternal.mergeAsTotal(key, name, newValue);
+            if (totalExternal) {
+              // This part is a hack, the first external will become a total and aggregate into it all of the other 'value' externals ToDo!
+              newDatum[key] = totalExternal;
+              newValue = null;
+            }
+          }
+        }
+      }
+      newDatum[name] = newValue;
       newData[i] = newDatum;
     }
 
@@ -801,7 +815,15 @@ export class Dataset implements Instance<DatasetValue, any> {
       var key = alteration.key;
 
       if (alteration.external) {
-        datum[key] = alteration.result;
+        var result = alteration.result;
+        if (result instanceof TotalContainer) {
+          var resultDatum = result.datum;
+          for (var k in resultDatum) {
+            result[k] = resultDatum[k];
+          }
+        } else {
+          datum[key] = result;
+        }
       } else if (alteration.datasetAlterations) {
         datum[key] = (datum[key] as Dataset).applyReadyExternals(alteration.datasetAlterations);
       } else if (alteration.expressionAlterations) {

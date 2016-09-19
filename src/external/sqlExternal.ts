@@ -27,7 +27,7 @@ import {
   TimeBucketAction
 } from "../actions/index";
 import { Attributes } from "../datatypes/attributeInfo";
-import { External, ExternalValue, Inflater, QueryAndPostProcess, PostProcess } from "./baseExternal";
+import { External, ExternalValue, Inflater, QueryAndPostProcess, PostProcess, TotalContainer } from "./baseExternal";
 import { ChainExpression } from "../expressions/chainExpression";
 import { SQLDialect } from "../dialect/baseDialect";
 
@@ -64,6 +64,28 @@ function valuePostProcess(data: any[]): PlywoodValue {
   }
 
   return data.length ? data[0][External.VALUE_NAME] : 0;
+}
+
+function totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyAction[]): PostProcess {
+  return (data: any[]): TotalContainer => {
+    if (!correctResult(data)) {
+      var err = new Error("unexpected total result");
+      (<any>err).result = data; // ToDo: special error type
+      throw err;
+    }
+
+    var datum: any;
+    if (data.length === 1) {
+      datum = data[0];
+      for (var inflater of inflaters) {
+        inflater(datum, 0, data);
+      }
+    } else if (zeroTotalApplies) {
+      datum = External.makeZeroDatum(zeroTotalApplies);
+    }
+
+    return new TotalContainer(datum);
+  };
 }
 
 function postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyAction[]): PostProcess {
@@ -197,6 +219,7 @@ export abstract class SQLExternal extends External {
           from,
           dialect.constantGroupBy()
         );
+        postProcess = totalPostProcessFactory(inflaters, zeroTotalApplies);
         break;
 
       case 'split':

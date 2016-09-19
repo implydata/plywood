@@ -71,7 +71,7 @@ import {
   TimeRange,
   PlywoodValue
 } from "../datatypes/index";
-import { External, ExternalJS, ExternalValue, Inflater, NextFn, PostProcess, QueryAndPostProcess } from "./baseExternal";
+import { External, ExternalJS, ExternalValue, Inflater, NextFn, PostProcess, QueryAndPostProcess, TotalContainer } from "./baseExternal";
 import { unwrapSetType } from "../datatypes/common";
 import { PlywoodRange } from "../datatypes/range";
 
@@ -287,15 +287,15 @@ export class DruidExternal extends External {
     return res[0].result[External.VALUE_NAME];
   }
 
-  static totalPostProcessFactory(applies: ApplyAction[]) {
-    return (res: Druid.TimeseriesResults): Dataset => {
+  static totalPostProcessFactory(applies: ApplyAction[]): PostProcess {
+    return (res: Druid.TimeseriesResults): TotalContainer => {
       if (!DruidExternal.correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (all)", res);
 
-      if (!res.length) return new Dataset({ data: [External.makeZeroDatum(applies)] });
+      if (!res.length) return new TotalContainer(External.makeZeroDatum(applies));
 
       var datum = res[0].result;
       DruidExternal.cleanDatumInPlace(datum);
-      return new Dataset({ data: [datum] });
+      return new TotalContainer(datum);
     };
   }
 

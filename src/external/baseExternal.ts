@@ -42,8 +42,16 @@ import { StringRange } from "../datatypes/stringRange";
 import { TimeRange } from "../datatypes/timeRange";
 import { promiseWhile } from "../helper/promiseWhile";
 
+export class TotalContainer {
+  public datum: Datum;
+
+  constructor(d: Datum) {
+    this.datum = d;
+  }
+}
+
 export interface PostProcess {
-  (result: any): PlywoodValue;
+  (result: any): PlywoodValue | TotalContainer;
 }
 
 export interface NextFn<Q, R> {
@@ -296,6 +304,17 @@ export abstract class External {
 
     for (let i = 1; i < externals.length; i++) addToUniqueExternals(externals[i]);
     return uniqueExternals;
+  }
+
+  static addExtraFilter(ex: ChainExpression, extraFilter: Expression): ChainExpression {
+    if (extraFilter.equals(Expression.TRUE)) return ex;
+
+    return ex.substitute(ex => {
+      if (ex instanceof RefExpression && ex.type === 'DATASET' && ex.name === External.SEGMENT_NAME) {
+        return ex.filter(extraFilter);
+      }
+      return null;
+    }) as ChainExpression;
   }
 
   static makeZeroDatum(applies: ApplyAction[]): Datum {
@@ -957,6 +976,54 @@ export abstract class External {
     return totalExternal;
   }
 
+  public makeTotalSimple(myName: string): External {
+    if (this.mode !== 'value') return null;
+    if (!this.canHandleTotal()) return null;
+
+    var value = this.getRaw().valueOf();
+    value.mode = 'total';
+    value.suppress = false;
+    value.rawAttributes = value.attributes;
+    value.attributes = [];
+    value.applies = [];
+    value.delegates = nullMap(value.delegates, (e) => e.makeTotalSimple(myName));
+
+    return External.fromValue(value)._addApplyAction(new ApplyAction({
+      name: myName,
+      expression: this.valueExpression
+    }));
+  }
+
+  public mergeAsTotal(myName: string, otherName: string, otherExternal: External): External {
+    if (!(this.mode === 'value' || this.mode === 'total')) return null;
+    if (!(otherExternal.mode === 'value' || otherExternal.mode === 'total')) return null;
+
+    var myTotal: External = this;
+    if (this.mode === 'value') {
+      if (otherExternal.mode === 'total') return otherExternal.mergeAsTotal(otherName, myName, this);
+      myTotal = this.makeTotalSimple(myName);
+      if (!myTotal) return null;
+    }
+
+    var commonFilter = getCommonFilter(myTotal.filter, otherExternal.filter);
+    var commonDerivedAttributes = mergeDerivedAttributes(myTotal.derivedAttributes, otherExternal.derivedAttributes);
+    var myExtraFilter = filterDiff(myTotal.filter, commonFilter);
+    if (!myExtraFilter) return null;
+
+    var value = myTotal.valueOf();
+    value.filter = commonFilter;
+    value.derivedAttributes = commonDerivedAttributes;
+    //value.delegates = nullMap(value.delegates, (e) => e.mergeAsTotal(myName, otherName, otherExternal.delegates[0]));
+    value.applies = value.applies.map((apply) => {
+      return apply.changeExpression(External.addExtraFilter(apply.expression as ChainExpression, myExtraFilter)) as ApplyAction;
+    });
+
+    return External.fromValue(value)._addApplyAction(new ApplyAction({
+      name: otherName,
+      expression: new ExternalExpression({ external: otherExternal })
+    }));
+  }
+
   public addAction(action: Action): External {
     if (action instanceof FilterAction) {
       return this._addFilterAction(action);
@@ -1163,18 +1230,7 @@ export abstract class External {
     if (this.mode !== 'value') return null;
     var extraFilter = filterDiff(this.filter, withinFilter);
     if (!extraFilter) throw new Error('not within the segment');
-
-    var ex = this.valueExpression;
-    if (!extraFilter.equals(Expression.TRUE)) {
-      ex = <ChainExpression>ex.substitute(ex => {
-        if (ex instanceof RefExpression && ex.type === 'DATASET' && ex.name === External.SEGMENT_NAME) {
-          return ex.filter(extraFilter);
-        }
-        return null;
-      });
-    }
-
-    return ex;
+    return External.addExtraFilter(this.valueExpression, extraFilter);
   }
 
   public toValueApply(): ApplyAction {
@@ -1332,7 +1388,7 @@ export abstract class External {
     throw new Error("can not call getQueryAndPostProcess directly");
   }
 
-  public queryValue(lastNode: boolean, externalForNext: External = null): Q.Promise<PlywoodValue> {
+  public queryValue(lastNode: boolean, externalForNext: External = null): Q.Promise<PlywoodValue | TotalContainer> {
     const { mode, requester } = this;
 
     if (!externalForNext) externalForNext = this;
@@ -1343,12 +1399,12 @@ export abstract class External {
     }
 
     if (!requester) {
-      return <Q.Promise<PlywoodValue>>Q.reject(new Error('must have a requester to make queries'));
+      return <Q.Promise<PlywoodValue | TotalContainer>>Q.reject(new Error('must have a requester to make queries'));
     }
     try {
       var queryAndPostProcess = this.getQueryAndPostProcess();
     } catch (e) {
-      return <Q.Promise<PlywoodValue>>Q.reject(e);
+      return <Q.Promise<PlywoodValue | TotalContainer>>Q.reject(e);
     }
 
     var { query, postProcess, next } = queryAndPostProcess;
@@ -1356,7 +1412,7 @@ export abstract class External {
       return <Q.Promise<PlywoodValue>>Q.reject(new Error('no query or postProcess'));
     }
 
-    var finalResult: Q.Promise<PlywoodValue>;
+    var finalResult: Q.Promise<PlywoodValue | TotalContainer>;
     if (next) {
       var results: any[] = [];
       finalResult = promiseWhile(
