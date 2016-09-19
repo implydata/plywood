@@ -105,7 +105,8 @@ describe("DruidExternal Rollup", () => {
       .apply('Count', '$wiki.count()')
       .apply('AvgAdded', '$wiki.average($added)');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan).to.deep.equal([
       {
         "aggregations": [
           {
@@ -149,7 +150,8 @@ describe("DruidExternal Rollup", () => {
       .apply('AvgEnAdded', '$wiki.filter($channel == "en").average($added)')
       .apply('AvgHeDeleted', '$wiki.filter($channel == "he").average($deleted)');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan).to.deep.equal([
       {
         "aggregations": [
           {
