@@ -18,6 +18,7 @@
 import * as Q from 'q';
 import { Timezone, Duration, parseISODate } from "chronoshift";
 import { Instance, isInstanceOf, isImmutableClass, SimpleArray } from "immutable-class";
+import { promiseWhile } from "../helper/promiseWhile";
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple } from "../types";
 import { fillExpressionExternalAlteration } from "../datatypes/index";
 import { LiteralExpression } from "./literalExpression";
@@ -92,7 +93,7 @@ function fillExpressionExternalAlterationAsync(alteration: ExpressionExternalAlt
 
   return Q.all(tasks).then((results) => {
     var i = 0;
-    fillExpressionExternalAlteration(alteration, (external) => {
+    fillExpressionExternalAlteration(alteration, () => {
       var res = results[i];
       i++;
       return res;
@@ -1609,13 +1610,21 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     var ex: Expression = this;
     var readyExternals = ex.getReadyExternals();
     var i = 0;
-    while (Object.keys(readyExternals).length > 0 && i < 10) {
-      fillExpressionExternalAlterationAsync(readyExternals, (external) => external.queryValue(false)); // lastNode
-      ex = ex.applyReadyExternals(readyExternals);
-      readyExternals = ex.getReadyExternals();
-      i++;
-    }
-    return ex.getLiteralValue();
+
+    return promiseWhile(
+      () => Object.keys(readyExternals).length > 0 && i < 10,
+      () => {
+        return fillExpressionExternalAlterationAsync(readyExternals, (external) => external.queryValue(false)) // lastNode
+          .then((readyExternalsFilled) => {
+            ex = ex.applyReadyExternals(readyExternalsFilled);
+            readyExternals = ex.getReadyExternals();
+            i++;
+          });
+      }
+    )
+      .then(() => {
+        return ex.getLiteralValue();
+      });
   }
 
 }
