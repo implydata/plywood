@@ -2629,6 +2629,10 @@ describe("simulate Druid", () => {
       .apply('NumVendors', '$diamonds.countDistinct($vendor_id)')
       .apply('VendorsByColors', '$NumVendors / $NumColors');
 
+    ex = ex.referenceCheck(context).resolve(context).simplify();
+    console.log('ex', ex.value.data[0]['VendorsByColors']);
+    return; // ToDo: !!
+
     var queryPlan = ex.simulateQueryPlan(context);
     console.log('queryPlan', JSON.stringify(queryPlan, null, 2));
     expect(queryPlan.length).to.equal(1);
