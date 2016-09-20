@@ -166,16 +166,21 @@ describe("resolve", () => {
       );
 
       ex = ex.simplify();
-      expect(ex.toJS()).to.deep.equal(
-        r(Dataset.fromJS([{ num: 8 }]))
-          .apply(
-            'subData',
-            ply()
-              .apply('x', '$^num * 3')
-              .apply('y', 70)
-          )
-          .toJS()
-      );
+      expect(ex.toJS()).to.deep.equal({
+        "op": "literal",
+        "type": "DATASET",
+        "value": [
+          {
+            "num": 8,
+            "subData": [
+              {
+                "x": 24,
+                "y": 70
+              }
+            ]
+          }
+        ]
+      });
     });
 
     it("works with dataset", () => {
