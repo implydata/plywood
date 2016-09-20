@@ -69,15 +69,6 @@ export interface DatasetExternalAlteration {
 
 export type DatasetExternalAlterations = DatasetExternalAlteration[];
 
-/*
- export interface ExpressionExternalAlterationSimple {
-
- }
-
- export type ExpressionExternalAlteration = Lookup<ExpressionExternalAlterationSimple | DatasetExternalAlterations>;
- */
-
-
 export interface AlterationFiller {
   (external: External): any;
 }
