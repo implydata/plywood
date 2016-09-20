@@ -1571,6 +1571,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     var ex: Expression = this;
     var readyExternals = ex.getReadyExternals();
     var i = 0;
+
     while (Object.keys(readyExternals).length > 0 && i < 10) {
       var simulatedQueryGroup: any[] = [];
       fillExpressionExternalAlteration(readyExternals, (external) => external.simulateValue(false, simulatedQueryGroup));

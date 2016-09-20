@@ -1,5 +1,4 @@
 /*
- * Copyright 2012-2015 Metamarkets Group Inc.
  * Copyright 2015-2016 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -257,51 +256,5 @@ describe("evaluate step", () => {
     expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E7').to.deep.equal({}); // all done
 
   });
-
-  // it('works in filter sub query', () => {
-  //   var diamondEx = new ExternalExpression({ external: diamonds });
-  //
-  //   var ex1 = ply()
-  //     .apply('diamonds', diamondEx)
-  //     .apply('Total', '$diamonds.count()')
-  //     .apply('TotalX2', '$Total * 2')
-  //     .apply('SomeSplit', $('diamonds').split('$cut:STRING', 'Cut').limit(10))
-  //     .apply('SomeNestedSplit',
-  //       $('diamonds').split('$color:STRING', 'Color')
-  //         .limit(10)
-  //         .apply('SubSplit', $('diamonds').split('$cut:STRING', 'SubCut').limit(5))
-  //     );
-  //
-  //   var ex2 = ex1.simplify();
-  //
-  //   var readyExternals = ex2.getReadyExternals();
-  //   readyExternals = JSON.parse(JSON.stringify(readyExternals, stringExternals));
-  //   expect(readyExternals).to.deep.equal({
-  //     "0": [
-  //       {
-  //         "external": "External",
-  //         "index": 0,
-  //         "key": "Total"
-  //       },
-  //       {
-  //         "external": "External",
-  //         "index": 0,
-  //         "key": "TotalX2"
-  //       },
-  //       {
-  //         "external": "External",
-  //         "index": 0,
-  //         "key": "SomeSplit"
-  //       },
-  //       {
-  //         "expressionAlterations": {
-  //           "1": "External"
-  //         },
-  //         "index": 0,
-  //         "key": "SomeNestedSplit"
-  //       }
-  //     ]
-  //   })
-  // });
 
 });
