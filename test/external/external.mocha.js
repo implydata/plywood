@@ -424,7 +424,6 @@ describe("External", () => {
     it("works in noop case", () => {
       var nextApply = ply()
         .apply('Deleted', '$D.sum($deleted)')
-        .simplify()
         .actions[0];
 
       var added = External.normalizeAndAddApply(attributesAndApplies, nextApply);
@@ -891,7 +890,7 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        var externalDataset = ex.value.data[0]['TotalAdded'];
+        var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.mode).to.equal('value');
         expect(externalDataset.filter.toString()).to.equal(sane`
@@ -911,7 +910,7 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        var externalDataset = ex.value.data[0]['Count'];
+        var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.mode).to.equal('total');
         expect(externalDataset.filter.toString()).to.equal(sane`
@@ -921,6 +920,29 @@ describe("External", () => {
         expect(externalDataset.applies.join('\n')).to.equal(sane`
           apply(Count,$__SEGMENT__:DATASET.count())
           apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
+        `);
+      });
+
+      it("works with a multiple applies with a divide", () => {
+        var ex = ply()
+          .apply('Count', '$wiki.count()')
+          .apply('TotalAdded', '$wiki.sum($added)')
+          .apply('CountPlusAdded', '$Count + $TotalAdded');
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        expect(ex.op).to.equal('literal');
+        var externalDataset = ex.value.getReadyExternals()[0].external;
+
+        expect(externalDataset.mode).to.equal('total');
+        expect(externalDataset.filter.toString()).to.equal(sane`
+          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z))
+        `);
+
+        expect(externalDataset.applies.join('\n')).to.equal(sane`
+          apply(Count,$__SEGMENT__:DATASET.count())
+          apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
+          apply(CountPlusAdded,$__SEGMENT__:DATASET.count().add($__SEGMENT__:DATASET.sum($added:NUMBER)))
         `);
       });
 
@@ -934,7 +956,7 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        var externalDataset = ex.value.data[0]['Count'];
+        var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z))
@@ -953,15 +975,6 @@ describe("External", () => {
           { name: "TotalUSA", "type": "NUMBER" },
           { name: "TotalUK", "type": "NUMBER" }
         ]);
-
-        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
-          {
-            "Count": 4,
-            "TotalAdded": 4,
-            "TotalUSA": 4,
-            "TotalUK": 4
-          }
-        ]);
       });
 
       it("works with several applies, all filtered", () => {
@@ -973,7 +986,7 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        var externalDataset = ex.value.data[0]['TotalUSA'];
+        var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z))
@@ -1002,7 +1015,7 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        var externalDataset = ex.value.data[0]['Count'];
+        var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z)).and($language:STRING.is("en"))
@@ -1035,7 +1048,7 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        var externalDataset = ex.value.data[0]['Count'];
+        var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice']);
 
@@ -1060,7 +1073,7 @@ describe("External", () => {
         ]);
       });
 
-      it.only("works with fancy applies", () => {
+      it("works with fancy applies", () => {
         var ex = ply()
           .apply("wiki", $('wiki').filter("$language == 'en'"))
           .apply("Five", 5)
@@ -1075,7 +1088,7 @@ describe("External", () => {
         expect(ex.op).to.equal('literal');
         expect(ex.value.data[0]['Five']).to.equal(5);
         expect(ex.value.data[0]['Six']).to.equal(6);
-        var externalDataset = ex.value.data[0]['CountX3'];
+        var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z)).and($language:STRING.is("en"))
@@ -1261,14 +1274,22 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        expect(ex.op).to.equal('chain');
-        expect(ex.actions).to.have.length(1);
+        var readyExternals = ex.value.getReadyExternals();
+        expect(readyExternals.length).to.equal(2);
 
-        var externalDataset = ex.expression.external;
-        expect(externalDataset.applies).to.have.length(2);
-        expect(externalDataset.toJS().attributes).to.deep.equal([
+        var externalDataset0 = readyExternals[0].external;
+        expect(externalDataset0.applies).to.have.length(2);
+        expect(externalDataset0.toJS().attributes).to.deep.equal([
           { name: "Count", "type": "NUMBER" },
           { name: "TotalAdded", "type": "NUMBER" }
+        ]);
+
+        var externalDataset1 = readyExternals[1].external;
+        expect(externalDataset1.applies).to.have.length(2);
+        expect(externalDataset1.toJS().attributes).to.deep.equal([
+          { name: "Page", "type": "STRING" },
+          { name: "Count", "type": "NUMBER" },
+          { name: "Added", "type": "NUMBER" }
         ]);
       });
 
@@ -1286,9 +1307,11 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        expect(ex.op).to.equal('chain');
-        expect(ex.actions).to.have.length(1);
-        expect(ex.expression.op).to.equal('literal');
+        var readyExternals = ex.value.getReadyExternals();
+        expect(readyExternals.length).to.equal(1);
+
+        var externalDataset = readyExternals[0].external;
+        expect(externalDataset.mode).to.equal('split');
       });
 
       it("works with a total and a split with a parent reference", () => {
@@ -1305,14 +1328,11 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        expect(ex.op).to.equal('chain');
-        expect(ex.actions).to.have.length(1);
+        var readyExternals = ex.value.getReadyExternals();
+        expect(readyExternals.length).to.equal(1);
 
-        var externalDataset = ex.expression.external;
-        expect(externalDataset.applies).to.have.length(1);
-        expect(externalDataset.toJS().attributes).to.deep.equal([
-          { name: "Count", "type": "NUMBER" }
-        ]);
+        var externalDataset = readyExternals[0].external;
+        expect(externalDataset.mode).to.equal('value');
       });
 
       it("works with a total and a split in a strange order", () => {
@@ -1336,14 +1356,22 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        expect(ex.op).to.equal('chain');
-        expect(ex.actions).to.have.length(1);
+        var readyExternals = ex.value.getReadyExternals();
+        expect(readyExternals.length).to.equal(2);
 
-        var externalDataset = ex.expression.external;
-        expect(externalDataset.applies).to.have.length(2);
-        expect(externalDataset.toJS().attributes).to.deep.equal([
+        var externalDataset0 = readyExternals[0].external;
+        expect(externalDataset0.mode).to.equal('total');
+        expect(externalDataset0.toJS().attributes).to.deep.equal([
           { name: "Count", "type": "NUMBER" },
           { name: "TotalAdded", "type": "NUMBER" }
+        ]);
+
+        var externalDataset1 = readyExternals[1].external;
+        expect(externalDataset1.mode).to.equal('split');
+        expect(externalDataset1.toJS().attributes).to.deep.equal([
+          { name: "Page", "type": "STRING" },
+          { name: "Count", "type": "NUMBER" },
+          { name: "Added", "type": "NUMBER" }
         ]);
       });
 
@@ -1363,10 +1391,10 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        expect(ex.op).to.equal('chain');
-        expect(ex.actions).to.have.length(1);
+        var readyExternals = ex.getReadyExternals();
+        expect(Object.keys(readyExternals)).to.deep.equal(['1']);
 
-        var externalDataset = ex.expression.external;
+        var externalDataset = readyExternals['1'].external;
         expect(externalDataset.applies).to.have.length(2);
         expect(externalDataset.limit.limit).to.equal(5);
         expect(externalDataset.toJS().attributes).to.deep.equal([
@@ -1423,10 +1451,11 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        expect(ex.op).to.equal('chain');
-        expect(ex.actions).to.have.length(3);
+        var readyExternals = ex.value.getReadyExternals();
+        expect(readyExternals.length).to.equal(1);
 
-        expect(ex.actions.map(a => a.name)).to.deep.equal(['Pages', 'MinCount', 'MaxAdded']);
+        var externalDataset = readyExternals[0].external;
+        expect(externalDataset.mode).to.equal('split');
       });
 
       it("works with a split and a further split", () => {
@@ -1438,8 +1467,9 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        expect(ex.op).to.equal('chain');
-        expect(ex.actions.map(a => a.action)).to.deep.equal(['split', 'apply']);
+        var readyExternals = ex.getReadyExternals();
+        expect(Object.keys(readyExternals)).to.deep.equal(['1']);
+        expect(readyExternals['1'].external.mode).to.deep.equal('split');
       });
 
     });

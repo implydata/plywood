@@ -685,7 +685,9 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       } else if (ex instanceof ChainExpression) {
         var exExpression = ex.expression;
         if (exExpression instanceof ExternalExpression) {
-          externalsByIndex[index + 1] = { external: exExpression.external };
+          if (ex.actions.every(action => action.resolved())) {
+            externalsByIndex[index + 1] = { external: exExpression.external };
+          }
           return true;
         }
 
@@ -1407,9 +1409,13 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     for (var k in context) {
       if (!hasOwnProperty(context, k)) continue;
       var value = context[k];
-      expressions[k] = External.isExternal(value) ?
-        new ExternalExpression({ external: <External>value }) :
-        new LiteralExpression({ value });
+      if (External.isExternal(value)) {
+        expressions[k] = new ExternalExpression({ external: <External>value });
+      } else if (Expression.isExpression(value)) {
+        expressions[k] = value;
+      } else {
+        expressions[k] = new LiteralExpression({ value });
+      }
     }
 
     return this.resolveWithExpressions(expressions, ifNotFound);
@@ -1418,7 +1424,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public resolveWithExpressions(expressions: Lookup<Expression>, ifNotFound: IfNotFound = 'throw'): Expression {
     return this.substitute((ex: Expression, index: int, depth: int, nestDiff: int) => {
       if (ex instanceof RefExpression) {
-        var { nest, ignoreCase, name } = ex;
+        const { nest, ignoreCase, name } = ex;
         if (nestDiff === nest) {
           var foundExpression: Expression = null;
           var valueFound = false;
@@ -1426,8 +1432,20 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
           if (property != null) {
             foundExpression = expressions[property];
             valueFound = true;
-          } else {
-            valueFound = false;
+          }
+
+          if (foundExpression instanceof ExternalExpression) {
+            var mode = foundExpression.external.mode;
+
+            // Never substitute split externals at all
+            if (mode === 'split') {
+              return ex;
+            }
+
+            // Never substitute non-raw externals from an outside nesting
+            if (nest > 0 && mode !== 'raw') {
+              return ex;
+            }
           }
 
           if (valueFound) {

@@ -256,27 +256,33 @@ export class DruidExternal extends External {
     return result && typeof result.version === 'string';
   }
 
-  static timeBoundaryPostProcessFactory(applies: ApplyAction[]): PostProcess {
-    return (res: Druid.TimeBoundaryResults): Dataset => {
+  static timeBoundaryPostProcessFactory(applies?: ApplyAction[]): PostProcess {
+    return (res: Druid.TimeBoundaryResults): Date | TotalContainer => {
       if (!DruidExternal.correctTimeBoundaryResult(res)) throw new InvalidResultError("unexpected result from Druid (timeBoundary)", res);
 
-      var result = res[0].result;
-      var datum: Datum = {};
-      for (let apply of applies) {
-        let name = apply.name;
-        let aggregate = (<ChainExpression>apply.expression).actions[0].action;
-        if (typeof result === 'string') {
-          datum[name] = new Date(result);
-        } else {
-          if (aggregate === 'max') {
-            datum[name] = new Date(<string>(result['maxIngestedEventTime'] || result['maxTime']));
+      var result: any = res[0].result;
+
+      if (applies) {
+        var datum: Datum = {};
+        for (let apply of applies) {
+          let name = apply.name;
+          let aggregate = (<ChainExpression>apply.expression).actions[0].action;
+          if (typeof result === 'string') {
+            datum[name] = new Date(result);
           } else {
-            datum[name] = new Date(<string>(result['minTime']));
+            if (aggregate === 'max') {
+              datum[name] = new Date((result['maxIngestedEventTime'] || result['maxTime']) as string);
+            } else {
+              datum[name] = new Date(result['minTime'] as string);
+            }
           }
         }
-      }
 
-      return new Dataset({ data: [datum] });
+        return new TotalContainer(datum);
+
+      } else {
+        return new Date((result['maxIngestedEventTime'] || result['maxTime'] || result['minTime']) as string);
+      }
     };
   }
 
@@ -2179,8 +2185,7 @@ export class DruidExternal extends External {
     throw new Error(`could not convert filter ${filter} to Druid having filter`);
   }
 
-  public isMinMaxTimeApply(apply: ApplyAction): boolean {
-    var applyExpression = apply.expression;
+  public isMinMaxTimeExpression(applyExpression: Expression): boolean {
     if (applyExpression instanceof ChainExpression) {
       var actions = applyExpression.actions;
       if (actions.length !== 1) return false;
@@ -2193,7 +2198,7 @@ export class DruidExternal extends External {
   }
 
   public getTimeBoundaryQueryAndPostProcess(): QueryAndPostProcess<Druid.Query> {
-    const { applies, context } = this;
+    const { mode, context } = this;
     var druidQuery: Druid.Query = {
       queryType: "timeBoundary",
       dataSource: this.getDruidDataSource()
@@ -2203,11 +2208,20 @@ export class DruidExternal extends External {
       druidQuery.context = context;
     }
 
-    if (applies.length === 1) {
-      var loneApplyExpression = <ChainExpression>applies[0].expression;
-      // Max time only
-      druidQuery.bound = loneApplyExpression.actions[0].action + "Time";
-      // druidQuery.queryType = "dataSourceMetadata";
+    var applies: ApplyAction[] = null;
+    if (mode === 'total') {
+      applies = this.applies;
+      if (applies.length === 1) {
+        var loneApplyExpression = <ChainExpression>applies[0].expression;
+        // Max time only
+        druidQuery.bound = loneApplyExpression.actions[0].action + "Time";
+        // druidQuery.queryType = "dataSourceMetadata";
+      }
+    } else if (mode === 'value') {
+      const { valueExpression } = this;
+      druidQuery.bound = valueExpression.actions[0].action + "Time";
+    } else {
+      throw new Error(`invalid mode '${mode}' for timeBoundary`);
     }
 
     return {
@@ -2218,7 +2232,10 @@ export class DruidExternal extends External {
 
   public getQueryAndPostProcess(): QueryAndPostProcess<Druid.Query> {
     const { mode, applies, sort, limit, context } = this;
-    if (applies && applies.length && applies.every(this.isMinMaxTimeApply, this)) {
+
+    if (mode === 'total' && applies && applies.length && applies.every(apply => this.isMinMaxTimeExpression(apply.expression))) {
+      return this.getTimeBoundaryQueryAndPostProcess();
+    } else if (mode === 'value' && this.isMinMaxTimeExpression(this.valueExpression)) {
       return this.getTimeBoundaryQueryAndPostProcess();
     }
 

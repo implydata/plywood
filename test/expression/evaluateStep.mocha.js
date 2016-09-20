@@ -72,12 +72,7 @@ describe("evaluate step", () => {
         {
           "external": "External",
           "index": 0,
-          "key": "Total"
-        },
-        {
-          "external": "External",
-          "index": 0,
-          "key": "TotalX2"
+          "key": ""
         },
         {
           "external": "External",
@@ -102,14 +97,8 @@ describe("evaluate step", () => {
         {
           "external": "External",
           "index": 0,
-          "key": "Total",
-          "result": "Ex(value)"
-        },
-        {
-          "external": "External",
-          "index": 0,
-          "key": "TotalX2",
-          "result": "Ex(value)"
+          "key": "",
+          "result": "Ex(total)"
         },
         {
           "external": "External",
@@ -136,14 +125,13 @@ describe("evaluate step", () => {
         {
           "external": "External",
           "index": 0,
-          "key": "Total",
-          "result": 4
-        },
-        {
-          "external": "External",
-          "index": 0,
-          "key": "TotalX2",
-          "result": 4
+          "key": "",
+          "result": {
+            "datum": {
+              "Total": 4,
+              "TotalX2": 4
+            }
+          }
         },
         {
           "external": "External",

@@ -575,21 +575,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       var datum = data[i];
       var newDatum = Object.create(null);
       for (let key in datum) newDatum[key] = datum[key];
-      var newValue = exFn(datum, context, i);
-      if (newValue instanceof External && newValue.mode === 'value') {
-        for (let key in datum) {
-          let possibleExternal = datum[key];
-          if (possibleExternal instanceof External) {
-            var totalExternal = possibleExternal.mergeAsTotal(key, name, newValue);
-            if (totalExternal) {
-              // This part is a hack, the first external will become a total and aggregate into it all of the other 'value' externals ToDo!
-              newDatum[key] = totalExternal;
-              newValue = null;
-            }
-          }
-        }
-      }
-      newDatum[name] = newValue;
+      newDatum[name] = exFn(datum, context, i);
       newData[i] = newDatum;
     }
 
@@ -774,19 +760,24 @@ export class Dataset implements Instance<DatasetValue, any> {
 
     for (var i = 0; i < data.length; i++) {
       var datum = data[i];
+      var normalExternalAlterations: DatasetExternalAlterations = [];
+      var valueExternalAlterations: DatasetExternalAlterations = [];
       for (var attribute of attributes) {
         var value = datum[attribute.name];
         if (value instanceof Expression) {
-          externalAlterations.push({
-            index: i,
-            key: attribute.name,
-            expressionAlterations: value.getReadyExternals()
-          });
+          var subExpressionAlterations = value.getReadyExternals();
+          if (Object.keys(subExpressionAlterations).length) {
+            normalExternalAlterations.push({
+              index: i,
+              key: attribute.name,
+              expressionAlterations: subExpressionAlterations
+            });
+          }
 
         } else if (value instanceof Dataset) {
           var subDatasetAlterations = value.getReadyExternals();
           if (subDatasetAlterations.length) {
-            externalAlterations.push({
+            normalExternalAlterations.push({
               index: i,
               key: attribute.name,
               datasetAlterations: subDatasetAlterations
@@ -795,14 +786,35 @@ export class Dataset implements Instance<DatasetValue, any> {
 
         } else if (value instanceof External) {
           if (!value.suppress) {
-            externalAlterations.push({
+            var externalAlteration: DatasetExternalAlteration = {
               index: i,
               key: attribute.name,
               external: value
-            });
-          }
+            };
 
+            if (value.mode === 'value') {
+              valueExternalAlterations.push(externalAlteration);
+            } else {
+              normalExternalAlterations.push(externalAlteration);
+            }
+          }
         }
+      }
+
+      if (valueExternalAlterations.length) {
+        if (valueExternalAlterations.length === 1) {
+          externalAlterations.push(valueExternalAlterations[0]);
+        } else {
+          externalAlterations.push({
+            index: i,
+            key: '',
+            external: External.uniteValueExternalsIntoTotal(valueExternalAlterations)
+          });
+        }
+      }
+
+      if (normalExternalAlterations.length) {
+        Array.prototype.push.apply(externalAlterations, normalExternalAlterations);
       }
     }
     return externalAlterations;
@@ -819,7 +831,7 @@ export class Dataset implements Instance<DatasetValue, any> {
         if (result instanceof TotalContainer) {
           var resultDatum = result.datum;
           for (var k in resultDatum) {
-            result[k] = resultDatum[k];
+            datum[k] = resultDatum[k];
           }
         } else {
           datum[key] = result;

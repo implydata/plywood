@@ -238,65 +238,6 @@ export class ChainExpression extends Expression {
       }
     }
 
-    // Looks like: ply().apply(ValueExternal()).apply(ValueExternal()).apply(ValueExternal())
-    var dataset = expression.getLiteralValue();
-    if (Dataset.isDataset(dataset) && dataset.basis()) {
-      if (baseExternals.length > 1) {
-        throw new Error('multiple externals not supported for now'); // ToDo: would need to do a join at this point
-      }
-
-      var dataDefinitions: Lookup<ExternalExpression> = Object.create(null);
-      var hasExternalValueApply = false;
-      var applies: ApplyAction[] = [];
-      var undigestedActions: Action[] = [];
-      var allActions: Action[] = [];
-
-      for (let action of actions) {
-        if (action instanceof ApplyAction) {
-          var substitutedAction = <ApplyAction>action.substitute((ex, index, depth, nestDiff) => {
-            if (ex instanceof RefExpression && ex.type === 'DATASET' && nestDiff === 1) {
-              return dataDefinitions[ex.name] || null;
-            }
-            return null;
-          }).simplify();
-
-          if (substitutedAction.expression instanceof ExternalExpression) {
-            var externalMode = (<ExternalExpression>substitutedAction.expression).external.mode;
-            if (externalMode === 'raw') {
-              dataDefinitions[substitutedAction.name] = <ExternalExpression>substitutedAction.expression;
-            } else if (externalMode === 'value') {
-              applies.push(substitutedAction);
-              allActions.push(substitutedAction);
-              hasExternalValueApply = true;
-            } else {
-              undigestedActions.push(substitutedAction);
-              allActions.push(substitutedAction);
-            }
-          } else if (substitutedAction.expression.type !== 'DATASET') {
-            applies.push(substitutedAction);
-            allActions.push(substitutedAction);
-          } else {
-            undigestedActions.push(substitutedAction);
-            allActions.push(substitutedAction);
-          }
-        } else {
-          undigestedActions.push(action);
-          allActions.push(action);
-        }
-      }
-
-      var newExpression: Expression;
-      if (hasExternalValueApply) {
-        var combinedExternal = baseExternals[0].makeTotal(applies);
-        if (!combinedExternal) throw new Error('something went wrong');
-        newExpression = new ExternalExpression({ external: combinedExternal });
-        if (undigestedActions.length) newExpression = newExpression.performActions(undigestedActions, true);
-        return newExpression;
-      } else {
-        return ply().performActions(allActions);
-      }
-    }
-
     // Looks like: $().blah().blah(ValueExternal()).blah()
     return this.substituteAction(
       (action) => {

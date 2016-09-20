@@ -558,6 +558,24 @@ export abstract class External {
     return classFn;
   }
 
+  static uniteValueExternalsIntoTotal(keyExternals: { key: string, external?: External }[]): External {
+    if (keyExternals.length === 0) return null;
+    var applies: ApplyAction[] = [];
+
+    var baseExternal: External = null;
+    for (var keyExternal of keyExternals) {
+      var key = keyExternal.key;
+      var external = keyExternal.external;
+      if (!baseExternal) baseExternal = external;
+      applies.push(new ApplyAction({
+        name: key,
+        expression: new ExternalExpression({ external })
+      }));
+    }
+
+    return keyExternals[0].external.getBase().makeTotal(applies);
+  }
+
   static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any> = null): External {
     if (!hasOwnProperty(parameters, "engine")) {
       throw new Error("external `engine` must be defined");
@@ -976,54 +994,6 @@ export abstract class External {
     return totalExternal;
   }
 
-  public makeTotalSimple(myName: string): External {
-    if (this.mode !== 'value') return null;
-    if (!this.canHandleTotal()) return null;
-
-    var value = this.getRaw().valueOf();
-    value.mode = 'total';
-    value.suppress = false;
-    value.rawAttributes = value.attributes;
-    value.attributes = [];
-    value.applies = [];
-    value.delegates = nullMap(value.delegates, (e) => e.makeTotalSimple(myName));
-
-    return External.fromValue(value)._addApplyAction(new ApplyAction({
-      name: myName,
-      expression: this.valueExpression
-    }));
-  }
-
-  public mergeAsTotal(myName: string, otherName: string, otherExternal: External): External {
-    if (!(this.mode === 'value' || this.mode === 'total')) return null;
-    if (!(otherExternal.mode === 'value' || otherExternal.mode === 'total')) return null;
-
-    var myTotal: External = this;
-    if (this.mode === 'value') {
-      if (otherExternal.mode === 'total') return otherExternal.mergeAsTotal(otherName, myName, this);
-      myTotal = this.makeTotalSimple(myName);
-      if (!myTotal) return null;
-    }
-
-    var commonFilter = getCommonFilter(myTotal.filter, otherExternal.filter);
-    var commonDerivedAttributes = mergeDerivedAttributes(myTotal.derivedAttributes, otherExternal.derivedAttributes);
-    var myExtraFilter = filterDiff(myTotal.filter, commonFilter);
-    if (!myExtraFilter) return null;
-
-    var value = myTotal.valueOf();
-    value.filter = commonFilter;
-    value.derivedAttributes = commonDerivedAttributes;
-    //value.delegates = nullMap(value.delegates, (e) => e.mergeAsTotal(myName, otherName, otherExternal.delegates[0]));
-    value.applies = value.applies.map((apply) => {
-      return apply.changeExpression(External.addExtraFilter(apply.expression as ChainExpression, myExtraFilter)) as ApplyAction;
-    });
-
-    return External.fromValue(value)._addApplyAction(new ApplyAction({
-      name: otherName,
-      expression: new ExternalExpression({ external: otherExternal })
-    }));
-  }
-
   public addAction(action: Action): External {
     if (action instanceof FilterAction) {
       return this._addFilterAction(action);
@@ -1342,7 +1312,7 @@ export abstract class External {
     return delegates[0];
   }
 
-  public simulateValue(lastNode: boolean, simulatedQueries: any[], externalForNext: External = null): PlywoodValue {
+  public simulateValue(lastNode: boolean, simulatedQueries: any[], externalForNext: External = null): PlywoodValue | TotalContainer {
     const { mode } = this;
 
     if (!externalForNext) externalForNext = this;
@@ -1377,6 +1347,10 @@ export abstract class External {
       for (let apply of applies) {
         datum[apply.name] = getSampleValue(apply.expression.type, apply.expression);
       }
+    }
+
+    if (mode === 'total') {
+      return new TotalContainer(datum);
     }
 
     var dataset = new Dataset({ data: [datum] });
