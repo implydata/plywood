@@ -735,11 +735,11 @@ describe("Simplify", () => {
   describe('filter', () => {
     it('consecutive filters fold together', () => {
       var ex1 = ply()
-        .filter('$x == 1')
-        .filter('$y == 2');
+        .filter('$^x == 1')
+        .filter('$^y == 2');
 
       var ex2 = ply()
-        .filter('$x == 1 and $y == 2');
+        .filter('$^x == 1 and $^y == 2');
 
       simplifiesTo(ex1, ex2);
     });
@@ -749,10 +749,10 @@ describe("Simplify", () => {
         .apply('Wiki', '$^wiki.sum($deleted)')
         .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
         .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)')
-        .filter('$x == "en"');
+        .filter('$^x == "en"');
 
       var ex2 = ply()
-        .filter('$x == "en"')
+        .filter('$^x == "en"')
         .apply('Wiki', '$^wiki.sum($deleted)')
         .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
         .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)');
@@ -833,10 +833,10 @@ describe("Simplify", () => {
     it('can move past a sort', () => {
       var ex1 = ply()
         .sort('$deleted', 'ascending')
-        .filter('$AddedByDeleted == 1');
+        .filter('$^AddedByDeleted == 1');
 
       var ex2 = ply()
-        .filter('$AddedByDeleted == 1')
+        .filter('$^AddedByDeleted == 1')
         .sort('$deleted', 'ascending');
 
       simplifiesTo(ex1, ex2);
