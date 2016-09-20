@@ -297,7 +297,7 @@ export abstract class External {
 
     function addToUniqueExternals(external: External) {
       for (let uniqueExternal of uniqueExternals) {
-        if (uniqueExternal.equalBase(external)) return;
+        if (uniqueExternal.equalBaseAndFilter(external)) return;
       }
       uniqueExternals.push(external);
     }
@@ -798,12 +798,17 @@ export abstract class External {
   }
 
   public equals(other: External): boolean {
-    return this.equalBase(other) &&
+    return this.equalBaseAndFilter(other) &&
       immutableLookupsEqual(this.derivedAttributes, other.derivedAttributes) &&
       immutableArraysEqual(this.attributes, other.attributes) &&
       immutableArraysEqual(this.delegates, other.delegates) &&
       this.concealBuckets === other.concealBuckets &&
       Boolean(this.requester) === Boolean(other.requester);
+  }
+
+  public equalBaseAndFilter(other: External): boolean {
+    return this.equalBase(other) &&
+      this.filter.equals(other.filter);
   }
 
   public equalBase(other: External): boolean {
@@ -812,8 +817,7 @@ export abstract class External {
       String(this.source) === String(other.source) &&
       this.version === other.version &&
       this.rollup === other.rollup &&
-      this.mode === other.mode &&
-      this.filter.equals(other.filter);
+      this.mode === other.mode;
   }
 
   public changeVersion(version: string) {
