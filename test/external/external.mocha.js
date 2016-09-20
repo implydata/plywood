@@ -1335,6 +1335,25 @@ describe("External", () => {
         expect(externalDataset.mode).to.equal('value');
       });
 
+      it("works with up reference", () => {
+        var ex = ply()
+          .apply('Count', '$wiki.count()')
+          .apply(
+            'Pages',
+            $('wiki').split("$page", 'Page')
+              .apply('Count', $('wiki').count())
+              .apply('PercentOfTotal', '$Count / $^Count')
+          );
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        var readyExternals = ex.value.getReadyExternals();
+        expect(readyExternals.length).to.equal(1);
+
+        var externalDataset = readyExternals[0].external;
+        expect(externalDataset.mode).to.equal('value');
+      });
+
       it("works with a total and a split in a strange order", () => {
         var ex = ply()
           .apply(

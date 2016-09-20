@@ -72,7 +72,7 @@ describe("simulate Druid for amplab benchmark", () => {
     );
 
     var queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan).to.deep.equal([
+    expect(queryPlan[0]).to.deep.equal([
       {
         "dataSource": "rankings",
         "dimensions": [
@@ -114,7 +114,7 @@ describe("simulate Druid for amplab benchmark", () => {
     );
 
     var queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan).to.deep.equal([
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -167,7 +167,7 @@ describe("simulate Druid for amplab benchmark", () => {
     );
 
     var queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan).to.deep.equal([
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {

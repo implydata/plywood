@@ -316,7 +316,8 @@ describe("simulate Druid 0.9.0", () => {
       );
 
     var queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan).to.deep.equal([
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -347,7 +348,10 @@ describe("simulate Druid 0.9.0", () => {
         },
         "queryType": "topN",
         "threshold": 10
-      },
+      }
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -395,7 +399,8 @@ describe("simulate Druid 0.9.0", () => {
       );
 
     var queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan).to.deep.equal([
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -490,7 +495,7 @@ describe("simulate Druid 0.9.0", () => {
     ]);
   });
 
-  it("makes a filtered aggregate query", () => {
+  it("makes a filtered aggregate query 2", () => {
     var ex = ply()
       .apply(
         'BySegment',

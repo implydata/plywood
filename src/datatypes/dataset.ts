@@ -851,6 +851,16 @@ export class Dataset implements Instance<DatasetValue, any> {
         throw new Error('fell through');
       }
     }
+
+    for (datum of data) {
+      for (var key in datum) {
+        var v = datum[key];
+        if (v instanceof Expression) {
+          datum[key] = v.resolve(datum).simplify();
+        }
+      }
+    }
+
     return this; // hack, in place for now
   }
 

@@ -2120,7 +2120,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it("makes a filtered aggregate query", () => {
+  it("makes a filtered aggregate query 2", () => {
     var ex = ply()
       .apply(
         'BySegment',
@@ -2623,18 +2623,15 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it.only("makes a query with countDistinct", () => {
+  it("makes a query with countDistinct", () => {
     var ex = ply()
       .apply('NumColors', '$diamonds.countDistinct($color)')
       .apply('NumVendors', '$diamonds.countDistinct($vendor_id)')
       .apply('VendorsByColors', '$NumVendors / $NumColors');
 
     ex = ex.referenceCheck(context).resolve(context).simplify();
-    console.log('ex', ex.value.data[0]['VendorsByColors']);
-    return; // ToDo: !!
 
     var queryPlan = ex.simulateQueryPlan(context);
-    console.log('queryPlan', JSON.stringify(queryPlan, null, 2));
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
       {

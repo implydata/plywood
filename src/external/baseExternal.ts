@@ -1159,13 +1159,13 @@ export abstract class External {
   private _addPostAggregateAction(action: Action): External {
     if (this.mode !== 'value') throw new Error('must be in value mode to call addPostAggregateAction');
     var actionExpression = action.expression;
-    // ToDo: do I need to run  expressionDefined here?
+    // ToDo: do I need to run expressionDefined here?
 
     var commonFilter = this.filter;
     var newValueExpression: ChainExpression;
     if (actionExpression instanceof ExternalExpression) {
       var otherExternal = actionExpression.external;
-      if (!this.getBase().equals(otherExternal.getBase())) return null;
+      if (!this.equalBase(otherExternal)) return null;
 
       var commonFilter = getCommonFilter(commonFilter, otherExternal.filter);
       var newAction = action.changeExpression(otherExternal.valueExpressionWithinFilter(commonFilter));
