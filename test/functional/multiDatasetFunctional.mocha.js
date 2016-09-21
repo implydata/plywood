@@ -101,24 +101,22 @@ describe("Multi Dataset Functional", function() {
   this.timeout(10000);
 
   // ToDo: make this work
-  it.skip("works in basic case", (testComplete) => {
+  it.skip("works in basic case", () => {
     var ex = ply()
       .apply("wiki_druid", $('wiki_druid').filter($("channel").is('en')))
       .apply('TotalAddedDruid', '$wiki_druid.sum($added)')
       .apply("wiki_mysql", $('wiki_mysql').filter($("channel").is('en')))
       .apply('TotalAddedMySQL', '$wiki_mysql.sum($added)');
 
-    mixedExecutor(ex)
+    return mixedExecutor(ex)
       .then((result) => {
         expect(result.toJS()).to.deep.equal([
 
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("mixed split case", (testComplete) => {
+  it("mixed split case", () => {
     var ex = $('wiki_mysql').split("$channel", "Channel")
       .apply('TotalAddedMySQL', '$wiki_mysql.sum($added)')
       .sort('$TotalAddedMySQL', 'descending')
@@ -133,7 +131,7 @@ describe("Multi Dataset Functional", function() {
       );
 
 
-    mixedExecutor(ex)
+    return mixedExecutor(ex)
       .then((result) => {
         expect(result.toJS()).to.deep.equal([
           {
@@ -191,9 +189,7 @@ describe("Multi Dataset Functional", function() {
             "TotalAddedMySQL": 7050247
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
 });
