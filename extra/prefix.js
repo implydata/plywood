@@ -1,6 +1,6 @@
 'use strict';
 
-var Q = require('q');
+var Q = require('q-tsc');
 
 var immutableClass = require('immutable-class');
 var isInstanceOf = immutableClass.isInstanceOf;

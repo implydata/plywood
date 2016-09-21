@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.12.10
+
+- Allow bug fixes in deps
+
 ## 0.12.9
 
 - Transition to better build system
