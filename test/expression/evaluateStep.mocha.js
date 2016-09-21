@@ -75,6 +75,7 @@ describe("evaluate step", () => {
         },
         {
           "external": "External",
+          "terminal": true,
           "index": 0,
           "key": "SomeSplit"
         },
@@ -101,6 +102,7 @@ describe("evaluate step", () => {
         },
         {
           "external": "External",
+          "terminal": true,
           "index": 0,
           "key": "SomeSplit",
           "result": "Ex(split)"
@@ -134,6 +136,7 @@ describe("evaluate step", () => {
         },
         {
           "external": "External",
+          "terminal": true,
           "index": 0,
           "key": "SomeSplit",
           "result": [
@@ -191,6 +194,7 @@ describe("evaluate step", () => {
           "datasetAlterations": [
             {
               "external": "External",
+              "terminal": true,
               "index": 0,
               "key": "SubSplit"
             }
@@ -208,6 +212,7 @@ describe("evaluate step", () => {
           "datasetAlterations": [
             {
               "external": "External",
+              "terminal": true,
               "index": 0,
               "key": "SubSplit",
               "result": [
