@@ -16,12 +16,11 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Indexer, Alterations } from "../expressions/baseExpression";
+import { Action, ActionJS, ActionValue, AggregateAction } from "./baseAction";
+import { PlyType } from "../types";
 import { SQLDialect } from "../dialect/baseDialect";
 
-export class MaxAction extends Action {
+export class MaxAction extends AggregateAction {
   static fromJS(parameters: ActionJS): MaxAction {
     return new MaxAction(Action.jsToValue(parameters));
   }
@@ -32,32 +31,8 @@ export class MaxAction extends Action {
     this._checkExpressionTypes('NUMBER', 'TIME');
   }
 
-  public getNecessaryInputTypes(): PlyType | PlyType[] {
-    return 'DATASET';
-  }
-
-  public getOutputType(inputType: PlyType): PlyType {
-    this._checkInputTypes(inputType);
-    return 'NUMBER';
-  }
-
-  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-    return {
-      type: 'NUMBER'
-    };
-  }
-
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
     return `MAX(${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL)})`;
-  }
-
-  public isAggregate(): boolean {
-    return true;
-  }
-
-  public isNester(): boolean {
-    return true;
   }
 }
 

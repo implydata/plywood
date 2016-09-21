@@ -19,6 +19,7 @@
 
 import { Timezone, Duration } from "chronoshift";
 import {
+  r,
   Expression,
   ExpressionJS,
   Indexer,
@@ -580,3 +581,42 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 }
 
+
+export abstract class AggregateAction extends Action {
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'DATASET';
+  }
+
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
+
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    const { expression } = this;
+    if (expression) {
+      expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    }
+    return {
+      type: 'NUMBER'
+    };
+  }
+
+  public isAggregate(): boolean {
+    return true;
+  }
+
+  public isNester(): boolean {
+    return true;
+  }
+
+  protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    const { action, expression } = this;
+    if (literalExpression.value === null) return Expression.NULL;
+    var dataset = literalExpression.value;
+
+    dataset = dataset[action](expression ? expression.getFn() : null);
+
+    return r(dataset);
+  }
+}

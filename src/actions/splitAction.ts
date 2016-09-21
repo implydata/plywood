@@ -17,7 +17,7 @@
 
 import { Action, ActionJS, ActionValue, Splits, SplitsJS } from "./baseAction";
 import { PlyType, DatasetFullType, SimpleFullType, FullType } from "../types";
-import { Expression, Indexer, Alterations, r, SubstitutionFn } from "../expressions/baseExpression";
+import { Expression, Indexer, Alterations, r, SubstitutionFn, LiteralExpression } from "../expressions/index";
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn } from "../datatypes/dataset";
 import { unwrapSetType } from "../datatypes/common";
@@ -277,6 +277,17 @@ export class SplitAction extends Action {
 
   public isAggregate() {
     return true;
+  }
+
+  protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    //if (!expression.resolved()) return null;
+    if (literalExpression.value === null) return Expression.NULL;
+    var dataset = literalExpression.value;
+
+    var splitFns = this.mapSplitExpressions((ex) => ex.getFn());
+    dataset = dataset.split(splitFns, this.dataName, null);
+
+    return r(dataset);
   }
 }
 

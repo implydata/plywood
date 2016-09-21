@@ -16,13 +16,13 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
+import { Action, ActionJS, ActionValue, AggregateAction } from "./baseAction";
+import { PlyType } from "../types";
+import { Expression } from "../expressions/index";
 import { SQLDialect } from "../dialect/baseDialect";
 import { LiteralExpression } from "../expressions/literalExpression";
 
-export class SumAction extends Action {
+export class SumAction extends AggregateAction {
   static fromJS(parameters: ActionJS): SumAction {
     return new SumAction(Action.jsToValue(parameters));
   }
@@ -33,32 +33,8 @@ export class SumAction extends Action {
     this._checkExpressionTypes('NUMBER');
   }
 
-  public getNecessaryInputTypes(): PlyType | PlyType[] {
-    return 'DATASET';
-  }
-
-  public getOutputType(inputType: PlyType): PlyType {
-    this._checkInputTypes(inputType);
-    return 'NUMBER';
-  }
-
-  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-    return {
-      type: 'NUMBER'
-    };
-  }
-
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
     return `SUM(${dialect.aggregateFilterIfNeeded(inputSQL, expressionSQL)})`;
-  }
-
-  public isAggregate(): boolean {
-    return true;
-  }
-
-  public isNester(): boolean {
-    return true;
   }
 
   public canDistribute(): boolean {

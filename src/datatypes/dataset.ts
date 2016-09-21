@@ -62,6 +62,7 @@ export interface DatasetExternalAlteration {
   index: number;
   key: string;
   external?: External;
+  terminal?: boolean;
   result?: any;
   datasetAlterations?: DatasetExternalAlterations;
   expressionAlterations?: ExpressionExternalAlteration;
@@ -70,7 +71,7 @@ export interface DatasetExternalAlteration {
 export type DatasetExternalAlterations = DatasetExternalAlteration[];
 
 export interface AlterationFiller {
-  (external: External): any;
+  (external: External, terminal: boolean): any;
 }
 
 export function fillExpressionExternalAlteration(alteration: ExpressionExternalAlteration, filler: AlterationFiller): void {
@@ -79,7 +80,7 @@ export function fillExpressionExternalAlteration(alteration: ExpressionExternalA
     if (Array.isArray(thing)) {
       fillDatasetExternalAlterations(thing, filler);
     } else {
-      thing.result = filler(thing.external);
+      thing.result = filler(thing.external, thing.terminal);
     }
   }
 }
@@ -87,7 +88,7 @@ export function fillExpressionExternalAlteration(alteration: ExpressionExternalA
 export function fillDatasetExternalAlterations(alterations: DatasetExternalAlterations, filler: AlterationFiller): void {
   for (var alteration of alterations) {
     if (alteration.external) {
-      alteration.result = filler(alteration.external);
+      alteration.result = filler(alteration.external, alteration.terminal);
     } else if (alteration.datasetAlterations) {
       fillDatasetExternalAlterations(alteration.datasetAlterations, filler);
     } else if (alteration.expressionAlterations) {
@@ -123,15 +124,6 @@ export interface Column {
   name: string;
   type: string;
   columns?: Column[];
-}
-
-function typePreference(type: string): number {
-  switch (type) {
-    case 'TIME': return 0;
-    case 'STRING': return 1;
-    case 'DATASET': return 5;
-    default: return 2;
-  }
 }
 
 function uniqueColumns(columns: Column[]): Column[] {
@@ -780,7 +772,8 @@ export class Dataset implements Instance<DatasetValue, any> {
             var externalAlteration: DatasetExternalAlteration = {
               index: i,
               key: attribute.name,
-              external: value
+              external: value,
+              terminal: true
             };
 
             if (value.mode === 'value') {

@@ -81,13 +81,13 @@ import { ComputeFn } from "../datatypes/dataset";
 import { External, ExternalJS } from "../external/baseExternal";
 
 export interface AlterationFillerPromise {
-  (external: External): Q.Promise<any>;
+  (external: External, terminal: boolean): Q.Promise<any>;
 }
 
 function fillExpressionExternalAlterationAsync(alteration: ExpressionExternalAlteration, filler: AlterationFillerPromise): Q.Promise<ExpressionExternalAlteration> {
   var tasks: Q.Promise<any>[] = [];
-  fillExpressionExternalAlteration(alteration, (external) => {
-    tasks.push(filler(external));
+  fillExpressionExternalAlteration(alteration, (external, terminal) => {
+    tasks.push(filler(external, terminal));
     return null;
   });
 
@@ -105,6 +105,7 @@ function fillExpressionExternalAlterationAsync(alteration: ExpressionExternalAlt
 
 export interface ExpressionExternalAlterationSimple {
   external: External;
+  terminal?: boolean;
   result?: any;
 }
 
@@ -673,14 +674,15 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return External.deduplicateExternals(externals);
   }
 
-  // New!!!!!!!!!!!!!!!
-
   public getReadyExternals(): ExpressionExternalAlteration {
     var externalsByIndex: ExpressionExternalAlteration = {};
     this.every((ex: Expression, index: int) => {
       if (ex instanceof ExternalExpression) {
         if (!ex.external.suppress) {
-          externalsByIndex[index] = { external: ex.external };
+          externalsByIndex[index] = {
+            external: ex.external,
+            terminal: true
+          };
         }
 
       } else if (ex instanceof ChainExpression) {
@@ -1543,7 +1545,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       readyExpression = (<ExternalExpression>readyExpression).unsuppress();
     }
 
-    return readyExpression._computeResolvedSimulate(true, []);
+    return readyExpression._computeResolvedSimulate([]);
   }
 
 
@@ -1563,18 +1565,18 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     }
 
     var simulatedQueryGroups: any[] = [];
-    readyExpression._computeResolvedSimulate(true, simulatedQueryGroups);
+    readyExpression._computeResolvedSimulate(simulatedQueryGroups);
     return simulatedQueryGroups;
   }
 
-  public _computeResolvedSimulate(lastNode: boolean, simulatedQueryGroups: any[][]): PlywoodValue {
+  public _computeResolvedSimulate(simulatedQueryGroups: any[][]): PlywoodValue {
     var ex: Expression = this;
     var readyExternals = ex.getReadyExternals();
     var i = 0;
 
     while (Object.keys(readyExternals).length > 0 && i < 10) {
       var simulatedQueryGroup: any[] = [];
-      fillExpressionExternalAlteration(readyExternals, (external) => external.simulateValue(false, simulatedQueryGroup));
+      fillExpressionExternalAlteration(readyExternals, (external, terminal) => external.simulateValue(terminal, simulatedQueryGroup));
       simulatedQueryGroups.push(simulatedQueryGroup);
       ex = ex.applyReadyExternals(readyExternals);
       readyExternals = ex.getReadyExternals();
@@ -1603,11 +1605,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
           // Top level externals need to be unsuppressed
           readyExpression = readyExpression.unsuppress();
         }
-        return readyExpression._computeResolved(true);
+        return readyExpression._computeResolved();
       });
   }
 
-  public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
+  public _computeResolved(): Q.Promise<PlywoodValue> {
     var ex: Expression = this;
     var readyExternals = ex.getReadyExternals();
     var i = 0;
@@ -1615,7 +1617,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return promiseWhile(
       () => Object.keys(readyExternals).length > 0 && i < 10,
       () => {
-        return fillExpressionExternalAlterationAsync(readyExternals, (external) => external.queryValue(false)) // lastNode
+        return fillExpressionExternalAlterationAsync(readyExternals, (external, terminal) => external.queryValue(terminal))
           .then((readyExternalsFilled) => {
             ex = ex.applyReadyExternals(readyExternalsFilled);
             readyExternals = ex.getReadyExternals();

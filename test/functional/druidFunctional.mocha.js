@@ -100,11 +100,10 @@ describe("Druid Functional", function() {
     };
 
   describe("source list", () => {
-    it("does a source list", (testComplete) => {
+    it("does a source list", () => {
       DruidExternal.getSourceList(druidRequester)
         .then((sources) => {
           expect(sources).to.deep.equal(['wikipedia', 'wikipedia-compact']);
-          testComplete();
         })
         .done()
     });
@@ -171,7 +170,7 @@ describe("Druid Functional", function() {
       }
     });
 
-    it("works basic case to CSV", (testComplete) => {
+    it("works basic case to CSV", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply(
@@ -182,19 +181,17 @@ describe("Druid Functional", function() {
             .limit(2)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toCSV({ lineBreak: '\n' })).to.deep.equal(sane`
             City,TotalAdded
             null,31529720
             Mineola,50836
           `);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("aggregate and splits plus select work with ordering last split first", (testComplete) => {
+    it("aggregate and splits plus select work with ordering last split first", () => {
       var ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
@@ -202,15 +199,13 @@ describe("Druid Functional", function() {
         .select('Page', 'Count', 'isRobot', 'isNew')
         .limit(1);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Page', 'Count', 'isRobot', 'isNew']);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("aggregate and splits plus select work with ordering 2", (testComplete) => {
+    it("aggregate and splits plus select work with ordering 2", () => {
       var ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
@@ -218,15 +213,13 @@ describe("Druid Functional", function() {
         .select('isRobot', 'Page', 'isNew', 'Count')
         .limit(1);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['isRobot', 'Page', 'isNew', 'Count']);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("aggregate and splits plus select work with ordering, aggregate first", (testComplete) => {
+    it("aggregate and splits plus select work with ordering, aggregate first", () => {
       var ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
@@ -234,15 +227,13 @@ describe("Druid Functional", function() {
         .select('Count', 'isRobot', 'Page', 'isNew')
         .limit(1);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Count', 'isRobot', 'Page', 'isNew']);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works timePart case", (testComplete) => {
+    it("works timePart case", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply(
@@ -253,7 +244,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -273,33 +264,29 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with quarter call case", (testComplete) => {
+    it("works with quarter call case", () => {
       var ex = $('wiki')
         .filter($("channel").is('en'))
         .split("$time.timePart(QUARTER, 'Etc/UTC')", 'Quarter');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Quarter": 3
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with yearly call case long", (testComplete) => {
+    it("works with yearly call case long", () => {
       var ex = $('wiki')
         .split(i$('time').timeFloor('P3M'), 'tqr___time_ok');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -309,12 +296,10 @@ describe("Druid Functional", function() {
               }
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works in advanced case", (testComplete) => {
+    it("works in advanced case", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
@@ -342,7 +327,7 @@ describe("Druid Functional", function() {
             .limit(4)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -430,19 +415,17 @@ describe("Druid Functional", function() {
               "TotalAdded": 32553107
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with case transform in filter split and apply", (testComplete) => {
+    it("works with case transform in filter split and apply", () => {
       var ex = $('wiki')
         .filter($("channel").transformCase('upperCase').is('EN'))
         .split($("page").transformCase('lowerCase'), 'page')
         .apply('SumIndexA', $('wiki').sum($("page").transformCase('upperCase').indexOf("A")))
         .limit(8);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -478,48 +461,42 @@ describe("Druid Functional", function() {
               "page": "'marriage, migration and gender'"
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with custom transform in filter and split", (testComplete) => {
+    it("works with custom transform in filter and split", () => {
       var ex = $('wiki')
         .filter($("page").customTransform('sliceLastChar').is('z'))
         .split($("page").customTransform('getLastChar'), 'lastChar')
         .limit(8);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "lastChar": "z"
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with custom transform in filter and split for numeric dimension", (testComplete) => {
+    it("works with custom transform in filter and split for numeric dimension", () => {
       var ex = $('wiki')
         .filter($("commentLength").customTransform('concatWithConcat', 'STRING').is("'100concat'"))
         .split($("commentLength").customTransform('timesTwo', 'STRING'), "Times Two")
         .limit(8);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "Times Two": "200"
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with uniques", (testComplete) => {
+    it("works with uniques", () => {
       var ex = ply()
         .apply('UniquePages1', $('wiki').countDistinct("$page"))
         .apply('UniquePages2', $('wiki').countDistinct("$page_unique"))
@@ -530,7 +507,7 @@ describe("Druid Functional", function() {
         .apply('Diff_Users_2_3', '$UniqueUsers2 - $UniqueUsers3')
         .apply('Diff_Users_1_3', '$UniqueUsers1 - $UniqueUsers3');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -544,17 +521,15 @@ describe("Druid Functional", function() {
               "UniqueUsers3": 38164.49404386297
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with filtered unique (in expression)", (testComplete) => {
+    it("works with filtered unique (in expression)", () => {
       var ex = ply()
         .apply('UniquePagesEn', $('wiki').filter('$channel == en').countDistinct("$page"))
         .apply('UniquePagesEnOver2', '$UniquePagesEn / 2');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -562,18 +537,16 @@ describe("Druid Functional", function() {
               "UniquePagesEnOver2": 31924.92322935755
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with filtered uniques", (testComplete) => {
+    it("works with filtered uniques", () => {
       var ex = ply()
         .apply('UniquePagesEn', $('wiki').filter('$channel == en').countDistinct("$page"))
         .apply('UniquePagesEs', $('wiki').filter('$channel == es').countDistinct("$page_unique"))
         .apply('UniquePagesChannelDiff', '$UniquePagesEn - $UniquePagesEs');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -582,12 +555,10 @@ describe("Druid Functional", function() {
               "UniquePagesChannelDiff": 56979.49048966713
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with no applies in dimensions split dataset", (testComplete) => {
+    it("works with no applies in dimensions split dataset", () => {
       var ex = ply()
         .apply(
           'Channels',
@@ -603,7 +574,7 @@ describe("Druid Functional", function() {
             )
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -637,18 +608,16 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with absolute", (testComplete) => {
+    it("works with absolute", () => {
       var ex = ply()
         .apply("Count", $('wiki').filter($("channel").is('en')).sum('$count'))
         .apply('Negate', $('Count').negate())
         .apply('Abs', $('Count').negate().absolute().negate().absolute());
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -657,12 +626,10 @@ describe("Druid Functional", function() {
               "Negate": -114711
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with split on a SET/STRING dimension", (testComplete) => {
+    it("works with split on a SET/STRING dimension", () => {
       var ex = ply()
         .apply(
           'UserChars',
@@ -672,7 +639,7 @@ describe("Druid Functional", function() {
             .limit(4)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -696,12 +663,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with all kinds of cool aggregates on totals level", (testComplete) => {
+    it("works with all kinds of cool aggregates on totals level", () => {
       var ex = ply()
         .apply("NumPages", $('wiki').countDistinct('$page'))
         .apply("NumEnPages", $('wiki').filter($("channel").is('en')).countDistinct('$page'))
@@ -716,7 +681,7 @@ describe("Druid Functional", function() {
         .apply('Delta95th', $('wiki').quantile('$delta_hist', 0.95))
         .apply('Delta99thX2', $('wiki').quantile('$delta_hist', 0.99).multiply(2));
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -734,12 +699,10 @@ describe("Druid Functional", function() {
               "Delta99thX2": 328.9096984863281
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with all kinds of cool aggregates on split level", (testComplete) => {
+    it("works with all kinds of cool aggregates on split level", () => {
       var ex = $('wiki').split('$isNew', 'isNew')
         .apply("NumPages", $('wiki').countDistinct('$page'))
         .apply("NumEnPages", $('wiki').filter($("channel").is('en')).countDistinct('$page'))
@@ -752,7 +715,7 @@ describe("Druid Functional", function() {
         .apply('One', $('wiki').sum('$count').power(0))
         .limit(3);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -780,12 +743,10 @@ describe("Druid Functional", function() {
               "isNew": true
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with no applies in time split dataset", (testComplete) => {
+    it("works with no applies in time split dataset", () => {
       var ex = ply()
         .apply(
           'ByHour',
@@ -801,7 +762,7 @@ describe("Druid Functional", function() {
             )
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -860,27 +821,23 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("does not zero fill", (testComplete) => {
+    it("does not zero fill", () => {
       var ex = $('wiki')
         .filter('$cityName == "El Paso"')
         .split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
         .apply('Count', '$wiki.sum($count)')
         .sort('$TimeByHour', 'ascending');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.have.length(2);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with time split with quantile", (testComplete) => {
+    it("works with time split with quantile", () => {
       var ex = $('wiki')
         .filter('$cityName == "El Paso"')
         .split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
@@ -889,7 +846,7 @@ describe("Druid Functional", function() {
         .sort('$TimeByHour', 'ascending')
         .limit(3);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -911,12 +868,10 @@ describe("Druid Functional", function() {
               "count": 1
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with contains (case sensitive) filter", (testComplete) => {
+    it("works with contains (case sensitive) filter", () => {
       var ex = ply()
         .apply('wiki', $('wiki').filter($('page').contains('wiki')))
         .apply(
@@ -927,7 +882,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -947,12 +902,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with contains(ignoreCase) filter", (testComplete) => {
+    it("works with contains(ignoreCase) filter", () => {
       var ex = ply()
         .apply('wiki', $('wiki').filter($('page').contains('wiki', 'ignoreCase')))
         .apply(
@@ -963,7 +916,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -983,12 +936,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with match() filter", (testComplete) => {
+    it("works with match() filter", () => {
       var ex = ply()
         .apply('wiki', $('wiki').filter($('page').match('^.*Bot.*$')))
         .apply(
@@ -999,7 +950,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1019,12 +970,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with split sort on string", (testComplete) => {
+    it("works with split sort on string", () => {
       var ex = ply()
         .apply(
           'Channels',
@@ -1033,7 +982,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1050,12 +999,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with concat split", (testComplete) => {
+    it("works with concat split", () => {
       var ex = ply()
         .apply(
           'Pages',
@@ -1065,7 +1012,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1085,12 +1032,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with substr split", (testComplete) => {
+    it("works with substr split", () => {
       var ex = ply()
         .apply(
           'Pages',
@@ -1100,7 +1045,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1120,12 +1065,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with extract split", (testComplete) => {
+    it("works with extract split", () => {
       var ex = ply()
         .apply(
           'Pages',
@@ -1135,7 +1078,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1155,12 +1098,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with lookup split", (testComplete) => {
+    it("works with lookup split", () => {
       var ex = ply()
         .apply(
           'Channels',
@@ -1184,7 +1125,7 @@ describe("Druid Functional", function() {
             .limit(4)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1208,45 +1149,37 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with lookup IS filter", (testComplete) => {
+    it("works with lookup IS filter", () => {
       var ex = $('wiki').filter($('channel').lookup('channel-lookup').is('English')).sum('$count');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result).to.equal(114711);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with lookup CONTAINS filter", (testComplete) => {
+    it("works with lookup CONTAINS filter", () => {
       var ex = $('wiki').filter($('channel').lookup('channel-lookup').contains('Eng', 'ignoreCase')).sum('$count');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result).to.equal(114711);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with string manipulation after cast action", (testComplete) => {
+    it("works with string manipulation after cast action", () => {
       var ex = $('wiki').filter($('deltaBucket100').absolute().cast('STRING').substr(0,5).cast('NUMBER').is(1000)).sum('$count');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result).to.equal(1621);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with absolute number split", (testComplete) => {
+    it("works with absolute number split", () => {
       var ex = ply()
         .apply(
           'AbsSplitAsc',
@@ -1263,7 +1196,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1297,12 +1230,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with bucketed number split", (testComplete) => {
+    it("works with bucketed number split", () => {
       var ex = ply()
         .apply(
           'BucketSplitAsc',
@@ -1319,7 +1250,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1377,12 +1308,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with bucketed split on derived column", (testComplete) => {
+    it("works with bucketed split on derived column", () => {
       var ex = ply()
         .apply(
           'BucketSplitAsc',
@@ -1399,7 +1328,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1457,12 +1386,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("can timeBucket a primary time column", (testComplete) => {
+    it("can timeBucket a primary time column", () => {
       var ex = ply()
         .apply(
           'Time',
@@ -1471,7 +1398,7 @@ describe("Druid Functional", function() {
             .limit(2)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([{
             "Time": [
@@ -1493,12 +1420,10 @@ describe("Druid Functional", function() {
           }
 
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("can timeBucket a secondary time column", (testComplete) => {
+    it("can timeBucket a secondary time column", () => {
       var ex = ply()
         .apply(
           'TimeLater',
@@ -1506,7 +1431,7 @@ describe("Druid Functional", function() {
             .limit(5)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1549,12 +1474,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("can timeBucket a secondary time column (complex duration, tz)", (testComplete) => {
+    it("can timeBucket a secondary time column (complex duration, tz)", () => {
       var ex = ply()
         .apply(
           'TimeLater',
@@ -1562,7 +1485,7 @@ describe("Druid Functional", function() {
             .limit(5)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1605,12 +1528,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("can do a sub-query", (testComplete) => {
+    it("can do a sub-query", () => {
       var ex = ply()
         .apply(
           'data1',
@@ -1622,7 +1543,7 @@ describe("Druid Functional", function() {
         .apply('MinCount', '$data1.min($Count)')
         .apply('MaxCount', '$data1.max($Count)');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1646,12 +1567,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works multi-dimensional GROUP BYs", (testComplete) => {
+    it("works multi-dimensional GROUP BYs", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").isnt('en')))
         .apply(
@@ -1668,7 +1587,7 @@ describe("Druid Functional", function() {
             .limit(4)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1720,12 +1639,10 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works nested GROUP BYs", (testComplete) => {
+    it("works nested GROUP BYs", () => {
       var ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -1733,7 +1650,7 @@ describe("Druid Functional", function() {
         .split('$isNew', 'isNew', 'data')
         .apply('SumTotalEdits', '$data.sum($TotalEdits)');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1745,19 +1662,17 @@ describe("Druid Functional", function() {
               "isNew": true
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works string range", (testComplete) => {
+    it("works string range", () => {
       var ex = $('wiki').filter('$cityName > "nice"')
         .filter('$comment < "zebra"')
         .filter('$page >= "car"')
         .filter('$countryName <= "mauritius"')
         .split({ 'cityName': '$cityName', 'page': '$page', 'comment': '$comment', 'country': '$countryName' });
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1773,15 +1688,13 @@ describe("Druid Functional", function() {
               "page": "ドクタースランプ"
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with raw (SELECT)", (testComplete) => {
+    it("works with raw (SELECT)", () => {
       var ex = $('wiki').filter('$cityName == "El Paso"');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1875,12 +1788,10 @@ describe("Druid Functional", function() {
               "user_unique": null
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("gets the right number of results in a big raw (SELECT ascending)", (testComplete) => {
+    it("gets the right number of results in a big raw (SELECT ascending)", () => {
       var limit = 15001;
       var ex = $('wiki')
         .filter('$cityName == null')
@@ -1888,15 +1799,13 @@ describe("Druid Functional", function() {
         .sort('$time', 'ascending')
         .limit(limit);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS().length).to.equal(limit);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("gets the right number of results in a big raw (SELECT descending)", (testComplete) => {
+    it("gets the right number of results in a big raw (SELECT descending)", () => {
       var limit = 15001;
       var ex = $('wiki')
         .filter('$cityName == null')
@@ -1904,15 +1813,13 @@ describe("Druid Functional", function() {
         .sort('$time', 'descending')
         .limit(limit);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS().length).to.equal(limit);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with raw (SELECT) inside a split", (testComplete) => {
+    it("works with raw (SELECT) inside a split", () => {
       var ex = $('wiki')
         .filter('$cityName.match("^San")')
         .split('$cityName', 'City')
@@ -1926,7 +1833,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -1990,63 +1897,57 @@ describe("Druid Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with multi-value dimension regexp having filter", (testComplete) => {
+    it("works with multi-value dimension regexp having filter", () => {
       var ex = $("wiki")
         .filter('$userChars.match("[ABN]")')
         .split("$userChars", 'userChar')
         .filter('$userChar.match("B|N")')
         .limit(5);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             { "userChar": "B" },
             { "userChar": "N" }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
     describe("plyql end to end", () => {
-      it("should work with <= <", (testComplete) => {
+      it("should work with <= <", () => {
         var ex = Expression.parseSQL(sane`
-        SELECT
-        SUM(added) AS 'TotalAdded'
-        FROM \`wiki\`
-        WHERE \`channel\`="en" AND '2015-09-12T10:00:00' <= \`time\` AND \`time\` < '2015-09-12T12:00:00'
-      `);
+          SELECT
+          SUM(added) AS 'TotalAdded'
+          FROM \`wiki\`
+          WHERE \`channel\`="en" AND '2015-09-12T10:00:00' <= \`time\` AND \`time\` < '2015-09-12T12:00:00'
+        `);
 
-        basicExecutor(ex.expression)
+        return basicExecutor(ex.expression)
           .then((result) => {
-            expect(result.data).to.deep.equal([
+            expect(result.toJS()).to.deep.equal([
               {
                 "TotalAdded": 2274537
               }
             ]);
-            testComplete();
-          })
-          .done();
+          });
       });
 
-      it("should work with between and without top level GROUP BY", (testComplete) => {
+      it("should work with between and without top level GROUP BY", () => {
         var ex = Expression.parseSQL(sane`
-        SELECT
-        \`page\` AS 'Page',
-        SUM(added) AS 'TotalAdded'
-        FROM \`wiki\`
-        WHERE \`channel\`="en" AND \`time\` BETWEEN '2015-09-12T10:00:00' AND '2015-09-12T12:00:00'
-        GROUP BY 1
-        ORDER BY \`TotalAdded\` DESC
-        LIMIT 5
-      `);
+          SELECT
+          \`page\` AS 'Page',
+          SUM(added) AS 'TotalAdded'
+          FROM \`wiki\`
+          WHERE \`channel\`="en" AND \`time\` BETWEEN '2015-09-12T10:00:00' AND '2015-09-12T12:00:00'
+          GROUP BY 1
+          ORDER BY \`TotalAdded\` DESC
+          LIMIT 5
+        `);
 
-        basicExecutor(ex.expression)
+        return basicExecutor(ex.expression)
           .then((result) => {
             expect(result.data).to.deep.equal([
               {
@@ -2070,9 +1971,7 @@ describe("Druid Functional", function() {
                 "TotalAdded": 27126
               }
             ]);
-            testComplete();
-          })
-          .done();
+          });
       });
 
     })
@@ -2094,7 +1993,7 @@ describe("Druid Functional", function() {
       ]
     }, druidRequester);
 
-    it("works with number addition", (testComplete) => {
+    it("works with number addition", () => {
       var ex = $('wiki').split("$userChars + 10", 'U')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
@@ -2116,12 +2015,10 @@ describe("Druid Functional", function() {
               "U": 11
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with number bucketing", (testComplete) => {
+    it("works with number bucketing", () => {
       var ex = $('wiki').split("$userChars.numberBucket(5, 2.5)", 'U')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
@@ -2151,12 +2048,10 @@ describe("Druid Functional", function() {
               }
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with power", (testComplete) => {
+    it("works with power", () => {
       var ex = $('wiki').split("$userChars.power(2)", 'U')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
@@ -2178,12 +2073,10 @@ describe("Druid Functional", function() {
               "U": 1
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with bad casts", (testComplete) => {
+    it("works with bad casts", () => {
       var ex = $('wiki').split({ 'numberCast': '$channel.cast("NUMBER")', 'dateCast': '$userChars.cast("TIME")' })
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
@@ -2206,9 +2099,7 @@ describe("Druid Functional", function() {
               "numberCast": null
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
   });
 
@@ -2240,17 +2131,15 @@ describe("Druid Functional", function() {
       }
     });
 
-    it("introspects version and attributes", (testComplete) => {
+    it("introspects version and attributes", () => {
       wikiExternal.introspect()
         .then((introspectedExternal) => {
           expect(introspectedExternal.version).to.equal(info.druidVersion);
           expect(introspectedExternal.toJS().attributes).to.deep.equal(wikiAttributes);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with introspection", (testComplete) => {
+    it("works with introspection", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
@@ -2270,7 +2159,7 @@ describe("Druid Functional", function() {
             )
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -2334,9 +2223,7 @@ describe("Druid Functional", function() {
               "TotalAdded": 32553107
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
   });
@@ -2359,7 +2246,7 @@ describe("Druid Functional", function() {
       }
     });
 
-    it("works with introspection", (testComplete) => {
+    it("works with introspection", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
@@ -2372,7 +2259,7 @@ describe("Druid Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -2406,9 +2293,7 @@ describe("Druid Functional", function() {
               "TotalAdded": 65106214
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
   });

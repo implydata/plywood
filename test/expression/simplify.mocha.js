@@ -831,11 +831,11 @@ describe("Simplify", () => {
     });
 
     it('can move past a sort', () => {
-      var ex1 = ply()
+      var ex1 = $('d')
         .sort('$deleted', 'ascending')
         .filter('$^AddedByDeleted == 1');
 
-      var ex2 = ply()
+      var ex2 = $('d')
         .filter('$^AddedByDeleted == 1')
         .sort('$deleted', 'ascending');
 
@@ -845,15 +845,38 @@ describe("Simplify", () => {
 
 
   describe('split', () => {
-    it('does not touch a split on a literal', () => {
-      var ex1 = ply().split('$page', 'Page', 'data');
-      var ex2 = ply().split('$page', 'Page', 'data');
+    it('does not touch a split on a reference', () => {
+      var ex1 = $('d').split('$page', 'Page', 'data');
+      var ex2 = $('d').split('$page', 'Page', 'data');
       simplifiesTo(ex1, ex2);
     });
 
     it('simplifies the split expression', () => {
-      var ex1 = ply().split('$x.absolute().absolute()', 'Page', 'data');
-      var ex2 = ply().split('$x.absolute()', 'Page', 'data');
+      var ex1 = $('d').split('$x.absolute().absolute()', 'Page', 'data');
+      var ex2 = $('d').split('$x.absolute()', 'Page', 'data');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('simplifies on empty literal', () => {
+      var ex1 = ply().split('$x', 'Page', 'data');
+      var ex2 = ply(Dataset.fromJS([
+        { Page: null }
+      ]));
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('simplifies on non-empty literal', () => {
+      var ex1 = ply(Dataset.fromJS([
+        { a: 1, b: 10 },
+        { a: 1, b: 20 },
+        { a: 2, b: 30 }
+      ])).split('$a', 'A', 'data');
+
+      var ex2 = ply(Dataset.fromJS([
+        { A: 1 },
+        { A: 2 }
+      ]));
+
       simplifiesTo(ex1, ex2);
     });
   });
@@ -987,6 +1010,12 @@ describe("Simplify", () => {
 
       simplifiesTo(ex1, ex2);
     });
+
+    it('works on literal', () => {
+      var ex1 = ply().sort('$x', 'ascending');
+      var ex2 = ply();
+      simplifiesTo(ex1, ex2);
+    });
   });
 
 
@@ -1015,6 +1044,12 @@ describe("Simplify", () => {
         .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
         .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)');
 
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('works on literals', () => {
+      var ex1 = ply().limit(20);
+      var ex2 = ply();
       simplifiesTo(ex1, ex2);
     });
   });

@@ -16,12 +16,12 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
+import { Action, ActionJS, ActionValue, AggregateAction } from "./baseAction";
+import { PlyType } from "../types";
 import { SQLDialect } from "../dialect/baseDialect";
 import { Datum, ComputeFn } from "../datatypes/dataset";
 
-export class CountAction extends Action {
+export class CountAction extends AggregateAction {
   static fromJS(parameters: ActionJS): CountAction {
     return new CountAction(Action.jsToValue(parameters));
   }
@@ -30,21 +30,6 @@ export class CountAction extends Action {
     super(parameters, dummyObject);
     this._ensureAction("count");
     this._checkNoExpression();
-  }
-
-  public getNecessaryInputTypes(): PlyType | PlyType[] {
-    return 'DATASET';
-  }
-
-  public getOutputType(inputType: PlyType): PlyType {
-    this._checkInputTypes(inputType);
-    return 'NUMBER';
-  }
-
-  public _fillRefSubstitutions(): FullType {
-    return {
-      type: 'NUMBER'
-    };
   }
 
   public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
@@ -56,10 +41,6 @@ export class CountAction extends Action {
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
     return inputSQL.indexOf(' WHERE ') === -1 ? `COUNT(*)` : `SUM(${dialect.aggregateFilterIfNeeded(inputSQL, '1')})`;
-  }
-
-  public isAggregate(): boolean {
-    return true;
   }
 }
 
