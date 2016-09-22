@@ -3108,7 +3108,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it("adds context to query if set on External", (testComplete) => {
+  it("adds context to query if set on External", () => {
     var ds = External.fromJS({
       engine: 'druid',
       source: 'diamonds',
@@ -3131,8 +3131,6 @@ describe("simulate Druid", () => {
       .apply('TotalPrice', '$diamonds.sum($price)');
 
     expect(ex.simulateQueryPlan({ diamonds: ds })[0][0].context).to.deep.equal({ priority: -1, queryId: 'test' });
-
-    testComplete();
   });
 
   it.skip("works on query filters", () => {
@@ -3140,10 +3138,16 @@ describe("simulate Druid", () => {
       .apply('diamonds', $('diamonds').filter('$carat > $diamonds.average($carat)'))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan).to.deep.equal([
+    ex = ex.referenceCheck(context).resolve(context);
 
-    ]);
+    console.log('ex', ex.toString(2));
+
+    ex = ex.simplify();
+
+    // var queryPlan = ex.simulateQueryPlan(context);
+    // expect(queryPlan).to.deep.equal([
+    //
+    // ]);
   });
 
 });

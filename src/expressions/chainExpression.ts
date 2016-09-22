@@ -246,8 +246,10 @@ export class ChainExpression extends Expression {
       },
       (preEx: Expression, action: Action) => {
         var external = (action.expression as ExternalExpression).external;
+        var prePacked = external.prePack(preEx, action);
+        if (!prePacked) return null;
         return new ExternalExpression({
-          external: external.prePack(preEx, action)
+          external: prePacked
         });
       },
       {

@@ -1028,7 +1028,7 @@ export abstract class External {
   }
 
   public addFilter(expression: Expression): External {
-    if (!expression.resolved()) return null;
+    if (!expression.resolvedWithoutExternals()) return null;
     if (!this.expressionDefined(expression)) return null;
 
     var value = this.valueOf();
@@ -1096,7 +1096,7 @@ export abstract class External {
   private _addApplyAction(action: ApplyAction): External {
     var expression = action.expression;
     if (expression.type === 'DATASET') return null;
-    if (!expression.contained()) return null;
+    if (!expression.resolved()) return null;
     if (!this.expressionDefined(expression)) return null;
     if (!this.canHandleApply(action.expression)) return null;
 
@@ -1191,6 +1191,7 @@ export abstract class External {
 
   public prePack(prefix: Expression, myAction: Action): External {
     if (this.mode !== 'value') throw new Error('must be in value mode to call prePack');
+    if (!prefix.noRefs()) return null;
 
     var value = this.valueOf();
     value.valueExpression = prefix.performAction(myAction.changeExpression(value.valueExpression));
@@ -1298,6 +1299,12 @@ export abstract class External {
     if (!select) return attributes;
     const selectAttributes = select.attributes;
     return selectAttributes.map(s => NamedArray.findByName(attributes, s));
+  }
+
+  public getValueType(): PlyTypeSimple {
+    const { valueExpression } = this;
+    if (!valueExpression) return null;
+    return valueExpression.type as PlyTypeSimple;
   }
 
   // -----------------

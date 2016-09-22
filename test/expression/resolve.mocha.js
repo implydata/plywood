@@ -68,20 +68,20 @@ describe("resolve", () => {
     });
   });
 
-  describe("#contained", () => {
+  describe("#resolved", () => {
     it('works with agg', () => {
       var ex = $('diamonds').sum('$price');
-      expect(ex.contained()).to.equal(true);
+      expect(ex.resolved()).to.equal(true);
     });
 
     it('works with add and var', () => {
       var ex = $('TotalPrice').add($('diamonds').sum('$price'));
-      expect(ex.contained()).to.equal(true);
+      expect(ex.resolved()).to.equal(true);
     });
 
     it('works with add and ^var', () => {
       var ex = $('TotalPrice', 1).add($('diamonds').sum('$price'));
-      expect(ex.contained()).to.equal(false);
+      expect(ex.resolved()).to.equal(false);
     });
   });
 

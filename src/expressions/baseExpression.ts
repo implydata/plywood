@@ -1474,12 +1474,16 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     });
   }
 
-  public contained(): boolean {
-    return this.every((ex: Expression, index: int, depth: int, nestDiff: int) => {
-      if (ex instanceof RefExpression) {
-        var nest = ex.nest;
-        return nestDiff >= nest;
-      }
+  public resolvedWithoutExternals(): boolean {
+    return this.every((ex, index, depth, nestDiff) => {
+      if (ex instanceof ExternalExpression) return false;
+      return (ex instanceof RefExpression) ? ex.nest <= nestDiff : null; // Search within
+    });
+  }
+
+  public noRefs(): boolean {
+    return this.every((ex) => {
+      if (ex instanceof RefExpression) return false;
       return null;
     });
   }
