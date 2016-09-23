@@ -34,9 +34,7 @@ import { hasOwnProperty, repeat, deduplicateSort } from "../helper/utils";
 import { Instance, isInstanceOf } from "immutable-class";
 import { ApplyAction } from "./applyAction";
 import { Direction } from "./sortAction";
-import { LiteralExpression } from "../expressions/literalExpression";
-import { RefExpression } from "../expressions/refExpression";
-import { ChainExpression } from "../expressions/chainExpression";
+import { LiteralExpression, ExternalExpression, RefExpression, ChainExpression } from "../expressions/index";
 
 export interface Splits {
   [name: string]: Expression;
@@ -396,6 +394,14 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   /**
+   * Special logic to perform this action on a external
+   * @param externalExpression the expression on which to perform
+   */
+  protected _performOnExternal(externalExpression: ExternalExpression): Expression {
+    return externalExpression.addAction(this);
+  }
+
+  /**
    * Special logic to perform this action on a reference
    * @param refExpression the expression on which to perform
    */
@@ -452,6 +458,10 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
       }
 
       var special = this._performOnLiteral(simpleExpression);
+      if (special) return special;
+
+    } else if (simpleExpression instanceof ExternalExpression) {
+      var special = this._performOnExternal(simpleExpression);
       if (special) return special;
 
     } else if (simpleExpression instanceof RefExpression) {

@@ -676,6 +676,7 @@ export abstract class External {
         break;
 
       case 'split':
+        this.select = parameters.select;
         this.dataName = parameters.dataName;
         this.split = parameters.split;
         if (!this.split) throw new Error('must have split action in split mode');
@@ -1057,7 +1058,8 @@ export abstract class External {
   }
 
   private _addSelectAction(selectAction: SelectAction): External {
-    if (this.mode !== 'raw') return null; // Can only select on 'raw' datasets
+    const { mode } = this;
+    if (mode !== 'raw' && mode !== 'split') return null; // Can only select on 'raw' or 'split' datasets
 
     const { datasetType } = this.getFullType();
     const { attributes } = selectAction;
@@ -1069,6 +1071,12 @@ export abstract class External {
     value.suppress = false;
     value.select = selectAction;
     value.delegates = nullMap(value.delegates, (e) => e._addSelectAction(selectAction));
+
+    if (mode === 'split') {
+      value.applies = value.applies.filter((apply) => attributes.indexOf(apply.name) !== -1);
+      value.attributes = value.attributes.filter((attribute) => attributes.indexOf(attribute.name) !== -1);
+    }
+
     return External.fromValue(value);
   }
 

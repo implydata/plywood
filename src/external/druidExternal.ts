@@ -1652,6 +1652,7 @@ export class DruidExternal extends External {
 
   public splitToDruid(split: SplitAction): DruidSplit {
     var leftoverHavingFilter = this.havingFilter;
+    var selectedAttributes = this.getSelectedAttributes();
 
     if (split.isMultiSplit()) {
       var timestampLabel: string = null;
@@ -1687,7 +1688,7 @@ export class DruidExternal extends External {
         postProcess: DruidExternal.postProcessFactory(
           DruidExternal.groupByNormalizerFactory(timestampLabel),
           inflaters,
-          null
+          selectedAttributes
         )
       };
     }
@@ -1705,7 +1706,7 @@ export class DruidExternal extends External {
         postProcess: DruidExternal.postProcessFactory(
           DruidExternal.timeseriesNormalizerFactory(label),
           [granularityInflater.inflater],
-          null
+          selectedAttributes
         )
       };
     }
@@ -1724,7 +1725,7 @@ export class DruidExternal extends External {
         dimension: dimensionInflater.dimension,
         granularity: 'all',
         leftoverHavingFilter,
-        postProcess: DruidExternal.postProcessFactory(DruidExternal.topNNormalizer, inflaters, null)
+        postProcess: DruidExternal.postProcessFactory(DruidExternal.topNNormalizer, inflaters, selectedAttributes)
       };
     }
 
@@ -1733,7 +1734,7 @@ export class DruidExternal extends External {
       dimensions: [dimensionInflater.dimension],
       granularity: 'all',
       leftoverHavingFilter,
-      postProcess: DruidExternal.postProcessFactory(DruidExternal.groupByNormalizerFactory(), inflaters, null)
+      postProcess: DruidExternal.postProcessFactory(DruidExternal.groupByNormalizerFactory(), inflaters, selectedAttributes)
     };
   }
 

@@ -214,30 +214,6 @@ export class ChainExpression extends Expression {
     var baseExternals = this.getBaseExternals();
     if (baseExternals.length === 0) return this;
 
-    // Looks like: External().blah().blah().blah()
-    if (expression instanceof ExternalExpression) {
-      var myExternal = expression;
-      var undigestedActions: Action[] = [];
-      for (var action of actions) {
-        var newExternal = myExternal.addAction(action);
-        if (newExternal) {
-          myExternal = newExternal;
-        } else {
-          undigestedActions.push(action);
-        }
-      }
-
-      if (undigestedActions.length) {
-        return new ChainExpression({
-          expression: myExternal,
-          actions: undigestedActions,
-          simple: true
-        });
-      } else {
-        return myExternal;
-      }
-    }
-
     // Looks like: $().blah().blah(ValueExternal()).blah()
     return this.substituteAction(
       (action) => {

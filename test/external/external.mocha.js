@@ -27,13 +27,14 @@ var wikiDataset = External.fromJS({
   engine: 'druid',
   source: 'wikipedia',
   timeAttribute: 'time',
+  allowSelectQueries: true,
   attributes: [
     { name: 'time', type: 'TIME' },
     { name: 'language', type: 'STRING' },
     { name: 'user', type: 'STRING' },
     { name: 'page', type: 'STRING' },
-    { name: 'added', type: 'NUMBER' },
-    { name: 'deleted', type: 'NUMBER' }
+    { name: 'added', type: 'NUMBER', unsplitable: true },
+    { name: 'deleted', type: 'NUMBER', unsplitable: true }
   ]
 });
 
@@ -1493,13 +1494,14 @@ describe("External", () => {
 
     });
 
-    describe("attribute order is respected", () => {
+    describe("attribute order is respected in raw mode", () => {
       it("pure select: get selected attributes respects order", () => {
         var ex = $('wiki')
           .select("page", "language", "user")
           .limit(5);
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
+
         var external = ex.external;
         expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([ 'page', 'language', 'user' ]);
       });
@@ -1511,8 +1513,41 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         var external = ex.external;
-        external.allowSelectQueries = true;
         expect(external.getQueryAndPostProcess().query.dimensions).to.deep.equal([ 'page', 'language', 'user' ]);
+      });
+
+    });
+
+    describe("attribute order is respected in split mode", () => {
+      it("get selected attributes respects order", () => {
+        var ex = $('wiki')
+          .split('$page', 'Page')
+          .apply('Count', '$wiki.count()')
+          .apply('Added', '$wiki.sum($added)')
+          .select("Count", "Page", "Added");
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        var external = ex.external;
+        expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([ "Count", "Page", "Added" ]);
+      });
+
+      it("get selected attributes respects order with remove", () => {
+        var ex = $('wiki')
+          .split('$page', 'Page')
+          .apply('Count', '$wiki.count()')
+          .apply('Added', '$wiki.sum($added)')
+          .select("Count", "Page");
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        var external = ex.external;
+        expect(external.getQueryAndPostProcess().query.aggregations).to.deep.equal([
+          {
+            "name": "Count",
+            "type": "count"
+          }
+        ]);
       });
 
     });
