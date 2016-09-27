@@ -1461,8 +1461,7 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wikipedia')
-        .split(i$('__time').timeFloor('P3M'), 'tqr___time_ok'
-          , 'data')
+        .split(i$('__time').timeFloor('P3M'), 'tqr___time_ok', 'data')
         .apply('sum_added_ok', '$data.sum(i$added)')
         .select("sum_added_ok", "tqr___time_ok");
 

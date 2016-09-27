@@ -112,6 +112,21 @@ var timePartFormats = {
   '%Y': 'YEAR'
 };
 
+function findTimePart(fmt, lookup) {
+  var fmts = Object.keys(lookup);
+  for (var i=0; i < fmts.length; i++) {
+    var possibleFmt = fmts[i];
+    if (fmt.indexOf(possibleFmt) !== -1) {
+      return {
+        pre: fmt.substring(0, fmt.indexOf(possibleFmt)),
+        part: lookup[possibleFmt],
+        post: fmt.substring(possibleFmt.length)
+       }
+    }
+    return null;
+  }
+}
+
 var castTypes = {
   CHAR: 'STRING',
   SIGNED: 'NUMBER'
@@ -120,6 +135,24 @@ var castTypes = {
 function upgrade(v) {
   if (!Expression.isExpression(v)) return r(v);
   return v;
+}
+
+function dateAddSub(op, d) {
+  if (d !== 0) error('only zero interval supported in date add and sub');
+  op = upgrade(op);
+
+  if (op.expression && op.expression.op === 'ref') {
+    var refEx = op.expression;
+    var template = refEx.timePart('YEAR').cast('STRING').concat(r("-"))
+      .concat(r(3).multiply(refEx.timePart('QUARTER').subtract(1)).add(1).cast('STRING'))
+      .concat(r("-01 00:00:00"));
+
+    if (template.equals(op)) {
+      op = refEx.timeFloor('P3M');
+    }
+  }
+
+  return op;
 }
 
 var notImplemented = function() { error('not implemented yet'); };
@@ -136,7 +169,13 @@ var fns = {
   FALLBACK: function(op, ex) { return upgrade(op).fallback(ex); },
   MATCH: function(op, reg) { return upgrade(op).match(reg); },
   EXTRACT: function(op, reg) { return upgrade(op).extract(reg); },
-  CONCAT: function() { return Expression.concat(Array.prototype.map.call(arguments, upgrade)); },
+  CONCAT: function() {
+    return Expression.concat(Array.prototype.map.call(arguments, function(arg) {
+      var e = upgrade(arg);
+      if (e.type === 'NUMBER') e = e.cast('STRING');
+      return e;
+    }));
+  },
   SUBSTRING: function(op, i, n) { return upgrade(op).substr(i, n); },
   UPPER: function(op) { return upgrade(op).transformCase('upperCase'); },
   LOWER: function(op) { return upgrade(op).transformCase('lowerCase'); },
@@ -153,7 +192,9 @@ var fns = {
   STD: notImplemented,
   DATE_FORMAT: function(op, format) {
     var duration = durationFormats[format.replace(/ 00:00:00$/, '')];
-    if (!duration) {
+    if (duration) {
+      return upgrade(op).timeFloor(duration);
+    } else {
       var timePart = findTimePart(format, timePartFormats);
       if (!timePart) error('unsupported format: ' + format);
       var ex = upgrade(op).timePart(timePart.part);
@@ -162,7 +203,6 @@ var fns = {
       if (timePart.post) ex = ex.concat(r(timePart.post));
       return ex;
     }
-    return upgrade(op).timeFloor(duration);
   },
 
   YEAR: function(op, tz) { return upgrade(op).timePart('YEAR', tz); },
@@ -179,8 +219,8 @@ var fns = {
   DATE: function(op, tz) { return upgrade(op).timeFloor('P1D', tz); },
   TIMESTAMP: function(op) { return upgrade(op).bumpStringLiteralToTime(); },
   TIME: function() { error('time literals are not supported'); },
-  DATE_ADD: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
-  DATE_SUB: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
+  DATE_ADD: dateAddSub,
+  DATE_SUB: dateAddSub,
   FROM_UNIXTIME: function(op) { return upgrade(op).multiply(1000).cast('TIME') },
   CAST: function(op, ct) { return upgrade(op).cast(castTypes[ct]) },
   UNIX_TIMESTAMP: function(op) { return upgrade(op).cast('NUMBER').divide(1000); },
@@ -247,21 +287,6 @@ function makeDate(type, v) {
     }
     error(e.message);
   }
-}
-
-function findTimePart(fmt, lookup) {
-  var fmts = Object.keys(lookup);
-  for (var i=0; i < fmts.length; i++) {
-    var possibleFmt = fmts[i];
-    if (fmt.indexOf(possibleFmt) !== -1) {
-      return {
-        pre: fmt.substring(0, fmt.indexOf(possibleFmt)),
-        part: lookup[possibleFmt],
-        post: fmt.substring(possibleFmt.length)
-       }
-    }
-    return null;
-   }
 }
 
 function getFromTable(from) {
@@ -801,27 +826,9 @@ UnaryExpression
 BasicExpression
   = LiteralExpression
   / AggregateExpression
-  / SpecialFunctionCallExpression
   / FunctionCallExpression
   / OpenParen sub:(Expression / SelectSubQuery) CloseParen { return sub; }
   / RefExpression
-
-SpecialFunctionCallExpression
-  = 'ADDDATE' OpenParen 'CONCAT' OpenParen exp:FunctionCallExpression Comma ConcatPieceComma* CloseParen Comma Interval CloseParen
-  {
-    var yrQuarterFormat = exp.expression.timePart('YEAR').cast('STRING').concat(r('-'));
-    if (exp.equals(yrQuarterFormat)) {
-      return exp.expression.timeFloor('P3M');
-    }
-    error("unsupported ADDDATE function");
-  }
-
-ConcatPieceComma
-  = p:ConcatPiece Comma* { return p }
-
-ConcatPiece
-  = OpenParen AdditiveExpression CloseParen
-  / String
 
 AggregateExpression
   = CountToken OpenParen distinct:DistinctToken? exd:ExpressionMaybeFiltered? CloseParen

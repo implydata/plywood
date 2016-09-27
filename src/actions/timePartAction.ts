@@ -34,22 +34,22 @@ const PART_TO_FUNCTION: Lookup<Parter> = {
   SECOND_OF_DAY: d => (d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
   SECOND_OF_WEEK: d => ((d.day() * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
   SECOND_OF_MONTH: d => (((d.date() - 1) * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
-  SECOND_OF_YEAR: null,
+  SECOND_OF_YEAR: d => (((d.dayOfYear() - 1) * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
 
   MINUTE_OF_HOUR: d => d.minutes(),
   MINUTE_OF_DAY: d => d.hours() * 60 + d.minutes(),
   MINUTE_OF_WEEK: d => (d.day() * 24) + d.hours() * 60 + d.minutes(),
   MINUTE_OF_MONTH: d => ((d.date() - 1) * 24) + d.hours() * 60 + d.minutes(),
-  MINUTE_OF_YEAR: null,
+  MINUTE_OF_YEAR: d => ((d.dayOfYear() - 1) * 24) + d.hours() * 60 + d.minutes(),
 
   HOUR_OF_DAY: d => d.hours(),
   HOUR_OF_WEEK: d => d.day() * 24 + d.hours(),
   HOUR_OF_MONTH: d => (d.date() - 1) * 24 + d.hours(),
-  HOUR_OF_YEAR: null,
+  HOUR_OF_YEAR: d => (d.dayOfYear() - 1) * 24 + d.hours(),
 
   DAY_OF_WEEK: d => d.day() || 7, // fix Sunday [0 -> 7]
   DAY_OF_MONTH: d => d.date(),
-  DAY_OF_YEAR: null,
+  DAY_OF_YEAR: d => d.dayOfYear(),
 
   WEEK_OF_MONTH: null,
   WEEK_OF_YEAR: null,

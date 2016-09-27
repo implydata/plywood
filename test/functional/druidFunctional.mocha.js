@@ -297,8 +297,8 @@ describe("Druid Functional", function() {
 
     it("works with yearly call case long", (testComplete) => {
       var ex = $('wiki')
-        .split(i$('time').timeFloor('P3M'), 'tqr___time_ok'
-          , 'data');
+        .split(i$('time').timeFloor('P3M'), 'tqr___time_ok');
+
       basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
