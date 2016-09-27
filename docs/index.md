@@ -15,7 +15,7 @@ such as [D3.js](http://d3js.org/).
 
 You can use Plywood in the browser and/or in node.js to easily create your own
 visualizations and applications. For an example application built using
-Plywood, please see [Pivot](https://github.com/implydata/pivot).
+Plywood, please see [Pivot](http://pivot.imply.io).
 
 Plywood also acts as a very advanced query planner for Druid, and Plywood will
 determine the most optimal way to execute Druid queries.
@@ -32,7 +32,7 @@ The backend uses Plywood to translate Plywood queries to database queries as wel
 
 ![web app, node.js](images/web-app-nodejs.png)
 
-[Pivot](https://github.com/implydata/pivot) is an example of a Project that uses Plywood in this way.
+[Pivot](http://pivot.imply.io) is an example of a Project that uses Plywood in this way.
 
 ### You are building a web-based, data-driven application, backend not node.js
 

@@ -31,7 +31,7 @@ To learn more, see [http://plywood.imply.io](http://plywood.imply.io/)
 
 ## Also see
 
-* [Pivot](https://github.com/implydata/pivot) - a data exploration GUI built using Plywood.
+* [Pivot](http://pivot.imply.io) - a data exploration GUI built using Plywood.
 * [PlyQL](https://github.com/implydata/plyql) - a SQL-like interface to plywood
 * Vadim Ogievetsky talks about the [inspiration behind Plywood](https://www.youtube.com/watch?v=JNMbLxqzGFA)
 
