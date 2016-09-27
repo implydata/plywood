@@ -99,15 +99,33 @@ var intervalUnits = {
   YEAR: 1
 }
 
-var dateFormats = {
+var durationFormats = {
   '%Y-%m-%d %H:%i:%s': 'PT1S',
   '%Y-%m-%d %H:%i:00': 'PT1M',
   '%Y-%m-%d %H:00:00': 'PT1H',
   '%Y-%m-%d': 'P1D',
   '%Y-%m-01': 'P1M',
-  '%Y-01-01': 'P1Y',
+  '%Y-01-01': 'P1Y'
 };
 
+var timePartFormats = {
+  '%Y': 'YEAR'
+};
+
+function findTimePart(fmt, lookup) {
+  var fmts = Object.keys(lookup);
+  for (var i=0; i < fmts.length; i++) {
+    var possibleFmt = fmts[i];
+    if (fmt.indexOf(possibleFmt) !== -1) {
+      return {
+        pre: fmt.substring(0, fmt.indexOf(possibleFmt)),
+        part: lookup[possibleFmt],
+        post: fmt.substring(possibleFmt.length)
+       }
+    }
+    return null;
+  }
+}
 
 var castTypes = {
   CHAR: 'STRING',
@@ -117,6 +135,24 @@ var castTypes = {
 function upgrade(v) {
   if (!Expression.isExpression(v)) return r(v);
   return v;
+}
+
+function dateAddSub(op, d) {
+  if (d !== 0) error('only zero interval supported in date add and sub');
+  op = upgrade(op);
+
+  if (op.expression && op.expression.op === 'ref') {
+    var refEx = op.expression;
+    var template = refEx.timePart('YEAR').cast('STRING').concat(r("-"))
+      .concat(r(3).multiply(refEx.timePart('QUARTER').subtract(1)).add(1).cast('STRING'))
+      .concat(r("-01 00:00:00"));
+
+    if (template.equals(op)) {
+      op = refEx.timeFloor('P3M');
+    }
+  }
+
+  return op;
 }
 
 var notImplemented = function() { error('not implemented yet'); };
@@ -133,7 +169,13 @@ var fns = {
   FALLBACK: function(op, ex) { return upgrade(op).fallback(ex); },
   MATCH: function(op, reg) { return upgrade(op).match(reg); },
   EXTRACT: function(op, reg) { return upgrade(op).extract(reg); },
-  CONCAT: function() { return Expression.concat(Array.prototype.map.call(arguments, upgrade)); },
+  CONCAT: function() {
+    return Expression.concat(Array.prototype.map.call(arguments, function(arg) {
+      var e = upgrade(arg);
+      if (e.type === 'NUMBER') e = e.cast('STRING');
+      return e;
+    }));
+  },
   SUBSTRING: function(op, i, n) { return upgrade(op).substr(i, n); },
   UPPER: function(op) { return upgrade(op).transformCase('upperCase'); },
   LOWER: function(op) { return upgrade(op).transformCase('lowerCase'); },
@@ -149,12 +191,22 @@ var fns = {
   PI: function() { return r(Math.PI); },
   STD: notImplemented,
   DATE_FORMAT: function(op, format) {
-    var duration = dateFormats[format.replace(/ 00:00:00$/, '')];
-    if (!duration) error('unsupported format: ' + format);
-    return upgrade(op).timeFloor(duration);
+    var duration = durationFormats[format.replace(/ 00:00:00$/, '')];
+    if (duration) {
+      return upgrade(op).timeFloor(duration);
+    } else {
+      var timePart = findTimePart(format, timePartFormats);
+      if (!timePart) error('unsupported format: ' + format);
+      var ex = upgrade(op).timePart(timePart.part);
+      if (timePart.pre || timePart.post) ex = ex.cast("STRING");
+      if (timePart.pre) ex = r(timePart.pre).concat(ex);
+      if (timePart.post) ex = ex.concat(r(timePart.post));
+      return ex;
+    }
   },
 
   YEAR: function(op, tz) { return upgrade(op).timePart('YEAR', tz); },
+  QUARTER: function(op, tz) { return upgrade(op).timePart('QUARTER', tz) },
   MONTH: function(op, tz) { return upgrade(op).timePart('MONTH_OF_YEAR', tz); },
   WEEK_OF_YEAR: function(op, tz) { return upgrade(op).timePart('WEEK_OF_YEAR', tz); },
   DAY_OF_YEAR: function(op, tz) { return upgrade(op).timePart('DAY_OF_YEAR', tz); },
@@ -167,8 +219,8 @@ var fns = {
   DATE: function(op, tz) { return upgrade(op).timeFloor('P1D', tz); },
   TIMESTAMP: function(op) { return upgrade(op).bumpStringLiteralToTime(); },
   TIME: function() { error('time literals are not supported'); },
-  DATE_ADD: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
-  DATE_SUB: function(op, d, tz) { return d === 0 ? upgrade(op) : error('only zero interval supported in date math'); },
+  DATE_ADD: dateAddSub,
+  DATE_SUB: dateAddSub,
   FROM_UNIXTIME: function(op) { return upgrade(op).multiply(1000).cast('TIME') },
   CAST: function(op, ct) { return upgrade(op).cast(castTypes[ct]) },
   UNIX_TIMESTAMP: function(op) { return upgrade(op).cast('NUMBER').divide(1000); },
@@ -461,7 +513,7 @@ ShowQueryExpression
       if (db) ex= ex.filter(i$('TABLE_SCHEMA').is(r(db[1])));
       if (like) ex = ex.filter(like(i$('TABLE_NAME')));
       ex = ex
-        .apply('Tables_in_database', i$('TABLE_NAME'));
+        .apply('Tables_in_database', $('TABLE_NAME'));
 
       if (full) {
         ex = ex
@@ -476,9 +528,9 @@ ShowQueryExpression
   / full:FullToken? ColumnsToken FromOrIn table:RelaxedNamespacedRef db:(FromOrIn Ref)? like:LikeRhs? where:WhereClause?
     {
       // https://dev.mysql.com/doc/refman/5.0/en/columns-table.html
-      var ex = i$('COLUMNS').filter(i$('TABLE_NAME').is(r(table.name)));
+      var ex = $('COLUMNS').filter($('TABLE_NAME').is(r(table.name)));
       db = db ? db[1] : table.namespace;
-      if (db) ex = ex.filter(i$('TABLE_SCHEMA').is(r(db)));
+      if (db) ex = ex.filter($('TABLE_SCHEMA').is(r(db)));
       if (like) ex = ex.filter(like(i$('COLUMN_NAME')));
       if (where) ex = ex.filter(where);
       ex = ex
@@ -526,8 +578,8 @@ UseQuery
 DescribeQuery
   = (DescribeToken / DescToken) table:RelaxedNamespacedRef colRef:Ref? wild:String?
     {
-      var ex = i$('COLUMNS').filter(i$('TABLE_NAME').is(r(table.name)));
-      if (table.namespace) ex = ex.filter(i$('TABLE_SCHEMA').is(r(table.namespace)));
+      var ex = $('COLUMNS').filter($('TABLE_NAME').is(r(table.name)));
+      if (table.namespace) ex = ex.filter($('TABLE_SCHEMA').is(r(table.namespace)));
       if (colRef) {
         ex = ex.filter(i$('COLUMN_NAME').is(r(colRef)));
       } else if (wild) {
@@ -777,7 +829,6 @@ BasicExpression
   / FunctionCallExpression
   / OpenParen sub:(Expression / SelectSubQuery) CloseParen { return sub; }
   / RefExpression
-
 
 AggregateExpression
   = CountToken OpenParen distinct:DistinctToken? exd:ExpressionMaybeFiltered? CloseParen

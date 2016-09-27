@@ -21,7 +21,7 @@ var { sane } = require('../utils');
 var { druidRequesterFactory } = require('plywood-druid-requester');
 
 var plywood = require('../../build/plywood');
-var { External, DruidExternal, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
+var { External, DruidExternal, TimeRange, $, i$, ply, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
 
 var info = require('../info');
 
@@ -271,6 +271,42 @@ describe("Druid Functional", function() {
                   "TotalAdded": 1825954
                 }
               ]
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with quarter call case", (testComplete) => {
+      var ex = $('wiki')
+        .filter($("channel").is('en'))
+        .split("$time.timePart(QUARTER, 'Etc/UTC')", 'Quarter');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Quarter": 3
+            }
+          ]);
+          testComplete();
+        })
+        .done();
+    });
+
+    it("works with yearly call case long", (testComplete) => {
+      var ex = $('wiki')
+        .split(i$('time').timeFloor('P3M'), 'tqr___time_ok');
+
+      basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "tqr___time_ok": {
+                "type": "TIME",
+                "value": new Date('2015-07-01T00:00:00.000Z')
+              }
             }
           ]);
           testComplete();

@@ -569,7 +569,8 @@ export class DruidExternal extends External {
     WEEK_OF_YEAR: "d.getWeekOfWeekyear()",
 
     MONTH_OF_YEAR: "d.getMonthOfYear()",
-    YEAR: "d.getYearOfEra()"
+    YEAR: "d.getYearOfEra()",
+    QUARTER: "Math.ceil((d.getMonthOfYear()) / 3)"
   };
 
   static timePartToExtraction(part: string, timezone: Timezone): Druid.ExtractionFn {

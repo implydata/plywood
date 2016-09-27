@@ -524,6 +524,96 @@ describe("compute native", () => {
       .done();
   });
 
+  it("computes quarters", (testComplete) => {
+    var ds = Dataset.fromJS([
+      { cut: 'Good', time: new Date('2015-03-31T19:00:00Z') },
+      { cut: 'Great', time: new Date('2015-06-30T19:00:00Z') },
+      { cut: 'Wow', time: new Date('2015-09-05T00:00:00Z') },
+      { cut: 'Wow', time: new Date('2015-12-05T00:00:00Z') }
+    ]);
+
+    var ex = ply(ds)
+      .apply('Quarter',  '$time.timePart("QUARTER")')
+      .apply('QuarterAsia',  '$time.timePart("QUARTER", "Asia/Kathmandu")');
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "Quarter": 1,
+            "QuarterAsia": 2,
+            "cut": "Good",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-03-31T19:00:00.000Z')
+            }
+          },
+          {
+            "Quarter": 2,
+            "QuarterAsia": 3,
+            "cut": "Great",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-06-30T19:00:00.000Z')
+            }
+          },
+          {
+            "Quarter": 3,
+            "QuarterAsia": 3,
+            "cut": "Wow",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-09-05T00:00:00.000Z')
+            }
+          },
+          {
+            "Quarter": 4,
+            "QuarterAsia": 4,
+            "cut": "Wow",
+            "time": {
+              "type": "TIME",
+              "value": new Date('2015-12-05T00:00:00.000Z')
+            }
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
+  it("computes fancy quarters", (testComplete) => {
+    var ds = Dataset.fromJS([
+      { cut: 'Good', time: new Date('2015-03-31T19:00:00Z') },
+      { cut: 'Great', time: new Date('2015-06-30T19:00:00Z') },
+      { cut: 'Wow', time: new Date('2015-09-05T00:00:00Z') },
+      { cut: 'Wow', time: new Date('2015-12-05T00:00:00Z') }
+    ]);
+
+    var ex = ply(ds)
+      .split(i$('time').timeFloor('P3M').timePart('SECOND_OF_YEAR'), 'soy', 'data')
+      .select("soy");
+
+    ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "soy": 0
+          },
+          {
+            "soy": 129600
+          },
+          {
+            "soy": 260640
+          },
+          {
+            "soy": 393120
+          }
+        ]);
+        testComplete();
+      })
+      .done();
+  });
+
   it("works with filter, select", (testComplete) => {
     var ds = Dataset.fromJS(data);
 
