@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Moment } from "moment-timezone-tsc";
-import * as moment from "moment-timezone-tsc";
+import { Moment } from "moment-timezone";
+import * as moment from "moment-timezone";
 import { Timezone } from "chronoshift";
 import { Action, ActionJS, ActionValue, Environment } from "./baseAction";
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";

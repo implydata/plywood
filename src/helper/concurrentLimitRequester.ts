@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q-tsc';
+import * as Q from 'q';
 
 export interface ConcurrentLimitRequesterParameters<T> {
   requester: Requester.PlywoodRequester<T>;

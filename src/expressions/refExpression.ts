@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q-tsc';
+import * as Q from 'q';
 import { SimpleArray } from 'immutable-class';
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";

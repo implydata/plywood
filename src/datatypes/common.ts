@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q-tsc';
+import * as Q from 'q';
 import { isDate } from "chronoshift";
 import { hasOwnProperty } from "../helper/utils";
 import { Expression } from "../expressions/baseExpression";

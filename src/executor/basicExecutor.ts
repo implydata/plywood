@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q-tsc';
+import * as Q from 'q';
 import { Expression } from "../expressions/baseExpression";
 import { PlywoodValue, Datum } from "../datatypes/index";
 import { Environment } from "../actions/baseAction";

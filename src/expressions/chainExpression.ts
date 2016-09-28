@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q-tsc';
+import * as Q from 'q';
 import { immutableArraysEqual } from "immutable-class";
 import {
   r,
