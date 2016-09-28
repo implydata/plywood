@@ -99,9 +99,9 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     if (!Array.isArray(attributeJSs)) {
       if (attributeJSs && typeof attributeJSs === 'object') {
         var newAttributeJSs: any[] = [];
-        for (var attributeName in attributeJSs) {
+        for (var attributeName in (attributeJSs as any)) {
           if (!hasOwnProperty(attributeJSs, attributeName)) continue;
-          var attributeJS = attributeJSs[attributeName];
+          var attributeJS = (attributeJSs as any)[attributeName];
           attributeJS['name'] = attributeName;
           newAttributeJSs.push(attributeJS);
         }

@@ -911,7 +911,7 @@ export abstract class External {
     value.suppress = true;
     value.mode = 'raw';
     value.dataName = null;
-    if (this.mode !== 'raw') value.attributes = value.rawAttributes;
+    value.attributes = value.rawAttributes;
     value.rawAttributes = null;
     value.applies = [];
     value.split = null;

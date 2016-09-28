@@ -16,6 +16,7 @@
  */
 
 import { Class, Instance, isInstanceOf } from "immutable-class";
+import { PlyType } from "../types";
 import { hasOwnProperty } from "../helper/utils";
 import { PlywoodRange } from "../datatypes/range";
 import { NumberRange } from "../datatypes/numberRange";
@@ -230,8 +231,8 @@ export class Set implements Instance<SetValue, SetJS> {
     return simpleSetElements.length === 1 ? simpleSetElements[0] : simpleSet;
   }
 
-  public getType(): string {
-    return 'SET/' + this.setType;
+  public getType(): PlyType {
+    return ('SET/' + this.setType) as PlyType;
   }
 
   public upgradeType(): Set {
