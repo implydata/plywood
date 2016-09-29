@@ -30,8 +30,6 @@ describe("NumberRange", () => {
       { name: 'cut', type: 'STRING' },
       { name: 'tags', type: 'SET/STRING' },
       { name: 'carat', type: 'NUMBER' },
-      //{ name: 'height_bucket', special: 'range', type: 'NUMBER_RANGE', separator: ';', rangeSize: 0.05, digitsAfterDecimal: 2 }
-      //{ name: 'height_bucket', special: 'range', type: 'NUMBER_RANGE', separator: '|', rangeSize: 0.05, digitsAfterDecimal: 2 }
       { name: 'count', type: 'NUMBER', unsplitable: true, makerAction: { action: 'count' } },
       {
         name: 'price',
