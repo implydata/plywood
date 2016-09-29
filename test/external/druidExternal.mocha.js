@@ -2174,4 +2174,46 @@ describe("DruidExternal", () => {
 
   });
 
+  it("folds with cast", () => {
+    var ex = $('wiki').filter('$page == "El Paso"')
+      .apply('castTime', '$commentLength.cast("TIME")')
+      .select('page', 'commentLength', 'castTime', 'added')
+      .sort('$page', 'descending');
+
+    ex = ex.referenceCheck(context).resolve(context).simplify();
+
+    var external = ex.expression.external;
+    expect(external.getQueryAndPostProcess().query).to.deep.equal({
+      "dataSource": "wikipedia",
+      "dimensions": [
+        "page",
+        "commentLength",
+        {
+          "dimension": "commentLength",
+          "extractionFn": {
+            "function": "function(d){var _,_2;_=new Date((+d));return isNaN(_)?null:_}",
+            "type": "javascript"
+          },
+          "outputName": "castTime",
+          "type": "extraction"
+        }
+      ],
+      "filter": {
+        "dimension": "page",
+        "type": "selector",
+        "value": "El Paso"
+      },
+      "granularity": "all",
+      "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+      "metrics": [
+        "added"
+      ],
+      "pagingSpec": {
+        "pagingIdentifiers": {},
+        "threshold": 50
+      },
+      "queryType": "select"
+    });
+  });
+
 });

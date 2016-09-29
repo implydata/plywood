@@ -33,6 +33,7 @@ var wikiDataset = External.fromJS({
     { name: 'language', type: 'STRING' },
     { name: 'user', type: 'STRING' },
     { name: 'page', type: 'STRING' },
+    { name: 'commentLength', type: 'NUMBER' },
     { name: 'added', type: 'NUMBER', unsplitable: true },
     { name: 'deleted', type: 'NUMBER', unsplitable: true }
   ]
