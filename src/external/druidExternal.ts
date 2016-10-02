@@ -17,6 +17,7 @@
 
 import * as Q from 'q';
 import { Timezone, Duration, isDate } from "chronoshift";
+import * as Druid from 'druid.d.ts';
 import { PlyType } from "../types";
 import { hasOwnProperty, dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from "../helper/utils";
 import { $, Expression, ChainExpression, LiteralExpression, RefExpression } from "../expressions/index";

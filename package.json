@@ -31,8 +31,9 @@
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
-    "immutable-class": "~0.6.16",
     "chronoshift": "~0.6.3",
+    "druid.d.ts": "0.9.1-rev6",
+    "immutable-class": "~0.6.16",
     "moment-timezone": "~0.5.5",
     "q": "~1.4.1"
   },
