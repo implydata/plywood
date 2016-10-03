@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.13.1
+
+- More efficient query parallelisation
+- Misc cleanup
+
 ## 0.12.12
 
 - Better type injection with TDI
