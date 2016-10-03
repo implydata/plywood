@@ -224,6 +224,10 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     (v as any)[propertyName] = newValue;
     return new AttributeInfo(v);
   }
+
+  public getUnsplitable(): boolean {
+    return this.unsplitable;
+  }
 }
 check = AttributeInfo;
 
@@ -242,6 +246,10 @@ export class UniqueAttributeInfo extends AttributeInfo {
   public serialize(value: any): string {
     throw new Error("can not serialize an approximate unique value");
   }
+
+  public getUnsplitable(): boolean {
+    return true;
+  }
 }
 AttributeInfo.register(UniqueAttributeInfo);
 
@@ -259,6 +267,10 @@ export class ThetaAttributeInfo extends AttributeInfo {
   public serialize(value: any): string {
     throw new Error("can not serialize a theta value");
   }
+
+  public getUnsplitable(): boolean {
+    return true;
+  }
 }
 AttributeInfo.register(ThetaAttributeInfo);
 
@@ -275,6 +287,10 @@ export class HistogramAttributeInfo extends AttributeInfo {
 
   public serialize(value: any): string {
     throw new Error("can not serialize a histogram value");
+  }
+
+  public getUnsplitable(): boolean {
+    return true;
   }
 }
 AttributeInfo.register(HistogramAttributeInfo);
