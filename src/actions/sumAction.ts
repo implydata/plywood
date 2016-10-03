@@ -16,11 +16,11 @@
  */
 
 
-import { Action, ActionJS, ActionValue, AggregateAction } from "./baseAction";
-import { PlyType } from "../types";
-import { Expression } from "../expressions/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { LiteralExpression } from "../expressions/literalExpression";
+import { Action, ActionJS, ActionValue, AggregateAction } from './baseAction';
+import { PlyType } from '../types';
+import { Expression } from '../expressions/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { LiteralExpression } from '../expressions/literalExpression';
 
 export class SumAction extends AggregateAction {
   static fromJS(parameters: ActionJS): SumAction {

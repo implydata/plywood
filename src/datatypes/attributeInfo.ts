@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf, NamedArray } from "immutable-class";
-import { PlyType, FullType } from "../types";
-import { hasOwnProperty } from "../helper/utils";
-import { ActionJS, Action } from "../actions/baseAction";
-import { RefExpression } from "../expressions/refExpression";
+import { Class, Instance, isInstanceOf, NamedArray } from 'immutable-class';
+import { PlyType, FullType } from '../types';
+import { hasOwnProperty } from '../helper/utils';
+import { ActionJS, Action } from '../actions/baseAction';
+import { RefExpression } from '../expressions/refExpression';
 
 export type Attributes = AttributeInfo[];
 export type AttributeJSs = AttributeInfoJS[];

@@ -16,10 +16,10 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
 export class SubstrAction extends Action {
   static fromJS(parameters: ActionJS): SubstrAction {

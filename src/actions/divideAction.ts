@@ -16,11 +16,11 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
 export class DivideAction extends Action {
   static fromJS(parameters: ActionJS): DivideAction {

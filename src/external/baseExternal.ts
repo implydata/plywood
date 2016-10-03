@@ -15,13 +15,13 @@
  */
 
 import * as Q from 'q';
-import { Timezone, Duration } from "chronoshift";
-import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from "immutable-class";
-import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";
-import { hasOwnProperty, nonEmptyLookup, safeAdd } from "../helper/utils";
-import { $, Expression, RefExpression, ChainExpression, ExternalExpression } from "../expressions/index";
-import { PlywoodValue, Datum, Dataset } from "../datatypes/dataset";
-import { Attributes, AttributeInfo, AttributeJSs } from "../datatypes/attributeInfo";
+import { Timezone, Duration } from 'chronoshift';
+import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
+import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
+import { hasOwnProperty, nonEmptyLookup, safeAdd } from '../helper/utils';
+import { $, Expression, RefExpression, ChainExpression, ExternalExpression } from '../expressions/index';
+import { PlywoodValue, Datum, Dataset } from '../datatypes/dataset';
+import { Attributes, AttributeInfo, AttributeJSs } from '../datatypes/attributeInfo';
 import {
   Action,
   ApplyAction,
@@ -32,15 +32,15 @@ import {
   SortAction,
   SplitAction,
   TimeBucketAction
-} from "../actions/index";
-import { NumberRange } from "../datatypes/numberRange";
-import { unwrapSetType } from "../datatypes/common";
-import { CustomDruidAggregations, CustomDruidTransforms } from "./druidExternal";
-import { ExpressionJS } from "../expressions/baseExpression";
-import { Set } from "../datatypes/set";
-import { StringRange } from "../datatypes/stringRange";
-import { TimeRange } from "../datatypes/timeRange";
-import { promiseWhile } from "../helper/promiseWhile";
+} from '../actions/index';
+import { NumberRange } from '../datatypes/numberRange';
+import { unwrapSetType } from '../datatypes/common';
+import { CustomDruidAggregations, CustomDruidTransforms } from './druidExternal';
+import { ExpressionJS } from '../expressions/baseExpression';
+import { Set } from '../datatypes/set';
+import { StringRange } from '../datatypes/stringRange';
+import { TimeRange } from '../datatypes/timeRange';
+import { promiseWhile } from '../helper/promiseWhile';
 
 export class TotalContainer {
   public datum: Datum;

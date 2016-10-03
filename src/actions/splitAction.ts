@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import { Action, ActionJS, ActionValue, Splits, SplitsJS } from "./baseAction";
-import { PlyType, DatasetFullType, SimpleFullType, FullType } from "../types";
-import { Expression, Indexer, Alterations, r, SubstitutionFn, LiteralExpression } from "../expressions/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
-import { unwrapSetType } from "../datatypes/common";
-import { hasOwnProperty } from "../helper/utils";
-import { immutableLookupsEqual } from "immutable-class";
-import { isSetType } from "../datatypes/common";
+import { Action, ActionJS, ActionValue, Splits, SplitsJS } from './baseAction';
+import { PlyType, DatasetFullType, SimpleFullType, FullType } from '../types';
+import { Expression, Indexer, Alterations, r, SubstitutionFn, LiteralExpression } from '../expressions/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
+import { unwrapSetType } from '../datatypes/common';
+import { hasOwnProperty } from '../helper/utils';
+import { immutableLookupsEqual } from 'immutable-class';
+import { isSetType } from '../datatypes/common';
 
 export class SplitAction extends Action {
   static fromJS(parameters: ActionJS): SplitAction {

@@ -16,14 +16,14 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
-import { InAction } from "./inAction";
-import { LiteralExpression } from "../expressions/literalExpression";
-import { Range } from "../datatypes/range";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
+import { InAction } from './inAction';
+import { LiteralExpression } from '../expressions/literalExpression';
+import { Range } from '../datatypes/range';
 
 export class LessThanAction extends Action {
   static fromJS(parameters: ActionJS): LessThanAction {

@@ -16,9 +16,9 @@
  */
 
 
-import { Action, ActionJS, ActionValue, AggregateAction } from "./baseAction";
-import { PlyType } from "../types";
-import { SQLDialect } from "../dialect/baseDialect";
+import { Action, ActionJS, ActionValue, AggregateAction } from './baseAction';
+import { PlyType } from '../types';
+import { SQLDialect } from '../dialect/baseDialect';
 
 export class MaxAction extends AggregateAction {
   static fromJS(parameters: ActionJS): MaxAction {

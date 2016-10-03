@@ -15,12 +15,12 @@
  */
 
 import * as Q from 'q';
-import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Action } from "../actions/baseAction";
-import { ComputeFn } from "../datatypes/dataset";
-import { External } from "../external/baseExternal";
+import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Action } from '../actions/baseAction';
+import { ComputeFn } from '../datatypes/dataset';
+import { External } from '../external/baseExternal';
 
 export class ExternalExpression extends Expression {
   static fromJS(parameters: ExpressionJS): Expression {

@@ -16,12 +16,12 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { r, Indexer, Alterations, Expression, LiteralExpression } from "../expressions/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
-import { RefExpression } from "../expressions/refExpression";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { r, Indexer, Alterations, Expression, LiteralExpression } from '../expressions/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
+import { RefExpression } from '../expressions/refExpression';
 
 export type Direction = 'ascending' | 'descending';
 

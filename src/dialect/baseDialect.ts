@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from "chronoshift";
-import { PlyType, PlyTypeSimple } from "../types";
+import { Timezone, Duration } from 'chronoshift';
+import { PlyType, PlyTypeSimple } from '../types';
 
 
 export abstract class SQLDialect {

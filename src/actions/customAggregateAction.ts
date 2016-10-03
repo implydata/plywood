@@ -15,11 +15,11 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Indexer, Alterations } from "../expressions/baseExpression";
-import { SQLDialect } from "../dialect/baseDialect";
-import { ComputeFn } from "../datatypes/dataset";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ComputeFn } from '../datatypes/dataset';
 
 export class CustomAggregateAction extends Action {
   static fromJS(parameters: ActionJS): CustomAggregateAction {

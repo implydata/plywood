@@ -16,11 +16,11 @@
  */
 
 import * as Q from 'q';
-import { Timezone, Duration, isDate } from "chronoshift";
+import { Timezone, Duration, isDate } from 'chronoshift';
 import * as Druid from 'druid.d.ts';
-import { PlyType } from "../types";
-import { hasOwnProperty, dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from "../helper/utils";
-import { $, Expression, ChainExpression, LiteralExpression, RefExpression } from "../expressions/index";
+import { PlyType } from '../types';
+import { hasOwnProperty, dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from '../helper/utils';
+import { $, Expression, ChainExpression, LiteralExpression, RefExpression } from '../expressions/index';
 import {
   Action,
   AbsoluteAction,
@@ -57,7 +57,7 @@ import {
   TimeFloorAction,
   TimePartAction,
   TransformCaseAction
-} from "../actions/index";
+} from '../actions/index';
 import {
   AttributeInfo,
   Attributes,
@@ -71,10 +71,10 @@ import {
   Set,
   TimeRange,
   PlywoodValue
-} from "../datatypes/index";
-import { External, ExternalJS, ExternalValue, Inflater, NextFn, PostProcess, QueryAndPostProcess, TotalContainer } from "./baseExternal";
-import { unwrapSetType } from "../datatypes/common";
-import { PlywoodRange } from "../datatypes/range";
+} from '../datatypes/index';
+import { External, ExternalJS, ExternalValue, Inflater, NextFn, PostProcess, QueryAndPostProcess, TotalContainer } from './baseExternal';
+import { unwrapSetType } from '../datatypes/common';
+import { PlywoodRange } from '../datatypes/range';
 
 const DUMMY_NAME = '!DUMMY';
 

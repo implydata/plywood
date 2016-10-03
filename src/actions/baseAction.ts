@@ -17,7 +17,7 @@
 /// <reference path="../datatypes/dataset.ts" />
 /// <reference path="../expressions/baseExpression.ts" />
 
-import { Timezone, Duration } from "chronoshift";
+import { Timezone, Duration } from 'chronoshift';
 import {
   r,
   Expression,
@@ -26,15 +26,15 @@ import {
   Alterations,
   BooleanExpressionIterator,
   SubstitutionFn
-} from "../expressions/baseExpression";
-import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn, foldContext } from "../datatypes/dataset";
-import { hasOwnProperty, repeat, deduplicateSort } from "../helper/utils";
-import { Instance, isInstanceOf } from "immutable-class";
-import { ApplyAction } from "./applyAction";
-import { Direction } from "./sortAction";
-import { LiteralExpression, ExternalExpression, RefExpression, ChainExpression } from "../expressions/index";
+} from '../expressions/baseExpression';
+import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn, foldContext } from '../datatypes/dataset';
+import { hasOwnProperty, repeat, deduplicateSort } from '../helper/utils';
+import { Instance, isInstanceOf } from 'immutable-class';
+import { ApplyAction } from './applyAction';
+import { Direction } from './sortAction';
+import { LiteralExpression, ExternalExpression, RefExpression, ChainExpression } from '../expressions/index';
 
 export interface Splits {
   [name: string]: Expression;

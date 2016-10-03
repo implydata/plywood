@@ -16,13 +16,13 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { r, Expression, Indexer, Alterations, LiteralExpression, RefExpression } from "../expressions/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { SplitAction } from "./splitAction";
-import { SortAction } from "./sortAction";
-import { ApplyAction } from "./applyAction";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { r, Expression, Indexer, Alterations, LiteralExpression, RefExpression } from '../expressions/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { SplitAction } from './splitAction';
+import { SortAction } from './sortAction';
+import { ApplyAction } from './applyAction';
 
 export class FilterAction extends Action {
   static fromJS(parameters: ActionJS): FilterAction {

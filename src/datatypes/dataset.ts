@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-import { isDate } from "chronoshift";
-import { Class, Instance, isInstanceOf, generalEqual, SimpleArray, NamedArray } from "immutable-class";
-import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from "../types";
-import { hasOwnProperty } from "../helper/utils";
-import { Attributes, AttributeInfo, AttributeJSs } from "./attributeInfo";
-import { NumberRange } from "./numberRange";
-import { Set } from "./set";
-import { StringRange } from "./stringRange";
-import { TimeRange } from "./timeRange";
-import { valueFromJS, valueToJSInlineType, datumHasExternal } from "./common";
-import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression } from "../expressions/index";
-import { External, TotalContainer } from "../external/baseExternal";
+import { isDate } from 'chronoshift';
+import { Class, Instance, isInstanceOf, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
+import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
+import { hasOwnProperty } from '../helper/utils';
+import { Attributes, AttributeInfo, AttributeJSs } from './attributeInfo';
+import { NumberRange } from './numberRange';
+import { Set } from './set';
+import { StringRange } from './stringRange';
+import { TimeRange } from './timeRange';
+import { valueFromJS, valueToJSInlineType, datumHasExternal } from './common';
+import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression } from '../expressions/index';
+import { External, TotalContainer } from '../external/baseExternal';
 
 export function foldContext(d: Datum, c: Datum): Datum {
   var newContext = Object.create(c);

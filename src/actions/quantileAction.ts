@@ -16,10 +16,10 @@
  */
 
 
-import { Action, ActionJS, ActionValue, AggregateAction } from "./baseAction";
-import { PlyType } from "../types";
-import { r, Expression, LiteralExpression } from "../expressions/index";
-import { Datum, ComputeFn, foldContext } from "../datatypes/dataset";
+import { Action, ActionJS, ActionValue, AggregateAction } from './baseAction';
+import { PlyType } from '../types';
+import { r, Expression, LiteralExpression } from '../expressions/index';
+import { Datum, ComputeFn, foldContext } from '../datatypes/dataset';
 
 export class QuantileAction extends AggregateAction {
   static fromJS(parameters: ActionJS): QuantileAction {

@@ -16,10 +16,10 @@
  */
 
 
-import { Action, ActionJS, ActionValue, AggregateAction } from "./baseAction";
-import { PlyType } from "../types";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
+import { Action, ActionJS, ActionValue, AggregateAction } from './baseAction';
+import { PlyType } from '../types';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
 export class CountAction extends AggregateAction {
   static fromJS(parameters: ActionJS): CountAction {

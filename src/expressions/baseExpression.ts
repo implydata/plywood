@@ -16,16 +16,16 @@
  */
 
 import * as Q from 'q';
-import { Timezone, Duration, parseISODate } from "chronoshift";
-import { Instance, isInstanceOf, isImmutableClass, SimpleArray } from "immutable-class";
-import { promiseWhile } from "../helper/promiseWhile";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple } from "../types";
-import { fillExpressionExternalAlteration } from "../datatypes/index";
-import { LiteralExpression } from "./literalExpression";
-import { ChainExpression } from "./chainExpression";
-import { RefExpression } from "./refExpression";
-import { ExternalExpression } from "./externalExpression";
-import { SQLDialect } from "../dialect/baseDialect";
+import { Timezone, Duration, parseISODate } from 'chronoshift';
+import { Instance, isInstanceOf, isImmutableClass, SimpleArray } from 'immutable-class';
+import { promiseWhile } from '../helper/promiseWhile';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple } from '../types';
+import { fillExpressionExternalAlteration } from '../datatypes/index';
+import { LiteralExpression } from './literalExpression';
+import { ChainExpression } from './chainExpression';
+import { RefExpression } from './refExpression';
+import { ExternalExpression } from './externalExpression';
+import { SQLDialect } from '../dialect/baseDialect';
 import {
   Action,
   AbsoluteAction,
@@ -71,14 +71,14 @@ import {
   TimeShiftAction,
   TransformCaseAction,
   Environment
-} from "../actions/index";
-import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from "../helper/utils";
-import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from "../datatypes/index";
-import { ActionJS, CaseType, Splits } from "../actions/baseAction";
-import { Direction } from "../actions/sortAction";
-import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from "../datatypes/common";
-import { ComputeFn } from "../datatypes/dataset";
-import { External, ExternalJS } from "../external/baseExternal";
+} from '../actions/index';
+import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from '../helper/utils';
+import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from '../datatypes/index';
+import { ActionJS, CaseType, Splits } from '../actions/baseAction';
+import { Direction } from '../actions/sortAction';
+import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from '../datatypes/common';
+import { ComputeFn } from '../datatypes/dataset';
+import { External, ExternalJS } from '../external/baseExternal';
 
 export interface AlterationFillerPromise {
   (external: External, terminal: boolean): Q.Promise<any>;

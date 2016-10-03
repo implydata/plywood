@@ -16,8 +16,8 @@
  */
 
 import * as Q from 'q';
-import { PlywoodValue, Dataset } from "../datatypes/index";
-import { Expression } from "../expressions/baseExpression";
+import { PlywoodValue, Dataset } from '../datatypes/index';
+import { Expression } from '../expressions/baseExpression';
 import {
   ApplyAction,
   LimitAction,
@@ -25,11 +25,11 @@ import {
   SortAction,
   SplitAction,
   TimeBucketAction
-} from "../actions/index";
-import { Attributes } from "../datatypes/attributeInfo";
-import { External, ExternalValue, Inflater, QueryAndPostProcess, PostProcess, TotalContainer } from "./baseExternal";
-import { ChainExpression } from "../expressions/chainExpression";
-import { SQLDialect } from "../dialect/baseDialect";
+} from '../actions/index';
+import { Attributes } from '../datatypes/attributeInfo';
+import { External, ExternalValue, Inflater, QueryAndPostProcess, PostProcess, TotalContainer } from './baseExternal';
+import { ChainExpression } from '../expressions/chainExpression';
+import { SQLDialect } from '../dialect/baseDialect';
 
 function correctResult(result: any[]): boolean {
   return Array.isArray(result) && (result.length === 0 || typeof result[0] === 'object');
