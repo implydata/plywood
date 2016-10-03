@@ -977,6 +977,15 @@ describe("External", () => {
           { name: "TotalUSA", "type": "NUMBER" },
           { name: "TotalUK", "type": "NUMBER" }
         ]);
+
+        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal({
+          datum: {
+            "Count": 4,
+            "TotalAdded": 4,
+            "TotalUSA": 4,
+            "TotalUK": 4
+          }
+        });
       });
 
       it("works with several applies, all filtered", () => {

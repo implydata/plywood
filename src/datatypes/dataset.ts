@@ -275,28 +275,6 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
   }
 }
 
-function datumFromJS(js: Datum): Datum {
-  if (typeof js !== 'object') throw new TypeError("datum must be an object");
-
-  var datum: Datum = Object.create(null);
-  for (var k in js) {
-    if (!hasOwnProperty(js, k)) continue;
-    datum[k] = valueFromJS(js[k]);
-  }
-
-  return datum;
-}
-
-function datumToJS(datum: Datum): Datum {
-  var js: Datum = {};
-  for (var k in datum) {
-    var v = datum[k];
-    if (v && (v as any).suppress) continue;
-    js[k] = valueToJSInlineType(v);
-  }
-  return js;
-}
-
 function joinDatums(datumA: Datum, datumB: Datum): Datum {
   var newDatum: Datum = Object.create(null);
   for (var k in datumA) {
@@ -338,6 +316,28 @@ export class Dataset implements Instance<DatasetValue, any> {
 
   static isDataset(candidate: any): candidate is Dataset {
     return isInstanceOf(candidate, Dataset);
+  }
+
+  static datumFromJS(js: Datum): Datum {
+    if (typeof js !== 'object') throw new TypeError("datum must be an object");
+
+    var datum: Datum = Object.create(null);
+    for (var k in js) {
+      if (!hasOwnProperty(js, k)) continue;
+      datum[k] = valueFromJS(js[k]);
+    }
+
+    return datum;
+  }
+
+  static datumToJS(datum: Datum): Datum {
+    var js: Datum = {};
+    for (var k in datum) {
+      var v = datum[k];
+      if (v && (v as any).suppress) continue;
+      js[k] = valueToJSInlineType(v);
+    }
+    return js;
   }
 
   static getAttributesFromData(data: Datum[]): Attributes {
@@ -419,7 +419,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
 
     value.keys = parameters.keys;
-    value.data = parameters.data.map(datumFromJS);
+    value.data = parameters.data.map(Dataset.datumFromJS);
     return new Dataset(value);
   }
 
@@ -461,7 +461,7 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public toJS(): any {
-    return this.data.map(datumToJS);
+    return this.data.map(Dataset.datumToJS);
   }
 
   public toString(): string {

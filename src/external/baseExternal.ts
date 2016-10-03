@@ -48,6 +48,12 @@ export class TotalContainer {
   constructor(d: Datum) {
     this.datum = d;
   }
+
+  toJS(): any {
+    return {
+      datum: Dataset.datumToJS(this.datum)
+    };
+  }
 }
 
 export interface PostProcess {
