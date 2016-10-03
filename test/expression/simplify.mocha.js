@@ -20,7 +20,7 @@ var { expect } = require("chai");
 var { testImmutableClass } = require("immutable-class-tester");
 
 var plywood = require('../../build/plywood');
-var { Expression, TimeRange, NumberRange, $, r, ply, Set } = plywood;
+var { Expression, TimeRange, NumberRange, $, r, ply, Set, Dataset, External, ExternalExpression } = plywood;
 
 function simplifiesTo(ex1, ex2) {
   var ex1Simple = ex1.simplify();
@@ -31,6 +31,26 @@ function simplifiesTo(ex1, ex2) {
 function leavesAlone(ex) {
   simplifiesTo(ex, ex);
 }
+
+var diamonds = External.fromJS({
+  engine: 'druid',
+  source: 'diamonds',
+  timeAttribute: 'time',
+  attributes: [
+    { name: 'time', type: 'TIME' },
+    { name: 'color', type: 'STRING' },
+    { name: 'cut', type: 'STRING' },
+    { name: 'isNice', type: 'BOOLEAN' },
+    { name: 'tags', type: 'SET/STRING' },
+    { name: 'pugs', type: 'SET/STRING' },
+    { name: 'carat', type: 'NUMBER' },
+    { name: 'height_bucket', type: 'NUMBER' },
+    { name: 'price', type: 'NUMBER', unsplitable: true },
+    { name: 'tax', type: 'NUMBER', unsplitable: true },
+    { name: 'vendor_id', special: 'unique', unsplitable: true }
+  ],
+  allowSelectQueries: true
+});
 
 describe("Simplify", () => {
   describe('literals', () => {
@@ -715,43 +735,43 @@ describe("Simplify", () => {
   describe('filter', () => {
     it('consecutive filters fold together', () => {
       var ex1 = ply()
-        .filter('$x == 1')
-        .filter('$y == 2');
+        .filter('$^x == 1')
+        .filter('$^y == 2');
 
       var ex2 = ply()
-        .filter('$x == 1 and $y == 2');
+        .filter('$^x == 1 and $^y == 2');
 
       simplifiesTo(ex1, ex2);
     });
 
     it('moves filter before applies', () => {
       var ex1 = ply()
-        .apply('Wiki', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-        .filter('$x == "en"');
+        .apply('Wiki', '$^wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)')
+        .filter('$^x == "en"');
 
       var ex2 = ply()
-        .filter('$x == "en"')
-        .apply('Wiki', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .filter('$^x == "en"')
+        .apply('Wiki', '$^wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)');
 
       simplifiesTo(ex1, ex2);
     });
 
     it('does not change the meaning', () => {
       var ex1 = ply()
-        .apply('Wiki', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .apply('Wiki', '$^wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)')
         .filter('$AddedByDeleted == 1');
 
       var ex2 = ply()
-        .apply('Wiki', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .apply('Wiki', '$^wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
         .filter('$AddedByDeleted == 1')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)');
 
       simplifiesTo(ex1, ex2);
     });
@@ -811,12 +831,12 @@ describe("Simplify", () => {
     });
 
     it('can move past a sort', () => {
-      var ex1 = ply()
+      var ex1 = $('d')
         .sort('$deleted', 'ascending')
-        .filter('$AddedByDeleted == 1');
+        .filter('$^AddedByDeleted == 1');
 
-      var ex2 = ply()
-        .filter('$AddedByDeleted == 1')
+      var ex2 = $('d')
+        .filter('$^AddedByDeleted == 1')
         .sort('$deleted', 'ascending');
 
       simplifiesTo(ex1, ex2);
@@ -825,15 +845,38 @@ describe("Simplify", () => {
 
 
   describe('split', () => {
-    it('does not touch a split on a literal', () => {
-      var ex1 = ply().split('$page', 'Page', 'data');
-      var ex2 = ply().split('$page', 'Page', 'data');
+    it('does not touch a split on a reference', () => {
+      var ex1 = $('d').split('$page', 'Page', 'data');
+      var ex2 = $('d').split('$page', 'Page', 'data');
       simplifiesTo(ex1, ex2);
     });
 
     it('simplifies the split expression', () => {
-      var ex1 = ply().split('$x.absolute().absolute()', 'Page', 'data');
-      var ex2 = ply().split('$x.absolute()', 'Page', 'data');
+      var ex1 = $('d').split('$x.absolute().absolute()', 'Page', 'data');
+      var ex2 = $('d').split('$x.absolute()', 'Page', 'data');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('simplifies on empty literal', () => {
+      var ex1 = ply().split('$x', 'Page', 'data');
+      var ex2 = ply(Dataset.fromJS([
+        { Page: null }
+      ]));
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('simplifies on non-empty literal', () => {
+      var ex1 = ply(Dataset.fromJS([
+        { a: 1, b: 10 },
+        { a: 1, b: 20 },
+        { a: 2, b: 30 }
+      ])).split('$a', 'A', 'data');
+
+      var ex2 = ply(Dataset.fromJS([
+        { A: 1 },
+        { A: 2 }
+      ]));
+
       simplifiesTo(ex1, ex2);
     });
   });
@@ -851,41 +894,108 @@ describe("Simplify", () => {
 
     it('sorts applies does not mess with sort if all are simple 1', () => {
       var ex1 = ply()
-        .apply('Count', '$wiki.count()')
-        .apply('Deleted', '$wiki.sum($deleted)');
+        .apply('Count', '$^wiki.count()')
+        .apply('Deleted', '$^wiki.sum($deleted)');
 
       var ex2 = ply()
-        .apply('Count', '$wiki.count()')
-        .apply('Deleted', '$wiki.sum($deleted)');
+        .apply('Count', '$^wiki.count()')
+        .apply('Deleted', '$^wiki.sum($deleted)');
 
       simplifiesTo(ex1, ex2);
     });
 
     it('sorts applies does not mess with sort if all are simple 2', () => {
       var ex1 = ply()
-        .apply('Deleted', '$wiki.sum($deleted)')
-        .apply('Count', '$wiki.count()');
+        .apply('Deleted', '$^wiki.sum($deleted)')
+        .apply('Count', '$^wiki.count()');
 
       var ex2 = ply()
-        .apply('Deleted', '$wiki.sum($deleted)')
-        .apply('Count', '$wiki.count()');
+        .apply('Deleted', '$^wiki.sum($deleted)')
+        .apply('Count', '$^wiki.count()');
 
       simplifiesTo(ex1, ex2);
     });
 
     it('sorts applies 2', () => {
       var ex1 = ply()
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
-        .apply('Deleted', '$wiki.sum($deleted)');
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)')
+        .apply('Deleted', '$^wiki.sum($deleted)');
 
       var ex2 = ply()
-        .apply('Deleted', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .apply('Deleted', '$^wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)');
 
       simplifiesTo(ex1, ex2);
     });
+
+    it('applies simple', () => {
+      var ex1 = ply()
+        .apply('Stuff', 5)
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)');
+
+      var ex2 = ply(Dataset.fromJS([{
+        Stuff: 5
+      }]))
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)');
+
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('applies more complex', () => {
+      var ex1 = ply(Dataset.fromJS([{
+        Stuff: 5
+      }]))
+        .apply('StuffX3', '$Stuff * 3');
+
+      var ex2 = ply(Dataset.fromJS([{
+        Stuff: 5,
+        StuffX3: 15
+      }]));
+
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('applies more complex', () => {
+      var ex1 = ply(Dataset.fromJS([{
+        Stuff: 5
+      }]))
+        .apply('StuffX3', '$Stuff * 3');
+
+      var ex2 = ply(Dataset.fromJS([{
+        Stuff: 5,
+        StuffX3: 15
+      }]));
+
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('applies externals', () => {
+      var diamondEx = new ExternalExpression({ external: diamonds });
+
+      var ex1 = ply()
+        .apply('diamonds', diamondEx)
+        .apply('Total', '$diamonds.count()')
+        .apply('TotalX2', '$Total * 2')
+        .apply('SomeSplit', $('diamonds').split('$cut:STRING', 'Cut').limit(10))
+        .apply('SomeNestedSplit',
+          $('diamonds').split('$color:STRING', 'Color')
+            .limit(10)
+            .apply('SubSplit', $('diamonds').split('$cut:STRING', 'SubCut').limit(5))
+        );
+
+      var ex2 = ex1.simplify();
+      var data = ex2.value.data;
+      expect(data.length).to.equal(1);
+      expect(data[0].diamonds.mode).to.equal('raw');
+      expect(data[0].Total.mode).to.equal('value');
+      expect(data[0].TotalX2.mode).to.equal('value');
+      expect(data[0].SomeSplit.mode).to.equal('split');
+      expect(data[0].SomeNestedSplit.op).to.equal('chain');
+      expect(data[0].SomeNestedSplit.actions.length).to.equal(1);
+    });
+
   });
 
 
@@ -898,6 +1008,12 @@ describe("Simplify", () => {
       var ex2 = $('main')
         .sort('$x', 'ascending');
 
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('works on literal', () => {
+      var ex1 = ply().sort('$x', 'ascending');
+      var ex2 = ply();
       simplifiesTo(ex1, ex2);
     });
   });
@@ -917,17 +1033,23 @@ describe("Simplify", () => {
 
     it('moves past apply', () => {
       var ex1 = $('main')
-        .apply('Wiki', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .apply('Wiki', '$^wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)')
         .limit(10);
 
       var ex2 = $('main')
         .limit(10)
-        .apply('Wiki', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .apply('Wiki', '$^wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)');
 
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('works on literals', () => {
+      var ex1 = ply().limit(20);
+      var ex2 = ply();
       simplifiesTo(ex1, ex2);
     });
   });
@@ -947,15 +1069,15 @@ describe("Simplify", () => {
 
     it('removes a preceding apply', () => {
       var ex1 = $('main')
-        .apply('Added', '$wiki.sum($added)')
-        .apply('Deleted', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
+        .apply('Added', '$^wiki.sum($added)')
+        .apply('Deleted', '$^wiki.sum($deleted)')
+        .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)')
+        .apply('DeletedByInserted', '$^wiki.sum($deleted) / $^wiki.sum($inserted)')
         .select('Added', 'Deleted');
 
       var ex2 = $('main')
-        .apply('Added', '$wiki.sum($added)')
-        .apply('Deleted', '$wiki.sum($deleted)')
+        .apply('Added', '$^wiki.sum($added)')
+        .apply('Deleted', '$^wiki.sum($deleted)')
         .select('Added', 'Deleted');
 
       simplifiesTo(ex1, ex2);

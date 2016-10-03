@@ -344,7 +344,7 @@ describe("DruidExternal Introspection", () => {
     }).to.throw("invalid introspectionStrategy 'crowd-source'");
   });
 
-  it("does an introspect with general failure", (testComplete) => {
+  it("does an introspect with general failure", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia'
@@ -356,12 +356,10 @@ describe("DruidExternal Introspection", () => {
       })
       .catch((err) => {
         expect(err.message).to.equal('Bad status code');
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("does an introspect with segmentMetadata (with aggregators)", (testComplete) => {
+  it("does an introspect with segmentMetadata (with aggregators)", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
@@ -435,12 +433,10 @@ describe("DruidExternal Introspection", () => {
             "type": "STRING"
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("does an introspect with segmentMetadata (without aggregators)", (testComplete) => {
+  it("does an introspect with segmentMetadata (without aggregators)", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
@@ -495,12 +491,10 @@ describe("DruidExternal Introspection", () => {
             "type": "STRING"
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("does an introspect with segmentMetadata (with old style COMPLEX columns)", (testComplete) => {
+  it("does an introspect with segmentMetadata (with old style COMPLEX columns)", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
@@ -542,12 +536,10 @@ describe("DruidExternal Introspection", () => {
             "type": "STRING"
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("does a simple introspect with GET", (testComplete) => {
+  it("does a simple introspect with GET", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
@@ -603,12 +595,10 @@ describe("DruidExternal Introspection", () => {
             "unsplitable": true
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("respects the introspectionStrategy flag", (testComplete) => {
+  it("respects the introspectionStrategy flag", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
@@ -665,12 +655,10 @@ describe("DruidExternal Introspection", () => {
             "unsplitable": true
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("does an introspect with overrides", (testComplete) => {
+  it("does an introspect with overrides", () => {
     var wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
@@ -730,12 +718,10 @@ describe("DruidExternal Introspection", () => {
             "type": "STRING"
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("does a version aware based query", (testComplete) => {
+  it("does a version aware based query", () => {
     var selectRequesterDruid = ({query}) => {
       if (query.queryType !== 'select') return requesterDruid_0_9_0({query});
       expect(query).to.deep.equal({
@@ -777,8 +763,6 @@ describe("DruidExternal Introspection", () => {
     return $('wiki').compute(context)
       .then((results) => {
         expect(results.toJS()).to.deep.equal([]);
-        testComplete();
-      })
-      .done();
+      });
   });
 });

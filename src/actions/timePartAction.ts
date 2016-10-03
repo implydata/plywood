@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { Moment } from "moment-timezone";
-import * as moment from "moment-timezone";
-import { Timezone } from "chronoshift";
-import { Action, ActionJS, ActionValue, Environment } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
-import { immutableEqual } from "immutable-class";
+import { Moment } from 'moment-timezone';
+import * as moment from 'moment-timezone';
+import { Timezone } from 'chronoshift';
+import { Action, ActionJS, ActionValue, Environment } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
+import { immutableEqual } from 'immutable-class';
 
 interface Parter {
   (d: Moment): number;

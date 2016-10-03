@@ -16,14 +16,16 @@
  */
 
 import * as Q from 'q';
-import { Timezone, Duration, parseISODate } from "chronoshift";
-import { Instance, isInstanceOf, isImmutableClass, SimpleArray } from "immutable-class";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple } from "../types";
-import { LiteralExpression } from "./literalExpression";
-import { ChainExpression } from "./chainExpression";
-import { RefExpression } from "./refExpression";
-import { ExternalExpression } from "./externalExpression";
-import { SQLDialect } from "../dialect/baseDialect";
+import { Timezone, Duration, parseISODate } from 'chronoshift';
+import { Instance, isInstanceOf, isImmutableClass, SimpleArray } from 'immutable-class';
+import { promiseWhile } from '../helper/promiseWhile';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple } from '../types';
+import { fillExpressionExternalAlteration } from '../datatypes/index';
+import { LiteralExpression } from './literalExpression';
+import { ChainExpression } from './chainExpression';
+import { RefExpression } from './refExpression';
+import { ExternalExpression } from './externalExpression';
+import { SQLDialect } from '../dialect/baseDialect';
 import {
   Action,
   AbsoluteAction,
@@ -69,25 +71,45 @@ import {
   TimeShiftAction,
   TransformCaseAction,
   Environment
-} from "../actions/index";
-import {
-  hasOwnProperty, repeat, emptyLookup, deduplicateSort
-} from "../helper/utils";
-import {
-  Dataset,
-  Datum,
-  PlywoodValue,
-  NumberRange,
-  Range,
-  Set,
-  StringRange,
-  TimeRange
-} from "../datatypes/index";
-import { ActionJS, CaseType, Splits } from "../actions/baseAction";
-import { Direction } from "../actions/sortAction";
-import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from "../datatypes/common";
-import { ComputeFn } from "../datatypes/dataset";
-import { External, ExternalJS } from "../external/baseExternal";
+} from '../actions/index';
+import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from '../helper/utils';
+import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from '../datatypes/index';
+import { ActionJS, CaseType, Splits } from '../actions/baseAction';
+import { Direction } from '../actions/sortAction';
+import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from '../datatypes/common';
+import { ComputeFn } from '../datatypes/dataset';
+import { External, ExternalJS } from '../external/baseExternal';
+
+export interface AlterationFillerPromise {
+  (external: External, terminal: boolean): Q.Promise<any>;
+}
+
+function fillExpressionExternalAlterationAsync(alteration: ExpressionExternalAlteration, filler: AlterationFillerPromise): Q.Promise<ExpressionExternalAlteration> {
+  var tasks: Q.Promise<any>[] = [];
+  fillExpressionExternalAlteration(alteration, (external, terminal) => {
+    tasks.push(filler(external, terminal));
+    return null;
+  });
+
+  return Q.all(tasks).then((results) => {
+    var i = 0;
+    fillExpressionExternalAlteration(alteration, () => {
+      var res = results[i];
+      i++;
+      return res;
+    });
+    return alteration;
+  });
+}
+
+
+export interface ExpressionExternalAlterationSimple {
+  external: External;
+  terminal?: boolean;
+  result?: any;
+}
+
+export type ExpressionExternalAlteration = Lookup<ExpressionExternalAlterationSimple | DatasetExternalAlterations>;
 
 export interface BooleanExpressionIterator {
   (ex?: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
@@ -629,7 +651,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Check if the expression contains externals
    */
   public hasExternal(): boolean {
-    return this.some(function(ex: Expression) {
+    return this.some((ex: Expression) => {
       if (ex instanceof ExternalExpression) return true;
       if (ex instanceof RefExpression) return ex.isRemote();
       return null; // search further
@@ -638,7 +660,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public getBaseExternals(): External[] {
     var externals: External[] = [];
-    this.forEach(function(ex: Expression) {
+    this.forEach((ex: Expression) => {
       if (ex instanceof ExternalExpression) externals.push(ex.external.getBase());
     });
     return External.deduplicateExternals(externals);
@@ -646,10 +668,52 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public getRawExternals(): External[] {
     var externals: External[] = [];
-    this.forEach(function(ex: Expression) {
+    this.forEach((ex: Expression) => {
       if (ex instanceof ExternalExpression) externals.push(ex.external.getRaw());
     });
     return External.deduplicateExternals(externals);
+  }
+
+  public getReadyExternals(): ExpressionExternalAlteration {
+    var externalsByIndex: ExpressionExternalAlteration = {};
+    this.every((ex: Expression, index: int) => {
+      if (ex instanceof ExternalExpression) {
+        if (!ex.external.suppress) {
+          externalsByIndex[index] = {
+            external: ex.external,
+            terminal: true
+          };
+        }
+
+      } else if (ex instanceof ChainExpression) {
+        var exExpression = ex.expression;
+        if (exExpression instanceof ExternalExpression) {
+          if (ex.actions.every(action => action.resolved())) {
+            externalsByIndex[index + 1] = { external: exExpression.external };
+          }
+          return true;
+        }
+
+      } else if (ex instanceof LiteralExpression && ex.type === 'DATASET') {
+        var datasetExternals = ex.value.getReadyExternals();
+        if (datasetExternals.length) externalsByIndex[index] = datasetExternals;
+        return null;
+      }
+      return null;
+    });
+    return externalsByIndex;
+  }
+
+  public applyReadyExternals(alterations: ExpressionExternalAlteration): Expression {
+    return this.substitute((ex, index) => {
+      var alteration = alterations[index];
+      if (!alteration) return null;
+      if (Array.isArray(alteration)) {
+        return r((ex.getLiteralValue() as Dataset).applyReadyExternals(alteration));
+      } else {
+        return r(alteration.result);
+      }
+    }).simplify();
   }
 
   /**
@@ -1348,9 +1412,13 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     for (var k in context) {
       if (!hasOwnProperty(context, k)) continue;
       var value = context[k];
-      expressions[k] = External.isExternal(value) ?
-        new ExternalExpression({ external: <External>value }) :
-        new LiteralExpression({ value });
+      if (External.isExternal(value)) {
+        expressions[k] = new ExternalExpression({ external: <External>value });
+      } else if (Expression.isExpression(value)) {
+        expressions[k] = value;
+      } else {
+        expressions[k] = new LiteralExpression({ value });
+      }
     }
 
     return this.resolveWithExpressions(expressions, ifNotFound);
@@ -1359,7 +1427,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public resolveWithExpressions(expressions: Lookup<Expression>, ifNotFound: IfNotFound = 'throw'): Expression {
     return this.substitute((ex: Expression, index: int, depth: int, nestDiff: int) => {
       if (ex instanceof RefExpression) {
-        var { nest, ignoreCase, name } = ex;
+        const { nest, ignoreCase, name } = ex;
         if (nestDiff === nest) {
           var foundExpression: Expression = null;
           var valueFound = false;
@@ -1367,8 +1435,20 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
           if (property != null) {
             foundExpression = expressions[property];
             valueFound = true;
-          } else {
-            valueFound = false;
+          }
+
+          if (foundExpression instanceof ExternalExpression) {
+            var mode = foundExpression.external.mode;
+
+            // Never substitute split externals at all
+            if (mode === 'split') {
+              return ex;
+            }
+
+            // Never substitute non-raw externals from an outside nesting
+            if (nest > 0 && mode !== 'raw') {
+              return ex;
+            }
           }
 
           if (valueFound) {
@@ -1389,17 +1469,21 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public resolved(): boolean {
-    return this.every((ex: Expression) => {
-      return (ex instanceof RefExpression) ? ex.nest === 0 : null; // Search within
+    return this.every((ex, index, depth, nestDiff) => {
+      return (ex instanceof RefExpression) ? ex.nest <= nestDiff : null; // Search within
     });
   }
 
-  public contained(): boolean {
-    return this.every((ex: Expression, index: int, depth: int, nestDiff: int) => {
-      if (ex instanceof RefExpression) {
-        var nest = ex.nest;
-        return nestDiff >= nest;
-      }
+  public resolvedWithoutExternals(): boolean {
+    return this.every((ex, index, depth, nestDiff) => {
+      if (ex instanceof ExternalExpression) return false;
+      return (ex instanceof RefExpression) ? ex.nest <= nestDiff : null; // Search within
+    });
+  }
+
+  public noRefs(): boolean {
+    return this.every((ex) => {
+      if (ex instanceof RefExpression) return false;
       return null;
     });
   }
@@ -1465,7 +1549,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       readyExpression = (<ExternalExpression>readyExpression).unsuppress();
     }
 
-    return readyExpression._computeResolvedSimulate(true, []);
+    return readyExpression._computeResolvedSimulate([]);
   }
 
 
@@ -1474,7 +1558,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param context The context within which to compute the expression
    * @param environment The environment for the default of the expression
    */
-  public simulateQueryPlan(context: Datum = {}, environment: Environment = {}): any[] {
+  public simulateQueryPlan(context: Datum = {}, environment: Environment = {}): any[][] {
     if (!datumHasExternal(context) && !this.hasExternal()) return [];
 
 
@@ -1484,12 +1568,26 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       readyExpression = (<ExternalExpression>readyExpression).unsuppress();
     }
 
-    var simulatedQueries: any[] = [];
-    readyExpression._computeResolvedSimulate(true, simulatedQueries);
-    return simulatedQueries;
+    var simulatedQueryGroups: any[] = [];
+    readyExpression._computeResolvedSimulate(simulatedQueryGroups);
+    return simulatedQueryGroups;
   }
 
-  public abstract _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue
+  public _computeResolvedSimulate(simulatedQueryGroups: any[][]): PlywoodValue {
+    var ex: Expression = this;
+    var readyExternals = ex.getReadyExternals();
+    var i = 0;
+
+    while (Object.keys(readyExternals).length > 0 && i < 10) {
+      var simulatedQueryGroup: any[] = [];
+      fillExpressionExternalAlteration(readyExternals, (external, terminal) => external.simulateValue(terminal, simulatedQueryGroup));
+      simulatedQueryGroups.push(simulatedQueryGroup);
+      ex = ex.applyReadyExternals(readyExternals);
+      readyExternals = ex.getReadyExternals();
+      i++;
+    }
+    return ex.getLiteralValue();
+  }
 
 
   /**
@@ -1509,11 +1607,31 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         var readyExpression = this._initialPrepare(introspectedContext, environment);
         if (readyExpression instanceof ExternalExpression) {
           // Top level externals need to be unsuppressed
-          readyExpression = (<ExternalExpression>readyExpression).unsuppress();
+          readyExpression = readyExpression.unsuppress();
         }
-        return readyExpression._computeResolved(true);
+        return readyExpression._computeResolved();
       });
   }
 
-  public abstract _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue>
+  public _computeResolved(): Q.Promise<PlywoodValue> {
+    var ex: Expression = this;
+    var readyExternals = ex.getReadyExternals();
+    var i = 0;
+
+    return promiseWhile(
+      () => Object.keys(readyExternals).length > 0 && i < 10,
+      () => {
+        return fillExpressionExternalAlterationAsync(readyExternals, (external, terminal) => external.queryValue(terminal))
+          .then((readyExternalsFilled) => {
+            ex = ex.applyReadyExternals(readyExternalsFilled);
+            readyExternals = ex.getReadyExternals();
+            i++;
+          });
+      }
+    )
+      .then(() => {
+        return ex.getLiteralValue();
+      });
+  }
+
 }

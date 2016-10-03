@@ -15,13 +15,13 @@
  */
 
 import * as Q from 'q';
-import { Timezone, Duration } from "chronoshift";
-import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from "immutable-class";
-import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";
-import { hasOwnProperty, nonEmptyLookup, safeAdd } from "../helper/utils";
-import { $, Expression, RefExpression, ChainExpression, ExternalExpression } from "../expressions/index";
-import { PlywoodValue, Datum, Dataset } from "../datatypes/dataset";
-import { Attributes, AttributeInfo, AttributeJSs } from "../datatypes/attributeInfo";
+import { Timezone, Duration } from 'chronoshift';
+import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
+import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
+import { hasOwnProperty, nonEmptyLookup, safeAdd } from '../helper/utils';
+import { $, Expression, RefExpression, ChainExpression, ExternalExpression } from '../expressions/index';
+import { PlywoodValue, Datum, Dataset } from '../datatypes/dataset';
+import { Attributes, AttributeInfo, AttributeJSs } from '../datatypes/attributeInfo';
 import {
   Action,
   ApplyAction,
@@ -32,18 +32,32 @@ import {
   SortAction,
   SplitAction,
   TimeBucketAction
-} from "../actions/index";
-import { NumberRange } from "../datatypes/numberRange";
-import { unwrapSetType } from "../datatypes/common";
-import { CustomDruidAggregations, CustomDruidTransforms } from "./druidExternal";
-import { ExpressionJS } from "../expressions/baseExpression";
-import { Set } from "../datatypes/set";
-import { StringRange } from "../datatypes/stringRange";
-import { TimeRange } from "../datatypes/timeRange";
-import { promiseWhile } from "../helper/promiseWhile";
+} from '../actions/index';
+import { NumberRange } from '../datatypes/numberRange';
+import { unwrapSetType } from '../datatypes/common';
+import { CustomDruidAggregations, CustomDruidTransforms } from './druidExternal';
+import { ExpressionJS } from '../expressions/baseExpression';
+import { Set } from '../datatypes/set';
+import { StringRange } from '../datatypes/stringRange';
+import { TimeRange } from '../datatypes/timeRange';
+import { promiseWhile } from '../helper/promiseWhile';
+
+export class TotalContainer {
+  public datum: Datum;
+
+  constructor(d: Datum) {
+    this.datum = d;
+  }
+
+  toJS(): any {
+    return {
+      datum: Dataset.datumToJS(this.datum)
+    };
+  }
+}
 
 export interface PostProcess {
-  (result: any): PlywoodValue;
+  (result: any): PlywoodValue | TotalContainer;
 }
 
 export interface NextFn<Q, R> {
@@ -289,13 +303,24 @@ export abstract class External {
 
     function addToUniqueExternals(external: External) {
       for (let uniqueExternal of uniqueExternals) {
-        if (uniqueExternal.equalBase(external)) return;
+        if (uniqueExternal.equalBaseAndFilter(external)) return;
       }
       uniqueExternals.push(external);
     }
 
     for (let i = 1; i < externals.length; i++) addToUniqueExternals(externals[i]);
     return uniqueExternals;
+  }
+
+  static addExtraFilter(ex: ChainExpression, extraFilter: Expression): ChainExpression {
+    if (extraFilter.equals(Expression.TRUE)) return ex;
+
+    return ex.substitute(ex => {
+      if (ex instanceof RefExpression && ex.type === 'DATASET' && ex.name === External.SEGMENT_NAME) {
+        return ex.filter(extraFilter);
+      }
+      return null;
+    }) as ChainExpression;
   }
 
   static makeZeroDatum(applies: ApplyAction[]): Datum {
@@ -539,6 +564,24 @@ export abstract class External {
     return classFn;
   }
 
+  static uniteValueExternalsIntoTotal(keyExternals: { key: string, external?: External }[]): External {
+    if (keyExternals.length === 0) return null;
+    var applies: ApplyAction[] = [];
+
+    var baseExternal: External = null;
+    for (var keyExternal of keyExternals) {
+      var key = keyExternal.key;
+      var external = keyExternal.external;
+      if (!baseExternal) baseExternal = external;
+      applies.push(new ApplyAction({
+        name: key,
+        expression: new ExternalExpression({ external })
+      }));
+    }
+
+    return keyExternals[0].external.getBase().makeTotal(applies);
+  }
+
   static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any> = null): External {
     if (!hasOwnProperty(parameters, "engine")) {
       throw new Error("external `engine` must be defined");
@@ -639,6 +682,7 @@ export abstract class External {
         break;
 
       case 'split':
+        this.select = parameters.select;
         this.dataName = parameters.dataName;
         this.split = parameters.split;
         if (!this.split) throw new Error('must have split action in split mode');
@@ -761,12 +805,17 @@ export abstract class External {
   }
 
   public equals(other: External): boolean {
-    return this.equalBase(other) &&
+    return this.equalBaseAndFilter(other) &&
       immutableLookupsEqual(this.derivedAttributes, other.derivedAttributes) &&
       immutableArraysEqual(this.attributes, other.attributes) &&
       immutableArraysEqual(this.delegates, other.delegates) &&
       this.concealBuckets === other.concealBuckets &&
       Boolean(this.requester) === Boolean(other.requester);
+  }
+
+  public equalBaseAndFilter(other: External): boolean {
+    return this.equalBase(other) &&
+      this.filter.equals(other.filter);
   }
 
   public equalBase(other: External): boolean {
@@ -775,8 +824,7 @@ export abstract class External {
       String(this.source) === String(other.source) &&
       this.version === other.version &&
       this.rollup === other.rollup &&
-      this.mode === other.mode &&
-      this.filter.equals(other.filter);
+      this.mode === other.mode;
   }
 
   public changeVersion(version: string) {
@@ -987,7 +1035,7 @@ export abstract class External {
   }
 
   public addFilter(expression: Expression): External {
-    if (!expression.resolved()) return null;
+    if (!expression.resolvedWithoutExternals()) return null;
     if (!this.expressionDefined(expression)) return null;
 
     var value = this.valueOf();
@@ -1016,7 +1064,8 @@ export abstract class External {
   }
 
   private _addSelectAction(selectAction: SelectAction): External {
-    if (this.mode !== 'raw') return null; // Can only select on 'raw' datasets
+    const { mode } = this;
+    if (mode !== 'raw' && mode !== 'split') return null; // Can only select on 'raw' or 'split' datasets
 
     const { datasetType } = this.getFullType();
     const { attributes } = selectAction;
@@ -1028,6 +1077,12 @@ export abstract class External {
     value.suppress = false;
     value.select = selectAction;
     value.delegates = nullMap(value.delegates, (e) => e._addSelectAction(selectAction));
+
+    if (mode === 'split') {
+      value.applies = value.applies.filter((apply) => attributes.indexOf(apply.name) !== -1);
+      value.attributes = value.attributes.filter((attribute) => attributes.indexOf(attribute.name) !== -1);
+    }
+
     return External.fromValue(value);
   }
 
@@ -1055,7 +1110,7 @@ export abstract class External {
   private _addApplyAction(action: ApplyAction): External {
     var expression = action.expression;
     if (expression.type === 'DATASET') return null;
-    if (!expression.contained()) return null;
+    if (!expression.resolved()) return null;
     if (!this.expressionDefined(expression)) return null;
     if (!this.canHandleApply(action.expression)) return null;
 
@@ -1122,13 +1177,13 @@ export abstract class External {
   private _addPostAggregateAction(action: Action): External {
     if (this.mode !== 'value') throw new Error('must be in value mode to call addPostAggregateAction');
     var actionExpression = action.expression;
-    // ToDo: do I need to run  expressionDefined here?
+    // ToDo: do I need to run expressionDefined here?
 
     var commonFilter = this.filter;
     var newValueExpression: ChainExpression;
     if (actionExpression instanceof ExternalExpression) {
       var otherExternal = actionExpression.external;
-      if (!this.getBase().equals(otherExternal.getBase())) return null;
+      if (!this.equalBase(otherExternal)) return null;
 
       var commonFilter = getCommonFilter(commonFilter, otherExternal.filter);
       var newAction = action.changeExpression(otherExternal.valueExpressionWithinFilter(commonFilter));
@@ -1150,6 +1205,7 @@ export abstract class External {
 
   public prePack(prefix: Expression, myAction: Action): External {
     if (this.mode !== 'value') throw new Error('must be in value mode to call prePack');
+    if (!prefix.noRefs()) return null;
 
     var value = this.valueOf();
     value.valueExpression = prefix.performAction(myAction.changeExpression(value.valueExpression));
@@ -1163,18 +1219,7 @@ export abstract class External {
     if (this.mode !== 'value') return null;
     var extraFilter = filterDiff(this.filter, withinFilter);
     if (!extraFilter) throw new Error('not within the segment');
-
-    var ex = this.valueExpression;
-    if (!extraFilter.equals(Expression.TRUE)) {
-      ex = <ChainExpression>ex.substitute(ex => {
-        if (ex instanceof RefExpression && ex.type === 'DATASET' && ex.name === External.SEGMENT_NAME) {
-          return ex.filter(extraFilter);
-        }
-        return null;
-      });
-    }
-
-    return ex;
+    return External.addExtraFilter(this.valueExpression, extraFilter);
   }
 
   public toValueApply(): ApplyAction {
@@ -1270,6 +1315,12 @@ export abstract class External {
     return selectAttributes.map(s => NamedArray.findByName(attributes, s));
   }
 
+  public getValueType(): PlyTypeSimple {
+    const { valueExpression } = this;
+    if (!valueExpression) return null;
+    return valueExpression.type as PlyTypeSimple;
+  }
+
   // -----------------
 
   public addNextExternal(dataset: Dataset): Dataset {
@@ -1286,7 +1337,7 @@ export abstract class External {
     return delegates[0];
   }
 
-  public simulateValue(lastNode: boolean, simulatedQueries: any[], externalForNext: External = null): PlywoodValue {
+  public simulateValue(lastNode: boolean, simulatedQueries: any[], externalForNext: External = null): PlywoodValue | TotalContainer {
     const { mode } = this;
 
     if (!externalForNext) externalForNext = this;
@@ -1323,6 +1374,10 @@ export abstract class External {
       }
     }
 
+    if (mode === 'total') {
+      return new TotalContainer(datum);
+    }
+
     var dataset = new Dataset({ data: [datum] });
     if (!lastNode && mode === 'split') dataset = externalForNext.addNextExternal(dataset);
     return dataset;
@@ -1332,7 +1387,7 @@ export abstract class External {
     throw new Error("can not call getQueryAndPostProcess directly");
   }
 
-  public queryValue(lastNode: boolean, externalForNext: External = null): Q.Promise<PlywoodValue> {
+  public queryValue(lastNode: boolean, externalForNext: External = null): Q.Promise<PlywoodValue | TotalContainer> {
     const { mode, requester } = this;
 
     if (!externalForNext) externalForNext = this;
@@ -1343,12 +1398,12 @@ export abstract class External {
     }
 
     if (!requester) {
-      return <Q.Promise<PlywoodValue>>Q.reject(new Error('must have a requester to make queries'));
+      return <Q.Promise<PlywoodValue | TotalContainer>>Q.reject(new Error('must have a requester to make queries'));
     }
     try {
       var queryAndPostProcess = this.getQueryAndPostProcess();
     } catch (e) {
-      return <Q.Promise<PlywoodValue>>Q.reject(e);
+      return <Q.Promise<PlywoodValue | TotalContainer>>Q.reject(e);
     }
 
     var { query, postProcess, next } = queryAndPostProcess;
@@ -1356,7 +1411,7 @@ export abstract class External {
       return <Q.Promise<PlywoodValue>>Q.reject(new Error('no query or postProcess'));
     }
 
-    var finalResult: Q.Promise<PlywoodValue>;
+    var finalResult: Q.Promise<PlywoodValue | TotalContainer>;
     if (next) {
       var results: any[] = [];
       finalResult = promiseWhile(

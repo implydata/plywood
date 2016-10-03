@@ -16,15 +16,15 @@
  */
 
 import * as Q from 'q';
-import { parseISODate } from "chronoshift";
-import { isImmutableClass } from "immutable-class";
-import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from "../types";
-import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
-import { SQLDialect } from "../dialect/baseDialect";
-import { hasOwnProperty } from "../helper/utils";
-import { Dataset, Set, TimeRange, PlywoodValue } from "../datatypes/index";
-import { isSetType, valueFromJS, getValueType } from "../datatypes/common";
-import { ComputeFn } from "../datatypes/dataset";
+import { parseISODate } from 'chronoshift';
+import { isImmutableClass } from 'immutable-class';
+import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
+import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { hasOwnProperty } from '../helper/utils';
+import { Dataset, Set, TimeRange, PlywoodValue } from '../datatypes/index';
+import { isSetType, valueFromJS, getValueType } from '../datatypes/common';
+import { ComputeFn } from '../datatypes/dataset';
 
 export class LiteralExpression extends Expression {
   static fromJS(parameters: ExpressionJS): LiteralExpression {
@@ -162,14 +162,6 @@ export class LiteralExpression extends Expression {
 
   public getLiteralValue(): any {
     return this.value;
-  }
-
-  public _computeResolvedSimulate(): PlywoodValue {
-    return this.value;
-  }
-
-  public _computeResolved(): Q.Promise<PlywoodValue> {
-    return Q(this.value);
   }
 
   public maxPossibleSplitValues(): number {

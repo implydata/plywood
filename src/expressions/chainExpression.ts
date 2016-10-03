@@ -15,7 +15,7 @@
  */
 
 import * as Q from 'q';
-import { immutableArraysEqual } from "immutable-class";
+import { immutableArraysEqual } from 'immutable-class';
 import {
   r,
   ply,
@@ -28,15 +28,15 @@ import {
   ExtractAndRest,
   SubstitutionFn,
   BooleanExpressionIterator
-} from "./baseExpression";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { ExternalExpression } from "./externalExpression";
-import { Action, ApplyAction, FilterAction, LimitAction, SelectAction, SortAction } from "../actions/index";
-import { Dataset, Datum, PlywoodValue } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { hasOwnProperty, repeat, arraysEqual } from "../helper/utils";
-import { RefExpression } from "./refExpression";
-import { ComputeFn } from "../datatypes/dataset";
+} from './baseExpression';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { ExternalExpression } from './externalExpression';
+import { Action, ApplyAction, FilterAction, LimitAction, SelectAction, SortAction } from '../actions/index';
+import { Dataset, Datum, PlywoodValue } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { hasOwnProperty, repeat, arraysEqual } from '../helper/utils';
+import { RefExpression } from './refExpression';
+import { ComputeFn } from '../datatypes/dataset';
 
 export class ChainExpression extends Expression {
   static fromJS(parameters: ExpressionJS): ChainExpression {
@@ -214,89 +214,6 @@ export class ChainExpression extends Expression {
     var baseExternals = this.getBaseExternals();
     if (baseExternals.length === 0) return this;
 
-    // Looks like: External().blah().blah().blah()
-    if (expression instanceof ExternalExpression) {
-      var myExternal = expression;
-      var undigestedActions: Action[] = [];
-      for (var action of actions) {
-        var newExternal = myExternal.addAction(action);
-        if (newExternal) {
-          myExternal = newExternal;
-        } else {
-          undigestedActions.push(action);
-        }
-      }
-
-      if (undigestedActions.length) {
-        return new ChainExpression({
-          expression: myExternal,
-          actions: undigestedActions,
-          simple: true
-        });
-      } else {
-        return myExternal;
-      }
-    }
-
-    // Looks like: ply().apply(ValueExternal()).apply(ValueExternal()).apply(ValueExternal())
-    var dataset = expression.getLiteralValue();
-    if (Dataset.isDataset(dataset) && dataset.basis()) {
-      if (baseExternals.length > 1) {
-        throw new Error('multiple externals not supported for now'); // ToDo: would need to do a join at this point
-      }
-
-      var dataDefinitions: Lookup<ExternalExpression> = Object.create(null);
-      var hasExternalValueApply = false;
-      var applies: ApplyAction[] = [];
-      var undigestedActions: Action[] = [];
-      var allActions: Action[] = [];
-
-      for (let action of actions) {
-        if (action instanceof ApplyAction) {
-          var substitutedAction = <ApplyAction>action.substitute((ex, index, depth, nestDiff) => {
-            if (ex instanceof RefExpression && ex.type === 'DATASET' && nestDiff === 1) {
-              return dataDefinitions[ex.name] || null;
-            }
-            return null;
-          }).simplify();
-
-          if (substitutedAction.expression instanceof ExternalExpression) {
-            var externalMode = (<ExternalExpression>substitutedAction.expression).external.mode;
-            if (externalMode === 'raw') {
-              dataDefinitions[substitutedAction.name] = <ExternalExpression>substitutedAction.expression;
-            } else if (externalMode === 'value') {
-              applies.push(substitutedAction);
-              allActions.push(substitutedAction);
-              hasExternalValueApply = true;
-            } else {
-              undigestedActions.push(substitutedAction);
-              allActions.push(substitutedAction);
-            }
-          } else if (substitutedAction.expression.type !== 'DATASET') {
-            applies.push(substitutedAction);
-            allActions.push(substitutedAction);
-          } else {
-            undigestedActions.push(substitutedAction);
-            allActions.push(substitutedAction);
-          }
-        } else {
-          undigestedActions.push(action);
-          allActions.push(action);
-        }
-      }
-
-      var newExpression: Expression;
-      if (hasExternalValueApply) {
-        var combinedExternal = baseExternals[0].makeTotal(applies);
-        if (!combinedExternal) throw new Error('something went wrong');
-        newExpression = new ExternalExpression({ external: combinedExternal });
-        if (undigestedActions.length) newExpression = newExpression.performActions(undigestedActions, true);
-        return newExpression;
-      } else {
-        return ply().performActions(allActions);
-      }
-    }
-
     // Looks like: $().blah().blah(ValueExternal()).blah()
     return this.substituteAction(
       (action) => {
@@ -305,8 +222,10 @@ export class ChainExpression extends Expression {
       },
       (preEx: Expression, action: Action) => {
         var external = (action.expression as ExternalExpression).external;
+        var prePacked = external.prePack(preEx, action);
+        if (!prePacked) return null;
         return new ExternalExpression({
-          external: external.prePack(preEx, action)
+          external: prePacked
         });
       },
       {
@@ -470,111 +389,6 @@ export class ChainExpression extends Expression {
     var value = this.valueOf();
     value.actions = actions;
     return new ChainExpression(value);
-  }
-
-  public _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue {
-    var { expression, actions } = this;
-
-    if (expression.isOp('external')) {
-      var exV = expression._computeResolvedSimulate(false, simulatedQueries);
-      var newExpression = r(exV).performActions(actions).simplify();
-      if (newExpression.hasExternal()) {
-        return newExpression._computeResolvedSimulate(true, simulatedQueries);
-      } else {
-        return newExpression.getFn()(null, null);
-      }
-    }
-
-    function execAction(i: int, dataset: Dataset): Dataset {
-      var action = actions[i];
-      var actionExpression = action.expression;
-
-      if (action instanceof FilterAction) {
-        return dataset.filter(actionExpression.getFn(), null);
-
-      } else if (action instanceof ApplyAction) {
-        if (actionExpression.hasExternal()) {
-          return dataset.apply(action.name, (d: Datum) => {
-            var simpleExpression = actionExpression.resolve(d).simplify();
-            return simpleExpression._computeResolvedSimulate(simpleExpression.isOp('external'), simulatedQueries);
-          }, actionExpression.type, null);
-        } else {
-          return dataset.apply(action.name, actionExpression.getFn(), actionExpression.type, null);
-        }
-
-      } else if (action instanceof SortAction) {
-        return dataset.sort(actionExpression.getFn(), action.direction, null);
-
-      } else if (action instanceof LimitAction) {
-        return dataset.limit(action.limit);
-
-      } else if (action instanceof SelectAction) {
-        return dataset.select(action.attributes);
-
-      }
-
-      throw new Error(`could not execute action ${action}`);
-    }
-
-    var value = expression._computeResolvedSimulate(false, simulatedQueries);
-    for (var i = 0; i < actions.length; i++) {
-      value = execAction(i, value as Dataset);
-    }
-    return value;
-  }
-
-  public _computeResolved(): Q.Promise<PlywoodValue> {
-    var { expression, actions } = this;
-
-    if (expression.isOp('external')) {
-      return expression._computeResolved(false).then((exV) => {
-        var newExpression = r(exV).performActions(actions).simplify();
-        if (newExpression.hasExternal()) {
-          return newExpression._computeResolved(true);
-        } else {
-          return newExpression.getFn()(null, null);
-        }
-      });
-    }
-
-    function execAction(i: int) {
-      return (dataset: Dataset): Dataset | Q.Promise<Dataset> => {
-        var action = actions[i];
-        var actionExpression = action.expression;
-
-        if (action instanceof FilterAction) {
-          return dataset.filter(actionExpression.getFn(), null);
-
-        } else if (action instanceof ApplyAction) {
-          if (actionExpression.hasExternal()) {
-            return dataset.applyPromise(action.name, (d: Datum) => {
-              var simpleExpression = actionExpression.resolve(d).simplify();
-              return simpleExpression._computeResolved(simpleExpression.isOp('external'));
-            }, actionExpression.type, null);
-          } else {
-            return dataset.apply(action.name, actionExpression.getFn(), actionExpression.type, null);
-          }
-
-        } else if (action instanceof SortAction) {
-          return dataset.sort(actionExpression.getFn(), action.direction, null);
-
-        } else if (action instanceof LimitAction) {
-          return dataset.limit(action.limit);
-
-        } else if (action instanceof SelectAction) {
-          return dataset.select(action.attributes);
-
-        }
-
-        throw new Error(`could not execute action ${action}`);
-      };
-    }
-
-    var promise = expression._computeResolved(false);
-    for (var i = 0; i < actions.length; i++) {
-      promise = promise.then(execAction(i));
-    }
-    return promise;
   }
 
   public extractFromAnd(matchFn: ExpressionMatchFn): ExtractAndRest {

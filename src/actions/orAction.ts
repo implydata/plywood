@@ -17,15 +17,15 @@
 
 
 
-import { Set } from "../datatypes/set";
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
-import { arraysEqual } from "../helper/utils";
-import { ChainExpression } from "../expressions/chainExpression";
-import { LiteralExpression } from "../expressions/literalExpression";
+import { Set } from '../datatypes/set';
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
+import { arraysEqual } from '../helper/utils';
+import { ChainExpression } from '../expressions/chainExpression';
+import { LiteralExpression } from '../expressions/literalExpression';
 
 function mergeOr(ex1: Expression, ex2: Expression): Expression {
   if (ex1.equals(ex2)) return ex1;

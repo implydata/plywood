@@ -16,11 +16,11 @@
  */
 
 import * as Q from 'q';
-import { External, ExternalJS, ExternalValue } from "./baseExternal";
-import { SQLExternal } from "./sqlExternal";
-import { AttributeInfo, Attributes } from "../datatypes/attributeInfo";
-import { PseudoDatum } from "../datatypes/dataset";
-import { MySQLDialect } from "../dialect/mySqlDialect";
+import { External, ExternalJS, ExternalValue } from './baseExternal';
+import { SQLExternal } from './sqlExternal';
+import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
+import { PseudoDatum } from '../datatypes/dataset';
+import { MySQLDialect } from '../dialect/mySqlDialect';
 
 export interface MySQLDescribeRow {
   Field: string;

@@ -56,7 +56,8 @@ describe("simulate Druid 0.9.1-legacy-lookups", () => {
       .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "lookup": {
@@ -78,7 +79,8 @@ describe("simulate Druid 0.9.1-legacy-lookups", () => {
       .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').contains('hello')"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "lookup": {
@@ -108,7 +110,9 @@ describe("simulate Druid 0.9.1-legacy-lookups", () => {
           .limit(10)
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -139,7 +143,10 @@ describe("simulate Druid 0.9.1-legacy-lookups", () => {
         },
         "queryType": "topN",
         "threshold": 10
-      },
+      }
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
       {
         "aggregations": [
           {

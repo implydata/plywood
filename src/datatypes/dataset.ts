@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
-import { isDate } from "chronoshift";
-import { Class, Instance, isInstanceOf, generalEqual, SimpleArray, NamedArray } from "immutable-class";
-import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from "../types";
-import { hasOwnProperty } from "../helper/utils";
-import { Attributes, AttributeInfo, AttributeJSs } from "./attributeInfo";
-import { NumberRange } from "./numberRange";
-import { Set } from "./set";
-import { StringRange } from "./stringRange";
-import { TimeRange } from "./timeRange";
-import { valueFromJS, valueToJSInlineType, datumHasExternal } from "./common";
-import { External } from "../external/baseExternal";
+import { isDate } from 'chronoshift';
+import { Class, Instance, isInstanceOf, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
+import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
+import { hasOwnProperty } from '../helper/utils';
+import { Attributes, AttributeInfo, AttributeJSs } from './attributeInfo';
+import { NumberRange } from './numberRange';
+import { Set } from './set';
+import { StringRange } from './stringRange';
+import { TimeRange } from './timeRange';
+import { valueFromJS, valueToJSInlineType, datumHasExternal } from './common';
+import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression } from '../expressions/index';
+import { External, TotalContainer } from '../external/baseExternal';
 
 export function foldContext(d: Datum, c: Datum): Datum {
   var newContext = Object.create(c);
@@ -44,10 +44,6 @@ export interface SplitFns {
   [name: string]: ComputeFn;
 }
 
-export interface ComputePromiseFn {
-  (d: Datum, c: Datum): Q.Promise<any>;
-}
-
 export interface DirectionFn {
   (a: any, b: any): number;
 }
@@ -59,7 +55,48 @@ export interface PseudoDatum {
 }
 
 export interface Datum {
-  [attribute: string]: PlywoodValue;
+  [attribute: string]: PlywoodValue | Expression;
+}
+
+export interface DatasetExternalAlteration {
+  index: number;
+  key: string;
+  external?: External;
+  terminal?: boolean;
+  result?: any;
+  datasetAlterations?: DatasetExternalAlterations;
+  expressionAlterations?: ExpressionExternalAlteration;
+}
+
+export type DatasetExternalAlterations = DatasetExternalAlteration[];
+
+export interface AlterationFiller {
+  (external: External, terminal: boolean): any;
+}
+
+export function fillExpressionExternalAlteration(alteration: ExpressionExternalAlteration, filler: AlterationFiller): void {
+  for (var k in alteration) {
+    var thing = alteration[k];
+    if (Array.isArray(thing)) {
+      fillDatasetExternalAlterations(thing, filler);
+    } else {
+      thing.result = filler(thing.external, thing.terminal);
+    }
+  }
+}
+
+export function fillDatasetExternalAlterations(alterations: DatasetExternalAlterations, filler: AlterationFiller): void {
+  for (var alteration of alterations) {
+    if (alteration.external) {
+      alteration.result = filler(alteration.external, alteration.terminal);
+    } else if (alteration.datasetAlterations) {
+      fillDatasetExternalAlterations(alteration.datasetAlterations, filler);
+    } else if (alteration.expressionAlterations) {
+      fillExpressionExternalAlteration(alteration.expressionAlterations, filler);
+    } else {
+      throw new Error('fell through');
+    }
+  }
 }
 
 var directionFns: Lookup<DirectionFn> = {
@@ -87,15 +124,6 @@ export interface Column {
   name: string;
   type: string;
   columns?: Column[];
-}
-
-function typePreference(type: string): number {
-  switch (type) {
-    case 'TIME': return 0;
-    case 'STRING': return 1;
-    case 'DATASET': return 5;
-    default: return 2;
-  }
 }
 
 function uniqueColumns(columns: Column[]): Column[] {
@@ -247,28 +275,6 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
   }
 }
 
-function datumFromJS(js: Datum): Datum {
-  if (typeof js !== 'object') throw new TypeError("datum must be an object");
-
-  var datum: Datum = Object.create(null);
-  for (var k in js) {
-    if (!hasOwnProperty(js, k)) continue;
-    datum[k] = valueFromJS(js[k]);
-  }
-
-  return datum;
-}
-
-function datumToJS(datum: Datum): Datum {
-  var js: Datum = {};
-  for (var k in datum) {
-    var v = datum[k];
-    if (v && (v as any).suppress) continue;
-    js[k] = valueToJSInlineType(v);
-  }
-  return js;
-}
-
 function joinDatums(datumA: Datum, datumB: Datum): Datum {
   var newDatum: Datum = Object.create(null);
   for (var k in datumA) {
@@ -310,6 +316,28 @@ export class Dataset implements Instance<DatasetValue, any> {
 
   static isDataset(candidate: any): candidate is Dataset {
     return isInstanceOf(candidate, Dataset);
+  }
+
+  static datumFromJS(js: Datum): Datum {
+    if (typeof js !== 'object') throw new TypeError("datum must be an object");
+
+    var datum: Datum = Object.create(null);
+    for (var k in js) {
+      if (!hasOwnProperty(js, k)) continue;
+      datum[k] = valueFromJS(js[k]);
+    }
+
+    return datum;
+  }
+
+  static datumToJS(datum: Datum): Datum {
+    var js: Datum = {};
+    for (var k in datum) {
+      var v = datum[k];
+      if (v && (v as any).suppress) continue;
+      js[k] = valueToJSInlineType(v);
+    }
+    return js;
   }
 
   static getAttributesFromData(data: Datum[]): Attributes {
@@ -391,7 +419,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
 
     value.keys = parameters.keys;
-    value.data = parameters.data.map(datumFromJS);
+    value.data = parameters.data.map(Dataset.datumFromJS);
     return new Dataset(value);
   }
 
@@ -433,7 +461,7 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public toJS(): any {
-    return this.data.map(datumToJS);
+    return this.data.map(Dataset.datumToJS);
   }
 
   public toString(): string {
@@ -537,7 +565,12 @@ export class Dataset implements Instance<DatasetValue, any> {
     // Hack
     var datasetType: Lookup<FullType> = null;
     if (type === 'DATASET' && newData[0] && newData[0][name]) {
-      datasetType = (newData[0][name] as any).getFullType().datasetType;
+      var thing: any = newData[0][name];
+      if (thing instanceof Dataset) {
+        datasetType = thing.getFullType().datasetType;
+      } else {
+        datasetType = {}; // Temp hack, (a hack within a hack), technically this should be dataset type;
+      }
     }
     // End Hack
 
@@ -545,14 +578,6 @@ export class Dataset implements Instance<DatasetValue, any> {
     value.attributes = NamedArray.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
     value.data = newData;
     return new Dataset(value);
-  }
-
-  public applyPromise(name: string, exFn: ComputePromiseFn, type: PlyType, context: Datum): Q.Promise<Dataset> {
-    var value = this.valueOf();
-    var promises = value.data.map(datum => exFn(datum, context));
-    return Q.all(promises).then(values => {
-      return this.apply(name, ((d, c, i) => values[i]), type, context);
-    });
   }
 
   public filter(exFn: ComputeFn, context: Datum): Dataset {
@@ -712,17 +737,115 @@ export class Dataset implements Instance<DatasetValue, any> {
     console.error('introspection is always done, `.introspect()` method never needs to be called');
   }
 
-  public getExternals(): External[] {
-    if (this.data.length === 0) return [];
-    var datum = this.data[0];
-    var externals: External[] = [];
-    Object.keys(datum).forEach(applyName => {
-      var applyValue = datum[applyName];
-      if (applyValue instanceof Dataset) {
-        externals.push(...applyValue.getExternals());
+  public getReadyExternals(): DatasetExternalAlterations {
+    var externalAlterations: DatasetExternalAlterations = [];
+    const { data, attributes } = this;
+
+    for (var i = 0; i < data.length; i++) {
+      var datum = data[i];
+      var normalExternalAlterations: DatasetExternalAlterations = [];
+      var valueExternalAlterations: DatasetExternalAlterations = [];
+      for (var attribute of attributes) {
+        var value = datum[attribute.name];
+        if (value instanceof Expression) {
+          var subExpressionAlterations = value.getReadyExternals();
+          if (Object.keys(subExpressionAlterations).length) {
+            normalExternalAlterations.push({
+              index: i,
+              key: attribute.name,
+              expressionAlterations: subExpressionAlterations
+            });
+          }
+
+        } else if (value instanceof Dataset) {
+          var subDatasetAlterations = value.getReadyExternals();
+          if (subDatasetAlterations.length) {
+            normalExternalAlterations.push({
+              index: i,
+              key: attribute.name,
+              datasetAlterations: subDatasetAlterations
+            });
+          }
+
+        } else if (value instanceof External) {
+          if (!value.suppress) {
+            var externalAlteration: DatasetExternalAlteration = {
+              index: i,
+              key: attribute.name,
+              external: value,
+              terminal: true
+            };
+
+            if (value.mode === 'value') {
+              valueExternalAlterations.push(externalAlteration);
+            } else {
+              normalExternalAlterations.push(externalAlteration);
+            }
+          }
+        }
       }
-    });
-    return External.deduplicateExternals(externals);
+
+      if (valueExternalAlterations.length) {
+        if (valueExternalAlterations.length === 1) {
+          externalAlterations.push(valueExternalAlterations[0]);
+        } else {
+          externalAlterations.push({
+            index: i,
+            key: '',
+            external: External.uniteValueExternalsIntoTotal(valueExternalAlterations)
+          });
+        }
+      }
+
+      if (normalExternalAlterations.length) {
+        Array.prototype.push.apply(externalAlterations, normalExternalAlterations);
+      }
+    }
+    return externalAlterations;
+  }
+
+  public applyReadyExternals(alterations: DatasetExternalAlterations): Dataset {
+    var data = this.data;
+    for (var alteration of alterations) {
+      var datum = data[alteration.index];
+      var key = alteration.key;
+
+      if (alteration.external) {
+        var result = alteration.result;
+        if (result instanceof TotalContainer) {
+          var resultDatum = result.datum;
+          for (var k in resultDatum) {
+            datum[k] = resultDatum[k];
+          }
+        } else {
+          datum[key] = result;
+        }
+      } else if (alteration.datasetAlterations) {
+        datum[key] = (datum[key] as Dataset).applyReadyExternals(alteration.datasetAlterations);
+      } else if (alteration.expressionAlterations) {
+        var exAlt = (datum[key] as Expression).applyReadyExternals(alteration.expressionAlterations);
+        if (exAlt instanceof ExternalExpression) {
+          datum[key] = exAlt.external;
+        } else if (exAlt instanceof LiteralExpression) {
+          datum[key] = exAlt.getLiteralValue();
+        } else {
+          datum[key] = exAlt;
+        }
+      } else {
+        throw new Error('fell through');
+      }
+    }
+
+    for (datum of data) {
+      for (var key in datum) {
+        var v = datum[key];
+        if (v instanceof Expression) {
+          datum[key] = v.resolve(datum).simplify();
+        }
+      }
+    }
+
+    return this; // hack, in place for now
   }
 
   public join(other: Dataset): Dataset {

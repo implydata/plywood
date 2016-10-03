@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration, parseISODate } from "chronoshift";
-import { Class, Instance, isInstanceOf } from "immutable-class";
-import { Range } from "./range";
-import { Expression } from "../expressions/baseExpression";
+import { Timezone, Duration, parseISODate } from 'chronoshift';
+import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { Range } from './range';
+import { Expression } from '../expressions/baseExpression';
 
 export interface TimeRangeValue {
   start: Date;

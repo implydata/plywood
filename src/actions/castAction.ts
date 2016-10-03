@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
-import { hasOwnProperty } from "../helper/utils";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
+import { hasOwnProperty } from '../helper/utils';
 
 interface Caster {
   TIME: {

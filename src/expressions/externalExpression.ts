@@ -15,13 +15,12 @@
  */
 
 import * as Q from 'q';
-import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from "./baseExpression";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { SQLDialect } from "../dialect/baseDialect";
-import { PlywoodValue } from "../datatypes/index";
-import { Action } from "../actions/baseAction";
-import { ComputeFn } from "../datatypes/dataset";
-import { External } from "../external/baseExternal";
+import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Action } from '../actions/baseAction';
+import { ComputeFn } from '../datatypes/dataset';
+import { External } from '../external/baseExternal';
 
 export class ExternalExpression extends Expression {
   static fromJS(parameters: ExpressionJS): Expression {
@@ -40,7 +39,7 @@ export class ExternalExpression extends Expression {
     if (!external) throw new Error('must have an external');
     this.external = external;
     this._ensureOp('external');
-    this.type = external.mode === 'value' ? 'NUMBER' : 'DATASET'; // ToDo: not always number
+    this.type = external.mode === 'value' ? external.getValueType() : 'DATASET'; // ToDo: not always number
     this.simple = true;
   }
 
@@ -81,24 +80,12 @@ export class ExternalExpression extends Expression {
     indexer.index++;
     const { external } = this;
     if (external.mode === 'value') {
-      return { type: 'NUMBER' };
+      return { type: external.getValueType() };
     } else {
       var newTypeContext = this.external.getFullType();
       newTypeContext.parent = typeContext;
       return newTypeContext;
     }
-  }
-
-  public _computeResolvedSimulate(lastNode: boolean, simulatedQueries: any[]): PlywoodValue {
-    var external = this.external;
-    if (external.suppress) return external;
-    return external.simulateValue(lastNode, simulatedQueries);
-  }
-
-  public _computeResolved(lastNode: boolean): Q.Promise<PlywoodValue> {
-    var external = this.external;
-    if (external.suppress) return Q(external);
-    return external.queryValue(lastNode);
   }
 
   public unsuppress(): ExternalExpression {

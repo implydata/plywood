@@ -16,12 +16,12 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Indexer, Alterations } from "../expressions/baseExpression";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
-import { RefExpression } from "../expressions/refExpression";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { r, Indexer, Alterations, Expression, LiteralExpression } from '../expressions/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
+import { RefExpression } from '../expressions/refExpression';
 
 export type Direction = 'ascending' | 'descending';
 
@@ -119,6 +119,17 @@ export class SortAction extends Action {
       expression: this.expression,
       direction: this.direction === SortAction.ASCENDING ? SortAction.DESCENDING : SortAction.ASCENDING
     });
+  }
+
+  protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    const { expression, direction } = this;
+    if (!expression.resolved()) return null;
+    if (literalExpression.value === null) return Expression.NULL;
+    var dataset = literalExpression.value;
+
+    dataset = dataset.sort(expression.getFn(), direction);
+
+    return r(dataset);
   }
 }
 

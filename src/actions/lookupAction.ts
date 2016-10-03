@@ -15,10 +15,10 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { SQLDialect } from "../dialect/baseDialect";
-import { ComputeFn } from "../datatypes/dataset";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ComputeFn } from '../datatypes/dataset';
 
 export class LookupAction extends Action {
   static fromJS(parameters: ActionJS): LookupAction {

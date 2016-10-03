@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { Action, ActionJS, ActionValue, CaseType } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Indexer, Alterations } from "../expressions/baseExpression";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
+import { Action, ActionJS, ActionValue, CaseType } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
 export class TransformCaseAction extends Action {
   static UPPER_CASE = 'upperCase';

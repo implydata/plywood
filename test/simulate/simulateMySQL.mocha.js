@@ -75,7 +75,7 @@ describe("simulate MySQL", () => {
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(4);
 
-    expect(queryPlan[0]).to.equal(sane`
+    expect(queryPlan[0]).to.deep.equal([sane`
       SELECT
       COUNT(*) AS \`Count\`,
       SUM(\`price\`) AS \`TotalPrice\`,
@@ -87,9 +87,9 @@ describe("simulate MySQL", () => {
       FROM \`diamonds\`
       WHERE (\`color\`<=>"D")
       GROUP BY ''
-    `);
+    `]);
 
-    expect(queryPlan[1]).to.equal(sane`
+    expect(queryPlan[1]).to.deep.equal([sane`
       SELECT
       \`cut\` AS \`Cut\`,
       COUNT(*) AS \`Count\`,
@@ -99,9 +99,9 @@ describe("simulate MySQL", () => {
       GROUP BY 1
       ORDER BY \`Count\` DESC
       LIMIT 2
-    `);
+    `]);
 
-    expect(queryPlan[2]).to.equal(sane`
+    expect(queryPlan[2]).to.deep.equal([sane`
       SELECT
       CONVERT_TZ(DATE_FORMAT(CONVERT_TZ(\`time\`,'+0:00','America/Los_Angeles'),'%Y-%m-%d 00:00:00Z'),'America/Los_Angeles','+0:00') AS \`Timestamp\`,
       SUM(\`price\`) AS \`TotalPrice\`
@@ -109,9 +109,9 @@ describe("simulate MySQL", () => {
       WHERE ((\`color\`<=>"D") AND (\`cut\`<=>"some_cut"))
       GROUP BY 1
       ORDER BY \`Timestamp\` ASC
-    `);
+    `]);
 
-    expect(queryPlan[3]).to.equal(sane`
+    expect(queryPlan[3]).to.deep.equal([sane`
       SELECT
       FLOOR(\`carat\` / 0.25) * 0.25 AS \`Carat\`,
       COALESCE(COUNT(*), 0) AS \`Count\`
@@ -120,7 +120,7 @@ describe("simulate MySQL", () => {
       GROUP BY 1
       ORDER BY \`Count\` DESC
       LIMIT 3
-    `);
+    `]);
   });
 
   it("works with up reference", () => {
@@ -136,21 +136,21 @@ describe("simulate MySQL", () => {
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(2);
 
-    expect(queryPlan[0]).to.equal(sane`
+    expect(queryPlan[0]).to.deep.equal([sane`
       SELECT
-      COUNT(*) AS \`Count\`
+      COUNT(*) AS \`__VALUE__\`
       FROM \`diamonds\`
       GROUP BY ''
-    `);
+    `]);
 
-    expect(queryPlan[1]).to.equal(sane`
+    expect(queryPlan[1]).to.deep.equal([sane`
       SELECT
       \`cut\` AS \`Cut\`,
       COUNT(*) AS \`Count\`,
       (COUNT(*)/4) AS \`PercentOfTotal\`
       FROM \`diamonds\`
       GROUP BY 1
-    `);
+    `]);
   });
 
   it("works with having filter", () => {
@@ -163,7 +163,7 @@ describe("simulate MySQL", () => {
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    expect(queryPlan[0]).to.equal(sane`
+    expect(queryPlan[0]).to.deep.equal([sane`
       SELECT
       \`cut\` AS \`Cut\`,
       COUNT(*) AS \`Count\`
@@ -172,7 +172,7 @@ describe("simulate MySQL", () => {
       HAVING 100<\`Count\`
       ORDER BY \`Count\` DESC
       LIMIT 10
-    `);
+    `]);
   });
 
   it("works with range bucket", () => {
@@ -193,27 +193,28 @@ describe("simulate MySQL", () => {
       );
 
     var queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan).to.have.length(2);
+    expect(queryPlan).to.have.length(1);
 
-    expect(queryPlan[0]).to.equal(sane`
-      SELECT
-      \`height_bucket\` AS \`HeightBucket\`,
-      COUNT(*) AS \`Count\`
-      FROM \`diamonds\`
-      GROUP BY 1
-      ORDER BY \`Count\` DESC
-      LIMIT 10
-    `);
-
-    expect(queryPlan[1]).to.equal(sane`
-      SELECT
-      FLOOR((\`height_bucket\` - 0.5) / 2) * 2 + 0.5 AS \`HeightBucket\`,
-      COUNT(*) AS \`Count\`
-      FROM \`diamonds\`
-      GROUP BY 1
-      ORDER BY \`Count\` DESC
-      LIMIT 10
-    `);
+    expect(queryPlan[0]).to.deep.equal([
+      sane`
+        SELECT
+        \`height_bucket\` AS \`HeightBucket\`,
+        COUNT(*) AS \`Count\`
+        FROM \`diamonds\`
+        GROUP BY 1
+        ORDER BY \`Count\` DESC
+        LIMIT 10
+      `,
+      sane`
+        SELECT
+        FLOOR((\`height_bucket\` - 0.5) / 2) * 2 + 0.5 AS \`HeightBucket\`,
+        COUNT(*) AS \`Count\`
+        FROM \`diamonds\`
+        GROUP BY 1
+        ORDER BY \`Count\` DESC
+        LIMIT 10
+      `
+    ]);
   });
 
   it("works with SELECT query", () => {
@@ -225,14 +226,14 @@ describe("simulate MySQL", () => {
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    expect(queryPlan[0]).to.equal(sane`
+    expect(queryPlan[0]).to.deep.equal([sane`
       SELECT
       \`time\`, \`color\`, \`cut\`, \`tags\`, \`carat\`, \`height_bucket\`, \`price\`, \`tax\`
       FROM \`diamonds\`
       WHERE (\`color\`<=>"D")
       ORDER BY \`cut\` DESC
       LIMIT 10
-    `);
+    `]);
   });
 
   it("should be able to find column name case insensitively", () => {
@@ -246,12 +247,12 @@ describe("simulate MySQL", () => {
     var queryPlan = ex.expression.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    expect(queryPlan[0]).to.equal(sane`
+    expect(queryPlan[0]).to.deep.equal([sane`
       SELECT
-      SUM(\`price\`) AS \`TotalPrice\`
+      SUM(\`price\`) AS \`__VALUE__\`
       FROM \`diamonds\`
       GROUP BY ''
-    `);
+    `]);
   });
 
 
@@ -261,13 +262,13 @@ describe("simulate MySQL", () => {
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    expect(queryPlan[0]).to.equal(sane`
+    expect(queryPlan[0]).to.deep.equal([sane`
       SELECT
       SUM(\`price\`) AS \`__VALUE__\`
       FROM \`diamonds\`
       WHERE (\`color\`<=>"D")
       GROUP BY ''
-    `);
+    `]);
   });
 
   it("works with BOOLEAN bucket", () => {
@@ -278,14 +279,14 @@ describe("simulate MySQL", () => {
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
-    expect(queryPlan[0]).to.equal(sane`
+    expect(queryPlan[0]).to.deep.equal([sane`
       SELECT
       (\`color\`<=>"A") AS \`ColorIsA\`,
       COUNT(*) AS \`Count\`
       FROM \`diamonds\`
       GROUP BY 1
       ORDER BY \`Count\` DESC
-    `);
+    `]);
   });
 
   it("works multi-dimensional GROUP BYs", () => {
@@ -308,7 +309,7 @@ describe("simulate MySQL", () => {
     var queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(2);
 
-    expect(queryPlan[0]).to.equal(sane`
+    expect(queryPlan[0]).to.deep.equal([sane`
       SELECT
       \`color\` AS \`Color\`,
       \`cut\` AS \`Cut\`,
@@ -317,9 +318,9 @@ describe("simulate MySQL", () => {
       WHERE \`color\` IN ("A","B","some_color")
       GROUP BY 1, 2
       LIMIT 3
-    `);
+    `]);
 
-    expect(queryPlan[1]).to.equal(sane`
+    expect(queryPlan[1]).to.deep.equal([sane`
       SELECT
       FLOOR(\`carat\` / 0.25) * 0.25 AS \`Carat\`,
       COUNT(*) AS \`Count\`
@@ -328,6 +329,6 @@ describe("simulate MySQL", () => {
       GROUP BY 1
       ORDER BY \`Count\` DESC
       LIMIT 3
-    `);
+    `]);
   });
 });

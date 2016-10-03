@@ -17,25 +17,24 @@
 /// <reference path="../datatypes/dataset.ts" />
 /// <reference path="../expressions/baseExpression.ts" />
 
-import { Timezone, Duration } from "chronoshift";
+import { Timezone, Duration } from 'chronoshift';
 import {
+  r,
   Expression,
   ExpressionJS,
   Indexer,
   Alterations,
   BooleanExpressionIterator,
   SubstitutionFn
-} from "../expressions/baseExpression";
-import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from "../types";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn, foldContext } from "../datatypes/dataset";
-import { hasOwnProperty, repeat, deduplicateSort } from "../helper/utils";
-import { Instance, isInstanceOf } from "immutable-class";
-import { ApplyAction } from "./applyAction";
-import { Direction } from "./sortAction";
-import { LiteralExpression } from "../expressions/literalExpression";
-import { RefExpression } from "../expressions/refExpression";
-import { ChainExpression } from "../expressions/chainExpression";
+} from '../expressions/baseExpression';
+import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn, foldContext } from '../datatypes/dataset';
+import { hasOwnProperty, repeat, deduplicateSort } from '../helper/utils';
+import { Instance, isInstanceOf } from 'immutable-class';
+import { ApplyAction } from './applyAction';
+import { Direction } from './sortAction';
+import { LiteralExpression, ExternalExpression, RefExpression, ChainExpression } from '../expressions/index';
 
 export interface Splits {
   [name: string]: Expression;
@@ -395,6 +394,14 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   /**
+   * Special logic to perform this action on a external
+   * @param externalExpression the expression on which to perform
+   */
+  protected _performOnExternal(externalExpression: ExternalExpression): Expression {
+    return externalExpression.addAction(this);
+  }
+
+  /**
    * Special logic to perform this action on a reference
    * @param refExpression the expression on which to perform
    */
@@ -451,6 +458,10 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
       }
 
       var special = this._performOnLiteral(simpleExpression);
+      if (special) return special;
+
+    } else if (simpleExpression instanceof ExternalExpression) {
+      var special = this._performOnExternal(simpleExpression);
       if (special) return special;
 
     } else if (simpleExpression instanceof RefExpression) {
@@ -555,6 +566,12 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
     return this;
   }
 
+  public resolved(): boolean {
+    const { expression } = this;
+    if (!expression) return true;
+    return expression.resolved();
+  }
+
   // Environment methods
 
   public needsEnvironment(): boolean {
@@ -574,3 +591,42 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 }
 
+
+export abstract class AggregateAction extends Action {
+  public getNecessaryInputTypes(): PlyType | PlyType[] {
+    return 'DATASET';
+  }
+
+  public getOutputType(inputType: PlyType): PlyType {
+    this._checkInputTypes(inputType);
+    return 'NUMBER';
+  }
+
+  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
+    const { expression } = this;
+    if (expression) {
+      expression._fillRefSubstitutions(typeContext, indexer, alterations);
+    }
+    return {
+      type: 'NUMBER'
+    };
+  }
+
+  public isAggregate(): boolean {
+    return true;
+  }
+
+  public isNester(): boolean {
+    return true;
+  }
+
+  protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    const { action, expression } = this;
+    if (literalExpression.value === null) return Expression.NULL;
+    var dataset = literalExpression.value;
+
+    dataset = dataset[action](expression ? expression.getFn() : null);
+
+    return r(dataset);
+  }
+}

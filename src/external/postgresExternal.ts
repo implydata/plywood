@@ -15,11 +15,11 @@
  */
 
 import * as Q from 'q';
-import { External, ExternalJS, ExternalValue } from "./baseExternal";
-import { SQLExternal } from "./sqlExternal";
-import { AttributeInfo, Attributes } from "../datatypes/attributeInfo";
-import { PostgresDialect } from "../dialect/postgresDialect";
-import { PseudoDatum } from "../datatypes/dataset";
+import { External, ExternalJS, ExternalValue } from './baseExternal';
+import { SQLExternal } from './sqlExternal';
+import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
+import { PostgresDialect } from '../dialect/postgresDialect';
+import { PseudoDatum } from '../datatypes/dataset';
 
 export interface PostgresSQLDescribeRow {
   name: string;

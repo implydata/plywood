@@ -74,13 +74,11 @@ describe("MySQL Functional", function() {
   };
 
   describe("source list", () => {
-    it("does a source list", (testComplete) => {
+    it("does a source list", () => {
       MySQLExternal.getSourceList(mySqlRequester)
         .then((sources) => {
           expect(sources).to.deep.equal(['wikipedia', 'wikipedia_raw']);
-          testComplete();
         })
-        .done()
     });
 
   });
@@ -98,7 +96,7 @@ describe("MySQL Functional", function() {
       }
     });
 
-    it("works in advanced case", (testComplete) => {
+    it("works in advanced case", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
@@ -126,7 +124,7 @@ describe("MySQL Functional", function() {
             .limit(3)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -210,17 +208,15 @@ describe("MySQL Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with boolean GROUP BYs", (testComplete) => {
+    it("works with boolean GROUP BYs", () => {
       var ex = $("wiki").split($("channel").is("en"), 'ChannelIsEn')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -232,12 +228,10 @@ describe("MySQL Functional", function() {
               "Count": 114711
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with multi-dimensional GROUP BYs", (testComplete) => {
+    it("works with multi-dimensional GROUP BYs", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").isnt("en")))
         .apply(
@@ -251,7 +245,7 @@ describe("MySQL Functional", function() {
             .limit(4)
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -295,70 +289,62 @@ describe("MySQL Functional", function() {
               ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("fallback doesn't happen if not null", (testComplete) => {
+    it("fallback doesn't happen if not null", () => {
       var ex = ply()
         .apply('added', $('wiki').sum($('added')).fallback(2));
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "added": 97393743
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with complex raw mode", (testComplete) => {
+    it("works with complex raw mode", () => {
       var ex = $('wiki')
         .filter('$cityName == "El Paso"')
         .apply('regionNameLOL', '$regionName.concat(LOL)')
         .apply('addedPlusOne', '$added + 1')
         .select('regionNameLOL', 'addedPlusOne', 'pageInBrackets');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             { "regionNameLOL": "TexasLOL", "addedPlusOne": 1, "pageInBrackets": "[Clint High School]" },
             { "regionNameLOL": "TexasLOL", "addedPlusOne": 1, "pageInBrackets": "[Reggie Williams (linebacker)]" }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("fallback happens if null", (testComplete) => {
+    it("fallback happens if null", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("page").is('Rallicula')))
         .apply('MetroCode', $('wiki').sum($('metroCode')).fallback(0));
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
               "MetroCode": 0
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("power of and abs", (testComplete) => {
+    it("power of and abs", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("page").is('Kosowo')))
         .apply('Delta', $('wiki').min($('delta')))
         .apply('AbsDelta', $('wiki').min($('delta')).absolute())
         .apply('SquareDelta', $('wiki').sum($('delta')).power(2));
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -367,18 +353,16 @@ describe("MySQL Functional", function() {
               "SquareDelta": 4
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
 
-    it("works string range", (testComplete) => {
+    it("works string range", () => {
       var ex = $('wiki')
         .filter($('cityName').greaterThan('Kab').and($('cityName').lessThan('Kar')))
         .split('$cityName', 'City')
         .limit(5);
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -397,18 +381,16 @@ describe("MySQL Functional", function() {
               "City": "Kainan"
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works string range", (testComplete) => {
+    it("works string range", () => {
       var ex = $('wiki')
         .filter($('cityName').lessThan('P'))
         .filter('$comment < "zebra"')
         .split('$cityName', 'City')
         .limit(5);
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -427,9 +409,7 @@ describe("MySQL Functional", function() {
               "City": "Aarhus"
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
   });
@@ -449,7 +429,7 @@ describe("MySQL Functional", function() {
     }, mySqlRequester);
 
     // Todo: invalid number casts return 0 in mysql. Also, something is happening when page is defined as a number that results in numbers being passed into the cast to date
-    it("works with bad casts", (testComplete) => {
+    it("works with bad casts", () => {
       var ex = $('wiki').split({ 'numberCast': '$comment.cast("NUMBER")', 'dateCast': '$page.cast("TIME")' })
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
@@ -483,9 +463,7 @@ describe("MySQL Functional", function() {
               "numberCast": 1
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
   });
 
@@ -500,7 +478,7 @@ describe("MySQL Functional", function() {
       }
     });
 
-    it("introspects", (testComplete) => {
+    it("introspects", () => {
       External.fromJS({
         engine: 'mysql',
         source: 'wikipedia'
@@ -508,12 +486,10 @@ describe("MySQL Functional", function() {
         .then((external) => {
           expect(external.version).to.equal(info.mySqlVersion);
           expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with introspection", (testComplete) => {
+    it("works with introspection", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -532,7 +508,7 @@ describe("MySQL Functional", function() {
             )
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -595,9 +571,7 @@ describe("MySQL Functional", function() {
               "TotalAdded": 32553107
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
   });
 

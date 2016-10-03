@@ -16,12 +16,12 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Indexer, Alterations } from "../expressions/baseExpression";
-import { Datum, ComputeFn, foldContext } from "../datatypes/dataset";
+import { Action, ActionJS, ActionValue, AggregateAction } from './baseAction';
+import { PlyType } from '../types';
+import { r, Expression, LiteralExpression } from '../expressions/index';
+import { Datum, ComputeFn, foldContext } from '../datatypes/dataset';
 
-export class QuantileAction extends Action {
+export class QuantileAction extends AggregateAction {
   static fromJS(parameters: ActionJS): QuantileAction {
     var value = Action.jsToValue(parameters);
     value.quantile = parameters.quantile;
@@ -58,22 +58,6 @@ export class QuantileAction extends Action {
     return [expressionString, String(this.quantile)];
   }
 
-  public getNecessaryInputTypes(): PlyType | PlyType[] {
-    return 'DATASET';
-  }
-
-  public getOutputType(inputType: PlyType): PlyType {
-    this._checkInputTypes(inputType);
-    return 'NUMBER';
-  }
-
-  public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-    this.expression._fillRefSubstitutions(typeContext, indexer, alterations);
-    return {
-      type: 'NUMBER'
-    };
-  }
-
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     var quantile = this.quantile;
     return (d: Datum, c: Datum) => {
@@ -82,12 +66,14 @@ export class QuantileAction extends Action {
     };
   }
 
-  public isAggregate(): boolean {
-    return true;
-  }
+  protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    const { expression, quantile } = this;
+    if (literalExpression.value === null) return Expression.NULL;
+    var dataset = literalExpression.value;
 
-  public isNester(): boolean {
-    return true;
+    dataset = dataset.quantile(expression.getFn(), quantile);
+
+    return r(dataset);
   }
 }
 

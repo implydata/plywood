@@ -119,8 +119,10 @@ describe("DruidExternal", () => {
         .apply('minimumTime', '$wiki.min($time)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+
+      expect(ex.op).to.equal('literal');
+      var druidExternal = ex.value.getReadyExternals()[0].external;
+
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "dataSource": "wikipedia",
         "queryType": "timeBoundary"
@@ -217,8 +219,9 @@ describe("DruidExternal", () => {
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      expect(ex.op).to.equal('literal');
+      var druidExternal = ex.value.getReadyExternals()[0].external;
+
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
@@ -250,8 +253,9 @@ describe("DruidExternal", () => {
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      expect(ex.op).to.equal('literal');
+      var druidExternal = ex.value.getReadyExternals()[0].external;
+
       var queryAndPostProcess = druidExternal.getQueryAndPostProcess();
       expect(queryAndPostProcess.query).to.deep.equal({
         "aggregations": [
@@ -283,20 +287,6 @@ describe("DruidExternal", () => {
         ],
         "queryType": "timeseries"
       });
-
-      expect(queryAndPostProcess.postProcess([
-        {
-          result: {
-            TotalAdded: 5,
-            TotalAddedX2: 10
-          }
-        }
-      ]).toJS()).to.deep.equal([
-        {
-          TotalAdded: 5,
-          TotalAddedX2: 10
-        }
-      ]);
     });
 
     it("processes a simple split", () => {
@@ -462,8 +452,9 @@ describe("DruidExternal", () => {
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
-      expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      expect(ex.op).to.equal('literal');
+      var druidExternal = ex.value.getReadyExternals()[0].external;
+
       expect(druidExternal.getQueryAndPostProcess().query.aggregations).to.deep.equal([
         {
           "fieldNames": [
@@ -1819,8 +1810,10 @@ describe("DruidExternal", () => {
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
-      expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      expect(ex.op).to.equal('literal');
+      var druidExternal = ex.value.getReadyExternals()[0].external;
+
+      var query = druidExternal.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('timeseries');
       expect(query.aggregations[1]).to.deep.equal({
         "aggregator": {
@@ -1857,8 +1850,10 @@ describe("DruidExternal", () => {
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
-      expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      expect(ex.op).to.equal('literal');
+      var druidExternal = ex.value.getReadyExternals()[0].external;
+
+      var query = druidExternal.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('timeseries');
       expect(query.aggregations).to.deep.equal([
         {
@@ -1956,15 +1951,13 @@ describe("DruidExternal", () => {
       var ex = ply()
         .apply('Count', '$wiki.count()');
 
-      it("works with [] return", (testComplete) => {
-        ex.compute({ wiki: nullExternal })
+      it("works with [] return", () => {
+        return ex.compute({ wiki: nullExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([
               { Count: 0 }
             ]);
-            testComplete();
-          })
-          .done();
+          });
       });
     });
 
@@ -1973,13 +1966,11 @@ describe("DruidExternal", () => {
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');
 
-      it("works with [] return", (testComplete) => {
-        ex.compute({ wiki: nullExternal })
+      it("works with [] return", () => {
+        return ex.compute({ wiki: nullExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([]);
-            testComplete();
-          })
-          .done();
+          });
       });
     });
 
@@ -1990,30 +1981,26 @@ describe("DruidExternal", () => {
         .sort('$Count', 'descending')
         .limit(5);
 
-      it("works with [] return", (testComplete) => {
-        ex.compute({ wiki: nullExternal })
+      it("works with [] return", () => {
+        return ex.compute({ wiki: nullExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([]);
-            testComplete();
-          })
-          .done();
+          });
       });
 
-      it("works with [{result:[]}] return", (testComplete) => {
-        ex.compute({ wiki: emptyExternal })
+      it("works with [{result:[]}] return", () => {
+        return ex.compute({ wiki: emptyExternal })
           .then((result) => {
             expect(result.toJS()).to.deep.equal([]);
-            testComplete();
-          })
-          .done();
+          });
       });
     });
 
     describe("should return null correctly on a select query", () => {
       var ex = $('wiki');
 
-      it("works with [] return", (testComplete) => {
-        ex.compute({ wiki: nullExternal })
+      it("works with [] return", () => {
+        return ex.compute({ wiki: nullExternal })
           .then((result) => {
             expect(AttributeInfo.toJSs(result.attributes)).to.deep.equal([
               { name: 'time', type: 'TIME' },
@@ -2024,13 +2011,11 @@ describe("DruidExternal", () => {
 
             expect(result.toJS()).to.deep.equal([]);
             expect(result.toCSV()).to.equal('time,language,page,added');
-            testComplete();
-          })
-          .done();
+          });
       });
 
-      it("works with [{result:[]}] return", (testComplete) => {
-        ex.compute({ wiki: emptyExternal })
+      it("works with [{result:[]}] return", () => {
+        return ex.compute({ wiki: emptyExternal })
           .then((result) => {
             expect(AttributeInfo.toJSs(result.attributes)).to.deep.equal([
               { name: 'time', type: 'TIME' },
@@ -2041,9 +2026,7 @@ describe("DruidExternal", () => {
 
             expect(result.toJS()).to.deep.equal([]);
             expect(result.toCSV()).to.equal('time,language,page,added');
-            testComplete();
-          })
-          .done();
+          });
       });
     });
   });
@@ -2063,35 +2046,45 @@ describe("DruidExternal", () => {
       filter: timeFilter
     }, (query) => Q("[Does this look like data to you?"));
 
-    it("works with all query", (testComplete) => {
+    it("works with value query", () => {
       var ex = ply()
         .apply('Count', '$wiki.count()');
 
-      ex.compute({ wiki: crapExternal })
+      return ex.compute({ wiki: crapExternal })
+        .then(() => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch((err) => {
+          expect(err.message).to.equal('unexpected result from Druid (all / value)');
+        });
+    });
+
+    it("works with all query", () => {
+      var ex = ply()
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)');
+
+      return ex.compute({ wiki: crapExternal })
         .then(() => {
           throw new Error('DID_NOT_ERROR');
         })
         .catch((err) => {
           expect(err.message).to.equal('unexpected result from Druid (all)');
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with timeseries query", (testComplete) => {
+    it("works with timeseries query", () => {
       var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');
 
-      ex.compute({ wiki: crapExternal })
+      return ex.compute({ wiki: crapExternal })
         .then(() => {
           throw new Error('DID_NOT_ERROR');
         })
         .catch((err) => {
           expect(err.message).to.equal('unexpected result from Druid (timeseries)');
-          testComplete();
-        })
-        .done();
+        });
     });
 
   });
@@ -2179,6 +2172,48 @@ describe("DruidExternal", () => {
       })
     });
 
+  });
+
+  it("folds with cast", () => {
+    var ex = $('wiki').filter('$page == "El Paso"')
+      .apply('castTime', '$commentLength.cast("TIME")')
+      .select('page', 'commentLength', 'castTime', 'added')
+      .sort('$page', 'descending');
+
+    ex = ex.referenceCheck(context).resolve(context).simplify();
+
+    var external = ex.expression.external;
+    expect(external.getQueryAndPostProcess().query).to.deep.equal({
+      "dataSource": "wikipedia",
+      "dimensions": [
+        "page",
+        "commentLength",
+        {
+          "dimension": "commentLength",
+          "extractionFn": {
+            "function": "function(d){var _,_2;_=new Date((+d));return isNaN(_)?null:_}",
+            "type": "javascript"
+          },
+          "outputName": "castTime",
+          "type": "extraction"
+        }
+      ],
+      "filter": {
+        "dimension": "page",
+        "type": "selector",
+        "value": "El Paso"
+      },
+      "granularity": "all",
+      "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+      "metrics": [
+        "added"
+      ],
+      "pagingSpec": {
+        "pagingIdentifiers": {},
+        "threshold": 50
+      },
+      "queryType": "select"
+    });
   });
 
 });

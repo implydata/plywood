@@ -54,7 +54,8 @@ describe("simulate Druid 0.8.3", () => {
       .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'))))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"sup\\\"yo\")>-1));}",
       "type": "javascript"
@@ -66,7 +67,8 @@ describe("simulate Druid 0.8.3", () => {
       .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'), 'ignoreCase')))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "query": {
         "type": "insensitive_contains",

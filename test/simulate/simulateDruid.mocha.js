@@ -129,7 +129,9 @@ describe("simulate Druid", () => {
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -165,7 +167,9 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter($("color").is('$col')))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -238,7 +242,9 @@ describe("simulate Druid", () => {
           )
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(3);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -289,9 +295,13 @@ describe("simulate Druid", () => {
               "value": "D"
             },
             {
-              "values": ["Good", "Bad", "Ugly"],
+              "dimension": "tags",
               "type": "in",
-              "dimension": "tags"
+              "values": [
+                "Good",
+                "Bad",
+                "Ugly"
+              ]
             }
           ],
           "type": "and"
@@ -299,36 +309,6 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
-          {
-            "fields": [
-              {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "-",
-            "name": "PriceDiff",
-            "type": "arithmetic"
-          },
-          {
-            "fields": [
-              {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "Count",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "/",
-            "name": "AvgPrice",
-            "type": "arithmetic"
-          },
           {
             "fields": [
               {
@@ -357,6 +337,21 @@ describe("simulate Druid", () => {
             ],
             "fn": "-",
             "name": "PriceMinusTax",
+            "type": "arithmetic"
+          },
+          {
+            "fields": [
+              {
+                "fieldName": "TotalPrice",
+                "type": "fieldAccess"
+              },
+              {
+                "fieldName": "!T_0",
+                "type": "fieldAccess"
+              }
+            ],
+            "fn": "-",
+            "name": "PriceDiff",
             "type": "arithmetic"
           },
           {
@@ -410,9 +405,19 @@ describe("simulate Druid", () => {
             "type": "arithmetic"
           },
           {
-            "name": "SixtySix",
-            "type": "constant",
-            "value": 66
+            "fields": [
+              {
+                "fieldName": "TotalPrice",
+                "type": "fieldAccess"
+              },
+              {
+                "fieldName": "Count",
+                "type": "fieldAccess"
+              }
+            ],
+            "fn": "/",
+            "name": "AvgPrice",
+            "type": "arithmetic"
           }
         ],
         "queryType": "timeseries"
@@ -438,9 +443,13 @@ describe("simulate Druid", () => {
               "value": "D"
             },
             {
-              "values": ["Good", "Bad", "Ugly"],
+              "dimension": "tags",
               "type": "in",
-              "dimension": "tags"
+              "values": [
+                "Good",
+                "Bad",
+                "Ugly"
+              ]
             }
           ],
           "type": "and"
@@ -450,7 +459,10 @@ describe("simulate Druid", () => {
         "metric": "Count",
         "queryType": "topN",
         "threshold": 2
-      },
+      }
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -490,7 +502,10 @@ describe("simulate Druid", () => {
         "context": {
           "skipEmptyBuckets": "true"
         }
-      },
+      }
+    ]);
+
+    expect(queryPlan[2]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -542,7 +557,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("$color.overlap(['D'])"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "type": "selector",
       "value": "D"
@@ -554,7 +570,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("$color.overlap(['C', 'D'])"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "values": ["C", "D"],
       "type": "in",
       "dimension": "color"
@@ -566,7 +583,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("('A' ++ $color ++ 'Z').match('AB+')"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "format": "A%sZ",
@@ -583,7 +601,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("('A' ++ $color ++ 'Z').contains('AB')"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "format": "A%sZ",
@@ -604,7 +623,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("$color.fallback('NoColor') == 'D'"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "type": "selector",
       "value": "D"
@@ -616,7 +636,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("$color.fallback('D') == 'D'"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "lookup": {
@@ -638,7 +659,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("$color.extract('^(.)') == 'D'"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "expr": "^(.)",
@@ -655,7 +677,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("$color.extract('^(.)').fallback('D') == 'D'"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "expr": "^(.)",
@@ -673,7 +696,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1) == 'D'"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "type": "substring",
@@ -690,7 +714,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1).in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "index": 0,
@@ -710,7 +735,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "lookup": "some_lookup",
@@ -729,7 +755,8 @@ describe("simulate Druid", () => {
       .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').contains('hello')"))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "lookup": "some_lookup",
@@ -747,7 +774,8 @@ describe("simulate Druid", () => {
   it("works on fancy filter [.in(...).not()]", () => {
     var ex = $('diamonds').filter("$color.in(['D', 'C']).not()");
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "field": {
         "values": ["D", "C"],
         "type": "in",
@@ -760,7 +788,8 @@ describe("simulate Druid", () => {
   it("works on fancy filter .in().is()", () => {
     var ex = $('diamonds').filter("$color.in(['D', 'C']) == true");
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "function": "function(d){var _,_2;return [\"D\",\"C\"].indexOf(d)>-1;}",
@@ -774,7 +803,8 @@ describe("simulate Druid", () => {
   it("works on cast number to string in filter", () => {
     var ex = $('diamonds').filter($('height_bucket').cast('STRING').is(r("15")));
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "height_bucket",
       "type": "selector",
       "value": "15"
@@ -784,7 +814,8 @@ describe("simulate Druid", () => {
   it("works on cast string to number in filter", () => {
     var ex = $('diamonds').filter($('height_bucket').absolute().cast('STRING').cast('NUMBER').is(r(555)));
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "height_bucket",
       "extractionFn": {
         "function": "function(d){var _,_2;_=+(('' + Math.abs((+d))));return isNaN(_)?null:_}",
@@ -798,7 +829,9 @@ describe("simulate Druid", () => {
   it("works on cast number to time in split", () => {
     var ex = $('diamonds').split('$height_bucket.absolute().cast("STRING").cast("NUMBER").cast("TIME")', 'TaxCode');
 
-    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
       "aggregations": [
         {
           "name": "!DUMMY",
@@ -841,7 +874,9 @@ describe("simulate Druid", () => {
           .limit(20)
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -886,7 +921,9 @@ describe("simulate Druid", () => {
           .sort('$HourOfDay', 'ascending')
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -960,7 +997,8 @@ describe("simulate Druid", () => {
           .limit(3)
       );
 
-    expect(ex.simulateQueryPlan(context)[0].dimension).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].dimension).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "format": "!!!<%s>!!!",
@@ -982,7 +1020,8 @@ describe("simulate Druid", () => {
           .limit(3)
       );
 
-    expect(ex.simulateQueryPlan(context)[0].dimension).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].dimension).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "type": "substring",
@@ -1004,7 +1043,8 @@ describe("simulate Druid", () => {
           .limit(3)
       );
 
-    expect(ex.simulateQueryPlan(context)[0].dimension).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].dimension).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
         "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"p\")>-1));}",
@@ -1018,7 +1058,8 @@ describe("simulate Druid", () => {
   it("works with basic index of in filter", () => {
     var ex = $("diamonds").filter("$color.indexOf('blah') != -1");
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "query": {
         "caseSensitive": true,
@@ -1039,7 +1080,9 @@ describe("simulate Druid", () => {
           .limit(10)
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1074,7 +1117,8 @@ describe("simulate Druid", () => {
       .filter('$Count > 100')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)[0].having).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].having).to.deep.equal({
       "aggregation": "Count",
       "type": "greaterThan",
       "value": 100
@@ -1088,7 +1132,8 @@ describe("simulate Druid", () => {
       .filter('$Count > 100 and $Count <= 200')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)[0].having).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].having).to.deep.equal({
       "havingSpecs": [
         {
           "aggregation": "Count",
@@ -1115,7 +1160,9 @@ describe("simulate Druid", () => {
       .filter('$Tag.match("a+")')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
       "aggregations": [
         {
           "name": "!DUMMY",
@@ -1154,7 +1201,9 @@ describe("simulate Druid", () => {
       .filter('$Tag.match("a+")')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
       "aggregations": [
         {
           "name": "!DUMMY",
@@ -1205,7 +1254,9 @@ describe("simulate Druid", () => {
       .filter('$Tag.match("a+") and $Pug == "b"')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
       "aggregations": [
         {
           "name": "!DUMMY",
@@ -1263,7 +1314,9 @@ describe("simulate Druid", () => {
       .filter('$Tag.match("a+") and $Count > 100')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)[0]).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
       "aggregations": [
         {
           "name": "Count",
@@ -1316,7 +1369,9 @@ describe("simulate Druid", () => {
     var ex = $("diamonds").split("$cut.transformCase('upperCase')", 'Cut')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1350,7 +1405,9 @@ describe("simulate Druid", () => {
       .split($("cut").customTransform('sliceLastChar').is('z'), 'lastChar')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1393,7 +1450,9 @@ describe("simulate Druid", () => {
       .apply('diamonds', $("diamonds").filter($("time").in({ start: new Date('2015-03-12T00:00:00'), end: null })))
       .apply('Count', $('diamonds').count());
 
-    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.equal("2015-03-12T00Z/3000");
+    var queryPlan = ex.simulateQueryPlan(contextUnfiltered);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].intervals).to.equal("2015-03-12T00Z/3000");
   });
 
   it("works with upper bound only time filter", () => {
@@ -1401,7 +1460,9 @@ describe("simulate Druid", () => {
       .apply('diamonds', $("diamonds").filter($("time").in({ start: null, end: new Date('2015-03-12T00:00:00') })))
       .apply('Count', $('diamonds').count());
 
-    expect(ex.simulateQueryPlan(contextUnfiltered)[0].intervals).to.equal("1000/2015-03-12T00Z");
+    var queryPlan = ex.simulateQueryPlan(contextUnfiltered);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].intervals).to.equal("1000/2015-03-12T00Z");
   });
 
   it("from parse should work with <= < of string and number", () => {
@@ -1412,14 +1473,16 @@ describe("simulate Druid", () => {
         WHERE '2015-01-02T12:30:00' <= \`cut\` 
         AND '2015-01-01T10:30:00' > \`color\` 
         AND '2015-01-01T10:30:00' <= \`time\` AND \`time\` < '2015-01-02T12:30:00'
-      `);
+      `).expression;
 
-    expect(ex.expression.simulateQueryPlan(contextUnfiltered)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(contextUnfiltered);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
             "fieldName": "price",
-            "name": "TotalPrice",
+            "name": "__VALUE__",
             "type": "doubleSum"
           }
         ],
@@ -1456,15 +1519,16 @@ describe("simulate Druid", () => {
         WHERE '2015-01-02T12:30:00' <= \`cut\` 
         AND '2015-01-01T10:30:00' > \`color\` 
         AND '2015-01-01T10:30:00' <= \`time\` AND \`time\` < '2015-01-02T12:30:00'
-      `);
+      `).expression;
 
-
-    expect(ex.expression.simulateQueryPlan(contextUnfiltered)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(contextUnfiltered);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
             "fieldName": "price",
-            "name": "TotalPrice",
+            "name": "__VALUE__",
             "type": "doubleSum"
           }
         ],
@@ -1502,7 +1566,9 @@ describe("simulate Druid", () => {
           .limit(10)
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1547,7 +1613,9 @@ describe("simulate Druid", () => {
           )
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1576,7 +1644,10 @@ describe("simulate Druid", () => {
         },
         "queryType": "topN",
         "threshold": 10
-      },
+      }
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1619,7 +1690,9 @@ describe("simulate Druid", () => {
       .apply('Count', $('diamonds').count())
       .sort('$Count', 'descending');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1666,7 +1739,9 @@ describe("simulate Druid", () => {
           .limit(10)
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1694,7 +1769,10 @@ describe("simulate Druid", () => {
         },
         "queryType": "topN",
         "threshold": 10
-      },
+      }
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1743,7 +1821,9 @@ describe("simulate Druid", () => {
           .limit(10)
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1763,7 +1843,6 @@ describe("simulate Druid", () => {
         "queryType": "topN",
         "threshold": 10
       },
-// ---------------------
       {
         "aggregations": [
           {
@@ -1795,7 +1874,9 @@ describe("simulate Druid", () => {
       .apply('maximumTime', '$diamonds.max($time)')
       .apply('minimumTime', '$diamonds.min($time)');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "dataSource": "diamonds-compact",
         "queryType": "timeBoundary"
@@ -1807,7 +1888,9 @@ describe("simulate Druid", () => {
     var ex = ply()
       .apply('maximumTime', '$diamonds.max($time)');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "dataSource": "diamonds-compact",
         "queryType": "timeBoundary",
@@ -1820,7 +1903,9 @@ describe("simulate Druid", () => {
     var ex = ply()
       .apply('minimumTime', '$diamonds.min($time)');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "dataSource": "diamonds-compact",
         "queryType": "timeBoundary",
@@ -1835,7 +1920,9 @@ describe("simulate Druid", () => {
       .sort('$Count', 'descending')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -1867,7 +1954,9 @@ describe("simulate Druid", () => {
       .apply('maxCarat', '$diamonds.max($carat)')
       .apply('minCarat', '$diamonds.min($carat)');
 
-    expect(ex.simulateQueryPlan(context)[0].aggregations).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].aggregations).to.deep.equal([
       {
         "fieldNames": [
           "carat"
@@ -1896,7 +1985,9 @@ describe("simulate Druid", () => {
       .apply('maxTry', '$diamonds.max($try)')
       .apply('maxA+B', '$diamonds.max(${a+b})');
 
-    expect(ex.simulateQueryPlan(context)[0].aggregations).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].aggregations).to.deep.equal([
       {
         "fieldNames": [
           "try"
@@ -1932,7 +2023,9 @@ describe("simulate Druid", () => {
           .apply('NotBadColors', $('diamonds').filter($('cut').isnt('Bad')).countDistinct('$color'))
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2027,7 +2120,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it("makes a filtered aggregate query", () => {
+  it("makes a filtered aggregate query 2", () => {
     var ex = ply()
       .apply(
         'BySegment',
@@ -2036,7 +2129,9 @@ describe("simulate Druid", () => {
           .apply('GoodPrice', $('diamonds').filter($('cut').is('Good')).sum(1))
       );
 
-    expect(ex.simulateQueryPlan(context)[0].aggregations).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].aggregations).to.deep.equal([
       {
         "fieldName": "price",
         "name": "Total",
@@ -2069,7 +2164,9 @@ describe("simulate Druid", () => {
       .sort('$Count', 'descending')
       .limit(10);
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2123,7 +2220,9 @@ describe("simulate Druid", () => {
           .limit(10)
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2148,7 +2247,10 @@ describe("simulate Druid", () => {
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
-      },
+      }
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2195,7 +2297,9 @@ describe("simulate Druid", () => {
           .limit(10)
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2220,7 +2324,10 @@ describe("simulate Druid", () => {
         },
         "queryType": "topN",
         "threshold": 3
-      },
+      }
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2266,7 +2373,9 @@ describe("simulate Druid", () => {
           .limit(10)
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2326,7 +2435,9 @@ describe("simulate Druid", () => {
           )
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2347,7 +2458,10 @@ describe("simulate Druid", () => {
         },
         "queryType": "topN",
         "threshold": 5
-      },
+      }
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2390,7 +2504,9 @@ describe("simulate Druid", () => {
           )
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2409,7 +2525,10 @@ describe("simulate Druid", () => {
         "context": {
           "skipEmptyBuckets": "true"
         }
-      },
+      }
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2441,7 +2560,9 @@ describe("simulate Druid", () => {
           .apply('TotalSalePrice', $('diamonds').sum('$sale_price'))
       );
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2492,7 +2613,9 @@ describe("simulate Druid", () => {
       .apply('maximumTime', '${diamonds-alt:;<>}.max($time)')
       .apply('minimumTime', '${diamonds-alt:;<>}.min($time)');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "dataSource": "diamonds-alt:;<>",
         "queryType": "timeBoundary"
@@ -2506,7 +2629,11 @@ describe("simulate Druid", () => {
       .apply('NumVendors', '$diamonds.countDistinct($vendor_id)')
       .apply('VendorsByColors', '$NumVendors / $NumColors');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    ex = ex.referenceCheck(context).resolve(context).simplify();
+
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2557,7 +2684,9 @@ describe("simulate Druid", () => {
       .apply('Post', '$diamonds.count() * 2')
       .apply('Post', '$diamonds.count() * 3');
 
-    expect(ex.simulateQueryPlan(context)).to.deep.equal([
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2604,7 +2733,9 @@ describe("simulate Druid", () => {
     var ex = ply()
       .apply('Thing', '$diamonds.sum($price.absolute() * $carat.power(2))');
 
-    expect(ex.simulateQueryPlan(context)[0].aggregations[0]).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].aggregations[0]).to.deep.equal({
       "fieldNames": [
         "carat",
         "price"
@@ -2612,7 +2743,7 @@ describe("simulate Druid", () => {
       "fnAggregate": "function($$,_carat,_price) { return $$+(Math.abs((+_price))*Math.pow((+_carat),2)); }",
       "fnCombine": "function(a,b) { return a+b; }",
       "fnReset": "function() { return 0; }",
-      "name": "Thing",
+      "name": "__VALUE__",
       "type": "javascript"
     });
   });
@@ -2622,7 +2753,8 @@ describe("simulate Druid", () => {
       .apply('diamonds', $('diamonds').filter($('time').is(new Date('2015-03-12T01:00:00.123Z'))))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].intervals).to.equal(
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].intervals).to.equal(
       "2015-03-12T01:00:00.123Z/2015-03-12T01:00:00.124Z"
     );
   });
@@ -2632,7 +2764,8 @@ describe("simulate Druid", () => {
       .apply('diamonds', $('diamonds').filter($('time').in(new Date('2015-03-12T01:00:00.123Z'), new Date('2015-03-12T01:00:00.124Z'))))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].intervals).to.equal(
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].intervals).to.equal(
       "2015-03-12T01:00:00.123Z/2015-03-12T01:00:00.124Z"
     );
   });
@@ -2642,7 +2775,8 @@ describe("simulate Druid", () => {
       .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'))))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "query": {
         "caseSensitive": true,
@@ -2658,7 +2792,8 @@ describe("simulate Druid", () => {
       .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'), 'ignoreCase')))
       .apply('Count', '$diamonds.count()');
 
-    expect(ex.simulateQueryPlan(context)[0].filter).to.deep.equal({
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "query": {
         "caseSensitive": false,
@@ -2675,8 +2810,8 @@ describe("simulate Druid", () => {
       .limit(10);
 
     var queryPlan = ex.simulateQueryPlan(context);
-
-    expect(queryPlan).to.deep.equal([
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "dataSource": "diamonds",
         "dimensions": [
@@ -2715,8 +2850,8 @@ describe("simulate Druid", () => {
     var ex = $("diamonds").split("$cut", 'Cut');
 
     var queryPlan = ex.simulateQueryPlan(context);
-
-    expect(queryPlan).to.deep.equal([
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2767,8 +2902,8 @@ describe("simulate Druid", () => {
       );
 
     var queryPlan = ex.simulateQueryPlan(context);
-
-    expect(queryPlan).to.deep.equal([
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2816,6 +2951,9 @@ describe("simulate Druid", () => {
         },
         "queryType": "groupBy"
       },
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2871,8 +3009,8 @@ describe("simulate Druid", () => {
       );
 
     var queryPlan = ex.simulateQueryPlan(context);
-
-    expect(queryPlan).to.deep.equal([
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2924,8 +3062,8 @@ describe("simulate Druid", () => {
       .apply('MaxCount', '$data.max($Count)');
 
     var queryPlan = ex.simulateQueryPlan(context);
-
-    expect(queryPlan).to.deep.equal([
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
           {
@@ -2970,7 +3108,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it("adds context to query if set on External", (testComplete) => {
+  it("adds context to query if set on External", () => {
     var ds = External.fromJS({
       engine: 'druid',
       source: 'diamonds',
@@ -2992,9 +3130,24 @@ describe("simulate Druid", () => {
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)');
 
-    expect(ex.simulateQueryPlan({ diamonds: ds })[0].context).to.deep.equal({ priority: -1, queryId: 'test' });
+    expect(ex.simulateQueryPlan({ diamonds: ds })[0][0].context).to.deep.equal({ priority: -1, queryId: 'test' });
+  });
 
-    testComplete();
+  it.skip("works on query filters", () => {
+    var ex = ply()
+      .apply('diamonds', $('diamonds').filter('$carat > $diamonds.average($carat)'))
+      .apply('Count', '$diamonds.count()');
+
+    ex = ex.referenceCheck(context).resolve(context);
+
+    console.log('ex', ex.toString(2));
+
+    ex = ex.simplify();
+
+    // var queryPlan = ex.simulateQueryPlan(context);
+    // expect(queryPlan).to.deep.equal([
+    //
+    // ]);
   });
 
 });

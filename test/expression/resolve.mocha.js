@@ -68,20 +68,20 @@ describe("resolve", () => {
     });
   });
 
-  describe("#contained", () => {
+  describe("#resolved", () => {
     it('works with agg', () => {
       var ex = $('diamonds').sum('$price');
-      expect(ex.contained()).to.equal(true);
+      expect(ex.resolved()).to.equal(true);
     });
 
     it('works with add and var', () => {
       var ex = $('TotalPrice').add($('diamonds').sum('$price'));
-      expect(ex.contained()).to.equal(true);
+      expect(ex.resolved()).to.equal(true);
     });
 
     it('works with add and ^var', () => {
       var ex = $('TotalPrice', 1).add($('diamonds').sum('$price'));
-      expect(ex.contained()).to.equal(false);
+      expect(ex.resolved()).to.equal(false);
     });
   });
 
@@ -166,16 +166,21 @@ describe("resolve", () => {
       );
 
       ex = ex.simplify();
-      expect(ex.toJS()).to.deep.equal(
-        r(Dataset.fromJS([{ num: 8 }]))
-          .apply(
-            'subData',
-            ply()
-              .apply('x', '$^num * 3')
-              .apply('y', 70)
-          )
-          .toJS()
-      );
+      expect(ex.toJS()).to.deep.equal({
+        "op": "literal",
+        "type": "DATASET",
+        "value": [
+          {
+            "num": 8,
+            "subData": [
+              {
+                "x": 24,
+                "y": 70
+              }
+            ]
+          }
+        ]
+      });
     });
 
     it("works with dataset", () => {

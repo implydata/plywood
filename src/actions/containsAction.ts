@@ -16,13 +16,13 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
-import { SQLDialect } from "../dialect/baseDialect";
-import { Datum, ComputeFn } from "../datatypes/dataset";
-import { ChainExpression } from "../expressions/chainExpression";
-import { TransformCaseAction } from "./transformCaseAction";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { Expression, Indexer, Alterations } from '../expressions/baseExpression';
+import { SQLDialect } from '../dialect/baseDialect';
+import { Datum, ComputeFn } from '../datatypes/dataset';
+import { ChainExpression } from '../expressions/chainExpression';
+import { TransformCaseAction } from './transformCaseAction';
 
 export class ContainsAction extends Action {
   static NORMAL = 'normal';

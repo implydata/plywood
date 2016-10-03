@@ -16,14 +16,13 @@
  */
 
 
-import { Action, ActionJS, ActionValue } from "./baseAction";
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from "../types";
-import { Expression, Indexer, Alterations } from "../expressions/baseExpression";
-import { SQLDialect } from "../dialect/baseDialect";
-import { RefExpression } from "../expressions/refExpression";
-import { SplitAction } from "./splitAction";
-import { SortAction } from "./sortAction";
-import { ApplyAction } from "./applyAction";
+import { Action, ActionJS, ActionValue } from './baseAction';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
+import { r, Expression, Indexer, Alterations, LiteralExpression, RefExpression } from '../expressions/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { SplitAction } from './splitAction';
+import { SortAction } from './sortAction';
+import { ApplyAction } from './applyAction';
 
 export class FilterAction extends Action {
   static fromJS(parameters: ActionJS): FilterAction {
@@ -92,6 +91,17 @@ export class FilterAction extends Action {
     }
 
     return null;
+  }
+
+  protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
+    const { expression } = this;
+    if (!expression.resolved()) return null;
+    if (literalExpression.value === null) return Expression.NULL;
+    var dataset = literalExpression.value;
+
+    dataset = dataset.filter(expression.getFn(), null);
+
+    return r(dataset);
   }
 }
 

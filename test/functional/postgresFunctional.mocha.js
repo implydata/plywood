@@ -74,13 +74,11 @@ describe("Postgres Functional", function() {
   };
 
   describe("source list", () => {
-    it("does a source list", (testComplete) => {
-      PostgresExternal.getSourceList(postgresRequester)
+    it("does a source list", () => {
+      return PostgresExternal.getSourceList(postgresRequester)
         .then((sources) => {
           expect(sources).to.deep.equal(['wikipedia', 'wikipedia_raw']);
-          testComplete();
         })
-        .done()
     });
 
   });
@@ -98,7 +96,7 @@ describe("Postgres Functional", function() {
       }
     });
 
-    it("works in advanced case", (testComplete) => {
+    it("works in advanced case", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
@@ -126,7 +124,7 @@ describe("Postgres Functional", function() {
         //     .limit(3)
         // );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -210,17 +208,15 @@ describe("Postgres Functional", function() {
               // ]
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with boolean GROUP BYs", (testComplete) => {
+    it("works with boolean GROUP BYs", () => {
       var ex = $("wiki").split($("channel").is("en"), 'ChannelIsEn')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending');
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -232,19 +228,17 @@ describe("Postgres Functional", function() {
               "Count": 114711
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("filters on set/string select", (testComplete) => {
+    it("filters on set/string select", () => {
       var ex = $('wiki').filter('$userChars.cardinality() > 5')
         .filter($("channel").is('war'))
         .select("userChars", "commentLength")
         .sort('$commentLength', 'descending')
         .limit(5);
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -297,17 +291,17 @@ describe("Postgres Functional", function() {
               }
             }]
           );
-          testComplete();
         })
     });
 
-    it("works string range", (testComplete) => {
+    it("works string range", () => {
       var ex = $('wiki')
         .filter($('cityName').greaterThan('Eagleton'))
         .split('$cityName', 'CityName')
         .sort('$CityName', 'descending')
         .limit(10);
-      basicExecutor(ex)
+
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -341,9 +335,7 @@ describe("Postgres Functional", function() {
               "CityName": "Élancourt"
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
   });
 
@@ -373,20 +365,18 @@ describe("Postgres Functional", function() {
       }
     });
 
-    it("introspects", (testComplete) => {
-      External.fromJS({
+    it("introspects", () => {
+      return External.fromJS({
         engine: 'postgres',
         source: 'wikipedia'
       }, postgresRequester).introspect()
         .then((external) => {
           expect(external.version).to.equal(info.postgresVersion);
           expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
-          testComplete();
-        })
-        .done();
+        });
     });
 
-    it("works with introspection", (testComplete) => {
+    it("works with introspection", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -405,7 +395,7 @@ describe("Postgres Functional", function() {
             )
         );
 
-      basicExecutor(ex)
+      return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -468,9 +458,7 @@ describe("Postgres Functional", function() {
               "TotalAdded": 32553107
             }
           ]);
-          testComplete();
-        })
-        .done();
+        });
     });
   });
 
