@@ -78,6 +78,12 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     AttributeInfo.classMap[op] = ex;
   }
 
+  static getConstructorFor(special: string): typeof AttributeInfo {
+    const classFn = AttributeInfo.classMap[special];
+    if (!classFn) return AttributeInfo;
+    return classFn;
+  }
+
   static fromJS(parameters: AttributeInfoJS): AttributeInfo {
     if (typeof parameters !== "object") {
       throw new Error("unrecognizable attributeMeta");
@@ -88,7 +94,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     if (parameters.special === 'range') {
       throw new Error("'range' attribute info is no longer supported, you should apply the .extract('^\\d+') function instead");
     }
-    var Class = AttributeInfo.classMap[parameters.special];
+    var Class = AttributeInfo.getConstructorFor(parameters.special);
     if (!Class) {
       throw new Error(`unsupported special attributeInfo '${parameters.special}'`);
     }
@@ -96,21 +102,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   static fromJSs(attributeJSs: AttributeJSs): Attributes {
-    if (!Array.isArray(attributeJSs)) {
-      if (attributeJSs && typeof attributeJSs === 'object') {
-        var newAttributeJSs: any[] = [];
-        for (var attributeName in (attributeJSs as any)) {
-          if (!hasOwnProperty(attributeJSs, attributeName)) continue;
-          var attributeJS = (attributeJSs as any)[attributeName];
-          attributeJS['name'] = attributeName;
-          newAttributeJSs.push(attributeJS);
-        }
-        console.warn('attributes now needs to be passed as an array like so: ' + JSON.stringify(newAttributeJSs, null, 2));
-        attributeJSs = newAttributeJSs;
-      } else {
-        throw new TypeError("invalid attributeJSs");
-      }
-    }
+    if (!Array.isArray(attributeJSs)) throw new TypeError("invalid attributeJSs");
     return attributeJSs.map(attributeJS => AttributeInfo.fromJS(attributeJS));
   }
 
@@ -120,6 +112,12 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
   static override(attributes: Attributes, attributeOverrides: Attributes): Attributes {
     return NamedArray.overridesByName(attributes, attributeOverrides);
+  }
+
+  static fromValue(parameters: AttributeInfoValue): AttributeInfo {
+    const { special } = parameters;
+    var ClassFn = AttributeInfo.getConstructorFor(special) as any;
+    return new ClassFn(parameters);
   }
 
 
@@ -218,15 +216,21 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     var v = this.valueOf();
 
     if (!v.hasOwnProperty(propertyName)) {
-      throw new Error(`Unknown property : ${propertyName}`);
+      throw new Error(`Unknown property: ${propertyName}`);
     }
 
     (v as any)[propertyName] = newValue;
-    return new AttributeInfo(v);
+    return AttributeInfo.fromValue(v);
   }
 
   public getUnsplitable(): boolean {
     return this.unsplitable;
+  }
+
+  public changeUnsplitable(unsplitable: boolean): AttributeInfo {
+    var value = this.valueOf();
+    value.unsplitable = unsplitable;
+    return AttributeInfo.fromValue(value);
   }
 }
 check = AttributeInfo;

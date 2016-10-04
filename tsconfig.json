@@ -8,6 +8,7 @@
     "noImplicitReturns": true,
     "strictNullChecks": false,
     "skipLibCheck": true,
+    "lib": ["es5"],
     "target": "es5",
     "module": "es6",
     "rootDir": "src",
