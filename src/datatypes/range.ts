@@ -107,7 +107,7 @@ export abstract class Range<T> {
 
   public toString(): string {
     var bounds = this.bounds;
-    return bounds[0] + this._endpointToString(this.start) + ',' + this._endpointToString(this.end) + bounds[1];
+    return '[' + (bounds[0] === '(' ? '~' : '') + this._endpointToString(this.start) + ',' + this._endpointToString(this.end) + (bounds[1] === ')' ? '' : '!') + ']';
   }
 
   public compare(other: Range<T>): number {

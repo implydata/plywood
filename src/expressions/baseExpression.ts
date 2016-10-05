@@ -675,9 +675,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public getReadyExternals(): ExpressionExternalAlteration {
+    var indexToSkip: Lookup<boolean> = {};
     var externalsByIndex: ExpressionExternalAlteration = {};
     this.every((ex: Expression, index: int) => {
       if (ex instanceof ExternalExpression) {
+        if (indexToSkip[index]) return null;
         if (!ex.external.suppress) {
           externalsByIndex[index] = {
             external: ex.external,
@@ -688,10 +690,16 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       } else if (ex instanceof ChainExpression) {
         var exExpression = ex.expression;
         if (exExpression instanceof ExternalExpression) {
-          if (ex.actions.every(action => action.resolved())) {
+          var actionsLookGood = ex.actions.every(action => {
+            return action.action === 'filter' ? action.resolvedWithoutExternals() : action.resolved();
+          });
+          if (actionsLookGood) {
             externalsByIndex[index + 1] = { external: exExpression.external };
+            return true;
           }
-          return true;
+          // this will look further but we should not be looking into the expression of this chain
+          indexToSkip[index + 1] = true;
+          return null;
         }
 
       } else if (ex instanceof LiteralExpression && ex.type === 'DATASET') {
@@ -1561,7 +1569,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public simulateQueryPlan(context: Datum = {}, environment: Environment = {}): any[][] {
     if (!datumHasExternal(context) && !this.hasExternal()) return [];
 
-
     var readyExpression = this._initialPrepare(context, environment);
     if (readyExpression instanceof ExternalExpression) {
       // Top level externals need to be unsuppressed
@@ -1581,6 +1588,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     while (Object.keys(readyExternals).length > 0 && i < 10) {
       var simulatedQueryGroup: any[] = [];
       fillExpressionExternalAlteration(readyExternals, (external, terminal) => external.simulateValue(terminal, simulatedQueryGroup));
+
       simulatedQueryGroups.push(simulatedQueryGroup);
       ex = ex.applyReadyExternals(readyExternals);
       readyExternals = ex.getReadyExternals();
