@@ -572,6 +572,12 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
     return expression.resolved();
   }
 
+  public resolvedWithoutExternals(): boolean {
+    const { expression } = this;
+    if (!expression) return true;
+    return expression.resolvedWithoutExternals();
+  }
+
   // Environment methods
 
   public needsEnvironment(): boolean {

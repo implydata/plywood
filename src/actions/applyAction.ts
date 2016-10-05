@@ -131,6 +131,14 @@ export class ApplyAction extends Action {
     if (literalExpression.value === null) return Expression.NULL;
     var dataset = literalExpression.value;
 
+    // Omg mega hack:
+    // Ensure that non of the free references in this expression are to be resolved with chain expressions
+    var freeReferences = expression.getFreeReferences();
+    var datum = dataset.data[0];
+    if (datum && freeReferences.some(freeReference => datum[freeReference] instanceof ChainExpression)) {
+      return null;
+    }
+
     dataset = dataset.apply(this.name, (d: Datum): any => {
       var simp = expression.resolve(d).simplify();
       if (simp instanceof ExternalExpression) return simp.external;

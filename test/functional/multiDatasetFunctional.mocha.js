@@ -130,7 +130,6 @@ describe("Multi Dataset Functional", function() {
           .limit(3)
       );
 
-
     return mixedExecutor(ex)
       .then((result) => {
         expect(result.toJS()).to.deep.equal([

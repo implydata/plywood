@@ -3133,21 +3133,150 @@ describe("simulate Druid", () => {
     expect(ex.simulateQueryPlan({ diamonds: ds })[0][0].context).to.deep.equal({ priority: -1, queryId: 'test' });
   });
 
-  it.skip("works on query filters", () => {
+  it("works on query filters", () => {
+    var ex = ply()
+      .apply('avg', '$diamonds.average($carat)')
+      .apply('diamonds', $('diamonds').filter('$carat > $avg'))
+      .apply('Count', '$diamonds.count()');
+
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldNames": [
+              "carat"
+            ],
+            "fnAggregate": "function($$,_carat) { return $$+(+_carat); }",
+            "fnCombine": "function(a,b) { return a+b; }",
+            "fnReset": "function() { return 0; }",
+            "name": "!T_0",
+            "type": "javascript"
+          },
+          {
+            "name": "!T_1",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "postAggregations": [
+          {
+            "fields": [
+              {
+                "fieldName": "!T_0",
+                "type": "fieldAccess"
+              },
+              {
+                "fieldName": "!T_1",
+                "type": "fieldAccess"
+              }
+            ],
+            "fn": "/",
+            "name": "__VALUE__",
+            "type": "arithmetic"
+          }
+        ],
+        "queryType": "timeseries"
+      }
+    ]);
+
+    expect(queryPlan[1]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "__VALUE__",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "filter": {
+          "alphaNumeric": true,
+          "dimension": "carat",
+          "lower": 4,
+          "lowerStrict": true,
+          "type": "bound"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "queryType": "timeseries"
+      }
+    ]);
+  });
+
+  it("works on inline query filters", () => {
     var ex = ply()
       .apply('diamonds', $('diamonds').filter('$carat > $diamonds.average($carat)'))
       .apply('Count', '$diamonds.count()');
 
-    ex = ex.referenceCheck(context).resolve(context);
+    var queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(2);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldNames": [
+              "carat"
+            ],
+            "fnAggregate": "function($$,_carat) { return $$+(+_carat); }",
+            "fnCombine": "function(a,b) { return a+b; }",
+            "fnReset": "function() { return 0; }",
+            "name": "!T_0",
+            "type": "javascript"
+          },
+          {
+            "name": "!T_1",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "postAggregations": [
+          {
+            "fields": [
+              {
+                "fieldName": "!T_0",
+                "type": "fieldAccess"
+              },
+              {
+                "fieldName": "!T_1",
+                "type": "fieldAccess"
+              }
+            ],
+            "fn": "/",
+            "name": "__VALUE__",
+            "type": "arithmetic"
+          }
+        ],
+        "queryType": "timeseries"
+      }
+    ]);
 
-    console.log('ex', ex.toString(2));
-
-    ex = ex.simplify();
-
-    // var queryPlan = ex.simulateQueryPlan(context);
-    // expect(queryPlan).to.deep.equal([
-    //
-    // ]);
+    expect(queryPlan[1]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "__VALUE__",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "filter": {
+          "alphaNumeric": true,
+          "dimension": "carat",
+          "lower": 4,
+          "lowerStrict": true,
+          "type": "bound"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "queryType": "timeseries"
+      }
+    ]);
   });
+
 
 });
