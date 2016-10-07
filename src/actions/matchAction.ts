@@ -26,11 +26,11 @@ import { Datum, ComputeFn } from '../datatypes/dataset';
 export class MatchAction extends Action {
 
   static likeToRegExp(like: string, escapeChar = '\\'): string {
-    var regExp: string[] = ['^'];
-    for (var i = 0; i < like.length; i++) {
-      var char = like[i];
+    let regExp: string[] = ['^'];
+    for (let i = 0; i < like.length; i++) {
+      let char = like[i];
       if (char === escapeChar) {
-        var nextChar = like[i + 1];
+        let nextChar = like[i + 1];
         if (!nextChar) throw new Error(`invalid LIKE string '${like}'`);
         char = nextChar;
         i++;
@@ -52,7 +52,7 @@ export class MatchAction extends Action {
   }
 
   static fromJS(parameters: ActionJS): MatchAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.regexp = parameters.regexp;
     return new MatchAction(value);
   }
@@ -66,13 +66,13 @@ export class MatchAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.regexp = this.regexp;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.regexp = this.regexp;
     return js;
   }
@@ -102,9 +102,9 @@ export class MatchAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-    var re = new RegExp(this.regexp);
+    let re = new RegExp(this.regexp);
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       if (!inV) return null;
       if (inV === null) return null;
       return re.test(inV);

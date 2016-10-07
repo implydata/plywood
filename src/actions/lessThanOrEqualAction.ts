@@ -41,7 +41,7 @@ export class LessThanOrEqualAction extends Action {
   }
 
   public getOutputType(inputType: PlyType): PlyType {
-    var expressionType = this.expression.type;
+    let expressionType = this.expression.type;
     if (expressionType) this._checkInputTypes(inputType);
     return 'BOOLEAN';
   }

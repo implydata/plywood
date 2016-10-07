@@ -78,9 +78,9 @@ export type QueryMode = "raw" | "value" | "total" | "split";
 
 function nullMap<T, Q>(xs: T[], fn: (x: T) => Q): Q[] {
   if (!xs) return null;
-  var res: Q[] = [];
-  for (var x of xs) {
-    var y = fn(x);
+  let res: Q[] = [];
+  for (let x of xs) {
+    let y = fn(x);
     if (y) res.push(y);
   }
   return res.length ? res : null;
@@ -92,21 +92,21 @@ function filterToAnds(filter: Expression): Expression[] {
 }
 
 function filterDiff(strongerFilter: Expression, weakerFilter: Expression): Expression {
-  var strongerFilterAnds = filterToAnds(strongerFilter);
-  var weakerFilterAnds = filterToAnds(weakerFilter);
+  let strongerFilterAnds = filterToAnds(strongerFilter);
+  let weakerFilterAnds = filterToAnds(weakerFilter);
   if (weakerFilterAnds.length > strongerFilterAnds.length) return null;
-  for (var i = 0; i < weakerFilterAnds.length; i++) {
+  for (let i = 0; i < weakerFilterAnds.length; i++) {
     if (!(weakerFilterAnds[i].equals(strongerFilterAnds[i]))) return null;
   }
   return Expression.and(strongerFilterAnds.slice(weakerFilterAnds.length));
 }
 
 function getCommonFilter(filter1: Expression, filter2: Expression): Expression {
-  var filter1Ands = filterToAnds(filter1);
-  var filter2Ands = filterToAnds(filter2);
-  var minLength = Math.min(filter1Ands.length, filter2Ands.length);
-  var commonExpressions: Expression[] = [];
-  for (var i = 0; i < minLength; i++) {
+  let filter1Ands = filterToAnds(filter1);
+  let filter2Ands = filterToAnds(filter2);
+  let minLength = Math.min(filter1Ands.length, filter2Ands.length);
+  let commonExpressions: Expression[] = [];
+  for (let i = 0; i < minLength; i++) {
     if (!filter1Ands[i].equals(filter2Ands[i])) break;
     commonExpressions.push(filter1Ands[i]);
   }
@@ -114,11 +114,11 @@ function getCommonFilter(filter1: Expression, filter2: Expression): Expression {
 }
 
 function mergeDerivedAttributes(derivedAttributes1: Lookup<Expression>, derivedAttributes2: Lookup<Expression>): Lookup<Expression> {
-  var derivedAttributes: Lookup<Expression> = Object.create(null);
-  for (var k in derivedAttributes1) {
+  let derivedAttributes: Lookup<Expression> = Object.create(null);
+  for (let k in derivedAttributes1) {
     derivedAttributes[k] = derivedAttributes1[k];
   }
-  for (var k in derivedAttributes2) {
+  for (let k in derivedAttributes2) {
     if (hasOwnProperty(derivedAttributes, k) && !derivedAttributes[k].equals(derivedAttributes2[k])) {
       throw new Error(`can not currently redefine conflicting ${k}`);
     }
@@ -136,7 +136,7 @@ function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
       return 4;
 
     case 'NUMBER_RANGE':
-      var numberBucketAction: NumberBucketAction;
+      let numberBucketAction: NumberBucketAction;
       if (ex instanceof ChainExpression && (numberBucketAction = <NumberBucketAction>ex.getSingleAction('numberBucket'))) {
         return new NumberRange({
           start: numberBucketAction.offset,
@@ -150,10 +150,10 @@ function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
       return new Date('2015-03-14T00:00:00');
 
     case 'TIME_RANGE':
-      var timeBucketAction: TimeBucketAction;
+      let timeBucketAction: TimeBucketAction;
       if (ex instanceof ChainExpression && (timeBucketAction = <TimeBucketAction>ex.getSingleAction('timeBucket'))) {
-        var timezone = timeBucketAction.timezone || Timezone.UTC;
-        var start = timeBucketAction.duration.floor(new Date('2015-03-14T00:00:00'), timezone);
+        let timezone = timeBucketAction.timezone || Timezone.UTC;
+        let start = timeBucketAction.duration.floor(new Date('2015-03-14T00:00:00'), timezone);
         return new TimeRange({
           start,
           end: timeBucketAction.duration.shift(start, timezone, 1)
@@ -189,8 +189,8 @@ function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
 }
 
 function immutableAdd<T>(obj: Lookup<T>, key: string, value: T): Lookup<T> {
-  var newObj = Object.create(null);
-  for (var k in obj) newObj[k] = obj[k];
+  let newObj = Object.create(null);
+  for (let k in obj) newObj[k] = obj[k];
   newObj[key] = value;
   return newObj;
 }
@@ -285,13 +285,13 @@ export abstract class External {
 
   static extractVersion(v: string): string {
     if (!v) return null;
-    var m = v.match(/^\d+\.\d+\.\d+(?:-[\w\-]+)?/);
+    let m = v.match(/^\d+\.\d+\.\d+(?:-[\w\-]+)?/);
     return m ? m[0] : null;
   }
 
   static versionLessThan(va: string, vb: string): boolean {
-    var pa = va.split('-')[0].split('.');
-    var pb = vb.split('-')[0].split('.');
+    let pa = va.split('-')[0].split('.');
+    let pb = vb.split('-')[0].split('.');
     if (pa[0] !== pb[0]) return pa[0] < pb[0];
     if (pa[1] !== pb[1]) return pa[1] < pb[1];
     return pa[2] < pb[2];
@@ -299,7 +299,7 @@ export abstract class External {
 
   static deduplicateExternals(externals: External[]): External[] {
     if (externals.length < 2) return externals;
-    var uniqueExternals = [externals[0]];
+    let uniqueExternals = [externals[0]];
 
     function addToUniqueExternals(external: External) {
       for (let uniqueExternal of uniqueExternals) {
@@ -324,9 +324,9 @@ export abstract class External {
   }
 
   static makeZeroDatum(applies: ApplyAction[]): Datum {
-    var newDatum = Object.create(null);
-    for (var apply of applies) {
-      var applyName = apply.name;
+    let newDatum = Object.create(null);
+    for (let apply of applies) {
+      let applyName = apply.name;
       if (applyName[0] === '_') continue;
       newDatum[applyName] = 0;
     }
@@ -334,9 +334,9 @@ export abstract class External {
   }
 
   static normalizeAndAddApply(attributesAndApplies: AttributesAndApplies, apply: ApplyAction): AttributesAndApplies {
-    var { attributes, applies } = attributesAndApplies;
+    let { attributes, applies } = attributesAndApplies;
 
-    var expressions: Lookup<Expression> = Object.create(null);
+    let expressions: Lookup<Expression> = Object.create(null);
     for (let existingApply of applies) expressions[existingApply.name] = existingApply.expression;
     apply = <ApplyAction>apply.changeExpression(apply.expression.resolveWithExpressions(expressions, 'leave').simplify());
 
@@ -347,16 +347,16 @@ export abstract class External {
   }
 
   static segregationAggregateApplies(applies: ApplyAction[]): ApplySegregation {
-    var aggregateApplies: ApplyAction[] = [];
-    var postAggregateApplies: ApplyAction[] = [];
-    var nameIndex = 0;
+    let aggregateApplies: ApplyAction[] = [];
+    let postAggregateApplies: ApplyAction[] = [];
+    let nameIndex = 0;
 
     // First extract all the simple cases
-    var appliesToSegregate: ApplyAction[] = [];
+    let appliesToSegregate: ApplyAction[] = [];
     for (let apply of applies) {
-      var applyExpression = apply.expression;
+      let applyExpression = apply.expression;
       if (applyExpression instanceof ChainExpression) {
-        var actions = applyExpression.actions;
+        let actions = applyExpression.actions;
         if (actions[actions.length - 1].isAggregate()) {
           // This is a vanilla aggregate, just push it in.
           aggregateApplies.push(apply);
@@ -368,17 +368,17 @@ export abstract class External {
 
     // Now do all the segregation
     for (let apply of appliesToSegregate) {
-      var newExpression = apply.expression.substituteAction(
+      let newExpression = apply.expression.substituteAction(
         (action) => {
           return action.isAggregate();
         },
         (preEx: Expression, action: Action) => {
-          var aggregateChain = preEx.performAction(action);
-          var existingApply = findApplyByExpression(aggregateApplies, aggregateChain);
+          let aggregateChain = preEx.performAction(action);
+          let existingApply = findApplyByExpression(aggregateApplies, aggregateChain);
           if (existingApply) {
             return $(existingApply.name, existingApply.expression.type);
           } else {
-            var name = '!T_' + (nameIndex++);
+            let name = '!T_' + (nameIndex++);
             aggregateApplies.push(new ApplyAction({
               action: 'apply',
               name: name,
@@ -400,7 +400,7 @@ export abstract class External {
 
   static getCommonFilterFromExternals(externals: External[]): Expression {
     if (!externals.length) throw new Error('must have externals');
-    var commonFilter = externals[0].filter;
+    let commonFilter = externals[0].filter;
     for (let i = 1; i < externals.length; i++) {
       commonFilter = getCommonFilter(commonFilter, externals[i].filter);
     }
@@ -409,7 +409,7 @@ export abstract class External {
 
   static getMergedDerivedAttributesFromExternals(externals: External[]): Lookup<Expression> {
     if (!externals.length) throw new Error('must have externals');
-    var derivedAttributes = externals[0].derivedAttributes;
+    let derivedAttributes = externals[0].derivedAttributes;
     for (let i = 1; i < externals.length; i++) {
       derivedAttributes = mergeDerivedAttributes(derivedAttributes, externals[i].derivedAttributes);
     }
@@ -429,7 +429,7 @@ export abstract class External {
 
   static booleanInflaterFactory(label: string): Inflater {
     return (d: any) => {
-      var v = '' + d[label];
+      let v = '' + d[label];
       switch (v) {
         case 'null':
           d[label] = null;
@@ -453,26 +453,26 @@ export abstract class External {
 
   static timeRangeInflaterFactory(label: string, duration: Duration, timezone: Timezone): Inflater {
     return (d: any) => {
-      var v = d[label];
+      let v = d[label];
       if ('' + v === "null") {
         d[label] = null;
         return;
       }
 
-      var start = new Date(v);
+      let start = new Date(v);
       d[label] = new TimeRange({ start, end: duration.shift(start, timezone) });
     };
   }
 
   static numberRangeInflaterFactory(label: string, rangeSize: number): Inflater  {
     return (d: any) => {
-      var v = d[label];
+      let v = d[label];
       if ('' + v === "null") {
         d[label] = null;
         return;
       }
 
-      var start = Number(v);
+      let start = Number(v);
       d[label] = new NumberRange({
         start: start,
         end: safeAdd(start, rangeSize)
@@ -482,7 +482,7 @@ export abstract class External {
 
   static numberInflaterFactory(label: string): Inflater  {
     return (d: any) => {
-      var v = d[label];
+      let v = d[label];
       if ('' + v === "null") {
         d[label] = null;
         return;
@@ -494,7 +494,7 @@ export abstract class External {
 
   static timeInflaterFactory(label: string): Inflater  {
     return (d: any) => {
-      var v = d[label];
+      let v = d[label];
       if ('' + v === "null") {
         d[label] = null;
         return;
@@ -506,7 +506,7 @@ export abstract class External {
 
   static setStringInflaterFactory(label: string): Inflater  {
     return (d: any) => {
-      var v = d[label];
+      let v = d[label];
       if ('' + v === "null") {
         d[label] = null;
         return;
@@ -522,13 +522,13 @@ export abstract class External {
 
   static setCardinalityInflaterFactory(label: string): Inflater  {
     return (d: any) => {
-      var v = d[label];
+      let v = d[label];
       d[label] = Array.isArray(v) ? v.length : 1;
     };
   }
 
   static jsToValue(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): ExternalValue {
-    var value: ExternalValue = {
+    let value: ExternalValue = {
       engine: parameters.engine,
       version: parameters.version,
       source: parameters.source,
@@ -566,12 +566,12 @@ export abstract class External {
 
   static uniteValueExternalsIntoTotal(keyExternals: { key: string, external?: External }[]): External {
     if (keyExternals.length === 0) return null;
-    var applies: ApplyAction[] = [];
+    let applies: ApplyAction[] = [];
 
-    var baseExternal: External = null;
-    for (var keyExternal of keyExternals) {
-      var key = keyExternal.key;
-      var external = keyExternal.external;
+    let baseExternal: External = null;
+    for (let keyExternal of keyExternals) {
+      let key = keyExternal.key;
+      let external = keyExternal.external;
       if (!baseExternal) baseExternal = external;
       applies.push(new ApplyAction({
         name: key,
@@ -586,9 +586,9 @@ export abstract class External {
     if (!hasOwnProperty(parameters, "engine")) {
       throw new Error("external `engine` must be defined");
     }
-    var engine: string = parameters.engine;
+    let engine: string = parameters.engine;
     if (typeof engine !== "string") throw new Error("engine must be a string");
-    var ClassFn = External.getConstructorFor(engine);
+    let ClassFn = External.getConstructorFor(engine);
 
     // Back compat
     if (!requester && hasOwnProperty(parameters, 'requester')) {
@@ -604,7 +604,7 @@ export abstract class External {
 
   static fromValue(parameters: ExternalValue): External {
     const { engine } = parameters;
-    var ClassFn = External.getConstructorFor(engine) as any;
+    let ClassFn = External.getConstructorFor(engine) as any;
     return new ClassFn(parameters);
   }
 
@@ -638,7 +638,7 @@ export abstract class External {
     }
     this.engine = parameters.engine;
 
-    var version: string = null;
+    let version: string = null;
     if (parameters.version) {
       version = External.extractVersion(parameters.version);
       if (!version) throw new Error(`invalid version ${parameters.version}`);
@@ -711,7 +711,7 @@ export abstract class External {
   }
 
   public valueOf(): ExternalValue {
-    var value: ExternalValue = {
+    let value: ExternalValue = {
       engine: this.engine,
       version: this.version,
       source: this.source,
@@ -761,7 +761,7 @@ export abstract class External {
   }
 
   public toJS(): ExternalJS {
-    var js: ExternalJS = {
+    let js: ExternalJS = {
       engine: this.engine,
       source: this.source
     };
@@ -828,13 +828,13 @@ export abstract class External {
   }
 
   public changeVersion(version: string) {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.version = version;
     return External.fromValue(value);
   }
 
   public attachRequester(requester: Requester.PlywoodRequester<any>): External {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.requester = requester;
     return External.fromValue(value);
   }
@@ -845,19 +845,19 @@ export abstract class External {
   }
 
   public getAttributesInfo(attributeName: string) {
-    var attributes = this.rawAttributes || this.attributes;
+    let attributes = this.rawAttributes || this.attributes;
     return NamedArray.get(attributes, attributeName);
   }
 
   public updateAttribute(newAttribute: AttributeInfo): External {
     if (!this.attributes) return this;
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.attributes = AttributeInfo.override(value.attributes, [newAttribute]);
     return External.fromValue(value);
   }
 
   public show(): External {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.suppress = false;
     return External.fromValue(value);
   }
@@ -876,16 +876,16 @@ export abstract class External {
     return ex.every((ex, index, depth, nestDiff) => {
       if (nestDiff) return true;
       if (ex instanceof RefExpression) {
-        var refAttributeInfo = this.getAttributesInfo(ex.name);
+        let refAttributeInfo = this.getAttributesInfo(ex.name);
         if (refAttributeInfo && refAttributeInfo.makerAction) {
           return refAttributeInfo.makerAction.alignsWith([]);
         }
 
       } else if (ex instanceof ChainExpression) {
-        var refExpression = ex.expression;
+        let refExpression = ex.expression;
         if (refExpression instanceof RefExpression) {
-          var ref = refExpression.name;
-          var refAttributeInfo = this.getAttributesInfo(ref);
+          let ref = refExpression.name;
+          let refAttributeInfo = this.getAttributesInfo(ref);
           if (refAttributeInfo && refAttributeInfo.makerAction) {
             return refAttributeInfo.makerAction.alignsWith(ex.actions);
           }
@@ -929,14 +929,14 @@ export abstract class External {
   // -----------------
 
   public addDelegate(delegate: External): External {
-    var value = this.valueOf();
+    let value = this.valueOf();
     if (!value.delegates) value.delegates = [];
     value.delegates = value.delegates.concat(delegate);
     return External.fromValue(value);
   }
 
   public getBase(): External {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.suppress = true;
     value.mode = 'raw';
     value.dataName = null;
@@ -955,7 +955,7 @@ export abstract class External {
   public getRaw(): External {
     if (this.mode === 'raw') return this;
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.suppress = true;
     value.mode = 'raw';
     value.dataName = null;
@@ -976,7 +976,7 @@ export abstract class External {
 
     if (!applies.length) throw new Error('must have applies');
 
-    var externals: External[] = [];
+    let externals: External[] = [];
     for (let apply of applies) {
       let applyExpression = apply.expression;
       if (applyExpression instanceof ExternalExpression) {
@@ -984,9 +984,9 @@ export abstract class External {
       }
     }
 
-    var commonFilter = External.getCommonFilterFromExternals(externals);
+    let commonFilter = External.getCommonFilterFromExternals(externals);
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.mode = 'total';
     value.suppress = false;
     value.rawAttributes = value.attributes;
@@ -995,7 +995,7 @@ export abstract class External {
     value.attributes = [];
     value.applies = [];
     value.delegates = nullMap(value.delegates, (e) => e.makeTotal(applies));
-    var totalExternal = External.fromValue(value);
+    let totalExternal = External.fromValue(value);
 
     for (let apply of applies) {
       totalExternal = totalExternal._addApplyAction(apply);
@@ -1038,7 +1038,7 @@ export abstract class External {
     if (!expression.resolvedWithoutExternals()) return null;
     if (!this.expressionDefined(expression)) return null;
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     switch (this.mode) {
       case 'raw':
         if (this.concealBuckets && !this.bucketsConcealed(expression)) return null;
@@ -1069,11 +1069,11 @@ export abstract class External {
 
     const { datasetType } = this.getFullType();
     const { attributes } = selectAction;
-    for (var attribute of attributes) {
+    for (let attribute of attributes) {
       if (!datasetType[attribute]) return null;
     }
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.suppress = false;
     value.select = selectAction;
     value.delegates = nullMap(value.delegates, (e) => e._addSelectAction(selectAction));
@@ -1088,15 +1088,15 @@ export abstract class External {
 
   private _addSplitAction(splitAction: SplitAction): External {
     if (this.mode !== 'raw') return null; // Can only split on 'raw' datasets
-    var splitKeys = splitAction.keys;
-    for (var splitKey of splitKeys) {
-      var splitExpression = splitAction.splits[splitKey];
+    let splitKeys = splitAction.keys;
+    for (let splitKey of splitKeys) {
+      let splitExpression = splitAction.splits[splitKey];
       if (!this.expressionDefined(splitExpression)) return null;
       if (this.concealBuckets && !this.bucketsConcealed(splitExpression)) return null;
       if (!this.canHandleSplit(splitExpression)) return null;
     }
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.suppress = false;
     value.mode = 'split';
     value.dataName = splitAction.dataName;
@@ -1108,14 +1108,15 @@ export abstract class External {
   }
 
   private _addApplyAction(action: ApplyAction): External {
-    var expression = action.expression;
+    let expression = action.expression;
     if (expression.type === 'DATASET') return null;
     if (!expression.resolved()) return null;
     if (!this.expressionDefined(expression)) return null;
     if (!this.canHandleApply(action.expression)) return null;
 
+    let value: ExternalValue;
     if (this.mode === 'raw') {
-      var value = this.valueOf();
+      value = this.valueOf();
       value.derivedAttributes = immutableAdd(
         value.derivedAttributes, action.name, action.expression
       );
@@ -1123,13 +1124,13 @@ export abstract class External {
       // Can not redefine index for now.
       if (this.split && this.split.hasKey(action.name)) return null;
 
-      var actionExpression = action.expression;
+      let actionExpression = action.expression;
       if (actionExpression instanceof ExternalExpression) {
         action = <ApplyAction>action.changeExpression(actionExpression.external.valueExpressionWithinFilter(this.filter));
       }
 
-      var value = this.valueOf();
-      var added = External.normalizeAndAddApply(value, action);
+      value = this.valueOf();
+      let added = External.normalizeAndAddApply(value, action);
       value.applies = added.applies;
       value.attributes = added.attributes;
     }
@@ -1141,7 +1142,7 @@ export abstract class External {
     if (this.limit) return null; // Can not sort after limit
     if (!this.canHandleSort(action)) return null;
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.sort = action;
     value.delegates = nullMap(value.delegates, (e) => e._addSortAction(action));
     return External.fromValue(value);
@@ -1150,7 +1151,7 @@ export abstract class External {
   private _addLimitAction(action: LimitAction): External {
     if (!this.canHandleLimit(action)) return null;
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.suppress = false;
     if (!value.limit || action.limit < value.limit.limit) {
       value.limit = action;
@@ -1161,10 +1162,10 @@ export abstract class External {
 
   private _addAggregateAction(action: Action): External {
     if (this.mode !== 'raw' || this.limit) return null; // Can not value aggregate something with a limit
-    var actionExpression = action.expression;
+    let actionExpression = action.expression;
     if (actionExpression && !this.expressionDefined(actionExpression)) return null;
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.mode = 'value';
     value.suppress = false;
     value.valueExpression = $(External.SEGMENT_NAME, 'DATASET').performAction(action);
@@ -1176,17 +1177,17 @@ export abstract class External {
 
   private _addPostAggregateAction(action: Action): External {
     if (this.mode !== 'value') throw new Error('must be in value mode to call addPostAggregateAction');
-    var actionExpression = action.expression;
+    let actionExpression = action.expression;
     // ToDo: do I need to run expressionDefined here?
 
-    var commonFilter = this.filter;
-    var newValueExpression: ChainExpression;
+    let commonFilter = this.filter;
+    let newValueExpression: ChainExpression;
     if (actionExpression instanceof ExternalExpression) {
-      var otherExternal = actionExpression.external;
+      let otherExternal = actionExpression.external;
       if (!this.equalBase(otherExternal)) return null;
 
-      var commonFilter = getCommonFilter(commonFilter, otherExternal.filter);
-      var newAction = action.changeExpression(otherExternal.valueExpressionWithinFilter(commonFilter));
+      commonFilter = getCommonFilter(commonFilter, otherExternal.filter);
+      let newAction = action.changeExpression(otherExternal.valueExpressionWithinFilter(commonFilter));
       newValueExpression = this.valueExpressionWithinFilter(commonFilter).performAction(newAction);
 
     } else if (!actionExpression || !actionExpression.hasExternal()) {
@@ -1196,7 +1197,7 @@ export abstract class External {
       return null;
     }
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.valueExpression = newValueExpression;
     value.filter = commonFilter;
     value.delegates = nullMap(value.delegates, (e) => e._addPostAggregateAction(action));
@@ -1207,7 +1208,7 @@ export abstract class External {
     if (this.mode !== 'value') throw new Error('must be in value mode to call prePack');
     if (!prefix.noRefs()) return null;
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.valueExpression = prefix.performAction(myAction.changeExpression(value.valueExpression));
     value.delegates = nullMap(value.delegates, (e) => e.prePack(prefix, myAction));
     return External.fromValue(value);
@@ -1217,7 +1218,7 @@ export abstract class External {
 
   public valueExpressionWithinFilter(withinFilter: Expression): ChainExpression {
     if (this.mode !== 'value') return null;
-    var extraFilter = filterDiff(this.filter, withinFilter);
+    let extraFilter = filterDiff(this.filter, withinFilter);
     if (!extraFilter) throw new Error('not within the segment');
     return External.addExtraFilter(this.valueExpression, extraFilter);
   }
@@ -1231,13 +1232,13 @@ export abstract class External {
   }
 
   public sortOnLabel(): boolean {
-    var sort = this.sort;
+    let sort = this.sort;
     if (!sort) return false;
 
-    var sortOn = (<RefExpression>sort.expression).name;
+    let sortOn = (<RefExpression>sort.expression).name;
     if (!this.split || !this.split.hasKey(sortOn)) return false;
 
-    var applies = this.applies;
+    let applies = this.applies;
     for (let apply of applies) {
       if (apply.name === sortOn) return false;
     }
@@ -1249,7 +1250,7 @@ export abstract class External {
     const { derivedAttributes } = this;
     return expression.substitute(refEx => {
       if (refEx instanceof RefExpression) {
-        var refName = refEx.name;
+        let refName = refEx.name;
         return hasOwnProperty(derivedAttributes, refName) ? derivedAttributes[refName] : null;
       } else {
         return null;
@@ -1273,7 +1274,7 @@ export abstract class External {
   public switchToRollupCount(expression: Expression): Expression {
     if (!this.rollup) return expression;
 
-    var countRef: RefExpression = null;
+    let countRef: RefExpression = null;
     return expression.substituteAction(
       (action) => {
         return action.action === 'count';
@@ -1287,8 +1288,8 @@ export abstract class External {
 
   public getRollupCountName(): string {
     const { rawAttributes } = this;
-    for (var attribute of rawAttributes) {
-      var makerAction = attribute.makerAction;
+    for (let attribute of rawAttributes) {
+      let makerAction = attribute.makerAction;
       if (makerAction && makerAction.action === 'count') return attribute.name;
     }
     throw new Error(`could not find rollup count`);
@@ -1305,9 +1306,9 @@ export abstract class External {
   }
 
   public getSelectedAttributes(): Attributes {
-    var { select, attributes, derivedAttributes } = this;
+    let { select, attributes, derivedAttributes } = this;
     attributes = attributes.slice();
-    for (var k in derivedAttributes) {
+    for (let k in derivedAttributes) {
       attributes.push(new AttributeInfo({ name: k, type: derivedAttributes[k].type }));
     }
     if (!select) return attributes;
@@ -1342,7 +1343,7 @@ export abstract class External {
 
     if (!externalForNext) externalForNext = this;
 
-    var delegate = this.getDelegate();
+    let delegate = this.getDelegate();
     if (delegate) {
       return delegate.simulateValue(lastNode, simulatedQueries, externalForNext);
     }
@@ -1350,14 +1351,14 @@ export abstract class External {
     simulatedQueries.push(this.getQueryAndPostProcess().query);
 
     if (mode === 'value') {
-      var valueExpression = this.valueExpression;
+      let valueExpression = this.valueExpression;
       return getSampleValue(valueExpression.type, valueExpression);
     }
 
-    var datum: Datum = {};
+    let datum: Datum = {};
 
     if (mode === 'raw') {
-      var attributes = this.attributes;
+      let attributes = this.attributes;
       for (let attribute of attributes) {
         datum[attribute.name] = getSampleValue(attribute.type, null);
       }
@@ -1368,7 +1369,7 @@ export abstract class External {
         });
       }
 
-      var applies = this.applies;
+      let applies = this.applies;
       for (let apply of applies) {
         datum[apply.name] = getSampleValue(apply.expression.type, apply.expression);
       }
@@ -1378,7 +1379,7 @@ export abstract class External {
       return new TotalContainer(datum);
     }
 
-    var dataset = new Dataset({ data: [datum] });
+    let dataset = new Dataset({ data: [datum] });
     if (!lastNode && mode === 'split') dataset = externalForNext.addNextExternal(dataset);
     return dataset;
   }
@@ -1392,7 +1393,7 @@ export abstract class External {
 
     if (!externalForNext) externalForNext = this;
 
-    var delegate = this.getDelegate();
+    let delegate = this.getDelegate();
     if (delegate) {
       return delegate.queryValue(lastNode, externalForNext);
     }
@@ -1400,20 +1401,21 @@ export abstract class External {
     if (!requester) {
       return <Q.Promise<PlywoodValue | TotalContainer>>Q.reject(new Error('must have a requester to make queries'));
     }
+    let queryAndPostProcess: QueryAndPostProcess<any>;
     try {
-      var queryAndPostProcess = this.getQueryAndPostProcess();
+      queryAndPostProcess = this.getQueryAndPostProcess();
     } catch (e) {
       return <Q.Promise<PlywoodValue | TotalContainer>>Q.reject(e);
     }
 
-    var { query, postProcess, next } = queryAndPostProcess;
+    let { query, postProcess, next } = queryAndPostProcess;
     if (!query || typeof postProcess !== 'function') {
       return <Q.Promise<PlywoodValue>>Q.reject(new Error('no query or postProcess'));
     }
 
-    var finalResult: Q.Promise<PlywoodValue | TotalContainer>;
+    let finalResult: Q.Promise<PlywoodValue | TotalContainer>;
     if (next) {
-      var results: any[] = [];
+      let results: any[] = [];
       finalResult = promiseWhile(
         () => query,
         () => {
@@ -1462,7 +1464,7 @@ export abstract class External {
 
     return this.getIntrospectAttributes()
       .then((attributes) => {
-        var value = this.valueOf();
+        let value = this.valueOf();
 
         // Apply user provided (if any) overrides to the received attributes
         if (value.attributeOverrides) {
@@ -1481,20 +1483,20 @@ export abstract class External {
   }
 
   public getRawDatasetType(): Lookup<FullType> {
-    var { attributes, rawAttributes, derivedAttributes } = this;
+    let { attributes, rawAttributes, derivedAttributes } = this;
     if (!attributes) throw new Error("dataset has not been introspected");
 
     if (!rawAttributes) rawAttributes = attributes;
 
-    var myDatasetType: Lookup<FullType> = {};
-    for (var rawAttribute of rawAttributes) {
-      var attrName = rawAttribute.name;
+    let myDatasetType: Lookup<FullType> = {};
+    for (let rawAttribute of rawAttributes) {
+      let attrName = rawAttribute.name;
       myDatasetType[attrName] = {
         type: <PlyTypeSimple>rawAttribute.type
       };
     }
 
-    for (var name in derivedAttributes) {
+    for (let name in derivedAttributes) {
       myDatasetType[name] = {
         type: <PlyTypeSimple>derivedAttributes[name].type
       };
@@ -1507,18 +1509,18 @@ export abstract class External {
     const { mode, attributes } = this;
 
     if (mode === 'value') throw new Error('not supported for value mode yet');
-    var myDatasetType = this.getRawDatasetType();
+    let myDatasetType = this.getRawDatasetType();
 
     if (mode !== 'raw') {
-      var splitDatasetType: Lookup<FullType> = {};
+      let splitDatasetType: Lookup<FullType> = {};
       splitDatasetType[this.dataName || External.SEGMENT_NAME] = {
         type: 'DATASET',
         datasetType: myDatasetType,
         remote: true
       };
 
-      for (var attribute of attributes) {
-        var attrName = attribute.name;
+      for (let attribute of attributes) {
+        let attrName = attribute.name;
         splitDatasetType[attrName] = {
           type: <PlyTypeSimple>attribute.type
         };
@@ -1538,10 +1540,10 @@ export abstract class External {
 
   /*
   private _joinDigestHelper(joinExpression: JoinExpression, action: Action): JoinExpression {
-    var ids = action.expression.getExternalIds();
+    let ids = action.expression.getExternalIds();
     if (ids.length !== 1) throw new Error('must be single dataset');
     if (ids[0] === (<External>(<LiteralExpression>joinExpression.lhs).value).getId()) {
-      var lhsDigest = this.digest(joinExpression.lhs, action);
+      let lhsDigest = this.digest(joinExpression.lhs, action);
       if (!lhsDigest) return null;
       return new JoinExpression({
         op: 'join',
@@ -1549,7 +1551,7 @@ export abstract class External {
         rhs: joinExpression.rhs
       });
     } else {
-      var rhsDigest = this.digest(joinExpression.rhs, action);
+      let rhsDigest = this.digest(joinExpression.rhs, action);
       if (!rhsDigest) return null;
       return new JoinExpression({
         op: 'join',

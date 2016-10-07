@@ -47,7 +47,7 @@ export class IsAction extends Action {
   }
 
   public getOutputType(inputType: PlyType): PlyType {
-    var expressionType = this.expression.type;
+    let expressionType = this.expression.type;
     if (expressionType && expressionType !== 'NULL') this._checkInputTypes(inputType);
     return 'BOOLEAN';
   }
@@ -74,8 +74,8 @@ export class IsAction extends Action {
   }
 
   protected _nukeExpression(precedingExpression: Expression): Expression {
-    var prevAction = precedingExpression.lastAction();
-    var literalValue = this.getLiteralValue();
+    let prevAction = precedingExpression.lastAction();
+    let literalValue = this.getLiteralValue();
 
     if (prevAction instanceof TimeBucketAction && literalValue instanceof TimeRange && prevAction.timezone) {
       if (literalValue.start !== null && TimeRange.timeBucket(literalValue.start, prevAction.duration, prevAction.timezone).equals(literalValue)) return null;
@@ -91,7 +91,7 @@ export class IsAction extends Action {
   }
 
   protected _foldWithPrevAction(prevAction: Action): Action {
-    var literalValue = this.getLiteralValue();
+    let literalValue = this.getLiteralValue();
 
     if (prevAction instanceof TimeBucketAction && literalValue instanceof TimeRange && prevAction.timezone) {
       if (!(literalValue.start !== null && TimeRange.timeBucket(literalValue.start, prevAction.duration, prevAction.timezone).equals(literalValue))) return null;
@@ -111,7 +111,7 @@ export class IsAction extends Action {
   }
 
   protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
-    var expression = this.expression;
+    let expression = this.expression;
     if (!expression.isOp('literal')) {
       return new IsAction({ expression: literalExpression }).performOnSimple(expression);
     }
@@ -130,12 +130,12 @@ export class IsAction extends Action {
       return Expression.TRUE;
     }
 
-    var prevAction = chainExpression.lastAction();
-    var literalValue = this.getLiteralValue();
+    let prevAction = chainExpression.lastAction();
+    let literalValue = this.getLiteralValue();
 
     if (prevAction instanceof IndexOfAction && literalValue === -1) {
-      var precedingExpression = (chainExpression as ChainExpression).expression;
-      var actionExpression = prevAction.expression;
+      let precedingExpression = (chainExpression as ChainExpression).expression;
+      let actionExpression = prevAction.expression;
       return precedingExpression.contains(actionExpression).not().simplify();
     }
 

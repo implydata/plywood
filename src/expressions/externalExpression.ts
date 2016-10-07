@@ -24,7 +24,7 @@ import { External } from '../external/baseExternal';
 
 export class ExternalExpression extends Expression {
   static fromJS(parameters: ExpressionJS): Expression {
-    var value: ExpressionValue = {
+    let value: ExpressionValue = {
       op: parameters.op
     };
     value.external = External.fromJS(parameters.external);
@@ -35,7 +35,7 @@ export class ExternalExpression extends Expression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    var external = parameters.external;
+    let external = parameters.external;
     if (!external) throw new Error('must have an external');
     this.external = external;
     this._ensureOp('external');
@@ -44,13 +44,13 @@ export class ExternalExpression extends Expression {
   }
 
   public valueOf(): ExpressionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.external = this.external;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.external = this.external.toJS();
     return js;
   }
@@ -82,20 +82,20 @@ export class ExternalExpression extends Expression {
     if (external.mode === 'value') {
       return { type: external.getValueType() };
     } else {
-      var newTypeContext = this.external.getFullType();
+      let newTypeContext = this.external.getFullType();
       newTypeContext.parent = typeContext;
       return newTypeContext;
     }
   }
 
   public unsuppress(): ExternalExpression {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.external = this.external.show();
     return new ExternalExpression(value);
   }
 
   public addAction(action: Action): ExternalExpression {
-    var newExternal = this.external.addAction(action);
+    let newExternal = this.external.addAction(action);
     if (!newExternal) return null;
     return new ExternalExpression({ external: newExternal });
   }

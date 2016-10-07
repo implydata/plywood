@@ -40,13 +40,13 @@ export class LimitAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.limit = this.limit;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.limit = this.limit;
     return js;
   }
@@ -74,9 +74,9 @@ export class LimitAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    var limit = this.limit;
+    let limit = this.limit;
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       return inV ? inV.limit(limit) : null;
     };
   }

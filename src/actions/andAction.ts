@@ -41,19 +41,19 @@ function mergeAnd(ex1: Expression, ex2: Expression): Expression {
     !arraysEqual(ex1.getFreeReferences(), ex2.getFreeReferences())
   ) return null;
 
-  var ex1Actions = (<ChainExpression>ex1).actions;
-  var ex2Actions = (<ChainExpression>ex2).actions;
+  let ex1Actions = (<ChainExpression>ex1).actions;
+  let ex2Actions = (<ChainExpression>ex2).actions;
   if (ex1Actions.length !== 1 || ex2Actions.length !== 1) return null;
 
-  var ex1Action = ex1Actions[0];
-  var ex2Action = ex2Actions[0];
+  let ex1Action = ex1Actions[0];
+  let ex2Action = ex2Actions[0];
   if (!IS_OR_IN_ACTION[ex1Action.action] || !IS_OR_IN_ACTION[ex2Action.action]) return null;
 
-  var firstActionExpression1 = ex1Action.expression;
-  var firstActionExpression2 = ex2Action.expression;
+  let firstActionExpression1 = ex1Action.expression;
+  let firstActionExpression2 = ex2Action.expression;
   if (!firstActionExpression1 || !firstActionExpression2 || !firstActionExpression1.isOp('literal') || !firstActionExpression2.isOp('literal')) return null;
 
-  var intersect = Set.generalIntersect(firstActionExpression1.getLiteralValue(), firstActionExpression2.getLiteralValue());
+  let intersect = Set.generalIntersect(firstActionExpression1.getLiteralValue(), firstActionExpression2.getLiteralValue());
   if (intersect === null) return null;
 
   return Expression.inOrIs((<ChainExpression>ex1).expression, intersect);
@@ -120,13 +120,13 @@ export class AndAction extends Action {
   }
 
   protected _performOnSimpleChain(chainExpression: ChainExpression): Expression {
-    var { expression } = this;
+    let { expression } = this;
 
-    var andExpressions = chainExpression.getExpressionPattern('and');
+    let andExpressions = chainExpression.getExpressionPattern('and');
     if (andExpressions) {
-      for (var i = 0; i < andExpressions.length; i++) {
-        var andExpression = andExpressions[i];
-        var mergedExpression = mergeAnd(andExpression, expression);
+      for (let i = 0; i < andExpressions.length; i++) {
+        let andExpression = andExpressions[i];
+        let mergedExpression = mergeAnd(andExpression, expression);
         if (mergedExpression) {
           andExpressions[i] = mergedExpression;
           return Expression.and(andExpressions).simplify();

@@ -26,38 +26,38 @@ export interface VerboseRequesterParameters<T> {
 }
 
 export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameters<T>): Requester.PlywoodRequester<any> {
-  var requester = parameters.requester;
+  let requester = parameters.requester;
 
-  var printLine = parameters.printLine || ((line: string): void => {
+  let printLine = parameters.printLine || ((line: string): void => {
       console['log'](line);
     });
 
-  var preQuery = parameters.preQuery || ((query: any, queryNumber: int): void => {
+  let preQuery = parameters.preQuery || ((query: any, queryNumber: int): void => {
       printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
       printLine(`Sending query ${queryNumber}:`);
       printLine(JSON.stringify(query, null, 2));
       printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
     });
 
-  var onSuccess = parameters.onSuccess || ((data: any, time: number, query: any, queryNumber: int): void => {
+  let onSuccess = parameters.onSuccess || ((data: any, time: number, query: any, queryNumber: int): void => {
       printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
       printLine(`Got result from query ${queryNumber}: (in ${time}ms)`);
       printLine(JSON.stringify(data, null, 2));
       printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
     });
 
-  var onError = parameters.onError || ((error: Error, time: number, query: any, queryNumber: int): void => {
+  let onError = parameters.onError || ((error: Error, time: number, query: any, queryNumber: int): void => {
       printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
       printLine(`Got error in query ${queryNumber}: ${error.message} (in ${time}ms)`);
       printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
     });
 
-  var queryNumber: int = 0;
+  let queryNumber: int = 0;
   return (request: Requester.DatabaseRequest<any>): Q.Promise<any> => {
     queryNumber++;
-    var myQueryNumber = queryNumber;
+    let myQueryNumber = queryNumber;
     preQuery(request.query, myQueryNumber);
-    var startTime = Date.now();
+    let startTime = Date.now();
     return requester(request)
       .then(data => {
         onSuccess(data, Date.now() - startTime, request.query, myQueryNumber);

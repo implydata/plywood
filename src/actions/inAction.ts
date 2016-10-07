@@ -49,7 +49,7 @@ export class InAction extends Action {
   }
 
   public getOutputType(inputType: PlyType): PlyType {
-    var expression = this.expression;
+    let expression = this.expression;
     if (inputType) {
       if (!(
         (!isSetType(inputType) && expression.canHaveType('SET')) ||
@@ -80,8 +80,8 @@ export class InAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
-      var exV = expressionFn(d, c);
+      let inV = inputFn(d, c);
+      let exV = expressionFn(d, c);
       if (!exV) return null;
       return (<any>exV).contains(inV);
     };
@@ -94,12 +94,12 @@ export class InAction extends Action {
         case 'NUMBER_RANGE':
         case 'STRING_RANGE':
         case 'TIME_RANGE':
-          var range: PlywoodRange = expression.value;
-          var r0 = range.start;
-          var r1 = range.end;
-          var bounds = range.bounds;
+          let range: PlywoodRange = expression.value;
+          let r0 = range.start;
+          let r1 = range.end;
+          let bounds = range.bounds;
 
-          var cmpStrings: string[] = [];
+          let cmpStrings: string[] = [];
           if (r0 != null) {
             cmpStrings.push(`${JSON.stringify(r0)} ${bounds[0] === '(' ? '<' : '<='} _`);
           }
@@ -110,7 +110,7 @@ export class InAction extends Action {
           return `(_=${inputJS}, ${cmpStrings.join(' && ')})`;
 
         case 'SET/STRING':
-          var valueSet: Set = expression.value;
+          let valueSet: Set = expression.value;
           return `${JSON.stringify(valueSet.elements)}.indexOf(${inputJS})>-1`;
 
         default:
@@ -122,20 +122,20 @@ export class InAction extends Action {
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-    var expression = this.expression;
-    var expressionType = expression.type;
+    let expression = this.expression;
+    let expressionType = expression.type;
     switch (expressionType) {
       case 'NUMBER_RANGE':
       case 'TIME_RANGE':
         if (expression instanceof LiteralExpression) {
-          var range: (NumberRange | TimeRange) = expression.value;
+          let range: (NumberRange | TimeRange) = expression.value;
           return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
         }
         throw new Error(`can not convert action to SQL ${this}`);
 
       case 'STRING_RANGE':
         if (expression instanceof LiteralExpression) {
-          var stringRange: StringRange = expression.value;
+          let stringRange: StringRange = expression.value;
           return dialect.inExpression(inputSQL, dialect.escapeLiteral(stringRange.start), dialect.escapeLiteral(stringRange.end), stringRange.bounds);
         }
         throw new Error(`can not convert action to SQL ${this}`);
@@ -147,7 +147,7 @@ export class InAction extends Action {
       case 'SET/NUMBER_RANGE':
       case 'SET/TIME_RANGE':
         if (expression instanceof LiteralExpression) {
-          var setOfRange: Set = expression.value;
+          let setOfRange: Set = expression.value;
           return setOfRange.elements.map((range: (NumberRange | TimeRange)) => {
             return dialect.inExpression(inputSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
           }).join(' OR ');
@@ -160,7 +160,7 @@ export class InAction extends Action {
   }
 
   protected _nukeExpression(): Expression {
-    var expression = this.expression;
+    let expression = this.expression;
     if (
       expression instanceof LiteralExpression &&
       isSetType(expression.type) &&
@@ -170,15 +170,15 @@ export class InAction extends Action {
   }
 
   private _performOnSimpleWhatever(ex: Expression): Expression {
-    var expression = this.expression;
-    var setValue: Set = expression.getLiteralValue();
+    let expression = this.expression;
+    let setValue: Set = expression.getLiteralValue();
     if (setValue && 'SET/' + ex.type === expression.type && setValue.size() === 1) {
       return new IsAction({ expression: r(setValue.elements[0]) }).performOnSimple(ex);
     }
 
     if (ex instanceof ChainExpression) {
-      var indexOfAction = (ex as ChainExpression).getSingleAction('indexOf');
-      var range: NumberRange = expression.getLiteralValue() as NumberRange;
+      let indexOfAction = (ex as ChainExpression).getSingleAction('indexOf');
+      let range: NumberRange = expression.getLiteralValue() as NumberRange;
 
       // contains could be either start less than 0 or start === 0 with inclusive bounds
       if (indexOfAction && ((range.start < 0 && range.end === null) || (range.start === 0 && range.end === null && range.bounds[0] === '['))) {

@@ -37,11 +37,11 @@ function correctResult(result: any[]): boolean {
 
 function getSplitInflaters(split: SplitAction): Inflater[] {
   return split.mapSplits((label, splitExpression) => {
-    var simpleInflater = External.getSimpleInflater(splitExpression, label);
+    let simpleInflater = External.getSimpleInflater(splitExpression, label);
     if (simpleInflater) return simpleInflater;
 
     if (splitExpression instanceof ChainExpression) {
-      var lastAction = splitExpression.lastAction();
+      let lastAction = splitExpression.lastAction();
 
       if (lastAction instanceof TimeBucketAction) {
         return External.timeRangeInflaterFactory(label, lastAction.duration, lastAction.getTimezone());
@@ -58,7 +58,7 @@ function getSplitInflaters(split: SplitAction): Inflater[] {
 
 function valuePostProcess(data: any[]): PlywoodValue {
   if (!correctResult(data)) {
-    var err = new Error("unexpected result (value)");
+    let err = new Error("unexpected result (value)");
     (<any>err).result = data; // ToDo: special error type
     throw err;
   }
@@ -69,15 +69,15 @@ function valuePostProcess(data: any[]): PlywoodValue {
 function totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyAction[]): PostProcess {
   return (data: any[]): TotalContainer => {
     if (!correctResult(data)) {
-      var err = new Error("unexpected total result");
+      let err = new Error("unexpected total result");
       (<any>err).result = data; // ToDo: special error type
       throw err;
     }
 
-    var datum: any;
+    let datum: any;
     if (data.length === 1) {
       datum = data[0];
-      for (var inflater of inflaters) {
+      for (let inflater of inflaters) {
         inflater(datum, 0, data);
       }
     } else if (zeroTotalApplies) {
@@ -91,14 +91,14 @@ function totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyA
 function postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyAction[]): PostProcess {
   return (data: any[]): Dataset => {
     if (!correctResult(data)) {
-      var err = new Error("unexpected result");
+      let err = new Error("unexpected result");
       (<any>err).result = data; // ToDo: special error type
       throw err;
     }
 
-    var n = data.length;
-    for (var inflater of inflaters) {
-      for (var i = 0; i < n; i++) {
+    let n = data.length;
+    for (let inflater of inflaters) {
+      for (let i = 0; i < n; i++) {
         inflater(data[i], i, data);
       }
     }
@@ -156,23 +156,23 @@ export abstract class SQLExternal extends External {
   public getQueryAndPostProcess(): QueryAndPostProcess<string> {
     const { source, mode, applies, sort, limit, derivedAttributes, dialect } = this;
 
-    var query = ['SELECT'];
-    var postProcess: PostProcess = null;
-    var inflaters: Inflater[] = [];
-    var zeroTotalApplies: ApplyAction[] = null;
+    let query = ['SELECT'];
+    let postProcess: PostProcess = null;
+    let inflaters: Inflater[] = [];
+    let zeroTotalApplies: ApplyAction[] = null;
 
-    var from = "FROM " + this.dialect.escapeName(source as string);
-    var filter = this.getQueryFilter();
+    let from = "FROM " + this.dialect.escapeName(source as string);
+    let filter = this.getQueryFilter();
     if (!filter.equals(Expression.TRUE)) {
       from += '\nWHERE ' + filter.getSQL(dialect);
     }
 
     switch (mode) {
       case 'raw':
-        var selectedAttributes = this.getSelectedAttributes();
+        let selectedAttributes = this.getSelectedAttributes();
 
         selectedAttributes.forEach(attribute => {
-          var { name, type } = attribute;
+          let { name, type } = attribute;
           switch (type) {
             case 'BOOLEAN':
               inflaters.push(External.booleanInflaterFactory(name));
@@ -186,7 +186,7 @@ export abstract class SQLExternal extends External {
 
         query.push(
           selectedAttributes.map(a => {
-            var name = a.name;
+            let name = a.name;
             if (derivedAttributes[name]) {
               return new ApplyAction({ name, expression: derivedAttributes[name] }).getSQL(null, '', dialect);
             } else {
@@ -223,7 +223,7 @@ export abstract class SQLExternal extends External {
         break;
 
       case 'split':
-        var split = this.getQuerySplit();
+        let split = this.getQuerySplit();
         query.push(
           split.getSelectSQL(dialect)
             .concat(applies.map(apply => apply.getSQL(null, '', dialect)))

@@ -72,12 +72,12 @@ export class FilterAction extends Action {
 
   protected _putBeforeLastAction(lastAction: Action): Action {
     if (lastAction instanceof ApplyAction) {
-      var freeReferences = this.getFreeReferences();
+      let freeReferences = this.getFreeReferences();
       return freeReferences.indexOf(lastAction.name) === -1 ? this : null;
     }
 
     if (lastAction instanceof SplitAction && lastAction.isLinear()) {
-      var splits = lastAction.splits;
+      let splits = lastAction.splits;
       return new FilterAction({
         expression: this.expression.substitute((ex) => {
           if (ex instanceof RefExpression && splits[ex.name]) return splits[ex.name];
@@ -97,7 +97,7 @@ export class FilterAction extends Action {
     const { expression } = this;
     if (!expression.resolved()) return null;
     if (literalExpression.value === null) return Expression.NULL;
-    var dataset = literalExpression.value;
+    let dataset = literalExpression.value;
 
     dataset = dataset.filter(expression.getFn(), null);
 

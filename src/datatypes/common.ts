@@ -28,7 +28,7 @@ import { External } from '../external/baseExternal';
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
 
 export function getValueType(value: any): PlyType {
-  var typeofValue = typeof value;
+  let typeofValue = typeof value;
   if (typeofValue === 'object') {
     if (value === null) {
       return 'NULL';
@@ -40,7 +40,7 @@ export function getValueType(value: any): PlyType {
       if (typeof value.start === 'string' || typeof value.end === 'string') return 'STRING_RANGE';
       throw new Error("unrecognizable range");
     } else {
-      var ctrType = value.constructor.type;
+      let ctrType = value.constructor.type;
       if (!ctrType) {
         if (Expression.isExpression(value)) {
           throw new Error(`expression used as datum value ${value}`);
@@ -60,13 +60,13 @@ export function getValueType(value: any): PlyType {
 }
 
 export function getFullType(value: any): FullType {
-  var myType = getValueType(value);
+  let myType = getValueType(value);
   return myType === 'DATASET' ? (<Dataset>value).getFullType() : { type: <PlyTypeSimple>myType };
 }
 
 export function getFullTypeFromDatum(datum: Datum): DatasetFullType {
-  var datasetType: Lookup<FullType> = {};
-  for (var k in datum) {
+  let datasetType: Lookup<FullType> = {};
+  for (let k in datum) {
     if (!hasOwnProperty(datum, k)) continue;
     datasetType[k] = getFullType(datum[k]);
   }
@@ -89,7 +89,7 @@ export function valueFromJS(v: any, typeOverride: string = null): any {
   } else if (typeof v === 'object') {
     switch (typeOverride || v.type) {
       case 'NUMBER':
-        var n = Number(v.value);
+        let n = Number(v.value);
         if (isNaN(n)) throw new Error(`bad number value '${v.value}'`);
         return n;
 
@@ -125,7 +125,7 @@ export function valueToJS(v: any): any {
   if (v == null) {
     return null;
   } else {
-    var typeofV = typeof v;
+    let typeofV = typeof v;
     if (typeofV === 'object') {
       if (v.toISOString) {
         return v;
@@ -143,12 +143,12 @@ export function valueToJSInlineType(v: any): any {
   if (v == null) {
     return null;
   } else {
-    var typeofV = typeof v;
+    let typeofV = typeof v;
     if (typeofV === 'object') {
       if (v.toISOString) {
         return { type: 'TIME', value: v };
       } else {
-        var js = v.toJS();
+        let js = v.toJS();
         if (!Array.isArray(js)) {
           js.type = v.constructor.type || 'EXPRESSION';
         }
@@ -164,8 +164,8 @@ export function valueToJSInlineType(v: any): any {
 // Remote functionality
 
 export function datumHasExternal(datum: Datum): boolean {
-  for (var name in datum) {
-    var value = datum[name];
+  for (let name in datum) {
+    let value = datum[name];
     if (value instanceof External) return true;
     if (value instanceof Dataset && value.hasExternal()) return true;
   }
@@ -173,11 +173,11 @@ export function datumHasExternal(datum: Datum): boolean {
 }
 
 export function introspectDatum(datum: Datum): Q.Promise<Datum> {
-  var promises: Q.Promise<void>[] = [];
-  var newDatum: Datum = Object.create(null);
+  let promises: Q.Promise<void>[] = [];
+  let newDatum: Datum = Object.create(null);
   Object.keys(datum)
     .forEach(name => {
-      var v = datum[name];
+      let v = datum[name];
       if (v instanceof External && v.needsIntrospect()) {
         promises.push(
           v.introspect().then((introspectedExternal: External) => {

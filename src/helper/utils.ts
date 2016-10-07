@@ -16,7 +16,7 @@
 
 import { SimpleArray } from 'immutable-class';
 
-var objectHasOwnProperty = Object.prototype.hasOwnProperty;
+let objectHasOwnProperty = Object.prototype.hasOwnProperty;
 export function hasOwnProperty(obj: any, key: string): boolean {
   return objectHasOwnProperty.call(obj, key);
 }
@@ -27,9 +27,9 @@ export function repeat(str: string, times: int): string {
 
 export function arraysEqual<T>(a: Array<T>, b: Array<T>): boolean {
   if (a === b) return true;
-  var length = a.length;
+  let length = a.length;
   if (length !== b.length) return false;
-  for (var i = 0; i < length; i++) {
+  for (let i = 0; i < length; i++) {
     if (a[i] !== b[i]) return false;
   }
   return true;
@@ -38,17 +38,17 @@ export function arraysEqual<T>(a: Array<T>, b: Array<T>): boolean {
 export function dictEqual(dictA: Lookup<any>, dictB: Lookup<any>): boolean {
   if (dictA === dictB) return true;
   if (!dictA !== !dictB) return false;
-  var keys = Object.keys(dictA);
+  let keys = Object.keys(dictA);
   if (keys.length !== Object.keys(dictB).length) return false;
-  for (var key of keys) {
+  for (let key of keys) {
     if (dictA[key] !== dictB[key]) return false;
   }
   return true;
 }
 
 export function shallowCopy<T>(thing: Lookup<T>): Lookup<T> {
-  var newThing: Lookup<T> = {};
-  for (var k in thing) {
+  let newThing: Lookup<T> = {};
+  for (let k in thing) {
     if (hasOwnProperty(thing, k)) newThing[k] = thing[k];
   }
   return newThing;
@@ -56,8 +56,8 @@ export function shallowCopy<T>(thing: Lookup<T>): Lookup<T> {
 
 export function deduplicateSort(a: string[]): string[] {
   a = a.sort();
-  var newA: string[] = [];
-  var last: string = null;
+  let newA: string[] = [];
+  let last: string = null;
   for (let v of a) {
     if (v !== last) newA.push(v);
     last = v;
@@ -66,15 +66,15 @@ export function deduplicateSort(a: string[]): string[] {
 }
 
 export function mapLookup<T, U>(thing: Lookup<T>, fn: (x: T) => U): Lookup<U> {
-  var newThing: Lookup<U> = Object.create(null);
-  for (var k in thing) {
+  let newThing: Lookup<U> = Object.create(null);
+  for (let k in thing) {
     if (hasOwnProperty(thing, k)) newThing[k] = fn(thing[k]);
   }
   return newThing;
 }
 
 export function emptyLookup(lookup: Lookup<any>): boolean {
-  for (var k in lookup) {
+  for (let k in lookup) {
     if (hasOwnProperty(lookup, k)) return false;
   }
   return true;
@@ -85,18 +85,18 @@ export function nonEmptyLookup(lookup: Lookup<any>): boolean {
 }
 
 export function safeAdd(num: number, delta: number): number {
-  var stringDelta = String(delta);
-  var dotIndex = stringDelta.indexOf(".");
+  let stringDelta = String(delta);
+  let dotIndex = stringDelta.indexOf(".");
   if (dotIndex === -1 || stringDelta.length === 18) {
     return num + delta;
   } else {
-    var scale = Math.pow(10, stringDelta.length - dotIndex - 1);
+    let scale = Math.pow(10, stringDelta.length - dotIndex - 1);
     return (num * scale + delta * scale) / scale;
   }
 }
 
 export function continuousFloorExpression(variable: string, floorFn: string, size: number, offset: number): string {
-  var expr = variable;
+  let expr = variable;
   if (offset !== 0) {
     expr = expr + " - " + offset;
   }

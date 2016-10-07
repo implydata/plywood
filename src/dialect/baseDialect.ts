@@ -66,9 +66,9 @@ export abstract class SQLDialect {
   public abstract timeToSQL(date: Date): string;
 
   public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, zeroSQL = '0'): string {
-    var whereIndex = inputSQL.indexOf(' WHERE ');
+    let whereIndex = inputSQL.indexOf(' WHERE ');
     if (whereIndex === -1) return expressionSQL;
-    var filterSQL = inputSQL.substr(whereIndex + 7);
+    let filterSQL = inputSQL.substr(whereIndex + 7);
     return this.conditionalExpression(filterSQL, expressionSQL, zeroSQL);
   }
 
@@ -94,11 +94,11 @@ export abstract class SQLDialect {
 
   public inExpression(operand: string, start: string, end: string, bounds: string) {
     if (start === end && bounds === '[]') return `${operand}=${start}`;
-    var startSQL: string = null;
+    let startSQL: string = null;
     if (start !== 'NULL') {
       startSQL = start + (bounds[0] === '[' ? '<=' : '<') + operand;
     }
-    var endSQL: string = null;
+    let endSQL: string = null;
     if (end !== 'NULL') {
       endSQL = operand + (bounds[1] === ']' ? '<=' : '<') + end;
     }

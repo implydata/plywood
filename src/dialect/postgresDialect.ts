@@ -107,7 +107,7 @@ export class PostgresDialect extends SQLDialect {
   }
 
   public castExpression(inputType: PlyType, operand: string, cast: string): string {
-    var castFunction = PostgresDialect.CAST_TO_FUNCTION[cast][inputType];
+    let castFunction = PostgresDialect.CAST_TO_FUNCTION[cast][inputType];
     if (!castFunction) throw new Error(`unsupported cast from ${inputType} to ${cast} in Postgres dialect`);
     return castFunction.replace(/\$\$/g, operand);
   }
@@ -123,7 +123,7 @@ export class PostgresDialect extends SQLDialect {
   }
 
   public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
-    var bucketFormat = PostgresDialect.TIME_BUCKETING[duration.toString()];
+    let bucketFormat = PostgresDialect.TIME_BUCKETING[duration.toString()];
     if (!bucketFormat) throw new Error(`unsupported duration '${duration}'`);
     return this.walltimeToUTC(`DATE_TRUNC('${bucketFormat}',${this.utcToWalltime(operand, timezone)})`, timezone);
   }
@@ -133,24 +133,24 @@ export class PostgresDialect extends SQLDialect {
   }
 
   public timePartExpression(operand: string, part: string, timezone: Timezone): string {
-    var timePartFunction = PostgresDialect.TIME_PART_TO_FUNCTION[part];
+    let timePartFunction = PostgresDialect.TIME_PART_TO_FUNCTION[part];
     if (!timePartFunction) throw new Error(`unsupported part ${part} in Postgres dialect`);
     return timePartFunction.replace(/\$\$/g, this.utcToWalltime(operand, timezone));
   }
 
   public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string {
     // https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_date-add
-    var sqlFn = "DATE_ADD("; //warpDirection > 0 ? "DATE_ADD(" : "DATE_SUB(";
-    var spans = duration.valueOf();
+    let sqlFn = "DATE_ADD("; //warpDirection > 0 ? "DATE_ADD(" : "DATE_SUB(";
+    let spans = duration.valueOf();
     if (spans.week) {
       return sqlFn + operand + ", INTERVAL " + String(spans.week) + ' WEEK)';
     }
     if (spans.year || spans.month) {
-      var expr = String(spans.year || 0) + "-" + String(spans.month || 0);
+      let expr = String(spans.year || 0) + "-" + String(spans.month || 0);
       operand = sqlFn + operand + ", INTERVAL '" + expr + "' YEAR_MONTH)";
     }
     if (spans.day || spans.hour || spans.minute || spans.second) {
-      var expr = String(spans.day || 0) + " " + [spans.hour || 0, spans.minute || 0, spans.second || 0].join(':');
+      let expr = String(spans.day || 0) + " " + [spans.hour || 0, spans.minute || 0, spans.second || 0].join(':');
       operand = sqlFn + operand + ", INTERVAL '" + expr + "' DAY_SECOND)";
     }
     return operand;

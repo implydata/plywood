@@ -24,7 +24,7 @@ import { MatchAction } from './matchAction';
 
 export class ExtractAction extends Action {
   static fromJS(parameters: ActionJS): ExtractAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.regexp = parameters.regexp;
     return new ExtractAction(value);
   }
@@ -38,13 +38,13 @@ export class ExtractAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.regexp = this.regexp;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.regexp = this.regexp;
     return js;
   }
@@ -71,7 +71,7 @@ export class ExtractAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-    var re = new RegExp(this.regexp);
+    let re = new RegExp(this.regexp);
     return (d: Datum, c: Datum) => {
       return (String(inputFn(d, c)).match(re) || [])[1] || null;
     };

@@ -23,7 +23,7 @@ import { ComputeFn } from '../datatypes/dataset';
 
 export class CustomAggregateAction extends Action {
   static fromJS(parameters: ActionJS): CustomAggregateAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.custom = parameters.custom;
     if (value.action === 'custom') value.action = 'customAggregate'; // back compat?
 
@@ -39,13 +39,13 @@ export class CustomAggregateAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.custom = this.custom;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.custom = this.custom;
     return js;
   }

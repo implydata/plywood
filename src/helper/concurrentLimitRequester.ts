@@ -28,19 +28,19 @@ interface QueueItem<T> {
 }
 
 export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRequesterParameters<T>): Requester.PlywoodRequester<T> {
-  var requester = parameters.requester;
-  var concurrentLimit = parameters.concurrentLimit || 5;
+  let requester = parameters.requester;
+  let concurrentLimit = parameters.concurrentLimit || 5;
 
   if (typeof concurrentLimit !== "number") throw new TypeError("concurrentLimit should be a number");
 
-  var requestQueue: Array<QueueItem<T>> = [];
-  var outstandingRequests: int = 0;
+  let requestQueue: Array<QueueItem<T>> = [];
+  let outstandingRequests: int = 0;
 
   function requestFinished(): void {
     outstandingRequests--;
     if (!(requestQueue.length && outstandingRequests < concurrentLimit)) return;
-    var queueItem = requestQueue.shift();
-    var deferred = queueItem.deferred;
+    let queueItem = requestQueue.shift();
+    let deferred = queueItem.deferred;
     outstandingRequests++;
     requester(queueItem.request)
       .then(deferred.resolve, deferred.reject)
@@ -52,7 +52,7 @@ export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRe
       outstandingRequests++;
       return requester(request).fin(requestFinished);
     } else {
-      var deferred = Q.defer();
+      let deferred = Q.defer();
       requestQueue.push({
         request: request,
         deferred: deferred

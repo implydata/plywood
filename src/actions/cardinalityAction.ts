@@ -48,7 +48,7 @@ export class CardinalityAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       if (inV === null) return null;
       if (Array.isArray(inV)) return inV.length; // this is to allow passing an array into .compute()
       return inV.cardinality();

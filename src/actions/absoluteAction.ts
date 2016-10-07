@@ -45,7 +45,7 @@ export class AbsoluteAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       if (inV === null) return null;
       return Math.abs(inV);
     };

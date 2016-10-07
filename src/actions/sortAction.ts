@@ -30,7 +30,7 @@ export class SortAction extends Action {
   static ASCENDING: Direction = 'ascending';
 
   static fromJS(parameters: ActionJS): SortAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.direction = parameters.direction;
     return new SortAction(value);
   }
@@ -39,7 +39,7 @@ export class SortAction extends Action {
 
   constructor(parameters: ActionValue = {}) {
     super(parameters, dummyObject);
-    var direction = parameters.direction || 'ascending';
+    let direction = parameters.direction || 'ascending';
     if (direction !== SortAction.DESCENDING && direction !== SortAction.ASCENDING) {
       throw new Error(`direction must be '${SortAction.DESCENDING}' or '${SortAction.ASCENDING}'`);
     }
@@ -51,13 +51,13 @@ export class SortAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.direction = this.direction;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.direction = this.direction;
     return js;
   }
@@ -86,20 +86,20 @@ export class SortAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    var direction = this.direction;
+    let direction = this.direction;
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       return inV ? inV.sort(expressionFn, direction) : null;
     };
   }
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
-    var dir = this.direction === SortAction.DESCENDING ? 'DESC' : 'ASC';
+    let dir = this.direction === SortAction.DESCENDING ? 'DESC' : 'ASC';
     return `ORDER BY ${expressionSQL} ${dir}`;
   }
 
   public refName(): string {
-    var expression = this.expression;
+    let expression = this.expression;
     return (expression instanceof RefExpression) ? expression.name : null;
   }
 
@@ -125,7 +125,7 @@ export class SortAction extends Action {
     const { expression, direction } = this;
     if (!expression.resolved()) return null;
     if (literalExpression.value === null) return Expression.NULL;
-    var dataset = literalExpression.value;
+    let dataset = literalExpression.value;
 
     dataset = dataset.sort(expression.getFn(), direction);
 

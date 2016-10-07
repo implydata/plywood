@@ -27,7 +27,7 @@ export class TimeRangeAction extends Action {
   static DEFAULT_STEP = 1;
 
   static fromJS(parameters: ActionJS): TimeRangeAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
     value.step = parameters.step;
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
@@ -50,7 +50,7 @@ export class TimeRangeAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.duration = this.duration;
     value.step = this.step;
     if (this.timezone) value.timezone = this.timezone;
@@ -58,7 +58,7 @@ export class TimeRangeAction extends Action {
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.duration = this.duration.toJS();
     js.step = this.step;
     if (this.timezone) js.timezone = this.timezone.toJS();
@@ -73,7 +73,7 @@ export class TimeRangeAction extends Action {
   }
 
   protected _toStringParameters(expressionString: string): string[] {
-    var ret = [this.duration.toString(), this.step.toString()];
+    let ret = [this.duration.toString(), this.step.toString()];
     if (this.timezone) ret.push(this.timezone.toString());
     return ret;
   }
@@ -94,13 +94,13 @@ export class TimeRangeAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-    var duration = this.duration;
-    var step = this.step;
-    var timezone = this.getTimezone();
+    let duration = this.duration;
+    let step = this.step;
+    let timezone = this.getTimezone();
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       if (inV === null) return null;
-      var other = duration.shift(inV, timezone, step);
+      let other = duration.shift(inV, timezone, step);
       if (step > 0) {
         return new TimeRange({ start: inV, end: other });
       } else {
@@ -123,7 +123,7 @@ export class TimeRangeAction extends Action {
 
   public defineEnvironment(environment: Environment): Action {
     if (this.timezone || !environment.timezone) return this;
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.timezone = environment.timezone;
     return new TimeRangeAction(value);
   }

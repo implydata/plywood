@@ -85,16 +85,16 @@ export interface AlterationFillerPromise {
 }
 
 function fillExpressionExternalAlterationAsync(alteration: ExpressionExternalAlteration, filler: AlterationFillerPromise): Q.Promise<ExpressionExternalAlteration> {
-  var tasks: Q.Promise<any>[] = [];
+  let tasks: Q.Promise<any>[] = [];
   fillExpressionExternalAlteration(alteration, (external, terminal) => {
     tasks.push(filler(external, terminal));
     return null;
   });
 
   return Q.all(tasks).then((results) => {
-    var i = 0;
+    let i = 0;
     fillExpressionExternalAlteration(alteration, () => {
-      var res = results[i];
+      let res = results[i];
       i++;
       return res;
     });
@@ -293,11 +293,11 @@ export function toJS(thing: any): any {
 }
 
 function chainVia(op: string, expressions: Expression[], zero: Expression): Expression {
-  var n = expressions.length;
+  let n = expressions.length;
   if (!n) return zero;
-  var acc = expressions[0];
+  let acc = expressions[0];
   if (!Expression.isExpression(acc)) acc = Expression.fromJSLoose(acc);
-  for (var i = 1; i < n; i++) acc = (<any>acc)[op](expressions[i]);
+  for (let i = 1; i < n; i++) acc = (<any>acc)[op](expressions[i]);
   return acc;
 }
 
@@ -337,8 +337,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   static expressionLookupFromJS(expressionJSs: Lookup<ExpressionJS>): Lookup<Expression> {
-    var expressions: Lookup<Expression> = Object.create(null);
-    for (var name in expressionJSs) {
+    let expressions: Lookup<Expression> = Object.create(null);
+    for (let name in expressionJSs) {
       if (!hasOwnProperty(expressionJSs, name)) continue;
       expressions[name] = Expression.fromJSLoose(expressionJSs[name]);
     }
@@ -346,8 +346,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   static expressionLookupToJS(expressions: Lookup<Expression>): Lookup<ExpressionJS> {
-    var expressionsJSs: Lookup<ExpressionJS> = {};
-    for (var name in expressions) {
+    let expressionsJSs: Lookup<ExpressionJS> = {};
+    for (let name in expressions) {
       if (!hasOwnProperty(expressions, name)) continue;
       expressionsJSs[name] = expressions[name].toJS();
     }
@@ -364,7 +364,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       return Expression.fromJS(JSON.parse(str));
     }
 
-    var original = Expression.defaultParserTimezone;
+    let original = Expression.defaultParserTimezone;
     if (timezone) Expression.defaultParserTimezone = timezone;
     try {
       return Expression.expressionParser.parse(str);
@@ -382,7 +382,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param timezone The timezone within which to evaluate any untimezoned date strings
    */
   static parseSQL(str: string, timezone?: Timezone): SQLParse {
-    var original = Expression.defaultParserTimezone;
+    let original = Expression.defaultParserTimezone;
     if (timezone) Expression.defaultParserTimezone = timezone;
     try {
       return Expression.plyqlParser.parse(str);
@@ -399,7 +399,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param param The expression to parse
    */
   static fromJSLoose(param: any): Expression {
-    var expressionJS: ExpressionJS;
+    let expressionJS: ExpressionJS;
     // Quick parse simple expressions
     switch (typeof param) {
       case 'undefined':
@@ -446,13 +446,13 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   static inOrIs(lhs: Expression, value: any): Expression {
-    var literal = new LiteralExpression({
+    let literal = new LiteralExpression({
       op: 'literal',
       value: value
     });
 
-    var literalType = literal.type;
-    var returnExpression: Expression = null;
+    let literalType = literal.type;
+    let returnExpression: Expression = null;
     if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || literalType === 'STRING_RANGE' || isSetType(literalType)) {
       returnExpression = lhs.in(literal);
     } else {
@@ -527,7 +527,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   static classMap: Lookup<typeof Expression> = {};
   static register(ex: typeof Expression): void {
-    var op = (<any>ex).name.replace('Expression', '').replace(/^\w/, (s: string) => s.toLowerCase());
+    let op = (<any>ex).name.replace('Expression', '').replace(/^\w/, (s: string) => s.toLowerCase());
     Expression.classMap[op] = ex;
   }
 
@@ -539,11 +539,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     if (!hasOwnProperty(expressionJS, "op")) {
       throw new Error("op must be defined");
     }
-    var op = expressionJS.op;
+    let op = expressionJS.op;
     if (typeof op !== "string") {
       throw new Error("op must be a string");
     }
-    var ClassFn = Expression.classMap[op];
+    let ClassFn = Expression.classMap[op];
     if (!ClassFn) {
       throw new Error(`unsupported expression op '${op}'`);
     }
@@ -574,7 +574,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public valueOf(): ExpressionValue {
-    var value: ExpressionValue = { op: this.op };
+    let value: ExpressionValue = { op: this.op };
     if (this.simple) value.simple = true;
     return value;
   }
@@ -615,7 +615,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param wantedType The type that is wanted
    */
   public canHaveType(wantedType: string): boolean {
-    var { type } =  this;
+    let { type } =  this;
     if (!type) return true;
     if (wantedType === 'SET') {
       return isSetType(type);
@@ -659,7 +659,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public getBaseExternals(): External[] {
-    var externals: External[] = [];
+    let externals: External[] = [];
     this.forEach((ex: Expression) => {
       if (ex instanceof ExternalExpression) externals.push(ex.external.getBase());
     });
@@ -667,7 +667,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public getRawExternals(): External[] {
-    var externals: External[] = [];
+    let externals: External[] = [];
     this.forEach((ex: Expression) => {
       if (ex instanceof ExternalExpression) externals.push(ex.external.getRaw());
     });
@@ -675,8 +675,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public getReadyExternals(): ExpressionExternalAlteration {
-    var indexToSkip: Lookup<boolean> = {};
-    var externalsByIndex: ExpressionExternalAlteration = {};
+    let indexToSkip: Lookup<boolean> = {};
+    let externalsByIndex: ExpressionExternalAlteration = {};
     this.every((ex: Expression, index: int) => {
       if (ex instanceof ExternalExpression) {
         if (indexToSkip[index]) return null;
@@ -688,9 +688,9 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         }
 
       } else if (ex instanceof ChainExpression) {
-        var exExpression = ex.expression;
+        let exExpression = ex.expression;
         if (exExpression instanceof ExternalExpression) {
-          var actionsLookGood = ex.actions.every(action => {
+          let actionsLookGood = ex.actions.every(action => {
             return action.action === 'filter' ? action.resolvedWithoutExternals() : action.resolved();
           });
           if (actionsLookGood) {
@@ -703,7 +703,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         }
 
       } else if (ex instanceof LiteralExpression && ex.type === 'DATASET') {
-        var datasetExternals = ex.value.getReadyExternals();
+        let datasetExternals = ex.value.getReadyExternals();
         if (datasetExternals.length) externalsByIndex[index] = datasetExternals;
         return null;
       }
@@ -714,7 +714,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public applyReadyExternals(alterations: ExpressionExternalAlteration): Expression {
     return this.substitute((ex, index) => {
-      var alteration = alterations[index];
+      let alteration = alterations[index];
       if (!alteration) return null;
       if (Array.isArray(alteration)) {
         return r((ex.getLiteralValue() as Dataset).applyReadyExternals(alteration));
@@ -729,7 +729,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * returns the alphabetically sorted list of the references
    */
   public getFreeReferences(): string[] {
-    var freeReferences: string[] = [];
+    let freeReferences: string[] = [];
     this.forEach((ex: Expression, index: int, depth: int, nestDiff: int) => {
       if (ex instanceof RefExpression && nestDiff <= ex.nest) {
         freeReferences.push(repeat('^', ex.nest - nestDiff) + ex.name);
@@ -742,7 +742,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Retrieve all free references by index in the query
    */
   public getFreeReferenceIndexes(): number[] {
-    var freeReferenceIndexes: number[] = [];
+    let freeReferenceIndexes: number[] = [];
     this.forEach((ex: Expression, index: int, depth: int, nestDiff: int) => {
       if (ex instanceof RefExpression && nestDiff <= ex.nest) {
         freeReferenceIndexes.push(index);
@@ -756,7 +756,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param by The number of generation to increment by (default: 1)
    */
   public incrementNesting(by: int = 1): Expression {
-    var freeReferenceIndexes = this.getFreeReferenceIndexes();
+    let freeReferenceIndexes = this.getFreeReferenceIndexes();
     if (freeReferenceIndexes.length === 0) return this;
     return this.substitute((ex: Expression, index: int) => {
       if (ex instanceof RefExpression && freeReferenceIndexes.indexOf(index) !== -1) {
@@ -784,7 +784,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {
-    var pass = iter.call(thisArg, this, indexer.index, depth, nestDiff);
+    let pass = iter.call(thisArg, this, indexer.index, depth, nestDiff);
     if (pass != null) {
       return pass;
     } else {
@@ -800,7 +800,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    */
   public some(iter: BooleanExpressionIterator, thisArg?: any): boolean {
     return !this.every((ex: Expression, index: int, depth: int, nestDiff: int) => {
-      var v = iter.call(this, ex, index, depth, nestDiff);
+      let v = iter.call(this, ex, index, depth, nestDiff);
       return (v == null) ? null : !v;
     }, thisArg);
   }
@@ -828,7 +828,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public _substituteHelper(substitutionFn: SubstitutionFn, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): Expression {
-    var sub = substitutionFn.call(thisArg, this, indexer.index, depth, nestDiff);
+    let sub = substitutionFn.call(thisArg, this, indexer.index, depth, nestDiff);
     if (sub) {
       indexer.index += this.expressionCount();
       return sub;
@@ -842,12 +842,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public substituteAction(actionMatchFn: ActionMatchFn, actionSubstitutionFn: ActionSubstitutionFn, options: SubstituteActionOptions = {}, thisArg?: any): Expression {
     return this.substitute((ex: Expression) => {
       if (ex instanceof ChainExpression) {
-        var actions = ex.actions;
-        for (var i = 0; i < actions.length; i++) {
-          var action = actions[i];
+        let actions = ex.actions;
+        for (let i = 0; i < actions.length; i++) {
+          let action = actions[i];
           if (actionMatchFn.call(this, action)) {
-            var newEx = actionSubstitutionFn.call(this, ex.headActions(i), action);
-            for (var j = i + 1; j < actions.length; j++) newEx = newEx.performAction(actions[j]);
+            let newEx = actionSubstitutionFn.call(this, ex.headActions(i), action);
+            for (let j = i + 1; j < actions.length; j++) newEx = newEx.performAction(actions[j]);
             if (options.onceInChain) return newEx;
             return newEx.substituteAction(actionMatchFn, actionSubstitutionFn, options, this);
           }
@@ -863,8 +863,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public getJSFn(datumVar = 'd[]'): string {
     const { type } = this;
-    var jsEx = this.getJS(datumVar);
-    var body: string;
+    let jsEx = this.getJS(datumVar);
+    let body: string;
     if (type === 'NUMBER' || type === 'NUMBER_RANGE' || type === 'TIME') {
       body = `_=${jsEx};return isNaN(_)?null:_`;
     } else {
@@ -891,21 +891,21 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public breakdownByDataset(tempNamePrefix: string): DatasetBreakdown {
-    var nameIndex = 0;
-    var singleDatasetActions: ApplyAction[] = [];
+    let nameIndex = 0;
+    let singleDatasetActions: ApplyAction[] = [];
 
-    var externals = this.getBaseExternals();
+    let externals = this.getBaseExternals();
     if (externals.length < 2) {
       throw new Error('not a multiple dataset expression');
     }
 
-    var combine = this.substitute(ex => {
-      var externals = ex.getBaseExternals();
+    let combine = this.substitute(ex => {
+      let externals = ex.getBaseExternals();
       if (externals.length !== 1) return null;
 
-      var existingApply = SimpleArray.find(singleDatasetActions, (apply) => apply.expression.equals(ex));
+      let existingApply = SimpleArray.find(singleDatasetActions, (apply) => apply.expression.equals(ex));
 
-      var tempName: string;
+      let tempName: string;
       if (existingApply) {
         tempName = existingApply.name;
       } else {
@@ -934,7 +934,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public getExpressionPattern(actionType: string): Expression[] {
-    var actions = this.actionize(actionType);
+    let actions = this.actionize(actionType);
     return actions ? actions.map((action) => action.expression) : null;
   }
 
@@ -1004,10 +1004,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   private _performMultiAction(action: string, exs: any[]): ChainExpression {
     if (!exs.length) throw new Error(`${action} action must have at least one argument`);
-    var ret: any = this; // A slight type hack but it works because we know that we will go through the loop
-    for (var ex of exs) {
+    let ret: any = this; // A slight type hack but it works because we know that we will go through the loop
+    for (let ex of exs) {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      var ActionConstructor = Action.classMap[action] as any;
+      let ActionConstructor = Action.classMap[action] as any;
       ret = ret.performAction(new ActionConstructor({ expression: ex }));
     }
     return ret;
@@ -1103,12 +1103,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       snd = getValue(snd);
 
       if (typeof ex === 'string') {
-        var parse = parseISODate(ex, Expression.defaultParserTimezone);
+        let parse = parseISODate(ex, Expression.defaultParserTimezone);
         if (parse) ex = parse;
       }
 
       if (typeof snd === 'string') {
-        var parse = parseISODate(snd, Expression.defaultParserTimezone);
+        let parse = parseISODate(snd, Expression.defaultParserTimezone);
         if (parse) snd = parse;
       }
 
@@ -1172,7 +1172,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public customTransform(custom: string, outputType?: PlyTypeSingleValue): ChainExpression {
     if (!custom) throw new Error("Must provide an extraction function name for custom transform");
-    var outputType = outputType !== undefined ? getString(outputType) as PlyTypeSingleValue : null;
+    outputType = outputType !== undefined ? getString(outputType) as PlyTypeSingleValue : null;
     return this.performAction(new CustomTransformAction({ custom: getString(custom), outputType }));
   }
 
@@ -1250,17 +1250,17 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     if (arguments.length === 3 ||
       (arguments.length === 2 && splits && (typeof splits === 'string' || typeof splits.op === 'string'))) {
       name = getString(name);
-      var realSplits = Object.create(null);
+      let realSplits = Object.create(null);
       realSplits[name] = splits;
       splits = realSplits;
     } else {
       dataName = name;
     }
 
-    var parsedSplits: Splits = Object.create(null);
-    for (var k in splits) {
+    let parsedSplits: Splits = Object.create(null);
+    for (let k in splits) {
       if (!hasOwnProperty(splits, k)) continue;
-      var ex = splits[k];
+      let ex = splits[k];
       parsedSplits[k] = Expression.isExpression(ex) ? ex : Expression.fromJSLoose(ex);
     }
 
@@ -1377,7 +1377,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    */
   public definedInTypeContext(typeContext: DatasetFullType): boolean {
     try {
-      var alterations: Alterations = {};
+      let alterations: Alterations = {};
       this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This returns the final type
     } catch (e) {
       return false;
@@ -1390,7 +1390,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param typeContext The FullType context within which to resolve
    */
   public referenceCheckInTypeContext(typeContext: DatasetFullType): Expression {
-    var alterations: Alterations = {};
+    let alterations: Alterations = {};
     this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This returns the final type
     if (emptyLookup(alterations)) return this;
     return this.substitute((ex: Expression, index: int): Expression => alterations[index] || null);
@@ -1416,10 +1416,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @return The resolved expression
    */
   public resolve(context: Datum, ifNotFound: IfNotFound = 'throw'): Expression {
-    var expressions: Lookup<Expression> = Object.create(null);
-    for (var k in context) {
+    let expressions: Lookup<Expression> = Object.create(null);
+    for (let k in context) {
       if (!hasOwnProperty(context, k)) continue;
-      var value = context[k];
+      let value = context[k];
       if (External.isExternal(value)) {
         expressions[k] = new ExternalExpression({ external: <External>value });
       } else if (Expression.isExpression(value)) {
@@ -1437,16 +1437,16 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       if (ex instanceof RefExpression) {
         const { nest, ignoreCase, name } = ex;
         if (nestDiff === nest) {
-          var foundExpression: Expression = null;
-          var valueFound = false;
-          var property = ignoreCase ? RefExpression.findPropertyCI(expressions, name) : RefExpression.findProperty(expressions, name);
+          let foundExpression: Expression = null;
+          let valueFound = false;
+          let property = ignoreCase ? RefExpression.findPropertyCI(expressions, name) : RefExpression.findProperty(expressions, name);
           if (property != null) {
             foundExpression = expressions[property];
             valueFound = true;
           }
 
           if (foundExpression instanceof ExternalExpression) {
-            var mode = foundExpression.external.mode;
+            let mode = foundExpression.external.mode;
 
             // Never substitute split externals at all
             if (mode === 'split') {
@@ -1506,7 +1506,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         return action.action === 'average';
       },
       (preEx: Expression, action: Action) => {
-        var expression = action.expression;
+        let expression = action.expression;
         return preEx.sum(expression).divide(countEx ? preEx.sum(countEx) : preEx.count());
       }
     );
@@ -1522,7 +1522,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         return action.canDistribute();
       },
       (preEx: Expression, action: Action) => {
-        var distributed = action.distribute(preEx);
+        let distributed = action.distribute(preEx);
         if (!distributed) throw new Error('distribute returned null');
         return distributed;
       }
@@ -1551,7 +1551,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param environment The environment for the default of the expression
    */
   public simulate(context: Datum = {}, environment: Environment = {}): PlywoodValue {
-    var readyExpression = this._initialPrepare(context, environment);
+    let readyExpression = this._initialPrepare(context, environment);
     if (readyExpression instanceof ExternalExpression) {
       // Top level externals need to be unsuppressed
       readyExpression = (<ExternalExpression>readyExpression).unsuppress();
@@ -1569,24 +1569,24 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public simulateQueryPlan(context: Datum = {}, environment: Environment = {}): any[][] {
     if (!datumHasExternal(context) && !this.hasExternal()) return [];
 
-    var readyExpression = this._initialPrepare(context, environment);
+    let readyExpression = this._initialPrepare(context, environment);
     if (readyExpression instanceof ExternalExpression) {
       // Top level externals need to be unsuppressed
       readyExpression = (<ExternalExpression>readyExpression).unsuppress();
     }
 
-    var simulatedQueryGroups: any[] = [];
+    let simulatedQueryGroups: any[] = [];
     readyExpression._computeResolvedSimulate(simulatedQueryGroups);
     return simulatedQueryGroups;
   }
 
   public _computeResolvedSimulate(simulatedQueryGroups: any[][]): PlywoodValue {
-    var ex: Expression = this;
-    var readyExternals = ex.getReadyExternals();
-    var i = 0;
+    let ex: Expression = this;
+    let readyExternals = ex.getReadyExternals();
+    let i = 0;
 
     while (Object.keys(readyExternals).length > 0 && i < 10) {
-      var simulatedQueryGroup: any[] = [];
+      let simulatedQueryGroup: any[] = [];
       fillExpressionExternalAlteration(readyExternals, (external, terminal) => external.simulateValue(terminal, simulatedQueryGroup));
 
       simulatedQueryGroups.push(simulatedQueryGroup);
@@ -1606,13 +1606,13 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public compute(context: Datum = {}, environment: Environment = {}): Q.Promise<PlywoodValue> {
     if (!datumHasExternal(context) && !this.hasExternal()) {
       return Q.fcall(() => {
-        var referenceChecked = this.defineEnvironment(environment).referenceCheck(context);
+        let referenceChecked = this.defineEnvironment(environment).referenceCheck(context);
         return referenceChecked.getFn()(context, null);
       });
     }
     return introspectDatum(context)
       .then(introspectedContext => {
-        var readyExpression = this._initialPrepare(introspectedContext, environment);
+        let readyExpression = this._initialPrepare(introspectedContext, environment);
         if (readyExpression instanceof ExternalExpression) {
           // Top level externals need to be unsuppressed
           readyExpression = readyExpression.unsuppress();
@@ -1622,9 +1622,9 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public _computeResolved(): Q.Promise<PlywoodValue> {
-    var ex: Expression = this;
-    var readyExternals = ex.getReadyExternals();
-    var i = 0;
+    let ex: Expression = this;
+    let readyExternals = ex.getReadyExternals();
+    let i = 0;
 
     return promiseWhile(
       () => Object.keys(readyExternals).length > 0 && i < 10,

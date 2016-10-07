@@ -49,9 +49,9 @@ export class ConcatAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       if (inV === null) return null;
-      var exV = expressionFn(d, c);
+      let exV = expressionFn(d, c);
       if (exV === null) return null;
       return '' + inV + exV;
     };
@@ -78,8 +78,8 @@ export class ConcatAction extends Action {
 
   protected _foldWithPrevAction(prevAction: Action): Action {
     if (prevAction instanceof ConcatAction) {
-      var prevValue = prevAction.expression.getLiteralValue();
-      var myValue = this.expression.getLiteralValue();
+      let prevValue = prevAction.expression.getLiteralValue();
+      let myValue = this.expression.getLiteralValue();
       if (typeof prevValue === 'string' && typeof myValue === 'string') {
         return new ConcatAction({
           expression: r(prevValue + myValue)

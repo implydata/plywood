@@ -31,14 +31,14 @@ export class PostgresExternal extends SQLExternal {
   static type = 'DATASET';
 
   static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): PostgresExternal {
-    var value: ExternalValue = External.jsToValue(parameters, requester);
+    let value: ExternalValue = External.jsToValue(parameters, requester);
     return new PostgresExternal(value);
   }
 
   static postProcessIntrospect(columns: PostgresSQLDescribeRow[]): Attributes {
     return columns.map((column: PostgresSQLDescribeRow) => {
-      var name = column.name;
-      var sqlType = column.sqlType.toLowerCase();
+      let name = column.name;
+      let sqlType = column.sqlType.toLowerCase();
       if (sqlType.indexOf('timestamp') !== -1) {
         return new AttributeInfo({ name, type: 'TIME' });
       } else if (sqlType === 'character varying') {
@@ -51,7 +51,7 @@ export class PostgresExternal extends SQLExternal {
       } else if (sqlType === 'boolean') {
         return new AttributeInfo({ name, type: 'BOOLEAN' });
       } else if (sqlType === 'array') {
-        var arrayType = column.arrayType.toLowerCase();
+        let arrayType = column.arrayType.toLowerCase();
         if (arrayType === 'character') {
           return new AttributeInfo({ name, type: 'SET/STRING' });
         } else if (arrayType === 'timestamp') {
@@ -82,10 +82,10 @@ export class PostgresExternal extends SQLExternal {
     return requester({ query: 'SELECT version()' })
       .then((res) => {
         if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
-        var key = Object.keys(res[0])[0];
+        let key = Object.keys(res[0])[0];
         if (!key) throw new Error('invalid version response (no key)');
-        var versionString = res[0][key];
-        var match: string[];
+        let versionString = res[0][key];
+        let match: string[];
         if (match = versionString.match(/^PostgreSQL (\S+) on/)) versionString = match[1];
         return versionString;
       });

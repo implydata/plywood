@@ -31,13 +31,13 @@ export abstract class Range<T> {
   static classMap: Lookup<typeof Range> = {};
 
   static register(ctr: typeof Range): void {
-    var rangeName = (<any>ctr).name.replace('Range', '').replace(/^\w/, (s: string) => s.toLowerCase());
+    let rangeName = (<any>ctr).name.replace('Range', '').replace(/^\w/, (s: string) => s.toLowerCase());
     Range.classMap[rangeName] = ctr;
   }
 
   // ToDo: enforce stricter typing here
   static fromJS(parameters: any): PlywoodRange {
-    var ctr: string;
+    let ctr: string;
     if (typeof parameters.start === 'number' || typeof parameters.end === 'number') {
       ctr = 'number';
     } else if (typeof parameters.start === 'string' || typeof parameters.end === 'string') {
@@ -106,7 +106,7 @@ export abstract class Range<T> {
   public abstract equals(other: Range<T>): boolean;
 
   public toString(): string {
-    var bounds = this.bounds;
+    let bounds = this.bounds;
     return '[' + (bounds[0] === '(' ? '~' : '') + this._endpointToString(this.start) + ',' + this._endpointToString(this.end) + (bounds[1] === ')' ? '' : '!') + ']';
   }
 
@@ -135,9 +135,9 @@ export abstract class Range<T> {
   public contains(val: T): boolean {
     if (val === null) return false;
 
-    var start = this.start;
-    var end = this.end;
-    var bounds = this.bounds;
+    let start = this.start;
+    let end = this.end;
+    let bounds = this.bounds;
 
     if (bounds[0] === '[') {
       if (val < start) return false;
@@ -200,13 +200,13 @@ export abstract class Range<T> {
    * @param other The range to extend with
    */
   public extend(other: Range<T>): Range<T> {
-    var thisStart = this.start;
-    var thisEnd = this.end;
-    var otherStart = other.start;
-    var otherEnd = other.end;
+    let thisStart = this.start;
+    let thisEnd = this.end;
+    let otherStart = other.start;
+    let otherEnd = other.end;
 
-    var start: T;
-    var startBound: string;
+    let start: T;
+    let startBound: string;
     if (thisStart === null || otherStart === null) {
       start = null;
       startBound = '(';
@@ -218,8 +218,8 @@ export abstract class Range<T> {
       startBound = other.bounds[0];
     }
 
-    var end: T;
-    var endBound: string;
+    let end: T;
+    let endBound: string;
     if (thisEnd === null || otherEnd === null) {
       end = null;
       endBound = ')';
@@ -243,13 +243,13 @@ export abstract class Range<T> {
   public intersect(other: Range<T>): Range<T> {
     if (!this.mergeable(other)) return null;
 
-    var thisStart = this.start;
-    var thisEnd = this.end;
-    var otherStart = other.start;
-    var otherEnd = other.end;
+    let thisStart = this.start;
+    let thisEnd = this.end;
+    let otherStart = other.start;
+    let otherEnd = other.end;
 
-    var start: T;
-    var startBound: string;
+    let start: T;
+    let startBound: string;
     if (thisStart === null || otherStart === null) {
       if (otherStart === null) {
         start = thisStart;
@@ -266,8 +266,8 @@ export abstract class Range<T> {
       startBound = other.bounds[0];
     }
 
-    var end: T;
-    var endBound: string;
+    let end: T;
+    let endBound: string;
     if (thisEnd === null || otherEnd === null) {
       if (thisEnd == null) {
         end = otherEnd;

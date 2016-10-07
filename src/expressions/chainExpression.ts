@@ -40,7 +40,7 @@ import { ComputeFn } from '../datatypes/dataset';
 
 export class ChainExpression extends Expression {
   static fromJS(parameters: ExpressionJS): ChainExpression {
-    var value: ExpressionValue = {
+    let value: ExpressionValue = {
       op: parameters.op
     };
     value.expression = Expression.fromJS(parameters.expression);
@@ -59,15 +59,15 @@ export class ChainExpression extends Expression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    var expression = parameters.expression;
-    var actions = parameters.actions;
+    let expression = parameters.expression;
+    let actions = parameters.actions;
     if (!actions.length) throw new Error('can not have empty actions');
     this._ensureOp('chain');
 
-    var type = expression.type;
-    for (var i = 0; i < actions.length; i++) {
-      var action = actions[i];
-      var upgradedAction = action.getUpgradedType(type);
+    let type = expression.type;
+    for (let i = 0; i < actions.length; i++) {
+      let action = actions[i];
+      let upgradedAction = action.getUpgradedType(type);
       if (upgradedAction !== action) {
         actions = actions.slice();
         actions[i] = action = upgradedAction;
@@ -76,13 +76,13 @@ export class ChainExpression extends Expression {
       try {
         type = action.getOutputType(type);
       } catch (e) {
-        var neededType: PlyType = action.getNecessaryInputTypes() as PlyType;
+        let neededType: PlyType = action.getNecessaryInputTypes() as PlyType;
         // todo: neededType could be more than 1 value, just so happens that with current tests cases neededType always returns one value
         if (i === 0) {
             expression = expression.upgradeToType(neededType);
             type = expression.type;
         } else {
-            var upgradedChain = new ChainExpression({
+            let upgradedChain = new ChainExpression({
               expression,
               actions: actions.slice(0, i)
             }).upgradeToType(neededType);
@@ -101,31 +101,31 @@ export class ChainExpression extends Expression {
 
   public upgradeToType(neededType: PlyType): Expression {
     const actions = this.actions;
-    var upgradedActions: Action[] = [];
-    for (var i = actions.length - 1; i >= 0; i--) {
-      var action = actions[i];
-      var upgradedAction = action.getUpgradedType(neededType);
+    let upgradedActions: Action[] = [];
+    for (let i = actions.length - 1; i >= 0; i--) {
+      let action = actions[i];
+      let upgradedAction = action.getUpgradedType(neededType);
       upgradedActions.unshift(upgradedAction);
       neededType = upgradedAction.getNeededType();
     }
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.actions = upgradedActions;
     value.expression = this.expression.upgradeToType(neededType);
     return new ChainExpression(value);
   }
 
   public valueOf(): ExpressionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.expression = this.expression;
     value.actions = this.actions;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.expression = this.expression.toJS();
 
-    var { actions } = this;
+    let { actions } = this;
     if (actions.length === 1) {
       js.action = actions[0].toJS();
     } else {
@@ -135,10 +135,10 @@ export class ChainExpression extends Expression {
   }
 
   public toString(indent?: int): string {
-    var expression = this.expression;
-    var actions = this.actions;
-    var joinStr = '.';
-    var nextIndent: int = null;
+    let expression = this.expression;
+    let actions = this.actions;
+    let joinStr = '.';
+    let nextIndent: int = null;
     if (indent != null && (actions.length > 1 || expression.type === 'DATASET')) {
       joinStr = '\n' + repeat(' ', indent) + joinStr;
       nextIndent = indent + 2;
@@ -155,8 +155,8 @@ export class ChainExpression extends Expression {
   }
 
   public expressionCount(): int {
-    var expressionCount = 1 + this.expression.expressionCount();
-    var actions = this.actions;
+    let expressionCount = 1 + this.expression.expressionCount();
+    let actions = this.actions;
     for (let action of actions) {
       expressionCount += action.expressionCount();
     }
@@ -164,9 +164,9 @@ export class ChainExpression extends Expression {
   }
 
   public getFn(): ComputeFn {
-    var { expression, actions} = this;
-    var fn = expression.getFn();
-    var type = expression.type;
+    let { expression, actions} = this;
+    let fn = expression.getFn();
+    let type = expression.type;
     for (let action of actions) {
       fn = action.getFn(type, fn);
       type = action.getOutputType(type);
@@ -175,9 +175,9 @@ export class ChainExpression extends Expression {
   }
 
   public getJS(datumVar: string): string {
-    var { expression, actions} = this;
-    var js = expression.getJS(datumVar);
-    var type = expression.type;
+    let { expression, actions} = this;
+    let js = expression.getJS(datumVar);
+    let type = expression.type;
     for (let action of actions) {
       js = action.getJS(type, js, datumVar);
       type = action.getOutputType(type);
@@ -186,9 +186,9 @@ export class ChainExpression extends Expression {
   }
 
   public getSQL(dialect: SQLDialect): string {
-    var { expression, actions} = this;
-    var sql = expression.getSQL(dialect);
-    var type = expression.type;
+    let { expression, actions} = this;
+    let sql = expression.getSQL(dialect);
+    let type = expression.type;
     for (let action of actions) {
       sql = action.getSQL(type, sql, dialect);
       type = action.getOutputType(type);
@@ -202,27 +202,27 @@ export class ChainExpression extends Expression {
    * @returns Action
    */
   public getSingleAction(neededAction?: string): Action {
-    var actions = this.actions;
+    let actions = this.actions;
     if (actions.length !== 1) return null;
-    var singleAction = actions[0];
+    let singleAction = actions[0];
     if (neededAction && singleAction.action !== neededAction) return null;
     return singleAction;
   }
 
   public foldIntoExternal(): Expression {
     const { expression, actions } = this;
-    var baseExternals = this.getBaseExternals();
+    let baseExternals = this.getBaseExternals();
     if (baseExternals.length === 0) return this;
 
     // Looks like: $().blah().blah(ValueExternal()).blah()
     return this.substituteAction(
       (action) => {
-        var expression = action.expression;
+        let expression = action.expression;
         return (expression instanceof ExternalExpression) && expression.external.mode === 'value';
       },
       (preEx: Expression, action: Action) => {
-        var external = (action.expression as ExternalExpression).external;
-        var prePacked = external.prePack(preEx, action);
+        let external = (action.expression as ExternalExpression).external;
+        let prePacked = external.prePack(preEx, action);
         if (!prePacked) return null;
         return new ExternalExpression({
           external: prePacked
@@ -236,8 +236,8 @@ export class ChainExpression extends Expression {
 
   public simplify(): Expression {
     if (this.simple) return this;
-    var simpleExpression = this.expression.simplify();
-    var actions = this.actions;
+    let simpleExpression = this.expression.simplify();
+    let actions = this.actions;
 
     // In the unlikely event that there is a chain of a chain => merge them
     if (simpleExpression instanceof ChainExpression) {
@@ -259,7 +259,7 @@ export class ChainExpression extends Expression {
   }
 
   public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {
-    var pass = iter.call(thisArg, this, indexer.index, depth, nestDiff);
+    let pass = iter.call(thisArg, this, indexer.index, depth, nestDiff);
     if (pass != null) {
       return pass;
     } else {
@@ -267,11 +267,11 @@ export class ChainExpression extends Expression {
     }
     depth++;
 
-    var expression = this.expression;
+    let expression = this.expression;
     if (!expression._everyHelper(iter, thisArg, indexer, depth, nestDiff)) return false;
 
-    var actions = this.actions;
-    var every = true;
+    let actions = this.actions;
+    let every = true;
     for (let action of actions) {
       if (every) {
         every = action._everyHelper(iter, thisArg, indexer, depth, nestDiff);
@@ -283,7 +283,7 @@ export class ChainExpression extends Expression {
   }
 
   public _substituteHelper(substitutionFn: SubstitutionFn, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): Expression {
-    var sub = substitutionFn.call(thisArg, this, indexer.index, depth, nestDiff);
+    let sub = substitutionFn.call(thisArg, this, indexer.index, depth, nestDiff);
     if (sub) {
       indexer.index += this.expressionCount();
       return sub;
@@ -292,14 +292,14 @@ export class ChainExpression extends Expression {
     }
     depth++;
 
-    var expression = this.expression;
-    var subExpression = expression._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff);
+    let expression = this.expression;
+    let subExpression = expression._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff);
 
-    var actions = this.actions;
-    var subActions = actions.map(action => action._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff));
+    let actions = this.actions;
+    let subActions = actions.map(action => action._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff));
     if (expression === subExpression && arraysEqual(actions, subActions)) return this;
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.expression = subExpression;
     value.actions = subActions;
     delete value.simple;
@@ -322,11 +322,11 @@ export class ChainExpression extends Expression {
     // The _fillRefSubstitutions function is chained across all the expressions.
     // If an expression returns a DATASET type it is treated as the new context otherwise the original context is
     // used for the next expression (currentContext)
-    var currentContext: DatasetFullType = typeContext;
-    var outputContext = this.expression._fillRefSubstitutions(currentContext, indexer, alterations);
+    let currentContext: DatasetFullType = typeContext;
+    let outputContext = this.expression._fillRefSubstitutions(currentContext, indexer, alterations);
     currentContext = outputContext.type === 'DATASET' ? <DatasetFullType>outputContext : typeContext;
 
-    var actions = this.actions;
+    let actions = this.actions;
     for (let action of actions) {
       outputContext = action._fillRefSubstitutions(currentContext, outputContext, indexer, alterations);
       currentContext = outputContext.type === 'DATASET' ? <DatasetFullType>outputContext : typeContext;
@@ -336,25 +336,25 @@ export class ChainExpression extends Expression {
   }
 
   public actionize(containingAction: string): Action[] {
-    var actions = this.actions;
+    let actions = this.actions;
 
-    var k = actions.length - 1;
+    let k = actions.length - 1;
     for (; k >= 0; k--) {
       if (actions[k].action !== containingAction) break;
     }
     k++; // k now represents the number of actions that remain in the chain
     if (k === actions.length) return null; // nothing to do
 
-    var newExpression: Expression;
+    let newExpression: Expression;
     if (k === 0) {
       newExpression = this.expression;
     } else {
-      var value = this.valueOf();
+      let value = this.valueOf();
       value.actions = actions.slice(0, k);
       newExpression = new ChainExpression(value);
     }
 
-    var ActionConstructor = Action.classMap[containingAction] as any;
+    let ActionConstructor = Action.classMap[containingAction] as any;
     return [
       new ActionConstructor({
         expression: newExpression
@@ -367,26 +367,26 @@ export class ChainExpression extends Expression {
   }
 
   public lastAction(): Action {
-    var { actions } = this;
+    let { actions } = this;
     return actions[actions.length - 1] || null;
   }
 
   public headActions(n: int): Expression {
-    var { actions } = this;
+    let { actions } = this;
     if (actions.length <= n) return this;
     if (n <= 0) return this.expression;
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.actions = actions.slice(0, n);
     return new ChainExpression(value);
   }
 
   public popAction(): Expression {
-    var actions = this.actions;
+    let actions = this.actions;
     if (!actions.length) return null;
     actions = actions.slice(0, -1);
     if (!actions.length) return this.expression;
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.actions = actions;
     return new ChainExpression(value);
   }
@@ -394,11 +394,11 @@ export class ChainExpression extends Expression {
   public extractFromAnd(matchFn: ExpressionMatchFn): ExtractAndRest {
     if (!this.simple) return this.simplify().extractFromAnd(matchFn);
 
-    var andExpressions = this.getExpressionPattern('and');
+    let andExpressions = this.getExpressionPattern('and');
     if (!andExpressions) return super.extractFromAnd(matchFn);
 
-    var includedExpressions: Expression[] = [];
-    var excludedExpressions: Expression[] = [];
+    let includedExpressions: Expression[] = [];
+    let excludedExpressions: Expression[] = [];
     for (let ex of andExpressions) {
       if (matchFn(ex)) {
         includedExpressions.push(ex);

@@ -44,18 +44,18 @@ export class JoinAction extends Action {
   }
 
   public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-    var typeContextParent = typeContext.parent;
-    var expressionFullType = <DatasetFullType>this.expression._fillRefSubstitutions(typeContextParent, indexer, alterations);
+    let typeContextParent = typeContext.parent;
+    let expressionFullType = <DatasetFullType>this.expression._fillRefSubstitutions(typeContextParent, indexer, alterations);
 
-    var inputDatasetType = typeContext.datasetType;
-    var expressionDatasetType = expressionFullType.datasetType;
-    var newDatasetType: Lookup<FullType> = Object.create(null);
+    let inputDatasetType = typeContext.datasetType;
+    let expressionDatasetType = expressionFullType.datasetType;
+    let newDatasetType: Lookup<FullType> = Object.create(null);
 
-    for (var k in inputDatasetType) {
+    for (let k in inputDatasetType) {
       newDatasetType[k] = inputDatasetType[k];
     }
-    for (var k in expressionDatasetType) {
-      var ft = expressionDatasetType[k];
+    for (let k in expressionDatasetType) {
+      let ft = expressionDatasetType[k];
       if (hasOwnProperty(newDatasetType, k)) {
         if (newDatasetType[k].type !== ft.type) {
           throw new Error(`incompatible types of joins on ${k} between ${newDatasetType[k].type} and ${ft.type}`);
@@ -75,7 +75,7 @@ export class JoinAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       return inV ? inV.join(expressionFn(d, c)) : inV;
     };
   }

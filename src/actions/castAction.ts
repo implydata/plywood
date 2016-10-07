@@ -61,8 +61,8 @@ const CAST_TYPE_TO_JS: Lookup<Lookup<(inputJS: string) => string>> = {
 
 export class CastAction extends Action {
   static fromJS(parameters: ActionJS): CastAction {
-    var value = Action.jsToValue(parameters);
-    var outputType = parameters.outputType;
+    let value = Action.jsToValue(parameters);
+    let outputType = parameters.outputType;
 
     // Back compat
     if (!outputType && hasOwnProperty(parameters, 'castType')) {
@@ -85,13 +85,13 @@ export class CastAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.outputType = this.outputType;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.outputType = this.outputType;
     return js;
   }
@@ -106,7 +106,7 @@ export class CastAction extends Action {
   }
 
   public getNecessaryInputTypes(): PlyTypeSimple[] {
-    var castType = this.outputType;
+    let castType = this.outputType;
     return Object.keys(CAST_TYPE_TO_FN[castType]) as PlyTypeSimple[];
   }
 
@@ -135,11 +135,11 @@ export class CastAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     const { outputType } = this;
-    var caster = (CAST_TYPE_TO_FN as any)[outputType];
-    var castFn = caster[inputType] || caster['UNIVERSAL'];
+    let caster = (CAST_TYPE_TO_FN as any)[outputType];
+    let castFn = caster[inputType] || caster['UNIVERSAL'];
     if (!castFn) throw new Error(`unsupported cast from ${inputType} to '${outputType}'`);
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       if (!inV) return null;
       return castFn(inV);
     };
@@ -147,9 +147,9 @@ export class CastAction extends Action {
 
   protected _getJSHelper(inputType: PlyType, inputJS: string): string {
     const { outputType } = this;
-    var castJS = CAST_TYPE_TO_JS[outputType];
+    let castJS = CAST_TYPE_TO_JS[outputType];
     if (!castJS) throw new Error(`unsupported cast type in getJS '${outputType}'`);
-    var js = castJS[inputType] || castJS['UNIVERSAL'];
+    let js = castJS[inputType] || castJS['UNIVERSAL'];
     if (!js) throw new Error(`unsupported combo in getJS of cast action: ${inputType} to ${outputType}`);
     return js(inputJS);
   }

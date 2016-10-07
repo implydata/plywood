@@ -23,7 +23,7 @@ import { Datum, ComputeFn, foldContext } from '../datatypes/dataset';
 
 export class QuantileAction extends AggregateAction {
   static fromJS(parameters: ActionJS): QuantileAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.quantile = parameters.quantile;
     return new QuantileAction(value);
   }
@@ -38,13 +38,13 @@ export class QuantileAction extends AggregateAction {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.quantile = this.quantile;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.quantile = this.quantile;
     return js;
   }
@@ -59,9 +59,9 @@ export class QuantileAction extends AggregateAction {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    var quantile = this.quantile;
+    let quantile = this.quantile;
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       return inV ? inV.quantile(expressionFn, quantile, foldContext(d, c)) : null;
     };
   }
@@ -69,7 +69,7 @@ export class QuantileAction extends AggregateAction {
   protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
     const { expression, quantile } = this;
     if (literalExpression.value === null) return Expression.NULL;
-    var dataset = literalExpression.value;
+    let dataset = literalExpression.value;
 
     dataset = dataset.quantile(expression.getFn(), quantile);
 

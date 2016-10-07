@@ -54,14 +54,14 @@ export interface AttributeInfoJS {
   digitsAfterDecimal?: int;
 }
 
-var check: Class<AttributeInfoValue, AttributeInfoJS>;
+let check: Class<AttributeInfoValue, AttributeInfoJS>;
 export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfoJS> {
   static isAttributeInfo(candidate: any): candidate is AttributeInfo {
     return isInstanceOf(candidate, AttributeInfo);
   }
 
   static jsToValue(parameters: AttributeInfoJS): AttributeInfoValue {
-    var value: AttributeInfoValue = {
+    let value: AttributeInfoValue = {
       special: parameters.special,
       name: parameters.name
     };
@@ -74,7 +74,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
   static classMap: Lookup<typeof AttributeInfo> = {};
   static register(ex: typeof AttributeInfo): void {
-    var op = (<any>ex).name.replace('AttributeInfo', '').replace(/^\w/, (s: string) => s.toLowerCase());
+    let op = (<any>ex).name.replace('AttributeInfo', '').replace(/^\w/, (s: string) => s.toLowerCase());
     AttributeInfo.classMap[op] = ex;
   }
 
@@ -94,7 +94,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     if (parameters.special === 'range') {
       throw new Error("'range' attribute info is no longer supported, you should apply the .extract('^\\d+') function instead");
     }
-    var Class = AttributeInfo.getConstructorFor(parameters.special);
+    let Class = AttributeInfo.getConstructorFor(parameters.special);
     if (!Class) {
       throw new Error(`unsupported special attributeInfo '${parameters.special}'`);
     }
@@ -116,7 +116,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
   static fromValue(parameters: AttributeInfoValue): AttributeInfo {
     const { special } = parameters;
-    var ClassFn = AttributeInfo.getConstructorFor(special) as any;
+    let ClassFn = AttributeInfo.getConstructorFor(special) as any;
     return new ClassFn(parameters);
   }
 
@@ -167,7 +167,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public toString(): string {
-    var special = this.special ? `[${this.special}]` : '';
+    let special = this.special ? `[${this.special}]` : '';
     return `${this.name}::${this.type}${special}`;
   }
 
@@ -183,7 +183,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public toJS(): AttributeInfoJS {
-    var js: AttributeInfoJS = {
+    let js: AttributeInfoJS = {
       name: this.name,
       type: this.type
     };
@@ -213,7 +213,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public change(propertyName: string, newValue: any): AttributeInfo {
-    var v = this.valueOf();
+    let v = this.valueOf();
 
     if (!v.hasOwnProperty(propertyName)) {
       throw new Error(`Unknown property: ${propertyName}`);
@@ -228,7 +228,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public changeUnsplitable(unsplitable: boolean): AttributeInfo {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.unsplitable = unsplitable;
     return AttributeInfo.fromValue(value);
   }

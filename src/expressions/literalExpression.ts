@@ -28,12 +28,12 @@ import { ComputeFn } from '../datatypes/dataset';
 
 export class LiteralExpression extends Expression {
   static fromJS(parameters: ExpressionJS): LiteralExpression {
-    var value: ExpressionValue = {
+    let value: ExpressionValue = {
       op: parameters.op,
       type: parameters.type
     };
     if (!hasOwnProperty(parameters, 'value')) throw new Error('literal expression must have value');
-    var v: any = parameters.value;
+    let v: any = parameters.value;
     if (isImmutableClass(v)) {
       value.value = v;
     } else {
@@ -46,7 +46,7 @@ export class LiteralExpression extends Expression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    var value = parameters.value;
+    let value = parameters.value;
     this.value = value;
     this._ensureOp("literal");
     if (typeof this.value === 'undefined') {
@@ -57,14 +57,14 @@ export class LiteralExpression extends Expression {
   }
 
   public valueOf(): ExpressionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.value = this.value;
     if (this.type) value.type = this.type;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     if (this.value && this.value.toJS) {
       js.value = this.value.toJS();
       js.type = isSetType(this.type) ? 'SET' : this.type;
@@ -76,7 +76,7 @@ export class LiteralExpression extends Expression {
   }
 
   public toString(): string {
-    var value = this.value;
+    let value = this.value;
     if (value instanceof Dataset && value.basis()) {
       return 'ply()';
     } else if (this.type === 'STRING') {
@@ -87,7 +87,7 @@ export class LiteralExpression extends Expression {
   }
 
   public getFn(): ComputeFn {
-    var value = this.value;
+    let value = this.value;
     return () => value;
   }
 
@@ -96,7 +96,7 @@ export class LiteralExpression extends Expression {
   }
 
   public getSQL(dialect: SQLDialect): string {
-    var value = this.value;
+    let value = this.value;
     if (value === null) return 'NULL';
 
     switch (this.type) {
@@ -152,7 +152,7 @@ export class LiteralExpression extends Expression {
   public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
     indexer.index++;
     if (this.type === 'DATASET') {
-      var newTypeContext = (<Dataset>this.value).getFullType();
+      let newTypeContext = (<Dataset>this.value).getFullType();
       newTypeContext.parent = typeContext;
       return newTypeContext;
     } else {
@@ -171,7 +171,7 @@ export class LiteralExpression extends Expression {
 
   public bumpStringLiteralToTime(): Expression {
     if (this.type !== 'STRING') return this;
-    var parse = parseISODate(this.value, Expression.defaultParserTimezone);
+    let parse = parseISODate(this.value, Expression.defaultParserTimezone);
     if (!parse) throw new Error(`could not parse '${this.value}' as time`);
     return r(parse);
   }
@@ -185,11 +185,11 @@ export class LiteralExpression extends Expression {
     const { type, value } = this;
     if (type === targetType || targetType !== 'TIME') return this;
     if (type === 'STRING') {
-      var parse = parseISODate(value, Expression.defaultParserTimezone);
+      let parse = parseISODate(value, Expression.defaultParserTimezone);
       return parse ? r(parse) : this;
     } else if (type === 'STRING_RANGE') {
-      var parseStart = parseISODate(value.start, Expression.defaultParserTimezone);
-      var parseEnd = parseISODate(value.end, Expression.defaultParserTimezone);
+      let parseStart = parseISODate(value.start, Expression.defaultParserTimezone);
+      let parseEnd = parseISODate(value.end, Expression.defaultParserTimezone);
       if (parseStart || parseEnd) {
         return new LiteralExpression({
           type: "TIME_RANGE",

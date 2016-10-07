@@ -31,14 +31,14 @@ export class MySQLExternal extends SQLExternal {
   static type = 'DATASET';
 
   static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): MySQLExternal {
-    var value: ExternalValue = External.jsToValue(parameters, requester);
+    let value: ExternalValue = External.jsToValue(parameters, requester);
     return new MySQLExternal(value);
   }
 
   static postProcessIntrospect(columns: MySQLDescribeRow[]): Attributes {
     return columns.map((column: MySQLDescribeRow) => {
-      var name = column.Field;
-      var sqlType = column.Type.toLowerCase();
+      let name = column.Field;
+      let sqlType = column.Type.toLowerCase();
       if (sqlType === "datetime" || sqlType === "timestamp") {
         return new AttributeInfo({ name, type: 'TIME' });
       } else if (sqlType.indexOf("varchar(") === 0 || sqlType.indexOf("blob") === 0) {
@@ -60,7 +60,7 @@ export class MySQLExternal extends SQLExternal {
       .then((sources) => {
         if (!Array.isArray(sources)) throw new Error('invalid sources response');
         if (!sources.length) return sources;
-        var key = Object.keys(sources[0])[0];
+        let key = Object.keys(sources[0])[0];
         if (!key) throw new Error('invalid sources response (no key)');
         return sources.map((s: PseudoDatum) => s[key]).sort();
       });
@@ -70,7 +70,7 @@ export class MySQLExternal extends SQLExternal {
     return requester({ query: 'SELECT @@version' })
       .then((res) => {
         if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
-        var key = Object.keys(res[0])[0];
+        let key = Object.keys(res[0])[0];
         if (!key) throw new Error('invalid version response (no key)');
         return res[0][key];
       });
