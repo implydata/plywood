@@ -113,7 +113,7 @@ export interface Environment {
 export abstract class Action implements Instance<ActionValue, ActionJS> {
 
   static jsToValue(parameters: ActionJS): ActionValue {
-    var value: ActionValue = {
+    let value: ActionValue = {
       action: parameters.action
     };
     if (parameters.expression) {
@@ -124,7 +124,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
 
   static actionsDependOn(actions: Action[], name: string): boolean {
     for (let action of actions) {
-      var freeReferences = action.getFreeReferences();
+      let freeReferences = action.getFreeReferences();
       if (freeReferences.indexOf(name) !== -1) return true;
       if ((<ApplyAction>action).name === name) return false;
     }
@@ -138,7 +138,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   static classMap: Lookup<typeof Action> = {};
 
   static register(act: typeof Action): void {
-    var action = (<any>act).name.replace('Action', '').replace(/^\w/, (s: string) => s.toLowerCase());
+    let action = (<any>act).name.replace('Action', '').replace(/^\w/, (s: string) => s.toLowerCase());
     Action.classMap[action] = act;
   }
 
@@ -146,12 +146,12 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
     if (!hasOwnProperty(actionJS, "action")) {
       throw new Error("action must be defined");
     }
-    var action = actionJS.action;
+    let action = actionJS.action;
     if (typeof action !== "string") {
       throw new Error("action must be a string");
     }
     if (action === 'custom') actionJS.action = action = 'customAggregate';
-    var ClassFn = Action.classMap[action];
+    let ClassFn = Action.classMap[action];
     if (!ClassFn) {
       throw new Error(`unsupported action '${action}'`);
     }
@@ -160,7 +160,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   static fromValue(value: ActionValue): Action {
-    var ClassFn = Action.classMap[value.action] as any;
+    let ClassFn = Action.classMap[value.action] as any;
     return new ClassFn(value);
   }
 
@@ -192,12 +192,12 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public toString(indent?: int): string {
-    var expression = this.expression;
-    var spacer = '';
-    var joinStr = indent != null ? ', ' : ',';
-    var nextIndent: int = null;
+    let expression = this.expression;
+    let spacer = '';
+    let joinStr = indent != null ? ', ' : ',';
+    let nextIndent: int = null;
     if (indent != null && expression && expression.type === 'DATASET') {
-      var space = repeat(' ', indent);
+      let space = repeat(' ', indent);
       spacer = '\n' + space;
       joinStr = ',\n' + space;
       nextIndent = indent + 2;
@@ -213,7 +213,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public valueOf(): ActionValue {
-    var value: ActionValue = {
+    let value: ActionValue = {
       action: this.action
     };
     if (this.expression) value.expression = this.expression;
@@ -222,7 +222,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public toJS(): ActionJS {
-    var js: ActionJS = {
+    let js: ActionJS = {
       action: this.action
     };
     if (this.expression) {
@@ -247,7 +247,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   protected _checkInputTypes(inputType: PlyType) {
-    var neededTypes: PlyType | PlyType[] = this.getNecessaryInputTypes();
+    let neededTypes: PlyType | PlyType[] = this.getNecessaryInputTypes();
 
     if (typeof neededTypes === 'string') neededTypes = [neededTypes as PlyType];
     if (inputType && inputType !== 'NULL' && neededTypes.indexOf(inputType) === -1) {
@@ -266,7 +266,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   protected _checkExpressionTypes(...neededTypes: string[]) {
-    var expressionType = this.expression.type;
+    let expressionType = this.expression.type;
     if (expressionType && expressionType !== 'NULL' && neededTypes.indexOf(expressionType) === -1) {
       if (neededTypes.length === 1) {
         throw new Error(`${this.action} must have expression of type ${neededTypes[0]} (is ${expressionType})`);
@@ -295,16 +295,16 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   public abstract _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    var action = this.action;
+    let action = this.action;
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       return inV ? inV[action](expressionFn, foldContext(d, c)) : null;
     };
   }
 
   public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-    var expression = this.expression;
-    var expressionFn = expression ? expression.getFn() : null;
+    let expression = this.expression;
+    let expressionFn = expression ? expression.getFn() : null;
     return this._getFnHelper(inputType, inputFn, expressionFn);
   }
 
@@ -314,8 +314,8 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public getJS(inputType: PlyType, inputJS: string, datumVar: string): string {
-    var expression = this.expression;
-    var expressionJS = expression ? expression.getJS(datumVar) : null;
+    let expression = this.expression;
+    let expressionJS = expression ? expression.getJS(datumVar) : null;
     return this._getJSHelper(inputType, inputJS, expressionJS);
   }
 
@@ -325,8 +325,8 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public getSQL(inputType: PlyType, inputSQL: string, dialect: SQLDialect): string {
-    var expression = this.expression;
-    var expressionSQL = expression ? expression.getSQL(dialect) : null;
+    let expression = this.expression;
+    let expressionSQL = expression ? expression.getSQL(dialect) : null;
     return this._getSQLHelper(inputType, dialect, inputSQL, expressionSQL);
   }
 
@@ -336,7 +336,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public fullyDefined(): boolean {
-    var { expression } = this;
+    let { expression } = this;
     return !expression || expression.isOp('literal');
   }
 
@@ -347,13 +347,13 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
 
   public simplify(): Action {
     if (this.simple) return this;
-    var expression = this.expression;
-    var simpleExpression = expression ? expression.simplify() : null;
+    let expression = this.expression;
+    let simpleExpression = expression ? expression.simplify() : null;
 
-    var special = this._specialSimplify(simpleExpression);
+    let special = this._specialSimplify(simpleExpression);
     if (special) return special;
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     if (simpleExpression) {
       value.expression = simpleExpression;
     }
@@ -439,12 +439,12 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
 
     if (this._removeAction(simpleExpression.type)) return simpleExpression;
 
-    var nukedExpression = this._nukeExpression(simpleExpression);
+    let nukedExpression = this._nukeExpression(simpleExpression);
     if (nukedExpression) return nukedExpression;
 
-    var distributedActions = this._distributeAction();
+    let distributedActions = this._distributeAction();
     if (distributedActions) {
-      for (var distributedAction of distributedActions) {
+      for (let distributedAction of distributedActions) {
         simpleExpression = distributedAction.performOnSimple(simpleExpression);
       }
       return simpleExpression;
@@ -457,32 +457,32 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
         });
       }
 
-      var special = this._performOnLiteral(simpleExpression);
+      let special = this._performOnLiteral(simpleExpression);
       if (special) return special;
 
     } else if (simpleExpression instanceof ExternalExpression) {
-      var special = this._performOnExternal(simpleExpression);
+      let special = this._performOnExternal(simpleExpression);
       if (special) return special;
 
     } else if (simpleExpression instanceof RefExpression) {
-      var special = this._performOnRef(simpleExpression);
+      let special = this._performOnRef(simpleExpression);
       if (special) return special;
 
     } else if (simpleExpression instanceof ChainExpression) {
-      var actions = simpleExpression.actions;
-      var lastAction = actions[actions.length - 1];
+      let actions = simpleExpression.actions;
+      let lastAction = actions[actions.length - 1];
 
-      var foldedAction = this._foldWithPrevAction(lastAction);
+      let foldedAction = this._foldWithPrevAction(lastAction);
       if (foldedAction) {
         return foldedAction.performOnSimple(simpleExpression.popAction());
       }
 
-      var beforeAction = this._putBeforeLastAction(lastAction);
+      let beforeAction = this._putBeforeLastAction(lastAction);
       if (beforeAction) {
         return lastAction.performOnSimple(beforeAction.performOnSimple(simpleExpression.popAction()));
       }
 
-      var special = this._performOnSimpleChain(simpleExpression);
+      let special = this._performOnSimpleChain(simpleExpression);
       if (special) return special;
 
     }
@@ -495,7 +495,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public getFreeReferences(): string[] {
-    var freeReferences: string[] = [];
+    let freeReferences: string[] = [];
     this.getExpressions().forEach((ex) => {
       freeReferences = freeReferences.concat(ex.getFreeReferences());
     });
@@ -503,7 +503,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {
-    var nestDiffNext = nestDiff + Number(this.isNester());
+    let nestDiffNext = nestDiff + Number(this.isNester());
     return this.getExpressions().every((ex) => ex._everyHelper(iter, thisArg, indexer, depth, nestDiffNext));
   }
 
@@ -520,11 +520,11 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public _substituteHelper(substitutionFn: SubstitutionFn, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): Action {
-    var expression = this.expression;
+    let expression = this.expression;
     if (!expression) return this;
-    var subExpression = expression._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff + Number(this.isNester()));
+    let subExpression = expression._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiff + Number(this.isNester()));
     if (expression === subExpression) return this;
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.simple = false;
     value.expression = subExpression;
     return Action.fromValue(value);
@@ -539,9 +539,9 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public changeExpression(newExpression: Expression): Action {
-    var expression = this.expression;
+    let expression = this.expression;
     if (!expression || expression.equals(newExpression)) return this;
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.expression = newExpression;
     return Action.fromValue(value);
   }
@@ -551,7 +551,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
   }
 
   public getLiteralValue(): any {
-    var expression = this.expression;
+    let expression = this.expression;
     if (expression instanceof LiteralExpression) {
       return expression.value;
     }
@@ -629,7 +629,7 @@ export abstract class AggregateAction extends Action {
   protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
     const { action, expression } = this;
     if (literalExpression.value === null) return Expression.NULL;
-    var dataset = literalExpression.value;
+    let dataset = literalExpression.value;
 
     dataset = dataset[action](expression ? expression.getFn() : null);
 

@@ -29,7 +29,7 @@ import { ExternalExpression } from '../expressions/externalExpression';
 
 export class ApplyAction extends Action {
   static fromJS(parameters: ActionJS): ApplyAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.name = parameters.name;
     return new ApplyAction(value);
   }
@@ -43,13 +43,13 @@ export class ApplyAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.name = this.name;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.name = this.name;
     return js;
   }
@@ -69,7 +69,7 @@ export class ApplyAction extends Action {
   }
 
   protected _toStringParameters(expressionString: string): string[] {
-    var name = this.name;
+    let name = this.name;
     if (!RefExpression.SIMPLE_NAME_REGEXP.test(name)) name = JSON.stringify(name);
     return [name, expressionString];
   }
@@ -80,10 +80,10 @@ export class ApplyAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    var name = this.name;
-    var type = this.expression.type;
+    let name = this.name;
+    let type = this.expression.type;
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       return inV ? inV.apply(name, expressionFn, type, foldContext(d, c)) : null;
     };
   }
@@ -95,7 +95,7 @@ export class ApplyAction extends Action {
   public isSimpleAggregate(): boolean {
     const { expression } = this;
     if (expression instanceof ChainExpression) {
-      var actions = expression.actions;
+      let actions = expression.actions;
       return actions.length === 1 && actions[0].isAggregate();
     }
     return false;
@@ -129,18 +129,18 @@ export class ApplyAction extends Action {
     const { expression } = this;
     if (!expression.resolved()) return null;
     if (literalExpression.value === null) return Expression.NULL;
-    var dataset = literalExpression.value;
+    let dataset = literalExpression.value;
 
     // Omg mega hack:
     // Ensure that non of the free references in this expression are to be resolved with chain expressions
-    var freeReferences = expression.getFreeReferences();
-    var datum = dataset.data[0];
+    let freeReferences = expression.getFreeReferences();
+    let datum = dataset.data[0];
     if (datum && freeReferences.some(freeReference => datum[freeReference] instanceof ChainExpression)) {
       return null;
     }
 
     dataset = dataset.apply(this.name, (d: Datum): any => {
-      var simp = expression.resolve(d).simplify();
+      let simp = expression.resolve(d).simplify();
       if (simp instanceof ExternalExpression) return simp.external;
       if (simp instanceof LiteralExpression) return simp.value;
       return simp;

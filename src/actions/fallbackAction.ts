@@ -36,7 +36,7 @@ export class FallbackAction extends Action {
   }
 
   public getOutputType(inputType: PlyType): PlyType {
-    var expressionType = this.expression.type;
+    let expressionType = this.expression.type;
     if (expressionType && expressionType !== 'NULL') this._checkInputTypes(inputType);
     return expressionType;
   }
@@ -48,7 +48,7 @@ export class FallbackAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     return (d: Datum, c: Datum) => {
-      var val = inputFn(d, c);
+      let val = inputFn(d, c);
       if (val === null) {
         return expressionFn(d, c);
       }

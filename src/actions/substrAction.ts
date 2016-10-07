@@ -23,7 +23,7 @@ import { Datum, ComputeFn } from '../datatypes/dataset';
 
 export class SubstrAction extends Action {
   static fromJS(parameters: ActionJS): SubstrAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.position = parameters.position;
     value.length = parameters.length;
     return new SubstrAction(value);
@@ -40,14 +40,14 @@ export class SubstrAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.position = this.position;
     value.length = this.length;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.position = this.position;
     js.length = this.length;
     return js;
@@ -78,7 +78,7 @@ export class SubstrAction extends Action {
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     const { position, length } = this;
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       if (inV === null) return null;
       return inV.substr(position, length);
     };

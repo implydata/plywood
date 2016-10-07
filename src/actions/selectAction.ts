@@ -39,13 +39,13 @@ export class SelectAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.attributes = this.attributes;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.attributes = this.attributes;
     return js;
   }
@@ -70,10 +70,10 @@ export class SelectAction extends Action {
 
   public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
     const { attributes } = this;
-    var { datasetType } = typeContext;
-    var newDatasetType = Object.create(null);
-    for (var attr of attributes) {
-      var attrType = datasetType[attr];
+    let { datasetType } = typeContext;
+    let newDatasetType = Object.create(null);
+    for (let attr of attributes) {
+      let attrType = datasetType[attr];
       if (!attrType) throw new Error(`unknown attribute '${attr}' in select`);
       newDatasetType[attr] = attrType;
     }
@@ -84,7 +84,7 @@ export class SelectAction extends Action {
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     const { attributes } = this;
     return (d: Datum, c: Datum) => {
-      var inV: Dataset = inputFn(d, c);
+      let inV: Dataset = inputFn(d, c);
       return inV ? inV.select(attributes) : null;
     };
   }
@@ -94,7 +94,7 @@ export class SelectAction extends Action {
   }
 
   protected _foldWithPrevAction(prevAction: Action): Action {
-    var { attributes } = this;
+    let { attributes } = this;
     if (prevAction instanceof SelectAction) {
       return new SelectAction({
         attributes: prevAction.attributes.filter(a => attributes.indexOf(a) !== -1)

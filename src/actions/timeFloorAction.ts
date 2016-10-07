@@ -28,7 +28,7 @@ import { Set } from '../datatypes/set';
 
 export class TimeFloorAction extends Action {
   static fromJS(parameters: ActionJS): TimeFloorAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
     return new TimeFloorAction(value);
@@ -39,7 +39,7 @@ export class TimeFloorAction extends Action {
 
   constructor(parameters: ActionValue) {
     super(parameters, dummyObject);
-    var duration = parameters.duration;
+    let duration = parameters.duration;
     this.duration = duration;
     this.timezone = parameters.timezone;
     this._ensureAction("timeFloor");
@@ -52,14 +52,14 @@ export class TimeFloorAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.duration = this.duration;
     if (this.timezone) value.timezone = this.timezone;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.duration = this.duration.toJS();
     if (this.timezone) js.timezone = this.timezone.toJS();
     return js;
@@ -72,7 +72,7 @@ export class TimeFloorAction extends Action {
   }
 
   protected _toStringParameters(expressionString: string): string[] {
-    var ret = [this.duration.toString()];
+    let ret = [this.duration.toString()];
     if (this.timezone) ret.push(this.timezone.toString());
     return ret;
   }
@@ -93,10 +93,10 @@ export class TimeFloorAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-    var duration = this.duration;
-    var timezone = this.getTimezone();
+    let duration = this.duration;
+    let timezone = this.getTimezone();
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       if (inV === null) return null;
       return duration.floor(inV, timezone);
     };
@@ -123,7 +123,7 @@ export class TimeFloorAction extends Action {
 
   public defineEnvironment(environment: Environment): Action {
     if (this.timezone || !environment.timezone) return this;
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.timezone = environment.timezone;
     return new TimeFloorAction(value);
   }
@@ -144,7 +144,7 @@ export class TimeFloorAction extends Action {
     }
 
     if (action instanceof InAction || action instanceof OverlapAction) {
-      var literal = action.getLiteralValue();
+      let literal = action.getLiteralValue();
       if (TimeRange.isTimeRange(literal)) {
         return literal.isAligned(duration, timezone);
       } else if (Set.isSet(literal)) {

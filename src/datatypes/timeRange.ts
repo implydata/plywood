@@ -50,7 +50,7 @@ function dateToIntervalPart(date: Date): string {
     .replace(':00Z', 'Z'); // Do not do a final .replace('T00Z', 'Z');
 }
 
-var check: Class<TimeRangeValue, TimeRangeJS>;
+let check: Class<TimeRangeValue, TimeRangeJS>;
 export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, TimeRangeJS> {
   static type = 'TIME_RANGE';
 
@@ -64,7 +64,7 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
 
   static timeBucket(date: Date, duration: Duration, timezone: Timezone): TimeRange {
     if (!date) return null;
-    var start = duration.floor(date, timezone);
+    let start = duration.floor(date, timezone);
     return new TimeRange({
       start: start,
       end: duration.shift(start, timezone, 1),
@@ -117,7 +117,7 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
   }
 
   public toJS(): TimeRangeJS {
-    var js: TimeRangeJS = {
+    let js: TimeRangeJS = {
       start: this.start,
       end: this.end
     };
@@ -140,8 +140,8 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
    * @returns {string}
    */
   public toInterval(): string {
-    var { start, end, bounds } = this;
-    var interval: string[] = [START_OF_TIME, END_OF_TIME];
+    let { start, end, bounds } = this;
+    let interval: string[] = [START_OF_TIME, END_OF_TIME];
     if (start) {
       if (bounds[0] === '(') start = new Date(start.valueOf() + 1); // add a m.sec
       interval[0] = dateToIntervalPart(start);

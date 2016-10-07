@@ -50,7 +50,7 @@ export class RefExpression extends Expression {
   static SIMPLE_NAME_REGEXP = /^([a-z_]\w*)$/i;
 
   static fromJS(parameters: ExpressionJS): RefExpression {
-    var value: ExpressionValue;
+    let value: ExpressionValue;
     if (hasOwnProperty(parameters, 'nest')) {
       value = <any>parameters;
     } else {
@@ -66,12 +66,12 @@ export class RefExpression extends Expression {
   }
 
   static parse(str: string): RefExpression {
-    var refValue: ExpressionValue = { op: 'ref' };
-    var match: RegExpMatchArray;
+    let refValue: ExpressionValue = { op: 'ref' };
+    let match: RegExpMatchArray;
 
     match = str.match(GENERATIONS_REGEXP);
     if (match) {
-      var nest = match[0].length;
+      let nest = match[0].length;
       refValue.nest = nest;
       str = str.substr(nest);
     } else {
@@ -108,7 +108,7 @@ export class RefExpression extends Expression {
   }
 
   static findPropertyCI(obj: any, key: string): any {
-    var lowerKey = key.toLowerCase();
+    let lowerKey = key.toLowerCase();
     if (obj == null) return null;
     return SimpleArray.find(Object.keys(obj), (v) => v.toLowerCase() === lowerKey);
   }
@@ -123,13 +123,13 @@ export class RefExpression extends Expression {
     super(parameters, dummyObject);
     this._ensureOp("ref");
 
-    var name = parameters.name;
+    let name = parameters.name;
     if (typeof name !== 'string' || name.length === 0) {
       throw new TypeError("must have a nonempty `name`");
     }
     this.name = name;
 
-    var nest = parameters.nest;
+    let nest = parameters.nest;
     if (typeof nest !== 'number') {
       throw new TypeError("must have nest");
     }
@@ -138,7 +138,7 @@ export class RefExpression extends Expression {
     }
     this.nest = nest;
 
-    var myType = parameters.type;
+    let myType = parameters.type;
     if (myType) {
       if (!RefExpression.validType(myType)) {
         throw new TypeError(`unsupported type '${myType}'`);
@@ -152,7 +152,7 @@ export class RefExpression extends Expression {
   }
 
   public valueOf(): ExpressionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.name = this.name;
     value.nest = this.nest;
     if (this.type) value.type = this.type;
@@ -162,7 +162,7 @@ export class RefExpression extends Expression {
   }
 
   public toJS(): ExpressionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.name = this.name;
     if (this.nest) js.nest = this.nest;
     if (this.type) js.type = this.type;
@@ -206,7 +206,7 @@ export class RefExpression extends Expression {
     if (nest) throw new Error("can not call getJS on unresolved expression");
     if (ignoreCase) throw new Error("can not express ignore case as js expression");
 
-    var expr: string;
+    let expr: string;
     if (datumVar) {
       expr = datumVar.replace('[]', "[" + JSON.stringify(name) + "]");
     } else {
@@ -235,20 +235,20 @@ export class RefExpression extends Expression {
   }
 
   public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
-    var myIndex = indexer.index;
+    let myIndex = indexer.index;
     indexer.index++;
-    var { nest, ignoreCase, name } = this;
+    let { nest, ignoreCase, name } = this;
     // Step the parentContext back; once for each generation
-    var myTypeContext = typeContext;
+    let myTypeContext = typeContext;
     while (nest--) {
       myTypeContext = myTypeContext.parent;
       if (!myTypeContext) throw new Error('went too deep on ' + this.toString());
     }
 
-    var myName = ignoreCase ? RefExpression.findPropertyCI(myTypeContext.datasetType, name) : name;
+    let myName = ignoreCase ? RefExpression.findPropertyCI(myTypeContext.datasetType, name) : name;
     if (myName == null) throw new Error('could not resolve ' + this.toString());
     // Look for the reference in the parent chain
-    var nestDiff = 0;
+    let nestDiff = 0;
     while (myTypeContext && !hasOwnProperty(myTypeContext.datasetType, myName)) {
       myTypeContext = myTypeContext.parent;
       nestDiff++;
@@ -257,9 +257,9 @@ export class RefExpression extends Expression {
       throw new Error('could not resolve ' + this.toString());
     }
 
-    var myFullType = myTypeContext.datasetType[myName];
-    var myType = myFullType.type;
-    var myRemote = Boolean((myFullType as DatasetFullType).remote);
+    let myFullType = myTypeContext.datasetType[myName];
+    let myType = myFullType.type;
+    let myRemote = Boolean((myFullType as DatasetFullType).remote);
 
     if (this.type && this.type !== myType) {
       throw new TypeError(`type mismatch in ${this} (has: ${this.type} needs: ${myType})`);
@@ -288,7 +288,7 @@ export class RefExpression extends Expression {
   }
 
   public incrementNesting(by: int = 1): RefExpression {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.nest = by + value.nest;
     return new RefExpression(value);
   }
@@ -306,13 +306,13 @@ export class RefExpression extends Expression {
   }
 
   public toCaseInsensitive(): Expression {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.ignoreCase = true;
     return new RefExpression(value);
   }
 
   private changeType(newType: PlyType) {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.type = newType;
     return new RefExpression(value);
   }

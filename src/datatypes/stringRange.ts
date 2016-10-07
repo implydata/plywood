@@ -29,7 +29,7 @@ export interface StringRangeJS {
   bounds?: string;
 }
 
-var check: Class<StringRangeValue, StringRangeJS>;
+let check: Class<StringRangeValue, StringRangeJS>;
 export class StringRange extends Range<string> implements Instance<StringRangeValue, StringRangeJS> {
   static type = 'STRING_RANGE';
 
@@ -45,9 +45,9 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
     if (typeof parameters !== "object") {
       throw new Error("unrecognizable StringRange");
     }
-    var start = parameters.start;
-    var end = parameters.end;
-    var bounds = parameters.bounds;
+    let start = parameters.start;
+    let end = parameters.end;
+    let bounds = parameters.bounds;
 
     return new StringRange({
       start, end, bounds
@@ -55,7 +55,7 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
   }
 
   constructor(parameters: StringRangeValue) {
-    var { start, end } = parameters;
+    let { start, end } = parameters;
     if (typeof start !== 'string' && start !== null) throw new TypeError('`start` must be a string');
     if (typeof end !== 'string' && end !== null) throw new TypeError('`end` must be a string');
     super(start, end, parameters.bounds);
@@ -70,7 +70,7 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
   }
 
   public toJS(): StringRangeJS {
-    var js: StringRangeJS = {
+    let js: StringRangeJS = {
       start: this.start,
       end: this.end
     };

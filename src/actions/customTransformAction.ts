@@ -22,7 +22,7 @@ import { ComputeFn } from '../datatypes/dataset';
 
 export class CustomTransformAction extends Action {
   static fromJS(parameters: ActionJS): CustomTransformAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.custom = parameters.custom;
     if (parameters.outputType) value.outputType = parameters.outputType;
     return new CustomTransformAction(value);
@@ -44,14 +44,14 @@ export class CustomTransformAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.custom = this.custom;
     if (this.outputType) value.outputType = this.outputType;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.custom = this.custom;
     if (this.outputType) js.outputType = this.outputType;
     return js;
@@ -64,7 +64,7 @@ export class CustomTransformAction extends Action {
   }
 
   protected _toStringParameters(expressionString: string): string[] {
-    var param = [`${this.custom} }`];
+    let param = [`${this.custom} }`];
     if (this.outputType) param.push(this.outputType);
     return param;
   }

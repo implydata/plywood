@@ -26,7 +26,7 @@ import { NumberRange } from '../datatypes/numberRange';
 
 export class NumberBucketAction extends Action {
   static fromJS(parameters: ActionJS): NumberBucketAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.size = parameters.size;
     value.offset = hasOwnProperty(parameters, 'offset') ? parameters.offset : 0;
     return new NumberBucketAction(value);
@@ -43,14 +43,14 @@ export class NumberBucketAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.size = this.size;
     value.offset = this.offset;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.size = this.size;
     if (this.offset) js.offset = this.offset;
     return js;
@@ -63,7 +63,7 @@ export class NumberBucketAction extends Action {
   }
 
   protected _toStringParameters(expressionString: string): string[] {
-    var params: string[] = [String(this.size)];
+    let params: string[] = [String(this.size)];
     if (this.offset) params.push(String(this.offset));
     return params;
   }
@@ -84,10 +84,10 @@ export class NumberBucketAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-    var size = this.size;
-    var offset = this.offset;
+    let size = this.size;
+    let offset = this.offset;
     return (d: Datum, c: Datum) => {
-      var num = inputFn(d, c);
+      let num = inputFn(d, c);
       if (num === null) return null;
       return NumberRange.numberBucket(num, size, offset);
     };

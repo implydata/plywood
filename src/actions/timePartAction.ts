@@ -92,7 +92,7 @@ const PART_TO_MAX_VALUES: Lookup<number> = {
 
 export class TimePartAction extends Action {
   static fromJS(parameters: ActionJS): TimePartAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.part = parameters.part;
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
     return new TimePartAction(value);
@@ -112,14 +112,14 @@ export class TimePartAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.part = this.part;
     if (this.timezone) value.timezone = this.timezone;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.part = this.part;
     if (this.timezone) js.timezone = this.timezone.toJS();
     return js;
@@ -132,7 +132,7 @@ export class TimePartAction extends Action {
   }
 
   protected _toStringParameters(expressionString: string): string[] {
-    var ret = [this.part];
+    let ret = [this.part];
     if (this.timezone) ret.push(this.timezone.toString());
     return ret;
   }
@@ -155,10 +155,10 @@ export class TimePartAction extends Action {
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     const { part } = this;
     const timezone = this.getTimezone();
-    var parter = PART_TO_FUNCTION[part];
+    let parter = PART_TO_FUNCTION[part];
     if (!parter) throw new Error(`unsupported part '${part}'`);
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       if (!inV) return null;
       inV = moment.tz(inV, timezone.toString());
       return parter(inV);
@@ -174,7 +174,7 @@ export class TimePartAction extends Action {
   }
 
   public maxPossibleSplitValues(): number {
-    var maxValue = PART_TO_MAX_VALUES[this.part];
+    let maxValue = PART_TO_MAX_VALUES[this.part];
     if (!maxValue) return Infinity;
     return maxValue + 1; // +1 for null
   }
@@ -185,7 +185,7 @@ export class TimePartAction extends Action {
 
   public defineEnvironment(environment: Environment): Action {
     if (this.timezone || !environment.timezone) return this;
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.timezone = environment.timezone;
     return new TimePartAction(value);
   }

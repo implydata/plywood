@@ -22,7 +22,7 @@ import { ComputeFn } from '../datatypes/dataset';
 
 export class LookupAction extends Action {
   static fromJS(parameters: ActionJS): LookupAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.lookup = parameters.lookup;
     return new LookupAction(value);
   }
@@ -36,13 +36,13 @@ export class LookupAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.lookup = this.lookup;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.lookup = this.lookup;
     return js;
   }

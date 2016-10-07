@@ -40,10 +40,10 @@ export class OverlapAction extends Action {
   }
 
   public getNecessaryInputTypes(): PlyType[] {
-    var expressionType = this.expression.type;
+    let expressionType = this.expression.type;
     if (expressionType && expressionType !== 'NULL' && expressionType !== 'SET/NULL') {
-      var setExpressionType = wrapSetType(expressionType);
-      var unwrapped = unwrapSetType(setExpressionType);
+      let setExpressionType = wrapSetType(expressionType);
+      let unwrapped = unwrapSetType(setExpressionType);
       return [setExpressionType, unwrapped] as PlyType[];
     } else {
       // if it's null, accept anything
@@ -70,8 +70,8 @@ export class OverlapAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
-      var exV = expressionFn(d, c);
+      let inV = inputFn(d, c);
+      let exV = expressionFn(d, c);
       if (exV == null) return null;
       return Set.isSet(inV) ? inV.overlap(exV) : exV.contains(inV);
     };
@@ -91,7 +91,7 @@ export class OverlapAction extends Action {
   }
 
   private _performOnSimpleWhatever(ex: Expression): Expression {
-    var expression = this.expression;
+    let expression = this.expression;
     if ('SET/' + ex.type === expression.type) {
       return new InAction({ expression }).performOnSimple(ex);
     }
@@ -99,7 +99,7 @@ export class OverlapAction extends Action {
   }
 
   protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
-    var { expression } = this;
+    let { expression } = this;
     if (!expression.isOp('literal')) return new OverlapAction({ expression: literalExpression }).performOnSimple(expression);
 
     return this._performOnSimpleWhatever(literalExpression);

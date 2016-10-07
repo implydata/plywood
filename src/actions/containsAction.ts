@@ -29,7 +29,7 @@ export class ContainsAction extends Action {
   static IGNORE_CASE = 'ignoreCase';
 
   static fromJS(parameters: ActionJS): ContainsAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.compare = parameters.compare;
     return new ContainsAction(value);
   }
@@ -38,7 +38,7 @@ export class ContainsAction extends Action {
 
   constructor(parameters: ActionValue) {
     super(parameters, dummyObject);
-    var { compare } = parameters;
+    let { compare } = parameters;
     if (!compare) {
       compare = ContainsAction.NORMAL;
     } else if (compare !== ContainsAction.NORMAL && compare !== ContainsAction.IGNORE_CASE) {
@@ -50,13 +50,13 @@ export class ContainsAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.compare = this.compare;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.compare = this.compare;
     return js;
   }
@@ -97,7 +97,7 @@ export class ContainsAction extends Action {
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {
-    var combine: (lhs: string, rhs: string) => string;
+    let combine: (lhs: string, rhs: string) => string;
     if (this.compare === ContainsAction.NORMAL) {
       combine = (lhs, rhs) => `(''+${lhs}).indexOf(${rhs})>-1`;
     } else {
@@ -115,13 +115,13 @@ export class ContainsAction extends Action {
   }
 
   protected _performOnSimpleChain(chainExpression: ChainExpression): Expression {
-    var { expression } = this;
+    let { expression } = this;
     if (expression instanceof ChainExpression) {
-      var precedingAction = chainExpression.lastAction();
-      var succeedingAction = expression.lastAction();
+      let precedingAction = chainExpression.lastAction();
+      let succeedingAction = expression.lastAction();
       if (precedingAction instanceof TransformCaseAction && succeedingAction instanceof TransformCaseAction) {
         if (precedingAction.transformType === succeedingAction.transformType) {
-          var precedingExpression = chainExpression.expression;
+          let precedingExpression = chainExpression.expression;
           return precedingExpression.contains(expression.expression, ContainsAction.IGNORE_CASE).simplify();
         }
       }

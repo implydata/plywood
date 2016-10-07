@@ -38,15 +38,15 @@ function mergeOr(ex1: Expression, ex2: Expression): Expression {
     !arraysEqual(ex1.getFreeReferences(), ex2.getFreeReferences())
   ) return null;
 
-  var ex1Actions = (<ChainExpression>ex1).actions;
-  var ex2Actions = (<ChainExpression>ex2).actions;
+  let ex1Actions = (<ChainExpression>ex1).actions;
+  let ex2Actions = (<ChainExpression>ex2).actions;
   if (ex1Actions.length !== 1 || ex2Actions.length !== 1) return null;
 
-  var firstActionExpression1 = ex1Actions[0].expression;
-  var firstActionExpression2 = ex2Actions[0].expression;
+  let firstActionExpression1 = ex1Actions[0].expression;
+  let firstActionExpression2 = ex2Actions[0].expression;
   if (!firstActionExpression1 || !firstActionExpression2 || !firstActionExpression1.isOp('literal') || !firstActionExpression2.isOp('literal')) return null;
 
-  var intersect = Set.generalUnion(firstActionExpression1.getLiteralValue(), firstActionExpression2.getLiteralValue());
+  let intersect = Set.generalUnion(firstActionExpression1.getLiteralValue(), firstActionExpression2.getLiteralValue());
   if (intersect === null) return null;
 
   return Expression.inOrIs((<ChainExpression>ex1).expression, intersect);
@@ -114,13 +114,13 @@ export class OrAction extends Action {
   }
 
   protected _performOnSimpleChain(chainExpression: ChainExpression): Expression {
-    var { expression } = this;
+    let { expression } = this;
 
-    var orExpressions = chainExpression.getExpressionPattern('or');
+    let orExpressions = chainExpression.getExpressionPattern('or');
     if (orExpressions) {
-      for (var i = 0; i < orExpressions.length; i++) {
-        var orExpression = orExpressions[i];
-        var mergedExpression = mergeOr(orExpression, expression);
+      for (let i = 0; i < orExpressions.length; i++) {
+        let orExpression = orExpressions[i];
+        let mergedExpression = mergeOr(orExpression, expression);
         if (mergedExpression) {
           orExpressions[i] = mergedExpression;
           return Expression.or(orExpressions).simplify();

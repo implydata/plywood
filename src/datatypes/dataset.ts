@@ -29,8 +29,8 @@ import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralEx
 import { External, TotalContainer } from '../external/baseExternal';
 
 export function foldContext(d: Datum, c: Datum): Datum {
-  var newContext = Object.create(c);
-  for (var k in d) {
+  let newContext = Object.create(c);
+  for (let k in d) {
     newContext[k] = d[k];
   }
   return newContext;
@@ -75,8 +75,8 @@ export interface AlterationFiller {
 }
 
 export function fillExpressionExternalAlteration(alteration: ExpressionExternalAlteration, filler: AlterationFiller): void {
-  for (var k in alteration) {
-    var thing = alteration[k];
+  for (let k in alteration) {
+    let thing = alteration[k];
     if (Array.isArray(thing)) {
       fillDatasetExternalAlterations(thing, filler);
     } else {
@@ -86,7 +86,7 @@ export function fillExpressionExternalAlteration(alteration: ExpressionExternalA
 }
 
 export function fillDatasetExternalAlterations(alterations: DatasetExternalAlterations, filler: AlterationFiller): void {
-  for (var alteration of alterations) {
+  for (let alteration of alterations) {
     if (alteration.external) {
       alteration.result = filler(alteration.external, alteration.terminal);
     } else if (alteration.datasetAlterations) {
@@ -99,7 +99,7 @@ export function fillDatasetExternalAlterations(alterations: DatasetExternalAlter
   }
 }
 
-var directionFns: Lookup<DirectionFn> = {
+let directionFns: Lookup<DirectionFn> = {
   ascending: (a: any, b: any): number => {
     if (a == null) {
       return b == null ? 0 : -1;
@@ -127,9 +127,9 @@ export interface Column {
 }
 
 function uniqueColumns(columns: Column[]): Column[] {
-  var seen: Lookup<boolean> = {};
-  var uniqueColumns: Column[] = [];
-  for (var column of columns) {
+  let seen: Lookup<boolean> = {};
+  let uniqueColumns: Column[] = [];
+  for (let column of columns) {
     if (!seen[column.name]) {
       uniqueColumns.push(column);
       seen[column.name] = true;
@@ -139,11 +139,11 @@ function uniqueColumns(columns: Column[]): Column[] {
 }
 
 function flattenColumns(nestedColumns: Column[], prefixColumns: boolean): Column[] {
-  var flatColumns: Column[] = [];
-  var i = 0;
-  var prefixString = '';
+  let flatColumns: Column[] = [];
+  let i = 0;
+  let prefixString = '';
   while (i < nestedColumns.length) {
-    var nestedColumn = nestedColumns[i];
+    let nestedColumn = nestedColumns[i];
     if (nestedColumn.type === 'DATASET') {
       nestedColumns = nestedColumn.columns;
       if (prefixColumns) prefixString += nestedColumn.name + '.';
@@ -163,17 +163,17 @@ function removeLineBreaks(v: string): string {
   return v.replace(/(?:\r\n|\r|\n)/g, ' ');
 }
 
-var escapeFnCSV = (v: string) => {
+let escapeFnCSV = (v: string) => {
   v = removeLineBreaks(v);
   if (v.indexOf('"') === -1 &&  v.indexOf(",") === -1) return v;
   return `"${v.replace(/"/g, '""')}"`;
 };
 
-var escapeFnTSV = (v: string) => {
+let escapeFnTSV = (v: string) => {
   return removeLineBreaks(v).replace(/\t/g, "").replace(/"/g, '""');
 };
 
-var typeOrder: Lookup<number> = {
+let typeOrder: Lookup<number> = {
   'NULL': 0,
   'TIME': 1,
   'TIME_RANGE': 2,
@@ -205,7 +205,7 @@ export interface Formatter extends Lookup<Function> {
   'DATASET'?: (v: Dataset) => string;
 }
 
-var defaultFormatter: Formatter = {
+let defaultFormatter: Formatter = {
   'NULL': (v: any) => 'NULL',
   'TIME': (v: Date) => v.toISOString(),
   'TIME_RANGE': (v: TimeRange) => '' + v,
@@ -276,19 +276,19 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
 }
 
 function joinDatums(datumA: Datum, datumB: Datum): Datum {
-  var newDatum: Datum = Object.create(null);
-  for (var k in datumA) {
+  let newDatum: Datum = Object.create(null);
+  for (let k in datumA) {
     newDatum[k] = datumA[k];
   }
-  for (var k in datumB) {
+  for (let k in datumB) {
     newDatum[k] = datumB[k];
   }
   return newDatum;
 }
 
 function copy(obj: Lookup<any>): Lookup<any> {
-  var newObj: Lookup<any> = {};
-  var k: string;
+  let newObj: Lookup<any> = {};
+  let k: string;
   for (k in obj) {
     if (hasOwnProperty(obj, k)) newObj[k] = obj[k];
   }
@@ -310,7 +310,7 @@ export interface DatasetJS {
   data?: Datum[];
 }
 
-var check: Class<DatasetValue, any>;
+let check: Class<DatasetValue, any>;
 export class Dataset implements Instance<DatasetValue, any> {
   static type = 'DATASET';
 
@@ -321,8 +321,8 @@ export class Dataset implements Instance<DatasetValue, any> {
   static datumFromJS(js: Datum): Datum {
     if (typeof js !== 'object') throw new TypeError("datum must be an object");
 
-    var datum: Datum = Object.create(null);
-    for (var k in js) {
+    let datum: Datum = Object.create(null);
+    for (let k in js) {
       if (!hasOwnProperty(js, k)) continue;
       datum[k] = valueFromJS(js[k]);
     }
@@ -331,9 +331,9 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   static datumToJS(datum: Datum): Datum {
-    var js: Datum = {};
-    for (var k in datum) {
-      var v = datum[k];
+    let js: Datum = {};
+    for (let k in datum) {
+      let v = datum[k];
       if (v && (v as any).suppress) continue;
       js[k] = valueToJSInlineType(v);
     }
@@ -343,13 +343,13 @@ export class Dataset implements Instance<DatasetValue, any> {
   static getAttributesFromData(data: Datum[]): Attributes {
     if (!data.length) return [];
 
-    var attributeNamesToIntrospect = Object.keys(data[0]);
-    var attributes: Attributes = [];
+    let attributeNamesToIntrospect = Object.keys(data[0]);
+    let attributes: Attributes = [];
 
-    for (var datum of data) {
-      var attributeNamesStillToIntrospect: string[] = [];
-      for (var attributeNameToIntrospect of attributeNamesToIntrospect) {
-        var attributeInfo = getAttributeInfo(attributeNameToIntrospect, datum[attributeNameToIntrospect]);
+    for (let datum of data) {
+      let attributeNamesStillToIntrospect: string[] = [];
+      for (let attributeNameToIntrospect of attributeNamesToIntrospect) {
+        let attributeInfo = getAttributeInfo(attributeNameToIntrospect, datum[attributeNameToIntrospect]);
         if (attributeInfo) {
           attributes.push(attributeInfo);
         } else {
@@ -362,12 +362,12 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
 
     // Assume all the remaining nulls are strings
-    for (var attributeName of attributeNamesToIntrospect) {
+    for (let attributeName of attributeNamesToIntrospect) {
       attributes.push(new AttributeInfo({ name: attributeName, type: 'STRING' }));
     }
 
     attributes.sort((a, b) => {
-      var typeDiff = typeOrder[a.type] - typeOrder[b.type];
+      let typeDiff = typeOrder[a.type] - typeOrder[b.type];
       if (typeDiff) return typeDiff;
       return a.name.localeCompare(b.name);
     });
@@ -377,7 +377,7 @@ export class Dataset implements Instance<DatasetValue, any> {
 
   static parseJSON(text: string): any[] {
     text = text.trim();
-    var firstChar = text[0];
+    let firstChar = text[0];
 
     if (firstChar[0] === '[') {
       try {
@@ -410,7 +410,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       throw new Error('must have data');
     }
 
-    var value: DatasetValue = {};
+    let value: DatasetValue = {};
 
     if (hasOwnProperty(parameters, 'attributes')) {
       value.attributes = AttributeInfo.fromJSs(parameters.attributes);
@@ -434,16 +434,16 @@ export class Dataset implements Instance<DatasetValue, any> {
     if (parameters.keys) {
       this.keys = parameters.keys;
     }
-    var data = parameters.data;
+    let data = parameters.data;
     if (!Array.isArray(data)) {
       throw new TypeError("must have a `data` array");
     }
     this.data = data;
 
-    var attributes = parameters.attributes;
+    let attributes = parameters.attributes;
     if (!attributes) attributes = Dataset.getAttributesFromData(data);
 
-    var attributeOverrides = parameters.attributeOverrides;
+    let attributeOverrides = parameters.attributeOverrides;
     if (attributeOverrides) {
       attributes = AttributeInfo.override(attributes, attributeOverrides);
     }
@@ -452,7 +452,7 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public valueOf(): DatasetValue {
-    var value: DatasetValue = {};
+    let value: DatasetValue = {};
     if (this.suppress) value.suppress = true;
     if (this.attributes) value.attributes = this.attributes;
     if (this.keys) value.keys = this.keys;
@@ -479,13 +479,13 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public hide(): Dataset {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.suppress = true;
     return new Dataset(value);
   }
 
   public basis(): boolean {
-    var data = this.data;
+    let data = this.data;
     return data.length === 1 && Object.keys(data[0]).length === 0;
   }
 
@@ -495,12 +495,12 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public getFullType(): DatasetFullType {
-    var { attributes } = this;
+    let { attributes } = this;
     if (!attributes) throw new Error("dataset has not been introspected");
 
-    var myDatasetType: Lookup<FullType> = {};
-    for (var attribute of attributes) {
-      var attrName = attribute.name;
+    let myDatasetType: Lookup<FullType> = {};
+    for (let attribute of attributes) {
+      let attrName = attribute.name;
       if (attribute.type === 'DATASET') {
         myDatasetType[attrName] = {
           type: 'DATASET',
@@ -521,21 +521,21 @@ export class Dataset implements Instance<DatasetValue, any> {
 
   // Actions
   public select(attrs: string[]): Dataset {
-    var attributes = this.attributes;
-    var newAttributes: Attributes = [];
-    var attrLookup: Lookup<boolean> = Object.create(null);
-    for (var attr of attrs) {
+    let attributes = this.attributes;
+    let newAttributes: Attributes = [];
+    let attrLookup: Lookup<boolean> = Object.create(null);
+    for (let attr of attrs) {
       attrLookup[attr] = true;
-      var existingAttribute = NamedArray.get(attributes, attr);
+      let existingAttribute = NamedArray.get(attributes, attr);
       if (existingAttribute) newAttributes.push(existingAttribute);
     }
 
-    var data = this.data;
-    var n = data.length;
-    var newData = new Array(n);
-    for (var i = 0; i < n; i++) {
-      var datum = data[i];
-      var newDatum = Object.create(null);
+    let data = this.data;
+    let n = data.length;
+    let newData = new Array(n);
+    for (let i = 0; i < n; i++) {
+      let datum = data[i];
+      let newDatum = Object.create(null);
       for (let key in datum) {
         if (attrLookup[key]) {
           newDatum[key] = datum[key];
@@ -544,28 +544,28 @@ export class Dataset implements Instance<DatasetValue, any> {
       newData[i] = newDatum;
     }
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.attributes = newAttributes;
     value.data = newData;
     return new Dataset(value);
   }
 
   public apply(name: string, exFn: ComputeFn, type: PlyType, context: Datum): Dataset {
-    var data = this.data;
-    var n = data.length;
-    var newData = new Array(n);
-    for (var i = 0; i < n; i++) {
-      var datum = data[i];
-      var newDatum = Object.create(null);
+    let data = this.data;
+    let n = data.length;
+    let newData = new Array(n);
+    for (let i = 0; i < n; i++) {
+      let datum = data[i];
+      let newDatum = Object.create(null);
       for (let key in datum) newDatum[key] = datum[key];
       newDatum[name] = exFn(datum, context, i);
       newData[i] = newDatum;
     }
 
     // Hack
-    var datasetType: Lookup<FullType> = null;
+    let datasetType: Lookup<FullType> = null;
     if (type === 'DATASET' && newData[0] && newData[0][name]) {
-      var thing: any = newData[0][name];
+      let thing: any = newData[0][name];
       if (thing instanceof Dataset) {
         datasetType = thing.getFullType().datasetType;
       } else {
@@ -574,21 +574,21 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
     // End Hack
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.attributes = NamedArray.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
     value.data = newData;
     return new Dataset(value);
   }
 
   public filter(exFn: ComputeFn, context: Datum): Dataset {
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.data = value.data.filter(datum => exFn(datum, context));
     return new Dataset(value);
   }
 
   public sort(exFn: ComputeFn, direction: string, context: Datum): Dataset {
-    var value = this.valueOf();
-    var directionFn = directionFns[direction];
+    let value = this.valueOf();
+    let directionFn = directionFns[direction];
     value.data = this.data.sort((a, b) => { // Note: this modifies the original, fix if needed
       return directionFn(exFn(a, context), exFn(b, context));
     });
@@ -596,9 +596,9 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public limit(limit: number): Dataset {
-    var data = this.data;
+    let data = this.data;
     if (data.length <= limit) return this;
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.data = data.slice(0, limit);
     return new Dataset(value);
   }
@@ -609,8 +609,8 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public sum(exFn: ComputeFn, context: Datum): number {
-    var data = this.data;
-    var sum = 0;
+    let data = this.data;
+    let sum = 0;
     for (let datum of data) {
       sum += exFn(datum, context);
     }
@@ -618,36 +618,36 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public average(exFn: ComputeFn, context: Datum): number {
-    var count = this.count();
+    let count = this.count();
     return count ? (this.sum(exFn, context) / count) : null;
   }
 
   public min(exFn: ComputeFn, context: Datum): number {
-    var data = this.data;
-    var min = Infinity;
+    let data = this.data;
+    let min = Infinity;
     for (let datum of data) {
-      var v = exFn(datum, context);
+      let v = exFn(datum, context);
       if (v < min) min = v;
     }
     return min;
   }
 
   public max(exFn: ComputeFn, context: Datum): number {
-    var data = this.data;
-    var max = -Infinity;
+    let data = this.data;
+    let max = -Infinity;
     for (let datum of data) {
-      var v = exFn(datum, context);
+      let v = exFn(datum, context);
       if (max < v) max = v;
     }
     return max;
   }
 
   public countDistinct(exFn: ComputeFn, context: Datum): number {
-    var data = this.data;
-    var seen: Lookup<number> = Object.create(null);
-    var count = 0;
+    let data = this.data;
+    let seen: Lookup<number> = Object.create(null);
+    let count = 0;
     for (let datum of data) {
-      var v = exFn(datum, context);
+      let v = exFn(datum, context);
       if (!seen[v]) {
         seen[v] = 1;
         ++count;
@@ -657,19 +657,19 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public quantile(exFn: ComputeFn, quantile: number, context: Datum): number {
-    var data = this.data;
-    var vs: number[] = [];
+    let data = this.data;
+    let vs: number[] = [];
     for (let datum of data) {
-      var v = exFn(datum, context);
+      let v = exFn(datum, context);
       if (v != null) vs.push(v);
     }
 
     vs.sort((a: number, b: number) => a - b);
 
-    var n = vs.length;
+    let n = vs.length;
     if (quantile === 0) return vs[0];
     if (quantile === 1) return vs[n - 1];
-    var rank = n * quantile - 1;
+    let rank = n * quantile - 1;
 
     // Is the rank an integer?
     if (rank === Math.floor(rank)) {
@@ -680,24 +680,24 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public split(splitFns: SplitFns, datasetName: string, context: Datum): Dataset {
-    var { data, attributes } = this;
+    let { data, attributes } = this;
 
-    var keys = Object.keys(splitFns);
-    var numberOfKeys = keys.length;
-    var splitFnList = keys.map(k => splitFns[k]);
+    let keys = Object.keys(splitFns);
+    let numberOfKeys = keys.length;
+    let splitFnList = keys.map(k => splitFns[k]);
 
-    var splits: Lookup<Datum> = {};
-    var datumGroups: Lookup<Datum[]> = {};
-    var finalData: Datum[] = [];
-    var finalDataset: Datum[][] = [];
+    let splits: Lookup<Datum> = {};
+    let datumGroups: Lookup<Datum[]> = {};
+    let finalData: Datum[] = [];
+    let finalDataset: Datum[][] = [];
 
     function addDatum(datum: Datum, valueList: any): void {
-      var key = valueList.join(';_PLYw00d_;');
+      let key = valueList.join(';_PLYw00d_;');
       if (hasOwnProperty(datumGroups, key)) {
         datumGroups[key].push(datum);
       } else {
-        var newDatum: Datum = Object.create(null);
-        for (var i = 0; i < numberOfKeys; i++) {
+        let newDatum: Datum = Object.create(null);
+        for (let i = 0; i < numberOfKeys; i++) {
           newDatum[keys[i]] = valueList[i];
         }
         finalDataset.push(datumGroups[key] = [datum]);
@@ -706,12 +706,12 @@ export class Dataset implements Instance<DatasetValue, any> {
       }
     }
 
-    for (var datum of data) {
-      var valueList = splitFnList.map(splitFn => splitFn(datum, context));
+    for (let datum of data) {
+      let valueList = splitFnList.map(splitFn => splitFn(datum, context));
       if (Set.isSet(valueList[0])) {
         if (valueList.length > 1) throw new Error('multi-dimensional set split is not implemented');
-        var elements = valueList[0].elements;
-        for (var element of elements) {
+        let elements = valueList[0].elements;
+        for (let element of elements) {
           addDatum(datum, [element]);
         }
       } else {
@@ -719,7 +719,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       }
     }
 
-    for (var i = 0; i < finalData.length; i++) {
+    for (let i = 0; i < finalData.length; i++) {
       finalData[i][datasetName] = new Dataset({
         suppress: true,
         attributes,
@@ -738,17 +738,17 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public getReadyExternals(): DatasetExternalAlterations {
-    var externalAlterations: DatasetExternalAlterations = [];
+    let externalAlterations: DatasetExternalAlterations = [];
     const { data, attributes } = this;
 
-    for (var i = 0; i < data.length; i++) {
-      var datum = data[i];
-      var normalExternalAlterations: DatasetExternalAlterations = [];
-      var valueExternalAlterations: DatasetExternalAlterations = [];
-      for (var attribute of attributes) {
-        var value = datum[attribute.name];
+    for (let i = 0; i < data.length; i++) {
+      let datum = data[i];
+      let normalExternalAlterations: DatasetExternalAlterations = [];
+      let valueExternalAlterations: DatasetExternalAlterations = [];
+      for (let attribute of attributes) {
+        let value = datum[attribute.name];
         if (value instanceof Expression) {
-          var subExpressionAlterations = value.getReadyExternals();
+          let subExpressionAlterations = value.getReadyExternals();
           if (Object.keys(subExpressionAlterations).length) {
             normalExternalAlterations.push({
               index: i,
@@ -758,7 +758,7 @@ export class Dataset implements Instance<DatasetValue, any> {
           }
 
         } else if (value instanceof Dataset) {
-          var subDatasetAlterations = value.getReadyExternals();
+          let subDatasetAlterations = value.getReadyExternals();
           if (subDatasetAlterations.length) {
             normalExternalAlterations.push({
               index: i,
@@ -769,7 +769,7 @@ export class Dataset implements Instance<DatasetValue, any> {
 
         } else if (value instanceof External) {
           if (!value.suppress) {
-            var externalAlteration: DatasetExternalAlteration = {
+            let externalAlteration: DatasetExternalAlteration = {
               index: i,
               key: attribute.name,
               external: value,
@@ -805,16 +805,16 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public applyReadyExternals(alterations: DatasetExternalAlterations): Dataset {
-    var data = this.data;
-    for (var alteration of alterations) {
-      var datum = data[alteration.index];
-      var key = alteration.key;
+    let data = this.data;
+    for (let alteration of alterations) {
+      let datum = data[alteration.index];
+      let key = alteration.key;
 
       if (alteration.external) {
-        var result = alteration.result;
+        let result = alteration.result;
         if (result instanceof TotalContainer) {
-          var resultDatum = result.datum;
-          for (var k in resultDatum) {
+          let resultDatum = result.datum;
+          for (let k in resultDatum) {
             datum[k] = resultDatum[k];
           }
         } else {
@@ -823,7 +823,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       } else if (alteration.datasetAlterations) {
         datum[key] = (datum[key] as Dataset).applyReadyExternals(alteration.datasetAlterations);
       } else if (alteration.expressionAlterations) {
-        var exAlt = (datum[key] as Expression).applyReadyExternals(alteration.expressionAlterations);
+        let exAlt = (datum[key] as Expression).applyReadyExternals(alteration.expressionAlterations);
         if (exAlt instanceof ExternalExpression) {
           datum[key] = exAlt.external;
         } else if (exAlt instanceof LiteralExpression) {
@@ -836,9 +836,9 @@ export class Dataset implements Instance<DatasetValue, any> {
       }
     }
 
-    for (datum of data) {
-      for (var key in datum) {
-        var v = datum[key];
+    for (let datum of data) {
+      for (let key in datum) {
+        let v = datum[key];
         if (v instanceof Expression) {
           datum[key] = v.resolve(datum).simplify();
         }
@@ -851,31 +851,31 @@ export class Dataset implements Instance<DatasetValue, any> {
   public join(other: Dataset): Dataset {
     if (!other) return this;
 
-    var thisKey = this.keys[0]; // ToDo: temp fix
+    let thisKey = this.keys[0]; // ToDo: temp fix
     if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
-    var otherKey = other.keys[0]; // ToDo: temp fix
+    let otherKey = other.keys[0]; // ToDo: temp fix
     if (!otherKey) throw new Error('join rhs must have a key (be a product of a split)');
 
-    var thisData = this.data;
-    var otherData = other.data;
-    var k: string;
+    let thisData = this.data;
+    let otherData = other.data;
+    let k: string;
 
-    var mapping: Lookup<Datum[]> = Object.create(null);
-    for (var i = 0; i < thisData.length; i++) {
+    let mapping: Lookup<Datum[]> = Object.create(null);
+    for (let i = 0; i < thisData.length; i++) {
       let datum = thisData[i];
       k = String(thisKey ? datum[thisKey] : i);
       mapping[k] = [datum];
     }
-    for (var i = 0; i < otherData.length; i++) {
+    for (let i = 0; i < otherData.length; i++) {
       let datum = otherData[i];
       k = String(otherKey ? datum[otherKey] : i);
       if (!mapping[k]) mapping[k] = [];
       mapping[k].push(datum);
     }
 
-    var newData: Datum[] = [];
-    for (var j in mapping) {
-      var datums = mapping[j];
+    let newData: Datum[] = [];
+    for (let j in mapping) {
+      let datums = mapping[j];
       if (datums.length === 1) {
         newData.push(datums[0]);
       } else {
@@ -890,17 +890,17 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public getNestedColumns(): Column[] {
-    var nestedColumns: Column[] = [];
-    var attributes = this.attributes;
+    let nestedColumns: Column[] = [];
+    let attributes = this.attributes;
 
-    var subDatasetAdded = false;
-    for (var attribute of attributes) {
-      var column: Column = {
+    let subDatasetAdded = false;
+    for (let attribute of attributes) {
+      let column: Column = {
         name: attribute.name,
         type: attribute.type
       };
       if (attribute.type === 'DATASET') {
-        var subDataset = this.data[0][attribute.name]; // ToDo: fix this!
+        let subDataset = this.data[0][attribute.name]; // ToDo: fix this!
         if (!subDatasetAdded && Dataset.isDataset(subDataset)) {
           subDatasetAdded = true;
           column.columns = subDataset.getNestedColumns();
@@ -915,29 +915,29 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public getColumns(options: FlattenOptions = {}): Column[] {
-    var prefixColumns = options.prefixColumns;
+    let prefixColumns = options.prefixColumns;
     return flattenColumns(this.getNestedColumns(), prefixColumns);
   }
 
   private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, parentName: string, nesting: number, context: Datum, flat: PseudoDatum[]): void {
-    var nestedColumnsLength = nestedColumns.length;
+    let nestedColumnsLength = nestedColumns.length;
     if (!nestedColumnsLength) return;
 
-    var data = this.data;
-    var datasetColumn = nestedColumns.filter((nestedColumn) => nestedColumn.type === 'DATASET')[0];
+    let data = this.data;
+    let datasetColumn = nestedColumns.filter((nestedColumn) => nestedColumn.type === 'DATASET')[0];
     for (let datum of data) {
-      var flatDatum: PseudoDatum = context ? copy(context) : {};
+      let flatDatum: PseudoDatum = context ? copy(context) : {};
       if (nestingName) flatDatum[nestingName] = nesting;
       if (parentName) flatDatum[parentName] = context;
 
       for (let flattenedColumn of nestedColumns) {
         if (flattenedColumn.type === 'DATASET') continue;
-        var flatName = (prefix !== null ? prefix : '') + flattenedColumn.name;
+        let flatName = (prefix !== null ? prefix : '') + flattenedColumn.name;
         flatDatum[flatName] = datum[flattenedColumn.name];
       }
 
       if (datasetColumn) {
-        var nextPrefix: string = null;
+        let nextPrefix: string = null;
         if (prefix !== null) nextPrefix = prefix + datasetColumn.name + '.';
 
         if (order === 'preorder') flat.push(flatDatum);
@@ -950,12 +950,12 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public flatten(options: FlattenOptions = {}): PseudoDatum[] {
-    var prefixColumns = options.prefixColumns;
-    var order = options.order; // preorder, inline [default], postorder
-    var nestingName = options.nestingName;
-    var parentName = options.parentName;
-    var nestedColumns = this.getNestedColumns();
-    var flatData: PseudoDatum[] = [];
+    let prefixColumns = options.prefixColumns;
+    let order = options.order; // preorder, inline [default], postorder
+    let nestingName = options.nestingName;
+    let parentName = options.parentName;
+    let nestedColumns = this.getNestedColumns();
+    let flatData: PseudoDatum[] = [];
     if (nestedColumns.length) {
       this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, parentName, 0, null, flatData);
     }
@@ -963,25 +963,25 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public toTabular(tabulatorOptions: TabulatorOptions): string {
-    var formatter: Formatter = tabulatorOptions.formatter || {};
-    var finalizer: (v: string) => string = tabulatorOptions.finalizer;
-    var data = this.flatten(tabulatorOptions);
-    var columns = this.getColumns(tabulatorOptions);
+    let formatter: Formatter = tabulatorOptions.formatter || {};
+    let finalizer: (v: string) => string = tabulatorOptions.finalizer;
+    let data = this.flatten(tabulatorOptions);
+    let columns = this.getColumns(tabulatorOptions);
 
-    var lines: string[] = [];
+    let lines: string[] = [];
     lines.push(columns.map(c => c.name).join(tabulatorOptions.separator || ','));
 
-    for (var i = 0; i < data.length; i++) {
-      var datum = data[i];
+    for (let i = 0; i < data.length; i++) {
+      let datum = data[i];
       lines.push(columns.map(c => {
-        var value = datum[c.name];
-        var formatted = String((formatter[c.type] || defaultFormatter[c.type])(value));
-        var finalized = formatted && finalizer ? finalizer(formatted) : formatted;
+        let value = datum[c.name];
+        let formatted = String((formatter[c.type] || defaultFormatter[c.type])(value));
+        let finalized = formatted && finalizer ? finalizer(formatted) : formatted;
         return finalized;
       }).join(tabulatorOptions.separator || ','));
     }
 
-    var lineBreak = tabulatorOptions.lineBreak || '\n';
+    let lineBreak = tabulatorOptions.lineBreak || '\n';
     return lines.join(lineBreak) + (tabulatorOptions.finalLineBreak === 'include' && lines.length > 0 ? lineBreak : '');
   }
 

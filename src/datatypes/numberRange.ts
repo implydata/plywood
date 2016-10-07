@@ -34,7 +34,7 @@ function finiteOrNull(n: number): number {
   return (isNaN(n) || isFinite(n)) ? n : null;
 }
 
-var check: Class<NumberRangeValue, NumberRangeJS>;
+let check: Class<NumberRangeValue, NumberRangeJS>;
 export class NumberRange extends Range<number> implements Instance<NumberRangeValue, NumberRangeJS> {
   static type = 'NUMBER_RANGE';
 
@@ -43,7 +43,7 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
   }
 
   static numberBucket(num: number, size: number, offset: number): NumberRange {
-    var start = Math.floor((num - offset) / size) * size + offset;
+    let start = Math.floor((num - offset) / size) * size + offset;
     return new NumberRange({
       start: start,
       end: start + size,
@@ -59,8 +59,8 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
     if (typeof parameters !== "object") {
       throw new Error("unrecognizable numberRange");
     }
-    var start = parameters.start;
-    var end = parameters.end;
+    let start = parameters.start;
+    let end = parameters.end;
     return new NumberRange({
       start: start === null ? null : finiteOrNull(Number(start)),
       end: end === null ? null : finiteOrNull(Number(end)),
@@ -84,7 +84,7 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
   }
 
   public toJS(): NumberRangeJS {
-    var js: NumberRangeJS = {
+    let js: NumberRangeJS = {
       start: this.start,
       end: this.end
     };

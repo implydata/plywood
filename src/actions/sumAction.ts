@@ -38,20 +38,20 @@ export class SumAction extends AggregateAction {
   }
 
   public canDistribute(): boolean {
-    var expression = this.expression;
+    let expression = this.expression;
     return expression instanceof LiteralExpression ||
       Boolean(expression.getExpressionPattern('add') || expression.getExpressionPattern('subtract'));
   }
 
   public distribute(preEx: Expression): Expression {
-    var expression = this.expression;
+    let expression = this.expression;
     if (expression instanceof LiteralExpression) {
-      var value = expression.value;
+      let value = expression.value;
       if (value === 0) return Expression.ZERO;
       return expression.multiply(preEx.count()).simplify();
     }
 
-    var pattern: Expression[];
+    let pattern: Expression[];
     if (pattern = expression.getExpressionPattern('add')) {
       return Expression.add(pattern.map(ex => preEx.sum(ex).distribute()));
     }

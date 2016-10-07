@@ -44,12 +44,12 @@ function arrayFromJS(xs: Array<any>, setType: string): Array<any> {
 }
 
 function unifyElements(elements: Array<PlywoodRange>): Array<PlywoodRange> {
-  var newElements: Lookup<PlywoodRange> = Object.create(null);
-  for (var accumulator of elements) {
-    var newElementsKeys = Object.keys(newElements);
+  let newElements: Lookup<PlywoodRange> = Object.create(null);
+  for (let accumulator of elements) {
+    let newElementsKeys = Object.keys(newElements);
     for (let newElementsKey of newElementsKeys) {
-      var newElement = newElements[newElementsKey];
-      var unionElement = accumulator.union(newElement);
+      let newElement = newElements[newElementsKey];
+      let unionElement = accumulator.union(newElement);
       if (unionElement) {
         accumulator = unionElement;
         delete newElements[newElementsKey];
@@ -61,23 +61,23 @@ function unifyElements(elements: Array<PlywoodRange>): Array<PlywoodRange> {
 }
 
 function intersectElements(elements1: Array<PlywoodRange>, elements2: Array<PlywoodRange>): Array<PlywoodRange> {
-  var newElements: Array<PlywoodRange> = [];
-  for (var element1 of elements1) {
-    for (var element2 of elements2) {
-      var intersect = element1.intersect(element2);
+  let newElements: Array<PlywoodRange> = [];
+  for (let element1 of elements1) {
+    for (let element2 of elements2) {
+      let intersect = element1.intersect(element2);
       if (intersect) newElements.push(intersect);
     }
   }
   return newElements;
 }
 
-var typeUpgrades: Lookup<string> = {
+let typeUpgrades: Lookup<string> = {
   'NUMBER': 'NUMBER_RANGE',
   'TIME': 'TIME_RANGE',
   'STRING': 'STRING_RANGE'
 };
 
-var check: Class<SetValue, SetJS>;
+let check: Class<SetValue, SetJS>;
 export class Set implements Instance<SetValue, SetJS> {
   static type = 'SET';
   static EMPTY: Set;
@@ -87,16 +87,16 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   static convertToSet(thing: any): Set {
-    var thingType = getValueType(thing);
+    let thingType = getValueType(thing);
     if (isSetType(thingType)) return thing;
     return Set.fromJS({ setType: thingType, elements: [thing] });
   }
 
   static generalUnion(a: any, b: any): any {
-    var aSet = Set.convertToSet(a);
-    var bSet = Set.convertToSet(b);
-    var aSetType = aSet.setType;
-    var bSetType = bSet.setType;
+    let aSet = Set.convertToSet(a);
+    let bSet = Set.convertToSet(b);
+    let aSetType = aSet.setType;
+    let bSetType = bSet.setType;
 
     if (typeUpgrades[aSetType] === bSetType) {
       aSet = aSet.upgradeType();
@@ -110,10 +110,10 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   static generalIntersect(a: any, b: any): any {
-    var aSet = Set.convertToSet(a);
-    var bSet = Set.convertToSet(b);
-    var aSetType = aSet.setType;
-    var bSetType = bSet.setType;
+    let aSet = Set.convertToSet(a);
+    let bSet = Set.convertToSet(b);
+    let aSetType = aSet.setType;
+    let bSetType = bSet.setType;
 
     if (typeUpgrades[aSetType] === bSetType) {
       aSet = aSet.upgradeType();
@@ -135,8 +135,8 @@ export class Set implements Instance<SetValue, SetJS> {
     if (typeof parameters !== "object") {
       throw new Error("unrecognizable set");
     }
-    var setType = parameters.setType;
-    var elements = parameters.elements;
+    let setType = parameters.setType;
+    let elements = parameters.elements;
     if (!setType) {
       setType = getValueType(elements.length ? elements[0] : null);
     }
@@ -153,17 +153,17 @@ export class Set implements Instance<SetValue, SetJS> {
   private hash: Lookup<any>;
 
   constructor(parameters: SetValue) {
-    var setType = parameters.setType;
+    let setType = parameters.setType;
     this.setType = setType;
-    var keyFn = setType === 'TIME' ? dateString : String;
+    let keyFn = setType === 'TIME' ? dateString : String;
     this.keyFn = keyFn;
 
-    var elements = parameters.elements;
-    var newElements: any[] = null;
-    var hash: Lookup<any> = Object.create(null);
-    for (var i = 0; i < elements.length; i++) {
-      var element = elements[i];
-      var key = keyFn(element);
+    let elements = parameters.elements;
+    let newElements: any[] = null;
+    let hash: Lookup<any> = Object.create(null);
+    for (let i = 0; i < elements.length; i++) {
+      let element = elements[i];
+      let key = keyFn(element);
       if (hash[key]) {
         if (!newElements) newElements = elements.slice(0, i);
       } else {
@@ -226,8 +226,8 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   public simplify(): any {
-    var simpleSet = this.downgradeType();
-    var simpleSetElements = simpleSet.elements;
+    let simpleSet = this.downgradeType();
+    let simpleSetElements = simpleSet.elements;
     return simpleSetElements.length === 1 ? simpleSetElements[0] : simpleSet;
   }
 
@@ -258,8 +258,8 @@ export class Set implements Instance<SetValue, SetJS> {
 
   public downgradeType(): Set {
     if (this.setType === 'NUMBER_RANGE' || this.setType === 'TIME_RANGE' || this.setType === 'STRING_RANGE') {
-      var elements = this.elements;
-      var simpleElements: any[] = [];
+      let elements = this.elements;
+      let simpleElements: any[] = [];
       for (let element of elements) {
         if (element.degenerate()) {
           simpleElements.push(element.start);
@@ -274,14 +274,14 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   public extent(): PlywoodRange {
-    var setType = this.setType;
+    let setType = this.setType;
     if (hasOwnProperty(typeUpgrades, setType)) {
       return this.upgradeType().extent();
     }
     if (setType !== 'NUMBER_RANGE' && setType !== 'TIME_RANGE' && setType !== 'STRING_RANGE') return null;
-    var elements = this.elements;
-    var extent: PlywoodRange = elements[0] || null;
-    for (var i = 1; i < elements.length; i++) {
+    let elements = this.elements;
+    let extent: PlywoodRange = elements[0] || null;
+    for (let i = 1; i < elements.length; i++) {
       extent = extent.extend(elements[i]);
     }
     return extent;
@@ -295,10 +295,10 @@ export class Set implements Instance<SetValue, SetJS> {
       throw new TypeError("can not union sets of different types");
     }
 
-    var newElements: Array<any> = this.elements.slice();
+    let newElements: Array<any> = this.elements.slice();
 
-    var otherElements = other.elements;
-    for (var el of otherElements) {
+    let otherElements = other.elements;
+    for (let el of otherElements) {
       if (this.contains(el)) continue;
       newElements.push(el);
     }
@@ -312,19 +312,19 @@ export class Set implements Instance<SetValue, SetJS> {
   public intersect(other: Set): Set {
     if (this.empty() || other.empty()) return Set.EMPTY;
 
-    var setType = this.setType;
+    let setType = this.setType;
     if (this.setType !== other.setType) {
       throw new TypeError("can not intersect sets of different types");
     }
 
-    var thisElements = this.elements;
-    var newElements: Array<any>;
+    let thisElements = this.elements;
+    let newElements: Array<any>;
     if (setType === 'NUMBER_RANGE' || setType === 'TIME_RANGE' || setType === 'STRING_RANGE') {
-      var otherElements = other.elements;
+      let otherElements = other.elements;
       newElements = intersectElements(thisElements, otherElements);
     } else {
       newElements = [];
-      for (var el of thisElements) {
+      for (let el of thisElements) {
         if (!other.contains(el)) continue;
         newElements.push(el);
       }
@@ -343,8 +343,8 @@ export class Set implements Instance<SetValue, SetJS> {
       throw new TypeError("can determine overlap sets of different types");
     }
 
-    var thisElements = this.elements;
-    for (var el of thisElements) {
+    let thisElements = this.elements;
+    for (let el of thisElements) {
       if (!other.contains(el)) continue;
       return true;
     }
@@ -365,8 +365,8 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   public containsWithin(value: any): boolean {
-    var elements = this.elements;
-    for (var k in elements) {
+    let elements = this.elements;
+    for (let k in elements) {
       if (!hasOwnProperty(elements, k)) continue;
       if ((<NumberRange>elements[k]).contains(value)) return true;
     }
@@ -374,8 +374,8 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   public add(value: any): Set {
-    var setType = this.setType;
-    var valueType = getValueType(value);
+    let setType = this.setType;
+    let valueType = getValueType(value);
     if (setType === 'NULL') setType = valueType;
     if (valueType !== 'NULL' && setType !== valueType) throw new Error('value type must match');
 
@@ -388,8 +388,8 @@ export class Set implements Instance<SetValue, SetJS> {
 
   public remove(value: any): Set {
     if (!this.contains(value)) return this;
-    var keyFn = this.keyFn;
-    var key = keyFn(value);
+    let keyFn = this.keyFn;
+    let key = keyFn(value);
     return new Set({
       setType: this.setType, // There must be a set type since at least the value is there
       elements: this.elements.filter(element => keyFn(element) !== key)

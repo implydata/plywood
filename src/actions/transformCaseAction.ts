@@ -25,7 +25,7 @@ export class TransformCaseAction extends Action {
   static LOWER_CASE = 'lowerCase';
 
   static fromJS(parameters: ActionJS): TransformCaseAction {
-    var value = Action.jsToValue(parameters);
+    let value = Action.jsToValue(parameters);
     value.transformType = parameters.transformType;
     return new TransformCaseAction(value);
   }
@@ -34,7 +34,7 @@ export class TransformCaseAction extends Action {
 
   constructor(parameters: ActionValue) {
     super(parameters, dummyObject);
-    var transformType = parameters.transformType;
+    let transformType = parameters.transformType;
     if (transformType !== TransformCaseAction.UPPER_CASE && transformType !== TransformCaseAction.LOWER_CASE) {
       throw new Error(`Must supply transform type of '${TransformCaseAction.UPPER_CASE}' or '${TransformCaseAction.LOWER_CASE}'`);
     }
@@ -43,13 +43,13 @@ export class TransformCaseAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.transformType = this.transformType;
     return value;
   }
 
   public toJS(): ActionJS {
-    var js = super.toJS();
+    let js = super.toJS();
     js.transformType = this.transformType;
     return js;
   }

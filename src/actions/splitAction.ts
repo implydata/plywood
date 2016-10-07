@@ -27,10 +27,10 @@ import { isSetType } from '../datatypes/common';
 
 export class SplitAction extends Action {
   static fromJS(parameters: ActionJS): SplitAction {
-    var value: ActionValue = {
+    let value: ActionValue = {
       action: parameters.action
     };
-    var splits: SplitsJS;
+    let splits: SplitsJS;
     if (parameters.expression && parameters.name) {
       splits = { [parameters.name]: parameters.expression };
     } else {
@@ -47,7 +47,7 @@ export class SplitAction extends Action {
 
   constructor(parameters: ActionValue) {
     super(parameters, dummyObject);
-    var splits = parameters.splits;
+    let splits = parameters.splits;
     if (!splits) throw new Error('must have splits');
     this.splits = splits;
     this.keys = Object.keys(splits).sort();
@@ -57,20 +57,20 @@ export class SplitAction extends Action {
   }
 
   public valueOf(): ActionValue {
-    var value = super.valueOf();
+    let value = super.valueOf();
     value.splits = this.splits;
     value.dataName = this.dataName;
     return value;
   }
 
   public toJS(): ActionJS {
-    var { splits } = this;
+    let { splits } = this;
 
-    var js = super.toJS();
+    let js = super.toJS();
     if (this.isMultiSplit()) {
       js.splits = Expression.expressionLookupToJS(splits);
     } else {
-      for (var name in splits) {
+      for (let name in splits) {
         js.name = name;
         js.expression = splits[name].toJS();
       }
@@ -87,9 +87,9 @@ export class SplitAction extends Action {
 
   protected _toStringParameters(expressionString: string): string[] {
     if (this.isMultiSplit()) {
-      var { splits } = this;
-      var splitStrings: string[] = [];
-      for (var name in splits) {
+      let { splits } = this;
+      let splitStrings: string[] = [];
+      for (let name in splits) {
         splitStrings.push(`${name}: ${splits[name]}`);
       }
       return [splitStrings.join(', '), this.dataName];
@@ -108,9 +108,9 @@ export class SplitAction extends Action {
   }
 
   public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-    var newDatasetType: Lookup<FullType> = {};
+    let newDatasetType: Lookup<FullType> = {};
     this.mapSplits((name, expression) => {
-      var fullType = expression._fillRefSubstitutions(typeContext, indexer, alterations) as SimpleFullType;
+      let fullType = expression._fillRefSubstitutions(typeContext, indexer, alterations) as SimpleFullType;
       newDatasetType[name] = {
         type: unwrapSetType(fullType.type)
       } as any;
@@ -126,16 +126,16 @@ export class SplitAction extends Action {
   }
 
   public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-    var { dataName } = this;
-    var splitFns = this.mapSplitExpressions((ex) => ex.getFn());
+    let { dataName } = this;
+    let splitFns = this.mapSplitExpressions((ex) => ex.getFn());
     return (d: Datum, c: Datum) => {
-      var inV = inputFn(d, c);
+      let inV = inputFn(d, c);
       return inV ? inV.split(splitFns, dataName) : null;
     };
   }
 
   public getSQL(inputType: PlyType, inputSQL: string, dialect: SQLDialect): string {
-    var groupBys = this.mapSplits((name, expression) => expression.getSQL(dialect));
+    let groupBys = this.mapSplits((name, expression) => expression.getSQL(dialect));
     return `GROUP BY ${groupBys.join(', ')}`;
   }
 
@@ -148,7 +148,7 @@ export class SplitAction extends Action {
   }
 
   public expressionCount(): int {
-    var count = 0;
+    let count = 0;
     this.mapSplits((k, expression) => {
       count += expression.expressionCount();
     });
@@ -162,9 +162,9 @@ export class SplitAction extends Action {
   public simplify(): Action {
     if (this.simple) return this;
 
-    var simpleSplits = this.mapSplitExpressions((ex) => ex.simplify());
+    let simpleSplits = this.mapSplitExpressions((ex) => ex.simplify());
 
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.splits = simpleSplits;
     value.simple = true;
     return new SplitAction(value);
@@ -175,15 +175,15 @@ export class SplitAction extends Action {
   }
 
   public _substituteHelper(substitutionFn: SubstitutionFn, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): Action {
-    var nestDiffNext = nestDiff + 1;
-    var hasChanged = false;
-    var subSplits = this.mapSplitExpressions((ex) => {
-      var subExpression = ex._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiffNext);
+    let nestDiffNext = nestDiff + 1;
+    let hasChanged = false;
+    let subSplits = this.mapSplitExpressions((ex) => {
+      let subExpression = ex._substituteHelper(substitutionFn, thisArg, indexer, depth, nestDiffNext);
       if (subExpression !== ex) hasChanged = true;
       return subExpression;
     });
     if (!hasChanged) return this;
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.splits = subSplits;
     return new SplitAction(value);
   }
@@ -201,36 +201,36 @@ export class SplitAction extends Action {
   }
 
   public mapSplits<T>(fn: (name: string, expression?: Expression) => T): T[] {
-    var { splits, keys } = this;
-    var res: T[] = [];
-    for (var k of keys) {
-      var v = fn(k, splits[k]);
+    let { splits, keys } = this;
+    let res: T[] = [];
+    for (let k of keys) {
+      let v = fn(k, splits[k]);
       if (typeof v !== 'undefined') res.push(v);
     }
     return res;
   }
 
   public mapSplitExpressions<T>(fn: (expression: Expression, name?: string) => T): Lookup<T> {
-    var { splits, keys } = this;
-    var ret: Lookup<T> = Object.create(null);
-    for (var key of keys) {
+    let { splits, keys } = this;
+    let ret: Lookup<T> = Object.create(null);
+    for (let key of keys) {
       ret[key] = fn(splits[key], key);
     }
     return ret;
   }
 
   public transformExpressions(fn: (expression: Expression, name?: string) => Expression): SplitAction {
-    var { splits, keys } = this;
-    var newSplits: Lookup<Expression> = Object.create(null);
-    var changed = false;
-    for (var key of keys) {
-      var ex = splits[key];
-      var transformed = fn(ex, key);
+    let { splits, keys } = this;
+    let newSplits: Lookup<Expression> = Object.create(null);
+    let changed = false;
+    for (let key of keys) {
+      let ex = splits[key];
+      let transformed = fn(ex, key);
       if (transformed !== ex) changed = true;
       newSplits[key] = transformed;
     }
     if (!changed) return this;
-    var value = this.valueOf();
+    let value = this.valueOf();
     value.splits = newSplits;
     return new SplitAction(value);
   }
@@ -258,18 +258,18 @@ export class SplitAction extends Action {
   }
 
   public isLinear(): boolean {
-    var { splits, keys } = this;
-    for (var k of keys) {
-      var split = splits[k];
+    let { splits, keys } = this;
+    for (let k of keys) {
+      let split = splits[k];
       if (isSetType(split.type)) return false;
     }
     return true;
   }
 
   public maxBucketNumber(): number {
-    var { splits, keys } = this;
-    var num = 1;
-    for (var key of keys) {
+    let { splits, keys } = this;
+    let num = 1;
+    for (let key of keys) {
       num *= splits[key].maxPossibleSplitValues();
     }
     return num;
@@ -282,9 +282,9 @@ export class SplitAction extends Action {
   protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
     //if (!expression.resolved()) return null;
     if (literalExpression.value === null) return Expression.NULL;
-    var dataset = literalExpression.value;
+    let dataset = literalExpression.value;
 
-    var splitFns = this.mapSplitExpressions((ex) => ex.getFn());
+    let splitFns = this.mapSplitExpressions((ex) => ex.getFn());
     dataset = dataset.split(splitFns, this.dataName, null);
 
     return r(dataset);
