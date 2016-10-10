@@ -1,0 +1,3 @@
+#!/bin/bash -eu
+
+node_modules/.bin/imonit --name "plywood-pagjs" --exec "./compile-pegjs"
