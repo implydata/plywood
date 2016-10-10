@@ -845,7 +845,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       }
     }
 
-    return this; // hack, in place for now
+    return this; // Hack; in place for now
   }
 
   public join(other: Dataset): Dataset {

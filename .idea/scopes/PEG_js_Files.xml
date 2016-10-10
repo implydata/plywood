@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="PEG.js Files" pattern="file[plywood]:src//**/*.pegjs" />
+</component>
