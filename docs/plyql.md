@@ -7,8 +7,9 @@ PlyQL only supports `SELECT`, `DESCRIBE`, and `SHOW TABLES` queries as plywood's
 ## Examples
 
 For these examples we are querying a Druid broker node hosted on a docker machine with ip `192.168.60.100` at port `8082`.
+
 We pass this address (`192.168.60.100:8082`) to the `--host` (`-h`) option.
-A full list of CLI options is documented on the [Github page] (https://github.com/implydata/plyql)
+
 To start, we can issue a `SHOW TABLES` query for the list of data sources, which we pass in to the  `--query` (`-q`) option.
 
 ```sql
