@@ -74,6 +74,7 @@ describe("Action", () => {
       { action: 'average', expression: { op: 'ref', name: 'myVar' } },
       { action: 'countDistinct', expression: { op: 'ref', name: 'myVar' } },
       { action: 'quantile', expression: { op: 'ref', name: 'myVar' }, quantile: 0.5 },
+      { action: 'collect', expression: { op: 'ref', name: 'myVar' } },
       { action: 'cast', outputType: 'TIME' },
       { action: 'cast', outputType: 'NUMBER' },
 

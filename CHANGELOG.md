@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.13.2
+
+- Added collect action
+
 ## 0.13.1
 
 - More efficient query parallelisation

@@ -16,7 +16,9 @@ Let's assume that you are adding an action called `foo bar`
   * Ensure you implement a `class FooBarAction` that has the *action* type of `"fooBar"`  
   * Ensure that any special properties are added to `ActionValue` and `ActionJS` interfaces in [baseAction.ts](src/actions/baseAction.ts)
 
-1. Add a immutable class test of to [actions.ts](test/overall/actions.ts). Something that looks like `{ action: 'fooBar', ... }`. Ensure it works.
+1. Add a immutable class test of to [action.js](test/actions/action.mocha.js).
+   Something that looks like `{ action: 'fooBar', ... }`.
+   Ensure it works.
 
 1. Add a `public fooBar(...): ChainExpression` to [baseExpression.ts](src/expressions/baseExpression.ts) that allows for
    the creation of this action via the JS API.
@@ -29,7 +31,7 @@ Let's assume that you are adding an action called `foo bar`
 1. Add a test that ensures the native computation of this function is adequate.
    You probably want to add that test to [compute.mocha.js](test/overall/compute.mocha.js).
     
-1. Add a test that ensures the correct parsing of this function by the expression parser.    
+1. Add a test that ensures the correct parsing of this function by the expression parser.
    You probably want to add that test to [expressionParser.mocha.js](test/overall/expressionParser.mocha.js).
 
 1. Think about any special conditions under which this action can be simplified and add the adequate simplification

@@ -23,6 +23,7 @@
       <w>noop</w>
       <w>nullable</w>
       <w>olap</w>
+      <w>parallelisation</w>
       <w>parsable</w>
       <w>parter</w>
       <w>pegjs</w>

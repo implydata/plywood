@@ -88,7 +88,7 @@ describe("Set", () => {
 
 
   describe("dedupes", () => {
-    it("does not die with hasOwnProperty", () => {
+    it("works with a SET/STRING", () => {
       expect(Set.fromJS(['A', 'A', 'B', 'B']).toJS()).to.deep.equal({
         "elements": [
           "A",

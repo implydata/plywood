@@ -717,6 +717,17 @@ Does not expect the input data to be sorted.
 
 Note that the 0.5 quantile is also known as the median.
 
+
+*operand*.**collect**(ex: any)
+
+Computes the set of values in a certain column
+
+```javascript
+var ex = $('data').collect($('cut'));
+ex.compute({ data: someDataset }).then(console.log); // => Set('Good', 'Great', 'Wow')
+```
+
+
 *operand*.**customAggregate**(custom: string)
 
 Computes the custom of the given expression in the operand dataset
