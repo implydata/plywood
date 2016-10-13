@@ -33,6 +33,7 @@ import {
   AverageAction,
   CardinalityAction,
   CastAction,
+  CollectAction,
   ContainsAction,
   CountAction,
   CountDistinctAction,
@@ -1330,6 +1331,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public quantile(ex: any, quantile: number): ChainExpression {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
     return this.performAction(new QuantileAction({ expression: ex, quantile: getNumber(quantile) }));
+  }
+
+  public collect(ex: any): ChainExpression {
+    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    return this.performAction(new CollectAction({ expression: ex }));
   }
 
   public custom(custom: string): ChainExpression {

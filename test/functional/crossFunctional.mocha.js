@@ -530,6 +530,21 @@ describe("Cross Functional", function() {
         .apply('TotalEdits', '$wiki.sum($count)')
     }));
 
+    it('works with plain split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+    }));
+
+    it('works with plain with limit split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+        .limit(10000)
+    }));
+
     it('works with BOOLEAN split (native)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki').split('$isNew', 'IsNew')

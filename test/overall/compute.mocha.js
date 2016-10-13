@@ -812,6 +812,61 @@ describe("compute native", () => {
       });
   });
 
+  it.only("works with collect applies", () => {
+    var ds = Dataset.fromJS([
+      { cut: "Good", color: "A" },
+      { cut: "Good", color: "A" },
+      { cut: "Good", color: "B" },
+      { cut: "Great", color: "B" },
+      { cut: "Great", color: "C" },
+      { cut: "Great", color: "D" },
+      { cut: "Amaze", color: "D" },
+    ]);
+
+    var ex = ply(ds)
+      .split('$cut', 'Cut', 'data')
+      .apply('colors', '$data.collect($color)');
+
+    return ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "Cut": "Good",
+            "colors": {
+              "elements": [
+                "A",
+                "B"
+              ],
+              "setType": "STRING",
+              "type": "SET"
+            }
+          },
+          {
+            "Cut": "Great",
+            "colors": {
+              "elements": [
+                "B",
+                "C",
+                "D"
+              ],
+              "setType": "STRING",
+              "type": "SET"
+            }
+          },
+          {
+            "Cut": "Amaze",
+            "colors": {
+              "elements": [
+                "D"
+              ],
+              "setType": "STRING",
+              "type": "SET"
+            }
+          }
+        ]);
+      });
+  });
+
   it("works with quantiles", () => {
     // Test data comes from: https://en.wikipedia.org/wiki/Quantile (order changed to not be sorted)
     var quantileData = [

@@ -679,6 +679,10 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
   }
 
+  public collect(exFn: ComputeFn, context: Datum): Set {
+    return Set.fromJS(this.data.map((datum) => exFn(datum, context)));
+  }
+
   public split(splitFns: SplitFns, datasetName: string, context: Datum): Dataset {
     let { data, attributes } = this;
 

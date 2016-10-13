@@ -22,6 +22,7 @@ export * from './applyAction';
 export * from './averageAction';
 export * from './cardinalityAction';
 export * from './castAction';
+export * from './collectAction';
 export * from './concatAction';
 export * from './containsAction';
 export * from './countAction';
