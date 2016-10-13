@@ -848,9 +848,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
           let action = actions[i];
           if (actionMatchFn.call(this, action)) {
             let newEx = actionSubstitutionFn.call(this, ex.headActions(i), action);
-            for (let j = i + 1; j < actions.length; j++) newEx = newEx.performAction(actions[j]);
-            if (options.onceInChain) return newEx;
-            return newEx.substituteAction(actionMatchFn, actionSubstitutionFn, options, this);
+            if (newEx) {
+              for (let j = i + 1; j < actions.length; j++) newEx = newEx.performAction(actions[j]);
+              if (options.onceInChain) return newEx;
+              return newEx.substituteAction(actionMatchFn, actionSubstitutionFn, options, this);
+            }
           }
         }
       }

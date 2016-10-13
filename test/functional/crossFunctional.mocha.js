@@ -510,6 +510,15 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
+    it('works with sub-query filter', equalityTest({
+      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      expression: $('wiki').filter('$commentLength > $wiki.average($commentLength)')
+        .split('$channel', 'Channel')
+        .apply('Count', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
   });
 
 
