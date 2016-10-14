@@ -56,6 +56,93 @@ describe("compute native", () => {
       });
   });
 
+  it("works in nested case", () => {
+    var ex = ply()
+      .apply('TotalPrice', '$data.sum($price)')
+      .apply('ByCut',
+        $('data').split('$cut', 'Cut')
+          .apply('SumPrice', '$data.sum($price)')
+          .apply('PriceOfTotal', '$SumPrice / $TotalPrice')
+          .sort('$SumPrice', 'descending')
+          .apply('ByTags',
+            $('data').split('$tags', 'Tag')
+              .apply('SumPrice', '$data.sum($price)')
+              .sort('$Tag', 'ascending')
+          )
+      );
+
+    return ex.compute({ data: Dataset.fromJS(data) })
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "ByCut": [
+              {
+                "ByTags": [
+                  {
+                    "SumPrice": 400,
+                    "Tag": "cool"
+                  },
+                  {
+                    "SumPrice": 700,
+                    "Tag": "super"
+                  }
+                ],
+                "Cut": "Good",
+                "PriceOfTotal": 0.6457564575645757,
+                "SumPrice": 700
+              },
+              {
+                "ByTags": [
+                  {
+                    "SumPrice": 100,
+                    "Tag": null
+                  },
+                  {
+                    "SumPrice": 160,
+                    "Tag": "sweet"
+                  }
+                ],
+                "Cut": "Wow",
+                "PriceOfTotal": 0.23985239852398524,
+                "SumPrice": 260
+              },
+              {
+                "ByTags": [
+                  {
+                    "SumPrice": 124,
+                    "Tag": "cool"
+                  }
+                ],
+                "Cut": "Great",
+                "PriceOfTotal": 0.11439114391143912,
+                "SumPrice": 124
+              },
+              {
+                "ByTags": [
+                  {
+                    "SumPrice": 0,
+                    "Tag": "cool"
+                  },
+                  {
+                    "SumPrice": 0,
+                    "Tag": "super"
+                  },
+                  {
+                    "SumPrice": 0,
+                    "Tag": "sweet"
+                  }
+                ],
+                "Cut": null,
+                "PriceOfTotal": 0,
+                "SumPrice": 0
+              }
+            ],
+            "TotalPrice": 1084
+          }
+        ]);
+      });
+  });
+
   it("gets length of string", () => {
     var ex = ply()
       .apply('length', r('hey').length());
