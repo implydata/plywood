@@ -81,8 +81,8 @@ export class TransformCaseAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     const { transformType } = this;
-    return (d: Datum, c: Datum) => {
-      return transformType === TransformCaseAction.UPPER_CASE ? inputFn(d, c).toLocaleUpperCase() : inputFn(d, c).toLocaleLowerCase();
+    return (d: Datum) => {
+      return transformType === TransformCaseAction.UPPER_CASE ? inputFn(d).toLocaleUpperCase() : inputFn(d).toLocaleLowerCase();
     };
   }
 

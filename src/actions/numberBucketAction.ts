@@ -86,8 +86,8 @@ export class NumberBucketAction extends Action {
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     let size = this.size;
     let offset = this.offset;
-    return (d: Datum, c: Datum) => {
-      let num = inputFn(d, c);
+    return (d: Datum) => {
+      let num = inputFn(d);
       if (num === null) return null;
       return NumberRange.numberBucket(num, size, offset);
     };

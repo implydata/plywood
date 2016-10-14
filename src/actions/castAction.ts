@@ -138,8 +138,8 @@ export class CastAction extends Action {
     let caster = (CAST_TYPE_TO_FN as any)[outputType];
     let castFn = caster[inputType] || caster['UNIVERSAL'];
     if (!castFn) throw new Error(`unsupported cast from ${inputType} to '${outputType}'`);
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (!inV) return null;
       return castFn(inV);
     };

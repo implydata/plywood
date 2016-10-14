@@ -48,8 +48,8 @@ export class PowerAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      return Math.pow((inputFn(d, c) || 0), (expressionFn(d, c) || 0));
+    return (d: Datum) => {
+      return Math.pow((inputFn(d) || 0), (expressionFn(d) || 0));
     };
   }
 
@@ -66,7 +66,7 @@ export class PowerAction extends Action {
   }
 
   protected _performOnRef(simpleExpression: RefExpression): Expression {
-    if (this.expression.equals(Expression.ZERO)) return simpleExpression;
+    if (this.expression.equals(Expression.ZERO)) return Expression.ONE;
     return null;
   }
 

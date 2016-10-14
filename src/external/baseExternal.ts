@@ -1329,7 +1329,7 @@ export abstract class External {
     if (mode !== 'split') throw new Error('must be in split mode to addNextExternal');
     return dataset.apply(dataName, (d: Datum) => {
       return this.getRaw().addFilter(split.filterFromDatum(d));
-    }, 'DATASET', null);
+    }, 'DATASET');
   }
 
   public getDelegate(): External {

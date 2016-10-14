@@ -435,7 +435,7 @@ describe("MySQL Functional", function() {
         .sort('$Count', 'descending')
         .limit(3);
 
-      ex.compute({ wiki: wikiUserCharAsNumber })
+      return ex.compute({ wiki: wikiUserCharAsNumber })
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {

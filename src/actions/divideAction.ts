@@ -48,8 +48,8 @@ export class DivideAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      let v = (inputFn(d, c) || 0) / (expressionFn(d, c) || 0);
+    return (d: Datum) => {
+      let v = (inputFn(d) || 0) / (expressionFn(d) || 0);
       return isNaN(v) ? null : v;
     };
   }

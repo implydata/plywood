@@ -204,7 +204,7 @@ describe("Simplify", () => {
 
     it("removes self if 0", () => {
       var ex1 = $('x').power(0);
-      var ex2 = $('x');
+      var ex2 = r(1);
       simplifiesTo(ex1, ex2);
     });
   });

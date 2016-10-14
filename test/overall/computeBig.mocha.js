@@ -38,12 +38,12 @@ describe("compute native nontrivial data", function() {
 
   var ds = Dataset.fromJS(wikiDayData);
 
-  it("works in simple agg case", (testComplete) => {
+  it("works in simple agg case", () => {
     var ex = ply()
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)');
 
-    ex.compute({ data: ds })
+    return ex.compute({ data: ds })
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
@@ -51,41 +51,35 @@ describe("compute native nontrivial data", function() {
             "SumAdded": 9385573
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("works in with a filter == null", (testComplete) => {
+  it("works in with a filter == null", () => {
     var ex = $('data').filter('$countryName == null').count();
 
-    ex.compute({ data: ds })
+    return ex.compute({ data: ds })
       .then((v) => {
         expect(v).to.equal(35445);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("works in with a filter overlap null", (testComplete) => {
+  it("works in with a filter overlap null", () => {
     var ex = $('data').filter($('countryName').overlap([null])).count();
 
-    ex.compute({ data: ds })
+    return ex.compute({ data: ds })
       .then((v) => {
         expect(v).to.equal(35445);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("works in simple split case (small dimension)", (testComplete) => {
+  it("works in simple split case (small dimension)", () => {
     var ex = $('data').split('$countryName', 'CountryName')
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)')
       .sort('$SumAdded', 'descending')
       .limit(5);
 
-    ex.compute({ data: ds })
+    return ex.compute({ data: ds })
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
@@ -114,19 +108,17 @@ describe("compute native nontrivial data", function() {
             "SumAdded": 41073
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("works in simple split case (large dimension)", (testComplete) => {
+  it("works in simple split case (large dimension)", () => {
     var ex = $('data').split('$page', 'Page')
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)')
       .sort('$SumAdded', 'descending')
       .limit(5);
 
-    ex.compute({ data: ds })
+    return ex.compute({ data: ds })
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
@@ -155,18 +147,16 @@ describe("compute native nontrivial data", function() {
             "SumAdded": 89385
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("works in simple timeBucket case", (testComplete) => {
+  it("works in simple timeBucket case", () => {
     var ex = $('data').split('$time.timeBucket(PT1H, "Asia/Kathmandu")', "Time")// America/Los_Angeles
       .apply('Count', '$data.count()')
       .sort('$Time', 'ascending')
       .limit(2);
 
-    ex.compute({ data: ds })
+    return ex.compute({ data: ds })
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
@@ -186,12 +176,10 @@ describe("compute native nontrivial data", function() {
             }
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("works in with funny aggregates", (testComplete) => {
+  it("works in with funny aggregates", () => {
     var ex = $('data').split('$countryName', 'CountryName')
       .apply('LabelCountry', '"[" ++ $CountryName ++ "]"')
       .apply('Count', '$data.count()')
@@ -205,7 +193,7 @@ describe("compute native nontrivial data", function() {
       .sort('$SumAdded', 'descending')
       .limit(5);
 
-    ex.compute({ data: ds })
+    return ex.compute({ data: ds })
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
@@ -269,8 +257,6 @@ describe("compute native nontrivial data", function() {
             "SumAdded": 41073
           }
         ]);
-        testComplete();
-      })
-      .done();
+      });
   });
 });

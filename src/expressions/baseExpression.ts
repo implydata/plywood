@@ -77,7 +77,7 @@ import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from '../helper/
 import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from '../datatypes/index';
 import { ActionJS, CaseType, Splits } from '../actions/baseAction';
 import { Direction } from '../actions/sortAction';
-import { isSetType, datumHasExternal, getFullTypeFromDatum, introspectDatum } from '../datatypes/common';
+import { isSetType, getFullTypeFromDatum, introspectDatum, failIfIntrospectNeededInDatum } from '../datatypes/common';
 import { ComputeFn } from '../datatypes/dataset';
 import { External, ExternalJS } from '../external/baseExternal';
 
@@ -1559,6 +1559,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param environment The environment for the default of the expression
    */
   public simulate(context: Datum = {}, environment: Environment = {}): PlywoodValue {
+    failIfIntrospectNeededInDatum(context);
+
     let readyExpression = this._initialPrepare(context, environment);
     if (readyExpression instanceof ExternalExpression) {
       // Top level externals need to be unsuppressed
@@ -1575,7 +1577,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param environment The environment for the default of the expression
    */
   public simulateQueryPlan(context: Datum = {}, environment: Environment = {}): any[][] {
-    if (!datumHasExternal(context) && !this.hasExternal()) return [];
+    failIfIntrospectNeededInDatum(context);
 
     let readyExpression = this._initialPrepare(context, environment);
     if (readyExpression instanceof ExternalExpression) {
@@ -1612,14 +1614,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param environment The environment for the default of the expression
    */
   public compute(context: Datum = {}, environment: Environment = {}): Q.Promise<PlywoodValue> {
-    if (!datumHasExternal(context) && !this.hasExternal()) {
-      return Q.fcall(() => {
-        let referenceChecked = this.defineEnvironment(environment).referenceCheck(context);
-        return referenceChecked.getFn()(context, null);
-      });
-    }
-    return introspectDatum(context)
-      .then(introspectedContext => {
+    return Q(null)
+      .then(() => {
+        return introspectDatum(context);
+      })
+      .then((introspectedContext: Datum) => {
         let readyExpression = this._initialPrepare(introspectedContext, environment);
         if (readyExpression instanceof ExternalExpression) {
           // Top level externals need to be unsuppressed

@@ -33,8 +33,8 @@ export class CountAction extends AggregateAction {
   }
 
   public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       return inV ? inV.count() : 0;
     };
   }

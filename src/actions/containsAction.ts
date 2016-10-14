@@ -86,12 +86,12 @@ export class ContainsAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     if (this.compare === ContainsAction.NORMAL) {
-      return (d: Datum, c: Datum) => {
-        return String(inputFn(d, c)).indexOf(expressionFn(d, c)) > -1;
+      return (d: Datum) => {
+        return String(inputFn(d)).indexOf(expressionFn(d)) > -1;
       };
     } else {
-      return (d: Datum, c: Datum) => {
-        return String(inputFn(d, c)).toLowerCase().indexOf(String(expressionFn(d, c)).toLowerCase()) > -1;
+      return (d: Datum) => {
+        return String(inputFn(d)).toLowerCase().indexOf(String(expressionFn(d)).toLowerCase()) > -1;
       };
     }
   }

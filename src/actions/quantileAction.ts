@@ -19,7 +19,7 @@
 import { Action, ActionJS, ActionValue, AggregateAction } from './baseAction';
 import { PlyType } from '../types';
 import { r, Expression, LiteralExpression } from '../expressions/index';
-import { Datum, ComputeFn, foldContext } from '../datatypes/dataset';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 
 export class QuantileAction extends AggregateAction {
   static fromJS(parameters: ActionJS): QuantileAction {
@@ -60,9 +60,9 @@ export class QuantileAction extends AggregateAction {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     let quantile = this.quantile;
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
-      return inV ? inV.quantile(expressionFn, quantile, foldContext(d, c)) : null;
+    return (d: Datum) => {
+      let inV = inputFn(d);
+      return inV ? inV.quantile(expressionFn, quantile) : null;
     };
   }
 

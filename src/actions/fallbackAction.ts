@@ -47,10 +47,10 @@ export class FallbackAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      let val = inputFn(d, c);
+    return (d: Datum) => {
+      let val = inputFn(d);
       if (val === null) {
-        return expressionFn(d, c);
+        return expressionFn(d);
       }
       return val;
     };

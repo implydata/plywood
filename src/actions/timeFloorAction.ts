@@ -95,8 +95,8 @@ export class TimeFloorAction extends Action {
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     let duration = this.duration;
     let timezone = this.getTimezone();
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (inV === null) return null;
       return duration.floor(inV, timezone);
     };

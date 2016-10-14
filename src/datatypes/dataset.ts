@@ -28,16 +28,8 @@ import { valueFromJS, valueToJSInlineType, datumHasExternal } from './common';
 import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression } from '../expressions/index';
 import { External, TotalContainer } from '../external/baseExternal';
 
-export function foldContext(d: Datum, c: Datum): Datum {
-  let newContext = Object.create(c);
-  for (let k in d) {
-    newContext[k] = d[k];
-  }
-  return newContext;
-}
-
 export interface ComputeFn {
-  (d: Datum, c: Datum, index?: number): any;
+  (d: Datum): any;
 }
 
 export interface SplitFns {
@@ -550,7 +542,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     return new Dataset(value);
   }
 
-  public apply(name: string, exFn: ComputeFn, type: PlyType, context: Datum): Dataset {
+  public apply(name: string, exFn: ComputeFn, type: PlyType): Dataset {
     let data = this.data;
     let n = data.length;
     let newData = new Array(n);
@@ -558,7 +550,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       let datum = data[i];
       let newDatum = Object.create(null);
       for (let key in datum) newDatum[key] = datum[key];
-      newDatum[name] = exFn(datum, context, i);
+      newDatum[name] = exFn(datum);
       newData[i] = newDatum;
     }
 
@@ -580,17 +572,17 @@ export class Dataset implements Instance<DatasetValue, any> {
     return new Dataset(value);
   }
 
-  public filter(exFn: ComputeFn, context: Datum): Dataset {
+  public filter(exFn: ComputeFn): Dataset {
     let value = this.valueOf();
-    value.data = value.data.filter(datum => exFn(datum, context));
+    value.data = value.data.filter(datum => exFn(datum));
     return new Dataset(value);
   }
 
-  public sort(exFn: ComputeFn, direction: string, context: Datum): Dataset {
+  public sort(exFn: ComputeFn, direction: string): Dataset {
     let value = this.valueOf();
     let directionFn = directionFns[direction];
     value.data = this.data.sort((a, b) => { // Note: this modifies the original, fix if needed
-      return directionFn(exFn(a, context), exFn(b, context));
+      return directionFn(exFn(a), exFn(b));
     });
     return new Dataset(value);
   }
@@ -608,46 +600,46 @@ export class Dataset implements Instance<DatasetValue, any> {
     return this.data.length;
   }
 
-  public sum(exFn: ComputeFn, context: Datum): number {
+  public sum(exFn: ComputeFn): number {
     let data = this.data;
     let sum = 0;
     for (let datum of data) {
-      sum += exFn(datum, context);
+      sum += exFn(datum);
     }
     return sum;
   }
 
-  public average(exFn: ComputeFn, context: Datum): number {
+  public average(exFn: ComputeFn): number {
     let count = this.count();
-    return count ? (this.sum(exFn, context) / count) : null;
+    return count ? (this.sum(exFn) / count) : null;
   }
 
-  public min(exFn: ComputeFn, context: Datum): number {
+  public min(exFn: ComputeFn): number {
     let data = this.data;
     let min = Infinity;
     for (let datum of data) {
-      let v = exFn(datum, context);
+      let v = exFn(datum);
       if (v < min) min = v;
     }
     return min;
   }
 
-  public max(exFn: ComputeFn, context: Datum): number {
+  public max(exFn: ComputeFn): number {
     let data = this.data;
     let max = -Infinity;
     for (let datum of data) {
-      let v = exFn(datum, context);
+      let v = exFn(datum);
       if (max < v) max = v;
     }
     return max;
   }
 
-  public countDistinct(exFn: ComputeFn, context: Datum): number {
+  public countDistinct(exFn: ComputeFn): number {
     let data = this.data;
     let seen: Lookup<number> = Object.create(null);
     let count = 0;
     for (let datum of data) {
-      let v = exFn(datum, context);
+      let v = exFn(datum);
       if (!seen[v]) {
         seen[v] = 1;
         ++count;
@@ -656,11 +648,11 @@ export class Dataset implements Instance<DatasetValue, any> {
     return count;
   }
 
-  public quantile(exFn: ComputeFn, quantile: number, context: Datum): number {
+  public quantile(exFn: ComputeFn, quantile: number): number {
     let data = this.data;
     let vs: number[] = [];
     for (let datum of data) {
-      let v = exFn(datum, context);
+      let v = exFn(datum);
       if (v != null) vs.push(v);
     }
 
@@ -679,11 +671,11 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
   }
 
-  public collect(exFn: ComputeFn, context: Datum): Set {
-    return Set.fromJS(this.data.map((datum) => exFn(datum, context)));
+  public collect(exFn: ComputeFn): Set {
+    return Set.fromJS(this.data.map(exFn));
   }
 
-  public split(splitFns: SplitFns, datasetName: string, context: Datum): Dataset {
+  public split(splitFns: SplitFns, datasetName: string): Dataset {
     let { data, attributes } = this;
 
     let keys = Object.keys(splitFns);
@@ -711,7 +703,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
 
     for (let datum of data) {
-      let valueList = splitFnList.map(splitFn => splitFn(datum, context));
+      let valueList = splitFnList.map(splitFn => splitFn(datum));
       if (Set.isSet(valueList[0])) {
         if (valueList.length > 1) throw new Error('multi-dimensional set split is not implemented');
         let elements = valueList[0].elements;

@@ -75,8 +75,8 @@ export class LimitAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     let limit = this.limit;
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       return inV ? inV.limit(limit) : null;
     };
   }

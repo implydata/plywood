@@ -56,6 +56,93 @@ describe("compute native", () => {
       });
   });
 
+  it("works in nested case", () => {
+    var ex = ply()
+      .apply('TotalPrice', '$data.sum($price)')
+      .apply('ByCut',
+        $('data').split('$cut', 'Cut')
+          .apply('SumPrice', '$data.sum($price)')
+          .apply('PriceOfTotal', '$SumPrice / $TotalPrice')
+          .sort('$SumPrice', 'descending')
+          .apply('ByTags',
+            $('data').split('$tags', 'Tag')
+              .apply('SumPrice', '$data.sum($price)')
+              .sort('$Tag', 'ascending')
+          )
+      );
+
+    return ex.compute({ data: Dataset.fromJS(data) })
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "ByCut": [
+              {
+                "ByTags": [
+                  {
+                    "SumPrice": 400,
+                    "Tag": "cool"
+                  },
+                  {
+                    "SumPrice": 700,
+                    "Tag": "super"
+                  }
+                ],
+                "Cut": "Good",
+                "PriceOfTotal": 0.6457564575645757,
+                "SumPrice": 700
+              },
+              {
+                "ByTags": [
+                  {
+                    "SumPrice": 100,
+                    "Tag": null
+                  },
+                  {
+                    "SumPrice": 160,
+                    "Tag": "sweet"
+                  }
+                ],
+                "Cut": "Wow",
+                "PriceOfTotal": 0.23985239852398524,
+                "SumPrice": 260
+              },
+              {
+                "ByTags": [
+                  {
+                    "SumPrice": 124,
+                    "Tag": "cool"
+                  }
+                ],
+                "Cut": "Great",
+                "PriceOfTotal": 0.11439114391143912,
+                "SumPrice": 124
+              },
+              {
+                "ByTags": [
+                  {
+                    "SumPrice": 0,
+                    "Tag": "cool"
+                  },
+                  {
+                    "SumPrice": 0,
+                    "Tag": "super"
+                  },
+                  {
+                    "SumPrice": 0,
+                    "Tag": "sweet"
+                  }
+                ],
+                "Cut": null,
+                "PriceOfTotal": 0,
+                "SumPrice": 0
+              }
+            ],
+            "TotalPrice": 1084
+          }
+        ]);
+      });
+  });
+
   it("gets length of string", () => {
     var ex = ply()
       .apply('length', r('hey').length());
@@ -197,7 +284,7 @@ describe("compute native", () => {
 
   it("doesn't fallback if not null", () => {
     var ex = $('x').fallback(5);
-    ex.compute({ x: 2 })
+    return ex.compute({ x: 2 })
       .then((v) => {
         expect(v).to.deep.equal(2);
       });
@@ -581,7 +668,7 @@ describe("compute native", () => {
 
     var ex = $('ds').filter('$price > 200').select('cut');
 
-    ex.compute({ ds, dummyExternal })
+    return ex.compute({ ds, dummyExternal })
       .then((v) => {
         expect(v.getColumns()).to.deep.equal([
           {
@@ -606,7 +693,7 @@ describe("compute native", () => {
 
     var ex = $('ds').select('cut').limit(3);
 
-    ex.compute({ ds })
+    return ex.compute({ ds })
       .then((v) => {
         expect(v.getColumns()).to.deep.equal([
           {
@@ -1180,7 +1267,7 @@ describe("compute native", () => {
       .apply('Data', ply(ds))
       .apply('CountPlusX', '$Data.count() + $x');
 
-    ex.compute({ x: 13 })
+    return ex.compute({ x: 13 })
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
@@ -1206,7 +1293,7 @@ describe("compute native", () => {
           .apply('MaxTime', '$Data.max($time)')
       );
 
-    ex.compute({ x: 13 })
+    return ex.compute({ x: 13 })
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {

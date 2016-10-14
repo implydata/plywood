@@ -69,9 +69,9 @@ export class OverlapAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
-      let exV = expressionFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
+      let exV = expressionFn(d);
       if (exV == null) return null;
       return Set.isSet(inV) ? inV.overlap(exV) : exV.contains(inV);
     };

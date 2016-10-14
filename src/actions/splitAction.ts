@@ -128,8 +128,8 @@ export class SplitAction extends Action {
   public getFn(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     let { dataName } = this;
     let splitFns = this.mapSplitExpressions((ex) => ex.getFn());
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       return inV ? inV.split(splitFns, dataName) : null;
     };
   }

@@ -47,10 +47,10 @@ export class IndexOfAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (inV === null) return null;
-      return inV.indexOf(expressionFn(d, c));
+      return inV.indexOf(expressionFn(d));
     };
   }
 

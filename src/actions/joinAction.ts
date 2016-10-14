@@ -74,9 +74,9 @@ export class JoinAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
-      return inV ? inV.join(expressionFn(d, c)) : inV;
+    return (d: Datum) => {
+      let inV = inputFn(d);
+      return inV ? inV.join(expressionFn(d)) : inV;
     };
   }
 

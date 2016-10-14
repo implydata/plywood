@@ -72,8 +72,8 @@ export class ExtractAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     let re = new RegExp(this.regexp);
-    return (d: Datum, c: Datum) => {
-      return (String(inputFn(d, c)).match(re) || [])[1] || null;
+    return (d: Datum) => {
+      return (String(inputFn(d)).match(re) || [])[1] || null;
     };
   }
 

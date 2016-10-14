@@ -79,9 +79,9 @@ export class InAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
-      let exV = expressionFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
+      let exV = expressionFn(d);
       if (!exV) return null;
       return (<any>exV).contains(inV);
     };
