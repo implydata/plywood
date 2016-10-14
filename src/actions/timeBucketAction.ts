@@ -92,8 +92,8 @@ export class TimeBucketAction extends Action {
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     let duration = this.duration;
     let timezone = this.getTimezone();
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (inV === null) return null;
       return TimeRange.timeBucket(inV, duration, timezone);
     };

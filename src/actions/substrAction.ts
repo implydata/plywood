@@ -77,8 +77,8 @@ export class SubstrAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     const { position, length } = this;
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (inV === null) return null;
       return inV.substr(position, length);
     };

@@ -21,7 +21,7 @@ import { Action, ActionJS, ActionValue } from './baseAction';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
 import { Indexer, Alterations, r, Expression } from '../expressions/baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn, foldContext } from '../datatypes/dataset';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 import { RefExpression } from '../expressions/refExpression';
 import { LiteralExpression } from '../expressions/literalExpression';
 import { ChainExpression } from '../expressions/chainExpression';
@@ -82,9 +82,9 @@ export class ApplyAction extends Action {
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     let name = this.name;
     let type = this.expression.type;
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
-      return inV ? inV.apply(name, expressionFn, type, foldContext(d, c)) : null;
+    return (d: Datum) => {
+      let inV = inputFn(d);
+      return inV ? inV.apply(name, expressionFn, type) : null;
     };
   }
 

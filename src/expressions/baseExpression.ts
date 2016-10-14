@@ -1614,8 +1614,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public compute(context: Datum = {}, environment: Environment = {}): Q.Promise<PlywoodValue> {
     if (!datumHasExternal(context) && !this.hasExternal()) {
       return Q.fcall(() => {
-        let referenceChecked = this.defineEnvironment(environment).referenceCheck(context);
-        return referenceChecked.getFn()(context, null);
+        let referenceChecked = this._initialPrepare(context, environment);
+        return referenceChecked.getFn()(context);
       });
     }
     return introspectDatum(context)

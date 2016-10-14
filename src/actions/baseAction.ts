@@ -29,7 +29,7 @@ import {
 } from '../expressions/baseExpression';
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
 import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, ComputeFn, foldContext } from '../datatypes/dataset';
+import { Datum, ComputeFn } from '../datatypes/dataset';
 import { hasOwnProperty, repeat, deduplicateSort } from '../helper/utils';
 import { Instance, isInstanceOf } from 'immutable-class';
 import { ApplyAction } from './applyAction';
@@ -296,9 +296,9 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     let action = this.action;
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
-      return inV ? inV[action](expressionFn, foldContext(d, c)) : null;
+    return (d: Datum) => {
+      let inV = inputFn(d);
+      return inV ? inV[action](expressionFn) : null;
     };
   }
 
@@ -453,7 +453,7 @@ export abstract class Action implements Instance<ActionValue, ActionJS> {
     if (simpleExpression instanceof LiteralExpression) {
       if (this.fullyDefined()) {
         return new LiteralExpression({
-          value: this.getFn(simpleExpression.type, simpleExpression.getFn())(null, null)
+          value: this.getFn(simpleExpression.type, simpleExpression.getFn())(null)
         });
       }
 

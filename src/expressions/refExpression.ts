@@ -188,16 +188,11 @@ export class RefExpression extends Expression {
 
   public getFn(): ComputeFn {
     const { name, nest, ignoreCase } = this;
-    let property: string = null;
+    if (nest) throw new Error('can not getFn on a nested function');
 
-    return (d: Datum, c: Datum) => {
-      if (nest) {
-        property = ignoreCase ? RefExpression.findPropertyCI(c, name) : name;
-        return c[property];
-      } else {
-        property = ignoreCase ? RefExpression.findPropertyCI(d, name) : RefExpression.findProperty(d, name);
-        return property != null ? d[property] : null;
-      }
+    return (d: Datum) => {
+      let property = ignoreCase ? RefExpression.findPropertyCI(d, name) : name;
+      return property != null ? d[property] : null;
     };
   }
 

@@ -83,8 +83,8 @@ export class SelectAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     const { attributes } = this;
-    return (d: Datum, c: Datum) => {
-      let inV: Dataset = inputFn(d, c);
+    return (d: Datum) => {
+      let inV: Dataset = inputFn(d);
       return inV ? inV.select(attributes) : null;
     };
   }

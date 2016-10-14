@@ -97,8 +97,8 @@ export class TimeRangeAction extends Action {
     let duration = this.duration;
     let step = this.step;
     let timezone = this.getTimezone();
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (inV === null) return null;
       let other = duration.shift(inV, timezone, step);
       if (step > 0) {

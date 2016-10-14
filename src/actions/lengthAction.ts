@@ -46,8 +46,8 @@ export class LengthAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (inV === null) return null;
       return inV.length;
     };

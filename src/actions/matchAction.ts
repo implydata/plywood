@@ -103,8 +103,8 @@ export class MatchAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn): ComputeFn {
     let re = new RegExp(this.regexp);
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (!inV) return null;
       if (inV === null) return null;
       return re.test(inV);

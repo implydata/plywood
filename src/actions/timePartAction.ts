@@ -157,8 +157,8 @@ export class TimePartAction extends Action {
     const timezone = this.getTimezone();
     let parter = PART_TO_FUNCTION[part];
     if (!parter) throw new Error(`unsupported part '${part}'`);
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (!inV) return null;
       inV = moment.tz(inV, timezone.toString());
       return parter(inV);

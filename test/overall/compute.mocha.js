@@ -197,7 +197,7 @@ describe("compute native", () => {
 
   it("doesn't fallback if not null", () => {
     var ex = $('x').fallback(5);
-    ex.compute({ x: 2 })
+    return ex.compute({ x: 2 })
       .then((v) => {
         expect(v).to.deep.equal(2);
       });
@@ -581,7 +581,7 @@ describe("compute native", () => {
 
     var ex = $('ds').filter('$price > 200').select('cut');
 
-    ex.compute({ ds, dummyExternal })
+    return ex.compute({ ds, dummyExternal })
       .then((v) => {
         expect(v.getColumns()).to.deep.equal([
           {
@@ -606,7 +606,7 @@ describe("compute native", () => {
 
     var ex = $('ds').select('cut').limit(3);
 
-    ex.compute({ ds })
+    return ex.compute({ ds })
       .then((v) => {
         expect(v.getColumns()).to.deep.equal([
           {
@@ -1180,7 +1180,7 @@ describe("compute native", () => {
       .apply('Data', ply(ds))
       .apply('CountPlusX', '$Data.count() + $x');
 
-    ex.compute({ x: 13 })
+    return ex.compute({ x: 13 })
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {
@@ -1206,7 +1206,7 @@ describe("compute native", () => {
           .apply('MaxTime', '$Data.max($time)')
       );
 
-    ex.compute({ x: 13 })
+    return ex.compute({ x: 13 })
       .then((v) => {
         expect(v.toJS()).to.deep.equal([
           {

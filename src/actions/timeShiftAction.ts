@@ -97,8 +97,8 @@ export class TimeShiftAction extends Action {
     let duration = this.duration;
     let step = this.step;
     let timezone = this.getTimezone();
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (inV === null) return null;
       return duration.shift(inV, timezone, step);
     };

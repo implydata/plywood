@@ -48,10 +48,10 @@ export class ConcatAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       if (inV === null) return null;
-      let exV = expressionFn(d, c);
+      let exV = expressionFn(d);
       if (exV === null) return null;
       return '' + inV + exV;
     };

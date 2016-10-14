@@ -87,8 +87,8 @@ export class SortAction extends Action {
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
     let direction = this.direction;
-    return (d: Datum, c: Datum) => {
-      let inV = inputFn(d, c);
+    return (d: Datum) => {
+      let inV = inputFn(d);
       return inV ? inV.sort(expressionFn, direction) : null;
     };
   }

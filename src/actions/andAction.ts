@@ -85,7 +85,7 @@ export class AndAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => inputFn(d, c) && expressionFn(d, c);
+    return (d: Datum) => inputFn(d) && expressionFn(d);
   }
 
   protected _getJSHelper(inputType: PlyType, inputJS: string, expressionJS: string): string {

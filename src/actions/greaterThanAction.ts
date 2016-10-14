@@ -58,8 +58,8 @@ export class GreaterThanAction extends Action {
   }
 
   protected _getFnHelper(inputType: PlyType, inputFn: ComputeFn, expressionFn: ComputeFn): ComputeFn {
-    return (d: Datum, c: Datum) => {
-      return inputFn(d, c) > expressionFn(d, c);
+    return (d: Datum) => {
+      return inputFn(d) > expressionFn(d);
     };
   }
 
