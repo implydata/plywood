@@ -672,7 +672,7 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public collect(exFn: ComputeFn): Set {
-    return Set.fromJS(this.data.map((datum) => exFn(datum)));
+    return Set.fromJS(this.data.map(exFn));
   }
 
   public split(splitFns: SplitFns, datasetName: string): Dataset {
