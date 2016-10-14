@@ -510,6 +510,15 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
+    it('works with sub-query filter', equalityTest({
+      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      expression: $('wiki').filter('$commentLength > $wiki.average($commentLength)')
+        .split('$channel', 'Channel')
+        .apply('Count', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
   });
 
 
@@ -528,6 +537,21 @@ describe("Cross Functional", function() {
       expression: $('wiki')
         .split('blah', 'Constant')
         .apply('TotalEdits', '$wiki.sum($count)')
+    }));
+
+    it('works with plain split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+    }));
+
+    it('works with plain with limit split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split('$channel', 'Channel')
+        .sort('$Channel', 'ascending')
+        .limit(10000)
     }));
 
     it('works with BOOLEAN split (native)', equalityTest({

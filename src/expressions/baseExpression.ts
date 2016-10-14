@@ -33,6 +33,7 @@ import {
   AverageAction,
   CardinalityAction,
   CastAction,
+  CollectAction,
   ContainsAction,
   CountAction,
   CountDistinctAction,
@@ -847,9 +848,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
           let action = actions[i];
           if (actionMatchFn.call(this, action)) {
             let newEx = actionSubstitutionFn.call(this, ex.headActions(i), action);
-            for (let j = i + 1; j < actions.length; j++) newEx = newEx.performAction(actions[j]);
-            if (options.onceInChain) return newEx;
-            return newEx.substituteAction(actionMatchFn, actionSubstitutionFn, options, this);
+            if (newEx) {
+              for (let j = i + 1; j < actions.length; j++) newEx = newEx.performAction(actions[j]);
+              if (options.onceInChain) return newEx;
+              return newEx.substituteAction(actionMatchFn, actionSubstitutionFn, options, this);
+            }
           }
         }
       }
@@ -1330,6 +1333,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public quantile(ex: any, quantile: number): ChainExpression {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
     return this.performAction(new QuantileAction({ expression: ex, quantile: getNumber(quantile) }));
+  }
+
+  public collect(ex: any): ChainExpression {
+    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    return this.performAction(new CollectAction({ expression: ex }));
   }
 
   public custom(custom: string): ChainExpression {

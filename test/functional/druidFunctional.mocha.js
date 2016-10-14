@@ -1916,6 +1916,66 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with basic collect", () => {
+      var ex = $('wiki').split('$channel', 'channel').collect('$channel');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal({
+            "elements": [
+              "ar", "be", "bg", "ca", "ce", "ceb", "cs", "da", "de", "el", "en", "eo", "es", "et", "eu", "fa", "fi",
+              "fr", "gl", "he", "hi", "hr", "hu", "hy", "id", "it", "ja", "kk", "ko", "la", "lt", "min", "ms", "nl",
+              "nn", "no", "pl", "pt", "ro", "ru", "sh", "simple", "sk", "sl", "sr", "sv", "tr", "uk", "uz", "vi",
+              "war", "zh"
+            ],
+            "setType": "STRING"
+          });
+        });
+    });
+
+    it("works with advanced collect", () => {
+      var ex = $('wiki').split('$channel', 'channel')
+        .apply('Edits', '$wiki.sum($count)')
+        .sort('$Edits', 'descending')
+        .limit(5)
+        .collect('$channel');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal({
+            "elements": [
+              "en", "vi", "de", "fr", "ru"
+            ],
+            "setType": "STRING"
+          });
+        });
+    });
+
+    it("works with collect as a sub-filter", () => {
+      var ex = ply()
+        .apply('wiki', $('wiki').filter(
+          $('channel').in(
+            $('wiki').split('$channel', 'channel')
+              .apply('Edits', '$wiki.sum($count)')
+              .sort('$Edits', 'descending')
+              .limit(5)
+              .collect('$channel')
+          )
+        ))
+        .apply('Count', '$wiki.sum($count)')
+        .apply('Added', '$wiki.sum($added)');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Added": 54157728,
+              "Count": 274140
+            }
+          ]);
+        });
+    });
+
     describe("plyql end to end", () => {
       it("should work with <= <", () => {
         var ex = Expression.parseSQL(sane`
@@ -1999,7 +2059,7 @@ describe("Druid Functional", function() {
         .sort('$Count', 'descending')
         .limit(3);
 
-      ex.compute({ wiki: wikiUserCharAsNumber })
+      return ex.compute({ wiki: wikiUserCharAsNumber })
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -2024,7 +2084,7 @@ describe("Druid Functional", function() {
         .sort('$Count', 'descending')
         .limit(3);
 
-      ex.compute({ wiki: wikiUserCharAsNumber })
+      return ex.compute({ wiki: wikiUserCharAsNumber })
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -2057,7 +2117,7 @@ describe("Druid Functional", function() {
         .sort('$Count', 'descending')
         .limit(3);
 
-      ex.compute({ wiki: wikiUserCharAsNumber })
+      return ex.compute({ wiki: wikiUserCharAsNumber })
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -2082,7 +2142,7 @@ describe("Druid Functional", function() {
         .sort('$Count', 'descending')
         .limit(3);
 
-      ex.compute({ wiki: wikiUserCharAsNumber })
+      return ex.compute({ wiki: wikiUserCharAsNumber })
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
@@ -2101,6 +2161,7 @@ describe("Druid Functional", function() {
           ]);
         });
     });
+
   });
 
 

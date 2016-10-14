@@ -41,6 +41,7 @@ cat \
   build/actions/averageAction.js \
   build/actions/cardinalityAction.js \
   build/actions/castAction.js \
+  build/actions/collectAction.js \
   build/actions/concatAction.js \
   build/actions/containsAction.js \
   build/actions/countAction.js \

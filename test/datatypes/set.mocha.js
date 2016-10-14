@@ -87,6 +87,20 @@ describe("Set", () => {
   });
 
 
+  describe("dedupes", () => {
+    it("works with a SET/STRING", () => {
+      expect(Set.fromJS(['A', 'A', 'B', 'B']).toJS()).to.deep.equal({
+        "elements": [
+          "A",
+          "B"
+        ],
+        "setType": "STRING"
+      });
+    });
+  });
+
+
+
   describe("general", () => {
     it("does not die with hasOwnProperty", () => {
       expect(Set.fromJS({
