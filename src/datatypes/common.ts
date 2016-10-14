@@ -192,12 +192,12 @@ export function introspectDatum(datum: Datum): Q.Promise<Datum> {
   return Q.all(promises).then(() => newDatum);
 }
 
-export function failItIntrospectNeededInDatum(datum: Datum): void {
+export function failIfIntrospectNeededInDatum(datum: Datum): void {
   Object.keys(datum)
     .forEach(name => {
       let v = datum[name];
       if (v instanceof External && v.needsIntrospect()) {
-        throw new Error('Can not have un-introspected internal');
+        throw new Error('Can not have un-introspected external');
       }
     });
 }

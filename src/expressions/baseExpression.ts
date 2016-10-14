@@ -77,7 +77,7 @@ import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from '../helper/
 import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from '../datatypes/index';
 import { ActionJS, CaseType, Splits } from '../actions/baseAction';
 import { Direction } from '../actions/sortAction';
-import { isSetType, getFullTypeFromDatum, introspectDatum, failItIntrospectNeededInDatum } from '../datatypes/common';
+import { isSetType, getFullTypeFromDatum, introspectDatum, failIfIntrospectNeededInDatum } from '../datatypes/common';
 import { ComputeFn } from '../datatypes/dataset';
 import { External, ExternalJS } from '../external/baseExternal';
 
@@ -1559,7 +1559,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param environment The environment for the default of the expression
    */
   public simulate(context: Datum = {}, environment: Environment = {}): PlywoodValue {
-    failItIntrospectNeededInDatum(context);
+    failIfIntrospectNeededInDatum(context);
 
     let readyExpression = this._initialPrepare(context, environment);
     if (readyExpression instanceof ExternalExpression) {
@@ -1577,7 +1577,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param environment The environment for the default of the expression
    */
   public simulateQueryPlan(context: Datum = {}, environment: Environment = {}): any[][] {
-    failItIntrospectNeededInDatum(context);
+    failIfIntrospectNeededInDatum(context);
 
     let readyExpression = this._initialPrepare(context, environment);
     if (readyExpression instanceof ExternalExpression) {
