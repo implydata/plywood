@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
 import { immutableArraysEqual } from 'immutable-class';
 import {
   r,
@@ -31,11 +30,9 @@ import {
 } from './baseExpression';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
 import { ExternalExpression } from './externalExpression';
-import { Action, ApplyAction, FilterAction, LimitAction, SelectAction, SortAction } from '../actions/index';
-import { Dataset, Datum, PlywoodValue } from '../datatypes/index';
+import { Action } from '../actions/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { hasOwnProperty, repeat, arraysEqual } from '../helper/utils';
-import { RefExpression } from './refExpression';
 import { ComputeFn } from '../datatypes/dataset';
 
 export class ChainExpression extends Expression {
