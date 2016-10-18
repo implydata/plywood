@@ -486,10 +486,11 @@ ShowQuery
 
 
 ShowQueryExpression
-  = (GlobalToken / SessionToken)? VariablesToken like:LikeRhs? where:WhereClause?
+  = (GlobalToken / SessionToken)? what:(VariablesToken / StatusToken) like:LikeRhs? where:WhereClause?
     {
       // https://dev.mysql.com/doc/refman/5.7/en/show-variables.html
-      var ex = i$('GLOBAL_VARIABLES')
+      // https://dev.mysql.com/doc/refman/5.7/en/show-status.html
+      var ex = i$('GLOBAL_' + what);  // what = 'VARIABLES' | 'STATUS'
       if (like) ex = ex.filter(like(i$('VARIABLE_NAME')));
       if (where) ex = ex.filter(where);
       return ex
@@ -974,7 +975,8 @@ ShowToken          = "SHOW"i           !IdentifierPart _ { return 'SHOW'; }
 SetToken           = "SET"i            !IdentifierPart _ { return 'SET'; }
 UseToken           = "USE"i            !IdentifierPart _ { return 'USE'; }
 
-VariablesToken     = "VARIABLES"i      !IdentifierPart _
+VariablesToken     = "VARIABLES"i      !IdentifierPart _ { return 'VARIABLES'; }
+StatusToken        = "STATUS"i         !IdentifierPart _ { return 'STATUS'; }
 DatabasesToken     = "DATABASES"i      !IdentifierPart _
 SchemasToken       = "SCHEMAS"i        !IdentifierPart _
 ColumnsToken       = "COLUMNS"i        !IdentifierPart _

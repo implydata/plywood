@@ -1504,6 +1504,22 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should work with SHOW STATUS LIKE", () => {
+      var parse = Expression.parseSQL(sane`
+        SHOW SESSION STATUS LIKE 'Ssl_cipher'
+      `);
+
+      var ex2 = i$('GLOBAL_STATUS')
+        .filter(i$('VARIABLE_NAME').match('^Ssl.cipher$'))
+        .apply('Variable_name', i$('VARIABLE_NAME'))
+        .apply('Value', i$('VARIABLE_VALUE'))
+        .select('Variable_name', 'Value');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("should work with SHOW DATABASES", () => {
       var parse = Expression.parseSQL(sane`
         SHOW DATABASES

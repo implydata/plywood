@@ -51,8 +51,8 @@ export class ChainExpression extends Expression {
     return new ChainExpression(value);
   }
 
-  public expression: Expression;
-  public actions: Action[];
+  public readonly expression: Expression;
+  public readonly actions: Action[];
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
@@ -76,16 +76,16 @@ export class ChainExpression extends Expression {
         let neededType: PlyType = action.getNecessaryInputTypes() as PlyType;
         // todo: neededType could be more than 1 value, just so happens that with current tests cases neededType always returns one value
         if (i === 0) {
-            expression = expression.upgradeToType(neededType);
-            type = expression.type;
+          expression = expression.upgradeToType(neededType);
+          type = expression.type;
         } else {
-            let upgradedChain = new ChainExpression({
-              expression,
-              actions: actions.slice(0, i)
-            }).upgradeToType(neededType);
-            expression = (upgradedChain as ChainExpression).expression;
-            actions = (upgradedChain as ChainExpression).actions;
-            type = upgradedChain.type;
+          let upgradedChain = new ChainExpression({
+            expression,
+            actions: actions.slice(0, i)
+          }).upgradeToType(neededType);
+          expression = (upgradedChain as ChainExpression).expression;
+          actions = (upgradedChain as ChainExpression).actions;
+          type = upgradedChain.type;
         }
 
         type = action.getOutputType(type);
