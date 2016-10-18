@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.13.3
+
+- Smart query limiting
+- Support for `show status`
+- Fixed BETWEEN bounds
+
 ## 0.13.2
 
 - Added collect action
