@@ -3,5 +3,3 @@ declare interface Lookup<T> {
 }
 
 declare type int = number;
-
-declare var console: any;

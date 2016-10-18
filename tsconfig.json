@@ -16,6 +16,7 @@
     "moduleResolution": "node"
   },
   "include": [
+    "typings/private.d.ts",
     "src/**/*.ts"
   ]
 }

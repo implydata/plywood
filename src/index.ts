@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-/// <reference path="../typings/basics.d.ts" />
-/// <reference path="../typings/dummy.d.ts" />
+/// <reference path="../typings/public.d.ts" />
 /// <reference path="../typings/requester.d.ts" />
 
 export * from './version';
