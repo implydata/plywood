@@ -398,7 +398,7 @@ describe("SQL parser", () => {
           t BETWEEN TIMESTAMP '2015-09-12T10:30:00' AND TIMESTAMP '2015-09-12T12:30:00'
         `;
 
-        var ex = i$('t').greaterThan(new Date('2015-09-12T10:30:00Z')).and(i$('t').lessThan(new Date('2015-09-12T12:30:00Z')));
+        var ex = i$('t').greaterThanOrEqual(new Date('2015-09-12T10:30:00Z')).and(i$('t').lessThanOrEqual(new Date('2015-09-12T12:30:00Z')));
         tests.split('\n').forEach(test => {
           var parse = Expression.parseSQL(test);
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
@@ -412,8 +412,8 @@ describe("SQL parser", () => {
         `;
 
         var exs = [
-          i$('t').greaterThan(r('2015-09-12T10:30:00')).and(i$('t').lessThan(r('2015-09-12T12:30:00'))),
-          i$('t').greaterThan(r('2015-09-12T10:30')).and(i$('t').lessThan(r('2015-09-12T12:30')))
+          i$('t').greaterThanOrEqual(r('2015-09-12T10:30:00')).and(i$('t').lessThanOrEqual(r('2015-09-12T12:30:00'))),
+          i$('t').greaterThanOrEqual(r('2015-09-12T10:30')).and(i$('t').lessThanOrEqual(r('2015-09-12T12:30')))
         ];
 
         tests.split('\n').forEach((test, i) => {
@@ -445,7 +445,7 @@ describe("SQL parser", () => {
           var parse = Expression.parseSQL(test);
           var left = /(?:BETWEEN ')([0-9-+:TZ.\s]+)/g.exec(test)[1];
           var right = /(?:AND ')([0-9-+:TZ.\s]+)/g.exec(test)[1];
-          var ex = i$('t').greaterThan(r(left)).and(i$('t').lessThan(r(right)));
+          var ex = i$('t').greaterThanOrEqual(r(left)).and(i$('t').lessThanOrEqual(r(right)));
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
           resolvesProperly(parse);
         });
@@ -758,8 +758,8 @@ describe("SQL parser", () => {
       var ex2 = ply()
         .apply('data', $('data').filter(
           i$('language').is("en")
-            .and(i$('time').greaterThan(r('2015-01-01T10:30:00'))
-              .and(i$('time').lessThan(r('2015-01-02T12:30:00')))
+            .and(i$('time').greaterThanOrEqual(r('2015-01-01T10:30:00'))
+              .and(i$('time').lessThanOrEqual(r('2015-01-02T12:30:00')))
             )
         ))
         .apply('TotalAdded', '$data.sum(i$added)');
@@ -808,8 +808,8 @@ describe("SQL parser", () => {
 
       var ex2 = $('wiki').filter(
         i$('language').is("en")
-          .and(i$('time').greaterThan(r('2015-01-01T10:30:00'))
-            .and(i$('time').lessThan(r('2015-01-02T12:30:00')))
+          .and(i$('time').greaterThanOrEqual(r('2015-01-01T10:30:00'))
+            .and(i$('time').lessThanOrEqual(r('2015-01-02T12:30:00')))
           )
       ).split('i$page', 'Page', 'data')
         .apply('TotalAdded', '$data.sum(i$added)')
@@ -1086,7 +1086,7 @@ describe("SQL parser", () => {
       `);
 
       var ex2 = $('wiki')
-        .filter(i$('time').greaterThan(r(1447430881).multiply(1000).cast('TIME')).and(i$('time').lessThan(r(1547430881).multiply(1000).cast('TIME'))))
+        .filter(i$('time').greaterThanOrEqual(r(1447430881).multiply(1000).cast('TIME')).and(i$('time').lessThanOrEqual(r(1547430881).multiply(1000).cast('TIME'))))
         .apply('Unix', i$('time').cast('NUMBER').divide(1000))
         .select('Unix');
 
@@ -1296,8 +1296,8 @@ describe("SQL parser", () => {
 
       var ex2 = $('wiki-tiki:taki').filter(
         i$('language').is("en")
-            .and(i$('time').greaterThan(r('2015-01-01T10:30:00'))
-              .and(i$('time').lessThan(r('2015-01-02T12:30:00')))
+            .and(i$('time').greaterThanOrEqual(r('2015-01-01T10:30:00'))
+              .and(i$('time').lessThanOrEqual(r('2015-01-02T12:30:00')))
             )
       ).split('i${page or else?}', 'Page', 'data')
         .apply('TotalAdded', '$data.sum(i$added)')
@@ -1495,6 +1495,22 @@ describe("SQL parser", () => {
 
       var ex2 = i$('GLOBAL_VARIABLES')
         .filter(i$('Variable_name').is(r('language')).or(i$('Variable_name').is(r('net_write_timeout'))))
+        .apply('Variable_name', i$('VARIABLE_NAME'))
+        .apply('Value', i$('VARIABLE_VALUE'))
+        .select('Variable_name', 'Value');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with SHOW STATUS LIKE", () => {
+      var parse = Expression.parseSQL(sane`
+        SHOW SESSION STATUS LIKE 'Ssl_cipher'
+      `);
+
+      var ex2 = i$('GLOBAL_STATUS')
+        .filter(i$('VARIABLE_NAME').match('^Ssl.cipher$'))
         .apply('Variable_name', i$('VARIABLE_NAME'))
         .apply('Value', i$('VARIABLE_VALUE'))
         .select('Variable_name', 'Value');

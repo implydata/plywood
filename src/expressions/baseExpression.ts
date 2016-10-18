@@ -81,6 +81,12 @@ import { isSetType, getFullTypeFromDatum, introspectDatum, failIfIntrospectNeede
 import { ComputeFn } from '../datatypes/dataset';
 import { External, ExternalJS } from '../external/baseExternal';
 
+export interface ComputeOptions extends Environment {
+  maxQueries?: number;
+  maxRows?: number;
+  maxComputeCycles?: number;
+}
+
 export interface AlterationFillerPromise {
   (external: External, terminal: boolean): Q.Promise<any>;
 }
@@ -1611,36 +1617,51 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   /**
    * Computes a general asynchronous expression
    * @param context The context within which to compute the expression
-   * @param environment The environment for the default of the expression
+   * @param options The options determining computation
    */
-  public compute(context: Datum = {}, environment: Environment = {}): Q.Promise<PlywoodValue> {
+  public compute(context: Datum = {}, options: ComputeOptions = {}): Q.Promise<PlywoodValue> {
     return Q(null)
       .then(() => {
         return introspectDatum(context);
       })
       .then((introspectedContext: Datum) => {
-        let readyExpression = this._initialPrepare(introspectedContext, environment);
+        let readyExpression = this._initialPrepare(introspectedContext, options);
         if (readyExpression instanceof ExternalExpression) {
           // Top level externals need to be unsuppressed
           readyExpression = readyExpression.unsuppress();
         }
-        return readyExpression._computeResolved();
+        return readyExpression._computeResolved(options);
       });
   }
 
-  public _computeResolved(): Q.Promise<PlywoodValue> {
+  public _computeResolved(options: ComputeOptions): Q.Promise<PlywoodValue> {
+    const {
+      maxComputeCycles = 5,
+      maxQueries = 500
+    } = options;
+
     let ex: Expression = this;
     let readyExternals = ex.getReadyExternals();
-    let i = 0;
+
+    let computeCycles = 0;
+    let queries = 0;
 
     return promiseWhile(
-      () => Object.keys(readyExternals).length > 0 && i < 10,
+      () => Object.keys(readyExternals).length > 0 && computeCycles < maxComputeCycles && queries < maxQueries,
       () => {
-        return fillExpressionExternalAlterationAsync(readyExternals, (external, terminal) => external.queryValue(terminal))
+        return fillExpressionExternalAlterationAsync(readyExternals, (external, terminal) => {
+          if (queries < maxQueries) {
+            queries++;
+            return external.queryValue(terminal);
+          } else {
+            queries++;
+            return Q(null); // Query limit reached, don't do any more queries.
+          }
+        })
           .then((readyExternalsFilled) => {
             ex = ex.applyReadyExternals(readyExternalsFilled);
             readyExternals = ex.getReadyExternals();
-            i++;
+            computeCycles++;
           });
       }
     )
