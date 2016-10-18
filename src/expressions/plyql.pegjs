@@ -764,7 +764,7 @@ ComparisonExpressionRhs
 ComparisonExpressionRhsNotable
   = BetweenToken start:(AdditiveExpression) AndToken end:(AdditiveExpression)
     {
-      return function(ex) { return ex.greaterThan(start).and(ex.lessThan(end)); };
+      return function(ex) { return ex.greaterThanOrEqual(start).and(ex.lessThanOrEqual(end)); };
     }
   / InToken list:(InSetLiteralExpression / AdditiveExpression)
     {
