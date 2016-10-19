@@ -899,7 +899,7 @@ describe("compute native", () => {
       });
   });
 
-  it.only("works with collect applies", () => {
+  it("works with collect applies", () => {
     var ds = Dataset.fromJS([
       { cut: "Good",  color: "A", num: 1 },
       { cut: "Good",  color: "A", num: 2 },
