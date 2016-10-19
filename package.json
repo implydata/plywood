@@ -32,9 +32,9 @@
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
     "chronoshift": "~0.6.3",
-    "druid.d.ts": "0.9.1-rev6",
+    "druid.d.ts": "~0.9.1-rev6",
     "immutable-class": "~0.6.16",
-    "moment-timezone": "~0.5.5",
+    "moment-timezone": "~0.5.6",
     "q": "~1.4.1"
   },
   "devDependencies": {
@@ -44,12 +44,12 @@
     "immutable-class-tester": "0.5.6",
     "imonit": "0.2.0",
     "istanbul": "0.4.5",
-    "mocha": "3.1.0",
+    "mocha": "3.1.2",
     "pegjs": "0.10.0",
     "plywood-druid-requester": "1.5.8",
     "plywood-mysql-requester": "1.3.3",
     "plywood-postgres-requester": "0.9.3",
-    "tdi": "0.1.2",
+    "tdi": "0.1.5",
     "tslint": "3.15.1",
     "typescript": "2.0.3"
   }

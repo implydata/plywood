@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.13.6
+
+- Update deps
+
 ## 0.13.5
 
 - Collect works for all types
