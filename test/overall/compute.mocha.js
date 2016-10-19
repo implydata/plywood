@@ -899,20 +899,21 @@ describe("compute native", () => {
       });
   });
 
-  it("works with collect applies", () => {
+  it.only("works with collect applies", () => {
     var ds = Dataset.fromJS([
-      { cut: "Good", color: "A" },
-      { cut: "Good", color: "A" },
-      { cut: "Good", color: "B" },
-      { cut: "Great", color: "B" },
-      { cut: "Great", color: "C" },
-      { cut: "Great", color: "D" },
-      { cut: "Amaze", color: "D" },
+      { cut: "Good",  color: "A", num: 1 },
+      { cut: "Good",  color: "A", num: 2 },
+      { cut: "Good",  color: "B", num: 1 },
+      { cut: "Great", color: "B", num: 5 },
+      { cut: "Great", color: "C", num: 7 },
+      { cut: "Great", color: "D", num: 8 },
+      { cut: "Amaze", color: "D", num: 9 }
     ]);
 
     var ex = ply(ds)
       .split('$cut', 'Cut', 'data')
-      .apply('colors', '$data.collect($color)');
+      .apply('colors', '$data.collect($color)')
+      .apply('nums', '$data.collect($num)');
 
     return ex.compute()
       .then((v) => {
@@ -926,6 +927,14 @@ describe("compute native", () => {
               ],
               "setType": "STRING",
               "type": "SET"
+            },
+            "nums": {
+              "elements": [
+                1,
+                2
+              ],
+              "setType": "NUMBER",
+              "type": "SET"
             }
           },
           {
@@ -938,6 +947,15 @@ describe("compute native", () => {
               ],
               "setType": "STRING",
               "type": "SET"
+            },
+            "nums": {
+              "elements": [
+                5,
+                7,
+                8
+              ],
+              "setType": "NUMBER",
+              "type": "SET"
             }
           },
           {
@@ -947,6 +965,13 @@ describe("compute native", () => {
                 "D"
               ],
               "setType": "STRING",
+              "type": "SET"
+            },
+            "nums": {
+              "elements": [
+                9
+              ],
+              "setType": "NUMBER",
               "type": "SET"
             }
           }

@@ -17,6 +17,7 @@
 import { Indexer, Alterations } from '../expressions/baseExpression';
 import { Action, ActionJS, ActionValue, AggregateAction } from './baseAction';
 import { PlyType, DatasetFullType, FullType } from '../types';
+import { wrapSetType } from '../datatypes/common';
 
 export class CollectAction extends AggregateAction {
   static fromJS(parameters: ActionJS): CollectAction {
@@ -26,21 +27,20 @@ export class CollectAction extends AggregateAction {
   constructor(parameters: ActionValue) {
     super(parameters, dummyObject);
     this._ensureAction("collect");
-    this._checkExpressionTypes('STRING');
+    this._checkExpressionTypes('BOOLEAN', 'NUMBER', 'TIME', 'STRING', 'NUMBER_RANGE', 'TIME_RANGE', 'STRING_RANGE');
   }
 
   public getOutputType(inputType: PlyType): PlyType {
+    const { expression } = this;
     this._checkInputTypes(inputType);
-    return 'SET/STRING';
+    return wrapSetType(expression.type);
   }
 
   public _fillRefSubstitutions(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
     const { expression } = this;
-    if (expression) {
-      expression._fillRefSubstitutions(typeContext, indexer, alterations);
-    }
+    const expressionFullType = expression._fillRefSubstitutions(typeContext, indexer, alterations);
     return {
-      type: 'SET/STRING'
+      type: wrapSetType(expressionFullType.type) as any
     };
   }
 }
