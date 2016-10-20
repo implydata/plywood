@@ -913,7 +913,8 @@ describe("compute native", () => {
     var ex = ply(ds)
       .split('$cut', 'Cut', 'data')
       .apply('colors', '$data.collect($color)')
-      .apply('nums', '$data.collect($num)');
+      .apply('nums', '$data.collect($num)')
+      .apply('ranges', '$data.collect($num.numberBucket(1))');
 
     return ex.compute()
       .then((v) => {
@@ -934,6 +935,20 @@ describe("compute native", () => {
                 2
               ],
               "setType": "NUMBER",
+              "type": "SET"
+            },
+            "ranges": {
+              "elements": [
+                {
+                  "end": 2,
+                  "start": 1
+                },
+                {
+                  "end": 3,
+                  "start": 2
+                }
+              ],
+              "setType": "NUMBER_RANGE",
               "type": "SET"
             }
           },
@@ -956,6 +971,24 @@ describe("compute native", () => {
               ],
               "setType": "NUMBER",
               "type": "SET"
+            },
+            "ranges": {
+              "elements": [
+                {
+                  "end": 6,
+                  "start": 5
+                },
+                {
+                  "end": 8,
+                  "start": 7
+                },
+                {
+                  "end": 9,
+                  "start": 8
+                }
+              ],
+              "setType": "NUMBER_RANGE",
+              "type": "SET"
             }
           },
           {
@@ -972,6 +1005,16 @@ describe("compute native", () => {
                 9
               ],
               "setType": "NUMBER",
+              "type": "SET"
+            },
+            "ranges": {
+              "elements": [
+                {
+                  "end": 10,
+                  "start": 9
+                }
+              ],
+              "setType": "NUMBER_RANGE",
               "type": "SET"
             }
           }

@@ -303,13 +303,11 @@ export class ChainExpression extends Expression {
     return new ChainExpression(value);
   }
 
-  public performAction(action: Action, markSimple?: boolean): ChainExpression {
-    if (!action) throw new Error('must have action');
-    return new ChainExpression({
-      expression: this.expression,
-      actions: this.actions.concat(action),
-      simple: Boolean(markSimple)
-    });
+  public performActions(actions: Action[], markSimple?: boolean): ChainExpression {
+    let value = this.valueOf();
+    value.actions = value.actions.concat(actions);
+    value.simple = Boolean(markSimple);
+    return new ChainExpression(value);
   }
 
   public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {

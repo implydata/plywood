@@ -348,6 +348,34 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
+    it("works with two number ranges", () => {
+      var ex1 = $('x', 'NUMBER').in({ start: 1, end: 5 })
+        .and($('x', 'NUMBER').in({ start: 1, end: 2 }));
+      var ex2 = $('x', 'NUMBER').in({ start: 1, end: 2 });
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("works with two time ranges", () => {
+      var ex1 = $('time', 'TIME').in({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-16T00:00:00') })
+        .and($('time', 'TIME').in({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-13T00:00:00') }));
+      var ex2 = $('time', 'TIME').in({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-13T00:00:00') });
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('removes a timeBucket', () => {
+      var largeInterval = TimeRange.fromJS({
+        start: new Date('2016-01-02Z'),
+        end: new Date('2016-01-09Z')
+      });
+      var smallInterval = TimeRange.fromJS({
+        start: new Date('2016-01-02Z'),
+        end: new Date('2016-01-03Z')
+      });
+      var ex1 = $('time').in(largeInterval).and($('time').timeBucket('P1D', 'Etc/UTC').is(smallInterval));
+      var ex2 = $('time').in(smallInterval);
+      simplifiesTo(ex1, ex2);
+    });
+
     it("re-arranges filters 1", () => {
       var ex1 = $('flight').is(5).and($('x').is(1)).and($('flight').is(7));
       var ex2 = r(false);
@@ -594,7 +622,7 @@ describe("Simplify", () => {
 
     it('kills impossible fallback', () => {
       var ex1 = $('color').fallback('NoColor').is('D');
-      var ex2 = $('color').is('D');;
+      var ex2 = $('color').is('D');
       simplifiesTo(ex1, ex2);
     });
 
@@ -619,6 +647,19 @@ describe("Simplify", () => {
       var ex2 = $('x', 'STRING').is('A');
       simplifiesTo(ex1, ex2);
     });
+
+    it('simplifies when set can be unified', () => {
+      var ex1 = $('x', 'NUMBER').in(Set.fromJS({
+        setType: 'NUMBER_RANGE',
+        elements: [
+          { start: 1, end: 3 },
+          { start: 2, end: 5 },
+        ]
+      }));
+      var ex2 = $('x', 'NUMBER').in(NumberRange.fromJS({ start: 1, end: 5 }));
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 

@@ -20,7 +20,7 @@ var { expect } = require("chai");
 var { testImmutableClass } = require("immutable-class-tester");
 
 var plywood = require('../../build/plywood');
-var { Action, $, ply, r, MatchAction } = plywood;
+var { Action, $, ply, r, LimitAction } = plywood;
 
 describe("Action", () => {
   it("is immutable class", () => {
@@ -57,10 +57,7 @@ describe("Action", () => {
         expression: { op: 'ref', name: 'myVar' },
         direction: 'ascending'
       },
-      {
-        action: 'limit',
-        limit: 10
-      },
+      { action: 'limit', limit: 10 },
       { action: 'select', attributes: ['a', 'b', 'c'] },
       { action: 'select', attributes: ['b', 'c'] },
 
@@ -162,5 +159,16 @@ describe("Action", () => {
         }, `works with ${action}`).to.throw(`${action} must no have an expression (is $myVar)`);
       }
     });
-  })
+  });
+
+  describe('fancy actions', () => {
+    it('limit works with Infinity', () => {
+      expect(new LimitAction({ limit: Infinity }).toJS()).to.deep.equal({
+        "action": "limit",
+        "limit": Infinity
+      });
+    });
+
+  });
+
 });
