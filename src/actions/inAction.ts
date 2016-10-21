@@ -174,9 +174,14 @@ export class InAction extends Action {
     if (setValue && setValue instanceof Set && !setValue.isNullSet()) {
       if (setValue.size() === 1) {
         if (wrapSetType(ex.type) === expression.type) {
+          // This is x:NUMBER in Set(1)
+          //      or x:NUMBER_RANGE in Set(Range(1,2))
           return new IsAction({ expression: r(setValue.elements[0]) }).performOnSimple(ex);
-        } else {
+        } else if (wrapSetType((ex.type + '_RANGE') as PlyType) === expression.type) {
+          // This is x:NUMBER in Set(Range(1,2))
           return new InAction({ expression: r(setValue.elements[0]) }).performOnSimple(ex);
+        } else {
+          return null;
         }
       }
 
