@@ -1072,6 +1072,15 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
+    it('removed infinite, no-op limit', () => {
+      var ex1 = $('main')
+        .limit(Infinity);
+
+      var ex2 = $('main');
+
+      simplifiesTo(ex1, ex2);
+    });
+
     it('moves past apply', () => {
       var ex1 = $('main')
         .apply('Wiki', '$^wiki.sum($deleted)')

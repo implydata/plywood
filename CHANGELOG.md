@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.13.7
+
+- Sets do not auto-unify elements
+- Limit action works with Infinity
+
 ## 0.13.6
 
 - Update deps
