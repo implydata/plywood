@@ -35,7 +35,10 @@ export class LimitAction extends Action {
 
   constructor(parameters: ActionValue = {}) {
     super(parameters, dummyObject);
-    this.limit = parameters.limit;
+    let limit = parameters.limit;
+    if (limit == null) limit = Infinity;
+    if (limit < 0) throw new Error(`limit can not be negative (is ${limit})`);
+    this.limit = limit;
     this._ensureAction("limit");
   }
 
@@ -83,6 +86,10 @@ export class LimitAction extends Action {
 
   protected _getSQLHelper(inputType: PlyType, dialect: SQLDialect, inputSQL: string, expressionSQL: string): string {
     return `LIMIT ${this.limit}`;
+  }
+
+  protected _removeAction(): boolean {
+    return !isFinite(this.limit);
   }
 
   protected _foldWithPrevAction(prevAction: Action): Action {

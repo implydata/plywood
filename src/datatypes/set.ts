@@ -176,9 +176,6 @@ export class Set implements Instance<SetValue, SetJS> {
       elements = newElements;
     }
 
-    if (setType === 'NUMBER_RANGE' || setType === 'TIME_RANGE' || setType === 'STRING_RANGE') {
-      elements = unifyElements(elements);
-    }
     this.elements = elements;
     this.hash = hash;
   }
@@ -213,6 +210,12 @@ export class Set implements Instance<SetValue, SetJS> {
       this.elements.slice().sort().join('') === other.elements.slice().sort().join('');
   }
 
+  public changeElements(elements: any[]): Set {
+    let value = this.valueOf();
+    value.elements = elements;
+    return new Set(value);
+  }
+
   public cardinality(): int {
     return this.size();
   }
@@ -223,6 +226,20 @@ export class Set implements Instance<SetValue, SetJS> {
 
   public empty(): boolean {
     return this.elements.length === 0;
+  }
+
+  public isNullSet(): boolean {
+    return this.setType === 'NULL';
+  }
+
+  public unifyElements(): Set {
+    const { setType } = this;
+    if (setType === 'NUMBER_RANGE' || setType === 'TIME_RANGE' || setType === 'STRING_RANGE') {
+      let value = this.valueOf();
+      value.elements = unifyElements(value.elements);
+      return new Set(value);
+    }
+    return this;
   }
 
   public simplify(): any {
@@ -306,7 +323,7 @@ export class Set implements Instance<SetValue, SetJS> {
     return new Set({
       setType: this.setType,
       elements: newElements
-    });
+    }).unifyElements();
   }
 
   public intersect(other: Set): Set {

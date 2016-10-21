@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-
-
 import { Action, ActionJS, ActionValue } from './baseAction';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
 import { Expression, Indexer, Alterations, r } from '../expressions/baseExpression';
@@ -29,7 +27,7 @@ import { ContainsAction } from './containsAction';
 import { NumberRange } from '../datatypes/numberRange';
 import { IsAction } from './isAction';
 import { Set } from '../datatypes/set';
-import { isSetType } from '../datatypes/common';
+import { isSetType, wrapSetType } from '../datatypes/common';
 import { TimeRange } from '../datatypes/timeRange';
 import { PlywoodRange } from '../datatypes/range';
 import { StringRange } from '../datatypes/stringRange';
@@ -172,8 +170,25 @@ export class InAction extends Action {
   private _performOnSimpleWhatever(ex: Expression): Expression {
     let expression = this.expression;
     let setValue: Set = expression.getLiteralValue();
-    if (setValue && 'SET/' + ex.type === expression.type && setValue.size() === 1) {
-      return new IsAction({ expression: r(setValue.elements[0]) }).performOnSimple(ex);
+
+    if (setValue && setValue instanceof Set && !setValue.isNullSet()) {
+      if (setValue.size() === 1) {
+        if (wrapSetType(ex.type) === expression.type) {
+          // This is x:NUMBER in Set(1)
+          //      or x:NUMBER_RANGE in Set(Range(1,2))
+          return new IsAction({ expression: r(setValue.elements[0]) }).performOnSimple(ex);
+        } else if (wrapSetType((ex.type + '_RANGE') as PlyType) === expression.type) {
+          // This is x:NUMBER in Set(Range(1,2))
+          return new InAction({ expression: r(setValue.elements[0]) }).performOnSimple(ex);
+        } else {
+          return null;
+        }
+      }
+
+      let unifiedSetValue = setValue.unifyElements();
+      if (!setValue.equals(unifiedSetValue)) {
+        return new InAction({ expression: r(unifiedSetValue) }).performOnSimple(ex);
+      }
     }
 
     if (ex instanceof ChainExpression) {

@@ -999,6 +999,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   // Action constructors
   public performAction(action: Action, markSimple?: boolean): ChainExpression {
+    if (!action) throw new Error('must have action');
     return <ChainExpression>this.performActions([action], markSimple);
   }
 

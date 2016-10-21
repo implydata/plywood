@@ -119,7 +119,7 @@ describe("Set", () => {
   });
 
 
-  describe("unifies", () => {
+  describe("dedupes", () => {
     it("works for booleans", () => {
       expect(Set.fromJS({
         setType: 'BOOLEAN',
@@ -150,6 +150,10 @@ describe("Set", () => {
       });
     });
 
+  });
+
+
+  describe("unifyElements", () => {
     it("works for number range", () => {
       expect(Set.fromJS({
         setType: 'NUMBER_RANGE',
@@ -163,7 +167,7 @@ describe("Set", () => {
 
           { start: 10, end: null }
         ]
-      }).toJS()).to.deep.equal({
+      }).unifyElements().toJS()).to.deep.equal({
         setType: 'NUMBER_RANGE',
         elements: [
           { start: 1, end: 5 },
@@ -186,7 +190,7 @@ describe("Set", () => {
 
           { start: new Date("2015-02-28T00:00:00"), end: null }
         ]
-      }).toJS()).to.deep.equal({
+      }).unifyElements().toJS()).to.deep.equal({
         setType: 'TIME_RANGE',
         elements: [
           { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-23T00:00:00") },
