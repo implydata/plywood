@@ -1014,13 +1014,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   private _performMultiAction(action: string, exs: any[]): ChainExpression {
     if (!exs.length) throw new Error(`${action} action must have at least one argument`);
-    let ret: any = this; // A slight type hack but it works because we know that we will go through the loop
-    for (let ex of exs) {
+    return this.performActions(exs.map((ex) => {
       if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
       let ActionConstructor = Action.classMap[action] as any;
-      ret = ret.performAction(new ActionConstructor({ expression: ex }));
-    }
-    return ret;
+      return new ActionConstructor({ expression: ex });
+    })) as ChainExpression;
   }
 
   // Basic arithmetic
@@ -1237,7 +1235,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   // Set operations
 
-  public cardinality() {
+  public cardinality(): ChainExpression {
     return this.performAction(new CardinalityAction({}));
   }
 

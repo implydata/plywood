@@ -304,6 +304,7 @@ export class ChainExpression extends Expression {
   }
 
   public performActions(actions: Action[], markSimple?: boolean): ChainExpression {
+    if (!actions.length) return this;
     let value = this.valueOf();
     value.actions = value.actions.concat(actions);
     value.simple = Boolean(markSimple);

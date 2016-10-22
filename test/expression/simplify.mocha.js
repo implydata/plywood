@@ -1072,7 +1072,7 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it('removed infinite, no-op limit', () => {
+    it('removes infinite, no-op limit', () => {
       var ex1 = $('main')
         .limit(Infinity);
 

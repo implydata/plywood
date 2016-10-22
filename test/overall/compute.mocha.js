@@ -907,7 +907,8 @@ describe("compute native", () => {
       { cut: "Great", color: "B", num: 5 },
       { cut: "Great", color: "C", num: 7 },
       { cut: "Great", color: "D", num: 8 },
-      { cut: "Amaze", color: "D", num: 9 }
+      { cut: "Amaze", color: "D", num: 9 },
+      { cut: "Amaze", color: null, num: null }
     ]);
 
     var ex = ply(ds)
@@ -995,14 +996,16 @@ describe("compute native", () => {
             "Cut": "Amaze",
             "colors": {
               "elements": [
-                "D"
+                "D",
+                null
               ],
               "setType": "STRING",
               "type": "SET"
             },
             "nums": {
               "elements": [
-                9
+                9,
+                null
               ],
               "setType": "NUMBER",
               "type": "SET"
@@ -1012,7 +1015,8 @@ describe("compute native", () => {
                 {
                   "end": 10,
                   "start": 9
-                }
+                },
+                null
               ],
               "setType": "NUMBER_RANGE",
               "type": "SET"
