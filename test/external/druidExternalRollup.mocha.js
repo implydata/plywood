@@ -16,7 +16,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, External, TimeRange, $, ply, r } = plywood;
 
 describe("DruidExternal Rollup", () => {
@@ -34,7 +34,7 @@ describe("DruidExternal Rollup", () => {
           "type": "TIME"
         },
         {
-          "makerAction": {
+          "maker": {
             "action": "sum",
             "expression": {
               "name": "added",
@@ -46,7 +46,7 @@ describe("DruidExternal Rollup", () => {
           "unsplitable": true
         },
         {
-          "makerAction": {
+          "maker": {
             "action": "sum",
             "expression": {
               "name": "deleted",
@@ -62,7 +62,7 @@ describe("DruidExternal Rollup", () => {
           "type": "STRING"
         },
         {
-          "makerAction": {
+          "maker": {
             "action": "count"
           },
           "name": "count",

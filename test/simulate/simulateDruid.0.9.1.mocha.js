@@ -16,7 +16,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
 
 var attributes = [

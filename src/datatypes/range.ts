@@ -31,8 +31,8 @@ export abstract class Range<T> {
   static classMap: Lookup<typeof Range> = {};
 
   static register(ctr: typeof Range): void {
-    let rangeName = (<any>ctr).name.replace('Range', '').replace(/^\w/, (s: string) => s.toLowerCase());
-    Range.classMap[rangeName] = ctr;
+    let rangeType = (<any>ctr).type.replace('_RANGE', '').toLowerCase();
+    Range.classMap[rangeType] = ctr;
   }
 
   // ToDo: enforce stricter typing here
@@ -205,7 +205,7 @@ export abstract class Range<T> {
     let otherStart = other.start;
     let otherEnd = other.end;
 
-    let start: T;
+    let start: T | null;
     let startBound: string;
     if (thisStart === null || otherStart === null) {
       start = null;
@@ -218,7 +218,7 @@ export abstract class Range<T> {
       startBound = other.bounds[0];
     }
 
-    let end: T;
+    let end: T | null;
     let endBound: string;
     if (thisEnd === null || otherEnd === null) {
       end = null;
@@ -240,7 +240,7 @@ export abstract class Range<T> {
    *
    * @param other The range to union with
    */
-  public intersect(other: Range<T>): Range<T> {
+  public intersect(other: Range<T>): Range<T> | null {
     if (!this.mergeable(other)) return null;
 
     let thisStart = this.start;

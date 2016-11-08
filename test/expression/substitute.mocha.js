@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { $, ply, r } = plywood;
 
 describe("substitute", () => {
@@ -91,7 +91,7 @@ describe("substitute", () => {
 
     var expressionCount = ex.expressionCount();
     ex.substitute(subs);
-    expect(expressionCount).to.equal(22);
+    expect(expressionCount).to.equal(27);
 
 
     var range = [];

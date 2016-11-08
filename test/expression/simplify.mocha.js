@@ -19,7 +19,7 @@ var { expect } = require("chai");
 
 var { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, TimeRange, NumberRange, $, r, ply, Set, Dataset, External, ExternalExpression } = plywood;
 
 function simplifiesTo(ex1, ex2) {
@@ -62,7 +62,7 @@ describe("Simplify", () => {
 
     it("simplifies literal prefix", () => {
       var ex1 = r(5).add(1).subtract(4).multiply('$x');
-      var ex2 = r(2).multiply('$x');
+      var ex2 = $('x').multiply(2);
       simplifiesTo(ex1, ex2);
     });
 
@@ -96,37 +96,43 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it("str.indexOf(substr) > -1 should simplify to `CONTAINS(str, substr)`", () => {
+    it("str.indexOf(substr) > -1 should simplify to CONTAINS(str, substr)", () => {
       var ex1 = $('page').indexOf('sdf').greaterThan(-1);
       var ex2 = $('page').contains('sdf');
       simplifiesTo(ex1, ex2);
     });
 
-    it("`str.indexOf(substr) >= 0` should simplify to `CONTAINS(str, substr)`", () => {
+    it("str.indexOf(substr) >= 0 should simplify to CONTAINS(str, substr)", () => {
       var ex1 = $('page').indexOf('sdf').greaterThanOrEqual(0);
       var ex2 = $('page').contains('sdf');
       simplifiesTo(ex1, ex2);
     });
 
-    it("`str.indexOf(substr) < 1` should not simplify to contains`", () => {
+    it("str.indexOf(substr) < 1 should not simplify to contains", () => {
       var ex1 = $('page').indexOf('sdf').lessThan(1);
       var ex2 = $('page').indexOf('sdf').in(new NumberRange({ start: null, end: 1, bounds: "()" }));
       simplifiesTo(ex1, ex2);
     });
 
-    it("`str.indexOf(substr) !== -1` should simplify to `CONTAINS(str, substr)`", () => {
+    it("str.indexOf(substr) != -1 should simplify to CONTAINS(str, substr)", () => {
       var ex1 = $('page').indexOf('sdf').isnt(-1);
       var ex2 = $('page').contains('sdf');
       simplifiesTo(ex1, ex2);
     });
 
-    it("`chained transform case simplifies to last one`", () => {
+    it("str.indexOf(substr) == -1 should simplify to str.contains(substr).not()", () => {
+      var ex1 = $('page').indexOf('sdf').is(-1);
+      var ex2 = $('page').contains('sdf').not();
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("chained transform case simplifies to last one", () => {
       var ex1 = $('page').transformCase('lowerCase').transformCase('upperCase').transformCase('lowerCase').transformCase('upperCase');
       var ex2 = $('page').transformCase('upperCase');
       simplifiesTo(ex1, ex2);
     });
 
-    it("`str.transformCase('lowerCase').contains(str.transformCase('lowerCase'))`", () => {
+    it("str.transformCase('lowerCase').contains(str.transformCase('lowerCase'))", () => {
       var ex1 = $('page').transformCase('lowerCase').contains($('comment').transformCase('lowerCase'));
       var ex2 = $('page').contains('$comment', 'ignoreCase');
       simplifiesTo(ex1, ex2);
@@ -175,23 +181,55 @@ describe("Simplify", () => {
 
     it("works with nested add", () => {
       var ex1 = $('x').add('2 * $y + $z');
-      var ex2 = $('x').add('2 * $y', '$z');
+      var ex2 = $('x').add('$y * 2', '$z');
       simplifiesTo(ex1, ex2);
     });
 
     it("works with literals", () => {
-      var ex1 = r(1).add('2 + $y + 3 + 4');
-      var ex2 = r(3).add('$y', 7);
+      var ex1 = r(1).add('2 + $y + 30 + 40');
+      var ex2 = $('y').add(73);
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("handles commutativity", () => {
+      var ex1 = r(1).add($('x'));
+      var ex2 = $('x').add(1);
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("handles associativity", () => {
+      var ex1 = $('a').add($('b').add('$c'));
+      var ex2 = $('a').add('$b').add('$c');
       simplifiesTo(ex1, ex2);
     });
   });
 
+
   describe('fallback', () => {
-    it("removes self if fallbackVal is null", () => {
+    it("removes self if else is null", () => {
       var ex1 = $('x').fallback(null);
       var ex2 = $('x');
       simplifiesTo(ex1, ex2);
     });
+
+    it("removes self if null", () => {
+      var ex1 = r(null).fallback('$x');
+      var ex2 = $('x');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("removes self if X = X", () => {
+      var ex1 = $('x').fallback('$x');
+      var ex2 = $('x');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("removes self if X = X", () => {
+      var ex1 = $('x').fallback('$x');
+      var ex2 = $('x');
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 
@@ -269,7 +307,7 @@ describe("Simplify", () => {
 
     it("works with nested add", () => {
       var ex1 = $('x').multiply('(1 + $y) * $z');
-      var ex2 = $('x').multiply('1 + $y', '$z');
+      var ex2 = $('x').multiply('$y + 1', '$z');
       simplifiesTo(ex1, ex2);
     });
 
@@ -324,7 +362,7 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it("works with nested add", () => {
+    it("works with nested or", () => {
       var ex1 = $('x').and('($a or $b) and $z');
       var ex2 = $('x').and('$a or $b', '$z');
       simplifiesTo(ex1, ex2);
@@ -336,9 +374,21 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
+    it("works with different filters across filter", () => {
+      var ex1 = $('flight').is(5).and($('lol').is(3)).and($('flight').is(7));
+      var ex2 = r(false);
+      simplifiesTo(ex1, ex2);
+    });
+
     it("works with same filters", () => {
       var ex1 = $('flight').is(5).and($('flight').is(5));
       var ex2 = $('flight').is(5);
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("works with same filters across filter", () => {
+      var ex1 = $('flight').is(5).and($('lol').is(3)).and($('flight').is(5));
+      var ex2 = $('flight').is(5).and($('lol').is(3));
       simplifiesTo(ex1, ex2);
     });
 
@@ -445,7 +495,7 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it("works with nested add", () => {
+    it("works with nested and", () => {
       var ex1 = $('x').or('($a and $b) or $z');
       var ex2 = $('x').or('$a and $b', '$z');
       simplifiesTo(ex1, ex2);
@@ -496,6 +546,12 @@ describe("Simplify", () => {
 
 
   describe('not', () => {
+    it("works on literal", () => {
+      var ex1 = r(false).not();
+      var ex2 = r(true);
+      simplifiesTo(ex1, ex2);
+    });
+
     it("collapses double", () => {
       var ex1 = $('x').not().not();
       var ex2 = $('x');
@@ -517,8 +573,20 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it("simplifies to true", () => {
+    it("simplifies to true with simple datatypes", () => {
       var ex1 = r(5).is(5);
+      var ex2 = r(true);
+      simplifiesTo(ex1, ex2);
+    });
+
+    it.skip("simplifies to true with complex datatypes", () => {
+      var ex1 = r(TimeRange.fromJS({
+        start: new Date('2016-01-02Z'),
+        end: new Date('2016-01-03Z')
+      })).is(TimeRange.fromJS({
+        start: new Date('2016-01-02Z'),
+        end: new Date('2016-01-03Z')
+      }));
       var ex2 = r(true);
       simplifiesTo(ex1, ex2);
     });
@@ -741,6 +809,12 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
+    it('shifts 0', () => {
+      var ex1 = $('x').timeShift('P1D', 0, 'Etc/UTC');
+      var ex2 = $('x');
+      simplifiesTo(ex1, ex2);
+    });
+
     it('combines with itself', () => {
       var ex1 = $('x').timeShift('P1D', 10, 'Etc/UTC').timeShift('P1D', -7, 'Etc/UTC');
       var ex2 = $('x').timeShift('P1D', 3, 'Etc/UTC');
@@ -774,6 +848,19 @@ describe("Simplify", () => {
 
 
   describe('filter', () => {
+    it('folds with literal', () => {
+      var ex1 = ply(Dataset.fromJS([
+        { x: 1 },
+        { x: 2 }
+      ])).filter('$x == 2');
+
+      var ex2 = ply(Dataset.fromJS([
+        { x: 2 }
+      ]));
+
+      simplifiesTo(ex1, ex2);
+    });
+
     it('consecutive filters fold together', () => {
       var ex1 = ply()
         .filter('$^x == 1')
@@ -820,17 +907,11 @@ describe("Simplify", () => {
     it('can move past a linear split', () => {
       var ex1 = $('wiki')
         .split('$page:STRING', 'Page')
-        .apply('Deleted', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)')
         .filter('$Page.contains("hello world")');
 
       var ex2 = $('wiki')
         .filter('$page:STRING.contains("hello world")')
-        .split('$page:STRING', 'Page')
-        .apply('Deleted', '$wiki.sum($deleted)')
-        .apply('AddedByDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
-        .apply('DeletedByInserted', '$wiki.sum($deleted) / $wiki.sum($inserted)');
+        .split('$page:STRING', 'Page');
 
       simplifiesTo(ex1, ex2);
     });
@@ -1012,7 +1093,7 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it('applies externals', () => {
+    it.skip('applies externals', () => {
       var diamondEx = new ExternalExpression({ external: diamonds });
 
       var ex1 = ply()
@@ -1154,13 +1235,8 @@ describe("Simplify", () => {
 
   describe('lookup', () => {
     it('does not touch a lookup on a literal', () => {
-      var ex1 = r('hello')
-        .lookup('hello_lookup');
-
-      var ex2 = r('hello')
-        .lookup('hello_lookup');
-
-      simplifiesTo(ex1, ex2);
+      var ex1 = r('hello').lookup('hello_lookup');
+      leavesAlone(ex1);
     });
   });
 });

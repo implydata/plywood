@@ -19,7 +19,7 @@ var { expect } = require("chai");
 
 var { mySqlRequesterFactory } = require('plywood-mysql-requester');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
 var info = require('../info');

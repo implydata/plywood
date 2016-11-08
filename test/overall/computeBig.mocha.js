@@ -19,7 +19,7 @@ var { expect } = require("chai");
 var fs = require('fs');
 var path = require('path');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, Dataset, $, ply, r } = plywood;
 
 var chronoshift = require("chronoshift");

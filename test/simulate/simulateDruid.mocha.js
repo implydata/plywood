@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
 
 var attributes = [
@@ -70,7 +70,7 @@ var diamondsCompact = External.fromJS({
   source: 'diamonds-compact',
   timeAttribute: 'time',
   attributes: [
-    { name: 'time', type: 'TIME', makerAction: { action: 'timeFloor', duration: 'P1D', timezone: 'Etc/UTC' } },
+    { name: 'time', type: 'TIME', maker: { action: 'timeFloor', duration: 'P1D', timezone: 'Etc/UTC' } },
     { name: 'color', type: 'STRING' },
     { name: 'cut', type: 'STRING' },
     { name: 'price', type: 'NUMBER', unsplitable: true }
@@ -1402,7 +1402,7 @@ describe("simulate Druid", () => {
   it("works with custom transform in filter and split", () => {
     var ex = $("diamonds")
       .filter($("cut").customTransform('sliceLastChar').is('z'))
-      .split($("cut").customTransform('sliceLastChar').is('z'), 'lastChar')
+      .split($("cut").customTransform('sliceLastChar'), 'lastChar')
       .limit(10);
 
     var queryPlan = ex.simulateQueryPlan(context);
@@ -3140,6 +3140,7 @@ describe("simulate Druid", () => {
       .apply('Count', '$diamonds.count()');
 
     var queryPlan = ex.simulateQueryPlan(context);
+
     expect(queryPlan.length).to.equal(2);
     expect(queryPlan[0]).to.deep.equal([
       {

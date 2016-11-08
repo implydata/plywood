@@ -18,65 +18,70 @@
 import * as Q from 'q';
 import { Timezone, Duration, parseISODate } from 'chronoshift';
 import { Instance, isInstanceOf, isImmutableClass, SimpleArray } from 'immutable-class';
+import { shallowCopy } from '../helper/utils';
 import { promiseWhile } from '../helper/promiseWhile';
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple } from '../types';
+import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple, Environment } from '../types';
 import { fillExpressionExternalAlteration } from '../datatypes/index';
 import { LiteralExpression } from './literalExpression';
-import { ChainExpression } from './chainExpression';
 import { RefExpression } from './refExpression';
 import { ExternalExpression } from './externalExpression';
+
+import { AbsoluteExpression } from './absoluteExpression';
+import { AddExpression } from './addExpression';
+import { AndExpression } from './andExpression';
+import { ApplyExpression } from './applyExpression';
+import { AverageExpression } from './averageExpression';
+import { CardinalityExpression } from './cardinalityExpression';
+import { CastExpression } from './castExpression';
+import { CollectExpression } from './collectExpression';
+import { ConcatExpression } from './concatExpression';
+import { ContainsExpression } from './containsExpression';
+import { CountExpression } from './countExpression';
+import { CountDistinctExpression } from './countDistinctExpression';
+import { CustomAggregateExpression } from './customAggregateExpression';
+import { CustomTransformExpression } from './customTransformExpression';
+import { DivideExpression } from './divideExpression';
+import { ExtractExpression } from './extractExpression';
+import { FallbackExpression } from './fallbackExpression';
+import { FilterExpression } from './filterExpression';
+import { GreaterThanExpression } from './greaterThanExpression';
+import { GreaterThanOrEqualExpression } from './greaterThanOrEqualExpression';
+import { InExpression } from './inExpression';
+import { IsExpression } from './isExpression';
+import { JoinExpression } from './joinExpression';
+import { LengthExpression } from './lengthExpression';
+import { LessThanExpression } from './lessThanExpression';
+import { LessThanOrEqualExpression } from './lessThanOrEqualExpression';
+import { IndexOfExpression } from './indexOfExpression';
+import { LookupExpression } from './lookupExpression';
+import { LimitExpression } from './limitExpression';
+import { MatchExpression } from './matchExpression';
+import { MaxExpression } from './maxExpression';
+import { MinExpression } from './minExpression';
+import { MultiplyExpression } from './multiplyExpression';
+import { NotExpression } from './notExpression';
+import { NumberBucketExpression } from './numberBucketExpression';
+import { OrExpression } from './orExpression';
+import { OverlapExpression } from './overlapExpression';
+import { PowerExpression } from './powerExpression';
+import { QuantileExpression } from './quantileExpression';
+import { SelectExpression } from './selectExpression';
+import { SortExpression, Direction } from './sortExpression';
+import { SplitExpression } from './splitExpression';
+import { SubstrExpression } from './substrExpression';
+import { SubtractExpression } from './subtractExpression';
+import { SumExpression } from './sumExpression';
+import { TimeBucketExpression } from './timeBucketExpression';
+import { TimeFloorExpression } from './timeFloorExpression';
+import { TimePartExpression } from './timePartExpression';
+import { TimeRangeExpression } from './timeRangeExpression';
+import { TimeShiftExpression } from './timeShiftExpression';
+import { TransformCaseExpression } from './transformCaseExpression';
+
 import { SQLDialect } from '../dialect/baseDialect';
-import {
-  Action,
-  AbsoluteAction,
-  ApplyAction,
-  AverageAction,
-  CardinalityAction,
-  CastAction,
-  CollectAction,
-  ContainsAction,
-  CountAction,
-  CountDistinctAction,
-  CustomAggregateAction,
-  CustomTransformAction,
-  ExtractAction,
-  FallbackAction,
-  FilterAction,
-  GreaterThanAction,
-  GreaterThanOrEqualAction,
-  InAction,
-  IndexOfAction,
-  IsAction,
-  JoinAction,
-  LengthAction,
-  LessThanAction,
-  LessThanOrEqualAction,
-  LimitAction,
-  LookupAction,
-  MatchAction,
-  MaxAction,
-  MinAction,
-  NotAction,
-  NumberBucketAction,
-  OverlapAction,
-  QuantileAction,
-  SelectAction,
-  SortAction,
-  SplitAction,
-  SubstrAction,
-  SumAction,
-  TimeBucketAction,
-  TimeFloorAction,
-  TimePartAction,
-  TimeRangeAction,
-  TimeShiftAction,
-  TransformCaseAction,
-  Environment
-} from '../actions/index';
 import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from '../helper/utils';
 import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from '../datatypes/index';
-import { ActionJS, CaseType, Splits } from '../actions/baseAction';
-import { Direction } from '../actions/sortAction';
+
 import { isSetType, getFullTypeFromDatum, introspectDatum, failIfIntrospectNeededInDatum } from '../datatypes/common';
 import { ComputeFn } from '../datatypes/dataset';
 import { External, ExternalJS } from '../external/baseExternal';
@@ -119,41 +124,33 @@ export interface ExpressionExternalAlterationSimple {
 export type ExpressionExternalAlteration = Lookup<ExpressionExternalAlterationSimple | DatasetExternalAlterations>;
 
 export interface BooleanExpressionIterator {
-  (ex?: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
+  (ex: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
 }
 
 export interface VoidExpressionIterator {
-  (ex?: Expression, index?: int, depth?: int, nestDiff?: int): void;
+  (ex: Expression, index?: int, depth?: int, nestDiff?: int): void;
 }
 
 export interface SubstitutionFn {
-  (ex?: Expression, index?: int, depth?: int, nestDiff?: int): Expression;
+  (ex: Expression, index?: int, depth?: int, nestDiff?: int, typeContext?: DatasetFullType): Expression;
 }
 
 export interface ExpressionMatchFn {
-  (ex?: Expression): boolean;
-}
-
-export interface ActionMatchFn {
-  (action?: Action): boolean;
-}
-
-export interface ActionSubstitutionFn {
-  (preEx?: Expression, action?: Action): Expression;
+  (ex: Expression): boolean;
 }
 
 export interface DatasetBreakdown {
-  singleDatasetActions: ApplyAction[];
+  singleDatasetActions: ApplyExpression[];
   combineExpression: Expression;
-}
-
-export interface Digest {
-  expression: Expression;
-  undigested: ApplyAction;
 }
 
 export interface Indexer {
   index: int;
+}
+
+export interface ExpressionTypeContext {
+  expression: Expression;
+  typeContext: DatasetFullType;
 }
 
 export type Alterations = Lookup<Expression>;
@@ -167,32 +164,80 @@ export interface SQLParse {
   rest?: string;
 }
 
+export interface Splits {
+  [name: string]: Expression;
+}
+
+export interface SplitsJS {
+  [name: string]: ExpressionJS;
+}
+
+export type CaseType = 'upperCase' | 'lowerCase';
+
 export interface ExpressionValue {
   op?: string;
   type?: PlyType;
   simple?: boolean;
+  operand?: Expression;
   value?: any;
   name?: string;
   nest?: int;
   external?: External;
   expression?: Expression;
-  actions?: Action[];
+  actions?: any[]; // ToDo remove
   ignoreCase?: boolean;
 
-  remote?: boolean;
+  dataName?: string;
+  splits?: Splits;
+  direction?: Direction;
+  size?: number;
+  offset?: number;
+  duration?: Duration;
+  timezone?: Timezone;
+  part?: string;
+  step?: number;
+  position?: int;
+  len?: int;
+  regexp?: string;
+  custom?: string;
+  compare?: string;
+  lookupFn?: string;
+  attributes?: string[];
+  transformType?: CaseType;
+  outputType?: PlyTypeSimple;
 }
 
 export interface ExpressionJS {
   op: string;
   type?: PlyType;
   value?: any;
+  operand?: ExpressionJS;
   name?: string;
   nest?: int;
   external?: ExternalJS;
   expression?: ExpressionJS;
-  action?: ActionJS;
-  actions?: ActionJS[];
+  action?: any;
+  actions?: any[]; // ToDo: remove
   ignoreCase?: boolean;
+
+  dataName?: string;
+  splits?: SplitsJS;
+  direction?: Direction;
+  size?: number;
+  offset?: number;
+  duration?: string;
+  timezone?: string;
+  part?: string;
+  step?: number;
+  position?: int;
+  len?: int;
+  regexp?: string;
+  custom?: string;
+  compare?: string;
+  lookupFn?: string;
+  attributes?: string[];
+  transformType?: CaseType;
+  outputType?: PlyTypeSimple;
 }
 
 export interface ExtractAndRest {
@@ -202,15 +247,15 @@ export interface ExtractAndRest {
 
 export type IfNotFound = "throw" | "leave" | "null";
 
-export interface SubstituteActionOptions {
-  onceInChain?: boolean;
+function runtimeAbstract() {
+  return new Error('must be implemented');
 }
 
 function getDataName(ex: Expression): string {
   if (ex instanceof RefExpression) {
     return ex.name;
-  } else if (ex instanceof ChainExpression) {
-    return getDataName(ex.expression);
+  } else if (ex instanceof ChainableExpression) {
+    return getDataName(ex.operand);
   } else {
     return null;
   }
@@ -334,6 +379,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   static EMPTY_STRING: LiteralExpression;
   static EMPTY_SET: LiteralExpression;
 
+  static _: RefExpression;
+
   static expressionParser: PEGParser;
   static plyqlParser: PEGParser;
   static defaultParserTimezone: Timezone = Timezone.UTC; // The default timezone within which dates in expressions are parsed
@@ -453,11 +500,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   static inOrIs(lhs: Expression, value: any): Expression {
-    let literal = new LiteralExpression({
-      op: 'literal',
-      value: value
-    });
-
+    let literal = r(value);
     let literalType = literal.type;
     let returnExpression: Expression = null;
     if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || literalType === 'STRING_RANGE' || isSetType(literalType)) {
@@ -534,8 +577,30 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   static classMap: Lookup<typeof Expression> = {};
   static register(ex: typeof Expression): void {
-    let op = (<any>ex).name.replace('Expression', '').replace(/^\w/, (s: string) => s.toLowerCase());
+    let op = (<any>ex).op.replace(/^\w/, (s: string) => s.toLowerCase());
     Expression.classMap[op] = ex;
+  }
+
+  static getConstructorFor(op: string): typeof Expression {
+    const ClassFn = Expression.classMap[op];
+    if (!ClassFn) throw new Error(`unsupported expression op '${op}'`);
+    return ClassFn;
+  }
+
+  static applyMixins(derivedCtor: any, baseCtors: any[]) {
+    // From: https://www.typescriptlang.org/docs/handbook/mixins.html
+    baseCtors.forEach(baseCtor => {
+      Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
+        derivedCtor.prototype[name] = baseCtor.prototype[name];
+      });
+    });
+  }
+
+  static jsToValue(js: ExpressionJS): ExpressionValue {
+    return {
+      op: js.op,
+      type: js.type
+    };
   }
 
   /**
@@ -543,19 +608,44 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param expressionJS
    */
   static fromJS(expressionJS: ExpressionJS): Expression {
+    if (!expressionJS) throw new Error('must have expressionJS');
     if (!hasOwnProperty(expressionJS, "op")) {
-      throw new Error("op must be defined");
-    }
-    let op = expressionJS.op;
-    if (typeof op !== "string") {
-      throw new Error("op must be a string");
-    }
-    let ClassFn = Expression.classMap[op];
-    if (!ClassFn) {
-      throw new Error(`unsupported expression op '${op}'`);
+      if (hasOwnProperty(expressionJS, "action")) {
+        expressionJS = shallowCopy(expressionJS);
+        expressionJS.op = expressionJS.action;
+        delete expressionJS.action;
+        expressionJS.operand = { op: 'ref', name: '_' };
+      } else {
+        throw new Error("op must be defined");
+      }
     }
 
+    // Back compat.
+    if (expressionJS.op === 'custom') {
+      expressionJS = shallowCopy(expressionJS);
+      expressionJS.op = 'customAggregate';
+    }
+
+    let op = expressionJS.op;
+    if (typeof op !== "string") {
+      console.log('expressionJS', expressionJS);
+      throw new Error("op must be a string");
+    }
+
+    // Back compat.
+    if (op === 'chain') {
+      const actions = expressionJS.actions || [expressionJS.action];
+      return Expression.fromJS(expressionJS.expression).performActions(actions.map(Expression.fromJS));
+    }
+
+    const ClassFn = Expression.getConstructorFor(op);
     return ClassFn.fromJS(expressionJS);
+  }
+
+  static fromValue(parameters: ExpressionValue): Expression {
+    const { op } = parameters;
+    const ClassFn = Expression.getConstructorFor(op) as any;
+    return new ClassFn(parameters);
   }
 
   public op: string;
@@ -602,9 +692,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return this.toJS();
   }
 
-  public toString(indent?: int): string {
-    return 'BaseExpression';
-  }
+  public abstract toString(indent?: int): string;
 
   /**
    * Validate that two expressions are equal in their meaning
@@ -646,6 +734,13 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return this.op === op;
   }
 
+  public markSimple(): this {
+    if (this.simple) return this;
+    let value = this.valueOf();
+    value.simple = true;
+    return Expression.fromValue(value) as any;
+  }
+
   /**
    * Check if the expression contains the given operation (op)
    * @param op The operation to test
@@ -660,7 +755,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public hasExternal(): boolean {
     return this.some((ex: Expression) => {
       if (ex instanceof ExternalExpression) return true;
-      if (ex instanceof RefExpression) return ex.isRemote();
       return null; // search further
     });
   }
@@ -684,6 +778,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public getReadyExternals(): ExpressionExternalAlteration {
     let indexToSkip: Lookup<boolean> = {};
     let externalsByIndex: ExpressionExternalAlteration = {};
+
     this.every((ex: Expression, index: int) => {
       if (ex instanceof ExternalExpression) {
         if (indexToSkip[index]) return null;
@@ -694,19 +789,16 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
           };
         }
 
-      } else if (ex instanceof ChainExpression) {
-        let exExpression = ex.expression;
-        if (exExpression instanceof ExternalExpression) {
-          let actionsLookGood = ex.actions.every(action => {
-            return action.action === 'filter' ? action.resolvedWithoutExternals() : action.resolved();
-          });
-          if (actionsLookGood) {
-            externalsByIndex[index + 1] = { external: exExpression.external };
+      } else if (ex instanceof ChainableExpression) {
+        let h = ex._headExternal();
+        if (h) {
+          if (h.allGood) {
+            externalsByIndex[index + h.offset] = { external: h.external };
             return true;
+          } else {
+            indexToSkip[index + h.offset] = true;
+            return null;
           }
-          // this will look further but we should not be looking into the expression of this chain
-          indexToSkip[index + 1] = true;
-          return null;
         }
 
       } else if (ex instanceof LiteralExpression && ex.type === 'DATASET') {
@@ -729,6 +821,31 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         return r(alteration.result);
       }
     }).simplify();
+  }
+
+  private _headExternal(): any {
+    let ex: Expression = this;
+    let allGood = true;
+    let offset = 0;
+    while (ex instanceof ChainableExpression) {
+      allGood = allGood && (ex.op === 'filter' ? ex.argumentsResolvedWithoutExternals() : ex.argumentsResolved());
+      ex = ex.operand;
+      offset++;
+    }
+
+    if (ex instanceof ExternalExpression) {
+      return {
+        allGood,
+        external: ex.external,
+        offset
+      };
+    } else {
+      return null;
+    }
+  }
+
+  public getHeadOperand(): Expression {
+    return this;
   }
 
   /**
@@ -828,45 +945,36 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Performs a substitution by recursively applying the given substitutionFn to every sub-expression
    * if substitutionFn returns an expression than it is replaced; if null is returned this expression is returned
    * @param substitutionFn The function with which to substitute
-   * @param thisArg The this for the substitution function
    */
-  public substitute(substitutionFn: SubstitutionFn, thisArg?: any): Expression {
-    return this._substituteHelper(substitutionFn, thisArg, { index: 0 }, 0, 0);
+  public substitute(substitutionFn: SubstitutionFn, typeContext: DatasetFullType = null): Expression {
+    return this._substituteHelper(substitutionFn, { index: 0 }, 0, 0, typeContext).expression;
   }
 
-  public _substituteHelper(substitutionFn: SubstitutionFn, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): Expression {
-    let sub = substitutionFn.call(thisArg, this, indexer.index, depth, nestDiff);
+  public _substituteHelper(substitutionFn: SubstitutionFn, indexer: Indexer, depth: int, nestDiff: int, typeContext: DatasetFullType): ExpressionTypeContext {
+    let sub = substitutionFn.call(this, this, indexer.index, depth, nestDiff, typeContext);
     if (sub) {
       indexer.index += this.expressionCount();
-      return sub;
+      return {
+        expression: sub,
+        typeContext: sub.updateTypeContextIfNeeded(typeContext)
+      };
     } else {
       indexer.index++;
     }
 
-    return this;
-  }
-
-  public substituteAction(actionMatchFn: ActionMatchFn, actionSubstitutionFn: ActionSubstitutionFn, options: SubstituteActionOptions = {}, thisArg?: any): Expression {
-    return this.substitute((ex: Expression) => {
-      if (ex instanceof ChainExpression) {
-        let actions = ex.actions;
-        for (let i = 0; i < actions.length; i++) {
-          let action = actions[i];
-          if (actionMatchFn.call(this, action)) {
-            let newEx = actionSubstitutionFn.call(this, ex.headActions(i), action);
-            if (newEx) {
-              for (let j = i + 1; j < actions.length; j++) newEx = newEx.performAction(actions[j]);
-              if (options.onceInChain) return newEx;
-              return newEx.substituteAction(actionMatchFn, actionSubstitutionFn, options, this);
-            }
-          }
-        }
-      }
-      return null;
-    }, thisArg);
+    return {
+      expression: this,
+      typeContext: this.updateTypeContextIfNeeded(typeContext)
+    };
   }
 
   public abstract getFn(): ComputeFn
+
+  public fullyDefined(): boolean {
+    return true;
+  }
+
+  public abstract calc(datum: Datum): PlywoodValue
 
   public abstract getJS(datumVar: string): string
 
@@ -900,90 +1008,45 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public breakdownByDataset(tempNamePrefix: string): DatasetBreakdown {
-    let nameIndex = 0;
-    let singleDatasetActions: ApplyAction[] = [];
-
-    let externals = this.getBaseExternals();
-    if (externals.length < 2) {
-      throw new Error('not a multiple dataset expression');
-    }
-
-    let combine = this.substitute(ex => {
-      let externals = ex.getBaseExternals();
-      if (externals.length !== 1) return null;
-
-      let existingApply = SimpleArray.find(singleDatasetActions, (apply) => apply.expression.equals(ex));
-
-      let tempName: string;
-      if (existingApply) {
-        tempName = existingApply.name;
-      } else {
-        tempName = tempNamePrefix + (nameIndex++);
-        singleDatasetActions.push(new ApplyAction({
-          action: 'apply',
-          name: tempName,
-          expression: ex
-        }));
-      }
-
-      return new RefExpression({
-        op: 'ref',
-        name: tempName,
-        nest: 0
-      });
-    });
-    return {
-      combineExpression: combine,
-      singleDatasetActions: singleDatasetActions
-    };
-  }
-
-  public actionize(containingAction: string): Action[] {
-    return null;
-  }
-
-  public getExpressionPattern(actionType: string): Expression[] {
-    let actions = this.actionize(actionType);
-    return actions ? actions.map((action) => action.expression) : null;
-  }
-
-  /**
-   * Returns the first action
-   * Returns null there are no actions
-   */
-  public firstAction(): Action {
-    return null;
-  }
-
-  /**
-   * Returns the last action
-   * Returns null there are no actions
-   */
-  public lastAction(): Action {
-    return null;
-  }
-
-  /**
-   * Returns an expression containing up to `n` actions
-   */
-  public headActions(n: int): Expression {
-    return this;
-  }
-
-  /**
-   * Returns an expression without the last action.
-   * Returns null if an action can not be poped
-   */
-  public popAction(): Expression {
-    return null;
+    throw new Error('todo');
+    // let nameIndex = 0;
+    // let singleDatasetActions: ApplyAction[] = [];
+    //
+    // let externals = this.getBaseExternals();
+    // if (externals.length < 2) {
+    //   throw new Error('not a multiple dataset expression');
+    // }
+    //
+    // let combine = this.substitute(ex => {
+    //   let externals = ex.getBaseExternals();
+    //   if (externals.length !== 1) return null;
+    //
+    //   let existingApply = SimpleArray.find(singleDatasetActions, (apply) => apply.expression.equals(ex));
+    //
+    //   let tempName: string;
+    //   if (existingApply) {
+    //     tempName = existingApply.name;
+    //   } else {
+    //     tempName = tempNamePrefix + (nameIndex++);
+    //     singleDatasetActions.push(new ApplyAction({
+    //       name: tempName,
+    //       expression: ex
+    //     }));
+    //   }
+    //
+    //   return new RefExpression({
+    //     name: tempName,
+    //     nest: 0
+    //   });
+    // });
+    // return {
+    //   combineExpression: combine,
+    //   singleDatasetActions: singleDatasetActions
+    // };
   }
 
   public getLiteralValue(): any {
     return null;
-  }
-
-  public bumpStringLiteralToTime(): Expression {
-    return this;
   }
 
   public bumpStringLiteralToSetString(): Expression {
@@ -994,118 +1057,120 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return this;
   }
 
+  public isAction(): boolean {
+    return false;
+  }
+
+  public performAction(action: Expression): Expression {
+    if (!action.isAction()) throw new Error(`${action} is not an action`);
+    return action.substitute((ex) => ex.equals(Expression._) ? this : null);
+  }
+
+  public performActions(actions: Expression[]): Expression {
+    let ex: Expression = this;
+    for (let action of actions) ex = ex.performAction(action);
+    return ex;
+  }
+
   // ------------------------------------------------------------------------
   // API behaviour
 
-  // Action constructors
-  public performAction(action: Action, markSimple?: boolean): ChainExpression {
-    if (!action) throw new Error('must have action');
-    return <ChainExpression>this.performActions([action], markSimple);
-  }
-
-  public performActions(actions: Action[], markSimple?: boolean): Expression {
-    if (!actions.length) return this;
-    return new ChainExpression({
-      expression: this,
-      actions: actions,
-      simple: Boolean(markSimple)
-    });
-  }
-
-  private _performMultiAction(action: string, exs: any[]): ChainExpression {
-    if (!exs.length) throw new Error(`${action} action must have at least one argument`);
-    return this.performActions(exs.map((ex) => {
-      if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-      let ActionConstructor = Action.classMap[action] as any;
-      return new ActionConstructor({ expression: ex });
-    })) as ChainExpression;
+  private _mkChain<T extends ChainableUnaryExpression>(ExpressionClass: any, exs: any[]): T {
+    let cur: any = this;
+    for (let ex of exs) {
+      cur = new ExpressionClass({
+        operand: cur,
+        expression: Expression.isExpression(ex) ? ex : Expression.fromJSLoose(ex)
+      });
+    }
+    return cur;
   }
 
   // Basic arithmetic
 
-  public add(...exs: any[]): ChainExpression {
-    return this._performMultiAction('add', exs);
+  public add(...exs: any[]) {
+    return this._mkChain<AddExpression>(AddExpression, exs);
   }
 
-  public subtract(...exs: any[]): ChainExpression {
-    return this._performMultiAction('subtract', exs);
+  public subtract(...exs: any[]) {
+    return this._mkChain<SubtractExpression>(SubtractExpression, exs);
   }
 
-  public negate(): ChainExpression {
+  public negate() {
     return Expression.ZERO.subtract(this);
   }
 
-  public multiply(...exs: any[]): ChainExpression {
-    return this._performMultiAction('multiply', exs);
+  public multiply(...exs: any[]) {
+    return this._mkChain<MultiplyExpression>(MultiplyExpression, exs);
   }
 
-  public divide(...exs: any[]): ChainExpression {
-    return this._performMultiAction('divide', exs);
+  public divide(...exs: any[]) {
+    return this._mkChain<DivideExpression>(DivideExpression, exs);
   }
 
-  public reciprocate(): ChainExpression {
+  public reciprocate() {
     return Expression.ONE.divide(this);
   }
 
-  public sqrt(): ChainExpression {
+  public sqrt() {
     return this.power(0.5);
   }
 
-  public power(...exs: any[]): ChainExpression {
-    return this._performMultiAction('power', exs);
+  public power(...exs: any[]) {
+    return this._mkChain<PowerExpression>(PowerExpression, exs);
   }
 
-  public fallback(ex: any): ChainExpression {
+  public fallback(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new FallbackAction({ expression: ex }));
+    return new FallbackExpression({ operand: this, expression: ex });
   }
 
   // Boolean predicates
 
-  public is(ex: any): ChainExpression {
+  public is(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new IsAction({ expression: ex }));
+    return new IsExpression({ operand: this, expression: ex });
   }
 
-  public isnt(ex: any): ChainExpression {
+  public isnt(ex: any) {
     return this.is(ex).not();
   }
 
-  public lessThan(ex: any): ChainExpression {
+  public lessThan(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new LessThanAction({ expression: ex }));
+    return new LessThanExpression({ operand: this, expression: ex });
   }
 
-  public lessThanOrEqual(ex: any): ChainExpression {
+  public lessThanOrEqual(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new LessThanOrEqualAction({ expression: ex }));
+    return new LessThanOrEqualExpression({ operand: this, expression: ex });
   }
 
-  public greaterThan(ex: any): ChainExpression {
+  public greaterThan(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new GreaterThanAction({ expression: ex }));
+    return new GreaterThanExpression({ operand: this, expression: ex });
   }
 
-  public greaterThanOrEqual(ex: any): ChainExpression {
+  public greaterThanOrEqual(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new GreaterThanOrEqualAction({ expression: ex }));
+    return new GreaterThanOrEqualExpression({ operand: this, expression: ex });
   }
 
-  public contains(ex: any, compare?: string): ChainExpression {
+  public contains(ex: any, compare?: string) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
     if (compare) compare = getString(compare);
-    return this.performAction(new ContainsAction({ expression: ex, compare }));
+    return new ContainsExpression({ operand: this, expression: ex, compare });
   }
 
-  public match(re: string): ChainExpression {
-    return this.performAction(new MatchAction({ regexp: getString(re) }));
+  public match(re: string) {
+    return new MatchExpression({ operand: this, regexp: getString(re) });
   }
 
-  public in(start: Date, end: Date): ChainExpression;
-  public in(start: number, end: number): ChainExpression;
-  public in(start: string, end: string): ChainExpression;
-  public in(ex: any): ChainExpression;
-  public in(ex: any, snd?: any): ChainExpression {
+  public in(start: Date, end: Date): InExpression;
+  public in(start: number, end: number): InExpression;
+  public in(start: string, end: string): InExpression;
+  public in(ex: any): InExpression;
+  public in(ex: any, snd?: any): InExpression {
     if (arguments.length === 2) {
       ex = getValue(ex);
       snd = getValue(snd);
@@ -1131,112 +1196,112 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       }
     }
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new InAction({ expression: ex }));
+    return new InExpression({ operand: this, expression: ex });
   }
 
-  public overlap(ex: any): ChainExpression {
+  public overlap(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.bumpStringLiteralToSetString().performAction(new OverlapAction({ expression: ex.bumpStringLiteralToSetString() }));
+    return new OverlapExpression({ operand: this, expression: ex.bumpStringLiteralToSetString() });
   }
 
-  public not(): ChainExpression {
-    return this.performAction(new NotAction({}));
+  public not() {
+    return new NotExpression({ operand: this });
   }
 
-  public and(...exs: any[]): ChainExpression {
-    return this._performMultiAction('and', exs);
+  public and(...exs: any[]) {
+    return this._mkChain<AndExpression>(AndExpression, exs);
   }
 
-  public or(...exs: any[]): ChainExpression {
-    return this._performMultiAction('or', exs);
+  public or(...exs: any[]) {
+    return this._mkChain<OrExpression>(OrExpression, exs);
   }
 
   // String manipulation
 
-  public substr(position: number, length: number): ChainExpression {
-    return this.performAction(new SubstrAction({ position: getNumber(position), length: getNumber(length) }));
+  public substr(position: number, len: number) {
+    return new SubstrExpression({ operand: this, position: getNumber(position), len: getNumber(len) });
   }
 
-  public extract(re: string): ChainExpression {
-    return this.performAction(new ExtractAction({ regexp: getString(re) }));
+  public extract(re: string) {
+    return new ExtractExpression({ operand: this, regexp: getString(re) });
   }
 
-  public concat(...exs: any[]): ChainExpression {
-    return this._performMultiAction('concat', exs);
+  public concat(...exs: any[]) {
+    return this._mkChain<ConcatExpression>(ConcatExpression, exs);
   }
 
-  public lookup(lookup: string): ChainExpression {
-    return this.performAction(new LookupAction({ lookup: getString(lookup) }));
+  public lookup(lookupFn: string) {
+    return new LookupExpression({ operand: this, lookupFn: getString(lookupFn) });
   }
 
-  public indexOf(ex: any): ChainExpression {
+  public indexOf(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new IndexOfAction({ expression: ex }));
+    return new IndexOfExpression({ operand: this, expression: ex });
   }
 
-  public transformCase(transformType: CaseType): ChainExpression {
-    return this.performAction(new TransformCaseAction({ transformType: getString(transformType) as CaseType }));
+  public transformCase(transformType: CaseType) {
+    return new TransformCaseExpression({ operand: this, transformType: getString(transformType) as CaseType });
   }
 
-  public customTransform(custom: string, outputType?: PlyTypeSingleValue): ChainExpression {
+  public customTransform(custom: string, outputType?: PlyTypeSingleValue) {
     if (!custom) throw new Error("Must provide an extraction function name for custom transform");
     outputType = outputType !== undefined ? getString(outputType) as PlyTypeSingleValue : null;
-    return this.performAction(new CustomTransformAction({ custom: getString(custom), outputType }));
+    return new CustomTransformExpression({ operand: this, custom: getString(custom), outputType });
   }
 
   // Number manipulation
 
-  public numberBucket(size: number, offset = 0): ChainExpression {
-    return this.performAction(new NumberBucketAction({ size: getNumber(size), offset: getNumber(offset) }));
+  public numberBucket(size: number, offset = 0) {
+    return new NumberBucketExpression({ operand: this, size: getNumber(size), offset: getNumber(offset) });
   }
 
-  public absolute(): ChainExpression {
-    return this.performAction(new AbsoluteAction({}));
+  public absolute() {
+    return new AbsoluteExpression({ operand: this });
   }
 
-  public length(): ChainExpression {
-    return this.performAction(new LengthAction({}));
+  public length() {
+    return new LengthExpression({ operand: this });
   }
 
   // Time manipulation
 
-  public timeBucket(duration: any, timezone?: any): ChainExpression {
+  public timeBucket(duration: any, timezone?: any) {
     if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
     if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-    return this.bumpStringLiteralToTime().performAction(new TimeBucketAction({ duration, timezone }));
+    return new TimeBucketExpression({ operand: this, duration, timezone });
   }
 
-  public timeFloor(duration: any, timezone?: any): ChainExpression {
+  public timeFloor(duration: any, timezone?: any) {
     if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
     if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-    return this.bumpStringLiteralToTime().performAction(new TimeFloorAction({ duration, timezone }));
+    return new TimeFloorExpression({ operand: this, duration, timezone });
   }
 
-  public timeShift(duration: any, step: number, timezone?: any): ChainExpression {
+  public timeShift(duration: any, step: number, timezone?: any) {
     if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
     if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-    return this.bumpStringLiteralToTime().performAction(new TimeShiftAction({ duration, step: getNumber(step), timezone }));
+    return new TimeShiftExpression({ operand: this, duration, step: getNumber(step), timezone });
   }
 
-  public timeRange(duration: any, step: number, timezone?: any): ChainExpression {
+  public timeRange(duration: any, step: number, timezone?: any) {
     if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
     if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-    return this.bumpStringLiteralToTime().performAction(new TimeRangeAction({ duration, step: getNumber(step), timezone }));
+    return new TimeRangeExpression({ operand: this, duration, step: getNumber(step), timezone });
   }
 
-  public timePart(part: string, timezone?: any): ChainExpression {
+  public timePart(part: string, timezone?: any) {
     if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
-    return this.bumpStringLiteralToTime().performAction(new TimePartAction({ part: getString(part), timezone }));
+    return new TimePartExpression({ operand: this, part: getString(part), timezone });
   }
 
-  public cast(outputType: PlyType): ChainExpression {
-    return this.performAction(new CastAction({ outputType: getString(outputType) as PlyTypeSimple }));
+  public cast(outputType: PlyType) {
+    return new CastExpression({ operand: this, outputType: getString(outputType) as PlyTypeSimple });
   }
 
   // Set operations
 
-  public cardinality(): ChainExpression {
-    return this.performAction(new CardinalityAction({}));
+  public cardinality() {
+    return new CardinalityExpression({ operand: this });
   }
 
   // Split Apply Combine based transformations
@@ -1246,14 +1311,14 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Only works on expressions that return DATASET
    * @param ex A boolean expression to filter on
    */
-  public filter(ex: any): ChainExpression {
+  public filter(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new FilterAction({ expression: ex }));
+    return new FilterExpression({ operand: this, expression: ex });
   }
 
-  public split(splits: any, dataName?: string): ChainExpression;
-  public split(ex: any, name: string, dataName?: string): ChainExpression;
-  public split(splits: any, name?: string, dataName?: string): ChainExpression {
+  public split(splits: any, dataName?: string): SplitExpression;
+  public split(ex: any, name: string, dataName?: string): SplitExpression;
+  public split(splits: any, name?: string, dataName?: string): SplitExpression {
     // Determine if use case #2
     if (arguments.length === 3 ||
       (arguments.length === 2 && splits && (typeof splits === 'string' || typeof splits.op === 'string'))) {
@@ -1274,7 +1339,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
     dataName = dataName ? getString(dataName) : getDataName(this);
     if (!dataName) throw new Error("could not guess data name in `split`, please provide one explicitly");
-    return this.performAction(new SplitAction({ splits: parsedSplits, dataName: dataName }));
+    return new SplitExpression({ operand: this, splits: parsedSplits, dataName: dataName });
   }
 
   /**
@@ -1282,82 +1347,83 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param name The name of where to store the results
    * @param ex The expression to evaluate
    */
-  public apply(name: string, ex: any): ChainExpression {
+  public apply(name: string, ex: any) {
     if (arguments.length < 2) throw new Error('invalid arguments to .apply, did you forget to specify a name?');
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new ApplyAction({ name: getString(name), expression: ex }));
+    return new ApplyExpression({ operand: this, name: getString(name), expression: ex });
   }
 
-  public sort(ex: any, direction: Direction = 'ascending'): ChainExpression {
+  public sort(ex: any, direction: Direction = 'ascending') {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new SortAction({ expression: ex, direction: (getString(direction) as Direction) }));
+    return new SortExpression({ operand: this, expression: ex, direction: (getString(direction) as Direction) });
   }
 
-  public limit(limit: number): ChainExpression {
-    return this.performAction(new LimitAction({ limit: getNumber(limit) }));
+  public limit(value: number) {
+    return new LimitExpression({ operand: this, value: getNumber(value) });
   }
 
-  public select(...attributes: string[]): ChainExpression {
-    attributes = attributes.map(getString);
-    return this.performAction(new SelectAction({ attributes }));
+  public select(attributes: string[]): SelectExpression;
+  public select(...attributes: any[]): SelectExpression {
+    attributes = (attributes.length === 1 && Array.isArray(attributes[0])) ? attributes[0] : attributes.map(getString);
+    return new SelectExpression({ operand: this, attributes });
   }
 
 
   // Aggregate expressions
 
-  public count(): ChainExpression {
+  public count() {
     if (arguments.length) throw new Error('.count() should not have arguments, did you want to .filter().count()?');
-    return this.performAction(new CountAction({}));
+    return new CountExpression({ operand: this });
   }
 
-  public sum(ex: any): ChainExpression {
+  public sum(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new SumAction({ expression: ex }));
+    return new SumExpression({ operand: this, expression: ex });
   }
 
-  public min(ex: any): ChainExpression {
+  public min(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new MinAction({ expression: ex }));
+    return new MinExpression({ operand: this, expression: ex });
   }
 
-  public max(ex: any): ChainExpression {
+  public max(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new MaxAction({ expression: ex }));
+    return new MaxExpression({ operand: this, expression: ex });
   }
 
-  public average(ex: any): ChainExpression {
+  public average(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new AverageAction({ expression: ex }));
+    return new AverageExpression({ operand: this, expression: ex });
   }
 
-  public countDistinct(ex: any): ChainExpression {
+  public countDistinct(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new CountDistinctAction({ expression: ex }));
+    return new CountDistinctExpression({ operand: this, expression: ex });
   }
 
-  public quantile(ex: any, quantile: number): ChainExpression {
+  public quantile(ex: any, value: number) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new QuantileAction({ expression: ex, quantile: getNumber(quantile) }));
+    return new QuantileExpression({ operand: this, expression: ex, value: getNumber(value) });
   }
 
-  public collect(ex: any): ChainExpression {
+  public collect(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new CollectAction({ expression: ex }));
+    return new CollectExpression({ operand: this, expression: ex });
   }
 
-  public custom(custom: string): ChainExpression {
-    return this.performAction(new CustomAggregateAction({ custom: getString(custom) }));
-  }
-
-  public customAggregate(custom: string): ChainExpression {
-    return this.performAction(new CustomAggregateAction({ custom: getString(custom) }));
+  public customAggregate(custom: string) {
+    return new CustomAggregateExpression({ operand: this, custom: getString(custom) });
   }
 
   // Undocumented (for now)
 
-  public join(ex: any): ChainExpression {
+  public join(ex: any) {
     if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
-    return this.performAction(new JoinAction({ expression: ex }));
+    return new JoinExpression({ operand: this, expression: ex });
+  }
+
+  public needsEnvironment(): boolean {
+    return false;
   }
 
   /**
@@ -1370,10 +1436,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     // Allow strings as well
     if (typeof environment.timezone === 'string') environment = { timezone: Timezone.fromJS(environment.timezone as any) };
 
-    return this.substituteAction(
-      (action) => action.needsEnvironment(),
-      (preEx, action) => preEx.performAction(action.defineEnvironment(environment))
-    );
+    return this.substitute((ex) => {
+      if (ex.needsEnvironment()) {
+        return ex.defineEnvironment(environment);
+      }
+      return null;
+    });
   }
 
   /**
@@ -1381,7 +1449,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param context The datum within which the check is happening
    */
   public referenceCheck(context: Datum): Expression {
-    return this.referenceCheckInTypeContext(getFullTypeFromDatum(context));
+    return this.changeInTypeContext(getFullTypeFromDatum(context));
   }
 
   /**
@@ -1390,8 +1458,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    */
   public definedInTypeContext(typeContext: DatasetFullType): boolean {
     try {
-      let alterations: Alterations = {};
-      this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This returns the final type
+      this.changeInTypeContext(typeContext);
     } catch (e) {
       return false;
     }
@@ -1399,26 +1466,34 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   /**
-   * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
+   * Check if the expression is defined in the given type context
    * @param typeContext The FullType context within which to resolve
+   * @deprecated
    */
   public referenceCheckInTypeContext(typeContext: DatasetFullType): Expression {
-    let alterations: Alterations = {};
-    this._fillRefSubstitutions(typeContext, { index: 0 }, alterations); // This returns the final type
-    if (emptyLookup(alterations)) return this;
-    return this.substitute((ex: Expression, index: int): Expression => alterations[index] || null);
+    console.warn(`referenceCheckInTypeContext is deprecated, use changeInTypeContext instead`);
+    return this.changeInTypeContext(typeContext);
   }
 
   /**
-   * Checks for references and returns the list of alterations that need to be made to the expression
-   * @param typeContext the context inherited from the parent
-   * @param indexer the index along the tree to maintain
-   * @param alterations the accumulation of the alterations to be made (output)
-   * @returns the resolved type of the expression
+   * Rewrites the expression with all the references typed correctly and resolved to the correct parental level
+   * @param typeContext The FullType context within which to resolve
    */
-  public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
-    indexer.index++;
+  public changeInTypeContext(typeContext: DatasetFullType): Expression {
+    return this.substitute((ex: Expression, index: int, depth: int, nestDiff: int, typeContext: DatasetFullType) => {
+      if (ex instanceof RefExpression) {
+        return ex.changeInTypeContext(typeContext);
+      }
+      return null;
+    }, typeContext);
+  }
+
+  public updateTypeContext(typeContext: DatasetFullType, extra?: any): DatasetFullType {
     return typeContext;
+  }
+
+  public updateTypeContextIfNeeded(typeContext: DatasetFullType | null, extra?: any): DatasetFullType | null {
+    return typeContext ? this.updateTypeContext(typeContext, extra) : null;
   }
 
 
@@ -1509,20 +1584,21 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     });
   }
 
+  public isAggregate(): boolean {
+    return false;
+  }
+
   /**
    * Decompose instances of $data.average($x) into $data.sum($x) / $data.count()
    * @param countEx and optional expression to use in a sum instead of a count
    */
   public decomposeAverage(countEx?: Expression): Expression {
-    return this.substituteAction(
-      (action) => {
-        return action.action === 'average';
-      },
-      (preEx: Expression, action: Action) => {
-        let expression = action.expression;
-        return preEx.sum(expression).divide(countEx ? preEx.sum(countEx) : preEx.count());
+    return this.substitute((ex) => {
+      if (ex instanceof AverageExpression) {
+        return ex.decomposeAverage(countEx);
       }
-    );
+      return null;
+    });
   }
 
   /**
@@ -1530,22 +1606,25 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Turns $data.sum($x - 2 * $y) into $data.sum($x) - 2 * $data.sum($y)
    */
   public distribute(): Expression {
-    return this.substituteAction(
-      (action) => {
-        return action.canDistribute();
-      },
-      (preEx: Expression, action: Action) => {
-        let distributed = action.distribute(preEx);
-        if (!distributed) throw new Error('distribute returned null');
-        return distributed;
-      }
-    );
+    return this; // ToDo: fill this in.
+    // return this.substituteAction(
+    //   (action) => {
+    //     return action.canDistribute();
+    //   },
+    //   (preEx: Expression, action: Action) => {
+    //     let distributed = action.distribute(preEx);
+    //     if (!distributed) throw new Error('distribute returned null');
+    //     return distributed;
+    //   }
+    // );
   }
 
   /**
    * Returns the maximum number of possible values this expression can return in a split context
    */
-  public abstract maxPossibleSplitValues(): number
+  public maxPossibleSplitValues(): number {
+    return this.type === 'BOOLEAN' ? 3 : Infinity;
+  }
 
   // ---------------------------------------------------------
   // Evaluation
@@ -1561,53 +1640,68 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   /**
    * Simulates computing the expression and returns the results with the right shape (but fake data)
    * @param context The context within which to compute the expression
-   * @param environment The environment for the default of the expression
+   * @param options The options within which to evaluate
    */
-  public simulate(context: Datum = {}, environment: Environment = {}): PlywoodValue {
+  public simulate(context: Datum = {}, options: ComputeOptions = {}): PlywoodValue {
     failIfIntrospectNeededInDatum(context);
 
-    let readyExpression = this._initialPrepare(context, environment);
+    let readyExpression = this._initialPrepare(context, options);
     if (readyExpression instanceof ExternalExpression) {
       // Top level externals need to be unsuppressed
-      readyExpression = (<ExternalExpression>readyExpression).unsuppress();
+      readyExpression = readyExpression.unsuppress();
     }
 
-    return readyExpression._computeResolvedSimulate([]);
+    return readyExpression._computeResolvedSimulate(options, []);
   }
 
 
   /**
-   * Simulates computing the expression and returns the quereis that would have been made
+   * Simulates computing the expression and returns the queries that would have been made
    * @param context The context within which to compute the expression
-   * @param environment The environment for the default of the expression
+   * @param options The options within which to evaluate
    */
-  public simulateQueryPlan(context: Datum = {}, environment: Environment = {}): any[][] {
+  public simulateQueryPlan(context: Datum = {}, options: ComputeOptions = {}): any[][] {
     failIfIntrospectNeededInDatum(context);
 
-    let readyExpression = this._initialPrepare(context, environment);
+    let readyExpression = this._initialPrepare(context, options);
     if (readyExpression instanceof ExternalExpression) {
       // Top level externals need to be unsuppressed
-      readyExpression = (<ExternalExpression>readyExpression).unsuppress();
+      readyExpression = readyExpression.unsuppress();
     }
 
     let simulatedQueryGroups: any[] = [];
-    readyExpression._computeResolvedSimulate(simulatedQueryGroups);
+    readyExpression._computeResolvedSimulate(options, simulatedQueryGroups);
     return simulatedQueryGroups;
   }
 
-  public _computeResolvedSimulate(simulatedQueryGroups: any[][]): PlywoodValue {
+  public _computeResolvedSimulate(options: ComputeOptions, simulatedQueryGroups: any[][]): PlywoodValue {
+    const {
+      maxComputeCycles = 5,
+      maxQueries = 500
+    } = options;
+
     let ex: Expression = this;
     let readyExternals = ex.getReadyExternals();
-    let i = 0;
 
-    while (Object.keys(readyExternals).length > 0 && i < 10) {
+    let computeCycles = 0;
+    let queries = 0;
+
+    while (Object.keys(readyExternals).length > 0 && computeCycles < maxComputeCycles && queries < maxQueries) {
       let simulatedQueryGroup: any[] = [];
-      fillExpressionExternalAlteration(readyExternals, (external, terminal) => external.simulateValue(terminal, simulatedQueryGroup));
+      fillExpressionExternalAlteration(readyExternals, (external, terminal) => {
+        if (queries < maxQueries) {
+          queries++;
+          return external.simulateValue(terminal, simulatedQueryGroup);
+        } else {
+          queries++;
+          return null; // Query limit reached, don't do any more queries.
+        }
+      });
 
       simulatedQueryGroups.push(simulatedQueryGroup);
       ex = ex.applyReadyExternals(readyExternals);
       readyExternals = ex.getReadyExternals();
-      i++;
+      computeCycles++;
     }
     return ex.getLiteralValue();
   }
@@ -1665,8 +1759,484 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       }
     )
       .then(() => {
+        if (!ex.isOp('literal')) throw new Error(`something went wrong, did not get literal: ${ex}`);
         return ex.getLiteralValue();
       });
   }
 
+}
+
+
+export abstract class ChainableExpression extends Expression {
+  static jsToValue(js: ExpressionJS): ExpressionValue {
+    let value = Expression.jsToValue(js);
+    value.operand = Expression.fromJS(js.operand);
+    return value;
+  }
+
+  public operand: Expression;
+
+  constructor(value: ExpressionValue, dummy: any = null) {
+    super(value, dummy);
+    this.operand = value.operand;
+  }
+
+  protected _checkOperandTypes(...neededTypes: string[]) {
+    let operandType = this.operand.type;
+    if (operandType && operandType !== 'NULL' && neededTypes.indexOf(operandType) === -1) {
+      if (neededTypes.length === 1) {
+        throw new Error(`${this.op} must have operand of type ${neededTypes[0]} (is ${operandType})`);
+      } else {
+        throw new Error(`${this.op} must have operand of type ${neededTypes.join(' or ')} (is ${operandType})`);
+      }
+    }
+  }
+
+  protected _bumpOperandToTime() {
+    if (this.operand.type === 'STRING') {
+      this.operand = this.operand.upgradeToType('TIME');
+    }
+  }
+
+  public valueOf(): ExpressionValue {
+    let value = super.valueOf();
+    value.operand = this.operand;
+    return value;
+  }
+
+  public toJS(): ExpressionJS {
+    let js = super.toJS();
+    js.operand = this.operand.toJS();
+    return js;
+  }
+
+  protected _toStringParameters(indent?: int): string[] {
+    return [];
+  }
+
+  public toString(indent?: int): string {
+    return `${this.operand.toString(indent)}.${this.op}(${this._toStringParameters(indent).join(',')})`;
+  }
+
+  public equals(other: ChainableExpression): boolean {
+    return super.equals(other) &&
+      this.operand.equals(other.operand);
+  }
+
+  public changeOperand(operand: Expression): this {
+    if (this.operand === operand || this.operand.equals(operand)) return this;
+
+    let value = this.valueOf();
+    value.operand = operand;
+    delete value.simple;
+    return Expression.fromValue(value) as any;
+  }
+
+  public swapWithOperand(): ChainableExpression {
+    const { operand } = this;
+    if (operand instanceof ChainableExpression) {
+      return operand.changeOperand(this.changeOperand(operand.operand));
+    } else {
+      throw new Error('operand must be chainable');
+    }
+  }
+
+  public isAction(): boolean {
+    return this.operand.equals(Expression._);
+  }
+
+  public getAction(): Expression {
+    return this.changeOperand(Expression._);
+  }
+
+  public getHeadOperand(): Expression {
+    let iter = this.operand;
+    while (iter instanceof ChainableExpression) iter = iter.operand;
+    return iter;
+  }
+
+  public getArgumentExpressions(): Expression[] {
+    return [];
+  }
+
+  public expressionCount(): int {
+    let sum = super.expressionCount() + this.operand.expressionCount();
+    this.getArgumentExpressions().forEach(ex => sum += ex.expressionCount());
+    return sum;
+  }
+
+  public argumentsResolved(): boolean {
+    return this.getArgumentExpressions().every((ex) => ex.resolved());
+  }
+
+  public argumentsResolvedWithoutExternals(): boolean {
+    return this.getArgumentExpressions().every((ex) => ex.resolvedWithoutExternals());
+  }
+
+  public getFn(): ComputeFn {
+    // ToDo: this should be moved into Expression
+    return (d: Datum) => this.calc(d);
+  }
+
+
+  protected _calcChainableHelper(operandValue: any): PlywoodValue {
+    throw runtimeAbstract();
+  }
+
+  public fullyDefined(): boolean {
+    return this.operand.isOp('literal');
+  }
+
+  public calc(datum: Datum): PlywoodValue {
+    return this._calcChainableHelper(this.operand.calc(datum));
+  }
+
+
+  protected _getJSChainableHelper(operandJS: string): string {
+    throw runtimeAbstract();
+  }
+
+  public getJS(datumVar: string): string {
+    return this._getJSChainableHelper(this.operand.getJS(datumVar));
+  }
+
+
+  protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
+    throw runtimeAbstract();
+  }
+
+  public getSQL(dialect: SQLDialect): string {
+    return this._getSQLChainableHelper(dialect, this.operand.getSQL(dialect));
+  }
+
+
+  public pushIntoExternal(): ExternalExpression | null {
+    const { operand } = this;
+    if (operand instanceof ExternalExpression) {
+      return operand.addExpression(this.getAction());
+    }
+    return null;
+  }
+
+  protected specialSimplify(): Expression {
+    return this;
+  }
+
+  public simplify(): Expression {
+    if (this.simple) return this;
+
+    let simpler: Expression = this.changeOperand(this.operand.simplify());
+
+    if (simpler.fullyDefined()) {
+      return r(simpler.calc({}));
+    }
+
+    const specialSimpler = (simpler as ChainableUnaryExpression).specialSimplify();
+    if (specialSimpler === simpler) {
+      simpler = specialSimpler.markSimple();
+    } else {
+      simpler = specialSimpler.simplify();
+    }
+
+    if (simpler instanceof ChainableExpression) {
+      const pushedInExternal = simpler.pushIntoExternal();
+      if (pushedInExternal) return pushedInExternal;
+    }
+
+    return simpler;
+  }
+
+
+  public isNester(): boolean {
+    return false;
+  }
+
+  public _everyHelper(iter: BooleanExpressionIterator, thisArg: any, indexer: Indexer, depth: int, nestDiff: int): boolean {
+    let pass = iter.call(thisArg, this, indexer.index, depth, nestDiff);
+    if (pass != null) {
+      return pass;
+    } else {
+      indexer.index++;
+    }
+    depth++;
+
+    let operand = this.operand;
+    if (!operand._everyHelper(iter, thisArg, indexer, depth, nestDiff)) return false;
+
+    let nestDiffNext = nestDiff + Number(this.isNester());
+    return this.getArgumentExpressions().every((ex) => ex._everyHelper(iter, thisArg, indexer, depth, nestDiffNext));
+  }
+
+  public _substituteHelper(substitutionFn: SubstitutionFn, indexer: Indexer, depth: int, nestDiff: int, typeContext: DatasetFullType): ExpressionTypeContext {
+    let sub = substitutionFn.call(this, this, indexer.index, depth, nestDiff, typeContext);
+    if (sub) {
+      indexer.index += this.expressionCount();
+      return {
+        expression: sub,
+        typeContext: sub.updateTypeContextIfNeeded(typeContext)
+      };
+    } else {
+      indexer.index++;
+    }
+    depth++;
+
+    const operandSubs = this.operand._substituteHelper(substitutionFn, indexer, depth, nestDiff, typeContext);
+    const updatedThis = this.changeOperand(operandSubs.expression);
+
+    return {
+      expression: updatedThis,
+      typeContext: updatedThis.updateTypeContextIfNeeded(operandSubs.typeContext)
+    };
+  }
+
+}
+
+
+export abstract class ChainableUnaryExpression extends ChainableExpression {
+  static jsToValue(js: ExpressionJS): ExpressionValue {
+    let value = ChainableExpression.jsToValue(js);
+    value.expression = Expression.fromJS(js.expression);
+    return value;
+  }
+
+  public expression: Expression;
+
+  constructor(value: ExpressionValue, dummy: any = null) {
+    super(value, dummy);
+    this.expression = value.expression;
+  }
+
+  protected _checkExpressionTypes(...neededTypes: string[]) {
+    let expressionType = this.expression.type;
+    if (expressionType && expressionType !== 'NULL' && neededTypes.indexOf(expressionType) === -1) {
+      if (neededTypes.length === 1) {
+        throw new Error(`${this.op} must have expression of type ${neededTypes[0]} (is ${expressionType})`);
+      } else {
+        throw new Error(`${this.op} must have expression of type ${neededTypes.join(' or ')} (is ${expressionType})`);
+      }
+    }
+  }
+
+  protected _checkOperandExpressionTypesAlign() {
+    let operandType = this.operand.type;
+    let expressionType = this.expression.type;
+    if (!operandType || operandType === 'NULL' || !expressionType || expressionType === 'NULL' || operandType === expressionType) return;
+    throw new Error(`${this.op} must have matching types (are ${operandType}, ${expressionType})`);
+  }
+
+  protected _bumpOperandExpressionToTime() {
+    if (this.expression.type === 'TIME' && this.operand.type === 'STRING') {
+      this.operand = this.operand.upgradeToType('TIME');
+    }
+
+    if (this.operand.type === 'TIME' && this.expression.type === 'STRING') {
+      this.expression = this.expression.upgradeToType('TIME');
+    }
+  }
+
+  public valueOf(): ExpressionValue {
+    let value = super.valueOf();
+    value.expression = this.expression;
+    return value;
+  }
+
+  public toJS(): ExpressionJS {
+    let js = super.toJS();
+    js.expression = this.expression.toJS();
+    return js;
+  }
+
+  protected _toStringParameters(indent?: int): string[] {
+    return [this.expression.toString(indent)];
+  }
+
+  public toString(indent?: int): string {
+    // ToDo: handle indent
+    return `${this.operand.toString(indent)}.${this.op}(${this._toStringParameters(indent).join(',')})`;
+  }
+
+  public equals(other: ChainableUnaryExpression): boolean {
+    return super.equals(other) &&
+      this.expression.equals(other.expression);
+  }
+
+  public changeExpression(expression: Expression): this {
+    if (this.expression === expression || this.expression.equals(expression)) return this;
+
+    let value = this.valueOf();
+    value.expression = expression;
+    delete value.simple;
+    return Expression.fromValue(value) as any;
+  }
+
+  protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
+    throw runtimeAbstract();
+  }
+
+  public fullyDefined(): boolean {
+    return this.operand.isOp('literal') && this.expression.isOp('literal');
+  }
+
+  public calc(datum: Datum): PlywoodValue {
+    return this._calcChainableUnaryHelper(this.operand.calc(datum), this.isNester() ? null : this.expression.calc(datum));
+  }
+
+
+  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
+    throw runtimeAbstract();
+  }
+
+  public getJS(datumVar: string): string {
+    return this._getJSChainableUnaryHelper(this.operand.getJS(datumVar), this.expression.getJS(datumVar));
+  }
+
+
+  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+    throw runtimeAbstract();
+  }
+
+  public getSQL(dialect: SQLDialect): string {
+    return this._getSQLChainableUnaryHelper(dialect, this.operand.getSQL(dialect), this.expression.getSQL(dialect));
+  }
+
+  public getExpressionList(): Expression[] {
+    const { op, operand, expression } = this;
+    let expressionList = [expression];
+    let iter = operand;
+    while (iter.op === op) {
+      expressionList.unshift((iter as ChainableUnaryExpression).expression);
+      iter = (iter as ChainableUnaryExpression).operand;
+    }
+    expressionList.unshift(iter);
+    return expressionList;
+  }
+
+  public isCommutative(): boolean {
+    return false;
+  }
+
+  public isAssociative(): boolean {
+    return false;
+  }
+
+  public associateLeft(): this | null {
+    if (!this.isAssociative()) return null;
+    const { op, operand, expression } = this;
+    if (op !== expression.op) return null;
+    const MyClass: any = this.constructor;
+
+    return new MyClass({
+      operand: new MyClass({
+        operand: operand,
+        expression: (expression as ChainableUnaryExpression).operand
+      }),
+      expression: (expression as ChainableUnaryExpression).expression
+    });
+  }
+
+  public associateRightIfSimpler(): this | null {
+    if (!this.isAssociative()) return null;
+    const { op, operand, expression } = this;
+    if (op !== operand.op) return null;
+    const MyClass: any = this.constructor;
+
+    const simpleExpression = new MyClass({
+      operand: (operand as ChainableUnaryExpression).expression,
+      expression: expression
+    }).simplify();
+
+    if (simpleExpression instanceof LiteralExpression) {
+      return new MyClass({
+        operand: (operand as ChainableUnaryExpression).operand,
+        expression: simpleExpression
+      }).simplify();
+    } else {
+      return null;
+    }
+  }
+
+  public pushIntoExternal(): ExternalExpression | null {
+    const { operand, expression } = this;
+    if (operand instanceof ExternalExpression) {
+      return operand.addExpression(this.getAction());
+    }
+    if (expression instanceof ExternalExpression) {
+      return expression.prePush(this.changeExpression(Expression._));
+    }
+    return null;
+  }
+
+  public simplify(): Expression {
+    if (this.simple) return this;
+
+    let simpleOperand = this.operand.simplify();
+    let simpleExpression = this.expression.simplify();
+    let simpler: Expression = this.changeOperand(simpleOperand).changeExpression(simpleExpression);
+    if (simpler.fullyDefined()) return r(simpler.calc({}));
+
+    if (this.isCommutative() && simpleOperand instanceof LiteralExpression) {
+      // Swap!
+      const MyClass: any = this.constructor;
+      const myValue = this.valueOf();
+      myValue.operand = simpleExpression;
+      myValue.expression = simpleOperand;
+      return new MyClass(myValue).simplify();
+    }
+
+    // Auto associate left if possible
+    let assLeft = (simpler as ChainableUnaryExpression).associateLeft();
+    if (assLeft) return assLeft.simplify();
+
+    if (simpler instanceof ChainableUnaryExpression) {
+      let specialSimpler = simpler.specialSimplify();
+      if (specialSimpler !== simpler) {
+        return specialSimpler.simplify();
+      } else {
+        simpler = specialSimpler;
+      }
+
+      if (simpler instanceof ChainableUnaryExpression) {
+        // Try to associate right and pick that if that is simpler
+        let assRight = simpler.associateRightIfSimpler();
+        if (assRight) return assRight;
+      }
+    }
+
+    simpler = simpler.markSimple();
+
+    if (simpler instanceof ChainableExpression) {
+      const pushedInExternal = simpler.pushIntoExternal();
+      if (pushedInExternal) return pushedInExternal;
+    }
+
+    return simpler;
+  }
+
+  public getArgumentExpressions(): Expression[] {
+    return [this.expression];
+  }
+
+  public _substituteHelper(substitutionFn: SubstitutionFn, indexer: Indexer, depth: int, nestDiff: int, typeContext: DatasetFullType): ExpressionTypeContext {
+    let sub = substitutionFn.call(this, this, indexer.index, depth, nestDiff);
+    if (sub) {
+      indexer.index += this.expressionCount();
+      return {
+        expression: sub,
+        typeContext: sub.updateTypeContextIfNeeded(typeContext)
+      };
+    } else {
+      indexer.index++;
+    }
+    depth++;
+
+    const operandSubs = this.operand._substituteHelper(substitutionFn, indexer, depth, nestDiff, typeContext);
+    const nestDiffNext = nestDiff + Number(this.isNester());
+    const expressionSubs = this.expression._substituteHelper(substitutionFn, indexer, depth, nestDiffNext, this.isNester() ? operandSubs.typeContext : typeContext);
+    const updatedThis = this.changeOperand(operandSubs.expression).changeExpression(expressionSubs.expression);
+
+    return {
+      expression: updatedThis,
+      typeContext: updatedThis.updateTypeContextIfNeeded(operandSubs.typeContext, expressionSubs.typeContext)
+    };
+  }
 }

@@ -20,7 +20,7 @@ var { sane } = require('../utils');
 
 var { druidRequesterFactory } = require('plywood-druid-requester');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { External, DruidExternal, TimeRange, $, i$, ply, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
 
 var info = require('../info');
@@ -38,28 +38,28 @@ describe("Druid Functional", function() {
 
   var wikiAttributes = [
     { "name": "time", "type": "TIME" },
-    { "name": "added", "makerAction":{"action": "sum", "expression":{"name": "added", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "added", "maker":{"action": "sum", "expression":{"name": "added", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "channel", "type": "STRING" },
     { "name": "cityName", "type": "STRING" },
     { "name": "comment", "type": "STRING" },
     { "name": "commentLength", "type": "NUMBER" },
     { "name": "commentLengthStr", "type": "STRING" },
-    { "name": "count", "makerAction":{"action": "count"}, "type": "NUMBER", "unsplitable":true },
+    { "name": "count", "maker":{"action": "count"}, "type": "NUMBER", "unsplitable":true },
     { "name": "countryIsoCode", "type": "STRING" },
     { "name": "countryName", "type": "STRING" },
-    { "name": "deleted", "makerAction":{"action": "sum", "expression":{"name": "deleted", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "delta", "makerAction":{"action": "sum", "expression":{"name": "delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "deleted", "maker":{"action": "sum", "expression":{"name": "deleted", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "delta", "maker":{"action": "sum", "expression":{"name": "delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "deltaBucket100", "type": "NUMBER" },
-    { "name": "deltaByTen", "makerAction":{"action": "sum", "expression":{"name": "deltaByTen", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "deltaByTen", "maker":{"action": "sum", "expression":{"name": "deltaByTen", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "delta_hist", "special": "histogram", "type": "NUMBER" },
     { "name": "isAnonymous", "type": "BOOLEAN" },
     { "name": "isMinor", "type": "BOOLEAN" },
     { "name": "isNew", "type": "BOOLEAN" },
     { "name": "isRobot", "type": "BOOLEAN" },
     { "name": "isUnpatrolled", "type": "BOOLEAN" },
-    { "name": "max_delta", "makerAction":{"action": "max", "expression":{"name": "max_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "max_delta", "maker":{"action": "max", "expression":{"name": "max_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "metroCode", "type": "STRING" },
-    { "name": "min_delta", "makerAction":{"action": "min", "expression":{"name": "min_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "min_delta", "maker":{"action": "min", "expression":{"name": "min_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "namespace", "type": "STRING" },
     { "name": "page", "type": "STRING" },
     { "name": "page_unique", "special": "unique", "type": "STRING" },
@@ -140,7 +140,7 @@ describe("Druid Functional", function() {
         populateCache: false
       },
       attributes: [
-        { name: 'time', type: 'TIME', makerAction: { action: 'timeFloor', duration: 'PT1H', timezone: 'Etc/UTC' } },
+        { name: 'time', type: 'TIME', maker: { action: 'timeFloor', duration: 'PT1H', timezone: 'Etc/UTC' } },
         { name: 'channel', type: 'STRING' },
         { name: 'isNew', type: 'BOOLEAN' },
         { name: 'isAnonymous', type: 'BOOLEAN' },

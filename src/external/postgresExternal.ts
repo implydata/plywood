@@ -28,6 +28,7 @@ export interface PostgresSQLDescribeRow {
 }
 
 export class PostgresExternal extends SQLExternal {
+  static engine = 'postgres';
   static type = 'DATASET';
 
   static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): PostgresExternal {
@@ -108,4 +109,4 @@ export class PostgresExternal extends SQLExternal {
   }
 }
 
-External.register(PostgresExternal, 'postgres');
+External.register(PostgresExternal);

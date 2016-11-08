@@ -28,6 +28,7 @@ export interface MySQLDescribeRow {
 }
 
 export class MySQLExternal extends SQLExternal {
+  static engine = 'mysql';
   static type = 'DATASET';
 
   static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): MySQLExternal {
@@ -86,4 +87,4 @@ export class MySQLExternal extends SQLExternal {
   }
 }
 
-External.register(MySQLExternal, 'mysql');
+External.register(MySQLExternal);

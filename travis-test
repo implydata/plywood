@@ -15,7 +15,6 @@ fi
 ./compile
 
 mocha \
-  test/actions/* \
   test/datatypes/* \
   test/expression/* \
   test/external/* \

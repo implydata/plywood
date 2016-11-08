@@ -18,7 +18,7 @@
 var { expect } = require("chai");
 var { sane } = require('../utils');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, Dataset, $, i$, ply, r } = plywood;
 
 describe("stringification", () => {
@@ -45,39 +45,33 @@ describe("stringification", () => {
           )
       );
 
-    expect(ex.toString(2)).to.equal(sane`
+    expect(ex.toString(0)).to.equal(sane`
       ply()
         .apply(
           diamonds,
           $diamonds.filter($color.is("D"))
-          )
-        .apply(Count, $diamonds.count())
-        .apply(TotalPrice, $diamonds.sum($price))
+        )
+        .apply(Count,$diamonds.count())
+        .apply(TotalPrice,$diamonds.sum($price))
         .apply(
           Cuts,
-          $diamonds
-            .split($cut, Cut, diamonds)
-            .apply(
-              diamonds,
-              $diamonds.filter($cut.is($^Cut))
-              )
-            .apply(Count, $diamonds.count())
-            .sort($Count, descending)
-            .limit(2)
-            .apply(
-              Carats,
-              $diamonds
-                .split($carat.numberBucket(0.25), Carat, diamonds)
-                .apply(
-                  diamonds,
-                  $diamonds.filter($carat.numberBucket(0.25).is($^Carat))
-                  )
-                .apply(Count, $diamonds.count())
-                .apply("Price :-)", $diamonds.sum($price))
-                .sort($Count, descending)
-                .limit(3)
-              )
+          $diamonds.split($cut,Cut,diamonds)
+          .apply(
+            diamonds,
+            $diamonds.filter($cut.is($^Cut))
           )
+          .apply(Count,$diamonds.count()).sort($Count,descending).limit(2)
+          .apply(
+            Carats,
+            $diamonds.split($carat.numberBucket(0.25),Carat,diamonds)
+              .apply(
+                diamonds,
+                $diamonds.filter($carat.numberBucket(0.25).is($^Carat))
+              )
+              .apply(Count,$diamonds.count())
+              .apply("Price :-)",$diamonds.sum($price)).sort($Count,descending).limit(3)
+          )
+        )
     `);
   });
 
@@ -111,10 +105,9 @@ describe("stringification", () => {
     expect(ex.toString(2)).to.equal("$time.timeRange(P1D,2)");
   });
 
-  it("works with custom", () => {
+  it("works with customAggregate", () => {
     var ex = $('x').customAggregate('lol');
-    var exBack = $('x').custom('lol');
-    expect(ex.toString(2)).to.equal("$x.customAggregate(lol)").to.equal(exBack.toString(2));
+    expect(ex.toString(2)).to.equal("$x.customAggregate(lol)");
   });
 
   it("works with substr", () => {

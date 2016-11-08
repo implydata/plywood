@@ -18,7 +18,7 @@
 var { expect } = require("chai");
 var { sane } = require('../utils');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { External, $, ply, r, Expression } = plywood;
 
 var context = {

@@ -13,3 +13,6 @@ echo "Compiling TypeScript"
 
 echo "Compiling package"
 ./compile-package
+
+echo "Uglifying"
+node_modules/.bin/uglifyjs package/plywood.js -o package/plywood.min.js

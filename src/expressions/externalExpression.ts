@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
-import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
+import { Expression, ExpressionValue, ExpressionJS, ChainableUnaryExpression } from './baseExpression';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
 import { SQLDialect } from '../dialect/baseDialect';
-import { Action } from '../actions/baseAction';
-import { ComputeFn } from '../datatypes/dataset';
+import { ComputeFn, Datum, PlywoodValue } from '../datatypes/dataset';
 import { External } from '../external/baseExternal';
 
 export class ExternalExpression extends Expression {
-  static fromJS(parameters: ExpressionJS): Expression {
+  static op = "external";
+  static fromJS(parameters: ExpressionJS): ExternalExpression {
     let value: ExpressionValue = {
       op: parameters.op
     };
@@ -63,6 +62,10 @@ export class ExternalExpression extends Expression {
     throw new Error('should not call getFn on External');
   }
 
+  public calc(datum: Datum): PlywoodValue {
+    throw new Error('should not call calc on External');
+  }
+
   public getJS(datumVar: string): string {
     throw new Error('should not call getJS on External');
   }
@@ -76,16 +79,14 @@ export class ExternalExpression extends Expression {
       this.external.equals(other.external);
   }
 
-  public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
-    indexer.index++;
+  public updateTypeContext(typeContext: DatasetFullType): DatasetFullType {
     const { external } = this;
-    if (external.mode === 'value') {
-      return { type: external.getValueType() };
-    } else {
+    if (external.mode !== 'value') {
       let newTypeContext = this.external.getFullType();
       newTypeContext.parent = typeContext;
       return newTypeContext;
     }
+    return typeContext;
   }
 
   public unsuppress(): ExternalExpression {
@@ -94,8 +95,14 @@ export class ExternalExpression extends Expression {
     return new ExternalExpression(value);
   }
 
-  public addAction(action: Action): ExternalExpression {
-    let newExternal = this.external.addAction(action);
+  public addExpression(expression: Expression): ExternalExpression {
+    let newExternal = this.external.addExpression(expression);
+    if (!newExternal) return null;
+    return new ExternalExpression({ external: newExternal });
+  }
+
+  public prePush(expression: ChainableUnaryExpression): ExternalExpression {
+    let newExternal = this.external.prePush(expression);
     if (!newExternal) return null;
     return new ExternalExpression({ external: newExternal });
   }

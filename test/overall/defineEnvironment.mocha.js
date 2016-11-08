@@ -16,10 +16,20 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { External, Dataset, $, ply, r } = plywood;
 
 describe("defineEnvironment", () => {
+  it("adds Etc/UTC in trivial case", () => {
+    var ex1 = $('time').timeBucket('P1D');
+
+    var environment = { timezone: 'Etc/UTC' };
+
+    var ex2 = $('time').timeBucket('P1D', 'Etc/UTC');
+
+    expect(ex1.defineEnvironment(environment).toJS()).to.deep.equal(ex2.toJS());
+  });
+
   it("adds Etc/UTC", () => {
     var ex1 = ply()
       .apply("diamonds", $("diamonds").filter($('color').is('D')))

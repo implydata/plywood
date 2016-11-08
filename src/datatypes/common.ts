@@ -77,7 +77,7 @@ export function getFullTypeFromDatum(datum: Datum): DatasetFullType {
   };
 }
 
-export function valueFromJS(v: any, typeOverride: string = null): any {
+export function valueFromJS(v: any, typeOverride: string | null = null): any {
   if (v == null) {
     return null;
   } else if (Array.isArray(v)) {
@@ -217,14 +217,4 @@ export function unwrapSetType(type: PlyType): PlyType {
   return isSetType(type) ? <PlyType>type.substr(4) : type;
 }
 
-export function getAllSetTypes(): PlyTypeSimple[] {
-  return [
-    'SET/STRING' as PlyTypeSimple,
-    'SET/STRING_RANGE' as PlyTypeSimple,
-    'SET/NUMBER' as PlyTypeSimple,
-    'SET/NUMBER_RANGE' as PlyTypeSimple,
-    'SET/TIME' as PlyTypeSimple,
-    'SET/TIME_RANGE' as PlyTypeSimple
-  ];
-}
 

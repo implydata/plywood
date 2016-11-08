@@ -20,7 +20,7 @@ var { druidRequesterFactory } = require('plywood-druid-requester');
 var { mySqlRequesterFactory } = require('plywood-mysql-requester');
 var { postgresRequesterFactory } = require('plywood-postgres-requester');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { External, TimeRange, $, ply, r, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
 var utils = require('../utils');

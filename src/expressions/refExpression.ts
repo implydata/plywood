@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
 import { SimpleArray } from 'immutable-class';
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
@@ -49,6 +48,7 @@ const TYPE_REGEXP = /:([A-Z\/_]+)$/;
 export class RefExpression extends Expression {
   static SIMPLE_NAME_REGEXP = /^([a-z_]\w*)$/i;
 
+  static op = "Ref";
   static fromJS(parameters: ExpressionJS): RefExpression {
     let value: ExpressionValue;
     if (hasOwnProperty(parameters, 'nest')) {
@@ -116,7 +116,6 @@ export class RefExpression extends Expression {
 
   public nest: int;
   public name: string;
-  public remote: boolean;
   public ignoreCase: boolean;
 
   constructor(parameters: ExpressionValue) {
@@ -146,7 +145,6 @@ export class RefExpression extends Expression {
       this.type = myType;
     }
 
-    this.remote = Boolean(parameters.remote);
     this.simple = true;
     this.ignoreCase = parameters.ignoreCase;
   }
@@ -156,7 +154,6 @@ export class RefExpression extends Expression {
     value.name = this.name;
     value.nest = this.nest;
     if (this.type) value.type = this.type;
-    if (this.remote) value.remote = true;
     if (this.ignoreCase) value.ignoreCase = true;
     return value;
   }
@@ -196,6 +193,14 @@ export class RefExpression extends Expression {
     };
   }
 
+  public calc(datum: Datum): PlywoodValue {
+    const { name, nest, ignoreCase } = this;
+    if (nest) throw new Error('can not calc on a nested expression');
+
+    let property = ignoreCase ? RefExpression.findPropertyCI(datum, name) : name;
+    return property != null ? (datum[property] as any) : null;
+  }
+
   public getJS(datumVar: string): string {
     const { name, nest, ignoreCase } = this;
     if (nest) throw new Error("can not call getJS on unresolved expression");
@@ -221,21 +226,14 @@ export class RefExpression extends Expression {
     return super.equals(other) &&
       this.name === other.name &&
       this.nest === other.nest &&
-      this.remote === other.remote &&
       this.ignoreCase === other.ignoreCase;
   }
 
-  public isRemote(): boolean {
-    return this.remote;
-  }
-
-  public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
-    let myIndex = indexer.index;
-    indexer.index++;
-    let { nest, ignoreCase, name } = this;
+  public changeInTypeContext(typeContext: DatasetFullType): RefExpression {
+    const { nest, ignoreCase, name } = this;
     // Step the parentContext back; once for each generation
     let myTypeContext = typeContext;
-    while (nest--) {
+    for (let i = nest; i > 0; i--) {
       myTypeContext = myTypeContext.parent;
       if (!myTypeContext) throw new Error('went too deep on ' + this.toString());
     }
@@ -254,42 +252,46 @@ export class RefExpression extends Expression {
 
     let myFullType = myTypeContext.datasetType[myName];
     let myType = myFullType.type;
-    let myRemote = Boolean((myFullType as DatasetFullType).remote);
 
     if (this.type && this.type !== myType) {
       throw new TypeError(`type mismatch in ${this} (has: ${this.type} needs: ${myType})`);
     }
 
     // Check if it needs to be replaced
-    if (!this.type || nestDiff > 0 || this.remote !== myRemote || ignoreCase) {
-      alterations[myIndex] = new RefExpression({
+    if (!this.type || nestDiff > 0 || ignoreCase) {
+      return new RefExpression({
         name: myName,
-        nest: this.nest + nestDiff,
-        type: myType,
-        remote: myRemote
+        nest: nest + nestDiff,
+        type: myType
       });
+    } else {
+      return this;
+    }
+  }
+
+  public updateTypeContext(typeContext: DatasetFullType): DatasetFullType {
+    if (this.type !== 'DATASET') return typeContext;
+
+    const { nest, name } = this;
+    let myTypeContext = typeContext;
+    for (let i = nest; i > 0; i--) {
+      myTypeContext = myTypeContext.parent;
+      if (!myTypeContext) throw new Error('went too deep on ' + this.toString());
     }
 
-    if (myType === 'DATASET') {
-      return {
-        parent: typeContext,
-        type: 'DATASET',
-        datasetType: (myFullType as DatasetFullType).datasetType,
-        remote: (myFullType as DatasetFullType).remote
-      };
-    }
+    let myFullType = myTypeContext.datasetType[name];
 
-    return myFullType;
+    return {
+      parent: typeContext,
+      type: 'DATASET',
+      datasetType: (myFullType as DatasetFullType).datasetType
+    };
   }
 
   public incrementNesting(by: int = 1): RefExpression {
     let value = this.valueOf();
-    value.nest = by + value.nest;
+    value.nest += by;
     return new RefExpression(value);
-  }
-
-  public maxPossibleSplitValues(): number {
-    return this.type === 'BOOLEAN' ? 3 : Infinity;
   }
 
   public upgradeToType(targetType: PlyType): Expression {
@@ -312,5 +314,7 @@ export class RefExpression extends Expression {
     return new RefExpression(value);
   }
 }
+
+Expression._ = new RefExpression({ name: '_', nest: 0 });
 
 Expression.register(RefExpression);

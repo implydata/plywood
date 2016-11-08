@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, $, ply, r } = plywood;
 
 describe("typecheck", () => {
@@ -30,37 +30,37 @@ describe("typecheck", () => {
   it("should throw on unbalanced IS", () => {
     expect(() => {
       r(5).is('hello');
-    }).to.throw('is must have input of type STRING (is NUMBER)');
+    }).to.throw('is must have matching types (are NUMBER, STRING)');
   });
 
   it("should throw on unbalanced IS (via explicit type)", () => {
     expect(() => {
       r(5).is('$hello:STRING');
-    }).to.throw('is must have input of type STRING (is NUMBER)');
+    }).to.throw('is must have matching types (are NUMBER, STRING)');
   });
 
   it("should throw on non numeric lessThan", () => {
     expect(() => {
       r(5).lessThan('hello');
-    }).to.throw("lessThan must have input of type STRING (is NUMBER)");
+    }).to.throw("lessThan must have matching types (are NUMBER, STRING)");
   });
 
   it("should throw on bad IN", () => {
     expect(() => {
       r(5).in('hello');
-    }).to.throw('in action has a bad type combination NUMBER IN STRING');
+    }).to.throw('in expression 5.in("hello") has a bad type combination NUMBER IN STRING');
   });
 
   it("should throw on SET IN", () => {
     expect(() => {
       $('tags', 'SET/STRING').in('$more_tags');
-    }).to.throw('in action has a bad type combination SET/STRING IN *');
+    }).to.throw('in expression $tags:SET/STRING.in($more_tags) has a bad type combination SET/STRING IN *');
   });
 
   it("should throw on mismatching fallback type", () => {
     expect(() => {
       r(5).fallback('hello');
-    }).to.throw('fallback must have input of type STRING (is NUMBER)');
+    }).to.throw('fallback must have matching types (are NUMBER, STRING)');
   });
 
   it("should throw on bad aggregate (SUM)", () => {
@@ -69,15 +69,10 @@ describe("typecheck", () => {
     }).to.throw('sum must have expression of type NUMBER (is STRING)');
   });
 
-  it("should throw on bad custom transform action input", () => {
-    expect(() => {
-      r(['A', 'B']).customTransform('myCustomTransformName');
-    }).to.throw('customTransform must have input of type NULL or BOOLEAN or NUMBER or TIME or STRING (is SET/STRING)');
-  });
-
   it("should throw on overlay type mismatch", () => {
     expect(() => {
       $('x', 'NUMBER').overlap($('y', 'SET/STRING'));
-    }).to.throw('overlap must have input of type SET/STRING or STRING (is NUMBER)');
+    }).to.throw('overlap expression has type mismatch between NUMBER and SET/STRING');
   });
+
 });

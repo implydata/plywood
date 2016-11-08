@@ -52,7 +52,7 @@ export class MySQLDialect extends SQLDialect {
     DAY_OF_MONTH: 'DAYOFMONTH($$)',
     DAY_OF_YEAR: 'DAYOFYEAR($$)',
 
-    WEEK_OF_MONTH: null,
+    //WEEK_OF_MONTH: ???
     WEEK_OF_YEAR: 'WEEK($$)', // ToDo: look into mode (https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_week)
 
     MONTH_OF_YEAR: 'MONTH($$)',

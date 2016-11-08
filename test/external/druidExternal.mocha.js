@@ -18,7 +18,7 @@ var { expect } = require("chai");
 var Q = require('q');
 var { sane } = require('../utils');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 
 var timeFilter = $('time').in(TimeRange.fromJS({
@@ -657,7 +657,7 @@ describe("DruidExternal", () => {
                   "!F_!T_1",
                   "Count"
                 ],
-                "function": "function(_$33T_0,_$33T_1,_Count) { return Math.pow(Math.abs((((+_$33T_0)/Math.pow(Math.abs((+_Count)),0.5))+(100*(+_$33T_1)))),2); }",
+                "function": "function(_$33T_0,_$33T_1,_Count) { return Math.pow(Math.abs((((+_$33T_0)/Math.pow(Math.abs((+_Count)),0.5))+((+_$33T_1)*100))),2); }",
                 "type": "javascript"
               },
               {
@@ -2182,7 +2182,7 @@ describe("DruidExternal", () => {
 
     ex = ex.referenceCheck(context).resolve(context).simplify();
 
-    var external = ex.expression.external;
+    var external = ex.operand.external;
     expect(external.getQueryAndPostProcess().query).to.deep.equal({
       "dataSource": "wikipedia",
       "dimensions": [

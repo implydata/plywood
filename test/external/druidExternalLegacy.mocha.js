@@ -18,7 +18,7 @@ var { expect } = require("chai");
 var Q = require('q');
 var { sane } = require('../utils');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { External, TimeRange, $, ply, r } = plywood;
 
 var timeFilter = $('time').in(TimeRange.fromJS({

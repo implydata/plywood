@@ -20,7 +20,7 @@ var { sane, grabConsoleWarn } = require('../utils');
 
 var { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, Dataset, External, TimeRange, AttributeInfo, $, ply, r } = plywood;
 
 var wikiDataset = External.fromJS({
@@ -40,14 +40,14 @@ var wikiDataset = External.fromJS({
 });
 
 var context = {
-  wiki: wikiDataset.addFilter($('time').in(TimeRange.fromJS({
+  wiki: wikiDataset.addExpression(Expression._.filter($('time').in(TimeRange.fromJS({
     start: new Date("2013-02-26T00:00:00Z"),
     end: new Date("2013-02-27T00:00:00Z")
-  }))),
-  wikiCmp: wikiDataset.addFilter($('time').in(TimeRange.fromJS({
+  })))),
+  wikiCmp: wikiDataset.addExpression(Expression._.filter($('time').in(TimeRange.fromJS({
     start: new Date("2013-02-25T00:00:00Z"),
     end: new Date("2013-02-26T00:00:00Z")
-  })))
+  }))))
 };
 
 describe("External", () => {
@@ -409,25 +409,21 @@ describe("External", () => {
 
 
   describe(".normalizeAndAddApply", () => {
-    var ex = ply()
-      .apply('Count', '$D.count()')
-      .apply('Added', '$D.sum($added)')
-      .apply('Volatile', '$D.max($added) - $D.min($deleted)');
-
     var attributesAndApplies = {
       attributes: AttributeInfo.fromJSs([
         { name: 'Count', type: 'NUMBER' },
         { name: 'Added', type: 'NUMBER' },
         { name: 'Volatile', type: 'NUMBER' }
       ]),
-      applies: ex.actions
+      applies: [
+        Expression._.apply('Count', '$D.count()'),
+        Expression._.apply('Added', '$D.sum($added)'),
+        Expression._.apply('Volatile', '$D.max($added) - $D.min($deleted)')
+      ]
     };
 
     it("works in noop case", () => {
-      var nextApply = ply()
-        .apply('Deleted', '$D.sum($deleted)')
-        .actions[0];
-
+      var nextApply = Expression._.apply('Deleted', '$D.sum($deleted)');
       var added = External.normalizeAndAddApply(attributesAndApplies, nextApply);
 
       expect(added.attributes).to.have.length(4);
@@ -436,10 +432,7 @@ describe("External", () => {
     });
 
     it("works in simple case", () => {
-      var nextApply = ply()
-        .apply('AddedMinusDeleted', '$Added - $D.sum($deleted)')
-        .actions[0];
-
+      var nextApply = Expression._.apply('AddedMinusDeleted', '$Added - $D.sum($deleted)');
       var added = External.normalizeAndAddApply(attributesAndApplies, nextApply);
 
       expect(added.attributes.join('\n')).to.equal(sane`
@@ -450,18 +443,15 @@ describe("External", () => {
       `);
 
       expect(added.applies.join('\n')).to.equal(sane`
-        apply(Count,$D.count())
-        apply(Added,$D.sum($added))
-        apply(Volatile,$D.max($added).subtract($D.min($deleted)))
-        apply(AddedMinusDeleted,$D.sum($added).subtract($D.sum($deleted)))
+        $_.apply(Count,$D.count())
+        $_.apply(Added,$D.sum($added))
+        $_.apply(Volatile,$D.max($added).subtract($D.min($deleted)))
+        $_.apply(AddedMinusDeleted,$D.sum($added).subtract($D.sum($deleted)))
       `);
     });
 
     it("works in redefine case", () => {
-      var nextApply = ply()
-        .apply('Volatile', '$Added - $D.sum($deleted)')
-        .actions[0];
-
+      var nextApply = Expression._.apply('Volatile', '$Added - $D.sum($deleted)');
       var added = External.normalizeAndAddApply(attributesAndApplies, nextApply);
 
       expect(added.attributes.join('\n')).to.equal(sane`
@@ -471,9 +461,9 @@ describe("External", () => {
       `);
 
       expect(added.applies.join('\n')).to.equal(sane`
-        apply(Count,$D.count())
-        apply(Added,$D.sum($added))
-        apply(Volatile,$D.sum($added).subtract($D.sum($deleted)))
+        $_.apply(Count,$D.count())
+        $_.apply(Added,$D.sum($added))
+        $_.apply(Volatile,$D.sum($added).subtract($D.sum($deleted)))
       `);
     });
   });
@@ -481,80 +471,76 @@ describe("External", () => {
 
   describe(".segregationAggregateApplies", () => {
     it("breaks up correctly in simple case", () => {
-      var ex = ply()
-        .apply('Count', '$D.count()')
-        .apply('Added', '$D.sum($added)')
-        .apply('Volatile', '$D.max($added) - $D.min($deleted)');
-
-      var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(ex.actions);
+      var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
+        Expression._.apply('Count', '$D.count()'),
+        Expression._.apply('Added', '$D.sum($added)'),
+        Expression._.apply('Volatile', '$D.max($added) - $D.min($deleted)')
+      ]);
 
       expect(aggregateApplies.join('\n')).to.equal(sane`
-        apply(Count,$D.count())
-        apply(Added,$D.sum($added))
-        apply("!T_0",$D.max($added))
-        apply("!T_1",$D.min($deleted))
+        $_.apply(Count,$D.count())
+        $_.apply(Added,$D.sum($added))
+        $_.apply("!T_0",$D.max($added))
+        $_.apply("!T_1",$D.min($deleted))
       `);
 
       expect(postAggregateApplies.join('\n')).to.equal(sane`
-        apply(Volatile,$\{!T_0}:NUMBER.subtract($\{!T_1}:NUMBER))
+        $_.apply(Volatile,$\{!T_0}:NUMBER.subtract($\{!T_1}:NUMBER))
       `);
     });
 
     it("breaks up correctly in case of duplicate name", () => {
-      var ex = ply()
-        .apply('Count', '$D.count()')
-        .apply('Added', '$D.sum($added)')
-        .apply('Volatile', '$D.sum($added) - $D.sum($deleted)');
-
-      var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(ex.actions);
+      var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
+        Expression._.apply('Count', '$D.count()'),
+        Expression._.apply('Added', '$D.sum($added)'),
+        Expression._.apply('Volatile', '$D.sum($added) - $D.sum($deleted)')
+      ]);
 
       expect(aggregateApplies.join('\n')).to.equal(sane`
-        apply(Count,$D.count())
-        apply(Added,$D.sum($added))
-        apply("!T_0",$D.sum($deleted))
+        $_.apply(Count,$D.count())
+        $_.apply(Added,$D.sum($added))
+        $_.apply("!T_0",$D.sum($deleted))
       `);
 
       expect(postAggregateApplies.join('\n')).to.equal(sane`
-        apply(Volatile,$Added:NUMBER.subtract($\{!T_0}:NUMBER))
+        $_.apply(Volatile,$Added:NUMBER.subtract($\{!T_0}:NUMBER))
       `);
     });
 
     it("breaks up correctly in case of variable reference", () => {
-      var ex = ply()
-        .apply('Count', '$D.count()')
-        .apply('Added', '$D.sum($added)')
-        .apply('Volatile', '$Added - $D.sum($deleted)');
-
-      var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(ex.actions);
+      var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
+        Expression._.apply('Count', '$D.count()'),
+        Expression._.apply('Added', '$D.sum($added)'),
+        Expression._.apply('Volatile', '$Added - $D.sum($deleted)')
+      ]);
 
       expect(aggregateApplies.join('\n')).to.equal(sane`
-        apply(Count,$D.count())
-        apply(Added,$D.sum($added))
-        apply("!T_0",$D.sum($deleted))
+        $_.apply(Count,$D.count())
+        $_.apply(Added,$D.sum($added))
+        $_.apply("!T_0",$D.sum($deleted))
       `);
 
       expect(postAggregateApplies.join('\n')).to.equal(sane`
-        apply(Volatile,$Added.subtract($\{!T_0}:NUMBER))
+        $_.apply(Volatile,$Added.subtract($\{!T_0}:NUMBER))
       `);
     });
 
     it("breaks up correctly in complex case", () => {
-      var ex = ply()
-        .apply('AddedByDeleted', '$D.sum($added) / $D.sum($deleted)')
-        .apply('DeletedByInserted', '$D.sum($deleted) / $D.sum($inserted)')
-        .apply('Deleted', '$D.sum($deleted)');
-
-      var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(ex.actions);
+      var { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
+        Expression._.apply('AddedByDeleted', '$D.sum($added) / $D.sum($deleted)'),
+        Expression._.apply('DeletedByInserted', '$D.sum($deleted) / $D.sum($inserted)'),
+        Expression._.apply('Deleted', '$D.sum($deleted)')
+      ]);
 
       expect(aggregateApplies.join('\n')).to.equal(sane`
-        apply(Deleted,$D.sum($deleted))
-        apply("!T_0",$D.sum($added))
-        apply("!T_1",$D.sum($inserted))
+        $_.apply(Deleted,$D.sum($deleted))
+        $_.apply("!T_0",$D.sum($added))
+        $_.apply("!T_1",$D.sum($inserted))
       `);
 
       expect(postAggregateApplies.join('\n')).to.equal(sane`
-        apply(AddedByDeleted,$\{!T_0}:NUMBER.divide($Deleted:NUMBER))
-        apply(DeletedByInserted,$Deleted:NUMBER.divide($\{!T_1}:NUMBER))
+        $_.apply(AddedByDeleted,$\{!T_0}:NUMBER.divide($Deleted:NUMBER))
+        $_.apply(DeletedByInserted,$Deleted:NUMBER.divide($\{!T_1}:NUMBER))
       `);
     });
   });
@@ -584,7 +570,7 @@ describe("External", () => {
   });
 
 
-  describe("#addAction / #getRaw", () => {
+  describe("#addExpression / #getRaw", () => {
     var rawExternal = External.fromJS({
       engine: 'druid',
       source: 'moon_child',
@@ -596,10 +582,9 @@ describe("External", () => {
     });
 
     it('runs through a life cycle', () => {
-      var filteredRawExternal = rawExternal.addFilter($('page').contains('lol'));
+      var filteredRawExternal = rawExternal.addExpression(Expression._.filter($('page').contains('lol')));
 
-      var ex = $('blah').sum('$added:NUMBER');
-      var filteredValueExternal = filteredRawExternal.addAction(ex.actions[0]);
+      var filteredValueExternal = filteredRawExternal.addExpression(Expression._.sum('$added:NUMBER'));
 
       expect(filteredValueExternal.mode).to.equal('value');
       expect(filteredValueExternal.valueExpression.toString()).to.equal('$__SEGMENT__:DATASET.sum($added:NUMBER)');
@@ -612,40 +597,40 @@ describe("External", () => {
     });
 
     it('it checks that expressions are internally defined (filter raw)', () => {
-      expect(rawExternal.addAction($('blah').filter('$user:STRING.contains("lol")').actions[0])).to.equal(null);
-      expect(rawExternal.addAction($('blah').filter('$page:STRING.contains("lol")').actions[0])).to.not.equal(null);
+      expect(rawExternal.addExpression(Expression._.filter('$user:STRING.contains("lol")'))).to.equal(null);
+      expect(rawExternal.addExpression(Expression._.filter('$page:STRING.contains("lol")'))).to.not.equal(null);
     });
 
     it('it checks that expressions are internally defined (filter split)', () => {
-      var splitExternal = rawExternal.addAction($('blah').split('$page:STRING', 'Page', 'blah').actions[0]);
-      expect(splitExternal.addAction($('blah').filter('$User:STRING.contains("lol")').actions[0])).to.equal(null);
-      expect(splitExternal.addAction($('blah').filter('$Page:STRING.contains("lol")').actions[0])).to.not.equal(null);
+      var splitExternal = rawExternal.addExpression(Expression._.split('$page:STRING', 'Page', 'blah'));
+      expect(splitExternal.addExpression(Expression._.filter('$User:STRING.contains("lol")'))).to.equal(null);
+      expect(splitExternal.addExpression(Expression._.filter('$Page:STRING.contains("lol")'))).to.not.equal(null);
     });
 
     it('it checks that expressions are internally defined (split)', () => {
-      expect(rawExternal.addAction($('blah').split('$user:STRING', 'User', 'blah').actions[0])).to.equal(null);
-      expect(rawExternal.addAction($('blah').split('$page:STRING', 'Page', 'blah').actions[0])).to.not.equal(null);
+      expect(rawExternal.addExpression(Expression._.split('$user:STRING', 'User', 'blah'))).to.equal(null);
+      expect(rawExternal.addExpression(Expression._.split('$page:STRING', 'Page', 'blah'))).to.not.equal(null);
     });
 
     it('it checks that expressions are internally defined (apply on raw)', () => {
-      expect(rawExternal.addAction($('blah').apply('DeltaPlusOne', '$delta:NUMBER + 1').actions[0])).to.equal(null);
-      expect(rawExternal.addAction($('blah').apply('AddedPlusOne', '$added:NUMBER + 1').actions[0])).to.not.equal(null);
+      expect(rawExternal.addExpression(Expression._.apply('DeltaPlusOne', '$delta:NUMBER + 1'))).to.equal(null);
+      expect(rawExternal.addExpression(Expression._.apply('AddedPlusOne', '$added:NUMBER + 1'))).to.not.equal(null);
     });
 
     it('it checks that expressions are internally defined (apply on split)', () => {
-      var splitExternal = rawExternal.addAction($('blah').split('$page:STRING', 'Page', 'blah').actions[0]);
-      expect(splitExternal.addAction($('blah').apply('DeltaPlusOne', '$blah.sum($delta:NUMBER)').actions[0])).to.equal(null);
-      expect(splitExternal.addAction($('blah').apply('AddedPlusOne', '$blah.sum($added:NUMBER)').actions[0])).to.not.equal(null);
+      var splitExternal = rawExternal.addExpression(Expression._.split('$page:STRING', 'Page', 'blah'));
+      expect(splitExternal.addExpression(Expression._.apply('DeltaPlusOne', '$blah.sum($delta:NUMBER)'))).to.equal(null);
+      expect(splitExternal.addExpression(Expression._.apply('AddedPlusOne', '$blah.sum($added:NUMBER)'))).to.not.equal(null);
     });
 
     it('it checks that expressions are internally defined (value / aggregate)', () => {
-      expect(rawExternal.addAction($('blah').sum('$delta:NUMBER').actions[0])).to.equal(null);
-      expect(rawExternal.addAction($('blah').sum('$added:NUMBER').actions[0])).to.not.equal(null);
+      expect(rawExternal.addExpression(Expression._.sum('$delta:NUMBER'))).to.equal(null);
+      expect(rawExternal.addExpression(Expression._.sum('$added:NUMBER'))).to.not.equal(null);
     });
 
     it('it checks that expressions are internally defined (select)', () => {
-      //expect(rawExternal.addAction($('blah').select('user').actions[0])).to.equal(null);
-      expect(rawExternal.addAction($('blah').select('page').actions[0])).to.not.equal(null);
+      //expect(rawExternal.addExpression(Expression._.select('user'))).to.equal(null);
+      expect(rawExternal.addExpression(Expression._.select('page'))).to.not.equal(null);
     });
 
   });
@@ -657,7 +642,7 @@ describe("External", () => {
       source: 'wikipedia',
       timeAttribute: 'time',
       attributes: [
-        { name: 'time', type: 'TIME', makerAction: { action: 'timeFloor', duration: 'PT1H', timezone: 'Etc/UTC' } },
+        { name: 'time', type: 'TIME', maker: { action: 'timeFloor', duration: 'PT1H', timezone: 'Etc/UTC' } },
         { name: 'language', type: 'STRING' }
       ]
     });
@@ -668,7 +653,7 @@ describe("External", () => {
         $('time').timeFloor('PT2H', 'Etc/UTC'),
         $('time').timeFloor('P1D', 'Etc/UTC'),
         $('time').timeBucket('P1D', 'Etc/UTC'),
-        $('language').is('en').and($('time').timeFloor('PT1H', 'Etc/UTC')),
+        $('language').is('en').and($('time').timeFloor('PT1H', 'Etc/UTC').is('$blah')),
         $('time').in(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:00Z'))
       ];
 
@@ -683,7 +668,7 @@ describe("External", () => {
         $('time').timeFloor('PT1H'),
         $('time').timeFloor('PT1M', 'Etc/UTC'),
         $('time').timeFloor('PT1S', 'Etc/UTC'),
-        $('language').is('en').and($('time').timeFloor('PT1M', 'Etc/UTC')),
+        $('language').is('en').and($('time').timeFloor('PT1M', 'Etc/UTC').is('$blah')),
         $('time').in(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:01Z'))
       ];
 
@@ -727,7 +712,7 @@ describe("External", () => {
         expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice']);
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
         `);
       });
 
@@ -740,8 +725,8 @@ describe("External", () => {
         expect(ex.op).to.equal('external');
         var externalDataset = ex.external;
 
-        expect(externalDataset.sort.toString()).to.equal('sort($time:TIME,ascending)');
-        expect(externalDataset.limit.toString()).to.equal('limit(10)');
+        expect(externalDataset.sort.toString()).to.equal('$_.sort($time:TIME,ascending)');
+        expect(externalDataset.limit.toString()).to.equal('$_.limit(10)');
       });
 
       it("works with a sort and a limit where there is also an aggregate", () => {
@@ -751,13 +736,11 @@ describe("External", () => {
           .count();
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
-        expect(ex.op).to.equal('chain');
-        var externalDataset = ex.expression.external;
+        expect(ex.op).to.equal('count');
+        var externalDataset = ex.operand.external;
 
-        expect(externalDataset.sort.toString()).to.equal('sort($time:TIME,ascending)');
-        expect(externalDataset.limit.toString()).to.equal('limit(10)');
-
-        expect(ex.actions).to.have.length(1);
+        expect(externalDataset.sort.toString()).to.equal('$_.sort($time:TIME,ascending)');
+        expect(externalDataset.limit.toString()).to.equal('$_.limit(10)');
       });
 
     });
@@ -773,7 +756,7 @@ describe("External", () => {
         var externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -792,7 +775,7 @@ describe("External", () => {
         var externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($page:STRING.is("USA"))
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($page:STRING.is("USA"))
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -809,7 +792,7 @@ describe("External", () => {
         var externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($page:STRING.is("USA"))
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($page:STRING.is("USA"))
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -839,7 +822,7 @@ describe("External", () => {
         var externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -856,7 +839,7 @@ describe("External", () => {
         var externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($page:STRING.is("USA"))
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($page:STRING.is("USA"))
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -873,7 +856,7 @@ describe("External", () => {
         var externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -896,7 +879,7 @@ describe("External", () => {
 
         expect(externalDataset.mode).to.equal('value');
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -916,12 +899,12 @@ describe("External", () => {
 
         expect(externalDataset.mode).to.equal('total');
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
-          apply(Count,$__SEGMENT__:DATASET.count())
-          apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
+          $_.apply(Count,$__SEGMENT__:DATASET.count())
+          $_.apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
         `);
       });
 
@@ -938,13 +921,13 @@ describe("External", () => {
 
         expect(externalDataset.mode).to.equal('total');
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
-          apply(Count,$__SEGMENT__:DATASET.count())
-          apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
-          apply(CountPlusAdded,$__SEGMENT__:DATASET.count().add($__SEGMENT__:DATASET.sum($added:NUMBER)))
+          $_.apply(Count,$__SEGMENT__:DATASET.count())
+          $_.apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
+          $_.apply(CountPlusAdded,$__SEGMENT__:DATASET.count().add($__SEGMENT__:DATASET.sum($added:NUMBER)))
         `);
       });
 
@@ -961,14 +944,14 @@ describe("External", () => {
         var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
-          apply(Count,$__SEGMENT__:DATASET.count())
-          apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
-          apply(TotalUSA,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER))
-          apply(TotalUK,$__SEGMENT__:DATASET.filter($page:STRING.is("UK")).sum($added:NUMBER))
+          $_.apply(Count,$__SEGMENT__:DATASET.count())
+          $_.apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
+          $_.apply(TotalUSA,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER))
+          $_.apply(TotalUK,$__SEGMENT__:DATASET.filter($page:STRING.is("UK")).sum($added:NUMBER))
         `);
 
         expect(externalDataset.toJS().attributes).to.deep.equal([
@@ -1000,13 +983,13 @@ describe("External", () => {
         var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
-          apply(TotalUSA,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER))
-          apply(TotalUK,$__SEGMENT__:DATASET.filter($page:STRING.is("UK")).sum($added:NUMBER))
-          apply(TotalIndia,$__SEGMENT__:DATASET.filter($page:STRING.is("India")).sum($added:NUMBER))
+          $_.apply(TotalUSA,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER))
+          $_.apply(TotalUK,$__SEGMENT__:DATASET.filter($page:STRING.is("UK")).sum($added:NUMBER))
+          $_.apply(TotalIndia,$__SEGMENT__:DATASET.filter($page:STRING.is("India")).sum($added:NUMBER))
         `);
 
         expect(externalDataset.toJS().attributes).to.deep.equal([
@@ -1029,13 +1012,13 @@ describe("External", () => {
         var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
-          apply(Count,$__SEGMENT__:DATASET.count())
-          apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
-          apply(TotalUSA,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER))
+          $_.apply(Count,$__SEGMENT__:DATASET.count())
+          $_.apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
+          $_.apply(TotalUSA,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER))
         `);
 
         expect(externalDataset.toJS().attributes).to.deep.equal([
@@ -1064,15 +1047,15 @@ describe("External", () => {
         expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice']);
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
-          apply(Count,$__SEGMENT__:DATASET.count())
-          apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
-          apply(TotalEnAdded,$__SEGMENT__:DATASET.filter($language:STRING.is("en")).sum($added:NUMBER))
-          apply(TotalUsAdded,$__SEGMENT__:DATASET.filter($language:STRING.is("en").and($page:STRING.is("USA"))).sum($added:NUMBER))
-          apply(OrigMinAdded,$__SEGMENT__:DATASET.min($added:NUMBER))
+          $_.apply(Count,$__SEGMENT__:DATASET.count())
+          $_.apply(TotalAdded,$__SEGMENT__:DATASET.sum($added:NUMBER))
+          $_.apply(TotalEnAdded,$__SEGMENT__:DATASET.filter($language:STRING.is("en")).sum($added:NUMBER))
+          $_.apply(TotalUsAdded,$__SEGMENT__:DATASET.filter($language:STRING.is("en").and($page:STRING.is("USA"))).sum($added:NUMBER))
+          $_.apply(OrigMinAdded,$__SEGMENT__:DATASET.min($added:NUMBER))
         `);
 
         expect(externalDataset.toJS().attributes).to.deep.equal([
@@ -1102,13 +1085,13 @@ describe("External", () => {
         var externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
+          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
-          apply(CountX3,$__SEGMENT__:DATASET.count().multiply(3))
-          apply(AddedPlusDeleted,$__SEGMENT__:DATASET.sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
-          apply(AddedUsPlusDeleted,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
+          $_.apply(CountX3,$__SEGMENT__:DATASET.count().multiply(3))
+          $_.apply(AddedPlusDeleted,$__SEGMENT__:DATASET.sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
+          $_.apply(AddedUsPlusDeleted,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
         `);
         //apply(CountX3Plus5,$__SEGMENT__:DATASET.count().multiply(3).add(5))
 
@@ -1136,7 +1119,7 @@ describe("External", () => {
         expect(ex.op).to.equal('external');
         var externalDataset = ex.external;
         expect(externalDataset.applies).to.have.length(2);
-        expect(externalDataset.limit.limit).to.equal(5);
+        expect(externalDataset.limit.value).to.equal(5);
         expect(externalDataset.toJS().attributes).to.deep.equal([
           { name: "Page", "type": "STRING" },
           { name: "Count", "type": "NUMBER" },
@@ -1165,7 +1148,7 @@ describe("External", () => {
         expect(ex.op).to.equal('external');
         var externalDataset = ex.external;
         expect(externalDataset.applies).to.have.length(2);
-        expect(externalDataset.limit.limit).to.equal(5);
+        expect(externalDataset.limit.value).to.equal(5);
         expect(externalDataset.toJS().attributes).to.deep.equal([
           { name: "Page", "type": "STRING" },
           { name: "Count", "type": "NUMBER" },
@@ -1186,7 +1169,7 @@ describe("External", () => {
         expect(ex.op).to.equal('external');
         var externalDataset = ex.external;
         expect(externalDataset.applies).to.have.length(2);
-        expect(externalDataset.limit.limit).to.equal(5);
+        expect(externalDataset.limit.value).to.equal(5);
         expect(externalDataset.toJS().attributes).to.deep.equal([
           { name: "Page", "type": "STRING" },
           { name: "Count", "type": "NUMBER" },
@@ -1203,9 +1186,9 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        expect(ex.op).to.equal('chain');
-        expect(ex.actions).to.have.length(2);
-        var externalDataset = ex.expression.external;
+        expect(ex.op).to.equal('limit');
+        expect(ex.operand.op).to.equal('sort');
+        var externalDataset = ex.operand.operand.external;
         expect(externalDataset.applies).to.have.length(2);
         expect(externalDataset.toJS().attributes).to.deep.equal([
           { name: "Timestamp", "type": "TIME_RANGE" },
@@ -1426,7 +1409,7 @@ describe("External", () => {
 
         var externalDataset = readyExternals['1'].external;
         expect(externalDataset.applies).to.have.length(2);
-        expect(externalDataset.limit.limit).to.equal(5);
+        expect(externalDataset.limit.value).to.equal(5);
         expect(externalDataset.toJS().attributes).to.deep.equal([
           { name: "Page", "type": "STRING" },
           { name: "Count", "type": "NUMBER" },
@@ -1498,8 +1481,8 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         var readyExternals = ex.getReadyExternals();
-        expect(Object.keys(readyExternals)).to.deep.equal(['1']);
-        expect(readyExternals['1'].external.mode).to.deep.equal('split');
+        expect(Object.keys(readyExternals)).to.deep.equal(['2']);
+        expect(readyExternals['2'].external.mode).to.deep.equal('split');
       });
 
     });

@@ -19,8 +19,8 @@ var { expect } = require("chai");
 
 var { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../../build/plywood');
-var { Expression, $, r, RefExpression } = plywood;
+var plywood = require('../plywood');
+var { Expression, $, ply, r, RefExpression, LimitExpression } = plywood;
 
 describe("Expression", () => {
   it("is immutable class", () => {
@@ -37,7 +37,7 @@ describe("Expression", () => {
       { op: 'literal', value: { setType: 'STRING', elements: [] }, type: 'SET' },
       { op: 'literal', value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] }, type: 'SET' },
       { op: 'literal', value: { setType: 'NUMBER', elements: [0.05, 0.1] }, type: 'SET' },
-      { op: 'literal', value: [{}], type: 'DATASET' },
+      //{ op: 'literal', value: [{}], type: 'DATASET' },
       { op: 'literal', value: new Date('2015-10-10Z'), type: 'TIME' },
       { op: 'ref', name: 'authors' },
       { op: 'ref', name: 'light_time' },
@@ -47,68 +47,69 @@ describe("Expression", () => {
       { op: 'ref', name: 'make', type: 'STRING' },
       { op: 'ref', name: 'a fish will "save" you - lol / (or not)' },
       { op: 'ref', name: 'a thing', ignoreCase: true },
+
       {
-        op: 'chain',
-        expression: { op: 'ref', name: 'diamonds' },
-        action: {
-          action: 'apply',
-          name: 'five',
-          expression: { op: 'literal', value: 5 }
+        op: 'add',
+        operand: { op: 'ref', name: 'x' },
+        expression: { op: 'literal', value: 6 }
+      },
+
+      {
+        op: 'apply',
+        operand: { op: 'ref', name: 'diamonds' },
+        name: 'five',
+        expression: { op: 'literal', value: 5 }
+      },
+
+      {
+        op: 'substr',
+        operand: { op: 'ref', name: 'x' },
+        position: 1,
+        len: 3
+      },
+
+      {
+        "operand": { "op": "ref", "name": "time" },
+        "op": "in",
+        "expression": {
+          "op": "literal",
+          "value": { "start": new Date("2013-02-26T19:00:00.000Z"), "end": new Date("2013-02-26T22:00:00.000Z") },
+          "type": "TIME_RANGE"
         }
       },
 
       {
-        "op": "chain", "expression": { "op": "ref", "name": "time" },
-        "action": {
-          "action": "in",
-          "expression": {
-            "op": "literal",
-            "value": { "start": new Date("2013-02-26T19:00:00.000Z"), "end": new Date("2013-02-26T22:00:00.000Z") },
-            "type": "TIME_RANGE"
-          }
+        "operand": { "op": "ref", "name": "language" },
+        "op": "in",
+        "expression": {
+          "op": "literal",
+          "value": { "setType": "STRING", "elements": ["en"] },
+          "type": "SET"
         }
       },
 
       {
-        "op": "chain", "expression": { "op": "ref", "name": "language" },
-        "action": {
-          "action": "in",
-          "expression": {
-            "op": "literal",
-            "value": { "setType": "STRING", "elements": ["en"] },
-            "type": "SET"
-          }
+        "operand": { "op": "ref", "name": "language" },
+        "op": "in",
+        "expression": {
+          "op": "literal",
+          "value": { "setType": "STRING", "elements": ["he"] },
+          "type": "SET"
         }
       },
 
       {
-        "op": "chain", "expression": { "op": "ref", "name": "language" },
-        "action": {
-          "action": "in",
-          "expression": {
-            "op": "literal",
-            "value": { "setType": "STRING", "elements": ["he"] },
-            "type": "SET"
-          }
+        "op": "add",
+        "operand": { "op": "ref", "name": "x" },
+        "expression": {
+          "op": "add",
+          "operand": { "op": "ref", "name": "y" },
+          "expression": { "op": "ref", "name": "z" }
         }
       },
 
       {
-        "op": "chain", "expression": { "op": "ref", "name": "x" },
-        "actions": [
-          {
-            "action": "add",
-            "expression": { "op": "ref", "name": "y" }
-          },
-          {
-            "action": "add",
-            "expression": { "op": "ref", "name": "z" }
-          }
-        ]
-      },
-
-      {
-        "op": "external",
+        op: "external",
         external: {
           engine: 'druid',
           version: '0.8.1',
@@ -120,7 +121,99 @@ describe("Expression", () => {
             { name: 'price', type: 'NUMBER', unsplitable: true }
           ]
         }
-      }
+      },
+
+      {
+        op: 'split',
+        operand: { op: 'ref', name: '_' },
+        splits: {
+          'Page': { op: 'ref', name: 'page' },
+          'User': { op: 'ref', name: 'user' }
+        },
+        dataName: 'myData'
+      },
+      {
+        op: 'apply',
+        operand: { op: 'ref', name: '_' },
+        name: 'Five',
+        expression: { op: 'literal', value: 5 }
+      },
+      {
+        op: 'sort',
+        operand: { op: 'ref', name: '_' },
+        expression: { op: 'ref', name: 'myVar' },
+        direction: 'ascending'
+      },
+      { op: 'limit', operand: { op: 'ref', name: '_' }, value: 10 },
+      { op: 'select', operand: { op: 'ref', name: '_' }, attributes: ['a', 'b', 'c'] },
+      { op: 'select', operand: { op: 'ref', name: '_' }, attributes: ['b', 'c'] },
+
+      { op: 'fallback', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar2' } },
+      { op: 'count', operand: { op: 'ref', name: '_' } },
+      { op: 'sum', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
+      { op: 'power', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
+      { op: 'absolute', operand: { op: 'ref', name: '_' } },
+      { op: 'min', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
+      { op: 'max', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
+      { op: 'average', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
+      { op: 'countDistinct', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
+      { op: 'quantile', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' }, value: 0.5 },
+      { op: 'collect', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
+      { op: 'cast', operand: { op: 'ref', name: '_' }, outputType: 'TIME' },
+      { op: 'cast', operand: { op: 'ref', name: '_' }, outputType: 'NUMBER' },
+
+      { op: 'customAggregate', operand: { op: 'ref', name: '_' }, custom: 'blah' },
+      { op: 'customTransform', operand: { op: 'ref', name: '_' }, custom: 'decodeURIComponentToLowerCaseAndTrim' },
+      { op: 'customTransform', operand: { op: 'ref', name: '_' }, custom: 'includes', outputType: 'BOOLEAN' },
+
+      { op: 'concat', operand: { op: 'ref', name: '_' }, expression: { op: 'literal', value: 'myVar' } },
+
+      { op: 'contains', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' }, compare: 'normal' },
+      { op: 'contains', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' }, compare: 'ignoreCase' },
+
+      { op: 'match', operand: { op: 'ref', name: '_' }, regexp: 'A[B]' },
+      { op: 'match', operand: { op: 'ref', name: '_' }, regexp: '^fu*$' },
+
+      { op: 'lessThan', operand: { op: 'ref', name: '_' }, expression: { op: 'literal', type: 'TIME', value: new Date('2015-10-10Z') } },
+
+      { op: 'overlap', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
+      { op: 'overlap', operand: { op: 'ref', name: '_' }, expression: { op: 'literal', value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] }, type: 'SET' } },
+
+      { op: 'numberBucket', operand: { op: 'ref', name: '_' }, size: 5 },
+      { op: 'numberBucket', operand: { op: 'ref', name: '_' }, size: 5, offset: 1 },
+
+      { op: 'length', operand: { op: 'ref', name: '_' } },
+      { op: 'indexOf', operand: { op: 'ref', name: '_' }, expression: { op: 'literal', value: 'string' } },
+
+      //{ op: 'cardinality', operand: { op: 'ref', name: '_' } }, // ToDo: wtf?!
+
+      { op: 'timeFloor', operand: { op: 'ref', name: '_' }, duration: 'P1D' },
+      { op: 'timeFloor', operand: { op: 'ref', name: '_' }, duration: 'PT2H', timezone: 'Etc/UTC' },
+      { op: 'timeFloor', operand: { op: 'ref', name: '_' }, duration: 'PT2H', timezone: 'America/Los_Angeles' },
+
+      { op: 'timeBucket', operand: { op: 'ref', name: '_' }, duration: 'P1D' },
+      { op: 'timeBucket', operand: { op: 'ref', name: '_' }, duration: 'PT2H', timezone: 'Etc/UTC' },
+      { op: 'timeBucket', operand: { op: 'ref', name: '_' }, duration: 'PT2H', timezone: 'America/Los_Angeles' },
+
+      { op: 'timePart', operand: { op: 'ref', name: '_' }, part: 'DAY_OF_WEEK' },
+      { op: 'timePart', operand: { op: 'ref', name: '_' }, part: 'DAY_OF_MONTH', timezone: 'Etc/UTC' },
+      { op: 'timePart', operand: { op: 'ref', name: '_' }, part: 'DAY_OF_MONTH', timezone: 'America/Los_Angeles' },
+
+      { op: 'timeShift', operand: { op: 'ref', name: '_' }, duration: 'P1D', step: 1 },
+      { op: 'timeShift', operand: { op: 'ref', name: '_' }, duration: 'P1D', step: -2 },
+      { op: 'timeShift', operand: { op: 'ref', name: '_' }, duration: 'P2D', step: 3, timezone: 'Etc/UTC' },
+      { op: 'timeShift', operand: { op: 'ref', name: '_' }, duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' },
+
+      { op: 'timeRange', operand: { op: 'ref', name: '_' }, duration: 'P1D', step: 1 },
+      { op: 'timeRange', operand: { op: 'ref', name: '_' }, duration: 'P1D', step: -2 },
+      { op: 'timeRange', operand: { op: 'ref', name: '_' }, duration: 'P2D', step: 3, timezone: 'Etc/UTC' },
+      { op: 'timeRange', operand: { op: 'ref', name: '_' }, duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' },
+
+      { op: 'transformCase', operand: { op: 'ref', name: '_' }, transformType: 'upperCase'},
+      { op: 'transformCase', operand: { op: 'ref', name: '_' }, transformType: 'lowerCase'},
+
+      { op: 'customAggregate', operand: { op: 'ref', name: '_' }, custom: 'lol1' },
+      { op: 'customAggregate', operand: { op: 'ref', name: '_' }, custom: 'lol2' }
 
     ], {
       newThrows: true
@@ -139,7 +232,6 @@ describe("Expression", () => {
       });
     });
   });
-
 
   describe("errors", () => {
     it("does not like an expression without op", () => {
@@ -164,20 +256,6 @@ describe("Expression", () => {
           op: 'this was once an empty file'
         });
       }).to.throw("unsupported expression op 'this was once an empty file'");
-    });
-
-    it("does not like an expression with a unknown op", () => {
-      expect(() => {
-        Expression.fromJS({
-          op: 'chain',
-          expression: { op: 'ref', name: 'diamonds' },
-          actions: {
-            action: 'apply',
-            name: 'five',
-            expression: { op: 'literal', value: 5 }
-          }
-        });
-      }).to.throw("chain `actions` must be an array");
     });
   });
 
@@ -208,19 +286,16 @@ describe("Expression", () => {
 
     it("parses", () => {
       expect(Expression.parse("$^{hello 'james'} + ${how are you today?}:NUMBER").toJS()).to.deep.equal({
-        "op": "chain",
-        "expression": {
+        "op": "add",
+        "operand": {
           "name": "hello 'james'",
           "nest": 1,
           "op": "ref"
         },
-        "action": {
-          "action": "add",
-          "expression": {
-            "name": "how are you today?",
-            "op": "ref",
-            "type": "NUMBER"
-          }
+        "expression": {
+          "name": "how are you today?",
+          "op": "ref",
+          "type": "NUMBER"
         }
       });
     });
@@ -237,9 +312,21 @@ describe("Expression", () => {
 
     it("works in a simple case of addition", () => {
       var ex = $('x').add('$y', 5);
+
       var exFn = ex.getFn();
       expect(exFn({ x: 5, y: 1 })).to.equal(11);
       expect(exFn({ x: 8, y: -3 })).to.equal(10);
+    });
+
+    it("works with calc", () => {
+      var ex = Expression.fromJS({
+        op: 'add',
+        operand: { op: 'ref', name: 'x' },
+        expression: { op: 'ref', name: 'y' }
+      });
+      var exFn = ex.getFn();
+      expect(exFn({ x: 5, y: 2 })).to.equal(7);
+      expect(ex.calc({ x: 8, y: -3 })).to.equal(5);
     });
 
     it('works with case insensitive', () => {
@@ -307,7 +394,7 @@ describe("Expression", () => {
 
     it('turns sum in count 1', () => {
       var ex1 = $('data').sum('6');
-      var ex2 = r(6).multiply('$data.count()');
+      var ex2 = $('data').count().multiply(6);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
@@ -317,21 +404,21 @@ describe("Expression", () => {
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it.skip('works in constant * case', () => {
+    it('works in constant * case', () => {
       var ex1 = $('data').sum('$x * 6');
-      var ex2 = r(6).multiply('$data.sum($x)');
+      var ex2 = $('data').sum('$x').multiply(6);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it.skip('works in constant * case (multiple operands)', () => {
       var ex1 = $('data').sum('$x * 6 * $y');
-      var ex2 = r(6).multiply('$data.sum($x * $y)');
+      var ex2 = $('data').sum('$x * $y').multiply(6);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it.skip('works in complex case', () => {
       var ex1 = $('data').sum('$x + $y - $z * 5 + 6');
-      var ex2 = $('data').sum($x).add('$data.sum($y)', '(5 * $data.sum($z)).negate()', '6 * $data.count()');
+      var ex2 = $('data').sum($x).add('$data.sum($y)', '($data.sum($z) * 5).negate()', '6 * $data.count()');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
@@ -343,6 +430,125 @@ describe("Expression", () => {
       expect(RefExpression.toJavaScriptSafeName('try')).to.equal('_try');
       expect(RefExpression.toJavaScriptSafeName('i-love-you')).to.equal('_i$45love$45you');
       expect(RefExpression.toJavaScriptSafeName('ру́сский')).to.equal('_$1088$1091$769$1089$1089$1082$1080$1081');
+    });
+
+  });
+
+  describe('fancy actions', () => {
+    it('limit works with Infinity', () => {
+      expect(new LimitExpression({ operand: Expression._, value: Infinity }).toJS()).to.deep.equal({
+        "op": "limit",
+        operand: { op: 'ref', name: '_' },
+        "value": Infinity
+      });
+    });
+
+  });
+
+  describe('fromJS API back comparability', () => {
+    it('works in complex case', () => {
+      var js = {
+        "actions": [
+          {
+            "action": "apply",
+            "expression": {
+              "actions": [
+                {
+                  "action": "filter",
+                  "expression": {
+                    "action": {
+                      "action": "is",
+                      "expression": {
+                        "op": "literal",
+                        "value": "D"
+                      }
+                    },
+                    "expression": {
+                      "name": "color",
+                      "op": "ref"
+                    },
+                    "op": "chain"
+                  }
+                },
+                {
+                  "action": "apply",
+                  "expression": {
+                    "action": {
+                      "action": "divide",
+                      "expression": {
+                        "op": "literal",
+                        "value": 2
+                      }
+                    },
+                    "expression": {
+                      "name": "price",
+                      "op": "ref"
+                    },
+                    "op": "chain"
+                  },
+                  "name": "priceOver2"
+                }
+              ],
+              "expression": {
+                "op": "literal",
+                "type": "DATASET",
+                "value": [
+                  {}
+                ]
+              },
+              "op": "chain"
+            },
+            "name": "Diamonds"
+          },
+          {
+            "action": "apply",
+            "expression": {
+              "action": {
+                "action": "count"
+              },
+              "expression": {
+                "name": "Diamonds",
+                "op": "ref"
+              },
+              "op": "chain"
+            },
+            "name": "Count"
+          },
+          {
+            "action": "apply",
+            "expression": {
+              "action": {
+                "action": "sum",
+                "expression": {
+                  "name": "priceOver2",
+                  "op": "ref"
+                }
+              },
+              "expression": {
+                "name": "Diamonds",
+                "op": "ref"
+              },
+              "op": "chain"
+            },
+            "name": "TotalPrice"
+          }
+        ],
+        "expression": {
+          "op": "literal",
+          "type": "DATASET",
+          "value": [
+            {}
+          ]
+        },
+        "op": "chain"
+      };
+
+      var ex2 = ply()
+        .apply("Diamonds", ply().filter("$color == 'D'").apply("priceOver2", "$price/2"))
+        .apply('Count', $('Diamonds').count())
+        .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
+
+      expect(Expression.fromJS(js).toJS()).to.deep.equal(ex2.toJS());
     });
 
   });

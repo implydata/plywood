@@ -40,7 +40,7 @@ export interface DirectionFn {
   (a: any, b: any): number;
 }
 
-export type PlywoodValue = boolean | number | string | Date | NumberRange | TimeRange | StringRange | Set | Dataset | External;
+export type PlywoodValue = null | boolean | number | string | Date | NumberRange | TimeRange | StringRange | Set | Dataset | External;
 
 export interface PseudoDatum {
   [attribute: string]: any;
@@ -72,7 +72,7 @@ export function fillExpressionExternalAlteration(alteration: ExpressionExternalA
     if (Array.isArray(thing)) {
       fillDatasetExternalAlterations(thing, filler);
     } else {
-      thing.result = filler(thing.external, thing.terminal);
+      thing.result = filler(thing.external, Boolean(thing.terminal));
     }
   }
 }
@@ -181,7 +181,7 @@ let typeOrder: Lookup<number> = {
   'DATASET': 12
 };
 
-export interface Formatter extends Lookup<Function> {
+export interface Formatter extends Lookup<Function | undefined> {
   'NULL'?: (v: any) => string;
   'TIME'?: (v: Date) => string;
   'TIME_RANGE'?: (v: TimeRange) => string;
@@ -263,7 +263,7 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
   } else if (Dataset.isDataset(attributeValue)) {
     return new AttributeInfo({ name, type: 'DATASET', datasetType: attributeValue.getFullType().datasetType });
   } else {
-    throw new Error("Could not introspect");
+    throw new Error(`Could not introspect ${attributeValue}`);
   }
 }
 
@@ -836,12 +836,15 @@ export class Dataset implements Instance<DatasetValue, any> {
       for (let key in datum) {
         let v = datum[key];
         if (v instanceof Expression) {
-          datum[key] = v.resolve(datum).simplify();
+          let simp = v.resolve(datum).simplify();
+          datum[key] = simp instanceof ExternalExpression ? simp.external : simp;
         }
       }
     }
 
-    return this; // Hack; in place for now
+    let value = this.valueOf();
+    value.data = data;
+    return new Dataset(value);
   }
 
   public join(other: Dataset): Dataset {

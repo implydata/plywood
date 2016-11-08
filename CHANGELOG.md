@@ -2,6 +2,21 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.14.0
+
+- Totally reworked internal representation all BlahAction classes are now BlahExpression
+- removed `.custom` use `.customAggregate`
+- changed `lookup` to `lookupFn`
+- changed `LimitAction#limit` to `LimitExpression#value` 
+- changed `QuantileAction#quantile` to `QuantileExpression#value` 
+- Fixed NOT() in Druid having clause
+- removed `Expression#actionize`
+- removed `Expression#firstAction`
+- removed `Expression#lastAction`
+- removed `Expression#headActions`
+- removed `Expression#popAction`
+
+
 ## 0.13.7
 
 - Sets do not auto-unify elements

@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, Dataset, External, ExternalExpression, $, i$, ply, r } = plywood;
 
 describe("resolve", () => {
@@ -64,7 +64,7 @@ describe("resolve", () => {
 
       expect(() => {
         ex.resolve({ foo: 'bar' });
-      }).to.throw('add must have input of type NUMBER (is STRING)');
+      }).to.throw('add must have operand of type NUMBER (is STRING)');
     });
   });
 

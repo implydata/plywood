@@ -19,10 +19,10 @@ var { expect } = require("chai");
 
 var { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { AttributeInfo, $, ply, r } = plywood;
 
-describe("NumberRange", () => {
+describe("AttributeInfo", () => {
   it("is immutable class", () => {
     testImmutableClass(AttributeInfo, [
       { name: 'time', type: 'TIME' },
@@ -30,12 +30,12 @@ describe("NumberRange", () => {
       { name: 'cut', type: 'STRING' },
       { name: 'tags', type: 'SET/STRING' },
       { name: 'carat', type: 'NUMBER' },
-      { name: 'count', type: 'NUMBER', unsplitable: true, makerAction: { action: 'count' } },
+      { name: 'count', type: 'NUMBER', unsplitable: true, maker: { op: 'count', operand: { op: 'ref', name: '_' } } },
       {
         name: 'price',
         type: 'NUMBER',
         unsplitable: true,
-        makerAction: { action: 'sum', expression: { op: 'ref', name: 'price' } }
+        maker: { op: 'sum', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'price' } }
       },
       { name: 'tax', type: 'NUMBER', unsplitable: true },
       { name: 'vendor_id', special: 'unique', type: "STRING", unsplitable: true }

@@ -20,14 +20,14 @@ var { sane } = require('../utils');
 
 var { Timezone } = require('chronoshift');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, i$, $, ply, r, Set, Dataset, External, ExternalExpression } = plywood;
 
 function resolvesProperly(parse) {
   var resolveString = parse.expression.resolve({ t: 'STR' });
-  expect(resolveString.expression.type).to.deep.equal("STRING");
+  expect(resolveString.operand.operand.type).to.deep.equal("STRING");
   var resolveTime = parse.expression.resolve({ t: new Date() });
-  expect(resolveTime.expression.type).to.deep.equal("TIME");
+  expect(resolveTime.operand.operand.type).to.deep.equal("TIME");
 }
 
 describe("SQL parser", () => {
@@ -272,7 +272,7 @@ describe("SQL parser", () => {
           var right = test.substring(test.indexOf('< ') + 3, test.length -1);
           var ex = r(left).lessThanOrEqual('i$t').and(i$('t').lessThan(r(right)));
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
-          resolvesProperly(parse)
+          resolvesProperly(parse);
         });
       });
 
@@ -299,7 +299,7 @@ describe("SQL parser", () => {
           var right = test.substring(test.indexOf('< ') + 3, test.length -1);
           var ex = r(left).lessThanOrEqual('i$t').and(i$('t').lessThan(r(right)));
           expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
-          resolvesProperly(parse)
+          resolvesProperly(parse);
         });
       });
 

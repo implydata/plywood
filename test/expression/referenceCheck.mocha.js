@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { External, Dataset, $, i$, ply, r } = plywood;
 
 describe("reference check", () => {
@@ -131,7 +131,7 @@ describe("reference check", () => {
 
       expect(() => {
         ex.referenceCheck({ str: 'Hello World' });
-      }).to.throw('add must have input of type NUMBER');
+      }).to.throw('add must have operand of type NUMBER');
     });
 
     it("fails when discovering that the types mismatch via split", () => {
@@ -145,27 +145,55 @@ describe("reference check", () => {
 
       expect(() => {
         ex.referenceCheck(context);
-      }).to.throw('multiply must have input of type NUMBER');
+      }).to.throw('multiply must have operand of type NUMBER');
     });
+
   });
+
 
   describe("resolves in type context", () => {
-    it("works in a basic case", () => {
-      var ex1 = $('x');
-      var ex2 = $('x', 'NUMBER');
-
-      var typeContext = {
+    var typeContext = {
+      type: 'DATASET',
+      datasetType: {
+        x: { type: 'NUMBER' },
+        y: { type: 'NUMBER' }
+      },
+      parent: {
         type: 'DATASET',
         datasetType: {
-          x: { type: 'NUMBER' }
+          z: { type: 'NUMBER' }
         }
-      };
+      }
+    };
 
-      expect(ex1.referenceCheckInTypeContext(typeContext).toJS()).to.deep.equal(ex2.toJS());
+    it("works in a simple reference case", () => {
+      var ex1 = $('x');
+      var ex2 = $('x', 'NUMBER');
+      expect(ex1.changeInTypeContext(typeContext).toJS()).to.deep.equal(ex2.toJS());
     });
+
+    it("works in a nested reference case", () => {
+      var ex1 = $('z');
+      var ex2 = $('z', 1, 'NUMBER');
+      expect(ex1.changeInTypeContext(typeContext).toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("works in a add case", () => {
+      var ex1 = $('x').add($('y'));
+      var ex2 = $('x', 'NUMBER').add($('y', 'NUMBER'));
+      expect(ex1.changeInTypeContext(typeContext).toJS()).to.deep.equal(ex2.toJS());
+    });
+
   });
 
+
   describe("resolves in context", () => {
+    it("works in a trivial case", () => {
+      var ex1 = $('seventy').add(1);
+      var ex2 = $('seventy', 'NUMBER').add(1);
+      expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it("works in a basic case", () => {
       var ex1 = ply()
         .apply('num', 5)
@@ -173,7 +201,7 @@ describe("reference check", () => {
           'subData',
           ply()
             .apply('x', '$num + 1')
-            .apply('y', '$x * 2')
+            .apply('y', '$x + 2')
         );
 
       var ex2 = ply()
@@ -182,7 +210,7 @@ describe("reference check", () => {
           'subData',
           ply()
             .apply('x', '$^num:NUMBER + 1')
-            .apply('y', '$x:NUMBER * 2')
+            .apply('y', '$x:NUMBER + 2')
         );
 
       expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
@@ -198,7 +226,7 @@ describe("reference check", () => {
       expect(ex1.referenceCheck({ x: 70 }).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("works with .substr()", () => {
+    it("works with function", () => {
       var ex1 = ply()
         .apply('s1', 'hello')
         .apply('s2', '$s1.substr(0, 1)')
@@ -214,10 +242,10 @@ describe("reference check", () => {
 
     it("works from context 1", () => {
       var ex1 = $('diamonds')
-        .apply('priceOver2', '$price / 2');
+        .apply('pricePlus2', '$price + 2');
 
       var ex2 = $('diamonds', 'DATASET')
-        .apply('priceOver2', '$price:NUMBER / 2');
+        .apply('pricePlus2', '$price:NUMBER + 2');
 
       expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
@@ -398,7 +426,7 @@ describe("reference check", () => {
       expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("a join", () => {
+    it.skip("a join", () => {
       var ex1 = ply()
         .apply('Data1', $('diamonds').filter($('price').in(105, 305)))
         .apply('Data2', $('diamonds').filter($('price').in(105, 305).not()))
@@ -437,5 +465,7 @@ describe("reference check", () => {
         "type": "STRING"
       });
     });
+
   });
+
 });

@@ -17,15 +17,8 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, $, r, ply, Set, Dataset, External, ExternalExpression, fillExpressionExternalAlteration } = plywood;
-
-function stringExternals(key, value) {
-  if (value && value.engine) {
-    return `External`;
-  }
-  return value;
-}
 
 var diamonds = External.fromJS({
   engine: 'druid',

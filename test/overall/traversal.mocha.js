@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, Dataset, $, ply, r } = plywood;
 
 describe("traversal", () => {
@@ -29,21 +29,34 @@ describe("traversal", () => {
     return null;
   };
 
+  describe("total basics", () => {
+    var ex = $('x').add(2001000);
+
+    it("on substitute", () => {
+      return ex.substitute(subs);
+    });
+
+    it("on every", () => {
+      return ex.every(subs);
+    });
+  });
+
+
   describe("has the right parameters", () => {
     var ex = ply()
-      .apply('num', 2001001)
+      .apply('num', 3002001)
       .apply(
         'subData',
         ply()
-          .apply('x', '$num +  7003002')
-          .apply('y', '$foo * 10003002')
-          .apply('z', ply().sum(13003003).add(14003002))
-          .apply('w', ply().sum('$a + 19004003 + $b'))
+          .apply('x', '$num +  16011002')
+          .apply('y', '$foo * 19010002')
+          .apply('z', ply().sum(23010003).add(24009002))
+          .apply('w', ply().sum('$a + 30010003 + $b'))
           .split('$x', 'X', 'data')
-          .apply('x', '$num + 24003002')
-          .apply('y', '$data:DATASET.sum(27003003) + 28003002')
-          .apply('z', ply().sum(31003003).add(32003002))
-          .apply('w', '34003002 + $data:DATASET.sum(37004003)')
+          .apply('x', '$num + 35006002')
+          .apply('y', '$data:DATASET.sum(39006003) + 40005002')
+          .apply('z', ply().sum(44005003).add(45004002))
+          .apply('w', '47003002 + $data:DATASET.sum(50004003)')
       );
 
     it("on substitute", () => {
@@ -67,8 +80,8 @@ describe("traversal", () => {
 
     var ex = ply()
       .apply('Data', Dataset.fromJS(data))
-      .apply('FooPlusCount', '4002001 + $Data.count()')
-      .apply('CountPlusBar', '$Data.count() + 9002001');
+      .apply('FooPlusCount', '6003001 + $Data.count()')
+      .apply('CountPlusBar', '$Data.count() + 12002001');
 
     it("on substitute", () => {
       return ex.substitute(subs);

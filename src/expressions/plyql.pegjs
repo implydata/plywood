@@ -16,20 +16,14 @@
  */
 
 {// starts with function(plywood, chronoshift)
+var Timezone = chronoshift.Timezone;
 var ply = plywood.ply;
 var $ = plywood.$;
+var i$ = plywood.i$;
 var r = plywood.r;
 var Expression = plywood.Expression;
-var i$ = plywood.i$;
-
-var FilterAction = plywood.FilterAction;
-var ApplyAction = plywood.ApplyAction;
-var SortAction = plywood.SortAction;
-var LimitAction = plywood.LimitAction;
-var MatchAction = plywood.MatchAction;
-
-var Timezone = chronoshift.Timezone;
-
+var MatchExpression = plywood.MatchExpression;
+var SortExpression = plywood.SortExpression;
 var Set = plywood.Set;
 
 var dataRef = $('data');
@@ -141,14 +135,15 @@ function dateAddSub(op, d) {
   if (d !== 0) error('only zero interval supported in date add and sub');
   op = upgrade(op);
 
-  if (op.expression && op.expression.op === 'ref') {
-    var refEx = op.expression;
-    var template = refEx.timePart('YEAR').cast('STRING').concat(r("-"))
-      .concat(r(3).multiply(refEx.timePart('QUARTER').subtract(1)).add(1).cast('STRING'))
+  var headOperand = op.getHeadOperand();
+  if (headOperand.op === 'ref') {
+    var template = headOperand.timePart('YEAR').cast('STRING')
+      .concat(r("-"))
+      .concat(r(3).multiply(headOperand.timePart('QUARTER').subtract(1)).add(1).cast('STRING'))
       .concat(r("-01 00:00:00"));
 
     if (template.equals(op)) {
-      op = refEx.timeFloor('P3M');
+      op = headOperand.timeFloor('P3M');
     }
   }
 
@@ -328,8 +323,7 @@ function upgradeGroupBys(distinct, columns, groupBys) {
 
       var hasAggregate = columns.some(function(column) {
         var columnExpression = column.expression;
-        return columnExpression.isOp('chain') &&
-          columnExpression.actions.some(function(action) { return action.isAggregate(); })
+        return columnExpression.some(function(ex) { return ex.isAggregate() ? true : null; });
       })
       if (hasAggregate) {
         return [Expression.EMPTY_STRING];
@@ -362,7 +356,7 @@ function staticColumn(column) {
 
 function constructQuery(distinct, columns, from, where, groupBys, having, orderBy, limit) {
   if (!columns) error('Can not have empty column list');
-  var originalColumns = Array.isArray(columns) ? columns.map((c) => c.name) : [];
+  var originalColumns = Array.isArray(columns) ? columns.map(function(c) { return c.name }) : [];
   var query = null;
 
   if (!distinct && Array.isArray(columns) && !from && !where && !groupBys && columns.every(staticColumn)) {
@@ -584,7 +578,7 @@ DescribeQuery
       if (colRef) {
         ex = ex.filter(i$('COLUMN_NAME').is(r(colRef)));
       } else if (wild) {
-        ex = ex.filter(i$('COLUMN_NAME').match(MatchAction.likeToRegExp(wild)));
+        ex = ex.filter(i$('COLUMN_NAME').match(MatchExpression.likeToRegExp(wild)));
       }
 
       ex = ex
@@ -642,10 +636,7 @@ Column
         as = text().trim();
         if (as[0] === '`' && as[as.length - 1] === '`') as = as.substr(1, as.length - 2);
       }
-      return new ApplyAction({
-        name: as,
-        expression: ex
-      });
+      return Expression._.apply(as, ex);
     }
 
 AsMandatory
@@ -674,13 +665,13 @@ GroupByClause
 
 HavingClause
   = HavingToken having:Expression
-    { return new FilterAction({ expression: having }); }
+    { return Expression._.filter(having); }
 
 OrderByClause
   = OrderToken ByToken orderBy:Expression direction:Direction? tail:(Comma Expression Direction?)*
     {
       if (tail.length) error('plywood does not currently support multi-column ORDER BYs');
-      return new SortAction({ expression: orderBy, direction: direction || 'ascending' });
+      return Expression._.sort(orderBy, direction || 'ascending');
     }
 
 Direction
@@ -696,7 +687,7 @@ LimitClause
       } else {
         limit = a;
       }
-      return new LimitAction({ limit: limit });
+      return Expression._.limit(limit);
     }
 
 QueryTerminator
@@ -785,7 +776,7 @@ LikeRhs
     {
       var escapeStr = escape ? escape[1] : '\\';
       if (escapeStr.length > 1) error('Invalid escape string: ' + escapeStr);
-      var regExp = MatchAction.likeToRegExp(string, escapeStr);
+      var regExp = MatchExpression.likeToRegExp(string, escapeStr);
       return function(ex) { return ex.match(regExp); };
     }
 
@@ -999,8 +990,8 @@ OrderToken         = "ORDER"i          !IdentifierPart _
 HavingToken        = "HAVING"i         !IdentifierPart _
 LimitToken         = "LIMIT"i          !IdentifierPart _
 
-AscToken           = "ASC"i            !IdentifierPart _ { return SortAction.ASCENDING;  }
-DescToken          = "DESC"i           !IdentifierPart _ { return SortAction.DESCENDING; }
+AscToken           = "ASC"i            !IdentifierPart _ { return SortExpression.ASCENDING;  }
+DescToken          = "DESC"i           !IdentifierPart _ { return SortExpression.DESCENDING; }
 
 BetweenToken       = "BETWEEN"i        !IdentifierPart _
 InToken            = "IN"i             !IdentifierPart _

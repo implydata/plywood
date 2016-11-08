@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, Action, Dataset, $, ply, r } = plywood;
 
 describe("free references", () => {
@@ -28,6 +28,11 @@ describe("free references", () => {
   };
 
   describe("works as expected", () => {
+    it("works with basics", () => {
+      var ex = $('x').add('$^y');
+      expect(ex.getFreeReferences()).to.deep.equal(['^y', 'x']);
+    });
+
     it("works when there are no free references", () => {
       var ex = ply()
         .apply('num', 5)
@@ -48,7 +53,7 @@ describe("free references", () => {
       expect(ex.getFreeReferences()).to.deep.equal(['data', 'x', 'y', 'z']);
     });
 
-    it("works in a actions case", () => {
+    it("works in an actions case", () => {
       var ex = ply()
         .apply('num', 5)
         .apply(
@@ -62,7 +67,7 @@ describe("free references", () => {
       ex = ex.referenceCheck(context);
       expect(ex.getFreeReferences()).to.deep.equal(['diamonds']);
 
-      expect(ex.actions[1].getFreeReferences()).to.deep.equal(['^diamonds', 'num']);
+      expect(ex.expression.getFreeReferences()).to.deep.equal(['^diamonds', 'num']);
     });
 
     it("works in a consecutive actions case", () => {
@@ -78,23 +83,4 @@ describe("free references", () => {
     });
   });
 
-
-  describe('checks action decencies', () => {
-    var ex = ply()
-      .apply('two', '$one + 1')
-      .apply('three', '$two + 1')
-      .apply('four', '$three + 1');
-
-    it("finds something that is needed", () => {
-      expect(Action.actionsDependOn(ex.actions, 'one')).to.be.true;
-    });
-
-    it("knows what is not needed because it is not referred to", () => {
-      expect(Action.actionsDependOn(ex.actions, 'kaka')).to.be.false;
-    });
-
-    it("knows what is not needed because it is shadowed", () => {
-      expect(Action.actionsDependOn(ex.actions, 'three')).to.be.false;
-    });
-  });
 });

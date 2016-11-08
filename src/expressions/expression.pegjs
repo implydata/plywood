@@ -23,14 +23,19 @@ var Expression = plywood.Expression;
 var LiteralExpression = plywood.LiteralExpression;
 var RefExpression = plywood.RefExpression;
 var Set = plywood.Set;
-var Action = plywood.Action;
 
 var possibleCalls = {};
-for (var key in Action.classMap) possibleCalls[key] = 1;
+for (var key in Expression.classMap) possibleCalls[key] = 1;
+delete possibleCalls['ref'];
+delete possibleCalls['literal'];
+delete possibleCalls['external'];
 possibleCalls['negate'] = 1;
 possibleCalls['isnt'] = 1;
 possibleCalls['sqrt'] = 1;
-possibleCalls['custom'] = 1; // back compat.
+
+var renameCalls = {
+  custom: 'customAggregate'
+};
 
 function makeListMap1(head, tail) {
   return [head].concat(tail.map(function(t) { return t[1] }));
@@ -154,6 +159,7 @@ CallChainExpression
       for (var i = 0, n = tail.length; i < n; i++) {
         var part = tail[i];
         var op = part[1];
+        if (renameCalls[op]) op = renameCalls[op];
         if (!possibleCalls[op]) error('no such call: ' + op);
         var params = part[3] || [];
         operand = operand[op].apply(operand, params);

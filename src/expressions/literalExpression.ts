@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
 import { parseISODate } from 'chronoshift';
 import { isImmutableClass } from 'immutable-class';
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
 import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { hasOwnProperty } from '../helper/utils';
-import { Dataset, Set, TimeRange, PlywoodValue } from '../datatypes/index';
+import { Dataset, Set, TimeRange, PlywoodValue, ComputeFn, Datum } from '../datatypes/index';
 import { isSetType, valueFromJS, getValueType } from '../datatypes/common';
-import { ComputeFn } from '../datatypes/dataset';
 
 export class LiteralExpression extends Expression {
+  static op = "Literal";
   static fromJS(parameters: ExpressionJS): LiteralExpression {
     let value: ExpressionValue = {
       op: parameters.op,
@@ -91,6 +90,10 @@ export class LiteralExpression extends Expression {
     return () => value;
   }
 
+  public calc(datum: Datum): PlywoodValue {
+    return this.value;
+  }
+
   public getJS(datumVar: string): string {
     return JSON.stringify(this.value); // ToDo: what to do with higher objects?
   }
@@ -136,7 +139,7 @@ export class LiteralExpression extends Expression {
 
   public equals(other: LiteralExpression): boolean {
     if (!super.equals(other) || this.type !== other.type) return false;
-    if (this.value) {
+    if (this.value && this.type !== 'DATASET') { // ToDo: make dataset equals work
       if (this.value.equals) {
         return this.value.equals(other.value);
       } else if (this.value.toISOString && other.value.toISOString) {
@@ -149,15 +152,14 @@ export class LiteralExpression extends Expression {
     }
   }
 
-  public _fillRefSubstitutions(typeContext: DatasetFullType, indexer: Indexer, alterations: Alterations): FullType {
-    indexer.index++;
-    if (this.type === 'DATASET') {
-      let newTypeContext = (<Dataset>this.value).getFullType();
+  public updateTypeContext(typeContext: DatasetFullType): DatasetFullType {
+    const { value } = this;
+    if (value instanceof Dataset) {
+      let newTypeContext = value.getFullType();
       newTypeContext.parent = typeContext;
       return newTypeContext;
-    } else {
-      return { type: <PlyTypeSimple>this.type };
     }
+    return typeContext;
   }
 
   public getLiteralValue(): any {
@@ -183,23 +185,28 @@ export class LiteralExpression extends Expression {
 
   public upgradeToType(targetType: PlyType): Expression {
     const { type, value } = this;
-    if (type === targetType || targetType !== 'TIME') return this;
-    if (type === 'STRING') {
+    if (type === targetType) return this;
+
+    if (type === 'STRING' && targetType === 'TIME') {
       let parse = parseISODate(value, Expression.defaultParserTimezone);
-      return parse ? r(parse) : this;
-    } else if (type === 'STRING_RANGE') {
+      if (!parse) throw new Error(`can not upgrade ${value} to TIME`);
+      return r(parse);
+
+    } else if (type === 'STRING_RANGE' && targetType === 'TIME_RANGE') {
       let parseStart = parseISODate(value.start, Expression.defaultParserTimezone);
+      if (!parseStart) throw new Error(`can not upgrade ${value.start} to TIME`);
+
       let parseEnd = parseISODate(value.end, Expression.defaultParserTimezone);
-      if (parseStart || parseEnd) {
-        return new LiteralExpression({
-          type: "TIME_RANGE",
-          value: TimeRange.fromJS({
-            start: parseStart, end: parseEnd, bounds: '[]'
-          })
-        });
-      }
+      if (!parseEnd) throw new Error(`can not upgrade ${value.end} to TIME`);
+
+      return r(TimeRange.fromJS({
+        start: parseStart,
+        end: parseEnd,
+        bounds: '[]'
+      }));
     }
-    return this;
+
+    throw new Error(`can not upgrade ${type} to ${targetType}`);
   }
 }
 

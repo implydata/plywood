@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import { SimpleArray } from 'immutable-class';
-
 let objectHasOwnProperty = Object.prototype.hasOwnProperty;
 export function hasOwnProperty(obj: any, key: string): boolean {
   return objectHasOwnProperty.call(obj, key);
@@ -23,6 +21,11 @@ export function hasOwnProperty(obj: any, key: string): boolean {
 
 export function repeat(str: string, times: int): string {
   return new Array(times + 1).join(str);
+}
+
+export function indentBy(str: string, indent: int): string {
+  const spaces = repeat(' ', indent);
+  return str.split('\n').map((x) => spaces + x).join('\n');
 }
 
 export function arraysEqual<T>(a: Array<T>, b: Array<T>): boolean {
@@ -46,10 +49,10 @@ export function dictEqual(dictA: Lookup<any>, dictB: Lookup<any>): boolean {
   return true;
 }
 
-export function shallowCopy<T>(thing: Lookup<T>): Lookup<T> {
-  let newThing: Lookup<T> = {};
+export function shallowCopy<T>(thing: T): T {
+  let newThing: any = {};
   for (let k in thing) {
-    if (hasOwnProperty(thing, k)) newThing[k] = thing[k];
+    if (hasOwnProperty(thing, k)) newThing[k] = (thing as any)[k];
   }
   return newThing;
 }

@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { $, ply, r, Expression } = plywood;
 
 describe("composition", () => {
@@ -54,243 +54,22 @@ describe("composition", () => {
     });
   });
 
-  it("it bumps lessThan to time, ref on right", () => {
-    var ex = r("2016").lessThan('$x:TIME');
-    expect(ex.toJS()).to.deep.equal({
-      "action": {
-        "action": "lessThan",
-        "expression": {
-          "name": "x",
-          "type": "TIME",
-          "op": "ref"
-        }
-      },
-      "expression": {
-        "op": "literal",
-        "type": "TIME",
-        "value": new Date('2016-01-01T00:00:00.000Z')
-      },
-      "op": "chain"
-    });
-  });
-
-  it("it bumps lessThan to time, ref on left", () => {
-    var ex = $('x', 'TIME').lessThan(r("2016"));
-    expect(ex.toJS()).to.deep.equal({
-      "action": {
-        "action": "lessThan",
-        "expression": {
-          "op": "literal",
-          "type": "TIME",
-          "value": new Date('2016-01-01T00:00:00.000Z')
-        }
-      },
-      "expression": {
-        "name": "x",
-        "type": "TIME",
-        "op": "ref"
-      },
-
-      "op": "chain"
-    });
-  });
-
-  it("overlap to SET", () => {
-    var ex = r("hello").overlap('$x');
-    expect(ex.toJS()).to.deep.equal({
-      "action": {
-        "action": "overlap",
-        "expression": {
-          "name": "x",
-          "op": "ref"
-        }
-      },
-      "expression": {
-        "op": "literal",
-        "type": "SET",
-        "value": {
-          "elements": [
-            "hello"
-          ],
-          "setType": "STRING"
-        }
-      },
-      "op": "chain"
-    });
-  });
-
-  it("works in uber-basic case", () => {
-    var ex = ply()
-      .apply('five', 5)
-      .apply('nine', 9);
-
-    expect(ex.toJS()).to.deep.equal({
-      "op": "chain",
-      "expression": {
-        "op": "literal",
-        "type": "DATASET",
-        "value": [{}]
-      },
-      "actions": [
-        {
-          "action": "apply",
-          "name": "five",
-          "expression": { "op": "literal", "value": 5 }
-        },
-        {
-          "action": "apply",
-          "name": "nine",
-          "expression": { "op": "literal", "value": 9 }
-        }
-      ]
-    });
-  });
-
-  it("works IN of a set", () => {
-    var ex = $("x").in(['A', 'B', 'C']);
-    expect(ex.toJS()).to.deep.equal({
-      "action": {
-        "action": "in",
-        "expression": {
-          "op": "literal",
-          "type": "SET",
-          "value": {
-            "elements": [
-              "A",
-              "B",
-              "C"
-            ],
-            "setType": "STRING"
-          }
-        }
-      },
-      "expression": {
-        "name": "x",
-        "op": "ref"
-      },
-      "op": "chain"
-    });
-  });
-
-  it("works IN of NumberRange", () => {
-    var ex = $("x").in(3, 10);
-    expect(ex.toJS()).to.deep.equal({
-      "action": {
-        "action": "in",
-        "expression": {
-          "op": "literal",
-          "type": "NUMBER_RANGE",
-          "value": {
-            "end": 10,
-            "start": 3
-          }
-        }
-      },
-      "expression": {
-        "name": "x",
-        "op": "ref"
-      },
-      "op": "chain"
-    });
-  });
-
-  it("works IN of TimeRange", () => {
-    var ex = $("x").in(new Date('2015-03-03Z'), new Date('2015-10-10Z'));
-    expect(ex.toJS()).to.deep.equal({
-      "action": {
-        "action": "in",
-        "expression": {
-          "op": "literal",
-          "type": "TIME_RANGE",
-          "value": {
-            "end": new Date('2015-10-10Z'),
-            "start": new Date('2015-03-03Z')
-          }
-        }
-      },
-      "expression": {
-        "name": "x",
-        "op": "ref"
-      },
-      "op": "chain"
-    });
-  });
-
-  it("works IN of TimeRange (as strings)", () => {
-    var ex = $("x").in('2015-03-03Z', '2015-10-10Z');
-    expect(ex.toJS()).to.deep.equal({
-      "action": {
-        "action": "in",
-        "expression": {
-          "op": "literal",
-          "type": "TIME_RANGE",
-          "value": {
-            "end": new Date('2015-10-10Z'),
-            "start": new Date('2015-03-03Z')
-          }
-        }
-      },
-      "expression": {
-        "name": "x",
-        "op": "ref"
-      },
-      "op": "chain"
-    });
-  });
-
-  it("works IN of TimeRange SET", () => {
-    var ex = $("x").in([
-      { type: 'TIME_RANGE', start: new Date('2015-03-03Z'), end: new Date('2015-10-10Z') },
-      { type: 'TIME_RANGE', start: new Date('2015-11-20Z'), end: new Date('2015-11-25Z') }
-    ]);
-    expect(ex.toJS()).to.deep.equal({
-      "action": {
-        "action": "in",
-        "expression": {
-          "op": "literal",
-          "type": "SET",
-          "value": {
-            "elements": [
-              {
-                "end": new Date('2015-10-10T00:00:00.000Z'),
-                "start": new Date('2015-03-03T00:00:00.000Z')
-              },
-              {
-                "end": new Date('2015-11-25T00:00:00.000Z'),
-                "start": new Date('2015-11-20T00:00:00.000Z')
-              }
-            ],
-            "setType": "TIME_RANGE"
-          }
-        }
-      },
-      "expression": {
-        "name": "x",
-        "op": "ref"
-      },
-      "op": "chain"
-    });
-  });
-
   it("works in single split case", () => {
     var ex = $('data')
       .split('$page', 'Page', 'd');
 
     expect(ex.toJS()).to.deep.equal({
-      "action": {
-        "action": "split",
-        "dataName": "d",
-        "expression": {
-          "name": "page",
-          "op": "ref"
-        },
-        "name": "Page"
-      },
+      "dataName": "d",
       "expression": {
-        "name": "data",
+        "name": "page",
         "op": "ref"
       },
-      "op": "chain"
+      "name": "Page",
+      "op": "split",
+      "operand": {
+        "name": "data",
+        "op": "ref"
+      }
     });
   });
 
@@ -299,25 +78,22 @@ describe("composition", () => {
       .split({ Page: '$page', User: '$page' }, 'd');
 
     expect(ex.toJS()).to.deep.equal({
-      "action": {
-        "action": "split",
-        "dataName": "d",
-        "splits": {
-          "Page": {
-            "name": "page",
-            "op": "ref"
-          },
-          "User": {
-            "name": "page",
-            "op": "ref"
-          }
-        }
-      },
-      "expression": {
+      "dataName": "d",
+      "op": "split",
+      "operand": {
         "name": "data",
         "op": "ref"
       },
-      "op": "chain"
+      "splits": {
+        "Page": {
+          "name": "page",
+          "op": "ref"
+        },
+        "User": {
+          "name": "page",
+          "op": "ref"
+        }
+      }
     });
   });
 
@@ -333,99 +109,77 @@ describe("composition", () => {
       .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
 
     expect(ex.toJS()).to.deep.equal({
-      "actions": [
-        {
-          "action": "apply",
-          "expression": {
-            "actions": [
-              {
-                "action": "filter",
-                "expression": {
-                  "action": {
-                    "action": "is",
-                    "expression": {
-                      "op": "literal",
-                      "value": "D"
-                    }
-                  },
-                  "expression": {
-                    "name": "color",
-                    "op": "ref"
-                  },
-                  "op": "chain"
-                }
-              },
-              {
-                "action": "apply",
-                "expression": {
-                  "action": {
-                    "action": "divide",
-                    "expression": {
-                      "op": "literal",
-                      "value": 2
-                    }
-                  },
-                  "expression": {
-                    "name": "price",
-                    "op": "ref"
-                  },
-                  "op": "chain"
-                },
-                "name": "priceOver2"
-              }
-            ],
-            "expression": {
-              "op": "literal",
-              "type": "DATASET",
-              "value": [
-                {}
-              ]
-            },
-            "op": "chain"
-          },
-          "name": "Diamonds"
+      "expression": {
+        "expression": {
+          "name": "priceOver2",
+          "op": "ref"
         },
-        {
-          "action": "apply",
-          "expression": {
-            "action": {
-              "action": "count"
-            },
-            "expression": {
-              "name": "Diamonds",
-              "op": "ref"
-            },
-            "op": "chain"
-          },
-          "name": "Count"
+        "op": "sum",
+        "operand": {
+          "name": "Diamonds",
+          "op": "ref"
+        }
+      },
+      "name": "TotalPrice",
+      "op": "apply",
+      "operand": {
+        "expression": {
+          "op": "count",
+          "operand": {
+            "name": "Diamonds",
+            "op": "ref"
+          }
         },
-        {
-          "action": "apply",
+        "name": "Count",
+        "op": "apply",
+        "operand": {
           "expression": {
-            "action": {
-              "action": "sum",
+            "expression": {
               "expression": {
-                "name": "priceOver2",
+                "op": "literal",
+                "value": 2
+              },
+              "op": "divide",
+              "operand": {
+                "name": "price",
                 "op": "ref"
               }
             },
-            "expression": {
-              "name": "Diamonds",
-              "op": "ref"
-            },
-            "op": "chain"
+            "name": "priceOver2",
+            "op": "apply",
+            "operand": {
+              "expression": {
+                "expression": {
+                  "op": "literal",
+                  "value": "D"
+                },
+                "op": "is",
+                "operand": {
+                  "name": "color",
+                  "op": "ref"
+                }
+              },
+              "op": "filter",
+              "operand": {
+                "op": "literal",
+                "type": "DATASET",
+                "value": [
+                  {}
+                ]
+              }
+            }
           },
-          "name": "TotalPrice"
+          "name": "Diamonds",
+          "op": "apply",
+          "operand": {
+            "op": "literal",
+            "type": "DATASET",
+            "value": [
+              {}
+            ]
+          }
         }
-      ],
-      "expression": {
-        "op": "literal",
-        "type": "DATASET",
-        "value": [
-          {}
-        ]
-      },
-      "op": "chain"
+      }
     });
   });
 
@@ -436,129 +190,78 @@ describe("composition", () => {
       .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
 
     expect(ex.toJS()).to.deep.equal({
-      "actions": [
-        {
-          "action": "apply",
-          "expression": {
-            "actions": [
-              {
-                "action": "filter",
-                "expression": {
-                  "action": {
-                    "action": "is",
-                    "expression": {
-                      "op": "literal",
-                      "value": "D"
-                    }
-                  },
-                  "expression": {
-                    "name": "color",
-                    "op": "ref"
-                  },
-                  "op": "chain"
-                }
-              },
-              {
-                "action": "apply",
-                "expression": {
-                  "action": {
-                    "action": "divide",
-                    "expression": {
-                      "op": "literal",
-                      "value": 2
-                    }
-                  },
-                  "expression": {
-                    "name": "price",
-                    "op": "ref"
-                  },
-                  "op": "chain"
-                },
-                "name": "priceOver2"
-              }
-            ],
-            "expression": {
-              "op": "literal",
-              "type": "DATASET",
-              "value": [
-                {}
-              ]
-            },
-            "op": "chain"
-          },
-          "name": "Diamonds"
-        },
-        {
-          "action": "apply",
-          "expression": {
-            "action": {
-              "action": "count"
-            },
-            "expression": {
-              "name": "Diamonds",
-              "op": "ref"
-            },
-            "op": "chain"
-          },
-          "name": "Count"
-        },
-        {
-          "action": "apply",
-          "expression": {
-            "action": {
-              "action": "sum",
-              "expression": {
-                "name": "priceOver2",
-                "op": "ref"
-              }
-            },
-            "expression": {
-              "name": "Diamonds",
-              "op": "ref"
-            },
-            "op": "chain"
-          },
-          "name": "TotalPrice"
-        }
-      ],
       "expression": {
-        "op": "literal",
-        "type": "DATASET",
-        "value": [
-          {}
-        ]
+        "expression": {
+          "name": "priceOver2",
+          "op": "ref"
+        },
+        "op": "sum",
+        "operand": {
+          "name": "Diamonds",
+          "op": "ref"
+        }
       },
-      "op": "chain"
-    });
-  });
-
-  it("multi-value case", () => {
-    var ex = Expression.concat(['$a', '$b', '"]"']);
-
-    expect(ex.toJS()).to.deep.equal({
-      "actions": [
-        {
-          "action": "concat",
-          "expression": {
-            "name": "b",
+      "name": "TotalPrice",
+      "op": "apply",
+      "operand": {
+        "expression": {
+          "op": "count",
+          "operand": {
+            "name": "Diamonds",
             "op": "ref"
           }
         },
-        {
-          "action": "concat",
+        "name": "Count",
+        "op": "apply",
+        "operand": {
           "expression": {
+            "expression": {
+              "expression": {
+                "op": "literal",
+                "value": 2
+              },
+              "op": "divide",
+              "operand": {
+                "name": "price",
+                "op": "ref"
+              }
+            },
+            "name": "priceOver2",
+            "op": "apply",
+            "operand": {
+              "expression": {
+                "expression": {
+                  "op": "literal",
+                  "value": "D"
+                },
+                "op": "is",
+                "operand": {
+                  "name": "color",
+                  "op": "ref"
+                }
+              },
+              "op": "filter",
+              "operand": {
+                "op": "literal",
+                "type": "DATASET",
+                "value": [
+                  {}
+                ]
+              }
+            }
+          },
+          "name": "Diamonds",
+          "op": "apply",
+          "operand": {
             "op": "literal",
-            "value": "]"
+            "type": "DATASET",
+            "value": [
+              {}
+            ]
           }
         }
-      ],
-      "expression": {
-        "name": "a",
-        "op": "ref"
-      },
-      "op": "chain"
+      }
     });
-
   });
 
 });

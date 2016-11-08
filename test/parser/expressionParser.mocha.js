@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, $, ply, r } = plywood;
 
 describe("expression parser", () => {
@@ -41,7 +41,6 @@ describe("expression parser", () => {
         .apply('less_than_time', '$time < "2015-03-03Z"')
         .apply('contains', '$city.contains("San")')
         .apply('match', '$city.match("^San")')
-        .apply('custom_transform', '$city.customTransform("myExtractionFn")')
         .apply('constant_negative', '-7')
         .apply('parent_x', "$^x")
         .apply('typed_y', "$y:STRING")
@@ -86,6 +85,7 @@ describe("expression parser", () => {
         .apply('agg_min', "$data.min($price)")
         .apply('agg_max', "$data.max($price)")
         .apply('agg_quantile', "$data.quantile($price, 0.5)")
+        .apply('custom_transform', '$city.customTransform("myExtractionFn")')
         .apply('agg_custom', "$data.custom(blah)")
         .apply('agg_customAggregate', "$data.customAggregate(blah)")
         .apply('agg_split', "$data.split($carat, 'Carat')")
@@ -110,7 +110,6 @@ describe("expression parser", () => {
         .apply('less_than_time', $('time').lessThan("'2015-03-03Z'"))
         .apply('contains', $('city').contains("San"))
         .apply('match', $('city').match("^San"))
-        .apply('custom_transform', $('city').customTransform("myExtractionFn"))
         .apply('constant_negative', -7)
         .apply('parent_x', $("x", 1))
         .apply('typed_y', { op: 'ref', name: 'y', type: 'STRING' })
@@ -155,7 +154,8 @@ describe("expression parser", () => {
         .apply('agg_min', $("data").min($('price')))
         .apply('agg_max', $("data").max($('price')))
         .apply('agg_quantile', $("data").quantile($('price'), 0.5))
-        .apply('agg_custom', $("data").custom('blah'))
+        .apply('custom_transform', $('city').customTransform("myExtractionFn"))
+        .apply('agg_custom', $("data").customAggregate('blah'))
         .apply('agg_customAggregate', $("data").customAggregate('blah'))
         .apply('agg_split', $("data").split($('carat'), 'Carat'))
         .apply('agg_filter_count', $("data").filter($('country').is("USA")).count())

@@ -18,7 +18,7 @@ var { expect } = require("chai");
 
 var { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { StringRange, $, ply, r } = plywood;
 
 describe("StringRange", () => {

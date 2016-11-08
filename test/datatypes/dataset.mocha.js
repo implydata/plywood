@@ -20,7 +20,7 @@ var { sane } = require('../utils');
 
 var { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Dataset, AttributeInfo, $, Set, r } = plywood;
 
 describe("Dataset", () => {

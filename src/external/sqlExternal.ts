@@ -17,39 +17,35 @@
 
 import * as Q from 'q';
 import { PlywoodValue, Dataset } from '../datatypes/index';
-import { Expression } from '../expressions/baseExpression';
 import {
-  ApplyAction,
-  LimitAction,
-  NumberBucketAction,
-  SortAction,
-  SplitAction,
-  TimeBucketAction
-} from '../actions/index';
+  Expression,
+  ApplyExpression,
+  LimitExpression,
+  NumberBucketExpression,
+  SortExpression,
+  SplitExpression,
+  FilterExpression,
+  TimeBucketExpression
+} from '../expressions/index';
 import { Attributes } from '../datatypes/attributeInfo';
 import { External, ExternalValue, Inflater, QueryAndPostProcess, PostProcess, TotalContainer } from './baseExternal';
-import { ChainExpression } from '../expressions/chainExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 
 function correctResult(result: any[]): boolean {
   return Array.isArray(result) && (result.length === 0 || typeof result[0] === 'object');
 }
 
-function getSplitInflaters(split: SplitAction): Inflater[] {
+function getSplitInflaters(split: SplitExpression): Inflater[] {
   return split.mapSplits((label, splitExpression) => {
     let simpleInflater = External.getSimpleInflater(splitExpression, label);
     if (simpleInflater) return simpleInflater;
 
-    if (splitExpression instanceof ChainExpression) {
-      let lastAction = splitExpression.lastAction();
+    if (splitExpression instanceof TimeBucketExpression) {
+      return External.timeRangeInflaterFactory(label, splitExpression.duration, splitExpression.getTimezone());
+    }
 
-      if (lastAction instanceof TimeBucketAction) {
-        return External.timeRangeInflaterFactory(label, lastAction.duration, lastAction.getTimezone());
-      }
-
-      if (lastAction instanceof NumberBucketAction) {
-        return External.numberRangeInflaterFactory(label, lastAction.size);
-      }
+    if (splitExpression instanceof NumberBucketExpression) {
+      return External.numberRangeInflaterFactory(label, splitExpression.size);
     }
 
     return undefined;
@@ -66,7 +62,7 @@ function valuePostProcess(data: any[]): PlywoodValue {
   return data.length ? data[0][External.VALUE_NAME] : 0;
 }
 
-function totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyAction[]): PostProcess {
+function totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
   return (data: any[]): TotalContainer => {
     if (!correctResult(data)) {
       let err = new Error("unexpected total result");
@@ -88,7 +84,7 @@ function totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyA
   };
 }
 
-function postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyAction[]): PostProcess {
+function postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
   return (data: any[]): Dataset => {
     if (!correctResult(data)) {
       let err = new Error("unexpected result");
@@ -123,31 +119,35 @@ export abstract class SQLExternal extends External {
 
   // -----------------
 
-  public canHandleFilter(ex: Expression): boolean {
-    return true;
-  }
-
   public canHandleTotal(): boolean {
     return true;
   }
 
-  public canHandleSplit(ex: Expression): boolean {
+  public canHandleFilter(filter: FilterExpression): boolean {
     return true;
   }
 
-  public canHandleApply(ex: Expression): boolean {
+  public canHandleSplit(split: SplitExpression): boolean {
     return true;
   }
 
-  public canHandleSort(sortAction: SortAction): boolean {
+  public canHandleSplitExpression(ex: Expression): boolean {
     return true;
   }
 
-  public canHandleLimit(limitAction: LimitAction): boolean {
+  public canHandleApply(apply: ApplyExpression): boolean {
     return true;
   }
 
-  public canHandleHavingFilter(ex: Expression): boolean {
+  public canHandleSort(sort: SortExpression): boolean {
+    return true;
+  }
+
+  public canHandleLimit(limit: LimitExpression): boolean {
+    return true;
+  }
+
+  public canHandleHavingFilter(havingFilter: FilterExpression): boolean {
     return true;
   }
 
@@ -159,7 +159,7 @@ export abstract class SQLExternal extends External {
     let query = ['SELECT'];
     let postProcess: PostProcess = null;
     let inflaters: Inflater[] = [];
-    let zeroTotalApplies: ApplyAction[] = null;
+    let zeroTotalApplies: ApplyExpression[] = null;
 
     let from = "FROM " + this.dialect.escapeName(source as string);
     let filter = this.getQueryFilter();
@@ -188,7 +188,7 @@ export abstract class SQLExternal extends External {
           selectedAttributes.map(a => {
             let name = a.name;
             if (derivedAttributes[name]) {
-              return new ApplyAction({ name, expression: derivedAttributes[name] }).getSQL(null, '', dialect);
+              return Expression._.apply(name, derivedAttributes[name]).getSQL(dialect);
             } else {
               return dialect.escapeName(name);
             }
@@ -196,16 +196,16 @@ export abstract class SQLExternal extends External {
           from
         );
         if (sort) {
-          query.push(sort.getSQL(null, '', dialect));
+          query.push(sort.getSQL(dialect));
         }
         if (limit) {
-          query.push(limit.getSQL(null, '', dialect));
+          query.push(limit.getSQL(dialect));
         }
         break;
 
       case 'value':
         query.push(
-          this.toValueApply().getSQL(null, '', dialect),
+          this.toValueApply().getSQL(dialect),
           from,
           dialect.constantGroupBy()
         );
@@ -215,7 +215,7 @@ export abstract class SQLExternal extends External {
       case 'total':
         zeroTotalApplies = applies;
         query.push(
-          applies.map(apply => apply.getSQL(null, '', dialect)).join(',\n'),
+          applies.map(apply => apply.getSQL(dialect)).join(',\n'),
           from,
           dialect.constantGroupBy()
         );
@@ -226,7 +226,7 @@ export abstract class SQLExternal extends External {
         let split = this.getQuerySplit();
         query.push(
           split.getSelectSQL(dialect)
-            .concat(applies.map(apply => apply.getSQL(null, '', dialect)))
+            .concat(applies.map(apply => apply.getSQL(dialect)))
             .join(',\n'),
           from,
           split.getShortGroupBySQL()
@@ -235,10 +235,10 @@ export abstract class SQLExternal extends External {
           query.push('HAVING ' + this.havingFilter.getSQL(dialect));
         }
         if (sort) {
-          query.push(sort.getSQL(null, '', dialect));
+          query.push(sort.getSQL(dialect));
         }
         if (limit) {
-          query.push(limit.getSQL(null, '', dialect));
+          query.push(limit.getSQL(dialect));
         }
         inflaters = getSplitInflaters(split);
         break;

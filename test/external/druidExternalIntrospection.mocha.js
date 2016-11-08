@@ -17,7 +17,7 @@
 var { expect } = require("chai");
 var Q = require('q');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, External, TimeRange, $, ply, r } = plywood;
 
 describe("DruidExternal Introspection", () => {
@@ -375,8 +375,9 @@ describe("DruidExternal Introspection", () => {
             "type": "TIME"
           },
           {
-            "makerAction": {
-              "action": "sum",
+            "maker": {
+              "op": "sum",
+              "operand": { "op": "ref", "name": "_" },
               "expression": {
                 "name": "added",
                 "op": "ref"
@@ -391,16 +392,18 @@ describe("DruidExternal Introspection", () => {
             "type": "STRING"
           },
           {
-            "makerAction": {
-              "action": "count"
+            "maker": {
+              "op": "count",
+              "operand": { "op": "ref", "name": "_" },
             },
             "name": "count",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
-            "makerAction": {
-              "action": "sum",
+            "maker": {
+              "op": "sum",
+              "operand": { "op": "ref", "name": "_" },
               "expression": {
                 "name": "delta",
                 "op": "ref"

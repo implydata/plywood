@@ -32,7 +32,7 @@ export interface TimeRangeJS {
   bounds?: string;
 }
 
-function toDate(date: any, name: string): Date {
+function toDate(date: any, name: string): Date | null {
   if (date === null) return null;
   if (typeof date === "undefined") throw new TypeError(`timeRange must have a ${name}`);
   if (typeof date === 'string' || typeof date === 'number') date = parseISODate(date as string, Expression.defaultParserTimezone);

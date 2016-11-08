@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Expression, External, $, ply, r } = plywood;
 
 describe.skip("breakdown", () => {

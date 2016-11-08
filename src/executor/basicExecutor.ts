@@ -18,7 +18,7 @@
 import * as Q from 'q';
 import { Expression } from '../expressions/baseExpression';
 import { PlywoodValue, Datum } from '../datatypes/index';
-import { Environment } from '../actions/baseAction';
+import { Environment } from '../types';
 
 export interface Executor {
   (ex: Expression, env?: Environment): Q.Promise<PlywoodValue>;

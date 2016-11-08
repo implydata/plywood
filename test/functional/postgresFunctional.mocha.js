@@ -18,7 +18,7 @@ var { expect } = require("chai");
 
 var { postgresRequesterFactory } = require('plywood-postgres-requester');
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { External, PostgresExternal, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
 var info = require('../info');

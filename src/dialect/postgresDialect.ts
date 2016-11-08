@@ -53,7 +53,7 @@ export class PostgresDialect extends SQLDialect {
     DAY_OF_MONTH: "DATE_PART('day',$$)",
     DAY_OF_YEAR: "DATE_PART('doy',$$)",
 
-    WEEK_OF_MONTH: null,
+    //WEEK_OF_MONTH: ???,
     WEEK_OF_YEAR: "DATE_PART('week',$$)",
 
     MONTH_OF_YEAR: "DATE_PART('month',$$)",

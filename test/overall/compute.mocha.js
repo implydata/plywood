@@ -17,7 +17,7 @@
 
 var { expect } = require("chai");
 
-var plywood = require('../../build/plywood');
+var plywood = require('../plywood');
 var { Dataset, $, i$, ply, r, AttributeInfo, External } = plywood;
 
 // used to trigger routes with external
