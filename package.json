@@ -34,7 +34,7 @@
     "chronoshift": "~0.6.3",
     "druid.d.ts": "~0.9.1-rev6",
     "immutable-class": "~0.6.16",
-    "moment-timezone": "~0.5.6",
+    "moment-timezone": "~0.5.9",
     "q": "~1.4.1"
   },
   "devDependencies": {
@@ -51,7 +51,7 @@
     "plywood-postgres-requester": "0.9.3",
     "tdi": "0.1.6",
     "tslint": "3.15.1",
-    "typescript": "2.0.7",
+    "typescript": "2.0.8",
     "uglify-js": "2.7.4"
   }
 }
