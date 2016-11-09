@@ -2,7 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.14.0
+## 0.14.2
+
+- Typo
+
+## 0.14.1
 
 - Totally reworked internal representation all BlahAction classes are now BlahExpression
 - removed `.custom` use `.customAggregate`
