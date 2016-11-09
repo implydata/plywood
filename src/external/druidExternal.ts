@@ -81,10 +81,11 @@ import {
   PlywoodValue
 } from '../datatypes/index';
 import { External, ExternalJS, ExternalValue, Inflater, NextFn, PostProcess, QueryAndPostProcess, TotalContainer } from './baseExternal';
-import { DruidExtractionFnBuilder, CustomDruidTransforms } from './utils/druidExtractionFnBuilder';
+import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
+import { DruidExtractionFnBuilder } from './utils/druidExtractionFnBuilder';
 import { DruidFilterBuilder, DruidFilterAndIntervals } from './utils/druidFilterBuilder';
 import { DruidHavingFilterBuilder } from './utils/druidHavingFilterBuilder';
-import { DruidAggregationBuilder, AggregationsAndPostAggregations, CustomDruidAggregations } from './utils/druidAggregationBuilder';
+import { DruidAggregationBuilder, AggregationsAndPostAggregations } from './utils/druidAggregationBuilder';
 import { unwrapSetType } from '../datatypes/common';
 import { PlywoodRange } from '../datatypes/range';
 

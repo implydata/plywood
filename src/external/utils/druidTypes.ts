@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2016-2016 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-export * from './baseExternal';
-export * from './sqlExternal';
-export * from './mySqlExternal';
-export * from './postgresExternal';
-export * from './utils/druidTypes';
-export * from './druidExternal';
+
+export interface CustomDruidTransform {
+  extractionFn: Druid.ExtractionFn;
+}
+
+export type CustomDruidTransforms = Lookup<CustomDruidTransform>;
+
+
+export interface CustomDruidAggregation {
+  aggregation: Druid.Aggregation;
+  accessType?: string;
+}
+
+export type CustomDruidAggregations = Lookup<CustomDruidAggregation>;
+

@@ -84,7 +84,8 @@ import {
 } from '../../datatypes/index';
 
 import { External } from '../baseExternal';
-import { DruidExtractionFnBuilder, CustomDruidTransforms } from './druidExtractionFnBuilder';
+import { CustomDruidTransforms } from './druidTypes';
+import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
 
 
 export interface DruidFilterAndIntervals {

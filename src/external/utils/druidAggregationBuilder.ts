@@ -85,22 +85,14 @@ import {
 } from '../../datatypes/index';
 
 import { External } from '../baseExternal';
+import { CustomDruidAggregations, CustomDruidTransforms } from './druidTypes';
 import { DruidFilterBuilder } from './druidFilterBuilder';
-import { CustomDruidTransforms } from './druidExtractionFnBuilder';
 
 
 export interface AggregationsAndPostAggregations {
   aggregations: Druid.Aggregation[];
   postAggregations: Druid.PostAggregation[];
 }
-
-export interface CustomDruidAggregation {
-  aggregation: Druid.Aggregation;
-  accessType?: string;
-}
-
-export type CustomDruidAggregations = Lookup<CustomDruidAggregation>;
-
 
 export interface DruidAggregationBuilderOptions {
   version: string;

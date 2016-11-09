@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.14.4
+
+- export `CustomDruidAggregations` and `CustomDruidTransforms` types
+
 ## 0.14.3
 
 - better API backwards compatibility

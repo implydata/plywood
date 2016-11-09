@@ -72,13 +72,7 @@ import {
 } from '../../expressions/index';
 
 import { External } from '../baseExternal';
-
-
-export interface CustomDruidTransform {
-  extractionFn: Druid.ExtractionFn;
-}
-
-export type CustomDruidTransforms = Lookup<CustomDruidTransform>;
+import { CustomDruidTransforms } from './druidTypes';
 
 
 export interface DruidExtractionFnBuilderOptions {
