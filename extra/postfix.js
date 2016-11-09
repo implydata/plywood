@@ -33,3 +33,9 @@ addHasMoved(exports, 'findByName', NamedArray.findByName);
 addHasMoved(exports, 'findIndexByName', NamedArray.findIndexByName);
 addHasMoved(exports, 'overrideByName', NamedArray.overrideByName);
 addHasMoved(exports, 'overridesByName', NamedArray.overridesByName);
+
+for (var k in exports) {
+  if (/^[A-Z]\w+Expression$/.test(k)) {
+    exports[k.replace('Expression', 'Action')] = exports[k];
+  }
+}

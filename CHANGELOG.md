@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.14.3
+
+- better API backwards compatibility
+
 ## 0.14.2
 
 - Typo
@@ -18,7 +22,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - removed `Expression#firstAction`
 - removed `Expression#lastAction`
 - removed `Expression#headActions`
-- removed `Expression#popAction`
+- removed `Expression#popAction` use `.operand` instead
 
 
 ## 0.13.7

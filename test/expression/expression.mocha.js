@@ -20,7 +20,7 @@ var { expect } = require("chai");
 var { testImmutableClass } = require("immutable-class-tester");
 
 var plywood = require('../plywood');
-var { Expression, $, ply, r, RefExpression, LimitExpression } = plywood;
+var { Expression, $, ply, r, RefExpression, LimitExpression, SortExpression } = plywood;
 
 describe("Expression", () => {
   it("is immutable class", () => {
@@ -257,6 +257,12 @@ describe("Expression", () => {
         });
       }).to.throw("unsupported expression op 'this was once an empty file'");
     });
+
+    it("does not like an expression that needs and expression but does not have one", () => {
+      expect(() => {
+        new SortExpression({});
+      }).to.throw("must have an expression");
+    });
   });
 
 
@@ -435,8 +441,17 @@ describe("Expression", () => {
   });
 
   describe('fancy actions', () => {
+    it('works with no operand', () => {
+      expect(new SortExpression({ expression: $('x'), direction: SortExpression.DESCENDING }).toJS()).to.deep.equal({
+        "op": "sort",
+        operand: { op: 'ref', name: '_' },
+        expression: { op: 'ref', name: 'x' },
+        direction: 'descending'
+      });
+    });
+
     it('limit works with Infinity', () => {
-      expect(new LimitExpression({ operand: Expression._, value: Infinity }).toJS()).to.deep.equal({
+      expect(new LimitExpression({ value: Infinity }).toJS()).to.deep.equal({
         "op": "limit",
         operand: { op: 'ref', name: '_' },
         "value": Infinity

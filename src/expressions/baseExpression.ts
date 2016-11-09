@@ -208,7 +208,7 @@ export interface ExpressionValue {
 }
 
 export interface ExpressionJS {
-  op: string;
+  op?: string;
   type?: PlyType;
   value?: any;
   operand?: ExpressionJS;
@@ -628,7 +628,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
     let op = expressionJS.op;
     if (typeof op !== "string") {
-      console.log('expressionJS', expressionJS);
       throw new Error("op must be a string");
     }
 
@@ -1770,7 +1769,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 export abstract class ChainableExpression extends Expression {
   static jsToValue(js: ExpressionJS): ExpressionValue {
     let value = Expression.jsToValue(js);
-    value.operand = Expression.fromJS(js.operand);
+    value.operand = js.operand ? Expression.fromJS(js.operand) : Expression._;
     return value;
   }
 
@@ -1778,7 +1777,7 @@ export abstract class ChainableExpression extends Expression {
 
   constructor(value: ExpressionValue, dummy: any = null) {
     super(value, dummy);
-    this.operand = value.operand;
+    this.operand = value.operand || Expression._;
   }
 
   protected _checkOperandTypes(...neededTypes: string[]) {
@@ -2003,6 +2002,7 @@ export abstract class ChainableUnaryExpression extends ChainableExpression {
 
   constructor(value: ExpressionValue, dummy: any = null) {
     super(value, dummy);
+    if (!value.expression) throw new Error(`must have an expression`);
     this.expression = value.expression;
   }
 
