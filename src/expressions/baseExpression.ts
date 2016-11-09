@@ -1805,7 +1805,9 @@ export abstract class ChainableExpression extends Expression {
 
   public toJS(): ExpressionJS {
     let js = super.toJS();
-    js.operand = this.operand.toJS();
+    if (!this.operand.equals(Expression._)) {
+      js.operand = this.operand.toJS();
+    }
     return js;
   }
 

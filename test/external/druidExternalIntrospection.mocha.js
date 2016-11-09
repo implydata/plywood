@@ -377,7 +377,6 @@ describe("DruidExternal Introspection", () => {
           {
             "maker": {
               "op": "sum",
-              "operand": { "op": "ref", "name": "_" },
               "expression": {
                 "name": "added",
                 "op": "ref"
@@ -394,7 +393,6 @@ describe("DruidExternal Introspection", () => {
           {
             "maker": {
               "op": "count",
-              "operand": { "op": "ref", "name": "_" },
             },
             "name": "count",
             "type": "NUMBER",
@@ -403,7 +401,6 @@ describe("DruidExternal Introspection", () => {
           {
             "maker": {
               "op": "sum",
-              "operand": { "op": "ref", "name": "_" },
               "expression": {
                 "name": "delta",
                 "op": "ref"

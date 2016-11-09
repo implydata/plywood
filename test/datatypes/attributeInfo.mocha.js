@@ -30,12 +30,12 @@ describe("AttributeInfo", () => {
       { name: 'cut', type: 'STRING' },
       { name: 'tags', type: 'SET/STRING' },
       { name: 'carat', type: 'NUMBER' },
-      { name: 'count', type: 'NUMBER', unsplitable: true, maker: { op: 'count', operand: { op: 'ref', name: '_' } } },
+      { name: 'count', type: 'NUMBER', unsplitable: true, maker: { op: 'count' } },
       {
         name: 'price',
         type: 'NUMBER',
         unsplitable: true,
-        maker: { op: 'sum', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'price' } }
+        maker: { op: 'sum', expression: { op: 'ref', name: 'price' } }
       },
       { name: 'tax', type: 'NUMBER', unsplitable: true },
       { name: 'vendor_id', special: 'unique', type: "STRING", unsplitable: true }

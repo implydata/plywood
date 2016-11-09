@@ -23,11 +23,9 @@ describe("CustomAggregateExpression", () => {
   it("back compat using Expression from JS", () => {
     expect(Expression.fromJS({
       op: 'custom',
-      operand: Expression._.toJS(),
       custom: 'thing'
     }).toJS()).to.deep.equal({
       op: 'customAggregate',
-      operand: Expression._.toJS(),
       custom: 'thing'
     });
   });
@@ -38,7 +36,6 @@ describe("CustomAggregateExpression", () => {
       custom: 'thing'
     }).toJS()).to.deep.equal({
       op: 'customAggregate',
-      operand: Expression._.toJS(),
       custom: 'thing'
     });
   });

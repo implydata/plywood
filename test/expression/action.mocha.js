@@ -30,7 +30,6 @@ describe("Action", () => {
         value: 5
       }).toJS()).to.deep.equal({
         op: 'limit',
-        operand: { op: 'ref', name: '_' },
         value: 5
       });
     });
@@ -40,7 +39,6 @@ describe("Action", () => {
         value: 5
       }).toJS()).to.deep.equal({
         op: 'limit',
-        operand: { op: 'ref', name: '_' },
         value: 5
       });
     });

@@ -125,7 +125,7 @@ describe("Expression", () => {
 
       {
         op: 'split',
-        operand: { op: 'ref', name: '_' },
+        operand: { op: 'ref', name: 'data' },
         splits: {
           'Page': { op: 'ref', name: 'page' },
           'User': { op: 'ref', name: 'user' }
@@ -134,86 +134,86 @@ describe("Expression", () => {
       },
       {
         op: 'apply',
-        operand: { op: 'ref', name: '_' },
+        operand: { op: 'ref', name: 'data' },
         name: 'Five',
         expression: { op: 'literal', value: 5 }
       },
       {
         op: 'sort',
-        operand: { op: 'ref', name: '_' },
+        operand: { op: 'ref', name: 'data' },
         expression: { op: 'ref', name: 'myVar' },
         direction: 'ascending'
       },
-      { op: 'limit', operand: { op: 'ref', name: '_' }, value: 10 },
-      { op: 'select', operand: { op: 'ref', name: '_' }, attributes: ['a', 'b', 'c'] },
-      { op: 'select', operand: { op: 'ref', name: '_' }, attributes: ['b', 'c'] },
+      { op: 'limit', value: 10 },
+      { op: 'select', attributes: ['a', 'b', 'c'] },
+      { op: 'select', attributes: ['b', 'c'] },
 
-      { op: 'fallback', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar2' } },
-      { op: 'count', operand: { op: 'ref', name: '_' } },
-      { op: 'sum', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
-      { op: 'power', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
-      { op: 'absolute', operand: { op: 'ref', name: '_' } },
-      { op: 'min', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
-      { op: 'max', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
-      { op: 'average', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
-      { op: 'countDistinct', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
-      { op: 'quantile', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' }, value: 0.5 },
-      { op: 'collect', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
-      { op: 'cast', operand: { op: 'ref', name: '_' }, outputType: 'TIME' },
-      { op: 'cast', operand: { op: 'ref', name: '_' }, outputType: 'NUMBER' },
+      { op: 'fallback', expression: { op: 'ref', name: 'myVar2' } },
+      { op: 'count', operand: { op: 'ref', name: 'data' } },
+      { op: 'sum', expression: { op: 'ref', name: 'myVar' } },
+      { op: 'power', expression: { op: 'ref', name: 'myVar' } },
+      { op: 'absolute' },
+      { op: 'min', expression: { op: 'ref', name: 'myVar' } },
+      { op: 'max', expression: { op: 'ref', name: 'myVar' } },
+      { op: 'average', expression: { op: 'ref', name: 'myVar' } },
+      { op: 'countDistinct', expression: { op: 'ref', name: 'myVar' } },
+      { op: 'quantile', expression: { op: 'ref', name: 'myVar' }, value: 0.5 },
+      { op: 'collect', expression: { op: 'ref', name: 'myVar' } },
+      { op: 'cast', outputType: 'TIME' },
+      { op: 'cast', outputType: 'NUMBER' },
 
-      { op: 'customAggregate', operand: { op: 'ref', name: '_' }, custom: 'blah' },
-      { op: 'customTransform', operand: { op: 'ref', name: '_' }, custom: 'decodeURIComponentToLowerCaseAndTrim' },
-      { op: 'customTransform', operand: { op: 'ref', name: '_' }, custom: 'includes', outputType: 'BOOLEAN' },
+      { op: 'customAggregate', custom: 'blah' },
+      { op: 'customTransform', custom: 'decodeURIComponentToLowerCaseAndTrim' },
+      { op: 'customTransform', custom: 'includes', outputType: 'BOOLEAN' },
 
-      { op: 'concat', operand: { op: 'ref', name: '_' }, expression: { op: 'literal', value: 'myVar' } },
+      { op: 'concat', expression: { op: 'literal', value: 'myVar' } },
 
-      { op: 'contains', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' }, compare: 'normal' },
-      { op: 'contains', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' }, compare: 'ignoreCase' },
+      { op: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'normal' },
+      { op: 'contains', expression: { op: 'ref', name: 'myVar' }, compare: 'ignoreCase' },
 
-      { op: 'match', operand: { op: 'ref', name: '_' }, regexp: 'A[B]' },
-      { op: 'match', operand: { op: 'ref', name: '_' }, regexp: '^fu*$' },
+      { op: 'match', regexp: 'A[B]' },
+      { op: 'match', regexp: '^fu*$' },
 
-      { op: 'lessThan', operand: { op: 'ref', name: '_' }, expression: { op: 'literal', type: 'TIME', value: new Date('2015-10-10Z') } },
+      { op: 'lessThan', expression: { op: 'literal', type: 'TIME', value: new Date('2015-10-10Z') } },
 
-      { op: 'overlap', operand: { op: 'ref', name: '_' }, expression: { op: 'ref', name: 'myVar' } },
-      { op: 'overlap', operand: { op: 'ref', name: '_' }, expression: { op: 'literal', value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] }, type: 'SET' } },
+      { op: 'overlap', expression: { op: 'ref', name: 'myVar' } },
+      { op: 'overlap', expression: { op: 'literal', value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] }, type: 'SET' } },
 
-      { op: 'numberBucket', operand: { op: 'ref', name: '_' }, size: 5 },
-      { op: 'numberBucket', operand: { op: 'ref', name: '_' }, size: 5, offset: 1 },
+      { op: 'numberBucket', size: 5 },
+      { op: 'numberBucket', size: 5, offset: 1 },
 
-      { op: 'length', operand: { op: 'ref', name: '_' } },
-      { op: 'indexOf', operand: { op: 'ref', name: '_' }, expression: { op: 'literal', value: 'string' } },
+      { op: 'length', operand: { op: 'ref', name: 'data' } },
+      { op: 'indexOf', expression: { op: 'literal', value: 'string' } },
 
-      //{ op: 'cardinality', operand: { op: 'ref', name: '_' } }, // ToDo: wtf?!
+      { op: 'cardinality' },
 
-      { op: 'timeFloor', operand: { op: 'ref', name: '_' }, duration: 'P1D' },
-      { op: 'timeFloor', operand: { op: 'ref', name: '_' }, duration: 'PT2H', timezone: 'Etc/UTC' },
-      { op: 'timeFloor', operand: { op: 'ref', name: '_' }, duration: 'PT2H', timezone: 'America/Los_Angeles' },
+      { op: 'timeFloor', duration: 'P1D' },
+      { op: 'timeFloor', duration: 'PT2H', timezone: 'Etc/UTC' },
+      { op: 'timeFloor', duration: 'PT2H', timezone: 'America/Los_Angeles' },
 
-      { op: 'timeBucket', operand: { op: 'ref', name: '_' }, duration: 'P1D' },
-      { op: 'timeBucket', operand: { op: 'ref', name: '_' }, duration: 'PT2H', timezone: 'Etc/UTC' },
-      { op: 'timeBucket', operand: { op: 'ref', name: '_' }, duration: 'PT2H', timezone: 'America/Los_Angeles' },
+      { op: 'timeBucket', duration: 'P1D' },
+      { op: 'timeBucket', duration: 'PT2H', timezone: 'Etc/UTC' },
+      { op: 'timeBucket', duration: 'PT2H', timezone: 'America/Los_Angeles' },
 
-      { op: 'timePart', operand: { op: 'ref', name: '_' }, part: 'DAY_OF_WEEK' },
-      { op: 'timePart', operand: { op: 'ref', name: '_' }, part: 'DAY_OF_MONTH', timezone: 'Etc/UTC' },
-      { op: 'timePart', operand: { op: 'ref', name: '_' }, part: 'DAY_OF_MONTH', timezone: 'America/Los_Angeles' },
+      { op: 'timePart', part: 'DAY_OF_WEEK' },
+      { op: 'timePart', part: 'DAY_OF_MONTH', timezone: 'Etc/UTC' },
+      { op: 'timePart', part: 'DAY_OF_MONTH', timezone: 'America/Los_Angeles' },
 
-      { op: 'timeShift', operand: { op: 'ref', name: '_' }, duration: 'P1D', step: 1 },
-      { op: 'timeShift', operand: { op: 'ref', name: '_' }, duration: 'P1D', step: -2 },
-      { op: 'timeShift', operand: { op: 'ref', name: '_' }, duration: 'P2D', step: 3, timezone: 'Etc/UTC' },
-      { op: 'timeShift', operand: { op: 'ref', name: '_' }, duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' },
+      { op: 'timeShift', duration: 'P1D', step: 1 },
+      { op: 'timeShift', duration: 'P1D', step: -2 },
+      { op: 'timeShift', duration: 'P2D', step: 3, timezone: 'Etc/UTC' },
+      { op: 'timeShift', duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' },
 
-      { op: 'timeRange', operand: { op: 'ref', name: '_' }, duration: 'P1D', step: 1 },
-      { op: 'timeRange', operand: { op: 'ref', name: '_' }, duration: 'P1D', step: -2 },
-      { op: 'timeRange', operand: { op: 'ref', name: '_' }, duration: 'P2D', step: 3, timezone: 'Etc/UTC' },
-      { op: 'timeRange', operand: { op: 'ref', name: '_' }, duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' },
+      { op: 'timeRange', duration: 'P1D', step: 1 },
+      { op: 'timeRange', duration: 'P1D', step: -2 },
+      { op: 'timeRange', duration: 'P2D', step: 3, timezone: 'Etc/UTC' },
+      { op: 'timeRange', duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' },
 
-      { op: 'transformCase', operand: { op: 'ref', name: '_' }, transformType: 'upperCase'},
-      { op: 'transformCase', operand: { op: 'ref', name: '_' }, transformType: 'lowerCase'},
+      { op: 'transformCase', transformType: 'upperCase'},
+      { op: 'transformCase', transformType: 'lowerCase'},
 
-      { op: 'customAggregate', operand: { op: 'ref', name: '_' }, custom: 'lol1' },
-      { op: 'customAggregate', operand: { op: 'ref', name: '_' }, custom: 'lol2' }
+      { op: 'customAggregate', custom: 'lol1' },
+      { op: 'customAggregate', custom: 'lol2' }
 
     ], {
       newThrows: true
@@ -444,7 +444,6 @@ describe("Expression", () => {
     it('works with no operand', () => {
       expect(new SortExpression({ expression: $('x'), direction: SortExpression.DESCENDING }).toJS()).to.deep.equal({
         "op": "sort",
-        operand: { op: 'ref', name: '_' },
         expression: { op: 'ref', name: 'x' },
         direction: 'descending'
       });
@@ -453,7 +452,6 @@ describe("Expression", () => {
     it('limit works with Infinity', () => {
       expect(new LimitExpression({ value: Infinity }).toJS()).to.deep.equal({
         "op": "limit",
-        operand: { op: 'ref', name: '_' },
         "value": Infinity
       });
     });
