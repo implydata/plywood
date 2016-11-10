@@ -335,7 +335,7 @@ export function i$(name: string, nest?: number, type?: PlyType): RefExpression {
 
 
 export function r(value: any): LiteralExpression {
-  if (External.isExternal(value)) throw new TypeError('r can not accept externals');
+  if (External.isExternal(value)) throw new TypeError('r() can not accept externals');
   if (Array.isArray(value)) value = Set.fromJS(value);
   return LiteralExpression.fromJS({ op: 'literal', value: value });
 }
