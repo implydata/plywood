@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf, NamedArray, immutableEqual } from 'immutable-class';
+import { Class, Instance, NamedArray, immutableEqual } from 'immutable-class';
 import { PlyType, FullType } from '../types';
 import { hasOwnProperty } from '../helper/utils';
 import { Expression, ExpressionJS, RefExpression } from '../expressions/index';
@@ -56,7 +56,7 @@ export interface AttributeInfoJS {
 let check: Class<AttributeInfoValue, AttributeInfoJS>;
 export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfoJS> {
   static isAttributeInfo(candidate: any): candidate is AttributeInfo {
-    return isInstanceOf(candidate, AttributeInfo);
+    return candidate instanceof AttributeInfo;
   }
 
   static jsToValue(parameters: AttributeInfoJS): AttributeInfoValue {
@@ -200,7 +200,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public equals(other: AttributeInfo): boolean {
-    return AttributeInfo.isAttributeInfo(other) &&
+    return other instanceof AttributeInfo &&
       this.special === other.special &&
       this.name === other.name &&
       this.type === other.type &&

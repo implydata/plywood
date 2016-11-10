@@ -45,7 +45,7 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
     this._ensureOp("timeFloor");
     this._bumpOperandToTime();
     this._checkOperandTypes('TIME');
-    if (!Duration.isDuration(duration)) {
+    if (!(duration instanceof Duration)) {
       throw new Error("`duration` must be a Duration");
     }
     if (!duration.isFloorable()) {
@@ -102,9 +102,9 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
 
     if (ex instanceof InExpression || ex instanceof OverlapExpression) {
       let literal = ex.expression.getLiteralValue();
-      if (TimeRange.isTimeRange(literal)) {
+      if (literal instanceof TimeRange) {
         return literal.isAligned(duration, timezone);
-      } else if (Set.isSet(literal)) {
+      } else if (literal instanceof Set) {
         if (literal.setType !== 'TIME_RANGE') return false;
         return literal.elements.every((e: TimeRange) => {
           return e.isAligned(duration, timezone);

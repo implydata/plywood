@@ -127,7 +127,7 @@ var castTypes = {
 }
 
 function upgrade(v) {
-  if (!Expression.isExpression(v)) return r(v);
+  if (!(v instanceof Expression)) return r(v);
   return v;
 }
 

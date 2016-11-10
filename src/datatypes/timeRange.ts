@@ -16,7 +16,7 @@
  */
 
 import { Timezone, Duration, parseISODate } from 'chronoshift';
-import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { Class, Instance } from 'immutable-class';
 import { Range } from './range';
 import { Expression } from '../expressions/baseExpression';
 
@@ -55,7 +55,7 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
   static type = 'TIME_RANGE';
 
   static isTimeRange(candidate: any): candidate is TimeRange {
-    return isInstanceOf(candidate, TimeRange);
+    return candidate instanceof TimeRange;
   }
 
   static intervalFromDate(date: Date): string {
@@ -130,7 +130,7 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
   }
 
   public equals(other: TimeRange): boolean {
-    return TimeRange.isTimeRange(other) && this._equalsHelper(other);
+    return other instanceof TimeRange && this._equalsHelper(other);
   }
 
   /**

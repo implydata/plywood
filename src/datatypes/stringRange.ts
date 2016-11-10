@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { Class, Instance } from 'immutable-class';
 import { Range } from './range';
 
 export interface StringRangeValue {
@@ -34,7 +34,7 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
   static type = 'STRING_RANGE';
 
   static isStringRange(candidate: any): candidate is StringRange {
-    return isInstanceOf(candidate, StringRange);
+    return candidate instanceof StringRange;
   }
 
   static fromString(s: string): StringRange {
@@ -83,7 +83,7 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
   }
 
   public equals(other: StringRange): boolean {
-    return StringRange.isStringRange(other) && this._equalsHelper(other);
+    return other instanceof StringRange && this._equalsHelper(other);
   }
 
   public midpoint(): string {

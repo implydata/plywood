@@ -41,7 +41,7 @@ export class TimeBucketExpression extends ChainableExpression {
     this.timezone = parameters.timezone;
     this._ensureOp("timeBucket");
     this._checkOperandTypes('TIME');
-    if (!Duration.isDuration(duration)) {
+    if (!(duration instanceof Duration)) {
       throw new Error("`duration` must be a Duration");
     }
     if (!duration.isFloorable()) {

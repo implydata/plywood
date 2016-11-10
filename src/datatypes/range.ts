@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { isInstanceOf } from 'immutable-class';
-
 const BOUNDS_REG_EXP = /^[\[(][\])]$/;
 
 export type PlywoodRange = Range<number | Date | string>;
@@ -25,7 +23,7 @@ export abstract class Range<T> {
   static DEFAULT_BOUNDS = '[)';
 
   static isRange(candidate: any): candidate is PlywoodRange {
-    return isInstanceOf(candidate, Range);
+    return candidate instanceof Range;
   }
 
   static classMap: Lookup<typeof Range> = {};

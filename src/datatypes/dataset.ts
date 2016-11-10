@@ -16,7 +16,7 @@
  */
 
 import { isDate } from 'chronoshift';
-import { Class, Instance, isInstanceOf, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
+import { Class, Instance, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
 import { hasOwnProperty } from '../helper/utils';
 import { Attributes, AttributeInfo, AttributeJSs } from './attributeInfo';
@@ -252,15 +252,15 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
     return new AttributeInfo({ name, type: 'NUMBER' });
   } else if (isString(attributeValue)) {
     return new AttributeInfo({ name, type: 'STRING' });
-  } else if (NumberRange.isNumberRange(attributeValue)) {
+  } else if (attributeValue instanceof NumberRange) {
     return new AttributeInfo({ name, type: 'NUMBER_RANGE' });
-  } else if (StringRange.isStringRange(attributeValue)) {
+  } else if (attributeValue instanceof StringRange) {
     return new AttributeInfo({ name, type: 'STRING_RANGE' });
-  } else if (TimeRange.isTimeRange(attributeValue)) {
+  } else if (attributeValue instanceof TimeRange) {
     return new AttributeInfo({ name, type: 'TIME_RANGE' });
-  } else if (Set.isSet(attributeValue)) {
+  } else if (attributeValue instanceof Set) {
     return new AttributeInfo({ name, type: attributeValue.getType() });
-  } else if (Dataset.isDataset(attributeValue)) {
+  } else if (attributeValue instanceof Dataset) {
     return new AttributeInfo({ name, type: 'DATASET', datasetType: attributeValue.getFullType().datasetType });
   } else {
     throw new Error(`Could not introspect ${attributeValue}`);
@@ -307,7 +307,7 @@ export class Dataset implements Instance<DatasetValue, any> {
   static type = 'DATASET';
 
   static isDataset(candidate: any): candidate is Dataset {
-    return isInstanceOf(candidate, Dataset);
+    return candidate instanceof Dataset;
   }
 
   static datumFromJS(js: Datum): Datum {
@@ -465,7 +465,7 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public equals(other: Dataset): boolean {
-    return Dataset.isDataset(other) &&
+    return other instanceof Dataset &&
       this.data.length === other.data.length;
       // ToDo: probably add something else here?
   }
@@ -900,7 +900,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       };
       if (attribute.type === 'DATASET') {
         let subDataset = this.data[0][attribute.name]; // ToDo: fix this!
-        if (!subDatasetAdded && Dataset.isDataset(subDataset)) {
+        if (!subDatasetAdded && subDataset instanceof Dataset) {
           subDatasetAdded = true;
           column.columns = subDataset.getNestedColumns();
           nestedColumns.push(column);
