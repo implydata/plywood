@@ -45,7 +45,7 @@ export class OverlapExpression extends ChainableUnaryExpression {
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     if (expressionValue == null) return null;
-    return Set.isSet(operandValue) ? operandValue.overlap(expressionValue) : expressionValue.contains(operandValue);
+    return operandValue instanceof Set ? operandValue.overlap(expressionValue) : expressionValue.contains(operandValue);
   }
 
   public isCommutative(): boolean {

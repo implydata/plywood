@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.14.6
+
+- removed deprecated uses of `isInstanceOf`
+
 ## 0.14.5
 
 - 'action' expressions no longer return `{ op: "ref", name: "_" }` in their toJS further improving API back compat.

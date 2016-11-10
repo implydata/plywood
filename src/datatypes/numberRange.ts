@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { Class, Instance } from 'immutable-class';
 import { Range } from './range';
 
 export interface NumberRangeValue {
@@ -39,7 +39,7 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
   static type = 'NUMBER_RANGE';
 
   static isNumberRange(candidate: any): candidate is NumberRange {
-    return isInstanceOf(candidate, NumberRange);
+    return candidate instanceof NumberRange;
   }
 
   static numberBucket(num: number, size: number, offset: number): NumberRange {
@@ -97,7 +97,7 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
   }
 
   public equals(other: NumberRange): boolean {
-    return NumberRange.isNumberRange(other) && this._equalsHelper(other);
+    return other instanceof NumberRange && this._equalsHelper(other);
   }
 
   public midpoint(): number {

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Class, Instance, isInstanceOf } from 'immutable-class';
+import { Class, Instance } from 'immutable-class';
 import { PlyType } from '../types';
 import { hasOwnProperty } from '../helper/utils';
 import { PlywoodRange } from '../datatypes/range';
@@ -83,7 +83,7 @@ export class Set implements Instance<SetValue, SetJS> {
   static EMPTY: Set;
 
   static isSet(candidate: any): candidate is Set {
-    return isInstanceOf(candidate, Set);
+    return candidate instanceof Set;
   }
 
   static convertToSet(thing: any): Set {
@@ -204,7 +204,7 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   public equals(other: Set): boolean {
-    return Set.isSet(other) &&
+    return other instanceof Set &&
       this.setType === other.setType &&
       this.elements.length === other.elements.length &&
       this.elements.slice().sort().join('') === other.elements.slice().sort().join('');

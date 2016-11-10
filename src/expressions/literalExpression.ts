@@ -168,7 +168,7 @@ export class LiteralExpression extends Expression {
 
   public maxPossibleSplitValues(): number {
     const { value } = this;
-    return Set.isSet(value) ? value.size() : 1;
+    return value instanceof Set ? value.size() : 1;
   }
 
   public bumpStringLiteralToTime(): Expression {

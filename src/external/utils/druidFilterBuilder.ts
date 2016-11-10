@@ -318,7 +318,7 @@ export class DruidFilterBuilder {
     if (extractionFn) this.checkFilterExtractability(attributeInfo);
 
     // Kill range
-    if (Range.isRange(value)) value = value.start;
+    if (value instanceof Range) value = value.start;
 
     let druidFilter: Druid.Filter = {
       type: "selector",
@@ -389,7 +389,7 @@ export class DruidFilterBuilder {
     };
 
     if (extractionFn) boundFilter.extractionFn = extractionFn;
-    if (NumberRange.isNumberRange(range)) boundFilter.alphaNumeric = true;
+    if (range instanceof NumberRange) boundFilter.alphaNumeric = true;
 
     if (r0 != null) {
       boundFilter.lower = isDate(r0) ? (r0 as Date).toISOString() : (r0 as number | string);

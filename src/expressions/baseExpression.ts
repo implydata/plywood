@@ -17,7 +17,7 @@
 
 import * as Q from 'q';
 import { Timezone, Duration, parseISODate } from 'chronoshift';
-import { Instance, isInstanceOf, isImmutableClass, SimpleArray } from 'immutable-class';
+import { Instance, isImmutableClass, SimpleArray } from 'immutable-class';
 import { shallowCopy } from '../helper/utils';
 import { promiseWhile } from '../helper/promiseWhile';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple, Environment } from '../types';
@@ -335,7 +335,7 @@ export function i$(name: string, nest?: number, type?: PlyType): RefExpression {
 
 
 export function r(value: any): LiteralExpression {
-  if (External.isExternal(value)) throw new TypeError('r can not accept externals');
+  if (value instanceof External) throw new TypeError('r() can not accept externals');
   if (Array.isArray(value)) value = Set.fromJS(value);
   return LiteralExpression.fromJS({ op: 'literal', value: value });
 }
@@ -348,7 +348,7 @@ function chainVia(op: string, expressions: Expression[], zero: Expression): Expr
   let n = expressions.length;
   if (!n) return zero;
   let acc = expressions[0];
-  if (!Expression.isExpression(acc)) acc = Expression.fromJSLoose(acc);
+  if (!(acc instanceof Expression)) acc = Expression.fromJSLoose(acc);
   for (let i = 1; i < n; i++) acc = (<any>acc)[op](expressions[i]);
   return acc;
 }
@@ -387,7 +387,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
 
   static isExpression(candidate: any): candidate is Expression {
-    return isInstanceOf(candidate, Expression);
+    return candidate instanceof Expression;
   }
 
   static expressionLookupFromJS(expressionJSs: Lookup<ExpressionJS>): Lookup<Expression> {
@@ -462,7 +462,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       case 'object':
         if (param === null) {
           return Expression.NULL;
-        } else if (Expression.isExpression(param)) {
+        } else if (param instanceof Expression) {
           return param;
         } else if (isImmutableClass(param)) {
           if (param.constructor.type) {
@@ -698,7 +698,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param other
    */
   public equals(other: Expression): boolean {
-    return Expression.isExpression(other) &&
+    return other instanceof Expression &&
       this.op === other.op &&
       this.type === other.type;
   }
@@ -1079,7 +1079,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     for (let ex of exs) {
       cur = new ExpressionClass({
         operand: cur,
-        expression: Expression.isExpression(ex) ? ex : Expression.fromJSLoose(ex)
+        expression: ex instanceof Expression ? ex : Expression.fromJSLoose(ex)
       });
     }
     return cur;
@@ -1120,14 +1120,14 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public fallback(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new FallbackExpression({ operand: this, expression: ex });
   }
 
   // Boolean predicates
 
   public is(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new IsExpression({ operand: this, expression: ex });
   }
 
@@ -1136,27 +1136,27 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public lessThan(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new LessThanExpression({ operand: this, expression: ex });
   }
 
   public lessThanOrEqual(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new LessThanOrEqualExpression({ operand: this, expression: ex });
   }
 
   public greaterThan(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new GreaterThanExpression({ operand: this, expression: ex });
   }
 
   public greaterThanOrEqual(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new GreaterThanOrEqualExpression({ operand: this, expression: ex });
   }
 
   public contains(ex: any, compare?: string) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     if (compare) compare = getString(compare);
     return new ContainsExpression({ operand: this, expression: ex, compare });
   }
@@ -1194,12 +1194,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         throw new Error('uninterpretable IN parameters');
       }
     }
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new InExpression({ operand: this, expression: ex });
   }
 
   public overlap(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new OverlapExpression({ operand: this, expression: ex.bumpStringLiteralToSetString() });
   }
 
@@ -1234,7 +1234,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public indexOf(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new IndexOfExpression({ operand: this, expression: ex });
   }
 
@@ -1265,31 +1265,31 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   // Time manipulation
 
   public timeBucket(duration: any, timezone?: any) {
-    if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
-    if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+    if (!(duration instanceof Duration)) duration = Duration.fromJS(getString(duration));
+    if (timezone && !(timezone instanceof Timezone)) timezone = Timezone.fromJS(getString(timezone));
     return new TimeBucketExpression({ operand: this, duration, timezone });
   }
 
   public timeFloor(duration: any, timezone?: any) {
-    if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
-    if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+    if (!(duration instanceof Duration)) duration = Duration.fromJS(getString(duration));
+    if (timezone && !(timezone instanceof Timezone)) timezone = Timezone.fromJS(getString(timezone));
     return new TimeFloorExpression({ operand: this, duration, timezone });
   }
 
   public timeShift(duration: any, step: number, timezone?: any) {
-    if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
-    if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+    if (!(duration instanceof Duration)) duration = Duration.fromJS(getString(duration));
+    if (timezone && !(timezone instanceof Timezone)) timezone = Timezone.fromJS(getString(timezone));
     return new TimeShiftExpression({ operand: this, duration, step: getNumber(step), timezone });
   }
 
   public timeRange(duration: any, step: number, timezone?: any) {
-    if (!Duration.isDuration(duration)) duration = Duration.fromJS(getString(duration));
-    if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+    if (!(duration instanceof Duration)) duration = Duration.fromJS(getString(duration));
+    if (timezone && !(timezone instanceof Timezone)) timezone = Timezone.fromJS(getString(timezone));
     return new TimeRangeExpression({ operand: this, duration, step: getNumber(step), timezone });
   }
 
   public timePart(part: string, timezone?: any) {
-    if (timezone && !Timezone.isTimezone(timezone)) timezone = Timezone.fromJS(getString(timezone));
+    if (timezone && !(timezone instanceof Timezone)) timezone = Timezone.fromJS(getString(timezone));
     return new TimePartExpression({ operand: this, part: getString(part), timezone });
   }
 
@@ -1311,7 +1311,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param ex A boolean expression to filter on
    */
   public filter(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new FilterExpression({ operand: this, expression: ex });
   }
 
@@ -1333,7 +1333,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     for (let k in splits) {
       if (!hasOwnProperty(splits, k)) continue;
       let ex = splits[k];
-      parsedSplits[k] = Expression.isExpression(ex) ? ex : Expression.fromJSLoose(ex);
+      parsedSplits[k] = ex instanceof Expression ? ex : Expression.fromJSLoose(ex);
     }
 
     dataName = dataName ? getString(dataName) : getDataName(this);
@@ -1348,12 +1348,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    */
   public apply(name: string, ex: any) {
     if (arguments.length < 2) throw new Error('invalid arguments to .apply, did you forget to specify a name?');
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new ApplyExpression({ operand: this, name: getString(name), expression: ex });
   }
 
   public sort(ex: any, direction: Direction = 'ascending') {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new SortExpression({ operand: this, expression: ex, direction: (getString(direction) as Direction) });
   }
 
@@ -1376,37 +1376,37 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public sum(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new SumExpression({ operand: this, expression: ex });
   }
 
   public min(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new MinExpression({ operand: this, expression: ex });
   }
 
   public max(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new MaxExpression({ operand: this, expression: ex });
   }
 
   public average(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new AverageExpression({ operand: this, expression: ex });
   }
 
   public countDistinct(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new CountDistinctExpression({ operand: this, expression: ex });
   }
 
   public quantile(ex: any, value: number) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new QuantileExpression({ operand: this, expression: ex, value: getNumber(value) });
   }
 
   public collect(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new CollectExpression({ operand: this, expression: ex });
   }
 
@@ -1417,7 +1417,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   // Undocumented (for now)
 
   public join(ex: any) {
-    if (!Expression.isExpression(ex)) ex = Expression.fromJSLoose(ex);
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new JoinExpression({ operand: this, expression: ex });
   }
 
@@ -1507,9 +1507,9 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     for (let k in context) {
       if (!hasOwnProperty(context, k)) continue;
       let value = context[k];
-      if (External.isExternal(value)) {
+      if (value instanceof External) {
         expressions[k] = new ExternalExpression({ external: <External>value });
-      } else if (Expression.isExpression(value)) {
+      } else if (value instanceof Expression) {
         expressions[k] = value;
       } else {
         expressions[k] = new LiteralExpression({ value });

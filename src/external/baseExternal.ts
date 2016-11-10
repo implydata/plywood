@@ -16,7 +16,7 @@
 
 import * as Q from 'q';
 import { Timezone, Duration } from 'chronoshift';
-import { isInstanceOf, immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
+import { immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
 import { hasOwnProperty, nonEmptyLookup, safeAdd } from '../helper/utils';
 import {
@@ -282,7 +282,7 @@ export abstract class External {
   static VALUE_NAME = '__VALUE__';
 
   static isExternal(candidate: any): candidate is External {
-    return isInstanceOf(candidate, External);
+    return candidate instanceof External;
   }
 
   static extractVersion(v: string): string {
@@ -812,7 +812,7 @@ export abstract class External {
   }
 
   public equalBase(other: External): boolean {
-    return External.isExternal(other) &&
+    return other instanceof External &&
       this.engine === other.engine &&
       String(this.source) === String(other.source) &&
       this.version === other.version &&

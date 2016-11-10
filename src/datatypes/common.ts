@@ -42,7 +42,7 @@ export function getValueType(value: any): PlyType {
     } else {
       let ctrType = value.constructor.type;
       if (!ctrType) {
-        if (Expression.isExpression(value)) {
+        if (value instanceof Expression) {
           throw new Error(`expression used as datum value ${value}`);
         } else {
           throw new Error(`can not have an object without a type: ${JSON.stringify(value)}`);
