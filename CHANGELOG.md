@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.14.9
+
+- Fixed time resolution in `derivedAttributes`
+
 ## 0.14.8
 
 - Better handling for derivedAttributes by type checking them in the external constructor
@@ -9,7 +13,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 ## 0.14.7
 
 - Fixed `rawAttributes` when empty
-- made Expression#distribute` work for nested expression
+- made `Expression#distribute` work for nested expression
 
 ## 0.14.6
 

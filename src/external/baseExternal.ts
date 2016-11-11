@@ -668,7 +668,7 @@ export abstract class External {
     this.filter = parameters.filter || Expression.TRUE;
 
     if (this.rawAttributes.length) {
-      this.derivedAttributes = External.typeCheckDerivedAttributes(this.derivedAttributes, this.getRawFullType());
+      this.derivedAttributes = External.typeCheckDerivedAttributes(this.derivedAttributes, this.getRawFullType(true));
       this.filter = this.filter.changeInTypeContext(this.getRawFullType());
     }
 
@@ -1447,7 +1447,7 @@ export abstract class External {
       });
   }
 
-  public getRawFullType(): DatasetFullType {
+  public getRawFullType(skipDerived = false): DatasetFullType {
     let { rawAttributes, derivedAttributes } = this;
     if (!rawAttributes.length) throw new Error("dataset has not been introspected");
 
@@ -1459,10 +1459,12 @@ export abstract class External {
       };
     }
 
-    for (let name in derivedAttributes) {
-      myDatasetType[name] = {
-        type: <PlyTypeSimple>derivedAttributes[name].type
-      };
+    if (!skipDerived) {
+      for (let name in derivedAttributes) {
+        myDatasetType[name] = {
+          type: <PlyTypeSimple>derivedAttributes[name].type
+        };
+      }
     }
 
     return {

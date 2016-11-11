@@ -38,6 +38,7 @@ var wikiDataset = External.fromJS({
     { name: 'deleted', type: 'NUMBER', unsplitable: true }
   ],
   derivedAttributes: {
+    language: "$language.substr(0, 100)",
     pageTm: "$page ++ '(TM)'"
   }
 });
@@ -162,6 +163,14 @@ describe("External", () => {
       });
     });
 
+  });
+
+
+  describe("constructor", () => {
+    it("type checks", () => {
+      expect(wikiDataset.derivedAttributes['language'].toString()).to.equals('$language:STRING.substr(0,100)');
+      expect(wikiDataset.derivedAttributes['pageTm'].toString()).to.equals('$page:STRING.concat("(TM)")');
+    });
   });
 
 
@@ -712,7 +721,7 @@ describe("External", () => {
         expect(ex.op).to.equal('external');
         var externalDataset = ex.external;
 
-        expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice', 'pageTm']);
+        expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice', 'language', 'pageTm']);
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
@@ -1047,7 +1056,7 @@ describe("External", () => {
         expect(ex.op).to.equal('literal');
         var externalDataset = ex.value.getReadyExternals()[0].external;
 
-        expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice', 'pageTm']);
+        expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice', 'language', 'pageTm']);
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
@@ -1077,7 +1086,7 @@ describe("External", () => {
           .apply('CountX3', '$wiki.count() * 3')
           .apply('AddedPlusDeleted', '$wiki.sum($added) + $wiki.sum($deleted)')
           .apply("Six", 6)
-          .apply('AddedUsPlusDeleted', '$wiki.filter($page == USA).sum($added) + $wiki.sum($deleted)')
+          .apply('AddedUsPlusDeleted', '$wiki.filter($page == USA).sum($added) + $wiki.sum($deleted)');
           //.apply('CountX3Plus5', '$CountX3 + 5');
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
@@ -1509,7 +1518,20 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         var external = ex.external;
-        expect(external.getQueryAndPostProcess().query.dimensions).to.deep.equal([ 'page', 'language', 'user' ]);
+        expect(external.getQueryAndPostProcess().query.dimensions).to.deep.equal([
+          'page',
+          {
+            "dimension": "language",
+            "extractionFn": {
+              "index": 0,
+              "length": 100,
+              "type": "substring"
+            },
+            "outputName": "language",
+            "type": "extraction"
+          },
+          'user'
+        ]);
       });
 
     });
