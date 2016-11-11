@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.14.7
+
+- Fixed `rawAttributes` when empty
+- made Expression#distribute` work for nested expression
+
 ## 0.14.6
 
 - removed deprecated uses of `isInstanceOf`

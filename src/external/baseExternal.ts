@@ -608,7 +608,7 @@ export abstract class External {
   public delegates: External[];
   public concealBuckets: boolean;
 
-  public rawAttributes: Attributes = null;
+  public rawAttributes: Attributes;
   public requester: Requester.PlywoodRequester<any>;
   public mode: QueryMode;
   public filter: Expression;
@@ -649,13 +649,13 @@ export abstract class External {
     }
     this.concealBuckets = parameters.concealBuckets;
 
-    this.rawAttributes = parameters.rawAttributes || parameters.attributes;
+    this.rawAttributes = parameters.rawAttributes || parameters.attributes || [];
     this.requester = parameters.requester;
 
     this.mode = parameters.mode || 'raw';
     this.filter = parameters.filter || Expression.TRUE;
 
-    if (this.rawAttributes) {
+    if (this.rawAttributes.length) {
       this.filter = this.filter.changeInTypeContext(this.getRawFullType());
     }
 
@@ -1396,7 +1396,7 @@ export abstract class External {
   // -------------------------
 
   public needsIntrospect(): boolean {
-    return !this.attributes;
+    return !this.rawAttributes.length;
   }
 
   protected abstract getIntrospectAttributes(): Q.Promise<Attributes>
