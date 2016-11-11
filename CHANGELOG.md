@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.14.8
+
+- Better handling for derivedAttributes by type checking them in the external constructor
+
 ## 0.14.7
 
 - Fixed `rawAttributes` when empty

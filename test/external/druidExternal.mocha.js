@@ -46,7 +46,8 @@ var context = {
       { name: 'delta_hist', special: 'histogram' }
     ],
     derivedAttributes: {
-      pageInBrackets: "'[' ++ $page ++ ']'"
+      pageInBrackets: "'[' ++ $page ++ ']'",
+      page3: "$page.substr(0, 3)"
     },
     filter: timeFilter,
     allowSelectQueries: true,
@@ -701,6 +702,16 @@ describe("DruidExternal", () => {
               "type": "stringFormat"
             },
             "outputName": "pageInBrackets",
+            "type": "extraction"
+          },
+          {
+            "dimension": "page",
+            "extractionFn": {
+              "index": 0,
+              "length": 3,
+              "type": "substring"
+            },
+            "outputName": "page3",
             "type": "extraction"
           }
         ],
@@ -1711,6 +1722,26 @@ describe("DruidExternal", () => {
           "type": "timeFormat"
         },
         "outputName": "Split1",
+        "type": "extraction"
+      });
+    });
+
+    it("works with derived attr split", () => {
+      var ex = $('wiki').split('$page3', 'P3');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      var query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "page",
+        "extractionFn": {
+          "index": 0,
+          "length": 3,
+          "type": "substring"
+        },
+        "outputName": "P3",
         "type": "extraction"
       });
     });

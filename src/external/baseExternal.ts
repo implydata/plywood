@@ -519,6 +519,18 @@ export abstract class External {
     };
   }
 
+  static typeCheckDerivedAttributes(derivedAttributes: Lookup<Expression>, typeContext: DatasetFullType): Lookup<Expression> {
+    let changed = false;
+    let newDerivedAttributes: Lookup<Expression> = {};
+    for (let k in derivedAttributes) {
+      let ex = derivedAttributes[k];
+      let newEx = ex.changeInTypeContext(typeContext);
+      if (ex !== newEx) changed = true;
+      newDerivedAttributes[k] = newEx;
+    }
+    return changed ? newDerivedAttributes : derivedAttributes;
+  }
+
   static jsToValue(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): ExternalValue {
     let value: ExternalValue = {
       engine: parameters.engine,
@@ -656,6 +668,7 @@ export abstract class External {
     this.filter = parameters.filter || Expression.TRUE;
 
     if (this.rawAttributes.length) {
+      this.derivedAttributes = External.typeCheckDerivedAttributes(this.derivedAttributes, this.getRawFullType());
       this.filter = this.filter.changeInTypeContext(this.getRawFullType());
     }
 
@@ -1436,7 +1449,7 @@ export abstract class External {
 
   public getRawFullType(): DatasetFullType {
     let { rawAttributes, derivedAttributes } = this;
-    if (!rawAttributes) throw new Error("dataset has not been introspected");
+    if (!rawAttributes.length) throw new Error("dataset has not been introspected");
 
     let myDatasetType: Lookup<FullType> = {};
     for (let rawAttribute of rawAttributes) {

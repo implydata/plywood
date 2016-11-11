@@ -36,7 +36,10 @@ var wikiDataset = External.fromJS({
     { name: 'commentLength', type: 'NUMBER' },
     { name: 'added', type: 'NUMBER', unsplitable: true },
     { name: 'deleted', type: 'NUMBER', unsplitable: true }
-  ]
+  ],
+  derivedAttributes: {
+    pageTm: "$page ++ '(TM)'"
+  }
 });
 
 var context = {
@@ -709,7 +712,7 @@ describe("External", () => {
         expect(ex.op).to.equal('external');
         var externalDataset = ex.external;
 
-        expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice']);
+        expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice', 'pageTm']);
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
@@ -1044,7 +1047,7 @@ describe("External", () => {
         expect(ex.op).to.equal('literal');
         var externalDataset = ex.value.getReadyExternals()[0].external;
 
-        expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice']);
+        expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice', 'pageTm']);
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
