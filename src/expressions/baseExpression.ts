@@ -1605,17 +1605,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Turns $data.sum($x - 2 * $y) into $data.sum($x) - 2 * $data.sum($y)
    */
   public distribute(): Expression {
-    return this; // ToDo: fill this in.
-    // return this.substituteAction(
-    //   (action) => {
-    //     return action.canDistribute();
-    //   },
-    //   (preEx: Expression, action: Action) => {
-    //     let distributed = action.distribute(preEx);
-    //     if (!distributed) throw new Error('distribute returned null');
-    //     return distributed;
-    //   }
-    // );
+    return this.substitute((ex: Expression, index: int) => {
+      if (index === 0) return null;
+      let distributedEx = ex.distribute();
+      if (distributedEx === ex) return null;
+      return distributedEx;
+    }).simplify();
   }
 
   /**

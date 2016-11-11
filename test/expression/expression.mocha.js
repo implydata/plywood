@@ -416,6 +416,18 @@ describe("Expression", () => {
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it('works in post agg case 1', () => {
+      var ex1 = $('data').sum('$x * 6').multiply(3);
+      var ex2 = $('data').sum('$x').multiply(18);
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it('works in post agg case 2', () => {
+      var ex1 = $('data').sum('$x * 6').add(3);
+      var ex2 = $('data').sum('$x').multiply(6).add(3);
+      expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it.skip('works in constant * case (multiple operands)', () => {
       var ex1 = $('data').sum('$x * 6 * $y');
       var ex2 = $('data').sum('$x * $y').multiply(6);
