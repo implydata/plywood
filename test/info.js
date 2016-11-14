@@ -20,9 +20,9 @@ exports.druidVersion = '0.9.2-rc2';
 exports.druidHost = `${DOCKER_MACHINE}:8082`;
 exports.druidContext = {
   timeout: 10000,
+  groupByStrategy: 'v2',
   useCache: false,
   populateCache: false
-  groupByStrategy: 'v2'
 };
 
 exports.mySqlVersion = '5.7.13';
