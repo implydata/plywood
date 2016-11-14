@@ -29,37 +29,37 @@ var druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
-// druidRequester = verboseRequesterFactory({
-//   requester: druidRequester
-// });
+druidRequester = verboseRequesterFactory({
+  requester: druidRequester
+});
 
 describe("Druid Functional", function() {
   this.timeout(10000);
 
   var wikiAttributes = [
     { "name": "time", "type": "TIME" },
-    { "name": "added", "maker":{"action": "sum", "expression":{"name": "added", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "added", "maker":{"op": "sum", "expression":{"name": "added", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "channel", "type": "STRING" },
     { "name": "cityName", "type": "STRING" },
     { "name": "comment", "type": "STRING" },
     { "name": "commentLength", "type": "NUMBER" },
     { "name": "commentLengthStr", "type": "STRING" },
-    { "name": "count", "maker":{"action": "count"}, "type": "NUMBER", "unsplitable":true },
+    { "name": "count", "maker":{"op": "count"}, "type": "NUMBER", "unsplitable":true },
     { "name": "countryIsoCode", "type": "STRING" },
     { "name": "countryName", "type": "STRING" },
-    { "name": "deleted", "maker":{"action": "sum", "expression":{"name": "deleted", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "delta", "maker":{"action": "sum", "expression":{"name": "delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "deleted", "maker":{"op": "sum", "expression":{"name": "deleted", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "delta", "maker":{"op": "sum", "expression":{"name": "delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "deltaBucket100", "type": "NUMBER" },
-    { "name": "deltaByTen", "maker":{"action": "sum", "expression":{"name": "deltaByTen", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "deltaByTen", "maker":{"op": "sum", "expression":{"name": "deltaByTen", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "delta_hist", "special": "histogram", "type": "NUMBER" },
     { "name": "isAnonymous", "type": "BOOLEAN" },
     { "name": "isMinor", "type": "BOOLEAN" },
     { "name": "isNew", "type": "BOOLEAN" },
     { "name": "isRobot", "type": "BOOLEAN" },
     { "name": "isUnpatrolled", "type": "BOOLEAN" },
-    { "name": "max_delta", "maker":{"action": "max", "expression":{"name": "max_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "max_delta", "maker":{"op": "max", "expression":{"name": "max_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "metroCode", "type": "STRING" },
-    { "name": "min_delta", "maker":{"action": "min", "expression":{"name": "min_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
+    { "name": "min_delta", "maker":{"op": "min", "expression":{"name": "min_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "namespace", "type": "STRING" },
     { "name": "page", "type": "STRING" },
     { "name": "page_unique", "special": "unique", "type": "STRING" },
@@ -115,11 +115,7 @@ describe("Druid Functional", function() {
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
-      context: {
-        timeout: 10000,
-        useCache: false,
-        populateCache: false
-      },
+      context: info.druidContext,
       attributes: wikiAttributes,
       customTransforms,
       filter: $('time').in(TimeRange.fromJS({
@@ -134,11 +130,7 @@ describe("Druid Functional", function() {
       engine: 'druid',
       source: 'wikipedia-compact',
       timeAttribute: 'time',
-      context: {
-        timeout: 10000,
-        useCache: false,
-        populateCache: false
-      },
+      context: info.druidContext,
       attributes: [
         { name: 'time', type: 'TIME', maker: { action: 'timeFloor', duration: 'PT1H', timezone: 'Etc/UTC' } },
         { name: 'channel', type: 'STRING' },
@@ -1642,6 +1634,68 @@ describe("Druid Functional", function() {
         });
     });
 
+    it.only("works multi-dimensional GROUP BYs with time", () => {
+      var ex = ply()
+        .apply("wiki", $('wiki').filter($("channel").isnt('en')))
+        .apply(
+          'Groups',
+          $("wiki")
+            .split({
+              'channel': "$channel",
+              '__time': '$time.timeBucket(PT2H)',
+            })
+            .apply('Count', $('wiki').sum('$count'))
+            .sort('$Count', 'descending')
+            .limit(4)
+        );
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Groups": [
+                {
+                  "Count": 24276,
+                  "__time": {
+                    "end": new Date('2015-09-12T08:00:00.000Z'),
+                    "start": new Date('2015-09-12T06:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  },
+                  "channel": "vi"
+                },
+                {
+                  "Count": 11223,
+                  "__time": {
+                    "end": new Date('2015-09-12T18:00:00.000Z'),
+                    "start": new Date('2015-09-12T16:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  },
+                  "channel": "vi"
+                },
+                {
+                  "Count": 9258,
+                  "__time": {
+                    "end": new Date('2015-09-12T16:00:00.000Z'),
+                    "start": new Date('2015-09-12T14:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  },
+                  "channel": "vi"
+                },
+                {
+                  "Count": 8928,
+                  "__time": {
+                    "end": new Date('2015-09-12T10:00:00.000Z'),
+                    "start": new Date('2015-09-12T08:00:00.000Z'),
+                    "type": "TIME_RANGE"
+                  },
+                  "channel": "vi"
+                }
+              ]
+            }
+          ]);
+        });
+    });
+
     it("works nested GROUP BYs", () => {
       var ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
@@ -2193,7 +2247,7 @@ describe("Druid Functional", function() {
     });
 
     it("introspects version and attributes", () => {
-      wikiExternal.introspect()
+      return wikiExternal.introspect()
         .then((introspectedExternal) => {
           expect(introspectedExternal.version).to.equal(info.druidVersion);
           expect(introspectedExternal.toJS().attributes).to.deep.equal(wikiAttributes);

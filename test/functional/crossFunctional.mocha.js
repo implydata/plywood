@@ -97,12 +97,7 @@ var druidExecutor = basicExecutorFactory({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
-      context: {
-        // useCache: false,
-        // populateCache: false,
-        // groupByStrategy: "v2",
-        timeout: 10000
-      },
+      context: info.druidContext,
       attributes,
       derivedAttributes,
       version: info.druidVersion,
@@ -118,9 +113,9 @@ var druidLegacyExecutor = basicExecutorFactory({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
-      context: {
+      context: Object.assign({}, info.druidContext, {
         timeout: 10001 // Put a different timeout here so we can tell queries apart from non-legacy druid
-      },
+      }),
       attributes,
       derivedAttributes,
       version: '0.8.3',

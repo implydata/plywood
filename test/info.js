@@ -16,8 +16,14 @@
 
 const DOCKER_MACHINE = '192.168.99.100';
 
-exports.druidVersion = '0.9.1';
+exports.druidVersion = '0.9.2-rc2';
 exports.druidHost = `${DOCKER_MACHINE}:8082`;
+exports.druidContext = {
+  timeout: 10000,
+  useCache: false,
+  populateCache: false
+  groupByStrategy: 'v2'
+};
 
 exports.mySqlVersion = '5.7.13';
 exports.mySqlHost = `${DOCKER_MACHINE}:3306`;

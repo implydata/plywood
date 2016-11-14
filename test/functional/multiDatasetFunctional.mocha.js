@@ -79,9 +79,7 @@ var mixedExecutor = basicExecutorFactory({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
-      context: {
-        timeout: 10000
-      },
+      context: info.druidContext,
       attributes,
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
