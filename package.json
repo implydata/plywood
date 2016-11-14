@@ -46,12 +46,12 @@
     "istanbul": "0.4.5",
     "mocha": "3.1.2",
     "pegjs": "0.10.0",
-    "plywood-druid-requester": "1.5.8",
+    "plywood-druid-requester": "1.5.9",
     "plywood-mysql-requester": "1.3.3",
     "plywood-postgres-requester": "0.9.3",
     "tdi": "0.1.6",
     "tslint": "3.15.1",
-    "typescript": "2.0.8",
+    "typescript": "2.0.9",
     "uglify-js": "2.7.4"
   }
 }
