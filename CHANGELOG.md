@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.14.10
+
+- Run tests against Druid groupBy v2 + fix tests
+
 ## 0.14.9
 
 - Fixed time resolution in `derivedAttributes`
