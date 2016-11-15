@@ -16,19 +16,7 @@
  */
 
 var { expect } = require("chai");
-
-var plywood = require('../plywood');
-var { Dataset, $, i$, ply, r, AttributeInfo, External } = plywood;
-
-// used to trigger routes with external
-var dummyExternal = External.fromJS({
-  engine: 'druid',
-  source: 'diamonds',
-  attributes: [
-    { name: 'time', type: 'TIME' },
-    { name: 'color', type: 'STRING' }
-  ]
-});
+var { Dataset, $, i$, ply, r, AttributeInfo } = require('../plywood');
 
 describe("compute native", () => {
   var data = [
@@ -668,7 +656,7 @@ describe("compute native", () => {
 
     var ex = $('ds').filter('$price > 200').select('cut');
 
-    return ex.compute({ ds, dummyExternal })
+    return ex.compute({ ds })
       .then((v) => {
         expect(v.getColumns()).to.deep.equal([
           {

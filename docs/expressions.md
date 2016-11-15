@@ -1,6 +1,6 @@
 # Expressions
 
-Expressions are the backbone of Plywood. The basic flow is to make and expression and then hand it to Plywood to evaluate it.
+Expressions are the backbone of Plywood. The basic flow is to construct an expression and then hand it to Plywood for evaluation.
 Expressions can be expressed as JSON or composed via the provided operands.
 
 ## Creating expressions
@@ -24,8 +24,8 @@ ex.compute({ x: 10 }).then(console.log); // => 10
 Will create a literal value expression out of the given value.
 
 ```javascript
-var ex = r('$x');
-ex.compute().then(console.log); // => '$x'
+var ex = r('Hello World');
+ex.compute().then(console.log); // => 'Hello World'
 ```
 
 There are a number of basic literal expressions that are provided as static members on the `Expression` class.

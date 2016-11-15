@@ -28,16 +28,6 @@ export function indentBy(str: string, indent: int): string {
   return str.split('\n').map((x) => spaces + x).join('\n');
 }
 
-export function arraysEqual<T>(a: Array<T>, b: Array<T>): boolean {
-  if (a === b) return true;
-  let length = a.length;
-  if (length !== b.length) return false;
-  for (let i = 0; i < length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
 export function dictEqual(dictA: Lookup<any>, dictB: Lookup<any>): boolean {
   if (dictA === dictB) return true;
   if (!dictA !== !dictB) return false;

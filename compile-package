@@ -6,3 +6,7 @@ mkdir -p package
 node_modules/.bin/browserify build/plywood.js \
   -o package/plywood.js \
   --standalone plywood
+
+node_modules/.bin/browserify build/plywood-lite.js \
+  -o package/plywood-lite.js \
+  --standalone plywood

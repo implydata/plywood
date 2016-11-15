@@ -4,6 +4,7 @@
 export PLYWOOD_VERSION=`node ./extra/get-version.js`
 echo "export var version = '$PLYWOOD_VERSION';" > build/version.js
 
+# Full Plywood
 cat \
   extra/prefix.js \
   build/version.js \
@@ -98,4 +99,87 @@ cat \
   | ./node_modules/.bin/f 'l.replace(/^export function ([\w$]+)\(/, "var $1 = exports.$1 = function(")' \
   | ./node_modules/.bin/f 'l.replace(/^export var ([\w$]+) =/, "var $1 = exports.$1 =")' \
   > build/plywood.js
+
+
+# Plywood Lite
+cat \
+  extra/prefix.js \
+  build/version.js \
+  build/helper/promiseWhile.js \
+  build/helper/utils.js \
+  build/datatypes/common.js \
+  build/datatypes/attributeInfo.js \
+  build/datatypes/range.js \
+  build/datatypes/numberRange.js \
+  build/datatypes/timeRange.js \
+  build/datatypes/stringRange.js \
+  build/datatypes/set.js \
+  build/datatypes/dataset.js \
+  build/expressions/baseExpression.js \
+  build/expressions/literalExpression.js \
+  build/expressions/refExpression.js \
+  build/expressions/externalExpression.js \
+  \
+  build/expressions/mixins/hasTimezone.js \
+  build/expressions/mixins/aggregate.js \
+  \
+  build/expressions/absoluteExpression.js \
+  build/expressions/addExpression.js \
+  build/expressions/andExpression.js \
+  build/expressions/applyExpression.js \
+  build/expressions/averageExpression.js \
+  build/expressions/cardinalityExpression.js \
+  build/expressions/castExpression.js \
+  build/expressions/collectExpression.js \
+  build/expressions/concatExpression.js \
+  build/expressions/containsExpression.js \
+  build/expressions/countExpression.js \
+  build/expressions/countDistinctExpression.js \
+  build/expressions/customAggregateExpression.js \
+  build/expressions/customTransformExpression.js \
+  build/expressions/divideExpression.js \
+  build/expressions/extractExpression.js \
+  build/expressions/fallbackExpression.js \
+  build/expressions/filterExpression.js \
+  build/expressions/greaterThanExpression.js \
+  build/expressions/greaterThanOrEqualExpression.js \
+  build/expressions/inExpression.js \
+  build/expressions/isExpression.js \
+  build/expressions/joinExpression.js \
+  build/expressions/lengthExpression.js \
+  build/expressions/lessThanExpression.js \
+  build/expressions/lessThanOrEqualExpression.js \
+  build/expressions/indexOfExpression.js \
+  build/expressions/lookupExpression.js \
+  build/expressions/limitExpression.js \
+  build/expressions/matchExpression.js \
+  build/expressions/maxExpression.js \
+  build/expressions/minExpression.js \
+  build/expressions/multiplyExpression.js \
+  build/expressions/notExpression.js \
+  build/expressions/numberBucketExpression.js \
+  build/expressions/orExpression.js \
+  build/expressions/overlapExpression.js \
+  build/expressions/powerExpression.js \
+  build/expressions/quantileExpression.js \
+  build/expressions/selectExpression.js \
+  build/expressions/sortExpression.js \
+  build/expressions/splitExpression.js \
+  build/expressions/substrExpression.js \
+  build/expressions/subtractExpression.js \
+  build/expressions/sumExpression.js \
+  build/expressions/timeBucketExpression.js \
+  build/expressions/timeFloorExpression.js \
+  build/expressions/timePartExpression.js \
+  build/expressions/timeRangeExpression.js \
+  build/expressions/timeShiftExpression.js \
+  build/expressions/transformCaseExpression.js \
+  \
+  build/external/baseExternal.js \
+  build/executor/basicExecutor.js \
+  extra/postfix.js \
+  | ./node_modules/.bin/f 'l.replace(/^import .*$/, "")' \
+  | ./node_modules/.bin/f 'l.replace(/^export function ([\w$]+)\(/, "var $1 = exports.$1 = function(")' \
+  | ./node_modules/.bin/f 'l.replace(/^export var ([\w$]+) =/, "var $1 = exports.$1 =")' \
+  > build/plywood-lite.js
 

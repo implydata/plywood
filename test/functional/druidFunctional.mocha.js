@@ -1634,7 +1634,7 @@ describe("Druid Functional", function() {
         });
     });
 
-    it.only("works multi-dimensional GROUP BYs with time", () => {
+    it("works multi-dimensional GROUP BYs with time", () => {
       var ex = ply()
         .apply("wiki", $('wiki').filter($("channel").isnt('en')))
         .apply(

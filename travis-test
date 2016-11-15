@@ -14,6 +14,7 @@ fi
 
 ./compile
 
+PLYWOOD_PATH="build/plywood"
 mocha \
   test/datatypes/* \
   test/expression/* \
@@ -22,4 +23,36 @@ mocha \
   test/overall/* \
   test/parser/* \
   test/simulate/* \
+  ;
+
+PLYWOOD_PATH="package/plywood"
+mocha \
+  test/datatypes/* \
+  test/expression/* \
+  test/external/* \
+  test/helper/* \
+  test/overall/* \
+  test/parser/* \
+  test/simulate/* \
+  ;
+
+PLYWOOD_PATH="package/plywood.min"
+mocha \
+  test/datatypes/* \
+  test/expression/* \
+  test/external/* \
+  test/helper/* \
+  test/overall/* \
+  test/parser/* \
+  test/simulate/* \
+  ;
+
+PLYWOOD_PATH="build/plywood-lite"
+mocha \
+  test/overall/compute.mocha.js \
+  ;
+
+PLYWOOD_PATH="package/plywood-lite"
+mocha \
+  test/overall/compute.mocha.js \
   ;
