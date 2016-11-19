@@ -1276,16 +1276,18 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return new TimeFloorExpression({ operand: this, duration, timezone });
   }
 
-  public timeShift(duration: any, step: number, timezone?: any) {
+  public timeShift(duration: any, step?: number, timezone?: any) {
     if (!(duration instanceof Duration)) duration = Duration.fromJS(getString(duration));
+    step = typeof step !== 'undefined' ? getNumber(step) : null;
     if (timezone && !(timezone instanceof Timezone)) timezone = Timezone.fromJS(getString(timezone));
-    return new TimeShiftExpression({ operand: this, duration, step: getNumber(step), timezone });
+    return new TimeShiftExpression({ operand: this, duration, step, timezone });
   }
 
-  public timeRange(duration: any, step: number, timezone?: any) {
+  public timeRange(duration: any, step?: number, timezone?: any) {
     if (!(duration instanceof Duration)) duration = Duration.fromJS(getString(duration));
+    step = typeof step !== 'undefined' ? getNumber(step) : null;
     if (timezone && !(timezone instanceof Timezone)) timezone = Timezone.fromJS(getString(timezone));
-    return new TimeRangeExpression({ operand: this, duration, step: getNumber(step), timezone });
+    return new TimeRangeExpression({ operand: this, duration, step, timezone });
   }
 
   public timePart(part: string, timezone?: any) {
@@ -1352,9 +1354,9 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return new ApplyExpression({ operand: this, name: getString(name), expression: ex });
   }
 
-  public sort(ex: any, direction: Direction = 'ascending') {
+  public sort(ex: any, direction?: Direction) {
     if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
-    return new SortExpression({ operand: this, expression: ex, direction: (getString(direction) as Direction) });
+    return new SortExpression({ operand: this, expression: ex, direction: direction ? (getString(direction) as Direction) : null });
   }
 
   public limit(value: number) {
@@ -1371,7 +1373,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   // Aggregate expressions
 
   public count() {
-    if (arguments.length) throw new Error('.count() should not have arguments, did you want to .filter().count()?');
+    if (arguments.length) throw new Error('.count() should not have arguments, did you want to .filter().count() ?');
     return new CountExpression({ operand: this });
   }
 

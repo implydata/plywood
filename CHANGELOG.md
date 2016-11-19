@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.14.12
+
+- Druid countDistinct planing no longer does `byRow: true` to be more inline with how plywood aggregates work in general
+- Fix countDistinct to be able to accept all expression types
+- Default step in timeShift and timeRange maker functions
+
 ## 0.14.11
 
 - Added a plywood-light version with no externals or requester utils

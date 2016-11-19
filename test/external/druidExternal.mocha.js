@@ -621,7 +621,6 @@ describe("DruidExternal", () => {
             "type": "doubleSum"
           },
           {
-            "byRow": true,
             "fieldNames": [
               "page"
             ],

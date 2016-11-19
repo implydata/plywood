@@ -32,7 +32,7 @@ describe("composition", () => {
     it("throws on an expression in count", () => {
       expect(() => {
         ply().count('$x');
-      }).to.throw('.count() should not have arguments, did you want to .filter().count()?');
+      }).to.throw('.count() should not have arguments, did you want to .filter().count() ?');
     });
 
   });
@@ -51,6 +51,15 @@ describe("composition", () => {
     expect(ex.toJS()).to.deep.equal({
       "op": "ref",
       "name": "diamonds"
+    });
+  });
+
+  it("works in timeShift case", () => {
+    var ex = Expression._.timeShift('P1D');
+    expect(ex.toJS()).to.deep.equal({
+      "op": "timeShift",
+      "duration": "P1D",
+      "step": 1
     });
   });
 

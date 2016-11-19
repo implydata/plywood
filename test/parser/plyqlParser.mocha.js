@@ -629,7 +629,9 @@ describe("SQL parser", () => {
         COUNT(DISTINCT(visitor)) AS 'Unique3',
         TIME_BUCKET(time, PT1H) AS 'TimeBucket',
         TIME_FLOOR(time, PT1H) AS 'TimeFloor',
+        TIME_SHIFT(time, PT1H) AS 'TimeShift1',
         TIME_SHIFT(time, PT1H, 3) AS 'TimeShift3',
+        TIME_RANGE(time, PT1H) AS 'TimeRange1',
         TIME_RANGE(time, PT1H, 3) AS 'TimeRange3',
         OVERLAP(x, y) AS 'Overlap',
         CUSTOM('blah') AS 'Custom1',
@@ -667,7 +669,9 @@ describe("SQL parser", () => {
         .apply('Unique3', $('data').countDistinct('i$visitor'))
         .apply('TimeBucket', i$('time').timeBucket('PT1H'))
         .apply('TimeFloor', i$('time').timeFloor('PT1H'))
+        .apply('TimeShift1', i$('time').timeShift('PT1H'))
         .apply('TimeShift3', i$('time').timeShift('PT1H', 3))
+        .apply('TimeRange1', i$('time').timeRange('PT1H'))
         .apply('TimeRange3', i$('time').timeRange('PT1H', 3))
         .apply('Overlap', i$('x').overlap('i$y'))
         .apply('Custom1', $('data').customAggregate('blah'))
@@ -675,7 +679,7 @@ describe("SQL parser", () => {
         .select("aISb1", "aISb2", "aISb3", "Count1", "Count2", "Count3", "Count4", "Match", "CustomTransform",
           "TotalAdded", "Date", "TotalAddedOver4", "False", "MinusAdded", "AbsAdded", "AbsoluteAdded", "SqRtAdded",
           "SqRtAdded2", "SquareRoot", "One", "SimplyAdded", "Median", "Unique1", "Unique2", "Unique3",
-          "TimeBucket", "TimeFloor", "TimeShift3", "TimeRange3", "Overlap", "Custom1", "Custom2");
+          "TimeBucket", "TimeFloor", "TimeShift1", "TimeShift3", "TimeRange1", "TimeRange3", "Overlap", "Custom1", "Custom2");
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });

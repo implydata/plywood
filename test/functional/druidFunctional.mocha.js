@@ -29,9 +29,9 @@ var druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
-druidRequester = verboseRequesterFactory({
-  requester: druidRequester
-});
+// druidRequester = verboseRequesterFactory({
+//   requester: druidRequester
+// });
 
 describe("Druid Functional", function() {
   this.timeout(10000);
@@ -490,6 +490,8 @@ describe("Druid Functional", function() {
 
     it("works with uniques", () => {
       var ex = ply()
+        .apply('UniqueIsRobot', $('wiki').countDistinct("$isRobot"))
+        .apply('UniqueUserChars', $('wiki').countDistinct("$userChars"))
         .apply('UniquePages1', $('wiki').countDistinct("$page"))
         .apply('UniquePages2', $('wiki').countDistinct("$page_unique"))
         .apply('UniqueUsers1', $('wiki').countDistinct("$user"))
@@ -503,6 +505,8 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
+              "UniqueIsRobot": 2.000977198748901,
+              "UniqueUserChars": 1376.0314194627178,
               "Diff_Users_1_2": 1507.8377206866207,
               "Diff_Users_1_3": 1055.998647896362,
               "Diff_Users_2_3": -451.8390727902588,

@@ -24,6 +24,7 @@ export type Direction = 'ascending' | 'descending';
 export class SortExpression extends ChainableUnaryExpression {
   static DESCENDING: Direction = 'descending';
   static ASCENDING: Direction = 'ascending';
+  static DEFAULT_DIRECTION: Direction = 'ascending';
 
   static op = "Sort";
   static fromJS(parameters: ExpressionJS): SortExpression {
@@ -43,7 +44,7 @@ export class SortExpression extends ChainableUnaryExpression {
       throw new Error(`must be a reference expression: ${this.expression}`);
     }
 
-    let direction = parameters.direction || 'ascending';
+    let direction = parameters.direction || SortExpression.DEFAULT_DIRECTION;
     if (direction !== SortExpression.DESCENDING && direction !== SortExpression.ASCENDING) {
       throw new Error(`direction must be '${SortExpression.DESCENDING}' or '${SortExpression.ASCENDING}'`);
     }

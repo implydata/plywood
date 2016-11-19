@@ -461,7 +461,6 @@ describe("simulate Druid 0.9.0", () => {
           },
           {
             "aggregator": {
-              "byRow": true,
               "fieldNames": [
                 "color"
               ],

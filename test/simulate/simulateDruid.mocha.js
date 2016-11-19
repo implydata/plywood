@@ -2086,7 +2086,6 @@ describe("simulate Druid", () => {
           },
           {
             "aggregator": {
-              "byRow": true,
               "fieldNames": [
                 "color"
               ],
@@ -2637,7 +2636,6 @@ describe("simulate Druid", () => {
       {
         "aggregations": [
           {
-            "byRow": true,
             "fieldNames": [
               "color"
             ],

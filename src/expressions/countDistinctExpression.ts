@@ -29,7 +29,6 @@ export class CountDistinctExpression extends ChainableUnaryExpression implements
     super(parameters, dummyObject);
     this._ensureOp("countDistinct");
     this._checkOperandTypes('DATASET');
-    this._checkExpressionTypes('NUMBER', 'STRING', 'SET/STRING');
     this.type = 'NUMBER';
   }
 

@@ -297,8 +297,7 @@ export class DruidAggregationBuilder {
       aggregation = {
         name: name,
         type: "cardinality",
-        fieldNames: [attributeName],
-        byRow: true
+        fieldNames: [attributeName]
       };
 
     }
