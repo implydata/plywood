@@ -25,15 +25,11 @@ import { Set } from './set';
 import { StringRange } from './stringRange';
 import { TimeRange } from './timeRange';
 import { valueFromJS, valueToJSInlineType, datumHasExternal } from './common';
-import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression } from '../expressions/index';
+import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression, Direction } from '../expressions/index';
 import { External, TotalContainer } from '../external/baseExternal';
 
 export interface ComputeFn {
   (d: Datum): any;
-}
-
-export interface SplitFns {
-  [name: string]: ComputeFn;
 }
 
 export interface DirectionFn {
@@ -542,7 +538,17 @@ export class Dataset implements Instance<DatasetValue, any> {
     return new Dataset(value);
   }
 
-  public apply(name: string, exFn: ComputeFn, type: PlyType): Dataset {
+
+  public apply(name: string, ex: Expression): Dataset {
+    if (typeof ex === 'function') {
+      // ToDo: add better deprecation
+      console.warn(`Dataset#apply now takes Expressions use Dataset.applyFn instead`);
+      return this.applyFn(name, ex as any, arguments[2]);
+    }
+    return this.applyFn(name, ex.getFn(), ex.type);
+  }
+
+  public applyFn(name: string, exFn: ComputeFn, type: PlyType): Dataset {
     let data = this.data;
     let n = data.length;
     let newData = new Array(n);
@@ -572,20 +578,41 @@ export class Dataset implements Instance<DatasetValue, any> {
     return new Dataset(value);
   }
 
-  public filter(exFn: ComputeFn): Dataset {
+
+  public filter(ex: Expression): Dataset {
+    if (typeof ex === 'function') {
+      // ToDo: add better deprecation
+      console.warn(`Dataset#filter now takes Expressions use Dataset.filterFn instead`);
+      return this.filterFn(ex as any);
+    }
+    return this.filterFn(ex.getFn());
+  }
+
+  public filterFn(exFn: ComputeFn): Dataset {
     let value = this.valueOf();
     value.data = value.data.filter(datum => exFn(datum));
     return new Dataset(value);
   }
 
-  public sort(exFn: ComputeFn, direction: string): Dataset {
+
+  public sort(ex: Expression, direction: Direction): Dataset {
+    if (typeof ex === 'function') {
+      // ToDo: add better deprecation
+      console.warn(`Dataset#sort now takes Expressions use Dataset.sortFn instead`);
+      return this.sortFn(ex as any, direction);
+    }
+    return this.sortFn(ex.getFn(), direction);
+  }
+
+  public sortFn(exFn: ComputeFn, direction: Direction): Dataset {
     let value = this.valueOf();
     let directionFn = directionFns[direction];
-    value.data = this.data.sort((a, b) => { // Note: this modifies the original, fix if needed
+    value.data = this.data.slice().sort((a, b) => {
       return directionFn(exFn(a), exFn(b));
     });
     return new Dataset(value);
   }
+
 
   public limit(limit: number): Dataset {
     let data = this.data;
@@ -600,7 +627,17 @@ export class Dataset implements Instance<DatasetValue, any> {
     return this.data.length;
   }
 
-  public sum(exFn: ComputeFn): number {
+
+  public sum(ex: Expression): number {
+    if (typeof ex === 'function') {
+      // ToDo: add better deprecation
+      console.warn(`Dataset#sum now takes Expressions use Dataset.sumFn instead`);
+      return this.sumFn(ex as any);
+    }
+    return this.sumFn(ex.getFn());
+  }
+
+  public sumFn(exFn: ComputeFn): number {
     let data = this.data;
     let sum = 0;
     for (let datum of data) {
@@ -609,12 +646,32 @@ export class Dataset implements Instance<DatasetValue, any> {
     return sum;
   }
 
-  public average(exFn: ComputeFn): number {
-    let count = this.count();
-    return count ? (this.sum(exFn) / count) : null;
+
+  public average(ex: Expression): number {
+    if (typeof ex === 'function') {
+      // ToDo: add better deprecation
+      console.warn(`Dataset#average now takes Expressions use Dataset.averageFn instead`);
+      return this.averageFn(ex as any);
+    }
+    return this.averageFn(ex.getFn());
   }
 
-  public min(exFn: ComputeFn): number {
+  public averageFn(exFn: ComputeFn): number {
+    let count = this.count();
+    return count ? (this.sumFn(exFn) / count) : null;
+  }
+
+
+  public min(ex: Expression): number {
+    if (typeof ex === 'function') {
+      // ToDo: add better deprecation
+      console.warn(`Dataset#min now takes Expressions use Dataset.minFn instead`);
+      return this.minFn(ex as any);
+    }
+    return this.minFn(ex.getFn());
+  }
+
+  public minFn(exFn: ComputeFn): number {
     let data = this.data;
     let min = Infinity;
     for (let datum of data) {
@@ -624,7 +681,17 @@ export class Dataset implements Instance<DatasetValue, any> {
     return min;
   }
 
-  public max(exFn: ComputeFn): number {
+
+  public max(ex: Expression): number {
+    if (typeof ex === 'function') {
+      // ToDo: add better deprecation
+      console.warn(`Dataset#max now takes Expressions use Dataset.maxFn instead`);
+      return this.maxFn(ex as any);
+    }
+    return this.maxFn(ex.getFn());
+  }
+
+  public maxFn(exFn: ComputeFn): number {
     let data = this.data;
     let max = -Infinity;
     for (let datum of data) {
@@ -634,7 +701,17 @@ export class Dataset implements Instance<DatasetValue, any> {
     return max;
   }
 
-  public countDistinct(exFn: ComputeFn): number {
+
+  public countDistinct(ex: Expression): number {
+    if (typeof ex === 'function') {
+      // ToDo: add better deprecation
+      console.warn(`Dataset#countDistinct now takes Expressions use Dataset.countDistinctFn instead`);
+      return this.countDistinctFn(ex as any);
+    }
+    return this.countDistinctFn(ex.getFn());
+  }
+
+  public countDistinctFn(exFn: ComputeFn): number {
     let data = this.data;
     let seen: Lookup<number> = Object.create(null);
     let count = 0;
@@ -648,7 +725,17 @@ export class Dataset implements Instance<DatasetValue, any> {
     return count;
   }
 
-  public quantile(exFn: ComputeFn, quantile: number): number {
+
+  public quantile(ex: Expression, quantile: number): number {
+    if (typeof ex === 'function') {
+      // ToDo: add better deprecation
+      console.warn(`Dataset#quantile now takes Expressions use Dataset.quantileFn instead`);
+      return this.quantileFn(ex as any, quantile);
+    }
+    return this.quantileFn(ex.getFn(), quantile);
+  }
+
+  public quantileFn(exFn: ComputeFn, quantile: number): number {
     let data = this.data;
     let vs: number[] = [];
     for (let datum of data) {
@@ -671,11 +758,36 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
   }
 
-  public collect(exFn: ComputeFn): Set {
+
+  public collect(ex: Expression): Set {
+    if (typeof ex === 'function') {
+      // ToDo: add better deprecation
+      console.warn(`Dataset#collect now takes Expressions use Dataset.collectFn instead`);
+      return this.collectFn(ex as any);
+    }
+    return this.collectFn(ex.getFn());
+  }
+
+  public collectFn(exFn: ComputeFn): Set {
     return Set.fromJS(this.data.map(exFn));
   }
 
-  public split(splitFns: SplitFns, datasetName: string): Dataset {
+
+  public split(splits: Lookup<Expression>, datasetName: string): Dataset {
+    let splitFns: Lookup<ComputeFn> = {};
+    for (let k in splits) {
+      let ex = splits[k];
+      if (typeof ex === 'function') {
+        // ToDo: add better deprecation
+        console.warn(`Dataset#collect now takes Expressions use Dataset.collectFn instead`);
+        return this.split(splits as any, datasetName);
+      }
+      splitFns[k] = ex.getFn();
+    }
+    return this.splitFn(splitFns, datasetName);
+  }
+
+  public splitFn(splitFns: Lookup<ComputeFn>, datasetName: string): Dataset {
     let { data, attributes } = this;
 
     let keys = Object.keys(splitFns);

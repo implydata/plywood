@@ -34,7 +34,7 @@ export class MinExpression extends ChainableUnaryExpression implements Aggregate
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue ? (operandValue as Dataset).min(this.expression.getFn()) : null;
+    return operandValue ? (operandValue as Dataset).min(this.expression) : null;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {

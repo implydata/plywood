@@ -165,10 +165,9 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   }
 
   public calc(datum: Datum): PlywoodValue {
-    let { operand, dataName } = this;
-    let splitFns = this.mapSplitExpressions((ex) => ex.getFn());
+    let { operand, splits, dataName } = this;
     const operandValue = operand.calc(datum);
-    return operandValue ? (operandValue as Dataset).split(splitFns, dataName) : null;
+    return operandValue ? (operandValue as Dataset).split(splits, dataName) : null;
   }
 
   public getSQL(dialect: SQLDialect): string {

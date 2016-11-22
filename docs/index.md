@@ -8,10 +8,10 @@ Plywood is architected around the principles of nested
 [Split-Apply-Combine](http://www.jstatsoft.org/article/view/v040i01/v40i01.pdf),
 a powerful divide-and-conquer algorithm that can be used to construct all types
 of data visualizations. Plywood comes with its own [expression
-language](docs/expressions.md) where a single Plywood expression can
+language](expressions.md) where a single Plywood expression can
 translate to multiple database queries, and where results are returned in a
 nested data structure so they can be easily consumed by visualization libraries
-such as [D3.js](http://d3js.org/). 
+such as [D3.js](http://d3js.org/).
 
 You can use Plywood in the browser and/or in node.js to easily create your own
 visualizations and applications. For an example application built using
@@ -21,13 +21,13 @@ Plywood also acts as a very advanced query planner for Druid, and Plywood will
 determine the most optimal way to execute Druid queries.
 
 ## Should you use Plywood?
- 
+
 Here are some possible usage scenarios for Plywood:
 
 ### You are building a web-based, data-driven application, node.js backend
- 
+
 Plywood primitives can serve as the 'models' for the web application.
-The frontend can send JSON serialized Plywood queries to the backend. 
+The frontend can send JSON serialized Plywood queries to the backend.
 The backend uses Plywood to translate Plywood queries to database queries as well as doing permission management and access control by utilizing Plywood heleprs.
 
 ![web app, node.js](images/web-app-nodejs.png)
@@ -49,11 +49,11 @@ It might be undesirable to have the web app communicate with the DB directly in 
 If JavaScript does not fit into your stack you can still benefit from Plywood by utilizing plyql.
 Your application could ether generate Plywood queries in their JSON form or as PlyQL SQL strings that it sends over to plyql running in server mode.
 plyql will send back nested JSON results.
-   
+
 ![app, proxy](images/app-proxy.png)
-   
-### You know SQL and want to query a DB that does not use SQL (like Druid)   
-   
+
+### You know SQL and want to query a DB that does not use SQL (like Druid)
+
 Maybe all you want is to have a SQL-like interface to Druid. You can use the [plyql](https://github.com/implydata/plyql) command line utility to talk to Druid.
 
 ![plyql](images/plyql.png)
@@ -119,7 +119,7 @@ var druidRequesterFactory = require('plywood-druid-requester').druidRequesterFac
 ```
 
 * External: An external acts as a query planner and scheduler for its database. [More about them here](./design-overview.md)
-* DruidRequesterFactory: This is a node specific module. Each external requires a requester function and this module exposes a factory function that makes these requester functions. 
+* DruidRequesterFactory: This is a node specific module. Each external requires a requester function and this module exposes a factory function that makes these requester functions.
 
 Next, the druid connection needs to be configured:
 
@@ -129,7 +129,7 @@ var druidRequester = druidRequesterFactory({
 });
 ```
 
-Construct an external from a JSON definition. 
+Construct an external from a JSON definition.
 
 ```javascript
 var wikiDataset = External.fromJS({
@@ -137,14 +137,14 @@ var wikiDataset = External.fromJS({
   source: 'wikipedia',  // The datasource name in Druid
   timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time',
   context: {
-    timeout: 10000 // The Druid context 
+    timeout: 10000 // The Druid context
   }
 }, druidRequester);
 ```
 
-Once that is up and running, we should configure our execution context 
+Once that is up and running, we should configure our execution context
 (Note, this is unrelated to the Druid context defined in the external)
-The execution context is a map that allows us to define values that our query can refer to.  
+The execution context is a map that allows us to define values that our query can refer to.
 With the following context definition, we can now refer to our wikipedia External as "wiki".
 Less helpfully, we can also refer to the number 70 with the string "seventy".
 
@@ -172,7 +172,7 @@ var ex = ply()
 
   // Calculate the sum of the `added` attribute
   .apply('TotalAdded', '$wiki.sum($added)');
-  
+
   // Refer to the seventy defined in the context
   .apply('70', $('seventy'));
 

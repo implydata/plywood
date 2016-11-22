@@ -86,7 +86,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     if (!operandValue) return null;
     const { name, expression } = this;
-    return (operandValue as Dataset).apply(name, expression.getFn(), expression.type);
+    return (operandValue as Dataset).apply(name, expression);
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
@@ -119,6 +119,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
       return this.swapWithOperand();
     }
 
+    // r(Dataset).apply(...)
     let dataset = operand.getLiteralValue();
     if (dataset instanceof Dataset && expression.resolved()) {
       // Omg mega hack:
@@ -129,7 +130,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
         return this;
       }
 
-      dataset = dataset.apply(name, (d: Datum): any => {
+      dataset = dataset.applyFn(name, (d: Datum): any => {
         let simp = expression.resolve(d).simplify();
         if (simp instanceof ExternalExpression) return simp.external;
         if (simp instanceof LiteralExpression) return simp.value;

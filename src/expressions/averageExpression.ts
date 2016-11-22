@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
@@ -35,9 +34,7 @@ export class AverageExpression extends ChainableUnaryExpression implements Aggre
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    if (!operandValue) return null;
-    const { expression } = this;
-    return (operandValue as Dataset).average(expression.getFn());
+    return operandValue ? (operandValue as Dataset).average(this.expression) : null;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {

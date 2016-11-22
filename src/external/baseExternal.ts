@@ -1292,7 +1292,7 @@ export abstract class External {
   public addNextExternal(dataset: Dataset): Dataset {
     const { mode, dataName, split } = this;
     if (mode !== 'split') throw new Error('must be in split mode to addNextExternal');
-    return dataset.apply(dataName, (d: Datum) => {
+    return dataset.applyFn(dataName, (d: Datum) => {
       return this.getRaw()._addFilterExpression(Expression._.filter(split.filterFromDatum(d)));
     }, 'DATASET');
   }
