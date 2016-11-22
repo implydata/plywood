@@ -2,6 +2,15 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.15.1
+
+- All Dataset computation and aggregation functions now take expressions instead of functions.
+  Each has a corresponding function that takes a function like the old API.
+  So `Dataset#apply(name, x)` now expects `x` to be and expression but `Dataset#applyFn(name, x)` has the old API
+- `AttributeInfo#type` defaults to `STRING`
+- Removed PlyQL parser from plywood-lite
+
+
 ## 0.14.12
 
 - Druid countDistinct planing no longer does `byRow: true` to be more inline with how plywood aggregates work in general
@@ -54,8 +63,8 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Totally reworked internal representation all BlahAction classes are now BlahExpression
 - removed `.custom` use `.customAggregate`
 - changed `lookup` to `lookupFn`
-- changed `LimitAction#limit` to `LimitExpression#value` 
-- changed `QuantileAction#quantile` to `QuantileExpression#value` 
+- changed `LimitAction#limit` to `LimitExpression#value`
+- changed `QuantileAction#quantile` to `QuantileExpression#value`
 - Fixed NOT() in Druid having clause
 - removed `Expression#actionize`
 - removed `Expression#firstAction`

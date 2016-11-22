@@ -136,11 +136,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       throw new Error("name must be a string");
     }
     this.name = parameters.name;
-
-    if (parameters.type) {
-      if (!RefExpression.validType(parameters.type)) throw new Error(`invalid type: ${parameters.type}`);
-      this.type = parameters.type;
-    }
+    this.type = parameters.type || 'STRING';
+    if (!RefExpression.validType(this.type)) throw new Error(`invalid type: ${this.type}`);
 
     this.datasetType = parameters.datasetType;
     this.unsplitable = Boolean(parameters.unsplitable);
@@ -154,16 +151,6 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     }
     if (this.special !== special) {
       throw new TypeError(`incorrect attributeInfo special '${this.special}' (needs to be: '${special}')`);
-    }
-  }
-
-  public _ensureType(myType: PlyType) {
-    if (!this.type) {
-      this.type = myType;
-      return;
-    }
-    if (this.type !== myType) {
-      throw new TypeError(`incorrect attributeInfo type '${this.type}' (needs to be: '${myType}')`);
     }
   }
 
@@ -245,7 +232,7 @@ export class UniqueAttributeInfo extends AttributeInfo {
   constructor(parameters: AttributeInfoValue) {
     super(parameters);
     this._ensureSpecial("unique");
-    this._ensureType('STRING');
+    this.type = 'STRING';
   }
 
   public serialize(value: any): string {
@@ -268,7 +255,7 @@ export class ThetaAttributeInfo extends AttributeInfo {
   constructor(parameters: AttributeInfoValue) {
     super(parameters);
     this._ensureSpecial("theta");
-    this._ensureType('STRING');
+    this.type = 'STRING';
   }
 
   public serialize(value: any): string {
@@ -291,7 +278,7 @@ export class HistogramAttributeInfo extends AttributeInfo {
   constructor(parameters: AttributeInfoValue) {
     super(parameters);
     this._ensureSpecial("histogram");
-    this._ensureType('NUMBER');
+    this.type = 'NUMBER';
   }
 
   public serialize(value: any): string {

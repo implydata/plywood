@@ -39,7 +39,7 @@ export class FilterExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue ? (operandValue as Dataset).filter(this.expression.getFn()) : null;
+    return operandValue ? (operandValue as Dataset).filter(this.expression) : null;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {

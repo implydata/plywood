@@ -33,7 +33,7 @@ export class CountDistinctExpression extends ChainableUnaryExpression implements
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue ? (operandValue as Dataset).countDistinct(this.expression.getFn()) : null;
+    return operandValue ? (operandValue as Dataset).countDistinct(this.expression) : null;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {

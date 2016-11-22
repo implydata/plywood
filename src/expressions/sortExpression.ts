@@ -16,7 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Dataset } from '../datatypes/index';
 import { RefExpression } from './refExpression';
 
 export type Direction = 'ascending' | 'descending';
@@ -75,7 +75,7 @@ export class SortExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue ? operandValue.sort(this.expression.getFn(), this.direction) : null;
+    return operandValue ? (operandValue as Dataset).sort(this.expression, this.direction) : null;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {

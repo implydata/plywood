@@ -34,7 +34,7 @@ export class CollectExpression extends ChainableUnaryExpression implements Aggre
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue ? (operandValue as Dataset).collect(this.expression.getFn()) : null;
+    return operandValue ? (operandValue as Dataset).collect(this.expression) : null;
   }
 
 }

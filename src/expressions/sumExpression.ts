@@ -38,7 +38,7 @@ export class SumExpression extends ChainableUnaryExpression implements Aggregate
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue ? (operandValue as Dataset).sum(this.expression.getFn()) : null;
+    return operandValue ? (operandValue as Dataset).sum(this.expression) : null;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {

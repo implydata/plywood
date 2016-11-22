@@ -16,7 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Dataset } from '../datatypes/index';
 
 export class QuantileExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Quantile";
@@ -59,18 +59,8 @@ export class QuantileExpression extends ChainableUnaryExpression implements Aggr
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue ? operandValue.quantile(this.expression.getFn(), this.value) : null;
+    return operandValue ? (operandValue as Dataset).quantile(this.expression, this.value) : null;
   }
-
-  // protected _performOnLiteral(literalExpression: LiteralExpression): Expression {
-  //   const { expression, quantile } = this;
-  //   if (literalExpression.value === null) return Expression.NULL;
-  //   let dataset = literalExpression.value;
-  //
-  //   dataset = dataset.quantile(expression.getFn(), quantile);
-  //
-  //   return r(dataset);
-  // }
 }
 
 Expression.applyMixins(QuantileExpression, [Aggregate]);
