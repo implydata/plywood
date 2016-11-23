@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, Dataset, External, ExternalExpression, $, i$, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, Dataset, External, ExternalExpression, $, i$, ply, r } = plywood;
 
 describe("resolve", () => {
   describe("errors if", () => {
     it("went too deep", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
           'subData',
@@ -38,7 +38,7 @@ describe("resolve", () => {
     });
 
     it("could not find something in context", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
           'subData',
@@ -53,7 +53,7 @@ describe("resolve", () => {
     });
 
     it("ended up with bad types", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
           'subData',
@@ -70,26 +70,26 @@ describe("resolve", () => {
 
   describe("#resolved", () => {
     it('works with agg', () => {
-      var ex = $('diamonds').sum('$price');
+      let ex = $('diamonds').sum('$price');
       expect(ex.resolved()).to.equal(true);
     });
 
     it('works with add and var', () => {
-      var ex = $('TotalPrice').add($('diamonds').sum('$price'));
+      let ex = $('TotalPrice').add($('diamonds').sum('$price'));
       expect(ex.resolved()).to.equal(true);
     });
 
     it('works with add and ^var', () => {
-      var ex = $('TotalPrice', 1).add($('diamonds').sum('$price'));
+      let ex = $('TotalPrice', 1).add($('diamonds').sum('$price'));
       expect(ex.resolved()).to.equal(false);
     });
   });
 
   describe("#resolve", () => {
     it("works in a basic case", () => {
-      var ex = $('foo').add('$bar');
+      let ex = $('foo').add('$bar');
 
-      var context = {
+      let context = {
         foo: 7
       };
 
@@ -100,9 +100,9 @@ describe("resolve", () => {
     });
 
     it("works with null", () => {
-      var ex = $('foo').add('$bar');
+      let ex = $('foo').add('$bar');
 
-      var context = {
+      let context = {
         foo: null
       };
 
@@ -113,9 +113,9 @@ describe("resolve", () => {
     });
 
     it("works with null with is", () => {
-      var ex = $('bar', 'STRING').is('$foo');
+      let ex = $('bar', 'STRING').is('$foo');
 
-      var context = {
+      let context = {
         foo: null
       };
 
@@ -126,9 +126,9 @@ describe("resolve", () => {
     });
 
     it("works in a basic case (and simplifies)", () => {
-      var ex = $('foo').add(3);
+      let ex = $('foo').add(3);
 
-      var context = {
+      let context = {
         foo: 7
       };
 
@@ -139,7 +139,7 @@ describe("resolve", () => {
     });
 
     it("works in a nested case", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
           'subData',
@@ -148,7 +148,7 @@ describe("resolve", () => {
             .apply('y', '$^^foo * 10')
         );
 
-      var context = {
+      let context = {
         foo: 7
       };
 
@@ -184,7 +184,7 @@ describe("resolve", () => {
     });
 
     it("works with dataset", () => {
-      var data = [
+      let data = [
         { cut: 'Good', price: 400 },
         { cut: 'Good', price: 300 },
         { cut: 'Great', price: 124 },
@@ -192,12 +192,12 @@ describe("resolve", () => {
         { cut: 'Wow', price: 100 }
       ];
 
-      var ex = ply()
+      let ex = ply()
         .apply('Data', Dataset.fromJS(data))
         .apply('FooPlusCount', '$^foo + $Data.count()')
         .apply('CountPlusBar', '$Data.count() + $^bar');
 
-      var context = {
+      let context = {
         foo: 7,
         bar: 8
       };
@@ -213,7 +213,7 @@ describe("resolve", () => {
     });
 
     it("works with sub-expressions", () => {
-      var external = External.fromJS({
+      let external = External.fromJS({
         engine: 'druid',
         source: 'diamonds',
         attributes: [
@@ -224,18 +224,18 @@ describe("resolve", () => {
         ]
       });
 
-      var datum = {
+      let datum = {
         Count: 5,
         diamonds: external
       };
 
-      var ex = $("diamonds").split("$cut", 'Cut')
+      let ex = $("diamonds").split("$cut", 'Cut')
         .apply('Count', $('diamonds').count())
         .apply('PercentOfTotal', '$Count / $^Count');
 
       ex = ex.resolve(datum);
 
-      var externalExpression = new ExternalExpression({ external });
+      let externalExpression = new ExternalExpression({ external });
       expect(ex.toJS()).to.deep.equal(
         externalExpression.split("$cut", 'Cut', 'diamonds')
           .apply('Count', $('diamonds').count())
@@ -246,7 +246,7 @@ describe("resolve", () => {
   });
 
   describe("sql resolve", () => {
-    var external = External.fromJS({
+    let external = External.fromJS({
       engine: 'druid',
       source: 'diamonds',
       attributes: [
@@ -257,17 +257,17 @@ describe("resolve", () => {
       ]
     });
 
-    var datum = {
+    let datum = {
       Count: 5,
       diamonds: external
     };
 
     it("finds the right column with inline resolve", () => {
-      var parse = Expression.parseSQL("CITYnAME = 'San Francisco'");
-      var resolveString = parse.expression.resolve({ cityName: "" });
+      let parse = Expression.parseSQL("CITYnAME = 'San Francisco'");
+      let resolveString = parse.expression.resolve({ cityName: "" });
       expect(resolveString).to.not.deep.equal(null);
 
-      var parse2 = Expression.parseSQL("NOTACOLUMN = 'San Francisco'");
+      let parse2 = Expression.parseSQL("NOTACOLUMN = 'San Francisco'");
 
       expect(() => {
         parse2.expression.resolve({ cityName: "" });
@@ -275,7 +275,7 @@ describe("resolve", () => {
     });
 
     it("does not allow for improperly cased table names", () => {
-      var parse = Expression.parseSQL("SELECT __time FROM dIaMoNds");
+      let parse = Expression.parseSQL("SELECT __time FROM dIaMoNds");
       expect(() => {
         parse.expression.resolve(datum)
       }).to.throw('could not resolve $dIaMoNds because is was not in the context');

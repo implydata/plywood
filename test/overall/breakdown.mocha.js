@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, External, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, External, $, ply, r } = plywood;
 
 describe.skip("breakdown", () => {
-  var context = {
+  let context = {
     x: 1,
     y: 2,
     diamonds: External.fromJS({
@@ -51,7 +51,7 @@ describe.skip("breakdown", () => {
   };
 
   it("errors on breakdown zero datasets", () => {
-    var ex = Expression.parse('$x * $y + 2');
+    let ex = Expression.parse('$x * $y + 2');
 
     ex = ex.referenceCheck(context);
     expect(() => {
@@ -60,7 +60,7 @@ describe.skip("breakdown", () => {
   });
 
   it("errors on breakdown one datasets", () => {
-    var ex = Expression.parse('$diamonds.count() * 2');
+    let ex = Expression.parse('$diamonds.count() * 2');
 
     ex = ex.referenceCheck(context);
     expect(() => {
@@ -70,10 +70,10 @@ describe.skip("breakdown", () => {
 
 
   it("breakdown two datasets correctly", () => {
-    var ex = Expression.parse('$diamonds.count() * $diamonds2.count() + $diamonds.sum($carat)');
+    let ex = Expression.parse('$diamonds.count() * $diamonds2.count() + $diamonds.sum($carat)');
 
     ex = ex.referenceCheck(context);
-    var breakdown = ex.breakdownByDataset('b');
+    let breakdown = ex.breakdownByDataset('b');
     expect(breakdown.singleDatasetActions.join(' | ')).to.equal(
       '.apply(b0, $diamonds:DATASET.count()) | .apply(b1, $diamonds2:DATASET.count()) | .apply(b2, $diamonds:DATASET.sum($carat:NUMBER))'
     );
@@ -81,10 +81,10 @@ describe.skip("breakdown", () => {
   });
 
   it("breakdown two datasets correctly (and de-duplicates expression)", () => {
-    var ex = Expression.parse('$diamonds.count() * $diamonds2.sum($carat) + $diamonds.count()');
+    let ex = Expression.parse('$diamonds.count() * $diamonds2.sum($carat) + $diamonds.count()');
 
     ex = ex.referenceCheck(context);
-    var breakdown = ex.breakdownByDataset('b');
+    let breakdown = ex.breakdownByDataset('b');
     expect(breakdown.singleDatasetActions.join(' | ')).to.equal(
       '.apply(b0, $diamonds:DATASET.count()) | .apply(b1, $diamonds2:DATASET.sum($carat:NUMBER))'
     );

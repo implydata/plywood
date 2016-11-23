@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var Q = require('q');
-var { sane } = require('../utils');
+let { expect } = require("chai");
+let Q = require('q');
+let { sane } = require('../utils');
 
-var plywood = require('../plywood');
-var { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
+let plywood = require('../plywood');
+let { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 
-var timeFilter = $('time').in(TimeRange.fromJS({
+let timeFilter = $('time').in(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
   end: new Date("2013-02-27T00:00:00Z")
 }));
 
-var context = {
+let context = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',
@@ -92,7 +92,7 @@ var context = {
   })
 };
 
-var contextNoApprox = {
+let contextNoApprox = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',
@@ -115,14 +115,14 @@ describe("DruidExternal", () => {
 
   describe("simplifies / digests", () => {
     it("a (timeBoundary) total", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('maximumTime', '$wiki.max($time)')
         .apply('minimumTime', '$wiki.min($time)');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      var druidExternal = ex.value.getReadyExternals()[0].external;
+      let druidExternal = ex.value.getReadyExternals()[0].external;
 
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "dataSource": "wikipedia",
@@ -131,12 +131,12 @@ describe("DruidExternal", () => {
     });
 
     it("should properly process a simple value query", () => {
-      var ex = $('wiki').filter($("language").is('en')).sum('$added');
+      let ex = $('wiki').filter($("language").is('en')).sum('$added');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
 
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
@@ -159,12 +159,12 @@ describe("DruidExternal", () => {
     });
 
     it("should properly process a complex value query", () => {
-      var ex = $('wiki').filter($("language").is('en')).sum('$added').add($('wiki').sum('$deleted'));
+      let ex = $('wiki').filter($("language").is('en')).sum('$added').add($('wiki').sum('$deleted'));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
 
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
@@ -213,7 +213,7 @@ describe("DruidExternal", () => {
     });
 
     it("should properly process a total", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki', 1).apply('addedTwice', '$added * 2').filter($("language").is('en')))
         .apply('Count', '$wiki.count()')
         .apply('TotalAdded', '$wiki.sum($added)');
@@ -221,7 +221,7 @@ describe("DruidExternal", () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      var druidExternal = ex.value.getReadyExternals()[0].external;
+      let druidExternal = ex.value.getReadyExternals()[0].external;
 
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
@@ -248,16 +248,16 @@ describe("DruidExternal", () => {
     });
 
     it("inlines a total with no explicit dataset apply", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply('TotalAddedX2', '$TotalAdded * 2');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      var druidExternal = ex.value.getReadyExternals()[0].external;
+      let druidExternal = ex.value.getReadyExternals()[0].external;
 
-      var queryAndPostProcess = druidExternal.getQueryAndPostProcess();
+      let queryAndPostProcess = druidExternal.getQueryAndPostProcess();
       expect(queryAndPostProcess.query).to.deep.equal({
         "aggregations": [
           {
@@ -291,7 +291,7 @@ describe("DruidExternal", () => {
     });
 
     it("processes a simple split", () => {
-      var ex = $('wiki').split("$page", 'Page')
+      let ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
         .sort('$Count', 'descending')
@@ -300,7 +300,7 @@ describe("DruidExternal", () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
@@ -328,7 +328,7 @@ describe("DruidExternal", () => {
     });
 
     it("processes a split (no approximate)", () => {
-      var ex = $('wiki').split("$page", 'Page')
+      let ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
         .sort('$Count', 'descending')
@@ -337,7 +337,7 @@ describe("DruidExternal", () => {
       ex = ex.referenceCheck(contextNoApprox).resolve(contextNoApprox).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
@@ -375,7 +375,7 @@ describe("DruidExternal", () => {
     });
 
     it("processes a split with custom aggregations", () => {
-      var ex = $('wiki').split("$page", 'Page')
+      let ex = $('wiki').split("$page", 'Page')
         .apply('CrazyStupid', '$wiki.customAggregate(crazy) * $wiki.customAggregate(stupid)')
         .apply('CrazyStupidBackCompat', '$wiki.custom(crazy) * $wiki.custom(stupid)')
         .sort('$CrazyStupid', 'descending')
@@ -384,7 +384,7 @@ describe("DruidExternal", () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
@@ -447,14 +447,14 @@ describe("DruidExternal", () => {
     });
 
     it("works with complex aggregate expressions", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('SumAbs', '$wiki.sum($added.absolute())')
         .apply('SumComplex', '$wiki.sum($added.power(2) * $deleted / $added.absolute())');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      var druidExternal = ex.value.getReadyExternals()[0].external;
+      let druidExternal = ex.value.getReadyExternals()[0].external;
 
       expect(druidExternal.getQueryAndPostProcess().query.aggregations).to.deep.equal([
         {
@@ -482,7 +482,7 @@ describe("DruidExternal", () => {
     });
 
     it("works with filtered complex aggregate expressions", () => {
-      var ex = $('wiki').split("$page", 'Page')
+      let ex = $('wiki').split("$page", 'Page')
         .apply('FilteredSumDeleted', '$wiki.filter($page.contains("wikipedia")).sum($deleted)')
         .apply('Filtered2', '$wiki.filter($page.match("^wiki")).sum($deleted)')
         .sort('$FilteredSumDeleted', 'descending')
@@ -491,7 +491,7 @@ describe("DruidExternal", () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
 
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
@@ -543,7 +543,7 @@ describe("DruidExternal", () => {
     });
 
     it("works in simple cases with power and absolute", () => {
-      var ex = $('wiki').split("$page", 'Page')
+      let ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Abs', '$wiki.sum($added).absolute()')
         .apply('Abs2', '$wiki.sum($added).power(2)')
@@ -553,7 +553,7 @@ describe("DruidExternal", () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
@@ -599,7 +599,7 @@ describe("DruidExternal", () => {
     });
 
     it("works with complex absolute and power expressions", () => {
-      var ex = $('wiki').split("$page", 'Page')
+      let ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Abs', '(($wiki.sum($added)/$wiki.count().absolute().power(0.5) + 100 * $wiki.countDistinct($page)).absolute()).power(2) + $wiki.custom(crazy)')
         .sort('$Count', 'descending')
@@ -608,7 +608,7 @@ describe("DruidExternal", () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "aggregations": [
           {
@@ -676,13 +676,13 @@ describe("DruidExternal", () => {
     });
 
     it("works in simple cases with string comparisons", () => {
-      var ex = $('wiki').filter("$page < 'moon'", 'Page')
+      let ex = $('wiki').filter("$page < 'moon'", 'Page')
         .limit(5);
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({
         "dataSource": "wikipedia",
         "dimensions": [
@@ -692,7 +692,6 @@ describe("DruidExternal", () => {
           "tags",
           "commentLength",
           "isRobot",
-          "delta_hist",
           {
             "dimension": "page",
             "extractionFn": {
@@ -727,6 +726,7 @@ describe("DruidExternal", () => {
           "added",
           "deleted",
           "inserted",
+          "delta_hist"
         ],
         "pagingSpec": {
           "pagingIdentifiers": {},
@@ -737,7 +737,7 @@ describe("DruidExternal", () => {
     });
 
     it.skip("should work with error bound calculation", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('DistPagesWithinLimits', '($wiki.countDistinct($page) - 279893).absolute() < 10');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
@@ -745,7 +745,7 @@ describe("DruidExternal", () => {
       console.log('ex.toString()', ex.toString());
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query).to.deep.equal({});
     });
 
@@ -755,7 +755,7 @@ describe("DruidExternal", () => {
   describe("filters", () => {
 
     it("throws an error on unsplitable", () => {
-      var ex = $('wiki').filter($("count").is(1337));
+      let ex = $('wiki').filter($("count").is(1337));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -766,12 +766,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with ref filter", () => {
-      var ex = $('wiki').filter($("isRobot"));
+      let ex = $('wiki').filter($("isRobot"));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "isRobot",
         "extractionFn": {
@@ -792,12 +792,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with ref.not() filter", () => {
-      var ex = $('wiki').filter($("isRobot").not());
+      let ex = $('wiki').filter($("isRobot").not());
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "field": {
           "dimension": "isRobot",
@@ -821,12 +821,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .in(1 thing)", () => {
-      var ex = $('wiki').filter($("language").in(['en']));
+      let ex = $('wiki').filter($("language").in(['en']));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "type": "selector",
@@ -835,12 +835,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .in(3 things)", () => {
-      var ex = $('wiki').filter($("language").in(['en', 'es', 'fr']));
+      let ex = $('wiki').filter($("language").in(['en', 'es', 'fr']));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "type": "in",
@@ -849,12 +849,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .in([null])", () => {
-      var ex = $('wiki').filter($("language").in([null]));
+      let ex = $('wiki').filter($("language").in([null]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "type": "selector",
@@ -863,12 +863,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup().in(3 things)", () => {
-      var ex = $('wiki').filter($("language").lookup('language_lookup').in(['en', 'es', 'fr']));
+      let ex = $('wiki').filter($("language").lookup('language_lookup').in(['en', 'es', 'fr']));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "extractionFn": {
@@ -885,12 +885,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .overlap([null])", () => {
-      var ex = $('wiki').filter($("language").overlap([null]));
+      let ex = $('wiki').filter($("language").overlap([null]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "type": "selector",
@@ -899,12 +899,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup().overlap(blah, null) (on SET/STRING)", () => {
-      var ex = $('wiki').filter($("tags").lookup('tag_lookup').overlap(['Good', null]));
+      let ex = $('wiki').filter($("tags").lookup('tag_lookup').overlap(['Good', null]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "tags",
         "extractionFn": {
@@ -920,12 +920,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .extract().overlap(blah, null) (on SET/STRING)", () => {
-      var ex = $('wiki').filter($("tags").extract('[0-9]+').overlap(['Good', null]));
+      let ex = $('wiki').filter($("tags").extract('[0-9]+').overlap(['Good', null]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "tags",
         "extractionFn": {
@@ -942,12 +942,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .substr().overlap(blah, null) (on SET/STRING)", () => {
-      var ex = $('wiki').filter($("tags").substr(1, 3).overlap(['Good', null]));
+      let ex = $('wiki').filter($("tags").substr(1, 3).overlap(['Good', null]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "tags",
         "extractionFn": {
@@ -964,12 +964,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .in(NUMBER_RANGE)", () => {
-      var ex = $('wiki').filter($("commentLength").in(10, 30));
+      let ex = $('wiki').filter($("commentLength").in(10, 30));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "alphaNumeric": true,
         "dimension": "commentLength",
@@ -981,12 +981,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .in(SET/NUMBER)", () => {
-      var ex = $('wiki').filter($("commentLength").in([10, 30]));
+      let ex = $('wiki').filter($("commentLength").in([10, 30]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "commentLength",
         "type": "in",
@@ -995,12 +995,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .contains()", () => {
-      var ex = $('wiki').filter($("language").contains('en', 'ignoreCase'));
+      let ex = $('wiki').filter($("language").contains('en', 'ignoreCase'));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "query": {
@@ -1013,12 +1013,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with SET/STRING.contains()", () => {
-      var ex = $('wiki').filter($("tags").contains('good', 'ignoreCase'));
+      let ex = $('wiki').filter($("tags").contains('good', 'ignoreCase'));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "tags",
         "query": {
@@ -1031,12 +1031,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup().contains()", () => {
-      var ex = $('wiki').filter($("language").lookup('language_lookup').contains('eN', 'ignoreCase'));
+      let ex = $('wiki').filter($("language").lookup('language_lookup').contains('eN', 'ignoreCase'));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "extractionFn": {
@@ -1053,12 +1053,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup().contains().not()", () => {
-      var ex = $('wiki').filter($("language").lookup('language_lookup').contains('eN', 'ignoreCase').not());
+      let ex = $('wiki').filter($("language").lookup('language_lookup').contains('eN', 'ignoreCase').not());
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "field": {
           "dimension": "language",
@@ -1078,12 +1078,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .concat().concat().contains()", () => {
-      var ex = $('wiki').filter("('[' ++ $language ++ ']').contains('eN', 'ignoreCase')");
+      let ex = $('wiki').filter("('[' ++ $language ++ ']').contains('eN', 'ignoreCase')");
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "extractionFn": {
@@ -1101,12 +1101,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .match()", () => {
-      var ex = $('wiki').filter($("language").match('en+'));
+      let ex = $('wiki').filter($("language").match('en+'));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "pattern": "en+",
@@ -1115,12 +1115,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with SET/STRING.match()", () => {
-      var ex = $('wiki').filter($("tags").match('goo+d'));
+      let ex = $('wiki').filter($("tags").match('goo+d'));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "tags",
         "pattern": "goo+d",
@@ -1129,12 +1129,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .timePart().in()", () => {
-      var ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').in([3, 5]));
+      let ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').in([3, 5]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "__time",
         "extractionFn": {
@@ -1152,13 +1152,13 @@ describe("DruidExternal", () => {
     });
 
     it("works with derived .in()", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter('$pageInBrackets == "[wiki]"');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
@@ -1172,7 +1172,7 @@ describe("DruidExternal", () => {
     });
 
     it("works with dynamic derived .in()", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .apply('page3', '$page.substr(0, 3)')
         .filter('$page3 == wik');
 
@@ -1180,7 +1180,7 @@ describe("DruidExternal", () => {
 
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "page",
         "extractionFn": {
@@ -1199,7 +1199,7 @@ describe("DruidExternal", () => {
   describe("splits (makes correct dimension extractionFns)", () => {
 
     it("throws an error on unsplitable", () => {
-      var ex = $('wiki').split('$count', 'Split');
+      let ex = $('wiki').split('$count', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -1210,12 +1210,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with default", () => {
-      var ex = $('wiki').split('$page', 'Split');
+      let ex = $('wiki').split('$page', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1225,12 +1225,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with BOOLEAN ref", () => {
-      var ex = $('wiki').split('$isRobot', 'Split');
+      let ex = $('wiki').split('$isRobot', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('topN');
       expect(query.dimension).to.deep.equal({
         "dimension": "isRobot",
@@ -1252,12 +1252,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with simple STRING", () => {
-      var ex = $('wiki').split('$page', 'Split');
+      let ex = $('wiki').split('$page', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1267,12 +1267,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with dynamic derived column STRING", () => {
-      var ex = $('wiki').apply('page3', '$page.substr(0, 3)').split('$page3', 'Split');
+      let ex = $('wiki').apply('page3', '$page.substr(0, 3)').split('$page3', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1287,12 +1287,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .concat()", () => {
-      var ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
+      let ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1307,12 +1307,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with SET/STRING.concat()", () => {
-      var ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
+      let ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1327,12 +1327,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .substr()", () => {
-      var ex = $('wiki').split('$page.substr(3, 5)', 'Split');
+      let ex = $('wiki').split('$page.substr(3, 5)', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1347,12 +1347,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .substr().extract()", () => {
-      var ex = $('wiki').split('$page.substr(3, 5).extract("\\d+")', 'Split');
+      let ex = $('wiki').split('$page.substr(3, 5).extract("\\d+")', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1377,12 +1377,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .extract() (no fallback)", () => {
-      var ex = $('wiki').split($('page').extract('^Cat(.+)$'), 'Split');
+      let ex = $('wiki').split($('page').extract('^Cat(.+)$'), 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1397,12 +1397,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .extract() with custom .fallback()", () => {
-      var ex = $('wiki').split($('page').extract('^Cat(.+)$').fallback("noMatch"), 'Split');
+      let ex = $('wiki').split($('page').extract('^Cat(.+)$').fallback("noMatch"), 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1418,12 +1418,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .extract() with self .fallback()", () => {
-      var ex = $('wiki').split($('page').extract('^Cat(.+)$').fallback("$page"), 'Split');
+      let ex = $('wiki').split($('page').extract('^Cat(.+)$').fallback("$page"), 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1437,12 +1437,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup() (no fallback)", () => {
-      var ex = $('wiki').split($('page').lookup('wikipedia-page-lookup'), 'Split');
+      let ex = $('wiki').split($('page').lookup('wikipedia-page-lookup'), 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1456,12 +1456,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup() with custom .fallback()", () => {
-      var ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('missing'), 'Split');
+      let ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('missing'), 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1476,12 +1476,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup() with self .fallback()", () => {
-      var ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('$page'), 'Split');
+      let ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('$page'), 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1496,12 +1496,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup().fallback().extract()", () => {
-      var ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('$page').extract("\\d+"), 'Split');
+      let ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('$page').extract("\\d+"), 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1526,12 +1526,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .lookup().fallback().contains()", () => {
-      var ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('$page').contains("lol"), 'Split');
+      let ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').fallback('$page').contains("lol"), 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('topN');
       expect(query.dimension).to.deep.equal({
         "dimension": "page",
@@ -1555,12 +1555,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with SET/STRING.lookup()", () => {
-      var ex = $('wiki').split($('tags').lookup('tag-lookup'), 'Split');
+      let ex = $('wiki').split($('tags').lookup('tag-lookup'), 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "tags",
@@ -1574,12 +1574,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with SET/STRING.lookup().contains()", () => {
-      var ex = $('wiki').split($('tags').lookup('tag-lookup').contains("lol", 'ignoreCase'), 'Split');
+      let ex = $('wiki').split($('tags').lookup('tag-lookup').contains("lol", 'ignoreCase'), 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('topN');
       expect(query.dimension).to.deep.equal({
         "dimension": "tags",
@@ -1602,12 +1602,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .absolute()", () => {
-      var ex = $('wiki').split("$commentLength.absolute()", 'Split');
+      let ex = $('wiki').split("$commentLength.absolute()", 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
@@ -1621,12 +1621,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .power()", () => {
-      var ex = $('wiki').split("$commentLength.power(2)", 'Split');
+      let ex = $('wiki').split("$commentLength.power(2)", 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
@@ -1640,12 +1640,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .numberBucket()", () => {
-      var ex = $('wiki').split("$commentLength.numberBucket(10, 1)", 'Split');
+      let ex = $('wiki').split("$commentLength.numberBucket(10, 1)", 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
@@ -1659,12 +1659,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with .absolute().numberBucket()", () => {
-      var ex = $('wiki').split("$commentLength.absolute().numberBucket(10)", 'Split');
+      let ex = $('wiki').split("$commentLength.absolute().numberBucket(10)", 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
@@ -1678,7 +1678,7 @@ describe("DruidExternal", () => {
     });
 
     it("works with .timeBucket()", () => {
-      var ex = $('wiki').split({
+      let ex = $('wiki').split({
         'Split1': "$time.timeBucket(P1D)",
         'Split2': "$sometimeLater.timeBucket(P1D)"
       });
@@ -1686,7 +1686,7 @@ describe("DruidExternal", () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "sometimeLater",
@@ -1702,7 +1702,7 @@ describe("DruidExternal", () => {
     });
 
     it("works with .timePart()", () => {
-      var ex = $('wiki').split({
+      let ex = $('wiki').split({
         'Split1': "$time.timePart(DAY_OF_WEEK, 'Etc/UTC')",
         'Split2': "$sometimeLater.timePart(DAY_OF_WEEK, 'Etc/UTC')"
       });
@@ -1710,7 +1710,7 @@ describe("DruidExternal", () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "__time",
@@ -1726,12 +1726,12 @@ describe("DruidExternal", () => {
     });
 
     it("works with derived attr split", () => {
-      var ex = $('wiki').split('$page3', 'P3');
+      let ex = $('wiki').split('$page3', 'P3');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -1746,13 +1746,13 @@ describe("DruidExternal", () => {
     });
 
     it("works with custom transform split with time format extraction fn", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .split($('time').customTransform('makeFrenchCanadian').cast('STRING'), 'FrenchCanadian');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
         "aggregations": [
@@ -1790,13 +1790,13 @@ describe("DruidExternal", () => {
     });
 
     it("works with custom transform split with javascript extraction fn", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .split($('time').customTransform('makeExcited'), 'Excited');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
         "aggregations": [
@@ -1834,16 +1834,16 @@ describe("DruidExternal", () => {
 
   describe("applies", () => {
     it("works with ref filtered agg", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('Count', $('wiki').sum('$count'))
         .apply('Test', $('wiki').filter('$isRobot').sum('$count'));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      var druidExternal = ex.value.getReadyExternals()[0].external;
+      let druidExternal = ex.value.getReadyExternals()[0].external;
 
-      var query = druidExternal.getQueryAndPostProcess().query;
+      let query = druidExternal.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('timeseries');
       expect(query.aggregations[1]).to.deep.equal({
         "aggregator": {
@@ -1874,16 +1874,16 @@ describe("DruidExternal", () => {
     });
 
     it("works with quantile agg", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('P95', $('wiki').quantile('$delta_hist', 0.95))
         .apply('P99by2', $('wiki').quantile('$delta_hist', 0.99).divide(2));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      var druidExternal = ex.value.getReadyExternals()[0].external;
+      let druidExternal = ex.value.getReadyExternals()[0].external;
 
-      var query = druidExternal.getQueryAndPostProcess().query;
+      let query = druidExternal.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('timeseries');
       expect(query.aggregations).to.deep.equal([
         {
@@ -1933,7 +1933,7 @@ describe("DruidExternal", () => {
 
 
   describe("should work when getting back [] and [{result:[]}]", () => {
-    var nullExternal = External.fromJS({
+    let nullExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -1947,7 +1947,7 @@ describe("DruidExternal", () => {
       filter: timeFilter
     }, () => Q([]));
 
-    var emptyExternal = External.fromJS({
+    let emptyExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -1978,7 +1978,7 @@ describe("DruidExternal", () => {
     });
 
     describe("should return null correctly on a totals query", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('Count', '$wiki.count()');
 
       it("works with [] return", () => {
@@ -1992,7 +1992,7 @@ describe("DruidExternal", () => {
     });
 
     describe("should return null correctly on a timeseries query", () => {
-      var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
+      let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');
 
@@ -2005,7 +2005,7 @@ describe("DruidExternal", () => {
     });
 
     describe("should return null correctly on a topN query", () => {
-      var ex = $('wiki').split("$page", 'Page')
+      let ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
         .sort('$Count', 'descending')
@@ -2027,7 +2027,7 @@ describe("DruidExternal", () => {
     });
 
     describe("should return null correctly on a select query", () => {
-      var ex = $('wiki');
+      let ex = $('wiki');
 
       it("works with [] return", () => {
         return ex.compute({ wiki: nullExternal })
@@ -2063,7 +2063,7 @@ describe("DruidExternal", () => {
 
 
   describe("should work when getting back crap data", () => {
-    var crapExternal = External.fromJS({
+    let crapExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -2077,7 +2077,7 @@ describe("DruidExternal", () => {
     }, (query) => Q("[Does this look like data to you?"));
 
     it("works with value query", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('Count', '$wiki.count()');
 
       return ex.compute({ wiki: crapExternal })
@@ -2090,7 +2090,7 @@ describe("DruidExternal", () => {
     });
 
     it("works with all query", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)');
 
@@ -2104,7 +2104,7 @@ describe("DruidExternal", () => {
     });
 
     it("works with timeseries query", () => {
-      var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
+      let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');
 
@@ -2122,7 +2122,7 @@ describe("DruidExternal", () => {
 
   describe("should work well with druid context", () => {
     it("should pass the context", () => {
-      var external = External.fromJS({
+      let external = External.fromJS({
         engine: 'druid',
         source: 'wikipedia',
         timeAttribute: 'time',
@@ -2136,21 +2136,21 @@ describe("DruidExternal", () => {
         }
       });
 
-      var context = { wiki: external };
+      let context = { wiki: external };
 
-      var ex = $('wiki').split("$page", 'Page');
+      let ex = $('wiki').split("$page", 'Page');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.context).to.deep.equal({
         hello: "world"
       })
     });
 
     it("should set skipEmptyBuckets on timeseries", () => {
-      var external = External.fromJS({
+      let external = External.fromJS({
         engine: 'druid',
         source: 'wikipedia',
         timeAttribute: 'time',
@@ -2161,21 +2161,21 @@ describe("DruidExternal", () => {
         filter: timeFilter
       });
 
-      var context = { wiki: external };
+      let context = { wiki: external };
 
-      var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'T');
+      let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'T');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.context).to.deep.equal({
         skipEmptyBuckets: "true"
       })
     });
 
     it("should respect skipEmptyBuckets already set on context", () => {
-      var external = External.fromJS({
+      let external = External.fromJS({
         engine: 'druid',
         source: 'wikipedia',
         timeAttribute: 'time',
@@ -2189,14 +2189,14 @@ describe("DruidExternal", () => {
         }
       });
 
-      var context = { wiki: external };
+      let context = { wiki: external };
 
-      var ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'T');
+      let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'T');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.context).to.deep.equal({
         skipEmptyBuckets: "false"
       })
@@ -2205,14 +2205,14 @@ describe("DruidExternal", () => {
   });
 
   it("folds with cast", () => {
-    var ex = $('wiki').filter('$page == "El Paso"')
+    let ex = $('wiki').filter('$page == "El Paso"')
       .apply('castTime', '$commentLength.cast("TIME")')
       .select('page', 'commentLength', 'castTime', 'added')
       .sort('$page', 'descending');
 
     ex = ex.referenceCheck(context).resolve(context).simplify();
 
-    var external = ex.operand.external;
+    let external = ex.operand.external;
     expect(external.getQueryAndPostProcess().query).to.deep.equal({
       "dataSource": "wikipedia",
       "dimensions": [

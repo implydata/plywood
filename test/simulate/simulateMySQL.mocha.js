@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var { sane } = require('../utils');
+let { expect } = require("chai");
+let { sane } = require('../utils');
 
-var plywood = require('../plywood');
-var { External, $, ply, r, Expression } = plywood;
+let plywood = require('../plywood');
+let { External, $, ply, r, Expression } = plywood;
 
-var context = {
+let context = {
   diamonds: External.fromJS({
     engine: 'mysql',
     source: 'diamonds',
@@ -40,7 +40,7 @@ var context = {
 
 describe("simulate MySQL", () => {
   it("works in advanced case", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
@@ -72,7 +72,7 @@ describe("simulate MySQL", () => {
           )
       );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(4);
 
     expect(queryPlan[0]).to.deep.equal([sane`
@@ -124,7 +124,7 @@ describe("simulate MySQL", () => {
   });
 
   it("works with up reference", () => {
-    var ex = ply()
+    let ex = ply()
       .apply('Count', '$diamonds.count()')
       .apply(
         'Cuts',
@@ -133,7 +133,7 @@ describe("simulate MySQL", () => {
           .apply('PercentOfTotal', '$Count / $^Count')
       );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(2);
 
     expect(queryPlan[0]).to.deep.equal([sane`
@@ -154,13 +154,13 @@ describe("simulate MySQL", () => {
   });
 
   it("works with having filter", () => {
-    var ex = $("diamonds").split("$cut", 'Cut')
+    let ex = $("diamonds").split("$cut", 'Cut')
       .apply('Count', $('diamonds').count())
       .sort('$Count', 'descending')
       .filter($('Count').greaterThan(100))
       .limit(10);
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
     expect(queryPlan[0]).to.deep.equal([sane`
@@ -176,7 +176,7 @@ describe("simulate MySQL", () => {
   });
 
   it("works with range bucket", () => {
-    var ex = ply()
+    let ex = ply()
       .apply(
         'HeightBuckets',
         $("diamonds").split("$height_bucket", 'HeightBucket')
@@ -192,7 +192,7 @@ describe("simulate MySQL", () => {
           .limit(10)
       );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
     expect(queryPlan[0]).to.deep.equal([
@@ -218,12 +218,12 @@ describe("simulate MySQL", () => {
   });
 
   it("works with SELECT query", () => {
-    var ex = $('diamonds')
+    let ex = $('diamonds')
       .filter('$color == "D"')
       .sort('$cut', 'descending')
       .limit(10);
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
     expect(queryPlan[0]).to.deep.equal([sane`
@@ -237,14 +237,14 @@ describe("simulate MySQL", () => {
   });
 
   it("should be able to find column name case insensitively", () => {
-    var ex = Expression.parseSQL(`
+    let ex = Expression.parseSQL(`
         SELECT
         SUM(PrIcE) AS 'TotalPrice'
         FROM \`diamonds\`
       `);
 
 
-    var queryPlan = ex.expression.simulateQueryPlan(context);
+    let queryPlan = ex.expression.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
     expect(queryPlan[0]).to.deep.equal([sane`
@@ -257,9 +257,9 @@ describe("simulate MySQL", () => {
 
 
   it("works with value query", () => {
-    var ex = $('diamonds').filter('$color == "D"').sum('$price');
+    let ex = $('diamonds').filter('$color == "D"').sum('$price');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
     expect(queryPlan[0]).to.deep.equal([sane`
@@ -272,11 +272,11 @@ describe("simulate MySQL", () => {
   });
 
   it("works with BOOLEAN bucket", () => {
-    var ex = $("diamonds").split("$color == A", 'ColorIsA')
+    let ex = $("diamonds").split("$color == A", 'ColorIsA')
       .apply('Count', $('diamonds').count())
       .sort('$Count', 'descending');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
 
     expect(queryPlan[0]).to.deep.equal([sane`
@@ -290,7 +290,7 @@ describe("simulate MySQL", () => {
   });
 
   it("works multi-dimensional GROUP BYs", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
       .apply(
         'Cuts',
@@ -306,7 +306,7 @@ describe("simulate MySQL", () => {
           )
       );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(2);
 
     expect(queryPlan[0]).to.deep.equal([sane`

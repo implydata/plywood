@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, Action, Dataset, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, Action, Dataset, $, ply, r } = plywood;
 
 describe("free references", () => {
-  var context = {
+  let context = {
     diamonds: Dataset.fromJS([
       { color: 'A', cut: 'great', carat: 1.1, price: 300 }
     ])
@@ -29,12 +29,12 @@ describe("free references", () => {
 
   describe("works as expected", () => {
     it("works with basics", () => {
-      var ex = $('x').add('$^y');
+      let ex = $('x').add('$^y');
       expect(ex.getFreeReferences()).to.deep.equal(['^y', 'x']);
     });
 
     it("works when there are no free references", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('num', 5)
         .apply(
           'subData',
@@ -48,13 +48,13 @@ describe("free references", () => {
     });
 
     it("works in a basic case", () => {
-      var ex = Expression.parse('$x + $y * $z + $data.sum($revenue)');
+      let ex = Expression.parse('$x + $y * $z + $data.sum($revenue)');
 
       expect(ex.getFreeReferences()).to.deep.equal(['data', 'x', 'y', 'z']);
     });
 
     it("works in an actions case", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('num', 5)
         .apply(
           'subData',
@@ -71,7 +71,7 @@ describe("free references", () => {
     });
 
     it("works in a consecutive actions case", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('one', 1)
         .apply('two', '$one + 1')
         .apply('three', '$two + 1')

@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var { testImmutableClass } = require("immutable-class-tester");
+let { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../plywood');
-var { NumberRange, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { NumberRange, $, ply, r } = plywood;
 
 describe("NumberRange", () => {
   it("is immutable class", () => {

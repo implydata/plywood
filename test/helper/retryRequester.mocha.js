@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var Q = require('q');
+let Q = require('q');
 
-var { retryRequesterFactory } = require("../../build/plywood");
+let { retryRequesterFactory } = require("../../build/plywood");
 
 describe("Retry requester", () => {
-  var makeRequester = (failNumber, isTimeout) => {
+  let makeRequester = (failNumber, isTimeout) => {
     return (request) => {
       if (failNumber > 0) {
         failNumber--;
@@ -35,7 +35,7 @@ describe("Retry requester", () => {
 
 
   it("no retry needed (no fail)", (testComplete) => {
-    var retryRequester = retryRequesterFactory({
+    let retryRequester = retryRequesterFactory({
       requester: makeRequester(0),
       delay: 20,
       retry: 2
@@ -50,7 +50,7 @@ describe("Retry requester", () => {
   });
 
   it("one fail", (testComplete) => {
-    var retryRequester = retryRequesterFactory({
+    let retryRequester = retryRequesterFactory({
       requester: makeRequester(1),
       delay: 20,
       retry: 2
@@ -65,7 +65,7 @@ describe("Retry requester", () => {
   });
 
   it("two fails", (testComplete) => {
-    var retryRequester = retryRequesterFactory({
+    let retryRequester = retryRequesterFactory({
       requester: makeRequester(2),
       delay: 20,
       retry: 2
@@ -80,7 +80,7 @@ describe("Retry requester", () => {
   });
 
   it("three fails", (testComplete) => {
-    var retryRequester = retryRequesterFactory({
+    let retryRequester = retryRequesterFactory({
       requester: makeRequester(3),
       delay: 20,
       retry: 2
@@ -98,7 +98,7 @@ describe("Retry requester", () => {
   });
 
   it("timeout", (testComplete) => {
-    var retryRequester = retryRequesterFactory({
+    let retryRequester = retryRequesterFactory({
       requester: makeRequester(1, true),
       delay: 20,
       retry: 2

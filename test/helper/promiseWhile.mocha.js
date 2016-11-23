@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var Q = require('q');
-var { promiseWhile } = require("../../build/plywood");
+let Q = require('q');
+let { promiseWhile } = require("../../build/plywood");
 
 describe('Promise While', () => {
 
   it('should loop three times asynchronously', (testComplete) => {
-    var res = [];
-    var i = 0;
+    let res = [];
+    let i = 0;
     promiseWhile(
       function () {
         return i < 3

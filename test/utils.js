@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var Q = require('q');
+let { expect } = require("chai");
+let Q = require('q');
 
-var { Expression, toJS } = require('../build/plywood');
+let { Expression, toJS } = require('../build/plywood');
 
-var hasOwnProperty = Object.prototype.hasOwnProperty;
+let hasOwnProperty = Object.prototype.hasOwnProperty;
 
-var uniformizeDoubles = (v) => {
-  var t = typeof v;
+let uniformizeDoubles = (v) => {
+  let t = typeof v;
   if (t === 'number') {
     if (v !== Math.floor(v)) {
       return Number(v.toPrecision(4));
@@ -38,12 +38,12 @@ var uniformizeDoubles = (v) => {
     } else if (v.toISOString) {
       return v;
     } else {
-      var needNew = false;
-      var newV = {};
-      for (var k in v) {
+      let needNew = false;
+      let newV = {};
+      for (let k in v) {
         if (!hasOwnProperty.call(v, k)) continue;
-        var oldValue = v[k];
-        var newValue = uniformizeDoubles(oldValue);
+        let oldValue = v[k];
+        let newValue = uniformizeDoubles(oldValue);
         newV[k] = newValue;
         if (newValue !== oldValue) needNew = true;
       }
@@ -58,7 +58,7 @@ exports.wrapVerbose = (requester, name) => {
   return (request) => {
     console.log(`Requesting ${name}:`);
     console.log('', JSON.stringify(request.query, null, 2));
-    var startTime = Date.now();
+    let startTime = Date.now();
     return requester(request).then(
       (result) => {
         console.log(`GOT RESULT FROM ${name} (took ${Date.now() - startTime}ms)`);
@@ -88,8 +88,8 @@ exports.makeEqualityTest = (executorMap) => {
       expression = Expression.parseSQL(sql).expression;
     }
 
-    var executors = executorNames.map((executorName) => {
-      var executor = executorMap[executorName];
+    let executors = executorNames.map((executorName) => {
+      let executor = executorMap[executorName];
       if (!executor) throw new Error(`no such executor ${executorName}`);
       return executor;
     });
@@ -112,7 +112,7 @@ exports.makeEqualityTest = (executorMap) => {
             console.log('^^^^^^^^^^^^^^^^^^^^^^^');
           }
 
-          for (var i = 1; i < executorNames.length; i++) {
+          for (let i = 1; i < executorNames.length; i++) {
             expect(results[i]).to.deep.equal(results[0], `results of '${executorNames[0]}' (expected) and '${executorNames[i]}' (actual) must match`);
           }
 
@@ -133,13 +133,13 @@ exports.makeEqualityTest = (executorMap) => {
 
 // To be used as a tag
 exports.sane = function() {
-  var str = String.raw.apply(String, arguments);
+  let str = String.raw.apply(String, arguments);
 
-  var match = str.match(/^\n( *)/m);
+  let match = str.match(/^\n( *)/m);
   if (!match) throw new Error('sane string must start with a \\n is:' + str);
-  var spaces = match[1].length;
+  let spaces = match[1].length;
 
-  var lines = str.split('\n');
+  let lines = str.split('\n');
   lines.shift(); // Remove the first empty lines
   lines = lines.map((line) => line.substr(spaces)); // Remove indentation
   if (lines[lines.length - 1] === '') lines.pop(); // Remove last line if empty
@@ -152,8 +152,8 @@ exports.sane = function() {
 
 
 exports.grabConsoleWarn = function(fn) {
-  var originalConsoleWarn = console.warn;
-  var text = null;
+  let originalConsoleWarn = console.warn;
+  let text = null;
   console.warn = function(str) {
     text = (text || '') + str + '\n';
   };

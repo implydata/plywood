@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.15.2
+
+- Fixed special attributes not reporting `unsplitable` correctly
+- Fixed numberInflater sometimes returning `NaN`
+
 ## 0.15.1
 
 - All Dataset computation and aggregation functions now take expressions instead of functions.

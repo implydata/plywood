@@ -480,7 +480,8 @@ export abstract class External {
         return;
       }
 
-      d[label] = Number(v);
+      v = Number(v);
+      d[label] = isNaN(v) ? null : v;
     };
   }
 

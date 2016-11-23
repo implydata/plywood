@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var { testImmutableClass } = require("immutable-class-tester");
+let { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../plywood');
-var { Set, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Set, $, ply, r } = plywood;
 
 describe("Set", () => {
   it("is immutable class", () => {
@@ -381,14 +381,14 @@ describe("Set", () => {
     });
 
     it('works with NUMBER_RANGEs', () => {
-      var a = Set.fromJS({
+      let a = Set.fromJS({
         setType: 'NUMBER_RANGE',
         elements: [
           { start: 1, end: 3 },
           { start: 4, end: 7 }
         ]
       });
-      var b = Set.fromJS({
+      let b = Set.fromJS({
         setType: 'NUMBER_RANGE',
         elements: [
           { start: 2, end: 5 },

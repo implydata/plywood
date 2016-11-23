@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
 
-var attributes = [
+let attributes = [
   { name: 'time', type: 'TIME' },
   { name: 'color', type: 'STRING' },
   { name: 'cut', type: 'STRING' },
@@ -32,7 +32,7 @@ var attributes = [
   { name: 'vendor_id', special: 'unique', unsplitable: true },
 ];
 
-var context = {
+let context = {
   'diamonds': External.fromJS({
     engine: 'druid',
     version: '0.9.1',
@@ -50,7 +50,7 @@ var context = {
 describe("simulate Druid 0.9.1", () => {
 
   it("makes a filter on timePart", () => {
-    var ex = $("diamonds").filter(
+    let ex = $("diamonds").filter(
       $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').in([3, 4, 10]).and($("time").in([
         TimeRange.fromJS({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-15T00:00:00') }),
         TimeRange.fromJS({ start: new Date('2015-03-16T00:00:00'), end: new Date('2015-03-18T00:00:00') })
@@ -66,7 +66,7 @@ describe("simulate Druid 0.9.1", () => {
   });
 
   it("splits on timePart with sub split", () => {
-    var ex = $("diamonds").split($("time").timePart('HOUR_OF_DAY', 'Etc/UTC'), 'hourOfDay')
+    let ex = $("diamonds").split($("time").timePart('HOUR_OF_DAY', 'Etc/UTC'), 'hourOfDay')
       .apply('Count', '$diamonds.count()')
       .sort('$Count', 'descending')
       .limit(3)

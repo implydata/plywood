@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
 
-var attributes = [
+let attributes = [
   { name: 'time', type: 'TIME' },
   { name: 'color', type: 'STRING' },
   { name: 'cut', type: 'STRING' },
@@ -33,7 +33,7 @@ var attributes = [
   { name: 'vendor_id', special: 'unique', unsplitable: true }
 ];
 
-var context = {
+let context = {
   'diamonds': External.fromJS({
     engine: 'druid',
     version: '0.9.1-legacy-lookups',
@@ -52,11 +52,11 @@ var context = {
 describe("simulate Druid 0.9.1-legacy-lookups", () => {
 
   it("works on fancy filter .lookup().in()", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
@@ -75,11 +75,11 @@ describe("simulate Druid 0.9.1-legacy-lookups", () => {
   });
 
   it("works on fancy filter .lookup().contains()", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').contains('hello')"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
@@ -99,7 +99,7 @@ describe("simulate Druid 0.9.1-legacy-lookups", () => {
   });
 
   it("works with lookup split (and subsplit)", () => {
-    var ex = $("diamonds").split("$tags.lookup(tag_lookup)", 'Tag')
+    let ex = $("diamonds").split("$tags.lookup(tag_lookup)", 'Tag')
       .sort('$Tag', 'descending')
       .limit(10)
       .apply(
@@ -110,7 +110,7 @@ describe("simulate Druid 0.9.1-legacy-lookups", () => {
           .limit(10)
       );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(2);
     expect(queryPlan[0]).to.deep.equal([
       {

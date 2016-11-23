@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var Q = require('q');
+let Q = require('q');
 
-var { verboseRequesterFactory } = require("../../build/plywood");
+let { verboseRequesterFactory } = require("../../build/plywood");
 
 describe("Verbose requester", () => {
-  var requester = (request) => {
+  let requester = (request) => {
     if (/^fail/.test(request.query)) {
       return Q.reject(new Error('some error'));
     } else {
@@ -31,8 +31,8 @@ describe("Verbose requester", () => {
   };
 
   it("works on success", (testComplete) => {
-    var lines = [];
-    var verboseRequester = verboseRequesterFactory({
+    let lines = [];
+    let verboseRequester = verboseRequesterFactory({
       requester: requester,
       printLine(line) {
         return lines.push(line);
@@ -61,8 +61,8 @@ Got result from query 1: (in Xms)
   });
 
   it("works on failure", (testComplete) => {
-    var lines = [];
-    var verboseRequester = verboseRequesterFactory({
+    let lines = [];
+    let verboseRequester = verboseRequesterFactory({
       requester: requester,
       printLine(line) {
         return lines.push(line);

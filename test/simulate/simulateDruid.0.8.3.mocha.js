@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
 
-var attributes = [
+let attributes = [
   { name: 'time', type: 'TIME' },
   { name: 'color', type: 'STRING' },
   { name: 'cut', type: 'STRING' },
@@ -32,7 +32,7 @@ var attributes = [
   { name: 'vendor_id', special: 'unique', unsplitable: true }
 ];
 
-var context = {
+let context = {
   'diamonds': External.fromJS({
     engine: 'druid',
     version: '0.8.3',
@@ -50,11 +50,11 @@ var context = {
 
 describe("simulate Druid 0.8.3", () => {
   it("works contains filter (case sensitive)", () => {
-    var ex = ply()
+    let ex = ply()
       .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'))))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"sup\\\"yo\")>-1));}",
@@ -63,11 +63,11 @@ describe("simulate Druid 0.8.3", () => {
   });
 
   it("works contains filter (case insensitive)", () => {
-    var ex = ply()
+    let ex = ply()
       .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'), 'ignoreCase')))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "query": {

@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var { sane } = require('../utils');
+let { expect } = require("chai");
+let { sane } = require('../utils');
 
-var plywood = require('../plywood');
-var { Expression, Dataset, $, i$, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, Dataset, $, i$, ply, r } = plywood;
 
 describe("stringification", () => {
   it("works in advanced case", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter($("color").is('D')))
       .apply('Count', $('diamonds').count())
       .apply('TotalPrice', $('diamonds').sum('$price'))
@@ -76,42 +76,42 @@ describe("stringification", () => {
   });
 
   it("works with fancy ref", () => {
-    var ex = $('!T_0');
+    let ex = $('!T_0');
     expect(ex.toString()).to.equal('${!T_0}');
   });
 
   it("works with case insensitive refs", () => {
-    var ex = i$('x').substr(1, 5);
+    let ex = i$('x').substr(1, 5);
     expect(ex.toString(2)).to.equal("i$x.substr(1,5)");
   });
 
   it("works with lookup", () => {
-    var ex = $('diamonds').split("$cut.lookup('hello_lookup')", 'CutLookup');
+    let ex = $('diamonds').split("$cut.lookup('hello_lookup')", 'CutLookup');
     expect(ex.toString(2)).to.equal("$diamonds.split($cut.lookup(hello_lookup),CutLookup,diamonds)");
   });
 
   it("works with timePart", () => {
-    var ex = $('time').timePart('DAY_OF_WEEK');
+    let ex = $('time').timePart('DAY_OF_WEEK');
     expect(ex.toString(2)).to.equal("$time.timePart(DAY_OF_WEEK)");
   });
 
   it("works with timeShift", () => {
-    var ex = $('time').timeShift('P1D', 2);
+    let ex = $('time').timeShift('P1D', 2);
     expect(ex.toString(2)).to.equal("$time.timeShift(P1D,2)");
   });
 
   it("works with timeRange", () => {
-    var ex = $('time').timeRange('P1D', 2);
+    let ex = $('time').timeRange('P1D', 2);
     expect(ex.toString(2)).to.equal("$time.timeRange(P1D,2)");
   });
 
   it("works with customAggregate", () => {
-    var ex = $('x').customAggregate('lol');
+    let ex = $('x').customAggregate('lol');
     expect(ex.toString(2)).to.equal("$x.customAggregate(lol)");
   });
 
   it("works with substr", () => {
-    var ex = $('x').substr(1, 5);
+    let ex = $('x').substr(1, 5);
     expect(ex.toString(2)).to.equal("$x.substr(1,5)");
   });
 });

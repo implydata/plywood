@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, $, r, ply, Set, Dataset, External, ExternalExpression, fillExpressionExternalAlteration } = plywood;
+let plywood = require('../plywood');
+let { Expression, $, r, ply, Set, Dataset, External, ExternalExpression, fillExpressionExternalAlteration } = plywood;
 
-var diamonds = External.fromJS({
+let diamonds = External.fromJS({
   engine: 'druid',
   source: 'diamonds',
   timeAttribute: 'time',
@@ -44,7 +44,7 @@ var diamonds = External.fromJS({
 describe("evaluate step", () => {
 
   it('works in basic case', () => {
-    var ex = ply()
+    let ex = ply()
       .apply('Total', '$diamonds.count()')
       .apply('TotalX2', '$Total * 2')
       .apply('SomeSplit', $('diamonds').split('$cut:STRING', 'Cut').limit(10))

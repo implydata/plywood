@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, $, ply, r } = plywood;
 
-var toJS = (extractAndRest) => {
+let toJS = (extractAndRest) => {
   if (!extractAndRest) return extractAndRest;
   return {
     extract: extractAndRest.extract.toJS(),
@@ -29,14 +29,14 @@ var toJS = (extractAndRest) => {
 
 function freeReferenceExtractor(refName) {
   return function(ex) {
-    var freeRefs = ex.getFreeReferences();
+    let freeRefs = ex.getFreeReferences();
     return freeRefs.length === 1 && freeRefs[0] === refName;
   };
 }
 
 describe("extractFromAnd", () => {
   it('works with TRUE expression', () => {
-    var ex = Expression.TRUE;
+    let ex = Expression.TRUE;
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('venue')))).to.deep.equal(toJS({
       extract: Expression.TRUE,
@@ -45,7 +45,7 @@ describe("extractFromAnd", () => {
   });
 
   it('works with FALSE expression', () => {
-    var ex = Expression.FALSE;
+    let ex = Expression.FALSE;
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('venue')))).to.deep.equal(toJS({
       extract: Expression.TRUE,
@@ -54,7 +54,7 @@ describe("extractFromAnd", () => {
   });
 
   it('works on a single extract expression', () => {
-    var ex = $('venue').is('Google');
+    let ex = $('venue').is('Google');
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('venue')))).to.deep.equal(toJS({
       extract: ex,
@@ -63,7 +63,7 @@ describe("extractFromAnd", () => {
   });
 
   it('works on a single rest expression', () => {
-    var ex = $('venue').is('Google');
+    let ex = $('venue').is('Google');
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('make')))).to.deep.equal(toJS({
       extract: Expression.TRUE,
@@ -72,7 +72,7 @@ describe("extractFromAnd", () => {
   });
 
   it('works on a small AND expression', () => {
-    var ex = $('venue').is('Google').and($('country').is('USA'));
+    let ex = $('venue').is('Google').and($('country').is('USA'));
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('country')))).to.deep.equal(toJS({
       extract: $('country').is('USA'),
@@ -81,7 +81,7 @@ describe("extractFromAnd", () => {
   });
 
   it('works on an AND expression', () => {
-    var ex = $('venue').is('Google').and($('country').is('USA'), $('state').is('California'));
+    let ex = $('venue').is('Google').and($('country').is('USA'), $('state').is('California'));
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('country')))).to.deep.equal(toJS({
       extract: $('country').is('USA'),
@@ -90,7 +90,7 @@ describe("extractFromAnd", () => {
   });
 
   it('extracts a NOT expression', () => {
-    var ex = $('venue').is('Google').and($('country').is('USA').not(), $('state').is('California'));
+    let ex = $('venue').is('Google').and($('country').is('USA').not(), $('state').is('California'));
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('country')))).to.deep.equal(toJS({
       extract: $('country').is('USA').not(),
@@ -99,7 +99,7 @@ describe("extractFromAnd", () => {
   });
 
   it('works on mixed OR filter (all in)', () => {
-    var ex = $('venue').is('Apple').or($('venue').is('Google').not());
+    let ex = $('venue').is('Apple').or($('venue').is('Google').not());
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('venue')))).to.deep.equal(toJS({
       extract: ex,
@@ -108,7 +108,7 @@ describe("extractFromAnd", () => {
   });
 
   it('works on mixed OR filter (all out)', () => {
-    var ex = $('venue').is('Google').or($('country').is('USA'), $('state').is('California'));
+    let ex = $('venue').is('Google').or($('country').is('USA'), $('state').is('California'));
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('model')))).to.deep.equal(toJS({
       extract: Expression.TRUE,

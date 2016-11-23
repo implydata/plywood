@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
 
-var attributes = [
+let attributes = [
   { name: 'time', type: 'TIME' },
   { name: 'color', type: 'STRING' },
   { name: 'cut', type: 'STRING' },
@@ -32,7 +32,7 @@ var attributes = [
   { name: 'vendor_id', special: 'unique', unsplitable: true }
 ];
 
-var context = {
+let context = {
   'diamonds': External.fromJS({
     engine: 'druid',
     version: '0.9.0',
@@ -51,11 +51,11 @@ var context = {
 describe("simulate Druid 0.9.0", () => {
 
   it("works on fancy filter .concat().match()", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("('A' ++ $color ++ 'Z').match('AB+')"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
@@ -68,11 +68,11 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter .concat().contains()", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("('A' ++ $color ++ 'Z').contains('AB')"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
@@ -85,11 +85,11 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter .fallback().is() [impossible]", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.fallback('NoColor') == 'D'"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "type": "selector",
@@ -98,11 +98,11 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter .fallback().is() [possible]", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.fallback('D') == 'D'"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
@@ -121,11 +121,11 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter .extract().is()", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.extract('^(.)') == 'D'"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
@@ -139,11 +139,11 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter .extract().fallback().is()", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.extract('^(.)').fallback('D') == 'D'"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
@@ -158,11 +158,11 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter .substr().is()", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1) == 'D'"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
@@ -176,11 +176,11 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter .substr().in()", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.substr(0, 1).in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "type": "or",
       "fields": [
@@ -209,11 +209,11 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter .lookup().in()", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').in(['D', 'C'])"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "fields": [
         {
@@ -246,11 +246,11 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter .lookup().contains()", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.lookup('some_lookup').contains('hello')"))
       .apply('Count', '$diamonds.count()');
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
@@ -275,9 +275,9 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter [.in(...).not()]", () => {
-    var ex = $('diamonds').filter("$color.in(['D', 'C']).not()");
+    let ex = $('diamonds').filter("$color.in(['D', 'C']).not()");
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "field": {
         "values": ["D", "C"],
@@ -289,9 +289,9 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works on fancy filter .in().is()", () => {
-    var ex = $('diamonds').filter("$color.in(['D', 'C']) == true");
+    let ex = $('diamonds').filter("$color.in(['D', 'C']) == true");
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "color",
       "extractionFn": {
@@ -304,7 +304,7 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("works with lookup split (and subsplit)", () => {
-    var ex = $("diamonds").split("$tags.lookup(tag_lookup)", 'Tag')
+    let ex = $("diamonds").split("$tags.lookup(tag_lookup)", 'Tag')
       .sort('$Tag', 'descending')
       .limit(10)
       .apply(
@@ -315,7 +315,7 @@ describe("simulate Druid 0.9.0", () => {
           .limit(10)
       );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(2);
     expect(queryPlan[0]).to.deep.equal([
       {
@@ -387,7 +387,7 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("makes a filtered aggregate query", () => {
-    var ex = ply()
+    let ex = ply()
       .apply(
         'BySegment',
         $('diamonds').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeSegment')
@@ -398,7 +398,7 @@ describe("simulate Druid 0.9.0", () => {
           .apply('NotBadColors', $('diamonds').filter($('cut').isnt('Bad')).countDistinct('$color'))
       );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
       {
@@ -495,7 +495,7 @@ describe("simulate Druid 0.9.0", () => {
   });
 
   it("makes a filtered aggregate query 2", () => {
-    var ex = ply()
+    let ex = ply()
       .apply(
         'BySegment',
         $('diamonds').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeSegment')
@@ -503,7 +503,7 @@ describe("simulate Druid 0.9.0", () => {
           .apply('GoodPrice', $('diamonds').filter($('cut').is('Good')).sum(1))
       );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].aggregations).to.deep.equal([
       {
         "fieldName": "price",

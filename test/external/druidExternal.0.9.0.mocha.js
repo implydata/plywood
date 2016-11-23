@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var Q = require('q');
-var { sane } = require('../utils');
+let { expect } = require("chai");
+let Q = require('q');
+let { sane } = require('../utils');
 
-var plywood = require('../plywood');
-var { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
+let plywood = require('../plywood');
+let { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 
-var timeFilter = $('time').in(TimeRange.fromJS({
+let timeFilter = $('time').in(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
   end: new Date("2013-02-27T00:00:00Z")
 }));
 
-var context = {
+let context = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',
@@ -75,12 +75,12 @@ describe("DruidExternal 0.9.0", () => {
   describe("simplifies / digests", () => {
 
     it("works with .lookup().overlap(blah, null) (on SET/STRING)", () => {
-      var ex = $('wiki').filter($("tags").lookup('tag_lookup').overlap(['Good', null]));
+      let ex = $('wiki').filter($("tags").lookup('tag_lookup').overlap(['Good', null]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "fields": [
           {
@@ -113,12 +113,12 @@ describe("DruidExternal 0.9.0", () => {
     });
 
     it("works with .lookup().contains()", () => {
-      var ex = $('wiki').filter($("language").lookup('language_lookup').contains('eN', 'ignoreCase'));
+      let ex = $('wiki').filter($("language").lookup('language_lookup').contains('eN', 'ignoreCase'));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
         "dimension": "language",
         "extractionFn": {
@@ -143,12 +143,12 @@ describe("DruidExternal 0.9.0", () => {
     });
 
     it("works with SET/STRING.concat()", () => {
-      var ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
+      let ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",

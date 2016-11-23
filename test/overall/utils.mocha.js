@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
+let plywood = require('../plywood');
 
 describe("utils", () => {
   describe("safeAdd", () => {

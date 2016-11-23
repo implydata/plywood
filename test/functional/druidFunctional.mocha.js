@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var { sane } = require('../utils');
+let { expect } = require("chai");
+let { sane } = require('../utils');
 
-var { druidRequesterFactory } = require('plywood-druid-requester');
+let { druidRequesterFactory } = require('plywood-druid-requester');
 
-var plywood = require('../plywood');
-var { External, DruidExternal, TimeRange, $, i$, ply, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
+let plywood = require('../plywood');
+let { External, DruidExternal, TimeRange, $, i$, ply, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
 
-var info = require('../info');
+let info = require('../info');
 
-var druidRequester = druidRequesterFactory({
+let druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
@@ -36,7 +36,7 @@ var druidRequester = druidRequesterFactory({
 describe("Druid Functional", function() {
   this.timeout(10000);
 
-  var wikiAttributes = [
+  let wikiAttributes = [
     { "name": "time", "type": "TIME" },
     { "name": "added", "maker":{"op": "sum", "expression":{"name": "added", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
     { "name": "channel", "type": "STRING" },
@@ -72,7 +72,7 @@ describe("Druid Functional", function() {
     { "name": "user_unique", "special": "unique", "type": "STRING" }
   ];
 
-  var customTransforms = {
+  let customTransforms = {
       sliceLastChar: {
         extractionFn: {
           "type" : "javascript",
@@ -111,7 +111,7 @@ describe("Druid Functional", function() {
 
 
   describe("defined attributes in datasource", () => {
-    var wiki = External.fromJS({
+    let wiki = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -126,7 +126,7 @@ describe("Druid Functional", function() {
       allowSelectQueries: true
     }, druidRequester);
 
-    var wikiCompact = External.fromJS({
+    let wikiCompact = External.fromJS({
       engine: 'druid',
       source: 'wikipedia-compact',
       timeAttribute: 'time',
@@ -156,14 +156,14 @@ describe("Druid Functional", function() {
       allowSelectQueries: true
     }, druidRequester);
 
-    var basicExecutor = basicExecutorFactory({
+    let basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: wiki.addDelegate(wikiCompact)
       }
     });
 
     it("works basic case to CSV", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply(
           'Cities',
@@ -184,7 +184,7 @@ describe("Druid Functional", function() {
     });
 
     it("aggregate and splits plus select work with ordering last split first", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
         .apply('Page', $("wiki").split("$page", 'Page').limit(3))
@@ -198,7 +198,7 @@ describe("Druid Functional", function() {
     });
 
     it("aggregate and splits plus select work with ordering 2", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
         .apply('Page', $("wiki").split("$page", 'Page').limit(3))
@@ -212,7 +212,7 @@ describe("Druid Functional", function() {
     });
 
     it("aggregate and splits plus select work with ordering, aggregate first", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
         .apply('Page', $("wiki").split("$page", 'Page').limit(3))
@@ -226,7 +226,7 @@ describe("Druid Functional", function() {
     });
 
     it("works timePart case", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply(
           'HoursOfDay',
@@ -260,7 +260,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with quarter call case", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter($("channel").is('en'))
         .split("$time.timePart(QUARTER, 'Etc/UTC')", 'Quarter');
 
@@ -275,7 +275,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with yearly call case long", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .split(i$('time').timeFloor('P3M'), 'tqr___time_ok');
 
       return basicExecutor(ex)
@@ -292,7 +292,7 @@ describe("Druid Functional", function() {
     });
 
     it("works in advanced case", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -411,7 +411,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with case transform in filter split and apply", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter($("channel").transformCase('upperCase').is('EN'))
         .split($("page").transformCase('lowerCase'), 'page')
         .apply('SumIndexA', $('wiki').sum($("page").transformCase('upperCase').indexOf("A")))
@@ -457,7 +457,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with custom transform in filter and split", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter($("page").customTransform('sliceLastChar').is('z'))
         .split($("page").customTransform('getLastChar'), 'lastChar')
         .limit(8);
@@ -473,7 +473,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with custom transform in filter and split for numeric dimension", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter($("commentLength").customTransform('concatWithConcat', 'STRING').is("'100concat'"))
         .split($("commentLength").customTransform('timesTwo', 'STRING'), "Times Two")
         .limit(8);
@@ -489,7 +489,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with uniques", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('UniqueIsRobot', $('wiki').countDistinct("$isRobot"))
         .apply('UniqueUserChars', $('wiki').countDistinct("$userChars"))
         .apply('UniquePages1', $('wiki').countDistinct("$page"))
@@ -521,7 +521,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with filtered unique (in expression)", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('UniquePagesEn', $('wiki').filter('$channel == en').countDistinct("$page"))
         .apply('UniquePagesEnOver2', '$UniquePagesEn / 2');
 
@@ -537,7 +537,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with filtered uniques", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('UniquePagesEn', $('wiki').filter('$channel == en').countDistinct("$page"))
         .apply('UniquePagesEs', $('wiki').filter('$channel == es').countDistinct("$page_unique"))
         .apply('UniquePagesChannelDiff', '$UniquePagesEn - $UniquePagesEs');
@@ -555,7 +555,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with no applies in dimensions split dataset", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'Channels',
           $('wiki').split("$channel", 'Channel')
@@ -608,7 +608,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with absolute", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("Count", $('wiki').filter($("channel").is('en')).sum('$count'))
         .apply('Negate', $('Count').negate())
         .apply('Abs', $('Count').negate().absolute().negate().absolute());
@@ -626,7 +626,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with split on a SET/STRING dimension", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'UserChars',
           $('wiki').split("$userChars", 'UserChar')
@@ -663,7 +663,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with all kinds of cool aggregates on totals level", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("NumPages", $('wiki').countDistinct('$page'))
         .apply("NumEnPages", $('wiki').filter($("channel").is('en')).countDistinct('$page'))
         .apply("ChannelAdded", $('wiki').sum('$added'))
@@ -699,7 +699,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with all kinds of cool aggregates on split level", () => {
-      var ex = $('wiki').split('$isNew', 'isNew')
+      let ex = $('wiki').split('$isNew', 'isNew')
         .apply("NumPages", $('wiki').countDistinct('$page'))
         .apply("NumEnPages", $('wiki').filter($("channel").is('en')).countDistinct('$page'))
         .apply("ChannelAdded", $('wiki').sum('$added'))
@@ -743,7 +743,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with no applies in time split dataset", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'ByHour',
           $('wiki').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
@@ -821,7 +821,7 @@ describe("Druid Functional", function() {
     });
 
     it("does not zero fill", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter('$cityName == "El Paso"')
         .split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
         .apply('Count', '$wiki.sum($count)')
@@ -834,7 +834,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with time split with quantile", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter('$cityName == "El Paso"')
         .split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
         .apply('count', '$wiki.sum($count)')
@@ -868,7 +868,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with contains (case sensitive) filter", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('wiki', $('wiki').filter($('page').contains('wiki')))
         .apply(
           'Pages',
@@ -902,7 +902,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with contains(ignoreCase) filter", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('wiki', $('wiki').filter($('page').contains('wiki', 'ignoreCase')))
         .apply(
           'Pages',
@@ -936,7 +936,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with match() filter", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('wiki', $('wiki').filter($('page').match('^.*Bot.*$')))
         .apply(
           'Pages',
@@ -970,7 +970,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with split sort on string", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'Channels',
           $('wiki').split("$channel", 'Channel')
@@ -999,7 +999,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with concat split", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'Pages',
           $('wiki').split("'!!!<' ++ $page ++ '>!!!'", 'Page')
@@ -1032,7 +1032,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with substr split", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'Pages',
           $('wiki').split("$page.substr(0,2)", 'Page')
@@ -1065,7 +1065,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with extract split", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'Pages',
           $('wiki').split($('page').extract('([0-9]+\\.[0-9]+\\.[0-9]+)'), 'Page')
@@ -1098,7 +1098,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with lookup split", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'Channels',
           $('wiki').split($('channel').lookup('channel-lookup'), 'Channel')
@@ -1149,7 +1149,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with lookup IS filter", () => {
-      var ex = $('wiki').filter($('channel').lookup('channel-lookup').is('English')).sum('$count');
+      let ex = $('wiki').filter($('channel').lookup('channel-lookup').is('English')).sum('$count');
 
       return basicExecutor(ex)
         .then((result) => {
@@ -1158,7 +1158,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with lookup CONTAINS filter", () => {
-      var ex = $('wiki').filter($('channel').lookup('channel-lookup').contains('Eng', 'ignoreCase')).sum('$count');
+      let ex = $('wiki').filter($('channel').lookup('channel-lookup').contains('Eng', 'ignoreCase')).sum('$count');
 
       return basicExecutor(ex)
         .then((result) => {
@@ -1167,7 +1167,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with string manipulation after cast action", () => {
-      var ex = $('wiki').filter($('deltaBucket100').absolute().cast('STRING').substr(0,5).cast('NUMBER').is(1000)).sum('$count');
+      let ex = $('wiki').filter($('deltaBucket100').absolute().cast('STRING').substr(0,5).cast('NUMBER').is(1000)).sum('$count');
 
       return basicExecutor(ex)
         .then((result) => {
@@ -1176,7 +1176,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with absolute number split", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'AbsSplitAsc',
           $('wiki').split($('commentLength').absolute(), 'AbsCommentLength')
@@ -1230,7 +1230,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with bucketed number split", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'BucketSplitAsc',
           $('wiki').split($('commentLength').numberBucket(5), 'Bucket')
@@ -1308,7 +1308,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with bucketed split on derived column", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'BucketSplitAsc',
           $('wiki').split($('comment').length().numberBucket(5), 'Bucket')
@@ -1386,7 +1386,7 @@ describe("Druid Functional", function() {
     });
 
     it("can timeBucket a primary time column", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'Time',
           $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeCol')
@@ -1420,7 +1420,7 @@ describe("Druid Functional", function() {
     });
 
     it("can timeBucket a secondary time column", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'TimeLater',
           $("wiki").split($("sometimeLater").timeBucket('PT1H', 'Etc/UTC'), 'SometimeLater')
@@ -1474,7 +1474,7 @@ describe("Druid Functional", function() {
     });
 
     it("can timeBucket a secondary time column (complex duration, tz)", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'TimeLater',
           $("wiki").split($("sometimeLater").timeBucket('PT3H', 'Asia/Kathmandu'), 'SometimeLater')
@@ -1528,7 +1528,7 @@ describe("Druid Functional", function() {
     });
 
     it("can do a sub-query", () => {
-      var ex = ply()
+      let ex = ply()
         .apply(
           'data1',
           $("wiki").split($("time").timeFloor('PT1H', 'Etc/UTC'), 'TimeCol')
@@ -1567,7 +1567,7 @@ describe("Druid Functional", function() {
     });
 
     it("works multi-dimensional GROUP BYs", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").isnt('en')))
         .apply(
           'Groups',
@@ -1639,7 +1639,7 @@ describe("Druid Functional", function() {
     });
 
     it("works multi-dimensional GROUP BYs with time", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").isnt('en')))
         .apply(
           'Groups',
@@ -1701,7 +1701,7 @@ describe("Druid Functional", function() {
     });
 
     it("works nested GROUP BYs", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -1724,7 +1724,7 @@ describe("Druid Functional", function() {
     });
 
     it("works string range", () => {
-      var ex = $('wiki').filter('$cityName > "nice"')
+      let ex = $('wiki').filter('$cityName > "nice"')
         .filter('$comment < "zebra"')
         .filter('$page >= "car"')
         .filter('$countryName <= "mauritius"')
@@ -1749,8 +1749,8 @@ describe("Druid Functional", function() {
         });
     });
 
-    it("works with raw (SELECT)", () => {
-      var ex = $('wiki').filter('$cityName == "El Paso"');
+    it("works with raw (SELECT) + filter", () => {
+      let ex = $('wiki').filter('$cityName == "El Paso"');
 
       return basicExecutor(ex)
         .then((result) => {
@@ -1780,7 +1780,7 @@ describe("Druid Functional", function() {
               "min_delta": -39,
               "namespace": "Main",
               "page": "Clint High School",
-              "page_unique": null,
+              "page_unique": "AQAAAQAAAADYAQ==",
               "regionIsoCode": "TX",
               "regionName": "Texas",
               "sometimeLater": {
@@ -1797,8 +1797,8 @@ describe("Druid Functional", function() {
                 "setType": "STRING",
                 "type": "SET"
               },
-              "user_theta": null,
-              "user_unique": null
+              "user_theta": "AgMDAAAazJMBAAAAAACAP4LYKgb0JYUx",
+              "user_unique": "AQAAAQAAAAFzBQ=="
             },
             {
               "added": 0,
@@ -1825,7 +1825,7 @@ describe("Druid Functional", function() {
               "min_delta": 0,
               "namespace": "Main",
               "page": "Reggie Williams (linebacker)",
-              "page_unique": null,
+              "page_unique": "AQAAAQAAAAOhEA==",
               "regionIsoCode": "TX",
               "regionName": "Texas",
               "sometimeLater": {
@@ -1842,16 +1842,71 @@ describe("Druid Functional", function() {
                 "setType": "STRING",
                 "type": "SET"
               },
-              "user_theta": null,
-              "user_unique": null
+              "user_theta": "AgMDAAAazJMBAAAAAACAPykGTa6KslE/",
+              "user_unique": "AQAAAQAAAAOIQA=="
+            }
+          ]);
+        });
+    });
+
+    it("works with raw (SELECT) + limit", () => {
+      let ex = $('wiki').limit(1);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "added": 0,
+              "channel": "ca",
+              "cityName": null,
+              "comment": "/* Enllaços externs */",
+              "commentLength": 22,
+              "commentLengthStr": "22",
+              "count": 1,
+              "countryIsoCode": null,
+              "countryName": null,
+              "deleted": 1,
+              "delta": -1,
+              "deltaBucket100": -100,
+              "deltaByTen": -0.10000000149011612,
+              "delta_hist": null,
+              "isAnonymous": false,
+              "isMinor": false,
+              "isNew": false,
+              "isRobot": false,
+              "isUnpatrolled": true,
+              "max_delta": -1,
+              "metroCode": null,
+              "min_delta": -1,
+              "namespace": "Main",
+              "page": "Israel Ballet",
+              "page_unique": "AQAAAQAAAAHHIA==",
+              "regionIsoCode": null,
+              "regionName": null,
+              "sometimeLater": {
+                "type": "TIME",
+                "value": new Date('2016-09-12T00:46:00.000Z')
+              },
+              "time": {
+                "type": "TIME",
+                "value": new Date('2015-09-12T00:46:00.000Z')
+              },
+              "user": "ChandraHelsinky",
+              "userChars": {
+                "elements": ["A", "C", "D", "E", "H", "I", "K", "L", "N", "R", "S", "Y"],
+                "setType": "STRING",
+                "type": "SET"
+              },
+              "user_theta": "AgMDAAAazJMBAAAAAACAP5xSyQDWkQwY",
+              "user_unique": "AQAAAQAAAALGBA=="
             }
           ]);
         });
     });
 
     it("gets the right number of results in a big raw (SELECT ascending)", () => {
-      var limit = 15001;
-      var ex = $('wiki')
+      let limit = 15001;
+      let ex = $('wiki')
         .filter('$cityName == null')
         .select('time', 'cityName')
         .sort('$time', 'ascending')
@@ -1864,8 +1919,8 @@ describe("Druid Functional", function() {
     });
 
     it("gets the right number of results in a big raw (SELECT descending)", () => {
-      var limit = 15001;
-      var ex = $('wiki')
+      let limit = 15001;
+      let ex = $('wiki')
         .filter('$cityName == null')
         .select('time', 'cityName')
         .sort('$time', 'descending')
@@ -1878,7 +1933,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with raw (SELECT) inside a split", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter('$cityName.match("^San")')
         .split('$cityName', 'City')
         .apply('Edits', '$wiki.sum($count)')
@@ -1959,7 +2014,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with multi-value dimension regexp having filter", () => {
-      var ex = $("wiki")
+      let ex = $("wiki")
         .filter('$userChars.match("[ABN]")')
         .split("$userChars", 'userChar')
         .filter('$userChar.match("B|N")')
@@ -1975,7 +2030,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with basic collect", () => {
-      var ex = $('wiki').split('$channel', 'channel').collect('$channel');
+      let ex = $('wiki').split('$channel', 'channel').collect('$channel');
 
       return basicExecutor(ex)
         .then((result) => {
@@ -1992,7 +2047,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with advanced collect", () => {
-      var ex = $('wiki').split('$channel', 'channel')
+      let ex = $('wiki').split('$channel', 'channel')
         .apply('Edits', '$wiki.sum($count)')
         .sort('$Edits', 'descending')
         .limit(5)
@@ -2010,7 +2065,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with collect as a sub-filter", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('wiki', $('wiki').filter(
           $('channel').in(
             $('wiki').split('$channel', 'channel')
@@ -2036,7 +2091,7 @@ describe("Druid Functional", function() {
 
     describe("plyql end to end", () => {
       it("should work with <= <", () => {
-        var ex = Expression.parseSQL(sane`
+        let ex = Expression.parseSQL(sane`
           SELECT
           SUM(added) AS 'TotalAdded'
           FROM \`wiki\`
@@ -2054,7 +2109,7 @@ describe("Druid Functional", function() {
       });
 
       it("should work with between and without top level GROUP BY", () => {
-        var ex = Expression.parseSQL(sane`
+        let ex = Expression.parseSQL(sane`
           SELECT
           \`page\` AS 'Page',
           SUM(added) AS 'TotalAdded'
@@ -2098,7 +2153,7 @@ describe("Druid Functional", function() {
 
 
   describe("incorrect user chars", () => {
-    var wikiUserCharAsNumber = External.fromJS({
+    let wikiUserCharAsNumber = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -2112,7 +2167,7 @@ describe("Druid Functional", function() {
     }, druidRequester);
 
     it("works with number addition", () => {
-      var ex = $('wiki').split("$userChars + 10", 'U')
+      let ex = $('wiki').split("$userChars + 10", 'U')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(3);
@@ -2137,7 +2192,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with number bucketing", () => {
-      var ex = $('wiki').split("$userChars.numberBucket(5, 2.5)", 'U')
+      let ex = $('wiki').split("$userChars.numberBucket(5, 2.5)", 'U')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(3);
@@ -2170,7 +2225,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with power", () => {
-      var ex = $('wiki').split("$userChars.power(2)", 'U')
+      let ex = $('wiki').split("$userChars.power(2)", 'U')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(3);
@@ -2195,7 +2250,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with bad casts", () => {
-      var ex = $('wiki').split({ 'numberCast': '$channel.cast("NUMBER")', 'dateCast': '$userChars.cast("TIME")' })
+      let ex = $('wiki').split({ 'numberCast': '$channel.cast("NUMBER")', 'dateCast': '$userChars.cast("TIME")' })
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(3);
@@ -2224,7 +2279,7 @@ describe("Druid Functional", function() {
 
 
   describe("introspection", () => {
-    var wikiExternal = External.fromJS({
+    let wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -2244,7 +2299,7 @@ describe("Druid Functional", function() {
       ]
     }, druidRequester);
 
-    var basicExecutor = basicExecutorFactory({
+    let basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: wikiExternal
       }
@@ -2259,7 +2314,7 @@ describe("Druid Functional", function() {
     });
 
     it("works with introspection", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -2349,7 +2404,7 @@ describe("Druid Functional", function() {
 
 
   describe("introspection (union dataSource)", () => {
-    var doubleWikiExternal = External.fromJS({
+    let doubleWikiExternal = External.fromJS({
       engine: 'druid',
       source: ['wikipedia', 'wikipedia-compact'],
       timeAttribute: 'time',
@@ -2359,14 +2414,14 @@ describe("Druid Functional", function() {
       }))
     }, druidRequester);
 
-    var basicExecutor = basicExecutorFactory({
+    let basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: doubleWikiExternal
       }
     });
 
     it("works with introspection", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')

@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var fs = require('fs');
-var path = require('path');
+let { expect } = require("chai");
+let fs = require('fs');
+let path = require('path');
 
-var plywood = require('../plywood');
-var { Expression, Dataset, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, Dataset, $, ply, r } = plywood;
 
-var chronoshift = require("chronoshift");
+let chronoshift = require("chronoshift");
 
-var rawData = fs.readFileSync(path.join(__dirname, '../../resources/wikipedia-sampled.json'), 'utf-8');
-var wikiDayData = Dataset.parseJSON(rawData);
+let rawData = fs.readFileSync(path.join(__dirname, '../../resources/wikipedia-sampled.json'), 'utf-8');
+let wikiDayData = Dataset.parseJSON(rawData);
 
 wikiDayData.forEach((d, i) => {
   d['time'] = new Date(d['time']);
@@ -36,10 +36,10 @@ wikiDayData.forEach((d, i) => {
 describe("compute native nontrivial data", function() {
   this.timeout(20000);
 
-  var ds = Dataset.fromJS(wikiDayData);
+  let ds = Dataset.fromJS(wikiDayData);
 
   it("works in simple agg case", () => {
-    var ex = ply()
+    let ex = ply()
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)');
 
@@ -55,7 +55,7 @@ describe("compute native nontrivial data", function() {
   });
 
   it("works in with a filter == null", () => {
-    var ex = $('data').filter('$countryName == null').count();
+    let ex = $('data').filter('$countryName == null').count();
 
     return ex.compute({ data: ds })
       .then((v) => {
@@ -64,7 +64,7 @@ describe("compute native nontrivial data", function() {
   });
 
   it("works in with a filter overlap null", () => {
-    var ex = $('data').filter($('countryName').overlap([null])).count();
+    let ex = $('data').filter($('countryName').overlap([null])).count();
 
     return ex.compute({ data: ds })
       .then((v) => {
@@ -73,7 +73,7 @@ describe("compute native nontrivial data", function() {
   });
 
   it("works in simple split case (small dimension)", () => {
-    var ex = $('data').split('$countryName', 'CountryName')
+    let ex = $('data').split('$countryName', 'CountryName')
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)')
       .sort('$SumAdded', 'descending')
@@ -112,7 +112,7 @@ describe("compute native nontrivial data", function() {
   });
 
   it("works in simple split case (large dimension)", () => {
-    var ex = $('data').split('$page', 'Page')
+    let ex = $('data').split('$page', 'Page')
       .apply('Count', '$data.count()')
       .apply('SumAdded', '$data.sum($added)')
       .sort('$SumAdded', 'descending')
@@ -151,7 +151,7 @@ describe("compute native nontrivial data", function() {
   });
 
   it("works in simple timeBucket case", () => {
-    var ex = $('data').split('$time.timeBucket(PT1H, "Asia/Kathmandu")', "Time")// America/Los_Angeles
+    let ex = $('data').split('$time.timeBucket(PT1H, "Asia/Kathmandu")', "Time")// America/Los_Angeles
       .apply('Count', '$data.count()')
       .sort('$Time', 'ascending')
       .limit(2);
@@ -180,7 +180,7 @@ describe("compute native nontrivial data", function() {
   });
 
   it("works in with funny aggregates", () => {
-    var ex = $('data').split('$countryName', 'CountryName')
+    let ex = $('data').split('$countryName', 'CountryName')
       .apply('LabelCountry', '"[" ++ $CountryName ++ "]"')
       .apply('Count', '$data.count()')
       .apply('CountLT1000', '$Count < 1000')

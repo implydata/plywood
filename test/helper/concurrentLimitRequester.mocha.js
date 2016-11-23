@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var Q = require('q');
+let Q = require('q');
 
-var { concurrentLimitRequesterFactory } = require("../../build/plywood");
+let { concurrentLimitRequesterFactory } = require("../../build/plywood");
 
 describe("Retry requester", () => {
-  var makeRequester = () => {
-    var deferreds = {};
+  let makeRequester = () => {
+    let deferreds = {};
 
-    var requester = (request) => {
-      var deferred = Q.defer();
+    let requester = (request) => {
+      let deferred = Q.defer();
       deferreds[request.query] = deferred;
       return deferred.promise;
     };
@@ -44,8 +44,8 @@ describe("Retry requester", () => {
   };
 
   it("basic works", (testComplete) => {
-    var requester = makeRequester();
-    var concurrentLimitRequester = concurrentLimitRequesterFactory({
+    let requester = makeRequester();
+    let concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,
       concurrentLimit: 2
     });
@@ -61,13 +61,13 @@ describe("Retry requester", () => {
   });
 
   it("limit works", (testComplete) => {
-    var requester = makeRequester();
-    var concurrentLimitRequester = concurrentLimitRequesterFactory({
+    let requester = makeRequester();
+    let concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,
       concurrentLimit: 2
     });
 
-    var nextQuery = 'a';
+    let nextQuery = 'a';
     concurrentLimitRequester({ query: 'a' })
       .then((res) => {
         expect(res).to.be.an('array');

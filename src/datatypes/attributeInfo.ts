@@ -175,8 +175,11 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       name: this.name,
       type: this.type
     };
-    if (this.unsplitable) js.unsplitable = true;
-    if (this.special) js.special = this.special;
+    if (this.special) {
+      js.special = this.special;
+    } else {
+      if (this.unsplitable) js.unsplitable = true;
+    }
     if (this.datasetType) js.datasetType = this.datasetType;
     if (this.maker) js.maker = this.maker.toJS();
     return js;
@@ -233,6 +236,7 @@ export class UniqueAttributeInfo extends AttributeInfo {
     super(parameters);
     this._ensureSpecial("unique");
     this.type = 'STRING';
+    this.unsplitable = true;
   }
 
   public serialize(value: any): string {
@@ -256,6 +260,7 @@ export class ThetaAttributeInfo extends AttributeInfo {
     super(parameters);
     this._ensureSpecial("theta");
     this.type = 'STRING';
+    this.unsplitable = true;
   }
 
   public serialize(value: any): string {
@@ -279,6 +284,7 @@ export class HistogramAttributeInfo extends AttributeInfo {
     super(parameters);
     this._ensureSpecial("histogram");
     this.type = 'NUMBER';
+    this.unsplitable = true;
   }
 
   public serialize(value: any): string {
