@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, $, ply, r } = plywood;
 
 describe("typecheck", () => {
   it("should throw silly ref type", () => {

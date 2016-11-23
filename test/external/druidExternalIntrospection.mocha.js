@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var Q = require('q');
+let { expect } = require("chai");
+let Q = require('q');
 
-var plywood = require('../plywood');
-var { Expression, External, TimeRange, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, External, TimeRange, $, ply, r } = plywood;
 
 describe("DruidExternal Introspection", () => {
-  var requesterFail = ({query}) => {
+  let requesterFail = ({query}) => {
     return Q.reject(new Error('Bad status code'));
   };
 
 
-  var requesterDruid_0_9_0 = ({query}) => {
+  let requesterDruid_0_9_0 = ({query}) => {
     if (query.queryType === 'status') return Q({ version: '0.9.0' });
     expect(query.dataSource).to.equal('wikipedia');
 
@@ -35,7 +35,7 @@ describe("DruidExternal Introspection", () => {
       expect(query.analysisTypes).to.be.an('array');
       expect(query.lenientAggregatorMerge).to.equal(true);
 
-      var merged = {
+      let merged = {
         "id": "merged",
         "intervals": null,
         "size": 0,
@@ -163,7 +163,7 @@ describe("DruidExternal Introspection", () => {
   };
 
 
-  var requesterDruid_0_8_3 = ({query}) => {
+  let requesterDruid_0_8_3 = ({query}) => {
     if (query.queryType === 'status') return Q({ version: '0.8.3' });
     expect(query.dataSource).to.equal('wikipedia');
 
@@ -174,7 +174,7 @@ describe("DruidExternal Introspection", () => {
         hello: 'world'
       });
 
-      var merged = {
+      let merged = {
         "id": "merged",
         "intervals": null,
         "size": 0,
@@ -267,7 +267,7 @@ describe("DruidExternal Introspection", () => {
   };
 
 
-  var requesterDruid_0_8_2 = ({query}) => {
+  let requesterDruid_0_8_2 = ({query}) => {
     if (query.queryType === 'status') return Q({ version: '0.8.2' });
     expect(query.dataSource).to.equal('wikipedia');
 
@@ -275,7 +275,7 @@ describe("DruidExternal Introspection", () => {
       expect(query.merge).to.equal(true);
       expect(query.analysisTypes).to.be.an('array');
 
-      var merged = {
+      let merged = {
         "id": "merged",
         "intervals": null,
         "size": 0,
@@ -314,7 +314,7 @@ describe("DruidExternal Introspection", () => {
   };
 
 
-  var requesterDruid_0_8_1 = ({query}) => {
+  let requesterDruid_0_8_1 = ({query}) => {
     if (query.queryType === 'status') return Q({ version: '0.8.1' });
     expect(query.dataSource).to.equal('wikipedia');
 
@@ -345,7 +345,7 @@ describe("DruidExternal Introspection", () => {
   });
 
   it("does an introspect with general failure", () => {
-    var wikiExternal = External.fromJS({
+    let wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia'
     }, requesterFail);
@@ -360,7 +360,7 @@ describe("DruidExternal Introspection", () => {
   });
 
   it("does an introspect with segmentMetadata (with aggregators)", () => {
-    var wikiExternal = External.fromJS({
+    let wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time'
@@ -437,7 +437,7 @@ describe("DruidExternal Introspection", () => {
   });
 
   it("does an introspect with segmentMetadata (without aggregators)", () => {
-    var wikiExternal = External.fromJS({
+    let wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -495,7 +495,7 @@ describe("DruidExternal Introspection", () => {
   });
 
   it("does an introspect with segmentMetadata (with old style COMPLEX columns)", () => {
-    var wikiExternal = External.fromJS({
+    let wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time'
@@ -540,7 +540,7 @@ describe("DruidExternal Introspection", () => {
   });
 
   it("does a simple introspect with GET", () => {
-    var wikiExternal = External.fromJS({
+    let wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time'
@@ -599,7 +599,7 @@ describe("DruidExternal Introspection", () => {
   });
 
   it("respects the introspectionStrategy flag", () => {
-    var wikiExternal = External.fromJS({
+    let wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       introspectionStrategy: 'datasource-get',
@@ -659,7 +659,7 @@ describe("DruidExternal Introspection", () => {
   });
 
   it("does an introspect with overrides", () => {
-    var wikiExternal = External.fromJS({
+    let wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -722,24 +722,24 @@ describe("DruidExternal Introspection", () => {
   });
 
   it("does a version aware based query", () => {
-    var selectRequesterDruid = ({query}) => {
+    let selectRequesterDruid = ({query}) => {
       if (query.queryType !== 'select') return requesterDruid_0_9_0({query});
       expect(query).to.deep.equal({
         "dataSource": "wikipedia",
         "dimensions": [
           "anonymous",
-          "delta_hist",
           "language",
           "namespace",
-          "page",
-          "user_unique"
+          "page"
         ],
         "granularity": "all",
         "intervals": "1000/3000",
         "metrics": [
           "added",
           "count",
-          "delta"
+          "delta",
+          "delta_hist",
+          "user_unique"
         ],
         "pagingSpec": {
           "pagingIdentifiers": {},
@@ -750,7 +750,7 @@ describe("DruidExternal Introspection", () => {
       return Q([]);
     };
 
-    var wikiExternal = External.fromJS({
+    let wikiExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -758,7 +758,7 @@ describe("DruidExternal Introspection", () => {
       allowSelectQueries: true
     }, selectRequesterDruid);
 
-    var context = { wiki: wikiExternal };
+    let context = { wiki: wikiExternal };
 
     return $('wiki').compute(context)
       .then((results) => {

@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { $, ply, r, Expression } = plywood;
+let plywood = require('../plywood');
+let { $, ply, r, Expression } = plywood;
 
 describe("composition", () => {
 
@@ -38,7 +38,7 @@ describe("composition", () => {
   });
 
   it("works in blank case", () => {
-    var ex = ply();
+    let ex = ply();
     expect(ex.toJS()).to.deep.equal({
       "op": "literal",
       "type": "DATASET",
@@ -47,7 +47,7 @@ describe("composition", () => {
   });
 
   it("works in ref case", () => {
-    var ex = $("diamonds");
+    let ex = $("diamonds");
     expect(ex.toJS()).to.deep.equal({
       "op": "ref",
       "name": "diamonds"
@@ -55,7 +55,7 @@ describe("composition", () => {
   });
 
   it("works in timeShift case", () => {
-    var ex = Expression._.timeShift('P1D');
+    let ex = Expression._.timeShift('P1D');
     expect(ex.toJS()).to.deep.equal({
       "op": "timeShift",
       "duration": "P1D",
@@ -64,7 +64,7 @@ describe("composition", () => {
   });
 
   it("works in single split case", () => {
-    var ex = $('data')
+    let ex = $('data')
       .split('$page', 'Page', 'd');
 
     expect(ex.toJS()).to.deep.equal({
@@ -83,7 +83,7 @@ describe("composition", () => {
   });
 
   it("works in multi split case", () => {
-    var ex = $('data')
+    let ex = $('data')
       .split({ Page: '$page', User: '$page' }, 'd');
 
     expect(ex.toJS()).to.deep.equal({
@@ -107,7 +107,7 @@ describe("composition", () => {
   });
 
   it("works in semi-realistic case", () => {
-    var ex = ply()
+    let ex = ply()
       .apply(
         "Diamonds",
         ply()
@@ -193,7 +193,7 @@ describe("composition", () => {
   });
 
   it("works in semi-realistic case (using parser)", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("Diamonds", ply().filter("$color == 'D'").apply("priceOver2", "$price/2"))
       .apply('Count', $('Diamonds').count())
       .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));

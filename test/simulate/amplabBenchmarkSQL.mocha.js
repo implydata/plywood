@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, External, TimeRange, $, i$, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, External, TimeRange, $, i$, ply, r } = plywood;
 
-var context = {
+let context = {
   rankings: External.fromJS({
     engine: 'druid',
     version: '0.9.0',
@@ -59,8 +59,8 @@ var context = {
 describe("simulate Druid for amplab benchmark", () => {
   it("works for Query1", () => {
     //         SELECT pageURL, pageRank FROM rankings WHERE pageRank > X
-    var sql = 'SELECT pageURL, pageRank FROM rankings WHERE pageRank > 5';
-    var ex = Expression.parseSQL(sql).expression;
+    let sql = 'SELECT pageURL, pageRank FROM rankings WHERE pageRank > 5';
+    let ex = Expression.parseSQL(sql).expression;
 
     expect(ex.toJS()).to.deep.equal(
       $('rankings')
@@ -71,7 +71,7 @@ describe("simulate Druid for amplab benchmark", () => {
         .toJS()
     );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0]).to.deep.equal([
       {
         "dataSource": "rankings",
@@ -102,8 +102,8 @@ describe("simulate Druid for amplab benchmark", () => {
 
   it("works for Query1 (modified to be GROUP BY)", () => {
     //         SELECT pageURL, sum(pageRank) AS pageRank FROM rankings GROUP BY pageURL HAVING pageRank > X
-    var sql = 'SELECT pageURL, sum(pageRank) AS pageRank FROM rankings GROUP BY pageURL HAVING pageRank > 5';
-    var ex = Expression.parseSQL(sql).expression;
+    let sql = 'SELECT pageURL, sum(pageRank) AS pageRank FROM rankings GROUP BY pageURL HAVING pageRank > 5';
+    let ex = Expression.parseSQL(sql).expression;
 
     expect(ex.toJS()).to.deep.equal(
       $('rankings').split('i$pageURL', 'pageURL', 'data')
@@ -113,7 +113,7 @@ describe("simulate Druid for amplab benchmark", () => {
         .toJS()
     );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [
@@ -156,8 +156,8 @@ describe("simulate Druid for amplab benchmark", () => {
 
   it("works for Query2", () => {
     //         SELECT SUBSTR(sourceIP, 1, X), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, X)
-    var sql = 'SELECT SUBSTR(sourceIP, 1, 5), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, 5)';
-    var ex = Expression.parseSQL(sql).expression;
+    let sql = 'SELECT SUBSTR(sourceIP, 1, 5), SUM(adRevenue) FROM uservisits GROUP BY SUBSTR(sourceIP, 1, 5)';
+    let ex = Expression.parseSQL(sql).expression;
 
     expect(ex.toJS()).to.deep.equal(
       $('uservisits').split('i$sourceIP.substr(1, 5)', 'SUBSTR(sourceIP, 1, 5)', 'data')
@@ -166,7 +166,7 @@ describe("simulate Druid for amplab benchmark", () => {
         .toJS()
     );
 
-    var queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0]).to.deep.equal([
       {
         "aggregations": [

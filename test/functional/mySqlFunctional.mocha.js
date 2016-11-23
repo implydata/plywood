@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var { mySqlRequesterFactory } = require('plywood-mysql-requester');
+let { mySqlRequesterFactory } = require('plywood-mysql-requester');
 
-var plywood = require('../plywood');
-var { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
+let plywood = require('../plywood');
+let { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
-var info = require('../info');
+let info = require('../info');
 
-var mySqlRequester = mySqlRequesterFactory({
+let mySqlRequester = mySqlRequesterFactory({
   host: info.mySqlHost,
   database: info.mySqlDatabase,
   user: info.mySqlUser,
@@ -38,7 +38,7 @@ var mySqlRequester = mySqlRequesterFactory({
 describe("MySQL Functional", function() {
   this.timeout(10000);
 
-  var wikiAttributes = [
+  let wikiAttributes = [
     { "name": "time", "type": "TIME" },
     { "name": "sometimeLater", "type": "TIME" },
     { "name": "channel", "type": "STRING" },
@@ -69,7 +69,7 @@ describe("MySQL Functional", function() {
     { "name": "deltaByTen", "type": "NUMBER" }
   ];
 
-  var wikiDerivedAttributes = {
+  let wikiDerivedAttributes = {
     pageInBrackets: "'[' ++ $page ++ ']'"
   };
 
@@ -85,7 +85,7 @@ describe("MySQL Functional", function() {
 
 
   describe("defined attributes in datasource", () => {
-    var basicExecutor = basicExecutorFactory({
+    let basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
@@ -97,7 +97,7 @@ describe("MySQL Functional", function() {
     });
 
     it("works in advanced case", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -212,7 +212,7 @@ describe("MySQL Functional", function() {
     });
 
     it("works with boolean GROUP BYs", () => {
-      var ex = $("wiki").split($("channel").is("en"), 'ChannelIsEn')
+      let ex = $("wiki").split($("channel").is("en"), 'ChannelIsEn')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending');
 
@@ -232,7 +232,7 @@ describe("MySQL Functional", function() {
     });
 
     it("works with multi-dimensional GROUP BYs", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").isnt("en")))
         .apply(
           'Cuts',
@@ -293,7 +293,7 @@ describe("MySQL Functional", function() {
     });
 
     it("fallback doesn't happen if not null", () => {
-      var ex = ply()
+      let ex = ply()
         .apply('added', $('wiki').sum($('added')).fallback(2));
 
       return basicExecutor(ex)
@@ -307,7 +307,7 @@ describe("MySQL Functional", function() {
     });
 
     it("works with complex raw mode", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter('$cityName == "El Paso"')
         .apply('regionNameLOL', '$regionName.concat(LOL)')
         .apply('addedPlusOne', '$added + 1')
@@ -323,7 +323,7 @@ describe("MySQL Functional", function() {
     });
 
     it("fallback happens if null", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("page").is('Rallicula')))
         .apply('MetroCode', $('wiki').sum($('metroCode')).fallback(0));
 
@@ -338,7 +338,7 @@ describe("MySQL Functional", function() {
     });
 
     it("power of and abs", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("page").is('Kosowo')))
         .apply('Delta', $('wiki').min($('delta')))
         .apply('AbsDelta', $('wiki').min($('delta')).absolute())
@@ -358,7 +358,7 @@ describe("MySQL Functional", function() {
 
 
     it("works string range", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter($('cityName').greaterThan('Kab').and($('cityName').lessThan('Kar')))
         .split('$cityName', 'City')
         .limit(5);
@@ -385,7 +385,7 @@ describe("MySQL Functional", function() {
     });
 
     it("works string range", () => {
-      var ex = $('wiki')
+      let ex = $('wiki')
         .filter($('cityName').lessThan('P'))
         .filter('$comment < "zebra"')
         .split('$cityName', 'City')
@@ -415,7 +415,7 @@ describe("MySQL Functional", function() {
   });
 
   describe("incorrect page", () => {
-    var wikiUserCharAsNumber = External.fromJS({
+    let wikiUserCharAsNumber = External.fromJS({
       engine: 'mysql',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -430,7 +430,7 @@ describe("MySQL Functional", function() {
 
     // Todo: invalid number casts return 0 in mysql. Also, something is happening when page is defined as a number that results in numbers being passed into the cast to date
     it("works with bad casts", () => {
-      var ex = $('wiki').split({ 'numberCast': '$comment.cast("NUMBER")', 'dateCast': '$page.cast("TIME")' })
+      let ex = $('wiki').split({ 'numberCast': '$comment.cast("NUMBER")', 'dateCast': '$page.cast("TIME")' })
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(3);
@@ -469,7 +469,7 @@ describe("MySQL Functional", function() {
 
 
   describe("introspection", () => {
-    var basicExecutor = basicExecutorFactory({
+    let basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
           engine: 'mysql',
@@ -490,7 +490,7 @@ describe("MySQL Functional", function() {
     });
 
     it("works with introspection", () => {
-      var ex = ply()
+      let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply(

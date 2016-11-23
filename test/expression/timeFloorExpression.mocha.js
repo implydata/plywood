@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { $, ply, r, Expression } = plywood;
+let plywood = require('../plywood');
+let { $, ply, r, Expression } = plywood;
 
 describe("TimeFloorExpression", () => {
 
@@ -35,7 +35,7 @@ describe("TimeFloorExpression", () => {
   });
 
   describe("#alignsWith", () => {
-    var hourFloorUTC = Expression.fromJS({
+    let hourFloorUTC = Expression.fromJS({
       op: 'timeFloor',
       operand: { op: 'ref', name: '_' },
       duration: 'PT1H',
@@ -43,7 +43,7 @@ describe("TimeFloorExpression", () => {
     });
 
     it("works with higher floor (PT2H)", () => {
-      var ex = Expression.fromJS({
+      let ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'PT2H',
@@ -54,7 +54,7 @@ describe("TimeFloorExpression", () => {
     });
 
     it("works with higher floor (P1D)", () => {
-      var ex = Expression.fromJS({
+      let ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'P1D',
@@ -65,7 +65,7 @@ describe("TimeFloorExpression", () => {
     });
 
     it("works fails on different timezone", () => {
-      var ex = Expression.fromJS({
+      let ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'PT2H',
@@ -76,7 +76,7 @@ describe("TimeFloorExpression", () => {
     });
 
     it("works fails on lower duration", () => {
-      var ex = Expression.fromJS({
+      let ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'PT30M',
@@ -87,7 +87,7 @@ describe("TimeFloorExpression", () => {
     });
 
     it("works with IN range", () => {
-      var ex = Expression.fromJS({
+      let ex = Expression.fromJS({
         op: 'in',
         operand: { op: 'ref', name: '_' },
         expression: {
@@ -104,7 +104,7 @@ describe("TimeFloorExpression", () => {
     });
 
     it("works fails IN range (bad)", () => {
-      var ex = Expression.fromJS({
+      let ex = Expression.fromJS({
         op: 'in',
         operand: { op: 'ref', name: '_' },
         expression: {
@@ -121,7 +121,7 @@ describe("TimeFloorExpression", () => {
     });
 
     it("works with IN set", () => {
-      var ex = Expression.fromJS({
+      let ex = Expression.fromJS({
         op: 'in',
         operand: { op: 'ref', name: '_' },
         expression: {
@@ -141,7 +141,7 @@ describe("TimeFloorExpression", () => {
     });
 
     it("works fails IN set (bad)", () => {
-      var ex = Expression.fromJS({
+      let ex = Expression.fromJS({
         op: 'in',
         operand: { op: 'ref', name: '_' },
         expression: {

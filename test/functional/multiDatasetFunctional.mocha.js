@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var { druidRequesterFactory } = require('plywood-druid-requester');
-var { mySqlRequesterFactory } = require('plywood-mysql-requester');
+let { druidRequesterFactory } = require('plywood-druid-requester');
+let { mySqlRequesterFactory } = require('plywood-mysql-requester');
 
-var plywood = require('../plywood');
-var { External, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
+let plywood = require('../plywood');
+let { External, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
-var utils = require('../utils');
-var info = require('../info');
+let utils = require('../utils');
+let info = require('../info');
 
-var druidRequester = druidRequesterFactory({
+let druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
-var mySqlRequester = mySqlRequesterFactory({
+let mySqlRequester = mySqlRequesterFactory({
   host: info.mySqlHost,
   database: info.mySqlDatabase,
   user: info.mySqlUser,
@@ -43,7 +43,7 @@ var mySqlRequester = mySqlRequesterFactory({
 //  requester: mySqlRequester
 //});
 
-var attributes = [
+let attributes = [
   { name: 'time', type: 'TIME' },
   { name: 'sometimeLater', type: 'TIME' },
   { name: "channel", type: 'STRING' },
@@ -73,7 +73,7 @@ var attributes = [
   { name: 'deleted', type: 'NUMBER' }
 ];
 
-var mixedExecutor = basicExecutorFactory({
+let mixedExecutor = basicExecutorFactory({
   datasets: {
     wiki_druid: External.fromJS({
       engine: 'druid',
@@ -100,7 +100,7 @@ describe("Multi Dataset Functional", function() {
 
   // ToDo: make this work
   it.skip("works in basic case", () => {
-    var ex = ply()
+    let ex = ply()
       .apply("wiki_druid", $('wiki_druid').filter($("channel").is('en')))
       .apply('TotalAddedDruid', '$wiki_druid.sum($added)')
       .apply("wiki_mysql", $('wiki_mysql').filter($("channel").is('en')))
@@ -115,7 +115,7 @@ describe("Multi Dataset Functional", function() {
   });
 
   it("mixed split case", () => {
-    var ex = $('wiki_mysql').split("$channel", "Channel")
+    let ex = $('wiki_mysql').split("$channel", "Channel")
       .apply('TotalAddedMySQL', '$wiki_mysql.sum($added)')
       .sort('$TotalAddedMySQL', 'descending')
       .limit(3)

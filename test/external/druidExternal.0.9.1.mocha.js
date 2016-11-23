@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var Q = require('q');
-var { sane } = require('../utils');
+let { expect } = require("chai");
+let Q = require('q');
+let { sane } = require('../utils');
 
-var plywood = require('../plywood');
-var { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
+let plywood = require('../plywood');
+let { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 
-var timeFilter = $('time').in(TimeRange.fromJS({
+let timeFilter = $('time').in(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
   end: new Date("2013-02-27T00:00:00Z")
 }));
 
-var context = {
+let context = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',
@@ -78,12 +78,12 @@ describe("DruidExternal 0.9.1", () => {
   describe("filters", () => {
 
     it("works with .timePart().in()", () => {
-      var ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').in([3, 5]));
+      let ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').in([3, 5]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var druidExternal = ex.external;
+      let druidExternal = ex.external;
       expect(() => {
         druidExternal.getQueryAndPostProcess();
       }).to.throw('can not do secondary filtering on primary time dimension (https://github.com/druid-io/druid/issues/2816)');

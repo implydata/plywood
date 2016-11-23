@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, $, r, ply, Set, Dataset, External, ExternalExpression, fillExpressionExternalAlteration } = plywood;
+let plywood = require('../plywood');
+let { Expression, $, r, ply, Set, Dataset, External, ExternalExpression, fillExpressionExternalAlteration } = plywood;
 
 function stringExternals(key, value) {
   if (value && value.engine) {
@@ -26,7 +26,7 @@ function stringExternals(key, value) {
   return value;
 }
 
-var diamonds = External.fromJS({
+let diamonds = External.fromJS({
   engine: 'druid',
   source: 'diamonds',
   timeAttribute: 'time',
@@ -50,9 +50,9 @@ var diamonds = External.fromJS({
 describe("evaluate step", () => {
 
   it('works in basic case', () => {
-    var diamondEx = new ExternalExpression({ external: diamonds });
+    let diamondEx = new ExternalExpression({ external: diamonds });
 
-    var ex1 = ply()
+    let ex1 = ply()
       .apply('diamonds', diamondEx)
       .apply('Total', '$diamonds.count()')
       .apply('TotalX2', '$Total * 2')
@@ -63,9 +63,9 @@ describe("evaluate step", () => {
           .apply('SubSplit', $('diamonds').split('$cut:STRING', 'SubCut').limit(5))
       );
 
-    var ex2 = ex1.simplify();
+    let ex2 = ex1.simplify();
 
-    var readyExternals = ex2.getReadyExternals();
+    let readyExternals = ex2.getReadyExternals();
     expect(JSON.parse(JSON.stringify(readyExternals, stringExternals))).to.deep.equal({
       "0": [
         {
@@ -162,7 +162,7 @@ describe("evaluate step", () => {
       ]
     });
 
-    var ex3 = ex2.applyReadyExternals(readyExternals);
+    let ex3 = ex2.applyReadyExternals(readyExternals);
     expect(JSON.parse(JSON.stringify(ex3, stringExternals)), 'E3').to.deep.equal({
       "op": "literal",
       "type": "DATASET",
@@ -187,7 +187,7 @@ describe("evaluate step", () => {
 
     // ---------------------
 
-    var readyExternals = ex3.getReadyExternals();
+    readyExternals = ex3.getReadyExternals();
     expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E4').to.deep.equal({
       "0": [
         {
@@ -228,7 +228,7 @@ describe("evaluate step", () => {
       ]
     });
 
-    var ex4 = ex3.applyReadyExternals(readyExternals);
+    let ex4 = ex3.applyReadyExternals(readyExternals);
     expect(JSON.parse(JSON.stringify(ex4, stringExternals)), 'E6').to.deep.equal({
       "op": "literal",
       "type": "DATASET",
@@ -257,7 +257,7 @@ describe("evaluate step", () => {
 
     // ---------------------
 
-    var readyExternals = ex4.getReadyExternals();
+    readyExternals = ex4.getReadyExternals();
     expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E7').to.deep.equal({}); // all done
 
   });

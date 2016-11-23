@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var { sane } = require('../utils');
+let { expect } = require("chai");
+let { sane } = require('../utils');
 
-var { testImmutableClass } = require("immutable-class-tester");
+let { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../plywood');
-var { Dataset, AttributeInfo, $, Set, r } = plywood;
+let plywood = require('../plywood');
+let { Dataset, AttributeInfo, $, Set, r } = plywood;
 
 describe("Dataset", () => {
   it("is immutable class", () => {
@@ -195,7 +195,7 @@ describe("Dataset", () => {
 
   describe("introspects", () => {
     it("in real case", () => {
-      var ds = Dataset.fromJS([
+      let ds = Dataset.fromJS([
         {
           "time": new Date("2015-09-12T00:46:58.771Z"),
           "channel": "#en.wikipedia",
@@ -269,7 +269,7 @@ describe("Dataset", () => {
 
 
   describe("sorts", () => {
-    var someDataset = Dataset.fromJS([
+    let someDataset = Dataset.fromJS([
       { time: new Date('2015-01-04T12:32:43'), resource: 'A', value: 7, nice: false },
       { time: null, resource: 'B', value: 2, nice: true },
       { time: new Date('2015-01-03T12:32:43'), resource: null, value: null, nice: null }
@@ -326,16 +326,16 @@ describe("Dataset", () => {
 
 
   describe("methods", () => {
-    var emptyDataset = Dataset.fromJS([]);
+    let emptyDataset = Dataset.fromJS([]);
 
-    var emptyNestedDataset = Dataset.fromJS([
+    let emptyNestedDataset = Dataset.fromJS([
       {
         count: 0,
         split: []
       }
     ]);
 
-    var carDataset = Dataset.fromJS([
+    let carDataset = Dataset.fromJS([
       {
         time: new Date('2015-01-04T12:32:43'),
         make: 'Honda',
@@ -350,7 +350,7 @@ describe("Dataset", () => {
       }
     ]).select(['time', 'make', 'model', 'price']);
 
-    var carAndPartsDataset = Dataset.fromJS([
+    let carAndPartsDataset = Dataset.fromJS([
       {
         time: new Date('2015-01-04T12:32:43'),
         make: 'Honda',
@@ -373,7 +373,7 @@ describe("Dataset", () => {
       }
     ]).select(['time', 'make', 'model', 'price', 'parts']);
 
-    var carTotalAndSubSplitDataset = Dataset.fromJS([
+    let carTotalAndSubSplitDataset = Dataset.fromJS([
       {
         price: 10000,
         weight: 1000,
@@ -416,7 +416,7 @@ describe("Dataset", () => {
       }
     ]);
 
-    var timeSeriesResult = Dataset.fromJS([
+    let timeSeriesResult = Dataset.fromJS([
       {
         "count": 31427,
         "added": 6686857,
@@ -725,7 +725,7 @@ describe("Dataset", () => {
 
     describe("#toTabular", () => {
       it("does not auto remove line breaks", () => {
-        var dsLineBreak = Dataset.fromJS([
+        let dsLineBreak = Dataset.fromJS([
           { letter: `dear john\nhow are you doing\nfish` }
         ]);
         expect(dsLineBreak.toTabular({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
@@ -737,11 +737,11 @@ describe("Dataset", () => {
       });
 
       it("allows for custom finalization", () => {
-        var ds = Dataset.fromJS([
+        let ds = Dataset.fromJS([
           { number: 2, isEmpty: true }
         ]);
 
-        var finalizer = (v) => {
+        let finalizer = (v) => {
           return !v + 2;
         };
 
@@ -774,7 +774,7 @@ describe("Dataset", () => {
       });
 
       it("escapes commas by enclosing whole field in quotes", () => {
-        var dsComma = Dataset.fromJS([
+        let dsComma = Dataset.fromJS([
           { letter: 'dear john, how are you doing' }
         ]);
 
@@ -785,7 +785,7 @@ describe("Dataset", () => {
       });
 
       it("escapes quotes by escaping quoted text but not if already quoted due to comma escape", () => {
-        var dsComma = Dataset.fromJS([
+        let dsComma = Dataset.fromJS([
           { letter: 'dear john, how are you "doing"' }
         ]);
         expect(dsComma.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
@@ -795,7 +795,7 @@ describe("Dataset", () => {
       });
 
       it("escapes sets properly", () => {
-        var ds = Dataset.fromJS([
+        let ds = Dataset.fromJS([
           { w: [1, 2], x: 1, y: ['hel,lo', 'mo\non'], z: ["Thu Feb 19 2015 16:00:00 GMT-0800 (PST)", "Fri Feb 20 2015 16:00:00 GMT-0800 (PST)"] },
           { w: ["null"], x: 2, y: ['wo\r\nrld', 'mo\ron'], z: ["stars"] }
         ]).select(['w', 'x', 'y', 'z']);
@@ -808,7 +808,7 @@ describe("Dataset", () => {
       });
 
       it("removes line breaks with csv", () => {
-        var dsLineBreak = Dataset.fromJS([
+        let dsLineBreak = Dataset.fromJS([
           { letter: `dear john\nhow are you doing?\r\nI'm good.\r-mildred` }
         ]);
         expect(dsLineBreak.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
@@ -818,7 +818,7 @@ describe("Dataset", () => {
       });
 
       it("is ok with null", () => {
-        var ds = Dataset.fromJS([
+        let ds = Dataset.fromJS([
           { letter: null }
         ]);
 
@@ -833,7 +833,7 @@ describe("Dataset", () => {
 
     describe("#toTSV", () => {
       it("does not escape commas in text by enclosing whole field in quotes", () => {
-        var dsComma = Dataset.fromJS([
+        let dsComma = Dataset.fromJS([
           { letter: 'dear john, how are you doing' }
         ]);
 
@@ -844,7 +844,7 @@ describe("Dataset", () => {
       });
 
       it("escapes tabs in text field", () => {
-        var dsComma = Dataset.fromJS([
+        let dsComma = Dataset.fromJS([
           { letter: 'dear john, \thow are you doing' }
         ]);
 
@@ -855,7 +855,7 @@ describe("Dataset", () => {
       });
 
       it("escapes set/string properly", () => {
-        var ds = Dataset.fromJS([
+        let ds = Dataset.fromJS([
           { x: 1, y: ['hel,lo', 'mo\non'] },
           { x: 2, y: ['wo\r\nrld', 'mo\ron'] }
         ]).select(['x', 'y']);
@@ -870,7 +870,7 @@ describe("Dataset", () => {
 
     describe("#select", () => {
       it("respects order", () => {
-        var carDataset = Dataset.fromJS([
+        let carDataset = Dataset.fromJS([
           {
             time: new Date('2015-01-04T12:32:43'),
             make: 'Honda',

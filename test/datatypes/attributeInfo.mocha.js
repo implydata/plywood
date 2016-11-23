@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var { testImmutableClass } = require("immutable-class-tester");
+let { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../plywood');
-var { AttributeInfo, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { AttributeInfo, $, ply, r } = plywood;
 
 describe("AttributeInfo", () => {
   it("is immutable class", () => {
@@ -38,7 +38,9 @@ describe("AttributeInfo", () => {
         maker: { op: 'sum', expression: { op: 'ref', name: 'price' } }
       },
       { name: 'tax', type: 'NUMBER', unsplitable: true },
-      { name: 'vendor_id', special: 'unique', type: "STRING", unsplitable: true }
+      { name: 'vendor_id', special: 'unique', type: "STRING" },
+      { name: 'vendor_id', special: 'theta', type: "STRING" },
+      { name: 'vendor_hist', special: 'histogram', type: "NUMBER" }
     ]);
   });
 });

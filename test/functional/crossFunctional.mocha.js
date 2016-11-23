@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var { druidRequesterFactory } = require('plywood-druid-requester');
-var { mySqlRequesterFactory } = require('plywood-mysql-requester');
-var { postgresRequesterFactory } = require('plywood-postgres-requester');
+let { druidRequesterFactory } = require('plywood-druid-requester');
+let { mySqlRequesterFactory } = require('plywood-mysql-requester');
+let { postgresRequesterFactory } = require('plywood-postgres-requester');
 
-var plywood = require('../plywood');
-var { External, TimeRange, $, ply, r, basicExecutorFactory, verboseRequesterFactory } = plywood;
+let plywood = require('../plywood');
+let { External, TimeRange, $, ply, r, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
-var utils = require('../utils');
-var info = require('../info');
+let utils = require('../utils');
+let info = require('../info');
 
-var druidRequester = druidRequesterFactory({
+let druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
-var mySqlRequester = mySqlRequesterFactory({
+let mySqlRequester = mySqlRequesterFactory({
   host: info.mySqlHost,
   database: info.mySqlDatabase,
   user: info.mySqlUser,
   password: info.mySqlPassword
 });
 
-var postgresRequester = postgresRequesterFactory({
+let postgresRequester = postgresRequesterFactory({
   host: info.postgresHost,
   database: info.postgresDatabase,
   user: info.postgresUser,
@@ -54,7 +54,7 @@ var postgresRequester = postgresRequesterFactory({
 //   requester: postgresRequester
 // });
 
-var attributes = [
+let attributes = [
   { name: 'time', type: 'TIME' },
   { name: 'sometimeLater', type: 'TIME' },
   { name: "channel", type: 'STRING' },
@@ -87,11 +87,11 @@ var attributes = [
   { name: 'deleted', type: 'NUMBER', unsplitable: true }
 ];
 
-var derivedAttributes = {
+let derivedAttributes = {
   pageInBrackets: "'[' ++ $page:STRING ++ ']'" // ToDo: remove :STRING
 };
 
-var druidExecutor = basicExecutorFactory({
+let druidExecutor = basicExecutorFactory({
   datasets: {
     wiki: External.fromJS({
       engine: 'druid',
@@ -107,7 +107,7 @@ var druidExecutor = basicExecutorFactory({
   }
 });
 
-var druidLegacyExecutor = basicExecutorFactory({
+let druidLegacyExecutor = basicExecutorFactory({
   datasets: {
     wiki: External.fromJS({
       engine: 'druid',
@@ -125,7 +125,7 @@ var druidLegacyExecutor = basicExecutorFactory({
   }
 });
 
-var mysqlExecutor = basicExecutorFactory({
+let mysqlExecutor = basicExecutorFactory({
   datasets: {
     wiki: External.fromJS({
       engine: 'mysql',
@@ -136,7 +136,7 @@ var mysqlExecutor = basicExecutorFactory({
   }
 });
 
-var postgresExecutor = basicExecutorFactory({
+let postgresExecutor = basicExecutorFactory({
   datasets: {
     wiki: External.fromJS({
       engine: 'postgres',
@@ -147,7 +147,7 @@ var postgresExecutor = basicExecutorFactory({
   }
 });
 
-var equalityTest = utils.makeEqualityTest({
+let equalityTest = utils.makeEqualityTest({
   druid: druidExecutor,
   druidLegacy: druidLegacyExecutor,
   mysql: mysqlExecutor,

@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var { testImmutableClass } = require("immutable-class-tester");
+let { testImmutableClass } = require("immutable-class-tester");
 
-var plywood = require('../plywood');
-var { Expression, $, ply, r, RefExpression, LimitExpression, SortExpression } = plywood;
+let plywood = require('../plywood');
+let { Expression, $, ply, r, RefExpression, LimitExpression, SortExpression } = plywood;
 
 describe("Expression", () => {
   it("is immutable class", () => {
@@ -310,33 +310,33 @@ describe("Expression", () => {
 
   describe("#getFn", () => {
     it("works in a simple case of IS", () => {
-      var ex = $('x').is(8);
-      var exFn = ex.getFn();
+      let ex = $('x').is(8);
+      let exFn = ex.getFn();
       expect(exFn({ x: 5 })).to.equal(false);
       expect(exFn({ x: 8 })).to.equal(true);
     });
 
     it("works in a simple case of addition", () => {
-      var ex = $('x').add('$y', 5);
+      let ex = $('x').add('$y', 5);
 
-      var exFn = ex.getFn();
+      let exFn = ex.getFn();
       expect(exFn({ x: 5, y: 1 })).to.equal(11);
       expect(exFn({ x: 8, y: -3 })).to.equal(10);
     });
 
     it("works with calc", () => {
-      var ex = Expression.fromJS({
+      let ex = Expression.fromJS({
         op: 'add',
         operand: { op: 'ref', name: 'x' },
         expression: { op: 'ref', name: 'y' }
       });
-      var exFn = ex.getFn();
+      let exFn = ex.getFn();
       expect(exFn({ x: 5, y: 2 })).to.equal(7);
       expect(ex.calc({ x: 8, y: -3 })).to.equal(5);
     });
 
     it('works with case insensitive', () => {
-      var exp = Expression.parse("i$cUT");
+      let exp = Expression.parse("i$cUT");
       expect(exp.toJS()).to.deep.equal({
         "ignoreCase": true,
         "name": "cUT",
@@ -352,7 +352,7 @@ describe("Expression", () => {
 
   describe("#getJS", () => {
     it('throws with case insensitive flag still set', () => {
-      var exp = Expression.parse("i$cUT");
+      let exp = Expression.parse("i$cUT");
       expect(() => exp.getJS()).to.throw('can not express ignore case as js expression');
     });
   });
@@ -360,17 +360,17 @@ describe("Expression", () => {
 
   describe('#decomposeAverage', () => {
     it('works in simple case', () => {
-      var ex1 = $('data').average('$x');
-      var ex2 = $('data').sum('$x').divide($('data').count());
+      let ex1 = $('data').average('$x');
+      let ex2 = $('data').sum('$x').divide($('data').count());
       expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in more nested case', () => {
-      var ex1 = $('w').add(
+      let ex1 = $('w').add(
         $('data').average('$x'),
         $('data').average('$y + $z')
       );
-      var ex2 = $('w').add(
+      let ex2 = $('w').add(
         $('data').sum('$x').divide($('data').count()),
         $('data').sum('$y + $z').divide($('data').count())
       );
@@ -378,8 +378,8 @@ describe("Expression", () => {
     });
 
     it('works in custom count case', () => {
-      var ex1 = $('data').average('$x');
-      var ex2 = $('data').sum('$x').divide($('data').sum('$count'));
+      let ex1 = $('data').average('$x');
+      let ex2 = $('data').sum('$x').divide($('data').sum('$count'));
       expect(ex1.decomposeAverage($('count')).toJS()).to.deep.equal(ex2.toJS());
     });
   });
@@ -387,56 +387,56 @@ describe("Expression", () => {
 
   describe('#distribute', () => {
     it('works in simple - case', () => {
-      var ex1 = $('data').sum('-$x');
-      var ex2 = $('data').sum('$x').negate();
+      let ex1 = $('data').sum('-$x');
+      let ex2 = $('data').sum('$x').negate();
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in simple + case', () => {
-      var ex1 = $('data').sum('$x + $y');
-      var ex2 = $('data').sum('$x').add('$data.sum($y)');
+      let ex1 = $('data').sum('$x + $y');
+      let ex2 = $('data').sum('$x').add('$data.sum($y)');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('turns sum in count 1', () => {
-      var ex1 = $('data').sum('6');
-      var ex2 = $('data').count().multiply(6);
+      let ex1 = $('data').sum('6');
+      let ex2 = $('data').count().multiply(6);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('turns sum in count 2', () => {
-      var ex1 = $('data').sum('1');
-      var ex2 = $('data').count();
+      let ex1 = $('data').sum('1');
+      let ex2 = $('data').count();
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in constant * case', () => {
-      var ex1 = $('data').sum('$x * 6');
-      var ex2 = $('data').sum('$x').multiply(6);
+      let ex1 = $('data').sum('$x * 6');
+      let ex2 = $('data').sum('$x').multiply(6);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in post agg case 1', () => {
-      var ex1 = $('data').sum('$x * 6').multiply(3);
-      var ex2 = $('data').sum('$x').multiply(18);
+      let ex1 = $('data').sum('$x * 6').multiply(3);
+      let ex2 = $('data').sum('$x').multiply(18);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in post agg case 2', () => {
-      var ex1 = $('data').sum('$x * 6').add(3);
-      var ex2 = $('data').sum('$x').multiply(6).add(3);
+      let ex1 = $('data').sum('$x * 6').add(3);
+      let ex2 = $('data').sum('$x').multiply(6).add(3);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it.skip('works in constant * case (multiple operands)', () => {
-      var ex1 = $('data').sum('$x * 6 * $y');
-      var ex2 = $('data').sum('$x * $y').multiply(6);
+      let ex1 = $('data').sum('$x * 6 * $y');
+      let ex2 = $('data').sum('$x * $y').multiply(6);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it.skip('works in complex case', () => {
-      var ex1 = $('data').sum('$x + $y - $z * 5 + 6');
-      var ex2 = $('data').sum($x).add('$data.sum($y)', '($data.sum($z) * 5).negate()', '6 * $data.count()');
+      let ex1 = $('data').sum('$x + $y - $z * 5 + 6');
+      let ex2 = $('data').sum($x).add('$data.sum($y)', '($data.sum($z) * 5).negate()', '6 * $data.count()');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
@@ -472,7 +472,7 @@ describe("Expression", () => {
 
   describe('fromJS API back comparability', () => {
     it('works in complex case', () => {
-      var js = {
+      let js = {
         "actions": [
           {
             "action": "apply",
@@ -568,7 +568,7 @@ describe("Expression", () => {
         "op": "chain"
       };
 
-      var ex2 = ply()
+      let ex2 = ply()
         .apply("Diamonds", ply().filter("$color == 'D'").apply("priceOver2", "$price/2"))
         .apply('Count', $('Diamonds').count())
         .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));

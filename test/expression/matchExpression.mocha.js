@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { $, ply, r, MatchExpression } = plywood;
+let plywood = require('../plywood');
+let { $, ply, r, MatchExpression } = plywood;
 
 describe("MatchExpression", () => {
   it(".likeToRegExp", () => {

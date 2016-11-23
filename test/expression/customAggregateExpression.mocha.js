@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { $, Expression } = plywood;
+let plywood = require('../plywood');
+let { $, Expression } = plywood;
 
 describe("CustomAggregateExpression", () => {
   it("back compat using Expression from JS", () => {

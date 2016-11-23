@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
-var Q = require('q');
-var { sane } = require('../utils');
+let { expect } = require("chai");
+let Q = require('q');
+let { sane } = require('../utils');
 
-var plywood = require('../plywood');
-var { External, TimeRange, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { External, TimeRange, $, ply, r } = plywood;
 
-var timeFilter = $('time').in(TimeRange.fromJS({
+let timeFilter = $('time').in(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
   end: new Date("2013-02-27T00:00:00Z")
 }));
 
-var context = {
+let context = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',
@@ -71,7 +71,7 @@ var context = {
   })
 };
 
-var contextNoApprox = {
+let contextNoApprox = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',
@@ -94,12 +94,12 @@ describe("DruidExternal Legacy", () => {
   describe("splits", () => {
 
     it("works with .concat()", () => {
-      var ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
+      let ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -114,12 +114,12 @@ describe("DruidExternal Legacy", () => {
     });
 
     it("works with SET/STRING.concat()", () => {
-      var ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
+      let ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",
@@ -134,12 +134,12 @@ describe("DruidExternal Legacy", () => {
     });
 
     it("works with .substr()", () => {
-      var ex = $('wiki').split('$page.substr(3, 5)', 'Split');
+      let ex = $('wiki').split('$page.substr(3, 5)', 'Split');
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      var query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostProcess().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",

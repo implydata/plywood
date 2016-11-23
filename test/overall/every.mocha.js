@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-var { expect } = require("chai");
+let { expect } = require("chai");
 
-var plywood = require('../plywood');
-var { Expression, $, ply, r } = plywood;
+let plywood = require('../plywood');
+let { Expression, $, ply, r } = plywood;
 
 describe("every", () => {
   it("has sequential indexes", () => {
-    var ex = ply()
+    let ex = ply()
       .apply('num', 5)
       .apply(
         'subData',
@@ -33,18 +33,18 @@ describe("every", () => {
           .apply('w', ply().sum('$a + 4 + $b'))
       );
 
-    var indexes = [];
-    var everyFn = (ex, index) => {
+    let indexes = [];
+    let everyFn = (ex, index) => {
       indexes.push(index);
       return null;
     };
 
-    var expressionCount = ex.expressionCount();
+    let expressionCount = ex.expressionCount();
     ex.every(everyFn);
     expect(expressionCount).to.equal(27);
     expect(indexes).to.deep.equal(((() => {
-      var result = [];
-      var i = 0;
+      let result = [];
+      let i = 0;
       while (i < expressionCount) {
         result.push(i++);
       }
