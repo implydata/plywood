@@ -209,7 +209,7 @@ describe("compute native", () => {
 
     let ex = ply()
       .apply('time', new Date('2015-09-12T09:20:30Z'))
-      .apply('between', $('time').greaterThan(r(1442016000000).cast('TIME')).and($('time').lessThan(r(1442059199000).cast('TIME'))))
+      .apply('between', $('time').greaterThan(r(1442016000000).cast('TIME')).and($('time').lessThan(r(1442059199000).cast('TIME'))));
 
     return ex.compute()
       .then((v) => {
@@ -265,6 +265,20 @@ describe("compute native", () => {
         expect(v.toJS()).to.deep.equal([
           {
             "numberfiedString": 22345243
+          }
+        ]);
+      });
+  });
+
+  it("casts from boolean to boolean", () => {
+    let ex = ply()
+      .apply('stillBoolean', r(true).cast('BOOLEAN'));
+
+    return ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "stillBoolean": true
           }
         ]);
       });

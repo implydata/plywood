@@ -25,10 +25,10 @@ interface Caster {
   };
   NUMBER: {
     TIME: (d: Date) => number;
-    UNIVERSAL: (v: any) => number;
+    _: (v: any) => number;
   };
   STRING: {
-    UNIVERSAL: (v: any) => String;
+    _: (v: any) => string;
   };
   [castTo: string]: {[inputType: string]: any};
 }
@@ -39,10 +39,10 @@ const CAST_TYPE_TO_FN: Caster = {
   },
   NUMBER: {
     TIME: (n: Date) => Date.parse(n.toString()),
-    UNIVERSAL: (s: any) => Number(s)
+    _: (s: any) => Number(s)
   },
   STRING: {
-    UNIVERSAL: (v: any) => '' + v
+    _: (v: any) => '' + v
   }
 };
 
@@ -51,10 +51,10 @@ const CAST_TYPE_TO_JS: Lookup<Lookup<(operandJS: string) => string>> = {
     NUMBER: (operandJS) => `new Date(${operandJS})`
   },
   NUMBER: {
-    UNIVERSAL: (s) => `+(${s})`
+    _: (s) => `+(${s})`
   },
   STRING: {
-    UNIVERSAL: (operandJS) => `('' + ${operandJS})`
+    _: (operandJS) => `('' + ${operandJS})`
   }
 };
 
@@ -101,19 +101,26 @@ export class CastExpression extends ChainableExpression {
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
     const { outputType } = this;
-    let caster = (CAST_TYPE_TO_FN as any)[outputType];
     let inputType = this.operand.type;
-    let castFn = caster[inputType] || caster['UNIVERSAL'];
+    if (outputType === inputType) return operandValue;
+
+    let caster = (CAST_TYPE_TO_FN as any)[outputType];
+    if (!caster) throw new Error(`unsupported cast type in calc '${outputType}'`);
+
+    let castFn = caster[inputType] || caster['_'];
     if (!castFn) throw new Error(`unsupported cast from ${inputType} to '${outputType}'`);
     return operandValue ? castFn(operandValue) : null;
   }
 
   protected _getJSChainableHelper(operandJS: string): string {
     const { outputType } = this;
+    let inputType = this.operand.type;
+    if (outputType === inputType) return operandJS;
+
     let castJS = CAST_TYPE_TO_JS[outputType];
     if (!castJS) throw new Error(`unsupported cast type in getJS '${outputType}'`);
-    let inputType = this.operand.type;
-    let js = castJS[inputType] || castJS['UNIVERSAL'];
+
+    let js = castJS[inputType] || castJS['_'];
     if (!js) throw new Error(`unsupported combo in getJS of cast action: ${inputType} to ${outputType}`);
     return js(operandJS);
   }
