@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.15.3
+
+- Added more CAST options
+
 ## 0.15.2
 
 - Fixed special attributes not reporting `unsplitable` correctly

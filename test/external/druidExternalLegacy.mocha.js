@@ -67,6 +67,14 @@ let context = {
           globalWarming: 'hoax'
         }
       }
+    },
+    customTransforms: {
+      fancy: {
+        extractionFn: {
+          type: 'javascript',
+          "function": "function(x) { return x.split(/a/).join('.') }"
+        }
+      }
     }
   })
 };
@@ -90,6 +98,43 @@ let contextNoApprox = {
 };
 
 describe("DruidExternal Legacy", () => {
+
+  describe("filters", () => {
+
+    it("works with custom transform", () => {
+      let ex = $('wiki').filter('$page.customTransform(fancy).overlap(["lol", "troll"])').count();
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      let query = ex.external.getQueryAndPostProcess().query;
+      expect(query.queryType).to.equal('timeseries');
+      expect(query.filter).to.deep.equal({
+        "fields": [
+          {
+            "dimension": "page",
+            "extractionFn": {
+              "function": "function(x) { return x.split(/a/).join('.') }",
+              "type": "javascript"
+            },
+            "type": "extraction",
+            "value": "lol"
+          },
+          {
+            "dimension": "page",
+            "extractionFn": {
+              "function": "function(x) { return x.split(/a/).join('.') }",
+              "type": "javascript"
+            },
+            "type": "extraction",
+            "value": "troll"
+          }
+        ],
+        "type": "or"
+      });
+    });
+
+  });
 
   describe("splits", () => {
 
