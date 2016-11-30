@@ -30,7 +30,6 @@ let wikiDayData = Dataset.parseJSON(rawData);
 wikiDayData.forEach((d, i) => {
   d['time'] = new Date(d['time']);
   d['sometimeLater'] = new Date(d['sometimeLater']);
-  delete d['userChars'];
 });
 
 describe("compute native nontrivial data", function() {
@@ -174,6 +173,114 @@ describe("compute native nontrivial data", function() {
               "start": new Date('2015-09-12T01:15:00.000Z'),
               "type": "TIME_RANGE"
             }
+          }
+        ]);
+      });
+  });
+
+  it("works in heatmap like query", () => {
+    let ex = ply()
+      .apply('Count', '$data.count()')
+      .apply('xs',
+        $('data').split('$userChars', 'v')
+          .apply('cnt', '$data.count()')
+          .sort('$cnt', 'descending')
+          .limit(3)
+      )
+      .apply('ys',
+        $('data').split('$channel', 'v')
+          .apply('cnt', '$data.count()')
+          .sort('$cnt', 'descending')
+          .limit(3)
+      )
+      .apply('cells',
+        $('data')
+          .filter($('userChars').overlap($('xs').collect($('v'))).and($('channel').in($('ys').collect($('v')))))
+          .split({ channel: '$channel', userChars: '$userChars' })
+          .apply('cnt', '$data.count()')
+          .limit(3 * 3)
+      );
+
+    return ex.compute({ data: ds })
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal([
+          {
+            "Count": 39244,
+            "xs": [
+              {
+                "cnt": 22311,
+                "v": "A"
+              },
+              {
+                "cnt": 22273,
+                "v": "O"
+              },
+              {
+                "cnt": 21658,
+                "v": "T"
+              }
+            ],
+            "ys": [
+              {
+                "cnt": 11549,
+                "v": "en"
+              },
+              {
+                "cnt": 9747,
+                "v": "vi"
+              },
+              {
+                "cnt": 2523,
+                "v": "de"
+              }
+            ],
+            "cells": [
+              {
+                "channel": "en",
+                "cnt": 4947,
+                "userChars": "E"
+              },
+              {
+                "channel": "en",
+                "cnt": 1612,
+                "userChars": "G"
+              },
+              {
+                "channel": "en",
+                "cnt": 2815,
+                "userChars": "L"
+              },
+              {
+                "channel": "en",
+                "cnt": 3736,
+                "userChars": "N"
+              },
+              {
+                "channel": "en",
+                "cnt": 4994,
+                "userChars": "O"
+              },
+              {
+                "channel": "en",
+                "cnt": 3806,
+                "userChars": "R"
+              },
+              {
+                "channel": "en",
+                "cnt": 3006,
+                "userChars": "S"
+              },
+              {
+                "channel": "en",
+                "cnt": 4606,
+                "userChars": "T"
+              },
+              {
+                "channel": "vi",
+                "cnt": 2513,
+                "userChars": "!"
+              }
+            ]
           }
         ]);
       });

@@ -816,11 +816,20 @@ export class Dataset implements Instance<DatasetValue, any> {
 
     for (let datum of data) {
       let valueList = splitFnList.map(splitFn => splitFn(datum));
-      if (Set.isSet(valueList[0])) {
-        if (valueList.length > 1) throw new Error('multi-dimensional set split is not implemented');
-        let elements = valueList[0].elements;
+      let setIndex = -1;
+      for (let i = 0; i < valueList.length; i++) {
+        if (Set.isSet(valueList[i])) {
+          if (setIndex !== -1) throw new Error(`only one SET value is supported in native split for now`);
+          setIndex = i;
+        }
+      }
+
+      if (setIndex !== -1) {
+        let elements = valueList[setIndex].elements;
+        let atomicValueList = valueList.slice();
         for (let element of elements) {
-          addDatum(datum, [element]);
+          atomicValueList[setIndex] = element;
+          addDatum(datum, atomicValueList);
         }
       } else {
         addDatum(datum, valueList);

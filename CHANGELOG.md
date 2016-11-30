@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.15.4
+
+- Added `Range#isFinite`
+- Fixed logic around heatmap query
+
 ## 0.15.3
 
 - Added more CAST options

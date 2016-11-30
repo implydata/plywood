@@ -209,6 +209,7 @@ export function isSetType(type: PlyType): boolean {
 }
 
 export function wrapSetType(type: PlyType): PlyType {
+  if (!type) return null;
   return isSetType(type) ? type : <PlyType>('SET/' + type);
 }
 

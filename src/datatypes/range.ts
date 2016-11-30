@@ -289,4 +289,8 @@ export abstract class Range<T> {
    * Computes the midpoint of the range
    */
   public abstract midpoint(): T;
+
+  public isFinite(): boolean {
+    return this.start !== null && this.end !== null;
+  }
 }
