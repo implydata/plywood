@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.15.5
+
+- Fixing JS code gen for number casting `+x !== parseFloat(x)` when `x == " "`
+- Implement `bucket` extractionFn for DruidExternal
+
 ## 0.15.4
 
 - Added `Range#isFinite`

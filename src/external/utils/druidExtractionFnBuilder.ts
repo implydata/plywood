@@ -218,7 +218,7 @@ export class DruidExtractionFnBuilder {
       return this.customTransformToExtractionFn(expression);
 
     } else if (expression instanceof NumberBucketExpression) {
-      return this.expressionToJavaScriptExtractionFn(expression);
+      return this.numberBucketToExtractionFn(expression);
 
     } else if (expression instanceof SubstrExpression) {
       return this.substrToExtractionFn(expression);
@@ -356,11 +356,19 @@ export class DruidExtractionFnBuilder {
     return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), myExtractionFn);
   }
 
+  private numberBucketToExtractionFn(expression: NumberBucketExpression): Druid.ExtractionFn | null {
+    if (this.versionBefore('0.9.2')) return this.expressionToJavaScriptExtractionFn(expression);
+    const { operand, size, offset } = expression;
+
+    let bucketExtractionFn: Druid.ExtractionFn = { type: "bucket" };
+    if (size !== 1) bucketExtractionFn.size = size;
+    if (offset !== 0) bucketExtractionFn.offset = offset;
+    return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), bucketExtractionFn);
+  }
+
   private substrToExtractionFn(expression: SubstrExpression): Druid.ExtractionFn | null {
-    const { operand, position, len } = expression;
-
     if (this.versionBefore('0.9.0')) return this.expressionToJavaScriptExtractionFn(expression);
-
+    const { operand, position, len } = expression;
     return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), {
       type: "substring",
       index: position,

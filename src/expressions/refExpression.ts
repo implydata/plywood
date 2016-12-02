@@ -213,7 +213,7 @@ export class RefExpression extends Expression {
       expr = RefExpression.toJavaScriptSafeName(name);
     }
 
-    if (this.type === 'NUMBER') expr = `(+${expr})`;
+    if (this.type === 'NUMBER') expr = `parseFloat(${expr})`;
     return expr;
   }
 
