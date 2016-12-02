@@ -435,6 +435,7 @@ OR                      | Logical OR
 
 ## Functions
 
+<a id="NUMBER_BUCKET" href="#NUMBER_BUCKET">#</a>
 **NUMBER_BUCKET**(operand, size, offset)
 
 Bucket the numeric dimension into a buckets of size `size` with the given offset.
@@ -445,6 +446,7 @@ This will bucket the `$revenue` into buckets like: [1, 6), [6, 11), [11, 16), e.
 Note that the buckets are open closed (start <= x < end).
 
 
+<a id="TIME_BUCKET" href="#TIME_BUCKET">#</a>
 **TIME_BUCKET**(operand, duration, timezone)
 
 Bucket the time into a bucket of size `duration` in the given `timezone`.
@@ -454,6 +456,7 @@ Example: `TIME_BUCKET(time, 'P1D', 'America/Los_Angeles')`
 This will bucket the `time` variable into day chunks where days are defined in the `America/Los_Angeles` timezone.
 
 
+<a id="TIME_PART" href="#TIME_PART">#</a>
 **TIME_PART**(operand, part, timezone)
 
 Part the time into the given repeating buckets.
@@ -473,6 +476,7 @@ The possible part values are:
 * `YEAR`
 
 
+<a id="TIME_FLOOR" href="#TIME_FLOOR">#</a>
 **TIME_FLOOR**(operand, duration, timezone)
 
 Floor the time to the nearest `duration` in the given `timezone`.
@@ -482,6 +486,7 @@ Example: `TIME_FLOOR(time, 'P1D', 'America/Los_Angeles')`
 This will floor the `time` variable to the start of day, where days are defined in the `America/Los_Angeles` timezone.
 
 
+<a id="TIME_SHIFT" href="#TIME_SHIFT">#</a>
 **TIME_SHIFT**(operand, duration, step, timezone)
 
 Shift the time forwards by `duration` * `step` in the given `timezone`.
@@ -492,6 +497,7 @@ Example: `TIME_SHIFT(time, 'P1D', -2, 'America/Los_Angeles')`
 This will shift the `time` variable two days back in time, where days are defined in the `America/Los_Angeles` timezone.
 
 
+<a id="TIME_RANGE" href="#TIME_RANGE">#</a>
 **TIME_RANGE**(operand, duration, step, timezone)
 
 Create a range form `time` and the point that is `duration` * `step` away from `time` in the given `timezone`.
@@ -502,52 +508,64 @@ Example: `TIME_RANGE(time, 'P1D', -2, 'America/Los_Angeles')`
 This will shift the `time` variable two days back in time, where days are defined in the `America/Los_Angeles` timezone and create a range of time-2*P1D -> time.
 
 
+<a id="SUBSTR" href="#SUBSTR">#</a>
 **SUBSTR**(*str*, *pos*, *len*)
 
 Returns a substring *len* characters long from string *str*, starting at position *pos*
 
+<a id="CONCAT" href="#CONCAT">#</a>
 **CONCAT**(*str1*, *str2*, ...)
 
 Returns the string that results from concatenating the arguments. May have one or more arguments
 
+<a id="EXTRACT" href="#EXTRACT">#</a>
 **EXTRACT**(*str*, *regexp*)
 
 Returns the first matching group that results form matching *regexp* to *str*
 
+<a id="LOOKUP" href="#LOOKUP">#</a>
 **LOOKUP**(*str*, *lookup-namespace*)
 
 Returns the value for the key *str* withing the *lookup-namespace*
 
+<a id="IFNULL" href="#IFNULL">#</a>
 **IFNULL**(*expr1*, *expr2*)
 
 Returns the *expr* if it's not null, otherwise returns *expr2* 
 
+<a id="FALLBACK" href="#FALLBACK">#</a>
 **FALLBACK**(*expr1*, *expr2*)
 
 This is a synonym for **IFNULL**(*expr1*, *expr2*)
 
+<a id="OVERLAP" href="#OVERLAP">#</a>
 **OVERLAP**(*expr1*, *expr2*)
 
 Checks whether *expr1* and *expr2* overlap
 
 ### Mathematical Functions
 
+<a id="ABS" href="#ABS">#</a>
 **ABS**(*expr*)
 
   Returns the absolute value of *expr* value.  
 
+<a id="POW" href="#POW">#</a>
 **POW**(*expr1*, *expr2*)
 
   Returns *expr1* raised to the power of *expr2*.  
 
+<a id="POWER" href="#POWER">#</a>
 **POWER**(*expr1*, *expr2*)  
 
 This is a synonym for **POW**(*expr1*, *expr2*)  
 
+<a id="SQRT" href="#SQRT">#</a>
 **SQRT**(*expr*)
 
   Returns the square root of *expr*
 
+<a id="EXP" href="#EXP">#</a>
   **EXP**(*expr*)
 
 Returns the value of e (base of natural logs) raised to the power of *expr*.
@@ -555,35 +573,43 @@ Returns the value of e (base of natural logs) raised to the power of *expr*.
 
 ## Aggregations
 
+<a id="COUNT" href="#COUNT">#</a>
 **COUNT**(*expr?*)
 
 If used without an expression (or as `COUNT(*)`) returns the count of the number of rows.
 When an expression is provided returns a count of the rows where *expr* is not null.
  
+<a id="COUNT" href="#COUNT">#</a>
 **COUNT**(**DISTINCT** *expr*), **COUNT_DISTINCT**(*expr*) 
 
 Returns the count of the number of rows with different *expr* values.
 
+<a id="SUM" href="#SUM">#</a>
 **SUM**(*expr*) 
 
 Returns the sum of all *expr* values.
 
+<a id="MIN" href="#MIN">#</a>
 **MIN**(*expr*) 
 
 Returns the min of all *expr* values.
 
+<a id="MAX" href="#MAX">#</a>
 **MAX**(*expr*) 
 
 Returns the max of all *expr* values.
 
+<a id="AVG" href="#AVG">#</a>
 **AVG**(*expr*)
 
 Returns the average of all *expr* values.
 
+<a id="QUANTILE" href="#QUANTILE">#</a>
 **QUANTILE**(*expr*, *quantile*)
 
 Returns the upper *quantile* of all *expr* values.
 
+<a id="CUSTOM" href="#CUSTOM">#</a>
 **CUSTOM**(*custom_name*)
 
 Returns the user defined aggregation named *custom_name*.
