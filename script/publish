@@ -14,6 +14,7 @@ fi
 
 echo "Trying to publish..."
 
-script/version-bump
+git pull
 npm run compile
+script/version-bump
 npm publish
