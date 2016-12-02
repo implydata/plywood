@@ -121,7 +121,7 @@ describe("simulate Druid for amplab benchmark", () => {
             "fieldNames": [
               "pageRank"
             ],
-            "fnAggregate": "function($$,_pageRank) { return $$+(+_pageRank); }",
+            "fnAggregate": "function($$,_pageRank) { return $$+parseFloat(_pageRank); }",
             "fnCombine": "function(a,b) { return a+b; }",
             "fnReset": "function() { return 0; }",
             "name": "pageRank",

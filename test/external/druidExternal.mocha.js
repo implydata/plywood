@@ -461,7 +461,7 @@ describe("DruidExternal", () => {
           "fieldNames": [
             "added"
           ],
-          "fnAggregate": "function($$,_added) { return $$+Math.abs((+_added)); }",
+          "fnAggregate": "function($$,_added) { return $$+Math.abs(parseFloat(_added)); }",
           "fnCombine": "function(a,b) { return a+b; }",
           "fnReset": "function() { return 0; }",
           "name": "SumAbs",
@@ -472,7 +472,7 @@ describe("DruidExternal", () => {
             "added",
             "deleted"
           ],
-          "fnAggregate": "function($$,_added,_deleted) { return $$+((Math.pow((+_added),2)*(+_deleted))/Math.abs((+_added))); }",
+          "fnAggregate": "function($$,_added,_deleted) { return $$+((Math.pow(parseFloat(_added),2)*parseFloat(_deleted))/Math.abs(parseFloat(_added))); }",
           "fnCombine": "function(a,b) { return a+b; }",
           "fnReset": "function() { return 0; }",
           "name": "SumComplex",
@@ -580,7 +580,7 @@ describe("DruidExternal", () => {
             "fieldNames": [
               "!T_0"
             ],
-            "function": "function(_$33T_0) { return Math.abs((+_$33T_0)); }",
+            "function": "function(_$33T_0) { return Math.abs(parseFloat(_$33T_0)); }",
             "name": "Abs",
             "type": "javascript"
           },
@@ -588,7 +588,7 @@ describe("DruidExternal", () => {
             "fieldNames": [
               "!T_0"
             ],
-            "function": "function(_$33T_0) { return Math.pow((+_$33T_0),2); }",
+            "function": "function(_$33T_0) { return Math.pow(parseFloat(_$33T_0),2); }",
             "name": "Abs2",
             "type": "javascript"
           }
@@ -657,7 +657,7 @@ describe("DruidExternal", () => {
                   "!F_!T_1",
                   "Count"
                 ],
-                "function": "function(_$33T_0,_$33T_1,_Count) { return Math.pow(Math.abs((((+_$33T_0)/Math.pow(Math.abs((+_Count)),0.5))+((+_$33T_1)*100))),2); }",
+                "function": "function(_$33T_0,_$33T_1,_Count) { return Math.pow(Math.abs(((parseFloat(_$33T_0)/Math.pow(Math.abs(parseFloat(_Count)),0.5))+(parseFloat(_$33T_1)*100))),2); }",
                 "type": "javascript"
               },
               {
@@ -1612,7 +1612,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){var _,_2;_=Math.abs((+d));return isNaN(_)?null:_}",
+          "function": "function(d){var _,_2;_=Math.abs(parseFloat(d));return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1631,7 +1631,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){var _,_2;_=Math.pow((+d),2);return isNaN(_)?null:_}",
+          "function": "function(d){var _,_2;_=Math.pow(parseFloat(d),2);return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1650,8 +1650,9 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){var _,_2;_=(_=(+d),(_==null?null:Math.floor((_ - 1) / 10) * 10 + 1));return isNaN(_)?null:_}",
-          "type": "javascript"
+          "size": 10,
+          "offset": 1,
+          "type": "bucket"
         },
         "outputName": "Split",
         "type": "extraction"
@@ -1669,8 +1670,17 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){var _,_2;_=(_=Math.abs((+d)),(_==null?null:Math.floor(_ / 10) * 10));return isNaN(_)?null:_}",
-          "type": "javascript"
+          "extractionFns": [
+            {
+              "function": "function(d){var _,_2;_=Math.abs(parseFloat(d));return isNaN(_)?null:_}",
+              "type": "javascript"
+            },
+            {
+              "size": 10,
+              "type": "bucket"
+            }
+          ],
+          "type": "cascade"
         },
         "outputName": "Split",
         "type": "extraction"
@@ -2221,7 +2231,7 @@ describe("DruidExternal", () => {
         {
           "dimension": "commentLength",
           "extractionFn": {
-            "function": "function(d){var _,_2;_=new Date((+d));return isNaN(_)?null:_}",
+            "function": "function(d){var _,_2;_=new Date(parseFloat(d));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "castTime",

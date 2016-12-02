@@ -2176,16 +2176,16 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Count": 2618887,
+              "Count": 2658542,
               "U": null
-            },
-            {
-              "Count": 75475,
-              "U": 10
             },
             {
               "Count": 68663,
               "U": 11
+            },
+            {
+              "Count": 45822,
+              "U": 12
             }
           ]);
         });
@@ -2201,22 +2201,22 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Count": 2618887,
+              "Count": 2658542,
               "U": null
-            },
-            {
-              "Count": 189960,
-              "U": {
-                "end": 2.5,
-                "start": -2.5,
-                "type": "NUMBER_RANGE"
-              }
             },
             {
               "Count": 151159,
               "U": {
                 "end": 7.5,
                 "start": 2.5,
+                "type": "NUMBER_RANGE"
+              }
+            },
+            {
+              "Count": 150305,
+              "U": {
+                "end": 2.5,
+                "start": -2.5,
                 "type": "NUMBER_RANGE"
               }
             }
@@ -2234,16 +2234,16 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Count": 2618887,
+              "Count": 2658542,
               "U": null
-            },
-            {
-              "Count": 75475,
-              "U": 0
             },
             {
               "Count": 68663,
               "U": 1
+            },
+            {
+              "Count": 45822,
+              "U": 4
             }
           ]);
         });
@@ -2259,12 +2259,12 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS()).to.deep.equal([
             {
-              "Count": 2618887,
+              "Count": 2658542,
               "dateCast": null,
               "numberCast": null
             },
             {
-              "Count": 419520,
+              "Count": 379865,
               "dateCast": {
                 "type": "TIME",
                 "value": new Date('1970-01-01T00:00:00.000Z')

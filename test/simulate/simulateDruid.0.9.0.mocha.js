@@ -427,7 +427,7 @@ describe("simulate Druid 0.9.0", () => {
               "fieldNames": [
                 "price"
               ],
-              "fnAggregate": "function($$,_price) { return $$+Math.pow((+_price),2); }",
+              "fnAggregate": "function($$,_price) { return $$+Math.pow(parseFloat(_price),2); }",
               "fnCombine": "function(a,b) { return a+b; }",
               "fnReset": "function() { return 0; }",
               "name": "GoodPrice2",

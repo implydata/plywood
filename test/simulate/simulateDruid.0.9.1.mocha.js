@@ -83,4 +83,69 @@ describe("simulate Druid 0.9.1", () => {
     }).to.throw('can not do secondary filtering on primary time dimension (https://github.com/druid-io/druid/issues/2816)');
   });
 
+  it("works with range bucket", () => {
+    let ex = ply()
+      .apply(
+        'HeightBuckets',
+        $("diamonds").split("$height_bucket", 'HeightBucket')
+          .apply('Count', $('diamonds').count())
+          .sort('$Count', 'descending')
+          .limit(10)
+      )
+      .apply(
+        'HeightUpBuckets',
+        $("diamonds").split($('height_bucket').numberBucket(2, 0.5), 'HeightBucket')
+          .apply('Count', $('diamonds').count())
+          .sort('$Count', 'descending')
+          .limit(10)
+      );
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "Count",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "height_bucket",
+          "outputName": "HeightBucket",
+          "type": "default"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "metric": "Count",
+        "queryType": "topN",
+        "threshold": 10
+      },
+      {
+        "aggregations": [
+          {
+            "name": "Count",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "extractionFn": {
+            "function": "function(d){var _,_2;_=(_=parseFloat(d),(_==null?null:Math.floor((_ - 0.5) / 2) * 2 + 0.5));return isNaN(_)?null:_}",
+            "type": "javascript"
+          },
+          "dimension": "height_bucket",
+          "outputName": "HeightBucket",
+          "type": "extraction"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "metric": "Count",
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
+  });
+
 });
