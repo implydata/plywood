@@ -15,19 +15,19 @@
  */
 
 let { expect } = require("chai");
-let Q = require('q');
+let Promise = require('any-promise');
 
 let plywood = require('../plywood');
 let { Expression, External, TimeRange, $, ply, r } = plywood;
 
 describe("DruidExternal Introspection", () => {
   let requesterFail = ({query}) => {
-    return Q.reject(new Error('Bad status code'));
+    return Promise.reject(new Error('Bad status code'));
   };
 
 
   let requesterDruid_0_9_0 = ({query}) => {
-    if (query.queryType === 'status') return Q({ version: '0.9.0' });
+    if (query.queryType === 'status') return Promise.resolve({ version: '0.9.0' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -149,10 +149,10 @@ describe("DruidExternal Introspection", () => {
         };
       }
 
-      return Q([merged]);
+      return Promise.resolve([merged]);
 
     } else if (query.queryType === 'introspect') {
-      return Q({
+      return Promise.resolve({
         dimensions: ['anonymous', 'language', 'namespace', 'newPage', 'page', 'time'],
         metrics: ['added', 'count', 'delta_hist', 'user_unique']
       });
@@ -164,7 +164,7 @@ describe("DruidExternal Introspection", () => {
 
 
   let requesterDruid_0_8_3 = ({query}) => {
-    if (query.queryType === 'status') return Q({ version: '0.8.3' });
+    if (query.queryType === 'status') return Promise.resolve({ version: '0.8.3' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -250,13 +250,13 @@ describe("DruidExternal Introspection", () => {
       };
 
       if (query.analysisTypes.indexOf("aggregators") !== -1) {
-        return Q.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'));
+        return Promise.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'));
       }
 
-      return Q([merged]);
+      return Promise.resolve([merged]);
 
     } else if (query.queryType === 'introspect') {
-      return Q({
+      return Promise.resolve({
         dimensions: ['anonymous', 'language', 'namespace', 'newPage', 'page', 'time'],
         metrics: ['added', 'count', 'delta_hist', 'user_unique']
       });
@@ -268,7 +268,7 @@ describe("DruidExternal Introspection", () => {
 
 
   let requesterDruid_0_8_2 = ({query}) => {
-    if (query.queryType === 'status') return Q({ version: '0.8.2' });
+    if (query.queryType === 'status') return Promise.resolve({ version: '0.8.2' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -297,13 +297,13 @@ describe("DruidExternal Introspection", () => {
       };
 
       if (query.analysisTypes.indexOf("aggregators") !== -1) {
-        return Q.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'));
+        return Promise.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'));
       }
 
-      return Q([merged]);
+      return Promise.resolve([merged]);
 
     } else if (query.queryType === 'introspect') {
-      return Q({
+      return Promise.resolve({
         dimensions: ['anonymous', 'language', 'namespace', 'newPage', 'page', 'time'],
         metrics: ['added', 'count', 'delta_hist', 'user_unique']
       });
@@ -315,15 +315,15 @@ describe("DruidExternal Introspection", () => {
 
 
   let requesterDruid_0_8_1 = ({query}) => {
-    if (query.queryType === 'status') return Q({ version: '0.8.1' });
+    if (query.queryType === 'status') return Promise.resolve({ version: '0.8.1' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
       expect(query.intervals).to.not.exist;
-      return Q.reject(new Error("Instantiation of [simple type, class io.druid.query.metadata.metadata.SegmentMetadataQuery] value failed: querySegmentSpec can't be null"));
+      return Promise.reject(new Error("Instantiation of [simple type, class io.druid.query.metadata.metadata.SegmentMetadataQuery] value failed: querySegmentSpec can't be null"));
 
     } else if (query.queryType === 'introspect') {
-      return Q({
+      return Promise.resolve({
         dimensions: ['anonymous', 'language', 'namespace', 'newPage', 'page', 'time'],
         metrics: ['added', 'count', 'delta_hist', 'user_unique']
       });
@@ -747,7 +747,7 @@ describe("DruidExternal Introspection", () => {
         },
         "queryType": "select"
       });
-      return Q([]);
+      return Promise.resolve([]);
     };
 
     let wikiExternal = External.fromJS({

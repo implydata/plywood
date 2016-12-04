@@ -1,3 +1,5 @@
-declare var dummyObject: any;
+declare const dummyObject: any;
 
-declare var console: any;
+declare const console: any;
+
+declare const setTimeout: (fn: any, n: number) => void;

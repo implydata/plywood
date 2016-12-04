@@ -1,6 +1,5 @@
 'use strict';
 
-var Q = require('q');
 var hasOwnProp = require('has-own-prop');
 
 var immutableClass = require('immutable-class');

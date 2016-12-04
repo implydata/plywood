@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
 import { Timezone, Duration } from 'chronoshift';
 import { immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
 import * as hasOwnProp from 'has-own-prop';
+import { PlywoodRequester } from 'plywood-base-api';
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
 import { nonEmptyLookup, safeAdd } from '../helper/utils';
 import {
@@ -239,7 +240,7 @@ export interface ExternalValue {
   exactResultsOnly?: boolean;
   context?: Lookup<any>;
 
-  requester?: Requester.PlywoodRequester<any>;
+  requester?: PlywoodRequester<any>;
 }
 
 export interface ExternalJS {
@@ -533,7 +534,7 @@ export abstract class External {
     return changed ? newDerivedAttributes : derivedAttributes;
   }
 
-  static jsToValue(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): ExternalValue {
+  static jsToValue(parameters: ExternalJS, requester: PlywoodRequester<any>): ExternalValue {
     let value: ExternalValue = {
       engine: parameters.engine,
       version: parameters.version,
@@ -585,7 +586,7 @@ export abstract class External {
     return keyExternals[0].external.getBase().makeTotal(applies);
   }
 
-  static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any> = null): External {
+  static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any> = null): External {
     if (!hasOwnProp(parameters, "engine")) {
       throw new Error("external `engine` must be defined");
     }
@@ -623,7 +624,7 @@ export abstract class External {
   public concealBuckets: boolean;
 
   public rawAttributes: Attributes;
-  public requester: Requester.PlywoodRequester<any>;
+  public requester: PlywoodRequester<any>;
   public mode: QueryMode;
   public filter: Expression;
   public valueExpression: Expression;
@@ -841,7 +842,7 @@ export abstract class External {
     return External.fromValue(value);
   }
 
-  public attachRequester(requester: Requester.PlywoodRequester<any>): External {
+  public attachRequester(requester: PlywoodRequester<any>): External {
     let value = this.valueOf();
     value.requester = requester;
     return External.fromValue(value);
@@ -1355,7 +1356,7 @@ export abstract class External {
     throw new Error("can not call getQueryAndPostProcess directly");
   }
 
-  public queryValue(lastNode: boolean, externalForNext: External = null): Q.Promise<PlywoodValue | TotalContainer> {
+  public queryValue(lastNode: boolean, externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
     const { mode, requester } = this;
 
     if (!externalForNext) externalForNext = this;
@@ -1366,21 +1367,21 @@ export abstract class External {
     }
 
     if (!requester) {
-      return <Q.Promise<PlywoodValue | TotalContainer>>Q.reject(new Error('must have a requester to make queries'));
+      return <Promise<PlywoodValue | TotalContainer>>Promise.reject(new Error('must have a requester to make queries'));
     }
     let queryAndPostProcess: QueryAndPostProcess<any>;
     try {
       queryAndPostProcess = this.getQueryAndPostProcess();
     } catch (e) {
-      return <Q.Promise<PlywoodValue | TotalContainer>>Q.reject(e);
+      return <Promise<PlywoodValue | TotalContainer>>Promise.reject(e);
     }
 
     let { query, postProcess, next } = queryAndPostProcess;
     if (!query || typeof postProcess !== 'function') {
-      return <Q.Promise<PlywoodValue>>Q.reject(new Error('no query or postProcess'));
+      return <Promise<PlywoodValue>>Promise.reject(new Error('no query or postProcess'));
     }
 
-    let finalResult: Q.Promise<PlywoodValue | TotalContainer>;
+    let finalResult: Promise<PlywoodValue | TotalContainer>;
     if (next) {
       let results: any[] = [];
       finalResult = promiseWhile(
@@ -1402,7 +1403,7 @@ export abstract class External {
     }
 
     if (!lastNode && mode === 'split') {
-      finalResult = <Q.Promise<PlywoodValue>>finalResult.then(externalForNext.addNextExternal.bind(externalForNext));
+      finalResult = <Promise<PlywoodValue>>finalResult.then(externalForNext.addNextExternal.bind(externalForNext));
     }
 
     return finalResult;
@@ -1414,11 +1415,11 @@ export abstract class External {
     return !this.rawAttributes.length;
   }
 
-  protected abstract getIntrospectAttributes(): Q.Promise<Attributes>
+  protected abstract getIntrospectAttributes(): Promise<Attributes>
 
-  public introspect(): Q.Promise<External> {
+  public introspect(): Promise<External> {
     if (!this.requester) {
-      return <Q.Promise<External>>Q.reject(new Error('must have a requester to introspect'));
+      return <Promise<External>>Promise.reject(new Error('must have a requester to introspect'));
     }
 
     if (!this.version) {

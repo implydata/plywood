@@ -15,49 +15,61 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
+import { PlywoodRequester, DatabaseRequest } from 'plywood-base-api';
 
 export interface ConcurrentLimitRequesterParameters<T> {
-  requester: Requester.PlywoodRequester<T>;
+  requester: PlywoodRequester<T>;
   concurrentLimit: int;
 }
 
 interface QueueItem<T> {
-  request: Requester.DatabaseRequest<T>;
-  deferred: Q.Deferred<any>;
+  request: DatabaseRequest<T>;
+  resolve: (value?: any) => void;
+  reject: (error?: any) => void;
 }
 
-export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRequesterParameters<T>): Requester.PlywoodRequester<T> {
+export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRequesterParameters<T>): PlywoodRequester<T> {
   let requester = parameters.requester;
   let concurrentLimit = parameters.concurrentLimit || 5;
 
   if (typeof concurrentLimit !== "number") throw new TypeError("concurrentLimit should be a number");
 
-  let requestQueue: Array<QueueItem<T>> = [];
+  let requestQueue: QueueItem<T>[] = [];
   let outstandingRequests: int = 0;
+
+  function requestFinishedOk(v: any): any {
+    requestFinished();
+    return v;
+  }
+
+  function requestFinishedError(e: Error): void {
+    requestFinished();
+    throw e;
+  }
 
   function requestFinished(): void {
     outstandingRequests--;
     if (!(requestQueue.length && outstandingRequests < concurrentLimit)) return;
     let queueItem = requestQueue.shift();
-    let deferred = queueItem.deferred;
     outstandingRequests++;
     requester(queueItem.request)
-      .then(deferred.resolve, deferred.reject)
-      .fin(requestFinished);
+      .then(queueItem.resolve, queueItem.reject)
+      .then(requestFinishedOk, requestFinishedError);
   }
 
-  return (request: Requester.DatabaseRequest<T>): Q.Promise<any> => {
+  return (request: DatabaseRequest<T>): Promise<any> => {
     if (outstandingRequests < concurrentLimit) {
       outstandingRequests++;
-      return requester(request).fin(requestFinished);
+      return requester(request).then(requestFinishedOk, requestFinishedError);;
     } else {
-      let deferred = Q.defer();
-      requestQueue.push({
-        request: request,
-        deferred: deferred
+      return new Promise((resolve, reject) => {
+        requestQueue.push({
+          request: request,
+          resolve,
+          reject
+        });
       });
-      return deferred.promise;
     }
   };
 }

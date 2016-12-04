@@ -601,7 +601,8 @@ export class Dataset implements Instance<DatasetValue, any> {
     if (typeof ex === 'function') {
       // ToDo: add better deprecation
       console.warn(`Dataset#sort now takes Expressions use Dataset.sortFn instead`);
-      return this.sortFn(ex as any, direction);
+      throw new Error('poop');
+      //return this.sortFn(ex as any, direction);
     }
     return this.sortFn(ex.getFn(), direction);
   }

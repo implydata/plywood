@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
+import { PlywoodRequester } from 'plywood-base-api';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
 import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
@@ -31,7 +32,7 @@ export class PostgresExternal extends SQLExternal {
   static engine = 'postgres';
   static type = 'DATASET';
 
-  static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): PostgresExternal {
+  static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): PostgresExternal {
     let value: ExternalValue = External.jsToValue(parameters, requester);
     return new PostgresExternal(value);
   }
@@ -68,7 +69,7 @@ export class PostgresExternal extends SQLExternal {
     }).filter(Boolean);
   }
 
-  static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
+  static getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
     return requester({
       query: `SELECT table_name AS "tab" FROM INFORMATION_SCHEMA.TABLES WHERE table_type = 'BASE TABLE' AND table_schema = 'public'`
     })
@@ -79,7 +80,7 @@ export class PostgresExternal extends SQLExternal {
       });
   }
 
-  static getVersion(requester: Requester.PlywoodRequester<any>): Q.Promise<string> {
+  static getVersion(requester: PlywoodRequester<any>): Promise<string> {
     return requester({ query: 'SELECT version()' })
       .then((res) => {
         if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
@@ -97,7 +98,7 @@ export class PostgresExternal extends SQLExternal {
     this._ensureEngine("postgres");
   }
 
-  protected getIntrospectAttributes(): Q.Promise<Attributes> {
+  protected getIntrospectAttributes(): Promise<Attributes> {
     // from https://www.postgresql.org/docs/9.1/static/infoschema-element-types.html
     return this.requester({
       query: `SELECT c.column_name as "name", c.data_type as "sqlType", e.data_type AS "arrayType"
