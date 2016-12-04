@@ -15,7 +15,6 @@
  */
 
 /// <reference path="../typings/public.d.ts" />
-/// <reference path="../typings/requester.d.ts" />
 
 export * from './version';
 export * from './types';

@@ -17,20 +17,20 @@
 
 let { expect } = require("chai");
 
-let Q = require('q');
+let Promise = require('any-promise');
 
 let { verboseRequesterFactory } = require("../../build/plywood");
 
 describe("Verbose requester", () => {
   let requester = (request) => {
     if (/^fail/.test(request.query)) {
-      return Q.reject(new Error('some error'));
+      return Promise.reject(new Error('some error'));
     } else {
-      return Q([1, 2, 3]);
+      return Promise.resolve([1, 2, 3]);
     }
   };
 
-  it("works on success", (testComplete) => {
+  it("works on success", () => {
     let lines = [];
     let verboseRequester = verboseRequesterFactory({
       requester: requester,
@@ -43,7 +43,7 @@ describe("Verbose requester", () => {
       .then((res) => {
         expect(res).to.be.an('array');
         expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
-`vvvvvvvvvvvvvvvvvvvvvvvvvv
+          `vvvvvvvvvvvvvvvvvvvvvvvvvv
 Sending query 1:
 "Query1"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -55,12 +55,10 @@ Got result from query 1: (in Xms)
   3
 ]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("works on failure", (testComplete) => {
+  it("works on failure", () => {
     let lines = [];
     let verboseRequester = verboseRequesterFactory({
       requester: requester,
@@ -75,15 +73,13 @@ Got result from query 1: (in Xms)
       })
       .catch((error) => {
         expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
-`vvvvvvvvvvvvvvvvvvvvvvvvvv
+          `vvvvvvvvvvvvvvvvvvvvvvvvvv
 Sending query 1:
 "failThis"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 vvvvvvvvvvvvvvvvvvvvvvvvvv
 Got error in query 1: some error (in Xms)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
-        testComplete();
-      })
-      .done();
+      });
   });
 });

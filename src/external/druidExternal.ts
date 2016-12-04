@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
 import * as Druid from 'druid.d.ts';
 import * as hasOwnProp from 'has-own-prop';
+import { PlywoodRequester } from 'plywood-base-api';
 import { dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from '../helper/utils';
 import {
   $, Expression,
@@ -153,7 +154,7 @@ export class DruidExternal extends External {
   static SELECT_INIT_LIMIT = 50;
   static SELECT_MAX_LIMIT = 10000;
 
-  static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): DruidExternal {
+  static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): DruidExternal {
     // Back compat:
     if (typeof (<any>parameters).druidVersion === 'string') {
       parameters.version = (<any>parameters).druidVersion;
@@ -172,7 +173,7 @@ export class DruidExternal extends External {
     return new DruidExternal(value);
   }
 
-  static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
+  static getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
     return requester({ query: { queryType: 'sourceList' } })
       .then((sources) => {
         if (!Array.isArray(sources)) throw new InvalidResultError('invalid sources response', sources);
@@ -180,7 +181,7 @@ export class DruidExternal extends External {
       });
   }
 
-  static getVersion(requester: Requester.PlywoodRequester<any>): Q.Promise<string> {
+  static getVersion(requester: PlywoodRequester<any>): Promise<string> {
     return requester({
       query: {
         queryType: 'status'
@@ -1189,7 +1190,7 @@ export class DruidExternal extends External {
     }
   }
 
-  protected getIntrospectAttributesWithSegmentMetadata(): Q.Promise<Attributes> {
+  protected getIntrospectAttributesWithSegmentMetadata(): Promise<Attributes> {
     let { requester, timeAttribute, context } = this;
 
     let query: Druid.Query = {
@@ -1217,7 +1218,7 @@ export class DruidExternal extends External {
     return requester({ query }).then(DruidExternal.segmentMetadataPostProcessFactory(timeAttribute));
   }
 
-  protected getIntrospectAttributesWithGet(): Q.Promise<Attributes> {
+  protected getIntrospectAttributesWithGet(): Promise<Attributes> {
     let { requester, timeAttribute } = this;
 
     return requester({
@@ -1229,7 +1230,7 @@ export class DruidExternal extends External {
       .then(DruidExternal.introspectPostProcessFactory(timeAttribute));
   }
 
-  protected getIntrospectAttributes(): Q.Promise<Attributes> {
+  protected getIntrospectAttributes(): Promise<Attributes> {
     switch (this.introspectionStrategy) {
       case 'segment-metadata-fallback':
         return this.getIntrospectAttributesWithSegmentMetadata()

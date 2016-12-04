@@ -17,7 +17,7 @@
 
 let { expect } = require("chai");
 
-let Q = require('q');
+let Promise = require('any-promise');
 
 let { retryRequesterFactory } = require("../../build/plywood");
 
@@ -26,15 +26,15 @@ describe("Retry requester", () => {
     return (request) => {
       if (failNumber > 0) {
         failNumber--;
-        return Q.reject(new Error(isTimeout ? 'timeout' : 'some error'));
+        return Promise.reject(new Error(isTimeout ? 'timeout' : 'some error'));
       } else {
-        return Q([1, 2, 3]);
+        return Promise.resolve([1, 2, 3]);
       }
     };
   };
 
 
-  it("no retry needed (no fail)", (testComplete) => {
+  it("no retry needed (no fail)", () => {
     let retryRequester = retryRequesterFactory({
       requester: makeRequester(0),
       delay: 20,
@@ -44,12 +44,10 @@ describe("Retry requester", () => {
     return retryRequester({})
       .then((res) => {
         expect(res).to.be.an('array');
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("one fail", (testComplete) => {
+  it("one fail", () => {
     let retryRequester = retryRequesterFactory({
       requester: makeRequester(1),
       delay: 20,
@@ -59,12 +57,10 @@ describe("Retry requester", () => {
     return retryRequester({})
       .then((res) => {
         expect(res).to.be.an('array');
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("two fails", (testComplete) => {
+  it("two fails", () => {
     let retryRequester = retryRequesterFactory({
       requester: makeRequester(2),
       delay: 20,
@@ -74,12 +70,10 @@ describe("Retry requester", () => {
     return retryRequester({})
       .then((res) => {
         expect(res).to.be.an('array');
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("three fails", (testComplete) => {
+  it("three fails", () => {
     let retryRequester = retryRequesterFactory({
       requester: makeRequester(3),
       delay: 20,
@@ -92,12 +86,10 @@ describe("Retry requester", () => {
       })
       .catch((err) => {
         expect(err.message).to.equal('some error');
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("timeout", (testComplete) => {
+  it("timeout", () => {
     let retryRequester = retryRequesterFactory({
       requester: makeRequester(1, true),
       delay: 20,
@@ -110,8 +102,6 @@ describe("Retry requester", () => {
       })
       .catch((err) => {
         expect(err.message).to.equal('timeout');
-        testComplete();
-      })
-      .done();
+      });
   });
 });

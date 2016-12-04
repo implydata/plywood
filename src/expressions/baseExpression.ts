@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
 import * as hasOwnProp from 'has-own-prop';
 import { Timezone, Duration, parseISODate } from 'chronoshift';
 import { Instance, isImmutableClass, SimpleArray } from 'immutable-class';
@@ -94,17 +94,17 @@ export interface ComputeOptions extends Environment {
 }
 
 export interface AlterationFillerPromise {
-  (external: External, terminal: boolean): Q.Promise<any>;
+  (external: External, terminal: boolean): Promise<any>;
 }
 
-function fillExpressionExternalAlterationAsync(alteration: ExpressionExternalAlteration, filler: AlterationFillerPromise): Q.Promise<ExpressionExternalAlteration> {
-  let tasks: Q.Promise<any>[] = [];
+function fillExpressionExternalAlterationAsync(alteration: ExpressionExternalAlteration, filler: AlterationFillerPromise): Promise<ExpressionExternalAlteration> {
+  let tasks: Promise<any>[] = [];
   fillExpressionExternalAlteration(alteration, (external, terminal) => {
     tasks.push(filler(external, terminal));
     return null;
   });
 
-  return Q.all(tasks).then((results) => {
+  return Promise.all(tasks).then((results) => {
     let i = 0;
     fillExpressionExternalAlteration(alteration, () => {
       let res = results[i];
@@ -1709,8 +1709,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param context The context within which to compute the expression
    * @param options The options determining computation
    */
-  public compute(context: Datum = {}, options: ComputeOptions = {}): Q.Promise<PlywoodValue> {
-    return Q(null)
+  public compute(context: Datum = {}, options: ComputeOptions = {}): Promise<PlywoodValue> {
+    return Promise.resolve(null)
       .then(() => {
         return introspectDatum(context);
       })
@@ -1724,7 +1724,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       });
   }
 
-  public _computeResolved(options: ComputeOptions): Q.Promise<PlywoodValue> {
+  public _computeResolved(options: ComputeOptions): Promise<PlywoodValue> {
     const {
       maxComputeCycles = 5,
       maxQueries = 500
@@ -1745,7 +1745,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
             return external.queryValue(terminal);
           } else {
             queries++;
-            return Q(null); // Query limit reached, don't do any more queries.
+            return Promise.resolve(null); // Query limit reached, don't do any more queries.
           }
         })
           .then((readyExternalsFilled) => {

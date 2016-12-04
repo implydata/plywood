@@ -101,11 +101,10 @@ describe("Druid Functional", function() {
 
   describe("source list", () => {
     it("does a source list", () => {
-      DruidExternal.getSourceList(druidRequester)
+      return DruidExternal.getSourceList(druidRequester)
         .then((sources) => {
           expect(sources).to.deep.equal(['wikipedia', 'wikipedia-compact']);
-        })
-        .done()
+        });
     });
   });
 

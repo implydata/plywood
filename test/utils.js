@@ -16,7 +16,7 @@
  */
 
 let { expect } = require("chai");
-let Q = require('q');
+let Promise = require('any-promise');
 
 let { Expression, toJS } = require('../build/plywood');
 
@@ -94,10 +94,10 @@ exports.makeEqualityTest = (executorMap) => {
       return executor;
     });
 
-    return (testComplete) => {
+    return () => {
       if (typeof before === "function") before();
 
-      return Q.all(executors.map((executor) => executor(expression)))
+      return Promise.all(executors.map((executor) => executor(expression)))
         .then((results) => {
           if (typeof after === "function") after(null, results[0], results);
 
@@ -116,7 +116,7 @@ exports.makeEqualityTest = (executorMap) => {
             expect(results[i]).to.deep.equal(results[0], `results of '${executorNames[0]}' (expected) and '${executorNames[i]}' (actual) must match`);
           }
 
-          testComplete(null, results[0]);
+          return results[0];
         },
         (err) => {
           if (typeof after === "function") {
@@ -125,8 +125,7 @@ exports.makeEqualityTest = (executorMap) => {
           console.log("got error from executor");
           console.log(err);
           throw err;
-        })
-        .done();
+        });
     };
   };
 };

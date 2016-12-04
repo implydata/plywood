@@ -16,20 +16,20 @@
 
 let { expect } = require("chai");
 
-let Q = require('q');
+let Promise = require('any-promise');
 let { promiseWhile } = require("../../build/plywood");
 
 describe('Promise While', () => {
-
-  it('should loop three times asynchronously', (testComplete) => {
+  it('should loop three times asynchronously', () => {
     let res = [];
     let i = 0;
-    promiseWhile(
+
+    return promiseWhile(
       function () {
         return i < 3
       },
       function () {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
           setTimeout(function () {
             res.push('aye' + i);
             resolve(i++);
@@ -39,12 +39,10 @@ describe('Promise While', () => {
     )
       .then(function () {
         expect(res).to.deep.equal(['aye0', 'aye1', 'aye2']);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it('should propagate rejection', (testComplete) => {
+  it('should propagate rejection', () => {
     function TestError() {}
 
     promiseWhile(
@@ -52,7 +50,7 @@ describe('Promise While', () => {
         return true;
       },
       function () {
-        return Q.reject(new TestError('test'));
+        return Promise.reject(new TestError('test'));
       }
     )
       .then(() => {
@@ -60,12 +58,10 @@ describe('Promise While', () => {
       })
       .catch(function (err) {
         expect(err).be.instanceof(TestError);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it('should propagate conditions throw', (testComplete) => {
+  it('should propagate conditions throw', () => {
     function TestError() {}
 
     promiseWhile(
@@ -73,7 +69,7 @@ describe('Promise While', () => {
         throw new TestError('test');
       },
       function () {
-        return Q();
+        return Promise.resolve();
       }
     )
       .then(() => {
@@ -81,12 +77,10 @@ describe('Promise While', () => {
       })
       .catch(function (err) {
         expect(err).be.instanceof(TestError);
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it('should propagate action throw', (testComplete) => {
+  it('should propagate action throw', () => {
     function TestError() {}
 
     promiseWhile(
@@ -102,9 +96,7 @@ describe('Promise While', () => {
       })
       .catch(function (err) {
         expect(err).be.instanceof(TestError);
-        testComplete();
-      })
-      .done();
+      });
   });
 
 });

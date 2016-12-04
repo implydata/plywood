@@ -15,7 +15,6 @@
  */
 
 let { expect } = require("chai");
-let Q = require('q');
 let { sane } = require('../utils');
 
 let plywood = require('../plywood');

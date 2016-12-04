@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
 import { Expression, ComputeOptions } from '../expressions/baseExpression';
 import { PlywoodValue, Datum } from '../datatypes/index';
 
 export interface Executor {
-  (ex: Expression, opt?: ComputeOptions): Q.Promise<PlywoodValue>;
+  (ex: Expression, opt?: ComputeOptions): Promise<PlywoodValue>;
 }
 
 export interface BasicExecutorParameters {

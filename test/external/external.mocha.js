@@ -322,7 +322,7 @@ describe("External", () => {
 
 
   describe("#introspect", () => {
-    it("does two introspects", (testComplete) => {
+    it("does two introspects", () => {
       let dummyRequester = () => null;
       let external = External.fromJS({
         engine: 'druid',
@@ -333,10 +333,10 @@ describe("External", () => {
         ]
       }, dummyRequester);
 
-      Q(external)
+      return Promise.resolve(external)
         .then((initExternal) => {
           initExternal.getIntrospectAttributes = () => {
-            return Q(AttributeInfo.fromJSs([
+            return Promise.resolve(AttributeInfo.fromJSs([
               { name: 'color', type: 'STRING' },
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
@@ -365,7 +365,7 @@ describe("External", () => {
         })
         .then((introspectedExternal1) => {
           introspectedExternal1.getIntrospectAttributes = () => {
-            return Q(AttributeInfo.fromJSs([
+            return Promise.resolve(AttributeInfo.fromJSs([
               // Color removed
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
@@ -392,9 +392,7 @@ describe("External", () => {
               { name: 'price', type: 'NUMBER' }
             ]
           });
-          testComplete();
-        })
-        .done();
+        });
     })
 
   });

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
 import { isDate } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
 import { Expression } from '../expressions/baseExpression';
@@ -172,8 +172,8 @@ export function datumHasExternal(datum: Datum): boolean {
   return false;
 }
 
-export function introspectDatum(datum: Datum): Q.Promise<Datum> {
-  let promises: Q.Promise<void>[] = [];
+export function introspectDatum(datum: Datum): Promise<Datum> {
+  let promises: Promise<void>[] = [];
   let newDatum: Datum = Object.create(null);
   Object.keys(datum)
     .forEach(name => {
@@ -189,7 +189,7 @@ export function introspectDatum(datum: Datum): Q.Promise<Datum> {
       }
     });
 
-  return Q.all(promises).then(() => newDatum);
+  return Promise.all(promises).then(() => newDatum);
 }
 
 export function failIfIntrospectNeededInDatum(datum: Datum): void {

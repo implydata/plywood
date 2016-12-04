@@ -15,7 +15,7 @@
  */
 
 let { expect } = require("chai");
-let Q = require('q');
+let Promise = require('any-promise');
 let { sane } = require('../utils');
 
 let plywood = require('../plywood');
@@ -1955,7 +1955,7 @@ describe("DruidExternal", () => {
         { name: 'added', type: 'NUMBER' }
       ],
       filter: timeFilter
-    }, () => Q([]));
+    }, () => Promise.resolve([]));
 
     let emptyExternal = External.fromJS({
       engine: 'druid',
@@ -1971,7 +1971,7 @@ describe("DruidExternal", () => {
       filter: timeFilter
     }, ({ query }) => {
       if (query.queryType === 'select') {
-        return Q([
+        return Promise.resolve([
           {
             "timestamp": "2016-03-15T23:00:00.458Z",
             "result": {
@@ -1983,7 +1983,7 @@ describe("DruidExternal", () => {
           }
         ]);
       } else {
-        return Q([{ result: [] }]);
+        return Promise.resolve([{ result: [] }]);
       }
     });
 
@@ -2084,7 +2084,7 @@ describe("DruidExternal", () => {
         { name: 'added', type: 'NUMBER' }
       ],
       filter: timeFilter
-    }, (query) => Q("[Does this look like data to you?"));
+    }, (query) => Promise.resolve("[Does this look like data to you?"));
 
     it("works with value query", () => {
       let ex = ply()
