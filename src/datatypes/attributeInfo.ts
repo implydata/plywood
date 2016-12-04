@@ -17,7 +17,7 @@
 
 import { Class, Instance, NamedArray, immutableEqual } from 'immutable-class';
 import { PlyType, FullType } from '../types';
-import { hasOwnProperty } from '../helper/utils';
+import * as hasOwnProp from 'has-own-prop';
 import { Expression, ExpressionJS, RefExpression } from '../expressions/index';
 
 export type Attributes = AttributeInfo[];
@@ -89,7 +89,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     if (typeof parameters !== "object") {
       throw new Error("unrecognizable attributeMeta");
     }
-    if (!hasOwnProperty(parameters, 'special')) {
+    if (!hasOwnProp(parameters, 'special')) {
       return new AttributeInfo(AttributeInfo.jsToValue(parameters));
     }
     if (parameters.special === 'range') {
@@ -205,7 +205,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   public change(propertyName: string, newValue: any): AttributeInfo {
     let v = this.valueOf();
 
-    if (!v.hasOwnProperty(propertyName)) {
+    if (!hasOwnProp(v, propertyName)) {
       throw new Error(`Unknown property: ${propertyName}`);
     }
 

@@ -20,7 +20,7 @@ import { isImmutableClass } from 'immutable-class';
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
 import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { hasOwnProperty } from '../helper/utils';
+import * as hasOwnProp from 'has-own-prop';
 import { Dataset, Set, TimeRange, PlywoodValue, ComputeFn, Datum } from '../datatypes/index';
 import { isSetType, valueFromJS, getValueType } from '../datatypes/common';
 
@@ -31,7 +31,7 @@ export class LiteralExpression extends Expression {
       op: parameters.op,
       type: parameters.type
     };
-    if (!hasOwnProperty(parameters, 'value')) throw new Error('literal expression must have value');
+    if (!hasOwnProp(parameters, 'value')) throw new Error('literal expression must have value');
     let v: any = parameters.value;
     if (isImmutableClass(v)) {
       value.value = v;

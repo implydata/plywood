@@ -20,7 +20,7 @@ import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
 import { Datum, PlywoodValue, Dataset } from '../datatypes/dataset';
 import { unwrapSetType } from '../datatypes/common';
-import { hasOwnProperty } from '../helper/utils';
+import * as hasOwnProp from 'has-own-prop';
 import { immutableLookupsEqual } from 'immutable-class';
 import { isSetType } from '../datatypes/common';
 
@@ -244,7 +244,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   }
 
   public hasKey(key: string): boolean {
-    return hasOwnProperty(this.splits, key);
+    return hasOwnProp(this.splits, key);
   }
 
   public isLinear(): boolean {

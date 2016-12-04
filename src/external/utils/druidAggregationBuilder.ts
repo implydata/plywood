@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { hasOwnProperty } from '../../helper/utils';
+import * as hasOwnProp from 'has-own-prop';
 import { NamedArray } from 'immutable-class';
 
 import {
@@ -380,7 +380,7 @@ export class DruidAggregationBuilder {
 
     let customAggregations = this.customAggregations;
     for (let customName in customAggregations) {
-      if (!hasOwnProperty(customAggregations, customName)) continue;
+      if (!hasOwnProp(customAggregations, customName)) continue;
       let customAggregation = customAggregations[customName];
       if (customAggregation.aggregation.type === aggregationType) {
         return customAggregation.accessType || 'fieldAccess';
