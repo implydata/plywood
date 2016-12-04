@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
+import * as hasOwnProp from 'has-own-prop';
 import { Timezone } from 'chronoshift';
 import { Class, Instance } from 'immutable-class';
 import { PlyType } from '../types';
-import { hasOwnProperty } from '../helper/utils';
 import { getValueType, isSetType, valueToJS, valueFromJS } from './common';
 import { PlywoodRange } from './range';
 import { NumberRange } from './numberRange';
@@ -304,7 +304,7 @@ export class Set implements Instance<SetValue, SetJS> {
 
   public extent(): PlywoodRange {
     let setType = this.setType;
-    if (hasOwnProperty(typeUpgrades, setType)) {
+    if (hasOwnProp(typeUpgrades, setType)) {
       return this.upgradeType().extent();
     }
     if (setType !== 'NUMBER_RANGE' && setType !== 'TIME_RANGE' && setType !== 'STRING_RANGE') return null;
@@ -389,14 +389,14 @@ export class Set implements Instance<SetValue, SetJS> {
 
       return this.containsWithin(value);
     }
-    return hasOwnProperty(this.hash, this.keyFn(value));
+    return hasOwnProp(this.hash, this.keyFn(value));
 
   }
 
   public containsWithin(value: any): boolean {
     let elements = this.elements;
     for (let k in elements) {
-      if (!hasOwnProperty(elements, k)) continue;
+      if (!hasOwnProp(elements, k)) continue;
       if ((<NumberRange>elements[k]).contains(value)) return true;
     }
     return false;

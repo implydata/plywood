@@ -266,9 +266,8 @@ fns.SYSTEM_USER = fns.USER;
 fns.CURRENT_USER = fns.USER;
 fns.SCHEMA = fns.DATABASE;
 
-var objectHasOwnProperty = Object.prototype.hasOwnProperty;
 function reserved(str) {
-  return objectHasOwnProperty.call(reservedWords, str.toUpperCase());
+  return reservedWords.hasOwnProperty(str.toUpperCase());
 }
 
 function makeDate(type, v) {

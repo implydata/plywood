@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
+import * as hasOwnProp from 'has-own-prop';
 import { SimpleArray } from 'immutable-class';
 import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
 import { SQLDialect } from '../dialect/baseDialect';
-import { hasOwnProperty, repeat } from '../helper/utils';
+import { repeat } from '../helper/utils';
 import { PlywoodValue } from '../datatypes/index';
 import { Datum, ComputeFn } from '../datatypes/dataset';
 
@@ -51,7 +52,7 @@ export class RefExpression extends Expression {
   static op = "Ref";
   static fromJS(parameters: ExpressionJS): RefExpression {
     let value: ExpressionValue;
-    if (hasOwnProperty(parameters, 'nest')) {
+    if (hasOwnProp(parameters, 'nest')) {
       value = <any>parameters;
     } else {
       value = {
@@ -93,7 +94,7 @@ export class RefExpression extends Expression {
   }
 
   static validType(typeName: string): boolean {
-    return hasOwnProperty(POSSIBLE_TYPES, typeName);
+    return hasOwnProp(POSSIBLE_TYPES, typeName);
   }
 
   static toJavaScriptSafeName(variableName: string): string {
@@ -104,7 +105,7 @@ export class RefExpression extends Expression {
   }
 
   static findProperty(obj: any, key: string): any {
-    return hasOwnProperty(obj, key) ? key : null;
+    return hasOwnProp(obj, key) ? key : null;
   }
 
   static findPropertyCI(obj: any, key: string): any {
@@ -242,7 +243,7 @@ export class RefExpression extends Expression {
     if (myName == null) throw new Error('could not resolve ' + this.toString());
     // Look for the reference in the parent chain
     let nestDiff = 0;
-    while (myTypeContext && !hasOwnProperty(myTypeContext.datasetType, myName)) {
+    while (myTypeContext && !hasOwnProp(myTypeContext.datasetType, myName)) {
       myTypeContext = myTypeContext.parent;
       nestDiff++;
     }

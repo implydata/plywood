@@ -16,6 +16,7 @@
  */
 
 import * as Q from 'q';
+import * as hasOwnProp from 'has-own-prop';
 import { Timezone, Duration, parseISODate } from 'chronoshift';
 import { Instance, isImmutableClass, SimpleArray } from 'immutable-class';
 import { shallowCopy } from '../helper/utils';
@@ -79,7 +80,7 @@ import { TimeShiftExpression } from './timeShiftExpression';
 import { TransformCaseExpression } from './transformCaseExpression';
 
 import { SQLDialect } from '../dialect/baseDialect';
-import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from '../helper/utils';
+import { repeat, emptyLookup, deduplicateSort } from '../helper/utils';
 import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from '../datatypes/index';
 
 import { isSetType, getFullTypeFromDatum, introspectDatum, failIfIntrospectNeededInDatum } from '../datatypes/common';
@@ -393,7 +394,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   static expressionLookupFromJS(expressionJSs: Lookup<ExpressionJS>): Lookup<Expression> {
     let expressions: Lookup<Expression> = Object.create(null);
     for (let name in expressionJSs) {
-      if (!hasOwnProperty(expressionJSs, name)) continue;
+      if (!hasOwnProp(expressionJSs, name)) continue;
       expressions[name] = Expression.fromJSLoose(expressionJSs[name]);
     }
     return expressions;
@@ -402,7 +403,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   static expressionLookupToJS(expressions: Lookup<Expression>): Lookup<ExpressionJS> {
     let expressionsJSs: Lookup<ExpressionJS> = {};
     for (let name in expressions) {
-      if (!hasOwnProperty(expressions, name)) continue;
+      if (!hasOwnProp(expressions, name)) continue;
       expressionsJSs[name] = expressions[name].toJS();
     }
     return expressionsJSs;
@@ -477,7 +478,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
           expressionJS = { op: 'literal', value: new Date(param) };
         } else if (Array.isArray(param)) {
           expressionJS = { op: 'literal', value: Set.fromJS(param) };
-        } else if (hasOwnProperty(param, 'start') && hasOwnProperty(param, 'end')) {
+        } else if (hasOwnProp(param, 'start') && hasOwnProp(param, 'end')) {
           expressionJS = { op: 'literal', value: Range.fromJS(param) };
         } else {
           throw new Error('unknown parameter');
@@ -609,8 +610,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    */
   static fromJS(expressionJS: ExpressionJS): Expression {
     if (!expressionJS) throw new Error('must have expressionJS');
-    if (!hasOwnProperty(expressionJS, "op")) {
-      if (hasOwnProperty(expressionJS, "action")) {
+    if (!hasOwnProp(expressionJS, "op")) {
+      if (hasOwnProp(expressionJS, "action")) {
         expressionJS = shallowCopy(expressionJS);
         expressionJS.op = expressionJS.action;
         delete expressionJS.action;
@@ -1333,7 +1334,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
     let parsedSplits: Splits = Object.create(null);
     for (let k in splits) {
-      if (!hasOwnProperty(splits, k)) continue;
+      if (!hasOwnProp(splits, k)) continue;
       let ex = splits[k];
       parsedSplits[k] = ex instanceof Expression ? ex : Expression.fromJSLoose(ex);
     }
@@ -1507,7 +1508,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public resolve(context: Datum, ifNotFound: IfNotFound = 'throw'): Expression {
     let expressions: Lookup<Expression> = Object.create(null);
     for (let k in context) {
-      if (!hasOwnProperty(context, k)) continue;
+      if (!hasOwnProp(context, k)) continue;
       let value = context[k];
       if (value instanceof External) {
         expressions[k] = new ExternalExpression({ external: <External>value });
