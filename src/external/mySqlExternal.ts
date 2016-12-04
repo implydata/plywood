@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
+import { PlywoodRequester } from 'plywood-base-api';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
 import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
@@ -31,7 +32,7 @@ export class MySQLExternal extends SQLExternal {
   static engine = 'mysql';
   static type = 'DATASET';
 
-  static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): MySQLExternal {
+  static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): MySQLExternal {
     let value: ExternalValue = External.jsToValue(parameters, requester);
     return new MySQLExternal(value);
   }
@@ -56,7 +57,7 @@ export class MySQLExternal extends SQLExternal {
     }).filter(Boolean);
   }
 
-  static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
+  static getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
     return requester({ query: "SHOW TABLES" })
       .then((sources) => {
         if (!Array.isArray(sources)) throw new Error('invalid sources response');
@@ -67,7 +68,7 @@ export class MySQLExternal extends SQLExternal {
       });
   }
 
-  static getVersion(requester: Requester.PlywoodRequester<any>): Q.Promise<string> {
+  static getVersion(requester: PlywoodRequester<any>): Promise<string> {
     return requester({ query: 'SELECT @@version' })
       .then((res) => {
         if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
@@ -82,7 +83,7 @@ export class MySQLExternal extends SQLExternal {
     this._ensureEngine("mysql");
   }
 
-  protected getIntrospectAttributes(): Q.Promise<Attributes> {
+  protected getIntrospectAttributes(): Promise<Attributes> {
     return this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.source as string)}` }).then(MySQLExternal.postProcessIntrospect);
   }
 }

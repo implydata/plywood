@@ -276,7 +276,7 @@ describe("Dataset", () => {
     ]);
 
     it("STRING, ascending", () => {
-      expect(someDataset.sort($('resource').getFn(), 'ascending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('resource'), 'ascending').toJS().map((d) => {
         return d.resource;
       })).to.deep.equal([
         null, 'A', 'B'
@@ -284,7 +284,7 @@ describe("Dataset", () => {
     });
 
     it("STRING, descending", () => {
-      expect(someDataset.sort($('resource').getFn(), 'descending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('resource'), 'descending').toJS().map((d) => {
         return d.resource;
       })).to.deep.equal([
         'B', 'A', null
@@ -292,7 +292,7 @@ describe("Dataset", () => {
     });
 
     it("NUMBER, ascending", () => {
-      expect(someDataset.sort($('value').getFn(), 'ascending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('value'), 'ascending').toJS().map((d) => {
         return d.value;
       })).to.deep.equal([
         null, 2, 7
@@ -300,7 +300,7 @@ describe("Dataset", () => {
     });
 
     it("NUMBER, descending", () => {
-      expect(someDataset.sort($('value').getFn(), 'descending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('value'), 'descending').toJS().map((d) => {
         return d.value;
       })).to.deep.equal([
         7, 2, null
@@ -308,7 +308,7 @@ describe("Dataset", () => {
     });
 
     it("BOOLEAN, ascending", () => {
-      expect(someDataset.sort($('nice').getFn(), 'ascending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('nice'), 'ascending').toJS().map((d) => {
         return d.nice;
       })).to.deep.equal([
         null, false, true
@@ -316,7 +316,7 @@ describe("Dataset", () => {
     });
 
     it("BOOLEAN, descending", () => {
-      expect(someDataset.sort($('nice').getFn(), 'descending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('nice'), 'descending').toJS().map((d) => {
         return d.nice;
       })).to.deep.equal([
         true, false, null

@@ -1639,8 +1639,7 @@ describe("compute native", () => {
               ]
             }
           ]);
-        })
-        .done();
+        });
     });
 
     it("re-selects", () => {
@@ -1687,14 +1686,13 @@ describe("compute native", () => {
               "Price": 1084
             }
           ]);
-        })
-        .done();
+        });
     });
   });
 
 
   describe("joins", () => {
-    it("does a join on split", () => {
+    it.skip("does a join on split", () => {
       let ds = Dataset.fromJS(data).hide();
 
       let ex = ply()
@@ -1734,8 +1732,8 @@ describe("compute native", () => {
               ]
             }
           ]);
-        })
-        .done();
+        });
     });
+
   });
 });

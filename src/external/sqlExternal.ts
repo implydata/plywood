@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
 import { PlywoodValue, Dataset } from '../datatypes/index';
 import {
   Expression,
@@ -253,5 +253,5 @@ export abstract class SQLExternal extends External {
     };
   }
 
-  protected abstract getIntrospectAttributes(): Q.Promise<Attributes>
+  protected abstract getIntrospectAttributes(): Promise<Attributes>
 }

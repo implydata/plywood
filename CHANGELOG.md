@@ -4,6 +4,8 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.16.1
 
+- Extracted Requester type definition into `plywood-base-api`
+- Switched from `Q` to `any-promise`
 - Use has-own-prop library
 
 

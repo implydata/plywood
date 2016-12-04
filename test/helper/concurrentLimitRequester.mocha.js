@@ -17,18 +17,18 @@
 
 let { expect } = require("chai");
 
-let Q = require('q');
+let Promise = require('any-promise');
 
 let { concurrentLimitRequesterFactory } = require("../../build/plywood");
 
-describe("Retry requester", () => {
+describe("Concurrent Limit requester", () => {
   let makeRequester = () => {
     let deferreds = {};
 
     let requester = (request) => {
-      let deferred = Q.defer();
-      deferreds[request.query] = deferred;
-      return deferred.promise;
+      return new Promise((resolve, reject) => {
+        deferreds[request.query] = { resolve, reject };
+      });
     };
 
     requester.hasQuery = (query) => {
@@ -55,12 +55,14 @@ describe("Retry requester", () => {
         expect(res).to.be.an('array');
         testComplete();
       })
-      .done();
+      .catch((e) => {
+        testComplete(e);
+      });
 
-    return requester.resolve('a');
+    requester.resolve('a');
   });
 
-  it("limit works", (testComplete) => {
+  it("limit works", () => {
     let requester = makeRequester();
     let concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,
@@ -68,36 +70,33 @@ describe("Retry requester", () => {
     });
 
     let nextQuery = 'a';
-    concurrentLimitRequester({ query: 'a' })
+    let ra = concurrentLimitRequester({ query: 'a' })
       .then((res) => {
         expect(res).to.be.an('array');
         expect(nextQuery).to.equal('a');
-        return nextQuery = 'b';
-      })
-      .done();
+        nextQuery = 'b';
+      });
 
-    concurrentLimitRequester({ query: 'b' })
+    let rb = concurrentLimitRequester({ query: 'b' })
       .then((res) => {
         expect(res).to.be.an('array');
         expect(nextQuery).to.equal('b');
         nextQuery = 'c';
         expect(requester.hasQuery('c', 'has c')).to.equal(true);
-        return requester.resolve('c');
-      })
-      .done();
+        requester.resolve('c');
+      });
 
-    concurrentLimitRequester({ query: 'c' })
+    let rc = concurrentLimitRequester({ query: 'c' })
       .then((res) => {
         expect(res).to.be.an('array');
         expect(nextQuery).to.equal('c');
-        testComplete();
-      })
-      .done();
+      });
 
     expect(requester.hasQuery('a'), 'has a').to.equal(true);
     expect(requester.hasQuery('b'), 'has b').to.equal(true);
     expect(requester.hasQuery('c'), 'has c').to.equal(false);
     requester.resolve('a');
-    return requester.resolve('b');
+    requester.resolve('b');
+    return Promise.all([ra, rb, rc]);
   });
 });

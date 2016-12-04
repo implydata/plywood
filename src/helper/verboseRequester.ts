@@ -15,17 +15,18 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
+import { PlywoodRequester, DatabaseRequest } from 'plywood-base-api';
 
 export interface VerboseRequesterParameters<T> {
-  requester: Requester.PlywoodRequester<T>;
+  requester: PlywoodRequester<T>;
   printLine?: (line: string) => void;
   preQuery?: (query: any) => void;
   onSuccess?: (data: any, time: number, query: any) => void;
   onError?: (error: Error, time: number, query: any) => void;
 }
 
-export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameters<T>): Requester.PlywoodRequester<any> {
+export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameters<T>): PlywoodRequester<any> {
   let requester = parameters.requester;
 
   let printLine = parameters.printLine || ((line: string): void => {
@@ -53,7 +54,7 @@ export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameter
     });
 
   let queryNumber: int = 0;
-  return (request: Requester.DatabaseRequest<any>): Q.Promise<any> => {
+  return (request: DatabaseRequest<any>): Promise<any> => {
     queryNumber++;
     let myQueryNumber = queryNumber;
     preQuery(request.query, myQueryNumber);
