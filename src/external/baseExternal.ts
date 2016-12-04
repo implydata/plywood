@@ -17,8 +17,9 @@
 import * as Q from 'q';
 import { Timezone, Duration } from 'chronoshift';
 import { immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
+import * as hasOwnProp from 'has-own-prop';
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
-import { hasOwnProperty, nonEmptyLookup, safeAdd } from '../helper/utils';
+import { nonEmptyLookup, safeAdd } from '../helper/utils';
 import {
   $, Expression, RefExpression, ExternalExpression,
   ChainableExpression,
@@ -123,7 +124,7 @@ function mergeDerivedAttributes(derivedAttributes1: Lookup<Expression>, derivedA
     derivedAttributes[k] = derivedAttributes1[k];
   }
   for (let k in derivedAttributes2) {
-    if (hasOwnProperty(derivedAttributes, k) && !derivedAttributes[k].equals(derivedAttributes2[k])) {
+    if (hasOwnProp(derivedAttributes, k) && !derivedAttributes[k].equals(derivedAttributes2[k])) {
       throw new Error(`can not currently redefine conflicting ${k}`);
     }
     derivedAttributes[k] = derivedAttributes2[k];
@@ -585,7 +586,7 @@ export abstract class External {
   }
 
   static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any> = null): External {
-    if (!hasOwnProperty(parameters, "engine")) {
+    if (!hasOwnProp(parameters, "engine")) {
       throw new Error("external `engine` must be defined");
     }
     let engine: string = parameters.engine;
@@ -593,7 +594,7 @@ export abstract class External {
     let ClassFn = External.getConstructorFor(engine);
 
     // Back compat
-    if (!requester && hasOwnProperty(parameters, 'requester')) {
+    if (!requester && hasOwnProp(parameters, 'requester')) {
       console.warn("'requester' parameter should be passed as context (2nd argument)");
       requester = (parameters as any).requester;
     }
@@ -871,7 +872,7 @@ export abstract class External {
   public hasAttribute(name: string): boolean {
     const { attributes, rawAttributes, derivedAttributes } = this;
     if (SimpleArray.find(rawAttributes || attributes, (a) => a.name === name)) return true;
-    return hasOwnProperty(derivedAttributes, name);
+    return hasOwnProp(derivedAttributes, name);
   }
 
   public expressionDefined(ex: Expression): boolean {

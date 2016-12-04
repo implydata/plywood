@@ -18,7 +18,7 @@
 import { isDate, Timezone } from 'chronoshift';
 import { Class, Instance, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
-import { hasOwnProperty } from '../helper/utils';
+import * as hasOwnProp from 'has-own-prop';
 import { Attributes, AttributeInfo, AttributeJSs } from './attributeInfo';
 import { NumberRange } from './numberRange';
 import { Set } from './set';
@@ -280,7 +280,7 @@ function copy(obj: Lookup<any>): Lookup<any> {
   let newObj: Lookup<any> = {};
   let k: string;
   for (k in obj) {
-    if (hasOwnProperty(obj, k)) newObj[k] = obj[k];
+    if (hasOwnProp(obj, k)) newObj[k] = obj[k];
   }
   return newObj;
 }
@@ -313,7 +313,7 @@ export class Dataset implements Instance<DatasetValue, any> {
 
     let datum: Datum = Object.create(null);
     for (let k in js) {
-      if (!hasOwnProperty(js, k)) continue;
+      if (!hasOwnProp(js, k)) continue;
       datum[k] = valueFromJS(js[k]);
     }
 
@@ -402,9 +402,9 @@ export class Dataset implements Instance<DatasetValue, any> {
 
     let value: DatasetValue = {};
 
-    if (hasOwnProperty(parameters, 'attributes')) {
+    if (hasOwnProp(parameters, 'attributes')) {
       value.attributes = AttributeInfo.fromJSs(parameters.attributes);
-    } else if (hasOwnProperty(parameters, 'attributeOverrides')) {
+    } else if (hasOwnProp(parameters, 'attributeOverrides')) {
       value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
     }
 
@@ -803,7 +803,7 @@ export class Dataset implements Instance<DatasetValue, any> {
 
     function addDatum(datum: Datum, valueList: any): void {
       let key = valueList.join(';_PLYw00d_;');
-      if (hasOwnProperty(datumGroups, key)) {
+      if (hasOwnProp(datumGroups, key)) {
         datumGroups[key].push(datum);
       } else {
         let newDatum: Datum = Object.create(null);

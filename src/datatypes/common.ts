@@ -17,7 +17,7 @@
 
 import * as Q from 'q';
 import { isDate } from 'chronoshift';
-import { hasOwnProperty } from '../helper/utils';
+import * as hasOwnProp from 'has-own-prop';
 import { Expression } from '../expressions/baseExpression';
 import { Dataset, Datum } from './dataset';
 import { Set } from './set';
@@ -34,7 +34,7 @@ export function getValueType(value: any): PlyType {
       return 'NULL';
     } else if (isDate(value)) {
       return 'TIME';
-    } else if (hasOwnProperty(value, 'start') && hasOwnProperty(value, 'end')) {
+    } else if (hasOwnProp(value, 'start') && hasOwnProp(value, 'end')) {
       if (isDate(value.start) || isDate(value.end)) return 'TIME_RANGE';
       if (typeof value.start === 'number' || typeof value.end === 'number') return 'NUMBER_RANGE';
       if (typeof value.start === 'string' || typeof value.end === 'string') return 'STRING_RANGE';
@@ -67,7 +67,7 @@ export function getFullType(value: any): FullType {
 export function getFullTypeFromDatum(datum: Datum): DatasetFullType {
   let datasetType: Lookup<FullType> = {};
   for (let k in datum) {
-    if (!hasOwnProperty(datum, k)) continue;
+    if (!hasOwnProp(datum, k)) continue;
     datasetType[k] = getFullType(datum[k]);
   }
 

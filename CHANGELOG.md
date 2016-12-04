@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.16.1
+
+- Use has-own-prop library
+
+
 ## 0.15.12
 
 - Version check now works with all parts of the version

@@ -17,7 +17,8 @@
 
 import * as Q from 'q';
 import * as Druid from 'druid.d.ts';
-import { hasOwnProperty, dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from '../helper/utils';
+import * as hasOwnProp from 'has-own-prop';
+import { dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from '../helper/utils';
 import {
   $, Expression,
   LiteralExpression,
@@ -413,7 +414,7 @@ export class DruidExternal extends External {
       let foundTime = false;
       let attributes: Attributes = [];
       for (let name in columns) {
-        if (!hasOwnProperty(columns, name)) continue;
+        if (!hasOwnProp(columns, name)) continue;
         let columnData = columns[name];
 
         // Error conditions
@@ -490,7 +491,7 @@ export class DruidExternal extends External {
   static movePagingIdentifiers(pagingIdentifiers: Druid.PagingIdentifiers, increment: number): Druid.PagingIdentifiers {
     let newPagingIdentifiers: Druid.PagingIdentifiers = {};
     for (let key in pagingIdentifiers) {
-      if (!hasOwnProperty(pagingIdentifiers, key)) continue;
+      if (!hasOwnProp(pagingIdentifiers, key)) continue;
       newPagingIdentifiers[key] = pagingIdentifiers[key] + increment;
     }
     return newPagingIdentifiers;
@@ -1104,7 +1105,7 @@ export class DruidExternal extends External {
             }
 
             // Plywood's concept of splits does not allocate buckets for which there is no data.
-            if (!druidQuery.context || !hasOwnProperty(druidQuery.context, 'skipEmptyBuckets')) {
+            if (!druidQuery.context || !hasOwnProp(druidQuery.context, 'skipEmptyBuckets')) {
               druidQuery.context = druidQuery.context || {};
               druidQuery.context.skipEmptyBuckets = "true"; // This needs to be the string "true" to work with older Druid versions
             }
