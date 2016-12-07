@@ -1244,28 +1244,28 @@ describe("compute native", () => {
                 "Cut": "Good",
                 "Six": 6,
                 "Seven": 7,
-                "EightByZero": { "type": "NUMBER", "value": "Infinity" },
+                "EightByZero": null,
                 "ZeroByZero": null
               },
               {
                 "Cut": "Great",
                 "Six": 6,
                 "Seven": 7,
-                "EightByZero": { "type": "NUMBER", "value": "Infinity" },
+                "EightByZero": null,
                 "ZeroByZero": null
               },
               {
                 "Cut": "Wow",
                 "Six": 6,
                 "Seven": 7,
-                "EightByZero": { "type": "NUMBER", "value": "Infinity" },
+                "EightByZero": null,
                 "ZeroByZero": null
               },
               {
                 "Cut": null,
                 "Six": 6,
                 "Seven": 7,
-                "EightByZero": { "type": "NUMBER", "value": "Infinity" },
+                "EightByZero": null,
                 "ZeroByZero": null
               }
             ]

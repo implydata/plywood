@@ -472,7 +472,7 @@ describe("DruidExternal", () => {
             "added",
             "deleted"
           ],
-          "fnAggregate": "function($$,_added,_deleted) { return $$+((Math.pow(parseFloat(_added),2)*parseFloat(_deleted))/Math.abs(parseFloat(_added))); }",
+          "fnAggregate": "function($$,_added,_deleted) { return $$+(_=Math.abs(parseFloat(_added)),(_===0||isNaN(_)?null:(Math.pow(parseFloat(_added),2)*parseFloat(_deleted))/Math.abs(parseFloat(_added)))); }",
           "fnCombine": "function(a,b) { return a+b; }",
           "fnReset": "function() { return 0; }",
           "name": "SumComplex",
@@ -657,7 +657,7 @@ describe("DruidExternal", () => {
                   "!F_!T_1",
                   "Count"
                 ],
-                "function": "function(_$33T_0,_$33T_1,_Count) { return Math.pow(Math.abs(((parseFloat(_$33T_0)/Math.pow(Math.abs(parseFloat(_Count)),0.5))+(parseFloat(_$33T_1)*100))),2); }",
+                "function": "function(_$33T_0,_$33T_1,_Count) { return Math.pow(Math.abs(((_=Math.pow(Math.abs(parseFloat(_Count)),0.5),(_===0||isNaN(_)?null:parseFloat(_$33T_0)/Math.pow(Math.abs(parseFloat(_Count)),0.5)))+(parseFloat(_$33T_1)*100))),2); }",
                 "type": "javascript"
               },
               {

@@ -543,6 +543,11 @@ This is a synonym for **IFNULL**(*expr1*, *expr2*)
 
 Checks whether *expr1* and *expr2* overlap
 
+<a id="CUSTOM_TRANSFORM" href="#CUSTOM_TRANSFORM">#</a>
+**CUSTOM_TRANSFORM**(*expr1*, *custom_name*)
+
+Applies the specified custom transformation to the given expression.
+
 ### Mathematical Functions
 
 <a id="ABS" href="#ABS">#</a>
@@ -579,7 +584,7 @@ Returns the value of e (base of natural logs) raised to the power of *expr*.
 If used without an expression (or as `COUNT(*)`) returns the count of the number of rows.
 When an expression is provided returns a count of the rows where *expr* is not null.
  
-<a id="COUNT" href="#COUNT">#</a>
+<a id="COUNT_DISTINCT" href="#COUNT_DISTINCT">#</a>
 **COUNT**(**DISTINCT** *expr*), **COUNT_DISTINCT**(*expr*) 
 
 Returns the count of the number of rows with different *expr* values.
@@ -609,7 +614,7 @@ Returns the average of all *expr* values.
 
 Returns the upper *quantile* of all *expr* values.
 
-<a id="CUSTOM" href="#CUSTOM">#</a>
-**CUSTOM**(*custom_name*)
+<a id="CUSTOM_AGGREGATE" href="#CUSTOM_AGGREGATE">#</a>
+**CUSTOM_AGGREGATE**(*custom_name*)
 
-Returns the user defined aggregation named *custom_name*.
+Returns the computation of the user defined aggregation named *custom_name*.

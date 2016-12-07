@@ -319,6 +319,22 @@ describe("Simplify", () => {
   });
 
 
+  describe('multiply', () => {
+    it("collapses / 0", () => {
+      let ex1 = $('x').divide(0);
+      let ex2 = Expression.NULL;
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("removes 1 in simple case", () => {
+      let ex1 = $('x').multiply(1);
+      let ex2 = $('x');
+      simplifiesTo(ex1, ex2);
+    });
+
+  });
+
+
   describe('and', () => {
     it("collapses false in simple case", () => {
       let ex1 = $('x').and(false);
