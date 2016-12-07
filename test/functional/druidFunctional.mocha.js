@@ -1174,6 +1174,15 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with numeric fallback", () => {
+      let ex = $('wiki').sum('($added / ($added - $added)).fallback(10)');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result).to.equal(109199 * 10);
+        });
+    });
+
     it("works with absolute number split", () => {
       let ex = ply()
         .apply(
