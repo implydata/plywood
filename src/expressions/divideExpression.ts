@@ -33,12 +33,13 @@ export class DivideExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    const v = (operandValue || 0) / (expressionValue || 0);
+    if (expressionValue === 0) return null;
+    const v = operandValue / expressionValue;
     return isNaN(v) ? null : v;
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `(${operandJS}/${expressionJS})`;
+    return `(_=${expressionJS},(_===0||isNaN(_)?null:${operandJS}/${expressionJS}))`;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
@@ -46,6 +47,9 @@ export class DivideExpression extends ChainableUnaryExpression {
   }
 
   protected specialSimplify(): Expression {
+    // X / 0
+    if (this.expression.equals(Expression.ZERO)) return Expression.NULL;
+
     // X / 1
     if (this.expression.equals(Expression.ONE)) return this.operand;
 

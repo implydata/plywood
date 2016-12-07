@@ -1,7 +1,7 @@
 {
   "name": "plywood",
-  "version": "0.15.13",
-  "description": "a query planner and executor",
+  "version": "0.16.0",
+  "description": "A query planner and executor",
   "keywords": [
     "split",
     "apply",
@@ -37,7 +37,7 @@
     "has-own-prop": "^1.0.0",
     "immutable-class": "~0.6.20",
     "moment-timezone": "~0.5.10",
-    "plywood-base-api": "0.1.1"
+    "plywood-base-api": "^0.1.1"
   },
   "devDependencies": {
     "browserify": "13.1.1",

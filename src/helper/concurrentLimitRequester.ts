@@ -61,7 +61,7 @@ export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRe
   return (request: DatabaseRequest<T>): Promise<any> => {
     if (outstandingRequests < concurrentLimit) {
       outstandingRequests++;
-      return requester(request).then(requestFinishedOk, requestFinishedError);;
+      return requester(request).then(requestFinishedOk, requestFinishedError);
     } else {
       return new Promise((resolve, reject) => {
         requestQueue.push({
