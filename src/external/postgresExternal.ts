@@ -58,7 +58,7 @@ export class PostgresExternal extends SQLExternal {
           return new AttributeInfo({ name, type: 'SET/STRING' });
         } else if (arrayType === 'timestamp') {
           return new AttributeInfo({ name, type: 'SET/TIME' });
-        } else if (arrayType === 'integer' || arrayType === 'bigint' || sqlType === 'double precision' || sqlType === 'float') {
+        } else if (arrayType === 'integer' || arrayType === 'bigint' || arrayType === 'double precision' || arrayType === 'float') {
           return new AttributeInfo({ name, type: 'SET/NUMBER' });
         } else if (arrayType === 'boolean') {
           return new AttributeInfo({ name, type: 'SET/BOOLEAN' });

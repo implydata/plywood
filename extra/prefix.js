@@ -1,5 +1,7 @@
 'use strict';
 
+var tslib_1 = require('tslib');
+
 var hasOwnProp = require('has-own-prop');
 
 var immutableClass = require('immutable-class');
