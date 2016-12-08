@@ -257,48 +257,69 @@ export class DruidAggregationBuilder {
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
   }
 
+  private isCardinalityCrossProductExpression(expression: Expression) {
+    return expression.every(ex => {
+      if (ex instanceof RefExpression || ex instanceof LiteralExpression) return true;
+      if (ex instanceof ConcatExpression || ex instanceof CastExpression) return null; // search within
+      return false;
+    });
+  }
+
   private countDistinctToAggregation(name: string, expression: CountDistinctExpression, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
     if (this.exactResultsOnly) {
       throw new Error("approximate query not allowed");
     }
 
-    let attribute = expression.expression;
-    let attributeName: string;
-    if (attribute instanceof RefExpression) {
-      attributeName = attribute.name;
-    } else {
-      throw new Error(`can not compute countDistinct on derived attribute: ${attribute}`);
-    }
-
-    let attributeInfo = this.getAttributesInfo(attributeName);
     let aggregation: Druid.Aggregation;
-    if (attributeInfo instanceof UniqueAttributeInfo) {
-      aggregation = {
-        name: name,
-        type: "hyperUnique",
-        fieldName: attributeName
-      };
+    let attribute = expression.expression;
+    if (attribute instanceof RefExpression) {
+      let attributeName = attribute.name;
 
-    } else if (attributeInfo instanceof ThetaAttributeInfo) {
-      let tempName = '!Theta_' + name;
-      postAggregations.push({
-        type: "thetaSketchEstimate",
-        name: name,
-        field: { type: 'fieldAccess', fieldName: tempName }
-      });
+      let attributeInfo = this.getAttributesInfo(attributeName);
+      if (attributeInfo instanceof UniqueAttributeInfo) {
+        aggregation = {
+          name: name,
+          type: "hyperUnique",
+          fieldName: attributeName
+        };
 
-      aggregation = {
-        name: tempName,
-        type: "thetaSketch",
-        fieldName: attributeName
-      };
+      } else if (attributeInfo instanceof ThetaAttributeInfo) {
+        let tempName = '!Theta_' + name;
+        postAggregations.push({
+          type: "thetaSketchEstimate",
+          name: name,
+          field: { type: 'fieldAccess', fieldName: tempName }
+        });
+
+        aggregation = {
+          name: tempName,
+          type: "thetaSketch",
+          fieldName: attributeName
+        };
+
+      } else {
+        aggregation = {
+          name: name,
+          type: "cardinality",
+          fieldNames: [attributeName]
+        };
+
+      }
+    } else if (attribute.type === 'STRING' || attribute.type === 'NUMBER') {
+      if (this.isCardinalityCrossProductExpression(attribute)) {
+        aggregation = {
+          name: name,
+          type: "cardinality",
+          fieldNames: attribute.getFreeReferences(),
+          byRow: true
+        };
+      } else {
+        throw new Error(`can not compute countDistinct on ${attribute}`);
+
+      }
 
     } else {
-      aggregation = {
-        name: name,
-        type: "cardinality",
-        fieldNames: [attributeName]
-      };
+      throw new Error(`can not compute countDistinct on ${attribute}`);
 
     }
 
@@ -330,7 +351,7 @@ export class DruidAggregationBuilder {
     if (attribute instanceof RefExpression) {
       attributeName = attribute.name;
     } else {
-      throw new Error(`can not compute countDistinct on derived attribute: ${attribute}`);
+      throw new Error(`can not compute quantile on derived attribute: ${attribute}`);
     }
 
     let histogramAggregationName = "!H_" + name;

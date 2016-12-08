@@ -2674,6 +2674,28 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("makes a query with countDistinct", () => {
+    let ex = ply()
+      .apply('NumColorCuts', '$diamonds.countDistinct($color ++ "lol" ++ $cut)');
+
+    ex = ex.referenceCheck(context).resolve(context).simplify();
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0].length).to.equal(1);
+    expect(queryPlan[0][0].aggregations).to.deep.equal([
+      {
+        "byRow": true,
+        "fieldNames": [
+          "color",
+          "cut"
+        ],
+        "name": "__VALUE__",
+        "type": "cardinality"
+      }
+    ]);
+  });
+
   it("works with duplicate aggregates", () => {
     let ex = ply()
       .apply('Price', '$diamonds.sum($price)')
