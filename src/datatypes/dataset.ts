@@ -1016,9 +1016,7 @@ export class Dataset implements Instance<DatasetValue, any> {
   public getNestedColumns(orderedColumns?: string[]): Column[] {
     let nestedColumns: Column[] = [];
 
-    let attributes = orderedColumns && orderedColumns.length
-      ? orderedColumns.map(c => NamedArray.findByName(this.attributes, c))
-      : this.attributes;
+    let attributes = this.attributes;
 
     let subDatasetAdded = false;
     for (let attribute of attributes) {
@@ -1038,7 +1036,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       }
     }
 
-    return nestedColumns;
+    return orderedColumns && orderedColumns.length ? orderedColumns.map(c => NamedArray.findByName(nestedColumns, c)) : nestedColumns;
   }
 
   public getColumns(options: FlattenOptions = {}): Column[] {
@@ -1089,7 +1087,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     return flatData;
   }
 
-  public toTabular(tabulatorOptions: TabulatorOptions, tz?: Timezone, columnOrder?: string[]): string {
+  public toTabular(tabulatorOptions: TabulatorOptions, tz?: Timezone): string {
     let formatter: Formatter = tabulatorOptions.formatter || {};
     let finalizer: (v: string) => string = tabulatorOptions.finalizer;
     let data = this.flatten(tabulatorOptions);
