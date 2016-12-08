@@ -117,7 +117,7 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
     };
   }
 
-  public toJS(tz?: Timezone): TimeRangeJS {
+  public toJS(): TimeRangeJS {
     let js: TimeRangeJS = {
       start: this.start,
       end: this.end
