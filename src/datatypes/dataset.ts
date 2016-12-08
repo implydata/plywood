@@ -1013,7 +1013,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     return SimpleArray.find(this.data, (d) => generalEqual(d[attribute], value));
   }
 
-  public getNestedColumns(orderedColumns?: string[]): Column[] {
+  public getNestedColumns(): Column[] {
     let nestedColumns: Column[] = [];
 
     let attributes = this.attributes;
@@ -1036,12 +1036,16 @@ export class Dataset implements Instance<DatasetValue, any> {
       }
     }
 
-    return orderedColumns && orderedColumns.length ? orderedColumns.map(c => NamedArray.findByName(nestedColumns, c)) : nestedColumns;
+    return nestedColumns;
   }
 
   public getColumns(options: FlattenOptions = {}): Column[] {
     const { prefixColumns, orderedColumns } = options;
-    return flattenColumns(this.getNestedColumns(orderedColumns), prefixColumns);
+    let columns: any = this.getNestedColumns();
+    let flatColumns = flattenColumns(columns, prefixColumns);
+    return orderedColumns && orderedColumns.length
+      ? orderedColumns.map(c => NamedArray.findByName(flatColumns, c)) as Column[]
+      : flatColumns;
   }
 
   private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, parentName: string, nesting: number, context: Datum, flat: PseudoDatum[]): void {
@@ -1079,7 +1083,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     let order = options.order; // preorder, inline [default], postorder
     let nestingName = options.nestingName;
     let parentName = options.parentName;
-    let nestedColumns = this.getNestedColumns(options.orderedColumns);
+    let nestedColumns = this.getNestedColumns();
     let flatData: PseudoDatum[] = [];
     if (nestedColumns.length) {
       this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, parentName, 0, null, flatData);
