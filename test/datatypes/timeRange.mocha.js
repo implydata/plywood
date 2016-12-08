@@ -49,6 +49,21 @@ describe("TimeRange", () => {
     });
   });
 
+  describe("toString", () => {
+    it("works with timezone", () => {
+      expect(TimeRange.fromJS({
+        start: new Date('2015-01-26T04:54:10Z'),
+        end: new Date('2015-01-26T05:54:10Z')
+      }).toString()).to.deep.equal('[2015-01-26T04:54:10Z,2015-01-26T05:54:10Z]');
+
+      expect(TimeRange.fromJS({
+        start: new Date('2015-01-26T04:54:10Z'),
+        end: new Date('2015-01-26T05:54:10Z')
+      }).toString('Asia/Kathmandu')).to.deep.equal('[2015-01-26T10:39:10+05:45,2015-01-26T11:39:10+05:45]');
+    });
+  });
+
+
   describe("upgrades", () => {
     it("upgrades from a string", () => {
       let timeRange = TimeRange.fromJS({

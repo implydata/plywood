@@ -724,7 +724,7 @@ describe("External", () => {
         expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice', 'language', 'pageTm']);
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
         `);
       });
 
@@ -768,7 +768,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -787,7 +787,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($page:STRING.is("USA"))
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -804,7 +804,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($page:STRING.is("USA"))
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -834,7 +834,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -851,7 +851,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($page:STRING.is("USA"))
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -868,7 +868,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -891,7 +891,7 @@ describe("External", () => {
 
         expect(externalDataset.mode).to.equal('value');
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -911,7 +911,7 @@ describe("External", () => {
 
         expect(externalDataset.mode).to.equal('total');
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -933,7 +933,7 @@ describe("External", () => {
 
         expect(externalDataset.mode).to.equal('total');
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -956,7 +956,7 @@ describe("External", () => {
         let externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -995,7 +995,7 @@ describe("External", () => {
         let externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -1024,7 +1024,7 @@ describe("External", () => {
         let externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -1059,7 +1059,7 @@ describe("External", () => {
         expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice', 'language', 'pageTm']);
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z])
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -1097,7 +1097,7 @@ describe("External", () => {
         let externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00.000Z,2013-02-27T00:00:00.000Z]).and($language:STRING.is("en"))
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -1213,8 +1213,8 @@ describe("External", () => {
             "Added": 4,
             "Count": 4,
             "Timestamp": {
-              "start": new Date('2015-03-13T07:00:00.000Z'),
-              "end": new Date('2015-03-14T07:00:00.000Z'),
+              "start": new Date('2015-03-13T07:00:00Z'),
+              "end": new Date('2015-03-14T07:00:00Z'),
               "type": "TIME_RANGE"
             }
           }

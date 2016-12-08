@@ -181,9 +181,9 @@ let typeOrder: Lookup<number> = {
 export interface Formatter extends Lookup<Function | undefined> {
   'NULL'?: (v: any) => string;
   'TIME'?: (v: Date, tz?: Timezone) => string;
-  'TIME_RANGE'?: (v: TimeRange) => string;
-  'SET/TIME'?: (v: Set) => string;
-  'SET/TIME_RANGE'?: (v: Set) => string;
+  'TIME_RANGE'?: (v: TimeRange, tz?: Timezone) => string;
+  'SET/TIME'?: (v: Set, tz?: Timezone) => string;
+  'SET/TIME_RANGE'?: (v: Set, tz?: Timezone) => string;
   'STRING'?: (v: string) => string;
   'SET/STRING'?: (v: Set) => string;
   'BOOLEAN'?: (v: boolean) => string;
@@ -196,10 +196,10 @@ export interface Formatter extends Lookup<Function | undefined> {
 
 const DEFAULT_FORMATTER: Formatter = {
   'NULL': (v: any) => 'NULL',
-  'TIME': (v: Date, tz: Timezone = Timezone.UTC) => moment.tz(v, tz.toString()).format(),
-  'TIME_RANGE': (v: TimeRange) => '' + v,
-  'SET/TIME': (v: Set) => '' + v,
-  'SET/TIME_RANGE': (v: Set) => '' + v,
+  'TIME': (v: Date, tz: Timezone) => moment.tz(v, tz.toString()).format(),
+  'TIME_RANGE': (v: TimeRange, tz: Timezone) => v.toString(tz),
+  'SET/TIME': (v: Set, tz: Timezone) => v.toString(tz),
+  'SET/TIME_RANGE': (v: Set, tz: Timezone) => v.toString(tz),
   'STRING': (v: string) => '' + v,
   'SET/STRING': (v: Set) => '' + v,
   'BOOLEAN': (v: boolean) => '' + v,
@@ -208,7 +208,7 @@ const DEFAULT_FORMATTER: Formatter = {
   'SET/NUMBER': (v: Set) => '' + v,
   'SET/NUMBER_RANGE': (v: Set) => '' + v,
   'DATASET': (v: Dataset) => 'DATASET'
-}
+};
 
 export interface FlattenOptions {
   prefixColumns?: boolean;
@@ -1092,7 +1092,8 @@ export class Dataset implements Instance<DatasetValue, any> {
 
   public toTabular(tabulatorOptions: TabulatorOptions): string {
     let formatter: Formatter = tabulatorOptions.formatter || {};
-    const { timezone, finalizer } = tabulatorOptions;
+    const timezone = tabulatorOptions.timezone || Timezone.UTC;
+    const { finalizer } = tabulatorOptions;
 
     let data = this.flatten(tabulatorOptions);
     let columns = this.getColumns(tabulatorOptions);

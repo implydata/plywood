@@ -920,26 +920,39 @@ describe("Dataset", () => {
       });
 
       it("works with timezones", () => {
-        let ds = Dataset.fromJS([
-          {
-            time: new Date('2015-01-04T12:32:43'),
-            make: 'Honda',
-            model: 'Civic',
-            price: 10000
-          },
-          {
+        let ds = Dataset.fromJS({
+          attributes: [
+            { name: 'time', type: 'TIME'},
+            { name: 'favoriteTimes', type: 'SET/TIME'},
+            { name: 'favoriteTimeRanges', type: 'SET/TIME_RANGE'},
+            { name: 'favoriteTimeRange', type: 'TIME_RANGE'}
+          ],
+          data: [{
             time: new Date('2015-01-04T14:00:40'),
-            make: 'Toyota',
-            model: 'Prius',
-            price: 20000
+            favoriteTimeRanges: {
+              type: 'SET',
+              setType: 'TIME_RANGE',
+              elements: [
+                { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-21T00:00:00") },
+                { start: new Date("2015-02-22T00:00:00"), end: new Date("2015-02-24T00:00:00") }
+              ]
+            },
+            favoriteTimeRange: {
+              type: 'TIME_RANGE',
+              start: new Date("2015-02-20T00:00:00"),
+              end: new Date("2015-02-21T00:00:00")
+            },
+            favoriteTimes:  {
+              type: 'SET',
+              setType: 'TIME',
+              elements: [ new Date("2015-02-20T00:00:00"), new Date("2015-02-24T00:00:00")]
+            }
           }
-        ]);
+        ]});
 
         expect(ds.toTSV({ lineBreak: '\n', finalLineBreak: 'suppress', timezone: Timezone.fromJS('Asia/Kathmandu') })).to.equal(sane`
-          time	make	model	price
-          2015-01-04T18:17:43+05:45	Honda	Civic	10000
-          2015-01-04T19:45:40+05:45	Toyota	Prius	20000
-        `);
+          time	favoriteTimes	favoriteTimeRanges	favoriteTimeRange
+          2015-01-04T19:45:40+05:45	2015-02-20T05:45:00+05:45, 2015-02-24T05:45:00+05:45	[2015-02-20T05:45:00+05:45,2015-02-21T05:45:00+05:45], [2015-02-22T05:45:00+05:45,2015-02-24T05:45:00+05:45]	[2015-02-20T05:45:00+05:45,2015-02-21T05:45:00+05:45]`);
       });
     });
 
