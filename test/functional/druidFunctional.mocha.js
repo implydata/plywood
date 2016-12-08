@@ -553,12 +553,12 @@ describe("Druid Functional", function() {
         });
     });
 
-    it.skip("works with multiple columns", () => {
+    it("works with multiple columns", () => {
       let ex = $('wiki').countDistinct("$channel ++ 'lol' ++ $user");
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal(123);
+          expect(result).to.deep.equal(40082.255930715364);
         });
     });
 
