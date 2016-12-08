@@ -850,7 +850,7 @@ describe("Dataset", () => {
           }
        ]);
 
-        expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' }, Timezone.fromJS('Asia/Kathmandu') )).to.equal(sane`
+        expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress', timezone: Timezone.fromJS('Asia/Kathmandu')} )).to.equal(sane`
           time,make,model,price
           2015-01-04T18:17:43+05:45,Honda,Civic,10000
           2015-01-04T19:45:40+05:45,Toyota,Prius,20000
@@ -935,7 +935,7 @@ describe("Dataset", () => {
           }
         ]);
 
-        expect(ds.toTSV({ lineBreak: '\n', finalLineBreak: 'suppress' }, Timezone.fromJS('Asia/Kathmandu') )).to.equal(sane`
+        expect(ds.toTSV({ lineBreak: '\n', finalLineBreak: 'suppress', timezone: Timezone.fromJS('Asia/Kathmandu') })).to.equal(sane`
           time	make	model	price
           2015-01-04T18:17:43+05:45	Honda	Civic	10000
           2015-01-04T19:45:40+05:45	Toyota	Prius	20000
