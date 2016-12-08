@@ -599,6 +599,15 @@ describe("Druid Functional", function() {
         });
     });
 
+    it.skip("works with multiple columns", () => {
+      let ex = $('wiki').countDistinct("$channel ++ 'lol' ++ $user");
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal(123);
+        });
+    });
+
     it("works with no applies in dimensions split dataset", () => {
       let ex = ply()
         .apply(
