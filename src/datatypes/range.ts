@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { Timezone } from 'chronoshift';
+
 const BOUNDS_REG_EXP = /^[\[(][\])]$/;
 
 export type PlywoodRange = Range<number | Date | string>;
@@ -90,7 +92,7 @@ export abstract class Range<T> {
     return a === b;
   }
 
-  protected _endpointToString(a: T): string {
+  protected _endpointToString(a: T, tz?: Timezone): string {
     return String(a);
   }
 
@@ -103,9 +105,9 @@ export abstract class Range<T> {
 
   public abstract equals(other: Range<T>): boolean;
 
-  public toString(): string {
+  public toString(tz?: Timezone): string {
     let bounds = this.bounds;
-    return '[' + (bounds[0] === '(' ? '~' : '') + this._endpointToString(this.start) + ',' + this._endpointToString(this.end) + (bounds[1] === ')' ? '' : '!') + ']';
+    return '[' + (bounds[0] === '(' ? '~' : '') + this._endpointToString(this.start, tz) + ',' + this._endpointToString(this.end, tz) + (bounds[1] === ')' ? '' : '!') + ']';
   }
 
   public compare(other: Range<T>): number {

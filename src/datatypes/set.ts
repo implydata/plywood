@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import * as moment from 'moment-timezone';
+import { Timezone } from 'chronoshift';
 import { Class, Instance } from 'immutable-class';
 import { PlyType } from '../types';
 import { hasOwnProperty } from '../helper/utils';
@@ -198,9 +200,20 @@ export class Set implements Instance<SetValue, SetJS> {
     return this.toJS();
   }
 
-  public toString(): string {
-    if (this.setType === "NULL") return "null";
-    return `${this.elements.map(String).join(", ")}`;
+  public toString(tz: Timezone = Timezone.UTC): string {
+    const { setType } = this;
+    let stringFn: (v: any) => string = null;
+    if (setType === "NULL") return "null";
+
+    if (setType === "TIME_RANGE") {
+      stringFn = (e: any) => e.toString(tz);
+    } else if (setType === "TIME") {
+      stringFn = (e: any) => moment.tz(e, tz.toString()).format();
+    } else {
+      stringFn = String;
+    }
+
+    return `${this.elements.map(stringFn).join(", ")}`;
   }
 
   public equals(other: Set): boolean {

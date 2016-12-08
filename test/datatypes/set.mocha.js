@@ -86,6 +86,26 @@ describe("Set", () => {
     ]);
   });
 
+  describe("time things toString", () => {
+    it("works with timezone", () => {
+      expect(Set.fromJS({
+        setType: 'TIME_RANGE',
+        elements: [
+          { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-21T00:00:00") },
+          { start: new Date("2015-02-22T00:00:00"), end: new Date("2015-02-24T00:00:00") }
+        ]
+      }).toString()).to.deep.equal('[2015-02-20T00:00:00Z,2015-02-21T00:00:00Z], [2015-02-22T00:00:00Z,2015-02-24T00:00:00Z]');
+
+      expect(Set.fromJS({
+        setType: 'TIME_RANGE',
+        elements: [
+          { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-21T00:00:00") },
+          { start: new Date("2015-02-22T00:00:00"), end: new Date("2015-02-24T00:00:00") }
+        ]
+      }).toString('Asia/Kathmandu')).to.deep.equal('[2015-02-20T05:45:00+05:45,2015-02-21T05:45:00+05:45], [2015-02-22T05:45:00+05:45,2015-02-24T05:45:00+05:45]');
+    })
+  });
+
 
   describe("dedupes", () => {
     it("works with a SET/STRING", () => {

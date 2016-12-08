@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
-let { sane } = require('../utils');
+const { expect } = require("chai");
+const { Timezone } = require('chronoshift');
+const { testImmutableClass } = require("immutable-class-tester");
 
-let { testImmutableClass } = require("immutable-class-tester");
-
-let plywood = require('../plywood');
-let { Dataset, AttributeInfo, $, Set, r } = plywood;
+const { sane } = require('../utils');
+const plywood = require('../plywood');
+const { Dataset, AttributeInfo, $, Set, r } = plywood;
 
 describe("Dataset", () => {
   it("is immutable class", () => {
@@ -758,18 +758,18 @@ describe("Dataset", () => {
       it("works with basic dataset", () => {
         expect(carDataset.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
           time,make,model,price
-          2015-01-04T12:32:43.000Z,Honda,Civic,10000
-          2015-01-04T14:00:40.000Z,Toyota,Prius,20000
+          2015-01-04T12:32:43Z,Honda,Civic,10000
+          2015-01-04T14:00:40Z,Toyota,Prius,20000
         `);
       });
 
       it("works with sub-dataset", () => {
         expect(carAndPartsDataset.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
           time,make,model,price,part,weight
-          2015-01-04T12:32:43.000Z,Honda,Civic,10000,Engine,500
-          2015-01-04T12:32:43.000Z,Honda,Civic,10000,Door,20
-          2015-01-04T14:00:40.000Z,Toyota,Prius,20000,Engine,400
-          2015-01-04T14:00:40.000Z,Toyota,Prius,20000,Door,25
+          2015-01-04T12:32:43Z,Honda,Civic,10000,Engine,500
+          2015-01-04T12:32:43Z,Honda,Civic,10000,Door,20
+          2015-01-04T14:00:40Z,Toyota,Prius,20000,Engine,400
+          2015-01-04T14:00:40Z,Toyota,Prius,20000,Door,25
         `);
       });
 
@@ -796,7 +796,12 @@ describe("Dataset", () => {
 
       it("escapes sets properly", () => {
         let ds = Dataset.fromJS([
-          { w: [1, 2], x: 1, y: ['hel,lo', 'mo\non'], z: ["Thu Feb 19 2015 16:00:00 GMT-0800 (PST)", "Fri Feb 20 2015 16:00:00 GMT-0800 (PST)"] },
+          {
+            w: [1, 2],
+            x: 1,
+            y: ['hel,lo', 'mo\non'],
+            z: ["Thu Feb 19 2015 16:00:00 GMT-0800 (PST)", "Fri Feb 20 2015 16:00:00 GMT-0800 (PST)"]
+          },
           { w: ["null"], x: 2, y: ['wo\r\nrld', 'mo\ron'], z: ["stars"] }
         ]).select(['w', 'x', 'y', 'z']);
 
@@ -817,6 +822,7 @@ describe("Dataset", () => {
         `);
       });
 
+
       it("is ok with null", () => {
         let ds = Dataset.fromJS([
           { letter: null }
@@ -828,6 +834,52 @@ describe("Dataset", () => {
         `);
       });
 
+      it("works with timezones", () => {
+        let ds = Dataset.fromJS([
+          {
+            time: new Date('2015-01-04T12:32:43'),
+            make: 'Honda',
+            model: 'Civic',
+            price: 10000
+          },
+          {
+            time: new Date('2015-01-04T14:00:40'),
+            make: 'Toyota',
+            model: 'Prius',
+            price: 20000
+          }
+       ]);
+
+        expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress', timezone: Timezone.fromJS('Asia/Kathmandu')} )).to.equal(sane`
+          time,make,model,price
+          2015-01-04T18:17:43+05:45,Honda,Civic,10000
+          2015-01-04T19:45:40+05:45,Toyota,Prius,20000
+        `);
+      });
+
+
+      it("respects ordered columns", () => {
+        let carDataset = Dataset.fromJS([
+          {
+            time: new Date('2015-01-04T12:32:43'),
+            make: 'Honda',
+            model: 'Civic',
+            price: 10000
+          },
+          {
+            time: new Date('2015-01-04T14:00:40'),
+            make: 'Toyota',
+            model: 'Prius',
+            price: 20000
+          }
+        ]);
+
+        expect(carDataset.toCSV({ lineBreak: '\n', orderedColumns: ['model', 'make', 'price', 'time'] })).to.deep.equal(sane`
+          model,make,price,time
+          Civic,Honda,10000,2015-01-04T12:32:43Z
+          Prius,Toyota,20000,2015-01-04T14:00:40Z
+        `);
+      });
     });
 
 
@@ -865,6 +917,42 @@ describe("Dataset", () => {
           1	hel,lo, mo on
           2	wo rld, mo on
         `);
+      });
+
+      it("works with timezones", () => {
+        let ds = Dataset.fromJS({
+          attributes: [
+            { name: 'time', type: 'TIME'},
+            { name: 'favoriteTimes', type: 'SET/TIME'},
+            { name: 'favoriteTimeRanges', type: 'SET/TIME_RANGE'},
+            { name: 'favoriteTimeRange', type: 'TIME_RANGE'}
+          ],
+          data: [{
+            time: new Date('2015-01-04T14:00:40'),
+            favoriteTimeRanges: {
+              type: 'SET',
+              setType: 'TIME_RANGE',
+              elements: [
+                { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-21T00:00:00") },
+                { start: new Date("2015-02-22T00:00:00"), end: new Date("2015-02-24T00:00:00") }
+              ]
+            },
+            favoriteTimeRange: {
+              type: 'TIME_RANGE',
+              start: new Date("2015-02-20T00:00:00"),
+              end: new Date("2015-02-21T00:00:00")
+            },
+            favoriteTimes:  {
+              type: 'SET',
+              setType: 'TIME',
+              elements: [ new Date("2015-02-20T00:00:00"), new Date("2015-02-24T00:00:00")]
+            }
+          }
+        ]});
+
+        expect(ds.toTSV({ lineBreak: '\n', finalLineBreak: 'suppress', timezone: Timezone.fromJS('Asia/Kathmandu') })).to.equal(sane`
+          time	favoriteTimes	favoriteTimeRanges	favoriteTimeRange
+          2015-01-04T19:45:40+05:45	2015-02-20T05:45:00+05:45, 2015-02-24T05:45:00+05:45	[2015-02-20T05:45:00+05:45,2015-02-21T05:45:00+05:45], [2015-02-22T05:45:00+05:45,2015-02-24T05:45:00+05:45]	[2015-02-20T05:45:00+05:45,2015-02-21T05:45:00+05:45]`);
       });
     });
 

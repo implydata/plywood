@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { isDate } from 'chronoshift';
+import * as moment from 'moment-timezone';
+import { isDate, Timezone } from 'chronoshift';
 import { Class, Instance, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
 import { hasOwnProperty } from '../helper/utils';
@@ -179,10 +180,10 @@ let typeOrder: Lookup<number> = {
 
 export interface Formatter extends Lookup<Function | undefined> {
   'NULL'?: (v: any) => string;
-  'TIME'?: (v: Date) => string;
-  'TIME_RANGE'?: (v: TimeRange) => string;
-  'SET/TIME'?: (v: Set) => string;
-  'SET/TIME_RANGE'?: (v: Set) => string;
+  'TIME'?: (v: Date, tz?: Timezone) => string;
+  'TIME_RANGE'?: (v: TimeRange, tz?: Timezone) => string;
+  'SET/TIME'?: (v: Set, tz?: Timezone) => string;
+  'SET/TIME_RANGE'?: (v: Set, tz?: Timezone) => string;
   'STRING'?: (v: string) => string;
   'SET/STRING'?: (v: Set) => string;
   'BOOLEAN'?: (v: boolean) => string;
@@ -193,12 +194,12 @@ export interface Formatter extends Lookup<Function | undefined> {
   'DATASET'?: (v: Dataset) => string;
 }
 
-let defaultFormatter: Formatter = {
+const DEFAULT_FORMATTER: Formatter = {
   'NULL': (v: any) => 'NULL',
-  'TIME': (v: Date) => v.toISOString(),
-  'TIME_RANGE': (v: TimeRange) => '' + v,
-  'SET/TIME': (v: Set) => '' + v,
-  'SET/TIME_RANGE': (v: Set) => '' + v,
+  'TIME': (v: Date, tz: Timezone) => moment.tz(v, tz.toString()).format(),
+  'TIME_RANGE': (v: TimeRange, tz: Timezone) => v.toString(tz),
+  'SET/TIME': (v: Set, tz: Timezone) => v.toString(tz),
+  'SET/TIME_RANGE': (v: Set, tz: Timezone) => v.toString(tz),
   'STRING': (v: string) => '' + v,
   'SET/STRING': (v: Set) => '' + v,
   'BOOLEAN': (v: boolean) => '' + v,
@@ -212,6 +213,7 @@ let defaultFormatter: Formatter = {
 export interface FlattenOptions {
   prefixColumns?: boolean;
   order?: string; // preorder, inline [default], postorder
+  orderedColumns?: string[];
   nestingName?: string;
   parentName?: string;
 }
@@ -224,6 +226,7 @@ export interface TabulatorOptions extends FlattenOptions {
   finalLineBreak?: FinalLineBreak;
   formatter?: Formatter;
   finalizer?: (v: string) => string;
+  timezone?: Timezone;
 }
 
 function isBoolean(b: any) {
@@ -1011,6 +1014,7 @@ export class Dataset implements Instance<DatasetValue, any> {
 
   public getNestedColumns(): Column[] {
     let nestedColumns: Column[] = [];
+
     let attributes = this.attributes;
 
     let subDatasetAdded = false;
@@ -1035,8 +1039,12 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public getColumns(options: FlattenOptions = {}): Column[] {
-    let prefixColumns = options.prefixColumns;
-    return flattenColumns(this.getNestedColumns(), prefixColumns);
+    const { prefixColumns, orderedColumns } = options;
+    let columns: any = this.getNestedColumns();
+    let flatColumns = flattenColumns(columns, prefixColumns);
+    return orderedColumns && orderedColumns.length
+      ? orderedColumns.map(c => NamedArray.findByName(flatColumns, c)).filter(Boolean) as Column[]
+      : flatColumns;
   }
 
   private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, parentName: string, nesting: number, context: Datum, flat: PseudoDatum[]): void {
@@ -1084,7 +1092,9 @@ export class Dataset implements Instance<DatasetValue, any> {
 
   public toTabular(tabulatorOptions: TabulatorOptions): string {
     let formatter: Formatter = tabulatorOptions.formatter || {};
-    let finalizer: (v: string) => string = tabulatorOptions.finalizer;
+    const timezone = tabulatorOptions.timezone || Timezone.UTC;
+    const { finalizer } = tabulatorOptions;
+
     let data = this.flatten(tabulatorOptions);
     let columns = this.getColumns(tabulatorOptions);
 
@@ -1095,7 +1105,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       let datum = data[i];
       lines.push(columns.map(c => {
         let value = datum[c.name];
-        let formatted = String((formatter[c.type] || defaultFormatter[c.type])(value));
+        let formatted = String((formatter[c.type] || DEFAULT_FORMATTER[c.type])(value, timezone));
         let finalized = formatted && finalizer ? finalizer(formatted) : formatted;
         return finalized;
       }).join(tabulatorOptions.separator || ','));
