@@ -15,15 +15,14 @@
  * limitations under the License.
  */
 
-import * as moment from 'moment-timezone';
 import { Timezone } from 'chronoshift';
 import { Class, Instance } from 'immutable-class';
 import { PlyType } from '../types';
 import { hasOwnProperty } from '../helper/utils';
-import { PlywoodRange } from '../datatypes/range';
-import { NumberRange } from '../datatypes/numberRange';
-import { TimeRange } from '../datatypes/timeRange';
 import { getValueType, isSetType, valueToJS, valueFromJS } from './common';
+import { PlywoodRange } from './range';
+import { NumberRange } from './numberRange';
+import { TimeRange } from './timeRange';
 import { StringRange } from './stringRange';
 import { isDate } from 'chronoshift';
 
@@ -200,15 +199,15 @@ export class Set implements Instance<SetValue, SetJS> {
     return this.toJS();
   }
 
-  public toString(tz: Timezone = Timezone.UTC): string {
+  public toString(tz?: Timezone): string {
     const { setType } = this;
     let stringFn: (v: any) => string = null;
     if (setType === "NULL") return "null";
 
     if (setType === "TIME_RANGE") {
-      stringFn = (e: any) => e.toString(tz);
+      stringFn = (e: any) => e ? e.toString(tz) : 'null';
     } else if (setType === "TIME") {
-      stringFn = (e: any) => moment.tz(e, tz.toString()).format();
+      stringFn = (e: any) => e ? Timezone.formatDateWithTimezone(e, tz) : 'null';
     } else {
       stringFn = String;
     }

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as moment from 'moment-timezone';
 import { Timezone, Duration, parseISODate } from 'chronoshift';
 import { Class, Instance } from 'immutable-class';
 import { Range } from './range';
@@ -104,9 +103,8 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
     }
   }
 
-  protected _endpointToString(a: Date, tz: Timezone = Timezone.UTC): string {
-    if (!a) return 'null';
-    return moment.tz(a, tz.toString()).format();
+  protected _endpointToString(a: Date, tz?: Timezone): string {
+    return a ? Timezone.formatDateWithTimezone(a, tz) : 'null';
   }
 
   public valueOf(): TimeRangeValue {

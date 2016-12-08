@@ -830,7 +830,7 @@ describe("Dataset", () => {
 
         expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
         letter
-        null
+        NULL
         `);
       });
 

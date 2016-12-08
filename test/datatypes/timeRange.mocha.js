@@ -19,6 +19,7 @@ let { expect } = require("chai");
 
 let { testImmutableClass } = require("immutable-class-tester");
 
+let { Timezone } = require('chronoshift');
 let plywood = require('../plywood');
 let { TimeRange, $, ply, r } = plywood;
 
@@ -59,7 +60,7 @@ describe("TimeRange", () => {
       expect(TimeRange.fromJS({
         start: new Date('2015-01-26T04:54:10Z'),
         end: new Date('2015-01-26T05:54:10Z')
-      }).toString('Asia/Kathmandu')).to.deep.equal('[2015-01-26T10:39:10+05:45,2015-01-26T11:39:10+05:45]');
+      }).toString(Timezone.fromJS('Asia/Kathmandu'))).to.deep.equal('[2015-01-26T10:39:10+05:45,2015-01-26T11:39:10+05:45]');
     });
   });
 

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as moment from 'moment-timezone';
 import { isDate, Timezone } from 'chronoshift';
 import { Class, Instance, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
@@ -196,7 +195,7 @@ export interface Formatter extends Lookup<Function | undefined> {
 
 const DEFAULT_FORMATTER: Formatter = {
   'NULL': (v: any) => 'NULL',
-  'TIME': (v: Date, tz: Timezone) => moment.tz(v, tz.toString()).format(),
+  'TIME': (v: Date, tz: Timezone) => Timezone.formatDateWithTimezone(v, tz),
   'TIME_RANGE': (v: TimeRange, tz: Timezone) => v.toString(tz),
   'SET/TIME': (v: Set, tz: Timezone) => v.toString(tz),
   'SET/TIME_RANGE': (v: Set, tz: Timezone) => v.toString(tz),
@@ -1104,8 +1103,9 @@ export class Dataset implements Instance<DatasetValue, any> {
     for (let i = 0; i < data.length; i++) {
       let datum = data[i];
       lines.push(columns.map(c => {
-        let value = datum[c.name];
-        let formatted = String((formatter[c.type] || DEFAULT_FORMATTER[c.type])(value, timezone));
+        const value = datum[c.name];
+        const fmtr = value != null ? (formatter[c.type] || DEFAULT_FORMATTER[c.type]) : (formatter['NULL'] || DEFAULT_FORMATTER['NULL']);
+        let formatted = String(fmtr(value, timezone));
         let finalized = formatted && finalizer ? finalizer(formatted) : formatted;
         return finalized;
       }).join(tabulatorOptions.separator || ','));
