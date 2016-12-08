@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { isDate } from 'chronoshift';
+import * as moment from 'moment-timezone';
+import { isDate, Timezone } from 'chronoshift';
 import { Class, Instance, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
 import { hasOwnProperty } from '../helper/utils';
@@ -179,7 +180,7 @@ let typeOrder: Lookup<number> = {
 
 export interface Formatter extends Lookup<Function | undefined> {
   'NULL'?: (v: any) => string;
-  'TIME'?: (v: Date) => string;
+  'TIME'?: (v: Date, tz?: Timezone) => string;
   'TIME_RANGE'?: (v: TimeRange) => string;
   'SET/TIME'?: (v: Set) => string;
   'SET/TIME_RANGE'?: (v: Set) => string;
@@ -193,25 +194,28 @@ export interface Formatter extends Lookup<Function | undefined> {
   'DATASET'?: (v: Dataset) => string;
 }
 
-let defaultFormatter: Formatter = {
-  'NULL': (v: any) => 'NULL',
-  'TIME': (v: Date) => v.toISOString(),
-  'TIME_RANGE': (v: TimeRange) => '' + v,
-  'SET/TIME': (v: Set) => '' + v,
-  'SET/TIME_RANGE': (v: Set) => '' + v,
-  'STRING': (v: string) => '' + v,
-  'SET/STRING': (v: Set) => '' + v,
-  'BOOLEAN': (v: boolean) => '' + v,
-  'NUMBER': (v: number) => '' + v,
-  'NUMBER_RANGE': (v: NumberRange) => '' + v,
-  'SET/NUMBER': (v: Set) => '' + v,
-  'SET/NUMBER_RANGE': (v: Set) => '' + v,
-  'DATASET': (v: Dataset) => 'DATASET'
-};
+function getDefaultFormatter(tz: Timezone = Timezone.UTC): Formatter {
+  return {
+    'NULL': (v: any) => 'NULL',
+    'TIME': (v: Date) => moment.tz(v, tz.toString()).format(),
+    'TIME_RANGE': (v: TimeRange) => '' + v,
+    'SET/TIME': (v: Set) => '' + v,
+    'SET/TIME_RANGE': (v: Set) => '' + v,
+    'STRING': (v: string) => '' + v,
+    'SET/STRING': (v: Set) => '' + v,
+    'BOOLEAN': (v: boolean) => '' + v,
+    'NUMBER': (v: number) => '' + v,
+    'NUMBER_RANGE': (v: NumberRange) => '' + v,
+    'SET/NUMBER': (v: Set) => '' + v,
+    'SET/NUMBER_RANGE': (v: Set) => '' + v,
+    'DATASET': (v: Dataset) => 'DATASET'
+  };
+}
 
 export interface FlattenOptions {
   prefixColumns?: boolean;
   order?: string; // preorder, inline [default], postorder
+  orderedColumns?: string[];
   nestingName?: string;
   parentName?: string;
 }
@@ -1009,9 +1013,12 @@ export class Dataset implements Instance<DatasetValue, any> {
     return SimpleArray.find(this.data, (d) => generalEqual(d[attribute], value));
   }
 
-  public getNestedColumns(): Column[] {
+  public getNestedColumns(orderedColumns?: string[]): Column[] {
     let nestedColumns: Column[] = [];
-    let attributes = this.attributes;
+
+    let attributes = orderedColumns && orderedColumns.length
+      ? orderedColumns.map(c => NamedArray.findByName(this.attributes, c))
+      : this.attributes;
 
     let subDatasetAdded = false;
     for (let attribute of attributes) {
@@ -1035,8 +1042,8 @@ export class Dataset implements Instance<DatasetValue, any> {
   }
 
   public getColumns(options: FlattenOptions = {}): Column[] {
-    let prefixColumns = options.prefixColumns;
-    return flattenColumns(this.getNestedColumns(), prefixColumns);
+    const { prefixColumns, orderedColumns } = options;
+    return flattenColumns(this.getNestedColumns(orderedColumns), prefixColumns);
   }
 
   private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, parentName: string, nesting: number, context: Datum, flat: PseudoDatum[]): void {
@@ -1074,7 +1081,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     let order = options.order; // preorder, inline [default], postorder
     let nestingName = options.nestingName;
     let parentName = options.parentName;
-    let nestedColumns = this.getNestedColumns();
+    let nestedColumns = this.getNestedColumns(options.orderedColumns);
     let flatData: PseudoDatum[] = [];
     if (nestedColumns.length) {
       this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, parentName, 0, null, flatData);
@@ -1082,7 +1089,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     return flatData;
   }
 
-  public toTabular(tabulatorOptions: TabulatorOptions): string {
+  public toTabular(tabulatorOptions: TabulatorOptions, tz?: Timezone, columnOrder?: string[]): string {
     let formatter: Formatter = tabulatorOptions.formatter || {};
     let finalizer: (v: string) => string = tabulatorOptions.finalizer;
     let data = this.flatten(tabulatorOptions);
@@ -1095,7 +1102,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       let datum = data[i];
       lines.push(columns.map(c => {
         let value = datum[c.name];
-        let formatted = String((formatter[c.type] || defaultFormatter[c.type])(value));
+        let formatted = String((formatter[c.type] || getDefaultFormatter(tz)[c.type])(value));
         let finalized = formatted && finalizer ? finalizer(formatted) : formatted;
         return finalized;
       }).join(tabulatorOptions.separator || ','));
@@ -1105,20 +1112,20 @@ export class Dataset implements Instance<DatasetValue, any> {
     return lines.join(lineBreak) + (tabulatorOptions.finalLineBreak === 'include' && lines.length > 0 ? lineBreak : '');
   }
 
-  public toCSV(tabulatorOptions: TabulatorOptions = {}): string {
+  public toCSV(tabulatorOptions: TabulatorOptions = {}, tz?: Timezone): string {
     tabulatorOptions.finalizer = escapeFnCSV;
     tabulatorOptions.separator = tabulatorOptions.separator || ',';
     tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
     tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
-    return this.toTabular(tabulatorOptions);
+    return this.toTabular(tabulatorOptions, tz);
   }
 
-  public toTSV(tabulatorOptions: TabulatorOptions = {}): string {
+  public toTSV(tabulatorOptions: TabulatorOptions = {}, tz?: Timezone): string {
     tabulatorOptions.finalizer = escapeFnTSV;
     tabulatorOptions.separator = tabulatorOptions.separator || '\t';
     tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
     tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
-    return this.toTabular(tabulatorOptions);
+    return this.toTabular(tabulatorOptions, tz);
   }
 
 }
