@@ -557,7 +557,8 @@ ShowQueryExpression
           .apply('Charset', i$('CHARACTER_SET_NAME'))
           .apply('Default collation', i$('DEFAULT_COLLATE_NAME'))
           .apply('Description', i$('DESCRIPTION'))
-          .apply('Maxlen', i$('MAXLEN'));
+          .apply('Maxlen', i$('MAXLEN'))
+          .select('Charset', 'Default collation', 'Description', 'Maxlen');
       }
 
     / CollationToken like:LikeRhs?
@@ -571,7 +572,9 @@ ShowQueryExpression
           .apply('Id', i$('ID'))
           .apply('Default', i$('IS_DEFAULT'))
           .apply('Compiled', i$('IS_COMPILED'))
-          .apply('Sortlen', i$('SORTLEN'));
+          .apply('Sortlen', i$('SORTLEN'))
+          .select('Collation', 'Charset', 'Id', 'Compiled', 'Sortlen');
+
       }
 
 FromOrIn = FromToken / InToken;

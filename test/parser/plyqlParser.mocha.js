@@ -1642,7 +1642,8 @@ describe("SQL parser", () => {
         .apply('Charset', i$('CHARACTER_SET_NAME'))
         .apply('Default collation', i$('DEFAULT_COLLATE_NAME'))
         .apply('Description', i$('DESCRIPTION'))
-        .apply('Maxlen', i$('MAXLEN'));
+        .apply('Maxlen', i$('MAXLEN'))
+        .select('Charset', 'Default collation', 'Description', 'Maxlen');
 
       expect(parse.verb).to.equal('SELECT');
       expect(parse.rewrite).to.equal('SHOW');
@@ -1662,7 +1663,8 @@ describe("SQL parser", () => {
         .apply('Id', i$('ID'))
         .apply('Default', i$('IS_DEFAULT'))
         .apply('Compiled', i$('IS_COMPILED'))
-        .apply('Sortlen', i$('SORTLEN'));
+        .apply('Sortlen', i$('SORTLEN'))
+        .select('Collation', 'Charset', 'Id', 'Compiled', 'Sortlen');
 
       expect(parse.verb).to.equal('SELECT');
       expect(parse.rewrite).to.equal('SHOW');
