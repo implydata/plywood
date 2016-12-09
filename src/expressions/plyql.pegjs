@@ -560,7 +560,7 @@ ShowQueryExpression
           .apply('Maxlen', i$('MAXLEN'));
       }
 
-    / CollationsToken like:LikeRhs?
+    / CollationToken like:LikeRhs?
       {
         https://dev.mysql.com/doc/refman/5.7/en/collations-table.html
         var ex = i$('COLLATIONS')
@@ -1001,7 +1001,7 @@ TablesToken        = "TABLES"i         !IdentifierPart _
 GlobalToken        = "GLOBAL"i         !IdentifierPart _
 SessionToken       = "SESSION"i        !IdentifierPart _
 CharacterToken     = "CHARACTER"i      !IdentifierPart _
-CollationsToken    = "COLLATIONS"i     !IdentifierPart _
+CollationToken     = "COLLATION"i     !IdentifierPart _
 
 FromToken          = "FROM"i           !IdentifierPart _
 AsToken            = "AS"i             !IdentifierPart _

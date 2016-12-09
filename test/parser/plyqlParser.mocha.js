@@ -1637,7 +1637,7 @@ describe("SQL parser", () => {
         SHOW CHARACTER SET LIKE '%wild%'
       `);
 
-      let ex2 = i$('CHARACTER_SET')
+      let ex2 = i$('CHARACTER_SETS')
         .filter(i$('CHARACTER_SET_NAME').match(r('^.*wild.*$')))
         .apply('Charset', i$('CHARACTER_SET_NAME'))
         .apply('Default collation', i$('DEFAULT_COLLATE_NAME'))
@@ -1652,7 +1652,7 @@ describe("SQL parser", () => {
     it("should work with SHOW collations", () => {
 
       let parse = Expression.parseSQL(sane`
-        SHOW COLLATIONS like '%wild%'
+        SHOW COLLATION like '%wild%'
       `);
 
       let ex2 = i$('COLLATIONS')
