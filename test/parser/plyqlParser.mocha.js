@@ -1631,7 +1631,44 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-  });
+    it("should work with SHOW character set", () => {
+
+      let parse = Expression.parseSQL(sane`
+        SHOW CHARACTER SET LIKE '%wild%'
+      `);
+
+      let ex2 = i$('CHARACTER_SET')
+        .filter(i$('CHARACTER_SET_NAME').match(r('^.*wild.*$')))
+        .apply('Charset', i$('CHARACTER_SET_NAME'))
+        .apply('Default collation', i$('DEFAULT_COLLATE_NAME'))
+        .apply('Description', i$('DESCRIPTION'))
+        .apply('Maxlen', i$('MAXLEN'));
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+   });
+
+    it("should work with SHOW collations", () => {
+
+      let parse = Expression.parseSQL(sane`
+        SHOW COLLATIONS like '%wild%'
+      `);
+
+      let ex2 = i$('COLLATIONS')
+        .filter(i$('COLLATION_NAME').match(r('^.*wild.*$')))
+        .apply('Collation', i$('COLLATION_NAME'))
+        .apply('Charset', i$('CHARACTER_SET_NAME'))
+        .apply('Id', i$('ID'))
+        .apply('Default', i$('IS_DEFAULT'))
+        .apply('Compiled', i$('IS_COMPILED'))
+        .apply('Sortlen', i$('SORTLEN'));
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+});
 
 
   describe("DESCRIBE", () => {

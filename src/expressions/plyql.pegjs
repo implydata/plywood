@@ -548,6 +548,31 @@ ShowQueryExpression
 
       return ex;
     }
+    / (CharacterToken _ SetToken) like:LikeRhs?
+      {
+        https://dev.mysql.com/doc/refman/5.7/en/character-sets-table.html
+        var ex = i$('CHARACTER_SETS')
+        if (like) ex = ex.filter(like(i$('CHARACTER_SET_NAME')));
+        return ex
+          .apply('Charset', i$('CHARACTER_SET_NAME'))
+          .apply('Default collation', i$('DEFAULT_COLLATE_NAME'))
+          .apply('Description', i$('DESCRIPTION'))
+          .apply('Maxlen', i$('MAXLEN'));
+      }
+
+    / CollationsToken like:LikeRhs?
+      {
+        https://dev.mysql.com/doc/refman/5.7/en/collations-table.html
+        var ex = i$('COLLATIONS')
+        if (like) ex = ex.filter(like(i$('COLLATION_NAME')));
+        return ex
+          .apply('Collation', i$('COLLATION_NAME'))
+          .apply('Charset', i$('CHARACTER_SET_NAME'))
+          .apply('Id', i$('ID'))
+          .apply('Default', i$('IS_DEFAULT'))
+          .apply('Compiled', i$('IS_COMPILED'))
+          .apply('Sortlen', i$('SORTLEN'));
+      }
 
 FromOrIn = FromToken / InToken;
 
@@ -975,6 +1000,9 @@ FullToken          = "FULL"i           !IdentifierPart _
 TablesToken        = "TABLES"i         !IdentifierPart _
 GlobalToken        = "GLOBAL"i         !IdentifierPart _
 SessionToken       = "SESSION"i        !IdentifierPart _
+CharacterSetsToken = "CHARACTER_SETS"i !IdentifierPart _
+CharacterToken     = "CHARACTER"i      !IdentifierPart _
+CollationsToken    = "COLLATIONS"i     !IdentifierPart _
 
 FromToken          = "FROM"i           !IdentifierPart _
 AsToken            = "AS"i             !IdentifierPart _
