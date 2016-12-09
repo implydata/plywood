@@ -573,7 +573,7 @@ ShowQueryExpression
           .apply('Default', i$('IS_DEFAULT'))
           .apply('Compiled', i$('IS_COMPILED'))
           .apply('Sortlen', i$('SORTLEN'))
-          .select('Collation', 'Charset', 'Id', 'Compiled', 'Sortlen');
+          .select('Collation', 'Charset', 'Id', 'Default', 'Compiled', 'Sortlen');
 
       }
 
