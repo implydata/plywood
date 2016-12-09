@@ -1001,7 +1001,7 @@ TablesToken        = "TABLES"i         !IdentifierPart _
 GlobalToken        = "GLOBAL"i         !IdentifierPart _
 SessionToken       = "SESSION"i        !IdentifierPart _
 CharacterToken     = "CHARACTER"i      !IdentifierPart _
-CollationToken     = "COLLATION"i     !IdentifierPart _
+CollationToken     = "COLLATION"i      !IdentifierPart _
 
 FromToken          = "FROM"i           !IdentifierPart _
 AsToken            = "AS"i             !IdentifierPart _
