@@ -1000,7 +1000,6 @@ FullToken          = "FULL"i           !IdentifierPart _
 TablesToken        = "TABLES"i         !IdentifierPart _
 GlobalToken        = "GLOBAL"i         !IdentifierPart _
 SessionToken       = "SESSION"i        !IdentifierPart _
-CharacterSetsToken = "CHARACTER_SETS"i !IdentifierPart _
 CharacterToken     = "CHARACTER"i      !IdentifierPart _
 CollationsToken    = "COLLATIONS"i     !IdentifierPart _
 
