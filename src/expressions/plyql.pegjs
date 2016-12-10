@@ -548,6 +548,34 @@ ShowQueryExpression
 
       return ex;
     }
+  / (CharacterToken _ SetToken) like:LikeRhs?
+    {
+      https://dev.mysql.com/doc/refman/5.7/en/character-sets-table.html
+      var ex = i$('CHARACTER_SETS')
+      if (like) ex = ex.filter(like(i$('CHARACTER_SET_NAME')));
+      return ex
+        .apply('Charset', i$('CHARACTER_SET_NAME'))
+        .apply('Default collation', i$('DEFAULT_COLLATE_NAME'))
+        .apply('Description', i$('DESCRIPTION'))
+        .apply('Maxlen', i$('MAXLEN'))
+        .select('Charset', 'Default collation', 'Description', 'Maxlen');
+    }
+
+  / CollationToken like:LikeRhs?
+    {
+      https://dev.mysql.com/doc/refman/5.7/en/collations-table.html
+      var ex = i$('COLLATIONS')
+      if (like) ex = ex.filter(like(i$('COLLATION_NAME')));
+      return ex
+        .apply('Collation', i$('COLLATION_NAME'))
+        .apply('Charset', i$('CHARACTER_SET_NAME'))
+        .apply('Id', i$('ID'))
+        .apply('Default', i$('IS_DEFAULT'))
+        .apply('Compiled', i$('IS_COMPILED'))
+        .apply('Sortlen', i$('SORTLEN'))
+        .select('Collation', 'Charset', 'Id', 'Default', 'Compiled', 'Sortlen');
+
+    }
 
 FromOrIn = FromToken / InToken;
 
@@ -940,8 +968,8 @@ InSetLiteralExpression
 StringOrNumber = String / Number
 
 String "String"
-  = "'" chars:NotSQuote "'" _ { return chars; }
-  / "'" chars:NotSQuote { error("Unmatched single quote"); }
+  = CharsetIntroducer? "'" chars:NotSQuote "'" _ { return chars; }
+  / CharsetIntroducer? "'" chars:NotSQuote { error("Unmatched single quote"); }
   / '"' chars:NotDQuote '"' _ { return chars; }
   / '"' chars:NotDQuote { error("Unmatched double quote"); }
 
@@ -975,6 +1003,8 @@ FullToken          = "FULL"i           !IdentifierPart _
 TablesToken        = "TABLES"i         !IdentifierPart _
 GlobalToken        = "GLOBAL"i         !IdentifierPart _
 SessionToken       = "SESSION"i        !IdentifierPart _
+CharacterToken     = "CHARACTER"i      !IdentifierPart _
+CollationToken     = "COLLATION"i      !IdentifierPart _
 
 FromToken          = "FROM"i           !IdentifierPart _
 AsToken            = "AS"i             !IdentifierPart _
@@ -1076,6 +1106,11 @@ Name "Name"
 
 RelaxedName "RelaxedName"
   = name:$([a-z_\-:*/]i [a-z0-9_\-:*/]i*) _ { return name; }
+
+CharsetIntroducer
+  = "N"
+  / "n"
+  / "_"$([a-z0-9]+) // assume all charsets are a combo of lowercase + number
 
 NotSQuote "NotSQuote"
   = $([^']*)

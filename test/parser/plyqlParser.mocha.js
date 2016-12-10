@@ -967,6 +967,28 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should work with SELECT character set introducer", () => {
+      let parse = Expression.parseSQL("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = N'plyql1'");
+      let parse2 = Expression.parseSQL("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = n'plyql1'");
+      let parse3 = Expression.parseSQL("SELECT COUNT(*)FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = _utf8'plyql1'");
+
+      let ex2 = ply()
+        .apply('data', $('TABLES').filter(i$("TABLE_SCHEMA").is(r("plyql1"))))
+        .apply('COUNT(*)', $('data').count())
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+      expect(parse2.expression.toJS()).to.deep.equal(ex2.toJS());
+      expect(parse3.expression.toJS()).to.deep.equal(ex2.toJS());
+
+      expect(() => {
+        Expression.parseSQL("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = _uStf8'plyql1'");
+      }, "assume charsets are all lower case or numbers").to.throw("SQL parse error")
+
+      expect(() => {
+        Expression.parseSQL("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = _uStf8'plyql1");
+      }, "unmatched quote, assume charsets are all lower case or numbers").to.throw("SQL parse error")
+
+    });
+
     it("should work with SELECT * WHERE ...", () => {
       let parse = Expression.parseSQL(sane`
         SELECT * FROM \`wiki\` WHERE language = 'en'
@@ -1631,7 +1653,46 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-  });
+    it("should work with SHOW character set", () => {
+
+      let parse = Expression.parseSQL(sane`
+        SHOW CHARACTER SET LIKE '%wild%'
+      `);
+
+      let ex2 = i$('CHARACTER_SETS')
+        .filter(i$('CHARACTER_SET_NAME').match(r('^.*wild.*$')))
+        .apply('Charset', i$('CHARACTER_SET_NAME'))
+        .apply('Default collation', i$('DEFAULT_COLLATE_NAME'))
+        .apply('Description', i$('DESCRIPTION'))
+        .apply('Maxlen', i$('MAXLEN'))
+        .select('Charset', 'Default collation', 'Description', 'Maxlen');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+   });
+
+    it("should work with SHOW collations", () => {
+
+      let parse = Expression.parseSQL(sane`
+        SHOW COLLATION like '%wild%'
+      `);
+
+      let ex2 = i$('COLLATIONS')
+        .filter(i$('COLLATION_NAME').match(r('^.*wild.*$')))
+        .apply('Collation', i$('COLLATION_NAME'))
+        .apply('Charset', i$('CHARACTER_SET_NAME'))
+        .apply('Id', i$('ID'))
+        .apply('Default', i$('IS_DEFAULT'))
+        .apply('Compiled', i$('IS_COMPILED'))
+        .apply('Sortlen', i$('SORTLEN'))
+        .select('Collation', 'Charset', 'Id', 'Default', 'Compiled', 'Sortlen');
+
+      expect(parse.verb).to.equal('SELECT');
+      expect(parse.rewrite).to.equal('SHOW');
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+    });
+});
 
 
   describe("DESCRIBE", () => {
