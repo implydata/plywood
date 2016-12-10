@@ -968,7 +968,7 @@ InSetLiteralExpression
 StringOrNumber = String / Number
 
 String "String"
-  = "'" chars:NotSQuote "'" _ { return chars; }
+  = CharsetIntroducer? "'" chars:NotSQuote "'" _ { return chars; }
   / "'" chars:NotSQuote { error("Unmatched single quote"); }
   / '"' chars:NotDQuote '"' _ { return chars; }
   / '"' chars:NotDQuote { error("Unmatched double quote"); }
@@ -1106,6 +1106,11 @@ Name "Name"
 
 RelaxedName "RelaxedName"
   = name:$([a-z_\-:*/]i [a-z0-9_\-:*/]i*) _ { return name; }
+
+CharsetIntroducer
+  = "N"
+  / "n"
+  / "_"$([a-z0-9]+) // assume all charsets are a combo of lowercase + number
 
 NotSQuote "NotSQuote"
   = $([^']*)

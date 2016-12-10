@@ -967,6 +967,24 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should work with SELECT character set introducer", () => {
+      let parse = Expression.parseSQL("SELECT DISTINCT TABLE_NAME, TABLE_TYPE, (TABLE_SCHEMA) AS TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = N'plyql1'");
+      let parse2 = Expression.parseSQL("SELECT DISTINCT TABLE_NAME, TABLE_TYPE, (TABLE_SCHEMA) AS TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = n'plyql1'");
+      let parse3 = Expression.parseSQL("SELECT DISTINCT TABLE_NAME, TABLE_TYPE, (TABLE_SCHEMA) AS TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = _utf8'plyql1'");
+
+      let ex2 = $('TABLES').filter(i$("TABLE_SCHEMA").is(r("plyql1")))
+        .split({"TABLE_NAME": "i$TABLE_NAME", "TABLE_SCHEMA": "i$TABLE_SCHEMA", "TABLE_TYPE": "i$TABLE_TYPE"}, 'data')
+        .select(["TABLE_NAME", "TABLE_TYPE", "TABLE_SCHEMA"]);
+
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
+      expect(parse2.expression.toJS()).to.deep.equal(ex2.toJS());
+      expect(parse3.expression.toJS()).to.deep.equal(ex2.toJS());
+
+      expect(() => {
+        Expression.parseSQL("SELECT DISTINCT TABLE_NAME, TABLE_TYPE, (TABLE_SCHEMA) AS TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = _uStf8'plyql1'");
+      }, "assume charsets are all lower case or numbers").to.throw("SQL parse error")
+    });
+
     it("should work with SELECT * WHERE ...", () => {
       let parse = Expression.parseSQL(sane`
         SELECT * FROM \`wiki\` WHERE language = 'en'
