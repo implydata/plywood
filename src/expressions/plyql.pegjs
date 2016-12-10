@@ -548,34 +548,34 @@ ShowQueryExpression
 
       return ex;
     }
-    / (CharacterToken _ SetToken) like:LikeRhs?
-      {
-        https://dev.mysql.com/doc/refman/5.7/en/character-sets-table.html
-        var ex = i$('CHARACTER_SETS')
-        if (like) ex = ex.filter(like(i$('CHARACTER_SET_NAME')));
-        return ex
-          .apply('Charset', i$('CHARACTER_SET_NAME'))
-          .apply('Default collation', i$('DEFAULT_COLLATE_NAME'))
-          .apply('Description', i$('DESCRIPTION'))
-          .apply('Maxlen', i$('MAXLEN'))
-          .select('Charset', 'Default collation', 'Description', 'Maxlen');
-      }
+  / (CharacterToken _ SetToken) like:LikeRhs?
+    {
+      https://dev.mysql.com/doc/refman/5.7/en/character-sets-table.html
+      var ex = i$('CHARACTER_SETS')
+      if (like) ex = ex.filter(like(i$('CHARACTER_SET_NAME')));
+      return ex
+        .apply('Charset', i$('CHARACTER_SET_NAME'))
+        .apply('Default collation', i$('DEFAULT_COLLATE_NAME'))
+        .apply('Description', i$('DESCRIPTION'))
+        .apply('Maxlen', i$('MAXLEN'))
+        .select('Charset', 'Default collation', 'Description', 'Maxlen');
+    }
 
-    / CollationToken like:LikeRhs?
-      {
-        https://dev.mysql.com/doc/refman/5.7/en/collations-table.html
-        var ex = i$('COLLATIONS')
-        if (like) ex = ex.filter(like(i$('COLLATION_NAME')));
-        return ex
-          .apply('Collation', i$('COLLATION_NAME'))
-          .apply('Charset', i$('CHARACTER_SET_NAME'))
-          .apply('Id', i$('ID'))
-          .apply('Default', i$('IS_DEFAULT'))
-          .apply('Compiled', i$('IS_COMPILED'))
-          .apply('Sortlen', i$('SORTLEN'))
-          .select('Collation', 'Charset', 'Id', 'Default', 'Compiled', 'Sortlen');
+  / CollationToken like:LikeRhs?
+    {
+      https://dev.mysql.com/doc/refman/5.7/en/collations-table.html
+      var ex = i$('COLLATIONS')
+      if (like) ex = ex.filter(like(i$('COLLATION_NAME')));
+      return ex
+        .apply('Collation', i$('COLLATION_NAME'))
+        .apply('Charset', i$('CHARACTER_SET_NAME'))
+        .apply('Id', i$('ID'))
+        .apply('Default', i$('IS_DEFAULT'))
+        .apply('Compiled', i$('IS_COMPILED'))
+        .apply('Sortlen', i$('SORTLEN'))
+        .select('Collation', 'Charset', 'Id', 'Default', 'Compiled', 'Sortlen');
 
-      }
+    }
 
 FromOrIn = FromToken / InToken;
 
@@ -969,7 +969,7 @@ StringOrNumber = String / Number
 
 String "String"
   = CharsetIntroducer? "'" chars:NotSQuote "'" _ { return chars; }
-  / "'" chars:NotSQuote { error("Unmatched single quote"); }
+  / CharsetIntroducer? "'" chars:NotSQuote { error("Unmatched single quote"); }
   / '"' chars:NotDQuote '"' _ { return chars; }
   / '"' chars:NotDQuote { error("Unmatched double quote"); }
 
