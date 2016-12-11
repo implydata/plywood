@@ -560,7 +560,6 @@ ShowQueryExpression
         .apply('Maxlen', i$('MAXLEN'))
         .select('Charset', 'Default collation', 'Description', 'Maxlen');
     }
-
   / CollationToken like:LikeRhs?
     {
       https://dev.mysql.com/doc/refman/5.7/en/collations-table.html

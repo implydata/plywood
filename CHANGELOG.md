@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.15.8
+
+- PlyQL: Support for `SHOW CHARACTER SET`
+- PlyQL: Support for `SHOW COLLATION`
+- PlyQL: Tolerance for encoding defined strings `N'Hello World'` and `_utf8'Hello World'`
+
 ## 0.15.7
 
 - Added timezone based formatting ability

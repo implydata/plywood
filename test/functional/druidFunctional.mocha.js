@@ -177,7 +177,7 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toCSV({ lineBreak: '\n' })).to.deep.equal(sane`
             City,TotalAdded
-            null,31529720
+            NULL,31529720
             Mineola,50836
           `);
         });
