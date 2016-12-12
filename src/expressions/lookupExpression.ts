@@ -18,17 +18,26 @@ import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } fro
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 
+
+export interface LookupExpressionJS extends ExpressionJS {
+  lookupFn?: string;
+}
+
+export interface LookupExpressionValue extends ExpressionValue {
+  lookupFn?: string;
+}
+
 export class LookupExpression extends ChainableExpression {
   static op = "Lookup";
-  static fromJS(parameters: ExpressionJS): LookupExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: LookupExpressionJS): LookupExpression {
+    let value = ChainableExpression.jsToValue(parameters) as LookupExpressionValue;
     value.lookupFn = parameters.lookupFn || (parameters as any).lookup;
     return new LookupExpression(value);
   }
 
   public lookupFn: string;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: LookupExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("lookup");
     this._checkOperandTypes('STRING', 'SET/STRING');
@@ -36,14 +45,14 @@ export class LookupExpression extends ChainableExpression {
     this.type = this.operand.type;
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): LookupExpressionValue {
+    let value = super.valueOf() as LookupExpressionValue;
     value.lookupFn = this.lookupFn;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): LookupExpressionJS {
+    let js = super.toJS() as LookupExpressionJS;
     js.lookupFn = this.lookupFn;
     return js;
   }

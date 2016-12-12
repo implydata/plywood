@@ -22,6 +22,7 @@ import { HasTimezone } from './mixins/hasTimezone';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { immutableEqual } from 'immutable-class';
+import { TimezoneExpressionJS, TimezoneExpressionValue } from "./interfaces/interfaces";
 
 interface Parter {
   (d: Moment): number;
@@ -89,10 +90,18 @@ const PART_TO_MAX_VALUES: Lookup<number> = {
   YEAR: null
 };
 
+export interface TimePartExpressionValue extends TimezoneExpressionValue {
+  part: string;
+}
+
+export interface TimePartExpressionJS extends TimezoneExpressionJS {
+  part: string;
+}
+
 export class TimePartExpression extends ChainableExpression implements HasTimezone {
   static op = "TimePart";
-  static fromJS(parameters: ExpressionJS): TimePartExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: TimePartExpressionJS): TimePartExpression {
+    let value = ChainableExpression.jsToValue(parameters) as TimePartExpressionValue;
     value.part = parameters.part;
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
     return new TimePartExpression(value);
@@ -101,7 +110,7 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
   public part: string;
   public timezone: Timezone;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: TimePartExpressionValue) {
     super(parameters, dummyObject);
     this.part = parameters.part;
     this.timezone = parameters.timezone;
@@ -113,15 +122,15 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     this.type = 'NUMBER';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): TimePartExpressionValue {
+    let value = super.valueOf() as TimePartExpressionValue;
     value.part = this.part;
     if (this.timezone) value.timezone = this.timezone;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): TimezoneExpressionJS {
+    let js = super.toJS() as TimePartExpressionJS;
     js.part = this.part;
     if (this.timezone) js.timezone = this.timezone.toJS();
     return js;

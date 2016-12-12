@@ -21,17 +21,25 @@ import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 
+export interface CustomAggregateExpressionValue extends ExpressionValue {
+  custom: string;
+}
+
+export interface CustomAggregateExpressionJS extends ExpressionJS {
+  custom: string;
+}
+
 export class CustomAggregateExpression extends ChainableExpression {
   static op = "CustomAggregate";
-  static fromJS(parameters: ExpressionJS): CustomAggregateExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: CustomAggregateExpressionJS): CustomAggregateExpression {
+    let value = ChainableExpression.jsToValue(parameters) as CustomAggregateExpressionValue;
     value.custom = parameters.custom;
     return new CustomAggregateExpression(value);
   }
 
   public custom: string;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: CustomAggregateExpressionValue) {
     super(parameters, dummyObject);
     this.custom = parameters.custom;
     this._ensureOp("customAggregate");
@@ -40,13 +48,13 @@ export class CustomAggregateExpression extends ChainableExpression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    let value = super.valueOf() as CustomAggregateExpressionValue;
     value.custom = this.custom;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): CustomAggregateExpressionJS {
+    let js = super.toJS() as CustomAggregateExpressionJS;
     js.custom = this.custom;
     return js;
   }

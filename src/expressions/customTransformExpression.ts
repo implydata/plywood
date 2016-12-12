@@ -18,11 +18,21 @@ import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } fro
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlyTypeSingleValue } from '../types';
+import { OutputTypeValue, OutputTypeJS } from "./interfaces/interfaces";
+
+
+export interface CustomTransformExpressionJS extends OutputTypeJS {
+  custom: string;
+}
+
+export interface CustomTransformExpressionValue extends OutputTypeValue {
+  custom: string;
+}
 
 export class CustomTransformExpression extends ChainableExpression {
   static op = "CustomTransform";
-  static fromJS(parameters: ExpressionJS): CustomTransformExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: CustomTransformExpressionJS): CustomTransformExpression {
+    let value = ChainableExpression.jsToValue(parameters) as CustomTransformExpressionValue;
     value.custom = parameters.custom;
     if (parameters.outputType) value.outputType = parameters.outputType;
     return new CustomTransformExpression(value);
@@ -31,7 +41,7 @@ export class CustomTransformExpression extends ChainableExpression {
   public custom: string;
   public outputType: PlyTypeSingleValue;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: CustomTransformExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("customTransform");
     this.custom = parameters.custom;
@@ -39,15 +49,15 @@ export class CustomTransformExpression extends ChainableExpression {
     this.type = this.outputType || this.operand.type;
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): CustomTransformExpressionValue {
+    let value = super.valueOf() as CustomTransformExpressionValue;
     value.custom = this.custom;
     if (this.outputType) value.outputType = this.outputType;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): CustomTransformExpressionJS {
+    let js = super.toJS() as CustomTransformExpressionJS;
     js.custom = this.custom;
     if (this.outputType) js.outputType = this.outputType;
     return js;

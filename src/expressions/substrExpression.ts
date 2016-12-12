@@ -18,10 +18,20 @@ import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } fro
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 
+export interface SubstrExpressionValue extends ExpressionValue {
+  len: int;
+  position: int;
+}
+
+export interface SubstrExpressionJS extends ExpressionJS {
+  len: int;
+  position: int;
+}
+
 export class SubstrExpression extends ChainableExpression {
   static op = "Substr";
-  static fromJS(parameters: ExpressionJS): SubstrExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: SubstrExpressionJS): SubstrExpression {
+    let value = ChainableExpression.jsToValue(parameters) as SubstrExpressionValue;
     value.position = parameters.position;
     value.len = parameters.len || (parameters as any).length;
     return new SubstrExpression(value);
@@ -30,7 +40,7 @@ export class SubstrExpression extends ChainableExpression {
   public position: int;
   public len: int;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: SubstrExpressionValue) {
     super(parameters, dummyObject);
     this.position = parameters.position;
     this.len = parameters.len;
@@ -39,15 +49,15 @@ export class SubstrExpression extends ChainableExpression {
     this.type = this.operand.type;
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): SubstrExpressionValue {
+    let value = super.valueOf() as SubstrExpressionValue;
     value.position = this.position;
     value.len = this.len;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): SubstrExpressionJS {
+    let js = super.toJS() as SubstrExpressionJS;
     js.position = this.position;
     js.len = this.len;
     return js;

@@ -21,21 +21,29 @@ import { RefExpression } from './refExpression';
 
 export type Direction = 'ascending' | 'descending';
 
+export interface SortExpressionJS extends ExpressionJS {
+  direction?: Direction;
+}
+
+export interface SortExpressionValue extends ExpressionValue {
+  direction?: Direction;
+}
+
 export class SortExpression extends ChainableUnaryExpression {
   static DESCENDING: Direction = 'descending';
   static ASCENDING: Direction = 'ascending';
   static DEFAULT_DIRECTION: Direction = 'ascending';
 
   static op = "Sort";
-  static fromJS(parameters: ExpressionJS): SortExpression {
-    let value = ChainableUnaryExpression.jsToValue(parameters);
+  static fromJS(parameters: SortExpressionJS): SortExpression {
+    let value = ChainableUnaryExpression.jsToValue(parameters) as SortExpressionValue;
     value.direction = parameters.direction;
     return new SortExpression(value);
   }
 
   public direction: Direction;
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: SortExpressionValue = {}) {
     super(parameters, dummyObject);
     this._ensureOp("sort");
     this._checkOperandTypes('DATASET');
@@ -53,14 +61,14 @@ export class SortExpression extends ChainableUnaryExpression {
     this.type = 'DATASET';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): SortExpressionValue {
+    let value = super.valueOf() as SortExpressionValue;
     value.direction = this.direction;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): SortExpressionJS {
+    let js = super.toJS() as SortExpressionJS;
     js.direction = this.direction;
     return js;
   }

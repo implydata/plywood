@@ -21,18 +21,19 @@ import { Indexer, Alterations } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { MatchExpression } from './matchExpression';
+import { RegexExpressionJS, RegexExpressionValue } from "./interfaces/interfaces";
 
 export class ExtractExpression extends ChainableExpression {
   static op = "Extract";
-  static fromJS(parameters: ExpressionJS): ExtractExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: RegexExpressionJS): ExtractExpression {
+    let value = ChainableExpression.jsToValue(parameters) as RegexExpressionValue;
     value.regexp = parameters.regexp;
     return new ExtractExpression(value);
   }
 
   public regexp: string;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: RegexExpressionValue) {
     super(parameters, dummyObject);
     this.regexp = parameters.regexp;
     this._ensureOp("extract");
@@ -40,14 +41,14 @@ export class ExtractExpression extends ChainableExpression {
     this.type = this.operand.type;
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): RegexExpressionValue {
+    let value = super.valueOf() as RegexExpressionValue;
     value.regexp = this.regexp;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): RegexExpressionJS {
+    let js = super.toJS() as RegexExpressionJS;
     js.regexp = this.regexp;
     return js;
   }

@@ -21,11 +21,12 @@ import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { TimeRange } from '../datatypes/timeRange';
 import { immutableEqual } from 'immutable-class';
+import { DurationedExpressionJS, DurationedExpressionValue } from "./interfaces/interfaces";
 
 export class TimeBucketExpression extends ChainableExpression {
   static op = "TimeBucket";
-  static fromJS(parameters: ExpressionJS): TimeBucketExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: DurationedExpressionJS): TimeBucketExpression {
+    let value = ChainableExpression.jsToValue(parameters) as DurationedExpressionValue;
     value.duration = Duration.fromJS(parameters.duration);
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
     return new TimeBucketExpression(value);
@@ -34,7 +35,7 @@ export class TimeBucketExpression extends ChainableExpression {
   public duration: Duration;
   public timezone: Timezone;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: DurationedExpressionValue) {
     super(parameters, dummyObject);
     let duration = parameters.duration;
     this.duration = duration;
@@ -50,15 +51,15 @@ export class TimeBucketExpression extends ChainableExpression {
     this.type = 'TIME_RANGE';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): DurationedExpressionValue {
+    let value = super.valueOf() as DurationedExpressionValue;
     value.duration = this.duration;
     if (this.timezone) value.timezone = this.timezone;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    let js = super.toJS() as DurationedExpressionJS;
     js.duration = this.duration.toJS();
     if (this.timezone) js.timezone = this.timezone.toJS();
     return js;

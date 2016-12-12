@@ -21,13 +21,22 @@ import { HasTimezone } from './mixins/hasTimezone';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { immutableEqual } from 'immutable-class';
+import { DurationedExpressionValue, DurationedExpressionJS } from "./interfaces/interfaces";
+
+export interface TimeShiftExpressionJS extends DurationedExpressionJS {
+  step: number;
+}
+
+export interface TimeShiftExpressionValue extends DurationedExpressionValue {
+  step: number;
+}
 
 export class TimeShiftExpression extends ChainableExpression implements HasTimezone {
   static DEFAULT_STEP = 1;
 
   static op = "TimeShift";
-  static fromJS(parameters: ExpressionJS): TimeShiftExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: TimeShiftExpressionJS): TimeShiftExpression {
+    let value = ChainableExpression.jsToValue(parameters) as TimeShiftExpressionValue;
     value.duration = Duration.fromJS(parameters.duration);
     value.step = parameters.step;
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
@@ -38,7 +47,7 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
   public step: number;
   public timezone: Timezone;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: TimeShiftExpressionValue) {
     super(parameters, dummyObject);
     this.duration = parameters.duration;
     this.step = parameters.step != null ? parameters.step : TimeShiftExpression.DEFAULT_STEP;
@@ -51,16 +60,16 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
     this.type = 'TIME';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): TimeShiftExpressionValue {
+    let value = super.valueOf() as TimeShiftExpressionValue;
     value.duration = this.duration;
     value.step = this.step;
     if (this.timezone) value.timezone = this.timezone;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): TimeShiftExpressionJS {
+    let js = super.toJS() as TimeShiftExpressionJS;
     js.duration = this.duration.toJS();
     js.step = this.step;
     if (this.timezone) js.timezone = this.timezone.toJS();

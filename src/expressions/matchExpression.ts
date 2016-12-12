@@ -15,12 +15,21 @@
  */
 
 
+import { RegexExpressionJS } from "./interfaces/interfaces";
 const REGEXP_SPECIAL = "\\^$.|?*+()[{";
 
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
+
+export interface MatchExpressionValue extends ExpressionValue {
+  regexp: string;
+}
+
+export interface MatchExpressionJS extends ExpressionJS {
+  regexp: string;
+}
 
 export class MatchExpression extends ChainableExpression {
 
@@ -51,15 +60,15 @@ export class MatchExpression extends ChainableExpression {
   }
 
   static op = "Match";
-  static fromJS(parameters: ExpressionJS): MatchExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: RegexExpressionJS): MatchExpression {
+    let value = ChainableExpression.jsToValue(parameters) as MatchExpressionValue;
     value.regexp = parameters.regexp;
     return new MatchExpression(value);
   }
 
   public regexp: string;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: MatchExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("match");
     this._checkOperandTypes('STRING', 'SET/STRING');
@@ -67,14 +76,14 @@ export class MatchExpression extends ChainableExpression {
     this.type = 'BOOLEAN';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): MatchExpressionValue {
+    let value = super.valueOf() as MatchExpressionValue;
     value.regexp = this.regexp;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): MatchExpressionJS {
+    let js = super.toJS() as MatchExpressionJS;
     js.regexp = this.regexp;
     return js;
   }

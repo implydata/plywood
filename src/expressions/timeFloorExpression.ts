@@ -24,11 +24,12 @@ import { TimeRange, Set } from '../datatypes/index';
 import { OverlapExpression } from './overlapExpression';
 import { TimeBucketExpression } from './timeBucketExpression';
 import { immutableEqual } from 'immutable-class';
+import { DurationedExpressionJS, DurationedExpressionValue } from "./interfaces/interfaces";
 
 export class TimeFloorExpression extends ChainableExpression implements HasTimezone {
   static op = "TimeFloor";
-  static fromJS(parameters: ExpressionJS): TimeFloorExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: DurationedExpressionJS): TimeFloorExpression {
+    let value = ChainableExpression.jsToValue(parameters) as DurationedExpressionValue;
     value.duration = Duration.fromJS(parameters.duration);
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
     return new TimeFloorExpression(value);
@@ -37,7 +38,7 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
   public duration: Duration;
   public timezone: Timezone;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: DurationedExpressionValue) {
     super(parameters, dummyObject);
     let duration = parameters.duration;
     this.duration = duration;
@@ -54,15 +55,15 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
     this.type = 'TIME';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): DurationedExpressionValue {
+    let value = super.valueOf() as DurationedExpressionValue;
     value.duration = this.duration;
     if (this.timezone) value.timezone = this.timezone;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): DurationedExpressionJS {
+    let js = super.toJS() as DurationedExpressionJS;
     js.duration = this.duration.toJS();
     if (this.timezone) js.timezone = this.timezone.toJS();
     return js;

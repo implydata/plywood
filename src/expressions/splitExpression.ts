@@ -24,10 +24,20 @@ import { hasOwnProperty } from '../helper/utils';
 import { immutableLookupsEqual } from 'immutable-class';
 import { isSetType } from '../datatypes/common';
 
+export interface SplitExpressionJS extends ExpressionJS {
+  splits: SplitsJS;
+  dataName?: string;
+}
+
+export interface SplitExpressionValue extends ExpressionValue {
+  splits: Splits;
+  dataName?: string;
+}
+
 export class SplitExpression extends ChainableExpression implements Aggregate {
   static op = "Split";
-  static fromJS(parameters: ExpressionJS): SplitExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: SplitExpressionJS): SplitExpression {
+    let value = ChainableExpression.jsToValue(parameters) as SplitExpressionValue;
 
     let splits: SplitsJS;
     if (parameters.expression && parameters.name) {
@@ -45,7 +55,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   public splits: Splits;
   public dataName: string;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: SplitExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("split");
     this._checkOperandTypes('DATASET');
@@ -60,17 +70,17 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
     this.type = 'DATASET';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): SplitExpressionValue {
+    let value = super.valueOf() as SplitExpressionValue;
     value.splits = this.splits;
     value.dataName = this.dataName;
     return value;
   }
 
-  public toJS(): ExpressionJS {
+  public toJS(): SplitExpressionJS {
     let { splits } = this;
 
-    let js = super.toJS();
+    let js = super.toJS() as SplitExpressionJS;
     if (this.isMultiSplit()) {
       js.splits = Expression.expressionLookupToJS(splits);
     } else {

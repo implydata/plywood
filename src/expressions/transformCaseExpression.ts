@@ -18,20 +18,29 @@ import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression, Case
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 
+
+export interface TransformCaseExpressionJS extends ExpressionJS {
+  transformType: CaseType;
+}
+
+export interface TransformCaseExpressionValue extends ExpressionValue {
+  transformType: CaseType;
+}
+
 export class TransformCaseExpression extends ChainableExpression {
   static UPPER_CASE = 'upperCase';
   static LOWER_CASE = 'lowerCase';
 
   static op = "TransformCase";
-  static fromJS(parameters: ExpressionJS): TransformCaseExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: TransformCaseExpressionJS): TransformCaseExpression {
+    let value = ChainableExpression.jsToValue(parameters) as TransformCaseExpressionValue;
     value.transformType = parameters.transformType;
     return new TransformCaseExpression(value);
   }
 
   public transformType: CaseType;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: TransformCaseExpressionValue) {
     super(parameters, dummyObject);
     let transformType = parameters.transformType;
     if (transformType !== TransformCaseExpression.UPPER_CASE && transformType !== TransformCaseExpression.LOWER_CASE) {
@@ -43,14 +52,14 @@ export class TransformCaseExpression extends ChainableExpression {
     this.type = 'STRING';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): TransformCaseExpressionValue {
+    let value = super.valueOf() as TransformCaseExpressionValue;
     value.transformType = this.transformType;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): TransformCaseExpressionJS {
+    let js = super.toJS() as TransformCaseExpressionJS;
     js.transformType = this.transformType;
     return js;
   }

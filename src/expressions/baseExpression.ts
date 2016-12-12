@@ -186,25 +186,6 @@ export interface ExpressionValue {
   expression?: Expression;
   actions?: any[]; // ToDo remove
   ignoreCase?: boolean;
-
-  dataName?: string;
-  splits?: Splits;
-  direction?: Direction;
-  size?: number;
-  offset?: number;
-  duration?: Duration;
-  timezone?: Timezone;
-  part?: string;
-  step?: number;
-  position?: int;
-  len?: int;
-  regexp?: string;
-  custom?: string;
-  compare?: string;
-  lookupFn?: string;
-  attributes?: string[];
-  transformType?: CaseType;
-  outputType?: PlyTypeSimple;
 }
 
 export interface ExpressionJS {
@@ -219,25 +200,6 @@ export interface ExpressionJS {
   action?: any;
   actions?: any[]; // ToDo: remove
   ignoreCase?: boolean;
-
-  dataName?: string;
-  splits?: SplitsJS;
-  direction?: Direction;
-  size?: number;
-  offset?: number;
-  duration?: string;
-  timezone?: string;
-  part?: string;
-  step?: number;
-  position?: int;
-  len?: int;
-  regexp?: string;
-  custom?: string;
-  compare?: string;
-  lookupFn?: string;
-  attributes?: string[];
-  transformType?: CaseType;
-  outputType?: PlyTypeSimple;
 }
 
 export interface ExtractAndRest {

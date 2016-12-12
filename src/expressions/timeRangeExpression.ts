@@ -21,13 +21,22 @@ import { HasTimezone } from './mixins/hasTimezone';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { TimeRange } from '../datatypes/timeRange';
+import { DurationedExpressionJS, DurationedExpressionValue } from "./interfaces/interfaces";
+
+export interface TimeRangeExpressionJS extends DurationedExpressionJS {
+  step: number;
+}
+
+export interface TimeRangeExpressionValue extends DurationedExpressionValue {
+  step: number;
+}
 
 export class TimeRangeExpression extends ChainableExpression implements HasTimezone {
   static DEFAULT_STEP = 1;
 
   static op = "TimeRange";
-  static fromJS(parameters: ExpressionJS): TimeRangeExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: TimeRangeExpressionJS): TimeRangeExpression {
+    let value = ChainableExpression.jsToValue(parameters) as TimeRangeExpressionValue;
     value.duration = Duration.fromJS(parameters.duration);
     value.step = parameters.step;
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
@@ -38,7 +47,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
   public step: number;
   public timezone: Timezone;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: TimeRangeExpressionValue) {
     super(parameters, dummyObject);
     this.duration = parameters.duration;
     this.step = parameters.step || TimeRangeExpression.DEFAULT_STEP;
@@ -51,16 +60,16 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     this.type = 'TIME_RANGE';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): TimeRangeExpressionValue {
+    let value = super.valueOf() as TimeRangeExpressionValue;
     value.duration = this.duration;
     value.step = this.step;
     if (this.timezone) value.timezone = this.timezone;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): TimeRangeExpressionJS {
+    let js = super.toJS() as TimeRangeExpressionJS;
     js.duration = this.duration.toJS();
     js.step = this.step;
     if (this.timezone) js.timezone = this.timezone.toJS();

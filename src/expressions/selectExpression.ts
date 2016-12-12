@@ -20,17 +20,25 @@ import { PlywoodValue, Dataset } from '../datatypes/index';
 import { DatasetFullType } from '../types';
 import { ApplyExpression } from './applyExpression';
 
+export interface SelectExpressionJS extends ExpressionJS {
+  attributes?: string[];
+}
+
+export interface SelectExpressionExpressionValue extends ExpressionValue {
+  attributes?: string[];
+}
+
 export class SelectExpression extends ChainableExpression {
   static op = "Select";
-  static fromJS(parameters: ExpressionJS): SelectExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: SelectExpressionJS): SelectExpression {
+    let value = ChainableExpression.jsToValue(parameters) as SelectExpressionExpressionValue;
     value.attributes = parameters.attributes;
     return new SelectExpression(value);
   }
 
   public attributes: string[];
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: SelectExpressionExpressionValue = {}) {
     super(parameters, dummyObject);
     this._ensureOp("select");
     this._checkOperandTypes('DATASET');
@@ -38,14 +46,14 @@ export class SelectExpression extends ChainableExpression {
     this.type = 'DATASET';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): SelectExpressionExpressionValue {
+    let value = super.valueOf() as SelectExpressionExpressionValue;
     value.attributes = this.attributes;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): SelectExpressionJS {
+    let js = super.toJS() as SelectExpressionJS;
     js.attributes = this.attributes;
     return js;
   }

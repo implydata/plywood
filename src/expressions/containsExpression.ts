@@ -19,20 +19,28 @@ import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { TransformCaseExpression } from './transformCaseExpression';
 
+export interface ContainsExpressionJS extends ExpressionJS {
+  compare?: string;
+}
+
+export interface ContainsExpressionValue extends ExpressionValue {
+  compare?: string;
+}
+
 export class ContainsExpression extends ChainableUnaryExpression {
   static NORMAL = 'normal';
   static IGNORE_CASE = 'ignoreCase';
 
   static op = "Contains";
-  static fromJS(parameters: ExpressionJS): ContainsExpression {
-    let value = ChainableUnaryExpression.jsToValue(parameters);
+  static fromJS(parameters: ContainsExpressionJS): ContainsExpression {
+    let value = ChainableUnaryExpression.jsToValue(parameters) as ContainsExpressionValue;
     value.compare = parameters.compare;
     return new ContainsExpression(value);
   }
 
   public compare: string;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: ContainsExpressionValue) {
     super(parameters, dummyObject);
     this._checkOperandTypes('STRING', 'SET/STRING');
     this._checkExpressionTypes('STRING');
@@ -49,14 +57,14 @@ export class ContainsExpression extends ChainableUnaryExpression {
     this.type = 'BOOLEAN';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): ContainsExpressionValue {
+    let value = super.valueOf() as ContainsExpressionValue;
     value.compare = this.compare;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): ContainsExpressionJS {
+    let js = super.toJS() as ContainsExpressionJS;
     js.compare = this.compare;
     return js;
   }

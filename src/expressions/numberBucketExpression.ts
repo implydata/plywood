@@ -22,10 +22,20 @@ import { PlywoodValue } from '../datatypes/index';
 import { hasOwnProperty, continuousFloorExpression } from '../helper/utils';
 import { NumberRange } from '../datatypes/numberRange';
 
+export interface NumberBucketExpressionJS extends ExpressionJS {
+  size: number;
+  offset?: number;
+}
+
+export interface NumberBucketExpressionValue extends ExpressionValue {
+  size: number;
+  offset?: number;
+}
+
 export class NumberBucketExpression extends ChainableExpression {
   static op = "NumberBucket";
-  static fromJS(parameters: ExpressionJS): NumberBucketExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+  static fromJS(parameters: NumberBucketExpressionJS): NumberBucketExpression {
+    let value = ChainableExpression.jsToValue(parameters) as NumberBucketExpressionValue;
     value.size = parameters.size;
     value.offset = hasOwnProperty(parameters, 'offset') ? parameters.offset : 0;
     return new NumberBucketExpression(value);
@@ -34,7 +44,7 @@ export class NumberBucketExpression extends ChainableExpression {
   public size: number;
   public offset: number;
 
-  constructor(parameters: ExpressionValue) {
+  constructor(parameters: NumberBucketExpressionValue) {
     super(parameters, dummyObject);
     this.size = parameters.size;
     this.offset = parameters.offset;
@@ -43,15 +53,15 @@ export class NumberBucketExpression extends ChainableExpression {
     this.type = 'NUMBER_RANGE';
   }
 
-  public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+  public valueOf(): NumberBucketExpressionValue {
+    let value = super.valueOf() as NumberBucketExpressionValue;
     value.size = this.size;
     value.offset = this.offset;
     return value;
   }
 
-  public toJS(): ExpressionJS {
-    let js = super.toJS();
+  public toJS(): NumberBucketExpressionJS {
+    let js = super.toJS() as NumberBucketExpressionJS;
     js.size = this.size;
     if (this.offset) js.offset = this.offset;
     return js;
