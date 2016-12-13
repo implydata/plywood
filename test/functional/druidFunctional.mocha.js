@@ -21,7 +21,7 @@ let { sane } = require('../utils');
 let { druidRequesterFactory } = require('plywood-druid-requester');
 
 let plywood = require('../plywood');
-let { External, DruidExternal, TimeRange, $, i$, ply, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
+let { External, DruidExternal, TimeRange, $, i$, r, ply, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
 
 let info = require('../info');
 
@@ -483,6 +483,44 @@ describe("Druid Functional", function() {
           expect(result.toJS()).to.deep.equal([
             {
               "Times Two": "200"
+            }
+          ]);
+        });
+    });
+
+    it("works with NaN fallback in totals", () => {
+      let ex = $('wiki')
+        .max($("comment").indexOf('asdfjkdsahfjkd261s').power(r(1/2)).fallback(r(5)), "Fallback 5");
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result).to.equal(5);
+        });
+    });
+
+    it("works with NaN fallback in split", () => {
+      let ex = $('wiki')
+        .split($("comment").indexOf('abcd').power(r(1/2)).fallback(r(100)), "comment has abcd")
+        .apply('Count', $('wiki').sum('$count'));
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "Count": 1,
+              "comment has abcd": 5.291502622129181
+            },
+            {
+              "Count": 1,
+              "comment has abcd": 6.6332495807108
+            },
+            {
+              "Count": 1,
+              "comment has abcd": 6.708203932499369
+            },
+            {
+              "Count": 392440,
+              "comment has abcd": 100
             }
           ]);
         });

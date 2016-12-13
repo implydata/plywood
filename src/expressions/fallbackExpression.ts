@@ -32,11 +32,11 @@ export class FallbackExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue !== null ? operandValue : expressionValue;
+    return (operandValue !== null && !isNaN(operandValue)) ? operandValue : expressionValue;
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `(_ = ${operandJS}, (_ === null ? ${expressionJS} : _))`;
+    return `(_ = ${operandJS}, ((_ === null || isNaN(_)) ? ${expressionJS} : _))`;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
