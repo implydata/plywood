@@ -35,11 +35,11 @@ import { CardinalityExpression } from './cardinalityExpression';
 import { CastExpression } from './castExpression';
 import { CollectExpression } from './collectExpression';
 import { ConcatExpression } from './concatExpression';
-import { ContainsExpression } from './containsExpression';
+import { ContainsExpression, ContainsExpressionJS } from './containsExpression';
 import { CountExpression } from './countExpression';
 import { CountDistinctExpression } from './countDistinctExpression';
-import { CustomAggregateExpression } from './customAggregateExpression';
-import { CustomTransformExpression } from './customTransformExpression';
+import { CustomAggregateExpression, CustomAggregateExpressionJS } from './customAggregateExpression';
+import { CustomTransformExpression, CustomTransformExpressionJS } from './customTransformExpression';
 import { DivideExpression } from './divideExpression';
 import { ExtractExpression } from './extractExpression';
 import { FallbackExpression } from './fallbackExpression';
@@ -53,9 +53,9 @@ import { LengthExpression } from './lengthExpression';
 import { LessThanExpression } from './lessThanExpression';
 import { LessThanOrEqualExpression } from './lessThanOrEqualExpression';
 import { IndexOfExpression } from './indexOfExpression';
-import { LookupExpression } from './lookupExpression';
+import { LookupExpression, LookupExpressionJS } from './lookupExpression';
 import { LimitExpression } from './limitExpression';
-import { MatchExpression } from './matchExpression';
+import { MatchExpression, MatchExpressionJS } from './matchExpression';
 import { MaxExpression } from './maxExpression';
 import { MinExpression } from './minExpression';
 import { MultiplyExpression } from './multiplyExpression';
@@ -65,18 +65,18 @@ import { OrExpression } from './orExpression';
 import { OverlapExpression } from './overlapExpression';
 import { PowerExpression } from './powerExpression';
 import { QuantileExpression } from './quantileExpression';
-import { SelectExpression } from './selectExpression';
-import { SortExpression, Direction } from './sortExpression';
-import { SplitExpression } from './splitExpression';
-import { SubstrExpression } from './substrExpression';
+import { SelectExpression, SelectExpressionJS } from './selectExpression';
+import { SortExpression, Direction, SortExpressionJS } from './sortExpression';
+import { SplitExpression, SplitExpressionJS } from './splitExpression';
+import { SubstrExpression, SubstrExpressionJS } from './substrExpression';
 import { SubtractExpression } from './subtractExpression';
 import { SumExpression } from './sumExpression';
 import { TimeBucketExpression } from './timeBucketExpression';
 import { TimeFloorExpression } from './timeFloorExpression';
-import { TimePartExpression } from './timePartExpression';
+import { TimePartExpression, TimePartExpressionJS } from './timePartExpression';
 import { TimeRangeExpression, TimeRangeExpressionJS } from './timeRangeExpression';
-import { TimeShiftExpression } from './timeShiftExpression';
-import { TransformCaseExpression } from './transformCaseExpression';
+import { TimeShiftExpression, TimeShiftExpressionJS } from './timeShiftExpression';
+import { TransformCaseExpression, TransformCaseExpressionJS } from './transformCaseExpression';
 
 import { SQLDialect } from '../dialect/baseDialect';
 import { hasOwnProperty, repeat, emptyLookup, deduplicateSort } from '../helper/utils';
@@ -85,10 +85,7 @@ import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, Tim
 import { isSetType, getFullTypeFromDatum, introspectDatum, failIfIntrospectNeededInDatum } from '../datatypes/common';
 import { ComputeFn } from '../datatypes/dataset';
 import { External, ExternalJS } from '../external/baseExternal';
-import {
-  OutputTypeExpressionValue, OutputTypeExpressionJS, RegexExpressionJS, TimezoneExpressionJS,
-  DurationedExpressionJS, CommonExpressionJS
-} from "./interfaces/interfaces";
+import { CommonExpressionJS } from "./interfaces/interfaces";
 
 export interface ComputeOptions extends Environment {
   maxQueries?: number;
@@ -206,7 +203,11 @@ export interface BaseExpressionJS {
   ignoreCase?: boolean;
 }
 
-export type ExpressionJS = CommonExpressionJS | NumberBucketExpressionJS | TimeRangeExpressionJS;
+export type ExpressionJS = CommonExpressionJS |
+  ContainsExpressionJS | CustomAggregateExpressionJS | CustomTransformExpressionJS |
+  LookupExpressionJS | MatchExpressionJS | NumberBucketExpressionJS | SelectExpressionJS | SortExpressionJS | SplitExpressionJS |
+  SubstrExpressionJS | TimePartExpressionJS | TimeRangeExpressionJS | TimeShiftExpressionJS | TransformCaseExpressionJS;
+
 
 export interface ExtractAndRest {
   extract: Expression;
