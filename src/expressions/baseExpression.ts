@@ -170,7 +170,7 @@ export interface Splits {
 }
 
 export interface SplitsJS {
-  [name: string]: BaseExpressionJS;
+  [name: string]: ExpressionJS;
 }
 
 export type CaseType = 'upperCase' | 'lowerCase';
