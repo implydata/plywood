@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Dataset } from '../datatypes/index';
 import { RefExpression } from './refExpression';
 
 export type Direction = 'ascending' | 'descending';
 
-export interface SortExpressionJS extends ExpressionJS {
+export interface SortExpressionJS extends BaseExpressionJS {
   direction?: Direction;
 }
 

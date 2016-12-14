@@ -15,7 +15,7 @@
  */
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression, ExpressionMatchFn, ExtractAndRest } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression, ExpressionMatchFn, ExtractAndRest } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { Set } from '../datatypes/set';
@@ -27,7 +27,7 @@ const IS_OR_IN: Lookup<boolean> = {
 
 export class AndExpression extends ChainableUnaryExpression {
   static op = "And";
-  static fromJS(parameters: ExpressionJS): AndExpression {
+  static fromJS(parameters: BaseExpressionJS): AndExpression {
     return new AndExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

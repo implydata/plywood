@@ -16,13 +16,13 @@
 
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { hasOwnProperty, continuousFloorExpression } from '../helper/utils';
 import { NumberRange } from '../datatypes/numberRange';
 
-export interface NumberBucketExpressionJS extends ExpressionJS {
+export interface NumberBucketExpressionJS extends BaseExpressionJS {
   size: number;
   offset?: number;
 }

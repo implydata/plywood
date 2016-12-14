@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Expression, ExpressionValue, ExpressionJS, ChainableUnaryExpression } from './baseExpression';
+import { Expression, ExpressionValue, BaseExpressionJS, ChainableUnaryExpression } from './baseExpression';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
 import { SQLDialect } from '../dialect/baseDialect';
 import { ComputeFn, Datum, PlywoodValue } from '../datatypes/dataset';
@@ -22,7 +22,7 @@ import { External } from '../external/baseExternal';
 
 export class ExternalExpression extends Expression {
   static op = "external";
-  static fromJS(parameters: ExpressionJS): ExternalExpression {
+  static fromJS(parameters: BaseExpressionJS): ExternalExpression {
     let value: ExpressionValue = {
       op: parameters.op
     };
@@ -48,7 +48,7 @@ export class ExternalExpression extends Expression {
     return value;
   }
 
-  public toJS(): ExpressionJS {
+  public toJS(): BaseExpressionJS {
     let js = super.toJS();
     js.external = this.external.toJS();
     return js;

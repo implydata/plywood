@@ -16,7 +16,7 @@
  */
 
 import { SimpleArray } from 'immutable-class';
-import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
+import { Expression, ExpressionValue, BaseExpressionJS, Alterations, Indexer } from './baseExpression';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
 import { SQLDialect } from '../dialect/baseDialect';
 import { hasOwnProperty, repeat } from '../helper/utils';
@@ -49,7 +49,7 @@ export class RefExpression extends Expression {
   static SIMPLE_NAME_REGEXP = /^([a-z_]\w*)$/i;
 
   static op = "Ref";
-  static fromJS(parameters: ExpressionJS): RefExpression {
+  static fromJS(parameters: BaseExpressionJS): RefExpression {
     let value: ExpressionValue;
     if (hasOwnProperty(parameters, 'nest')) {
       value = <any>parameters;
@@ -158,7 +158,7 @@ export class RefExpression extends Expression {
     return value;
   }
 
-  public toJS(): ExpressionJS {
+  public toJS(): BaseExpressionJS {
     let js = super.toJS();
     js.name = this.name;
     if (this.nest) js.nest = this.nest;

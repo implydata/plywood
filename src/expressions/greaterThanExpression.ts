@@ -16,7 +16,7 @@
 
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { LiteralExpression } from './literalExpression';
@@ -24,7 +24,7 @@ import { Range } from '../datatypes/range';
 
 export class GreaterThanExpression extends ChainableUnaryExpression {
   static op = "GreaterThan";
-  static fromJS(parameters: ExpressionJS): GreaterThanExpression {
+  static fromJS(parameters: BaseExpressionJS): GreaterThanExpression {
     return new GreaterThanExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

@@ -16,13 +16,13 @@
 
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 
 export class IndexOfExpression extends ChainableUnaryExpression {
   static op = "IndexOf";
-  static fromJS(parameters: ExpressionJS): IndexOfExpression {
+  static fromJS(parameters: BaseExpressionJS): IndexOfExpression {
     return new IndexOfExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

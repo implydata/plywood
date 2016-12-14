@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Dataset } from '../datatypes/dataset';
 
 export class AverageExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Average";
-  static fromJS(parameters: ExpressionJS): AverageExpression {
+  static fromJS(parameters: BaseExpressionJS): AverageExpression {
     return new AverageExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

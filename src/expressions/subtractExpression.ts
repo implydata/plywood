@@ -16,14 +16,14 @@
 
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 
 export class SubtractExpression extends ChainableUnaryExpression {
   static op = "Subtract";
-  static fromJS(parameters: ExpressionJS): SubtractExpression {
+  static fromJS(parameters: BaseExpressionJS): SubtractExpression {
     return new SubtractExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

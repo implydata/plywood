@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { Set } from '../datatypes/set';
@@ -26,7 +26,7 @@ const IS_OR_IN: Lookup<boolean> = {
 
 export class OrExpression extends ChainableUnaryExpression {
   static op = "Or";
-  static fromJS(parameters: ExpressionJS): OrExpression {
+  static fromJS(parameters: BaseExpressionJS): OrExpression {
     return new OrExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

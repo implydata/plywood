@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Datum, Dataset } from '../datatypes/index';
 
 export class CountExpression extends ChainableExpression implements Aggregate {
   static op = "Count";
-  static fromJS(parameters: ExpressionJS): CountExpression {
+  static fromJS(parameters: BaseExpressionJS): CountExpression {
     return new CountExpression(ChainableExpression.jsToValue(parameters));
   }
 

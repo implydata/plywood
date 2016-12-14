@@ -16,7 +16,7 @@
 
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Dataset } from '../datatypes/index';
 import { RefExpression } from './refExpression';
@@ -26,7 +26,7 @@ import { ApplyExpression } from './applyExpression';
 
 export class FilterExpression extends ChainableUnaryExpression {
   static op = "Filter";
-  static fromJS(parameters: ExpressionJS): FilterExpression {
+  static fromJS(parameters: BaseExpressionJS): FilterExpression {
     let value = ChainableUnaryExpression.jsToValue(parameters);
     return new FilterExpression(value);
   }

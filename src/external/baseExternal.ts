@@ -39,7 +39,7 @@ import { Attributes, AttributeInfo, AttributeJSs } from '../datatypes/attributeI
 import { NumberRange } from '../datatypes/numberRange';
 import { unwrapSetType } from '../datatypes/common';
 import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
-import { ExpressionJS } from '../expressions/baseExpression';
+import { BaseExpressionJS } from '../expressions/baseExpression';
 import { Set } from '../datatypes/set';
 import { StringRange } from '../datatypes/stringRange';
 import { TimeRange } from '../datatypes/timeRange';
@@ -248,8 +248,8 @@ export interface ExternalJS {
   rollup?: boolean;
   attributes?: AttributeJSs;
   attributeOverrides?: AttributeJSs;
-  derivedAttributes?: Lookup<ExpressionJS>;
-  filter?: ExpressionJS;
+  derivedAttributes?: Lookup<BaseExpressionJS>;
+  filter?: BaseExpressionJS;
   rawAttributes?: AttributeJSs;
   concealBuckets?: boolean;
 

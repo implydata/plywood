@@ -18,7 +18,7 @@
 import { Class, Instance, NamedArray, immutableEqual } from 'immutable-class';
 import { PlyType, FullType } from '../types';
 import { hasOwnProperty } from '../helper/utils';
-import { Expression, ExpressionJS, RefExpression } from '../expressions/index';
+import { Expression, BaseExpressionJS, RefExpression } from '../expressions/index';
 
 export type Attributes = AttributeInfo[];
 export type AttributeJSs = AttributeInfoJS[];
@@ -44,7 +44,7 @@ export interface AttributeInfoJS {
   type?: PlyType;
   datasetType?: Lookup<FullType>;
   unsplitable?: boolean;
-  maker?: ExpressionJS;
+  maker?: BaseExpressionJS;
 
   // range
   separator?: string;

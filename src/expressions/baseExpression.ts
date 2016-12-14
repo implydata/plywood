@@ -60,7 +60,7 @@ import { MaxExpression } from './maxExpression';
 import { MinExpression } from './minExpression';
 import { MultiplyExpression } from './multiplyExpression';
 import { NotExpression } from './notExpression';
-import { NumberBucketExpression } from './numberBucketExpression';
+import { NumberBucketExpression, NumberBucketExpressionJS } from './numberBucketExpression';
 import { OrExpression } from './orExpression';
 import { OverlapExpression } from './overlapExpression';
 import { PowerExpression } from './powerExpression';
@@ -85,6 +85,10 @@ import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, Tim
 import { isSetType, getFullTypeFromDatum, introspectDatum, failIfIntrospectNeededInDatum } from '../datatypes/common';
 import { ComputeFn } from '../datatypes/dataset';
 import { External, ExternalJS } from '../external/baseExternal';
+import {
+  OutputTypeValue, OutputTypeJS, RegexExpressionJS, TimezoneExpressionJS,
+  DurationedExpressionJS
+} from "./interfaces/interfaces";
 
 export interface ComputeOptions extends Environment {
   maxQueries?: number;
@@ -169,7 +173,7 @@ export interface Splits {
 }
 
 export interface SplitsJS {
-  [name: string]: ExpressionJS;
+  [name: string]: BaseExpressionJS;
 }
 
 export type CaseType = 'upperCase' | 'lowerCase';
@@ -188,7 +192,7 @@ export interface ExpressionValue {
   ignoreCase?: boolean;
 }
 
-export interface ExpressionJS {
+export interface BaseExpressionJS {
   op?: string;
   type?: PlyType;
   value?: any;
@@ -201,6 +205,8 @@ export interface ExpressionJS {
   actions?: any[]; // ToDo: remove
   ignoreCase?: boolean;
 }
+
+export type ExpressionJS = BaseExpressionJS | OutputTypeJS | RegexExpressionJS | TimezoneExpressionJS | DurationedExpressionJS | NumberBucketExpressionJS;
 
 export interface ExtractAndRest {
   extract: Expression;
@@ -332,7 +338,7 @@ export interface PEGParser {
  * Provides a way to express arithmetic operations, aggregations and database operators.
  * This class is the backbone of plywood
  */
-export abstract class Expression implements Instance<ExpressionValue, ExpressionJS> {
+export abstract class Expression implements Instance<ExpressionValue, BaseExpressionJS> {
   static NULL: LiteralExpression;
   static ZERO: LiteralExpression;
   static ONE: LiteralExpression;
@@ -352,7 +358,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return candidate instanceof Expression;
   }
 
-  static expressionLookupFromJS(expressionJSs: Lookup<ExpressionJS>): Lookup<Expression> {
+  static expressionLookupFromJS(expressionJSs: Lookup<BaseExpressionJS>): Lookup<Expression> {
     let expressions: Lookup<Expression> = Object.create(null);
     for (let name in expressionJSs) {
       if (!hasOwnProperty(expressionJSs, name)) continue;
@@ -361,8 +367,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return expressions;
   }
 
-  static expressionLookupToJS(expressions: Lookup<Expression>): Lookup<ExpressionJS> {
-    let expressionsJSs: Lookup<ExpressionJS> = {};
+  static expressionLookupToJS(expressions: Lookup<Expression>): Lookup<BaseExpressionJS> {
+    let expressionsJSs: Lookup<BaseExpressionJS> = {};
     for (let name in expressions) {
       if (!hasOwnProperty(expressions, name)) continue;
       expressionsJSs[name] = expressions[name].toJS();
@@ -415,7 +421,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @param param The expression to parse
    */
   static fromJSLoose(param: any): Expression {
-    let expressionJS: ExpressionJS;
+    let expressionJS: BaseExpressionJS;
     // Quick parse simple expressions
     switch (typeof param) {
       case 'undefined':
@@ -434,7 +440,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
             throw new Error("unknown object"); //ToDo: better error
           }
         } else if (param.op) {
-          expressionJS = <ExpressionJS>param;
+          expressionJS = <BaseExpressionJS>param;
         } else if (param.toISOString) {
           expressionJS = { op: 'literal', value: new Date(param) };
         } else if (Array.isArray(param)) {
@@ -558,7 +564,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     });
   }
 
-  static jsToValue(js: ExpressionJS): ExpressionValue {
+  static jsToValue(js: BaseExpressionJS): ExpressionValue {
     return {
       op: js.op,
       type: js.type
@@ -569,7 +575,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Deserializes the expression JSON
    * @param expressionJS
    */
-  static fromJS(expressionJS: ExpressionJS): Expression {
+  static fromJS(expressionJS: BaseExpressionJS): Expression {
     if (!expressionJS) throw new Error('must have expressionJS');
     if (!hasOwnProperty(expressionJS, "op")) {
       if (hasOwnProperty(expressionJS, "action")) {
@@ -640,7 +646,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   /**
    * Serializes the expression into a simple JS object that can be passed to JSON.serialize
    */
-  public toJS(): ExpressionJS {
+  public toJS(): BaseExpressionJS {
     return {
       op: this.op
     };
@@ -649,7 +655,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   /**
    * Makes it safe to call JSON.serialize on expressions
    */
-  public toJSON(): ExpressionJS {
+  public toJSON(): BaseExpressionJS {
     return this.toJS();
   }
 
@@ -1726,7 +1732,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
 
 export abstract class ChainableExpression extends Expression {
-  static jsToValue(js: ExpressionJS): ExpressionValue {
+  static jsToValue(js: BaseExpressionJS): ExpressionValue {
     let value = Expression.jsToValue(js);
     value.operand = js.operand ? Expression.fromJS(js.operand) : Expression._;
     return value;
@@ -1762,7 +1768,7 @@ export abstract class ChainableExpression extends Expression {
     return value;
   }
 
-  public toJS(): ExpressionJS {
+  public toJS(): BaseExpressionJS {
     let js = super.toJS();
     if (!this.operand.equals(Expression._)) {
       js.operand = this.operand.toJS();
@@ -1953,7 +1959,7 @@ export abstract class ChainableExpression extends Expression {
 
 
 export abstract class ChainableUnaryExpression extends ChainableExpression {
-  static jsToValue(js: ExpressionJS): ExpressionValue {
+  static jsToValue(js: BaseExpressionJS): ExpressionValue {
     let value = ChainableExpression.jsToValue(js);
     value.expression = Expression.fromJS(js.expression);
     return value;
@@ -2001,7 +2007,7 @@ export abstract class ChainableUnaryExpression extends ChainableExpression {
     return value;
   }
 
-  public toJS(): ExpressionJS {
+  public toJS(): BaseExpressionJS {
     let js = super.toJS();
     js.expression = this.expression.toJS();
     return js;

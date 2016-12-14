@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression, Splits, SplitsJS, SubstitutionFn, Indexer, ExpressionTypeContext } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression, Splits, SplitsJS, SubstitutionFn, Indexer, ExpressionTypeContext } from './baseExpression';
 import { PlyType, DatasetFullType, SimpleFullType, FullType } from '../types';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
@@ -24,7 +24,7 @@ import { hasOwnProperty } from '../helper/utils';
 import { immutableLookupsEqual } from 'immutable-class';
 import { isSetType } from '../datatypes/common';
 
-export interface SplitExpressionJS extends ExpressionJS {
+export interface SplitExpressionJS extends BaseExpressionJS {
   splits: SplitsJS;
   dataName?: string;
 }

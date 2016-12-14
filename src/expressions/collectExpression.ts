@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { wrapSetType } from '../datatypes/common';
 import { PlywoodValue, Dataset } from '../datatypes/dataset';
 
 export class CollectExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Collect";
-  static fromJS(parameters: ExpressionJS): CollectExpression {
+  static fromJS(parameters: BaseExpressionJS): CollectExpression {
     return new CollectExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

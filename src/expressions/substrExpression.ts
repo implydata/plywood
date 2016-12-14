@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 
@@ -23,7 +23,7 @@ export interface SubstrExpressionValue extends ExpressionValue {
   position: int;
 }
 
-export interface SubstrExpressionJS extends ExpressionJS {
+export interface SubstrExpressionJS extends BaseExpressionJS {
   len: int;
   position: int;
 }

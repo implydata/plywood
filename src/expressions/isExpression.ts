@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression, Indexer, Alterations } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression, Indexer, Alterations } from './baseExpression';
 import { PlywoodValue, TimeRange, NumberRange } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { IndexOfExpression } from './indexOfExpression';
@@ -24,7 +24,7 @@ import { FallbackExpression } from './fallbackExpression';
 
 export class IsExpression extends ChainableUnaryExpression {
   static op = "Is";
-  static fromJS(parameters: ExpressionJS): IsExpression {
+  static fromJS(parameters: BaseExpressionJS): IsExpression {
     return new IsExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Dataset } from '../datatypes/dataset';
@@ -25,7 +25,7 @@ import { MultiplyExpression } from './multiplyExpression';
 
 export class SumExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Sum";
-  static fromJS(parameters: ExpressionJS): SumExpression {
+  static fromJS(parameters: BaseExpressionJS): SumExpression {
     return new SumExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

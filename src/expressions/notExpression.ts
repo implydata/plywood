@@ -15,13 +15,13 @@
  */
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression, Indexer, Alterations } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression, Indexer, Alterations } from './baseExpression';
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 
 export class NotExpression extends ChainableExpression {
   static op = "Not";
-  static fromJS(parameters: ExpressionJS): NotExpression {
+  static fromJS(parameters: BaseExpressionJS): NotExpression {
     return new NotExpression(ChainableExpression.jsToValue(parameters));
   }
 

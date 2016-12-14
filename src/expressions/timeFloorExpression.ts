@@ -15,7 +15,7 @@
  */
 
 import { Timezone, Duration } from 'chronoshift';
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { HasTimezone } from './mixins/hasTimezone';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';

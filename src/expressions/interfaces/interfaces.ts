@@ -15,14 +15,14 @@
  */
 
 import { Timezone, Duration } from 'chronoshift';
-import { ExpressionValue, ExpressionJS } from '../baseExpression';
+import { ExpressionValue, BaseExpressionJS } from '../baseExpression';
 import { PlyTypeSimple } from '../../types';
 
 export interface OutputTypeValue extends ExpressionValue {
   outputType?: PlyTypeSimple;
 }
 
-export interface OutputTypeJS extends ExpressionJS {
+export interface OutputTypeJS extends BaseExpressionJS {
   outputType?: PlyTypeSimple;
 }
 
@@ -30,7 +30,7 @@ export interface RegexExpressionValue extends ExpressionValue {
   regexp: string;
 }
 
-export interface RegexExpressionJS extends ExpressionJS {
+export interface RegexExpressionJS extends BaseExpressionJS {
   regexp: string;
 }
 
@@ -38,7 +38,7 @@ export interface TimezoneExpressionValue extends ExpressionValue {
   timezone?: Timezone;
 }
 
-export interface TimezoneExpressionJS extends ExpressionJS {
+export interface TimezoneExpressionJS extends BaseExpressionJS {
   timezone?: string;
 }
 

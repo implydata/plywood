@@ -18,7 +18,7 @@
 import { parseISODate } from 'chronoshift';
 import { isImmutableClass } from 'immutable-class';
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
-import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
+import { r, Expression, ExpressionValue, BaseExpressionJS, Alterations, Indexer } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { hasOwnProperty } from '../helper/utils';
 import { Dataset, Set, TimeRange, PlywoodValue, ComputeFn, Datum } from '../datatypes/index';
@@ -26,7 +26,7 @@ import { isSetType, valueFromJS, getValueType } from '../datatypes/common';
 
 export class LiteralExpression extends Expression {
   static op = "Literal";
-  static fromJS(parameters: ExpressionJS): LiteralExpression {
+  static fromJS(parameters: BaseExpressionJS): LiteralExpression {
     let value: ExpressionValue = {
       op: parameters.op,
       type: parameters.type
@@ -62,7 +62,7 @@ export class LiteralExpression extends Expression {
     return value;
   }
 
-  public toJS(): ExpressionJS {
+  public toJS(): BaseExpressionJS {
     let js = super.toJS();
     if (this.value && this.value.toJS) {
       js.value = this.value.toJS();

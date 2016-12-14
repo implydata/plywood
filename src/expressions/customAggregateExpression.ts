@@ -16,7 +16,7 @@
 
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
@@ -25,7 +25,7 @@ export interface CustomAggregateExpressionValue extends ExpressionValue {
   custom: string;
 }
 
-export interface CustomAggregateExpressionJS extends ExpressionJS {
+export interface CustomAggregateExpressionJS extends BaseExpressionJS {
   custom: string;
 }
 

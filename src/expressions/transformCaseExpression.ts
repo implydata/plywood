@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression, CaseType } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression, CaseType } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 
 
-export interface TransformCaseExpressionJS extends ExpressionJS {
+export interface TransformCaseExpressionJS extends BaseExpressionJS {
   transformType: CaseType;
 }
 

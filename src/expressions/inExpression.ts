@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlyType } from '../types';
 import { PlywoodValue } from '../datatypes/index';
@@ -29,7 +29,7 @@ import { StringRange } from '../datatypes/stringRange';
 
 export class InExpression extends ChainableUnaryExpression {
   static op = "In";
-  static fromJS(parameters: ExpressionJS): InExpression {
+  static fromJS(parameters: BaseExpressionJS): InExpression {
     return new InExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

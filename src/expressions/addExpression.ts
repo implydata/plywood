@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 
 export class AddExpression extends ChainableUnaryExpression {
   static op = "Add";
-  static fromJS(parameters: ExpressionJS): AddExpression {
+  static fromJS(parameters: BaseExpressionJS): AddExpression {
     return new AddExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Dataset } from '../datatypes/dataset';
 
 export class MaxExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Max";
-  static fromJS(parameters: ExpressionJS): MaxExpression {
+  static fromJS(parameters: BaseExpressionJS): MaxExpression {
     return new MaxExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

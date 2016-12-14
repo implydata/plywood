@@ -16,13 +16,13 @@
 
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 
 export class LengthExpression extends ChainableExpression {
   static op = "Length";
-  static fromJS(parameters: ExpressionJS): LengthExpression {
+  static fromJS(parameters: BaseExpressionJS): LengthExpression {
     return new LengthExpression(ChainableExpression.jsToValue(parameters));
   }
 

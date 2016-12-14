@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { PlywoodValue } from '../datatypes/index';
 import { wrapSetType } from '../datatypes/common';
 import { Set } from '../datatypes/set';
 
 export class OverlapExpression extends ChainableUnaryExpression {
   static op = "Overlap";
-  static fromJS(parameters: ExpressionJS): OverlapExpression {
+  static fromJS(parameters: BaseExpressionJS): OverlapExpression {
     return new OverlapExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

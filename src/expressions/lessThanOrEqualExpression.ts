@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { LiteralExpression } from './literalExpression';
@@ -22,7 +22,7 @@ import { Range } from '../datatypes/range';
 
 export class LessThanOrEqualExpression extends ChainableUnaryExpression {
   static op = "LessThanOrEqual";
-  static fromJS(parameters: ExpressionJS): LessThanOrEqualExpression {
+  static fromJS(parameters: BaseExpressionJS): LessThanOrEqualExpression {
     return new LessThanOrEqualExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

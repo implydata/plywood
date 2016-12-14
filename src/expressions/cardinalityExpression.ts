@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Set } from '../datatypes/index';
 
 export class CardinalityExpression extends ChainableExpression {
   static op = "Cardinality";
-  static fromJS(parameters: ExpressionJS): CardinalityExpression {
+  static fromJS(parameters: BaseExpressionJS): CardinalityExpression {
     return new CardinalityExpression(ChainableExpression.jsToValue(parameters));
   }
 

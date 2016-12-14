@@ -15,7 +15,7 @@
  */
 
 import { Timezone, Duration } from 'chronoshift';
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { HasTimezone } from './mixins/hasTimezone';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
@@ -58,7 +58,7 @@ export class TimeBucketExpression extends ChainableExpression {
     return value;
   }
 
-  public toJS(): ExpressionJS {
+  public toJS(): BaseExpressionJS {
     let js = super.toJS() as DurationedExpressionJS;
     js.duration = this.duration.toJS();
     if (this.timezone) js.timezone = this.timezone.toJS();

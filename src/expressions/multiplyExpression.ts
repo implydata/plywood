@@ -16,7 +16,7 @@
 
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
@@ -24,7 +24,7 @@ import { LiteralExpression } from './literalExpression';
 
 export class MultiplyExpression extends ChainableUnaryExpression {
   static op = "Multiply";
-  static fromJS(parameters: ExpressionJS): MultiplyExpression {
+  static fromJS(parameters: BaseExpressionJS): MultiplyExpression {
     return new MultiplyExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

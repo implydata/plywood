@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Dataset } from '../datatypes/dataset';
 
 export class MinExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Min";
-  static fromJS(parameters: ExpressionJS): MinExpression {
+  static fromJS(parameters: BaseExpressionJS): MinExpression {
     return new MinExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 

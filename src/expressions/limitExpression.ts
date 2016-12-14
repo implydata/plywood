@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Dataset } from '../datatypes/index';
 import { ApplyExpression } from './applyExpression';
 
 export class LimitExpression extends ChainableExpression {
   static op = "Limit";
-  static fromJS(parameters: ExpressionJS): LimitExpression {
+  static fromJS(parameters: BaseExpressionJS): LimitExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.value = parameters.value || (parameters as any).limit;
     return new LimitExpression(value);
@@ -48,7 +48,7 @@ export class LimitExpression extends ChainableExpression {
     return value;
   }
 
-  public toJS(): ExpressionJS {
+  public toJS(): BaseExpressionJS {
     let js = super.toJS();
     js.value = this.value;
     return js;

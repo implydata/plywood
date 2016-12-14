@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { PlywoodValue, Dataset } from '../datatypes/index';
 
 export class QuantileExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Quantile";
-  static fromJS(parameters: ExpressionJS): QuantileExpression {
+  static fromJS(parameters: BaseExpressionJS): QuantileExpression {
     let value = ChainableUnaryExpression.jsToValue(parameters);
     value.value = parameters.value || (parameters as any).quantile;
     return new QuantileExpression(value);
@@ -43,7 +43,7 @@ export class QuantileExpression extends ChainableUnaryExpression implements Aggr
     return value;
   }
 
-  public toJS(): ExpressionJS {
+  public toJS(): BaseExpressionJS {
     let js = super.toJS();
     js.value = this.value;
     return js;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression, ChainableExpression } from './baseExpression';
+import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression, ChainableExpression } from './baseExpression';
 import { RefExpression } from './refExpression';
 import { ExternalExpression } from './externalExpression';
 import { LiteralExpression } from './literalExpression';
@@ -26,7 +26,7 @@ import { DatasetFullType } from '../types';
 
 export class ApplyExpression extends ChainableUnaryExpression {
   static op = "Apply";
-  static fromJS(parameters: ExpressionJS): ApplyExpression {
+  static fromJS(parameters: BaseExpressionJS): ApplyExpression {
     let value = ChainableUnaryExpression.jsToValue(parameters);
     value.name = parameters.name;
     return new ApplyExpression(value);
@@ -48,7 +48,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
     return value;
   }
 
-  public toJS(): ExpressionJS {
+  public toJS(): BaseExpressionJS {
     let js = super.toJS();
     js.name = this.name;
     return js;
