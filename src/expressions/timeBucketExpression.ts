@@ -58,7 +58,7 @@ export class TimeBucketExpression extends ChainableExpression {
     return value;
   }
 
-  public toJS(): BaseExpressionJS {
+  public toJS(): DurationedExpressionJS {
     let js = super.toJS() as DurationedExpressionJS;
     js.duration = this.duration.toJS();
     if (this.timezone) js.timezone = this.timezone.toJS();

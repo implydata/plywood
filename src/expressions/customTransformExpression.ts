@@ -18,14 +18,14 @@ import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression }
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlyTypeSingleValue } from '../types';
-import { OutputTypeValue, OutputTypeJS } from "./interfaces/interfaces";
+import { OutputTypeExpressionValue, OutputTypeExpressionJS } from "./interfaces/interfaces";
 
 
-export interface CustomTransformExpressionJS extends OutputTypeJS {
+export interface CustomTransformExpressionJS extends OutputTypeExpressionJS {
   custom: string;
 }
 
-export interface CustomTransformExpressionValue extends OutputTypeValue {
+export interface CustomTransformExpressionValue extends OutputTypeExpressionValue {
   custom: string;
 }
 

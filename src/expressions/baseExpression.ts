@@ -74,7 +74,7 @@ import { SumExpression } from './sumExpression';
 import { TimeBucketExpression } from './timeBucketExpression';
 import { TimeFloorExpression } from './timeFloorExpression';
 import { TimePartExpression } from './timePartExpression';
-import { TimeRangeExpression } from './timeRangeExpression';
+import { TimeRangeExpression, TimeRangeExpressionJS } from './timeRangeExpression';
 import { TimeShiftExpression } from './timeShiftExpression';
 import { TransformCaseExpression } from './transformCaseExpression';
 
@@ -86,8 +86,8 @@ import { isSetType, getFullTypeFromDatum, introspectDatum, failIfIntrospectNeede
 import { ComputeFn } from '../datatypes/dataset';
 import { External, ExternalJS } from '../external/baseExternal';
 import {
-  OutputTypeValue, OutputTypeJS, RegexExpressionJS, TimezoneExpressionJS,
-  DurationedExpressionJS
+  OutputTypeExpressionValue, OutputTypeExpressionJS, RegexExpressionJS, TimezoneExpressionJS,
+  DurationedExpressionJS, CommonExpressionJS
 } from "./interfaces/interfaces";
 
 export interface ComputeOptions extends Environment {
@@ -206,7 +206,7 @@ export interface BaseExpressionJS {
   ignoreCase?: boolean;
 }
 
-export type ExpressionJS = BaseExpressionJS | OutputTypeJS | RegexExpressionJS | TimezoneExpressionJS | DurationedExpressionJS | NumberBucketExpressionJS;
+export type ExpressionJS = CommonExpressionJS | NumberBucketExpressionJS | TimeRangeExpressionJS;
 
 export interface ExtractAndRest {
   extract: Expression;
@@ -646,7 +646,7 @@ export abstract class Expression implements Instance<ExpressionValue, BaseExpres
   /**
    * Serializes the expression into a simple JS object that can be passed to JSON.serialize
    */
-  public toJS(): BaseExpressionJS {
+  public toJS(): ExpressionJS {
     return {
       op: this.op
     };
@@ -655,7 +655,7 @@ export abstract class Expression implements Instance<ExpressionValue, BaseExpres
   /**
    * Makes it safe to call JSON.serialize on expressions
    */
-  public toJSON(): BaseExpressionJS {
+  public toJSON(): ExpressionJS {
     return this.toJS();
   }
 

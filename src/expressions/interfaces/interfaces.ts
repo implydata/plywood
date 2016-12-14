@@ -18,11 +18,11 @@ import { Timezone, Duration } from 'chronoshift';
 import { ExpressionValue, BaseExpressionJS } from '../baseExpression';
 import { PlyTypeSimple } from '../../types';
 
-export interface OutputTypeValue extends ExpressionValue {
+export interface OutputTypeExpressionValue extends ExpressionValue {
   outputType?: PlyTypeSimple;
 }
 
-export interface OutputTypeJS extends BaseExpressionJS {
+export interface OutputTypeExpressionJS extends BaseExpressionJS {
   outputType?: PlyTypeSimple;
 }
 
@@ -49,3 +49,5 @@ export interface DurationedExpressionValue extends TimezoneExpressionValue {
 export interface DurationedExpressionJS extends TimezoneExpressionJS {
   duration: string;
 }
+
+export type CommonExpressionJS = OutputTypeExpressionJS | RegexExpressionJS | DurationedExpressionJS;

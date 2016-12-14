@@ -18,7 +18,7 @@ import { r, BaseExpressionJS, ExpressionValue, Expression, ChainableExpression }
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { PlyTypeSimple } from '../types';
-import { OutputTypeValue, OutputTypeJS } from "./interfaces/interfaces";
+import { OutputTypeExpressionValue, OutputTypeExpressionJS } from "./interfaces/interfaces";
 
 interface Caster {
   TIME: {
@@ -61,15 +61,15 @@ const CAST_TYPE_TO_JS: Lookup<Lookup<(operandJS: string) => string>> = {
 
 export class CastExpression extends ChainableExpression {
   static op = "Cast";
-  static fromJS(parameters: OutputTypeJS): CastExpression {
-    let value = ChainableExpression.jsToValue(parameters) as OutputTypeValue;
+  static fromJS(parameters: OutputTypeExpressionJS): CastExpression {
+    let value = ChainableExpression.jsToValue(parameters) as OutputTypeExpressionValue;
     value.outputType = parameters.outputType || (parameters as any).castType; // Back compat
     return new CastExpression(value);
   }
 
   public outputType: PlyTypeSimple;
 
-  constructor(parameters: OutputTypeValue) {
+  constructor(parameters: OutputTypeExpressionValue) {
     super(parameters, dummyObject);
     this.outputType = parameters.outputType;
     this._ensureOp("cast");
@@ -79,14 +79,14 @@ export class CastExpression extends ChainableExpression {
     this.type = this.outputType;
   }
 
-  public valueOf(): OutputTypeValue {
-    let value = super.valueOf() as OutputTypeValue;
+  public valueOf(): OutputTypeExpressionValue {
+    let value = super.valueOf() as OutputTypeExpressionValue;
     value.outputType = this.outputType;
     return value;
   }
 
-  public toJS(): OutputTypeJS {
-    let js = super.toJS() as OutputTypeJS;
+  public toJS(): OutputTypeExpressionJS {
+    let js = super.toJS() as OutputTypeExpressionJS;
     js.outputType = this.outputType;
     return js;
   }
