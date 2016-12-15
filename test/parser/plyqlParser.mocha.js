@@ -1692,6 +1692,40 @@ describe("SQL parser", () => {
       expect(parse.rewrite).to.equal('SHOW');
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
+
+    it("should work with SHOW warnings", () => {
+
+      let parse = Expression.parseSQL(sane`
+        SHOW WARNINGS
+      `);
+
+      let parse2 = Expression.parseSQL(sane`
+        SHOW WARNINGS LIMIT 5
+      `);
+
+      let ex2 = i$('WARNINGS');
+
+      expect(parse.verb).to.equal('SELECT').and.equal(parse2.verb);
+      expect(parse.rewrite).to.equal('SHOW').and.equal(parse2.rewrite);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS()).and.deep.equal(parse2.expression.toJS());
+    });
+
+    it("should work with SHOW index", () => {
+
+      let parse = Expression.parseSQL(sane`
+        SHOW INDEX from wikipedia
+      `);
+
+      let parse2 = Expression.parseSQL(sane`
+        SHOW INDEX from wikipedia where packed like '%null%' and key_name != 'key1' 
+      `);
+
+      let ex2 = i$('INDEX');
+
+      expect(parse.verb).to.equal('SELECT').and.equal(parse2.verb);
+      expect(parse.rewrite).to.equal('SHOW').and.equal(parse2.rewrite);
+      expect(parse.expression.toJS()).to.deep.equal(ex2.toJS()).and.deep.equal(parse2.expression.toJS());
+    });
 });
 
 

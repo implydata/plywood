@@ -550,7 +550,7 @@ ShowQueryExpression
     }
   / (CharacterToken _ SetToken) like:LikeRhs?
     {
-      https://dev.mysql.com/doc/refman/5.7/en/character-sets-table.html
+      // https://dev.mysql.com/doc/refman/5.7/en/character-sets-table.html
       var ex = i$('CHARACTER_SETS')
       if (like) ex = ex.filter(like(i$('CHARACTER_SET_NAME')));
       return ex
@@ -562,7 +562,7 @@ ShowQueryExpression
     }
   / CollationToken like:LikeRhs?
     {
-      https://dev.mysql.com/doc/refman/5.7/en/collations-table.html
+      // https://dev.mysql.com/doc/refman/5.7/en/collations-table.html
       var ex = i$('COLLATIONS')
       if (like) ex = ex.filter(like(i$('COLLATION_NAME')));
       return ex
@@ -574,6 +574,17 @@ ShowQueryExpression
         .apply('Sortlen', i$('SORTLEN'))
         .select('Collation', 'Charset', 'Id', 'Default', 'Compiled', 'Sortlen');
 
+    }
+  // Empty Tables
+  / IndexToken FromOrIn table:RelaxedNamespacedRef db:(FromOrIn Ref)? like:LikeRhs? where:WhereClause?
+    {
+      // http://dev.mysql.com/doc/refman/5.7/en/show-index.html
+      return i$('INDEX');
+    }
+  / WarningsToken LimitClause?
+    {
+      // http://dev.mysql.com/doc/refman/5.7/en/show-warnings.html
+      return i$('WARNINGS');
     }
 
 FromOrIn = FromToken / InToken;
@@ -1004,6 +1015,8 @@ GlobalToken        = "GLOBAL"i         !IdentifierPart _
 SessionToken       = "SESSION"i        !IdentifierPart _
 CharacterToken     = "CHARACTER"i      !IdentifierPart _
 CollationToken     = "COLLATION"i      !IdentifierPart _
+IndexToken         = "INDEX"i          !IdentifierPart _
+WarningsToken      = "WARNINGS"i       !IdentifierPart _
 
 FromToken          = "FROM"i           !IdentifierPart _
 AsToken            = "AS"i             !IdentifierPart _
