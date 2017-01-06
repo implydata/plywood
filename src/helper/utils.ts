@@ -124,3 +124,7 @@ export class ExtendableError extends Error {
     }
   }
 }
+
+export function pluralIfNeeded(n: number, thing: string): string {
+  return `${n} ${thing}${n === 1 ? '' : 's'}`;
+}

@@ -21,6 +21,7 @@ import { HasTimezone } from './mixins/hasTimezone';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue } from '../datatypes/index';
 import { TimeRange } from '../datatypes/timeRange';
+import { pluralIfNeeded } from "../helper/utils";
 
 export class TimeRangeExpression extends ChainableExpression implements HasTimezone {
   static DEFAULT_STEP = 1;
@@ -78,6 +79,12 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     let ret = [this.duration.toString(), this.step.toString()];
     if (this.timezone) ret.push(this.timezone.toString());
     return ret;
+  }
+
+  public getQualifiedDurationDescription() {
+    const step = Math.abs(this.step);
+    const durationDescription = this.duration.getDescription(true);
+    return step !== 1 ? pluralIfNeeded(step, durationDescription) : durationDescription;
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
