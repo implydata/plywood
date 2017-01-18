@@ -3,6 +3,10 @@
 var tslib_1 = require('tslib');
 
 var hasOwnProp = require('has-own-prop');
+var toArray = require('stream-to-array');
+
+var readableStream = require('readable-stream');
+var PassThrough = readableStream.PassThrough;
 
 var immutableClass = require('immutable-class');
 var generalEqual = immutableClass.generalEqual;
