@@ -19,26 +19,23 @@ import * as Promise from 'any-promise';
 import * as Druid from 'druid.d.ts';
 import * as hasOwnProp from 'has-own-prop';
 import { PlywoodRequester } from 'plywood-base-api';
+import * as toArray from 'stream-to-array';
 import { dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from '../helper/utils';
 import {
   $, Expression,
-  LiteralExpression,
   RefExpression,
   ChainableExpression,
   ChainableUnaryExpression,
 
-  AbsoluteExpression,
   AddExpression,
   AndExpression,
   ApplyExpression,
-  AverageExpression,
   CardinalityExpression,
   FilterExpression,
   GreaterThanExpression,
   GreaterThanOrEqualExpression,
   InExpression,
   IsExpression,
-  JoinExpression,
   LengthExpression,
   LessThanExpression,
   LessThanOrEqualExpression,
@@ -174,22 +171,22 @@ export class DruidExternal extends External {
   }
 
   static getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
-    return requester({ query: { queryType: 'sourceList' } })
-      .then((sources) => {
+    return toArray(requester({ query: { queryType: 'sourceList' } }))
+      .then((sourcesArray) => {
+        const sources = sourcesArray[0];
         if (!Array.isArray(sources)) throw new InvalidResultError('invalid sources response', sources);
         return sources.sort();
       });
   }
 
   static getVersion(requester: PlywoodRequester<any>): Promise<string> {
-    return requester({
+    return toArray(requester({
       query: {
         queryType: 'status'
       }
-    })
+    }))
       .then((res) => {
-        if (!DruidExternal.correctStatusResult(res)) throw new InvalidResultError('unexpected result from /status', res);
-        return res.version;
+        return res[0].version;
       });
   }
 
@@ -199,34 +196,8 @@ export class DruidExternal extends External {
     }
   }
 
-  static correctTimeBoundaryResult(result: Druid.TimeBoundaryResults): boolean {
-    return Array.isArray(result) && result.length === 1 && typeof result[0].result === 'object';
-  }
-
-  static correctTimeseriesResult(result: Druid.TimeseriesResults): boolean {
-    return Array.isArray(result) && (result.length === 0 || typeof result[0].result === 'object');
-  }
-
-  static correctTopNResult(result: Druid.DruidResults): boolean {
-    return Array.isArray(result) && (result.length === 0 || Array.isArray(result[0].result));
-  }
-
-  static correctGroupByResult(result: Druid.GroupByResults): boolean {
-    return Array.isArray(result) && (result.length === 0 || typeof result[0].event === 'object');
-  }
-
-  static correctSelectResult(result: Druid.SelectResults): boolean {
-    return Array.isArray(result) && (result.length === 0 || typeof result[0].result === 'object');
-  }
-
-  static correctStatusResult(result: Druid.StatusResult): boolean {
-    return result && typeof result.version === 'string';
-  }
-
   static timeBoundaryPostProcessFactory(applies?: ApplyExpression[]): PostProcess {
     return (res: Druid.TimeBoundaryResults): Date | TotalContainer => {
-      if (!DruidExternal.correctTimeBoundaryResult(res)) throw new InvalidResultError("unexpected result from Druid (timeBoundary)", res);
-
       let result: any = res[0].result;
 
       if (applies) {
@@ -252,20 +223,16 @@ export class DruidExternal extends External {
     };
   }
 
-  static valuePostProcess(res: Druid.TimeseriesResults): PlywoodValue {
-    if (!DruidExternal.correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (all / value)", res);
-
+  static valuePostProcess(res: Datum[]): PlywoodValue {
     if (!res.length) return 0;
-    return res[0].result[External.VALUE_NAME];
+    return res[0][External.VALUE_NAME] as any;
   }
 
   static totalPostProcessFactory(applies: ApplyExpression[]): PostProcess {
-    return (res: Druid.TimeseriesResults): TotalContainer => {
-      if (!DruidExternal.correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (all)", res);
-
+    return (res: Datum[]): TotalContainer => {
       if (!res.length) return new TotalContainer(External.makeZeroDatum(applies));
 
-      let datum = res[0].result;
+      let datum = res[0];
       DruidExternal.cleanDatumInPlace(datum);
       return new TotalContainer(datum);
     };
@@ -273,61 +240,15 @@ export class DruidExternal extends External {
 
   // ==========================
 
-  static timeseriesNormalizerFactory(timestampLabel: string = null): Normalizer {
-    return (res: Druid.TimeseriesResults): Datum[] => {
-      if (!DruidExternal.correctTimeseriesResult(res)) throw new InvalidResultError("unexpected result from Druid (timeseries)", res);
-
-      return res.map(r => {
-        let datum: Datum = r.result;
-        DruidExternal.cleanDatumInPlace(datum);
-        if (timestampLabel) datum[timestampLabel] = r.timestamp;
-        return datum;
-      });
-    };
+  static queryNormalizer(res: Datum[]): Datum[] {
+    return res.map(r => {
+      DruidExternal.cleanDatumInPlace(r);
+      return r;
+    });
   }
 
-  static topNNormalizer(res: Druid.DruidResults): Datum[] {
-    if (!DruidExternal.correctTopNResult(res)) throw new InvalidResultError("unexpected result from Druid (topN)", res);
-
-    let data = res.length ? res[0].result : [];
-    for (let d of data) DruidExternal.cleanDatumInPlace(d);
-    return data;
-  }
-
-  static groupByNormalizerFactory(timestampLabel: string = null): Normalizer {
-    return (res: Druid.GroupByResults): Datum[] => {
-      if (!DruidExternal.correctGroupByResult(res)) throw new InvalidResultError("unexpected result from Druid (groupBy)", res);
-
-      return res.map(r => {
-        let datum: Datum = r.event;
-        DruidExternal.cleanDatumInPlace(datum);
-        if (timestampLabel) datum[timestampLabel] = r.timestamp;
-        return datum;
-      });
-    };
-  }
-
-  static selectNormalizerFactory(timestampLabel: string): Normalizer {
-    return (results: Druid.SelectResults[]): Datum[] => {
-      let data: Datum[] = [];
-      for (let result of results) {
-        if (!DruidExternal.correctSelectResult(result)) throw new InvalidResultError("unexpected result from Druid (select)", result);
-
-        if (result.length === 0) continue;
-        let events = result[0].result.events;
-        for (let event of events) {
-          let datum: Datum = event.event;
-          if (timestampLabel != null) {
-            // The __time dimension always returns as 'timestamp' for some reason
-            datum[timestampLabel] = datum['timestamp'];
-          }
-          delete datum['timestamp'];
-          DruidExternal.cleanDatumInPlace(datum);
-          data.push(datum);
-        }
-      }
-      return data;
-    };
+  static selectNormalizer(ress: Datum[][]): Datum[] {
+    return DruidExternal.queryNormalizer([].concat(...ress));
   }
 
   static postProcessFactory(normalizer: Normalizer, inflaters: Inflater[], attributes: Attributes) {
@@ -345,15 +266,13 @@ export class DruidExternal extends External {
 
   static selectNextFactory(limit: number, descending: boolean): NextFn<Druid.Query, Druid.SelectResults> {
     let resultsSoFar = 0;
-    return (prevQuery, prevResult) => {
-      if (!DruidExternal.correctSelectResult(prevResult)) throw new InvalidResultError("unexpected result from Druid (select / partial)", prevResult);
-
+    return (prevQuery, prevResult, prevMeta: any) => {
       if (prevResult.length === 0) return null; // Out of results: done!
 
-      let { pagingIdentifiers, events } = prevResult[0].result;
-      if (events.length < prevQuery.pagingSpec.threshold) return null; // Less results than asked for: done!
+      let { pagingIdentifiers } = prevMeta;
+      if (prevResult.length < prevQuery.pagingSpec.threshold) return null; // Less results than asked for: done!
 
-      resultsSoFar += events.length;
+      resultsSoFar += prevResult.length;
       if (resultsSoFar >= limit) return null; // Got enough results overall: done!
 
       pagingIdentifiers = DruidExternal.movePagingIdentifiers(pagingIdentifiers, descending ? -1 : 1);
@@ -841,7 +760,7 @@ export class DruidExternal extends External {
         granularity: granularity || 'all',
         leftoverHavingFilter,
         postProcess: DruidExternal.postProcessFactory(
-          DruidExternal.groupByNormalizerFactory(timestampLabel),
+          DruidExternal.queryNormalizer,
           inflaters,
           selectedAttributes
         )
@@ -858,8 +777,9 @@ export class DruidExternal extends External {
         queryType: 'timeseries',
         granularity: granularityInflater.granularity,
         leftoverHavingFilter,
+        timestampLabel: label,
         postProcess: DruidExternal.postProcessFactory(
-          DruidExternal.timeseriesNormalizerFactory(label),
+          DruidExternal.queryNormalizer,
           [granularityInflater.inflater],
           selectedAttributes
         )
@@ -880,7 +800,8 @@ export class DruidExternal extends External {
         dimension: dimensionInflater.dimension,
         granularity: 'all',
         leftoverHavingFilter,
-        postProcess: DruidExternal.postProcessFactory(DruidExternal.topNNormalizer, inflaters, selectedAttributes)
+        timestampLabel: null,
+        postProcess: DruidExternal.postProcessFactory(DruidExternal.queryNormalizer, inflaters, selectedAttributes)
       };
     }
 
@@ -889,7 +810,8 @@ export class DruidExternal extends External {
       dimensions: [dimensionInflater.dimension],
       granularity: 'all',
       leftoverHavingFilter,
-      postProcess: DruidExternal.postProcessFactory(DruidExternal.groupByNormalizerFactory(), inflaters, selectedAttributes)
+      timestampLabel: null,
+      postProcess: DruidExternal.postProcessFactory(DruidExternal.queryNormalizer, inflaters, selectedAttributes)
     };
   }
 
@@ -1040,7 +962,10 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
-          postProcess: DruidExternal.postProcessFactory(DruidExternal.selectNormalizerFactory(selectedTimeAttribute), inflaters, selectedAttributes),
+          context: {
+            timestamp: selectedTimeAttribute
+          },
+          postProcess: DruidExternal.postProcessFactory(DruidExternal.selectNormalizer, inflaters, selectedAttributes),
           next: DruidExternal.selectNextFactory(resultLimit, descending)
         };
 
@@ -1055,6 +980,9 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
+          context: {
+            timestamp: null
+          },
           postProcess: DruidExternal.valuePostProcess
         };
 
@@ -1069,6 +997,9 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
+          context: {
+            timestamp: null
+          },
           postProcess: DruidExternal.totalPostProcessFactory(applies)
         };
 
@@ -1081,6 +1012,7 @@ export class DruidExternal extends External {
         if (splitSpec.dimension) druidQuery.dimension = splitSpec.dimension;
         if (splitSpec.dimensions) druidQuery.dimensions = splitSpec.dimensions;
         let leftoverHavingFilter = splitSpec.leftoverHavingFilter;
+        let timestampLabel = splitSpec.timestampLabel;
         let postProcess = splitSpec.postProcess;
 
         // Apply
@@ -1154,7 +1086,6 @@ export class DruidExternal extends External {
               }
             } else { // Going to sortOnLabel implicitly
               // Find the first non primary time key
-              let { timestampLabel } = splitSpec;
               let splitKeys = split.keys.filter(k => k !== timestampLabel);
               if (!splitKeys.length) throw new Error('could not find order by column for group by');
               let splitKey = splitKeys[0];
@@ -1182,6 +1113,9 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
+          context: {
+            timestamp: timestampLabel
+          },
           postProcess: postProcess
         };
 
@@ -1215,18 +1149,19 @@ export class DruidExternal extends External {
       query.dataSource = (query.dataSource as Druid.DataSourceFull).dataSources[0];
     }
 
-    return requester({ query }).then(DruidExternal.segmentMetadataPostProcessFactory(timeAttribute));
+    return toArray(requester({ query }))
+      .then(DruidExternal.segmentMetadataPostProcessFactory(timeAttribute));
   }
 
   protected getIntrospectAttributesWithGet(): Promise<Attributes> {
     let { requester, timeAttribute } = this;
 
-    return requester({
+    return toArray(requester({
       query: {
         queryType: 'introspect',
         dataSource: this.getDruidDataSource()
       }
-    })
+    }))
       .then(DruidExternal.introspectPostProcessFactory(timeAttribute));
   }
 

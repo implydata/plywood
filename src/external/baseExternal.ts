@@ -18,6 +18,7 @@ import * as Promise from 'any-promise';
 import { Timezone, Duration } from 'chronoshift';
 import { immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
 import * as hasOwnProp from 'has-own-prop';
+import * as toArray from 'stream-to-array';
 import { PlywoodRequester } from 'plywood-base-api';
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
 import { nonEmptyLookup, safeAdd } from '../helper/utils';
@@ -66,11 +67,12 @@ export interface PostProcess {
 }
 
 export interface NextFn<Q, R> {
-  (prevQuery: Q, prevResult: R): Q;
+  (prevQuery: Q, prevResult: R, prevMeta: any): Q;
 }
 
 export interface QueryAndPostProcess<T> {
   query: T;
+  context?: Lookup<any>;
   postProcess: PostProcess;
   next?: NextFn<T, any>;
 }
@@ -1376,7 +1378,7 @@ export abstract class External {
       return <Promise<PlywoodValue | TotalContainer>>Promise.reject(e);
     }
 
-    let { query, postProcess, next } = queryAndPostProcess;
+    let { query, context, postProcess, next } = queryAndPostProcess;
     if (!query || typeof postProcess !== 'function') {
       return <Promise<PlywoodValue>>Promise.reject(new Error('no query or postProcess'));
     }
@@ -1387,10 +1389,13 @@ export abstract class External {
       finalResult = promiseWhile(
         () => query,
         () => {
-          return requester({ query })
+          const stream = requester({ query, context });
+          let meta: any = null;
+          stream.on('meta', (m: any) => meta = m);
+          return toArray(stream) // ToDo: TEMP!!
             .then((result) => {
               results.push(result);
-              query = next(query, result);
+              query = next(query, result, meta);
             });
         }
       )
@@ -1398,7 +1403,7 @@ export abstract class External {
           return queryAndPostProcess.postProcess(results);
         });
     } else {
-      finalResult = requester({ query })
+      finalResult = toArray(requester({ query, context })) // ToDo: TEMP!!
         .then(queryAndPostProcess.postProcess);
     }
 

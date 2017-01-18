@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
 import { PlywoodRequester, DatabaseRequest } from 'plywood-base-api';
 
 export interface RetryRequesterParameters<T> {
@@ -23,12 +22,6 @@ export interface RetryRequesterParameters<T> {
   delay?: number;
   retry?: int;
   retryOnTimeout?: boolean;
-}
-
-function delayPromise(n: number): Promise<void> {
-  return new Promise<void>((resolve) => {
-    setTimeout(resolve, n);
-  });
 }
 
 export function retryRequesterFactory<T>(parameters: RetryRequesterParameters<T>): PlywoodRequester<T> {
@@ -40,16 +33,17 @@ export function retryRequesterFactory<T>(parameters: RetryRequesterParameters<T>
   if (typeof delay !== "number") throw new TypeError("delay should be a number");
   if (typeof retry !== "number") throw new TypeError("retry should be a number");
 
-  return (request: DatabaseRequest<T>): Promise<any> => {
-    let tries = 1;
-
-    function handleError(err: Error): Promise<any> {
-      if (tries > retry) throw err;
-      tries++;
-      if (err.message === "timeout" && !retryOnTimeout) throw err;
-      return delayPromise(delay).then(() => requester(request)).catch(handleError);
-    }
-
-    return requester(request).catch(handleError);
+  return (request: DatabaseRequest<T>) => {
+    return requester(request); // ToDo: make work
+    // let tries = 1;
+    //
+    // function handleError(err: Error): Promise<any> {
+    //   if (tries > retry) throw err;
+    //   tries++;
+    //   if (err.message === "timeout" && !retryOnTimeout) throw err;
+    //   return delayPromise(delay).then(() => requester(request)).catch(handleError);
+    // }
+    //
+    // return requester(request).catch(handleError);
   };
 }
