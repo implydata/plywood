@@ -17,6 +17,7 @@
 
 import * as Promise from 'any-promise';
 import { PlywoodRequester } from 'plywood-base-api';
+import * as toArray from 'stream-to-array';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
 import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
@@ -58,7 +59,7 @@ export class MySQLExternal extends SQLExternal {
   }
 
   static getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
-    return requester({ query: "SHOW TABLES" })
+    return toArray(requester({ query: "SHOW TABLES" }))
       .then((sources) => {
         if (!Array.isArray(sources)) throw new Error('invalid sources response');
         if (!sources.length) return sources;
@@ -69,7 +70,7 @@ export class MySQLExternal extends SQLExternal {
   }
 
   static getVersion(requester: PlywoodRequester<any>): Promise<string> {
-    return requester({ query: 'SELECT @@version' })
+    return toArray(requester({ query: 'SELECT @@version' }))
       .then((res) => {
         if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
         let key = Object.keys(res[0])[0];
@@ -84,7 +85,8 @@ export class MySQLExternal extends SQLExternal {
   }
 
   protected getIntrospectAttributes(): Promise<Attributes> {
-    return this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.source as string)}` }).then(MySQLExternal.postProcessIntrospect);
+    return toArray(this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.source as string)}` }))
+      .then(MySQLExternal.postProcessIntrospect);
   }
 }
 

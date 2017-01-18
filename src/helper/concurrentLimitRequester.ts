@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
+import { PassThrough } from 'readable-stream';
 import { PlywoodRequester, DatabaseRequest } from 'plywood-base-api';
 
 export interface ConcurrentLimitRequesterParameters<T> {
@@ -25,8 +25,7 @@ export interface ConcurrentLimitRequesterParameters<T> {
 
 interface QueueItem<T> {
   request: DatabaseRequest<T>;
-  resolve: (value?: any) => void;
-  reject: (error?: any) => void;
+  stream: PassThrough;
 }
 
 export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRequesterParameters<T>): PlywoodRequester<T> {
@@ -38,38 +37,30 @@ export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRe
   let requestQueue: QueueItem<T>[] = [];
   let outstandingRequests: int = 0;
 
-  function requestFinishedOk(v: any): any {
-    requestFinished();
-    return v;
-  }
-
-  function requestFinishedError(e: Error): void {
-    requestFinished();
-    throw e;
-  }
-
   function requestFinished(): void {
     outstandingRequests--;
     if (!(requestQueue.length && outstandingRequests < concurrentLimit)) return;
     let queueItem = requestQueue.shift();
     outstandingRequests++;
-    requester(queueItem.request)
-      .then(queueItem.resolve, queueItem.reject)
-      .then(requestFinishedOk, requestFinishedError);
+
+    const stream = requester(queueItem.request);
+    stream.on('end', requestFinished);
+    stream.pipe(queueItem.stream);
   }
 
-  return (request: DatabaseRequest<T>): Promise<any> => {
+  return (request: DatabaseRequest<T>) => {
     if (outstandingRequests < concurrentLimit) {
       outstandingRequests++;
-      return requester(request).then(requestFinishedOk, requestFinishedError);
+      const stream = requester(request);
+      stream.on('end', requestFinished);
+      return stream;
     } else {
-      return new Promise((resolve, reject) => {
-        requestQueue.push({
-          request: request,
-          resolve,
-          reject
-        });
+      const stream = new PassThrough({});
+      requestQueue.push({
+        request,
+        stream
       });
+      return stream;
     }
   };
 }

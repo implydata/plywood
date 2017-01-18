@@ -16,6 +16,7 @@
 
 import * as Promise from 'any-promise';
 import { PlywoodRequester } from 'plywood-base-api';
+import * as toArray from 'stream-to-array';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
 import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
@@ -70,18 +71,17 @@ export class PostgresExternal extends SQLExternal {
   }
 
   static getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
-    return requester({
+    return toArray(requester({
       query: `SELECT table_name AS "tab" FROM INFORMATION_SCHEMA.TABLES WHERE table_type = 'BASE TABLE' AND table_schema = 'public'`
-    })
+    }))
       .then((sources) => {
-        if (!Array.isArray(sources)) throw new Error('invalid sources response');
         if (!sources.length) return sources;
         return sources.map((s: PseudoDatum) => s['tab']).sort();
       });
   }
 
   static getVersion(requester: PlywoodRequester<any>): Promise<string> {
-    return requester({ query: 'SELECT version()' })
+    return toArray(requester({ query: 'SELECT version()' }))
       .then((res) => {
         if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
         let key = Object.keys(res[0])[0];
@@ -100,13 +100,14 @@ export class PostgresExternal extends SQLExternal {
 
   protected getIntrospectAttributes(): Promise<Attributes> {
     // from https://www.postgresql.org/docs/9.1/static/infoschema-element-types.html
-    return this.requester({
+    return toArray(this.requester({
       query: `SELECT c.column_name as "name", c.data_type as "sqlType", e.data_type AS "arrayType"
        FROM information_schema.columns c LEFT JOIN information_schema.element_types e
        ON ((c.table_catalog, c.table_schema, c.table_name, 'TABLE', c.dtd_identifier)
        = (e.object_catalog, e.object_schema, e.object_name, e.object_type, e.collection_type_identifier))
        WHERE table_name = ${this.dialect.escapeLiteral(this.source as string)}`
-    }).then(PostgresExternal.postProcessIntrospect);
+    }))
+      .then(PostgresExternal.postProcessIntrospect);
   }
 }
 
