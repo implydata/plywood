@@ -15,7 +15,6 @@
  */
 
 const { expect } = require("chai");
-let Q = require("q");
 let { sane, grabConsoleWarn } = require('../utils');
 
 let { testImmutableClass } = require("immutable-class-tester");
