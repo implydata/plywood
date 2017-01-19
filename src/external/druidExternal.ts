@@ -190,15 +190,9 @@ export class DruidExternal extends External {
       });
   }
 
-  static cleanDatumInPlace(datum: Datum): void {
-    for (let k in datum) {
-      if (k[0] === '!') delete datum[k];
-    }
-  }
-
   static timeBoundaryPostProcessFactory(applies?: ApplyExpression[]): PostProcess {
-    return (res: Druid.TimeBoundaryResults): Date | TotalContainer => {
-      let result: any = res[0].result;
+    return (res: Datum[]): Date | TotalContainer => {
+      let result: any = res[0];
 
       if (applies) {
         let datum: Datum = {};
@@ -231,29 +225,14 @@ export class DruidExternal extends External {
   static totalPostProcessFactory(applies: ApplyExpression[]): PostProcess {
     return (res: Datum[]): TotalContainer => {
       if (!res.length) return new TotalContainer(External.makeZeroDatum(applies));
-
-      let datum = res[0];
-      DruidExternal.cleanDatumInPlace(datum);
-      return new TotalContainer(datum);
+      return new TotalContainer(res[0]);
     };
   }
 
   // ==========================
 
-  static queryNormalizer(res: Datum[]): Datum[] {
-    return res.map(r => {
-      DruidExternal.cleanDatumInPlace(r);
-      return r;
-    });
-  }
-
-  static selectNormalizer(ress: Datum[][]): Datum[] {
-    return DruidExternal.queryNormalizer([].concat(...ress));
-  }
-
-  static postProcessFactory(normalizer: Normalizer, inflaters: Inflater[], attributes: Attributes) {
-    return (res: any): Dataset => {
-      let data = normalizer(res);
+  static postProcessFactory(inflaters: Inflater[], attributes: Attributes) {
+    return (data: Datum[]): Dataset => {
       let n = data.length;
       for (let inflater of inflaters) {
         for (let i = 0; i < n; i++) {
@@ -264,15 +243,15 @@ export class DruidExternal extends External {
     };
   }
 
-  static selectNextFactory(limit: number, descending: boolean): NextFn<Druid.Query, Druid.SelectResults> {
+  static selectNextFactory(limit: number, descending: boolean): NextFn<Druid.Query> {
     let resultsSoFar = 0;
-    return (prevQuery, prevResult, prevMeta: any) => {
-      if (prevResult.length === 0) return null; // Out of results: done!
+    return (prevQuery, prevResultLength, prevMeta: any) => {
+      if (prevResultLength === 0) return null; // Out of results: done!
 
       let { pagingIdentifiers } = prevMeta;
-      if (prevResult.length < prevQuery.pagingSpec.threshold) return null; // Less results than asked for: done!
+      if (prevResultLength < prevQuery.pagingSpec.threshold) return null; // Less results than asked for: done!
 
-      resultsSoFar += prevResult.length;
+      resultsSoFar += prevResultLength;
       if (resultsSoFar >= limit) return null; // Got enough results overall: done!
 
       pagingIdentifiers = DruidExternal.movePagingIdentifiers(pagingIdentifiers, descending ? -1 : 1);
@@ -759,11 +738,7 @@ export class DruidExternal extends External {
         timestampLabel,
         granularity: granularity || 'all',
         leftoverHavingFilter,
-        postProcess: DruidExternal.postProcessFactory(
-          DruidExternal.queryNormalizer,
-          inflaters,
-          selectedAttributes
-        )
+        postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes)
       };
     }
 
@@ -778,11 +753,7 @@ export class DruidExternal extends External {
         granularity: granularityInflater.granularity,
         leftoverHavingFilter,
         timestampLabel: label,
-        postProcess: DruidExternal.postProcessFactory(
-          DruidExternal.queryNormalizer,
-          [granularityInflater.inflater],
-          selectedAttributes
-        )
+        postProcess: DruidExternal.postProcessFactory([granularityInflater.inflater], selectedAttributes)
       };
     }
 
@@ -801,7 +772,7 @@ export class DruidExternal extends External {
         granularity: 'all',
         leftoverHavingFilter,
         timestampLabel: null,
-        postProcess: DruidExternal.postProcessFactory(DruidExternal.queryNormalizer, inflaters, selectedAttributes)
+        postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes)
       };
     }
 
@@ -811,7 +782,7 @@ export class DruidExternal extends External {
       granularity: 'all',
       leftoverHavingFilter,
       timestampLabel: null,
-      postProcess: DruidExternal.postProcessFactory(DruidExternal.queryNormalizer, inflaters, selectedAttributes)
+      postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes)
     };
   }
 
@@ -853,6 +824,7 @@ export class DruidExternal extends External {
 
     return {
       query: druidQuery,
+      context: { timestamp: null },
       postProcess: DruidExternal.timeBoundaryPostProcessFactory(applies)
     };
   }
@@ -871,6 +843,11 @@ export class DruidExternal extends External {
       dataSource: this.getDruidDataSource(),
       intervals: null,
       granularity: 'all'
+    };
+
+    let requesterContext: any = {
+      timestamp: null,
+      ignorePrefix: '!'
     };
 
     if (context) {
@@ -897,13 +874,12 @@ export class DruidExternal extends External {
 
         let timeAttribute = this.timeAttribute;
         let derivedAttributes = this.derivedAttributes;
-        let selectedTimeAttribute: string = null;
         let selectedAttributes = this.getSelectedAttributes();
         selectedAttributes.forEach(attribute => {
           let { name, type, unsplitable } = attribute;
 
           if (name === timeAttribute) {
-            selectedTimeAttribute = name;
+            requesterContext.timestamp = name;
           } else {
             if (unsplitable) {
               selectMetrics.push(name);
@@ -962,10 +938,8 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
-          context: {
-            timestamp: selectedTimeAttribute
-          },
-          postProcess: DruidExternal.postProcessFactory(DruidExternal.selectNormalizer, inflaters, selectedAttributes),
+          context: requesterContext,
+          postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes),
           next: DruidExternal.selectNextFactory(resultLimit, descending)
         };
 
@@ -980,9 +954,7 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
-          context: {
-            timestamp: null
-          },
+          context: requesterContext,
           postProcess: DruidExternal.valuePostProcess
         };
 
@@ -997,9 +969,7 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
-          context: {
-            timestamp: null
-          },
+          context: requesterContext,
           postProcess: DruidExternal.totalPostProcessFactory(applies)
         };
 
@@ -1013,6 +983,7 @@ export class DruidExternal extends External {
         if (splitSpec.dimensions) druidQuery.dimensions = splitSpec.dimensions;
         let leftoverHavingFilter = splitSpec.leftoverHavingFilter;
         let timestampLabel = splitSpec.timestampLabel;
+        requesterContext.timestamp = timestampLabel;
         let postProcess = splitSpec.postProcess;
 
         // Apply
@@ -1113,9 +1084,7 @@ export class DruidExternal extends External {
 
         return {
           query: druidQuery,
-          context: {
-            timestamp: timestampLabel
-          },
+          context: requesterContext,
           postProcess: postProcess
         };
 

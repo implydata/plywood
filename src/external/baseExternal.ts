@@ -46,6 +46,7 @@ import { ExpressionJS } from '../expressions/baseExpression';
 import { Set } from '../datatypes/set';
 import { StringRange } from '../datatypes/stringRange';
 import { TimeRange } from '../datatypes/timeRange';
+import { StreamConcat } from '../helper/streamConcat';
 import { promiseWhile } from '../helper/promiseWhile';
 
 export class TotalContainer {
@@ -66,15 +67,15 @@ export interface PostProcess {
   (result: any): PlywoodValue | TotalContainer;
 }
 
-export interface NextFn<Q, R> {
-  (prevQuery: Q, prevResult: R, prevMeta: any): Q;
+export interface NextFn<Q> {
+  (prevQuery: Q, prevResultLength: number, prevMeta: any): Q;
 }
 
 export interface QueryAndPostProcess<T> {
   query: T;
   context?: Lookup<any>;
   postProcess: PostProcess;
-  next?: NextFn<T, any>;
+  next?: NextFn<T>;
 }
 
 export interface Inflater {
@@ -1385,23 +1386,26 @@ export abstract class External {
 
     let finalResult: Promise<PlywoodValue | TotalContainer>;
     if (next) {
-      let results: any[] = [];
-      finalResult = promiseWhile(
-        () => query,
-        () => {
+      let streamNumber = 0;
+      let meta: any = null;
+      let numResults: number;
+      const resultStream = new StreamConcat({
+        objectMode: true,
+        streams: () => {
+          if (streamNumber) query = next(query, numResults, meta);
+          if (!query) return null;
+          streamNumber++;
           const stream = requester({ query, context });
-          let meta: any = null;
+          meta = null;
           stream.on('meta', (m: any) => meta = m);
-          return toArray(stream) // ToDo: TEMP!!
-            .then((result) => {
-              results.push(result);
-              query = next(query, result, meta);
-            });
+          numResults = 0;
+          stream.on('data', () => numResults++);
+          return stream;
         }
-      )
-        .then(() => {
-          return queryAndPostProcess.postProcess(results);
-        });
+      });
+
+      finalResult = toArray(resultStream)
+        .then(queryAndPostProcess.postProcess);
     } else {
       finalResult = toArray(requester({ query, context })) // ToDo: TEMP!!
         .then(queryAndPostProcess.postProcess);
