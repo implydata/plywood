@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,27 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
-let Promise = require('any-promise');
+const { PassThrough } = require('readable-stream');
+const toArray = require('stream-to-array');
 
 let { verboseRequesterFactory } = require("../../build/plywood");
 
 describe("Verbose requester", () => {
   let requester = (request) => {
-    if (/^fail/.test(request.query)) {
-      return Promise.reject(new Error('some error'));
-    } else {
-      return Promise.resolve([1, 2, 3]);
-    }
+    const stream = new PassThrough({ objectMode: true });
+    setTimeout(() => {
+      if (/^fail/.test(request.query)) {
+        stream.emit('error', new Error('some error'));
+      } else {
+        stream.write(1);
+        stream.write(2);
+        stream.write(3);
+        stream.end();
+      }
+    }, 1);
+    return stream;
   };
 
   it("works on success", () => {
@@ -39,7 +47,7 @@ describe("Verbose requester", () => {
       }
     });
 
-    return verboseRequester({ query: 'Query1' })
+    return toArray(verboseRequester({ query: 'Query1' }))
       .then((res) => {
         expect(res).to.be.an('array');
         expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
@@ -67,7 +75,7 @@ Got result from query 1: (in Xms)
       }
     });
 
-    return verboseRequester({ query: 'failThis' })
+    return toArray(verboseRequester({ query: 'failThis' }))
       .then(() => {
         throw new Error('did not fail');
       })

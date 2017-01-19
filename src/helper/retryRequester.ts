@@ -16,6 +16,7 @@
  */
 
 import { PlywoodRequester, DatabaseRequest } from 'plywood-base-api';
+import { PassThrough } from 'readable-stream';
 
 export interface RetryRequesterParameters<T> {
   requester: PlywoodRequester<T>;
@@ -34,16 +35,28 @@ export function retryRequesterFactory<T>(parameters: RetryRequesterParameters<T>
   if (typeof retry !== "number") throw new TypeError("retry should be a number");
 
   return (request: DatabaseRequest<T>) => {
-    return requester(request); // ToDo: make work
-    // let tries = 1;
-    //
-    // function handleError(err: Error): Promise<any> {
-    //   if (tries > retry) throw err;
-    //   tries++;
-    //   if (err.message === "timeout" && !retryOnTimeout) throw err;
-    //   return delayPromise(delay).then(() => requester(request)).catch(handleError);
-    // }
-    //
-    // return requester(request).catch(handleError);
+    const output = new PassThrough({ objectMode: true });
+
+    let tries = 0;
+
+    function tryRequest() {
+      tries++;
+      let seenData = false;
+      let rs = requester(request);
+      rs.on('error', (e: Error) => {
+        if (seenData || tries > retry || (e.message === "timeout" && !retryOnTimeout)) {
+          rs.unpipe(output);
+          output.emit('error', e);
+        } else {
+          setTimeout(tryRequest, delay);
+        }
+      });
+      rs.on('meta', (m: any) => { output.emit('meta', m); });
+      rs.on('data', (d: any) => { seenData = true; });
+      rs.pipe(output);
+    }
+
+    tryRequest();
+    return output;
   };
 }

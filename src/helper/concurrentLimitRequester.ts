@@ -55,7 +55,7 @@ export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRe
       stream.on('end', requestFinished);
       return stream;
     } else {
-      const stream = new PassThrough({});
+      const stream = new PassThrough({ objectMode: true });
       requestQueue.push({
         request,
         stream
