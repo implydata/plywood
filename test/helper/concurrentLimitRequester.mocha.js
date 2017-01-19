@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,51 +15,50 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
-
+const { PassThrough } = require('readable-stream');
 let Promise = require('any-promise');
+const toArray = require('stream-to-array');
 
 let { concurrentLimitRequesterFactory } = require("../../build/plywood");
 
-describe("Concurrent Limit requester", () => {
+describe("Concurrent Limit Requester", () => {
   let makeRequester = () => {
-    let deferreds = {};
+    let streams = {};
 
     let requester = (request) => {
-      return new Promise((resolve, reject) => {
-        deferreds[request.query] = { resolve, reject };
-      });
+      return streams[request.query] = new PassThrough({ objectMode: true });
     };
 
     requester.hasQuery = (query) => {
-      return Boolean(deferreds[query]);
+      return Boolean(streams[query]);
     };
     requester.resolve = (query) => {
-      return deferreds[query].resolve([1, 2, 3]);
+      const s = streams[query];
+      s.push(1);
+      s.push(2);
+      s.push(3);
+      s.push(null);
     };
     requester.reject = (query) => {
-      return deferreds[query].reject(new Error('fail'));
+      streams[query].emit('error', new Error('fail'));
     };
     return requester;
   };
 
-  it("basic works", (testComplete) => {
+  it("basic works", () => {
     let requester = makeRequester();
     let concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,
       concurrentLimit: 2
     });
 
-    concurrentLimitRequester({ query: 'a' })
+    let p = toArray(concurrentLimitRequester({ query: 'a' }))
       .then((res) => {
-        expect(res).to.be.an('array');
-        testComplete();
-      })
-      .catch((e) => {
-        testComplete(e);
+        expect(res).to.deep.equal([1, 2, 3]);
       });
 
     requester.resolve('a');
+    return p;
   });
 
   it("limit works", () => {
@@ -70,25 +69,25 @@ describe("Concurrent Limit requester", () => {
     });
 
     let nextQuery = 'a';
-    let ra = concurrentLimitRequester({ query: 'a' })
+    let ra = toArray(concurrentLimitRequester({ query: 'a' }))
       .then((res) => {
-        expect(res).to.be.an('array');
+        expect(res).to.deep.equal([1, 2, 3]);
         expect(nextQuery).to.equal('a');
         nextQuery = 'b';
       });
 
-    let rb = concurrentLimitRequester({ query: 'b' })
+    let rb = toArray(concurrentLimitRequester({ query: 'b' }))
       .then((res) => {
-        expect(res).to.be.an('array');
+        expect(res).to.deep.equal([1, 2, 3]);
         expect(nextQuery).to.equal('b');
         nextQuery = 'c';
         expect(requester.hasQuery('c', 'has c')).to.equal(true);
         requester.resolve('c');
       });
 
-    let rc = concurrentLimitRequester({ query: 'c' })
+    let rc = toArray(concurrentLimitRequester({ query: 'c' }))
       .then((res) => {
-        expect(res).to.be.an('array');
+        expect(res).to.deep.equal([1, 2, 3]);
         expect(nextQuery).to.equal('c');
       });
 
@@ -99,4 +98,5 @@ describe("Concurrent Limit requester", () => {
     requester.resolve('b');
     return Promise.all([ra, rb, rc]);
   });
+
 });
