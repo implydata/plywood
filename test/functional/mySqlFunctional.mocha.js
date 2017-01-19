@@ -77,7 +77,8 @@ describe("MySQL Functional", function() {
     it("does a source list", () => {
       return MySQLExternal.getSourceList(mySqlRequester)
         .then((sources) => {
-          expect(sources).to.deep.equal(['wikipedia', 'wikipedia_raw']);
+          expect(sources).to.contain('wikipedia');
+          expect(sources).to.contain('wikipedia_raw');
         })
     });
 

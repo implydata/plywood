@@ -15,6 +15,7 @@
  */
 
 const { expect } = require("chai");
+const { PassThrough } = require('readable-stream');
 let Promise = require('any-promise');
 let { sane } = require('../utils');
 
@@ -1942,21 +1943,7 @@ describe("DruidExternal", () => {
   });
 
 
-  describe("should work when getting back [] and [{result:[]}]", () => {
-    let nullExternal = External.fromJS({
-      engine: 'druid',
-      source: 'wikipedia',
-      timeAttribute: 'time',
-      allowSelectQueries: true,
-      attributes: [
-        { name: 'time', type: 'TIME' },
-        { name: 'language', type: 'STRING' },
-        { name: 'page', type: 'STRING' },
-        { name: 'added', type: 'NUMBER' }
-      ],
-      filter: timeFilter
-    }, () => Promise.resolve([]));
-
+  describe("should work when getting back no data", () => {
     let emptyExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
@@ -1969,164 +1956,64 @@ describe("DruidExternal", () => {
         { name: 'added', type: 'NUMBER' }
       ],
       filter: timeFilter
-    }, ({ query }) => {
-      if (query.queryType === 'select') {
-        return Promise.resolve([
-          {
-            "timestamp": "2016-03-15T23:00:00.458Z",
-            "result": {
-              "pagingIdentifiers": {
-                "wikipedia_2016-03-15T23:00:00.000Z_2016-03-16T00:00:00.000Z_2016-03-15T23:00:00.000Z": 0
-              },
-              "events": []
-            }
-          }
-        ]);
-      } else {
-        return Promise.resolve([{ result: [] }]);
-      }
+    }, () => {
+      const stream = new PassThrough({ objectMode: true });
+      setTimeout(() => { stream.end(); }, 1);
+      return stream;
     });
 
-    describe("should return null correctly on a totals query", () => {
+    it("should return null correctly on a totals query", () => {
       let ex = ply()
         .apply('Count', '$wiki.count()');
 
-      it("works with [] return", () => {
-        return ex.compute({ wiki: nullExternal })
-          .then((result) => {
-            expect(result.toJS()).to.deep.equal([
-              { Count: 0 }
-            ]);
-          });
-      });
+      return ex.compute({ wiki: emptyExternal })
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            { Count: 0 }
+          ]);
+        });
     });
 
-    describe("should return null correctly on a timeseries query", () => {
+    it("should return null correctly on a timeseries query", () => {
       let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');
 
-      it("works with [] return", () => {
-        return ex.compute({ wiki: nullExternal })
-          .then((result) => {
-            expect(result.toJS()).to.deep.equal([]);
-          });
-      });
+      return ex.compute({ wiki: emptyExternal })
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([]);
+        });
     });
 
-    describe("should return null correctly on a topN query", () => {
+    it("should return null correctly on a topN query", () => {
       let ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
         .sort('$Count', 'descending')
         .limit(5);
 
-      it("works with [] return", () => {
-        return ex.compute({ wiki: nullExternal })
-          .then((result) => {
-            expect(result.toJS()).to.deep.equal([]);
-          });
-      });
-
-      it("works with [{result:[]}] return", () => {
-        return ex.compute({ wiki: emptyExternal })
-          .then((result) => {
-            expect(result.toJS()).to.deep.equal([]);
-          });
-      });
+      return ex.compute({ wiki: emptyExternal })
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([]);
+        });
     });
 
-    describe("should return null correctly on a select query", () => {
+    it("should return null correctly on a select query", () => {
       let ex = $('wiki');
 
-      it("works with [] return", () => {
-        return ex.compute({ wiki: nullExternal })
-          .then((result) => {
-            expect(AttributeInfo.toJSs(result.attributes)).to.deep.equal([
-              { name: 'time', type: 'TIME' },
-              { name: 'language', type: 'STRING' },
-              { name: 'page', type: 'STRING' },
-              { name: 'added', type: 'NUMBER' }
-            ]);
+      return ex.compute({ wiki: emptyExternal })
+        .then((result) => {
+          expect(AttributeInfo.toJSs(result.attributes)).to.deep.equal([
+            { name: 'time', type: 'TIME' },
+            { name: 'language', type: 'STRING' },
+            { name: 'page', type: 'STRING' },
+            { name: 'added', type: 'NUMBER' }
+          ]);
 
-            expect(result.toJS()).to.deep.equal([]);
-            expect(result.toCSV()).to.equal('time,language,page,added');
-          });
-      });
-
-      it("works with [{result:[]}] return", () => {
-        return ex.compute({ wiki: emptyExternal })
-          .then((result) => {
-            expect(AttributeInfo.toJSs(result.attributes)).to.deep.equal([
-              { name: 'time', type: 'TIME' },
-              { name: 'language', type: 'STRING' },
-              { name: 'page', type: 'STRING' },
-              { name: 'added', type: 'NUMBER' }
-            ]);
-
-            expect(result.toJS()).to.deep.equal([]);
-            expect(result.toCSV()).to.equal('time,language,page,added');
-          });
-      });
-    });
-  });
-
-
-  describe("should work when getting back crap data", () => {
-    let crapExternal = External.fromJS({
-      engine: 'druid',
-      source: 'wikipedia',
-      timeAttribute: 'time',
-      attributes: [
-        { name: 'time', type: 'TIME' },
-        { name: 'language', type: 'STRING' },
-        { name: 'page', type: 'STRING' },
-        { name: 'added', type: 'NUMBER' }
-      ],
-      filter: timeFilter
-    }, (query) => Promise.resolve("[Does this look like data to you?"));
-
-    it("works with value query", () => {
-      let ex = ply()
-        .apply('Count', '$wiki.count()');
-
-      return ex.compute({ wiki: crapExternal })
-        .then(() => {
-          throw new Error('DID_NOT_ERROR');
-        })
-        .catch((err) => {
-          expect(err.message).to.equal('unexpected result from Druid (all / value)');
+          expect(result.toJS()).to.deep.equal([]);
+          expect(result.toCSV()).to.equal('time,language,page,added');
         });
     });
-
-    it("works with all query", () => {
-      let ex = ply()
-        .apply('Count', '$wiki.count()')
-        .apply('Added', '$wiki.sum($added)');
-
-      return ex.compute({ wiki: crapExternal })
-        .then(() => {
-          throw new Error('DID_NOT_ERROR');
-        })
-        .catch((err) => {
-          expect(err.message).to.equal('unexpected result from Druid (all)');
-        });
-    });
-
-    it("works with timeseries query", () => {
-      let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
-        .apply('Count', '$wiki.count()')
-        .sort('$Time', 'ascending');
-
-      return ex.compute({ wiki: crapExternal })
-        .then(() => {
-          throw new Error('DID_NOT_ERROR');
-        })
-        .catch((err) => {
-          expect(err.message).to.equal('unexpected result from Druid (timeseries)');
-        });
-    });
-
   });
 
 
