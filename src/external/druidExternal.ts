@@ -363,19 +363,20 @@ export class DruidExternal extends External {
   }
 
   static introspectPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
-    return (res: Druid.DatasourceIntrospectResult): Attributes => {
-      if (!Array.isArray(res.dimensions) || !Array.isArray(res.metrics)) {
+    return (res: Druid.DatasourceIntrospectResult[]): Attributes => {
+      const res0 = res[0];
+      if (!Array.isArray(res0.dimensions) || !Array.isArray(res0.metrics)) {
         throw new InvalidResultError('malformed GET introspect response', res);
       }
 
       let attributes: Attributes = [
         new AttributeInfo({ name: timeAttribute, type: 'TIME' })
       ];
-      res.dimensions.forEach(dimension => {
+      res0.dimensions.forEach(dimension => {
         if (dimension === timeAttribute) return; // Ignore dimensions that clash with the timeAttribute name
         attributes.push(new AttributeInfo({ name: dimension, type: 'STRING' }));
       });
-      res.metrics.forEach(metric => {
+      res0.metrics.forEach(metric => {
         if (metric === timeAttribute) return; // Ignore metrics that clash with the timeAttribute name
         attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', unsplitable: true }));
       });

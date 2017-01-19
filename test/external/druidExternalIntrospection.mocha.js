@@ -15,18 +15,38 @@
  */
 
 const { expect } = require("chai");
+const { PassThrough } = require('readable-stream');
 let Promise = require('any-promise');
 
 let plywood = require('../plywood');
 let { Expression, External, TimeRange, $, ply, r } = plywood;
 
+function promiseFnToStream(promiseRq) {
+  return (rq) => {
+    const stream = new PassThrough({ objectMode: true });
+
+    promiseRq(rq)
+      .then(
+        (res) => {
+          if (res) stream.write(res);
+          stream.end();
+        },
+        (e) => {
+          stream.emit('error', e);
+        }
+      );
+
+    return stream;
+  }
+}
+
 describe("DruidExternal Introspection", () => {
-  let requesterFail = ({query}) => {
+  let requesterFail = promiseFnToStream(({query}) => {
     return Promise.reject(new Error('Bad status code'));
-  };
+  });
 
 
-  let requesterDruid_0_9_0 = ({query}) => {
+  let requesterDruid_0_9_0 = promiseFnToStream(({query}) => {
     if (query.queryType === 'status') return Promise.resolve({ version: '0.9.0' });
     expect(query.dataSource).to.equal('wikipedia');
 
@@ -149,7 +169,7 @@ describe("DruidExternal Introspection", () => {
         };
       }
 
-      return Promise.resolve([merged]);
+      return Promise.resolve(merged);
 
     } else if (query.queryType === 'introspect') {
       return Promise.resolve({
@@ -160,10 +180,10 @@ describe("DruidExternal Introspection", () => {
     } else {
       throw new Error(`unsupported query ${query.queryType}`);
     }
-  };
+  });
 
 
-  let requesterDruid_0_8_3 = ({query}) => {
+  let requesterDruid_0_8_3 = promiseFnToStream(({query}) => {
     if (query.queryType === 'status') return Promise.resolve({ version: '0.8.3' });
     expect(query.dataSource).to.equal('wikipedia');
 
@@ -253,7 +273,7 @@ describe("DruidExternal Introspection", () => {
         return Promise.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'));
       }
 
-      return Promise.resolve([merged]);
+      return Promise.resolve(merged);
 
     } else if (query.queryType === 'introspect') {
       return Promise.resolve({
@@ -264,10 +284,10 @@ describe("DruidExternal Introspection", () => {
     } else {
       throw new Error(`unsupported query ${query.queryType}`);
     }
-  };
+  });
 
 
-  let requesterDruid_0_8_2 = ({query}) => {
+  let requesterDruid_0_8_2 = promiseFnToStream(({query}) => {
     if (query.queryType === 'status') return Promise.resolve({ version: '0.8.2' });
     expect(query.dataSource).to.equal('wikipedia');
 
@@ -300,7 +320,7 @@ describe("DruidExternal Introspection", () => {
         return Promise.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'));
       }
 
-      return Promise.resolve([merged]);
+      return Promise.resolve(merged);
 
     } else if (query.queryType === 'introspect') {
       return Promise.resolve({
@@ -311,10 +331,10 @@ describe("DruidExternal Introspection", () => {
     } else {
       throw new Error(`unsupported query ${query.queryType}`);
     }
-  };
+  });
 
 
-  let requesterDruid_0_8_1 = ({query}) => {
+  let requesterDruid_0_8_1 = promiseFnToStream(({query}) => {
     if (query.queryType === 'status') return Promise.resolve({ version: '0.8.1' });
     expect(query.dataSource).to.equal('wikipedia');
 
@@ -331,7 +351,7 @@ describe("DruidExternal Introspection", () => {
     } else {
       throw new Error(`unsupported query ${query.queryType}`);
     }
-  };
+  });
 
 
   it("errors on bad introspectionStrategy", () => {
@@ -747,7 +767,9 @@ describe("DruidExternal Introspection", () => {
         },
         "queryType": "select"
       });
-      return Promise.resolve([]);
+      const stream = new PassThrough({ objectMode: true });
+      setTimeout(() => { stream.end(); }, 1);
+      return stream;
     };
 
     let wikiExternal = External.fromJS({
