@@ -74,7 +74,7 @@ function totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyE
     if (data.length === 1) {
       datum = data[0];
       for (let inflater of inflaters) {
-        inflater(datum, 0, data);
+        inflater(datum);
       }
     } else if (zeroTotalApplies) {
       datum = External.makeZeroDatum(zeroTotalApplies);
@@ -95,7 +95,7 @@ function postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpres
     let n = data.length;
     for (let inflater of inflaters) {
       for (let i = 0; i < n; i++) {
-        inflater(data[i], i, data);
+        inflater(data[i]);
       }
     }
 

@@ -12,6 +12,7 @@ cat \
   build/helper/retryRequester.js \
   build/helper/concurrentLimitRequester.js \
   build/helper/promiseWhile.js \
+  build/helper/streamBasics.js \
   build/helper/streamConcat.js \
   build/helper/utils.js \
   build/dialect/baseDialect.js \
@@ -108,6 +109,7 @@ cat \
   extra/prefix.js \
   build/version.js \
   build/helper/promiseWhile.js \
+  build/helper/streamBasics.js \
   build/helper/streamConcat.js \
   build/helper/utils.js \
   build/datatypes/common.js \
