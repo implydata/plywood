@@ -16,7 +16,8 @@
  */
 
 import * as Promise from 'any-promise';
-import { PlywoodValue, Dataset } from '../datatypes/index';
+import { Transform } from 'readable-stream';
+import { PlywoodValue, Dataset, Datum } from '../datatypes/index';
 import {
   Expression,
   ApplyExpression,
@@ -30,10 +31,6 @@ import {
 import { Attributes } from '../datatypes/attributeInfo';
 import { External, ExternalValue, Inflater, QueryAndPostProcess, PostProcess, TotalContainer } from './baseExternal';
 import { SQLDialect } from '../dialect/baseDialect';
-
-function correctResult(result: any[]): boolean {
-  return Array.isArray(result) && (result.length === 0 || typeof result[0] === 'object');
-}
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
   return split.mapSplits((label, splitExpression) => {
@@ -52,63 +49,79 @@ function getSplitInflaters(split: SplitExpression): Inflater[] {
   });
 }
 
-function valuePostProcess(data: any[]): PlywoodValue {
-  if (!correctResult(data)) {
-    let err = new Error("unexpected result (value)");
-    (<any>err).result = data; // ToDo: special error type
-    throw err;
-  }
-
-  return data.length ? data[0][External.VALUE_NAME] : 0;
-}
-
-function totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
-  return (data: any[]): TotalContainer => {
-    if (!correctResult(data)) {
-      let err = new Error("unexpected total result");
-      (<any>err).result = data; // ToDo: special error type
-      throw err;
-    }
-
-    let datum: any;
-    if (data.length === 1) {
-      datum = data[0];
-      for (let inflater of inflaters) {
-        inflater(datum);
-      }
-    } else if (zeroTotalApplies) {
-      datum = External.makeZeroDatum(zeroTotalApplies);
-    }
-
-    return new TotalContainer(datum);
-  };
-}
-
-function postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
-  return (data: any[]): Dataset => {
-    if (!correctResult(data)) {
-      let err = new Error("unexpected result");
-      (<any>err).result = data; // ToDo: special error type
-      throw err;
-    }
-
-    let n = data.length;
-    for (let inflater of inflaters) {
-      for (let i = 0; i < n; i++) {
-        inflater(data[i]);
-      }
-    }
-
-    if (n === 0 && zeroTotalApplies) {
-      data = [External.makeZeroDatum(zeroTotalApplies)];
-    }
-
-    return new Dataset({ data });
-  };
-}
-
 export abstract class SQLExternal extends External {
   static type = 'DATASET';
+
+  static valuePostProcess(data: any[]): PlywoodValue {
+    return data.length ? data[0][External.VALUE_NAME] : 0;
+  }
+
+  static valuePostTransformFactory() {
+    let valueSeen = false;
+    return new Transform({
+      objectMode: true,
+      transform: (d: Datum, encoding, callback) => {
+        valueSeen = true;
+        callback(null, d[External.VALUE_NAME]);
+      },
+      flush: (callback) => {
+        callback(null, valueSeen ? null : 0);
+      }
+    });
+  }
+
+  static totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
+    return (data: any[]): TotalContainer => {
+      let datum: any;
+      if (data.length === 1) {
+        datum = data[0];
+        for (let inflater of inflaters) {
+          inflater(datum);
+        }
+      } else if (zeroTotalApplies) {
+        datum = External.makeZeroDatum(zeroTotalApplies);
+      }
+
+      return new TotalContainer(datum);
+    };
+  }
+
+  static postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
+    return (data: any[]): Dataset => {
+      let n = data.length;
+      for (let inflater of inflaters) {
+        for (let i = 0; i < n; i++) {
+          inflater(data[i]);
+        }
+      }
+
+      if (n === 0 && zeroTotalApplies) {
+        data = [External.makeZeroDatum(zeroTotalApplies)];
+      }
+
+      return new Dataset({ data });
+    };
+  }
+
+  static postTransformFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]) {
+    let valueSeen = false;
+    return new Transform({
+      objectMode: true,
+      transform: (d: Datum, encoding, callback) => {
+        for (let inflater of inflaters) {
+          inflater(d);
+        }
+        callback(null, d);
+      },
+      flush: (callback) => {
+        let zeroDatum: Datum = null;
+        if (!valueSeen && zeroTotalApplies) {
+          zeroDatum = External.makeZeroDatum(zeroTotalApplies);
+        }
+        callback(null, zeroDatum);
+      }
+    });
+  }
 
   public dialect: SQLDialect;
 
@@ -158,6 +171,7 @@ export abstract class SQLExternal extends External {
 
     let query = ['SELECT'];
     let postProcess: PostProcess = null;
+    let postTransform: Transform = null;
     let inflaters: Inflater[] = [];
     let zeroTotalApplies: ApplyExpression[] = null;
 
@@ -209,7 +223,8 @@ export abstract class SQLExternal extends External {
           from,
           dialect.constantGroupBy()
         );
-        postProcess = valuePostProcess;
+        postProcess = SQLExternal.valuePostProcess;
+        postTransform = SQLExternal.valuePostTransformFactory();
         break;
 
       case 'total':
@@ -219,7 +234,7 @@ export abstract class SQLExternal extends External {
           from,
           dialect.constantGroupBy()
         );
-        postProcess = totalPostProcessFactory(inflaters, zeroTotalApplies);
+        postProcess = SQLExternal.totalPostProcessFactory(inflaters, zeroTotalApplies);
         break;
 
       case 'split':
@@ -249,7 +264,8 @@ export abstract class SQLExternal extends External {
 
     return {
       query: query.join('\n'),
-      postProcess: postProcess || postProcessFactory(inflaters, zeroTotalApplies)
+      postProcess: postProcess || SQLExternal.postProcessFactory(inflaters, zeroTotalApplies),
+      postTransform: postTransform || SQLExternal.postTransformFactory(inflaters, zeroTotalApplies)
     };
   }
 
