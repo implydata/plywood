@@ -77,7 +77,7 @@ export interface QueryAndPostProcess<T> {
   query: T;
   context?: Lookup<any>;
   postProcess: PostProcess;
-  postTransform?: Transform;
+  postTransform: Transform;
   next?: NextFn<T>;
 }
 

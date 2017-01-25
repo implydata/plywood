@@ -260,7 +260,7 @@ export class DruidExternal extends External {
         callback(null, d[External.VALUE_NAME]);
       },
       flush: (callback) => {
-        if (!valueSeen) callback(null, 0);
+        callback(null, valueSeen ? null : 0);
       }
     });
   }
@@ -281,7 +281,11 @@ export class DruidExternal extends External {
         callback(null, d);
       },
       flush: (callback) => {
-        if (!valueSeen) callback(null, External.makeZeroDatum(applies));
+        let zeroDatum: Datum = null;
+        if (!valueSeen) {
+          zeroDatum = External.makeZeroDatum(applies);
+        }
+        callback(null, zeroDatum);
       }
     });
   }
@@ -1013,6 +1017,7 @@ export class DruidExternal extends External {
           query: druidQuery,
           context: requesterContext,
           postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes),
+          postTransform: DruidExternal.postTransformFactory(inflaters, selectedAttributes),
           next: DruidExternal.selectNextFactory(resultLimit, descending)
         };
 
@@ -1028,7 +1033,8 @@ export class DruidExternal extends External {
         return {
           query: druidQuery,
           context: requesterContext,
-          postProcess: DruidExternal.valuePostProcess
+          postProcess: DruidExternal.valuePostProcess,
+          postTransform: DruidExternal.valuePostTransformFactory()
         };
 
       case 'total':
@@ -1043,7 +1049,8 @@ export class DruidExternal extends External {
         return {
           query: druidQuery,
           context: requesterContext,
-          postProcess: DruidExternal.totalPostProcessFactory(applies)
+          postProcess: DruidExternal.totalPostProcessFactory(applies),
+          postTransform: DruidExternal.totalPostTransformFactory(applies)
         };
 
       case 'split':
