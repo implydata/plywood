@@ -1134,3 +1134,85 @@ export class Dataset implements Instance<DatasetValue, any> {
 
 }
 check = Dataset;
+
+
+/*
+ two types of events (maybe 3):
+ { hello: 'world', x: 5 }  // short for (2):
+
+ 1. { __$$type: 'value', value: 5 }
+ 2. { __$$type: 'row', row: { hello: "world", x: 5 }, keyProp?: "hello" }
+ 3. { __$$type: 'within', keyProp: "hello", propValue: "world", attribute: "subDataset", apply: { ... } }
+ */
+
+export interface PlyBitFull {
+  __$$type: 'value' | 'row' | 'within';
+  value?: PlywoodValue;
+  row?: Datum;
+  keyProp?: string;
+  propValue?: PlywoodValue;
+  attribute?: string;
+  apply?: PlyBitFull;
+}
+
+export type PlyBit = PlyBitFull | Datum;
+
+export interface DatasetIterator {
+  (): PlyBit | null;
+}
+
+export function dfsDatasetIteratorFactory(dataset: Dataset): DatasetIterator {
+  let curRowIndex = -1;
+  let curRow: Datum = null;
+
+  function nextRow() {
+    curRowIndex++;
+    curRow = dataset.data[curRowIndex];
+    if (curRow) {
+      for (let k in curRow) {
+        if (curRow[k] instanceof Dataset) throw new Error('SubDataset: make this work'); // ToDo: temp
+      }
+    }
+  }
+
+  return () => {
+    nextRow();
+    return curRow;
+  };
+}
+
+export class PlywoodValueBuilder {
+  private _value: PlywoodValue = null;
+  private _data: Datum[];
+
+  public proceessBit(bit: PlyBit) {
+    const fullBit: PlyBitFull = hasOwnProp(bit, '__$$type') ? (bit as PlyBitFull) : { __$$type: 'row', row: bit as Datum };
+    switch (fullBit.__$$type) {
+      case 'value':
+        this._value = fullBit.value;
+        this._data = null;
+        break;
+
+      case 'row':
+        if (!this._data) this._data = [];
+        this._data.push(fullBit.row);
+        break;
+
+      case 'within':
+        throw new Error('within no supported yet'); // ToDo;
+        //break;
+
+      default:
+        throw new Error(`unexpected __$$type: ${fullBit.__$$type}`);
+    }
+  }
+
+  public getValue(): PlywoodValue {
+    if (this._value) {
+      return this._value;
+    } else {
+      return new Dataset({ data: this._data });
+    }
+  }
+}
+

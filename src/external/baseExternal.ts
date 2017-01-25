@@ -15,6 +15,7 @@
  */
 
 import * as Promise from 'any-promise';
+import { ReadableStream, Transform, Writable } from 'readable-stream';
 import { Timezone, Duration } from 'chronoshift';
 import { immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
 import * as hasOwnProp from 'has-own-prop';
@@ -22,6 +23,7 @@ import * as toArray from 'stream-to-array';
 import { PlywoodRequester } from 'plywood-base-api';
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
 import { nonEmptyLookup, safeAdd } from '../helper/utils';
+import { ReadableError } from '../helper/streamBasics';
 import {
   $, Expression, RefExpression, ExternalExpression,
   ChainableExpression,
@@ -37,7 +39,7 @@ import {
   TimeFloorExpression,
   AndExpression
 } from '../expressions/index';
-import { PlywoodValue, Datum, Dataset } from '../datatypes/dataset';
+import { PlywoodValue, Datum, Dataset, PlywoodValueBuilder } from '../datatypes/dataset';
 import { Attributes, AttributeInfo, AttributeJSs } from '../datatypes/attributeInfo';
 import { NumberRange } from '../datatypes/numberRange';
 import { unwrapSetType } from '../datatypes/common';
@@ -75,11 +77,12 @@ export interface QueryAndPostProcess<T> {
   query: T;
   context?: Lookup<any>;
   postProcess: PostProcess;
+  postTransform?: Transform;
   next?: NextFn<T>;
 }
 
 export interface Inflater {
-  (d: Datum, i: number, data: Datum[]): void;
+  (d: Datum): void;
 }
 
 export type QueryMode = "raw" | "value" | "total" | "split";
@@ -1359,7 +1362,7 @@ export abstract class External {
     throw new Error("can not call getQueryAndPostProcess directly");
   }
 
-  public queryValue(lastNode: boolean, externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
+  public _queryValue(lastNode: boolean, externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
     const { mode, requester } = this;
 
     if (!externalForNext) externalForNext = this;
@@ -1416,6 +1419,81 @@ export abstract class External {
     }
 
     return finalResult;
+  }
+
+  public queryValue(lastNode: boolean, externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
+    return new Promise((resolve, reject) => {
+      let pvb = new PlywoodValueBuilder();
+      const target = new Writable({
+        objectMode: true,
+        write: function(chunk, encoding, callback) {
+          pvb.proceessBit(chunk);
+          callback(null);
+        }
+      })
+        .on('finish', () => {
+          resolve(pvb.getValue());
+        });
+
+      this.queryValueStream(lastNode, externalForNext).pipe(target);
+    });
+  }
+
+  public queryValueStream(lastNode: boolean, externalForNext: External = null): ReadableStream {
+    const { mode, requester } = this;
+
+    if (!externalForNext) externalForNext = this;
+
+    let delegate = this.getDelegate();
+    if (delegate) {
+      return delegate.queryValueStream(lastNode, externalForNext);
+    }
+
+    if (!requester) {
+      return new ReadableError('must have a requester to make queries');
+    }
+    let queryAndPostProcess: QueryAndPostProcess<any>;
+    try {
+      queryAndPostProcess = this.getQueryAndPostProcess();
+    } catch (e) {
+      return new ReadableError(e);
+    }
+
+    let { query, context, postProcess, next } = queryAndPostProcess;
+    if (!query || typeof postProcess !== 'function') {
+      return new ReadableError('no query or postProcess');
+    }
+
+    let finalStream: ReadableStream;
+    if (next) {
+      let streamNumber = 0;
+      let meta: any = null;
+      let numResults: number;
+      const resultStream = new StreamConcat({
+        objectMode: true,
+        streams: () => {
+          if (streamNumber) query = next(query, numResults, meta);
+          if (!query) return null;
+          streamNumber++;
+          const stream = requester({ query, context });
+          meta = null;
+          stream.on('meta', (m: any) => meta = m);
+          numResults = 0;
+          stream.on('data', () => numResults++);
+          return stream;
+        }
+      });
+
+      finalStream = resultStream.pipe(queryAndPostProcess.postTransform);
+    } else {
+      finalStream = requester({ query, context }).pipe(queryAndPostProcess.postTransform);
+    }
+
+    // if (!lastNode && mode === 'split') {
+    //   finalStream = <Promise<PlywoodValue>>finalStream.then(externalForNext.addNextExternal.bind(externalForNext));
+    // }
+
+    return finalStream;
   }
 
   // -------------------------

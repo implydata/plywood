@@ -19,6 +19,7 @@ import * as Promise from 'any-promise';
 import * as Druid from 'druid.d.ts';
 import * as hasOwnProp from 'has-own-prop';
 import { PlywoodRequester } from 'plywood-base-api';
+import { Transform } from 'readable-stream';
 import * as toArray from 'stream-to-array';
 import { dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from '../helper/utils';
 import {
@@ -132,6 +133,7 @@ export interface DruidSplit {
   dimensions?: Druid.DimensionSpec[];
   leftoverHavingFilter?: Expression;
   postProcess: PostProcess;
+  postTransform: Transform;
 }
 
 export interface IntrospectPostProcess {
@@ -217,9 +219,50 @@ export class DruidExternal extends External {
     };
   }
 
+  static timeBoundaryPostTransformFactory(applies?: ApplyExpression[]) {
+    return new Transform({
+      objectMode: true,
+      transform: (d: Datum, encoding, callback) => {
+        if (applies) {
+          let datum: Datum = {};
+          for (let apply of applies) {
+            let name = apply.name;
+            if (typeof d === 'string') {
+              datum[name] = new Date(d);
+            } else {
+              if (apply.expression.op === 'max') {
+                datum[name] = new Date((d['maxIngestedEventTime'] || d['maxTime']) as string);
+              } else {
+                datum[name] = new Date(d['minTime'] as string);
+              }
+            }
+          }
+
+          callback(null, datum);
+        } else {
+          callback(null, new Date((d['maxIngestedEventTime'] || d['maxTime'] || d['minTime']) as string));
+        }
+      }
+    });
+  }
+
   static valuePostProcess(res: Datum[]): PlywoodValue {
     if (!res.length) return 0;
     return res[0][External.VALUE_NAME] as any;
+  }
+
+  static valuePostTransformFactory() {
+    let valueSeen = false;
+    return new Transform({
+      objectMode: true,
+      transform: (d: Datum, encoding, callback) => {
+        valueSeen = true;
+        callback(null, d[External.VALUE_NAME]);
+      },
+      flush: (callback) => {
+        if (!valueSeen) callback(null, 0);
+      }
+    });
   }
 
   static totalPostProcessFactory(applies: ApplyExpression[]): PostProcess {
@@ -229,18 +272,42 @@ export class DruidExternal extends External {
     };
   }
 
-  // ==========================
+  static totalPostTransformFactory(applies: ApplyExpression[]) {
+    let valueSeen = false;
+    return new Transform({
+      objectMode: true,
+      transform: (d: Datum, encoding, callback) => {
+        valueSeen = true;
+        callback(null, d);
+      },
+      flush: (callback) => {
+        if (!valueSeen) callback(null, External.makeZeroDatum(applies));
+      }
+    });
+  }
 
   static postProcessFactory(inflaters: Inflater[], attributes: Attributes) {
     return (data: Datum[]): Dataset => {
       let n = data.length;
       for (let inflater of inflaters) {
         for (let i = 0; i < n; i++) {
-          inflater(data[i], i, data);
+          inflater(data[i]);
         }
       }
       return new Dataset({ data, attributes });
     };
+  }
+
+  static postTransformFactory(inflaters: Inflater[], attributes: Attributes) {
+    return new Transform({
+      objectMode: true,
+      transform: (d: Datum, encoding, callback) => {
+        for (let inflater of inflaters) {
+          inflater(d);
+        }
+        callback(null, d);
+      }
+    });
   }
 
   static selectNextFactory(limit: number, descending: boolean): NextFn<Druid.Query> {
@@ -739,7 +806,8 @@ export class DruidExternal extends External {
         timestampLabel,
         granularity: granularity || 'all',
         leftoverHavingFilter,
-        postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes)
+        postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes),
+        postTransform: DruidExternal.postTransformFactory(inflaters, selectedAttributes)
       };
     }
 
@@ -754,7 +822,8 @@ export class DruidExternal extends External {
         granularity: granularityInflater.granularity,
         leftoverHavingFilter,
         timestampLabel: label,
-        postProcess: DruidExternal.postProcessFactory([granularityInflater.inflater], selectedAttributes)
+        postProcess: DruidExternal.postProcessFactory([granularityInflater.inflater], selectedAttributes),
+        postTransform: DruidExternal.postTransformFactory([granularityInflater.inflater], selectedAttributes)
       };
     }
 
@@ -773,7 +842,8 @@ export class DruidExternal extends External {
         granularity: 'all',
         leftoverHavingFilter,
         timestampLabel: null,
-        postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes)
+        postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes),
+        postTransform: DruidExternal.postTransformFactory(inflaters, selectedAttributes)
       };
     }
 
@@ -783,7 +853,8 @@ export class DruidExternal extends External {
       granularity: 'all',
       leftoverHavingFilter,
       timestampLabel: null,
-      postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes)
+      postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes),
+      postTransform: DruidExternal.postTransformFactory(inflaters, selectedAttributes)
     };
   }
 
@@ -826,7 +897,8 @@ export class DruidExternal extends External {
     return {
       query: druidQuery,
       context: { timestamp: null },
-      postProcess: DruidExternal.timeBoundaryPostProcessFactory(applies)
+      postProcess: DruidExternal.timeBoundaryPostProcessFactory(applies),
+      postTransform: DruidExternal.timeBoundaryPostTransformFactory(applies)
     };
   }
 
@@ -986,6 +1058,7 @@ export class DruidExternal extends External {
         let timestampLabel = splitSpec.timestampLabel;
         requesterContext.timestamp = timestampLabel;
         let postProcess = splitSpec.postProcess;
+        let postTransform = splitSpec.postTransform;
 
         // Apply
         aggregationsAndPostAggregations = new DruidAggregationBuilder(this).makeAggregationsAndPostAggregations(applies);
@@ -1086,11 +1159,12 @@ export class DruidExternal extends External {
         return {
           query: druidQuery,
           context: requesterContext,
-          postProcess: postProcess
+          postProcess: postProcess,
+          postTransform: postTransform
         };
 
       default:
-        throw new Error("can not get query for: " + this.mode);
+        throw new Error(`can not get query for: ${this.mode}`);
     }
   }
 
