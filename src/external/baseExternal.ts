@@ -1427,7 +1427,7 @@ export abstract class External {
       const target = new Writable({
         objectMode: true,
         write: function(chunk, encoding, callback) {
-          pvb.proceessBit(chunk);
+          pvb.processBit(chunk);
           callback(null);
         }
       })

@@ -26,7 +26,7 @@ describe("Stream", () => {
   describe("works", () => {
     it("in value case", () => {
       let pvb = new PlywoodValueBuilder();
-      pvb.proceessBit({ __$$type: 'value', value: 5 });
+      pvb.processBit({ __$$type: 'value', value: 5 });
 
       expect(pvb.getValue()).to.equal(5);
 
@@ -65,7 +65,7 @@ describe("Stream", () => {
 
       let bit;
       while (bit = dsi()) {
-        pvb.proceessBit(bit);
+        pvb.processBit(bit);
       }
 
       expect(pvb.getValue().toJS()).to.deep.equal(ds.toJS());

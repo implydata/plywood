@@ -1185,7 +1185,7 @@ export class PlywoodValueBuilder {
   private _value: PlywoodValue = null;
   private _data: Datum[];
 
-  public proceessBit(bit: PlyBit) {
+  public processBit(bit: PlyBit) {
     const fullBit: PlyBitFull = hasOwnProp(bit, '__$$type') ? (bit as PlyBitFull) : { __$$type: 'row', row: bit as Datum };
     switch (fullBit.__$$type) {
       case 'value':
