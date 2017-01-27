@@ -19,12 +19,94 @@ const { Timezone } = require('chronoshift');
 
 const { sane } = require('../utils');
 const plywood = require('../plywood');
-const { Dataset, AttributeInfo, $, Set, r, dfsDatasetIteratorFactory, PlywoodValueBuilder } = plywood;
+const { Dataset, AttributeInfo, $, Set, r, datasetIteratorFactory, PlywoodValueBuilder } = plywood;
 
 describe("Stream", () => {
 
-  describe("works", () => {
-    it("in value case", () => {
+  describe("datasetIteratorFactory", () => {
+    it("works", () => {
+      let ds = Dataset.fromJS([
+        {
+          "time": new Date("2015-09-12T00:46:58.771Z"),
+          "channel": "#en.wikipedia",
+          "isAnonymous": false,
+          "deleted": 0,
+          "users": [
+            { "name": "Vadim", x: 2 },
+            { "name": "Eva", x: 3 }
+          ]
+        },
+        {
+          "time": new Date("2015-09-12T00:48:20.157Z"),
+          "channel": "#en.wikipedia",
+          "isAnonymous": true,
+          "deleted": 26,
+          "users": [
+            { "name": "James", x: 8 },
+            { "name": "Charlie", x: 30 }
+          ]
+        }
+      ]);
+
+      let dsi = datasetIteratorFactory(ds);
+
+      let bits = [];
+      let bit;
+      while (bit = dsi()) {
+        bits.push(bit);
+      }
+
+      expect(bits).to.deep.equal([
+        {
+          "channel": "#en.wikipedia",
+          "deleted": 0,
+          "isAnonymous": false,
+          "time": new Date('2015-09-12T00:46:58.771Z')
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "name": "Vadim",
+            "x": 2
+          }
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "name": "Eva",
+            "x": 3
+          }
+        },
+        {
+          "channel": "#en.wikipedia",
+          "deleted": 26,
+          "isAnonymous": true,
+          "time": new Date('2015-09-12T00:48:20.157Z')
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "name": "James",
+            "x": 8
+          }
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "name": "Charlie",
+            "x": 30
+          }
+        }
+      ]);
+    });
+  });
+
+  describe("PlywoodValueBuilder", () => {
+    it("works in value case", () => {
       let pvb = new PlywoodValueBuilder();
       pvb.processBit({ __$$type: 'value', value: 5 });
 
@@ -32,7 +114,57 @@ describe("Stream", () => {
 
     });
 
-    it("in real Dataset case", () => {
+    it("works in dataset case", () => {
+      const bits = [
+        {
+          "channel": "#en.wikipedia",
+          "deleted": 0,
+          "isAnonymous": false,
+          "time": new Date('2015-09-12T00:46:58.771Z')
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "name": "Vadim",
+            "x": 2
+          }
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "name": "Eva",
+            "x": 3
+          }
+        }
+      ];
+
+      let pvb = new PlywoodValueBuilder();
+      for (let bit of bits) pvb.processBit(bit);
+
+      expect(pvb.getValue().toJS()).to.deep.equal([
+        {
+          "time": {
+            "type": "TIME",
+            "value": new Date('2015-09-12T00:46:58.771Z')
+          },
+          "channel": "#en.wikipedia",
+          "isAnonymous": false,
+          "deleted": 0,
+          "users": [
+            { "name": "Vadim", x: 2 },
+            { "name": "Eva", x: 3 }
+          ]
+        }
+      ]);
+
+    });
+
+  });
+
+  describe("datasetIteratorFactory => PlywoodValueBuilder", () => {
+    it("in flat Dataset case", () => {
       let ds = Dataset.fromJS([
         {
           "time": new Date("2015-09-12T00:46:58.771Z"),
@@ -60,7 +192,7 @@ describe("Stream", () => {
         }
       ]);
 
-      let dsi = dfsDatasetIteratorFactory(ds);
+      let dsi = datasetIteratorFactory(ds);
       let pvb = new PlywoodValueBuilder();
 
       let bit;
@@ -69,8 +201,43 @@ describe("Stream", () => {
       }
 
       expect(pvb.getValue().toJS()).to.deep.equal(ds.toJS());
-
     });
+
+    it("in nested Dataset case", () => {
+      let ds = Dataset.fromJS([
+        {
+          "time": new Date("2015-09-12T00:46:58.771Z"),
+          "channel": "#en.wikipedia",
+          "isAnonymous": false,
+          "deleted": 0,
+          "users": [
+            { "name": "Vadim", x: 2, nicknames: [{ nick: "Vadimon" }] },
+            { "name": "Eva", x: 3, nicknames: null }
+          ]
+        },
+        {
+          "time": new Date("2015-09-12T00:48:20.157Z"),
+          "channel": "#en.wikipedia",
+          "isAnonymous": true,
+          "deleted": 26,
+          "users": [
+            { "name": "James", x: 8, nicknames: null },
+            { "name": "Charlie", x: 30, nicknames: null }
+          ]
+        }
+      ]);
+
+      let dsi = datasetIteratorFactory(ds);
+      let pvb = new PlywoodValueBuilder();
+
+      let bit;
+      while (bit = dsi()) {
+        pvb.processBit(bit);
+      }
+
+      expect(pvb.getValue().toJS()).to.deep.equal(ds.toJS());
+    });
+
   });
 
 });
