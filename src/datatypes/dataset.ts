@@ -1152,7 +1152,7 @@ export interface PlyBitFull {
   keyProp?: string;
   propValue?: PlywoodValue;
   attribute?: string;
-  apply?: PlyBitFull;
+  within?: PlyBit;
 }
 
 export type PlyBit = PlyBitFull | Datum;
@@ -1161,22 +1161,54 @@ export interface DatasetIterator {
   (): PlyBit | null;
 }
 
-export function dfsDatasetIteratorFactory(dataset: Dataset): DatasetIterator {
+interface KeyDatasetIterator {
+  attribute: string;
+  datasetIterator: DatasetIterator;
+}
+
+export function datasetIteratorFactory(dataset: Dataset): DatasetIterator {
   let curRowIndex = -1;
   let curRow: Datum = null;
+  let cutRowDatasets: KeyDatasetIterator[] = [];
 
-  function nextRow() {
+  function nextSelfRow() {
     curRowIndex++;
-    curRow = dataset.data[curRowIndex];
-    if (curRow) {
-      for (let k in curRow) {
-        if (curRow[k] instanceof Dataset) throw new Error('SubDataset: make this work'); // ToDo: temp
+    cutRowDatasets = [];
+    let row = dataset.data[curRowIndex];
+    if (row) {
+      curRow = {};
+      for (let k in row) {
+        let v = row[k];
+        if (v instanceof Dataset) {
+          cutRowDatasets.push({
+            attribute: k,
+            datasetIterator: datasetIteratorFactory(v)
+          });
+        } else {
+          curRow[k] = v;
+        }
       }
+    } else {
+      curRow = null;
     }
   }
 
   return () => {
-    nextRow();
+    let pb: PlyBit;
+    while (cutRowDatasets.length && !pb) {
+      pb = cutRowDatasets[0].datasetIterator();
+      if (!pb) cutRowDatasets.shift();
+    }
+
+    if (pb) {
+      return {
+        __$$type: 'within',
+        attribute: cutRowDatasets[0].attribute,
+        within: pb
+      };
+    }
+
+    nextSelfRow();
     return curRow;
   };
 }
@@ -1184,6 +1216,9 @@ export function dfsDatasetIteratorFactory(dataset: Dataset): DatasetIterator {
 export class PlywoodValueBuilder {
   private _value: PlywoodValue = null;
   private _data: Datum[];
+  private _curAttribute: string = null;
+  private _curValueBuilder: PlywoodValueBuilder = null;
+
 
   public processBit(bit: PlyBit) {
     const fullBit: PlyBitFull = hasOwnProp(bit, '__$$type') ? (bit as PlyBitFull) : { __$$type: 'row', row: bit as Datum };
@@ -1191,16 +1226,29 @@ export class PlywoodValueBuilder {
       case 'value':
         this._value = fullBit.value;
         this._data = null;
+        this._curAttribute = null;
+        this._curValueBuilder = null;
         break;
 
       case 'row':
+        if (this._curValueBuilder) {
+          let lastDatum = this._data[this._data.length - 1];
+          if (!lastDatum) throw new Error('unexpected within');
+          lastDatum[this._curAttribute] = this._curValueBuilder.getValue();
+          this._curAttribute = null;
+          this._curValueBuilder = null;
+        }
         if (!this._data) this._data = [];
         this._data.push(fullBit.row);
         break;
 
       case 'within':
-        throw new Error('within no supported yet'); // ToDo;
-        //break;
+        if (!this._curValueBuilder) {
+          this._curAttribute = fullBit.attribute;
+          this._curValueBuilder = new PlywoodValueBuilder();
+        }
+        this._curValueBuilder.processBit(fullBit.within);
+        break;
 
       default:
         throw new Error(`unexpected __$$type: ${fullBit.__$$type}`);
@@ -1211,6 +1259,11 @@ export class PlywoodValueBuilder {
     if (this._value) {
       return this._value;
     } else {
+      if (this._curValueBuilder) {
+        let lastDatum = this._data[this._data.length - 1];
+        if (!lastDatum) throw new Error('unexpected within');
+        lastDatum[this._curAttribute] = this._curValueBuilder.getValue();
+      }
       return new Dataset({ data: this._data });
     }
   }
