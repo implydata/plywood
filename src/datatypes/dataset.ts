@@ -258,7 +258,7 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
     return new AttributeInfo({ name, type: 'TIME_RANGE' });
   } else if (attributeValue instanceof Set) {
     return new AttributeInfo({ name, type: attributeValue.getType() });
-  } else if (attributeValue instanceof Dataset) {
+  } else if (attributeValue instanceof Dataset || attributeValue instanceof External) {
     return new AttributeInfo({ name, type: 'DATASET', datasetType: attributeValue.getFullType().datasetType });
   } else {
     throw new Error(`Could not introspect ${attributeValue}`);
@@ -1221,7 +1221,8 @@ export class PlywoodValueBuilder {
 
 
   public processBit(bit: PlyBit) {
-    const fullBit: PlyBitFull = hasOwnProp(bit, '__$$type') ? (bit as PlyBitFull) : { __$$type: 'row', row: bit as Datum };
+    if (typeof bit !== 'object') throw new Error(`invalid bit: ${bit}`);
+    let fullBit: PlyBitFull = hasOwnProp(bit, '__$$type') ? (bit as PlyBitFull) : { __$$type: 'row', row: bit as Datum };
     switch (fullBit.__$$type) {
       case 'value':
         this._value = fullBit.value;
@@ -1256,15 +1257,16 @@ export class PlywoodValueBuilder {
   }
 
   public getValue(): PlywoodValue {
-    if (this._value) {
-      return this._value;
-    } else {
+    const { _data } = this;
+    if (_data) {
       if (this._curValueBuilder) {
-        let lastDatum = this._data[this._data.length - 1];
+        let lastDatum = _data[_data.length - 1];
         if (!lastDatum) throw new Error('unexpected within');
         lastDatum[this._curAttribute] = this._curValueBuilder.getValue();
       }
-      return new Dataset({ data: this._data });
+      return new Dataset({ data: _data });
+    } else {
+      return this._value;
     }
   }
 }
