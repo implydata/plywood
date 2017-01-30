@@ -251,20 +251,6 @@ export class DruidExternal extends External {
     return res[0][External.VALUE_NAME] as any;
   }
 
-  static valuePostTransformFactory() {
-    let valueSeen = false;
-    return new Transform({
-      objectMode: true,
-      transform: (d: Datum, encoding, callback) => {
-        valueSeen = true;
-        callback(null, d[External.VALUE_NAME]);
-      },
-      flush: (callback) => {
-        callback(null, valueSeen ? null : 0);
-      }
-    });
-  }
-
   static totalPostProcessFactory(applies: ApplyExpression[]): PostProcess {
     return (res: Datum[]): TotalContainer => {
       if (!res.length) return new TotalContainer(External.makeZeroDatum(applies));
