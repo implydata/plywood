@@ -540,6 +540,20 @@ export abstract class External {
     return changed ? newDerivedAttributes : derivedAttributes;
   }
 
+  static valuePostTransformFactory() {
+    let valueSeen = false;
+    return new Transform({
+      objectMode: true,
+      transform: (d: Datum, encoding, callback) => {
+        valueSeen = true;
+        callback(null, { __$$type: 'value', value: d[External.VALUE_NAME] });
+      },
+      flush: (callback) => {
+        callback(null, valueSeen ? null : { __$$type: 'value', value: 0 });
+      }
+    });
+  }
+
   static jsToValue(parameters: ExternalJS, requester: PlywoodRequester<any>): ExternalValue {
     let value: ExternalValue = {
       engine: parameters.engine,
@@ -1298,6 +1312,12 @@ export abstract class External {
 
   // -----------------
 
+  public addNextExternalToDatum(datum: Datum): void {
+    const { mode, dataName, split } = this;
+    if (mode !== 'split') throw new Error('must be in split mode to addNextExternalToDatum');
+    datum[dataName] = this.getRaw()._addFilterExpression(Expression._.filter(split.filterFromDatum(datum)));
+  }
+
   public addNextExternal(dataset: Dataset): Dataset {
     const { mode, dataName, split } = this;
     if (mode !== 'split') throw new Error('must be in split mode to addNextExternal');
@@ -1353,9 +1373,10 @@ export abstract class External {
       return new TotalContainer(datum);
     }
 
-    let dataset = new Dataset({ data: [datum] });
-    if (!lastNode && mode === 'split') dataset = externalForNext.addNextExternal(dataset);
-    return dataset;
+    if (!lastNode && mode === 'split') {
+      externalForNext.addNextExternalToDatum(datum);
+    }
+    return new Dataset({ data: [datum] });
   }
 
   public getQueryAndPostProcess(): QueryAndPostProcess<any> {
@@ -1422,6 +1443,8 @@ export abstract class External {
   }
 
   public queryValue(lastNode: boolean, externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
+    const { mode } = this;
+
     return new Promise((resolve, reject) => {
       let pvb = new PlywoodValueBuilder();
       const target = new Writable({
@@ -1432,7 +1455,9 @@ export abstract class External {
         }
       })
         .on('finish', () => {
-          resolve(pvb.getValue());
+          let v: PlywoodValue | TotalContainer = pvb.getValue();
+          if (mode === 'total' && v instanceof Dataset && v.data.length === 1) v = new TotalContainer(v.data[0]);
+          resolve(v);
         });
 
       this.queryValueStream(lastNode, externalForNext).pipe(target);
@@ -1489,9 +1514,17 @@ export abstract class External {
       finalStream = requester({ query, context }).pipe(queryAndPostProcess.postTransform);
     }
 
-    // if (!lastNode && mode === 'split') {
-    //   finalStream = <Promise<PlywoodValue>>finalStream.then(externalForNext.addNextExternal.bind(externalForNext));
-    // }
+    if (!lastNode && mode === 'split') {
+      finalStream = finalStream.pipe(new Transform({
+        objectMode: true,
+        transform: (chunk, enc, callback) => {
+          externalForNext.addNextExternalToDatum(chunk);
+          callback(null, chunk);
+        }
+      }));
+
+      //finalStream = <Promise<PlywoodValue>>finalStream.then(externalForNext.addNextExternal.bind(externalForNext));
+    }
 
     return finalStream;
   }

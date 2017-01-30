@@ -212,7 +212,7 @@ describe("MySQL Functional", function() {
         });
     });
 
-    it.only("works with boolean GROUP BYs", () => {
+    it("works with boolean GROUP BYs", () => {
       let ex = $("wiki").split($("channel").is("en"), 'ChannelIsEn')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending');

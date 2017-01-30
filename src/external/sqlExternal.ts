@@ -62,7 +62,10 @@ export abstract class SQLExternal extends External {
       objectMode: true,
       transform: (d: Datum, encoding, callback) => {
         valueSeen = true;
-        callback(null, d[External.VALUE_NAME]);
+        callback(null, {
+          __$$type: 'value',
+          value: d[External.VALUE_NAME]
+        });
       },
       flush: (callback) => {
         callback(null, valueSeen ? null : 0);

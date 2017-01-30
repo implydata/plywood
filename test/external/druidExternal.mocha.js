@@ -1974,7 +1974,7 @@ describe("DruidExternal", () => {
         });
     });
 
-    it("should return null correctly on a timeseries query", () => {
+    it.only("should return null correctly on a timeseries query", () => {
       let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');

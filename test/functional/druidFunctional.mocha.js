@@ -828,7 +828,7 @@ describe("Druid Functional", function() {
         });
     });
 
-    it.only("does not zero fill", () => {
+    it("does not zero fill", () => {
       let ex = $('wiki')
         .filter('$cityName == "El Paso"')
         .split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
