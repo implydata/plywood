@@ -19,10 +19,11 @@ import * as Promise from 'any-promise';
 import * as hasOwnProp from 'has-own-prop';
 import { Timezone, Duration, parseISODate } from 'chronoshift';
 import { Instance, isImmutableClass, SimpleArray } from 'immutable-class';
+import { ReadableStream, PassThrough } from 'readable-stream';
 import { shallowCopy } from '../helper/utils';
 import { promiseWhile } from '../helper/promiseWhile';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple, Environment } from '../types';
-import { fillExpressionExternalAlteration } from '../datatypes/index';
+import { fillExpressionExternalAlteration, datasetIteratorFactory, PlyBit } from '../datatypes/index';
 import { LiteralExpression } from './literalExpression';
 import { RefExpression } from './refExpression';
 import { ExternalExpression } from './externalExpression';
@@ -1722,6 +1723,43 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         }
         return readyExpression._computeResolved(options);
       });
+  }
+
+  /**
+   * Computes a general asynchronous expression and streams the results
+   * @param context The context within which to compute the expression
+   * @param options The options determining computation
+   */
+  public computeStream(context: Datum = {}, options: ComputeOptions = {}): ReadableStream {
+    const pt = new PassThrough({ objectMode: true });
+
+    introspectDatum(context)
+      .then((introspectedContext: Datum) => {
+        let readyExpression = this._initialPrepare(introspectedContext, options);
+        if (readyExpression instanceof ExternalExpression) {
+          // Top level externals need to be unsuppressed
+          //readyExpression = readyExpression.unsuppress();
+          let s = readyExpression.external.queryValueStream(true);
+          s.pipe(pt);
+          s.on('error', (e: Error) => pt.emit('error', e));
+          return;
+        }
+
+        readyExpression._computeResolved(options)
+          .then((v) => {
+            const i = datasetIteratorFactory(v as Dataset);
+            let bit: PlyBit;
+            while (bit = i()) {
+              pt.write(bit);
+            }
+            pt.end();
+          });
+      })
+      .catch((e) => {
+        pt.emit('error', e);
+      });
+
+    return pt;
   }
 
   public _computeResolved(options: ComputeOptions): Promise<PlywoodValue> {
