@@ -29,7 +29,7 @@ import {
   TimeBucketExpression
 } from '../expressions/index';
 import { Attributes } from '../datatypes/attributeInfo';
-import { External, ExternalValue, Inflater, QueryAndPostProcess, PostProcess, TotalContainer } from './baseExternal';
+import { External, ExternalValue, Inflater, QueryAndPostTransform, TotalContainer } from './baseExternal';
 import { SQLDialect } from '../dialect/baseDialect';
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
@@ -51,63 +51,6 @@ function getSplitInflaters(split: SplitExpression): Inflater[] {
 
 export abstract class SQLExternal extends External {
   static type = 'DATASET';
-
-  static valuePostProcess(data: any[]): PlywoodValue {
-    return data.length ? data[0][External.VALUE_NAME] : 0;
-  }
-
-  static totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
-    return (data: any[]): TotalContainer => {
-      let datum: any;
-      if (data.length === 1) {
-        datum = data[0];
-        for (let inflater of inflaters) {
-          inflater(datum);
-        }
-      } else if (zeroTotalApplies) {
-        datum = External.makeZeroDatum(zeroTotalApplies);
-      }
-
-      return new TotalContainer(datum);
-    };
-  }
-
-  static postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
-    return (data: any[]): Dataset => {
-      let n = data.length;
-      for (let inflater of inflaters) {
-        for (let i = 0; i < n; i++) {
-          inflater(data[i]);
-        }
-      }
-
-      if (n === 0 && zeroTotalApplies) {
-        data = [External.makeZeroDatum(zeroTotalApplies)];
-      }
-
-      return new Dataset({ data });
-    };
-  }
-
-  static postTransformFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]) {
-    let valueSeen = false;
-    return new Transform({
-      objectMode: true,
-      transform: (d: Datum, encoding, callback) => {
-        for (let inflater of inflaters) {
-          inflater(d);
-        }
-        callback(null, d);
-      },
-      flush: (callback) => {
-        let zeroDatum: Datum = null;
-        if (!valueSeen && zeroTotalApplies) {
-          zeroDatum = External.makeZeroDatum(zeroTotalApplies);
-        }
-        callback(null, zeroDatum);
-      }
-    });
-  }
 
   public dialect: SQLDialect;
 
@@ -152,11 +95,10 @@ export abstract class SQLExternal extends External {
 
   // -----------------
 
-  public getQueryAndPostProcess(): QueryAndPostProcess<string> {
+  public getQueryAndPostTransform(): QueryAndPostTransform<string> {
     const { source, mode, applies, sort, limit, derivedAttributes, dialect } = this;
 
     let query = ['SELECT'];
-    let postProcess: PostProcess = null;
     let postTransform: Transform = null;
     let inflaters: Inflater[] = [];
     let zeroTotalApplies: ApplyExpression[] = null;
@@ -209,7 +151,6 @@ export abstract class SQLExternal extends External {
           from,
           dialect.constantGroupBy()
         );
-        postProcess = SQLExternal.valuePostProcess;
         postTransform = External.valuePostTransformFactory();
         break;
 
@@ -220,7 +161,6 @@ export abstract class SQLExternal extends External {
           from,
           dialect.constantGroupBy()
         );
-        postProcess = SQLExternal.totalPostProcessFactory(inflaters, zeroTotalApplies);
         break;
 
       case 'split':
@@ -250,8 +190,7 @@ export abstract class SQLExternal extends External {
 
     return {
       query: query.join('\n'),
-      postProcess: postProcess || SQLExternal.postProcessFactory(inflaters, zeroTotalApplies),
-      postTransform: postTransform || SQLExternal.postTransformFactory(inflaters, zeroTotalApplies)
+      postTransform: postTransform || External.postTransformFactory(inflaters, this.getSelectedAttributes(), zeroTotalApplies)
     };
   }
 

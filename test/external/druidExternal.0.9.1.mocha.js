@@ -85,7 +85,7 @@ describe("DruidExternal 0.9.1", () => {
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
       expect(() => {
-        druidExternal.getQueryAndPostProcess();
+        druidExternal.getQueryAndPostTransform();
       }).to.throw('can not do secondary filtering on primary time dimension (https://github.com/druid-io/druid/issues/2816)');
     });
 

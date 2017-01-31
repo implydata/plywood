@@ -1521,7 +1521,7 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         let external = ex.external;
-        expect(external.getQueryAndPostProcess().query.dimensions).to.deep.equal([
+        expect(external.getQueryAndPostTransform().query.dimensions).to.deep.equal([
           'page',
           {
             "dimension": "language",
@@ -1563,7 +1563,7 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let external = ex.external;
-        expect(external.getQueryAndPostProcess().query.aggregations).to.deep.equal([
+        expect(external.getQueryAndPostTransform().query.aggregations).to.deep.equal([
           {
             "name": "Count",
             "type": "count"
