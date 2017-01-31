@@ -80,7 +80,7 @@ import {
   TimeRange,
   PlywoodValue
 } from '../datatypes/index';
-import { External, ExternalJS, ExternalValue, Inflater, NextFn, PostProcess, QueryAndPostProcess, TotalContainer } from './baseExternal';
+import { External, ExternalJS, ExternalValue, Inflater, NextFn, QueryAndPostTransform, TotalContainer } from './baseExternal';
 import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
 import { DruidExtractionFnBuilder } from './utils/druidExtractionFnBuilder';
 import { DruidFilterBuilder, DruidFilterAndIntervals } from './utils/druidFilterBuilder';
@@ -132,7 +132,6 @@ export interface DruidSplit {
   dimension?: Druid.DimensionSpec;
   dimensions?: Druid.DimensionSpec[];
   leftoverHavingFilter?: Expression;
-  postProcess: PostProcess;
   postTransform: Transform;
 }
 
@@ -192,33 +191,6 @@ export class DruidExternal extends External {
       });
   }
 
-  static timeBoundaryPostProcessFactory(applies?: ApplyExpression[]): PostProcess {
-    return (res: Datum[]): Date | TotalContainer => {
-      let result: any = res[0];
-
-      if (applies) {
-        let datum: Datum = {};
-        for (let apply of applies) {
-          let name = apply.name;
-          if (typeof result === 'string') {
-            datum[name] = new Date(result);
-          } else {
-            if (apply.expression.op === 'max') {
-              datum[name] = new Date((result['maxIngestedEventTime'] || result['maxTime']) as string);
-            } else {
-              datum[name] = new Date(result['minTime'] as string);
-            }
-          }
-        }
-
-        return new TotalContainer(datum);
-
-      } else {
-        return new Date((result['maxIngestedEventTime'] || result['maxTime'] || result['minTime']) as string);
-      }
-    };
-  }
-
   static timeBoundaryPostTransformFactory(applies?: ApplyExpression[]) {
     return new Transform({
       objectMode: true,
@@ -242,79 +214,6 @@ export class DruidExternal extends External {
         } else {
           callback(null, new Date((d['maxIngestedEventTime'] || d['maxTime'] || d['minTime']) as string));
         }
-      }
-    });
-  }
-
-  static valuePostProcess(res: Datum[]): PlywoodValue {
-    if (!res.length) return 0;
-    return res[0][External.VALUE_NAME] as any;
-  }
-
-  static totalPostProcessFactory(applies: ApplyExpression[]): PostProcess {
-    return (res: Datum[]): TotalContainer => {
-      if (!res.length) return new TotalContainer(External.makeZeroDatum(applies));
-      return new TotalContainer(res[0]);
-    };
-  }
-
-  static totalPostTransformFactory(applies: ApplyExpression[]) {
-    let valueSeen = false;
-    return new Transform({
-      objectMode: true,
-      transform: (d: Datum, encoding, callback) => {
-        valueSeen = true;
-        callback(null, d);
-      },
-      flush: (callback) => {
-        let zeroDatum: Datum = null;
-        if (!valueSeen) {
-          zeroDatum = External.makeZeroDatum(applies);
-        }
-        callback(null, zeroDatum);
-      }
-    });
-  }
-
-  static postProcessFactory(inflaters: Inflater[], attributes: Attributes) {
-    return (data: Datum[]): Dataset => {
-      let n = data.length;
-      for (let inflater of inflaters) {
-        for (let i = 0; i < n; i++) {
-          inflater(data[i]);
-        }
-      }
-      return new Dataset({ data, attributes });
-    };
-  }
-
-  static postTransformFactory(inflaters: Inflater[], attributes: Attributes) {
-    let valueSeen = false;
-    return new Transform({
-      objectMode: true,
-      transform: function(d: Datum, encoding, callback) {
-        if (!valueSeen) {
-          this.push({
-            __$$type: 'init',
-            attributes,
-            keys: null
-          });
-          valueSeen = true;
-        }
-        for (let inflater of inflaters) {
-          inflater(d);
-        }
-        callback(null, d);
-      },
-      flush: function(callback) {
-        if (!valueSeen) {
-          this.push({
-            __$$type: 'init',
-            attributes,
-            keys: null
-          });
-        }
-        callback();
       }
     });
   }
@@ -815,8 +714,7 @@ export class DruidExternal extends External {
         timestampLabel,
         granularity: granularity || 'all',
         leftoverHavingFilter,
-        postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes),
-        postTransform: DruidExternal.postTransformFactory(inflaters, selectedAttributes)
+        postTransform: External.postTransformFactory(inflaters, selectedAttributes, null)
       };
     }
 
@@ -831,8 +729,7 @@ export class DruidExternal extends External {
         granularity: granularityInflater.granularity,
         leftoverHavingFilter,
         timestampLabel: label,
-        postProcess: DruidExternal.postProcessFactory([granularityInflater.inflater], selectedAttributes),
-        postTransform: DruidExternal.postTransformFactory([granularityInflater.inflater], selectedAttributes)
+        postTransform: External.postTransformFactory([granularityInflater.inflater], selectedAttributes, null)
       };
     }
 
@@ -851,8 +748,7 @@ export class DruidExternal extends External {
         granularity: 'all',
         leftoverHavingFilter,
         timestampLabel: null,
-        postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes),
-        postTransform: DruidExternal.postTransformFactory(inflaters, selectedAttributes)
+        postTransform: External.postTransformFactory(inflaters, selectedAttributes, null)
       };
     }
 
@@ -862,8 +758,7 @@ export class DruidExternal extends External {
       granularity: 'all',
       leftoverHavingFilter,
       timestampLabel: null,
-      postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes),
-      postTransform: DruidExternal.postTransformFactory(inflaters, selectedAttributes)
+      postTransform: External.postTransformFactory(inflaters, selectedAttributes, null)
     };
   }
 
@@ -876,7 +771,7 @@ export class DruidExternal extends External {
     }
   }
 
-  public getTimeBoundaryQueryAndPostProcess(): QueryAndPostProcess<Druid.Query> {
+  public getTimeBoundaryQueryAndPostTransform(): QueryAndPostTransform<Druid.Query> {
     const { mode, context } = this;
     let druidQuery: Druid.Query = {
       queryType: "timeBoundary",
@@ -906,18 +801,17 @@ export class DruidExternal extends External {
     return {
       query: druidQuery,
       context: { timestamp: null },
-      postProcess: DruidExternal.timeBoundaryPostProcessFactory(applies),
       postTransform: DruidExternal.timeBoundaryPostTransformFactory(applies)
     };
   }
 
-  public getQueryAndPostProcess(): QueryAndPostProcess<Druid.Query> {
+  public getQueryAndPostTransform(): QueryAndPostTransform<Druid.Query> {
     const { mode, applies, sort, limit, context } = this;
 
     if (mode === 'total' && applies && applies.length && applies.every(apply => this.isMinMaxTimeExpression(apply.expression))) {
-      return this.getTimeBoundaryQueryAndPostProcess();
+      return this.getTimeBoundaryQueryAndPostTransform();
     } else if (mode === 'value' && this.isMinMaxTimeExpression(this.valueExpression)) {
-      return this.getTimeBoundaryQueryAndPostProcess();
+      return this.getTimeBoundaryQueryAndPostTransform();
     }
 
     let druidQuery: Druid.Query = {
@@ -1021,8 +915,7 @@ export class DruidExternal extends External {
         return {
           query: druidQuery,
           context: requesterContext,
-          postProcess: DruidExternal.postProcessFactory(inflaters, selectedAttributes),
-          postTransform: DruidExternal.postTransformFactory(inflaters, selectedAttributes),
+          postTransform: External.postTransformFactory(inflaters, selectedAttributes, null),
           next: DruidExternal.selectNextFactory(resultLimit, descending)
         };
 
@@ -1038,7 +931,6 @@ export class DruidExternal extends External {
         return {
           query: druidQuery,
           context: requesterContext,
-          postProcess: DruidExternal.valuePostProcess,
           postTransform: External.valuePostTransformFactory()
         };
 
@@ -1054,8 +946,7 @@ export class DruidExternal extends External {
         return {
           query: druidQuery,
           context: requesterContext,
-          postProcess: DruidExternal.totalPostProcessFactory(applies),
-          postTransform: DruidExternal.totalPostTransformFactory(applies)
+          postTransform: External.postTransformFactory([], this.getSelectedAttributes(), applies)
         };
 
       case 'split':
@@ -1069,7 +960,6 @@ export class DruidExternal extends External {
         let leftoverHavingFilter = splitSpec.leftoverHavingFilter;
         let timestampLabel = splitSpec.timestampLabel;
         requesterContext.timestamp = timestampLabel;
-        let postProcess = splitSpec.postProcess;
         let postTransform = splitSpec.postTransform;
 
         // Apply
@@ -1171,7 +1061,6 @@ export class DruidExternal extends External {
         return {
           query: druidQuery,
           context: requesterContext,
-          postProcess: postProcess,
           postTransform: postTransform
         };
 

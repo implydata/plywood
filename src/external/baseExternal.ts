@@ -49,7 +49,6 @@ import { Set } from '../datatypes/set';
 import { StringRange } from '../datatypes/stringRange';
 import { TimeRange } from '../datatypes/timeRange';
 import { StreamConcat } from '../helper/streamConcat';
-import { promiseWhile } from '../helper/promiseWhile';
 
 export class TotalContainer {
   public datum: Datum;
@@ -65,18 +64,13 @@ export class TotalContainer {
   }
 }
 
-export interface PostProcess {
-  (result: any): PlywoodValue | TotalContainer;
-}
-
 export interface NextFn<Q> {
   (prevQuery: Q, prevResultLength: number, prevMeta: any): Q;
 }
 
-export interface QueryAndPostProcess<T> {
+export interface QueryAndPostTransform<T> {
   query: T;
   context?: Lookup<any>;
-  postProcess: PostProcess;
   postTransform: Transform;
   next?: NextFn<T>;
 }
@@ -550,6 +544,41 @@ export abstract class External {
       },
       flush: (callback) => {
         callback(null, valueSeen ? null : { __$$type: 'value', value: 0 });
+      }
+    });
+  }
+
+  static postTransformFactory(inflaters: Inflater[], attributes: Attributes, zeroTotalApplies: ApplyExpression[]) {
+    let valueSeen = false;
+    return new Transform({
+      objectMode: true,
+      transform: function(d: Datum, encoding, callback) {
+        if (!valueSeen) {
+          this.push({
+            __$$type: 'init',
+            attributes,
+            keys: null
+          });
+          valueSeen = true;
+        }
+        for (let inflater of inflaters) {
+          inflater(d);
+        }
+        callback(null, d);
+      },
+      flush: function(callback) {
+        if (!valueSeen) {
+          this.push({
+            __$$type: 'init',
+            attributes,
+            keys: null
+          });
+
+          if (zeroTotalApplies) {
+            this.push(External.makeZeroDatum(zeroTotalApplies));
+          }
+        }
+        callback();
       }
     });
   }
@@ -1318,14 +1347,6 @@ export abstract class External {
     datum[dataName] = this.getRaw()._addFilterExpression(Expression._.filter(split.filterFromDatum(datum)));
   }
 
-  public addNextExternal(dataset: Dataset): Dataset {
-    const { mode, dataName, split } = this;
-    if (mode !== 'split') throw new Error('must be in split mode to addNextExternal');
-    return dataset.applyFn(dataName, (d: Datum) => {
-      return this.getRaw()._addFilterExpression(Expression._.filter(split.filterFromDatum(d)));
-    }, 'DATASET');
-  }
-
   public getDelegate(): External {
     const { mode, delegates } = this;
     if (!delegates || !delegates.length || mode === 'raw') return null;
@@ -1342,7 +1363,7 @@ export abstract class External {
       return delegate.simulateValue(lastNode, simulatedQueries, externalForNext);
     }
 
-    simulatedQueries.push(this.getQueryAndPostProcess().query);
+    simulatedQueries.push(this.getQueryAndPostTransform().query);
 
     if (mode === 'value') {
       let valueExpression = this.valueExpression;
@@ -1379,67 +1400,8 @@ export abstract class External {
     return new Dataset({ data: [datum] });
   }
 
-  public getQueryAndPostProcess(): QueryAndPostProcess<any> {
-    throw new Error("can not call getQueryAndPostProcess directly");
-  }
-
-  public _queryValue(lastNode: boolean, externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
-    const { mode, requester } = this;
-
-    if (!externalForNext) externalForNext = this;
-
-    let delegate = this.getDelegate();
-    if (delegate) {
-      return delegate.queryValue(lastNode, externalForNext);
-    }
-
-    if (!requester) {
-      return <Promise<PlywoodValue | TotalContainer>>Promise.reject(new Error('must have a requester to make queries'));
-    }
-    let queryAndPostProcess: QueryAndPostProcess<any>;
-    try {
-      queryAndPostProcess = this.getQueryAndPostProcess();
-    } catch (e) {
-      return <Promise<PlywoodValue | TotalContainer>>Promise.reject(e);
-    }
-
-    let { query, context, postProcess, next } = queryAndPostProcess;
-    if (!query || typeof postProcess !== 'function') {
-      return <Promise<PlywoodValue>>Promise.reject(new Error('no query or postProcess'));
-    }
-
-    let finalResult: Promise<PlywoodValue | TotalContainer>;
-    if (next) {
-      let streamNumber = 0;
-      let meta: any = null;
-      let numResults: number;
-      const resultStream = new StreamConcat({
-        objectMode: true,
-        streams: () => {
-          if (streamNumber) query = next(query, numResults, meta);
-          if (!query) return null;
-          streamNumber++;
-          const stream = requester({ query, context });
-          meta = null;
-          stream.on('meta', (m: any) => meta = m);
-          numResults = 0;
-          stream.on('data', () => numResults++);
-          return stream;
-        }
-      });
-
-      finalResult = toArray(resultStream)
-        .then(queryAndPostProcess.postProcess);
-    } else {
-      finalResult = toArray(requester({ query, context })) // ToDo: TEMP!!
-        .then(queryAndPostProcess.postProcess);
-    }
-
-    if (!lastNode && mode === 'split') {
-      finalResult = <Promise<PlywoodValue>>finalResult.then(externalForNext.addNextExternal.bind(externalForNext));
-    }
-
-    return finalResult;
+  public getQueryAndPostTransform(): QueryAndPostTransform<any> {
+    throw new Error("can not call getQueryAndPostTransform directly");
   }
 
   public queryValue(lastNode: boolean, externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
@@ -1477,16 +1439,16 @@ export abstract class External {
     if (!requester) {
       return new ReadableError('must have a requester to make queries');
     }
-    let queryAndPostProcess: QueryAndPostProcess<any>;
+    let queryAndPostTransform: QueryAndPostTransform<any>;
     try {
-      queryAndPostProcess = this.getQueryAndPostProcess();
+      queryAndPostTransform = this.getQueryAndPostTransform();
     } catch (e) {
       return new ReadableError(e);
     }
 
-    let { query, context, postProcess, next } = queryAndPostProcess;
-    if (!query || typeof postProcess !== 'function') {
-      return new ReadableError('no query or postProcess');
+    let { query, context, postTransform, next } = queryAndPostTransform;
+    if (!query || !postTransform) {
+      return new ReadableError('no query or postTransform');
     }
 
     let finalStream: ReadableStream;
@@ -1509,9 +1471,9 @@ export abstract class External {
         }
       });
 
-      finalStream = resultStream.pipe(queryAndPostProcess.postTransform);
+      finalStream = resultStream.pipe(queryAndPostTransform.postTransform);
     } else {
-      finalStream = requester({ query, context }).pipe(queryAndPostProcess.postTransform);
+      finalStream = requester({ query, context }).pipe(queryAndPostTransform.postTransform);
     }
 
     if (!lastNode && mode === 'split') {
@@ -1522,8 +1484,6 @@ export abstract class External {
           callback(null, chunk);
         }
       }));
-
-      //finalStream = <Promise<PlywoodValue>>finalStream.then(externalForNext.addNextExternal.bind(externalForNext));
     }
 
     return finalStream;
