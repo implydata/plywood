@@ -21,6 +21,10 @@ const { sane } = require('../utils');
 const plywood = require('../plywood');
 const { Dataset, AttributeInfo, $, Set, r, datasetIteratorFactory, PlywoodValueBuilder } = plywood;
 
+function toJSON(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 describe("Stream", () => {
 
   describe("datasetIteratorFactory", () => {
@@ -56,12 +60,64 @@ describe("Stream", () => {
         bits.push(bit);
       }
 
-      expect(bits).to.deep.equal([
+      expect(toJSON(bits)).to.deep.equal([
+        {
+          "__$$type": "init",
+          "attributes": [
+            {
+              "name": "time",
+              "type": "TIME"
+            },
+            {
+              "name": "channel",
+              "type": "STRING"
+            },
+            {
+              "name": "isAnonymous",
+              "type": "BOOLEAN"
+            },
+            {
+              "name": "deleted",
+              "type": "NUMBER"
+            },
+            {
+              "datasetType": {
+                "name": {
+                  "type": "STRING"
+                },
+                "x": {
+                  "type": "NUMBER"
+                }
+              },
+              "name": "users",
+              "type": "DATASET"
+            }
+          ],
+          "keys": null
+        },
         {
           "channel": "#en.wikipedia",
           "deleted": 0,
           "isAnonymous": false,
-          "time": new Date('2015-09-12T00:46:58.771Z')
+          "time": "2015-09-12T00:46:58.771Z"
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "__$$type": "init",
+            "attributes": [
+              {
+                "name": "name",
+                "type": "STRING"
+              },
+              {
+                "name": "x",
+                "type": "NUMBER"
+              }
+            ],
+            "keys": null
+          }
         },
         {
           "__$$type": "within",
@@ -83,7 +139,25 @@ describe("Stream", () => {
           "channel": "#en.wikipedia",
           "deleted": 26,
           "isAnonymous": true,
-          "time": new Date('2015-09-12T00:48:20.157Z')
+          "time": "2015-09-12T00:48:20.157Z"
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "__$$type": "init",
+            "attributes": [
+              {
+                "name": "name",
+                "type": "STRING"
+              },
+              {
+                "name": "x",
+                "type": "NUMBER"
+              }
+            ],
+            "keys": null
+          }
         },
         {
           "__$$type": "within",
@@ -106,12 +180,33 @@ describe("Stream", () => {
   });
 
   describe("PlywoodValueBuilder", () => {
+    it("works in base case", () => {
+      let pvb = new PlywoodValueBuilder();
+      expect(pvb.getValue()).to.deep.equal(null);
+    });
+
+    it("works in null case", () => {
+      let pvb = new PlywoodValueBuilder();
+      pvb.processBit({ __$$type: 'value', value: null });
+      expect(pvb.getValue()).to.equal(null);
+    });
+
+    it("works in false case", () => {
+      let pvb = new PlywoodValueBuilder();
+      pvb.processBit({ __$$type: 'value', value: false });
+      expect(pvb.getValue()).to.equal(false);
+    });
+
+    it("works in zero case", () => {
+      let pvb = new PlywoodValueBuilder();
+      pvb.processBit({ __$$type: 'value', value: 0 });
+      expect(pvb.getValue()).to.equal(0);
+    });
+
     it("works in value case", () => {
       let pvb = new PlywoodValueBuilder();
       pvb.processBit({ __$$type: 'value', value: 5 });
-
       expect(pvb.getValue()).to.equal(5);
-
     });
 
     it("works in dataset case", () => {
@@ -164,6 +259,20 @@ describe("Stream", () => {
   });
 
   describe("datasetIteratorFactory => PlywoodValueBuilder", () => {
+    it("in empty Dataset case", () => {
+      let ds = Dataset.fromJS([]);
+
+      let dsi = datasetIteratorFactory(ds);
+      let pvb = new PlywoodValueBuilder();
+
+      let bit;
+      while (bit = dsi()) {
+        pvb.processBit(bit);
+      }
+
+      expect(pvb.getValue().toJS()).to.deep.equal(ds.toJS());
+    });
+
     it("in flat Dataset case", () => {
       let ds = Dataset.fromJS([
         {
