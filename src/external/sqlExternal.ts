@@ -56,23 +56,6 @@ export abstract class SQLExternal extends External {
     return data.length ? data[0][External.VALUE_NAME] : 0;
   }
 
-  static valuePostTransformFactory() {
-    let valueSeen = false;
-    return new Transform({
-      objectMode: true,
-      transform: (d: Datum, encoding, callback) => {
-        valueSeen = true;
-        callback(null, {
-          __$$type: 'value',
-          value: d[External.VALUE_NAME]
-        });
-      },
-      flush: (callback) => {
-        callback(null, valueSeen ? null : 0);
-      }
-    });
-  }
-
   static totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
     return (data: any[]): TotalContainer => {
       let datum: any;
@@ -227,7 +210,7 @@ export abstract class SQLExternal extends External {
           dialect.constantGroupBy()
         );
         postProcess = SQLExternal.valuePostProcess;
-        postTransform = SQLExternal.valuePostTransformFactory();
+        postTransform = External.valuePostTransformFactory();
         break;
 
       case 'total':

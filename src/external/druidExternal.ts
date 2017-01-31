@@ -289,13 +289,32 @@ export class DruidExternal extends External {
   }
 
   static postTransformFactory(inflaters: Inflater[], attributes: Attributes) {
+    let valueSeen = false;
     return new Transform({
       objectMode: true,
-      transform: (d: Datum, encoding, callback) => {
+      transform: function(d: Datum, encoding, callback) {
+        if (!valueSeen) {
+          this.push({
+            __$$type: 'init',
+            attributes,
+            keys: null
+          });
+          valueSeen = true;
+        }
         for (let inflater of inflaters) {
           inflater(d);
         }
         callback(null, d);
+      },
+      flush: function(callback) {
+        if (!valueSeen) {
+          this.push({
+            __$$type: 'init',
+            attributes,
+            keys: null
+          });
+        }
+        callback();
       }
     });
   }
@@ -1020,7 +1039,7 @@ export class DruidExternal extends External {
           query: druidQuery,
           context: requesterContext,
           postProcess: DruidExternal.valuePostProcess,
-          postTransform: DruidExternal.valuePostTransformFactory()
+          postTransform: External.valuePostTransformFactory()
         };
 
       case 'total':
