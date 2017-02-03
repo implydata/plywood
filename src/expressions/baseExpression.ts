@@ -23,7 +23,7 @@ import { ReadableStream, PassThrough } from 'readable-stream';
 import { shallowCopy } from '../helper/utils';
 import { promiseWhile } from '../helper/promiseWhile';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple, Environment } from '../types';
-import { fillExpressionExternalAlteration, datasetIteratorFactory, PlyBit } from '../datatypes/index';
+import { fillExpressionExternalAlteration, iteratorFactory, PlyBit } from '../datatypes/index';
 import { LiteralExpression } from './literalExpression';
 import { RefExpression } from './refExpression';
 import { ExternalExpression } from './externalExpression';
@@ -1672,7 +1672,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return simulatedQueryGroups;
   }
 
-  public _computeResolvedSimulate(options: ComputeOptions, simulatedQueryGroups: any[][]): PlywoodValue {
+  private _computeResolvedSimulate(options: ComputeOptions, simulatedQueryGroups: any[][]): PlywoodValue {
     const {
       maxComputeCycles = 5,
       maxQueries = 500
@@ -1747,7 +1747,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
         readyExpression._computeResolved(options)
           .then((v) => {
-            const i = datasetIteratorFactory(v as Dataset);
+            const i = iteratorFactory(v as Dataset);
             let bit: PlyBit;
             while (bit = i()) {
               pt.write(bit);
@@ -1762,7 +1762,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return pt;
   }
 
-  public _computeResolved(options: ComputeOptions): Promise<PlywoodValue> {
+  private _computeResolved(options: ComputeOptions): Promise<PlywoodValue> {
     const {
       maxComputeCycles = 5,
       maxQueries = 500

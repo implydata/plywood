@@ -211,7 +211,7 @@ const DEFAULT_FORMATTER: Formatter = {
 
 export interface FlattenOptions {
   prefixColumns?: boolean;
-  order?: string; // preorder, inline [default], postorder
+  order?: 'preorder' | 'inline' | 'postorder'; //  default: inline
   orderedColumns?: string[];
   nestingName?: string;
   parentName?: string;
@@ -1138,7 +1138,7 @@ check = Dataset;
 
 /*
  two types of events (maybe 3):
- { hello: 'world', x: 5 }  // short for (2):
+ { hello: 'world', x: 5 }  // short for (3):
 
  1. { __$$type: 'value', value: 5 }
  2. { __$$type: 'init', attributes: AttributeInfo[], keys: string[] }
@@ -1160,19 +1160,30 @@ export interface PlyBitFull {
 
 export type PlyBit = PlyBitFull | Datum;
 
-export interface DatasetIterator {
+export interface PlywoodValueIterator {
   (): PlyBit | null;
 }
 
-interface KeyDatasetIterator {
+interface KeyPlywoodValueIterator {
   attribute: string;
-  datasetIterator: DatasetIterator;
+  datasetIterator: PlywoodValueIterator;
 }
 
-export function datasetIteratorFactory(dataset: Dataset): DatasetIterator {
+export function iteratorFactory(value: PlywoodValue): PlywoodValueIterator {
+  if (value instanceof Dataset) return datasetIteratorFactory(value);
+
+  let nextBit: PlyBit = { __$$type: 'value', value };
+  return () => {
+    const ret = nextBit;
+    nextBit = null;
+    return ret;
+  };
+}
+
+export function datasetIteratorFactory(dataset: Dataset): PlywoodValueIterator {
   let curRowIndex = -2;
   let curRow: Datum = null;
-  let cutRowDatasets: KeyDatasetIterator[] = [];
+  let cutRowDatasets: KeyPlywoodValueIterator[] = [];
 
   function nextSelfRow() {
     curRowIndex++;
