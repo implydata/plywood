@@ -148,6 +148,7 @@ export function valueToJSInlineType(v: any): any {
       if (v.toISOString) {
         return { type: 'TIME', value: v };
       } else {
+        if (typeof v.toJS !== 'function') return '???'; // Technically we should never get here
         let js = v.toJS();
         if (!Array.isArray(js)) {
           js.type = v.constructor.type || 'EXPRESSION';
@@ -161,7 +162,7 @@ export function valueToJSInlineType(v: any): any {
   return v;
 }
 
-// Remote functionality
+// External functionality
 
 export function datumHasExternal(datum: Datum): boolean {
   for (let name in datum) {
