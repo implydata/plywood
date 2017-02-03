@@ -19,7 +19,7 @@ const { Timezone } = require('chronoshift');
 
 const { sane } = require('../utils');
 const plywood = require('../plywood');
-const { Dataset, AttributeInfo, $, Set, r, datasetIteratorFactory, PlywoodValueBuilder } = plywood;
+const { Dataset, AttributeInfo, $, Set, r, iteratorFactory, PlywoodValueBuilder } = plywood;
 
 function toJSON(obj) {
   return JSON.parse(JSON.stringify(obj));
@@ -27,8 +27,25 @@ function toJSON(obj) {
 
 describe("Stream", () => {
 
-  describe("datasetIteratorFactory", () => {
-    it("works", () => {
+  describe("iteratorFactory", () => {
+    it("works for simple value", () => {
+      let dsi = iteratorFactory(5);
+
+      let bits = [];
+      let bit;
+      while (bit = dsi()) {
+        bits.push(bit);
+      }
+
+      expect(toJSON(bits)).to.deep.equal([
+        {
+          "__$$type": "value",
+          "value": 5
+        }
+      ]);
+    });
+
+    it("works for Dataset", () => {
       let ds = Dataset.fromJS([
         {
           "time": new Date("2015-09-12T00:46:58.771Z"),
@@ -52,7 +69,7 @@ describe("Stream", () => {
         }
       ]);
 
-      let dsi = datasetIteratorFactory(ds);
+      let dsi = iteratorFactory(ds);
 
       let bits = [];
       let bit;
@@ -258,11 +275,11 @@ describe("Stream", () => {
 
   });
 
-  describe("datasetIteratorFactory => PlywoodValueBuilder", () => {
+  describe("iteratorFactory => PlywoodValueBuilder", () => {
     it("in empty Dataset case", () => {
       let ds = Dataset.fromJS([]);
 
-      let dsi = datasetIteratorFactory(ds);
+      let dsi = iteratorFactory(ds);
       let pvb = new PlywoodValueBuilder();
 
       let bit;
@@ -301,7 +318,7 @@ describe("Stream", () => {
         }
       ]);
 
-      let dsi = datasetIteratorFactory(ds);
+      let dsi = iteratorFactory(ds);
       let pvb = new PlywoodValueBuilder();
 
       let bit;
@@ -336,7 +353,7 @@ describe("Stream", () => {
         }
       ]);
 
-      let dsi = datasetIteratorFactory(ds);
+      let dsi = iteratorFactory(ds);
       let pvb = new PlywoodValueBuilder();
 
       let bit;
