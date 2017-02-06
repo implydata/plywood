@@ -26,6 +26,7 @@ cat \
   build/datatypes/stringRange.js \
   build/datatypes/set.js \
   build/datatypes/dataset.js \
+  build/datatypes/valueStream.js \
   build/expressions/baseExpression.js \
   build/expressions/literalExpression.js \
   build/expressions/refExpression.js \
@@ -120,6 +121,7 @@ cat \
   build/datatypes/stringRange.js \
   build/datatypes/set.js \
   build/datatypes/dataset.js \
+  build/datatypes/valueStream.js \
   build/expressions/baseExpression.js \
   build/expressions/literalExpression.js \
   build/expressions/refExpression.js \
