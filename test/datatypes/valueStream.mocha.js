@@ -25,7 +25,7 @@ function toJSON(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-describe("Stream", () => {
+describe("ValueStream", () => {
 
   describe("iteratorFactory", () => {
     it("works for simple value", () => {

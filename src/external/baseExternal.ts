@@ -39,7 +39,8 @@ import {
   TimeFloorExpression,
   AndExpression
 } from '../expressions/index';
-import { PlywoodValue, Datum, Dataset, PlywoodValueBuilder } from '../datatypes/dataset';
+import { PlywoodValue, Datum, Dataset } from '../datatypes/dataset';
+import { PlywoodValueBuilder } from '../datatypes/valueStream';
 import { Attributes, AttributeInfo, AttributeJSs } from '../datatypes/attributeInfo';
 import { NumberRange } from '../datatypes/numberRange';
 import { unwrapSetType } from '../datatypes/common';

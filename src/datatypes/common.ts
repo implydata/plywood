@@ -148,7 +148,7 @@ export function valueToJSInlineType(v: any): any {
       if (v.toISOString) {
         return { type: 'TIME', value: v };
       } else {
-        if (typeof v.toJS !== 'function') return '???'; // Technically we should never get here
+        if (typeof v.toJS !== 'function') return String(v); // Technically we should never get here
         let js = v.toJS();
         if (!Array.isArray(js)) {
           js.type = v.constructor.type || 'EXPRESSION';
