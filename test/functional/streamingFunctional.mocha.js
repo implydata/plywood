@@ -112,7 +112,10 @@ describe("Streaming Functional", function() {
                   "type": "NUMBER"
                 }
               ],
-              "keys": null
+              "keys": [
+                "isNew",
+                "isRobot"
+              ]
             },
             {
               "Count": 217394,

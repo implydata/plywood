@@ -41,7 +41,7 @@ let diamonds = External.fromJS({
   allowSelectQueries: true
 });
 
-describe("evaluate step", () => {
+describe("simulate", () => {
 
   it('works in basic case', () => {
     let ex = ply()
@@ -54,23 +54,64 @@ describe("evaluate step", () => {
           .apply('SubSplit', $('diamonds').split('$cut:STRING', 'SubCut').limit(5))
       );
 
-    expect(ex.simulate({ diamonds: diamonds }).toJS()).to.deep.equal([
+    expect(ex.simulate({ diamonds: diamonds }).toJS().data).to.deep.equal([
       {
-        "SomeNestedSplit": [
-          {
-            "Color": "some_color",
-            "SubSplit": [
-              {
-                "SubCut": "some_cut"
+        "SomeNestedSplit": {
+          "attributes": [
+            {
+              "name": "Color",
+              "type": "STRING"
+            },
+            {
+              "name": "diamonds",
+              "type": "DATASET"
+            },
+            {
+              "name": "SubSplit",
+              "type": "DATASET"
+            }
+          ],
+          "data": [
+            {
+              "Color": "some_color",
+              "SubSplit": {
+                "attributes": [
+                  {
+                    "name": "SubCut",
+                    "type": "STRING"
+                  }
+                ],
+                "data": [
+                  {
+                    "SubCut": "some_cut"
+                  }
+                ],
+                "keys": [
+                  "SubCut"
+                ]
               }
-            ]
-          }
-        ],
-        "SomeSplit": [
-          {
-            "Cut": "some_cut"
-          }
-        ],
+            }
+          ],
+          "keys": [
+            "Color"
+          ]
+        },
+        "SomeSplit": {
+          "attributes": [
+            {
+              "name": "Cut",
+              "type": "STRING"
+            }
+          ],
+          "data": [
+            {
+              "Cut": "some_cut"
+            }
+          ],
+          "keys": [
+            "Cut"
+          ]
+        },
         "Total": 4,
         "TotalX2": 4
       }

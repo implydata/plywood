@@ -127,86 +127,144 @@ describe("MySQL Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Count": 114711,
-              "Namespaces": [
-                {
-                  "Added": 11594002,
-                  "Namespace": "Main",
-                  "Time": [
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T15:00:00.000Z'),
-                        "start": new Date('2015-09-12T14:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 740968
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T19:00:00.000Z'),
-                        "start": new Date('2015-09-12T18:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 739956
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T23:00:00.000Z'),
-                        "start": new Date('2015-09-12T22:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 708543
+              "Namespaces": {
+                "attributes": [
+                  {
+                    "name": "Namespace",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Added",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "Time",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "Added": 11594002,
+                    "Namespace": "Main",
+                    "Time": {
+                      "attributes": [
+                        {
+                          "name": "Timestamp",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "TotalAdded",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T15:00:00.000Z'),
+                            "start": new Date('2015-09-12T14:00:00.000Z')
+                          },
+                          "TotalAdded": 740968
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T19:00:00.000Z'),
+                            "start": new Date('2015-09-12T18:00:00.000Z')
+                          },
+                          "TotalAdded": 739956
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T23:00:00.000Z'),
+                            "start": new Date('2015-09-12T22:00:00.000Z')
+                          },
+                          "TotalAdded": 708543
+                        }
+                      ],
+                      "keys": [
+                        "Timestamp"
+                      ]
                     }
-                  ]
-                },
-                {
-                  "Added": 9210976,
-                  "Namespace": "User talk",
-                  "Time": [
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T13:00:00.000Z'),
-                        "start": new Date('2015-09-12T12:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 693571
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T18:00:00.000Z'),
-                        "start": new Date('2015-09-12T17:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 634804
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T03:00:00.000Z'),
-                        "start": new Date('2015-09-12T02:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 573768
+                  },
+                  {
+                    "Added": 9210976,
+                    "Namespace": "User talk",
+                    "Time": {
+                      "attributes": [
+                        {
+                          "name": "Timestamp",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "TotalAdded",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T13:00:00.000Z'),
+                            "start": new Date('2015-09-12T12:00:00.000Z')
+                          },
+                          "TotalAdded": 693571
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T18:00:00.000Z'),
+                            "start": new Date('2015-09-12T17:00:00.000Z')
+                          },
+                          "TotalAdded": 634804
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T03:00:00.000Z'),
+                            "start": new Date('2015-09-12T02:00:00.000Z')
+                          },
+                          "TotalAdded": 573768
+                        }
+                      ],
+                      "keys": [
+                        "Timestamp"
+                      ]
                     }
-                  ]
-                }
-              ],
-              "TotalAdded": 32553107,
-              "PagesHaving": [
-                {
-                  "Count": 29,
-                  "Page": "User:King Lui"
-                },
-                {
-                  "Count": 29,
-                  "Page": "The Visit (2015 film)"
-                },
-                {
-                  "Count": 29,
-                  "Page": "Stargate production discography"
-                }
-              ]
+                  }
+                ],
+                "keys": [
+                  "Namespace"
+                ]
+              },
+              "PagesHaving": {
+                "attributes": [
+                  {
+                    "name": "Page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 29,
+                    "Page": "User:King Lui"
+                  },
+                  {
+                    "Count": 29,
+                    "Page": "The Visit (2015 film)"
+                  },
+                  {
+                    "Count": 29,
+                    "Page": "Stargate production discography"
+                  }
+                ],
+                "keys": [
+                  "Page"
+                ]
+              },
+              "TotalAdded": 32553107
             }
           ]);
         });
@@ -219,77 +277,101 @@ describe("MySQL Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "ChannelIsEn": false,
-              "Count": 277732
-            },
-            {
-              "ChannelIsEn": true,
-              "Count": 114711
-            }
-          ]);
+          expect(result.toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "ChannelIsEn",
+                "type": "BOOLEAN"
+              },
+              {
+                "name": "Count",
+                "type": "NUMBER"
+              }
+            ],
+            "data": [
+              {
+                "ChannelIsEn": false,
+                "Count": 277732
+              },
+              {
+                "ChannelIsEn": true,
+                "Count": 114711
+              }
+            ],
+            "keys": [
+              "ChannelIsEn"
+            ]
+          });
         });
     });
 
     it("works with multi-dimensional GROUP BYs", () => {
-      let ex = ply()
-        .apply("wiki", $('wiki').filter($("channel").isnt("en")))
-        .apply(
-          'Cuts',
-          $("wiki").split({
-              'Channel': "$channel",
-              'TimeByHour': '$time.timeBucket(PT1H)'
-            })
-            .apply('Count', $('wiki').sum('$count'))
-            .sort('$Count', 'descending')
-            .limit(4)
-        );
+      let ex = $('wiki')
+        .filter($("channel").isnt("en"))
+        .split({
+          'Channel': "$channel",
+          'TimeByHour': '$time.timeBucket(PT1H)'
+        })
+        .apply('Count', $('wiki').sum('$count'))
+        .sort('$Count', 'descending')
+        .limit(4);
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "Cuts": [
-                {
-                  "Channel": "vi",
-                  "Count": 12443,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T07:00:00.000Z'),
-                    "start": new Date('2015-09-12T06:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "Channel": "vi",
-                  "Count": 11833,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T08:00:00.000Z'),
-                    "start": new Date('2015-09-12T07:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "Channel": "vi",
-                  "Count": 6411,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T18:00:00.000Z'),
-                    "start": new Date('2015-09-12T17:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "Channel": "vi",
-                  "Count": 4943,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T16:00:00.000Z'),
-                    "start": new Date('2015-09-12T15:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
+          expect(result.toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "Channel",
+                "type": "STRING"
+              },
+              {
+                "name": "TimeByHour",
+                "type": "TIME_RANGE"
+              },
+              {
+                "name": "Count",
+                "type": "NUMBER"
+              }
+            ],
+            "data": [
+              {
+                "Channel": "vi",
+                "Count": 12443,
+                "TimeByHour": {
+                  "end": new Date('2015-09-12T07:00:00.000Z'),
+                  "start": new Date('2015-09-12T06:00:00.000Z')
                 }
-              ]
-            }
-          ]);
+              },
+              {
+                "Channel": "vi",
+                "Count": 11833,
+                "TimeByHour": {
+                  "end": new Date('2015-09-12T08:00:00.000Z'),
+                  "start": new Date('2015-09-12T07:00:00.000Z')
+                }
+              },
+              {
+                "Channel": "vi",
+                "Count": 6411,
+                "TimeByHour": {
+                  "end": new Date('2015-09-12T18:00:00.000Z'),
+                  "start": new Date('2015-09-12T17:00:00.000Z')
+                }
+              },
+              {
+                "Channel": "vi",
+                "Count": 4943,
+                "TimeByHour": {
+                  "end": new Date('2015-09-12T16:00:00.000Z'),
+                  "start": new Date('2015-09-12T15:00:00.000Z')
+                }
+              }
+            ],
+            "keys": [
+              "Channel",
+              "TimeByHour"
+            ]
+          });
         });
     });
 
@@ -299,7 +381,7 @@ describe("MySQL Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "added": 97393743
             }
@@ -316,7 +398,7 @@ describe("MySQL Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             { "regionNameLOL": "TexasLOL", "addedPlusOne": 1, "pageInBrackets": "[Clint High School]" },
             { "regionNameLOL": "TexasLOL", "addedPlusOne": 1, "pageInBrackets": "[Reggie Williams (linebacker)]" }
           ]);
@@ -330,7 +412,7 @@ describe("MySQL Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "MetroCode": 0
             }
@@ -347,7 +429,7 @@ describe("MySQL Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "AbsDelta": 2,
               "Delta": -2,
@@ -365,7 +447,7 @@ describe("MySQL Functional", function() {
         .limit(5);
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "City": "Kadelburg"
             },
@@ -393,7 +475,7 @@ describe("MySQL Functional", function() {
         .limit(5);
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "City": "'Ewa Beach"
             },
@@ -438,29 +520,20 @@ describe("MySQL Functional", function() {
 
       return ex.compute({ wiki: wikiUserCharAsNumber })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Count": 382569,
-              "dateCast": {
-                "type": "TIME",
-                "value": new Date('1970-01-01T00:00:00.000Z')
-              },
+              "dateCast": new Date('1970-01-01T00:00:00.000Z'),
               "numberCast": 0
             },
             {
               "Count": 3347,
-              "dateCast": {
-                "type": "TIME",
-                "value": new Date('1970-01-01T00:00:02.015Z')
-              },
+              "dateCast": new Date('1970-01-01T00:00:02.015Z'),
               "numberCast": 0
             },
             {
               "Count": 640,
-              "dateCast": {
-                "type": "TIME",
-                "value": new Date('1970-01-01T00:00:00.000Z')
-              },
+              "dateCast": new Date('1970-01-01T00:00:00.000Z'),
               "numberCast": 1
             }
           ]);
@@ -511,64 +584,125 @@ describe("MySQL Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Time": [
-                {
-                  "Pages": [
-                    {
-                      "Deleted": 11807,
-                      "RegionName": null
-                    },
-                    {
-                      "Deleted": 848,
-                      "RegionName": "Ontario"
-                    }
-                  ],
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T01:00:00.000Z'),
-                    "start": new Date('2015-09-12T00:00:00.000Z'),
+              "Time": {
+                "attributes": [
+                  {
+                    "name": "Timestamp",
                     "type": "TIME_RANGE"
                   },
-                  "TotalAdded": 331925
-                },
-                {
-                  "Pages": [
-                    {
-                      "Deleted": 109934,
-                      "RegionName": null
-                    },
-                    {
-                      "Deleted": 474,
-                      "RegionName": "Indiana"
-                    }
-                  ],
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T02:00:00.000Z'),
-                    "start": new Date('2015-09-12T01:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                  {
+                    "name": "TotalAdded",
+                    "type": "NUMBER"
                   },
-                  "TotalAdded": 1418072
-                },
-                {
-                  "Pages": [
-                    {
-                      "Deleted": 124999,
-                      "RegionName": null
+                  {
+                    "name": "Pages",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "Pages": {
+                      "attributes": [
+                        {
+                          "name": "RegionName",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Deleted",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Deleted": 11807,
+                          "RegionName": null
+                        },
+                        {
+                          "Deleted": 848,
+                          "RegionName": "Ontario"
+                        }
+                      ],
+                      "keys": [
+                        "RegionName"
+                      ]
                     },
-                    {
-                      "Deleted": 449,
-                      "RegionName": "Georgia"
-                    }
-                  ],
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T03:00:00.000Z'),
-                    "start": new Date('2015-09-12T02:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T01:00:00.000Z'),
+                      "start": new Date('2015-09-12T00:00:00.000Z')
+                    },
+                    "TotalAdded": 331925
                   },
-                  "TotalAdded": 3045966
-                }
-              ],
+                  {
+                    "Pages": {
+                      "attributes": [
+                        {
+                          "name": "RegionName",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Deleted",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Deleted": 109934,
+                          "RegionName": null
+                        },
+                        {
+                          "Deleted": 474,
+                          "RegionName": "Indiana"
+                        }
+                      ],
+                      "keys": [
+                        "RegionName"
+                      ]
+                    },
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T02:00:00.000Z'),
+                      "start": new Date('2015-09-12T01:00:00.000Z')
+                    },
+                    "TotalAdded": 1418072
+                  },
+                  {
+                    "Pages": {
+                      "attributes": [
+                        {
+                          "name": "RegionName",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Deleted",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Deleted": 124999,
+                          "RegionName": null
+                        },
+                        {
+                          "Deleted": 449,
+                          "RegionName": "Georgia"
+                        }
+                      ],
+                      "keys": [
+                        "RegionName"
+                      ]
+                    },
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T03:00:00.000Z'),
+                      "start": new Date('2015-09-12T02:00:00.000Z')
+                    },
+                    "TotalAdded": 3045966
+                  }
+                ],
+                "keys": [
+                  "Timestamp"
+                ]
+              },
               "TotalAdded": 32553107
             }
           ]);

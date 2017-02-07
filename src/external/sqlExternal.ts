@@ -101,6 +101,7 @@ export abstract class SQLExternal extends External {
     let query = ['SELECT'];
     let postTransform: Transform = null;
     let inflaters: Inflater[] = [];
+    let keys: string[] = null;
     let zeroTotalApplies: ApplyExpression[] = null;
 
     let from = "FROM " + this.dialect.escapeName(source as string);
@@ -156,6 +157,7 @@ export abstract class SQLExternal extends External {
 
       case 'total':
         zeroTotalApplies = applies;
+        keys = [];
         query.push(
           applies.map(apply => apply.getSQL(dialect)).join(',\n'),
           from,
@@ -165,6 +167,7 @@ export abstract class SQLExternal extends External {
 
       case 'split':
         let split = this.getQuerySplit();
+        keys = split.mapSplits((name) => name);
         query.push(
           split.getSelectSQL(dialect)
             .concat(applies.map(apply => apply.getSQL(dialect)))
@@ -190,7 +193,7 @@ export abstract class SQLExternal extends External {
 
     return {
       query: query.join('\n'),
-      postTransform: postTransform || External.postTransformFactory(inflaters, this.getSelectedAttributes(), zeroTotalApplies)
+      postTransform: postTransform || External.postTransformFactory(inflaters, this.getSelectedAttributes(), keys, zeroTotalApplies)
     };
   }
 

@@ -714,7 +714,7 @@ export class DruidExternal extends External {
         timestampLabel,
         granularity: granularity || 'all',
         leftoverHavingFilter,
-        postTransform: External.postTransformFactory(inflaters, selectedAttributes, null)
+        postTransform: External.postTransformFactory(inflaters, selectedAttributes, split.mapSplits((name) => name), null)
       };
     }
 
@@ -729,7 +729,7 @@ export class DruidExternal extends External {
         granularity: granularityInflater.granularity,
         leftoverHavingFilter,
         timestampLabel: label,
-        postTransform: External.postTransformFactory([granularityInflater.inflater], selectedAttributes, null)
+        postTransform: External.postTransformFactory([granularityInflater.inflater], selectedAttributes, [label], null)
       };
     }
 
@@ -748,7 +748,7 @@ export class DruidExternal extends External {
         granularity: 'all',
         leftoverHavingFilter,
         timestampLabel: null,
-        postTransform: External.postTransformFactory(inflaters, selectedAttributes, null)
+        postTransform: External.postTransformFactory(inflaters, selectedAttributes, [label], null)
       };
     }
 
@@ -758,7 +758,7 @@ export class DruidExternal extends External {
       granularity: 'all',
       leftoverHavingFilter,
       timestampLabel: null,
-      postTransform: External.postTransformFactory(inflaters, selectedAttributes, null)
+      postTransform: External.postTransformFactory(inflaters, selectedAttributes, [label], null)
     };
   }
 
@@ -915,7 +915,7 @@ export class DruidExternal extends External {
         return {
           query: druidQuery,
           context: requesterContext,
-          postTransform: External.postTransformFactory(inflaters, selectedAttributes, null),
+          postTransform: External.postTransformFactory(inflaters, selectedAttributes, null, null),
           next: DruidExternal.selectNextFactory(resultLimit, descending)
         };
 
@@ -946,7 +946,7 @@ export class DruidExternal extends External {
         return {
           query: druidQuery,
           context: requesterContext,
-          postTransform: External.postTransformFactory([], this.getSelectedAttributes(), applies)
+          postTransform: External.postTransformFactory([], this.getSelectedAttributes(), [], applies)
         };
 
       case 'split':

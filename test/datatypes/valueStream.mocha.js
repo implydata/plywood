@@ -98,14 +98,6 @@ describe("ValueStream", () => {
               "type": "NUMBER"
             },
             {
-              "datasetType": {
-                "name": {
-                  "type": "STRING"
-                },
-                "x": {
-                  "type": "NUMBER"
-                }
-              },
               "name": "users",
               "type": "DATASET"
             }
@@ -194,6 +186,58 @@ describe("ValueStream", () => {
         }
       ]);
     });
+
+    it("works for Dataset with keys", () => {
+      let ds = Dataset.fromJS({
+        keys: ['channel'],
+        data: [
+          {
+            "channel": "#en.wikipedia",
+            "deleted": 0,
+          },
+          {
+            "channel": "#en.wikipedia",
+            "deleted": 26,
+          }
+        ]
+      });
+
+      let dsi = iteratorFactory(ds);
+
+      let bits = [];
+      let bit;
+      while (bit = dsi()) {
+        bits.push(bit);
+      }
+
+      expect(toJSON(bits)).to.deep.equal([
+        {
+          "__$$type": "init",
+          "attributes": [
+            {
+              "name": "channel",
+              "type": "STRING"
+            },
+            {
+              "name": "deleted",
+              "type": "NUMBER"
+            }
+          ],
+          "keys": [
+            "channel"
+          ]
+        },
+        {
+          "channel": "#en.wikipedia",
+          "deleted": 0
+        },
+        {
+          "channel": "#en.wikipedia",
+          "deleted": 26
+        }
+      ]);
+    });
+
   });
 
   describe("PlywoodValueBuilder", () => {
@@ -226,7 +270,7 @@ describe("ValueStream", () => {
       expect(pvb.getValue()).to.equal(5);
     });
 
-    it("works in dataset case", () => {
+    it("works in dataset case (no init)", () => {
       const bits = [
         {
           "channel": "#en.wikipedia",
@@ -255,21 +299,170 @@ describe("ValueStream", () => {
       let pvb = new PlywoodValueBuilder();
       for (let bit of bits) pvb.processBit(bit);
 
-      expect(pvb.getValue().toJS()).to.deep.equal([
+      expect(pvb.getValue().toJS().data).to.deep.equal([
         {
-          "time": {
-            "type": "TIME",
-            "value": new Date('2015-09-12T00:46:58.771Z')
-          },
           "channel": "#en.wikipedia",
-          "isAnonymous": false,
           "deleted": 0,
-          "users": [
-            { "name": "Vadim", x: 2 },
-            { "name": "Eva", x: 3 }
-          ]
+          "isAnonymous": false,
+          "time": new Date('2015-09-12T00:46:58.771Z'),
+          "users": {
+            "attributes": [
+              {
+                "name": "name",
+                "type": "STRING"
+              },
+              {
+                "name": "x",
+                "type": "NUMBER"
+              }
+            ],
+            "data": [
+              {
+                "name": "Vadim",
+                "x": 2
+              },
+              {
+                "name": "Eva",
+                "x": 3
+              }
+            ]
+          }
         }
       ]);
+
+    });
+
+    it("works in dataset case (with init)", () => {
+      const bits = [
+        {
+          "__$$type": "init",
+          "keys": [],
+          "attributes": AttributeInfo.fromJSs([
+            {
+              "name": "time",
+              "type": "TIME"
+            },
+            {
+              "name": "channel",
+              "type": "STRING"
+            },
+            {
+              "name": "isAnonymous",
+              "type": "BOOLEAN"
+            },
+            {
+              "name": "deleted",
+              "type": "NUMBER"
+            },
+            {
+              "name": "users",
+              "type": "DATASET"
+            }
+          ])
+        },
+        {
+          "channel": "#en.wikipedia",
+          "deleted": 0,
+          "isAnonymous": false,
+          "time": new Date('2015-09-12T00:46:58.771Z')
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "__$$type": "init",
+            "keys": ["name"],
+            "attributes": AttributeInfo.fromJSs([
+              {
+                "name": "name",
+                "type": "STRING"
+              },
+              {
+                "name": "x",
+                "type": "NUMBER"
+              }
+            ])
+          }
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "name": "Vadim",
+            "x": 2
+          }
+        },
+        {
+          "__$$type": "within",
+          "attribute": "users",
+          "within": {
+            "name": "Eva",
+            "x": 3
+          }
+        }
+      ];
+
+      let pvb = new PlywoodValueBuilder();
+      for (let bit of bits) pvb.processBit(bit);
+
+      expect(pvb.getValue().toJS()).to.deep.equal({
+        "attributes": [
+          {
+            "name": "time",
+            "type": "TIME"
+          },
+          {
+            "name": "channel",
+            "type": "STRING"
+          },
+          {
+            "name": "isAnonymous",
+            "type": "BOOLEAN"
+          },
+          {
+            "name": "deleted",
+            "type": "NUMBER"
+          },
+          {
+            "name": "users",
+            "type": "DATASET"
+          }
+        ],
+        "data": [
+          {
+            "channel": "#en.wikipedia",
+            "deleted": 0,
+            "isAnonymous": false,
+            "time": new Date('2015-09-12T00:46:58.771Z'),
+            "users": {
+              "attributes": [
+                {
+                  "name": "name",
+                  "type": "STRING"
+                },
+                {
+                  "name": "x",
+                  "type": "NUMBER"
+                }
+              ],
+              "data": [
+                {
+                  "name": "Vadim",
+                  "x": 2
+                },
+                {
+                  "name": "Eva",
+                  "x": 3
+                }
+              ],
+              "keys": [
+                "name"
+              ]
+            }
+          }
+        ],
+        "keys": []
+      });
 
     });
 
@@ -291,32 +484,35 @@ describe("ValueStream", () => {
     });
 
     it("in flat Dataset case", () => {
-      let ds = Dataset.fromJS([
-        {
-          "time": new Date("2015-09-12T00:46:58.771Z"),
-          "channel": "#en.wikipedia",
-          "cityName": "SF",
-          "comment": "added project",
-          "countryIsoCode": "US",
-          "countryName": "United States",
-          "isAnonymous": false,
-          "delta": 36,
-          "added": 36,
-          "deleted": 0
-        },
-        {
-          "time": new Date("2015-09-12T00:48:20.157Z"),
-          "channel": "#en.wikipedia",
-          "cityName": "Campbell",
-          "comment": "Rectifying someone's mischief",
-          "countryIsoCode": "US",
-          "countryName": "United States",
-          "isAnonymous": true,
-          "delta": -26,
-          "added": 0,
-          "deleted": 26
-        }
-      ]);
+      let ds = Dataset.fromJS({
+        keys: ['cityName'],
+        data: [
+          {
+            "time": new Date("2015-09-12T00:46:58.771Z"),
+            "channel": "#en.wikipedia",
+            "cityName": "SF",
+            "comment": "added project",
+            "countryIsoCode": "US",
+            "countryName": "United States",
+            "isAnonymous": false,
+            "delta": 36,
+            "added": 36,
+            "deleted": 0
+          },
+          {
+            "time": new Date("2015-09-12T00:48:20.157Z"),
+            "channel": "#en.wikipedia",
+            "cityName": "Campbell",
+            "comment": "Rectifying someone's mischief",
+            "countryIsoCode": "US",
+            "countryName": "United States",
+            "isAnonymous": true,
+            "delta": -26,
+            "added": 0,
+            "deleted": 26
+          }
+        ]
+      });
 
       let dsi = iteratorFactory(ds);
       let pvb = new PlywoodValueBuilder();

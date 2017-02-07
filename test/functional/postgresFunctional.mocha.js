@@ -126,86 +126,115 @@ describe("Postgres Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Count": 114711,
-              "Namespaces": [
-                {
-                  "Added": 11594002,
-                  "Namespace": "Main",
-                  "Time": [
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T15:00:00.000Z'),
-                        "start": new Date('2015-09-12T14:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 740968
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T19:00:00.000Z'),
-                        "start": new Date('2015-09-12T18:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 739956
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T23:00:00.000Z'),
-                        "start": new Date('2015-09-12T22:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 708543
+              "Namespaces": {
+                "attributes": [
+                  {
+                    "name": "Namespace",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Added",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "Time",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "Added": 11594002,
+                    "Namespace": "Main",
+                    "Time": {
+                      "attributes": [
+                        {
+                          "name": "Timestamp",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "TotalAdded",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T15:00:00.000Z'),
+                            "start": new Date('2015-09-12T14:00:00.000Z')
+                          },
+                          "TotalAdded": 740968
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T19:00:00.000Z'),
+                            "start": new Date('2015-09-12T18:00:00.000Z')
+                          },
+                          "TotalAdded": 739956
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T23:00:00.000Z'),
+                            "start": new Date('2015-09-12T22:00:00.000Z')
+                          },
+                          "TotalAdded": 708543
+                        }
+                      ],
+                      "keys": [
+                        "Timestamp"
+                      ]
                     }
-                  ]
-                },
-                {
-                  "Added": 9210976,
-                  "Namespace": "User talk",
-                  "Time": [
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T13:00:00.000Z'),
-                        "start": new Date('2015-09-12T12:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 693571
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T18:00:00.000Z'),
-                        "start": new Date('2015-09-12T17:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 634804
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T03:00:00.000Z'),
-                        "start": new Date('2015-09-12T02:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 573768
+                  },
+                  {
+                    "Added": 9210976,
+                    "Namespace": "User talk",
+                    "Time": {
+                      "attributes": [
+                        {
+                          "name": "Timestamp",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "TotalAdded",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T13:00:00.000Z'),
+                            "start": new Date('2015-09-12T12:00:00.000Z')
+                          },
+                          "TotalAdded": 693571
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T18:00:00.000Z'),
+                            "start": new Date('2015-09-12T17:00:00.000Z')
+                          },
+                          "TotalAdded": 634804
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T03:00:00.000Z'),
+                            "start": new Date('2015-09-12T02:00:00.000Z')
+                          },
+                          "TotalAdded": 573768
+                        }
+                      ],
+                      "keys": [
+                        "Timestamp"
+                      ]
                     }
-                  ]
-                }
-              ],
+                  }
+                ],
+                "keys": [
+                  "Namespace"
+                ]
+              },
               "TotalAdded": 32553107
-              // "PagesHaving": [
-              //   {
-              //     "Count": 29,
-              //     "Page": "User:King Lui"
-              //   },
-              //   {
-              //     "Count": 29,
-              //     "Page": "The Visit (2015 film)"
-              //   },
-              //   {
-              //     "Count": 29,
-              //     "Page": "Stargate production discography"
-              //   }
-              // ]
             }
           ]);
         });
@@ -218,7 +247,7 @@ describe("Postgres Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "ChannelIsEn": false,
               "Count": 277732
@@ -240,7 +269,7 @@ describe("Postgres Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "commentLength": 179,
               "userChars": {
@@ -253,8 +282,7 @@ describe("Postgres Functional", function() {
                   "8",
                   "9"
                 ],
-                "setType": "STRING",
-                "type": "SET"
+                "setType": "STRING"
               }
             },
             {
@@ -270,8 +298,7 @@ describe("Postgres Functional", function() {
                   "7",
                   "9"
                 ],
-                "setType": "STRING",
-                "type": "SET"
+                "setType": "STRING"
               }
             },
             {
@@ -286,8 +313,7 @@ describe("Postgres Functional", function() {
                   "O",
                   "R"
                 ],
-                "setType": "STRING",
-                "type": "SET"
+                "setType": "STRING"
               }
             }]
           );
@@ -303,7 +329,7 @@ describe("Postgres Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "CityName": "Ōita"
             },
@@ -397,64 +423,125 @@ describe("Postgres Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Time": [
-                {
-                  "Pages": [
-                    {
-                      "Deleted": 11807,
-                      "RegionName": null
-                    },
-                    {
-                      "Deleted": 848,
-                      "RegionName": "Ontario"
-                    }
-                  ],
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T01:00:00.000Z'),
-                    "start": new Date('2015-09-12T00:00:00.000Z'),
+              "Time": {
+                "attributes": [
+                  {
+                    "name": "Timestamp",
                     "type": "TIME_RANGE"
                   },
-                  "TotalAdded": 331925
-                },
-                {
-                  "Pages": [
-                    {
-                      "Deleted": 109934,
-                      "RegionName": null
-                    },
-                    {
-                      "Deleted": 474,
-                      "RegionName": "Indiana"
-                    }
-                  ],
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T02:00:00.000Z'),
-                    "start": new Date('2015-09-12T01:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                  {
+                    "name": "TotalAdded",
+                    "type": "NUMBER"
                   },
-                  "TotalAdded": 1418072
-                },
-                {
-                  "Pages": [
-                    {
-                      "Deleted": 124999,
-                      "RegionName": null
+                  {
+                    "name": "Pages",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "Pages": {
+                      "attributes": [
+                        {
+                          "name": "RegionName",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Deleted",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Deleted": 11807,
+                          "RegionName": null
+                        },
+                        {
+                          "Deleted": 848,
+                          "RegionName": "Ontario"
+                        }
+                      ],
+                      "keys": [
+                        "RegionName"
+                      ]
                     },
-                    {
-                      "Deleted": 449,
-                      "RegionName": "Georgia"
-                    }
-                  ],
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T03:00:00.000Z'),
-                    "start": new Date('2015-09-12T02:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T01:00:00.000Z'),
+                      "start": new Date('2015-09-12T00:00:00.000Z')
+                    },
+                    "TotalAdded": 331925
                   },
-                  "TotalAdded": 3045966
-                }
-              ],
+                  {
+                    "Pages": {
+                      "attributes": [
+                        {
+                          "name": "RegionName",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Deleted",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Deleted": 109934,
+                          "RegionName": null
+                        },
+                        {
+                          "Deleted": 474,
+                          "RegionName": "Indiana"
+                        }
+                      ],
+                      "keys": [
+                        "RegionName"
+                      ]
+                    },
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T02:00:00.000Z'),
+                      "start": new Date('2015-09-12T01:00:00.000Z')
+                    },
+                    "TotalAdded": 1418072
+                  },
+                  {
+                    "Pages": {
+                      "attributes": [
+                        {
+                          "name": "RegionName",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Deleted",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Deleted": 124999,
+                          "RegionName": null
+                        },
+                        {
+                          "Deleted": 449,
+                          "RegionName": "Georgia"
+                        }
+                      ],
+                      "keys": [
+                        "RegionName"
+                      ]
+                    },
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T03:00:00.000Z'),
+                      "start": new Date('2015-09-12T02:00:00.000Z')
+                    },
+                    "TotalAdded": 3045966
+                  }
+                ],
+                "keys": [
+                  "Timestamp"
+                ]
+              },
               "TotalAdded": 32553107
             }
           ]);

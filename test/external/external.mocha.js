@@ -1139,7 +1139,7 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS().data).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
@@ -1209,14 +1209,13 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS().data).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
             "Timestamp": {
               "start": new Date('2015-03-13T07:00:00Z'),
-              "end": new Date('2015-03-14T07:00:00Z'),
-              "type": "TIME_RANGE"
+              "end": new Date('2015-03-14T07:00:00Z')
             }
           }
         ]);
@@ -1247,7 +1246,7 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS().data).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
@@ -1538,7 +1537,19 @@ describe("External", () => {
     });
 
     describe("attribute order is respected in split mode", () => {
-      it("get selected attributes respects order", () => {
+      it("get selected attributes", () => {
+        let ex = $('wiki')
+          .split('$page', 'Page')
+          .apply('Count', '$wiki.count()')
+          .apply('Added', '$wiki.sum($added)');
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        let external = ex.external;
+        expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal(["Page", "Count", "Added"]);
+      });
+
+      it("get selected attributes respects order with select", () => {
         let ex = $('wiki')
           .split('$page', 'Page')
           .apply('Count', '$wiki.count()')
@@ -1548,7 +1559,7 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let external = ex.external;
-        expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([ "Count", "Page", "Added" ]);
+        expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal(["Count", "Page", "Added"]);
       });
 
       it("get selected attributes respects order with remove", () => {

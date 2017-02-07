@@ -169,17 +169,43 @@ describe("resolve", () => {
       expect(ex.toJS()).to.deep.equal({
         "op": "literal",
         "type": "DATASET",
-        "value": [
-          {
-            "num": 8,
-            "subData": [
-              {
-                "x": 24,
-                "y": 70
+        "value": {
+          "attributes": [
+            {
+              "name": "num",
+              "type": "NUMBER"
+            },
+            {
+              "name": "subData",
+              "type": "DATASET"
+            }
+          ],
+          "data": [
+            {
+              "num": 8,
+              "subData": {
+                "attributes": [
+                  {
+                    "name": "x",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "y",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "x": 24,
+                    "y": 70
+                  }
+                ],
+                "keys": []
               }
-            ]
-          }
-        ]
+            }
+          ],
+          "keys": []
+        }
       });
     });
 

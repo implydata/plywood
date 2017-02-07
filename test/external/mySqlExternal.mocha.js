@@ -45,7 +45,7 @@ describe("MySQLExternal", () => {
 
       return ex.compute({ wiki: emptyExternal })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             { Count: 0 }
           ]);
         });
@@ -58,7 +58,7 @@ describe("MySQLExternal", () => {
 
       return ex.compute({ wiki: emptyExternal })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([]);
+          expect(result.toJS().data).to.deep.equal([]);
         });
     });
 
@@ -71,7 +71,7 @@ describe("MySQLExternal", () => {
 
       return ex.compute({ wiki: emptyExternal })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([]);
+          expect(result.toJS().data).to.deep.equal([]);
         });
     });
 
@@ -87,7 +87,7 @@ describe("MySQLExternal", () => {
             { name: 'added', type: 'NUMBER' }
           ]);
 
-          expect(result.toJS()).to.deep.equal([]);
+          expect(result.toJS().data).to.deep.equal([]);
           expect(result.toCSV()).to.equal('time,language,page,added');
         });
     });

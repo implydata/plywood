@@ -27,7 +27,6 @@ export interface AttributeInfoValue {
   special?: string;
   name: string;
   type?: PlyType;
-  datasetType?: Lookup<FullType>;
   unsplitable?: boolean;
   maker?: Expression;
 
@@ -42,7 +41,6 @@ export interface AttributeInfoJS {
   special?: string;
   name: string;
   type?: PlyType;
-  datasetType?: Lookup<FullType>;
   unsplitable?: boolean;
   maker?: ExpressionJS;
 
@@ -65,7 +63,6 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       name: parameters.name
     };
     if (parameters.type) value.type = parameters.type;
-    if (parameters.datasetType) value.datasetType = parameters.datasetType;
     if (parameters.unsplitable) value.unsplitable = true;
 
     let maker = parameters.maker || (parameters as any).makerAction;
@@ -139,7 +136,6 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     this.type = parameters.type || 'STRING';
     if (!RefExpression.validType(this.type)) throw new Error(`invalid type: ${this.type}`);
 
-    this.datasetType = parameters.datasetType;
     this.unsplitable = Boolean(parameters.unsplitable);
     this.maker = parameters.maker;
   }
@@ -165,7 +161,6 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       type: this.type,
       unsplitable: this.unsplitable,
       special: this.special,
-      datasetType: this.datasetType,
       maker: this.maker
     };
   }
@@ -180,7 +175,6 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     } else {
       if (this.unsplitable) js.unsplitable = true;
     }
-    if (this.datasetType) js.datasetType = this.datasetType;
     if (this.maker) js.maker = this.maker.toJS();
     return js;
   }
@@ -200,6 +194,13 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
   public serialize(value: any): any {
     return value;
+  }
+
+  public dumpMaker(): AttributeInfo {
+    if (!this.maker) return this;
+    let value = this.valueOf();
+    value.maker = null;
+    return AttributeInfo.fromValue(value);
   }
 
   public change(propertyName: string, newValue: any): AttributeInfo {
