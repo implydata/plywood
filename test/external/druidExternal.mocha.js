@@ -1968,7 +1968,7 @@ describe("DruidExternal", () => {
 
       return ex.compute({ wiki: emptyExternal })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             { Count: 0 }
           ]);
         });
@@ -1981,7 +1981,7 @@ describe("DruidExternal", () => {
 
       return ex.compute({ wiki: emptyExternal })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([]);
+          expect(result.toJS().data).to.deep.equal([]);
         });
     });
 
@@ -1994,7 +1994,7 @@ describe("DruidExternal", () => {
 
       return ex.compute({ wiki: emptyExternal })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([]);
+          expect(result.toJS().data).to.deep.equal([]);
         });
     });
 
@@ -2010,7 +2010,7 @@ describe("DruidExternal", () => {
             { name: 'added', type: 'NUMBER' }
           ]);
 
-          expect(result.toJS()).to.deep.equal([]);
+          expect(result.toJS().data).to.deep.equal([]);
           expect(result.toCSV()).to.equal('time,language,page,added');
         });
     });

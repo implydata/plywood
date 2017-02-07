@@ -997,10 +997,30 @@ describe("Simplify", () => {
 
     it('simplifies on empty literal', () => {
       let ex1 = ply().split('$x', 'Page', 'data');
-      let ex2 = ply(Dataset.fromJS([
-        { Page: null }
-      ]));
-      simplifiesTo(ex1, ex2);
+      expect(ex1.simplify().toJS()).to.deep.equal({
+        "op": "literal",
+        "type": "DATASET",
+        "value": {
+          "attributes": [
+            {
+              "name": "Page",
+              "type": "STRING"
+            },
+            {
+              "name": "data",
+              "type": "DATASET"
+            }
+          ],
+          "data": [
+            {
+              "Page": null
+            }
+          ],
+          "keys": [
+            "Page"
+          ]
+        }
+      });
     });
 
     it('simplifies on non-empty literal', () => {
@@ -1010,12 +1030,33 @@ describe("Simplify", () => {
         { a: 2, b: 30 }
       ])).split('$a', 'A', 'data');
 
-      let ex2 = ply(Dataset.fromJS([
-        { A: 1 },
-        { A: 2 }
-      ]));
-
-      simplifiesTo(ex1, ex2);
+      expect(ex1.simplify().toJS()).to.deep.equal({
+        "op": "literal",
+        "type": "DATASET",
+        "value": {
+          "attributes": [
+            {
+              "name": "A",
+              "type": "NUMBER"
+            },
+            {
+              "name": "data",
+              "type": "DATASET"
+            }
+          ],
+          "data": [
+            {
+              "A": 1
+            },
+            {
+              "A": 2
+            }
+          ],
+          "keys": [
+            "A"
+          ]
+        }
+      })
     });
   });
 
@@ -1073,9 +1114,10 @@ describe("Simplify", () => {
         .apply('Stuff', 5)
         .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)');
 
-      let ex2 = ply(Dataset.fromJS([{
-        Stuff: 5
-      }]))
+      let ex2 = ply(Dataset.fromJS({
+        keys: [],
+        data: [{ Stuff: 5 }]
+      }))
         .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)');
 
       simplifiesTo(ex1, ex2);

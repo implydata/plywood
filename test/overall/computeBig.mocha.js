@@ -44,7 +44,7 @@ describe("compute native nontrivial data", function() {
 
     return ex.compute({ data: ds })
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Count": 39244,
             "SumAdded": 9385573
@@ -80,7 +80,7 @@ describe("compute native nontrivial data", function() {
 
     return ex.compute({ data: ds })
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Count": 35445,
             "CountryName": null,
@@ -119,7 +119,7 @@ describe("compute native nontrivial data", function() {
 
     return ex.compute({ data: ds })
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Count": 1,
             "Page": "User:QuackGuru/Electronic cigarettes 1",
@@ -157,21 +157,19 @@ describe("compute native nontrivial data", function() {
 
     return ex.compute({ data: ds })
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Count": 556,
             "Time": {
               "end": new Date('2015-09-12T01:15:00.000Z'),
-              "start": new Date('2015-09-12T00:15:00.000Z'),
-              "type": "TIME_RANGE"
+              "start": new Date('2015-09-12T00:15:00.000Z')
             }
           },
           {
             "Count": 1129,
             "Time": {
               "end": new Date('2015-09-12T02:15:00.000Z'),
-              "start": new Date('2015-09-12T01:15:00.000Z'),
-              "type": "TIME_RANGE"
+              "start": new Date('2015-09-12T01:15:00.000Z')
             }
           }
         ]);
@@ -203,86 +201,169 @@ describe("compute native nontrivial data", function() {
 
     return ex.compute({ data: ds })
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
-          {
-            "Count": 39244,
-            "xs": [
-              {
-                "cnt": 22311,
-                "v": "A"
+        expect(v.toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "Count",
+              "type": "NUMBER"
+            },
+            {
+              "name": "xs",
+              "type": "DATASET"
+            },
+            {
+              "name": "ys",
+              "type": "DATASET"
+            },
+            {
+              "name": "cells",
+              "type": "DATASET"
+            }
+          ],
+          "data": [
+            {
+              "Count": 39244,
+              "cells": {
+                "attributes": [
+                  {
+                    "name": "channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "userChars",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "data",
+                    "type": "DATASET"
+                  },
+                  {
+                    "name": "cnt",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "channel": "en",
+                    "cnt": 4947,
+                    "userChars": "E"
+                  },
+                  {
+                    "channel": "en",
+                    "cnt": 1612,
+                    "userChars": "G"
+                  },
+                  {
+                    "channel": "en",
+                    "cnt": 2815,
+                    "userChars": "L"
+                  },
+                  {
+                    "channel": "en",
+                    "cnt": 3736,
+                    "userChars": "N"
+                  },
+                  {
+                    "channel": "en",
+                    "cnt": 4994,
+                    "userChars": "O"
+                  },
+                  {
+                    "channel": "en",
+                    "cnt": 3806,
+                    "userChars": "R"
+                  },
+                  {
+                    "channel": "en",
+                    "cnt": 3006,
+                    "userChars": "S"
+                  },
+                  {
+                    "channel": "en",
+                    "cnt": 4606,
+                    "userChars": "T"
+                  },
+                  {
+                    "channel": "vi",
+                    "cnt": 2513,
+                    "userChars": "!"
+                  }
+                ],
+                "keys": [
+                  "channel",
+                  "userChars"
+                ]
               },
-              {
-                "cnt": 22273,
-                "v": "O"
+              "xs": {
+                "attributes": [
+                  {
+                    "name": "v",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "data",
+                    "type": "DATASET"
+                  },
+                  {
+                    "name": "cnt",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "cnt": 22311,
+                    "v": "A"
+                  },
+                  {
+                    "cnt": 22273,
+                    "v": "O"
+                  },
+                  {
+                    "cnt": 21658,
+                    "v": "T"
+                  }
+                ],
+                "keys": [
+                  "v"
+                ]
               },
-              {
-                "cnt": 21658,
-                "v": "T"
+              "ys": {
+                "attributes": [
+                  {
+                    "name": "v",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "data",
+                    "type": "DATASET"
+                  },
+                  {
+                    "name": "cnt",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "cnt": 11549,
+                    "v": "en"
+                  },
+                  {
+                    "cnt": 9747,
+                    "v": "vi"
+                  },
+                  {
+                    "cnt": 2523,
+                    "v": "de"
+                  }
+                ],
+                "keys": [
+                  "v"
+                ]
               }
-            ],
-            "ys": [
-              {
-                "cnt": 11549,
-                "v": "en"
-              },
-              {
-                "cnt": 9747,
-                "v": "vi"
-              },
-              {
-                "cnt": 2523,
-                "v": "de"
-              }
-            ],
-            "cells": [
-              {
-                "channel": "en",
-                "cnt": 4947,
-                "userChars": "E"
-              },
-              {
-                "channel": "en",
-                "cnt": 1612,
-                "userChars": "G"
-              },
-              {
-                "channel": "en",
-                "cnt": 2815,
-                "userChars": "L"
-              },
-              {
-                "channel": "en",
-                "cnt": 3736,
-                "userChars": "N"
-              },
-              {
-                "channel": "en",
-                "cnt": 4994,
-                "userChars": "O"
-              },
-              {
-                "channel": "en",
-                "cnt": 3806,
-                "userChars": "R"
-              },
-              {
-                "channel": "en",
-                "cnt": 3006,
-                "userChars": "S"
-              },
-              {
-                "channel": "en",
-                "cnt": 4606,
-                "userChars": "T"
-              },
-              {
-                "channel": "vi",
-                "cnt": 2513,
-                "userChars": "!"
-              }
-            ]
-          }
-        ]);
+            }
+          ],
+          "keys": []
+        });
       });
   });
 
@@ -302,7 +383,7 @@ describe("compute native nontrivial data", function() {
 
     return ex.compute({ data: ds })
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Count": 35445,
             "CountGT1000": true,

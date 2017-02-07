@@ -295,7 +295,12 @@ function getNumber(param: number | Expression): number {
  * This is useful to describe the base container
  */
 export function ply(dataset?: Dataset): LiteralExpression {
-  if (!dataset) dataset = new Dataset({ data: [{}] });
+  if (!dataset) {
+    dataset = new Dataset({
+      keys: [],
+      data: [{}]
+    });
+  }
   return r(dataset);
 }
 

@@ -108,7 +108,7 @@ describe("Multi Dataset Functional", function() {
 
     return mixedExecutor(ex)
       .then((result) => {
-        expect(result.toJS()).to.deep.equal([
+        expect(result.toJS().data).to.deep.equal([
 
         ]);
       });
@@ -130,59 +130,104 @@ describe("Multi Dataset Functional", function() {
 
     return mixedExecutor(ex)
       .then((result) => {
-        expect(result.toJS()).to.deep.equal([
+        expect(result.toJS().data).to.deep.equal([
           {
             "Channel": "en",
-            "Namespaces": [
-              {
-                "Namespace": "Main",
-                "TotalAddedDruid": 11594002
-              },
-              {
-                "Namespace": "User talk",
-                "TotalAddedDruid": 9210976
-              },
-              {
-                "Namespace": "Wikipedia",
-                "TotalAddedDruid": 4720291
-              }
-            ],
+            "Namespaces": {
+              "attributes": [
+                {
+                  "name": "Namespace",
+                  "type": "STRING"
+                },
+                {
+                  "name": "TotalAddedDruid",
+                  "type": "NUMBER"
+                }
+              ],
+              "data": [
+                {
+                  "Namespace": "Main",
+                  "TotalAddedDruid": 11594002
+                },
+                {
+                  "Namespace": "User talk",
+                  "TotalAddedDruid": 9210976
+                },
+                {
+                  "Namespace": "Wikipedia",
+                  "TotalAddedDruid": 4720291
+                }
+              ],
+              "keys": [
+                "Namespace"
+              ]
+            },
             "TotalAddedMySQL": 32553107
           },
           {
             "Channel": "it",
-            "Namespaces": [
-              {
-                "Namespace": "Discussioni utente",
-                "TotalAddedDruid": 5938398
-              },
-              {
-                "Namespace": "Main",
-                "TotalAddedDruid": 1545491
-              },
-              {
-                "Namespace": "Utente",
-                "TotalAddedDruid": 97907
-              }
-            ],
+            "Namespaces": {
+              "attributes": [
+                {
+                  "name": "Namespace",
+                  "type": "STRING"
+                },
+                {
+                  "name": "TotalAddedDruid",
+                  "type": "NUMBER"
+                }
+              ],
+              "data": [
+                {
+                  "Namespace": "Discussioni utente",
+                  "TotalAddedDruid": 5938398
+                },
+                {
+                  "Namespace": "Main",
+                  "TotalAddedDruid": 1545491
+                },
+                {
+                  "Namespace": "Utente",
+                  "TotalAddedDruid": 97907
+                }
+              ],
+              "keys": [
+                "Namespace"
+              ]
+            },
             "TotalAddedMySQL": 7852924
           },
           {
             "Channel": "fr",
-            "Namespaces": [
-              {
-                "Namespace": "Main",
-                "TotalAddedDruid": 3830175
-              },
-              {
-                "Namespace": "Discussion utilisateur",
-                "TotalAddedDruid": 1381838
-              },
-              {
-                "Namespace": "Projet",
-                "TotalAddedDruid": 639063
-              }
-            ],
+            "Namespaces": {
+              "attributes": [
+                {
+                  "name": "Namespace",
+                  "type": "STRING"
+                },
+                {
+                  "name": "TotalAddedDruid",
+                  "type": "NUMBER"
+                }
+              ],
+              "data": [
+                {
+                  "Namespace": "Main",
+                  "TotalAddedDruid": 3830175
+                },
+                {
+                  "Namespace": "Discussion utilisateur",
+                  "TotalAddedDruid": 1381838
+                },
+                {
+                  "Namespace": "Projet",
+                  "TotalAddedDruid": 639063
+                }
+              ],
+              "keys": [
+                "Namespace"
+              ]
+            },
             "TotalAddedMySQL": 7050247
           }
         ]);

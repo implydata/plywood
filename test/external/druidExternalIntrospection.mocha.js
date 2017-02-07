@@ -784,7 +784,7 @@ describe("DruidExternal Introspection", () => {
 
     return $('wiki').compute(context)
       .then((results) => {
-        expect(results.toJS()).to.deep.equal([]);
+        expect(results.toJS().data).to.deep.equal([]);
       });
   });
 });

@@ -26,88 +26,117 @@ const { Dataset, AttributeInfo, $, Set, r } = plywood;
 describe("Dataset", () => {
   it("is immutable class", () => {
     testImmutableClass(Dataset, [
-      [
-        { x: 1, y: 2 },
-        { x: 2, y: 3 }
-      ],
+      {
+        attributes: [
+          { name: 'x', type: 'NUMBER' },
+          { name: 'y', type: 'NUMBER' }
+        ],
+        data: [
+          { x: 1, y: 2 },
+          { x: 2, y: 3 }
+        ]
+      },
 
-      [
-        {
-          Void: null,
-          SoTrue: true,
-          NotSoTrue: false,
-          Zero: 0,
-          Count: 2353,
-          HowAwesome: { type: 'NUMBER', value: 'Infinity' },
-          HowLame: { type: 'NUMBER', value: '-Infinity' },
-          HowMuch: {
-            type: 'NUMBER_RANGE',
-            start: 0,
-            end: 7
-          },
-          ToInfinityAndBeyond: {
-            type: 'NUMBER_RANGE',
-            start: null,
-            end: null,
-            bounds: "()"
-          },
-          SomeDate: {
-            type: 'TIME',
-            value: new Date('2015-01-26T04:54:10Z')
-          },
-          SomeTimeRange: {
-            type: 'TIME_RANGE',
-            start: new Date('2015-01-26T04:54:10Z'),
-            end: new Date('2015-01-26T05:00:00Z')
-          },
-          BestCity: 'San Francisco',
-          Vegetables: {
-            type: 'SET',
-            setType: 'STRING',
-            elements: ['Broccoli', 'Brussels sprout', 'Potato']
-          },
-          FunTimes: {
-            type: 'SET',
-            setType: 'TIME_RANGE',
-            elements: [
-              { start: new Date('2015-01-26T04:54:10Z'), end: new Date('2015-01-26T05:00:00Z') },
-              { start: new Date('2015-02-20T04:54:10Z'), end: new Date('2015-02-20T05:00:00Z') }
-            ]
-          },
-          SubData: [
-            { x: 1, y: 2 },
-            { x: 2, y: 3 }
-          ],
-          hasOwnProperty: 'troll'
-        }
-      ],
+      {
+        keys: ['BestCity'],
+        attributes: [
+          { name: 'Void', type: 'NULL' },
+          { name: 'SoTrue', type: 'BOOLEAN' },
+          { name: 'NotSoTrue', type: 'BOOLEAN' },
+          { name: 'Zero', type: 'NUMBER' },
+          { name: 'Count', type: 'NUMBER' },
+          { name: 'HowAwesome', type: 'NUMBER' },
+          { name: 'HowLame', type: 'NUMBER' },
+          { name: 'HowMuch', type: 'NUMBER_RANGE' },
+          { name: 'ToInfinityAndBeyond', type: 'NUMBER_RANGE' },
+          { name: 'SomeDate', type: 'TIME' },
+          { name: 'SomeTimeRange', type: 'TIME_RANGE' },
+          { name: 'BestCity', type: 'STRING' },
+          { name: 'Vegetables', type: 'SET/STRING' },
+          { name: 'FunTimes', type: 'SET/TIME_RANGE' },
+          { name: 'SubData', type: 'DATASET' },
+          { name: 'hasOwnProperty', type: 'STRING' }
+        ],
+        data: [
+          {
+            Void: null,
+            SoTrue: true,
+            NotSoTrue: false,
+            Zero: 0,
+            Count: 2353,
+            HowAwesome: 'Infinity',
+            HowLame: '-Infinity',
+            HowMuch: {
+              start: 0,
+              end: 7
+            },
+            ToInfinityAndBeyond: {
+              start: null,
+              end: null,
+              bounds: "()"
+            },
+            SomeDate: new Date('2015-01-26T04:54:10Z'),
+            SomeTimeRange: {
+              start: new Date('2015-01-26T04:54:10Z'),
+              end: new Date('2015-01-26T05:00:00Z')
+            },
+            BestCity: 'San Francisco',
+            Vegetables: {
+              setType: 'STRING',
+              elements: ['Broccoli', 'Brussels sprout', 'Potato']
+            },
+            FunTimes: {
+              setType: 'TIME_RANGE',
+              elements: [
+                { start: new Date('2015-01-26T04:54:10Z'), end: new Date('2015-01-26T05:00:00Z') },
+                { start: new Date('2015-02-20T04:54:10Z'), end: new Date('2015-02-20T05:00:00Z') }
+              ]
+            },
+            SubData: {
+              attributes: [
+                { name: 'x', type: 'NUMBER' },
+                { name: 'y', type: 'NUMBER' }
+              ],
+              data: [
+                { x: 1, y: 2 },
+                { x: 2, y: 3 }
+              ]
+            },
+            hasOwnProperty: 'troll'
+          }
+        ]
+      },
 
-      [
-        {
-          "Carat": {
-            "end": 0.5,
-            "start": 0.25,
-            "type": "NUMBER_RANGE"
+      {
+        attributes: [
+          { name: 'Carat', type: 'NUMBER_RANGE' },
+          { name: 'Count', type: 'NUMBER' }
+        ],
+        data: [
+          {
+            Carat: {
+              end: 0.5,
+              start: 0.25
+            },
+            Count: 1360
           },
-          "Count": 1360
-        },
-        {
-          "Carat": {
-            "end": 0.75,
-            "start": 0.5,
-            "type": "NUMBER_RANGE"
+          {
+            Carat: {
+              end: 0.75,
+              start: 0.5
+            },
+            Count: 919
           },
-          "Count": 919
-        },
-        {
-          "Carat": {
-            "end": 1.25,
-            "start": 1,
-            "type": "NUMBER_RANGE"
-          },
-          "Count": 298
-        }
-      ]
+          {
+            Carat: {
+              end: 1.25,
+              start: 1
+            },
+            Count: 298
+          }
+        ]
+      }
+
     ]);
   });
 
@@ -190,10 +219,109 @@ describe("Dataset", () => {
         }
       });
     });
+
+    it("works in double nested case", () => {
+      expect(Dataset.fromJS([
+        {
+          a: "hello",
+          subData: [
+            {
+              b: "world",
+              subSubData: [
+                {
+                  c: "piece",
+                  subData: [
+                    { d: 50.5, e: 'woop' },
+                    { d: 50.6, e: 'w00p' }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]).getFullType()).to.deep.equal({
+        type: "DATASET",
+        datasetType: {
+          "a": {
+            "type": "STRING"
+          },
+          "subData": {
+            "datasetType": {
+              "b": {
+                "type": "STRING"
+              },
+              "subSubData": {
+                "datasetType": {
+                  "c": {
+                    "type": "STRING"
+                  },
+                  "subData": {
+                    "datasetType": {
+                      "d": {
+                        "type": "NUMBER"
+                      },
+                      "e": {
+                        "type": "STRING"
+                      }
+                    },
+                    "type": "DATASET"
+                  }
+                },
+                "type": "DATASET"
+              }
+            },
+            "type": "DATASET"
+          }
+        }
+      });
+    });
+
   });
 
 
   describe("introspects", () => {
+    it("works in nested case", () => {
+      let ds = Dataset.fromJS([
+        {
+          x: 1,
+          y: "hello",
+          z: new Date(1000),
+          subData: [
+            { a: 50.5, b: 'woop' },
+            { a: 50.6, b: 'w00p' }
+          ]
+        },
+        {
+          x: 2,
+          y: "woops",
+          z: new Date(1001),
+          subData: [
+            { a: 51.5, b: 'Woop' },
+            { a: 51.6, b: 'W00p' }
+          ]
+        }
+      ]);
+
+      expect(AttributeInfo.toJSs(ds.attributes)).to.deep.equal([
+        {
+          "name": "z",
+          "type": "TIME"
+        },
+        {
+          "name": "y",
+          "type": "STRING"
+        },
+        {
+          "name": "x",
+          "type": "NUMBER"
+        },
+        {
+          "name": "subData",
+          "type": "DATASET"
+        }
+      ]);
+    });
+
     it("in real case", () => {
       let ds = Dataset.fromJS([
         {
@@ -265,6 +393,7 @@ describe("Dataset", () => {
         { "name": "metroCode", "type": "NUMBER" }
       ]);
     });
+
   });
 
 
@@ -276,7 +405,7 @@ describe("Dataset", () => {
     ]);
 
     it("STRING, ascending", () => {
-      expect(someDataset.sort($('resource'), 'ascending').toJS().map((d) => {
+      expect(someDataset.sort($('resource'), 'ascending').toJS().data.map((d) => {
         return d.resource;
       })).to.deep.equal([
         null, 'A', 'B'
@@ -284,7 +413,7 @@ describe("Dataset", () => {
     });
 
     it("STRING, descending", () => {
-      expect(someDataset.sort($('resource'), 'descending').toJS().map((d) => {
+      expect(someDataset.sort($('resource'), 'descending').toJS().data.map((d) => {
         return d.resource;
       })).to.deep.equal([
         'B', 'A', null
@@ -292,7 +421,7 @@ describe("Dataset", () => {
     });
 
     it("NUMBER, ascending", () => {
-      expect(someDataset.sort($('value'), 'ascending').toJS().map((d) => {
+      expect(someDataset.sort($('value'), 'ascending').toJS().data.map((d) => {
         return d.value;
       })).to.deep.equal([
         null, 2, 7
@@ -300,7 +429,7 @@ describe("Dataset", () => {
     });
 
     it("NUMBER, descending", () => {
-      expect(someDataset.sort($('value'), 'descending').toJS().map((d) => {
+      expect(someDataset.sort($('value'), 'descending').toJS().data.map((d) => {
         return d.value;
       })).to.deep.equal([
         7, 2, null
@@ -308,7 +437,7 @@ describe("Dataset", () => {
     });
 
     it("BOOLEAN, ascending", () => {
-      expect(someDataset.sort($('nice'), 'ascending').toJS().map((d) => {
+      expect(someDataset.sort($('nice'), 'ascending').toJS().data.map((d) => {
         return d.nice;
       })).to.deep.equal([
         null, false, true
@@ -316,7 +445,7 @@ describe("Dataset", () => {
     });
 
     it("BOOLEAN, descending", () => {
-      expect(someDataset.sort($('nice'), 'descending').toJS().map((d) => {
+      expect(someDataset.sort($('nice'), 'descending').toJS().data.map((d) => {
         return d.nice;
       })).to.deep.equal([
         true, false, null
