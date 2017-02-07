@@ -77,6 +77,24 @@ export function getFullTypeFromDatum(datum: Datum): DatasetFullType {
   };
 }
 
+function timeFromJS(v: any): Date | null {
+  switch (typeof v) {
+    case 'string':
+    case 'number':
+      return new Date(v);
+
+    case 'object':
+      if (v.toISOString) return v;
+      if (v === null) return null;
+      if (v.value) return new Date(v.value);
+      throw new Error(`can not interpret ${JSON.stringify(v)} as TIME`);
+
+    default:
+      throw new Error(`can not interpret ${v} as TIME`);
+  }
+
+}
+
 export function valueFromJS(v: any, typeOverride: string | null = null): any {
   if (v == null) {
     return null;
@@ -100,7 +118,7 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
         return StringRange.fromJS(v);
 
       case 'TIME':
-        return typeOverride ? v : new Date(v.value);
+        return timeFromJS(v);
 
       case 'TIME_RANGE':
         return TimeRange.fromJS(v);
@@ -108,11 +126,20 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
       case 'SET':
         return Set.fromJS(v);
 
+      case 'DATASET':
+        return Dataset.fromJS(v);
+
       default:
+        if (String(typeOverride).indexOf('SET') === 0) {
+          return Set.fromJS(v);
+        }
         if (v.toISOString) {
           return v; // Allow native date
+        }
+        if (typeOverride) {
+          throw new Error(`unknown type ${typeOverride}`);
         } else {
-          throw new Error('can not have an object without a `type` as a datum value');
+          throw new Error(`can not have an object without a 'type' as a datum value: ${JSON.stringify(v)}`);
         }
     }
   } else if (typeof v === 'string' && typeOverride === 'TIME') {

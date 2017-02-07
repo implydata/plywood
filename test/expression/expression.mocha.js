@@ -517,9 +517,13 @@ describe("Expression", () => {
               "expression": {
                 "op": "literal",
                 "type": "DATASET",
-                "value": [
-                  {}
-                ]
+                "value": {
+                  "keys": [],
+                  "attributes": [],
+                  "data": [
+                    {}
+                  ]
+                }
               },
               "op": "chain"
             },
@@ -561,9 +565,13 @@ describe("Expression", () => {
         "expression": {
           "op": "literal",
           "type": "DATASET",
-          "value": [
-            {}
-          ]
+          "value": {
+            "keys": [],
+            "attributes": [],
+            "data": [
+              {}
+            ]
+          }
         },
         "op": "chain"
       };

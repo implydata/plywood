@@ -24,7 +24,7 @@ import { NumberRange } from './numberRange';
 import { Set } from './set';
 import { StringRange } from './stringRange';
 import { TimeRange } from './timeRange';
-import { valueFromJS, valueToJSInlineType, datumHasExternal } from './common';
+import { valueFromJS, valueToJS, datumHasExternal } from './common';
 import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression, Direction } from '../expressions/index';
 import { External, TotalContainer } from '../external/baseExternal';
 
@@ -259,7 +259,7 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
   } else if (attributeValue instanceof Set) {
     return new AttributeInfo({ name, type: attributeValue.getType() });
   } else if (attributeValue instanceof Dataset || attributeValue instanceof External) {
-    return new AttributeInfo({ name, type: 'DATASET', datasetType: attributeValue.getFullType().datasetType });
+    return new AttributeInfo({ name, type: 'DATASET' }); // , datasetType: attributeValue.getFullType().datasetType
   } else {
     throw new Error(`Could not introspect ${attributeValue}`);
   }
@@ -286,46 +286,46 @@ function copy(obj: Lookup<any>): Lookup<any> {
 }
 
 export interface DatasetValue {
-  attributeOverrides?: Attributes;
-
   attributes?: Attributes;
   keys?: string[];
   data?: Datum[];
   suppress?: boolean;
 }
 
-export interface DatasetJS {
+export interface DatasetJSFull {
   attributes?: AttributeJSs;
   keys?: string[];
   data?: Datum[];
 }
 
-let check: Class<DatasetValue, any>;
-export class Dataset implements Instance<DatasetValue, any> {
+export type DatasetJS = DatasetJSFull | Datum[];
+
+let check: Class<DatasetValue, DatasetJS>;
+export class Dataset implements Instance<DatasetValue, DatasetJS> {
   static type = 'DATASET';
 
   static isDataset(candidate: any): candidate is Dataset {
     return candidate instanceof Dataset;
   }
 
-  static datumFromJS(js: Datum): Datum {
+  static datumFromJS(js: PseudoDatum, attributeLookup: Lookup<AttributeInfo> = {}): Datum {
     if (typeof js !== 'object') throw new TypeError("datum must be an object");
 
     let datum: Datum = Object.create(null);
     for (let k in js) {
       if (!hasOwnProp(js, k)) continue;
-      datum[k] = valueFromJS(js[k]);
+      datum[k] = valueFromJS(js[k], hasOwnProp(attributeLookup, k) ? attributeLookup[k].type : null);
     }
 
     return datum;
   }
 
-  static datumToJS(datum: Datum): Datum {
-    let js: Datum = {};
+  static datumToJS(datum: Datum): PseudoDatum {
+    let js: PseudoDatum = {};
     for (let k in datum) {
       let v = datum[k];
       if (v && (v as any).suppress) continue;
-      js[k] = valueToJSInlineType(v);
+      js[k] = valueToJS(v);
     }
     return js;
   }
@@ -391,7 +391,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
   }
 
-  static fromJS(parameters: any): Dataset {
+  static fromJS(parameters: DatasetJS): Dataset {
     if (Array.isArray(parameters)) {
       parameters = { data: parameters };
     }
@@ -401,21 +401,21 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
 
     let value: DatasetValue = {};
-
-    if (hasOwnProp(parameters, 'attributes')) {
-      value.attributes = AttributeInfo.fromJSs(parameters.attributes);
-    } else if (hasOwnProp(parameters, 'attributeOverrides')) {
-      value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
+    let attributeLookup: Lookup<AttributeInfo> = {};
+    if (parameters.attributes) {
+      const attributes = AttributeInfo.fromJSs(parameters.attributes);
+      value.attributes = attributes;
+      for (let attribute of attributes) attributeLookup[attribute.name] = attribute;
     }
 
-    value.keys = parameters.keys;
-    value.data = parameters.data.map(Dataset.datumFromJS);
+    value.keys = parameters.keys || null;
+    value.data = parameters.data.map((d) => Dataset.datumFromJS(d, attributeLookup));
     return new Dataset(value);
   }
 
   public suppress: boolean;
   public attributes: Attributes = null;
-  public keys: string[] = null;
+  public keys: string[] | null = null;
   public data: Datum[];
 
   constructor(parameters: DatasetValue) {
@@ -433,11 +433,6 @@ export class Dataset implements Instance<DatasetValue, any> {
     let attributes = parameters.attributes;
     if (!attributes) attributes = Dataset.getAttributesFromData(data);
 
-    let attributeOverrides = parameters.attributeOverrides;
-    if (attributeOverrides) {
-      attributes = AttributeInfo.override(attributes, attributeOverrides);
-    }
-
     this.attributes = attributes;
   }
 
@@ -450,12 +445,16 @@ export class Dataset implements Instance<DatasetValue, any> {
     return value;
   }
 
-  public toJS(): any {
-    return this.data.map(Dataset.datumToJS);
+  public toJS(): DatasetJS {
+    const js: DatasetJSFull = {};
+    if (this.keys) js.keys = this.keys;
+    if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
+    js.data = this.data.map(Dataset.datumToJS);
+    return js;
   }
 
   public toString(): string {
-    return "Dataset(" + this.data.length + ")";
+    return `Dataset(${this.data.length})`;
   }
 
   public toJSON(): any {
@@ -492,10 +491,15 @@ export class Dataset implements Instance<DatasetValue, any> {
     for (let attribute of attributes) {
       let attrName = attribute.name;
       if (attribute.type === 'DATASET') {
-        myDatasetType[attrName] = {
-          type: 'DATASET',
-          datasetType: attribute.datasetType
-        };
+        let v0: any; // ToDo: revisit, look beyond 0
+        if (this.data.length && (v0 = this.data[0][attrName]) && v0 instanceof Dataset) {
+          myDatasetType[attrName] = v0.getFullType();
+        } else {
+          myDatasetType[attrName] = {
+            type: 'DATASET',
+            datasetType: {}
+          };
+        }
       } else {
         myDatasetType[attrName] = {
           type: <PlyTypeSimple>attribute.type
@@ -562,20 +566,20 @@ export class Dataset implements Instance<DatasetValue, any> {
       newData[i] = newDatum;
     }
 
-    // Hack
-    let datasetType: Lookup<FullType> = null;
-    if (type === 'DATASET' && newData[0] && newData[0][name]) {
-      let thing: any = newData[0][name];
-      if (thing instanceof Dataset) {
-        datasetType = thing.getFullType().datasetType;
-      } else {
-        datasetType = {}; // Temp hack, (a hack within a hack), technically this should be dataset type;
-      }
-    }
-    // End Hack
+    // // Hack
+    // let datasetType: Lookup<FullType> = null;
+    // if (type === 'DATASET' && newData[0] && newData[0][name]) {
+    //   let thing: any = newData[0][name];
+    //   if (thing instanceof Dataset) {
+    //     datasetType = thing.getFullType().datasetType;
+    //   } else {
+    //     datasetType = {}; // Temp hack, (a hack within a hack), technically this should be dataset type;
+    //   }
+    // }
+    // // End Hack
 
     let value = this.valueOf();
-    value.attributes = NamedArray.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
+    value.attributes = NamedArray.overrideByName(value.attributes, new AttributeInfo({ name, type }));
     value.data = newData;
     return new Dataset(value);
   }
@@ -843,6 +847,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       finalData[i][datasetName] = new Dataset({
         suppress: true,
         attributes,
+        keys: null,
         data: finalDataset[i]
       });
     }

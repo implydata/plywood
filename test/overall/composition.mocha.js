@@ -42,7 +42,11 @@ describe("composition", () => {
     expect(ex.toJS()).to.deep.equal({
       "op": "literal",
       "type": "DATASET",
-      "value": [{}]
+      "value": {
+        "keys": [],
+        "attributes": [],
+        "data": [{}]
+      }
     });
   });
 
@@ -172,9 +176,13 @@ describe("composition", () => {
               "operand": {
                 "op": "literal",
                 "type": "DATASET",
-                "value": [
-                  {}
-                ]
+                "value": {
+                  "keys": [],
+                  "attributes": [],
+                  "data": [
+                    {}
+                  ]
+                }
               }
             }
           },
@@ -183,9 +191,13 @@ describe("composition", () => {
           "operand": {
             "op": "literal",
             "type": "DATASET",
-            "value": [
-              {}
-            ]
+            "value": {
+              "keys": [],
+              "attributes": [],
+              "data": [
+                {}
+              ]
+            }
           }
         }
       }
@@ -253,9 +265,13 @@ describe("composition", () => {
               "operand": {
                 "op": "literal",
                 "type": "DATASET",
-                "value": [
-                  {}
-                ]
+                "value": {
+                  "keys": [],
+                  "attributes": [],
+                  "data": [
+                    {}
+                  ]
+                }
               }
             }
           },
@@ -264,9 +280,13 @@ describe("composition", () => {
           "operand": {
             "op": "literal",
             "type": "DATASET",
-            "value": [
-              {}
-            ]
+            "value": {
+              "keys": [],
+              "attributes": [],
+              "data": [
+                {}
+              ]
+            }
           }
         }
       }

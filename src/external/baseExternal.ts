@@ -549,7 +549,7 @@ export abstract class External {
     });
   }
 
-  static postTransformFactory(inflaters: Inflater[], attributes: Attributes, zeroTotalApplies: ApplyExpression[]) {
+  static postTransformFactory(inflaters: Inflater[], attributes: Attributes, keys: string[], zeroTotalApplies: ApplyExpression[]) {
     let valueSeen = false;
     return new Transform({
       objectMode: true,
@@ -558,7 +558,7 @@ export abstract class External {
           this.push({
             __$$type: 'init',
             attributes,
-            keys: null
+            keys
           });
           valueSeen = true;
         }
@@ -1324,10 +1324,12 @@ export abstract class External {
   }
 
   public getSelectedAttributes(): Attributes {
-    let { select, attributes, derivedAttributes } = this;
-    attributes = attributes.slice();
-    for (let k in derivedAttributes) {
-      attributes.push(new AttributeInfo({ name: k, type: derivedAttributes[k].type }));
+    let { mode, select, attributes, derivedAttributes } = this;
+    if (mode === 'raw') {
+      attributes = attributes.map((a) => a.dumpMaker());
+      for (let k in derivedAttributes) {
+        attributes.push(new AttributeInfo({ name: k, type: derivedAttributes[k].type }));
+      }
     }
     if (!select) return attributes;
     const selectAttributes = select.attributes;
@@ -1371,8 +1373,8 @@ export abstract class External {
       return getSampleValue(valueExpression.type, valueExpression);
     }
 
+    let keys: string[] = null;
     let datum: Datum = {};
-
     if (mode === 'raw') {
       let attributes = this.attributes;
       for (let attribute of attributes) {
@@ -1383,6 +1385,7 @@ export abstract class External {
         this.split.mapSplits((name, expression) => {
           datum[name] = getSampleValue(unwrapSetType(expression.type), expression);
         });
+        keys = this.split.mapSplits((name) => name);
       }
 
       let applies = this.applies;
@@ -1398,7 +1401,10 @@ export abstract class External {
     if (!lastNode && mode === 'split') {
       externalForNext.addNextExternalToDatum(datum);
     }
-    return new Dataset({ data: [datum] });
+    return new Dataset({
+      keys,
+      data: [datum]
+    });
   }
 
   public getQueryAndPostTransform(): QueryAndPostTransform<any> {
