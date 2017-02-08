@@ -85,8 +85,8 @@ export class DruidExtractionFnBuilder {
   static SPAN_TO_FLOOR_FORMAT: Lookup<string> = {
     second: "yyyy-MM-dd'T'HH:mm:ss'Z",
     minute: "yyyy-MM-dd'T'HH:mm'Z",
-    hour: "yyyy-MM-dd'T'HH':00Z",
-    day: "yyyy-MM-dd'Z",
+    hour: "yyyy-MM-dd'T'HH':00:00'Z",
+    day: "yyyy-MM-dd'T00:00:00'Z",
     month: "yyyy-MM'-01Z",
     year: "yyyy'-01-01Z"
   };
