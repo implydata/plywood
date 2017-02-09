@@ -16,7 +16,7 @@
  */
 
 const { expect } = require("chai");
-let { Dataset, $, i$, ply, r, AttributeInfo } = require('../plywood');
+let { Dataset, $, i$, ply, r, AttributeInfo, Set } = require('../plywood');
 
 describe("compute native", () => {
   let data = [
@@ -278,7 +278,7 @@ describe("compute native", () => {
       });
   });
 
-  it("works with power and abs", () => {
+  it("works with power and absolute", () => {
     let ex = ply()
       .apply('number', 256)
       .apply('four', $('number').power(0.5).power(0.5))
@@ -303,6 +303,39 @@ describe("compute native", () => {
             'absPos': 4
           }
         ]);
+      });
+  });
+
+  it("performs power on set", () => {
+    let ex = r(Set.fromJS([2, -2, 7])).power(Set.fromJS([2, 3]));
+
+    return ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal({
+          "elements": [
+            4,
+            8,
+            -8,
+            49,
+            343
+          ],
+          "setType": "NUMBER"
+        });
+      });
+  });
+
+  it("performs absolute on set", () => {
+    let ex = r(Set.fromJS([2, -2, 7])).absolute();
+
+    return ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal({
+          "elements": [
+            2,
+            7
+          ],
+          "setType": "NUMBER"
+        });
       });
   });
 
@@ -410,6 +443,99 @@ describe("compute native", () => {
             "AvgPrice2": null,
             "SumPrice": 0,
             "Two": 2
+          }
+        ]);
+      });
+  });
+
+  it("does cartesian concat", () => {
+    let ds = Dataset.fromJS(data).hide();
+
+    let ex = ply(ds)
+      .apply('concat', '$tags ++ $cut')
+      .select('tags', 'cut', 'concat');
+
+    return ex.compute()
+      .then((v) => {
+        expect(v.toJS().data).to.deep.equal([
+          {
+            "concat": {
+              "elements": [
+                "superGood",
+                "coolGood"
+              ],
+              "setType": "STRING"
+            },
+            "cut": "Good",
+            "tags": {
+              "elements": [
+                "super",
+                "cool"
+              ],
+              "setType": "STRING"
+            }
+          },
+          {
+            "concat": {
+              "elements": [
+                "superGood"
+              ],
+              "setType": "STRING"
+            },
+            "cut": "Good",
+            "tags": {
+              "elements": [
+                "super"
+              ],
+              "setType": "STRING"
+            }
+          },
+          {
+            "concat": {
+              "elements": [
+                "coolGreat"
+              ],
+              "setType": "STRING"
+            },
+            "cut": "Great",
+            "tags": {
+              "elements": [
+                "cool"
+              ],
+              "setType": "STRING"
+            }
+          },
+          {
+            "concat": {
+              "elements": [
+                "sweetWow"
+              ],
+              "setType": "STRING"
+            },
+            "cut": "Wow",
+            "tags": {
+              "elements": [
+                "sweet"
+              ],
+              "setType": "STRING"
+            }
+          },
+          {
+            "concat": null,
+            "cut": "Wow",
+            "tags": null
+          },
+          {
+            "concat": null,
+            "cut": null,
+            "tags": {
+              "elements": [
+                "super",
+                "sweet",
+                "cool"
+              ],
+              "setType": "STRING"
+            }
           }
         ]);
       });
@@ -1319,6 +1445,94 @@ describe("compute native", () => {
             }
           ],
           "keys": []
+        });
+      });
+  });
+
+  it("works with double set split", () => {
+    let ds = Dataset.fromJS(data).hide();
+
+    let ex = ply(ds).split({ Tag: '$tags', TagCut: '$tags ++ $cut' }, 'Data')
+      .apply('Count', '$Data.count()')
+      .sort('$Count', 'descending');
+
+    return ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "Tag",
+              "type": "STRING"
+            },
+            {
+              "name": "TagCut",
+              "type": "STRING"
+            },
+            {
+              "name": "Data",
+              "type": "DATASET"
+            },
+            {
+              "name": "Count",
+              "type": "NUMBER"
+            }
+          ],
+          "data": [
+            {
+              "Count": 2,
+              "Tag": "super",
+              "TagCut": "superGood"
+            },
+            {
+              "Count": 1,
+              "Tag": "super",
+              "TagCut": "coolGood"
+            },
+            {
+              "Count": 1,
+              "Tag": "cool",
+              "TagCut": "superGood"
+            },
+            {
+              "Count": 1,
+              "Tag": "cool",
+              "TagCut": "coolGood"
+            },
+            {
+              "Count": 1,
+              "Tag": "cool",
+              "TagCut": "coolGreat"
+            },
+            {
+              "Count": 1,
+              "Tag": "sweet",
+              "TagCut": "sweetWow"
+            },
+            {
+              "Count": 1,
+              "Tag": null,
+              "TagCut": null
+            },
+            {
+              "Count": 1,
+              "Tag": "super",
+              "TagCut": null
+            },
+            {
+              "Count": 1,
+              "Tag": "sweet",
+              "TagCut": null
+            },
+            {
+              "Count": 1,
+              "Tag": "cool",
+              "TagCut": null
+            }
+          ],
+          "keys": [
+            "Tag",
+            "TagCut"
+          ]
         });
       });
   });

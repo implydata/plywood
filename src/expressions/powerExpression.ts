@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set, isSetType } from '../datatypes/index';
 
 export class PowerExpression extends ChainableUnaryExpression {
   static op = "Power";
@@ -27,13 +27,14 @@ export class PowerExpression extends ChainableUnaryExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("power");
-    this._checkOperandTypes('NUMBER');
-    this._checkExpressionTypes('NUMBER');
-    this.type = 'NUMBER';
+    this._checkOperandTypes('NUMBER', 'SET/NUMBER');
+    this._checkExpressionTypes('NUMBER', 'SET/NUMBER');
+    this.type = isSetType(this.operand.type) ? this.operand.type : this.expression.type;;
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-      return Math.pow((operandValue || 0), (expressionValue || 0));
+    if (operandValue == null || expressionValue == null) return null;
+    return Set.crossBinary(operandValue, expressionValue, (a, b) => Math.pow(a, b));
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
