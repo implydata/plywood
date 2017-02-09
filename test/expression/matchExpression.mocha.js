@@ -26,4 +26,14 @@ describe("MatchExpression", () => {
 
     expect(MatchExpression.likeToRegExp('%David|_R_ss||%', '|')).to.equal('^.*David_R.ss\\|.*$');
   });
+
+  it("matches on set (no comma)", () => {
+    let ex = r(Set.fromJS(['a', 'b'])).match(',');
+
+    return ex.compute()
+      .then((v) => {
+        expect(v).to.deep.equal(false);
+      });
+  });
+
 });

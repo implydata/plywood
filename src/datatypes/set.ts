@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,6 +85,56 @@ export class Set implements Instance<SetValue, SetJS> {
 
   static isSet(candidate: any): candidate is Set {
     return candidate instanceof Set;
+  }
+
+  static cartesianProductOf<T>(...args: T[][]): T[][] {
+    return args.reduce((a, b) => {
+      return [].concat.apply([], a.map((x) => {
+        return b.map((y) => {
+          return x.concat([y]);
+        });
+      }));
+    }, [[]]);
+  }
+
+  static crossBinary(as: any, bs: any, fn: (a: any, b: any) => any): any {
+    if (as instanceof Set || bs instanceof Set) {
+      const aElements = as instanceof Set ? as.elements : [as];
+      const bElements = bs instanceof Set ? bs.elements : [bs];
+      const cp = Set.cartesianProductOf(aElements, bElements);
+      return Set.fromJS(cp.map((v) => fn(v[0], v[1])));
+    } else {
+      return fn(as, bs);
+    }
+  }
+
+  static crossBinaryBoolean(as: any, bs: any, fn: (a: any, b: any) => boolean): boolean {
+    if (as instanceof Set || bs instanceof Set) {
+      const aElements = as instanceof Set ? as.elements : [as];
+      const bElements = bs instanceof Set ? bs.elements : [bs];
+      const cp = Set.cartesianProductOf(aElements, bElements);
+      return cp.some((v) => fn(v[0], v[1]));
+    } else {
+      return fn(as, bs);
+    }
+  }
+
+  static crossUnary(as: any, fn: (a: any) => any): any {
+    if (as instanceof Set) {
+      const aElements = as instanceof Set ? as.elements : [as];
+      return Set.fromJS(aElements.map((a) => fn(a)));
+    } else {
+      return fn(as);
+    }
+  }
+
+  static crossUnaryBoolean(as: any, fn: (a: any) => boolean): boolean {
+    if (as instanceof Set) {
+      const aElements = as instanceof Set ? as.elements : [as];
+      return aElements.some((a) => fn(a));
+    } else {
+      return fn(as);
+    }
   }
 
   static convertToSet(thing: any): Set {
