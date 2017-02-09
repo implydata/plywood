@@ -637,16 +637,16 @@ describe("Dataset", () => {
 
     describe("#flatten", () => {
       it("works with empty dataset", () => {
-        expect(emptyDataset.flatten()).to.deep.equal([]);
+        expect(emptyDataset.flatten().data).to.deep.equal([]);
       });
 
       it("works with empty nested dataset", () => {
-        expect(emptyNestedDataset.flatten()).to.deep.equal([]);
+        expect(emptyNestedDataset.flatten().data).to.deep.equal([]);
       });
 
 
       it("works with basic dataset", () => {
-        expect(carDataset.flatten()).to.deep.equal([
+        expect(carDataset.flatten().data).to.deep.equal([
           {
             "make": "Honda",
             "model": "Civic",
@@ -663,7 +663,7 @@ describe("Dataset", () => {
       });
 
       it("works with sub-dataset with prefix", () => {
-        expect(carAndPartsDataset.flatten({ prefixColumns: true })).to.deep.equal([
+        expect(carAndPartsDataset.flatten({ prefixColumns: true }).data).to.deep.equal([
           {
             "make": "Honda",
             "model": "Civic",
@@ -700,7 +700,7 @@ describe("Dataset", () => {
       });
 
       it("works with total and sub-split", () => {
-        expect(carTotalAndSubSplitDataset.flatten()).to.deep.equal([
+        expect(carTotalAndSubSplitDataset.flatten().data).to.deep.equal([
           {
             "make": "Honda",
             "model": "Civic",
@@ -729,7 +729,7 @@ describe("Dataset", () => {
       });
 
       it("works with total and sub-split with postorder", () => {
-        expect(carTotalAndSubSplitDataset.flatten({ order: 'postorder' })).to.deep.equal([
+        expect(carTotalAndSubSplitDataset.flatten({ order: 'postorder' }).data).to.deep.equal([
           {
             "make": "Honda",
             "model": "Civic",
@@ -772,7 +772,7 @@ describe("Dataset", () => {
       });
 
       it("works with total and sub-split with preorder and nesting indicator", () => {
-        expect(carTotalAndSubSplitDataset.flatten({ order: 'preorder', nestingName: 'nest' })).to.deep.equal([
+        expect(carTotalAndSubSplitDataset.flatten({ order: 'preorder', nestingName: 'nest' }).data).to.deep.equal([
           {
             "nest": 0,
             "price": 10000,
@@ -821,27 +821,8 @@ describe("Dataset", () => {
         ]);
       });
 
-      it("works with total and sub-split with preorder and parent indicator", () => {
-        expect(carTotalAndSubSplitDataset.flatten({ order: 'preorder', parentName: 'p' })[3]).to.deep.equal({
-          "make": "Honda",
-          "model": "Accord",
-          "p": {
-            "make": "Honda",
-            "p": {
-              "p": null,
-              "price": 10000,
-              "weight": 1000
-            },
-            "price": 12000,
-            "weight": 1200
-          },
-          "price": 13000,
-          "weight": 1300
-        });
-      });
-
       it("works with timeseries with preorder and nesting indicator", () => {
-        expect(timeSeriesResult.flatten({ order: 'preorder', nestingName: 'nest' })[0]).to.deep.equal(
+        expect(timeSeriesResult.flatten({ order: 'preorder', nestingName: 'nest' }).data[0]).to.deep.equal(
           {
             "added": 6686857,
             "count": 31427,
@@ -1003,7 +984,7 @@ describe("Dataset", () => {
           }
         ]);
 
-        expect(carDataset.toCSV({ lineBreak: '\n', orderedColumns: ['model', 'make', 'price', 'time'] })).to.deep.equal(sane`
+        expect(carDataset.select(['model', 'make', 'price', 'time']).toCSV({ lineBreak: '\n' })).to.deep.equal(sane`
           model,make,price,time
           Civic,Honda,10000,2015-01-04T12:32:43Z
           Prius,Toyota,20000,2015-01-04T14:00:40Z
