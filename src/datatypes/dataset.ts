@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -211,10 +211,9 @@ const DEFAULT_FORMATTER: Formatter = {
 
 export interface FlattenOptions {
   prefixColumns?: boolean;
-  order?: 'preorder' | 'inline' | 'postorder'; //  default: inline
+  order?: 'preorder' | 'inline' | 'postorder'; // default: inline
   orderedColumns?: string[];
   nestingName?: string;
-  parentName?: string;
 }
 
 export type FinalLineBreak = 'include' | 'suppress';
@@ -823,20 +822,24 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
 
     for (let datum of data) {
       let valueList = splitFnList.map(splitFn => splitFn(datum));
-      let setIndex = -1;
+
+      let setIndex: number[] = [];
+      let setElements: any[][] = [];
       for (let i = 0; i < valueList.length; i++) {
         if (Set.isSet(valueList[i])) {
-          if (setIndex !== -1) throw new Error(`only one SET value is supported in native split for now`);
-          setIndex = i;
+          setIndex.push(i);
+          setElements.push(valueList[i].elements);
         }
       }
+      let numSets = setIndex.length;
 
-      if (setIndex !== -1) {
-        let elements = valueList[setIndex].elements;
-        let atomicValueList = valueList.slice();
-        for (let element of elements) {
-          atomicValueList[setIndex] = element;
-          addDatum(datum, atomicValueList);
+      if (numSets) {
+        const cp = Set.cartesianProductOf(...setElements);
+        for (let v of cp) {
+          for (let j = 0; j < numSets; j++) {
+            valueList[setIndex[j]] = v[j];
+          }
+          addDatum(datum, valueList);
         }
       } else {
         addDatum(datum, valueList);
@@ -1052,7 +1055,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       : flatColumns;
   }
 
-  private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, parentName: string, nesting: number, context: Datum, flat: PseudoDatum[]): void {
+  private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, nesting: number, context: Datum, flat: Datum[]): void {
     let nestedColumnsLength = nestedColumns.length;
     if (!nestedColumnsLength) return;
 
@@ -1061,7 +1064,6 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     for (let datum of data) {
       let flatDatum: PseudoDatum = context ? copy(context) : {};
       if (nestingName) flatDatum[nestingName] = nesting;
-      if (parentName) flatDatum[parentName] = context;
 
       for (let flattenedColumn of nestedColumns) {
         if (flattenedColumn.type === 'DATASET') continue;
@@ -1074,7 +1076,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
         if (prefix !== null) nextPrefix = prefix + datasetColumn.name + '.';
 
         if (order === 'preorder') flat.push(flatDatum);
-        (datum[datasetColumn.name] as Dataset)._flattenHelper(datasetColumn.columns, nextPrefix, order, nestingName, parentName, nesting + 1, flatDatum, flat);
+        (datum[datasetColumn.name] as Dataset)._flattenHelper(datasetColumn.columns, nextPrefix, order, nestingName, nesting + 1, flatDatum, flat);
         if (order === 'postorder') flat.push(flatDatum);
       }
 
@@ -1082,15 +1084,15 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     }
   }
 
-  public flatten(options: FlattenOptions = {}): PseudoDatum[] {
+  public flatten(options: FlattenOptions = {}): Datum[] {
     let prefixColumns = options.prefixColumns;
     let order = options.order; // preorder, inline [default], postorder
     let nestingName = options.nestingName;
-    let parentName = options.parentName;
+    if ((options as any).parentName) throw new Error(`parentName option is no longer supported`);
     let nestedColumns = this.getNestedColumns();
-    let flatData: PseudoDatum[] = [];
+    let flatData: Datum[] = [];
     if (nestedColumns.length) {
-      this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, parentName, 0, null, flatData);
+      this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, 0, null, flatData);
     }
     return flatData;
   }
