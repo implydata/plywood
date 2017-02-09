@@ -80,6 +80,7 @@ cat \
   build/expressions/substrExpression.js \
   build/expressions/subtractExpression.js \
   build/expressions/sumExpression.js \
+  build/expressions/thenExpression.js \
   build/expressions/timeBucketExpression.js \
   build/expressions/timeFloorExpression.js \
   build/expressions/timePartExpression.js \
@@ -175,6 +176,7 @@ cat \
   build/expressions/substrExpression.js \
   build/expressions/subtractExpression.js \
   build/expressions/sumExpression.js \
+  build/expressions/thenExpression.js \
   build/expressions/timeBucketExpression.js \
   build/expressions/timeFloorExpression.js \
   build/expressions/timePartExpression.js \
