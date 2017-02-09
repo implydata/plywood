@@ -108,45 +108,6 @@ let directionFns: Lookup<DirectionFn> = {
   }
 };
 
-export interface Column {
-  name: string;
-  type: string;
-  columns?: Column[];
-}
-
-function uniqueColumns(columns: Column[]): Column[] {
-  let seen: Lookup<boolean> = {};
-  let uniqueColumns: Column[] = [];
-  for (let column of columns) {
-    if (!seen[column.name]) {
-      uniqueColumns.push(column);
-      seen[column.name] = true;
-    }
-  }
-  return uniqueColumns;
-}
-
-function flattenColumns(nestedColumns: Column[], prefixColumns: boolean): Column[] {
-  let flatColumns: Column[] = [];
-  let i = 0;
-  let prefixString = '';
-  while (i < nestedColumns.length) {
-    let nestedColumn = nestedColumns[i];
-    if (nestedColumn.type === 'DATASET') {
-      nestedColumns = nestedColumn.columns;
-      if (prefixColumns) prefixString += nestedColumn.name + '.';
-      i = 0;
-    } else {
-      flatColumns.push({
-        name: prefixString + nestedColumn.name,
-        type: nestedColumn.type
-      });
-      i++;
-    }
-  }
-  return uniqueColumns(flatColumns);
-}
-
 function removeLineBreaks(v: string): string {
   return v.replace(/(?:\r\n|\r|\n)/g, ' ');
 }
@@ -212,7 +173,6 @@ const DEFAULT_FORMATTER: Formatter = {
 export interface FlattenOptions {
   prefixColumns?: boolean;
   order?: 'preorder' | 'inline' | 'postorder'; // default: inline
-  orderedColumns?: string[];
   nestingName?: string;
 }
 
@@ -1020,81 +980,70 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     return SimpleArray.find(this.data, (d) => generalEqual(d[attribute], value));
   }
 
-  public getNestedColumns(): Column[] {
-    let nestedColumns: Column[] = [];
+  public getColumns(options: FlattenOptions = {}) {
+    return this.flatten(options).attributes;
+  }
 
-    let attributes = this.attributes;
+  private _flattenHelper(
+    prefix: string, order: string, nestingName: string, nesting: number, context: Datum,
+    flatAttributes: AttributeInfo[], seenAttributes: Lookup<boolean>, flatData: Datum[]
+  ): void {
+    const { attributes, data } = this;
 
-    let subDatasetAdded = false;
+    let datasetAttributes: string[] = [];
     for (let attribute of attributes) {
-      let column: Column = {
-        name: attribute.name,
-        type: attribute.type
-      };
       if (attribute.type === 'DATASET') {
-        let subDataset = this.data[0][attribute.name]; // ToDo: fix this!
-        if (!subDatasetAdded && subDataset instanceof Dataset) {
-          subDatasetAdded = true;
-          column.columns = subDataset.getNestedColumns();
-          nestedColumns.push(column);
-        }
+        datasetAttributes.push(attribute.name);
       } else {
-        nestedColumns.push(column);
+        let flatName = (prefix || '') + attribute.name;
+        if (!seenAttributes[flatName]) {
+          flatAttributes.push(new AttributeInfo({
+            name: flatName,
+            type: attribute.type
+          }));
+          seenAttributes[flatName] = true;
+        }
       }
     }
 
-    return nestedColumns;
-  }
-
-  public getColumns(options: FlattenOptions = {}): Column[] {
-    const { prefixColumns, orderedColumns } = options;
-    let columns: any = this.getNestedColumns();
-    let flatColumns = flattenColumns(columns, prefixColumns);
-    return orderedColumns && orderedColumns.length
-      ? orderedColumns.map(c => NamedArray.findByName(flatColumns, c)).filter(Boolean) as Column[]
-      : flatColumns;
-  }
-
-  private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, nesting: number, context: Datum, flat: Datum[]): void {
-    let nestedColumnsLength = nestedColumns.length;
-    if (!nestedColumnsLength) return;
-
-    let data = this.data;
-    let datasetColumn = nestedColumns.filter((nestedColumn) => nestedColumn.type === 'DATASET')[0];
     for (let datum of data) {
       let flatDatum: PseudoDatum = context ? copy(context) : {};
       if (nestingName) flatDatum[nestingName] = nesting;
 
-      for (let flattenedColumn of nestedColumns) {
-        if (flattenedColumn.type === 'DATASET') continue;
-        let flatName = (prefix !== null ? prefix : '') + flattenedColumn.name;
-        flatDatum[flatName] = datum[flattenedColumn.name];
+      for (let attribute of attributes) {
+        if (attribute.type === 'DATASET') continue;
+        let flatName = (prefix || '') + attribute.name;
+        flatDatum[flatName] = datum[attribute.name];
       }
 
-      if (datasetColumn) {
-        let nextPrefix: string = null;
-        if (prefix !== null) nextPrefix = prefix + datasetColumn.name + '.';
-
-        if (order === 'preorder') flat.push(flatDatum);
-        (datum[datasetColumn.name] as Dataset)._flattenHelper(datasetColumn.columns, nextPrefix, order, nestingName, nesting + 1, flatDatum, flat);
-        if (order === 'postorder') flat.push(flatDatum);
+      if (datasetAttributes.length) {
+        if (order === 'preorder') flatData.push(flatDatum);
+        for (let datasetAttribute of datasetAttributes) {
+          let nextPrefix: string = null;
+          if (prefix !== null) nextPrefix = prefix + datasetAttribute + '.';
+          let dv = datum[datasetAttribute];
+          if (dv instanceof Dataset) {
+            dv._flattenHelper(nextPrefix, order, nestingName, nesting + 1, flatDatum, flatAttributes, seenAttributes, flatData);
+          }
+        }
+        if (order === 'postorder') flatData.push(flatDatum);
+      } else {
+        flatData.push(flatDatum);
       }
-
-      if (!datasetColumn) flat.push(flatDatum);
     }
   }
 
-  public flatten(options: FlattenOptions = {}): Datum[] {
+  public flatten(options: FlattenOptions = {}): Dataset {
     let prefixColumns = options.prefixColumns;
     let order = options.order; // preorder, inline [default], postorder
     let nestingName = options.nestingName;
     if ((options as any).parentName) throw new Error(`parentName option is no longer supported`);
-    let nestedColumns = this.getNestedColumns();
+    if ((options as any).orderedColumns) throw new Error(`orderedColumns option is no longer supported use .select() instead`);
+
+    let flatAttributes: AttributeInfo[] = [];
     let flatData: Datum[] = [];
-    if (nestedColumns.length) {
-      this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, 0, null, flatData);
-    }
-    return flatData;
+    this._flattenHelper((prefixColumns ? '' : null), order, nestingName, 0, null, flatAttributes, {}, flatData);
+    return new Dataset({ attributes: flatAttributes, data: flatData });
   }
 
   public toTabular(tabulatorOptions: TabulatorOptions): string {
@@ -1102,15 +1051,14 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     const timezone = tabulatorOptions.timezone || Timezone.UTC;
     const { finalizer } = tabulatorOptions;
 
-    let data = this.flatten(tabulatorOptions);
-    let columns = this.getColumns(tabulatorOptions);
+    const { data, attributes } = this.flatten(tabulatorOptions);
 
     let lines: string[] = [];
-    lines.push(columns.map(c => c.name).join(tabulatorOptions.separator || ','));
+    lines.push(attributes.map(c => c.name).join(tabulatorOptions.separator || ','));
 
     for (let i = 0; i < data.length; i++) {
       let datum = data[i];
-      lines.push(columns.map(c => {
+      lines.push(attributes.map(c => {
         const value = datum[c.name];
         const fmtr = value != null ? (formatter[c.type] || DEFAULT_FORMATTER[c.type]) : (formatter['NULL'] || DEFAULT_FORMATTER['NULL']);
         let formatted = String(fmtr(value, timezone));
