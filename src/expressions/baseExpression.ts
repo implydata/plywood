@@ -74,6 +74,7 @@ import { SplitExpression } from './splitExpression';
 import { SubstrExpression } from './substrExpression';
 import { SubtractExpression } from './subtractExpression';
 import { SumExpression } from './sumExpression';
+import { ThenExpression } from './thenExpression';
 import { TimeBucketExpression } from './timeBucketExpression';
 import { TimeFloorExpression } from './timeFloorExpression';
 import { TimePartExpression } from './timePartExpression';
@@ -1125,6 +1126,13 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public power(...exs: any[]) {
     return this._mkChain<PowerExpression>(PowerExpression, exs);
+  }
+
+  // Control flow
+
+  public then(ex: any) {
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
+    return new ThenExpression({ operand: this, expression: ex });
   }
 
   public fallback(ex: any) {

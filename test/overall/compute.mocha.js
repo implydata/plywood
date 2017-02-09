@@ -984,6 +984,8 @@ describe("compute native", () => {
       .apply('cutInGoodGreat', $('cut').in(['Good', 'Great']))
       .apply('cutOverlapGoodGreat', $('cut').overlap(['Good', 'Great']))
       .apply('cutOverlapNull', $('cut').overlap([null]))
+      .apply('cutThenFallback', $('cut').is('Good').then('Noice').fallback('Boo'))
+      .apply('cutThenFallbackX2', $('cut').is('Good').then('Nice').fallback($('cut').is('Great').then('Amaze')).fallback('Neither'))
       .apply('cutIsGoodOverlapFalse', $('cut').is('Good').overlap([false]))
       .apply('timeFloorDay', $('time').timeFloor('P1D'))
       .apply('timeShiftDay2', $('time').timeShift('P1D', 2))
@@ -994,115 +996,155 @@ describe("compute native", () => {
       .then((v) => {
         expect(v.toJS().data).to.deep.equal([
           {
-            cut: 'Good',
-            cutConcat: '[Good]',
-            cutMatch: true,
-            cutInGoodGreat: true,
-            cutOverlapGoodGreat: true,
-            cutOverlapNull: false,
-            cutIsGoodOverlapFalse: false,
-            price: 400,
-            tags: { setType: "STRING", elements: ['super', 'cool'] },
-            overlapSuperCool: true,
-            time: new Date('2015-10-01T09:20:30Z'),
-            timeFloorDay: new Date('2015-10-01T00:00:00Z'),
-            timeShiftDay2: new Date('2015-10-03T09:20:30Z'),
-            timeRangeHours: {
-              start: new Date('2015-10-01T07:20:30Z'),
-              end: new Date('2015-10-01T09:20:30Z')
-            }
+            "cut": "Good",
+            "cutConcat": "[Good]",
+            "cutInGoodGreat": true,
+            "cutIsGoodOverlapFalse": false,
+            "cutMatch": true,
+            "cutOverlapGoodGreat": true,
+            "cutOverlapNull": false,
+            "cutThenFallback": "Noice",
+            "cutThenFallbackX2": "Nice",
+            "overlapSuperCool": true,
+            "price": 400,
+            "tags": {
+              "elements": [
+                "super",
+                "cool"
+              ],
+              "setType": "STRING"
+            },
+            "time": new Date('2015-10-01T09:20:30.000Z'),
+            "timeFloorDay": new Date('2015-10-01T00:00:00.000Z'),
+            "timeRangeHours": {
+              "end": new Date('2015-10-01T09:20:30.000Z'),
+              "start": new Date('2015-10-01T07:20:30.000Z')
+            },
+            "timeShiftDay2": new Date('2015-10-03T09:20:30.000Z')
           },
           {
-            cut: 'Good',
-            cutConcat: '[Good]',
-            cutMatch: true,
-            cutInGoodGreat: true,
-            cutOverlapGoodGreat: true,
-            cutOverlapNull: false,
-            cutIsGoodOverlapFalse: false,
-            price: 300,
-            tags: { setType: "STRING", elements: ['super'] },
-            overlapSuperCool: true,
-            time: new Date('2015-10-02T08:20:30Z'),
-            timeFloorDay: new Date('2015-10-02T00:00:00Z'),
-            timeShiftDay2: new Date('2015-10-04T08:20:30Z'),
-            timeRangeHours: {
-              start: new Date('2015-10-02T06:20:30Z'),
-              end: new Date('2015-10-02T08:20:30Z')
-            }
+            "cut": "Good",
+            "cutConcat": "[Good]",
+            "cutInGoodGreat": true,
+            "cutIsGoodOverlapFalse": false,
+            "cutMatch": true,
+            "cutOverlapGoodGreat": true,
+            "cutOverlapNull": false,
+            "cutThenFallback": "Noice",
+            "cutThenFallbackX2": "Nice",
+            "overlapSuperCool": true,
+            "price": 300,
+            "tags": {
+              "elements": [
+                "super"
+              ],
+              "setType": "STRING"
+            },
+            "time": new Date('2015-10-02T08:20:30.000Z'),
+            "timeFloorDay": new Date('2015-10-02T00:00:00.000Z'),
+            "timeRangeHours": {
+              "end": new Date('2015-10-02T08:20:30.000Z'),
+              "start": new Date('2015-10-02T06:20:30.000Z')
+            },
+            "timeShiftDay2": new Date('2015-10-04T08:20:30.000Z')
           },
           {
-            cut: 'Great',
-            cutConcat: '[Great]',
-            cutMatch: true,
-            cutInGoodGreat: true,
-            cutOverlapGoodGreat: true,
-            cutOverlapNull: false,
-            cutIsGoodOverlapFalse: true,
-            price: 124,
-            tags: { setType: "STRING", elements: ['cool'] },
-            overlapSuperCool: true,
-            time: null,
-            timeFloorDay: null,
-            timeShiftDay2: null,
-            timeRangeHours: null
+            "cut": "Great",
+            "cutConcat": "[Great]",
+            "cutInGoodGreat": true,
+            "cutIsGoodOverlapFalse": true,
+            "cutMatch": true,
+            "cutOverlapGoodGreat": true,
+            "cutOverlapNull": false,
+            "cutThenFallback": "Boo",
+            "cutThenFallbackX2": "Amaze",
+            "overlapSuperCool": true,
+            "price": 124,
+            "tags": {
+              "elements": [
+                "cool"
+              ],
+              "setType": "STRING"
+            },
+            "time": null,
+            "timeFloorDay": null,
+            "timeRangeHours": null,
+            "timeShiftDay2": null
           },
           {
-            cut: 'Wow',
-            cutConcat: '[Wow]',
-            cutMatch: false,
-            cutInGoodGreat: false,
-            cutOverlapGoodGreat: false,
-            cutOverlapNull: false,
-            cutIsGoodOverlapFalse: true,
-            price: 160,
-            tags: { setType: "STRING", elements: ['sweet'] },
-            overlapSuperCool: false,
-            time: new Date('2015-10-04T06:20:30Z'),
-            timeFloorDay: new Date('2015-10-04T00:00:00Z'),
-            timeShiftDay2: new Date('2015-10-06T06:20:30Z'),
-            timeRangeHours: {
-              start: new Date('2015-10-04T04:20:30Z'),
-              end: new Date('2015-10-04T06:20:30Z')
-            }
+            "cut": "Wow",
+            "cutConcat": "[Wow]",
+            "cutInGoodGreat": false,
+            "cutIsGoodOverlapFalse": true,
+            "cutMatch": false,
+            "cutOverlapGoodGreat": false,
+            "cutOverlapNull": false,
+            "cutThenFallback": "Boo",
+            "cutThenFallbackX2": "Neither",
+            "overlapSuperCool": false,
+            "price": 160,
+            "tags": {
+              "elements": [
+                "sweet"
+              ],
+              "setType": "STRING"
+            },
+            "time": new Date('2015-10-04T06:20:30.000Z'),
+            "timeFloorDay": new Date('2015-10-04T00:00:00.000Z'),
+            "timeRangeHours": {
+              "end": new Date('2015-10-04T06:20:30.000Z'),
+              "start": new Date('2015-10-04T04:20:30.000Z')
+            },
+            "timeShiftDay2": new Date('2015-10-06T06:20:30.000Z')
           },
           {
-            cut: 'Wow',
-            cutConcat: '[Wow]',
-            cutMatch: false,
-            cutInGoodGreat: false,
-            cutOverlapGoodGreat: false,
-            cutOverlapNull: false,
-            cutIsGoodOverlapFalse: true,
-            price: 100,
-            tags: null,
-            overlapSuperCool: false,
-            time: new Date('2015-10-05T05:20:30Z'),
-            timeFloorDay: new Date('2015-10-05T00:00:00Z'),
-            timeShiftDay2: new Date('2015-10-07T05:20:30Z'),
-            timeRangeHours: {
-              start: new Date('2015-10-05T03:20:30Z'),
-              end: new Date('2015-10-05T05:20:30Z')
-            }
+            "cut": "Wow",
+            "cutConcat": "[Wow]",
+            "cutInGoodGreat": false,
+            "cutIsGoodOverlapFalse": true,
+            "cutMatch": false,
+            "cutOverlapGoodGreat": false,
+            "cutOverlapNull": false,
+            "cutThenFallback": "Boo",
+            "cutThenFallbackX2": "Neither",
+            "overlapSuperCool": false,
+            "price": 100,
+            "tags": null,
+            "time": new Date('2015-10-05T05:20:30.000Z'),
+            "timeFloorDay": new Date('2015-10-05T00:00:00.000Z'),
+            "timeRangeHours": {
+              "end": new Date('2015-10-05T05:20:30.000Z'),
+              "start": new Date('2015-10-05T03:20:30.000Z')
+            },
+            "timeShiftDay2": new Date('2015-10-07T05:20:30.000Z')
           },
           {
-            cut: null,
-            cutConcat: null,
-            cutMatch: null,
-            cutInGoodGreat: false, // ToDo: this is inconsistent, figure put how to fix it.
-            cutOverlapGoodGreat: false,
-            cutOverlapNull: true,
-            cutIsGoodOverlapFalse: true,
-            price: null,
-            tags: { setType: "STRING", elements: ['super', 'sweet', 'cool'] },
-            overlapSuperCool: true,
-            time: new Date('2015-10-06T04:20:30Z'),
-            timeFloorDay: new Date('2015-10-06T00:00:00Z'),
-            timeShiftDay2: new Date('2015-10-08T04:20:30Z'),
-            timeRangeHours: {
-              start: new Date('2015-10-06T02:20:30Z'),
-              end: new Date('2015-10-06T04:20:30Z')
-            }
+            "cut": null,
+            "cutConcat": null,
+            "cutInGoodGreat": false,
+            "cutIsGoodOverlapFalse": true,
+            "cutMatch": null,
+            "cutOverlapGoodGreat": false,
+            "cutOverlapNull": true,
+            "cutThenFallback": "Boo",
+            "cutThenFallbackX2": "Neither",
+            "overlapSuperCool": true,
+            "price": null,
+            "tags": {
+              "elements": [
+                "super",
+                "sweet",
+                "cool"
+              ],
+              "setType": "STRING"
+            },
+            "time": new Date('2015-10-06T04:20:30.000Z'),
+            "timeFloorDay": new Date('2015-10-06T00:00:00.000Z'),
+            "timeRangeHours": {
+              "end": new Date('2015-10-06T04:20:30.000Z'),
+              "start": new Date('2015-10-06T02:20:30.000Z')
+            },
+            "timeShiftDay2": new Date('2015-10-08T04:20:30.000Z')
           }
         ]);
       });
