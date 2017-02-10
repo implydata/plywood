@@ -663,40 +663,174 @@ describe("Dataset", () => {
       });
 
       it("works with sub-dataset with prefix", () => {
-        expect(carAndPartsDataset.flatten({ prefixColumns: true }).data).to.deep.equal([
-          {
-            "make": "Honda",
-            "model": "Civic",
-            "parts.part": "Engine",
-            "parts.weight": 500,
-            "price": 10000,
-            "time": new Date("2015-01-04T12:32:43.000Z")
-          },
-          {
-            "make": "Honda",
-            "model": "Civic",
-            "parts.part": "Door",
-            "parts.weight": 20,
-            "price": 10000,
-            "time": new Date("2015-01-04T12:32:43.000Z")
-          },
-          {
-            "make": "Toyota",
-            "model": "Prius",
-            "parts.part": "Engine",
-            "parts.weight": 400,
-            "price": 20000,
-            "time": new Date("2015-01-04T14:00:40.000Z")
-          },
-          {
-            "make": "Toyota",
-            "model": "Prius",
-            "parts.part": "Door",
-            "parts.weight": 25,
-            "price": 20000,
-            "time": new Date("2015-01-04T14:00:40.000Z")
-          }
-        ]);
+        expect(carAndPartsDataset.flatten({ prefixColumns: true }).toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "time",
+              "type": "TIME"
+            },
+            {
+              "name": "make",
+              "type": "STRING"
+            },
+            {
+              "name": "model",
+              "type": "STRING"
+            },
+            {
+              "name": "price",
+              "type": "NUMBER"
+            },
+            {
+              "name": "parts.part",
+              "type": "STRING"
+            },
+            {
+              "name": "parts.weight",
+              "type": "NUMBER"
+            }
+          ],
+          "data": [
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "parts.part": "Engine",
+              "parts.weight": 500,
+              "price": 10000,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "parts.part": "Door",
+              "parts.weight": 20,
+              "price": 10000,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "parts.part": "Engine",
+              "parts.weight": 400,
+              "price": 20000,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "parts.part": "Door",
+              "parts.weight": 25,
+              "price": 20000,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            }
+          ]
+        });
+      });
+
+      it("works with two sub-datasets with prefix", () => {
+        const carAndPartsDatasetX2 = carAndPartsDataset.apply('smarts', $('parts', 'DATASET'));
+        expect(carAndPartsDatasetX2.flatten({ prefixColumns: true }).toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "time",
+              "type": "TIME"
+            },
+            {
+              "name": "make",
+              "type": "STRING"
+            },
+            {
+              "name": "model",
+              "type": "STRING"
+            },
+            {
+              "name": "price",
+              "type": "NUMBER"
+            },
+            {
+              "name": "parts.part",
+              "type": "STRING"
+            },
+            {
+              "name": "parts.weight",
+              "type": "NUMBER"
+            },
+            {
+              "name": "smarts.part",
+              "type": "STRING"
+            },
+            {
+              "name": "smarts.weight",
+              "type": "NUMBER"
+            }
+          ],
+          "data": [
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "parts.part": "Engine",
+              "parts.weight": 500,
+              "price": 10000,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "parts.part": "Door",
+              "parts.weight": 20,
+              "price": 10000,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "price": 10000,
+              "smarts.part": "Engine",
+              "smarts.weight": 500,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "price": 10000,
+              "smarts.part": "Door",
+              "smarts.weight": 20,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "parts.part": "Engine",
+              "parts.weight": 400,
+              "price": 20000,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "parts.part": "Door",
+              "parts.weight": 25,
+              "price": 20000,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "price": 20000,
+              "smarts.part": "Engine",
+              "smarts.weight": 400,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "price": 20000,
+              "smarts.part": "Door",
+              "smarts.weight": 25,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            }
+          ]
+        });
       });
 
       it("works with total and sub-split", () => {
