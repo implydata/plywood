@@ -882,7 +882,23 @@ describe("Cross Functional", function() {
         .limit(10)
     }));
 
+    it('works .then().fallback split', equalityTest({
+      executorNames: ['mysql', 'postgres'], // 'druid',
+      expression: $('wiki')
+        .split(
+          $("time").timePart('HOUR_OF_DAY').lessThan(10).then('Morning')
+            .fallback($("time").timePart('HOUR_OF_DAY').lessThan(20).then('Afternoon'))
+            .fallback('Evening'),
+          'Greeting'
+        )
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
   });
+
 
   describe("splits (single, multi-dim)", () => {
     it('works with BOOLEAN multi-dim-split', equalityTest({

@@ -84,6 +84,10 @@ export abstract class SQLDialect {
     throw new Error('must implement');
   }
 
+  public ifThenElseNullExpression(a: string, b: string): string {
+    return `CASE WHEN ${a} THEN ${b} END`;
+  }
+
   public isNotDistinctFromExpression(a: string, b: string): string {
     if (a === 'NULL') return `${b} IS NULL`;
     if (b === 'NULL') return `${a} IS NULL`;
@@ -124,6 +128,5 @@ export abstract class SQLDialect {
   public abstract extractExpression(operand: string, regexp: string): string
 
   public abstract indexOfExpression(str: string, substr: string): string
-
 }
 
