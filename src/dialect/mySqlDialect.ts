@@ -103,6 +103,10 @@ export class MySQLDialect extends SQLDialect {
     return `CHAR_LENGTH(${a})`;
   }
 
+  public ifThenElseNullExpression(a: string, b: string): string {
+    return `IF(${a}, ${b}, NULL)`;
+  }
+
   public isNotDistinctFromExpression(a: string, b: string): string {
     return `(${a}<=>${b})`;
   }
