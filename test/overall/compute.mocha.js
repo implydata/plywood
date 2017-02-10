@@ -884,21 +884,22 @@ describe("compute native", () => {
 
     return ex.compute({ ds })
       .then((v) => {
-        expect(v.getColumns()).to.deep.equal([
-          {
-            "name": "cut",
-            "type": "STRING"
-          }
-        ]);
-
-        expect(v.toJS().data).to.deep.equal([
-          {
-            "cut": "Good"
-          },
-          {
-            "cut": "Good"
-          }
-        ]);
+        expect(v.toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "cut",
+              "type": "STRING"
+            }
+          ],
+          "data": [
+            {
+              "cut": "Good"
+            },
+            {
+              "cut": "Good"
+            }
+          ]
+        });
       });
   });
 
@@ -909,24 +910,25 @@ describe("compute native", () => {
 
     return ex.compute({ ds })
       .then((v) => {
-        expect(v.getColumns()).to.deep.equal([
-          {
-            "name": "cut",
-            "type": "STRING"
-          }
-        ]);
-
-        expect(v.toJS().data).to.deep.equal([
-          {
-            "cut": "Good"
-          },
-          {
-            "cut": "Good"
-          },
-          {
-            "cut": "Great"
-          }
-        ]);
+        expect(v.toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "cut",
+              "type": "STRING"
+            }
+          ],
+          "data": [
+            {
+              "cut": "Good"
+            },
+            {
+              "cut": "Good"
+            },
+            {
+              "cut": "Great"
+            }
+          ]
+        });
       });
   });
 

@@ -192,7 +192,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Page', 'Count', 'isRobot', 'isNew']);
+          expect(result.attributes.map((c => c.name))).to.deep.equal(['Page', 'Count', 'isRobot', 'isNew']);
         });
     });
 
@@ -206,7 +206,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['isRobot', 'Page', 'isNew', 'Count']);
+          expect(result.attributes.map((c => c.name))).to.deep.equal(['isRobot', 'Page', 'isNew', 'Count']);
         });
     });
 
@@ -220,7 +220,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Count', 'isRobot', 'Page', 'isNew']);
+          expect(result.attributes.map((c => c.name))).to.deep.equal(['Count', 'isRobot', 'Page', 'isNew']);
         });
     });
 

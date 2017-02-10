@@ -18,7 +18,7 @@
 const { expect } = require("chai");
 
 let plywood = require('../plywood');
-let { $, ply, r, MatchExpression } = plywood;
+let { $, ply, r, MatchExpression, Set } = plywood;
 
 describe("MatchExpression", () => {
   it(".likeToRegExp", () => {
