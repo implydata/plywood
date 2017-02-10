@@ -33,11 +33,11 @@ describe("traversal", () => {
     let ex = $('x').add(2001000);
 
     it("on substitute", () => {
-      return ex.substitute(subs);
+      ex.substitute(subs);
     });
 
     it("on every", () => {
-      return ex.every(subs);
+      ex.every(subs);
     });
   });
 
@@ -60,11 +60,11 @@ describe("traversal", () => {
       );
 
     it("on substitute", () => {
-      return ex.substitute(subs);
+      ex.substitute(subs);
     });
 
     it("on every", () => {
-      return ex.every(subs);
+      ex.every(subs);
     });
   });
 
@@ -84,11 +84,11 @@ describe("traversal", () => {
       .apply('CountPlusBar', '$Data.count() + 12002001');
 
     it("on substitute", () => {
-      return ex.substitute(subs);
+      ex.substitute(subs);
     });
 
     it("on every", () => {
-      return ex.every(subs);
+      ex.every(subs);
     });
   });
 });
