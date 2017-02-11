@@ -2,7 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.15.8
+## 0.15.10
+
+- Fix error in version check that had trouble with versions like `0.10.0`
+
+## 0.15.9
 
 - PlyQL: Support for `SHOW CHARACTER SET`
 - PlyQL: Support for `SHOW COLLATION`
