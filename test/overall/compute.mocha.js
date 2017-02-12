@@ -339,6 +339,24 @@ describe("compute native", () => {
       });
   });
 
+  it("performs lessThan on set 1", () => {
+    let ex = r(Set.fromJS([2, -2, 7])).lessThan(10);
+
+    return ex.compute()
+      .then((v) => {
+        expect(v).to.deep.equal(true);
+      });
+  });
+
+  it("performs lessThan on set 2", () => {
+    let ex = r(Set.fromJS([2, -2, 7])).lessThan(Set.fromJS([-10, -20]));
+
+    return ex.compute()
+      .then((v) => {
+        expect(v).to.deep.equal(false);
+      });
+  });
+
   it("casts from number to time", () => {
     // 1442016000000 -> 09/12/2015 00:00:00
     // 1442059199000 -> 09/12/2015 11:59:59
@@ -954,7 +972,6 @@ describe("compute native", () => {
             time: null
           }
         ]);
-
       });
   });
 
@@ -1368,7 +1385,7 @@ describe("compute native", () => {
           },
           {
             "[cut]": null,
-            "price+1": 1
+            "price+1": null
           }
         ]);
       });

@@ -22,3 +22,4 @@ export * from './set';
 export * from './numberRange';
 export * from './timeRange';
 export * from './stringRange';
+export * from './valueStream';

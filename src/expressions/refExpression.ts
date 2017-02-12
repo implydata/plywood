@@ -21,8 +21,8 @@ import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from 
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
 import { SQLDialect } from '../dialect/baseDialect';
 import { repeat } from '../helper/utils';
-import { PlywoodValue } from '../datatypes/index';
-import { Datum, ComputeFn } from '../datatypes/dataset';
+import { PlywoodValue, Set } from '../datatypes/index';
+import { Datum, ComputeFn } from '../datatypes/index';
 
 export const POSSIBLE_TYPES: Lookup<number> = {
   'NULL': 1,

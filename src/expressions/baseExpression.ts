@@ -86,8 +86,8 @@ import { SQLDialect } from '../dialect/baseDialect';
 import { repeat, emptyLookup, deduplicateSort } from '../helper/utils';
 import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from '../datatypes/index';
 
-import { isSetType, getFullTypeFromDatum, introspectDatum, failIfIntrospectNeededInDatum } from '../datatypes/common';
-import { ComputeFn } from '../datatypes/dataset';
+import { getFullTypeFromDatum, introspectDatum, failIfIntrospectNeededInDatum } from '../datatypes/common';
+import { ComputeFn } from '../datatypes/index';
 import { External, ExternalJS } from '../external/baseExternal';
 
 export interface ComputeOptions extends Environment {
@@ -512,7 +512,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     let literal = r(value);
     let literalType = literal.type;
     let returnExpression: Expression = null;
-    if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || literalType === 'STRING_RANGE' || isSetType(literalType)) {
+    if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || literalType === 'STRING_RANGE' || Set.isSetType(literalType)) {
       returnExpression = lhs.in(literal);
     } else {
       returnExpression = lhs.is(literal);
@@ -721,7 +721,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     let { type } =  this;
     if (!type) return true;
     if (wantedType === 'SET') {
-      return isSetType(type);
+      return Set.isSetType(type);
     } else {
       return type === wantedType;
     }
@@ -1830,15 +1830,22 @@ export abstract class ChainableExpression extends Expression {
     this.operand = value.operand || Expression._;
   }
 
-  protected _checkOperandTypes(...neededTypes: string[]) {
-    let operandType = this.operand.type;
-    if (operandType && operandType !== 'NULL' && neededTypes.indexOf(operandType) === -1) {
+  protected _checkTypeAgainstTypes(name: string, type: string, neededTypes: string[]) {
+    if (type && type !== 'NULL' && neededTypes.indexOf(type) === -1) {
       if (neededTypes.length === 1) {
-        throw new Error(`${this.op} must have operand of type ${neededTypes[0]} (is ${operandType})`);
+        throw new Error(`${this.op} must have ${name} of type ${neededTypes[0]} (is ${type})`);
       } else {
-        throw new Error(`${this.op} must have operand of type ${neededTypes.join(' or ')} (is ${operandType})`);
+        throw new Error(`${this.op} must have ${name} of type ${neededTypes.join(' or ')} (is ${type})`);
       }
     }
+  }
+
+  protected _checkOperandTypes(...neededTypes: string[]) {
+    this._checkTypeAgainstTypes('operand', Set.unwrapSetType(this.operand.type), neededTypes);
+  }
+
+  protected _checkOperandTypesStrict(...neededTypes: string[]) {
+    this._checkTypeAgainstTypes('operand', this.operand.type, neededTypes);
   }
 
   protected _bumpOperandToTime() {
@@ -2059,21 +2066,18 @@ export abstract class ChainableUnaryExpression extends ChainableExpression {
   }
 
   protected _checkExpressionTypes(...neededTypes: string[]) {
-    let expressionType = this.expression.type;
-    if (expressionType && expressionType !== 'NULL' && neededTypes.indexOf(expressionType) === -1) {
-      if (neededTypes.length === 1) {
-        throw new Error(`${this.op} must have expression of type ${neededTypes[0]} (is ${expressionType})`);
-      } else {
-        throw new Error(`${this.op} must have expression of type ${neededTypes.join(' or ')} (is ${expressionType})`);
-      }
-    }
+    this._checkTypeAgainstTypes('expression', Set.unwrapSetType(this.expression.type), neededTypes);
+  }
+
+  protected _checkExpressionTypesStrict(...neededTypes: string[]) {
+    this._checkTypeAgainstTypes('expression', this.expression.type, neededTypes);
   }
 
   protected _checkOperandExpressionTypesAlign() {
-    let operandType = this.operand.type;
-    let expressionType = this.expression.type;
+    let operandType = Set.unwrapSetType(this.operand.type);
+    let expressionType = Set.unwrapSetType(this.expression.type);
     if (!operandType || operandType === 'NULL' || !expressionType || expressionType === 'NULL' || operandType === expressionType) return;
-    throw new Error(`${this.op} must have matching types (are ${operandType}, ${expressionType})`);
+    throw new Error(`${this.op} must have matching types (are ${this.operand.type}, ${this.expression.type})`);
   }
 
   protected _bumpOperandExpressionToTime() {

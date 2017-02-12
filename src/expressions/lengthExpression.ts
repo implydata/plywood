@@ -18,7 +18,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 export class LengthExpression extends ChainableExpression {
   static op = "Length";

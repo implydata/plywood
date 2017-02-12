@@ -16,7 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 import * as hasOwnProp from 'has-own-prop';
 
 export class JoinExpression extends ChainableUnaryExpression {

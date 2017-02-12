@@ -19,7 +19,7 @@
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 import { LiteralExpression } from './literalExpression';
 
 export class MultiplyExpression extends ChainableUnaryExpression {
@@ -37,7 +37,8 @@ export class MultiplyExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-      return (operandValue || 0) * (expressionValue || 0);
+    if (operandValue === null || expressionValue === null) return null;
+    return Set.crossBinary(operandValue, expressionValue, (a, b) => a * b);
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {

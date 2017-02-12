@@ -16,7 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set, isSetType } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 export class ConcatExpression extends ChainableUnaryExpression {
   static op = "Concat";
@@ -27,9 +27,9 @@ export class ConcatExpression extends ChainableUnaryExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("concat");
-    this._checkOperandTypes('STRING', 'SET/STRING');
-    this._checkExpressionTypes('STRING', 'SET/STRING');
-    this.type = isSetType(this.operand.type) ? this.operand.type : this.expression.type;
+    this._checkOperandTypes('STRING');
+    this._checkExpressionTypes('STRING');
+    this.type = Set.isSetType(this.operand.type) ? this.operand.type : this.expression.type;
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {

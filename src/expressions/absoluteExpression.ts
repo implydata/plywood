@@ -27,7 +27,7 @@ export class AbsoluteExpression extends ChainableExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("absolute");
-    this._checkOperandTypes('NUMBER', 'SET/NUMBER');
+    this._checkOperandTypes('NUMBER');
     this.type = this.operand.type;
   }
 

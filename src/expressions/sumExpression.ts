@@ -17,7 +17,7 @@
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Dataset } from '../datatypes/dataset';
+import { PlywoodValue, Dataset } from '../datatypes/index';
 import { LiteralExpression } from './literalExpression';
 import { AddExpression } from './addExpression';
 import { SubtractExpression } from './subtractExpression';
