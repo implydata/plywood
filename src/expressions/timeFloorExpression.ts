@@ -15,15 +15,14 @@
  */
 
 import { Timezone, Duration } from 'chronoshift';
+import { immutableEqual } from 'immutable-class';
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { HasTimezone } from './mixins/hasTimezone';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, TimeRange, Set } from '../datatypes/index';
 import { InExpression } from './inExpression';
-import { TimeRange, Set } from '../datatypes/index';
 import { OverlapExpression } from './overlapExpression';
 import { TimeBucketExpression } from './timeBucketExpression';
-import { immutableEqual } from 'immutable-class';
 
 export class TimeFloorExpression extends ChainableExpression implements HasTimezone {
   static op = "TimeFloor";

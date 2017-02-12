@@ -19,7 +19,7 @@ import * as hasOwnProp from 'has-own-prop';
 import { Timezone } from 'chronoshift';
 import { Class, Instance } from 'immutable-class';
 import { PlyType } from '../types';
-import { getValueType, isSetType, valueToJS, valueFromJS } from './common';
+import { getValueType, valueToJS, valueFromJS } from './common';
 import { PlywoodRange } from './range';
 import { NumberRange } from './numberRange';
 import { TimeRange } from './timeRange';
@@ -87,6 +87,20 @@ export class Set implements Instance<SetValue, SetJS> {
     return candidate instanceof Set;
   }
 
+  static isSetType(type: PlyType): boolean {
+    return type && type.indexOf('SET/') === 0;
+  }
+
+  static wrapSetType(type: PlyType): PlyType {
+    if (!type) return null;
+    return Set.isSetType(type) ? type : <PlyType>('SET/' + type);
+  }
+
+  static unwrapSetType(type: PlyType): PlyType {
+    if (!type) return null;
+    return Set.isSetType(type) ? <PlyType>type.substr(4) : type;
+  }
+
   static cartesianProductOf<T>(...args: T[][]): T[][] {
     return args.reduce((a, b) => {
       return [].concat.apply([], a.map((x) => {
@@ -139,7 +153,7 @@ export class Set implements Instance<SetValue, SetJS> {
 
   static convertToSet(thing: any): Set {
     let thingType = getValueType(thing);
-    if (isSetType(thingType)) return thing;
+    if (Set.isSetType(thingType)) return thing;
     return Set.fromJS({ setType: thingType, elements: [thing] });
   }
 

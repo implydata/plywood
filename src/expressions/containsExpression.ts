@@ -34,8 +34,8 @@ export class ContainsExpression extends ChainableUnaryExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._checkOperandTypes('STRING', 'SET/STRING');
-    this._checkExpressionTypes('STRING', 'SET/STRING');
+    this._checkOperandTypes('STRING');
+    this._checkExpressionTypes('STRING');
 
     let { compare } = parameters;
     if (!compare) {

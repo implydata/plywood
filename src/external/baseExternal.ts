@@ -39,11 +39,16 @@ import {
   TimeFloorExpression,
   AndExpression
 } from '../expressions/index';
-import { PlywoodValue, Datum, Dataset } from '../datatypes/dataset';
-import { PlywoodValueBuilder } from '../datatypes/valueStream';
-import { Attributes, AttributeInfo, AttributeJSs } from '../datatypes/attributeInfo';
-import { NumberRange } from '../datatypes/numberRange';
-import { unwrapSetType } from '../datatypes/common';
+import {
+  PlywoodValue,
+  Datum,
+  Dataset,
+  PlywoodValueBuilder,
+  Attributes,
+  AttributeInfo,
+  AttributeJSs,
+  NumberRange
+} from '../datatypes/index';
 import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
 import { ExpressionJS } from '../expressions/baseExpression';
 import { Set } from '../datatypes/set';
@@ -1145,7 +1150,7 @@ export abstract class External {
     value.dataName = split.dataName;
     value.split = split;
     value.rawAttributes = value.attributes;
-    value.attributes = split.mapSplits((name, expression) => new AttributeInfo({ name, type: unwrapSetType(expression.type) }));
+    value.attributes = split.mapSplits((name, expression) => new AttributeInfo({ name, type: Set.unwrapSetType(expression.type) }));
     value.delegates = nullMap(value.delegates, (e) => e._addSplitExpression(split));
     return External.fromValue(value);
   }
@@ -1383,7 +1388,7 @@ export abstract class External {
     } else {
       if (mode === 'split') {
         this.split.mapSplits((name, expression) => {
-          datum[name] = getSampleValue(unwrapSetType(expression.type), expression);
+          datum[name] = getSampleValue(Set.unwrapSetType(expression.type), expression);
         });
         keys = this.split.mapSplits((name) => name);
       }

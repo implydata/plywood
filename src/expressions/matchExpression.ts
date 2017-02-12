@@ -62,7 +62,7 @@ export class MatchExpression extends ChainableExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("match");
-    this._checkOperandTypes('STRING', 'SET/STRING');
+    this._checkOperandTypes('STRING');
     this.regexp = parameters.regexp;
     this.type = 'BOOLEAN';
   }

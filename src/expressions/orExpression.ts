@@ -16,8 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
-import { Set } from '../datatypes/set';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 const IS_OR_IN: Lookup<boolean> = {
   'is': true,

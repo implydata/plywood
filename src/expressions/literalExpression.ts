@@ -22,7 +22,7 @@ import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } fr
 import { SQLDialect } from '../dialect/baseDialect';
 import * as hasOwnProp from 'has-own-prop';
 import { Dataset, Set, TimeRange, PlywoodValue, ComputeFn, Datum } from '../datatypes/index';
-import { isSetType, valueFromJS, getValueType } from '../datatypes/common';
+import { valueFromJS, getValueType } from '../datatypes/common';
 
 export class LiteralExpression extends Expression {
   static op = "Literal";
@@ -66,7 +66,7 @@ export class LiteralExpression extends Expression {
     let js = super.toJS();
     if (this.value && this.value.toJS) {
       js.value = this.value.toJS();
-      js.type = isSetType(this.type) ? 'SET' : this.type;
+      js.type = Set.isSetType(this.type) ? 'SET' : this.type;
     } else {
       js.value = this.value;
       if (this.type === 'TIME') js.type = 'TIME';

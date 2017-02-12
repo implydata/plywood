@@ -17,7 +17,7 @@
 import { Expression, ExpressionValue, ExpressionJS, ChainableUnaryExpression } from './baseExpression';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ComputeFn, Datum, PlywoodValue } from '../datatypes/dataset';
+import { ComputeFn, Datum, PlywoodValue } from '../datatypes/index';
 import { External } from '../external/baseExternal';
 
 export class ExternalExpression extends Expression {

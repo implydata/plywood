@@ -20,7 +20,7 @@ import { Timezone } from 'chronoshift';
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { HasTimezone } from './mixins/hasTimezone';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 import { immutableEqual } from 'immutable-class';
 
 interface Parter {

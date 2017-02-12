@@ -16,7 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 export class DivideExpression extends ChainableUnaryExpression {
   static op = "Divide";
@@ -33,9 +33,8 @@ export class DivideExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    if (expressionValue === 0) return null;
-    const v = operandValue / expressionValue;
-    return isNaN(v) ? null : v;
+    if (operandValue === null || expressionValue === null) return null;
+    return Set.crossBinary(operandValue, expressionValue, (a, b) => b !== 0 ? a / b : null);
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {

@@ -15,7 +15,7 @@
  */
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlyTypeSingleValue } from '../types';
 
