@@ -18,7 +18,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 import { LiteralExpression } from './literalExpression';
 import { Range } from '../datatypes/range';
 
@@ -39,7 +39,8 @@ export class LessThanExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-      return operandValue < expressionValue;
+    if (operandValue === null || expressionValue === null) return null;
+    return Set.crossBinaryBoolean(operandValue, expressionValue, (a, b) => a < b);
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {

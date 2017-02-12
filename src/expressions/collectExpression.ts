@@ -16,8 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
-import { wrapSetType } from '../datatypes/common';
-import { PlywoodValue, Dataset } from '../datatypes/dataset';
+import { PlywoodValue, Dataset, Set } from '../datatypes/index';
 
 export class CollectExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Collect";
@@ -30,7 +29,7 @@ export class CollectExpression extends ChainableUnaryExpression implements Aggre
     this._ensureOp("collect");
     this._checkOperandTypes('DATASET');
     this._checkExpressionTypes('BOOLEAN', 'NUMBER', 'TIME', 'STRING', 'NUMBER_RANGE', 'TIME_RANGE', 'STRING_RANGE');
-    this.type = wrapSetType(this.expression.type);
+    this.type = Set.wrapSetType(this.expression.type);
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {

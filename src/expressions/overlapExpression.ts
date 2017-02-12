@@ -15,9 +15,7 @@
  */
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { PlywoodValue } from '../datatypes/index';
-import { wrapSetType } from '../datatypes/common';
-import { Set } from '../datatypes/set';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 export class OverlapExpression extends ChainableUnaryExpression {
   static op = "Overlap";
@@ -35,7 +33,7 @@ export class OverlapExpression extends ChainableUnaryExpression {
     let oType = this.operand.type;
     let eType = this.expression.type;
     if (oType && eType && oType !== 'NULL' && oType !== 'SET/NULL' && eType !== 'NULL' && eType !== 'SET/NULL') {
-      if (wrapSetType(oType) !== wrapSetType(eType)) {
+      if (Set.wrapSetType(oType) !== Set.wrapSetType(eType)) {
         throw new Error(`overlap expression has type mismatch between ${oType} and ${eType}`);
       }
     }

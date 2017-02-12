@@ -76,9 +76,7 @@ import {
   Datum,
   NumberRange,
   Range,
-  Set,
-  TimeRange,
-  PlywoodValue
+  Set
 } from '../datatypes/index';
 import { External, ExternalJS, ExternalValue, Inflater, NextFn, QueryAndPostTransform, TotalContainer } from './baseExternal';
 import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
@@ -86,8 +84,6 @@ import { DruidExtractionFnBuilder } from './utils/druidExtractionFnBuilder';
 import { DruidFilterBuilder, DruidFilterAndIntervals } from './utils/druidFilterBuilder';
 import { DruidHavingFilterBuilder } from './utils/druidHavingFilterBuilder';
 import { DruidAggregationBuilder, AggregationsAndPostAggregations } from './utils/druidAggregationBuilder';
-import { unwrapSetType } from '../datatypes/common';
-import { PlywoodRange } from '../datatypes/range';
 
 export class InvalidResultError extends ExtendableError {
   public result: any;
@@ -611,7 +607,7 @@ export class DruidExternal extends External {
       };
     }
 
-    let effectiveType = unwrapSetType(expression.type);
+    let effectiveType = Set.unwrapSetType(expression.type);
     if (simpleInflater || effectiveType === 'STRING') {
       return {
         dimension,

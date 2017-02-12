@@ -17,7 +17,7 @@
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Dataset } from '../datatypes/dataset';
+import { PlywoodValue, Dataset } from '../datatypes/index';
 
 export class MaxExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Max";

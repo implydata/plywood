@@ -16,7 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set, isSetType } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 export class PowerExpression extends ChainableUnaryExpression {
   static op = "Power";
@@ -27,9 +27,9 @@ export class PowerExpression extends ChainableUnaryExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("power");
-    this._checkOperandTypes('NUMBER', 'SET/NUMBER');
-    this._checkExpressionTypes('NUMBER', 'SET/NUMBER');
-    this.type = isSetType(this.operand.type) ? this.operand.type : this.expression.type;;
+    this._checkOperandTypes('NUMBER');
+    this._checkExpressionTypes('NUMBER');
+    this.type = Set.isSetType(this.operand.type) ? this.operand.type : this.expression.type;
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {

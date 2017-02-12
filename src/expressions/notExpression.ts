@@ -16,7 +16,7 @@
 
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression, Indexer, Alterations } from './baseExpression';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 
 export class NotExpression extends ChainableExpression {
