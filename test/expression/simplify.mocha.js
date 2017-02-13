@@ -595,7 +595,7 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it.skip("simplifies to true with complex datatypes", () => {
+    it("simplifies to true with complex datatypes", () => {
       let ex1 = r(TimeRange.fromJS({
         start: new Date('2016-01-02Z'),
         end: new Date('2016-01-03Z')
@@ -622,6 +622,12 @@ describe("Simplify", () => {
     it('swaps yoda literal (with complex)', () => {
       let ex1 = r("Dhello").is($('color').concat(r('hello')));
       let ex2 = $('color').concat(r('hello')).is(r("Dhello"));
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('simplifies to singleton set', () => {
+      let ex1 = $('x').overlap(Set.fromJS(['A']));
+      let ex2 = $('x').is('A');
       simplifiesTo(ex1, ex2);
     });
 
@@ -749,7 +755,10 @@ describe("Simplify", () => {
 
   describe('overlap', () => {
     it('swaps yoda literal (with ref)', () => {
-      let someSet = Set.fromJS(['A', 'B', 'C']);
+      let someSet = Set.fromJS([
+        NumberRange.fromJS({ start: 1, end: 2 }),
+        NumberRange.fromJS({ start: 3, end: 4 })
+      ]);
       let ex1 = r(someSet).overlap('$x');
       let ex2 = $('x').overlap(someSet);
       simplifiesTo(ex1, ex2);
@@ -767,14 +776,14 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it('simplifies to IN', () => {
+    it('simplifies to IS', () => {
       let someSet = Set.fromJS(['A', 'B', 'C']);
       let ex1 = $('x', 'STRING').overlap(someSet);
-      let ex2 = $('x', 'STRING').in(someSet);
+      let ex2 = $('x', 'STRING').is(someSet);
       simplifiesTo(ex1, ex2);
     });
 
-    it('simplifies to IS (via IN)', () => {
+    it('simplifies to singleton IS (via IS)', () => {
       let ex1 = $('x', 'STRING').overlap(Set.fromJS(['A']));
       let ex2 = $('x', 'STRING').is('A');
       simplifiesTo(ex1, ex2);

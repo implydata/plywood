@@ -209,7 +209,7 @@ describe("simulate Druid", () => {
 
   it("works in advanced case", () => {
     let ex = ply()
-      .apply("diamonds", $('diamonds').filter($("color").is('D').and($('tags').overlap(['Good', 'Bad', 'Ugly']))))
+      .apply("diamonds", $('diamonds').filter($("color").is('D').and($('tags').is(['Good', 'Bad', 'Ugly']))))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
       .apply('PriceTimes2', '$diamonds.sum($price) * 2')

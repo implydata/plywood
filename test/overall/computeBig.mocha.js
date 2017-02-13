@@ -63,7 +63,7 @@ describe("compute native nontrivial data", function() {
   });
 
   it("works in with a filter overlap null", () => {
-    let ex = $('data').filter($('countryName').overlap([null])).count();
+    let ex = $('data').filter($('countryName').is([null])).count();
 
     return ex.compute({ data: ds })
       .then((v) => {
@@ -193,7 +193,7 @@ describe("compute native nontrivial data", function() {
       )
       .apply('cells',
         $('data')
-          .filter($('userChars').overlap($('xs').collect($('v'))).and($('channel').in($('ys').collect($('v')))))
+          .filter($('userChars').is($('xs').collect($('v'))).and($('channel').in($('ys').collect($('v')))))
           .split({ channel: '$channel', userChars: '$userChars' })
           .apply('cnt', '$data.count()')
           .limit(3 * 3)

@@ -222,7 +222,12 @@ export class DruidFilterBuilder {
     } else if (filter instanceof IsExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (rhs instanceof LiteralExpression) {
-        return this.makeSelectorFilter(lhs, rhs.value);
+        if (Set.isSetType(rhs.type)) {
+          return this.makeInFilter(lhs, rhs.value);
+        } else {
+          return this.makeSelectorFilter(lhs, rhs.value);
+        }
+
       } else {
         throw new Error(`can not convert ${filter} to Druid filter`);
       }
