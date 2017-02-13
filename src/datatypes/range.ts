@@ -16,6 +16,7 @@
  */
 
 import { Timezone } from 'chronoshift';
+import { PlyType } from '../types';
 
 const BOUNDS_REG_EXP = /^[\[(][\])]$/;
 
@@ -26,6 +27,10 @@ export abstract class Range<T> {
 
   static isRange(candidate: any): candidate is PlywoodRange {
     return candidate instanceof Range;
+  }
+
+  static isRangeType(type: PlyType): boolean {
+    return type && type.indexOf('_RANGE') > 0;
   }
 
   static classMap: Lookup<typeof Range> = {};

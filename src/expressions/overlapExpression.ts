@@ -15,7 +15,7 @@
  */
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { PlywoodValue, Set } from '../datatypes/index';
+import { PlywoodValue, Set, Range } from '../datatypes/index';
 
 export class OverlapExpression extends ChainableUnaryExpression {
   static op = "Overlap";
@@ -56,8 +56,8 @@ export class OverlapExpression extends ChainableUnaryExpression {
     // X.overlap({})
     if (expression.equals(Expression.EMPTY_SET)) return Expression.FALSE;
 
-    // 5.overlap({5})
-    if ('SET/' + operand.type === expression.type) return operand.in(expression);
+    // NonRangeOrSet.overlap(NonRangeOrSet)
+    if (!Range.isRangeType(operand.type) && !Range.isRangeType(expression.type)) return operand.is(expression);
 
     return this;
   }
