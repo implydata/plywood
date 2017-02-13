@@ -56,7 +56,6 @@ import {
   NotExpression,
   NumberBucketExpression,
   OrExpression,
-  OverlapExpression,
   PowerExpression,
   QuantileExpression,
   SplitExpression,

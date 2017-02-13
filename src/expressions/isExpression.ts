@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression, Indexer, Alterations } from './baseExpression';
-import { PlywoodValue, TimeRange, NumberRange } from '../datatypes/index';
+import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { PlywoodValue, TimeRange, NumberRange, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { IndexOfExpression } from './indexOfExpression';
 import { TimeBucketExpression } from './timeBucketExpression';
@@ -36,7 +36,7 @@ export class IsExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue === expressionValue; // ToDo: this does not work for complex datatypes
+    return Set.crossBinaryBoolean(operandValue, expressionValue, (a, b) => a === b || Boolean(a && a.equals && a.equals(b)));
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
@@ -44,7 +44,12 @@ export class IsExpression extends ChainableUnaryExpression {
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    return dialect.isNotDistinctFromExpression(operandSQL, expressionSQL);
+    const expressionSet = this.expression.getLiteralValue();
+    if (expressionSet instanceof Set) {
+      return expressionSet.elements.map((e) => dialect.isNotDistinctFromExpression(operandSQL, r(e).getSQL(dialect))).join(' OR ');
+    } else {
+      return dialect.isNotDistinctFromExpression(operandSQL, expressionSQL);
+    }
   }
 
   public isCommutative(): boolean {
@@ -59,7 +64,12 @@ export class IsExpression extends ChainableUnaryExpression {
 
     const literalValue = expression.getLiteralValue();
 
-    if (literalValue) {
+    if (literalValue != null) {
+      // X.is(Set({Y})) => X.is(Y)
+      if (Set.isSet(literalValue) && literalValue.elements.length === 1) {
+        return operand.is(r(literalValue.elements[0]));
+      }
+
       // X.indexOf(Y) = -1
       if (operand instanceof IndexOfExpression && literalValue === -1) {
         const { operand: x, expression: y } = operand;

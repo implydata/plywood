@@ -69,10 +69,10 @@ describe("typecheck", () => {
     }).to.throw('sum must have expression of type NUMBER (is STRING)');
   });
 
-  it("should throw on overlay type mismatch", () => {
+  it("should throw on is type mismatch", () => {
     expect(() => {
-      $('x', 'NUMBER').overlap($('y', 'SET/STRING'));
-    }).to.throw('overlap expression has type mismatch between NUMBER and SET/STRING');
+      $('x', 'NUMBER').is($('y', 'SET/STRING'));
+    }).to.throw('is must have matching types (are NUMBER, SET/STRING)');
   });
 
 });

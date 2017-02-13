@@ -19,6 +19,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - `Dataset#getColumns` is now just `return this.flatten(options).attributes;`
 - `Dataset#getNestedColumns` was removed
 - Added `ThenExpression`
+- Expressions have all been standardized to apply to Sets as well as atomics
 
 
 ## 0.15.12

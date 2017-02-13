@@ -357,6 +357,24 @@ describe("compute native", () => {
       });
   });
 
+  it("works with single IS", () => {
+    let ex = r("LOL").is(r("MOON"));
+
+    return ex.compute()
+      .then((v) => {
+        expect(v).to.deep.equal(false);
+      });
+  });
+
+  it("works with many ISes", () => {
+    let ex = r("LOL").is(r("MOON")).is(Set.fromJS([false]));
+
+    return ex.compute()
+      .then((v) => {
+        expect(v).to.deep.equal(true);
+      });
+  });
+
   it("casts from number to time", () => {
     // 1442016000000 -> 09/12/2015 00:00:00
     // 1442059199000 -> 09/12/2015 11:59:59
@@ -1001,15 +1019,15 @@ describe("compute native", () => {
       .apply('cutConcat', '"[" ++ $cut ++ "]"')
       .apply('cutMatch', $('cut').match('^G.+'))
       .apply('cutInGoodGreat', $('cut').in(['Good', 'Great']))
-      .apply('cutOverlapGoodGreat', $('cut').overlap(['Good', 'Great']))
-      .apply('cutOverlapNull', $('cut').overlap([null]))
+      .apply('cutIsGoodGreat', $('cut').is(['Good', 'Great']))
+      .apply('cutIsNull', $('cut').is([null]))
       .apply('cutThenFallback', $('cut').is('Good').then('Noice').fallback('Boo'))
       .apply('cutThenFallbackX2', $('cut').is('Good').then('Nice').fallback($('cut').is('Great').then('Amaze')).fallback('Neither'))
-      .apply('cutIsGoodOverlapFalse', $('cut').is('Good').overlap([false]))
+      .apply('cutIsGoodIsFalse', $('cut').is('Good').is([false]))
       .apply('timeFloorDay', $('time').timeFloor('P1D'))
       .apply('timeShiftDay2', $('time').timeShift('P1D', 2))
       .apply('timeRangeHours', $('time').timeRange('PT2H', -1))
-      .apply('overlapSuperCool', $('tags').overlap(['super', 'cool']));
+      .apply('isSuperCool', $('tags').is(['super', 'cool']));
 
     return ex.compute()
       .then((v) => {
@@ -1018,13 +1036,13 @@ describe("compute native", () => {
             "cut": "Good",
             "cutConcat": "[Good]",
             "cutInGoodGreat": true,
-            "cutIsGoodOverlapFalse": false,
+            "cutIsGoodIsFalse": false,
             "cutMatch": true,
-            "cutOverlapGoodGreat": true,
-            "cutOverlapNull": false,
+            "cutIsGoodGreat": true,
+            "cutIsNull": false,
             "cutThenFallback": "Noice",
             "cutThenFallbackX2": "Nice",
-            "overlapSuperCool": true,
+            "isSuperCool": true,
             "price": 400,
             "tags": {
               "elements": [
@@ -1045,13 +1063,13 @@ describe("compute native", () => {
             "cut": "Good",
             "cutConcat": "[Good]",
             "cutInGoodGreat": true,
-            "cutIsGoodOverlapFalse": false,
+            "cutIsGoodIsFalse": false,
             "cutMatch": true,
-            "cutOverlapGoodGreat": true,
-            "cutOverlapNull": false,
+            "cutIsGoodGreat": true,
+            "cutIsNull": false,
             "cutThenFallback": "Noice",
             "cutThenFallbackX2": "Nice",
-            "overlapSuperCool": true,
+            "isSuperCool": true,
             "price": 300,
             "tags": {
               "elements": [
@@ -1071,13 +1089,13 @@ describe("compute native", () => {
             "cut": "Great",
             "cutConcat": "[Great]",
             "cutInGoodGreat": true,
-            "cutIsGoodOverlapFalse": true,
+            "cutIsGoodIsFalse": true,
             "cutMatch": true,
-            "cutOverlapGoodGreat": true,
-            "cutOverlapNull": false,
+            "cutIsGoodGreat": true,
+            "cutIsNull": false,
             "cutThenFallback": "Boo",
             "cutThenFallbackX2": "Amaze",
-            "overlapSuperCool": true,
+            "isSuperCool": true,
             "price": 124,
             "tags": {
               "elements": [
@@ -1094,13 +1112,13 @@ describe("compute native", () => {
             "cut": "Wow",
             "cutConcat": "[Wow]",
             "cutInGoodGreat": false,
-            "cutIsGoodOverlapFalse": true,
+            "cutIsGoodIsFalse": true,
             "cutMatch": false,
-            "cutOverlapGoodGreat": false,
-            "cutOverlapNull": false,
+            "cutIsGoodGreat": false,
+            "cutIsNull": false,
             "cutThenFallback": "Boo",
             "cutThenFallbackX2": "Neither",
-            "overlapSuperCool": false,
+            "isSuperCool": false,
             "price": 160,
             "tags": {
               "elements": [
@@ -1120,13 +1138,13 @@ describe("compute native", () => {
             "cut": "Wow",
             "cutConcat": "[Wow]",
             "cutInGoodGreat": false,
-            "cutIsGoodOverlapFalse": true,
+            "cutIsGoodIsFalse": true,
             "cutMatch": false,
-            "cutOverlapGoodGreat": false,
-            "cutOverlapNull": false,
+            "cutIsGoodGreat": false,
+            "cutIsNull": false,
             "cutThenFallback": "Boo",
             "cutThenFallbackX2": "Neither",
-            "overlapSuperCool": false,
+            "isSuperCool": false,
             "price": 100,
             "tags": null,
             "time": new Date('2015-10-05T05:20:30.000Z'),
@@ -1141,13 +1159,13 @@ describe("compute native", () => {
             "cut": null,
             "cutConcat": null,
             "cutInGoodGreat": false,
-            "cutIsGoodOverlapFalse": true,
+            "cutIsGoodIsFalse": true,
             "cutMatch": null,
-            "cutOverlapGoodGreat": false,
-            "cutOverlapNull": true,
+            "cutIsGoodGreat": false,
+            "cutIsNull": true,
             "cutThenFallback": "Boo",
             "cutThenFallbackX2": "Neither",
-            "overlapSuperCool": true,
+            "isSuperCool": true,
             "price": null,
             "tags": {
               "elements": [
