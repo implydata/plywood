@@ -1010,13 +1010,18 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       let flatDatum: PseudoDatum = context ? copy(context) : {};
       if (nestingName) flatDatum[nestingName] = nesting;
 
+      let hasDataset = false;
       for (let attribute of attributes) {
-        if (attribute.type === 'DATASET') continue;
+        let v = datum[attribute.name];
+        if (v instanceof Dataset) {
+          hasDataset = true;
+          continue;
+        }
         let flatName = (prefix || '') + attribute.name;
-        flatDatum[flatName] = datum[attribute.name];
+        flatDatum[flatName] = v;
       }
 
-      if (datasetAttributes.length) {
+      if (hasDataset) {
         if (order === 'preorder') flatData.push(flatDatum);
         for (let datasetAttribute of datasetAttributes) {
           let nextPrefix: string = null;

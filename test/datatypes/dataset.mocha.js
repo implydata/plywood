@@ -464,6 +464,10 @@ describe("Dataset", () => {
       }
     ]);
 
+    let totalsDataset = Dataset.fromJS([
+      { count: 0 }
+    ]);
+
     let carDataset = Dataset.fromJS([
       {
         time: new Date('2015-01-04T12:32:43'),
@@ -644,6 +648,9 @@ describe("Dataset", () => {
         expect(emptyNestedDataset.flatten().data).to.deep.equal([]);
       });
 
+      it("works with totals dataset", () => {
+        expect(totalsDataset.flatten().data).to.deep.equal([{ count: 0 }]);
+      });
 
       it("works with basic dataset", () => {
         expect(carDataset.flatten().data).to.deep.equal([
