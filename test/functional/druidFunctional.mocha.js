@@ -182,6 +182,48 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works basic total", () => {
+      let ex = ply()
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
+        .apply("Count", '$wiki.count()');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "wiki",
+                "type": "DATASET"
+              },
+              {
+                "name": "Count",
+                "type": "NUMBER"
+              }
+            ],
+            "data": [
+              {
+                "Count": 35485
+              }
+            ],
+            "keys": []
+          });
+
+          expect(result.flatten().toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "Count",
+                "type": "NUMBER"
+              }
+            ],
+            "data": [
+              {
+                "Count": 35485
+              }
+            ]
+          });
+        });
+    });
+
     it("aggregate and splits plus select work with ordering last split first", () => {
       let ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
