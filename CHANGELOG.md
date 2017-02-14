@@ -6,7 +6,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 **Major breaking changes in this release**
 
-- Allow count distinct on cross product (e.g. `$data.countDistinct($a ++ $b)`)
+- Druid: Allow count distinct on cross product (e.g. `$data.countDistinct($a ++ $b)`)
 - Transition to TS 2.1
 - Better division by 0 handling
 - Extracted Requester type definition into `plywood-base-api`
