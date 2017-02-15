@@ -207,7 +207,10 @@ export class DruidExternal extends External {
 
           callback(null, datum);
         } else {
-          callback(null, new Date((d['maxIngestedEventTime'] || d['maxTime'] || d['minTime']) as string));
+          callback(null, {
+            __$$type: 'value',
+            value: new Date((d['maxIngestedEventTime'] || d['maxTime'] || d['minTime']) as string)
+          });
         }
       }
     });

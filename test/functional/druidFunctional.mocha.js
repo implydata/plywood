@@ -224,6 +224,38 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with max time 1", () => {
+      let ex = ply()
+        .apply("max(time)", '$wiki.max($time)');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "max(time)",
+                "type": "NUMBER"
+              }
+            ],
+            "data": [
+              {
+                "max(time)": new Date('2015-09-12T23:00:00.000Z')
+              }
+            ],
+            "keys": []
+          });
+        });
+    });
+
+    it("works with max time 2", () => {
+      let ex = $('wiki').max('$time');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result).to.deep.equal(new Date('2015-09-12T23:00:00.000Z'));
+        });
+    });
+
     it("aggregate and splits plus select work with ordering last split first", () => {
       let ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
