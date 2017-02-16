@@ -3306,4 +3306,26 @@ describe("Druid Functional", function() {
 
   });
 
+  describe("introspection on non existent dataSource", () => {
+    let wikiExternal = External.fromJS({
+      engine: 'druid',
+      source: 'wikipedia_borat',
+      timeAttribute: 'time',
+      filter: $('time').in(TimeRange.fromJS({
+        start: new Date("2015-09-12T00:00:00Z"),
+        end: new Date("2015-09-13T00:00:00Z")
+      }))
+    }, druidRequester);
+
+    it("fail correctly", () => {
+      return wikiExternal.introspect()
+        .then(() => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch((e) => {
+          expect(e.message).to.contain('No such datasource');
+        })
+    });
+  });
+
 });
