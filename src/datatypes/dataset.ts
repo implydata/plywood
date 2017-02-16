@@ -350,7 +350,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     }
   }
 
-  static fromJS(parameters: DatasetJS): Dataset {
+  static fromJS(parameters: DatasetJS | any[]): Dataset {
     if (Array.isArray(parameters)) {
       parameters = { data: parameters };
     }
