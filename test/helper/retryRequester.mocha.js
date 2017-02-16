@@ -30,6 +30,7 @@ describe("Retry Requester", () => {
         if (failNumber > 0) {
           failNumber--;
           stream.emit('error', new Error(isTimeout ? 'timeout' : 'some error'));
+          stream.end();
         } else {
           stream.emit('meta', { lol: 33 });
           stream.write(1);
@@ -40,6 +41,15 @@ describe("Retry Requester", () => {
       }, 1);
       return stream;
     };
+  };
+
+  let noSuchDataSourceRequester = (request) => {
+    const stream = new PassThrough({ objectMode: true });
+    setTimeout(() => {
+      stream.emit('error', new Error('No such datasource'));
+      stream.end();
+    }, 1);
+    return stream;
   };
 
 
@@ -135,4 +145,21 @@ describe("Retry Requester", () => {
         expect(err.message).to.equal('timeout');
       });
   });
+
+  it("works with no such datasource", () => {
+    let retryRequester = retryRequesterFactory({
+      requester: noSuchDataSourceRequester,
+      delay: 20,
+      retry: 2
+    });
+
+    return toArray(retryRequester({}))
+      .then(() => {
+        throw new Error('DID_NOT_THROW');
+      })
+      .catch((err) => {
+        expect(err.message).to.equal('No such datasource');
+      });
+  });
+
 });

@@ -35,25 +35,33 @@ export function retryRequesterFactory<T>(parameters: RetryRequesterParameters<T>
   if (typeof retry !== "number") throw new TypeError("retry should be a number");
 
   return (request: DatabaseRequest<T>) => {
-    const output = new PassThrough({ objectMode: true });
-
     let tries = 0;
+    let ended = false;
+    const output = new PassThrough({ objectMode: true });
 
     function tryRequest() {
       tries++;
       let seenData = false;
+      let errored = false;
       let rs = requester(request);
       rs.on('error', (e: Error) => {
+        errored = true;
         if (seenData || tries > retry || (e.message === "timeout" && !retryOnTimeout)) {
           rs.unpipe(output);
           output.emit('error', e);
+          ended = true;
+          output.end();
         } else {
           setTimeout(tryRequest, delay);
         }
       });
       rs.on('meta', (m: any) => { output.emit('meta', m); });
       rs.on('data', (d: any) => { seenData = true; });
-      rs.pipe(output);
+      rs.on('end', () => {
+        if (ended || errored) return;
+        output.end();
+      });
+      rs.pipe(output, { end: false });
     }
 
     tryRequest();
