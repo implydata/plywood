@@ -26,7 +26,7 @@
     "typings/"
   ],
   "scripts": {
-    "prepublish": "node_modules/.bin/tdi",
+    "prepare": "tdi -q",
     "compile": "./compile"
   },
   "tonicExampleFilename": "docs/examples/tonic.js",

@@ -468,6 +468,36 @@ describe("Dataset", () => {
       { count: 0 }
     ]);
 
+    let totalsDatasetWithSplit = Dataset.fromJS({
+      keys: [],
+      attributes: [
+        { name: 'count', type: 'NUMBER' },
+        { name: 'split', type: 'DATASET' }
+      ],
+      data: [
+        {
+          count: 90,
+          split: {
+            keys: ['model'],
+            attributes: [
+              { name: 'model', type: 'STRING' },
+              { name: 'count', type: 'NUMBER' }
+            ],
+            data: [
+              {
+                model: 'Civic',
+                count: 20
+              },
+              {
+                model: 'Prius',
+                count: 10
+              }
+            ]
+          }
+        }
+      ]
+    });
+
     let carDataset = Dataset.fromJS([
       {
         time: new Date('2015-01-04T12:32:43'),
@@ -650,6 +680,31 @@ describe("Dataset", () => {
 
       it("works with totals dataset", () => {
         expect(totalsDataset.flatten().data).to.deep.equal([{ count: 0 }]);
+      });
+
+      it("works with totals dataset", () => {
+        expect(totalsDatasetWithSplit.flatten().toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "model",
+              "type": "STRING"
+            },
+            {
+              "name": "count",
+              "type": "NUMBER"
+            }
+          ],
+          "data": [
+            {
+              "count": 20,
+              "model": "Civic"
+            },
+            {
+              "count": 10,
+              "model": "Prius"
+            }
+          ]
+        });
       });
 
       it("works with basic dataset", () => {
