@@ -34,11 +34,14 @@ export class PowerExpression extends ChainableUnaryExpression {
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     if (operandValue == null || expressionValue == null) return null;
-    return Set.crossBinary(operandValue, expressionValue, (a, b) => Math.pow(a, b));
+    return Set.crossBinary(operandValue, expressionValue, (a, b) => {
+      const pow = Math.pow(a, b);
+      return isNaN(pow) ? null : pow;
+    });
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `Math.pow(${operandJS},${expressionJS})`;
+    return `(isNaN(_=Math.pow(${operandJS},${expressionJS}))?null:_)`;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
