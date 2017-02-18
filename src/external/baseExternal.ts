@@ -296,7 +296,7 @@ export abstract class External {
     let pb = vb.split('-')[0].split('.');
     if (pa[0] !== pb[0]) return Number(pa[0]) < Number(pb[0]);
     if (pa[1] !== pb[1]) return Number(pa[1]) < Number(pb[1]);
-    return pa[2] < pb[2];
+    return Number(pa[2]) < Number(pb[2]);
   }
 
   static deduplicateExternals(externals: External[]): External[] {
