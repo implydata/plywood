@@ -141,6 +141,17 @@ describe("Dataset", () => {
   });
 
 
+  describe("fromJS", () => {
+    it("works in basic form", () => {
+      expect(Dataset.fromJS([
+        { nan: NaN }
+      ]).data).to.deep.equal([
+        { "nan": null }
+      ]);
+    });
+  });
+
+
   describe("getFullType", () => {
     it("works in empty case", () => {
       expect(Dataset.fromJS([]).getFullType()).to.deep.equal({

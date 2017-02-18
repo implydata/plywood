@@ -144,6 +144,8 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
     }
   } else if (typeof v === 'string' && typeOverride === 'TIME') {
     return new Date(v);
+  } else if (isNaN(v)) {
+    return null;
   }
   return v;
 }
