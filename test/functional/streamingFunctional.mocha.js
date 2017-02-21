@@ -87,6 +87,16 @@ describe("Streaming Functional", function() {
       allowSelectQueries: true
     }, druidRequester);
 
+    it("works on can not resolve", (testComplete) => {
+      let ex = $('wiki')
+        .split({ 'isNew': '$isNew', 'isRobotz': '$isRobotz' });
+
+      ex.computeStream({ wiki }).on('error', (e) => {
+        expect(e.message).to.deep.equal('could not resolve $isRobotz');
+        testComplete();
+      });
+    });
+
     it("aggregate and splits plus select work with ordering last split first", () => {
       let ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
