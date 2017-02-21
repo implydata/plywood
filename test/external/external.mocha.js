@@ -312,8 +312,10 @@ describe("External", () => {
       expect(External.versionLessThan('0.9.1', '0.8.2')).to.equal(false);
     });
 
-    it("works with 10", () => {
-      expect(External.versionLessThan('0.9.1', '0.10.0')).to.equal(true);
+    it("works as numbers in major, minor, patch", () => {
+      expect(External.versionLessThan('9.0.0', '10.0.0'), 'major').to.equal(true);
+      expect(External.versionLessThan('0.9.0', '0.10.0'), 'minor').to.equal(true);
+      expect(External.versionLessThan('0.0.9', '0.0.10'), 'patch').to.equal(true);
     });
 
   });

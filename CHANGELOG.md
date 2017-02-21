@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.15.12
+
+- Version check now works with all parts of the version
+
 ## 0.15.11
 
 - Fix error in version check that had trouble with versions like `0.10.0`
