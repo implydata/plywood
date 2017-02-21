@@ -104,48 +104,51 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
     } else {
       return Dataset.fromJS(v);
     }
-  } else if (typeof v === 'object') {
-    switch (typeOverride || v.type) {
-      case 'NUMBER':
-        let n = Number(v.value);
-        if (isNaN(n)) throw new Error(`bad number value '${v.value}'`);
-        return n;
+  } else {
+    const typeofV = typeof v;
+    if (typeofV === 'object') {
+      switch (typeOverride || v.type) {
+        case 'NUMBER':
+          let n = Number(v.value);
+          if (isNaN(n)) throw new Error(`bad number value '${v.value}'`);
+          return n;
 
-      case 'NUMBER_RANGE':
-        return NumberRange.fromJS(v);
+        case 'NUMBER_RANGE':
+          return NumberRange.fromJS(v);
 
-      case 'STRING_RANGE':
-        return StringRange.fromJS(v);
+        case 'STRING_RANGE':
+          return StringRange.fromJS(v);
 
-      case 'TIME':
-        return timeFromJS(v);
+        case 'TIME':
+          return timeFromJS(v);
 
-      case 'TIME_RANGE':
-        return TimeRange.fromJS(v);
+        case 'TIME_RANGE':
+          return TimeRange.fromJS(v);
 
-      case 'SET':
-        return Set.fromJS(v);
-
-      case 'DATASET':
-        return Dataset.fromJS(v);
-
-      default:
-        if (String(typeOverride).indexOf('SET') === 0) {
+        case 'SET':
           return Set.fromJS(v);
-        }
-        if (v.toISOString) {
-          return v; // Allow native date
-        }
-        if (typeOverride) {
-          throw new Error(`unknown type ${typeOverride}`);
-        } else {
-          throw new Error(`can not have an object without a 'type' as a datum value: ${JSON.stringify(v)}`);
-        }
+
+        case 'DATASET':
+          return Dataset.fromJS(v);
+
+        default:
+          if (String(typeOverride).indexOf('SET') === 0) {
+            return Set.fromJS(v);
+          }
+          if (v.toISOString) {
+            return v; // Allow native date
+          }
+          if (typeOverride) {
+            throw new Error(`unknown type ${typeOverride}`);
+          } else {
+            throw new Error(`can not have an object without a 'type' as a datum value: ${JSON.stringify(v)}`);
+          }
+      }
+    } else if (typeofV === 'string' && typeOverride === 'TIME') {
+      return new Date(v);
+    } else if (typeofV === 'number' && isNaN(v)) {
+      return null;
     }
-  } else if (typeof v === 'string' && typeOverride === 'TIME') {
-    return new Date(v);
-  } else if (isNaN(v)) {
-    return null;
   }
   return v;
 }

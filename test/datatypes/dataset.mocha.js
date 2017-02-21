@@ -693,8 +693,33 @@ describe("Dataset", () => {
         expect(totalsDataset.flatten().data).to.deep.equal([{ count: 0 }]);
       });
 
-      it("works with totals dataset", () => {
+      it("works with totals dataset with split", () => {
         expect(totalsDatasetWithSplit.flatten().toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "count",
+              "type": "NUMBER"
+            },
+            {
+              "name": "model",
+              "type": "STRING"
+            }
+          ],
+          "data": [
+            {
+              "count": 20,
+              "model": "Civic"
+            },
+            {
+              "count": 10,
+              "model": "Prius"
+            }
+          ]
+        });
+      });
+
+      it("works with totals dataset with split (columnOrdering: 'keys-first')", () => {
+        expect(totalsDatasetWithSplit.flatten({ columnOrdering: 'keys-first' }).toJS()).to.deep.equal({
           "attributes": [
             {
               "name": "model",

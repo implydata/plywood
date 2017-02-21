@@ -16,6 +16,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Datasets now actively maintain their `keys` array
 - `Dataset#flatten` now returns a new (flat) `Dataset` and thus the `parentName` option is no longer supported
 - In `Dataset#flatten`, `Dataset#ToCSV`, e.t.c `orderedColumns` option is no longer supported use `.select()` instead
+- Added `columnOrdering` option to `Dataset#flatten` with values `'as-seen'` and  `'keys-first'`
 - `Dataset#getColumns` is now just `return this.flatten(options).attributes;`
 - `Dataset#getNestedColumns` was removed
 - Added `ThenExpression`

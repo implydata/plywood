@@ -174,6 +174,7 @@ export interface FlattenOptions {
   prefixColumns?: boolean;
   order?: 'preorder' | 'inline' | 'postorder'; // default: inline
   nestingName?: string;
+  columnOrdering?: 'as-seen' | 'keys-first';
 }
 
 export type FinalLineBreak = 'include' | 'suppress';
@@ -986,7 +987,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
 
   private _flattenHelper(
     prefix: string, order: string, nestingName: string, nesting: number, context: Datum,
-    flatKeyAttributes: AttributeInfo[], flatAttributes: AttributeInfo[], seenAttributes: Lookup<boolean>, flatData: Datum[]
+    primaryFlatAttributes: AttributeInfo[], secondaryFlatAttributes: AttributeInfo[], seenAttributes: Lookup<boolean>, flatData: Datum[]
   ): void {
     const { attributes, data, keys } = this;
 
@@ -1001,10 +1002,10 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
             name: flatName,
             type: attribute.type
           });
-          if (keys && keys.indexOf(attribute.name) > -1) {
-            flatKeyAttributes.push(flatAttribute);
+          if (!secondaryFlatAttributes || (keys && keys.indexOf(attribute.name) > -1)) {
+            primaryFlatAttributes.push(flatAttribute);
           } else {
-            flatAttributes.push(flatAttribute);
+            secondaryFlatAttributes.push(flatAttribute);
           }
           seenAttributes[flatName] = true;
         }
@@ -1033,7 +1034,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
           if (prefix !== null) nextPrefix = prefix + datasetAttribute + '.';
           let dv = datum[datasetAttribute];
           if (dv instanceof Dataset) {
-            dv._flattenHelper(nextPrefix, order, nestingName, nesting + 1, flatDatum, flatKeyAttributes, flatAttributes, seenAttributes, flatData);
+            dv._flattenHelper(nextPrefix, order, nestingName, nesting + 1, flatDatum, primaryFlatAttributes, secondaryFlatAttributes, seenAttributes, flatData);
           }
         }
         if (order === 'postorder') flatData.push(flatDatum);
@@ -1047,14 +1048,25 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     let prefixColumns = options.prefixColumns;
     let order = options.order; // preorder, inline [default], postorder
     let nestingName = options.nestingName;
-    if ((options as any).parentName) throw new Error(`parentName option is no longer supported`);
-    if ((options as any).orderedColumns) throw new Error(`orderedColumns option is no longer supported use .select() instead`);
+    let columnOrdering = options.columnOrdering || 'as-seen';
+    if ((options as any).parentName) {
+      throw new Error(`parentName option is no longer supported`);
+    }
+    if ((options as any).orderedColumns) {
+      throw new Error(`orderedColumns option is no longer supported use .select() instead`);
+    }
+    if (columnOrdering !== 'as-seen' && columnOrdering !== 'keys-first') {
+      throw new Error(`columnOrdering must be one of 'as-seen' or 'keys-first'`);
+    }
 
-    let flatKeyAttributes: AttributeInfo[] = [];
-    let flatAttributes: AttributeInfo[] = [];
+    let primaryFlatAttributes: AttributeInfo[] = [];
+    let secondaryFlatAttributes: AttributeInfo[] = columnOrdering === 'keys-first' ? [] : null;
     let flatData: Datum[] = [];
-    this._flattenHelper((prefixColumns ? '' : null), order, nestingName, 0, null, flatKeyAttributes, flatAttributes, {}, flatData);
-    return new Dataset({ attributes: flatKeyAttributes.concat(flatAttributes), data: flatData });
+    this._flattenHelper((prefixColumns ? '' : null), order, nestingName, 0, null, primaryFlatAttributes, secondaryFlatAttributes, {}, flatData);
+    return new Dataset({
+      attributes: primaryFlatAttributes.concat(secondaryFlatAttributes || []),
+      data: flatData
+    });
   }
 
   public toTabular(tabulatorOptions: TabulatorOptions): string {
