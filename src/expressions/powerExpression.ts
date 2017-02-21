@@ -41,7 +41,7 @@ export class PowerExpression extends ChainableUnaryExpression {
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `(isNaN(_=Math.pow(${operandJS},${expressionJS}))?null:_)`;
+    return `Math.pow(${operandJS},${expressionJS})`;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
