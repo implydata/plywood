@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { Moment } from 'moment-timezone';
 import * as moment from 'moment-timezone';
 import { Timezone } from 'chronoshift';
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
@@ -22,72 +21,6 @@ import { HasTimezone } from './mixins/hasTimezone';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Set } from '../datatypes/index';
 import { immutableEqual } from 'immutable-class';
-
-interface Parter {
-  (d: Moment): number;
-}
-
-const PART_TO_FUNCTION: Lookup<Parter> = {
-  SECOND_OF_MINUTE: d => d.seconds(),
-  SECOND_OF_HOUR: d => d.minutes() * 60 + d.seconds(),
-  SECOND_OF_DAY: d => (d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
-  SECOND_OF_WEEK: d => ((d.day() * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
-  SECOND_OF_MONTH: d => (((d.date() - 1) * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
-  SECOND_OF_YEAR: d => (((d.dayOfYear() - 1) * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
-
-  MINUTE_OF_HOUR: d => d.minutes(),
-  MINUTE_OF_DAY: d => d.hours() * 60 + d.minutes(),
-  MINUTE_OF_WEEK: d => (d.day() * 24) + d.hours() * 60 + d.minutes(),
-  MINUTE_OF_MONTH: d => ((d.date() - 1) * 24) + d.hours() * 60 + d.minutes(),
-  MINUTE_OF_YEAR: d => ((d.dayOfYear() - 1) * 24) + d.hours() * 60 + d.minutes(),
-
-  HOUR_OF_DAY: d => d.hours(),
-  HOUR_OF_WEEK: d => d.day() * 24 + d.hours(),
-  HOUR_OF_MONTH: d => (d.date() - 1) * 24 + d.hours(),
-  HOUR_OF_YEAR: d => (d.dayOfYear() - 1) * 24 + d.hours(),
-
-  DAY_OF_WEEK: d => d.day() || 7, // fix Sunday [0 -> 7]
-  DAY_OF_MONTH: d => d.date(),
-  DAY_OF_YEAR: d => d.dayOfYear(),
-
-  WEEK_OF_MONTH: null,
-  WEEK_OF_YEAR: null,
-
-  MONTH_OF_YEAR: d => d.month(),
-  YEAR: d => d.year(),
-
-  QUARTER: d => d.quarter()
-};
-
-const PART_TO_MAX_VALUES: Lookup<number> = {
-  SECOND_OF_MINUTE: 61, // Leap seconds
-  SECOND_OF_HOUR: 3601,
-  SECOND_OF_DAY: 93601,
-  SECOND_OF_WEEK: null,
-  SECOND_OF_MONTH: null,
-  SECOND_OF_YEAR: null,
-
-  MINUTE_OF_HOUR: 60,
-  MINUTE_OF_DAY: 26 * 60,
-  MINUTE_OF_WEEK: null,
-  MINUTE_OF_MONTH: null,
-  MINUTE_OF_YEAR: null,
-
-  HOUR_OF_DAY: 26, // Timezones
-  HOUR_OF_WEEK: null,
-  HOUR_OF_MONTH: null,
-  HOUR_OF_YEAR: null,
-
-  DAY_OF_WEEK: 7,
-  DAY_OF_MONTH: 31,
-  DAY_OF_YEAR: 366,
-
-  WEEK_OF_MONTH: 5,
-  WEEK_OF_YEAR: 53,
-
-  MONTH_OF_YEAR: 12,
-  YEAR: null
-};
 
 export class TimePartExpression extends ChainableExpression implements HasTimezone {
   static op = "TimePart";
@@ -97,6 +30,70 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
     return new TimePartExpression(value);
   }
+
+  static PART_TO_FUNCTION: Lookup<(d: any) => number> = { // Moment
+    SECOND_OF_MINUTE: d => d.seconds(),
+    SECOND_OF_HOUR: d => d.minutes() * 60 + d.seconds(),
+    SECOND_OF_DAY: d => (d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
+    SECOND_OF_WEEK: d => ((d.day() * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
+    SECOND_OF_MONTH: d => (((d.date() - 1) * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
+    SECOND_OF_YEAR: d => (((d.dayOfYear() - 1) * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
+
+    MINUTE_OF_HOUR: d => d.minutes(),
+    MINUTE_OF_DAY: d => d.hours() * 60 + d.minutes(),
+    MINUTE_OF_WEEK: d => (d.day() * 24) + d.hours() * 60 + d.minutes(),
+    MINUTE_OF_MONTH: d => ((d.date() - 1) * 24) + d.hours() * 60 + d.minutes(),
+    MINUTE_OF_YEAR: d => ((d.dayOfYear() - 1) * 24) + d.hours() * 60 + d.minutes(),
+
+    HOUR_OF_DAY: d => d.hours(),
+    HOUR_OF_WEEK: d => d.day() * 24 + d.hours(),
+    HOUR_OF_MONTH: d => (d.date() - 1) * 24 + d.hours(),
+    HOUR_OF_YEAR: d => (d.dayOfYear() - 1) * 24 + d.hours(),
+
+    DAY_OF_WEEK: d => d.day() || 7, // fix Sunday [0 -> 7]
+    DAY_OF_MONTH: d => d.date(),
+    DAY_OF_YEAR: d => d.dayOfYear(),
+
+    // WEEK_OF_MONTH: null,
+    // WEEK_OF_YEAR: null,
+
+    MONTH_OF_YEAR: d => d.month(),
+    YEAR: d => d.year(),
+
+    QUARTER: d => d.quarter()
+  };
+
+  static PART_TO_MAX_VALUES: Lookup<number> = {
+    SECOND_OF_MINUTE: 61, // Leap seconds
+    SECOND_OF_HOUR: 3601,
+    SECOND_OF_DAY: 93601,
+    // SECOND_OF_WEEK: null,
+    // SECOND_OF_MONTH: null,
+    // SECOND_OF_YEAR: null,
+
+    MINUTE_OF_HOUR: 60,
+    MINUTE_OF_DAY: 26 * 60,
+    // MINUTE_OF_WEEK: null,
+    // MINUTE_OF_MONTH: null,
+    // MINUTE_OF_YEAR: null,
+
+    HOUR_OF_DAY: 26, // Timezones
+    // HOUR_OF_WEEK: null,
+    // HOUR_OF_MONTH: null,
+    // HOUR_OF_YEAR: null,
+
+    DAY_OF_WEEK: 7,
+    DAY_OF_MONTH: 31,
+    DAY_OF_YEAR: 366,
+
+    WEEK_OF_MONTH: 5,
+    WEEK_OF_YEAR: 53,
+
+    MONTH_OF_YEAR: 12
+    // YEAR: null
+
+    // QUARTER: null
+  };
 
   public part: string;
   public timezone: Timezone;
@@ -141,12 +138,11 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
     const { part } = this;
-    let parter = PART_TO_FUNCTION[part];
+    let parter = TimePartExpression.PART_TO_FUNCTION[part];
     if (!parter) throw new Error(`unsupported part '${part}'`);
 
     if (!operandValue) return null;
-    operandValue = moment.tz(operandValue, this.getTimezone().toString());
-    return parter(operandValue);
+    return parter(moment.tz(operandValue, this.getTimezone().toString()));
   }
 
   protected _getJSChainableHelper(operandJS: string): string {
@@ -158,7 +154,7 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
   }
 
   public maxPossibleSplitValues(): number {
-    let maxValue = PART_TO_MAX_VALUES[this.part];
+    let maxValue = TimePartExpression.PART_TO_MAX_VALUES[this.part];
     if (!maxValue) return Infinity;
     return maxValue + 1; // +1 for null
   }

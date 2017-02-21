@@ -2178,6 +2178,21 @@ describe("Druid Functional", function() {
         });
     });
 
+    it.skip("can do a sub-split in aggregator", () => {
+      let ex = $("wiki").split('$channel', 'Channel')
+        .apply('Count', '$wiki.sum($count)')
+        .apply('MinByRobot', '$wiki.split($isRobot, Blah).apply(Cnt, $wiki.sum($count)).min($Cnt)')
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+
+          ]);
+        });
+    });
+
     it("works multi-dimensional GROUP BYs", () => {
       let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").isnt('en')))

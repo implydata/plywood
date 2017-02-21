@@ -1089,33 +1089,48 @@ describe("External", () => {
           .apply('CountX3', '$wiki.count() * 3')
           .apply('AddedPlusDeleted', '$wiki.sum($added) + $wiki.sum($deleted)')
           .apply("Six", 6)
-          .apply('AddedUsPlusDeleted', '$wiki.filter($page == USA).sum($added) + $wiki.sum($deleted)');
+          .apply('AddedUsPlusDeleted', '$wiki.filter($page == USA).sum($added) + $wiki.sum($deleted)')
           //.apply('CountX3Plus5', '$CountX3 + 5');
+          .apply('MinSum', '$wiki.split($user, Blah).apply(Added, $wiki.sum($added)).min($Added)');
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
         expect(ex.value.data[0]['Five']).to.equal(5);
         expect(ex.value.data[0]['Six']).to.equal(6);
-        let externalDataset = ex.value.getReadyExternals()[0].external;
 
-        expect(externalDataset.filter.toString()).to.equal(sane`
+        let readyExternals = ex.value.getReadyExternals();
+        expect(readyExternals.length).to.equal(2);
+
+        let external0 = readyExternals[0].external;
+
+        expect(external0.filter.toString()).to.equal(sane`
           $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
         `);
 
-        expect(externalDataset.applies.join('\n')).to.equal(sane`
+        expect(external0.applies.join('\n')).to.equal(sane`
           $_.apply(CountX3,$__SEGMENT__:DATASET.count().multiply(3))
           $_.apply(AddedPlusDeleted,$__SEGMENT__:DATASET.sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
           $_.apply(AddedUsPlusDeleted,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
         `);
         //apply(CountX3Plus5,$__SEGMENT__:DATASET.count().multiply(3).add(5))
 
-        expect(externalDataset.toJS().attributes).to.deep.equal([
+        expect(external0.toJS().attributes).to.deep.equal([
           { name: "CountX3", "type": "NUMBER" },
           { name: "AddedPlusDeleted", "type": "NUMBER" },
           { name: "AddedUsPlusDeleted", "type": "NUMBER" },
           //{ name: "CountX3Plus5", "type": "NUMBER" }
         ]);
+
+        let external1 = readyExternals[1].expressionAlterations[1].external;
+
+        expect(external1.filter.toString()).to.equal(sane`
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
+        `);
+
+        expect(external1.applies.join('\n')).to.equal(sane`
+          $_.apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        `);
       });
 
     });
@@ -1254,6 +1269,36 @@ describe("External", () => {
             "Count": 4,
             "Page": "some_page"
           }
+        ]);
+      });
+
+      it.skip("works with fancy applies on a split", () => {
+        let ex = $('wiki').filter('$language == "en"').split("$page", 'Page')
+          .apply('Count', '$wiki.count()')
+          .apply('MinSum', '$wiki.split($user, Blah).apply(Added, $wiki.sum($added)).min($Added)')
+          .sort('$Count', 'descending')
+          .limit(5);
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        console.log('ex', ex.external.applies);
+
+        expect(ex.op).to.equal('apply');
+        let externalDataset = ex.external;
+
+        expect(
+          externalDataset.filter.toJS()
+        ).to.deep.equal(
+          context.wiki.filter.and($("language", "STRING").is('en')).toJS()
+        );
+
+        expect(externalDataset.applies).to.have.length(2);
+        expect(externalDataset.toJS().attributes).to.deep.equal([
+
+        ]);
+
+        expect(externalDataset.simulateValue(true, []).toJS().data).to.deep.equal([
+
         ]);
       });
 
