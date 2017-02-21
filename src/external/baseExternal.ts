@@ -546,10 +546,10 @@ export abstract class External {
       objectMode: true,
       transform: (d: Datum, encoding, callback) => {
         valueSeen = true;
-        callback(null, { __$$type: 'value', value: d[External.VALUE_NAME] });
+        callback(null, { type: 'value', value: d[External.VALUE_NAME] });
       },
       flush: (callback) => {
-        callback(null, valueSeen ? null : { __$$type: 'value', value: 0 });
+        callback(null, valueSeen ? null : { type: 'value', value: 0 });
       }
     });
   }
@@ -561,7 +561,7 @@ export abstract class External {
       transform: function(d: Datum, encoding, callback) {
         if (!valueSeen) {
           this.push({
-            __$$type: 'init',
+            type: 'init',
             attributes,
             keys
           });
@@ -570,18 +570,24 @@ export abstract class External {
         for (let inflater of inflaters) {
           inflater(d);
         }
-        callback(null, d);
+        callback(null, {
+          type: 'datum',
+          datum: d
+        });
       },
       flush: function(callback) {
         if (!valueSeen) {
           this.push({
-            __$$type: 'init',
+            type: 'init',
             attributes,
             keys: null
           });
 
           if (zeroTotalApplies) {
-            this.push(External.makeZeroDatum(zeroTotalApplies));
+            this.push({
+              type: 'datum',
+              datum: External.makeZeroDatum(zeroTotalApplies)
+            });
           }
         }
         callback();
@@ -1492,7 +1498,7 @@ export abstract class External {
       finalStream = finalStream.pipe(new Transform({
         objectMode: true,
         transform: (chunk, enc, callback) => {
-          externalForNext.addNextExternalToDatum(chunk);
+          if (chunk.type === 'datum') externalForNext.addNextExternalToDatum(chunk.datum);
           callback(null, chunk);
         }
       }));
