@@ -39,7 +39,7 @@ describe("ValueStream", () => {
 
       expect(toJSON(bits)).to.deep.equal([
         {
-          "__$$type": "value",
+          "type": "value",
           "value": 5
         }
       ]);
@@ -79,7 +79,6 @@ describe("ValueStream", () => {
 
       expect(toJSON(bits)).to.deep.equal([
         {
-          "__$$type": "init",
           "attributes": [
             {
               "name": "time",
@@ -102,19 +101,22 @@ describe("ValueStream", () => {
               "type": "DATASET"
             }
           ],
-          "keys": null
+          "keys": null,
+          "type": "init"
         },
         {
-          "channel": "#en.wikipedia",
-          "deleted": 0,
-          "isAnonymous": false,
-          "time": "2015-09-12T00:46:58.771Z"
+          "datum": {
+            "channel": "#en.wikipedia",
+            "deleted": 0,
+            "isAnonymous": false,
+            "time": "2015-09-12T00:46:58.771Z"
+          },
+          "type": "datum"
         },
         {
-          "__$$type": "within",
           "attribute": "users",
+          "type": "within",
           "within": {
-            "__$$type": "init",
             "attributes": [
               {
                 "name": "name",
@@ -125,36 +127,45 @@ describe("ValueStream", () => {
                 "type": "NUMBER"
               }
             ],
-            "keys": null
+            "keys": null,
+            "type": "init"
           }
         },
         {
-          "__$$type": "within",
           "attribute": "users",
+          "type": "within",
           "within": {
-            "name": "Vadim",
-            "x": 2
+            "datum": {
+              "name": "Vadim",
+              "x": 2
+            },
+            "type": "datum"
           }
         },
         {
-          "__$$type": "within",
           "attribute": "users",
+          "type": "within",
           "within": {
-            "name": "Eva",
-            "x": 3
+            "datum": {
+              "name": "Eva",
+              "x": 3
+            },
+            "type": "datum"
           }
         },
         {
-          "channel": "#en.wikipedia",
-          "deleted": 26,
-          "isAnonymous": true,
-          "time": "2015-09-12T00:48:20.157Z"
+          "datum": {
+            "channel": "#en.wikipedia",
+            "deleted": 26,
+            "isAnonymous": true,
+            "time": "2015-09-12T00:48:20.157Z"
+          },
+          "type": "datum"
         },
         {
-          "__$$type": "within",
           "attribute": "users",
+          "type": "within",
           "within": {
-            "__$$type": "init",
             "attributes": [
               {
                 "name": "name",
@@ -165,23 +176,30 @@ describe("ValueStream", () => {
                 "type": "NUMBER"
               }
             ],
-            "keys": null
+            "keys": null,
+            "type": "init"
           }
         },
         {
-          "__$$type": "within",
           "attribute": "users",
+          "type": "within",
           "within": {
-            "name": "James",
-            "x": 8
+            "datum": {
+              "name": "James",
+              "x": 8
+            },
+            "type": "datum"
           }
         },
         {
-          "__$$type": "within",
           "attribute": "users",
+          "type": "within",
           "within": {
-            "name": "Charlie",
-            "x": 30
+            "datum": {
+              "name": "Charlie",
+              "x": 30
+            },
+            "type": "datum"
           }
         }
       ]);
@@ -212,7 +230,7 @@ describe("ValueStream", () => {
 
       expect(toJSON(bits)).to.deep.equal([
         {
-          "__$$type": "init",
+          "type": "init",
           "attributes": [
             {
               "name": "channel",
@@ -228,12 +246,18 @@ describe("ValueStream", () => {
           ]
         },
         {
-          "channel": "#en.wikipedia",
-          "deleted": 0
+          "type": "datum",
+          "datum": {
+            "channel": "#en.wikipedia",
+            "deleted": 0
+          }
         },
         {
-          "channel": "#en.wikipedia",
-          "deleted": 26
+          "type": "datum",
+          "datum": {
+            "channel": "#en.wikipedia",
+            "deleted": 26
+          }
         }
       ]);
     });
@@ -248,50 +272,59 @@ describe("ValueStream", () => {
 
     it("works in null case", () => {
       let pvb = new PlywoodValueBuilder();
-      pvb.processBit({ __$$type: 'value', value: null });
+      pvb.processBit({ type: 'value', value: null });
       expect(pvb.getValue()).to.equal(null);
     });
 
     it("works in false case", () => {
       let pvb = new PlywoodValueBuilder();
-      pvb.processBit({ __$$type: 'value', value: false });
+      pvb.processBit({ type: 'value', value: false });
       expect(pvb.getValue()).to.equal(false);
     });
 
     it("works in zero case", () => {
       let pvb = new PlywoodValueBuilder();
-      pvb.processBit({ __$$type: 'value', value: 0 });
+      pvb.processBit({ type: 'value', value: 0 });
       expect(pvb.getValue()).to.equal(0);
     });
 
     it("works in value case", () => {
       let pvb = new PlywoodValueBuilder();
-      pvb.processBit({ __$$type: 'value', value: 5 });
+      pvb.processBit({ type: 'value', value: 5 });
       expect(pvb.getValue()).to.equal(5);
     });
 
     it("works in dataset case (no init)", () => {
       const bits = [
         {
-          "channel": "#en.wikipedia",
-          "deleted": 0,
-          "isAnonymous": false,
-          "time": new Date('2015-09-12T00:46:58.771Z')
-        },
-        {
-          "__$$type": "within",
-          "attribute": "users",
-          "within": {
-            "name": "Vadim",
-            "x": 2
+          "type": "datum",
+          "datum": {
+            "channel": "#en.wikipedia",
+            "deleted": 0,
+            "isAnonymous": false,
+            "time": new Date('2015-09-12T00:46:58.771Z')
           }
         },
         {
-          "__$$type": "within",
+          "type": "within",
           "attribute": "users",
           "within": {
-            "name": "Eva",
-            "x": 3
+            "type": "datum",
+            "datum": {
+              "name": "Vadim",
+              "x": 2
+            }
+          }
+        },
+        {
+          "type": "within",
+          "attribute": "users",
+          "within": {
+            "type": "datum",
+            "datum": {
+              "name": "Eva",
+              "x": 3
+            }
           }
         }
       ];
@@ -335,7 +368,7 @@ describe("ValueStream", () => {
     it("works in dataset case (with init)", () => {
       const bits = [
         {
-          "__$$type": "init",
+          "type": "init",
           "keys": [],
           "attributes": AttributeInfo.fromJSs([
             {
@@ -361,16 +394,19 @@ describe("ValueStream", () => {
           ])
         },
         {
-          "channel": "#en.wikipedia",
-          "deleted": 0,
-          "isAnonymous": false,
-          "time": new Date('2015-09-12T00:46:58.771Z')
+          "type": "datum",
+          "datum": {
+            "channel": "#en.wikipedia",
+            "deleted": 0,
+            "isAnonymous": false,
+            "time": new Date('2015-09-12T00:46:58.771Z')
+          }
         },
         {
-          "__$$type": "within",
+          "type": "within",
           "attribute": "users",
           "within": {
-            "__$$type": "init",
+            "type": "init",
             "keys": ["name"],
             "attributes": AttributeInfo.fromJSs([
               {
@@ -385,19 +421,25 @@ describe("ValueStream", () => {
           }
         },
         {
-          "__$$type": "within",
+          "type": "within",
           "attribute": "users",
           "within": {
-            "name": "Vadim",
-            "x": 2
+            "type": "datum",
+            "datum": {
+              "name": "Vadim",
+              "x": 2
+            }
           }
         },
         {
-          "__$$type": "within",
+          "type": "within",
           "attribute": "users",
           "within": {
-            "name": "Eva",
-            "x": 3
+            "type": "datum",
+            "datum": {
+              "name": "Eva",
+              "x": 3
+            }
           }
         }
       ];

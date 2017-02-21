@@ -14,34 +14,30 @@
  * limitations under the License.
  */
 
-import * as hasOwnProp from 'has-own-prop';
 import { Transform } from 'readable-stream';
 import { AttributeInfo } from './attributeInfo';
 import { PlywoodValue, Datum, Dataset } from './dataset';
 
 /*
- two types of events (maybe 3):
- { hello: 'world', x: 5 }  // short for (3):
+Types of bits:
 
- 1. { __$$type: 'value', value: 5 }
- 2. { __$$type: 'init', attributes: AttributeInfo[], keys: string[] }
- 3. { __$$type: 'row', row: { hello: "world", x: 5 }, keyProp?: "hello" }
- 4. { __$$type: 'within', keyProp: "hello", propValue: "world", attribute: "subDataset", apply: { ... } }
+ 1. { type: 'value', value: 5 }
+ 2. { type: 'init', attributes: AttributeInfo[], keys: string[] }
+ 3. { type: 'datum', datum: { hello: "world", x: 5 }, keyProp?: "hello" }
+ 4. { type: 'within', keyProp: "hello", propValue: "world", attribute: "subDataset", apply: { ... } }
  */
 
-export interface PlyBitFull {
-  __$$type: 'value' | 'init' | 'row' | 'within';
+export interface PlyBit {
+  type: 'value' | 'init' | 'datum' | 'within';
   value?: PlywoodValue;
   attributes?: AttributeInfo[];
   keys?: string[];
-  row?: Datum;
+  datum?: Datum;
   keyProp?: string;
   propValue?: PlywoodValue;
   attribute?: string;
   within?: PlyBit;
 }
-
-export type PlyBit = PlyBitFull | Datum;
 
 export interface PlywoodValueIterator {
   (): PlyBit | null;
@@ -55,7 +51,7 @@ interface KeyPlywoodValueIterator {
 export function iteratorFactory(value: PlywoodValue): PlywoodValueIterator {
   if (value instanceof Dataset) return datasetIteratorFactory(value);
 
-  let nextBit: PlyBit = { __$$type: 'value', value };
+  let nextBit: PlyBit = { type: 'value', value };
   return () => {
     const ret = nextBit;
     nextBit = null;
@@ -94,7 +90,7 @@ export function datasetIteratorFactory(dataset: Dataset): PlywoodValueIterator {
     if (curRowIndex === -2) { // Initial run
       curRowIndex++;
       return {
-        __$$type: 'init',
+        type: 'init',
         attributes: dataset.attributes,
         keys: dataset.keys
       };
@@ -108,14 +104,17 @@ export function datasetIteratorFactory(dataset: Dataset): PlywoodValueIterator {
 
     if (pb) {
       return {
-        __$$type: 'within',
+        type: 'within',
         attribute: cutRowDatasets[0].attribute,
         within: pb
       };
     }
 
     nextSelfRow();
-    return curRow;
+    return curRow ? {
+      type: 'datum',
+      datum: curRow
+    } : null;
   };
 }
 
@@ -138,10 +137,9 @@ export class PlywoodValueBuilder {
 
   public processBit(bit: PlyBit) {
     if (typeof bit !== 'object') throw new Error(`invalid bit: ${bit}`);
-    let fullBit: PlyBitFull = hasOwnProp(bit, '__$$type') ? (bit as PlyBitFull) : { __$$type: 'row', row: bit as Datum };
-    switch (fullBit.__$$type) {
+    switch (bit.type) {
       case 'value':
-        this._value = fullBit.value;
+        this._value = bit.value;
         this._data = null;
         this._curAttribute = null;
         this._curValueBuilder = null;
@@ -149,27 +147,27 @@ export class PlywoodValueBuilder {
 
       case 'init':
         this._finalizeLastWithin();
-        this._attributes = fullBit.attributes;
-        this._keys = fullBit.keys;
+        this._attributes = bit.attributes;
+        this._keys = bit.keys;
         this._data = [];
         break;
 
-      case 'row':
+      case 'datum':
         this._finalizeLastWithin();
         if (!this._data) this._data = [];
-        this._data.push(fullBit.row);
+        this._data.push(bit.datum);
         break;
 
       case 'within':
         if (!this._curValueBuilder) {
-          this._curAttribute = fullBit.attribute;
+          this._curAttribute = bit.attribute;
           this._curValueBuilder = new PlywoodValueBuilder();
         }
-        this._curValueBuilder.processBit(fullBit.within);
+        this._curValueBuilder.processBit(bit.within);
         break;
 
       default:
-        throw new Error(`unexpected __$$type: ${fullBit.__$$type}`);
+        throw new Error(`unexpected type: ${bit.type}`);
     }
   }
 

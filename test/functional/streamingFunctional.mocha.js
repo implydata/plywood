@@ -97,7 +97,7 @@ describe("Streaming Functional", function() {
         .then((result) => {
           expect(JSON.parse(JSON.stringify(result))).to.deep.equal([
             {
-              "__$$type": "init",
+              "type": "init",
               "attributes": [
                 {
                   "name": "isNew",
@@ -118,19 +118,28 @@ describe("Streaming Functional", function() {
               ]
             },
             {
-              "Count": 217394,
-              "isNew": false,
-              "isRobot": false
+              "type": "datum",
+              "datum": {
+                "Count": 217394,
+                "isNew": false,
+                "isRobot": false
+              }
             },
             {
-              "Count": 151447,
-              "isNew": false,
-              "isRobot": true
+              "type": "datum",
+              "datum": {
+                "Count": 151447,
+                "isNew": false,
+                "isRobot": true
+              }
             },
             {
-              "Count": 20168,
-              "isNew": true,
-              "isRobot": false
+              "type": "datum",
+              "datum": {
+                "Count": 20168,
+                "isNew": true,
+                "isRobot": false
+              }
             }
           ]);
         });
