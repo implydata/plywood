@@ -274,6 +274,52 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with time floor + timezone", () => {
+      let ex = $('wiki')
+        .split({ t: $('time').timeFloor('P1D', 'Europe/Paris'), robot: '$isRobot'})
+        .apply('cnt', '$wiki.count()')
+        .sort('$cnt', 'descending')
+        .limit(10);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal([
+            {
+              "cnt": 216909,
+              "robot": false,
+              "t": {
+                "type": "TIME",
+                "value": new Date('2015-09-11T22:00:00.000Z')
+              }
+            },
+            {
+              "cnt": 143468,
+              "robot": true,
+              "t": {
+                "type": "TIME",
+                "value": new Date('2015-09-11T22:00:00.000Z')
+              }
+            },
+            {
+              "cnt": 19213,
+              "robot": false,
+              "t": {
+                "type": "TIME",
+                "value": new Date('2015-09-12T22:00:00.000Z')
+              }
+            },
+            {
+              "cnt": 11392,
+              "robot": true,
+              "t": {
+                "type": "TIME",
+                "value": new Date('2015-09-12T22:00:00.000Z')
+              }
+            }
+          ]);
+        });
+    });
+
     it("works with yearly call case long", () => {
       let ex = $('wiki')
         .split(i$('time').timeFloor('P3M'), 'tqr___time_ok');

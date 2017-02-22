@@ -2925,7 +2925,7 @@ describe("simulate Druid", () => {
           {
             "dimension": "__time",
             "extractionFn": {
-              "format": "yyyy-MM-dd'T'HH':00Z",
+              "format": "yyyy-MM-dd'T'HH':00'Z",
               "locale": "en-US",
               "timeZone": "Etc/UTC",
               "type": "timeFormat"

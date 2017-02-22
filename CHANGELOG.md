@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.15.13
+
+- Fixed bug where bucketing in a multi-value dimension was off for non UTC timezones
+
 ## 0.15.12
 
 - Version check now works with all parts of the version
