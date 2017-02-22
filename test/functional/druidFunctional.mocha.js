@@ -371,38 +371,26 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "cnt": 216909,
               "robot": false,
-              "t": {
-                "type": "TIME",
-                "value": new Date('2015-09-11T22:00:00.000Z')
-              }
+              "t": new Date('2015-09-11T22:00:00.000Z')
             },
             {
               "cnt": 143468,
               "robot": true,
-              "t": {
-                "type": "TIME",
-                "value": new Date('2015-09-11T22:00:00.000Z')
-              }
+              "t": new Date('2015-09-11T22:00:00.000Z')
             },
             {
               "cnt": 19213,
               "robot": false,
-              "t": {
-                "type": "TIME",
-                "value": new Date('2015-09-12T22:00:00.000Z')
-              }
+              "t": new Date('2015-09-12T22:00:00.000Z')
             },
             {
               "cnt": 11392,
               "robot": true,
-              "t": {
-                "type": "TIME",
-                "value": new Date('2015-09-12T22:00:00.000Z')
-              }
+              "t": new Date('2015-09-12T22:00:00.000Z')
             }
           ]);
         });
