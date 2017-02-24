@@ -27,14 +27,14 @@ let attributes = [
   { name: 'isNice', type: 'BOOLEAN' },
   { name: 'tags', type: 'SET/STRING' },
   { name: 'pugs', type: 'SET/STRING' },
-  { name: 'carat', type: 'NUMBER' },
+  { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
   { name: 'height_bucket', type: 'NUMBER' },
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
-  { name: 'vendor_id', special: 'unique', unsplitable: true },
+  { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true },
 
-  { name: 'try', type: 'NUMBER' }, // Added here because 'try' is a JS keyword
-  { name: 'a+b', type: 'NUMBER' } // Added here because it is invalid JS without escaping
+  { name: 'try', type: 'NUMBER', nativeType: 'STRING' }, // Added here because 'try' is a JS keyword
+  { name: 'a+b', type: 'NUMBER', nativeType: 'STRING' } // Added here because it is invalid JS without escaping
 ];
 
 let customTransforms = {
@@ -2674,7 +2674,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it("makes a query with countDistinct", () => {
+  it("makes a query with countDistinct (cross prod)", () => {
     let ex = ply()
       .apply('NumColorCuts', '$diamonds.countDistinct($color ++ "lol" ++ $cut)');
 

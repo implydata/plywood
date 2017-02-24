@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-const DOCKER_MACHINE = '192.168.99.100';
+// This assumes that `dm` is defined as an alias in your hosts file to your docker machine
+const DOCKER_MACHINE = 'dm';
 
 exports.druidVersion = '0.9.2-rc2';
 exports.druidHost = `${DOCKER_MACHINE}:8082`;

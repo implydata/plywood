@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 Imply Data, Inc.
+ * Copyright 2017-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,18 +33,18 @@ let context = {
     source: 'wikipedia',
     timeAttribute: 'time',
     attributes: [
-      { name: 'time', type: 'TIME' },
-      { name: 'sometimeLater', type: 'TIME' },
-      { name: 'language', type: 'STRING' },
-      { name: 'page', type: 'STRING' },
-      { name: 'tags', type: 'SET/STRING' },
-      { name: 'commentLength', type: 'NUMBER' },
-      { name: 'isRobot', type: 'BOOLEAN' },
-      { name: 'count', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
-      { name: 'added', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
-      { name: 'deleted', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
-      { name: 'inserted', type: 'NUMBER', nativeType: 'FLOAT', unsplitable: true },
-      { name: 'delta_hist', type: 'NULL', nativeType: 'approximateHistogram', unsplitable: true }
+      { name: 'time', type: 'NULL' },
+      { name: 'sometimeLater', type: 'NULL' },
+      { name: 'language', type: 'NULL' },
+      { name: 'page', type: 'NULL' },
+      { name: 'tags', type: 'NULL' },
+      { name: 'commentLength', type: 'NULL' },
+      { name: 'isRobot', type: 'NULL' },
+      { name: 'count', type: 'NULL' },
+      { name: 'added', type: 'NULL' },
+      { name: 'deleted', type: 'NULL' },
+      { name: 'inserted', type: 'NULL' },
+      { name: 'delta_hist', type: 'NULL' }
     ],
     derivedAttributes: {
       pageInBrackets: "'[' ++ $page ++ ']'",
@@ -93,27 +93,8 @@ let context = {
   })
 };
 
-let contextNoApprox = {
-  wiki: External.fromJS({
-    engine: 'druid',
-    source: 'wikipedia',
-    timeAttribute: 'time',
-    exactResultsOnly: true,
-    attributes: [
-      { name: 'time', type: 'TIME' },
-      { name: 'language', type: 'STRING' },
-      { name: 'page', type: 'STRING' },
-      { name: 'count', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
-      { name: 'added', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
-      { name: 'deleted', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
-      { name: 'inserted', type: 'NUMBER', nativeType: 'FLOAT', unsplitable: true },
-    ],
-    filter: timeFilter
-  })
-};
 
-
-describe("DruidExternal", () => {
+describe("DruidExternal Null Type", () => {
 
   describe("simplifies / digests", () => {
     it("a (timeBoundary) total", () => {
@@ -145,7 +126,7 @@ describe("DruidExternal", () => {
           {
             "fieldName": "added",
             "name": "__VALUE__",
-            "type": "longSum"
+            "type": "doubleSum"
           }
         ],
         "dataSource": "wikipedia",
@@ -174,7 +155,7 @@ describe("DruidExternal", () => {
             "aggregator": {
               "fieldName": "added",
               "name": "!T_0",
-              "type": "longSum"
+              "type": "doubleSum"
             },
             "filter": {
               "dimension": "language",
@@ -187,7 +168,7 @@ describe("DruidExternal", () => {
           {
             "fieldName": "deleted",
             "name": "!T_1",
-            "type": "longSum"
+            "type": "doubleSum"
           }
         ],
         "dataSource": "wikipedia",
@@ -234,7 +215,7 @@ describe("DruidExternal", () => {
           {
             "fieldName": "added",
             "name": "TotalAdded",
-            "type": "longSum"
+            "type": "doubleSum"
           }
         ],
         "dataSource": "wikipedia",
@@ -265,7 +246,7 @@ describe("DruidExternal", () => {
           {
             "fieldName": "added",
             "name": "TotalAdded",
-            "type": "longSum"
+            "type": "doubleSum"
           }
         ],
         "dataSource": "wikipedia",
@@ -312,7 +293,7 @@ describe("DruidExternal", () => {
           {
             "fieldName": "added",
             "name": "Added",
-            "type": "longSum"
+            "type": "doubleSum"
           }
         ],
         "dataSource": "wikipedia",
@@ -326,53 +307,6 @@ describe("DruidExternal", () => {
         "metric": "Count",
         "queryType": "topN",
         "threshold": 5
-      });
-    });
-
-    it("processes a split (no approximate)", () => {
-      let ex = $('wiki').split("$page", 'Page')
-        .apply('Count', '$wiki.count()')
-        .apply('Added', '$wiki.sum($added)')
-        .sort('$Count', 'descending')
-        .limit(5);
-
-      ex = ex.referenceCheck(contextNoApprox).resolve(contextNoApprox).simplify();
-
-      expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "Count",
-            "type": "count"
-          },
-          {
-            "fieldName": "added",
-            "name": "Added",
-            "type": "longSum"
-          }
-        ],
-        "dataSource": "wikipedia",
-        "dimensions": [
-          {
-            "dimension": "page",
-            "outputName": "Page",
-            "type": "default"
-          }
-        ],
-        "granularity": "all",
-        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
-        "limitSpec": {
-          "columns": [
-            {
-              "dimension": "Count",
-              "direction": "descending"
-            }
-          ],
-          "limit": 5,
-          "type": "default"
-        },
-        "queryType": "groupBy"
       });
     });
 
@@ -463,7 +397,7 @@ describe("DruidExternal", () => {
           "fieldNames": [
             "added"
           ],
-          "fnAggregate": "function($$,_added) { return $$+Math.abs(parseFloat(_added)); }",
+          "fnAggregate": "function($$,_added) { return $$+Math.abs(_added); }",
           "fnCombine": "function(a,b) { return a+b; }",
           "fnReset": "function() { return 0; }",
           "name": "SumAbs",
@@ -474,7 +408,7 @@ describe("DruidExternal", () => {
             "added",
             "deleted"
           ],
-          "fnAggregate": "function($$,_added,_deleted) { return $$+(_=Math.abs(parseFloat(_added)),(_===0||isNaN(_)?null:(Math.pow(parseFloat(_added),2)*parseFloat(_deleted))/Math.abs(parseFloat(_added)))); }",
+          "fnAggregate": "function($$,_added,_deleted) { return $$+(_=Math.abs(_added),(_===0||isNaN(_)?null:(Math.pow(_added,2)*_deleted)/Math.abs(_added))); }",
           "fnCombine": "function(a,b) { return a+b; }",
           "fnReset": "function() { return 0; }",
           "name": "SumComplex",
@@ -501,7 +435,7 @@ describe("DruidExternal", () => {
             "aggregator": {
               "fieldName": "deleted",
               "name": "FilteredSumDeleted",
-              "type": "longSum"
+              "type": "doubleSum"
             },
             "filter": {
               "dimension": "page",
@@ -519,7 +453,7 @@ describe("DruidExternal", () => {
             "aggregator": {
               "fieldName": "deleted",
               "name": "Filtered2",
-              "type": "longSum"
+              "type": "doubleSum"
             },
             "filter": {
               "dimension": "page",
@@ -565,7 +499,7 @@ describe("DruidExternal", () => {
           {
             "fieldName": "added",
             "name": "!T_0",
-            "type": "longSum"
+            "type": "doubleSum"
           }
         ],
         "dataSource": "wikipedia",
@@ -620,7 +554,7 @@ describe("DruidExternal", () => {
           {
             "fieldName": "added",
             "name": "!T_0",
-            "type": "longSum"
+            "type": "doubleSum"
           },
           {
             "fieldNames": [
@@ -685,56 +619,11 @@ describe("DruidExternal", () => {
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
-        "dataSource": "wikipedia",
-        "dimensions": [
-          "sometimeLater",
-          "language",
-          "page",
-          "tags",
-          "commentLength",
-          "isRobot",
-          {
-            "dimension": "page",
-            "extractionFn": {
-              "format": "[%s]",
-              "nullHandling": "returnNull",
-              "type": "stringFormat"
-            },
-            "outputName": "pageInBrackets",
-            "type": "extraction"
-          },
-          {
-            "dimension": "page",
-            "extractionFn": {
-              "index": 0,
-              "length": 3,
-              "type": "substring"
-            },
-            "outputName": "page3",
-            "type": "extraction"
-          }
-        ],
-        "filter": {
-          "dimension": "page",
-          "type": "bound",
-          "upper": "moon",
-          "upperStrict": true
-        },
-        "granularity": "all",
-        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
-        "metrics": [
-          "count",
-          "added",
-          "deleted",
-          "inserted",
-          "delta_hist"
-        ],
-        "pagingSpec": {
-          "pagingIdentifiers": {},
-          "threshold": 5
-        },
-        "queryType": "select"
+      expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
+        "dimension": "page",
+        "type": "bound",
+        "upper": "moon",
+        "upperStrict": true
       });
     });
 
@@ -756,17 +645,6 @@ describe("DruidExternal", () => {
 
   describe("filters", () => {
 
-    it("throws an error on unsplitable", () => {
-      let ex = $('wiki').filter($("count").is(1337));
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      expect(() => {
-        ex.external.getQueryAndPostTransform();
-      }).to.throw(`can not convert $count:NUMBER = 1337 to filter because it references an un-filterable metric 'count' which is most likely rolled up.`);
-    });
-
     it("works with ref filter", () => {
       let ex = $('wiki').filter($("isRobot"));
 
@@ -776,18 +654,6 @@ describe("DruidExternal", () => {
       let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         "dimension": "isRobot",
-        "extractionFn": {
-          "lookup": {
-            "map": {
-              "0": "false",
-              "1": "true",
-              "false": "false",
-              "true": "true"
-            },
-            "type": "map"
-          },
-          "type": "lookup"
-        },
         "type": "selector",
         "value": true
       });
@@ -803,18 +669,6 @@ describe("DruidExternal", () => {
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         "field": {
           "dimension": "isRobot",
-          "extractionFn": {
-            "lookup": {
-              "map": {
-                "0": "false",
-                "1": "true",
-                "false": "false",
-                "true": "true"
-              },
-              "type": "map"
-            },
-            "type": "lookup"
-          },
           "type": "selector",
           "value": true
         },
@@ -1199,18 +1053,6 @@ describe("DruidExternal", () => {
 
 
   describe("splits (makes correct dimension extractionFns)", () => {
-
-    it("throws an error on unsplitable", () => {
-      let ex = $('wiki').split('$count', 'Split');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      expect(() => {
-        ex.external.getQueryAndPostTransform();
-      }).to.throw(`can not convert $count:NUMBER to split because it references an un-splitable metric 'count' which is most likely rolled up.`);
-    });
-
     it("works with default", () => {
       let ex = $('wiki').split('$page', 'Split');
 
@@ -1223,33 +1065,6 @@ describe("DruidExternal", () => {
         "dimension": "page",
         "outputName": "Split",
         "type": "default"
-      });
-    });
-
-    it("works with BOOLEAN ref", () => {
-      let ex = $('wiki').split('$isRobot', 'Split');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
-      expect(query.queryType).to.equal('topN');
-      expect(query.dimension).to.deep.equal({
-        "dimension": "isRobot",
-        "extractionFn": {
-          "lookup": {
-            "map": {
-              "0": "false",
-              "1": "true",
-              "false": "false",
-              "true": "true"
-            },
-            "type": "map"
-          },
-          "type": "lookup"
-        },
-        "outputName": "Split",
-        "type": "extraction"
       });
     });
 
@@ -1603,25 +1418,6 @@ describe("DruidExternal", () => {
       });
     });
 
-    it("works with .absolute()", () => {
-      let ex = $('wiki').split("$commentLength.absolute()", 'Split');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
-      expect(query.queryType).to.equal('groupBy');
-      expect(query.dimensions[0]).to.deep.equal({
-        "dimension": "commentLength",
-        "extractionFn": {
-          "function": "function(d){var _,_2;_=Math.abs(parseFloat(d));return isNaN(_)?null:_}",
-          "type": "javascript"
-        },
-        "outputName": "Split",
-        "type": "extraction"
-      });
-    });
-
     it("works with .power()", () => {
       let ex = $('wiki').split("$commentLength.power(2)", 'Split');
 
@@ -1633,7 +1429,7 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "commentLength",
         "extractionFn": {
-          "function": "function(d){var _,_2;_=Math.pow(parseFloat(d),2);return isNaN(_)?null:_}",
+          "function": "function(d){var _,_2;_=Math.pow(d,2);return isNaN(_)?null:_}",
           "type": "javascript"
         },
         "outputName": "Split",
@@ -1655,34 +1451,6 @@ describe("DruidExternal", () => {
           "size": 10,
           "offset": 1,
           "type": "bucket"
-        },
-        "outputName": "Split",
-        "type": "extraction"
-      });
-    });
-
-    it("works with .absolute().numberBucket()", () => {
-      let ex = $('wiki').split("$commentLength.absolute().numberBucket(10)", 'Split');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
-      expect(query.queryType).to.equal('groupBy');
-      expect(query.dimensions[0]).to.deep.equal({
-        "dimension": "commentLength",
-        "extractionFn": {
-          "extractionFns": [
-            {
-              "function": "function(d){var _,_2;_=Math.abs(parseFloat(d));return isNaN(_)?null:_}",
-              "type": "javascript"
-            },
-            {
-              "size": 10,
-              "type": "bucket"
-            }
-          ],
-          "type": "cascade"
         },
         "outputName": "Split",
         "type": "extraction"
@@ -1861,22 +1629,10 @@ describe("DruidExternal", () => {
         "aggregator": {
           "fieldName": "count",
           "name": "Test",
-          "type": "longSum"
+          "type": "doubleSum"
         },
         "filter": {
           "dimension": "isRobot",
-          "extractionFn": {
-            "lookup": {
-              "map": {
-                "0": "false",
-                "1": "true",
-                "false": "false",
-                "true": "true"
-              },
-              "type": "map"
-            },
-            "type": "lookup"
-          },
           "type": "selector",
           "value": true
         },
@@ -2014,133 +1770,6 @@ describe("DruidExternal", () => {
           expect(result.toJS().data).to.deep.equal([]);
           expect(result.toCSV()).to.equal('time,language,page,added');
         });
-    });
-  });
-
-
-  describe("should work well with druid context", () => {
-    it("should pass the context", () => {
-      let external = External.fromJS({
-        engine: 'druid',
-        source: 'wikipedia',
-        timeAttribute: 'time',
-        attributes: [
-          { name: 'time', type: 'TIME' },
-          { name: 'page', type: 'STRING' }
-        ],
-        filter: timeFilter,
-        context: {
-          hello: "world"
-        }
-      });
-
-      let context = { wiki: external };
-
-      let ex = $('wiki').split("$page", 'Page');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostTransform().query.context).to.deep.equal({
-        hello: "world"
-      })
-    });
-
-    it("should set skipEmptyBuckets on timeseries", () => {
-      let external = External.fromJS({
-        engine: 'druid',
-        source: 'wikipedia',
-        timeAttribute: 'time',
-        attributes: [
-          { name: 'time', type: 'TIME' },
-          { name: 'page', type: 'STRING' }
-        ],
-        filter: timeFilter
-      });
-
-      let context = { wiki: external };
-
-      let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'T');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostTransform().query.context).to.deep.equal({
-        skipEmptyBuckets: "true"
-      })
-    });
-
-    it("should respect skipEmptyBuckets already set on context", () => {
-      let external = External.fromJS({
-        engine: 'druid',
-        source: 'wikipedia',
-        timeAttribute: 'time',
-        attributes: [
-          { name: 'time', type: 'TIME' },
-          { name: 'page', type: 'STRING' }
-        ],
-        filter: timeFilter,
-        context: {
-          skipEmptyBuckets: "false"
-        }
-      });
-
-      let context = { wiki: external };
-
-      let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'T');
-
-      ex = ex.referenceCheck(context).resolve(context).simplify();
-
-      expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostTransform().query.context).to.deep.equal({
-        skipEmptyBuckets: "false"
-      })
-    });
-
-  });
-
-  it("folds with cast", () => {
-    let ex = $('wiki').filter('$page == "El Paso"')
-      .apply('castTime', '$commentLength.cast("TIME")')
-      .select('page', 'commentLength', 'castTime', 'added')
-      .sort('$page', 'descending');
-
-    ex = ex.referenceCheck(context).resolve(context).simplify();
-
-    let external = ex.operand.external;
-    expect(external.getQueryAndPostTransform().query).to.deep.equal({
-      "dataSource": "wikipedia",
-      "dimensions": [
-        "page",
-        "commentLength",
-        {
-          "dimension": "commentLength",
-          "extractionFn": {
-            "function": "function(d){var _,_2;_=new Date(parseFloat(d));return isNaN(_)?null:_}",
-            "type": "javascript"
-          },
-          "outputName": "castTime",
-          "type": "extraction"
-        }
-      ],
-      "filter": {
-        "dimension": "page",
-        "type": "selector",
-        "value": "El Paso"
-      },
-      "granularity": "all",
-      "intervals": "2013-02-26T00Z/2013-02-27T00Z",
-      "metrics": [
-        "added"
-      ],
-      "pagingSpec": {
-        "pagingIdentifiers": {},
-        "threshold": 50
-      },
-      "queryType": "select"
     });
   });
 

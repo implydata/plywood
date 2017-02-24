@@ -141,6 +141,9 @@ function mergeDerivedAttributes(derivedAttributes1: Lookup<Expression>, derivedA
 
 function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
   switch (valueType) {
+    case 'NULL':
+      return null;
+
     case 'BOOLEAN':
       return true;
 
@@ -1337,9 +1340,8 @@ export abstract class External {
   public getSelectedAttributes(): Attributes {
     let { mode, select, attributes, derivedAttributes } = this;
     if (mode === 'raw') {
-      attributes = attributes.map((a) => a.dumpMaker());
       for (let k in derivedAttributes) {
-        attributes.push(new AttributeInfo({ name: k, type: derivedAttributes[k].type }));
+        attributes = attributes.concat(new AttributeInfo({ name: k, type: derivedAttributes[k].type }));
       }
     }
     if (!select) return attributes;

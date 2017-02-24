@@ -18,10 +18,10 @@
 import * as Promise from 'any-promise';
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
+import { PlyType } from '../types';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
-import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
-import { PseudoDatum } from '../datatypes/dataset';
+import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes/index';
 import { MySQLDialect } from '../dialect/mySqlDialect';
 
 export interface MySQLDescribeRow {
@@ -41,20 +41,30 @@ export class MySQLExternal extends SQLExternal {
   static postProcessIntrospect(columns: MySQLDescribeRow[]): Attributes {
     return columns.map((column: MySQLDescribeRow) => {
       let name = column.Field;
-      let sqlType = column.Type.toLowerCase();
-      if (sqlType === "datetime" || sqlType === "timestamp") {
-        return new AttributeInfo({ name, type: 'TIME' });
-      } else if (sqlType.indexOf("varchar(") === 0 || sqlType.indexOf("blob") === 0) {
-        return new AttributeInfo({ name, type: 'STRING' });
-      } else if (sqlType.indexOf("int(") === 0 || sqlType.indexOf("bigint(") === 0) {
-        // ToDo: make something special for integers
-        return new AttributeInfo({ name, type: 'NUMBER' });
-      } else if (sqlType.indexOf("decimal(") === 0 || sqlType.indexOf("float") === 0 || sqlType.indexOf("double") === 0) {
-        return new AttributeInfo({ name, type: 'NUMBER' });
-      } else if (sqlType.indexOf("tinyint(1)") === 0) {
-        return new AttributeInfo({ name, type: 'BOOLEAN' });
+      let type: PlyType;
+      let nativeType = column.Type.toLowerCase();
+      if (nativeType === "datetime" || nativeType === "timestamp") {
+        type = 'TIME';
+      } else if (nativeType.indexOf("varchar(") === 0 || nativeType.indexOf("blob") === 0) {
+        type = 'STRING';
+      } else if (
+        nativeType.indexOf("int(") === 0 ||
+        nativeType.indexOf("bigint(") === 0 ||
+        nativeType.indexOf("decimal(") === 0 ||
+        nativeType.indexOf("float") === 0 ||
+        nativeType.indexOf("double") === 0
+      ) {
+        type = 'NUMBER';
+      } else if (nativeType.indexOf("tinyint(1)") === 0) {
+        type = 'BOOLEAN';
+      } else {
+        return null;
       }
-      return null;
+      return new AttributeInfo({
+        name,
+        type,
+        nativeType
+      });
     }).filter(Boolean);
   }
 

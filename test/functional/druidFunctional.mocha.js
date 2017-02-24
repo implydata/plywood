@@ -37,39 +37,219 @@ describe("Druid Functional", function() {
   this.timeout(10000);
 
   let wikiAttributes = [
-    { "name": "time", "type": "TIME" },
-    { "name": "added", "maker":{"op": "sum", "expression":{"name": "added", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "channel", "type": "STRING" },
-    { "name": "cityName", "type": "STRING" },
-    { "name": "comment", "type": "STRING" },
-    { "name": "commentLength", "type": "NUMBER" },
-    { "name": "commentLengthStr", "type": "STRING" },
-    { "name": "count", "maker":{"op": "count"}, "type": "NUMBER", "unsplitable":true },
-    { "name": "countryIsoCode", "type": "STRING" },
-    { "name": "countryName", "type": "STRING" },
-    { "name": "deleted", "maker":{"op": "sum", "expression":{"name": "deleted", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "delta", "maker":{"op": "sum", "expression":{"name": "delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "deltaBucket100", "type": "NUMBER" },
-    { "name": "deltaByTen", "maker":{"op": "sum", "expression":{"name": "deltaByTen", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "delta_hist", "special": "histogram", "type": "NUMBER" },
-    { "name": "isAnonymous", "type": "BOOLEAN" },
-    { "name": "isMinor", "type": "BOOLEAN" },
-    { "name": "isNew", "type": "BOOLEAN" },
-    { "name": "isRobot", "type": "BOOLEAN" },
-    { "name": "isUnpatrolled", "type": "BOOLEAN" },
-    { "name": "max_delta", "maker":{"op": "max", "expression":{"name": "max_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "metroCode", "type": "STRING" },
-    { "name": "min_delta", "maker":{"op": "min", "expression":{"name": "min_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "namespace", "type": "STRING" },
-    { "name": "page", "type": "STRING" },
-    { "name": "page_unique", "special": "unique", "type": "STRING" },
-    { "name": "regionIsoCode", "type": "STRING" },
-    { "name": "regionName", "type": "STRING" },
-    { "name": "sometimeLater", "type": "TIME" },
-    { "name": "user", "type": "STRING" },
-    { "name": "userChars", "type": "SET/STRING" },
-    { "name": "user_theta", "special": "theta", "type": "STRING" },
-    { "name": "user_unique", "special": "unique", "type": "STRING" }
+    {
+      "name": "time",
+      "nativeType": "__time",
+      "type": "TIME"
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "added",
+          "op": "ref"
+        },
+        "op": "sum"
+      },
+      "name": "added",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "channel",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "cityName",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "comment",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "commentLength",
+      "type": "NUMBER"
+    },
+    {
+      "name": "commentLengthStr",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "maker": {
+        "op": "count"
+      },
+      "name": "count",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "countryIsoCode",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "countryName",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "deleted",
+          "op": "ref"
+        },
+        "op": "sum"
+      },
+      "name": "deleted",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "delta",
+          "op": "ref"
+        },
+        "op": "sum"
+      },
+      "name": "delta",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "deltaBucket100",
+      "type": "NUMBER"
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "deltaByTen",
+          "op": "ref"
+        },
+        "op": "sum"
+      },
+      "name": "deltaByTen",
+      "nativeType": "FLOAT",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "delta_hist",
+      "nativeType": "approximateHistogram",
+      "type": "NULL",
+      "unsplitable": true
+    },
+    {
+      "name": "isAnonymous",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isMinor",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isNew",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isRobot",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isUnpatrolled",
+      "type": "BOOLEAN"
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "max_delta",
+          "op": "ref"
+        },
+        "op": "max"
+      },
+      "name": "max_delta",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "metroCode",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "min_delta",
+          "op": "ref"
+        },
+        "op": "min"
+      },
+      "name": "min_delta",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "namespace",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "page",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "page_unique",
+      "nativeType": "hyperUnique",
+      "type": "NULL",
+      "unsplitable": true
+    },
+    {
+      "name": "regionIsoCode",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "regionName",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "sometimeLater",
+      "type": "TIME"
+    },
+    {
+      "name": "user",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "userChars",
+      "nativeType": "STRING",
+      "type": "SET/STRING"
+    },
+    {
+      "name": "user_theta",
+      "nativeType": "thetaSketch",
+      "type": "NULL",
+      "unsplitable": true
+    },
+    {
+      "name": "user_unique",
+      "nativeType": "hyperUnique",
+      "type": "NULL",
+      "unsplitable": true
+    }
   ];
 
   let customTransforms = {
@@ -143,7 +323,7 @@ describe("Druid Functional", function() {
         { name: 'delta', type: 'NUMBER', unsplitable: true },
         { name: 'added', type: 'NUMBER', unsplitable: true },
         { name: 'deleted', type: 'NUMBER', unsplitable: true },
-        { name: 'page_unique', special: 'unique', unsplitable: true }
+        { name: 'page_unique', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true }
       ],
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
@@ -2419,8 +2599,7 @@ describe("Druid Functional", function() {
               },
               {
                 "name": "added",
-                "type": "NUMBER",
-                "unsplitable": true
+                "type": "NUMBER"
               },
               {
                 "name": "channel",
@@ -2444,8 +2623,7 @@ describe("Druid Functional", function() {
               },
               {
                 "name": "count",
-                "type": "NUMBER",
-                "unsplitable": true
+                "type": "NUMBER"
               },
               {
                 "name": "countryIsoCode",
@@ -2457,13 +2635,11 @@ describe("Druid Functional", function() {
               },
               {
                 "name": "deleted",
-                "type": "NUMBER",
-                "unsplitable": true
+                "type": "NUMBER"
               },
               {
                 "name": "delta",
-                "type": "NUMBER",
-                "unsplitable": true
+                "type": "NUMBER"
               },
               {
                 "name": "deltaBucket100",
@@ -2471,13 +2647,11 @@ describe("Druid Functional", function() {
               },
               {
                 "name": "deltaByTen",
-                "type": "NUMBER",
-                "unsplitable": true
+                "type": "NUMBER"
               },
               {
                 "name": "delta_hist",
-                "special": "histogram",
-                "type": "NUMBER"
+                "type": "NULL"
               },
               {
                 "name": "isAnonymous",
@@ -2501,8 +2675,7 @@ describe("Druid Functional", function() {
               },
               {
                 "name": "max_delta",
-                "type": "NUMBER",
-                "unsplitable": true
+                "type": "NUMBER"
               },
               {
                 "name": "metroCode",
@@ -2510,8 +2683,7 @@ describe("Druid Functional", function() {
               },
               {
                 "name": "min_delta",
-                "type": "NUMBER",
-                "unsplitable": true
+                "type": "NUMBER"
               },
               {
                 "name": "namespace",
@@ -2523,8 +2695,7 @@ describe("Druid Functional", function() {
               },
               {
                 "name": "page_unique",
-                "special": "unique",
-                "type": "STRING"
+                "type": "NULL"
               },
               {
                 "name": "regionIsoCode",
@@ -2548,13 +2719,11 @@ describe("Druid Functional", function() {
               },
               {
                 "name": "user_theta",
-                "special": "theta",
-                "type": "STRING"
+                "type": "NULL"
               },
               {
                 "name": "user_unique",
-                "special": "unique",
-                "type": "STRING"
+                "type": "NULL"
               }
             ],
             "data": [
@@ -2572,7 +2741,7 @@ describe("Druid Functional", function() {
                 "delta": -39,
                 "deltaBucket100": -100,
                 "deltaByTen": -3.9000000953674316,
-                "delta_hist": null,
+                "delta_hist": "/84BwhwAAA==",
                 "isAnonymous": true,
                 "isMinor": false,
                 "isNew": false,
@@ -2619,7 +2788,7 @@ describe("Druid Functional", function() {
                 "delta": 0,
                 "deltaBucket100": 0,
                 "deltaByTen": 0,
-                "delta_hist": null,
+                "delta_hist": "/84BAAAAAA==",
                 "isAnonymous": true,
                 "isMinor": false,
                 "isNew": false,
@@ -2677,7 +2846,7 @@ describe("Druid Functional", function() {
               "delta": -1,
               "deltaBucket100": -100,
               "deltaByTen": -0.10000000149011612,
-              "delta_hist": null,
+              "delta_hist": "/84Bv4AAAA==",
               "isAnonymous": false,
               "isMinor": false,
               "isNew": false,

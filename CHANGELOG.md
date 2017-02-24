@@ -21,6 +21,11 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - `Dataset#getNestedColumns` was removed
 - Added `ThenExpression`
 - Expressions have all been standardized to apply to Sets as well as atomics
+- Fix `NULL` types handling everywhere
+- Remove `AttributeInfo#serialize`
+- Removed `AttributeInfo#special`, `UniqueAttributeInfo`, `ThetaAttributeInfo`, and `HistogramAttributeInfo`
+- Added `AttributeInfo.nativeType` that stores the original database type of the attribute.
+- `DruidExernal` will now be able to plan using `longSum`
 
 
 ## 0.15.13

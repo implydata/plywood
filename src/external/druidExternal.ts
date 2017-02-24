@@ -68,9 +68,6 @@ import {
 import {
   AttributeInfo,
   Attributes,
-  UniqueAttributeInfo,
-  HistogramAttributeInfo,
-  ThetaAttributeInfo,
   Dataset,
   Datum,
   NumberRange,
@@ -296,16 +293,23 @@ export class DruidExternal extends External {
         if (columnData.errorMessage || columnData.size < 0) continue;
 
         if (name === DruidExternal.TIME_ATTRIBUTE) {
-          attributes.push(new AttributeInfo({ name: timeAttribute, type: 'TIME' }));
+          attributes.push(new AttributeInfo({
+            name: timeAttribute,
+            type: 'TIME',
+            nativeType: '__time'
+          }));
           foundTime = true;
+
         } else {
           if (name === timeAttribute) continue; // Ignore dimensions and metrics that clash with the timeAttribute name
+          const nativeType = columnData.type;
           switch (columnData.type) {
             case 'FLOAT':
             case 'LONG':
               attributes.push(new AttributeInfo({
                 name,
                 type: 'NUMBER',
+                nativeType,
                 unsplitable: true,
                 maker: DruidExternal.generateMaker(aggregators[name])
               }));
@@ -314,20 +318,28 @@ export class DruidExternal extends External {
             case 'STRING':
               attributes.push(new AttributeInfo({
                 name,
-                type: columnData.hasMultipleValues ? 'SET/STRING' : 'STRING'
+                type: columnData.hasMultipleValues ? 'SET/STRING' : 'STRING',
+                nativeType
               }));
               break;
 
             case 'hyperUnique':
-              attributes.push(new UniqueAttributeInfo({ name }));
-              break;
-
             case 'approximateHistogram':
-              attributes.push(new HistogramAttributeInfo({ name }));
+            case 'thetaSketch':
+              attributes.push(new AttributeInfo({
+                name,
+                type: 'NULL',
+                nativeType,
+                unsplitable: true
+              }));
               break;
 
-            case 'thetaSketch':
-              attributes.push(new ThetaAttributeInfo({ name }));
+            default:
+              attributes.push(new AttributeInfo({
+                name,
+                type: 'NULL',
+                nativeType
+              }));
               break;
           }
         }
@@ -346,15 +358,15 @@ export class DruidExternal extends External {
       }
 
       let attributes: Attributes = [
-        new AttributeInfo({ name: timeAttribute, type: 'TIME' })
+        new AttributeInfo({ name: timeAttribute, type: 'TIME', nativeType: '__time' })
       ];
       res0.dimensions.forEach(dimension => {
         if (dimension === timeAttribute) return; // Ignore dimensions that clash with the timeAttribute name
-        attributes.push(new AttributeInfo({ name: dimension, type: 'STRING' }));
+        attributes.push(new AttributeInfo({ name: dimension, type: 'STRING', nativeType: 'STRING' }));
       });
       res0.metrics.forEach(metric => {
         if (metric === timeAttribute) return; // Ignore metrics that clash with the timeAttribute name
-        attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', unsplitable: true }));
+        attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', nativeType: 'FLOAT', unsplitable: true }));
       });
       return attributes;
     };
@@ -613,7 +625,7 @@ export class DruidExternal extends External {
     }
 
     let effectiveType = Set.unwrapSetType(expression.type);
-    if (simpleInflater || effectiveType === 'STRING') {
+    if (simpleInflater || effectiveType === 'STRING' || effectiveType === 'NULL') {
       return {
         dimension,
         inflater: simpleInflater
@@ -853,14 +865,12 @@ export class DruidExternal extends External {
         let derivedAttributes = this.derivedAttributes;
         let selectedAttributes = this.getSelectedAttributes();
         selectedAttributes.forEach(attribute => {
-          let { name, type, unsplitable } = attribute;
+          let { name, type, nativeType, unsplitable } = attribute;
 
           if (name === timeAttribute) {
             requesterContext.timestamp = name;
           } else {
-            if (unsplitable) {
-              selectMetrics.push(name);
-            } else {
+            if (nativeType === 'STRING' || (!nativeType && !unsplitable)) {
               let derivedAttribute = derivedAttributes[name];
               if (derivedAttribute) {
                 if (this.versionBefore('0.9.1')) {
@@ -873,6 +883,8 @@ export class DruidExternal extends External {
               } else {
                 selectDimensions.push(name);
               }
+            } else {
+              selectMetrics.push(name);
             }
           }
 
@@ -916,7 +928,7 @@ export class DruidExternal extends External {
         return {
           query: druidQuery,
           context: requesterContext,
-          postTransform: External.postTransformFactory(inflaters, selectedAttributes, null, null),
+          postTransform: External.postTransformFactory(inflaters, selectedAttributes.map((a) => a.dropOriginInfo()), null, null),
           next: DruidExternal.selectNextFactory(resultLimit, descending)
         };
 

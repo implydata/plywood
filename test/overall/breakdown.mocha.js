@@ -33,7 +33,7 @@ describe.skip("breakdown", () => {
         { name: 'time', type: 'TIME' },
         { name: 'color', type: 'STRING' },
         { name: 'cut', type: 'STRING' },
-        { name: 'carat', type: 'NUMBER' }
+        { name: 'carat', type: 'NUMBER', nativeType: 'STRING' }
       ]
     }),
     diamonds2: External.fromJS({
@@ -45,7 +45,7 @@ describe.skip("breakdown", () => {
         { name: 'time', type: 'TIME' },
         { name: 'color', type: 'STRING' },
         { name: 'cut', type: 'STRING' },
-        { name: 'carat', type: 'NUMBER' }
+        { name: 'carat', type: 'NUMBER', nativeType: 'STRING' }
       ]
     })
   };

@@ -39,6 +39,8 @@ export class InExpression extends ChainableUnaryExpression {
     let expression = this.expression;
     if (operandType) {
       if (!(
+          operandType === 'NULL' ||
+          expression.type === 'NULL' ||
           (!Set.isSetType(operandType) && expression.canHaveType('SET')) ||
           (operandType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE')) ||
           (operandType === 'STRING' && expression.canHaveType('STRING_RANGE')) ||

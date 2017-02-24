@@ -38,35 +38,151 @@ describe("Postgres Functional", function() {
   this.timeout(10000);
 
   let wikiAttributes = [
-    { "name": "time", "type": "TIME" },
-    { "name": "sometimeLater", "type": "TIME" },
-    { "name": "channel", "type": "STRING" },
-    { "name": "cityName", "type": "STRING" },
-    { "name": "comment", "type": "STRING" },
-    { "name": "commentLength", "type": "NUMBER" },
-    { "name": "commentLengthStr", "type": "STRING" },
-    { "name": "countryIsoCode", "type": "STRING" },
-    { "name": "countryName", "type": "STRING" },
-    { "name": "deltaBucket100", "type": "NUMBER" },
-    { "name": "isAnonymous", "type": "BOOLEAN" },
-    { "name": "isMinor", "type": "BOOLEAN" },
-    { "name": "isNew", "type": "BOOLEAN" },
-    { "name": "isRobot", "type": "BOOLEAN" },
-    { "name": "isUnpatrolled", "type": "BOOLEAN" },
-    { "name": "metroCode", "type": "NUMBER" },
-    { "name": "namespace", "type": "STRING" },
-    { "name": "page", "type": "STRING" },
-    { "name": "regionIsoCode", "type": "STRING" },
-    { "name": "regionName", "type": "STRING" },
-    { "name": "user", "type": "STRING" },
-    { "name": "userChars", "type": "SET/STRING" },
-    { "name": "count", "type": "NUMBER" },
-    { "name": "added", "type": "NUMBER" },
-    { "name": "deleted", "type": "NUMBER" },
-    { "name": "delta", "type": "NUMBER" },
-    { "name": "min_delta", "type": "NUMBER" },
-    { "name": "max_delta", "type": "NUMBER" },
-    { "name": "deltaByTen", "type": "NUMBER" }
+    {
+      "name": "time",
+      "nativeType": "timestamp without time zone",
+      "type": "TIME"
+    },
+    {
+      "name": "sometimeLater",
+      "nativeType": "timestamp without time zone",
+      "type": "TIME"
+    },
+    {
+      "name": "channel",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "cityName",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "comment",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "commentLength",
+      "nativeType": "integer",
+      "type": "NUMBER"
+    },
+    {
+      "name": "commentLengthStr",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "countryIsoCode",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "countryName",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "deltaBucket100",
+      "nativeType": "integer",
+      "type": "NUMBER"
+    },
+    {
+      "name": "isAnonymous",
+      "nativeType": "boolean",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isMinor",
+      "nativeType": "boolean",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isNew",
+      "nativeType": "boolean",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isRobot",
+      "nativeType": "boolean",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isUnpatrolled",
+      "nativeType": "boolean",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "metroCode",
+      "nativeType": "integer",
+      "type": "NUMBER"
+    },
+    {
+      "name": "namespace",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "page",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "regionIsoCode",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "regionName",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "user",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
+      "name": "userChars",
+      "nativeType": "character",
+      "type": "SET/STRING"
+    },
+    {
+      "name": "count",
+      "nativeType": "bigint",
+      "type": "NUMBER"
+    },
+    {
+      "name": "added",
+      "nativeType": "bigint",
+      "type": "NUMBER"
+    },
+    {
+      "name": "deleted",
+      "nativeType": "bigint",
+      "type": "NUMBER"
+    },
+    {
+      "name": "delta",
+      "nativeType": "bigint",
+      "type": "NUMBER"
+    },
+    {
+      "name": "min_delta",
+      "nativeType": "integer",
+      "type": "NUMBER"
+    },
+    {
+      "name": "max_delta",
+      "nativeType": "integer",
+      "type": "NUMBER"
+    },
+    {
+      "name": "deltaByTen",
+      "nativeType": "double precision",
+      "type": "NUMBER"
+    }
   ];
 
   let wikiDerivedAttributes = {

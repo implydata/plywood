@@ -30,7 +30,7 @@ let context = {
       { name: 'color', type: 'STRING' },
       { name: 'cut', type: 'STRING' },
       { name: 'tags', type: 'SET/STRING' },
-      { name: 'carat', type: 'NUMBER' },
+      { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
       { name: 'height_bucket', type: 'NUMBER' },
       { name: 'price', type: 'NUMBER' },
       { name: 'tax', type: 'NUMBER' }

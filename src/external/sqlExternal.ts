@@ -17,7 +17,6 @@
 
 import * as Promise from 'any-promise';
 import { Transform } from 'readable-stream';
-import { PlywoodValue, Dataset, Datum } from '../datatypes/index';
 import {
   Expression,
   ApplyExpression,
@@ -110,9 +109,10 @@ export abstract class SQLExternal extends External {
       from += '\nWHERE ' + filter.getSQL(dialect);
     }
 
+    let selectedAttributes = this.getSelectedAttributes();
     switch (mode) {
       case 'raw':
-        let selectedAttributes = this.getSelectedAttributes();
+        selectedAttributes = selectedAttributes.map((a) => a.dropOriginInfo());
 
         selectedAttributes.forEach(attribute => {
           let { name, type } = attribute;
@@ -193,7 +193,7 @@ export abstract class SQLExternal extends External {
 
     return {
       query: query.join('\n'),
-      postTransform: postTransform || External.postTransformFactory(inflaters, this.getSelectedAttributes(), keys, zeroTotalApplies)
+      postTransform: postTransform || External.postTransformFactory(inflaters, selectedAttributes, keys, zeroTotalApplies)
     };
   }
 

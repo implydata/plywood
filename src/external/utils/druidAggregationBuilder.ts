@@ -75,13 +75,7 @@ import {
   TransformCaseExpression
 } from '../../expressions/index';
 
-import {
-  NumberRange,
-  AttributeInfo,
-  UniqueAttributeInfo,
-  HistogramAttributeInfo,
-  ThetaAttributeInfo,
-} from '../../datatypes/index';
+import { AttributeInfo } from '../../datatypes/index';
 
 import { External } from '../baseExternal';
 import { CustomDruidAggregations, CustomDruidTransforms } from './druidTypes';
@@ -106,12 +100,6 @@ export interface DruidAggregationBuilderOptions {
 }
 
 export class DruidAggregationBuilder {
-  static AGGREGATE_TO_DRUID: Lookup<string> = {
-    sum: "doubleSum",
-    min: "doubleMin",
-    max: "doubleMax"
-  };
-
   static AGGREGATE_TO_FUNCTION: Lookup<Function> = {
     sum: (a: string, b: string) => `${a}+${b}`,
     min: (a: string, b: string) => `Math.min(${a},${b})`,
@@ -235,19 +223,21 @@ export class DruidAggregationBuilder {
   }
 
   private sumMinMaxToAggregation(name: string, expression: SumExpression | MinExpression | MaxExpression): Druid.Aggregation {
-    let aggregation: Druid.Aggregation = {
-      name: name,
-      type: DruidAggregationBuilder.AGGREGATE_TO_DRUID[expression.op]
-    };
+    let aggregation: Druid.Aggregation;
 
     let aggregateExpression = expression.expression;
     if (aggregateExpression instanceof RefExpression) {
       let refName = aggregateExpression.name;
       let attributeInfo = this.getAttributesInfo(refName);
-      if (attributeInfo.unsplitable) {
-        aggregation.fieldName = refName;
-      } else {
+      if (attributeInfo.nativeType === 'STRING') {
         aggregation = this.makeJavaScriptAggregation(name, expression);
+      } else {
+        let op = expression.op;
+        aggregation = {
+          name,
+          type: (attributeInfo.nativeType === 'LONG' ? 'long' : 'double') + op[0].toUpperCase() + op.substr(1),
+          fieldName: refName
+        };
       }
     } else {
       aggregation = this.makeJavaScriptAggregation(name, expression);
@@ -275,14 +265,14 @@ export class DruidAggregationBuilder {
       let attributeName = attribute.name;
 
       let attributeInfo = this.getAttributesInfo(attributeName);
-      if (attributeInfo instanceof UniqueAttributeInfo) {
+      if (attributeInfo.nativeType === 'hyperUnique') {
         aggregation = {
           name: name,
           type: "hyperUnique",
           fieldName: attributeName
         };
 
-      } else if (attributeInfo instanceof ThetaAttributeInfo) {
+      } else if (attributeInfo.nativeType === 'thetaSketch') {
         let tempName = '!Theta_' + name;
         postAggregations.push({
           type: "thetaSketchEstimate",

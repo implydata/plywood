@@ -24,31 +24,19 @@ export type Attributes = AttributeInfo[];
 export type AttributeJSs = AttributeInfoJS[];
 
 export interface AttributeInfoValue {
-  special?: string;
   name: string;
   type?: PlyType;
+  nativeType?: string;
   unsplitable?: boolean;
   maker?: Expression;
-
-  // range
-  separator?: string;
-  rangeSize?: number;
-  digitsBeforeDecimal?: int;
-  digitsAfterDecimal?: int;
 }
 
 export interface AttributeInfoJS {
-  special?: string;
   name: string;
   type?: PlyType;
+  nativeType?: string;
   unsplitable?: boolean;
   maker?: ExpressionJS;
-
-  // range
-  separator?: string;
-  rangeSize?: number;
-  digitsBeforeDecimal?: int;
-  digitsAfterDecimal?: int;
 }
 
 let check: Class<AttributeInfoValue, AttributeInfoJS>;
@@ -57,46 +45,34 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     return candidate instanceof AttributeInfo;
   }
 
-  static jsToValue(parameters: AttributeInfoJS): AttributeInfoValue {
-    let value: AttributeInfoValue = {
-      special: parameters.special,
-      name: parameters.name
-    };
-    if (parameters.type) value.type = parameters.type;
-    if (parameters.unsplitable) value.unsplitable = true;
-
-    let maker = parameters.maker || (parameters as any).makerAction;
-    if (maker) value.maker = Expression.fromJS(maker);
-    return value;
-  }
-
-  static classMap: Lookup<typeof AttributeInfo> = {};
-  static register(ex: typeof AttributeInfo): void {
-    let special = (<any>ex).special.replace(/^\w/, (s: string) => s.toLowerCase());
-    AttributeInfo.classMap[special] = ex;
-  }
-
-  static getConstructorFor(special: string): typeof AttributeInfo {
-    const classFn = AttributeInfo.classMap[special];
-    if (!classFn) return AttributeInfo;
-    return classFn;
-  }
+  static NATIVE_TYPE_FROM_SPECIAL: Lookup<string> = {
+    unique: 'hyperUnique',
+    theta: 'thetaSketch',
+    histogram: 'approximateHistogram'
+  };
 
   static fromJS(parameters: AttributeInfoJS): AttributeInfo {
     if (typeof parameters !== "object") {
       throw new Error("unrecognizable attributeMeta");
     }
-    if (!hasOwnProp(parameters, 'special')) {
-      return new AttributeInfo(AttributeInfo.jsToValue(parameters));
+
+    let value: AttributeInfoValue = {
+      name: parameters.name
+    };
+    if (parameters.type) value.type = parameters.type;
+
+    let nativeType = parameters.nativeType;
+    if (!nativeType && hasOwnProp(parameters, 'special')) {
+      nativeType = AttributeInfo.NATIVE_TYPE_FROM_SPECIAL[(parameters as any).special];
+      value.type = 'NULL';
     }
-    if (parameters.special === 'range') {
-      throw new Error("'range' attribute info is no longer supported, you should apply the .extract('^\\d+') function instead");
-    }
-    let Class = AttributeInfo.getConstructorFor(parameters.special || '');
-    if (!Class) {
-      throw new Error(`unsupported special attributeInfo '${parameters.special}'`);
-    }
-    return Class.fromJS(parameters);
+    value.nativeType = nativeType;
+    if (parameters.unsplitable) value.unsplitable = true;
+
+    let maker = parameters.maker || (parameters as any).makerAction;
+    if (maker) value.maker = Expression.fromJS(maker);
+
+    return new AttributeInfo(value);
   }
 
   static fromJSs(attributeJSs: AttributeJSs): Attributes {
@@ -112,23 +88,15 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     return NamedArray.overridesByName(attributes, attributeOverrides);
   }
 
-  static fromValue(parameters: AttributeInfoValue): AttributeInfo {
-    const { special } = parameters;
-    let ClassFn = AttributeInfo.getConstructorFor(special || '') as any;
-    return new ClassFn(parameters);
-  }
 
-
-  public special: string;
   public name: string;
+  public nativeType: string;
   public type: PlyType;
   public datasetType?: Lookup<FullType>;
   public unsplitable: boolean;
   public maker?: Expression;
 
   constructor(parameters: AttributeInfoValue) {
-    this.special = parameters.special;
-
     if (typeof parameters.name !== "string") {
       throw new Error("name must be a string");
     }
@@ -138,21 +106,14 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
     this.unsplitable = Boolean(parameters.unsplitable);
     this.maker = parameters.maker;
-  }
-
-  public _ensureSpecial(special: string) {
-    if (!this.special) {
-      this.special = special;
-      return;
-    }
-    if (this.special !== special) {
-      throw new TypeError(`incorrect attributeInfo special '${this.special}' (needs to be: '${special}')`);
+    if (parameters.nativeType) {
+      this.nativeType = parameters.nativeType;
     }
   }
 
   public toString(): string {
-    let special = this.special ? `[${this.special}]` : '';
-    return `${this.name}::${this.type}${special}`;
+    let nativeType = this.nativeType ? `[${this.nativeType}]` : '';
+    return `${this.name}::${this.type}${nativeType}`;
   }
 
   public valueOf(): AttributeInfoValue {
@@ -160,7 +121,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       name: this.name,
       type: this.type,
       unsplitable: this.unsplitable,
-      special: this.special,
+      nativeType: this.nativeType,
       maker: this.maker
     };
   }
@@ -170,11 +131,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       name: this.name,
       type: this.type
     };
-    if (this.special) {
-      js.special = this.special;
-    } else {
-      if (this.unsplitable) js.unsplitable = true;
-    }
+    if (this.nativeType) js.nativeType = this.nativeType;
+    if (this.unsplitable) js.unsplitable = true;
     if (this.maker) js.maker = this.maker.toJS();
     return js;
   }
@@ -185,22 +143,19 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
   public equals(other: AttributeInfo): boolean {
     return other instanceof AttributeInfo &&
-      this.special === other.special &&
       this.name === other.name &&
       this.type === other.type &&
+      this.nativeType === other.nativeType &&
       this.unsplitable === other.unsplitable &&
       immutableEqual(this.maker, other.maker);
   }
 
-  public serialize(value: any): any {
-    return value;
-  }
-
-  public dumpMaker(): AttributeInfo {
-    if (!this.maker) return this;
+  public dropOriginInfo(): AttributeInfo {
     let value = this.valueOf();
     value.maker = null;
-    return AttributeInfo.fromValue(value);
+    value.nativeType = null;
+    value.unsplitable = false;
+    return new AttributeInfo(value);
   }
 
   public change(propertyName: string, newValue: any): AttributeInfo {
@@ -211,7 +166,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     }
 
     (v as any)[propertyName] = newValue;
-    return AttributeInfo.fromValue(v);
+    return new AttributeInfo(v);
   }
 
   public getUnsplitable(): boolean {
@@ -221,79 +176,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   public changeUnsplitable(unsplitable: boolean): AttributeInfo {
     let value = this.valueOf();
     value.unsplitable = unsplitable;
-    return AttributeInfo.fromValue(value);
+    return new AttributeInfo(value);
   }
 }
 check = AttributeInfo;
-
-
-export class UniqueAttributeInfo extends AttributeInfo {
-  static special = 'unique';
-  static fromJS(parameters: AttributeInfoJS): UniqueAttributeInfo {
-    return new UniqueAttributeInfo(AttributeInfo.jsToValue(parameters));
-  }
-
-  constructor(parameters: AttributeInfoValue) {
-    super(parameters);
-    this._ensureSpecial("unique");
-    this.type = 'STRING';
-    this.unsplitable = true;
-  }
-
-  public serialize(value: any): string {
-    throw new Error("can not serialize an approximate unique value");
-  }
-
-  public getUnsplitable(): boolean {
-    return true;
-  }
-}
-AttributeInfo.register(UniqueAttributeInfo);
-
-
-export class ThetaAttributeInfo extends AttributeInfo {
-  static special = 'theta';
-  static fromJS(parameters: AttributeInfoJS): ThetaAttributeInfo {
-    return new ThetaAttributeInfo(AttributeInfo.jsToValue(parameters));
-  }
-
-  constructor(parameters: AttributeInfoValue) {
-    super(parameters);
-    this._ensureSpecial("theta");
-    this.type = 'STRING';
-    this.unsplitable = true;
-  }
-
-  public serialize(value: any): string {
-    throw new Error("can not serialize a theta value");
-  }
-
-  public getUnsplitable(): boolean {
-    return true;
-  }
-}
-AttributeInfo.register(ThetaAttributeInfo);
-
-
-export class HistogramAttributeInfo extends AttributeInfo {
-  static special = 'histogram';
-  static fromJS(parameters: AttributeInfoJS): HistogramAttributeInfo {
-    return new HistogramAttributeInfo(AttributeInfo.jsToValue(parameters));
-  }
-
-  constructor(parameters: AttributeInfoValue) {
-    super(parameters);
-    this._ensureSpecial("histogram");
-    this.type = 'NUMBER';
-    this.unsplitable = true;
-  }
-
-  public serialize(value: any): string {
-    throw new Error("can not serialize a histogram value");
-  }
-
-  public getUnsplitable(): boolean {
-    return true;
-  }
-}
-AttributeInfo.register(HistogramAttributeInfo);

@@ -29,7 +29,7 @@ describe("AttributeInfo", () => {
       { name: 'color', type: 'STRING' },
       { name: 'cut', type: 'STRING' },
       { name: 'tags', type: 'SET/STRING' },
-      { name: 'carat', type: 'NUMBER' },
+      { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
       { name: 'count', type: 'NUMBER', unsplitable: true, maker: { op: 'count' } },
       {
         name: 'price',
@@ -38,9 +38,7 @@ describe("AttributeInfo", () => {
         maker: { op: 'sum', expression: { op: 'ref', name: 'price' } }
       },
       { name: 'tax', type: 'NUMBER', unsplitable: true },
-      { name: 'vendor_id', special: 'unique', type: "STRING" },
-      { name: 'vendor_id', special: 'theta', type: "STRING" },
-      { name: 'vendor_hist', special: 'histogram', type: "NUMBER" }
+      { name: 'vendor_id', nativeType: 'hyperUnique', type: "NULL" }
     ]);
   });
 });

@@ -392,65 +392,75 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "maker": {
-              "op": "sum",
               "expression": {
                 "name": "added",
                 "op": "ref"
-              }
+              },
+              "op": "sum"
             },
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "maker": {
-              "op": "count",
+              "op": "count"
             },
             "name": "count",
+            "nativeType": "LONG",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "maker": {
-              "op": "sum",
               "expression": {
                 "name": "delta",
                 "op": "ref"
-              }
+              },
+              "op": "sum"
             },
             "name": "delta",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "delta_hist",
-            "special": "histogram",
-            "type": "NUMBER"
+            "nativeType": "approximateHistogram",
+            "type": "NULL",
+            "unsplitable": true
           },
           {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "SET/STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "user_unique",
-            "special": "unique",
-            "type": "STRING"
+            "nativeType": "hyperUnique",
+            "type": "NULL",
+            "unsplitable": true
           }
         ]);
       });
@@ -472,43 +482,52 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "count",
+            "nativeType": "LONG",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "delta_hist",
-            "special": "histogram",
-            "type": "NUMBER"
+            "nativeType": "approximateHistogram",
+            "type": "NULL",
+            "unsplitable": true
           },
           {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "SET/STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "user_unique",
-            "special": "unique",
-            "type": "STRING"
+            "nativeType": "hyperUnique",
+            "type": "NULL",
+            "unsplitable": true
           }
         ]);
       });
@@ -527,33 +546,50 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "count",
+            "nativeType": "LONG",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
+            "name": "delta_hist",
+            "nativeType": "COMPLEX",
+            "type": "NULL"
+          },
+          {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
+          },
+          {
+            "name": "user_unique",
+            "nativeType": "COMPLEX",
+            "type": "NULL"
           }
         ]);
       });
@@ -572,45 +608,55 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "newPage",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "count",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "delta_hist",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "user_unique",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           }
@@ -632,45 +678,55 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "newPage",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "count",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "delta_hist",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "user_unique",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           }
@@ -684,8 +740,8 @@ describe("DruidExternal Introspection", () => {
       source: 'wikipedia',
       timeAttribute: 'time',
       attributeOverrides: [
-        { name: "user_unique", special: 'unique' },
-        { name: "delta_hist", special: 'histogram' }
+        { name: "user_unique", type: 'NULL', nativeType: 'hyperUnique', "unsplitable": true },
+        { name: "delta_hist", type: 'NULL', nativeType: 'approximateHistogram', unsplitable: true }
       ]
     }, requesterDruid_0_8_1);
 
@@ -695,47 +751,57 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "newPage",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "count",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "delta_hist",
-            "special": "histogram",
-            "type": "NUMBER"
+            "nativeType": "approximateHistogram",
+            "type": "NULL",
+            "unsplitable": true
           },
           {
             "name": "user_unique",
-            "special": "unique",
-            "type": "STRING"
+            "nativeType": "hyperUnique",
+            "type": "NULL",
+            "unsplitable": true
           }
         ]);
       });

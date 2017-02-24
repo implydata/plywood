@@ -39,34 +39,146 @@ describe("MySQL Functional", function() {
   this.timeout(10000);
 
   let wikiAttributes = [
-    { "name": "time", "type": "TIME" },
-    { "name": "sometimeLater", "type": "TIME" },
-    { "name": "channel", "type": "STRING" },
-    { "name": "cityName", "type": "STRING" },
-    { "name": "comment", "type": "STRING" },
-    { "name": "commentLength", "type": "NUMBER" },
-    { "name": "commentLengthStr", "type": "STRING" },
-    { "name": "countryIsoCode", "type": "STRING" },
-    { "name": "countryName", "type": "STRING" },
-    { "name": "deltaBucket100", "type": "NUMBER" },
-    { "name": "isAnonymous", "type": "BOOLEAN" },
-    { "name": "isMinor", "type": "BOOLEAN" },
-    { "name": "isNew", "type": "BOOLEAN" },
-    { "name": "isRobot", "type": "BOOLEAN" },
-    { "name": "isUnpatrolled", "type": "BOOLEAN" },
-    { "name": "metroCode", "type": "NUMBER" },
-    { "name": "namespace", "type": "STRING" },
-    { "name": "page", "type": "STRING" },
-    { "name": "regionIsoCode", "type": "STRING" },
-    { "name": "regionName", "type": "STRING" },
-    { "name": "user", "type": "STRING" },
-    { "name": "count", "type": "NUMBER" },
-    { "name": "added", "type": "NUMBER" },
-    { "name": "deleted", "type": "NUMBER" },
-    { "name": "delta", "type": "NUMBER" },
-    { "name": "min_delta", "type": "NUMBER" },
-    { "name": "max_delta", "type": "NUMBER" },
-    { "name": "deltaByTen", "type": "NUMBER" }
+    {
+      "name": "time",
+      "nativeType": "datetime",
+      "type": "TIME"
+    },
+    {
+      "name": "sometimeLater",
+      "nativeType": "timestamp",
+      "type": "TIME"
+    },
+    {
+      "name": "channel",
+      "nativeType": "varchar(255)",
+      "type": "STRING"
+    },
+    {
+      "name": "cityName",
+      "nativeType": "varchar(255)",
+      "type": "STRING"
+    },
+    {
+      "name": "comment",
+      "nativeType": "varchar(300)",
+      "type": "STRING"
+    },
+    {
+      "name": "commentLength",
+      "nativeType": "int(11)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "commentLengthStr",
+      "nativeType": "varchar(10)",
+      "type": "STRING"
+    },
+    {
+      "name": "countryIsoCode",
+      "nativeType": "varchar(255)",
+      "type": "STRING"
+    },
+    {
+      "name": "countryName",
+      "nativeType": "varchar(255)",
+      "type": "STRING"
+    },
+    {
+      "name": "deltaBucket100",
+      "nativeType": "int(11)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "isAnonymous",
+      "nativeType": "tinyint(1)",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isMinor",
+      "nativeType": "tinyint(1)",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isNew",
+      "nativeType": "tinyint(1)",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isRobot",
+      "nativeType": "tinyint(1)",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isUnpatrolled",
+      "nativeType": "tinyint(1)",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "metroCode",
+      "nativeType": "int(11)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "namespace",
+      "nativeType": "varchar(255)",
+      "type": "STRING"
+    },
+    {
+      "name": "page",
+      "nativeType": "varchar(255)",
+      "type": "STRING"
+    },
+    {
+      "name": "regionIsoCode",
+      "nativeType": "varchar(255)",
+      "type": "STRING"
+    },
+    {
+      "name": "regionName",
+      "nativeType": "varchar(255)",
+      "type": "STRING"
+    },
+    {
+      "name": "user",
+      "nativeType": "varchar(255)",
+      "type": "STRING"
+    },
+    {
+      "name": "count",
+      "nativeType": "bigint(21)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "added",
+      "nativeType": "decimal(32,0)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "deleted",
+      "nativeType": "decimal(32,0)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "delta",
+      "nativeType": "decimal(32,0)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "min_delta",
+      "nativeType": "int(11)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "max_delta",
+      "nativeType": "int(11)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "deltaByTen",
+      "nativeType": "double",
+      "type": "NUMBER"
+    }
   ];
 
   let wikiDerivedAttributes = {
@@ -389,6 +501,44 @@ describe("MySQL Functional", function() {
         });
     });
 
+    it("works with simple raw mode", () => {
+      let ex = $('wiki')
+        .filter('$cityName == "El Paso"')
+        .select('regionName', 'added', 'page');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "regionName",
+                "type": "STRING"
+              },
+              {
+                "name": "added",
+                "type": "NUMBER"
+              },
+              {
+                "name": "page",
+                "type": "STRING"
+              }
+            ],
+            "data": [
+              {
+                "added": 0,
+                "page": "Clint High School",
+                "regionName": "Texas"
+              },
+              {
+                "added": 0,
+                "page": "Reggie Williams (linebacker)",
+                "regionName": "Texas"
+              }
+            ]
+          });
+        });
+    });
+
     it("works with complex raw mode", () => {
       let ex = $('wiki')
         .filter('$cityName == "El Paso"')
@@ -398,10 +548,34 @@ describe("MySQL Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS().data).to.deep.equal([
-            { "regionNameLOL": "TexasLOL", "addedPlusOne": 1, "pageInBrackets": "[Clint High School]" },
-            { "regionNameLOL": "TexasLOL", "addedPlusOne": 1, "pageInBrackets": "[Reggie Williams (linebacker)]" }
-          ]);
+          expect(result.toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "regionNameLOL",
+                "type": "STRING"
+              },
+              {
+                "name": "addedPlusOne",
+                "type": "NUMBER"
+              },
+              {
+                "name": "pageInBrackets",
+                "type": "STRING"
+              }
+            ],
+            "data": [
+              {
+                "addedPlusOne": 1,
+                "pageInBrackets": "[Clint High School]",
+                "regionNameLOL": "TexasLOL"
+              },
+              {
+                "addedPlusOne": 1,
+                "pageInBrackets": "[Reggie Williams (linebacker)]",
+                "regionNameLOL": "TexasLOL"
+              }
+            ]
+          });
         });
     });
 
@@ -553,7 +727,7 @@ describe("MySQL Functional", function() {
     });
 
     it("introspects", () => {
-      External.fromJS({
+      return External.fromJS({
         engine: 'mysql',
         source: 'wikipedia'
       }, mySqlRequester).introspect()

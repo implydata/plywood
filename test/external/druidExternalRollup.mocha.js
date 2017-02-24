@@ -71,7 +71,7 @@ describe("DruidExternal Rollup", () => {
         },
         {
           "name": "delta_hist",
-          "special": "histogram",
+          "nativeType": "approximateHistogram",
           "type": "NUMBER"
         },
         {
@@ -88,7 +88,7 @@ describe("DruidExternal Rollup", () => {
         },
         {
           "name": "user_unique",
-          "special": "unique",
+          "nativeType": "hyperUnique",
           "type": "STRING"
         }
       ],

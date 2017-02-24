@@ -17,6 +17,7 @@
 import * as Promise from 'any-promise';
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
+import { PlyType } from '../types';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
 import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
@@ -41,32 +42,41 @@ export class PostgresExternal extends SQLExternal {
   static postProcessIntrospect(columns: PostgresSQLDescribeRow[]): Attributes {
     return columns.map((column: PostgresSQLDescribeRow) => {
       let name = column.name;
-      let sqlType = column.sqlType.toLowerCase();
-      if (sqlType.indexOf('timestamp') !== -1) {
-        return new AttributeInfo({ name, type: 'TIME' });
-      } else if (sqlType === 'character varying') {
-        return new AttributeInfo({ name, type: 'STRING' });
-      } else if (sqlType === 'integer' || sqlType === 'bigint') {
+      let type: PlyType;
+      let nativeType = column.sqlType.toLowerCase();
+      if (nativeType.indexOf('timestamp') !== -1) {
+        type = 'TIME';
+      } else if (nativeType === 'character varying') {
+        type = 'STRING';
+      } else if (nativeType === 'integer' || nativeType === 'bigint') {
         // ToDo: make something special for integers
-        return new AttributeInfo({ name, type: 'NUMBER' });
-      } else if (sqlType === 'double precision' || sqlType === 'float') {
-        return new AttributeInfo({ name, type: 'NUMBER' });
-      } else if (sqlType === 'boolean') {
-        return new AttributeInfo({ name, type: 'BOOLEAN' });
-      } else if (sqlType === 'array') {
-        let arrayType = column.arrayType.toLowerCase();
-        if (arrayType === 'character') {
-          return new AttributeInfo({ name, type: 'SET/STRING' });
-        } else if (arrayType === 'timestamp') {
-          return new AttributeInfo({ name, type: 'SET/TIME' });
-        } else if (arrayType === 'integer' || arrayType === 'bigint' || arrayType === 'double precision' || arrayType === 'float') {
-          return new AttributeInfo({ name, type: 'SET/NUMBER' });
-        } else if (arrayType === 'boolean') {
-          return new AttributeInfo({ name, type: 'SET/BOOLEAN' });
+        type = 'NUMBER';
+      } else if (nativeType === 'double precision' || nativeType === 'float') {
+        type = 'NUMBER';
+      } else if (nativeType === 'boolean') {
+        type = 'BOOLEAN';
+      } else if (nativeType === 'array') {
+        nativeType = column.arrayType.toLowerCase();
+        if (nativeType === 'character') {
+          type = 'SET/STRING';
+        } else if (nativeType === 'timestamp') {
+          type = 'SET/TIME';
+        } else if (nativeType === 'integer' || nativeType === 'bigint' || nativeType === 'double precision' || nativeType === 'float') {
+          type = 'SET/NUMBER';
+        } else if (nativeType === 'boolean') {
+          type = 'SET/BOOLEAN';
+        } else {
+          return null;
         }
+      } else {
         return null;
       }
-      return null;
+
+      return new AttributeInfo({
+        name,
+        type,
+        nativeType
+      });
     }).filter(Boolean);
   }
 

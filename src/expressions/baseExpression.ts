@@ -719,7 +719,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    */
   public canHaveType(wantedType: string): boolean {
     let { type } =  this;
-    if (!type) return true;
+    if (!type || type === 'NULL') return true;
     if (wantedType === 'SET') {
       return Set.isSetType(type);
     } else {

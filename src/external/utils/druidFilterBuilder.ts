@@ -122,7 +122,7 @@ export class DruidFilterBuilder {
   }
 
   public filterToDruid(filter: Expression): DruidFilterAndIntervals {
-    if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
+    if (!filter.canHaveType('BOOLEAN')) throw new Error(`can not filter on ${filter.type}`);
 
     if (filter.equals(Expression.FALSE)) {
       return {
@@ -148,7 +148,7 @@ export class DruidFilterBuilder {
   }
 
   public timeFilterToIntervals(filter: Expression): Druid.Intervals {
-    if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
+    if (!filter.canHaveType('BOOLEAN')) throw new Error(`can not filter on ${filter.type}`);
 
     if (filter instanceof LiteralExpression) {
       if (!filter.value) return DruidFilterBuilder.FALSE_INTERVAL;
@@ -188,7 +188,7 @@ export class DruidFilterBuilder {
   }
 
   public timelessFilterToFilter(filter: Expression, aggregatorFilter: boolean): Druid.Filter {
-    if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
+    if (!filter.canHaveType('BOOLEAN')) throw new Error(`can not filter on ${filter.type}`);
 
     if (filter instanceof RefExpression) {
       filter = filter.is(true);
@@ -328,7 +328,7 @@ export class DruidFilterBuilder {
     let druidFilter: Druid.Filter = {
       type: "selector",
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-      value: attributeInfo.serialize(value)
+      value
     };
     if (extractionFn) {
       druidFilter.extractionFn = extractionFn;
@@ -360,7 +360,7 @@ export class DruidFilterBuilder {
     let inFilter: Druid.Filter = {
       type: 'in',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-      values: elements.map((value: string) => attributeInfo.serialize(value))
+      values: elements
     };
     if (extractionFn) inFilter.extractionFn = extractionFn;
     return inFilter;

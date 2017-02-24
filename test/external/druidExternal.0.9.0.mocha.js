@@ -42,7 +42,7 @@ let context = {
       { name: 'added', type: 'NUMBER', unsplitable: true },
       { name: 'deleted', type: 'NUMBER', unsplitable: true },
       { name: 'inserted', type: 'NUMBER', unsplitable: true },
-      { name: 'delta_hist', special: 'histogram' }
+      { name: 'delta_hist', type: 'NULL', nativeType: 'approximateHistogram', unsplitable: true }
     ],
     filter: timeFilter,
     allowSelectQueries: true,

@@ -26,11 +26,11 @@ let attributes = [
   { name: 'cut', type: 'STRING' },
   { name: 'isNice', type: 'BOOLEAN' },
   { name: 'tags', type: 'SET/STRING' },
-  { name: 'carat', type: 'NUMBER' },
+  { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
   { name: 'height_bucket', type: 'NUMBER' },
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
-  { name: 'vendor_id', special: 'unique', unsplitable: true }
+  { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true }
 ];
 
 let context = {

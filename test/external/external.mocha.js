@@ -101,7 +101,7 @@ describe("External", () => {
         attributeOverrides: [
           { name: 'color', type: 'STRING' },
           { name: 'cut', type: 'STRING' },
-          { name: 'unique', type: "STRING", special: 'unique' }
+          { name: 'unique', type: "STRING", type: 'NULL', nativeType: 'hyperUnique' }
         ],
         customAggregations: {
           test: {
@@ -124,7 +124,7 @@ describe("External", () => {
         attributeOverrides: [
           { name: 'color', type: 'STRING' },
           { name: 'cut', type: 'STRING' },
-          { name: 'unique', type: "STRING", special: 'unique' }
+          { name: 'unique', "type": "NULL", "nativeType": "hyperUnique" }
         ],
         customAggregations: {
           test: {
@@ -328,7 +328,7 @@ describe("External", () => {
         version: '0.9.0-yo',
         source: 'moon_child',
         attributeOverrides: [
-          { "name": "unique_thing", "special": "unique", "type": "STRING" }
+          { "name": "unique_thing", "nativeType": "hyperUnique", "type": "NULL" }
         ]
       }, dummyRequester);
 
@@ -351,13 +351,13 @@ describe("External", () => {
             version: '0.9.0-yo',
             source: 'moon_child',
             attributeOverrides: [
-              { name: "unique_thing", special: "unique", type: "STRING" }
+              { name: "unique_thing", nativeType: "hyperUnique", type: "NULL" }
             ],
             attributes: [
               { name: 'color', type: 'STRING' },
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
-              { name: "unique_thing", special: "unique", type: "STRING" }
+              { name: "unique_thing", nativeType: "hyperUnique", type: "NULL" }
             ]
           });
           return introspectedExternal1;
@@ -381,13 +381,13 @@ describe("External", () => {
             version: '0.9.0-yo',
             source: 'moon_child',
             attributeOverrides: [
-              { name: "unique_thing", special: "unique", type: "STRING" }
+              { name: "unique_thing", nativeType: "hyperUnique", type: "NULL" }
             ],
             attributes: [
               { name: 'color', type: 'STRING' },
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
-              { name: "unique_thing", special: "unique", type: "STRING" },
+              { name: "unique_thing", nativeType: "hyperUnique", type: "NULL" },
               { name: 'price', type: 'NUMBER' }
             ]
           });
@@ -411,13 +411,13 @@ describe("External", () => {
         ]
       });
 
-      external = external.updateAttribute(AttributeInfo.fromJS({ name: 'unique_thing', special: 'unique' }));
+      external = external.updateAttribute(AttributeInfo.fromJS({ name: 'unique_thing', nativeType: "hyperUnique", type: "NULL" }));
 
       expect(external.toJS().attributes).to.deep.equal([
         { "name": "color", "type": "STRING" },
         { "name": "cut", "type": "STRING" },
         { "name": "carat", "type": "STRING" },
-        { "name": "unique_thing", "special": "unique", "type": "STRING" }
+        { "name": "unique_thing", "nativeType": "hyperUnique", "type": "NULL" }
       ]);
     });
   });
