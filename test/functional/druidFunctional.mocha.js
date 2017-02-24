@@ -21,7 +21,7 @@ let { sane } = require('../utils');
 let { druidRequesterFactory } = require('plywood-druid-requester');
 
 let plywood = require('../plywood');
-let { External, DruidExternal, TimeRange, $, i$, ply, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
+let { External, DruidExternal, TimeRange, $, i$, ply, r, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
 
 let info = require('../info');
 
@@ -359,6 +359,18 @@ describe("Druid Functional", function() {
             NULL,31529720
             Mineola,50836
           `);
+        });
+    });
+
+    it("works with basic error (non-existent lookup)", () => {
+      let ex = $('wiki').split("$cityName.lookup(blah)", 'B');
+
+      return basicExecutor(ex)
+        .then(() => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch((e) => {
+          expect(e.message).to.contain('Lookup [blah] not found');
         });
     });
 
@@ -1674,6 +1686,21 @@ describe("Druid Functional", function() {
                   "Page"
                 ]
               }
+            }
+          ]);
+        });
+    });
+
+    it('works with constant lookup split', () => {
+      let ex = $('wiki').split(r('en').lookup('channel-lookup'), 'Channel')
+        .apply('Count', '$wiki.sum($count)');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Channel": "English",
+              "Count": 392443
             }
           ]);
         });

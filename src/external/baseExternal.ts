@@ -15,11 +15,10 @@
  */
 
 import * as Promise from 'any-promise';
-import { ReadableStream, Transform, Writable } from 'readable-stream';
+import { ReadableStream, WritableStream, Transform, Writable } from 'readable-stream';
 import { Timezone, Duration } from 'chronoshift';
 import { immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
 import * as hasOwnProp from 'has-own-prop';
-import * as toArray from 'stream-to-array';
 import { PlywoodRequester } from 'plywood-base-api';
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
 import { nonEmptyLookup, safeAdd } from '../helper/utils';
@@ -55,6 +54,12 @@ import { Set } from '../datatypes/set';
 import { StringRange } from '../datatypes/stringRange';
 import { TimeRange } from '../datatypes/timeRange';
 import { StreamConcat } from '../helper/streamConcat';
+
+function pipeWithError(src: ReadableStream, dest: WritableStream): any {
+  src.pipe(dest);
+  src.on('error', (e: Error) => dest.emit('error', e));
+  return dest;
+}
 
 export class TotalContainer {
   public datum: Datum;
@@ -1442,7 +1447,12 @@ export abstract class External {
           resolve(v);
         });
 
-      this.queryValueStream(lastNode, externalForNext).pipe(target);
+      const stream = this.queryValueStream(lastNode, externalForNext);
+      stream.pipe(target);
+      stream.on('error', (e: Error) => {
+        stream.unpipe(target);
+        reject(e);
+      });
     });
   }
 
@@ -1491,9 +1501,9 @@ export abstract class External {
         }
       });
 
-      finalStream = resultStream.pipe(queryAndPostTransform.postTransform);
+      finalStream = pipeWithError(resultStream, queryAndPostTransform.postTransform);
     } else {
-      finalStream = requester({ query, context }).pipe(queryAndPostTransform.postTransform);
+      finalStream = pipeWithError(requester({ query, context }), queryAndPostTransform.postTransform);
     }
 
     if (!lastNode && mode === 'split') {

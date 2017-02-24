@@ -49,6 +49,7 @@ let context = {
     derivedAttributes: {
       pageInBrackets: "'[' ++ $page ++ ']'",
       page3: "$page.substr(0, 3)"
+      //constant: "hello.fallback($page)"
     },
     filter: timeFilter,
     allowSelectQueries: true,
@@ -685,56 +686,11 @@ describe("DruidExternal", () => {
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
-        "dataSource": "wikipedia",
-        "dimensions": [
-          "sometimeLater",
-          "language",
-          "page",
-          "tags",
-          "commentLength",
-          "isRobot",
-          {
-            "dimension": "page",
-            "extractionFn": {
-              "format": "[%s]",
-              "nullHandling": "returnNull",
-              "type": "stringFormat"
-            },
-            "outputName": "pageInBrackets",
-            "type": "extraction"
-          },
-          {
-            "dimension": "page",
-            "extractionFn": {
-              "index": 0,
-              "length": 3,
-              "type": "substring"
-            },
-            "outputName": "page3",
-            "type": "extraction"
-          }
-        ],
-        "filter": {
-          "dimension": "page",
-          "type": "bound",
-          "upper": "moon",
-          "upperStrict": true
-        },
-        "granularity": "all",
-        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
-        "metrics": [
-          "count",
-          "added",
-          "deleted",
-          "inserted",
-          "delta_hist"
-        ],
-        "pagingSpec": {
-          "pagingIdentifiers": {},
-          "threshold": 5
-        },
-        "queryType": "select"
+      expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
+        "dimension": "page",
+        "type": "bound",
+        "upper": "moon",
+        "upperStrict": true
       });
     });
 
@@ -1223,6 +1179,43 @@ describe("DruidExternal", () => {
         "dimension": "page",
         "outputName": "Split",
         "type": "default"
+      });
+    });
+
+    it("works with constant", () => {
+      let ex = $('wiki').split('hello', 'C');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      let query = ex.external.getQueryAndPostTransform().query;
+      expect(query.queryType).to.equal('topN');
+      expect(query.dimension).to.deep.equal({
+        "dimension": "__time",
+        "extractionFn": {
+          "lookup": {
+            "map": {},
+            "type": "map"
+          },
+          "replaceMissingValueWith": "hello",
+          "retainMissingValue": false,
+          "type": "lookup"
+        },
+        "outputName": "C",
+        "type": "extraction"
+      });
+    });
+
+    it.skip("works with derived constant", () => {
+      let ex = $('wiki').split('$constant', 'C');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      let query = ex.external.getQueryAndPostTransform().query;
+      //expect(query.queryType).to.equal('topN');
+      expect(query).to.deep.equal({
+
       });
     });
 

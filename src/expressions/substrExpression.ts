@@ -77,6 +77,16 @@ export class SubstrExpression extends ChainableExpression {
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return `SUBSTR(${operandSQL},${this.position + 1},${this.len})`;
   }
+
+  public specialSimplify(): Expression {
+    const { len } = this;
+
+    // X.substr(_, 0)
+    if (len === 0) return Expression.EMPTY_STRING;
+
+    return this;
+  }
+
 }
 
 Expression.register(SubstrExpression);

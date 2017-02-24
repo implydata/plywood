@@ -230,6 +230,12 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
+    it("removes self if operand is literal", () => {
+      let ex1 = r('hello').fallback('$x');
+      let ex2 = r('hello');
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 
@@ -807,6 +813,15 @@ describe("Simplify", () => {
     it('with reference value', () => {
       let ex1 = $('test').match('^\\d+');
       let ex2 = $('test').match('^\\d+');
+      simplifiesTo(ex1, ex2);
+    });
+  });
+
+
+  describe('substr', () => {
+    it('works with length 0', () => {
+      let ex1 = $("x").substr(0, 0);
+      let ex2 = r('');
       simplifiesTo(ex1, ex2);
     });
   });

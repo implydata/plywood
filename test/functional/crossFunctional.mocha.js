@@ -527,7 +527,7 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it.skip('works with constant split', equalityTest({
+    it('works with constant split', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
       expression: $('wiki')
         .split('blah', 'Constant')

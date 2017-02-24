@@ -26,6 +26,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Removed `AttributeInfo#special`, `UniqueAttributeInfo`, `ThetaAttributeInfo`, and `HistogramAttributeInfo`
 - Added `AttributeInfo.nativeType` that stores the original database type of the attribute.
 - `DruidExernal` will now be able to plan using `longSum`
+- `DruidExernal` added ability to split on constant
 
 
 ## 0.15.13

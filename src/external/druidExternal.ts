@@ -565,8 +565,28 @@ export class DruidExternal extends External {
 
   public expressionToDimensionInflater(expression: Expression, label: string): DimensionInflater {
     let freeReferences = expression.getFreeReferences();
-    if (freeReferences.length !== 1) {
-      throw new Error(`must have 1 reference (has ${freeReferences.length}): ${expression}`);
+    if (freeReferences.length === 0) {
+      let someDim = DruidExternal.TIME_ATTRIBUTE;
+
+      if (this.versionBefore('0.9.2')) {
+        const someAttr = this.attributes.filter(a => a.type === 'STRING')[0];
+        if (!someAttr) throw new Error(`could not find any dimension`);
+        someDim = someAttr.name;
+      }
+
+      return {
+        dimension: {
+          type: "extraction",
+          dimension: someDim,
+          outputName: label,
+          extractionFn: new DruidExtractionFnBuilder(this).expressionToExtractionFn(expression)
+        },
+        inflater: null
+      };
+    }
+
+    if (freeReferences.length > 1) {
+      throw new Error(`must have at most 1 reference (has ${freeReferences.length}): ${expression}`);
     }
     let referenceName = freeReferences[0];
 

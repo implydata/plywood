@@ -203,11 +203,14 @@ export class DruidExtractionFnBuilder {
 
   private expressionToExtractionFnPure(expression: Expression): Druid.ExtractionFn | null {
     let freeReferences = expression.getFreeReferences();
-    if (freeReferences.length !== 1) {
-      throw new Error(`must have 1 reference (has ${freeReferences.length}): ${expression}`);
+    if (freeReferences.length > 1) {
+      throw new Error(`must have at most 1 reference (has ${freeReferences.length}): ${expression}`);
     }
 
-    if (expression instanceof RefExpression) {
+    if (expression instanceof LiteralExpression) {
+      return this.literalToExtractionFn(expression);
+
+    } else if (expression instanceof RefExpression) {
       return this.refToExtractionFn(expression);
 
     } else if (expression instanceof ConcatExpression) {
@@ -247,6 +250,18 @@ export class DruidExtractionFnBuilder {
       return this.expressionToJavaScriptExtractionFn(expression);
 
     }
+  }
+
+  private literalToExtractionFn(expression: LiteralExpression): Druid.ExtractionFn {
+    return {
+      type: "lookup",
+      retainMissingValue: false,
+      replaceMissingValueWith: expression.getLiteralValue(),
+      lookup: {
+        type: "map",
+        map: {}
+      }
+    };
   }
 
   private refToExtractionFn(expression: RefExpression): Druid.ExtractionFn | null {

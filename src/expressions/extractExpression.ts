@@ -20,7 +20,6 @@ import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } fro
 import { Indexer, Alterations } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Set } from '../datatypes/index';
-import { MatchExpression } from './matchExpression';
 
 export class ExtractExpression extends ChainableExpression {
   static op = "Extract";
