@@ -99,7 +99,7 @@ cat \
   build/external/postgresExternal.js \
   build/executor/basicExecutor.js \
   extra/postfix.js \
-  | ./node_modules/.bin/f 'l.replace(/^import .*$/, "")' \
+  | grep -v '^import ' \
   | ./node_modules/.bin/f 'l.replace(/^export function ([\w$]+)\(/, "var $1 = exports.$1 = function(")' \
   | ./node_modules/.bin/f 'l.replace(/^export var ([\w$]+) =/, "var $1 = exports.$1 =")' \
   | ./node_modules/.bin/f 'l.replace(/^export \{ ([\w$]+) \};$/, "exports.$1 = $1;")' \
@@ -187,7 +187,7 @@ cat \
   build/external/baseExternal.js \
   build/executor/basicExecutor.js \
   extra/postfix-lite.js \
-  | ./node_modules/.bin/f 'l.replace(/^import .*$/, "")' \
+  | grep -v '^import ' \
   | ./node_modules/.bin/f 'l.replace(/^export function ([\w$]+)\(/, "var $1 = exports.$1 = function(")' \
   | ./node_modules/.bin/f 'l.replace(/^export var ([\w$]+) =/, "var $1 = exports.$1 =")' \
   | ./node_modules/.bin/f 'l.replace(/^export \{ ([\w$]+) \};$/, "exports.$1 = $1;")' \

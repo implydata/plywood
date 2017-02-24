@@ -821,10 +821,6 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     });
   }
 
-  public introspect(): void {
-    console.error('introspection is always done, `.introspect()` method never needs to be called');
-  }
-
   public getReadyExternals(): DatasetExternalAlterations {
     let externalAlterations: DatasetExternalAlterations = [];
     const { data, attributes } = this;

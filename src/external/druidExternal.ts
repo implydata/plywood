@@ -521,10 +521,6 @@ export class DruidExternal extends External {
     }
   }
 
-  public getDimensionNameForAttributeInfo(attributeInfo: AttributeInfo): string {
-    return attributeInfo.name === this.timeAttribute ? DruidExternal.TIME_ATTRIBUTE : attributeInfo.name;
-  }
-
   // ========= FILTERS =========
 
   public isTimeRef(ex: Expression): boolean {

@@ -41,29 +41,19 @@ function emitsError(message) {
   return out;
 }
 
+function makeIter(arr) {
+  let index = 0;
+  return () => {
+    let v = arr[index];
+    index++;
+    return v
+  }
+}
+
 describe('Stream Concat', () => {
   it('concatenates', () => {
-    return toArray(new StreamConcat({
-      streams: [emits('abc'), emits('def')],
-      objectMode: true
-    }))
-      .then((a) => {
-        expect(a).to.deep.equal(['a', 'b', 'c', 'd', 'e', 'f']);
-      });
-  });
-
-  it('concatenates with function', () => {
-    let run = 0;
-
     const sc = new StreamConcat({
-      streams: () => {
-        run++;
-        switch (run) {
-          case 1: return emits('abc');
-          case 2: return emits('def');
-          default: return null
-        }
-      },
+      next: makeIter([emits('abc'), emits('def')]),
       objectMode: true
     });
 
@@ -75,7 +65,7 @@ describe('Stream Concat', () => {
 
   it('forward errors 1', () => {
     return toArray(new StreamConcat({
-      streams: [emitsError('oops')],
+      next: makeIter([emitsError('oops')]),
       objectMode: true
     }))
       .then(() => {
@@ -88,7 +78,7 @@ describe('Stream Concat', () => {
 
   it('forward errors 2', () => {
     return toArray(new StreamConcat({
-      streams: [emits('abc'), emitsError('oops')],
+      next: makeIter([emits('abc'), emitsError('oops')]),
       objectMode: true
     }))
       .then(() => {

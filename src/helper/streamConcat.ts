@@ -17,16 +17,14 @@
 import { PassThrough, Stream } from 'readable-stream';
 
 export class StreamConcat extends PassThrough {
-  public streams: Stream[];
-  public canAddStream: boolean;
+  public next: () => Stream;
   public currentStream: Stream;
   public streamIndex: number;
 
   constructor(options: any) {
     super(options);
 
-    this.streams = options.streams;
-    this.canAddStream = Array.isArray(this.streams);
+    this.next = options.next;
     this.currentStream = null;
     this.streamIndex = 0;
 
@@ -35,27 +33,14 @@ export class StreamConcat extends PassThrough {
 
   private _nextStream() {
     this.currentStream = null;
-    if (Array.isArray(this.streams) && this.streamIndex < this.streams.length) {
-      this.currentStream = this.streams[this.streamIndex++];
-    } else if (typeof this.streams === 'function') {
-      this.currentStream = this.streams();
-    }
+    this.currentStream = this.next();
 
     if (this.currentStream == null) {
-      this.canAddStream = false;
       this.push(null);
     } else {
       this.currentStream.pipe(this, {end: false});
       this.currentStream.on('error', (e: any) => this.emit('error', e));
       this.currentStream.on('end', this._nextStream.bind(this));
-    }
-  }
-
-  public addStream(newStream: Stream) {
-    if (this.canAddStream) {
-      this.streams.push(newStream);
-    } else {
-      this.emit('error', new Error('Can\'t add stream.'));
     }
   }
 }

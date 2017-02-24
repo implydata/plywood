@@ -1488,7 +1488,7 @@ export abstract class External {
       let numResults: number;
       const resultStream = new StreamConcat({
         objectMode: true,
-        streams: () => {
+        next: () => {
           if (streamNumber) query = next(query, numResults, meta);
           if (!query) return null;
           streamNumber++;

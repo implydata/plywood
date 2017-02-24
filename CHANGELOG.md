@@ -27,6 +27,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Added `AttributeInfo.nativeType` that stores the original database type of the attribute.
 - `DruidExernal` will now be able to plan using `longSum`
 - `DruidExernal` added ability to split on constant
+- Removed deprecation warnings and deleted crutches from the 0.15 release
 
 
 ## 0.15.13
