@@ -24,6 +24,7 @@ import { PlywoodRange } from './range';
 import { NumberRange } from './numberRange';
 import { TimeRange } from './timeRange';
 import { StringRange } from './stringRange';
+import { PlywoodValue } from './dataset';
 import { isDate } from 'chronoshift';
 
 export interface SetValue {
@@ -189,6 +190,10 @@ export class Set implements Instance<SetValue, SetJS> {
     }
 
     return aSet.intersect(bSet).simplify();
+  }
+
+  static fromPlywoodValue(pv: PlywoodValue) {
+    return pv instanceof Set ? pv : Set.fromJS([pv]);
   }
 
   static fromJS(parameters: Array<any>): Set;

@@ -33,6 +33,7 @@ function promiseFnToStream(promiseRq) {
         },
         (e) => {
           stream.emit('error', e);
+          stream.end();
         }
       );
 

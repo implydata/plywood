@@ -33,6 +33,11 @@ export abstract class Range<T> {
     return type && type.indexOf('_RANGE') > 0;
   }
 
+  static unwrapRangeType(type: PlyType): PlyType {
+    if (!type) return null;
+    return Range.isRangeType(type) ? <PlyType>type.substr(0, type.length - 6) : type;
+  }
+
   static classMap: Lookup<typeof Range> = {};
 
   static register(ctr: typeof Range): void {
@@ -158,8 +163,10 @@ export abstract class Range<T> {
   }
 
   public intersects(other: Range<T>): boolean {
-    return this.contains(other.start) || this.contains(other.end)
-      || other.contains(this.start) || other.contains(this.end)
+    return this.contains(other.start)
+      || this.contains(other.end)
+      || other.contains(this.start)
+      || other.contains(this.end)
       || this._equalsHelper(other); // in case of (0, 1) and (0, 1)
   }
 

@@ -62,15 +62,17 @@ export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameter
     let startTime = Date.now();
     let stream = requester(request);
 
-    let data: any[] = [];
-    stream.on('data', (datum: any) => data.push(datum));
-
-    stream.on('end', () => {
-      onSuccess(data, Date.now() - startTime, request.query, myQueryNumber, request.context);
+    let errorSeen = false;
+    stream.on('error', (error: Error) => {
+      errorSeen = true;
+      onError(error, Date.now() - startTime, request.query, myQueryNumber, request.context);
     });
 
-    stream.on('error', (error: Error) => {
-      onError(error, Date.now() - startTime, request.query, myQueryNumber, request.context);
+    let data: any[] = [];
+    stream.on('data', (datum: any) => data.push(datum));
+    stream.on('end', () => {
+      if (errorSeen) return;
+      onSuccess(data, Date.now() - startTime, request.query, myQueryNumber, request.context);
     });
 
     return stream;

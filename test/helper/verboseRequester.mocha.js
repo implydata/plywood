@@ -28,6 +28,7 @@ describe("Verbose requester", () => {
     setTimeout(() => {
       if (/^fail/.test(request.query)) {
         stream.emit('error', new Error('some error'));
+        stream.end();
       } else {
         stream.write(1);
         stream.write(2);

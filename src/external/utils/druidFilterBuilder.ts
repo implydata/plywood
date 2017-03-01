@@ -163,7 +163,7 @@ export class DruidFilterBuilder {
         throw new Error(`can not convert ${filter} to Druid interval`);
       }
 
-    } else if (filter instanceof InExpression) {
+    } else if (filter instanceof OverlapExpression || filter instanceof InExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
         let timeRanges: TimeRange[];

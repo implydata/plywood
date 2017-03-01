@@ -26,24 +26,22 @@ export class OverlapExpression extends ChainableUnaryExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("overlap");
-    if (!this.expression.canHaveType('SET')) {
-      throw new Error(`${this.op} must have an expression of type SET (is: ${this.expression.type})`);
+    let operandType = Range.unwrapRangeType(Set.unwrapSetType(this.operand.type));
+    let expressionType = Range.unwrapRangeType(Set.unwrapSetType(this.expression.type));
+    if (!(!operandType || operandType === 'NULL' || !expressionType || expressionType === 'NULL' || operandType === expressionType)) {
+      throw new Error(`${this.op} must have matching types (are ${this.operand.type}, ${this.expression.type})`);
     }
-
-    let oType = this.operand.type;
-    let eType = this.expression.type;
-    if (oType && eType && oType !== 'NULL' && oType !== 'SET/NULL' && eType !== 'NULL' && eType !== 'SET/NULL') {
-      if (Set.wrapSetType(oType) !== Set.wrapSetType(eType)) {
-        throw new Error(`overlap expression has type mismatch between ${oType} and ${eType}`);
-      }
-    }
-
     this.type = 'BOOLEAN';
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    if (expressionValue == null) return null;
-    return operandValue instanceof Set ? operandValue.overlap(expressionValue) : expressionValue.contains(operandValue);
+    return Set.crossBinaryBoolean(operandValue, expressionValue, (a, b) => {
+      if (a instanceof Range) {
+        return b instanceof Range ? a.intersects(b) : a.contains(b);
+      } else {
+        return b instanceof Range ? b.contains(a) : a === b;
+      }
+    });
   }
 
   public isCommutative(): boolean {
@@ -56,7 +54,7 @@ export class OverlapExpression extends ChainableUnaryExpression {
     // X.overlap({})
     if (expression.equals(Expression.EMPTY_SET)) return Expression.FALSE;
 
-    // NonRangeOrSet.overlap(NonRangeOrSet)
+    // NonRange.overlap(NonRange)
     if (!Range.isRangeType(operand.type) && !Range.isRangeType(expression.type)) return operand.is(expression);
 
     return this;
