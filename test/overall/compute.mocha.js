@@ -315,6 +315,30 @@ describe("compute native", () => {
       });
   });
 
+  it('fallback works with NaN', () => {
+    let data = [
+      { NumberPacketsLostSum: NaN,  NumberPacketsReceivedSum: NaN }
+    ];
+    let ds = Dataset.fromJS({ data, attributes: [
+      {
+        name: 'NumberPacketsLostSum',
+        type: 'NUMBER'
+      },
+      {
+        name: 'NumberPacketsReceivedSum',
+        type: 'NUMBER'
+      }
+    ]}).hide();
+
+    const ex = ply(ds)
+      .max(("$NumberPacketsLostSum / ($NumberPacketsReceivedSum + ($NumberPacketsLostSum).absolute()).fallback(0) * 100"));
+
+      return ex.compute().then((v) => {
+        expect(v).to.equal(0);
+      });
+  });
+
+
   it("gets cardinality of set", () => {
     let data = [
       { id: 1, prices: [400, 200, 3], times: {type: 'SET', elements: [new Date('2015-10-01T09:20:30Z')]}, tags: ['super', 'cool'] },
