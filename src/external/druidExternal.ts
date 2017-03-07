@@ -559,6 +559,13 @@ export class DruidExternal extends External {
 
   // ----------------------------
 
+  public makeOutputName(name: string): string {
+    if (name.indexOf('__') === 0) { // Starts with __
+      return '***' + name;
+    }
+    return name;
+  }
+
   public expressionToDimensionInflater(expression: Expression, label: string): DimensionInflater {
     let freeReferences = expression.getFreeReferences();
     if (freeReferences.length === 0) {
@@ -574,7 +581,7 @@ export class DruidExternal extends External {
         dimension: {
           type: "extraction",
           dimension: someDim,
-          outputName: label,
+          outputName: this.makeOutputName(label),
           extractionFn: new DruidExtractionFnBuilder(this).expressionToExtractionFn(expression)
         },
         inflater: null
@@ -598,7 +605,7 @@ export class DruidExternal extends External {
     let dimension: Druid.DimensionSpecFull = {
       type: "default",
       dimension: attributeInfo.name === this.timeAttribute ? DruidExternal.TIME_ATTRIBUTE : attributeInfo.name,
-      outputName: label
+      outputName: this.makeOutputName(label)
     };
     if (extractionFn) {
       dimension.type = "extraction";
@@ -852,7 +859,8 @@ export class DruidExternal extends External {
 
     let requesterContext: any = {
       timestamp: null,
-      ignorePrefix: '!'
+      ignorePrefix: '!',
+      dummyPrefix: '***'
     };
 
     if (context) {

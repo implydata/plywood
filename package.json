@@ -51,13 +51,13 @@
     "istanbul": "0.4.5",
     "mocha": "3.2.0",
     "pegjs": "0.10.0",
-    "plywood-druid-requester": "2.0.8",
+    "plywood-druid-requester": "2.0.11",
     "plywood-mysql-requester": "2.0.1",
     "plywood-postgres-requester": "1.0.1",
     "readable-stream": "^2.2.3",
     "tdi": "0.2.20",
     "tslint": "4.5.1",
     "typescript": "2.2.1",
-    "uglify-js": "2.8.5"
+    "uglify-js": "2.8.8"
   }
 }
