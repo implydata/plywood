@@ -1920,11 +1920,11 @@ describe("compute native", () => {
                 },
                 {
                   "name": "MinTime",
-                  "type": "NUMBER"
+                  "type": "TIME"
                 },
                 {
                   "name": "MaxTime",
-                  "type": "NUMBER"
+                  "type": "TIME"
                 },
                 {
                   "name": "CountPlusX",

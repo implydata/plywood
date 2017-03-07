@@ -100,7 +100,7 @@ export class LiteralExpression extends Expression {
 
   public getSQL(dialect: SQLDialect): string {
     let value = this.value;
-    if (value === null) return 'NULL';
+    if (value === null) return dialect.nullConstant();
 
     switch (this.type) {
       case 'STRING':

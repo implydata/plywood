@@ -17,17 +17,20 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - `Dataset#flatten` now returns a new (flat) `Dataset` and thus the `parentName` option is no longer supported
 - In `Dataset#flatten`, `Dataset#ToCSV`, e.t.c `orderedColumns` option is no longer supported use `.select()` instead
 - Added `columnOrdering` option to `Dataset#flatten` with values `'as-seen'` and  `'keys-first'`
-- `Dataset#getColumns` is now just `return this.flatten(options).attributes;`
+- `Dataset#getColumns` is now just `return this.flatten(options).attributes`
 - `Dataset#getNestedColumns` was removed
 - Added `ThenExpression`
 - Expressions have all been standardized to apply to Sets as well as atomics
 - Fix `NULL` types handling everywhere
 - Remove `AttributeInfo#serialize`
 - Removed `AttributeInfo#special`, `UniqueAttributeInfo`, `ThetaAttributeInfo`, and `HistogramAttributeInfo`
-- Added `AttributeInfo.nativeType` that stores the original database type of the attribute.
+- Added `AttributeInfo.nativeType` that stores the original database type of the attribute
 - `DruidExernal` will now be able to plan using `longSum`
 - `DruidExernal` added ability to split on constant
 - Removed deprecation warnings and deleted crutches from the 0.15 release
+- `MinExpression` and `MaxExpression` will now correctly output their type as `TIME` if the argument is `TIME`
+- Experimental support for DruidSQL
+- `DruidExternal` correctly defining numeric ordering in topN metricsSpecs
 
 
 ## 0.15.13

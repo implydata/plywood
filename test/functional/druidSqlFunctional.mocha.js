@@ -1,5 +1,4 @@
 /*
- * Copyright 2012-2015 Metamarkets Group Inc.
  * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,168 +15,191 @@
  */
 
 const { expect } = require("chai");
+let { sane } = require('../utils');
 
-let { mySqlRequesterFactory } = require('plywood-mysql-requester');
+let { druidRequesterFactory } = require('plywood-druid-requester');
 
 let plywood = require('../plywood');
-let { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
+let { External, DruidSQLExternal, TimeRange, $, i$, ply, r, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
 
 let info = require('../info');
 
-let mySqlRequester = mySqlRequesterFactory({
-  host: info.mySqlHost,
-  database: info.mySqlDatabase,
-  user: info.mySqlUser,
-  password: info.mySqlPassword
+let druidRequester = druidRequesterFactory({
+  host: info.druidHost
 });
 
-//mySqlRequester = verboseRequesterFactory({
-//  requester: mySqlRequester
-//});
+// druidRequester = verboseRequesterFactory({
+//  requester: druidRequester
+// });
 
-describe("MySQL Functional", function() {
+describe("DruidSQL Functional", function() {
   this.timeout(10000);
 
   let wikiAttributes = [
     {
       "name": "__time",
-      "nativeType": "datetime",
+      "nativeType": "TIMESTAMP",
       "type": "TIME"
     },
     {
-      "name": "sometimeLater",
-      "nativeType": "timestamp",
-      "type": "TIME"
+      "name": "added",
+      "nativeType": "BIGINT",
+      "type": "NUMBER"
     },
     {
       "name": "channel",
-      "nativeType": "varchar(255)",
+      "nativeType": "VARCHAR",
       "type": "STRING"
     },
     {
       "name": "cityName",
-      "nativeType": "varchar(255)",
+      "nativeType": "VARCHAR",
       "type": "STRING"
     },
     {
       "name": "comment",
-      "nativeType": "varchar(300)",
+      "nativeType": "VARCHAR",
       "type": "STRING"
     },
     {
       "name": "commentLength",
-      "nativeType": "int(11)",
-      "type": "NUMBER"
+      "nativeType": "VARCHAR",
+      "type": "STRING"
     },
     {
       "name": "commentLengthStr",
-      "nativeType": "varchar(10)",
-      "type": "STRING"
-    },
-    {
-      "name": "countryIsoCode",
-      "nativeType": "varchar(255)",
-      "type": "STRING"
-    },
-    {
-      "name": "countryName",
-      "nativeType": "varchar(255)",
-      "type": "STRING"
-    },
-    {
-      "name": "deltaBucket100",
-      "nativeType": "int(11)",
-      "type": "NUMBER"
-    },
-    {
-      "name": "isAnonymous",
-      "nativeType": "tinyint(1)",
-      "type": "BOOLEAN"
-    },
-    {
-      "name": "isMinor",
-      "nativeType": "tinyint(1)",
-      "type": "BOOLEAN"
-    },
-    {
-      "name": "isNew",
-      "nativeType": "tinyint(1)",
-      "type": "BOOLEAN"
-    },
-    {
-      "name": "isRobot",
-      "nativeType": "tinyint(1)",
-      "type": "BOOLEAN"
-    },
-    {
-      "name": "isUnpatrolled",
-      "nativeType": "tinyint(1)",
-      "type": "BOOLEAN"
-    },
-    {
-      "name": "metroCode",
-      "nativeType": "int(11)",
-      "type": "NUMBER"
-    },
-    {
-      "name": "namespace",
-      "nativeType": "varchar(255)",
-      "type": "STRING"
-    },
-    {
-      "name": "page",
-      "nativeType": "varchar(255)",
-      "type": "STRING"
-    },
-    {
-      "name": "regionIsoCode",
-      "nativeType": "varchar(255)",
-      "type": "STRING"
-    },
-    {
-      "name": "regionName",
-      "nativeType": "varchar(255)",
-      "type": "STRING"
-    },
-    {
-      "name": "user",
-      "nativeType": "varchar(255)",
+      "nativeType": "VARCHAR",
       "type": "STRING"
     },
     {
       "name": "count",
-      "nativeType": "bigint(21)",
+      "nativeType": "BIGINT",
       "type": "NUMBER"
     },
     {
-      "name": "added",
-      "nativeType": "decimal(32,0)",
-      "type": "NUMBER"
+      "name": "countryIsoCode",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "countryName",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
     },
     {
       "name": "deleted",
-      "nativeType": "decimal(32,0)",
+      "nativeType": "BIGINT",
       "type": "NUMBER"
     },
     {
       "name": "delta",
-      "nativeType": "decimal(32,0)",
+      "nativeType": "BIGINT",
       "type": "NUMBER"
     },
     {
-      "name": "min_delta",
-      "nativeType": "int(11)",
-      "type": "NUMBER"
-    },
-    {
-      "name": "max_delta",
-      "nativeType": "int(11)",
-      "type": "NUMBER"
+      "name": "deltaBucket100",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
     },
     {
       "name": "deltaByTen",
-      "nativeType": "double",
+      "nativeType": "FLOAT",
       "type": "NUMBER"
+    },
+    {
+      "name": "delta_hist",
+      "nativeType": "OTHER",
+      "type": "NULL"
+    },
+    {
+      "name": "isAnonymous",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "isMinor",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "isNew",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "isRobot",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "isUnpatrolled",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "max_delta",
+      "nativeType": "BIGINT",
+      "type": "NUMBER"
+    },
+    {
+      "name": "metroCode",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "min_delta",
+      "nativeType": "BIGINT",
+      "type": "NUMBER"
+    },
+    {
+      "name": "namespace",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "page",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "page_unique",
+      "nativeType": "OTHER",
+      "type": "NULL"
+    },
+    {
+      "name": "regionIsoCode",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "regionName",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "sometimeLater",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "user",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "userChars",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    },
+    {
+      "name": "user_theta",
+      "nativeType": "OTHER",
+      "type": "NULL"
+    },
+    {
+      "name": "user_unique",
+      "nativeType": "OTHER",
+      "type": "NULL"
     }
   ];
 
@@ -187,10 +209,9 @@ describe("MySQL Functional", function() {
 
   describe("source list", () => {
     it("does a source list", () => {
-      return MySQLExternal.getSourceList(mySqlRequester)
+      return DruidSQLExternal.getSourceList(druidRequester)
         .then((sources) => {
-          expect(sources).to.contain('wikipedia');
-          expect(sources).to.contain('wikipedia_raw');
+          expect(sources).to.deep.equal(['wikipedia', 'wikipedia-compact']);
         })
     });
 
@@ -201,12 +222,37 @@ describe("MySQL Functional", function() {
     let basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
-          engine: 'mysql',
+          engine: 'druidsql',
           source: 'wikipedia',
           attributes: wikiAttributes,
           derivedAttributes: wikiDerivedAttributes
-        }, mySqlRequester)
+        }, druidRequester)
       }
+    });
+
+    it("works in simple case", () => {
+      let ex = $("wiki").split("$channel", 'Channel')
+        .apply('Count', $('wiki').sum('$count'))
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Channel": "en",
+              "Count": 114711
+            },
+            {
+              "Channel": "vi",
+              "Count": 99010
+            },
+            {
+              "Channel": "de",
+              "Count": 25103
+            }
+          ]);
+        });
     });
 
     it("works in advanced case", () => {
@@ -227,15 +273,15 @@ describe("MySQL Functional", function() {
                 .sort('$TotalAdded', 'descending')
                 .limit(3)
             )
-        )
-        .apply(
-          'PagesHaving',
-          $("wiki").split("$page", 'Page')
-            .apply('Count', '$wiki.sum($count)')
-            .sort('$Count', 'descending')
-            .filter($('Count').lessThan(30))
-            .limit(3)
         );
+      // .apply(
+      //   'PagesHaving',
+      //   $("wiki").split("$page", 'Page')
+      //     .apply('Count', '$wiki.sum($count)')
+      //     .sort('$Count', 'descending')
+      //     .filter($('Count').lessThan(30))
+      //     .limit(3)
+      // );
 
       return basicExecutor(ex)
         .then((result) => {
@@ -347,295 +393,27 @@ describe("MySQL Functional", function() {
                   "Namespace"
                 ]
               },
-              "PagesHaving": {
-                "attributes": [
-                  {
-                    "name": "Page",
-                    "type": "STRING"
-                  },
-                  {
-                    "name": "Count",
-                    "type": "NUMBER"
-                  }
-                ],
-                "data": [
-                  {
-                    "Count": 29,
-                    "Page": "User:King Lui"
-                  },
-                  {
-                    "Count": 29,
-                    "Page": "The Visit (2015 film)"
-                  },
-                  {
-                    "Count": 29,
-                    "Page": "Stargate production discography"
-                  }
-                ],
-                "keys": [
-                  "Page"
-                ]
-              },
               "TotalAdded": 32553107
             }
           ]);
         });
     });
 
-    it("works with boolean GROUP BYs", () => {
+    it.skip("works with boolean GROUP BYs", () => {
       let ex = $("wiki").split($("channel").is("en"), 'ChannelIsEn')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending');
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal({
-            "attributes": [
-              {
-                "name": "ChannelIsEn",
-                "type": "BOOLEAN"
-              },
-              {
-                "name": "Count",
-                "type": "NUMBER"
-              }
-            ],
-            "data": [
-              {
-                "ChannelIsEn": false,
-                "Count": 277732
-              },
-              {
-                "ChannelIsEn": true,
-                "Count": 114711
-              }
-            ],
-            "keys": [
-              "ChannelIsEn"
-            ]
-          });
-        });
-    });
-
-    it("works with multi-dimensional GROUP BYs", () => {
-      let ex = $('wiki')
-        .filter($("channel").isnt("en"))
-        .split({
-          'Channel': "$channel",
-          'TimeByHour': '$__time.timeBucket(PT1H)'
-        })
-        .apply('Count', $('wiki').sum('$count'))
-        .sort('$Count', 'descending')
-        .limit(4);
-
-      return basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal({
-            "attributes": [
-              {
-                "name": "Channel",
-                "type": "STRING"
-              },
-              {
-                "name": "TimeByHour",
-                "type": "TIME_RANGE"
-              },
-              {
-                "name": "Count",
-                "type": "NUMBER"
-              }
-            ],
-            "data": [
-              {
-                "Channel": "vi",
-                "Count": 12443,
-                "TimeByHour": {
-                  "end": new Date('2015-09-12T07:00:00.000Z'),
-                  "start": new Date('2015-09-12T06:00:00.000Z')
-                }
-              },
-              {
-                "Channel": "vi",
-                "Count": 11833,
-                "TimeByHour": {
-                  "end": new Date('2015-09-12T08:00:00.000Z'),
-                  "start": new Date('2015-09-12T07:00:00.000Z')
-                }
-              },
-              {
-                "Channel": "vi",
-                "Count": 6411,
-                "TimeByHour": {
-                  "end": new Date('2015-09-12T18:00:00.000Z'),
-                  "start": new Date('2015-09-12T17:00:00.000Z')
-                }
-              },
-              {
-                "Channel": "vi",
-                "Count": 4943,
-                "TimeByHour": {
-                  "end": new Date('2015-09-12T16:00:00.000Z'),
-                  "start": new Date('2015-09-12T15:00:00.000Z')
-                }
-              }
-            ],
-            "keys": [
-              "Channel",
-              "TimeByHour"
-            ]
-          });
-        });
-    });
-
-    it("fallback doesn't happen if not null", () => {
-      let ex = ply()
-        .apply('added', $('wiki').sum($('added')).fallback(2));
-
-      return basicExecutor(ex)
-        .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "added": 97393743
-            }
-          ]);
-        });
-    });
-
-    it("works with simple raw mode", () => {
-      let ex = $('wiki')
-        .filter('$cityName == "El Paso"')
-        .select('regionName', 'added', 'page');
-
-      return basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal({
-            "attributes": [
-              {
-                "name": "regionName",
-                "type": "STRING"
-              },
-              {
-                "name": "added",
-                "type": "NUMBER"
-              },
-              {
-                "name": "page",
-                "type": "STRING"
-              }
-            ],
-            "data": [
-              {
-                "added": 0,
-                "page": "Clint High School",
-                "regionName": "Texas"
-              },
-              {
-                "added": 0,
-                "page": "Reggie Williams (linebacker)",
-                "regionName": "Texas"
-              }
-            ]
-          });
-        });
-    });
-
-    it("works with complex raw mode", () => {
-      let ex = $('wiki')
-        .filter('$cityName == "El Paso"')
-        .apply('regionNameLOL', '$regionName.concat(LOL)')
-        .apply('addedPlusOne', '$added + 1')
-        .select('regionNameLOL', 'addedPlusOne', 'pageInBrackets');
-
-      return basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS()).to.deep.equal({
-            "attributes": [
-              {
-                "name": "regionNameLOL",
-                "type": "STRING"
-              },
-              {
-                "name": "addedPlusOne",
-                "type": "NUMBER"
-              },
-              {
-                "name": "pageInBrackets",
-                "type": "STRING"
-              }
-            ],
-            "data": [
-              {
-                "addedPlusOne": 1,
-                "pageInBrackets": "[Clint High School]",
-                "regionNameLOL": "TexasLOL"
-              },
-              {
-                "addedPlusOne": 1,
-                "pageInBrackets": "[Reggie Williams (linebacker)]",
-                "regionNameLOL": "TexasLOL"
-              }
-            ]
-          });
-        });
-    });
-
-    it("fallback happens if null", () => {
-      let ex = ply()
-        .apply("wiki", $('wiki').filter($("page").is('Rallicula')))
-        .apply('MetroCode', $('wiki').sum($('metroCode')).fallback(0));
-
-      return basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS().data).to.deep.equal([
-            {
-              "MetroCode": 0
-            }
-          ]);
-        });
-    });
-
-    it("power of and abs", () => {
-      let ex = ply()
-        .apply("wiki", $('wiki').filter($("page").is('Kosowo')))
-        .apply('Delta', $('wiki').min($('delta')))
-        .apply('AbsDelta', $('wiki').min($('delta')).absolute())
-        .apply('SquareDelta', $('wiki').sum($('delta')).power(2));
-
-      return basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS().data).to.deep.equal([
-            {
-              "AbsDelta": 2,
-              "Delta": -2,
-              "SquareDelta": 4
-            }
-          ]);
-        });
-    });
-
-
-    it("works string range", () => {
-      let ex = $('wiki')
-        .filter($('cityName').greaterThan('Kab').and($('cityName').lessThan('Kar')))
-        .split('$cityName', 'City')
-        .limit(5);
-      return basicExecutor(ex)
-        .then((result) => {
-          expect(result.toJS().data).to.deep.equal([
-            {
-              "City": "Kadelburg"
+              "ChannelIsEn": false,
+              "Count": 277732
             },
             {
-              "City": "Kaduwela"
-            },
-            {
-              "City": "Kagoshima"
-            },
-            {
-              "City": "Kailua"
-            },
-            {
-              "City": "Kainan"
+              "ChannelIsEn": true,
+              "Count": 114711
             }
           ]);
         });
@@ -643,37 +421,52 @@ describe("MySQL Functional", function() {
 
     it("works string range", () => {
       let ex = $('wiki')
-        .filter($('cityName').lessThan('P'))
-        .filter('$comment < "zebra"')
-        .split('$cityName', 'City')
-        .limit(5);
+        .filter($('cityName').greaterThan('Eagleton'))
+        .split('$cityName', 'CityName')
+        .sort('$CityName', 'descending')
+        .limit(10);
+
       return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "City": "'Ewa Beach"
+              "CityName": "Ōita"
             },
             {
-              "City": "A Coruña"
+              "CityName": "Łódź"
             },
             {
-              "City": "Aachen"
+              "CityName": "İzmit"
             },
             {
-              "City": "Aalborg"
+              "CityName": "České Budějovice"
             },
             {
-              "City": "Aarhus"
+              "CityName": "Ürümqi"
+            },
+            {
+              "CityName": "Ústí nad Labem"
+            },
+            {
+              "CityName": "Évry"
+            },
+            {
+              "CityName": "Épinay-sur-Seine"
+            },
+            {
+              "CityName": "Épernay"
+            },
+            {
+              "CityName": "Élancourt"
             }
           ]);
         });
     });
-
   });
 
-  describe("incorrect page", () => {
+  describe("incorrect commentLength and comment", () => {
     let wikiUserCharAsNumber = External.fromJS({
-      engine: 'mysql',
+      engine: 'druidsql',
       source: 'wikipedia',
       timeAttribute: 'time',
       allowEternity: true,
@@ -683,61 +476,32 @@ describe("MySQL Functional", function() {
         { name: 'page', type: 'NUMBER' }, // This is incorrect
         { name: 'count', type: 'NUMBER', unsplitable: true }
       ]
-    }, mySqlRequester);
+    }, druidRequester);
 
-    // Todo: invalid number casts return 0 in mysql. Also, something is happening when page is defined as a number that results in numbers being passed into the cast to date
-    it("works with bad casts", () => {
-      let ex = $('wiki').split({ 'numberCast': '$comment.cast("NUMBER")', 'dateCast': '$page.cast("TIME")' })
-        .apply('Count', '$wiki.sum($count)')
-        .sort('$Count', 'descending')
-        .limit(3);
-
-      return ex.compute({ wiki: wikiUserCharAsNumber })
-        .then((result) => {
-          expect(result.toJS().data).to.deep.equal([
-            {
-              "Count": 382569,
-              "dateCast": new Date('1970-01-01T00:00:00.000Z'),
-              "numberCast": 0
-            },
-            {
-              "Count": 3347,
-              "dateCast": new Date('1970-01-01T00:00:02.015Z'),
-              "numberCast": 0
-            },
-            {
-              "Count": 640,
-              "dateCast": new Date('1970-01-01T00:00:00.000Z'),
-              "numberCast": 1
-            }
-          ]);
-        });
-    });
   });
-
 
   describe("introspection", () => {
     let basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS({
-          engine: 'mysql',
+          engine: 'druidsql',
           source: 'wikipedia'
-        }, mySqlRequester)
+        }, druidRequester)
       }
     });
 
     it("introspects", () => {
       return External.fromJS({
-        engine: 'mysql',
+        engine: 'druidsql',
         source: 'wikipedia'
-      }, mySqlRequester).introspect()
+      }, druidRequester).introspect()
         .then((external) => {
-          expect(external.version).to.equal(info.mySqlVersion);
+          expect(external.version).to.equal(info.druidVersion);
           expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
         });
     });
 
-    it("works with introspection", () => {
+    it.skip("works with introspection", () => { // ToDo: needs null check correction
       let ex = ply()
         .apply("wiki", $('wiki').filter($("channel").is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')

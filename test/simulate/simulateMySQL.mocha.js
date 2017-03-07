@@ -316,7 +316,7 @@ describe("simulate MySQL", () => {
       COUNT(*) AS \`Count\`
       FROM \`diamonds\`
       WHERE \`color\` IN ("A","B","some_color")
-      GROUP BY 1, 2
+      GROUP BY 1,2
       LIMIT 3
     `]);
 

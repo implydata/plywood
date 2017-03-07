@@ -20,6 +20,7 @@ import { Timezone, Duration } from 'chronoshift';
 import { immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
 import * as hasOwnProp from 'has-own-prop';
 import { PlywoodRequester } from 'plywood-base-api';
+import { pipeWithError } from '../helper/utils';
 import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
 import { nonEmptyLookup, safeAdd } from '../helper/utils';
 import { ReadableError } from '../helper/streamBasics';
@@ -54,12 +55,6 @@ import { Set } from '../datatypes/set';
 import { StringRange } from '../datatypes/stringRange';
 import { TimeRange } from '../datatypes/timeRange';
 import { StreamConcat } from '../helper/streamConcat';
-
-function pipeWithError(src: ReadableStream, dest: WritableStream): any {
-  src.pipe(dest);
-  src.on('error', (e: Error) => dest.emit('error', e));
-  return dest;
-}
 
 export class TotalContainer {
   public datum: Datum;
@@ -426,8 +421,8 @@ export abstract class External {
 
   // ==== Inflaters
 
-  static getSimpleInflater(splitExpression: Expression, label: string): Inflater {
-    switch (splitExpression.type) {
+  static getSimpleInflater(type: PlyType, label: string): Inflater {
+    switch (type) {
       case 'BOOLEAN': return External.booleanInflaterFactory(label);
       case 'NUMBER': return External.numberInflaterFactory(label);
       case 'TIME': return External.timeInflaterFactory(label);
@@ -922,6 +917,10 @@ export abstract class External {
     return version && External.versionLessThan(version, neededVersion);
   }
 
+  protected capability(cap: string): boolean {
+    return false;
+  }
+
   public getAttributesInfo(attributeName: string) {
     return NamedArray.get(this.rawAttributes, attributeName);
   }
@@ -1327,7 +1326,13 @@ export abstract class External {
   }
 
   public getQueryFilter(): Expression {
-    return this.inlineDerivedAttributes(this.filter).simplify();
+    let filter = this.inlineDerivedAttributes(this.filter).simplify();
+
+    if (filter instanceof RefExpression && !this.capability('filter-on-attribute')) {
+      filter = filter.is(true);
+    }
+
+    return filter;
   }
 
   public inlineDerivedAttributes(expression: Expression): Expression {

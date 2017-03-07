@@ -82,12 +82,12 @@ export class MySQLDialect extends SQLDialect {
   }
 
   public escapeLiteral(name: string): string {
-    if (name === null) return 'NULL';
+    if (name === null) return this.nullConstant();
     return JSON.stringify(name);
   }
 
   public timeToSQL(date: Date): string {
-    if (!date) return 'NULL';
+    if (!date) return this.nullConstant();
     return `TIMESTAMP('${this.dateToSQLDateString(date)}')`;
   }
 
@@ -99,20 +99,12 @@ export class MySQLDialect extends SQLDialect {
     return `LOCATE(${a},${b})>0`;
   }
 
-  public lengthExpression(a: string): string {
-    return `CHAR_LENGTH(${a})`;
-  }
-
   public ifThenElseNullExpression(a: string, b: string): string {
-    return `IF(${a}, ${b}, NULL)`;
+    return `IF(${a}, ${b}, ${this.nullConstant()})`;
   }
 
   public isNotDistinctFromExpression(a: string, b: string): string {
     return `(${a}<=>${b})`;
-  }
-
-  public regexpExpression(expression: string, regexp: string): string {
-    return `(${expression} REGEXP '${regexp}')`; // ToDo: escape this.regexp
   }
 
   public castExpression(inputType: PlyType, operand: string, cast: string): string {

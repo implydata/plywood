@@ -426,7 +426,7 @@ describe("Druid Functional", function() {
             "attributes": [
               {
                 "name": "max(time)",
-                "type": "NUMBER"
+                "type": "TIME"
               }
             ],
             "data": [

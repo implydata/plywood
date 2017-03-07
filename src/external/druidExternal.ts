@@ -90,7 +90,7 @@ export class InvalidResultError extends ExtendableError {
   }
 }
 
-function expressionNeedsAlphaNumericSort(ex: Expression): boolean {
+function expressionNeedsNumericSort(ex: Expression): boolean {
   let type = ex.type;
   return (type === 'NUMBER' || type === 'NUMBER_RANGE');
 }
@@ -593,7 +593,7 @@ export class DruidExternal extends External {
 
     let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(expression);
 
-    let simpleInflater = External.getSimpleInflater(expression, label);
+    let simpleInflater = External.getSimpleInflater(expression.type, label);
 
     let dimension: Druid.DimensionSpecFull = {
       type: "default",
@@ -1025,10 +1025,18 @@ export class DruidExternal extends External {
             if (sort) {
               let inverted: boolean;
               if (this.sortOnLabel()) {
-                if (expressionNeedsAlphaNumericSort(split.firstSplitExpression())) {
-                  metric = { type: 'alphaNumeric' };
+                if (expressionNeedsNumericSort(split.firstSplitExpression())) {
+                  if (this.versionBefore('0.9.2')) {
+                    metric = { type: 'alphaNumeric' };
+                  } else {
+                    metric = { type: 'dimension', ordering: 'numeric' };
+                  }
                 } else {
-                  metric = { type: 'lexicographic' };
+                  if (this.versionBefore('0.9.2')) {
+                    metric = { type: 'lexicographic' };
+                  } else {
+                    metric = { type: 'dimension', ordering: 'lexicographic' };
+                  }
                 }
                 inverted = sort.direction === 'descending';
               } else {
@@ -1041,7 +1049,11 @@ export class DruidExternal extends External {
               }
 
             } else {
-              metric = { type: 'lexicographic' };
+              if (this.versionBefore('0.9.2')) {
+                metric = { type: 'lexicographic' };
+              } else {
+                metric = { type: 'dimension', ordering: 'lexicographic' };
+              }
             }
             druidQuery.metric = metric;
             druidQuery.threshold = limit ? limit.value : 1000;
@@ -1056,7 +1068,7 @@ export class DruidExternal extends External {
                 direction: sort.direction
               };
               if (this.sortOnLabel()) {
-                if (expressionNeedsAlphaNumericSort(split.splits[col])) {
+                if (expressionNeedsNumericSort(split.splits[col])) {
                   orderByColumn.dimensionOrder = 'alphanumeric';
                 }
               }
@@ -1069,7 +1081,7 @@ export class DruidExternal extends External {
               orderByColumn = {
                 dimension: splitKey
               };
-              if (expressionNeedsAlphaNumericSort(keyExpression)) {
+              if (expressionNeedsNumericSort(keyExpression)) {
                 orderByColumn.dimensionOrder = 'alphanumeric';
               }
             }

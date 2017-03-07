@@ -22,6 +22,10 @@ import { PlyType, PlyTypeSimple } from '../types';
 export abstract class SQLDialect {
   constructor() {}
 
+  public nullConstant(): string {
+    return 'NULL';
+  }
+
   public constantGroupBy(): string {
     return "GROUP BY ''";
   }
@@ -32,7 +36,7 @@ export abstract class SQLDialect {
   }
 
   public escapeLiteral(name: string): string {
-    if (name === null) return 'NULL';
+    if (name === null) return this.nullConstant();
     name = name.replace(/'/g, "''");
     return "'" + name + "'";
   }
@@ -42,7 +46,7 @@ export abstract class SQLDialect {
   }
 
   public numberOrTimeToSQL(x: number | Date): string {
-    if (x === null) return 'NULL';
+    if (x === null) return this.nullConstant();
     if ((x as Date).toISOString) {
       return this.timeToSQL(x as Date);
     } else {
@@ -51,7 +55,7 @@ export abstract class SQLDialect {
   }
 
   public numberToSQL(num: number): string {
-    if (num === null) return 'NULL';
+    if (num === null) return this.nullConstant();
     return '' + num;
   }
 
@@ -84,26 +88,37 @@ export abstract class SQLDialect {
     throw new Error('must implement');
   }
 
+  public substrExpression(a: string, position: number, length: number): string {
+    return `SUBSTR(${a},${position + 1},${length})`;
+  }
+
+  public coalesceExpression(a: string, b: string): string {
+    return `COALESCE(${a}, ${b})`;
+  }
+
   public ifThenElseNullExpression(a: string, b: string): string {
     return `CASE WHEN ${a} THEN ${b} END`;
   }
 
   public isNotDistinctFromExpression(a: string, b: string): string {
-    if (a === 'NULL') return `${b} IS NULL`;
-    if (b === 'NULL') return `${a} IS NULL`;
+    const nullConst = this.nullConstant();
+    if (a === nullConst) return `${b} IS ${nullConst}`;
+    if (b === nullConst) return `${a} IS ${nullConst}`;
     return `(${a} IS NOT DISTINCT FROM ${b})`;
   }
 
-  public abstract regexpExpression(expression: string, regexp: string): string
+  public regexpExpression(expression: string, regexp: string): string {
+    return `(${expression} REGEXP '${regexp}')`; // ToDo: escape this.regexp
+  }
 
   public inExpression(operand: string, start: string, end: string, bounds: string) {
     if (start === end && bounds === '[]') return `${operand}=${start}`;
     let startSQL: string = null;
-    if (start !== 'NULL') {
+    if (start !== this.nullConstant()) {
       startSQL = start + (bounds[0] === '[' ? '<=' : '<') + operand;
     }
     let endSQL: string = null;
-    if (end !== 'NULL') {
+    if (end !== this.nullConstant()) {
       endSQL = operand + (bounds[1] === ']' ? '<=' : '<') + end;
     }
     if (startSQL) {
@@ -115,7 +130,9 @@ export abstract class SQLDialect {
 
   public abstract castExpression(inputType: PlyType, operand: string, cast: PlyTypeSimple): string
 
-  public abstract lengthExpression(a: string): string;
+  public lengthExpression(a: string): string {
+    return `CHAR_LENGTH(${a})`;
+  }
 
   public abstract timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string
 

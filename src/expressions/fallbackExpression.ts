@@ -40,7 +40,7 @@ export class FallbackExpression extends ChainableUnaryExpression {
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    return `COALESCE(${operandSQL}, ${expressionSQL})`;
+    return dialect.coalesceExpression(operandSQL, expressionSQL);
   }
 
   public specialSimplify(): Expression {

@@ -177,8 +177,12 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
     return this.mapSplits((name, expression) => `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`);
   }
 
-  public getShortGroupBySQL(): string {
-    return 'GROUP BY ' + Object.keys(this.splits).map((d, i) => i + 1).join(', ');
+  public getGroupBySQL(dialect: SQLDialect): string[] {
+    return this.mapSplits((name, expression) => expression.getSQL(dialect));
+  }
+
+  public getShortGroupBySQL(): string[] {
+    return Object.keys(this.splits).map((d, i) => String(i + 1));
   }
 
   public fullyDefined(): boolean {

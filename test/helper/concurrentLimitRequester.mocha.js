@@ -42,7 +42,9 @@ describe("Concurrent Limit Requester", () => {
       s.push(null);
     };
     requester.reject = (query) => {
-      streams[query].emit('error', new Error('fail'));
+      const s = streams[query];
+      s.emit('error', new Error('fail'));
+      s.end();
     };
     return requester;
   };
@@ -63,7 +65,7 @@ describe("Concurrent Limit Requester", () => {
     return p;
   });
 
-  it("limit works", () => {
+  it("limit works when ok", () => {
     let requester = makeRequester();
     let concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,
@@ -98,6 +100,44 @@ describe("Concurrent Limit Requester", () => {
     expect(requester.hasQuery('c'), 'has c').to.equal(false);
     requester.resolve('a');
     requester.resolve('b');
+    return Promise.all([ra, rb, rc]);
+  });
+
+  it("limit works when error", () => {
+    let requester = makeRequester();
+    let concurrentLimitRequester = concurrentLimitRequesterFactory({
+      requester,
+      concurrentLimit: 2
+    });
+
+    let nextQuery = 'a';
+    let ra = toArray(concurrentLimitRequester({ query: 'a' }))
+      .catch((e) => {
+        expect(e.message).to.equal('fail');
+        expect(nextQuery).to.equal('a');
+        nextQuery = 'b';
+      });
+
+    let rb = toArray(concurrentLimitRequester({ query: 'b' }))
+      .catch((e) => {
+        expect(e.message).to.equal('fail');
+        expect(nextQuery).to.equal('b');
+        nextQuery = 'c';
+        expect(requester.hasQuery('c', 'has c')).to.equal(true);
+        requester.resolve('c');
+      });
+
+    let rc = toArray(concurrentLimitRequester({ query: 'c' }))
+      .then((res) => {
+        expect(res).to.deep.equal([1, 2, 3]);
+        expect(nextQuery).to.equal('c');
+      });
+
+    expect(requester.hasQuery('a'), 'has a').to.equal(true);
+    expect(requester.hasQuery('b'), 'has b').to.equal(true);
+    expect(requester.hasQuery('c'), 'has c').to.equal(false);
+    requester.reject('a');
+    requester.reject('b');
     return Promise.all([ra, rb, rc]);
   });
 

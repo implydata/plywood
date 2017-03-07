@@ -500,7 +500,7 @@ describe("External", () => {
       `);
 
       expect(postAggregateApplies.join('\n')).to.equal(sane`
-        $_.apply(Volatile,$\{!T_0}:NUMBER.subtract($\{!T_1}:NUMBER))
+        $_.apply(Volatile,$\{!T_0}.subtract($\{!T_1}))
       `);
     });
 

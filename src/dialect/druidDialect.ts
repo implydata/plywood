@@ -18,7 +18,7 @@ import { Timezone, Duration } from 'chronoshift';
 import { SQLDialect } from './baseDialect';
 import { PlyType } from '../types';
 
-export class PostgresDialect extends SQLDialect {
+export class DruidDialect extends SQLDialect {
   static TIME_BUCKETING: Lookup<string> = {
     "PT1S": "second",
     "PT1M": "minute",
@@ -31,33 +31,33 @@ export class PostgresDialect extends SQLDialect {
   };
 
   static TIME_PART_TO_FUNCTION: Lookup<string> = {
-    SECOND_OF_MINUTE: "DATE_PART('second',$$)",
-    SECOND_OF_HOUR: "(DATE_PART('minute',$$)*60+DATE_PART('second',$$))",
-    SECOND_OF_DAY: "((DATE_PART('hour',$$)*60+DATE_PART('minute',$$))*60+DATE_PART('second',$$))",
-    SECOND_OF_WEEK: "((((CAST((DATE_PART('dow',$$)+6) AS int)%7)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$))*60+DATE_PART('second',$$))",
-    SECOND_OF_MONTH: "((((DATE_PART('day',$$)-1)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$))*60+DATE_PART('second',$$))",
-    SECOND_OF_YEAR: "((((DATE_PART('doy',$$)-1)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$))*60+DATE_PART('second',$$))",
+    SECOND_OF_MINUTE: "EXTRACT(SECOND FROM $$)",
+    SECOND_OF_HOUR: "(EXTRACT(MINUTE FROM $$)*60+EXTRACT(SECOND FROM $$))",
+    SECOND_OF_DAY: "((EXTRACT(HOUR_FROM $$)*60+EXTRACT(MINUTE FROM $$))*60+EXTRACT(SECOND FROM $$))",
+    SECOND_OF_WEEK: "((((CAST((DATE_PART('dow',$$)+6) AS int)%7)*24)+EXTRACT(HOUR_FROM $$)*60+EXTRACT(MINUTE FROM $$))*60+EXTRACT(SECOND FROM $$))",
+    SECOND_OF_MONTH: "((((EXTRACT(DAY FROM $$)-1)*24)+EXTRACT(HOUR_FROM $$)*60+EXTRACT(MINUTE FROM $$))*60+EXTRACT(SECOND FROM $$))",
+    SECOND_OF_YEAR: "((((DATE_PART('doy',$$)-1)*24)+EXTRACT(HOUR_FROM $$)*60+EXTRACT(MINUTE FROM $$))*60+EXTRACT(SECOND FROM $$))",
 
-    MINUTE_OF_HOUR: "DATE_PART('minute',$$)",
-    MINUTE_OF_DAY: "DATE_PART('hour',$$)*60+DATE_PART('minute',$$)",
-    MINUTE_OF_WEEK: "((CAST((DATE_PART('dow',$$)+6) AS int)%7)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$)",
-    MINUTE_OF_MONTH: "((DATE_PART('day',$$)-1)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$)",
-    MINUTE_OF_YEAR: "((DATE_PART('doy',$$)-1)*24)+DATE_PART('hour',$$)*60+DATE_PART('minute',$$)",
+    MINUTE_OF_HOUR: "EXTRACT(MINUTE FROM $$)",
+    MINUTE_OF_DAY: "EXTRACT(HOUR_FROM $$)*60+EXTRACT(MINUTE FROM $$)",
+    MINUTE_OF_WEEK: "((CAST((DATE_PART('dow',$$)+6) AS int)%7)*24)+EXTRACT(HOUR_FROM $$)*60+EXTRACT(MINUTE FROM $$)",
+    MINUTE_OF_MONTH: "((EXTRACT(DAY FROM $$)-1)*24)+EXTRACT(HOUR_FROM $$)*60+EXTRACT(MINUTE FROM $$)",
+    MINUTE_OF_YEAR: "((DATE_PART('doy',$$)-1)*24)+EXTRACT(HOUR_FROM $$)*60+EXTRACT(MINUTE FROM $$)",
 
-    HOUR_OF_DAY: "DATE_PART('hour',$$)",
-    HOUR_OF_WEEK: "((CAST((DATE_PART('dow',$$)+6) AS int)%7)*24+DATE_PART('hour',$$))",
-    HOUR_OF_MONTH: "((DATE_PART('day',$$)-1)*24+DATE_PART('hour',$$))",
-    HOUR_OF_YEAR: "((DATE_PART('doy',$$)-1)*24+DATE_PART('hour',$$))",
+    HOUR_OF_DAY: "EXTRACT(HOUR FROM $$)",
+    HOUR_OF_WEEK: "((CAST((DATE_PART('dow',$$)+6) AS int)%7)*24+EXTRACT(HOUR_FROM $$))",
+    HOUR_OF_MONTH: "((EXTRACT(DAY FROM $$)-1)*24+EXTRACT(HOUR_FROM $$))",
+    HOUR_OF_YEAR: "((DATE_PART('doy',$$)-1)*24+EXTRACT(HOUR_FROM $$))",
 
     DAY_OF_WEEK: "(CAST((DATE_PART('dow',$$)+6) AS int)%7)+1",
-    DAY_OF_MONTH: "DATE_PART('day',$$)",
+    DAY_OF_MONTH: "EXTRACT(DAY FROM $$)",
     DAY_OF_YEAR: "DATE_PART('doy',$$)",
 
     //WEEK_OF_MONTH: ???,
     WEEK_OF_YEAR: "DATE_PART('week',$$)",
 
     MONTH_OF_YEAR: "DATE_PART('month',$$)",
-    YEAR: "DATE_PART('year',$$)"
+    YEAR: "EXTRACT(YEAR FROM $$)"
   };
 
   static CAST_TO_FUNCTION: Lookup<Lookup<string>> = {
@@ -65,11 +65,11 @@ export class PostgresDialect extends SQLDialect {
       NUMBER: 'TO_TIMESTAMP($$::double precision / 1000)'
     },
     NUMBER: {
-      TIME: "EXTRACT(EPOCH FROM $$) * 1000",
-      STRING: "$$::float"
+      TIME: "CAST($$ AS BIGINT)",
+      STRING: "CAST($$ AS FLOAT)"
     },
     STRING: {
-      NUMBER: "$$::text"
+      NUMBER: "CAST($$ AS VARCHAR)"
     }
   };
 
@@ -77,8 +77,19 @@ export class PostgresDialect extends SQLDialect {
     super();
   }
 
+  public nullConstant(): string {
+    return "''";
+  }
+
+  public dateToSQLDateString(date: Date): string {
+    return date.toISOString()
+      .replace('T', ' ')
+      .replace('Z', '')
+      .replace(/\.000$/, '');
+  }
+
   public constantGroupBy(): string {
-    return "GROUP BY ''=''";
+    return "GROUP BY ''";
   }
 
   public timeToSQL(date: Date): string {
@@ -98,30 +109,28 @@ export class PostgresDialect extends SQLDialect {
     return `POSITION(${a} IN ${b})>0`;
   }
 
-  public regexpExpression(expression: string, regexp: string): string {
-    return `(${expression} ~ '${regexp}')`; // ToDo: escape this.regexp
+  public coalesceExpression(a: string, b: string): string {
+    return `CASE WHEN ${a}='' THEN ${b} ELSE '' END`;
+  }
+
+  public substrExpression(a: string, position: number, length: number): string {
+    return `SUBSTRING(${a},${position + 1},${length})`;
+  }
+
+  public isNotDistinctFromExpression(a: string, b: string): string {
+    return `(${a}=${b})`;
   }
 
   public castExpression(inputType: PlyType, operand: string, cast: string): string {
-    let castFunction = PostgresDialect.CAST_TO_FUNCTION[cast][inputType];
-    if (!castFunction) throw new Error(`unsupported cast from ${inputType} to ${cast} in Postgres dialect`);
+    let castFunction = DruidDialect.CAST_TO_FUNCTION[cast][inputType];
+    if (!castFunction) throw new Error(`unsupported cast from ${inputType} to ${cast} in Druid dialect`);
     return castFunction.replace(/\$\$/g, operand);
   }
 
-  public utcToWalltime(operand: string, timezone: Timezone): string {
-    if (timezone.isUTC()) return operand;
-    return `(${operand} AT TIME ZONE 'UTC' AT TIME ZONE '${timezone}')`;
-  }
-
-  public walltimeToUTC(operand: string, timezone: Timezone): string {
-    if (timezone.isUTC()) return operand;
-    return `(${operand} AT TIME ZONE '${timezone}' AT TIME ZONE 'UTC')`;
-  }
-
   public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
-    let bucketFormat = PostgresDialect.TIME_BUCKETING[duration.toString()];
+    let bucketFormat = DruidDialect.TIME_BUCKETING[duration.toString()];
     if (!bucketFormat) throw new Error(`unsupported duration '${duration}'`);
-    return this.walltimeToUTC(`DATE_TRUNC('${bucketFormat}',${this.utcToWalltime(operand, timezone)})`, timezone);
+    return `FLOOR(${operand} TO ${bucketFormat})`;
   }
 
   public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
@@ -129,9 +138,9 @@ export class PostgresDialect extends SQLDialect {
   }
 
   public timePartExpression(operand: string, part: string, timezone: Timezone): string {
-    let timePartFunction = PostgresDialect.TIME_PART_TO_FUNCTION[part];
-    if (!timePartFunction) throw new Error(`unsupported part ${part} in Postgres dialect`);
-    return timePartFunction.replace(/\$\$/g, this.utcToWalltime(operand, timezone));
+    let timePartFunction = DruidDialect.TIME_PART_TO_FUNCTION[part];
+    if (!timePartFunction) throw new Error(`unsupported part ${part} in Druid dialect`);
+    return timePartFunction.replace(/\$\$/g, operand);
   }
 
   public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string {

@@ -15,6 +15,7 @@
  */
 
 import * as hasOwnProp from 'has-own-prop';
+import { ReadableStream, WritableStream } from 'readable-stream';
 
 export function repeat(str: string, times: int): string {
   return new Array(times + 1).join(str);
@@ -124,4 +125,10 @@ export class ExtendableError extends Error {
 
 export function pluralIfNeeded(n: number, thing: string): string {
   return `${n} ${thing}${n === 1 ? '' : 's'}`;
+}
+
+export function pipeWithError(src: ReadableStream, dest: WritableStream): any {
+  src.pipe(dest);
+  src.on('error', (e: Error) => dest.emit('error', e));
+  return dest;
 }

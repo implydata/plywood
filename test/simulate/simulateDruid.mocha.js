@@ -66,7 +66,7 @@ let customTransforms = {
 
 let diamondsCompact = External.fromJS({
   engine: 'druid',
-  version: '0.9.2',
+  version: '0.10.0',
   source: 'diamonds-compact',
   timeAttribute: 'time',
   attributes: [
@@ -87,7 +87,7 @@ let diamondsCompact = External.fromJS({
 let context = {
   'diamonds': External.fromJS({
     engine: 'druid',
-    version: '0.9.2',
+    version: '0.10.0',
     source: 'diamonds',
     timeAttribute: 'time',
     attributes,
@@ -99,7 +99,7 @@ let context = {
   }).addDelegate(diamondsCompact),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
-    version: '0.9.2',
+    version: '0.10.0',
     source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
@@ -900,7 +900,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "alphaNumeric"
+          "type": "dimension",
+          "ordering": "numeric"
         },
         "queryType": "topN",
         "threshold": 20
@@ -946,7 +947,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "alphaNumeric"
+          "type": "dimension",
+          "ordering": "numeric"
         },
         "queryType": "topN",
         "threshold": 1000
@@ -1187,7 +1189,8 @@ describe("simulate Druid", () => {
       "granularity": "all",
       "intervals": "2015-03-12T00Z/2015-03-19T00Z",
       "metric": {
-        "type": "lexicographic"
+        "type": "dimension",
+        "ordering": "lexicographic"
       },
       "queryType": "topN",
       "threshold": 10
@@ -1391,7 +1394,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "lexicographic"
+          "type": "dimension",
+          "ordering": "lexicographic"
         },
         "queryType": "topN",
         "threshold": 10
@@ -1437,7 +1441,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "lexicographic"
+          "type": "dimension",
+          "ordering": "lexicographic"
         },
         "queryType": "topN",
         "threshold": 10
@@ -1586,7 +1591,8 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "metric": {
-            "type": "alphaNumeric"
+            "type": "dimension",
+            "ordering": "numeric"
           },
           "type": "inverted"
         },
@@ -1638,7 +1644,8 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "metric": {
-            "type": "lexicographic"
+            "type": "dimension",
+            "ordering": "lexicographic"
           },
           "type": "inverted"
         },
@@ -1763,7 +1770,8 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "metric": {
-            "type": "lexicographic"
+            "type": "dimension",
+            "ordering": "lexicographic"
           },
           "type": "inverted"
         },
@@ -2320,7 +2328,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "alphaNumeric"
+          "type": "dimension",
+          "ordering": "numeric"
         },
         "queryType": "topN",
         "threshold": 3
@@ -2392,7 +2401,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "lexicographic"
+          "type": "dimension",
+          "ordering": "lexicographic"
         },
         "queryType": "topN",
         "threshold": 10
@@ -2454,7 +2464,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "lexicographic"
+          "type": "dimension",
+          "ordering": "lexicographic"
         },
         "queryType": "topN",
         "threshold": 5

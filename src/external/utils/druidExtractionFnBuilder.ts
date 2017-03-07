@@ -317,10 +317,10 @@ export class DruidExtractionFnBuilder {
     let myExtractionFn: Druid.ExtractionFn;
     if (spanValue === 1 && DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan]) {
       myExtractionFn = {
-        "format": DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan],
-        "locale": "en-US",
-        "timeZone": timezone.toString(),
-        "type": "timeFormat"
+        type: "timeFormat",
+        format: DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan],
+        locale: "en-US",
+        timeZone: timezone.toString()
       };
     } else {
       let prop = DruidExtractionFnBuilder.SPAN_TO_PROPERTY[singleSpan];
@@ -348,10 +348,10 @@ export class DruidExtractionFnBuilder {
     let format = DruidExtractionFnBuilder.TIME_PART_TO_FORMAT[part];
     if (format) {
       myExtractionFn = {
-        "format": format,
-        "locale": "en-US",
-        "timeZone": timezone.toString(),
-        "type": "timeFormat"
+        type: "timeFormat",
+        format: format,
+        locale: "en-US",
+        timeZone: timezone.toString()
       };
     } else {
       let expr = DruidExtractionFnBuilder.TIME_PART_TO_EXPR[part];

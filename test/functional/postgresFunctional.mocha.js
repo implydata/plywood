@@ -39,7 +39,7 @@ describe("Postgres Functional", function() {
 
   let wikiAttributes = [
     {
-      "name": "time",
+      "name": "__time",
       "nativeType": "timestamp without time zone",
       "type": "TIME"
     },
@@ -225,7 +225,7 @@ describe("Postgres Functional", function() {
             .limit(2)
             .apply(
               'Time',
-              $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
+              $("wiki").split($("__time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
                 .apply('TotalAdded', '$wiki.sum($added)')
                 .sort('$TotalAdded', 'descending')
                 .limit(3)
@@ -524,7 +524,7 @@ describe("Postgres Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply(
           'Time',
-          $("wiki").split($("time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
+          $("wiki").split($("__time").timeBucket('PT1H', 'Etc/UTC'), 'Timestamp')
             .apply('TotalAdded', '$wiki.sum($added)')
             .sort('$Timestamp', 'ascending')
             .limit(3)

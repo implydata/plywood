@@ -33,7 +33,7 @@ import { SQLDialect } from '../dialect/baseDialect';
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
   return split.mapSplits((label, splitExpression) => {
-    let simpleInflater = External.getSimpleInflater(splitExpression, label);
+    let simpleInflater = External.getSimpleInflater(splitExpression.type, label);
     if (simpleInflater) return simpleInflater;
 
     if (splitExpression instanceof TimeBucketExpression) {
@@ -92,7 +92,16 @@ export abstract class SQLExternal extends External {
     return true;
   }
 
+  protected capability(cap: string): boolean {
+    if (cap === 'filter-on-attribute' || cap === 'shortcut-group-by') return true;
+    return super.capability(cap);
+  }
+
   // -----------------
+
+  protected sqlToQuery(sql: string): any {
+    return sql;
+  }
 
   public getQueryAndPostTransform(): QueryAndPostTransform<string> {
     const { source, mode, applies, sort, limit, derivedAttributes, dialect } = this;
@@ -114,18 +123,22 @@ export abstract class SQLExternal extends External {
       case 'raw':
         selectedAttributes = selectedAttributes.map((a) => a.dropOriginInfo());
 
-        selectedAttributes.forEach(attribute => {
+        inflaters = selectedAttributes.map(attribute => {
           let { name, type } = attribute;
           switch (type) {
             case 'BOOLEAN':
-              inflaters.push(External.booleanInflaterFactory(name));
-              break;
+              return External.booleanInflaterFactory(name);
+
+            case 'TIME':
+              return External.timeInflaterFactory(name);
 
             case 'SET/STRING':
-              inflaters.push(External.setStringInflaterFactory(name));
-              break;
+              return External.setStringInflaterFactory(name);
+
+            default:
+              return null;
           }
-        });
+        }).filter(Boolean);
 
         query.push(
           selectedAttributes.map(a => {
@@ -157,6 +170,11 @@ export abstract class SQLExternal extends External {
 
       case 'total':
         zeroTotalApplies = applies;
+        inflaters = applies.map(apply => {
+          let { name, expression } = apply;
+          return External.getSimpleInflater(expression.type, name);
+        }).filter(Boolean);
+
         keys = [];
         query.push(
           applies.map(apply => apply.getSQL(dialect)).join(',\n'),
@@ -173,7 +191,7 @@ export abstract class SQLExternal extends External {
             .concat(applies.map(apply => apply.getSQL(dialect)))
             .join(',\n'),
           from,
-          split.getShortGroupBySQL()
+          'GROUP BY ' + (this.capability('shortcut-group-by') ? split.getShortGroupBySQL() : split.getGroupBySQL(dialect)).join(',')
         );
         if (!(this.havingFilter.equals(Expression.TRUE))) {
           query.push('HAVING ' + this.havingFilter.getSQL(dialect));
@@ -192,7 +210,7 @@ export abstract class SQLExternal extends External {
     }
 
     return {
-      query: query.join('\n'),
+      query: this.sqlToQuery(query.join('\n')),
       postTransform: postTransform || External.postTransformFactory(inflaters, selectedAttributes, keys, zeroTotalApplies)
     };
   }

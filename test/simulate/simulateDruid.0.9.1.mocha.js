@@ -148,4 +148,43 @@ describe("simulate Druid 0.9.1", () => {
     ]);
   });
 
+  it("works with numeric split", () => {
+    let ex = ply()
+      .apply(
+        'CaratSplit',
+        $("diamonds").split("$carat", 'Carat')
+          .sort('$Carat', 'descending')
+          .limit(10)
+      );
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "carat",
+          "outputName": "Carat",
+          "type": "default"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "metric": {
+          "metric": {
+            "type": "alphaNumeric"
+          },
+          "type": "inverted"
+        },
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
+  });
+
 });
