@@ -113,10 +113,10 @@ export class DruidSQLExternal extends SQLExternal {
   protected sqlToQuery(sql: string): any {
     return {
       query: sql,
-      context: {
-        useCache: false,
-        populateCache: false
-      }
+      // context: {
+      //   useCache: false,
+      //   populateCache: false
+      // }
     };
   }
 
