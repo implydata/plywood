@@ -43,7 +43,8 @@ let postgresRequester = postgresRequesterFactory({
 });
 
 // druidRequester = verboseRequesterFactory({
-//   requester: druidRequester
+//   requester: druidRequester,
+//   onSuccess: () => {}
 // });
 // mySqlRequester = verboseRequesterFactory({
 //   requester: mySqlRequester
@@ -1354,6 +1355,15 @@ describe("Cross Functional", function() {
         .apply('Cardinality', '$userChars.cardinality()')
         .select("Cardinality")
         .limit(5)
+    }));
+
+    it('works in large result case', equalityTest({
+      executorNames: ['druid', 'druidSql'], // 'mysql', 'postgres' when testing on raw data
+      verbose: true,
+      expression: $('wiki')
+        .sort('$__time', 'ascending')
+        .select('__time', 'page', 'channel')
+        .limit(60)
     }));
 
   });

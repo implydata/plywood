@@ -31,6 +31,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - `MinExpression` and `MaxExpression` will now correctly output their type as `TIME` if the argument is `TIME`
 - Experimental support for DruidSQL
 - `DruidExternal` correctly defining numeric ordering in topN metricsSpecs
+- `DruidExternal` will now explicitly set `fromNext: false` when paginating select
 
 
 ## 0.15.13

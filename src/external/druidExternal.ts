@@ -229,6 +229,7 @@ export class DruidExternal extends External {
 
       pagingIdentifiers = DruidExternal.movePagingIdentifiers(pagingIdentifiers, descending ? -1 : 1);
       prevQuery.pagingSpec.pagingIdentifiers = pagingIdentifiers;
+      prevQuery.pagingSpec.fromNext = false;
       prevQuery.pagingSpec.threshold = Math.min(limit - resultsSoFar, DruidExternal.SELECT_MAX_LIMIT);
       return prevQuery;
     };
