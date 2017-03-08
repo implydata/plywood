@@ -112,7 +112,10 @@ export abstract class SQLExternal extends External {
     let keys: string[] = null;
     let zeroTotalApplies: ApplyExpression[] = null;
 
-    let from = "FROM " + this.dialect.escapeName(source as string);
+    //dialect.setTable(null);
+    let from = "FROM " + dialect.escapeName(source as string);
+    //dialect.setTable(source as string);
+
     let filter = this.getQueryFilter();
     if (!filter.equals(Expression.TRUE)) {
       from += '\nWHERE ' + filter.getSQL(dialect);

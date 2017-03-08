@@ -220,7 +220,7 @@ export class RefExpression extends Expression {
 
   public getSQL(dialect: SQLDialect, minimal = false): string {
     if (this.nest) throw new Error(`can not call getSQL on unresolved expression: ${this}`);
-    return dialect.escapeName(this.name);
+    return dialect.maybeNamespacedName(this.name);
   }
 
   public equals(other: RefExpression): boolean {

@@ -174,14 +174,6 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with ref filter', equalityTest({
-      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
-      expression: ply()
-        .apply('wiki', '$wiki.filter($cityName == "San Francisco")')
-        .apply('TotalEdits', '$wiki.sum($count)')
-        .apply('TotalAdded', '$wiki.sum($added)')
-    }));
-
     it('works with raw boolean column filter', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: ply()
@@ -218,6 +210,14 @@ describe("Cross Functional", function() {
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter($cityName != null)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with == unicode filter', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter($page == "Викинги")')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -476,10 +476,10 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with attribute dynamically derived from transformCase .is()', equalityTest({ // ToDo: Revisit! What is this even doing?
+    it('works with attribute dynamically derived from transformCase .is()', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: ply()
-        .apply('wiki', '$wiki.apply(city3, $cityName.transformCase("lowerCase")).filter($city3 == "SAN FRANCISCO")')
+        .apply('wiki', '$wiki.apply(city3, $cityName.transformCase("upperCase")).filter($city3 == "SAN FRANCISCO")')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -591,7 +591,7 @@ describe("Cross Functional", function() {
 
     it('works with STRING split (sort on split)', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
-      expression: $('wiki').split('$channel', 'Channel')
+      expression: $('wiki').split('$channel', 'Channel') // ToDo: change this to user
         .sort('$Channel', 'ascending')
         .limit(20)
     }));

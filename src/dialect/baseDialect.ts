@@ -20,7 +20,18 @@ import { PlyType, PlyTypeSimple } from '../types';
 
 
 export abstract class SQLDialect {
+  private escapedTableName: string | null = null;
+
   constructor() {}
+
+  public setTable(name: string | null): void {
+    if (name) {
+      this.escapedTableName = this.escapeName(name);
+    } else {
+      this.escapedTableName = null;
+    }
+  }
+
 
   public nullConstant(): string {
     return 'NULL';
@@ -33,6 +44,15 @@ export abstract class SQLDialect {
   public escapeName(name: string): string {
     name = name.replace(/"/g, '""');
     return '"' + name + '"';
+  }
+
+  public maybeNamespacedName(name: string): string {
+    const escapedName = this.escapeName(name);
+    if (this.escapedTableName) {
+      return this.escapedTableName + '.' + escapedName;
+    } else {
+      return escapedName;
+    }
   }
 
   public escapeLiteral(name: string): string {
