@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.16.2
+
+- `DruidExternal` GroupBys will not correctly use 'numeric' order
+- `DruidExternal` fixed GroupBy output name
+
 ## 0.16.1
 
 **Major breaking changes in this release**

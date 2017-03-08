@@ -978,7 +978,7 @@ describe("simulate Druid", () => {
           "columns": [
             {
               "dimension": "HourOfDay",
-              "dimensionOrder": "alphanumeric",
+              "dimensionOrder": "numeric",
               "direction": "ascending"
             }
           ],

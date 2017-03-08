@@ -187,4 +187,83 @@ describe("simulate Druid 0.9.1", () => {
     ]);
   });
 
+  it("works with timePart (no limit)", () => {
+    let ex = ply()
+      .apply(
+        'HoursOfDay',
+        $("diamonds").split("$time.timePart(HOUR_OF_DAY)", 'HourOfDay')
+          .sort('$HourOfDay', 'ascending')
+      )
+      .apply(
+        'SecondOfDay',
+        $("diamonds").split("$time.timePart(SECOND_OF_DAY, 'Etc/UTC')", 'HourOfDay')
+          .sort('$HourOfDay', 'ascending')
+      );
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "__time",
+          "extractionFn": {
+            "format": "H",
+            "locale": "en-US",
+            "timeZone": "Etc/UTC",
+            "type": "timeFormat"
+          },
+          "outputName": "HourOfDay",
+          "type": "extraction"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "metric": {
+          "type": "alphaNumeric"
+        },
+        "queryType": "topN",
+        "threshold": 1000
+      },
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimensions": [
+          {
+            "dimension": "__time",
+            "extractionFn": {
+              "function": "function(s){try{\nvar d = new org.joda.time.DateTime(s);\nd = d.getSecondOfDay();\nreturn d;\n}catch(e){return null;}}",
+              "type": "javascript"
+            },
+            "outputName": "HourOfDay",
+            "type": "extraction"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "HourOfDay",
+              "dimensionOrder": "alphanumeric",
+              "direction": "ascending"
+            }
+          ],
+          "type": "default"
+        },
+        "queryType": "groupBy"
+      }
+    ]);
+  });
+
 });

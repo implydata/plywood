@@ -19,7 +19,7 @@ let { mySqlRequesterFactory } = require('plywood-mysql-requester');
 let { postgresRequesterFactory } = require('plywood-postgres-requester');
 
 let plywood = require('../plywood');
-let { External, TimeRange, $, ply, r, basicExecutorFactory, verboseRequesterFactory } = plywood;
+let { Expression, External, TimeRange, $, ply, r, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
 let utils = require('../utils');
 let info = require('../info');
@@ -1045,6 +1045,33 @@ describe("Cross Functional", function() {
         )
     }));
 
+    it.skip('works with heatmap like query', equalityTest({ // ToDo: add when rollup is off
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: ply()
+        .apply(
+          'ys',
+          $('wiki').split('$__time.timeBucket(PT1H)', 'v')
+            .sort('$v', 'ascending')
+            .limit(5)
+        )
+        .apply(
+          'xs',
+          $('wiki').split('$channel', 'v')
+            .apply('count', '$wiki.count()')
+            .sort('$count', 'descending')
+            .limit(5)
+        )
+        .apply('count', '$wiki.count()')
+        .apply(
+          'cells',
+          $('wiki').filter('$channel.in($xs.collect($v)).and($__time.in($ys.collect($v)))')
+            .split({ __time: '$__time.timeBucket(PT1M)', channel: '$channel' })
+            .apply('count', '$wiki.count()')
+            .sort('$__time', 'ascending')
+            .limit(25)
+        )
+    }));
+
   });
 
 
@@ -1359,7 +1386,6 @@ describe("Cross Functional", function() {
 
     it('works in large result case', equalityTest({
       executorNames: ['druid', 'druidSql'], // 'mysql', 'postgres' when testing on raw data
-      verbose: true,
       expression: $('wiki')
         .sort('$__time', 'ascending')
         .select('__time', 'page', 'channel')

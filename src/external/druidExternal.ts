@@ -1073,12 +1073,12 @@ export class DruidExternal extends External {
             if (sort) {
               let col = sort.refName();
               orderByColumn = {
-                dimension: col,
+                dimension: this.makeOutputName(col),
                 direction: sort.direction
               };
               if (this.sortOnLabel()) {
                 if (expressionNeedsNumericSort(split.splits[col])) {
-                  orderByColumn.dimensionOrder = 'alphanumeric';
+                  orderByColumn.dimensionOrder = this.versionBefore('0.9.2') ? 'alphanumeric' : 'numeric';
                 }
               }
             } else { // Going to sortOnLabel implicitly
@@ -1088,16 +1088,16 @@ export class DruidExternal extends External {
               let splitKey = splitKeys[0];
               let keyExpression = split.splits[splitKey];
               orderByColumn = {
-                dimension: splitKey
+                dimension: this.makeOutputName(splitKey)
               };
               if (expressionNeedsNumericSort(keyExpression)) {
-                orderByColumn.dimensionOrder = 'alphanumeric';
+                orderByColumn.dimensionOrder = this.versionBefore('0.9.2') ? 'alphanumeric' : 'numeric';
               }
             }
 
             druidQuery.limitSpec = {
               type: "default",
-              columns: [orderByColumn || split.firstSplitName()]
+              columns: [orderByColumn || this.makeOutputName(split.firstSplitName())]
             };
             if (limit) {
               druidQuery.limitSpec.limit = limit.value;
