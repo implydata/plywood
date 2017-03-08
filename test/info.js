@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-const DOCKER_MACHINE = '192.168.99.100';
+// This assumes that `dm` is defined as an alias in your hosts file to your docker machine
+const DOCKER_MACHINE = 'dm';
 
-exports.druidVersion = '0.9.2-rc2';
+exports.druidVersion = '0.10.0-rc1-iap1';
 exports.druidHost = `${DOCKER_MACHINE}:8082`;
 exports.druidContext = {
   timeout: 10000,

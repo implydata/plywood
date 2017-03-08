@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,3 +22,4 @@ export * from './set';
 export * from './numberRange';
 export * from './timeRange';
 export * from './stringRange';
+export * from './valueStream';

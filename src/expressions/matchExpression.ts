@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ const REGEXP_SPECIAL = "\\^$.|?*+()[{";
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 export class MatchExpression extends ChainableExpression {
 
@@ -62,7 +62,7 @@ export class MatchExpression extends ChainableExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("match");
-    this._checkOperandTypes('STRING', 'SET/STRING');
+    this._checkOperandTypes('STRING');
     this.regexp = parameters.regexp;
     this.type = 'BOOLEAN';
   }
@@ -90,9 +90,8 @@ export class MatchExpression extends ChainableExpression {
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
     let re = new RegExp(this.regexp);
-    if (!operandValue) return null;
-    if (operandValue === null) return null;
-    return re.test(operandValue);
+    if (operandValue == null) return null;
+    return Set.crossUnaryBoolean(operandValue, (a) => re.test(a));
   }
 
   protected _getJSChainableHelper(operandJS: string): string {

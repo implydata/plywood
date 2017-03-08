@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let plywood = require('../plywood');
 let { Expression, $, r, ply, Set, Dataset, External, ExternalExpression, fillExpressionExternalAlteration } = plywood;
@@ -37,11 +37,11 @@ let diamonds = External.fromJS({
     { name: 'isNice', type: 'BOOLEAN' },
     { name: 'tags', type: 'SET/STRING' },
     { name: 'pugs', type: 'SET/STRING' },
-    { name: 'carat', type: 'NUMBER' },
+    { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
     { name: 'height_bucket', type: 'NUMBER' },
     { name: 'price', type: 'NUMBER', unsplitable: true },
     { name: 'tax', type: 'NUMBER', unsplitable: true },
-    { name: 'vendor_id', special: 'unique', unsplitable: true }
+    { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true }
   ],
   allowEternity: true,
   allowSelectQueries: true
@@ -136,24 +136,54 @@ describe("evaluate step", () => {
         },
         {
           "external": "External",
-          "terminal": true,
           "index": 0,
           "key": "SomeSplit",
-          "result": [
-            {
-              "Cut": "some_cut"
-            }
-          ]
+          "result": {
+            "attributes": [
+              {
+                "name": "Cut",
+                "type": "STRING"
+              },
+              {
+                "name": "diamonds",
+                "type": "DATASET"
+              }
+            ],
+            "data": [
+              {
+                "Cut": "some_cut"
+              }
+            ],
+            "keys": [
+              "Cut"
+            ]
+          },
+          "terminal": true
         },
         {
           "expressionAlterations": {
             "1": {
               "external": "External",
-              "result": [
-                {
-                  "Color": "some_color"
-                }
-              ]
+              "result": {
+                "attributes": [
+                  {
+                    "name": "Color",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "diamonds",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "Color": "some_color"
+                  }
+                ],
+                "keys": [
+                  "Color"
+                ]
+              }
             }
           },
           "index": 0,
@@ -166,23 +196,82 @@ describe("evaluate step", () => {
     expect(JSON.parse(JSON.stringify(ex3, stringExternals)), 'E3').to.deep.equal({
       "op": "literal",
       "type": "DATASET",
-      "value": [
-        {
-          "SomeNestedSplit":  [
-            {
-              "Color": "some_color",
-              "SubSplit": "External"
-            }
-          ],
-          "SomeSplit": [
-            {
-              "Cut": "some_cut"
-            }
-          ],
-          "Total": 4,
-          "TotalX2": 4
-        }
-      ]
+      "value": {
+        "attributes": [
+          {
+            "name": "diamonds",
+            "type": "DATASET"
+          },
+          {
+            "name": "Total",
+            "type": "NUMBER"
+          },
+          {
+            "name": "TotalX2",
+            "type": "NUMBER"
+          },
+          {
+            "name": "SomeSplit",
+            "type": "DATASET"
+          },
+          {
+            "name": "SomeNestedSplit",
+            "type": "DATASET"
+          }
+        ],
+        "data": [
+          {
+            "SomeNestedSplit": {
+              "attributes": [
+                {
+                  "name": "Color",
+                  "type": "STRING"
+                },
+                {
+                  "name": "diamonds",
+                  "type": "DATASET"
+                },
+                {
+                  "name": "SubSplit",
+                  "type": "DATASET"
+                }
+              ],
+              "data": [
+                {
+                  "Color": "some_color",
+                  "SubSplit": "External"
+                }
+              ],
+              "keys": [
+                "Color"
+              ]
+            },
+            "SomeSplit": {
+              "attributes": [
+                {
+                  "name": "Cut",
+                  "type": "STRING"
+                },
+                {
+                  "name": "diamonds",
+                  "type": "DATASET"
+                }
+              ],
+              "data": [
+                {
+                  "Cut": "some_cut"
+                }
+              ],
+              "keys": [
+                "Cut"
+              ]
+            },
+            "Total": 4,
+            "TotalX2": 4
+          }
+        ],
+        "keys": []
+      }
     });
 
     // ---------------------
@@ -212,14 +301,29 @@ describe("evaluate step", () => {
           "datasetAlterations": [
             {
               "external": "External",
-              "terminal": true,
               "index": 0,
               "key": "SubSplit",
-              "result": [
-                {
-                  "SubCut": "some_cut"
-                }
-              ]
+              "result": {
+                "attributes": [
+                  {
+                    "name": "SubCut",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "diamonds",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "SubCut": "some_cut"
+                  }
+                ],
+                "keys": [
+                  "SubCut"
+                ]
+              },
+              "terminal": true
             }
           ],
           "index": 0,
@@ -232,27 +336,101 @@ describe("evaluate step", () => {
     expect(JSON.parse(JSON.stringify(ex4, stringExternals)), 'E6').to.deep.equal({
       "op": "literal",
       "type": "DATASET",
-      "value": [
-        {
-          "SomeNestedSplit": [
-            {
-              "Color": "some_color",
-              "SubSplit": [
+      "value": {
+        "attributes": [
+          {
+            "name": "diamonds",
+            "type": "DATASET"
+          },
+          {
+            "name": "Total",
+            "type": "NUMBER"
+          },
+          {
+            "name": "TotalX2",
+            "type": "NUMBER"
+          },
+          {
+            "name": "SomeSplit",
+            "type": "DATASET"
+          },
+          {
+            "name": "SomeNestedSplit",
+            "type": "DATASET"
+          }
+        ],
+        "data": [
+          {
+            "SomeNestedSplit": {
+              "attributes": [
                 {
-                  "SubCut": "some_cut"
+                  "name": "Color",
+                  "type": "STRING"
+                },
+                {
+                  "name": "diamonds",
+                  "type": "DATASET"
+                },
+                {
+                  "name": "SubSplit",
+                  "type": "DATASET"
                 }
+              ],
+              "data": [
+                {
+                  "Color": "some_color",
+                  "SubSplit": {
+                    "attributes": [
+                      {
+                        "name": "SubCut",
+                        "type": "STRING"
+                      },
+                      {
+                        "name": "diamonds",
+                        "type": "DATASET"
+                      }
+                    ],
+                    "data": [
+                      {
+                        "SubCut": "some_cut"
+                      }
+                    ],
+                    "keys": [
+                      "SubCut"
+                    ]
+                  }
+                }
+              ],
+              "keys": [
+                "Color"
               ]
-            }
-          ],
-          "SomeSplit": [
-            {
-              "Cut": "some_cut"
-            }
-          ],
-          "Total": 4,
-          "TotalX2": 4
-        }
-      ]
+            },
+            "SomeSplit": {
+              "attributes": [
+                {
+                  "name": "Cut",
+                  "type": "STRING"
+                },
+                {
+                  "name": "diamonds",
+                  "type": "DATASET"
+                }
+              ],
+              "data": [
+                {
+                  "Cut": "some_cut"
+                }
+              ],
+              "keys": [
+                "Cut"
+              ]
+            },
+            "Total": 4,
+            "TotalX2": 4
+          }
+        ],
+        "keys": []
+      }
     });
 
     // ---------------------

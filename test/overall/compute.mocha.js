@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
-let { Dataset, $, i$, ply, r, AttributeInfo } = require('../plywood');
+const { expect } = require("chai");
+let { Dataset, $, i$, ply, r, AttributeInfo, Set } = require('../plywood');
 
 describe("compute native", () => {
   let data = [
@@ -35,7 +35,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             five: 5,
             nine: 9
@@ -61,70 +61,173 @@ describe("compute native", () => {
 
     return ex.compute({ data: Dataset.fromJS(data) })
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
-            "ByCut": [
-              {
-                "ByTags": [
-                  {
-                    "SumPrice": 400,
-                    "Tag": "cool"
+            "ByCut": {
+              "attributes": [
+                {
+                  "name": "Cut",
+                  "type": "STRING"
+                },
+                {
+                  "name": "data",
+                  "type": "DATASET"
+                },
+                {
+                  "name": "SumPrice",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "PriceOfTotal",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "ByTags",
+                  "type": "DATASET"
+                }
+              ],
+              "data": [
+                {
+                  "ByTags": {
+                    "attributes": [
+                      {
+                        "name": "Tag",
+                        "type": "STRING"
+                      },
+                      {
+                        "name": "data",
+                        "type": "DATASET"
+                      },
+                      {
+                        "name": "SumPrice",
+                        "type": "NUMBER"
+                      }
+                    ],
+                    "data": [
+                      {
+                        "SumPrice": 400,
+                        "Tag": "cool"
+                      },
+                      {
+                        "SumPrice": 700,
+                        "Tag": "super"
+                      }
+                    ],
+                    "keys": [
+                      "Tag"
+                    ]
                   },
-                  {
-                    "SumPrice": 700,
-                    "Tag": "super"
-                  }
-                ],
-                "Cut": "Good",
-                "PriceOfTotal": 0.6457564575645757,
-                "SumPrice": 700
-              },
-              {
-                "ByTags": [
-                  {
-                    "SumPrice": 100,
-                    "Tag": null
+                  "Cut": "Good",
+                  "PriceOfTotal": 0.6457564575645757,
+                  "SumPrice": 700
+                },
+                {
+                  "ByTags": {
+                    "attributes": [
+                      {
+                        "name": "Tag",
+                        "type": "STRING"
+                      },
+                      {
+                        "name": "data",
+                        "type": "DATASET"
+                      },
+                      {
+                        "name": "SumPrice",
+                        "type": "NUMBER"
+                      }
+                    ],
+                    "data": [
+                      {
+                        "SumPrice": 100,
+                        "Tag": null
+                      },
+                      {
+                        "SumPrice": 160,
+                        "Tag": "sweet"
+                      }
+                    ],
+                    "keys": [
+                      "Tag"
+                    ]
                   },
-                  {
-                    "SumPrice": 160,
-                    "Tag": "sweet"
-                  }
-                ],
-                "Cut": "Wow",
-                "PriceOfTotal": 0.23985239852398524,
-                "SumPrice": 260
-              },
-              {
-                "ByTags": [
-                  {
-                    "SumPrice": 124,
-                    "Tag": "cool"
-                  }
-                ],
-                "Cut": "Great",
-                "PriceOfTotal": 0.11439114391143912,
-                "SumPrice": 124
-              },
-              {
-                "ByTags": [
-                  {
-                    "SumPrice": 0,
-                    "Tag": "cool"
+                  "Cut": "Wow",
+                  "PriceOfTotal": 0.23985239852398524,
+                  "SumPrice": 260
+                },
+                {
+                  "ByTags": {
+                    "attributes": [
+                      {
+                        "name": "Tag",
+                        "type": "STRING"
+                      },
+                      {
+                        "name": "data",
+                        "type": "DATASET"
+                      },
+                      {
+                        "name": "SumPrice",
+                        "type": "NUMBER"
+                      }
+                    ],
+                    "data": [
+                      {
+                        "SumPrice": 124,
+                        "Tag": "cool"
+                      }
+                    ],
+                    "keys": [
+                      "Tag"
+                    ]
                   },
-                  {
-                    "SumPrice": 0,
-                    "Tag": "super"
+                  "Cut": "Great",
+                  "PriceOfTotal": 0.11439114391143912,
+                  "SumPrice": 124
+                },
+                {
+                  "ByTags": {
+                    "attributes": [
+                      {
+                        "name": "Tag",
+                        "type": "STRING"
+                      },
+                      {
+                        "name": "data",
+                        "type": "DATASET"
+                      },
+                      {
+                        "name": "SumPrice",
+                        "type": "NUMBER"
+                      }
+                    ],
+                    "data": [
+                      {
+                        "SumPrice": 0,
+                        "Tag": "cool"
+                      },
+                      {
+                        "SumPrice": 0,
+                        "Tag": "super"
+                      },
+                      {
+                        "SumPrice": 0,
+                        "Tag": "sweet"
+                      }
+                    ],
+                    "keys": [
+                      "Tag"
+                    ]
                   },
-                  {
-                    "SumPrice": 0,
-                    "Tag": "sweet"
-                  }
-                ],
-                "Cut": null,
-                "PriceOfTotal": 0,
-                "SumPrice": 0
-              }
-            ],
+                  "Cut": null,
+                  "PriceOfTotal": 0,
+                  "SumPrice": 0
+                }
+              ],
+              "keys": [
+                "Cut"
+              ]
+            },
             "TotalPrice": 1084
           }
         ]);
@@ -137,7 +240,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             length: 3
           }
@@ -151,7 +254,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             location: 1
           }
@@ -166,7 +269,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             upper: 'HEY',
             lower: 'hey'
@@ -175,7 +278,7 @@ describe("compute native", () => {
       });
   });
 
-  it("works with power and abs", () => {
+  it("works with power and absolute", () => {
     let ex = ply()
       .apply('number', 256)
       .apply('four', $('number').power(0.5).power(0.5))
@@ -188,7 +291,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             'number': 256,
             'four': 4,
@@ -203,6 +306,75 @@ describe("compute native", () => {
       });
   });
 
+  it("performs power on set", () => {
+    let ex = r(Set.fromJS([2, -2, 7])).power(Set.fromJS([2, 3]));
+
+    return ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal({
+          "elements": [
+            4,
+            8,
+            -8,
+            49,
+            343
+          ],
+          "setType": "NUMBER"
+        });
+      });
+  });
+
+  it("performs absolute on set", () => {
+    let ex = r(Set.fromJS([2, -2, 7])).absolute();
+
+    return ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal({
+          "elements": [
+            2,
+            7
+          ],
+          "setType": "NUMBER"
+        });
+      });
+  });
+
+  it("performs lessThan on set 1", () => {
+    let ex = r(Set.fromJS([2, -2, 7])).lessThan(10);
+
+    return ex.compute()
+      .then((v) => {
+        expect(v).to.deep.equal(true);
+      });
+  });
+
+  it("performs lessThan on set 2", () => {
+    let ex = r(Set.fromJS([2, -2, 7])).lessThan(Set.fromJS([-10, -20]));
+
+    return ex.compute()
+      .then((v) => {
+        expect(v).to.deep.equal(false);
+      });
+  });
+
+  it("works with single IS", () => {
+    let ex = r("LOL").is(r("MOON"));
+
+    return ex.compute()
+      .then((v) => {
+        expect(v).to.deep.equal(false);
+      });
+  });
+
+  it("works with many ISes", () => {
+    let ex = r("LOL").is(r("MOON")).is(Set.fromJS([false]));
+
+    return ex.compute()
+      .then((v) => {
+        expect(v).to.deep.equal(true);
+      });
+  });
+
   it("casts from number to time", () => {
     // 1442016000000 -> 09/12/2015 00:00:00
     // 1442059199000 -> 09/12/2015 11:59:59
@@ -213,13 +385,10 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "between": true,
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-09-12T09:20:30.000Z')
-            }
+            "time": new Date('2015-09-12T09:20:30.000Z')
           }
         ]);
       });
@@ -233,7 +402,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "between": true,
             "unixTimestamp": 1442049630000
@@ -248,7 +417,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "stringifiedNumber": "22345243"
           }
@@ -262,7 +431,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "numberfiedString": 22345243
           }
@@ -276,7 +445,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "stillBoolean": true
           }
@@ -304,12 +473,105 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "AvgPrice1": 2,
             "AvgPrice2": null,
             "SumPrice": 0,
             "Two": 2
+          }
+        ]);
+      });
+  });
+
+  it("does cartesian concat", () => {
+    let ds = Dataset.fromJS(data).hide();
+
+    let ex = ply(ds)
+      .apply('concat', '$tags ++ $cut')
+      .select('tags', 'cut', 'concat');
+
+    return ex.compute()
+      .then((v) => {
+        expect(v.toJS().data).to.deep.equal([
+          {
+            "concat": {
+              "elements": [
+                "superGood",
+                "coolGood"
+              ],
+              "setType": "STRING"
+            },
+            "cut": "Good",
+            "tags": {
+              "elements": [
+                "super",
+                "cool"
+              ],
+              "setType": "STRING"
+            }
+          },
+          {
+            "concat": {
+              "elements": [
+                "superGood"
+              ],
+              "setType": "STRING"
+            },
+            "cut": "Good",
+            "tags": {
+              "elements": [
+                "super"
+              ],
+              "setType": "STRING"
+            }
+          },
+          {
+            "concat": {
+              "elements": [
+                "coolGreat"
+              ],
+              "setType": "STRING"
+            },
+            "cut": "Great",
+            "tags": {
+              "elements": [
+                "cool"
+              ],
+              "setType": "STRING"
+            }
+          },
+          {
+            "concat": {
+              "elements": [
+                "sweetWow"
+              ],
+              "setType": "STRING"
+            },
+            "cut": "Wow",
+            "tags": {
+              "elements": [
+                "sweet"
+              ],
+              "setType": "STRING"
+            }
+          },
+          {
+            "concat": null,
+            "cut": "Wow",
+            "tags": null
+          },
+          {
+            "concat": null,
+            "cut": null,
+            "tags": {
+              "elements": [
+                "super",
+                "sweet",
+                "cool"
+              ],
+              "setType": "STRING"
+            }
           }
         ]);
       });
@@ -340,40 +602,65 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
-            "SetSize": [
-              {
-                "Prices": 3,
-                "Tags": 2,
-                "Times": 1
-              },
-              {
-                "Prices": 3,
-                "Tags": 1,
-                "Times": 1
-              },
-              {
-                "Prices": 1,
-                "Tags": 1,
-                "Times": null
-              },
-              {
-                "Prices": 2,
-                "Tags": 1,
-                "Times": 1
-              },
-              {
-                "Prices": 2,
-                "Tags": null,
-                "Times": 1
-              },
-              {
-                "Prices": null,
-                "Tags": 3,
-                "Times": 1
-              }
-            ]
+            "SetSize": {
+              "attributes": [
+                {
+                  "name": "Prices",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "Tags",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "Times",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "Data",
+                  "type": "DATASET"
+                }
+              ],
+              "data": [
+                {
+                  "Prices": 3,
+                  "Tags": 2,
+                  "Times": 1
+                },
+                {
+                  "Prices": 3,
+                  "Tags": 1,
+                  "Times": 1
+                },
+                {
+                  "Prices": 1,
+                  "Tags": 1,
+                  "Times": null
+                },
+                {
+                  "Prices": 2,
+                  "Tags": 1,
+                  "Times": 1
+                },
+                {
+                  "Prices": 2,
+                  "Tags": null,
+                  "Times": 1
+                },
+                {
+                  "Prices": null,
+                  "Tags": 3,
+                  "Times": 1
+                }
+              ],
+              "keys": [
+                "Prices",
+                "Tags",
+                "Times"
+              ]
+            }
           }
         ]);
       });
@@ -391,7 +678,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           { cut: 'Good', price: 400, priceX2: 800 },
           { cut: 'Great', price: 124, priceX2: 248 },
           { cut: 'Wow', price: 160, priceX2: 320 }
@@ -415,17 +702,14 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "cut": "Good",
             "earlierThanJan04": true,
             "earlierThanOrEqualJan04": true,
             "laterThanJan01": true,
             "laterThanOrEqualJan01": true,
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-01-03T00:00:00.000Z')
-            }
+            "time": new Date('2015-01-03T00:00:00.000Z')
           },
           {
             "cut": "Great",
@@ -433,10 +717,7 @@ describe("compute native", () => {
             "earlierThanOrEqualJan04": true,
             "laterThanJan01": false,
             "laterThanOrEqualJan01": false,
-            "time": {
-              "type": "TIME",
-              "value": new Date('2014-01-04T00:00:00.000Z')
-            }
+            "time": new Date('2014-01-04T00:00:00.000Z')
           },
           {
             "cut": "Wow",
@@ -444,10 +725,7 @@ describe("compute native", () => {
             "earlierThanOrEqualJan04": false,
             "laterThanJan01": true,
             "laterThanOrEqualJan01": true,
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-01-05T00:00:00.000Z')
-            }
+            "time": new Date('2015-01-05T00:00:00.000Z')
           }
         ]);
       });
@@ -468,7 +746,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "cut": "Good",
             "earlierThanJan04": false,
@@ -509,30 +787,21 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Added_NullCities": true,
             "cut": "Good",
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-01-03T00:00:00.000Z')
-            }
+            "time": new Date('2015-01-03T00:00:00.000Z')
           },
           {
             "Added_NullCities": false,
             "cut": "Great",
-            "time": {
-              "type": "TIME",
-              "value": new Date('2014-01-04T00:00:00.000Z')
-            }
+            "time": new Date('2014-01-04T00:00:00.000Z')
           },
           {
             "Added_NullCities": true,
             "cut": "Wow",
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-01-05T00:00:00.000Z')
-            }
+            "time": new Date('2015-01-05T00:00:00.000Z')
           }
         ]);
       });
@@ -550,30 +819,21 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "LessThanM": false,
             "cut": "Good",
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-01-03T00:00:00.000Z')
-            }
+            "time": new Date('2015-01-03T00:00:00.000Z')
           },
           {
             "LessThanM": false,
             "cut": "Great",
-            "time": {
-              "type": "TIME",
-              "value": new Date('2014-01-04T00:00:00.000Z')
-            }
+            "time": new Date('2014-01-04T00:00:00.000Z')
           },
           {
             "LessThanM": true,
             "cut": "Wow",
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-01-05T00:00:00.000Z')
-            }
+            "time": new Date('2015-01-05T00:00:00.000Z')
           }
         ]);
       });
@@ -593,42 +853,30 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Quarter": 1,
             "QuarterAsia": 2,
             "cut": "Good",
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-03-31T19:00:00.000Z')
-            }
+            "time": new Date('2015-03-31T19:00:00.000Z')
           },
           {
             "Quarter": 2,
             "QuarterAsia": 3,
             "cut": "Great",
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-06-30T19:00:00.000Z')
-            }
+            "time": new Date('2015-06-30T19:00:00.000Z')
           },
           {
             "Quarter": 3,
             "QuarterAsia": 3,
             "cut": "Wow",
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-09-05T00:00:00.000Z')
-            }
+            "time": new Date('2015-09-05T00:00:00.000Z')
           },
           {
             "Quarter": 4,
             "QuarterAsia": 4,
             "cut": "Wow",
-            "time": {
-              "type": "TIME",
-              "value": new Date('2015-12-05T00:00:00.000Z')
-            }
+            "time": new Date('2015-12-05T00:00:00.000Z')
           }
         ]);
       });
@@ -648,7 +896,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "soy": 0
           },
@@ -672,21 +920,22 @@ describe("compute native", () => {
 
     return ex.compute({ ds })
       .then((v) => {
-        expect(v.getColumns()).to.deep.equal([
-          {
-            "name": "cut",
-            "type": "STRING"
-          }
-        ]);
-
-        expect(v.toJS()).to.deep.equal([
-          {
-            "cut": "Good"
-          },
-          {
-            "cut": "Good"
-          }
-        ]);
+        expect(v.toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "cut",
+              "type": "STRING"
+            }
+          ],
+          "data": [
+            {
+              "cut": "Good"
+            },
+            {
+              "cut": "Good"
+            }
+          ]
+        });
       });
   });
 
@@ -697,24 +946,25 @@ describe("compute native", () => {
 
     return ex.compute({ ds })
       .then((v) => {
-        expect(v.getColumns()).to.deep.equal([
-          {
-            "name": "cut",
-            "type": "STRING"
-          }
-        ]);
-
-        expect(v.toJS()).to.deep.equal([
-          {
-            "cut": "Good"
-          },
-          {
-            "cut": "Good"
-          },
-          {
-            "cut": "Great"
-          }
-        ]);
+        expect(v.toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "cut",
+              "type": "STRING"
+            }
+          ],
+          "data": [
+            {
+              "cut": "Good"
+            },
+            {
+              "cut": "Good"
+            },
+            {
+              "cut": "Great"
+            }
+          ]
+        });
       });
   });
 
@@ -732,15 +982,14 @@ describe("compute native", () => {
           { "name": "price", "type": "NUMBER" }
         ]);
 
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             cut: 'Great',
             price: 124,
-            tags: { type: "SET", setType: "STRING", elements: ['cool'] },
+            tags: { setType: "STRING", elements: ['cool'] },
             time: null
           }
         ]);
-
       });
   });
 
@@ -758,7 +1007,7 @@ describe("compute native", () => {
           { "name": "price", "type": "NUMBER" }
         ]);
 
-        expect(v.toJS()).to.deep.equal([]);
+        expect(v.toJS().data).to.deep.equal([]);
 
       });
   });
@@ -770,132 +1019,169 @@ describe("compute native", () => {
       .apply('cutConcat', '"[" ++ $cut ++ "]"')
       .apply('cutMatch', $('cut').match('^G.+'))
       .apply('cutInGoodGreat', $('cut').in(['Good', 'Great']))
-      .apply('cutOverlapGoodGreat', $('cut').overlap(['Good', 'Great']))
-      .apply('cutOverlapNull', $('cut').overlap([null]))
-      .apply('cutIsGoodOverlapFalse', $('cut').is('Good').overlap([false]))
+      .apply('cutIsGoodGreat', $('cut').is(['Good', 'Great']))
+      .apply('cutIsNull', $('cut').is([null]))
+      .apply('cutThenFallback', $('cut').is('Good').then('Noice').fallback('Boo'))
+      .apply('cutThenFallbackX2', $('cut').is('Good').then('Nice').fallback($('cut').is('Great').then('Amaze')).fallback('Neither'))
+      .apply('cutIsGoodIsFalse', $('cut').is('Good').is([false]))
       .apply('timeFloorDay', $('time').timeFloor('P1D'))
       .apply('timeShiftDay2', $('time').timeShift('P1D', 2))
       .apply('timeRangeHours', $('time').timeRange('PT2H', -1))
-      .apply('overlapSuperCool', $('tags').overlap(['super', 'cool']));
+      .apply('isSuperCool', $('tags').is(['super', 'cool']));
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
-            cut: 'Good',
-            cutConcat: '[Good]',
-            cutMatch: true,
-            cutInGoodGreat: true,
-            cutOverlapGoodGreat: true,
-            cutOverlapNull: false,
-            cutIsGoodOverlapFalse: false,
-            price: 400,
-            tags: { type: "SET", setType: "STRING", elements: ['super', 'cool'] },
-            overlapSuperCool: true,
-            time: { type: "TIME", value: new Date('2015-10-01T09:20:30Z') },
-            timeFloorDay: { type: "TIME", value: new Date('2015-10-01T00:00:00Z') },
-            timeShiftDay2: { type: "TIME", value: new Date('2015-10-03T09:20:30Z') },
-            timeRangeHours: {
-              type: "TIME_RANGE",
-              start: new Date('2015-10-01T07:20:30Z'),
-              end: new Date('2015-10-01T09:20:30Z')
-            }
+            "cut": "Good",
+            "cutConcat": "[Good]",
+            "cutInGoodGreat": true,
+            "cutIsGoodIsFalse": false,
+            "cutMatch": true,
+            "cutIsGoodGreat": true,
+            "cutIsNull": false,
+            "cutThenFallback": "Noice",
+            "cutThenFallbackX2": "Nice",
+            "isSuperCool": true,
+            "price": 400,
+            "tags": {
+              "elements": [
+                "super",
+                "cool"
+              ],
+              "setType": "STRING"
+            },
+            "time": new Date('2015-10-01T09:20:30.000Z'),
+            "timeFloorDay": new Date('2015-10-01T00:00:00.000Z'),
+            "timeRangeHours": {
+              "end": new Date('2015-10-01T09:20:30.000Z'),
+              "start": new Date('2015-10-01T07:20:30.000Z')
+            },
+            "timeShiftDay2": new Date('2015-10-03T09:20:30.000Z')
           },
           {
-            cut: 'Good',
-            cutConcat: '[Good]',
-            cutMatch: true,
-            cutInGoodGreat: true,
-            cutOverlapGoodGreat: true,
-            cutOverlapNull: false,
-            cutIsGoodOverlapFalse: false,
-            price: 300,
-            tags: { type: "SET", setType: "STRING", elements: ['super'] },
-            overlapSuperCool: true,
-            time: { type: "TIME", value: new Date('2015-10-02T08:20:30Z') },
-            timeFloorDay: { type: "TIME", value: new Date('2015-10-02T00:00:00Z') },
-            timeShiftDay2: { type: "TIME", value: new Date('2015-10-04T08:20:30Z') },
-            timeRangeHours: {
-              type: "TIME_RANGE",
-              start: new Date('2015-10-02T06:20:30Z'),
-              end: new Date('2015-10-02T08:20:30Z')
-            }
+            "cut": "Good",
+            "cutConcat": "[Good]",
+            "cutInGoodGreat": true,
+            "cutIsGoodIsFalse": false,
+            "cutMatch": true,
+            "cutIsGoodGreat": true,
+            "cutIsNull": false,
+            "cutThenFallback": "Noice",
+            "cutThenFallbackX2": "Nice",
+            "isSuperCool": true,
+            "price": 300,
+            "tags": {
+              "elements": [
+                "super"
+              ],
+              "setType": "STRING"
+            },
+            "time": new Date('2015-10-02T08:20:30.000Z'),
+            "timeFloorDay": new Date('2015-10-02T00:00:00.000Z'),
+            "timeRangeHours": {
+              "end": new Date('2015-10-02T08:20:30.000Z'),
+              "start": new Date('2015-10-02T06:20:30.000Z')
+            },
+            "timeShiftDay2": new Date('2015-10-04T08:20:30.000Z')
           },
           {
-            cut: 'Great',
-            cutConcat: '[Great]',
-            cutMatch: true,
-            cutInGoodGreat: true,
-            cutOverlapGoodGreat: true,
-            cutOverlapNull: false,
-            cutIsGoodOverlapFalse: true,
-            price: 124,
-            tags: { type: "SET", setType: "STRING", elements: ['cool'] },
-            overlapSuperCool: true,
-            time: null,
-            timeFloorDay: null,
-            timeShiftDay2: null,
-            timeRangeHours: null
+            "cut": "Great",
+            "cutConcat": "[Great]",
+            "cutInGoodGreat": true,
+            "cutIsGoodIsFalse": true,
+            "cutMatch": true,
+            "cutIsGoodGreat": true,
+            "cutIsNull": false,
+            "cutThenFallback": "Boo",
+            "cutThenFallbackX2": "Amaze",
+            "isSuperCool": true,
+            "price": 124,
+            "tags": {
+              "elements": [
+                "cool"
+              ],
+              "setType": "STRING"
+            },
+            "time": null,
+            "timeFloorDay": null,
+            "timeRangeHours": null,
+            "timeShiftDay2": null
           },
           {
-            cut: 'Wow',
-            cutConcat: '[Wow]',
-            cutMatch: false,
-            cutInGoodGreat: false,
-            cutOverlapGoodGreat: false,
-            cutOverlapNull: false,
-            cutIsGoodOverlapFalse: true,
-            price: 160,
-            tags: { type: "SET", setType: "STRING", elements: ['sweet'] },
-            overlapSuperCool: false,
-            time: { type: "TIME", value: new Date('2015-10-04T06:20:30Z') },
-            timeFloorDay: { type: "TIME", value: new Date('2015-10-04T00:00:00Z') },
-            timeShiftDay2: { type: "TIME", value: new Date('2015-10-06T06:20:30Z') },
-            timeRangeHours: {
-              type: "TIME_RANGE",
-              start: new Date('2015-10-04T04:20:30Z'),
-              end: new Date('2015-10-04T06:20:30Z')
-            }
+            "cut": "Wow",
+            "cutConcat": "[Wow]",
+            "cutInGoodGreat": false,
+            "cutIsGoodIsFalse": true,
+            "cutMatch": false,
+            "cutIsGoodGreat": false,
+            "cutIsNull": false,
+            "cutThenFallback": "Boo",
+            "cutThenFallbackX2": "Neither",
+            "isSuperCool": false,
+            "price": 160,
+            "tags": {
+              "elements": [
+                "sweet"
+              ],
+              "setType": "STRING"
+            },
+            "time": new Date('2015-10-04T06:20:30.000Z'),
+            "timeFloorDay": new Date('2015-10-04T00:00:00.000Z'),
+            "timeRangeHours": {
+              "end": new Date('2015-10-04T06:20:30.000Z'),
+              "start": new Date('2015-10-04T04:20:30.000Z')
+            },
+            "timeShiftDay2": new Date('2015-10-06T06:20:30.000Z')
           },
           {
-            cut: 'Wow',
-            cutConcat: '[Wow]',
-            cutMatch: false,
-            cutInGoodGreat: false,
-            cutOverlapGoodGreat: false,
-            cutOverlapNull: false,
-            cutIsGoodOverlapFalse: true,
-            price: 100,
-            tags: null,
-            overlapSuperCool: false,
-            time: { type: "TIME", value: new Date('2015-10-05T05:20:30Z') },
-            timeFloorDay: { type: "TIME", value: new Date('2015-10-05T00:00:00Z') },
-            timeShiftDay2: { type: "TIME", value: new Date('2015-10-07T05:20:30Z') },
-            timeRangeHours: {
-              type: "TIME_RANGE",
-              start: new Date('2015-10-05T03:20:30Z'),
-              end: new Date('2015-10-05T05:20:30Z')
-            }
+            "cut": "Wow",
+            "cutConcat": "[Wow]",
+            "cutInGoodGreat": false,
+            "cutIsGoodIsFalse": true,
+            "cutMatch": false,
+            "cutIsGoodGreat": false,
+            "cutIsNull": false,
+            "cutThenFallback": "Boo",
+            "cutThenFallbackX2": "Neither",
+            "isSuperCool": false,
+            "price": 100,
+            "tags": null,
+            "time": new Date('2015-10-05T05:20:30.000Z'),
+            "timeFloorDay": new Date('2015-10-05T00:00:00.000Z'),
+            "timeRangeHours": {
+              "end": new Date('2015-10-05T05:20:30.000Z'),
+              "start": new Date('2015-10-05T03:20:30.000Z')
+            },
+            "timeShiftDay2": new Date('2015-10-07T05:20:30.000Z')
           },
           {
-            cut: null,
-            cutConcat: null,
-            cutMatch: null,
-            cutInGoodGreat: false, // ToDo: this is inconsistent, figure put how to fix it.
-            cutOverlapGoodGreat: false,
-            cutOverlapNull: true,
-            cutIsGoodOverlapFalse: true,
-            price: null,
-            tags: { type: "SET", setType: "STRING", elements: ['super', 'sweet', 'cool'] },
-            overlapSuperCool: true,
-            time: { type: "TIME", value: new Date('2015-10-06T04:20:30Z') },
-            timeFloorDay: { type: "TIME", value: new Date('2015-10-06T00:00:00Z') },
-            timeShiftDay2: { type: "TIME", value: new Date('2015-10-08T04:20:30Z') },
-            timeRangeHours: {
-              type: "TIME_RANGE",
-              start: new Date('2015-10-06T02:20:30Z'),
-              end: new Date('2015-10-06T04:20:30Z')
-            }
+            "cut": null,
+            "cutConcat": null,
+            "cutInGoodGreat": false,
+            "cutIsGoodIsFalse": true,
+            "cutMatch": null,
+            "cutIsGoodGreat": false,
+            "cutIsNull": true,
+            "cutThenFallback": "Boo",
+            "cutThenFallbackX2": "Neither",
+            "isSuperCool": true,
+            "price": null,
+            "tags": {
+              "elements": [
+                "super",
+                "sweet",
+                "cool"
+              ],
+              "setType": "STRING"
+            },
+            "time": new Date('2015-10-06T04:20:30.000Z'),
+            "timeFloorDay": new Date('2015-10-06T00:00:00.000Z'),
+            "timeRangeHours": {
+              "end": new Date('2015-10-06T04:20:30.000Z'),
+              "start": new Date('2015-10-06T02:20:30.000Z')
+            },
+            "timeShiftDay2": new Date('2015-10-08T04:20:30.000Z')
           }
         ]);
       });
@@ -921,7 +1207,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Cut": "Good",
             "colors": {
@@ -929,16 +1215,14 @@ describe("compute native", () => {
                 "A",
                 "B"
               ],
-              "setType": "STRING",
-              "type": "SET"
+              "setType": "STRING"
             },
             "nums": {
               "elements": [
                 1,
                 2
               ],
-              "setType": "NUMBER",
-              "type": "SET"
+              "setType": "NUMBER"
             },
             "ranges": {
               "elements": [
@@ -951,8 +1235,7 @@ describe("compute native", () => {
                   "start": 2
                 }
               ],
-              "setType": "NUMBER_RANGE",
-              "type": "SET"
+              "setType": "NUMBER_RANGE"
             }
           },
           {
@@ -963,8 +1246,7 @@ describe("compute native", () => {
                 "C",
                 "D"
               ],
-              "setType": "STRING",
-              "type": "SET"
+              "setType": "STRING"
             },
             "nums": {
               "elements": [
@@ -972,8 +1254,7 @@ describe("compute native", () => {
                 7,
                 8
               ],
-              "setType": "NUMBER",
-              "type": "SET"
+              "setType": "NUMBER"
             },
             "ranges": {
               "elements": [
@@ -990,8 +1271,7 @@ describe("compute native", () => {
                   "start": 8
                 }
               ],
-              "setType": "NUMBER_RANGE",
-              "type": "SET"
+              "setType": "NUMBER_RANGE"
             }
           },
           {
@@ -1001,16 +1281,14 @@ describe("compute native", () => {
                 "D",
                 null
               ],
-              "setType": "STRING",
-              "type": "SET"
+              "setType": "STRING"
             },
             "nums": {
               "elements": [
                 9,
                 null
               ],
-              "setType": "NUMBER",
-              "type": "SET"
+              "setType": "NUMBER"
             },
             "ranges": {
               "elements": [
@@ -1020,8 +1298,7 @@ describe("compute native", () => {
                 },
                 null
               ],
-              "setType": "NUMBER_RANGE",
-              "type": "SET"
+              "setType": "NUMBER_RANGE"
             }
           }
         ]);
@@ -1058,7 +1335,7 @@ describe("compute native", () => {
       .apply('quantileOdd1.00', '$d.quantile($vOdd, 1.00)');
 
     return ex.compute().then((v) => {
-      expect(v.toJS()).to.deep.equal([
+      expect(v.toJS().data).to.deep.equal([
         {
           "quantileEven0.00": 3,
           "quantileEven0.25": 7,
@@ -1082,7 +1359,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           { cut: 'Good',  price: 400  },
           { cut: 'Good',  price: 300  },
           { cut: 'Great', price: 124  },
@@ -1103,7 +1380,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "[cut]": "[Good]",
             "price+1": 401
@@ -1126,7 +1403,7 @@ describe("compute native", () => {
           },
           {
             "[cut]": null,
-            "price+1": 1
+            "price+1": null
           }
         ]);
       });
@@ -1144,14 +1421,37 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
-            "Cuts": [
-              { "Cut": "Good" },
-              { "Cut": "Great" },
-              { "Cut": "Wow" },
-              { "Cut": null }
-            ]
+            "Cuts": {
+              "attributes": [
+                {
+                  "name": "Cut",
+                  "type": "STRING"
+                },
+                {
+                  "name": "Data",
+                  "type": "DATASET"
+                }
+              ],
+              "data": [
+                {
+                  "Cut": "Good"
+                },
+                {
+                  "Cut": "Great"
+                },
+                {
+                  "Cut": "Wow"
+                },
+                {
+                  "Cut": null
+                }
+              ],
+              "keys": [
+                "Cut"
+              ]
+            }
           }
         ]);
       });
@@ -1171,28 +1471,148 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
-          {
-            "Tags": [
-              {
-                "Count": 3,
-                "Tag": "super"
-              },
-              {
-                "Count": 3,
-                "Tag": "cool"
-              },
-              {
-                "Count": 2,
-                "Tag": "sweet"
-              },
-              {
-                "Count": 1,
-                "Tag": null
+        expect(v.toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "Data",
+              "type": "DATASET"
+            },
+            {
+              "name": "Tags",
+              "type": "DATASET"
+            }
+          ],
+          "data": [
+            {
+              "Tags": {
+                "attributes": [
+                  {
+                    "name": "Tag",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Data",
+                    "type": "DATASET"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 3,
+                    "Tag": "super"
+                  },
+                  {
+                    "Count": 3,
+                    "Tag": "cool"
+                  },
+                  {
+                    "Count": 2,
+                    "Tag": "sweet"
+                  },
+                  {
+                    "Count": 1,
+                    "Tag": null
+                  }
+                ],
+                "keys": [
+                  "Tag"
+                ]
               }
-            ]
-          }
-        ]);
+            }
+          ],
+          "keys": []
+        });
+      });
+  });
+
+  it("works with double set split", () => {
+    let ds = Dataset.fromJS(data).hide();
+
+    let ex = ply(ds).split({ Tag: '$tags', TagCut: '$tags ++ $cut' }, 'Data')
+      .apply('Count', '$Data.count()')
+      .sort('$Count', 'descending');
+
+    return ex.compute()
+      .then((v) => {
+        expect(v.toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "Tag",
+              "type": "STRING"
+            },
+            {
+              "name": "TagCut",
+              "type": "STRING"
+            },
+            {
+              "name": "Data",
+              "type": "DATASET"
+            },
+            {
+              "name": "Count",
+              "type": "NUMBER"
+            }
+          ],
+          "data": [
+            {
+              "Count": 2,
+              "Tag": "super",
+              "TagCut": "superGood"
+            },
+            {
+              "Count": 1,
+              "Tag": "super",
+              "TagCut": "coolGood"
+            },
+            {
+              "Count": 1,
+              "Tag": "cool",
+              "TagCut": "superGood"
+            },
+            {
+              "Count": 1,
+              "Tag": "cool",
+              "TagCut": "coolGood"
+            },
+            {
+              "Count": 1,
+              "Tag": "cool",
+              "TagCut": "coolGreat"
+            },
+            {
+              "Count": 1,
+              "Tag": "sweet",
+              "TagCut": "sweetWow"
+            },
+            {
+              "Count": 1,
+              "Tag": null,
+              "TagCut": null
+            },
+            {
+              "Count": 1,
+              "Tag": "super",
+              "TagCut": null
+            },
+            {
+              "Count": 1,
+              "Tag": "sweet",
+              "TagCut": null
+            },
+            {
+              "Count": 1,
+              "Tag": "cool",
+              "TagCut": null
+            }
+          ],
+          "keys": [
+            "Tag",
+            "TagCut"
+          ]
+        });
       });
   });
 
@@ -1208,7 +1628,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "AvgPrice1": null,
             "AvgPrice2": null,
@@ -1236,39 +1656,70 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
-            "Two": 2,
-            "Cuts": [
-              {
-                "Cut": "Good",
-                "Six": 6,
-                "Seven": 7,
-                "EightByZero": { "type": "NUMBER", "value": "Infinity" },
-                "ZeroByZero": null
-              },
-              {
-                "Cut": "Great",
-                "Six": 6,
-                "Seven": 7,
-                "EightByZero": { "type": "NUMBER", "value": "Infinity" },
-                "ZeroByZero": null
-              },
-              {
-                "Cut": "Wow",
-                "Six": 6,
-                "Seven": 7,
-                "EightByZero": { "type": "NUMBER", "value": "Infinity" },
-                "ZeroByZero": null
-              },
-              {
-                "Cut": null,
-                "Six": 6,
-                "Seven": 7,
-                "EightByZero": { "type": "NUMBER", "value": "Infinity" },
-                "ZeroByZero": null
-              }
-            ]
+            "Cuts": {
+              "attributes": [
+                {
+                  "name": "Cut",
+                  "type": "STRING"
+                },
+                {
+                  "name": "Data",
+                  "type": "DATASET"
+                },
+                {
+                  "name": "Six",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "Seven",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "EightByZero",
+                  "type": "NULL"
+                },
+                {
+                  "name": "ZeroByZero",
+                  "type": "NULL"
+                }
+              ],
+              "data": [
+                {
+                  "Cut": "Good",
+                  "EightByZero": null,
+                  "Seven": 7,
+                  "Six": 6,
+                  "ZeroByZero": null
+                },
+                {
+                  "Cut": "Great",
+                  "EightByZero": null,
+                  "Seven": 7,
+                  "Six": 6,
+                  "ZeroByZero": null
+                },
+                {
+                  "Cut": "Wow",
+                  "EightByZero": null,
+                  "Seven": 7,
+                  "Six": 6,
+                  "ZeroByZero": null
+                },
+                {
+                  "Cut": null,
+                  "EightByZero": null,
+                  "Seven": 7,
+                  "Six": 6,
+                  "ZeroByZero": null
+                }
+              ],
+              "keys": [
+                "Cut"
+              ]
+            },
+            "Two": 2
           }
         ]);
       });
@@ -1288,17 +1739,54 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Count": 6,
-            "TimeParts": [
-              { "Count": 1, "Part": 9 },
-              { "Count": 1, "Part": 8 },
-              { "Count": 1, "Part": null },
-              { "Count": 1, "Part": 6 },
-              { "Count": 1, "Part": 5 },
-              { "Count": 1, "Part": 4 }
-            ]
+            "TimeParts": {
+              "attributes": [
+                {
+                  "name": "Part",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "Data",
+                  "type": "DATASET"
+                },
+                {
+                  "name": "Count",
+                  "type": "NUMBER"
+                }
+              ],
+              "data": [
+                {
+                  "Count": 1,
+                  "Part": 9
+                },
+                {
+                  "Count": 1,
+                  "Part": 8
+                },
+                {
+                  "Count": 1,
+                  "Part": null
+                },
+                {
+                  "Count": 1,
+                  "Part": 6
+                },
+                {
+                  "Count": 1,
+                  "Part": 5
+                },
+                {
+                  "Count": 1,
+                  "Part": 4
+                }
+              ],
+              "keys": [
+                "Part"
+              ]
+            }
           }
         ]);
       });
@@ -1318,17 +1806,54 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Count": 6,
-            "TimeParts": [
-              { "Count": 1, "Part": 5 },
-              { "Count": 1, "Part": 4 },
-              { "Count": 1, "Part": null },
-              { "Count": 1, "Part": 2 },
-              { "Count": 1, "Part": 1 },
-              { "Count": 1, "Part": 0 }
-            ]
+            "TimeParts": {
+              "attributes": [
+                {
+                  "name": "Part",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "Data",
+                  "type": "DATASET"
+                },
+                {
+                  "name": "Count",
+                  "type": "NUMBER"
+                }
+              ],
+              "data": [
+                {
+                  "Count": 1,
+                  "Part": 5
+                },
+                {
+                  "Count": 1,
+                  "Part": 4
+                },
+                {
+                  "Count": 1,
+                  "Part": null
+                },
+                {
+                  "Count": 1,
+                  "Part": 2
+                },
+                {
+                  "Count": 1,
+                  "Part": 1
+                },
+                {
+                  "Count": 1,
+                  "Part": 0
+                }
+              ],
+              "keys": [
+                "Part"
+              ]
+            }
           }
         ]);
       });
@@ -1343,7 +1868,7 @@ describe("compute native", () => {
 
     return ex.compute({ x: 13 })
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "CountPlusX": 19
           }
@@ -1369,64 +1894,85 @@ describe("compute native", () => {
 
     return ex.compute({ x: 13 })
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
-            "Cuts": [
-              {
-                "CountPlusX": 15,
-                "Cut": "Good",
-                "MaxPrice": 400,
-                "MinPrice": 300,
-                "SumPrice": 700,
-                "MaxTime": {
-                  "type": "TIME",
-                  "value": new Date('2015-10-02T08:20:30Z')
+            "Cuts": {
+              "attributes": [
+                {
+                  "name": "Cut",
+                  "type": "STRING"
                 },
-                "MinTime": {
-                  "type": "TIME",
-                  "value": new Date('2015-10-01T09:20:30Z')
-                }
-              },
-              {
-                "CountPlusX": 14,
-                "Cut": "Great",
-                "MaxPrice": 124,
-                "MinPrice": 124,
-                "SumPrice": 124,
-                "MaxTime": null,
-                "MinTime": null
-              },
-              {
-                "CountPlusX": 15,
-                "Cut": "Wow",
-                "MaxPrice": 160,
-                "MinPrice": 100,
-                "SumPrice": 260,
-                "MaxTime": {
-                  "type": "TIME",
-                  "value": new Date('2015-10-05T05:20:30Z')
+                {
+                  "name": "Data",
+                  "type": "DATASET"
                 },
-                "MinTime": {
-                  "type": "TIME",
-                  "value": new Date('2015-10-04T06:20:30Z')
-                }
-              },
-              {
-                "CountPlusX": 14,
-                "Cut": null,
-                "MaxPrice": null,
-                "MinPrice": null,
-                "SumPrice": 0,
-                "MaxTime": {
-                  "type": "TIME",
-                  "value": new Date('2015-10-06T04:20:30Z')
+                {
+                  "name": "SumPrice",
+                  "type": "NUMBER"
                 },
-                "MinTime": {
-                  "type": "TIME",
-                  "value": new Date('2015-10-06T04:20:30Z')
+                {
+                  "name": "MinPrice",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "MaxPrice",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "MinTime",
+                  "type": "TIME"
+                },
+                {
+                  "name": "MaxTime",
+                  "type": "TIME"
+                },
+                {
+                  "name": "CountPlusX",
+                  "type": "NUMBER"
                 }
-              }
-            ]
+              ],
+              "data": [
+                {
+                  "CountPlusX": 15,
+                  "Cut": "Good",
+                  "MaxPrice": 400,
+                  "MaxTime": new Date('2015-10-02T08:20:30.000Z'),
+                  "MinPrice": 300,
+                  "MinTime": new Date('2015-10-01T09:20:30.000Z'),
+                  "SumPrice": 700
+                },
+                {
+                  "CountPlusX": 14,
+                  "Cut": "Great",
+                  "MaxPrice": 124,
+                  "MaxTime": null,
+                  "MinPrice": 124,
+                  "MinTime": null,
+                  "SumPrice": 124
+                },
+                {
+                  "CountPlusX": 15,
+                  "Cut": "Wow",
+                  "MaxPrice": 160,
+                  "MaxTime": new Date('2015-10-05T05:20:30.000Z'),
+                  "MinPrice": 100,
+                  "MinTime": new Date('2015-10-04T06:20:30.000Z'),
+                  "SumPrice": 260
+                },
+                {
+                  "CountPlusX": 14,
+                  "Cut": null,
+                  "MaxPrice": null,
+                  "MaxTime": new Date('2015-10-06T04:20:30.000Z'),
+                  "MinPrice": null,
+                  "MinTime": new Date('2015-10-06T04:20:30.000Z'),
+                  "SumPrice": 0
+                }
+              ],
+              "keys": [
+                "Cut"
+              ]
+            }
           }
         ]);
       });
@@ -1446,30 +1992,53 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
-            "Cuts": [
-              {
-                "Count": 2,
-                "Cut": "Good",
-                "AvgPrice": 350
-              },
-              {
-                "Count": 1,
-                "Cut": "Great",
-                "AvgPrice": 124
-              },
-              {
-                "Count": 2,
-                "Cut": "Wow",
-                "AvgPrice": 130
-              },
-              {
-                "Count": 1,
-                "Cut": null,
-                "AvgPrice": 0
-              }
-            ]
+            "Cuts": {
+              "attributes": [
+                {
+                  "name": "Cut",
+                  "type": "STRING"
+                },
+                {
+                  "name": "Data",
+                  "type": "DATASET"
+                },
+                {
+                  "name": "Count",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "AvgPrice",
+                  "type": "NUMBER"
+                }
+              ],
+              "data": [
+                {
+                  "AvgPrice": 350,
+                  "Count": 2,
+                  "Cut": "Good"
+                },
+                {
+                  "AvgPrice": 124,
+                  "Count": 1,
+                  "Cut": "Great"
+                },
+                {
+                  "AvgPrice": 130,
+                  "Count": 2,
+                  "Cut": "Wow"
+                },
+                {
+                  "AvgPrice": 0,
+                  "Count": 1,
+                  "Cut": null
+                }
+              ],
+              "keys": [
+                "Cut"
+              ]
+            }
           }
         ]);
       });
@@ -1490,18 +2059,37 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
-            "Cuts": [
-              {
-                "Count": 2,
-                "Cut": "Wow"
-              },
-              {
-                "Count": 1,
-                "Cut": "Great"
-              }
-            ]
+            "Cuts": {
+              "attributes": [
+                {
+                  "name": "Cut",
+                  "type": "STRING"
+                },
+                {
+                  "name": "Data",
+                  "type": "DATASET"
+                },
+                {
+                  "name": "Count",
+                  "type": "NUMBER"
+                }
+              ],
+              "data": [
+                {
+                  "Count": 2,
+                  "Cut": "Wow"
+                },
+                {
+                  "Count": 1,
+                  "Cut": "Great"
+                }
+              ],
+              "keys": [
+                "Cut"
+              ]
+            }
           }
         ]);
       });
@@ -1516,7 +2104,7 @@ describe("compute native", () => {
 
     return ex.compute()
       .then((v) => {
-        expect(v.toJS()).to.deep.equal([
+        expect(v.toJS().data).to.deep.equal([
           {
             "Count": 3
           }
@@ -1540,7 +2128,7 @@ describe("compute native", () => {
 
       return ex.compute()
         .then((v) => {
-          expect(v.toJS()).to.deep.equal([
+          expect(v.toJS().data).to.deep.equal([
             { n: 1 },
             { n: 2 },
             { n: 10 },
@@ -1556,33 +2144,29 @@ describe("compute native", () => {
 
       return ex.compute()
         .then((v) => {
-          expect(v.toJS()).to.deep.equal([
+          expect(v.toJS().data).to.deep.equal([
             {
               "nr": {
                 "end": 2,
-                "start": 1,
-                "type": "NUMBER_RANGE"
+                "start": 1
               }
             },
             {
               "nr": {
                 "end": 3,
-                "start": 2,
-                "type": "NUMBER_RANGE"
+                "start": 2
               }
             },
             {
               "nr": {
                 "end": 11,
-                "start": 10,
-                "type": "NUMBER_RANGE"
+                "start": 10
               }
             },
             {
               "nr": {
                 "end": 21,
-                "start": 20,
-                "type": "NUMBER_RANGE"
+                "start": 20
               }
             }
           ]);
@@ -1611,36 +2195,58 @@ describe("compute native", () => {
       return ex.compute()
         .then((v) => {
           midData = v;
-          expect(midData.toJS()).to.deep.equal([
+          expect(midData.toJS().data).to.deep.equal([
             {
               "Count": 6,
-              "Price": 1084,
-              "Cuts": [
-                {
-                  "Cut": "Good",
-                  "Count": 2,
-                  "Price": 700
-                },
-                {
-                  "Cut": "Great",
-                  "Count": 1,
-                  "Price": 124
-                },
-                {
-                  "Cut": "Wow",
-                  "Count": 2,
-                  "Price": 260
-                },
-                {
-                  "Cut": null,
-                  "Count": 1,
-                  "Price": 0
-                }
-              ]
+              "Cuts": {
+                "attributes": [
+                  {
+                    "name": "Cut",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Data",
+                    "type": "DATASET"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "Price",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 2,
+                    "Cut": "Good",
+                    "Price": 700
+                  },
+                  {
+                    "Count": 1,
+                    "Cut": "Great",
+                    "Price": 124
+                  },
+                  {
+                    "Count": 2,
+                    "Cut": "Wow",
+                    "Price": 260
+                  },
+                  {
+                    "Count": 1,
+                    "Cut": null,
+                    "Price": 0
+                  }
+                ],
+                "keys": [
+                  "Cut"
+                ]
+              },
+              "Price": 1084
             }
           ]);
-        })
-        .done();
+        });
     });
 
     it("re-selects", () => {
@@ -1654,47 +2260,73 @@ describe("compute native", () => {
 
       return ex.compute()
         .then((v) => {
-          expect(v.toJS()).to.deep.equal([
+          expect(v.toJS().data).to.deep.equal([
             {
               "Count": 6,
               "CountOver2": 3,
-              "Cuts": [
-                {
-                  "AvgPrice": 350,
-                  "Count": 2,
-                  "Cut": "Good",
-                  "Price": 700
-                },
-                {
-                  "AvgPrice": 124,
-                  "Count": 1,
-                  "Cut": "Great",
-                  "Price": 124
-                },
-                {
-                  "AvgPrice": 130,
-                  "Count": 2,
-                  "Cut": "Wow",
-                  "Price": 260
-                },
-                {
-                  "AvgPrice": 0,
-                  "Count": 1,
-                  "Cut": null,
-                  "Price": 0
-                }
-              ],
+              "Cuts": {
+                "attributes": [
+                  {
+                    "name": "Cut",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Data",
+                    "type": "DATASET"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "Price",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "AvgPrice",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "AvgPrice": 350,
+                    "Count": 2,
+                    "Cut": "Good",
+                    "Price": 700
+                  },
+                  {
+                    "AvgPrice": 124,
+                    "Count": 1,
+                    "Cut": "Great",
+                    "Price": 124
+                  },
+                  {
+                    "AvgPrice": 130,
+                    "Count": 2,
+                    "Cut": "Wow",
+                    "Price": 260
+                  },
+                  {
+                    "AvgPrice": 0,
+                    "Count": 1,
+                    "Cut": null,
+                    "Price": 0
+                  }
+                ],
+                "keys": [
+                  "Cut"
+                ]
+              },
               "Price": 1084
             }
           ]);
-        })
-        .done();
+        });
     });
   });
 
 
   describe("joins", () => {
-    it("does a join on split", () => {
+    it.skip("does a join on split", () => {
       let ds = Dataset.fromJS(data).hide();
 
       let ex = ply()
@@ -1710,7 +2342,7 @@ describe("compute native", () => {
 
       return ex.compute()
         .then((v) => {
-          expect(v.toJS()).to.deep.equal([
+          expect(v.toJS().data).to.deep.equal([
             {
               "Count1": 3,
               "Count2": 3,
@@ -1734,8 +2366,8 @@ describe("compute native", () => {
               ]
             }
           ]);
-        })
-        .done();
+        });
     });
+
   });
 });

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
 
-export function promiseWhile(condition: () => boolean, action: () => Q.Promise<any>): Q.Promise<any> {
-  let loop = (): Q.Promise<any> => {
-    if (!condition()) return Q(null);
-    return Q(action()).then(loop);
+export function promiseWhile(condition: () => boolean, action: () => Promise<any>): Promise<any> {
+  let loop = (): Promise<any> => {
+    if (!condition()) return Promise.resolve(null);
+    return Promise.resolve(action()).then(loop);
   };
 
-  return Q(null).then(loop);
+  return Promise.resolve(null).then(loop);
 }

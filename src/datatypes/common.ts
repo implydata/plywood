@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
 import { isDate } from 'chronoshift';
-import { hasOwnProperty } from '../helper/utils';
+import * as hasOwnProp from 'has-own-prop';
 import { Expression } from '../expressions/baseExpression';
 import { Dataset, Datum } from './dataset';
 import { Set } from './set';
@@ -34,7 +34,7 @@ export function getValueType(value: any): PlyType {
       return 'NULL';
     } else if (isDate(value)) {
       return 'TIME';
-    } else if (hasOwnProperty(value, 'start') && hasOwnProperty(value, 'end')) {
+    } else if (hasOwnProp(value, 'start') && hasOwnProp(value, 'end')) {
       if (isDate(value.start) || isDate(value.end)) return 'TIME_RANGE';
       if (typeof value.start === 'number' || typeof value.end === 'number') return 'NUMBER_RANGE';
       if (typeof value.start === 'string' || typeof value.end === 'string') return 'STRING_RANGE';
@@ -67,7 +67,7 @@ export function getFullType(value: any): FullType {
 export function getFullTypeFromDatum(datum: Datum): DatasetFullType {
   let datasetType: Lookup<FullType> = {};
   for (let k in datum) {
-    if (!hasOwnProperty(datum, k)) continue;
+    if (!hasOwnProp(datum, k)) continue;
     datasetType[k] = getFullType(datum[k]);
   }
 
@@ -75,6 +75,24 @@ export function getFullTypeFromDatum(datum: Datum): DatasetFullType {
     type: 'DATASET',
     datasetType: datasetType
   };
+}
+
+function timeFromJS(v: any): Date | null {
+  switch (typeof v) {
+    case 'string':
+    case 'number':
+      return new Date(v);
+
+    case 'object':
+      if (v.toISOString) return v;
+      if (v === null) return null;
+      if (v.value) return new Date(v.value);
+      throw new Error(`can not interpret ${JSON.stringify(v)} as TIME`);
+
+    default:
+      throw new Error(`can not interpret ${v} as TIME`);
+  }
+
 }
 
 export function valueFromJS(v: any, typeOverride: string | null = null): any {
@@ -86,37 +104,51 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
     } else {
       return Dataset.fromJS(v);
     }
-  } else if (typeof v === 'object') {
-    switch (typeOverride || v.type) {
-      case 'NUMBER':
-        let n = Number(v.value);
-        if (isNaN(n)) throw new Error(`bad number value '${v.value}'`);
-        return n;
+  } else {
+    const typeofV = typeof v;
+    if (typeofV === 'object') {
+      switch (typeOverride || v.type) {
+        case 'NUMBER':
+          let n = Number(v.value);
+          if (isNaN(n)) throw new Error(`bad number value '${v.value}'`);
+          return n;
 
-      case 'NUMBER_RANGE':
-        return NumberRange.fromJS(v);
+        case 'NUMBER_RANGE':
+          return NumberRange.fromJS(v);
 
-      case 'STRING_RANGE':
-        return StringRange.fromJS(v);
+        case 'STRING_RANGE':
+          return StringRange.fromJS(v);
 
-      case 'TIME':
-        return typeOverride ? v : new Date(v.value);
+        case 'TIME':
+          return timeFromJS(v);
 
-      case 'TIME_RANGE':
-        return TimeRange.fromJS(v);
+        case 'TIME_RANGE':
+          return TimeRange.fromJS(v);
 
-      case 'SET':
-        return Set.fromJS(v);
+        case 'SET':
+          return Set.fromJS(v);
 
-      default:
-        if (v.toISOString) {
-          return v; // Allow native date
-        } else {
-          throw new Error('can not have an object without a `type` as a datum value');
-        }
+        case 'DATASET':
+          return Dataset.fromJS(v);
+
+        default:
+          if (String(typeOverride).indexOf('SET') === 0) {
+            return Set.fromJS(v);
+          }
+          if (v.toISOString) {
+            return v; // Allow native date
+          }
+          if (typeOverride) {
+            throw new Error(`unknown type ${typeOverride}`);
+          } else {
+            throw new Error(`can not have an object without a 'type' as a datum value: ${JSON.stringify(v)}`);
+          }
+      }
+    } else if (typeofV === 'string' && typeOverride === 'TIME') {
+      return new Date(v);
+    } else if (typeofV === 'number' && isNaN(v)) {
+      return null;
     }
-  } else if (typeof v === 'string' && typeOverride === 'TIME') {
-    return new Date(v);
   }
   return v;
 }
@@ -148,6 +180,7 @@ export function valueToJSInlineType(v: any): any {
       if (v.toISOString) {
         return { type: 'TIME', value: v };
       } else {
+        if (typeof v.toJS !== 'function') return String(v); // Technically we should never get here
         let js = v.toJS();
         if (!Array.isArray(js)) {
           js.type = v.constructor.type || 'EXPRESSION';
@@ -161,7 +194,7 @@ export function valueToJSInlineType(v: any): any {
   return v;
 }
 
-// Remote functionality
+// External functionality
 
 export function datumHasExternal(datum: Datum): boolean {
   for (let name in datum) {
@@ -172,8 +205,8 @@ export function datumHasExternal(datum: Datum): boolean {
   return false;
 }
 
-export function introspectDatum(datum: Datum): Q.Promise<Datum> {
-  let promises: Q.Promise<void>[] = [];
+export function introspectDatum(datum: Datum): Promise<Datum> {
+  let promises: Promise<void>[] = [];
   let newDatum: Datum = Object.create(null);
   Object.keys(datum)
     .forEach(name => {
@@ -189,7 +222,7 @@ export function introspectDatum(datum: Datum): Q.Promise<Datum> {
       }
     });
 
-  return Q.all(promises).then(() => newDatum);
+  return Promise.all(promises).then(() => newDatum);
 }
 
 export function failIfIntrospectNeededInDatum(datum: Datum): void {
@@ -201,21 +234,4 @@ export function failIfIntrospectNeededInDatum(datum: Datum): void {
       }
     });
 }
-
-
-
-export function isSetType(type: PlyType): boolean {
-  return type && type.indexOf('SET/') === 0;
-}
-
-export function wrapSetType(type: PlyType): PlyType {
-  if (!type) return null;
-  return isSetType(type) ? type : <PlyType>('SET/' + type);
-}
-
-export function unwrapSetType(type: PlyType): PlyType {
-  if (!type) return null;
-  return isSetType(type) ? <PlyType>type.substr(4) : type;
-}
-
 

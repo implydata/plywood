@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
-let Q = require('q');
+const { expect } = require("chai");
 let { sane } = require('../utils');
 
 let plywood = require('../plywood');
@@ -43,7 +42,7 @@ let context = {
       { name: 'added', type: 'NUMBER', unsplitable: true },
       { name: 'deleted', type: 'NUMBER', unsplitable: true },
       { name: 'inserted', type: 'NUMBER', unsplitable: true },
-      { name: 'delta_hist', special: 'histogram' }
+      { name: 'delta_hist', type: 'NULL', nativeType: 'approximateHistogram', unsplitable: true }
     ],
     filter: timeFilter,
     allowSelectQueries: true,
@@ -81,7 +80,7 @@ describe("DruidExternal 0.9.0", () => {
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+      expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         "fields": [
           {
             "dimension": "tags",
@@ -119,7 +118,7 @@ describe("DruidExternal 0.9.0", () => {
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
-      expect(druidExternal.getQueryAndPostProcess().query.filter).to.deep.equal({
+      expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         "dimension": "language",
         "extractionFn": {
           "extractionFns": [
@@ -148,7 +147,7 @@ describe("DruidExternal 0.9.0", () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostProcess().query;
+      let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "page",

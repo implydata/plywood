@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let plywood = require('../plywood');
 let { Expression, Dataset, $, ply, r } = plywood;
@@ -33,11 +33,11 @@ describe("traversal", () => {
     let ex = $('x').add(2001000);
 
     it("on substitute", () => {
-      return ex.substitute(subs);
+      ex.substitute(subs);
     });
 
     it("on every", () => {
-      return ex.every(subs);
+      ex.every(subs);
     });
   });
 
@@ -60,11 +60,11 @@ describe("traversal", () => {
       );
 
     it("on substitute", () => {
-      return ex.substitute(subs);
+      ex.substitute(subs);
     });
 
     it("on every", () => {
-      return ex.every(subs);
+      ex.every(subs);
     });
   });
 
@@ -84,11 +84,11 @@ describe("traversal", () => {
       .apply('CountPlusBar', '$Data.count() + 12002001');
 
     it("on substitute", () => {
-      return ex.substitute(subs);
+      ex.substitute(subs);
     });
 
     it("on every", () => {
-      return ex.every(subs);
+      ex.every(subs);
     });
   });
 });

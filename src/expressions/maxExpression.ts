@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Dataset } from '../datatypes/dataset';
+import { PlywoodValue, Dataset, Set } from '../datatypes/index';
 
 export class MaxExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Max";
@@ -30,7 +30,7 @@ export class MaxExpression extends ChainableUnaryExpression implements Aggregate
     this._ensureOp("max");
     this._checkOperandTypes('DATASET');
     this._checkExpressionTypes('NUMBER', 'TIME');
-    this.type = 'NUMBER';
+    this.type = Set.unwrapSetType(this.expression.type);
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {

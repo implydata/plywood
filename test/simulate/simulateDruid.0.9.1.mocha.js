@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let plywood = require('../plywood');
 let { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
@@ -25,11 +25,11 @@ let attributes = [
   { name: 'cut', type: 'STRING' },
   { name: 'isNice', type: 'BOOLEAN' },
   { name: 'tags', type: 'SET/STRING' },
-  { name: 'carat', type: 'NUMBER' },
+  { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
   { name: 'height_bucket', type: 'NUMBER' },
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
-  { name: 'vendor_id', special: 'unique', unsplitable: true },
+  { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true },
 ];
 
 let context = {
@@ -142,6 +142,45 @@ describe("simulate Druid 0.9.1", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "Count",
+        "queryType": "topN",
+        "threshold": 10
+      }
+    ]);
+  });
+
+  it("works with numeric split", () => {
+    let ex = ply()
+      .apply(
+        'CaratSplit',
+        $("diamonds").split("$carat", 'Carat')
+          .sort('$Carat', 'descending')
+          .limit(10)
+      );
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "!DUMMY",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimension": {
+          "dimension": "carat",
+          "outputName": "Carat",
+          "type": "default"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "metric": {
+          "metric": {
+            "type": "alphaNumeric"
+          },
+          "type": "inverted"
+        },
         "queryType": "topN",
         "threshold": 10
       }

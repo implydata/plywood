@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,49 +15,55 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import { PassThrough } from 'readable-stream';
+import { PlywoodRequester, DatabaseRequest } from 'plywood-base-api';
+import { pipeWithError } from './utils';
 
 export interface ConcurrentLimitRequesterParameters<T> {
-  requester: Requester.PlywoodRequester<T>;
+  requester: PlywoodRequester<T>;
   concurrentLimit: int;
 }
 
 interface QueueItem<T> {
-  request: Requester.DatabaseRequest<T>;
-  deferred: Q.Deferred<any>;
+  request: DatabaseRequest<T>;
+  stream: PassThrough;
 }
 
-export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRequesterParameters<T>): Requester.PlywoodRequester<T> {
+export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRequesterParameters<T>): PlywoodRequester<T> {
   let requester = parameters.requester;
   let concurrentLimit = parameters.concurrentLimit || 5;
 
   if (typeof concurrentLimit !== "number") throw new TypeError("concurrentLimit should be a number");
 
-  let requestQueue: Array<QueueItem<T>> = [];
+  let requestQueue: QueueItem<T>[] = [];
   let outstandingRequests: int = 0;
 
   function requestFinished(): void {
     outstandingRequests--;
     if (!(requestQueue.length && outstandingRequests < concurrentLimit)) return;
     let queueItem = requestQueue.shift();
-    let deferred = queueItem.deferred;
     outstandingRequests++;
-    requester(queueItem.request)
-      .then(deferred.resolve, deferred.reject)
-      .fin(requestFinished);
+
+    const stream = requester(queueItem.request);
+    stream.on('error', requestFinished);
+    stream.on('end', requestFinished);
+    pipeWithError(stream, queueItem.stream);
   }
 
-  return (request: Requester.DatabaseRequest<T>): Q.Promise<any> => {
+  return (request: DatabaseRequest<T>) => {
     if (outstandingRequests < concurrentLimit) {
       outstandingRequests++;
-      return requester(request).fin(requestFinished);
+      const stream = requester(request);
+      stream.on('error', requestFinished);
+      stream.on('end', requestFinished);
+      return stream;
     } else {
-      let deferred = Q.defer();
+      const stream = new PassThrough({ objectMode: true });
       requestQueue.push({
-        request: request,
-        deferred: deferred
+        request,
+        stream
       });
-      return deferred.promise;
+      return stream;
     }
   };
 }

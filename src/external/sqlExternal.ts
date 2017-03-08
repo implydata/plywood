@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
-import { PlywoodValue, Dataset } from '../datatypes/index';
+import * as Promise from 'any-promise';
+import { Transform } from 'readable-stream';
 import {
   Expression,
   ApplyExpression,
@@ -28,16 +28,12 @@ import {
   TimeBucketExpression
 } from '../expressions/index';
 import { Attributes } from '../datatypes/attributeInfo';
-import { External, ExternalValue, Inflater, QueryAndPostProcess, PostProcess, TotalContainer } from './baseExternal';
+import { External, ExternalValue, Inflater, QueryAndPostTransform, TotalContainer } from './baseExternal';
 import { SQLDialect } from '../dialect/baseDialect';
-
-function correctResult(result: any[]): boolean {
-  return Array.isArray(result) && (result.length === 0 || typeof result[0] === 'object');
-}
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
   return split.mapSplits((label, splitExpression) => {
-    let simpleInflater = External.getSimpleInflater(splitExpression, label);
+    let simpleInflater = External.getSimpleInflater(splitExpression.type, label);
     if (simpleInflater) return simpleInflater;
 
     if (splitExpression instanceof TimeBucketExpression) {
@@ -50,61 +46,6 @@ function getSplitInflaters(split: SplitExpression): Inflater[] {
 
     return undefined;
   });
-}
-
-function valuePostProcess(data: any[]): PlywoodValue {
-  if (!correctResult(data)) {
-    let err = new Error("unexpected result (value)");
-    (<any>err).result = data; // ToDo: special error type
-    throw err;
-  }
-
-  return data.length ? data[0][External.VALUE_NAME] : 0;
-}
-
-function totalPostProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
-  return (data: any[]): TotalContainer => {
-    if (!correctResult(data)) {
-      let err = new Error("unexpected total result");
-      (<any>err).result = data; // ToDo: special error type
-      throw err;
-    }
-
-    let datum: any;
-    if (data.length === 1) {
-      datum = data[0];
-      for (let inflater of inflaters) {
-        inflater(datum, 0, data);
-      }
-    } else if (zeroTotalApplies) {
-      datum = External.makeZeroDatum(zeroTotalApplies);
-    }
-
-    return new TotalContainer(datum);
-  };
-}
-
-function postProcessFactory(inflaters: Inflater[], zeroTotalApplies: ApplyExpression[]): PostProcess {
-  return (data: any[]): Dataset => {
-    if (!correctResult(data)) {
-      let err = new Error("unexpected result");
-      (<any>err).result = data; // ToDo: special error type
-      throw err;
-    }
-
-    let n = data.length;
-    for (let inflater of inflaters) {
-      for (let i = 0; i < n; i++) {
-        inflater(data[i], i, data);
-      }
-    }
-
-    if (n === 0 && zeroTotalApplies) {
-      data = [External.makeZeroDatum(zeroTotalApplies)];
-    }
-
-    return new Dataset({ data });
-  };
 }
 
 export abstract class SQLExternal extends External {
@@ -151,38 +92,56 @@ export abstract class SQLExternal extends External {
     return true;
   }
 
+  protected capability(cap: string): boolean {
+    if (cap === 'filter-on-attribute' || cap === 'shortcut-group-by') return true;
+    return super.capability(cap);
+  }
+
   // -----------------
 
-  public getQueryAndPostProcess(): QueryAndPostProcess<string> {
+  protected sqlToQuery(sql: string): any {
+    return sql;
+  }
+
+  public getQueryAndPostTransform(): QueryAndPostTransform<string> {
     const { source, mode, applies, sort, limit, derivedAttributes, dialect } = this;
 
     let query = ['SELECT'];
-    let postProcess: PostProcess = null;
+    let postTransform: Transform = null;
     let inflaters: Inflater[] = [];
+    let keys: string[] = null;
     let zeroTotalApplies: ApplyExpression[] = null;
 
-    let from = "FROM " + this.dialect.escapeName(source as string);
+    //dialect.setTable(null);
+    let from = "FROM " + dialect.escapeName(source as string);
+    //dialect.setTable(source as string);
+
     let filter = this.getQueryFilter();
     if (!filter.equals(Expression.TRUE)) {
       from += '\nWHERE ' + filter.getSQL(dialect);
     }
 
+    let selectedAttributes = this.getSelectedAttributes();
     switch (mode) {
       case 'raw':
-        let selectedAttributes = this.getSelectedAttributes();
+        selectedAttributes = selectedAttributes.map((a) => a.dropOriginInfo());
 
-        selectedAttributes.forEach(attribute => {
+        inflaters = selectedAttributes.map(attribute => {
           let { name, type } = attribute;
           switch (type) {
             case 'BOOLEAN':
-              inflaters.push(External.booleanInflaterFactory(name));
-              break;
+              return External.booleanInflaterFactory(name);
+
+            case 'TIME':
+              return External.timeInflaterFactory(name);
 
             case 'SET/STRING':
-              inflaters.push(External.setStringInflaterFactory(name));
-              break;
+              return External.setStringInflaterFactory(name);
+
+            default:
+              return null;
           }
-        });
+        }).filter(Boolean);
 
         query.push(
           selectedAttributes.map(a => {
@@ -209,27 +168,33 @@ export abstract class SQLExternal extends External {
           from,
           dialect.constantGroupBy()
         );
-        postProcess = valuePostProcess;
+        postTransform = External.valuePostTransformFactory();
         break;
 
       case 'total':
         zeroTotalApplies = applies;
+        inflaters = applies.map(apply => {
+          let { name, expression } = apply;
+          return External.getSimpleInflater(expression.type, name);
+        }).filter(Boolean);
+
+        keys = [];
         query.push(
           applies.map(apply => apply.getSQL(dialect)).join(',\n'),
           from,
           dialect.constantGroupBy()
         );
-        postProcess = totalPostProcessFactory(inflaters, zeroTotalApplies);
         break;
 
       case 'split':
         let split = this.getQuerySplit();
+        keys = split.mapSplits((name) => name);
         query.push(
           split.getSelectSQL(dialect)
             .concat(applies.map(apply => apply.getSQL(dialect)))
             .join(',\n'),
           from,
-          split.getShortGroupBySQL()
+          'GROUP BY ' + (this.capability('shortcut-group-by') ? split.getShortGroupBySQL() : split.getGroupBySQL(dialect)).join(',')
         );
         if (!(this.havingFilter.equals(Expression.TRUE))) {
           query.push('HAVING ' + this.havingFilter.getSQL(dialect));
@@ -248,10 +213,10 @@ export abstract class SQLExternal extends External {
     }
 
     return {
-      query: query.join('\n'),
-      postProcess: postProcess || postProcessFactory(inflaters, zeroTotalApplies)
+      query: this.sqlToQuery(query.join('\n')),
+      postTransform: postTransform || External.postTransformFactory(inflaters, selectedAttributes, keys, zeroTotalApplies)
     };
   }
 
-  protected abstract getIntrospectAttributes(): Q.Promise<Attributes>
+  protected abstract getIntrospectAttributes(): Promise<Attributes>
 }

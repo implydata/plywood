@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let plywood = require('../plywood');
-let { $, ply, r, MatchExpression } = plywood;
+let { $, ply, r, MatchExpression, Set } = plywood;
 
 describe("MatchExpression", () => {
   it(".likeToRegExp", () => {
@@ -26,4 +26,14 @@ describe("MatchExpression", () => {
 
     expect(MatchExpression.likeToRegExp('%David|_R_ss||%', '|')).to.equal('^.*David_R.ss\\|.*$');
   });
+
+  it("matches on set (no comma)", () => {
+    let ex = r(Set.fromJS(['a', 'b'])).match(',');
+
+    return ex.compute()
+      .then((v) => {
+        expect(v).to.deep.equal(false);
+      });
+  });
+
 });

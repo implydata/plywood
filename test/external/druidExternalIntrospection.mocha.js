@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,41 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
-let Q = require('q');
+const { expect } = require("chai");
+const { PassThrough } = require('readable-stream');
+let Promise = require('any-promise');
 
 let plywood = require('../plywood');
 let { Expression, External, TimeRange, $, ply, r } = plywood;
 
+function promiseFnToStream(promiseRq) {
+  return (rq) => {
+    const stream = new PassThrough({ objectMode: true });
+
+    promiseRq(rq)
+      .then(
+        (res) => {
+          if (res) stream.write(res);
+          stream.end();
+        },
+        (e) => {
+          stream.emit('error', e);
+          stream.end();
+        }
+      );
+
+    return stream;
+  }
+}
+
 describe("DruidExternal Introspection", () => {
-  let requesterFail = ({query}) => {
-    return Q.reject(new Error('Bad status code'));
-  };
+  let requesterFail = promiseFnToStream(({query}) => {
+    return Promise.reject(new Error('Bad status code'));
+  });
 
 
-  let requesterDruid_0_9_0 = ({query}) => {
-    if (query.queryType === 'status') return Q({ version: '0.9.0' });
+  let requesterDruid_0_9_0 = promiseFnToStream(({query}) => {
+    if (query.queryType === 'status') return Promise.resolve({ version: '0.9.0' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -149,10 +170,10 @@ describe("DruidExternal Introspection", () => {
         };
       }
 
-      return Q([merged]);
+      return Promise.resolve(merged);
 
     } else if (query.queryType === 'introspect') {
-      return Q({
+      return Promise.resolve({
         dimensions: ['anonymous', 'language', 'namespace', 'newPage', 'page', 'time'],
         metrics: ['added', 'count', 'delta_hist', 'user_unique']
       });
@@ -160,11 +181,11 @@ describe("DruidExternal Introspection", () => {
     } else {
       throw new Error(`unsupported query ${query.queryType}`);
     }
-  };
+  });
 
 
-  let requesterDruid_0_8_3 = ({query}) => {
-    if (query.queryType === 'status') return Q({ version: '0.8.3' });
+  let requesterDruid_0_8_3 = promiseFnToStream(({query}) => {
+    if (query.queryType === 'status') return Promise.resolve({ version: '0.8.3' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -250,13 +271,13 @@ describe("DruidExternal Introspection", () => {
       };
 
       if (query.analysisTypes.indexOf("aggregators") !== -1) {
-        return Q.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'));
+        return Promise.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'));
       }
 
-      return Q([merged]);
+      return Promise.resolve(merged);
 
     } else if (query.queryType === 'introspect') {
-      return Q({
+      return Promise.resolve({
         dimensions: ['anonymous', 'language', 'namespace', 'newPage', 'page', 'time'],
         metrics: ['added', 'count', 'delta_hist', 'user_unique']
       });
@@ -264,11 +285,11 @@ describe("DruidExternal Introspection", () => {
     } else {
       throw new Error(`unsupported query ${query.queryType}`);
     }
-  };
+  });
 
 
-  let requesterDruid_0_8_2 = ({query}) => {
-    if (query.queryType === 'status') return Q({ version: '0.8.2' });
+  let requesterDruid_0_8_2 = promiseFnToStream(({query}) => {
+    if (query.queryType === 'status') return Promise.resolve({ version: '0.8.2' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -297,13 +318,13 @@ describe("DruidExternal Introspection", () => {
       };
 
       if (query.analysisTypes.indexOf("aggregators") !== -1) {
-        return Q.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'));
+        return Promise.reject(new Error('Can not construct instance of io.druid.query.metadata.metadata.SegmentMetadataQuery$AnalysisType'));
       }
 
-      return Q([merged]);
+      return Promise.resolve(merged);
 
     } else if (query.queryType === 'introspect') {
-      return Q({
+      return Promise.resolve({
         dimensions: ['anonymous', 'language', 'namespace', 'newPage', 'page', 'time'],
         metrics: ['added', 'count', 'delta_hist', 'user_unique']
       });
@@ -311,19 +332,19 @@ describe("DruidExternal Introspection", () => {
     } else {
       throw new Error(`unsupported query ${query.queryType}`);
     }
-  };
+  });
 
 
-  let requesterDruid_0_8_1 = ({query}) => {
-    if (query.queryType === 'status') return Q({ version: '0.8.1' });
+  let requesterDruid_0_8_1 = promiseFnToStream(({query}) => {
+    if (query.queryType === 'status') return Promise.resolve({ version: '0.8.1' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
       expect(query.intervals).to.not.exist;
-      return Q.reject(new Error("Instantiation of [simple type, class io.druid.query.metadata.metadata.SegmentMetadataQuery] value failed: querySegmentSpec can't be null"));
+      return Promise.reject(new Error("Instantiation of [simple type, class io.druid.query.metadata.metadata.SegmentMetadataQuery] value failed: querySegmentSpec can't be null"));
 
     } else if (query.queryType === 'introspect') {
-      return Q({
+      return Promise.resolve({
         dimensions: ['anonymous', 'language', 'namespace', 'newPage', 'page', 'time'],
         metrics: ['added', 'count', 'delta_hist', 'user_unique']
       });
@@ -331,7 +352,7 @@ describe("DruidExternal Introspection", () => {
     } else {
       throw new Error(`unsupported query ${query.queryType}`);
     }
-  };
+  });
 
 
   it("errors on bad introspectionStrategy", () => {
@@ -372,65 +393,75 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "maker": {
-              "op": "sum",
               "expression": {
                 "name": "added",
                 "op": "ref"
-              }
+              },
+              "op": "sum"
             },
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "maker": {
-              "op": "count",
+              "op": "count"
             },
             "name": "count",
+            "nativeType": "LONG",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "maker": {
-              "op": "sum",
               "expression": {
                 "name": "delta",
                 "op": "ref"
-              }
+              },
+              "op": "sum"
             },
             "name": "delta",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "delta_hist",
-            "special": "histogram",
-            "type": "NUMBER"
+            "nativeType": "approximateHistogram",
+            "type": "NULL",
+            "unsplitable": true
           },
           {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "SET/STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "user_unique",
-            "special": "unique",
-            "type": "STRING"
+            "nativeType": "hyperUnique",
+            "type": "NULL",
+            "unsplitable": true
           }
         ]);
       });
@@ -452,43 +483,52 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "count",
+            "nativeType": "LONG",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "delta_hist",
-            "special": "histogram",
-            "type": "NUMBER"
+            "nativeType": "approximateHistogram",
+            "type": "NULL",
+            "unsplitable": true
           },
           {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "SET/STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "user_unique",
-            "special": "unique",
-            "type": "STRING"
+            "nativeType": "hyperUnique",
+            "type": "NULL",
+            "unsplitable": true
           }
         ]);
       });
@@ -507,33 +547,50 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "count",
+            "nativeType": "LONG",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
+            "name": "delta_hist",
+            "nativeType": "COMPLEX",
+            "type": "NULL"
+          },
+          {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
+          },
+          {
+            "name": "user_unique",
+            "nativeType": "COMPLEX",
+            "type": "NULL"
           }
         ]);
       });
@@ -552,45 +609,55 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "newPage",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "count",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "delta_hist",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "user_unique",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           }
@@ -612,45 +679,55 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "newPage",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "count",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "delta_hist",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "user_unique",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           }
@@ -664,8 +741,8 @@ describe("DruidExternal Introspection", () => {
       source: 'wikipedia',
       timeAttribute: 'time',
       attributeOverrides: [
-        { name: "user_unique", special: 'unique' },
-        { name: "delta_hist", special: 'histogram' }
+        { name: "user_unique", type: 'NULL', nativeType: 'hyperUnique', "unsplitable": true },
+        { name: "delta_hist", type: 'NULL', nativeType: 'approximateHistogram', unsplitable: true }
       ]
     }, requesterDruid_0_8_1);
 
@@ -675,47 +752,57 @@ describe("DruidExternal Introspection", () => {
         expect(introspectedExternal.toJS().attributes).to.deep.equal([
           {
             "name": "time",
+            "nativeType": "__time",
             "type": "TIME"
           },
           {
             "name": "anonymous",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "language",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "namespace",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "newPage",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "page",
+            "nativeType": "STRING",
             "type": "STRING"
           },
           {
             "name": "added",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "count",
+            "nativeType": "FLOAT",
             "type": "NUMBER",
             "unsplitable": true
           },
           {
             "name": "delta_hist",
-            "special": "histogram",
-            "type": "NUMBER"
+            "nativeType": "approximateHistogram",
+            "type": "NULL",
+            "unsplitable": true
           },
           {
             "name": "user_unique",
-            "special": "unique",
-            "type": "STRING"
+            "nativeType": "hyperUnique",
+            "type": "NULL",
+            "unsplitable": true
           }
         ]);
       });
@@ -747,7 +834,9 @@ describe("DruidExternal Introspection", () => {
         },
         "queryType": "select"
       });
-      return Q([]);
+      const stream = new PassThrough({ objectMode: true });
+      setTimeout(() => { stream.end(); }, 1);
+      return stream;
     };
 
     let wikiExternal = External.fromJS({
@@ -762,7 +851,7 @@ describe("DruidExternal Introspection", () => {
 
     return $('wiki').compute(context)
       .then((results) => {
-        expect(results.toJS()).to.deep.equal([]);
+        expect(results.toJS().data).to.deep.equal([]);
       });
   });
 });

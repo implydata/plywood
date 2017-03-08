@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,56 +15,66 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import { PlywoodRequester, DatabaseRequest } from 'plywood-base-api';
 
 export interface VerboseRequesterParameters<T> {
-  requester: Requester.PlywoodRequester<T>;
+  requester: PlywoodRequester<T>;
   printLine?: (line: string) => void;
   preQuery?: (query: any) => void;
   onSuccess?: (data: any, time: number, query: any) => void;
   onError?: (error: Error, time: number, query: any) => void;
 }
 
-export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameters<T>): Requester.PlywoodRequester<any> {
+export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameters<T>): PlywoodRequester<any> {
   let requester = parameters.requester;
 
   let printLine = parameters.printLine || ((line: string): void => {
       console['log'](line);
     });
 
-  let preQuery = parameters.preQuery || ((query: any, queryNumber: int): void => {
+  let preQuery = parameters.preQuery || ((query: any, queryNumber: int, context?: any): void => {
       printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
-      printLine(`Sending query ${queryNumber}:`);
+      const ctx = context ? ` [context: ${JSON.stringify(context)}]` : '';
+      printLine(`Sending query ${queryNumber}:${ctx}`);
       printLine(JSON.stringify(query, null, 2));
       printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
     });
 
-  let onSuccess = parameters.onSuccess || ((data: any, time: number, query: any, queryNumber: int): void => {
+  let onSuccess = parameters.onSuccess || ((data: any, time: number, query: any, queryNumber: int, context?: any): void => {
       printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
       printLine(`Got result from query ${queryNumber}: (in ${time}ms)`);
       printLine(JSON.stringify(data, null, 2));
       printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
     });
 
-  let onError = parameters.onError || ((error: Error, time: number, query: any, queryNumber: int): void => {
+  let onError = parameters.onError || ((error: Error, time: number, query: any, queryNumber: int, context?: any): void => {
       printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
       printLine(`Got error in query ${queryNumber}: ${error.message} (in ${time}ms)`);
       printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
     });
 
   let queryNumber: int = 0;
-  return (request: Requester.DatabaseRequest<any>): Q.Promise<any> => {
+  return (request: DatabaseRequest<any>) => {
     queryNumber++;
     let myQueryNumber = queryNumber;
-    preQuery(request.query, myQueryNumber);
+    preQuery(request.query, myQueryNumber, request.context);
+
     let startTime = Date.now();
-    return requester(request)
-      .then(data => {
-        onSuccess(data, Date.now() - startTime, request.query, myQueryNumber);
-        return data;
-      }, (error) => {
-        onError(error, Date.now() - startTime, request.query, myQueryNumber);
-        throw error;
-      });
+    let stream = requester(request);
+
+    let errorSeen = false;
+    stream.on('error', (error: Error) => {
+      errorSeen = true;
+      onError(error, Date.now() - startTime, request.query, myQueryNumber, request.context);
+    });
+
+    let data: any[] = [];
+    stream.on('data', (datum: any) => data.push(datum));
+    stream.on('end', () => {
+      if (errorSeen) return;
+      onSuccess(data, Date.now() - startTime, request.query, myQueryNumber, request.context);
+    });
+
+    return stream;
   };
 }

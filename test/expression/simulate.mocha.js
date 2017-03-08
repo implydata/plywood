@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let plywood = require('../plywood');
 let { Expression, $, r, ply, Set, Dataset, External, ExternalExpression, fillExpressionExternalAlteration } = plywood;
@@ -31,17 +31,17 @@ let diamonds = External.fromJS({
     { name: 'isNice', type: 'BOOLEAN' },
     { name: 'tags', type: 'SET/STRING' },
     { name: 'pugs', type: 'SET/STRING' },
-    { name: 'carat', type: 'NUMBER' },
+    { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
     { name: 'height_bucket', type: 'NUMBER' },
     { name: 'price', type: 'NUMBER', unsplitable: true },
     { name: 'tax', type: 'NUMBER', unsplitable: true },
-    { name: 'vendor_id', special: 'unique', unsplitable: true }
+    { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true }
   ],
   allowEternity: true,
   allowSelectQueries: true
 });
 
-describe("evaluate step", () => {
+describe("simulate", () => {
 
   it('works in basic case', () => {
     let ex = ply()
@@ -54,23 +54,64 @@ describe("evaluate step", () => {
           .apply('SubSplit', $('diamonds').split('$cut:STRING', 'SubCut').limit(5))
       );
 
-    expect(ex.simulate({ diamonds: diamonds }).toJS()).to.deep.equal([
+    expect(ex.simulate({ diamonds: diamonds }).toJS().data).to.deep.equal([
       {
-        "SomeNestedSplit": [
-          {
-            "Color": "some_color",
-            "SubSplit": [
-              {
-                "SubCut": "some_cut"
+        "SomeNestedSplit": {
+          "attributes": [
+            {
+              "name": "Color",
+              "type": "STRING"
+            },
+            {
+              "name": "diamonds",
+              "type": "DATASET"
+            },
+            {
+              "name": "SubSplit",
+              "type": "DATASET"
+            }
+          ],
+          "data": [
+            {
+              "Color": "some_color",
+              "SubSplit": {
+                "attributes": [
+                  {
+                    "name": "SubCut",
+                    "type": "STRING"
+                  }
+                ],
+                "data": [
+                  {
+                    "SubCut": "some_cut"
+                  }
+                ],
+                "keys": [
+                  "SubCut"
+                ]
               }
-            ]
-          }
-        ],
-        "SomeSplit": [
-          {
-            "Cut": "some_cut"
-          }
-        ],
+            }
+          ],
+          "keys": [
+            "Color"
+          ]
+        },
+        "SomeSplit": {
+          "attributes": [
+            {
+              "name": "Cut",
+              "type": "STRING"
+            }
+          ],
+          "data": [
+            {
+              "Cut": "some_cut"
+            }
+          ],
+          "keys": [
+            "Cut"
+          ]
+        },
         "Total": 4,
         "TotalX2": 4
       }

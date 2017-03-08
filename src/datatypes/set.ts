@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,16 @@
  * limitations under the License.
  */
 
+import * as hasOwnProp from 'has-own-prop';
 import { Timezone } from 'chronoshift';
 import { Class, Instance } from 'immutable-class';
 import { PlyType } from '../types';
-import { hasOwnProperty } from '../helper/utils';
-import { getValueType, isSetType, valueToJS, valueFromJS } from './common';
+import { getValueType, valueToJS, valueFromJS } from './common';
 import { PlywoodRange } from './range';
 import { NumberRange } from './numberRange';
 import { TimeRange } from './timeRange';
 import { StringRange } from './stringRange';
+import { PlywoodValue } from './dataset';
 import { isDate } from 'chronoshift';
 
 export interface SetValue {
@@ -87,9 +88,73 @@ export class Set implements Instance<SetValue, SetJS> {
     return candidate instanceof Set;
   }
 
+  static isSetType(type: PlyType): boolean {
+    return type && type.indexOf('SET/') === 0;
+  }
+
+  static wrapSetType(type: PlyType): PlyType {
+    if (!type) return null;
+    return Set.isSetType(type) ? type : <PlyType>('SET/' + type);
+  }
+
+  static unwrapSetType(type: PlyType): PlyType {
+    if (!type) return null;
+    return Set.isSetType(type) ? <PlyType>type.substr(4) : type;
+  }
+
+  static cartesianProductOf<T>(...args: T[][]): T[][] {
+    return args.reduce((a, b) => {
+      return [].concat.apply([], a.map((x) => {
+        return b.map((y) => {
+          return x.concat([y]);
+        });
+      }));
+    }, [[]]);
+  }
+
+  static crossBinary(as: any, bs: any, fn: (a: any, b: any) => any): any {
+    if (as instanceof Set || bs instanceof Set) {
+      const aElements = as instanceof Set ? as.elements : [as];
+      const bElements = bs instanceof Set ? bs.elements : [bs];
+      const cp = Set.cartesianProductOf(aElements, bElements);
+      return Set.fromJS(cp.map((v) => fn(v[0], v[1])));
+    } else {
+      return fn(as, bs);
+    }
+  }
+
+  static crossBinaryBoolean(as: any, bs: any, fn: (a: any, b: any) => boolean): boolean {
+    if (as instanceof Set || bs instanceof Set) {
+      const aElements = as instanceof Set ? as.elements : [as];
+      const bElements = bs instanceof Set ? bs.elements : [bs];
+      const cp = Set.cartesianProductOf(aElements, bElements);
+      return cp.some((v) => fn(v[0], v[1]));
+    } else {
+      return fn(as, bs);
+    }
+  }
+
+  static crossUnary(as: any, fn: (a: any) => any): any {
+    if (as instanceof Set) {
+      const aElements = as instanceof Set ? as.elements : [as];
+      return Set.fromJS(aElements.map((a) => fn(a)));
+    } else {
+      return fn(as);
+    }
+  }
+
+  static crossUnaryBoolean(as: any, fn: (a: any) => boolean): boolean {
+    if (as instanceof Set) {
+      const aElements = as instanceof Set ? as.elements : [as];
+      return aElements.some((a) => fn(a));
+    } else {
+      return fn(as);
+    }
+  }
+
   static convertToSet(thing: any): Set {
     let thingType = getValueType(thing);
-    if (isSetType(thingType)) return thing;
+    if (Set.isSetType(thingType)) return thing;
     return Set.fromJS({ setType: thingType, elements: [thing] });
   }
 
@@ -125,6 +190,10 @@ export class Set implements Instance<SetValue, SetJS> {
     }
 
     return aSet.intersect(bSet).simplify();
+  }
+
+  static fromPlywoodValue(pv: PlywoodValue) {
+    return pv instanceof Set ? pv : Set.fromJS([pv]);
   }
 
   static fromJS(parameters: Array<any>): Set;
@@ -304,7 +373,7 @@ export class Set implements Instance<SetValue, SetJS> {
 
   public extent(): PlywoodRange {
     let setType = this.setType;
-    if (hasOwnProperty(typeUpgrades, setType)) {
+    if (hasOwnProp(typeUpgrades, setType)) {
       return this.upgradeType().extent();
     }
     if (setType !== 'NUMBER_RANGE' && setType !== 'TIME_RANGE' && setType !== 'STRING_RANGE') return null;
@@ -389,14 +458,14 @@ export class Set implements Instance<SetValue, SetJS> {
 
       return this.containsWithin(value);
     }
-    return hasOwnProperty(this.hash, this.keyFn(value));
+    return hasOwnProp(this.hash, this.keyFn(value));
 
   }
 
   public containsWithin(value: any): boolean {
     let elements = this.elements;
     for (let k in elements) {
-      if (!hasOwnProperty(elements, k)) continue;
+      if (!hasOwnProp(elements, k)) continue;
       if ((<NumberRange>elements[k]).contains(value)) return true;
     }
     return false;

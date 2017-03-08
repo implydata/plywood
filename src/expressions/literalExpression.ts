@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import { isImmutableClass } from 'immutable-class';
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
 import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { hasOwnProperty } from '../helper/utils';
+import * as hasOwnProp from 'has-own-prop';
 import { Dataset, Set, TimeRange, PlywoodValue, ComputeFn, Datum } from '../datatypes/index';
-import { isSetType, valueFromJS, getValueType } from '../datatypes/common';
+import { valueFromJS, getValueType } from '../datatypes/common';
 
 export class LiteralExpression extends Expression {
   static op = "Literal";
@@ -31,7 +31,7 @@ export class LiteralExpression extends Expression {
       op: parameters.op,
       type: parameters.type
     };
-    if (!hasOwnProperty(parameters, 'value')) throw new Error('literal expression must have value');
+    if (!hasOwnProp(parameters, 'value')) throw new Error('literal expression must have value');
     let v: any = parameters.value;
     if (isImmutableClass(v)) {
       value.value = v;
@@ -66,7 +66,7 @@ export class LiteralExpression extends Expression {
     let js = super.toJS();
     if (this.value && this.value.toJS) {
       js.value = this.value.toJS();
-      js.type = isSetType(this.type) ? 'SET' : this.type;
+      js.type = Set.isSetType(this.type) ? 'SET' : this.type;
     } else {
       js.value = this.value;
       if (this.type === 'TIME') js.type = 'TIME';
@@ -100,7 +100,7 @@ export class LiteralExpression extends Expression {
 
   public getSQL(dialect: SQLDialect): string {
     let value = this.value;
-    if (value === null) return 'NULL';
+    if (value === null) return dialect.nullConstant();
 
     switch (this.type) {
       case 'STRING':

@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
+import * as hasOwnProp from 'has-own-prop';
 import { isDate, Timezone } from 'chronoshift';
 import { Class, Instance, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
 import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
-import { hasOwnProperty } from '../helper/utils';
 import { Attributes, AttributeInfo, AttributeJSs } from './attributeInfo';
 import { NumberRange } from './numberRange';
 import { Set } from './set';
 import { StringRange } from './stringRange';
 import { TimeRange } from './timeRange';
-import { valueFromJS, valueToJSInlineType, datumHasExternal } from './common';
+import { valueFromJS, valueToJS, datumHasExternal } from './common';
 import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression, Direction } from '../expressions/index';
 import { External, TotalContainer } from '../external/baseExternal';
 
@@ -108,45 +108,6 @@ let directionFns: Lookup<DirectionFn> = {
   }
 };
 
-export interface Column {
-  name: string;
-  type: string;
-  columns?: Column[];
-}
-
-function uniqueColumns(columns: Column[]): Column[] {
-  let seen: Lookup<boolean> = {};
-  let uniqueColumns: Column[] = [];
-  for (let column of columns) {
-    if (!seen[column.name]) {
-      uniqueColumns.push(column);
-      seen[column.name] = true;
-    }
-  }
-  return uniqueColumns;
-}
-
-function flattenColumns(nestedColumns: Column[], prefixColumns: boolean): Column[] {
-  let flatColumns: Column[] = [];
-  let i = 0;
-  let prefixString = '';
-  while (i < nestedColumns.length) {
-    let nestedColumn = nestedColumns[i];
-    if (nestedColumn.type === 'DATASET') {
-      nestedColumns = nestedColumn.columns;
-      if (prefixColumns) prefixString += nestedColumn.name + '.';
-      i = 0;
-    } else {
-      flatColumns.push({
-        name: prefixString + nestedColumn.name,
-        type: nestedColumn.type
-      });
-      i++;
-    }
-  }
-  return uniqueColumns(flatColumns);
-}
-
 function removeLineBreaks(v: string): string {
   return v.replace(/(?:\r\n|\r|\n)/g, ' ');
 }
@@ -211,10 +172,9 @@ const DEFAULT_FORMATTER: Formatter = {
 
 export interface FlattenOptions {
   prefixColumns?: boolean;
-  order?: string; // preorder, inline [default], postorder
-  orderedColumns?: string[];
+  order?: 'preorder' | 'inline' | 'postorder'; // default: inline
   nestingName?: string;
-  parentName?: string;
+  columnOrdering?: 'as-seen' | 'keys-first';
 }
 
 export type FinalLineBreak = 'include' | 'suppress';
@@ -258,8 +218,8 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
     return new AttributeInfo({ name, type: 'TIME_RANGE' });
   } else if (attributeValue instanceof Set) {
     return new AttributeInfo({ name, type: attributeValue.getType() });
-  } else if (attributeValue instanceof Dataset) {
-    return new AttributeInfo({ name, type: 'DATASET', datasetType: attributeValue.getFullType().datasetType });
+  } else if (attributeValue instanceof Dataset || attributeValue instanceof External) {
+    return new AttributeInfo({ name, type: 'DATASET' }); // , datasetType: attributeValue.getFullType().datasetType
   } else {
     throw new Error(`Could not introspect ${attributeValue}`);
   }
@@ -280,52 +240,52 @@ function copy(obj: Lookup<any>): Lookup<any> {
   let newObj: Lookup<any> = {};
   let k: string;
   for (k in obj) {
-    if (hasOwnProperty(obj, k)) newObj[k] = obj[k];
+    if (hasOwnProp(obj, k)) newObj[k] = obj[k];
   }
   return newObj;
 }
 
 export interface DatasetValue {
-  attributeOverrides?: Attributes;
-
   attributes?: Attributes;
   keys?: string[];
   data?: Datum[];
   suppress?: boolean;
 }
 
-export interface DatasetJS {
+export interface DatasetJSFull {
   attributes?: AttributeJSs;
   keys?: string[];
   data?: Datum[];
 }
 
-let check: Class<DatasetValue, any>;
-export class Dataset implements Instance<DatasetValue, any> {
+export type DatasetJS = DatasetJSFull | Datum[];
+
+let check: Class<DatasetValue, DatasetJS>;
+export class Dataset implements Instance<DatasetValue, DatasetJS> {
   static type = 'DATASET';
 
   static isDataset(candidate: any): candidate is Dataset {
     return candidate instanceof Dataset;
   }
 
-  static datumFromJS(js: Datum): Datum {
+  static datumFromJS(js: PseudoDatum, attributeLookup: Lookup<AttributeInfo> = {}): Datum {
     if (typeof js !== 'object') throw new TypeError("datum must be an object");
 
     let datum: Datum = Object.create(null);
     for (let k in js) {
-      if (!hasOwnProperty(js, k)) continue;
-      datum[k] = valueFromJS(js[k]);
+      if (!hasOwnProp(js, k)) continue;
+      datum[k] = valueFromJS(js[k], hasOwnProp(attributeLookup, k) ? attributeLookup[k].type : null);
     }
 
     return datum;
   }
 
-  static datumToJS(datum: Datum): Datum {
-    let js: Datum = {};
+  static datumToJS(datum: Datum): PseudoDatum {
+    let js: PseudoDatum = {};
     for (let k in datum) {
       let v = datum[k];
       if (v && (v as any).suppress) continue;
-      js[k] = valueToJSInlineType(v);
+      js[k] = valueToJS(v);
     }
     return js;
   }
@@ -391,7 +351,7 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
   }
 
-  static fromJS(parameters: any): Dataset {
+  static fromJS(parameters: DatasetJS | any[]): Dataset {
     if (Array.isArray(parameters)) {
       parameters = { data: parameters };
     }
@@ -401,21 +361,21 @@ export class Dataset implements Instance<DatasetValue, any> {
     }
 
     let value: DatasetValue = {};
-
-    if (hasOwnProperty(parameters, 'attributes')) {
-      value.attributes = AttributeInfo.fromJSs(parameters.attributes);
-    } else if (hasOwnProperty(parameters, 'attributeOverrides')) {
-      value.attributeOverrides = AttributeInfo.fromJSs(parameters.attributeOverrides);
+    let attributeLookup: Lookup<AttributeInfo> = {};
+    if (parameters.attributes) {
+      const attributes = AttributeInfo.fromJSs(parameters.attributes);
+      value.attributes = attributes;
+      for (let attribute of attributes) attributeLookup[attribute.name] = attribute;
     }
 
-    value.keys = parameters.keys;
-    value.data = parameters.data.map(Dataset.datumFromJS);
+    value.keys = parameters.keys || null;
+    value.data = parameters.data.map((d) => Dataset.datumFromJS(d, attributeLookup));
     return new Dataset(value);
   }
 
   public suppress: boolean;
   public attributes: Attributes = null;
-  public keys: string[] = null;
+  public keys: string[] | null = null;
   public data: Datum[];
 
   constructor(parameters: DatasetValue) {
@@ -433,11 +393,6 @@ export class Dataset implements Instance<DatasetValue, any> {
     let attributes = parameters.attributes;
     if (!attributes) attributes = Dataset.getAttributesFromData(data);
 
-    let attributeOverrides = parameters.attributeOverrides;
-    if (attributeOverrides) {
-      attributes = AttributeInfo.override(attributes, attributeOverrides);
-    }
-
     this.attributes = attributes;
   }
 
@@ -450,12 +405,16 @@ export class Dataset implements Instance<DatasetValue, any> {
     return value;
   }
 
-  public toJS(): any {
-    return this.data.map(Dataset.datumToJS);
+  public toJS(): DatasetJS {
+    const js: DatasetJSFull = {};
+    if (this.keys) js.keys = this.keys;
+    if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
+    js.data = this.data.map(Dataset.datumToJS);
+    return js;
   }
 
   public toString(): string {
-    return "Dataset(" + this.data.length + ")";
+    return `Dataset(${this.data.length})`;
   }
 
   public toJSON(): any {
@@ -492,10 +451,15 @@ export class Dataset implements Instance<DatasetValue, any> {
     for (let attribute of attributes) {
       let attrName = attribute.name;
       if (attribute.type === 'DATASET') {
-        myDatasetType[attrName] = {
-          type: 'DATASET',
-          datasetType: attribute.datasetType
-        };
+        let v0: any; // ToDo: revisit, look beyond 0
+        if (this.data.length && (v0 = this.data[0][attrName]) && v0 instanceof Dataset) {
+          myDatasetType[attrName] = v0.getFullType();
+        } else {
+          myDatasetType[attrName] = {
+            type: 'DATASET',
+            datasetType: {}
+          };
+        }
       } else {
         myDatasetType[attrName] = {
           type: <PlyTypeSimple>attribute.type
@@ -562,20 +526,20 @@ export class Dataset implements Instance<DatasetValue, any> {
       newData[i] = newDatum;
     }
 
-    // Hack
-    let datasetType: Lookup<FullType> = null;
-    if (type === 'DATASET' && newData[0] && newData[0][name]) {
-      let thing: any = newData[0][name];
-      if (thing instanceof Dataset) {
-        datasetType = thing.getFullType().datasetType;
-      } else {
-        datasetType = {}; // Temp hack, (a hack within a hack), technically this should be dataset type;
-      }
-    }
-    // End Hack
+    // // Hack
+    // let datasetType: Lookup<FullType> = null;
+    // if (type === 'DATASET' && newData[0] && newData[0][name]) {
+    //   let thing: any = newData[0][name];
+    //   if (thing instanceof Dataset) {
+    //     datasetType = thing.getFullType().datasetType;
+    //   } else {
+    //     datasetType = {}; // Temp hack, (a hack within a hack), technically this should be dataset type;
+    //   }
+    // }
+    // // End Hack
 
     let value = this.valueOf();
-    value.attributes = NamedArray.overrideByName(value.attributes, new AttributeInfo({ name, type, datasetType }));
+    value.attributes = NamedArray.overrideByName(value.attributes, new AttributeInfo({ name, type }));
     value.data = newData;
     return new Dataset(value);
   }
@@ -803,7 +767,7 @@ export class Dataset implements Instance<DatasetValue, any> {
 
     function addDatum(datum: Datum, valueList: any): void {
       let key = valueList.join(';_PLYw00d_;');
-      if (hasOwnProperty(datumGroups, key)) {
+      if (hasOwnProp(datumGroups, key)) {
         datumGroups[key].push(datum);
       } else {
         let newDatum: Datum = Object.create(null);
@@ -818,20 +782,24 @@ export class Dataset implements Instance<DatasetValue, any> {
 
     for (let datum of data) {
       let valueList = splitFnList.map(splitFn => splitFn(datum));
-      let setIndex = -1;
+
+      let setIndex: number[] = [];
+      let setElements: any[][] = [];
       for (let i = 0; i < valueList.length; i++) {
         if (Set.isSet(valueList[i])) {
-          if (setIndex !== -1) throw new Error(`only one SET value is supported in native split for now`);
-          setIndex = i;
+          setIndex.push(i);
+          setElements.push(valueList[i].elements);
         }
       }
+      let numSets = setIndex.length;
 
-      if (setIndex !== -1) {
-        let elements = valueList[setIndex].elements;
-        let atomicValueList = valueList.slice();
-        for (let element of elements) {
-          atomicValueList[setIndex] = element;
-          addDatum(datum, atomicValueList);
+      if (numSets) {
+        const cp = Set.cartesianProductOf(...setElements);
+        for (let v of cp) {
+          for (let j = 0; j < numSets; j++) {
+            valueList[setIndex[j]] = v[j];
+          }
+          addDatum(datum, valueList);
         }
       } else {
         addDatum(datum, valueList);
@@ -842,6 +810,7 @@ export class Dataset implements Instance<DatasetValue, any> {
       finalData[i][datasetName] = new Dataset({
         suppress: true,
         attributes,
+        keys: null,
         data: finalDataset[i]
       });
     }
@@ -850,10 +819,6 @@ export class Dataset implements Instance<DatasetValue, any> {
       keys,
       data: finalData
     });
-  }
-
-  public introspect(): void {
-    console.error('introspection is always done, `.introspect()` method never needs to be called');
   }
 
   public getReadyExternals(): DatasetExternalAlterations {
@@ -1011,82 +976,92 @@ export class Dataset implements Instance<DatasetValue, any> {
     return SimpleArray.find(this.data, (d) => generalEqual(d[attribute], value));
   }
 
-  public getNestedColumns(): Column[] {
-    let nestedColumns: Column[] = [];
+  public getColumns(options: FlattenOptions = {}) {
+    return this.flatten(options).attributes;
+  }
 
-    let attributes = this.attributes;
+  private _flattenHelper(
+    prefix: string, order: string, nestingName: string, nesting: number, context: Datum,
+    primaryFlatAttributes: AttributeInfo[], secondaryFlatAttributes: AttributeInfo[], seenAttributes: Lookup<boolean>, flatData: Datum[]
+  ): void {
+    const { attributes, data, keys } = this;
 
-    let subDatasetAdded = false;
+    let datasetAttributes: string[] = [];
     for (let attribute of attributes) {
-      let column: Column = {
-        name: attribute.name,
-        type: attribute.type
-      };
       if (attribute.type === 'DATASET') {
-        let subDataset = this.data[0][attribute.name]; // ToDo: fix this!
-        if (!subDatasetAdded && subDataset instanceof Dataset) {
-          subDatasetAdded = true;
-          column.columns = subDataset.getNestedColumns();
-          nestedColumns.push(column);
-        }
+        datasetAttributes.push(attribute.name);
       } else {
-        nestedColumns.push(column);
+        let flatName = (prefix || '') + attribute.name;
+        if (!seenAttributes[flatName]) {
+          const flatAttribute = new AttributeInfo({
+            name: flatName,
+            type: attribute.type
+          });
+          if (!secondaryFlatAttributes || (keys && keys.indexOf(attribute.name) > -1)) {
+            primaryFlatAttributes.push(flatAttribute);
+          } else {
+            secondaryFlatAttributes.push(flatAttribute);
+          }
+          seenAttributes[flatName] = true;
+        }
       }
     }
 
-    return nestedColumns;
-  }
-
-  public getColumns(options: FlattenOptions = {}): Column[] {
-    const { prefixColumns, orderedColumns } = options;
-    let columns: any = this.getNestedColumns();
-    let flatColumns = flattenColumns(columns, prefixColumns);
-    return orderedColumns && orderedColumns.length
-      ? orderedColumns.map(c => NamedArray.findByName(flatColumns, c)).filter(Boolean) as Column[]
-      : flatColumns;
-  }
-
-  private _flattenHelper(nestedColumns: Column[], prefix: string, order: string, nestingName: string, parentName: string, nesting: number, context: Datum, flat: PseudoDatum[]): void {
-    let nestedColumnsLength = nestedColumns.length;
-    if (!nestedColumnsLength) return;
-
-    let data = this.data;
-    let datasetColumn = nestedColumns.filter((nestedColumn) => nestedColumn.type === 'DATASET')[0];
     for (let datum of data) {
       let flatDatum: PseudoDatum = context ? copy(context) : {};
       if (nestingName) flatDatum[nestingName] = nesting;
-      if (parentName) flatDatum[parentName] = context;
 
-      for (let flattenedColumn of nestedColumns) {
-        if (flattenedColumn.type === 'DATASET') continue;
-        let flatName = (prefix !== null ? prefix : '') + flattenedColumn.name;
-        flatDatum[flatName] = datum[flattenedColumn.name];
+      let hasDataset = false;
+      for (let attribute of attributes) {
+        let v = datum[attribute.name];
+        if (v instanceof Dataset) {
+          hasDataset = true;
+          continue;
+        }
+        let flatName = (prefix || '') + attribute.name;
+        flatDatum[flatName] = v;
       }
 
-      if (datasetColumn) {
-        let nextPrefix: string = null;
-        if (prefix !== null) nextPrefix = prefix + datasetColumn.name + '.';
-
-        if (order === 'preorder') flat.push(flatDatum);
-        (datum[datasetColumn.name] as Dataset)._flattenHelper(datasetColumn.columns, nextPrefix, order, nestingName, parentName, nesting + 1, flatDatum, flat);
-        if (order === 'postorder') flat.push(flatDatum);
+      if (hasDataset) {
+        if (order === 'preorder') flatData.push(flatDatum);
+        for (let datasetAttribute of datasetAttributes) {
+          let nextPrefix: string = null;
+          if (prefix !== null) nextPrefix = prefix + datasetAttribute + '.';
+          let dv = datum[datasetAttribute];
+          if (dv instanceof Dataset) {
+            dv._flattenHelper(nextPrefix, order, nestingName, nesting + 1, flatDatum, primaryFlatAttributes, secondaryFlatAttributes, seenAttributes, flatData);
+          }
+        }
+        if (order === 'postorder') flatData.push(flatDatum);
+      } else {
+        flatData.push(flatDatum);
       }
-
-      if (!datasetColumn) flat.push(flatDatum);
     }
   }
 
-  public flatten(options: FlattenOptions = {}): PseudoDatum[] {
+  public flatten(options: FlattenOptions = {}): Dataset {
     let prefixColumns = options.prefixColumns;
     let order = options.order; // preorder, inline [default], postorder
     let nestingName = options.nestingName;
-    let parentName = options.parentName;
-    let nestedColumns = this.getNestedColumns();
-    let flatData: PseudoDatum[] = [];
-    if (nestedColumns.length) {
-      this._flattenHelper(nestedColumns, (prefixColumns ? '' : null), order, nestingName, parentName, 0, null, flatData);
+    let columnOrdering = options.columnOrdering || 'as-seen';
+    if ((options as any).parentName) {
+      throw new Error(`parentName option is no longer supported`);
     }
-    return flatData;
+    if ((options as any).orderedColumns) {
+      throw new Error(`orderedColumns option is no longer supported use .select() instead`);
+    }
+    if (columnOrdering !== 'as-seen' && columnOrdering !== 'keys-first') {
+      throw new Error(`columnOrdering must be one of 'as-seen' or 'keys-first'`);
+    }
+
+    let primaryFlatAttributes: AttributeInfo[] = [];
+    let secondaryFlatAttributes: AttributeInfo[] = columnOrdering === 'keys-first' ? [] : null;
+    let flatData: Datum[] = [];
+    this._flattenHelper((prefixColumns ? '' : null), order, nestingName, 0, null, primaryFlatAttributes, secondaryFlatAttributes, {}, flatData);
+    return new Dataset({
+      attributes: primaryFlatAttributes.concat(secondaryFlatAttributes || []),
+      data: flatData
+    });
   }
 
   public toTabular(tabulatorOptions: TabulatorOptions): string {
@@ -1094,15 +1069,14 @@ export class Dataset implements Instance<DatasetValue, any> {
     const timezone = tabulatorOptions.timezone || Timezone.UTC;
     const { finalizer } = tabulatorOptions;
 
-    let data = this.flatten(tabulatorOptions);
-    let columns = this.getColumns(tabulatorOptions);
+    const { data, attributes } = this.flatten(tabulatorOptions);
 
     let lines: string[] = [];
-    lines.push(columns.map(c => c.name).join(tabulatorOptions.separator || ','));
+    lines.push(attributes.map(c => c.name).join(tabulatorOptions.separator || ','));
 
     for (let i = 0; i < data.length; i++) {
       let datum = data[i];
-      lines.push(columns.map(c => {
+      lines.push(attributes.map(c => {
         const value = datum[c.name];
         const fmtr = value != null ? (formatter[c.type] || DEFAULT_FORMATTER[c.type]) : (formatter['NULL'] || DEFAULT_FORMATTER['NULL']);
         let formatted = String(fmtr(value, timezone));

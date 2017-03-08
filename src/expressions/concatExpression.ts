@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 export class ConcatExpression extends ChainableUnaryExpression {
   static op = "Concat";
@@ -27,14 +27,14 @@ export class ConcatExpression extends ChainableUnaryExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("concat");
-    this._checkOperandTypes('STRING', 'SET/STRING');
+    this._checkOperandTypes('STRING');
     this._checkExpressionTypes('STRING');
-    this.type = this.operand.type;
+    this.type = Set.isSetType(this.operand.type) ? this.operand.type : this.expression.type;
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     if (operandValue === null || expressionValue === null) return null;
-    return '' + operandValue + expressionValue;
+    return Set.crossBinary(operandValue, expressionValue, (a, b) => '' + a + b);
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {

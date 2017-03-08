@@ -12,10 +12,13 @@ cat \
   build/helper/retryRequester.js \
   build/helper/concurrentLimitRequester.js \
   build/helper/promiseWhile.js \
+  build/helper/streamBasics.js \
+  build/helper/streamConcat.js \
   build/helper/utils.js \
   build/dialect/baseDialect.js \
   build/dialect/mySqlDialect.js \
   build/dialect/postgresDialect.js \
+  build/dialect/druidDialect.js \
   build/datatypes/common.js \
   build/datatypes/attributeInfo.js \
   build/datatypes/range.js \
@@ -24,6 +27,7 @@ cat \
   build/datatypes/stringRange.js \
   build/datatypes/set.js \
   build/datatypes/dataset.js \
+  build/datatypes/valueStream.js \
   build/expressions/baseExpression.js \
   build/expressions/literalExpression.js \
   build/expressions/refExpression.js \
@@ -77,6 +81,7 @@ cat \
   build/expressions/substrExpression.js \
   build/expressions/subtractExpression.js \
   build/expressions/sumExpression.js \
+  build/expressions/thenExpression.js \
   build/expressions/timeBucketExpression.js \
   build/expressions/timeFloorExpression.js \
   build/expressions/timePartExpression.js \
@@ -89,15 +94,17 @@ cat \
   build/external/utils/druidFilterBuilder.js \
   build/external/utils/druidHavingFilterBuilder.js \
   build/external/utils/druidAggregationBuilder.js \
-  build/external/druidExternal.js \
   build/external/sqlExternal.js \
   build/external/mySqlExternal.js \
   build/external/postgresExternal.js \
+  build/external/druidSqlExternal.js \
+  build/external/druidExternal.js \
   build/executor/basicExecutor.js \
   extra/postfix.js \
-  | ./node_modules/.bin/f 'l.replace(/^import .*$/, "")' \
+  | grep -v '^import ' \
   | ./node_modules/.bin/f 'l.replace(/^export function ([\w$]+)\(/, "var $1 = exports.$1 = function(")' \
   | ./node_modules/.bin/f 'l.replace(/^export var ([\w$]+) =/, "var $1 = exports.$1 =")' \
+  | ./node_modules/.bin/f 'l.replace(/^export \{ ([\w$]+) \};$/, "exports.$1 = $1;")' \
   > build/plywood.js
 
 
@@ -106,6 +113,8 @@ cat \
   extra/prefix.js \
   build/version.js \
   build/helper/promiseWhile.js \
+  build/helper/streamBasics.js \
+  build/helper/streamConcat.js \
   build/helper/utils.js \
   build/datatypes/common.js \
   build/datatypes/attributeInfo.js \
@@ -115,6 +124,7 @@ cat \
   build/datatypes/stringRange.js \
   build/datatypes/set.js \
   build/datatypes/dataset.js \
+  build/datatypes/valueStream.js \
   build/expressions/baseExpression.js \
   build/expressions/literalExpression.js \
   build/expressions/refExpression.js \
@@ -168,6 +178,7 @@ cat \
   build/expressions/substrExpression.js \
   build/expressions/subtractExpression.js \
   build/expressions/sumExpression.js \
+  build/expressions/thenExpression.js \
   build/expressions/timeBucketExpression.js \
   build/expressions/timeFloorExpression.js \
   build/expressions/timePartExpression.js \
@@ -178,8 +189,9 @@ cat \
   build/external/baseExternal.js \
   build/executor/basicExecutor.js \
   extra/postfix-lite.js \
-  | ./node_modules/.bin/f 'l.replace(/^import .*$/, "")' \
+  | grep -v '^import ' \
   | ./node_modules/.bin/f 'l.replace(/^export function ([\w$]+)\(/, "var $1 = exports.$1 = function(")' \
   | ./node_modules/.bin/f 'l.replace(/^export var ([\w$]+) =/, "var $1 = exports.$1 =")' \
+  | ./node_modules/.bin/f 'l.replace(/^export \{ ([\w$]+) \};$/, "exports.$1 = $1;")' \
   > build/plywood-lite.js
 

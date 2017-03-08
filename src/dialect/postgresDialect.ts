@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ export class PostgresDialect extends SQLDialect {
   }
 
   public timeToSQL(date: Date): string {
-    if (!date) return 'NULL';
+    if (!date) return this.nullConstant();
     return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
   }
 
@@ -96,10 +96,6 @@ export class PostgresDialect extends SQLDialect {
 
   public containsExpression(a: string, b: string): string {
     return `POSITION(${a} IN ${b})>0`;
-  }
-
-  public lengthExpression(a: string): string {
-    return `LENGTH(${a})`;
   }
 
   public regexpExpression(expression: string, regexp: string): string {

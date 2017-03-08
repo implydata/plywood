@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
-let Q = require("q");
+const { expect } = require("chai");
 let { sane, grabConsoleWarn } = require('../utils');
 
 let { testImmutableClass } = require("immutable-class-tester");
@@ -102,7 +101,7 @@ describe("External", () => {
         attributeOverrides: [
           { name: 'color', type: 'STRING' },
           { name: 'cut', type: 'STRING' },
-          { name: 'unique', type: "STRING", special: 'unique' }
+          { name: 'unique', type: "STRING", type: 'NULL', nativeType: 'hyperUnique' }
         ],
         customAggregations: {
           test: {
@@ -125,7 +124,7 @@ describe("External", () => {
         attributeOverrides: [
           { name: 'color', type: 'STRING' },
           { name: 'cut', type: 'STRING' },
-          { name: 'unique', type: "STRING", special: 'unique' }
+          { name: 'unique', "type": "NULL", "nativeType": "hyperUnique" }
         ],
         customAggregations: {
           test: {
@@ -322,21 +321,21 @@ describe("External", () => {
 
 
   describe("#introspect", () => {
-    it("does two introspects", (testComplete) => {
+    it("does two introspects", () => {
       let dummyRequester = () => null;
       let external = External.fromJS({
         engine: 'druid',
         version: '0.9.0-yo',
         source: 'moon_child',
         attributeOverrides: [
-          { "name": "unique_thing", "special": "unique", "type": "STRING" }
+          { "name": "unique_thing", "nativeType": "hyperUnique", "type": "NULL" }
         ]
       }, dummyRequester);
 
-      Q(external)
+      return Promise.resolve(external)
         .then((initExternal) => {
           initExternal.getIntrospectAttributes = () => {
-            return Q(AttributeInfo.fromJSs([
+            return Promise.resolve(AttributeInfo.fromJSs([
               { name: 'color', type: 'STRING' },
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
@@ -352,20 +351,20 @@ describe("External", () => {
             version: '0.9.0-yo',
             source: 'moon_child',
             attributeOverrides: [
-              { name: "unique_thing", special: "unique", type: "STRING" }
+              { name: "unique_thing", nativeType: "hyperUnique", type: "NULL" }
             ],
             attributes: [
               { name: 'color', type: 'STRING' },
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
-              { name: "unique_thing", special: "unique", type: "STRING" }
+              { name: "unique_thing", nativeType: "hyperUnique", type: "NULL" }
             ]
           });
           return introspectedExternal1;
         })
         .then((introspectedExternal1) => {
           introspectedExternal1.getIntrospectAttributes = () => {
-            return Q(AttributeInfo.fromJSs([
+            return Promise.resolve(AttributeInfo.fromJSs([
               // Color removed
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
@@ -382,19 +381,17 @@ describe("External", () => {
             version: '0.9.0-yo',
             source: 'moon_child',
             attributeOverrides: [
-              { name: "unique_thing", special: "unique", type: "STRING" }
+              { name: "unique_thing", nativeType: "hyperUnique", type: "NULL" }
             ],
             attributes: [
               { name: 'color', type: 'STRING' },
               { name: 'cut', type: 'STRING' },
               { name: 'carat', type: 'STRING' },
-              { name: "unique_thing", special: "unique", type: "STRING" },
+              { name: "unique_thing", nativeType: "hyperUnique", type: "NULL" },
               { name: 'price', type: 'NUMBER' }
             ]
           });
-          testComplete();
-        })
-        .done();
+        });
     })
 
   });
@@ -414,13 +411,13 @@ describe("External", () => {
         ]
       });
 
-      external = external.updateAttribute(AttributeInfo.fromJS({ name: 'unique_thing', special: 'unique' }));
+      external = external.updateAttribute(AttributeInfo.fromJS({ name: 'unique_thing', nativeType: "hyperUnique", type: "NULL" }));
 
       expect(external.toJS().attributes).to.deep.equal([
         { "name": "color", "type": "STRING" },
         { "name": "cut", "type": "STRING" },
         { "name": "carat", "type": "STRING" },
-        { "name": "unique_thing", "special": "unique", "type": "STRING" }
+        { "name": "unique_thing", "nativeType": "hyperUnique", "type": "NULL" }
       ]);
     });
   });
@@ -503,7 +500,7 @@ describe("External", () => {
       `);
 
       expect(postAggregateApplies.join('\n')).to.equal(sane`
-        $_.apply(Volatile,$\{!T_0}:NUMBER.subtract($\{!T_1}:NUMBER))
+        $_.apply(Volatile,$\{!T_0}.subtract($\{!T_1}))
       `);
     });
 
@@ -1092,33 +1089,48 @@ describe("External", () => {
           .apply('CountX3', '$wiki.count() * 3')
           .apply('AddedPlusDeleted', '$wiki.sum($added) + $wiki.sum($deleted)')
           .apply("Six", 6)
-          .apply('AddedUsPlusDeleted', '$wiki.filter($page == USA).sum($added) + $wiki.sum($deleted)');
+          .apply('AddedUsPlusDeleted', '$wiki.filter($page == USA).sum($added) + $wiki.sum($deleted)')
           //.apply('CountX3Plus5', '$CountX3 + 5');
+          .apply('MinSum', '$wiki.split($user, Blah).apply(Added, $wiki.sum($added)).min($Added)');
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
         expect(ex.value.data[0]['Five']).to.equal(5);
         expect(ex.value.data[0]['Six']).to.equal(6);
-        let externalDataset = ex.value.getReadyExternals()[0].external;
 
-        expect(externalDataset.filter.toString()).to.equal(sane`
+        let readyExternals = ex.value.getReadyExternals();
+        expect(readyExternals.length).to.equal(2);
+
+        let external0 = readyExternals[0].external;
+
+        expect(external0.filter.toString()).to.equal(sane`
           $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
         `);
 
-        expect(externalDataset.applies.join('\n')).to.equal(sane`
+        expect(external0.applies.join('\n')).to.equal(sane`
           $_.apply(CountX3,$__SEGMENT__:DATASET.count().multiply(3))
           $_.apply(AddedPlusDeleted,$__SEGMENT__:DATASET.sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
           $_.apply(AddedUsPlusDeleted,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
         `);
         //apply(CountX3Plus5,$__SEGMENT__:DATASET.count().multiply(3).add(5))
 
-        expect(externalDataset.toJS().attributes).to.deep.equal([
+        expect(external0.toJS().attributes).to.deep.equal([
           { name: "CountX3", "type": "NUMBER" },
           { name: "AddedPlusDeleted", "type": "NUMBER" },
           { name: "AddedUsPlusDeleted", "type": "NUMBER" },
           //{ name: "CountX3Plus5", "type": "NUMBER" }
         ]);
+
+        let external1 = readyExternals[1].expressionAlterations[1].external;
+
+        expect(external1.filter.toString()).to.equal(sane`
+          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
+        `);
+
+        expect(external1.applies.join('\n')).to.equal(sane`
+          $_.apply(Added,$wiki:DATASET.sum($added:NUMBER))
+        `);
       });
 
     });
@@ -1144,7 +1156,7 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS().data).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
@@ -1214,14 +1226,13 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS().data).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
             "Timestamp": {
               "start": new Date('2015-03-13T07:00:00Z'),
-              "end": new Date('2015-03-14T07:00:00Z'),
-              "type": "TIME_RANGE"
+              "end": new Date('2015-03-14T07:00:00Z')
             }
           }
         ]);
@@ -1252,12 +1263,42 @@ describe("External", () => {
           { name: "Added", "type": "NUMBER" }
         ]);
 
-        expect(externalDataset.simulateValue(true, []).toJS()).to.deep.equal([
+        expect(externalDataset.simulateValue(true, []).toJS().data).to.deep.equal([
           {
             "Added": 4,
             "Count": 4,
             "Page": "some_page"
           }
+        ]);
+      });
+
+      it.skip("works with fancy applies on a split", () => {
+        let ex = $('wiki').filter('$language == "en"').split("$page", 'Page')
+          .apply('Count', '$wiki.count()')
+          .apply('MinSum', '$wiki.split($user, Blah).apply(Added, $wiki.sum($added)).min($Added)')
+          .sort('$Count', 'descending')
+          .limit(5);
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        console.log('ex', ex.external.applies);
+
+        expect(ex.op).to.equal('apply');
+        let externalDataset = ex.external;
+
+        expect(
+          externalDataset.filter.toJS()
+        ).to.deep.equal(
+          context.wiki.filter.and($("language", "STRING").is('en')).toJS()
+        );
+
+        expect(externalDataset.applies).to.have.length(2);
+        expect(externalDataset.toJS().attributes).to.deep.equal([
+
+        ]);
+
+        expect(externalDataset.simulateValue(true, []).toJS().data).to.deep.equal([
+
         ]);
       });
 
@@ -1524,7 +1565,7 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         let external = ex.external;
-        expect(external.getQueryAndPostProcess().query.dimensions).to.deep.equal([
+        expect(external.getQueryAndPostTransform().query.dimensions).to.deep.equal([
           'page',
           {
             "dimension": "language",
@@ -1543,7 +1584,19 @@ describe("External", () => {
     });
 
     describe("attribute order is respected in split mode", () => {
-      it("get selected attributes respects order", () => {
+      it("get selected attributes", () => {
+        let ex = $('wiki')
+          .split('$page', 'Page')
+          .apply('Count', '$wiki.count()')
+          .apply('Added', '$wiki.sum($added)');
+
+        ex = ex.referenceCheck(context).resolve(context).simplify();
+
+        let external = ex.external;
+        expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal(["Page", "Count", "Added"]);
+      });
+
+      it("get selected attributes respects order with select", () => {
         let ex = $('wiki')
           .split('$page', 'Page')
           .apply('Count', '$wiki.count()')
@@ -1553,7 +1606,7 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let external = ex.external;
-        expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([ "Count", "Page", "Added" ]);
+        expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal(["Count", "Page", "Added"]);
       });
 
       it("get selected attributes respects order with remove", () => {
@@ -1566,7 +1619,7 @@ describe("External", () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let external = ex.external;
-        expect(external.getQueryAndPostProcess().query.aggregations).to.deep.equal([
+        expect(external.getQueryAndPostTransform().query.aggregations).to.deep.equal([
           {
             "name": "Count",
             "type": "count"

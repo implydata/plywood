@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,89 +26,129 @@ const { Dataset, AttributeInfo, $, Set, r } = plywood;
 describe("Dataset", () => {
   it("is immutable class", () => {
     testImmutableClass(Dataset, [
-      [
-        { x: 1, y: 2 },
-        { x: 2, y: 3 }
-      ],
+      {
+        attributes: [
+          { name: 'x', type: 'NUMBER' },
+          { name: 'y', type: 'NUMBER' }
+        ],
+        data: [
+          { x: 1, y: 2 },
+          { x: 2, y: 3 }
+        ]
+      },
 
-      [
-        {
-          Void: null,
-          SoTrue: true,
-          NotSoTrue: false,
-          Zero: 0,
-          Count: 2353,
-          HowAwesome: { type: 'NUMBER', value: 'Infinity' },
-          HowLame: { type: 'NUMBER', value: '-Infinity' },
-          HowMuch: {
-            type: 'NUMBER_RANGE',
-            start: 0,
-            end: 7
-          },
-          ToInfinityAndBeyond: {
-            type: 'NUMBER_RANGE',
-            start: null,
-            end: null,
-            bounds: "()"
-          },
-          SomeDate: {
-            type: 'TIME',
-            value: new Date('2015-01-26T04:54:10Z')
-          },
-          SomeTimeRange: {
-            type: 'TIME_RANGE',
-            start: new Date('2015-01-26T04:54:10Z'),
-            end: new Date('2015-01-26T05:00:00Z')
-          },
-          BestCity: 'San Francisco',
-          Vegetables: {
-            type: 'SET',
-            setType: 'STRING',
-            elements: ['Broccoli', 'Brussels sprout', 'Potato']
-          },
-          FunTimes: {
-            type: 'SET',
-            setType: 'TIME_RANGE',
-            elements: [
-              { start: new Date('2015-01-26T04:54:10Z'), end: new Date('2015-01-26T05:00:00Z') },
-              { start: new Date('2015-02-20T04:54:10Z'), end: new Date('2015-02-20T05:00:00Z') }
-            ]
-          },
-          SubData: [
-            { x: 1, y: 2 },
-            { x: 2, y: 3 }
-          ],
-          hasOwnProperty: 'troll'
-        }
-      ],
+      {
+        keys: ['BestCity'],
+        attributes: [
+          { name: 'Void', type: 'NULL' },
+          { name: 'SoTrue', type: 'BOOLEAN' },
+          { name: 'NotSoTrue', type: 'BOOLEAN' },
+          { name: 'Zero', type: 'NUMBER' },
+          { name: 'Count', type: 'NUMBER' },
+          { name: 'HowAwesome', type: 'NUMBER' },
+          { name: 'HowLame', type: 'NUMBER' },
+          { name: 'HowMuch', type: 'NUMBER_RANGE' },
+          { name: 'ToInfinityAndBeyond', type: 'NUMBER_RANGE' },
+          { name: 'SomeDate', type: 'TIME' },
+          { name: 'SomeTimeRange', type: 'TIME_RANGE' },
+          { name: 'BestCity', type: 'STRING' },
+          { name: 'Vegetables', type: 'SET/STRING' },
+          { name: 'FunTimes', type: 'SET/TIME_RANGE' },
+          { name: 'SubData', type: 'DATASET' },
+          { name: 'hasOwnProperty', type: 'STRING' }
+        ],
+        data: [
+          {
+            Void: null,
+            SoTrue: true,
+            NotSoTrue: false,
+            Zero: 0,
+            Count: 2353,
+            HowAwesome: 'Infinity',
+            HowLame: '-Infinity',
+            HowMuch: {
+              start: 0,
+              end: 7
+            },
+            ToInfinityAndBeyond: {
+              start: null,
+              end: null,
+              bounds: "()"
+            },
+            SomeDate: new Date('2015-01-26T04:54:10Z'),
+            SomeTimeRange: {
+              start: new Date('2015-01-26T04:54:10Z'),
+              end: new Date('2015-01-26T05:00:00Z')
+            },
+            BestCity: 'San Francisco',
+            Vegetables: {
+              setType: 'STRING',
+              elements: ['Broccoli', 'Brussels sprout', 'Potato']
+            },
+            FunTimes: {
+              setType: 'TIME_RANGE',
+              elements: [
+                { start: new Date('2015-01-26T04:54:10Z'), end: new Date('2015-01-26T05:00:00Z') },
+                { start: new Date('2015-02-20T04:54:10Z'), end: new Date('2015-02-20T05:00:00Z') }
+              ]
+            },
+            SubData: {
+              attributes: [
+                { name: 'x', type: 'NUMBER' },
+                { name: 'y', type: 'NUMBER' }
+              ],
+              data: [
+                { x: 1, y: 2 },
+                { x: 2, y: 3 }
+              ]
+            },
+            hasOwnProperty: 'troll'
+          }
+        ]
+      },
 
-      [
-        {
-          "Carat": {
-            "end": 0.5,
-            "start": 0.25,
-            "type": "NUMBER_RANGE"
+      {
+        attributes: [
+          { name: 'Carat', type: 'NUMBER_RANGE' },
+          { name: 'Count', type: 'NUMBER' }
+        ],
+        data: [
+          {
+            Carat: {
+              end: 0.5,
+              start: 0.25
+            },
+            Count: 1360
           },
-          "Count": 1360
-        },
-        {
-          "Carat": {
-            "end": 0.75,
-            "start": 0.5,
-            "type": "NUMBER_RANGE"
+          {
+            Carat: {
+              end: 0.75,
+              start: 0.5
+            },
+            Count: 919
           },
-          "Count": 919
-        },
-        {
-          "Carat": {
-            "end": 1.25,
-            "start": 1,
-            "type": "NUMBER_RANGE"
-          },
-          "Count": 298
-        }
-      ]
+          {
+            Carat: {
+              end: 1.25,
+              start: 1
+            },
+            Count: 298
+          }
+        ]
+      }
+
     ]);
+  });
+
+
+  describe("fromJS", () => {
+    it("works in basic form", () => {
+      expect(Dataset.fromJS([
+        { nan: NaN }
+      ]).data).to.deep.equal([
+        { "nan": null }
+      ]);
+    });
   });
 
 
@@ -190,10 +230,109 @@ describe("Dataset", () => {
         }
       });
     });
+
+    it("works in double nested case", () => {
+      expect(Dataset.fromJS([
+        {
+          a: "hello",
+          subData: [
+            {
+              b: "world",
+              subSubData: [
+                {
+                  c: "piece",
+                  subData: [
+                    { d: 50.5, e: 'woop' },
+                    { d: 50.6, e: 'w00p' }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]).getFullType()).to.deep.equal({
+        type: "DATASET",
+        datasetType: {
+          "a": {
+            "type": "STRING"
+          },
+          "subData": {
+            "datasetType": {
+              "b": {
+                "type": "STRING"
+              },
+              "subSubData": {
+                "datasetType": {
+                  "c": {
+                    "type": "STRING"
+                  },
+                  "subData": {
+                    "datasetType": {
+                      "d": {
+                        "type": "NUMBER"
+                      },
+                      "e": {
+                        "type": "STRING"
+                      }
+                    },
+                    "type": "DATASET"
+                  }
+                },
+                "type": "DATASET"
+              }
+            },
+            "type": "DATASET"
+          }
+        }
+      });
+    });
+
   });
 
 
   describe("introspects", () => {
+    it("works in nested case", () => {
+      let ds = Dataset.fromJS([
+        {
+          x: 1,
+          y: "hello",
+          z: new Date(1000),
+          subData: [
+            { a: 50.5, b: 'woop' },
+            { a: 50.6, b: 'w00p' }
+          ]
+        },
+        {
+          x: 2,
+          y: "woops",
+          z: new Date(1001),
+          subData: [
+            { a: 51.5, b: 'Woop' },
+            { a: 51.6, b: 'W00p' }
+          ]
+        }
+      ]);
+
+      expect(AttributeInfo.toJSs(ds.attributes)).to.deep.equal([
+        {
+          "name": "z",
+          "type": "TIME"
+        },
+        {
+          "name": "y",
+          "type": "STRING"
+        },
+        {
+          "name": "x",
+          "type": "NUMBER"
+        },
+        {
+          "name": "subData",
+          "type": "DATASET"
+        }
+      ]);
+    });
+
     it("in real case", () => {
       let ds = Dataset.fromJS([
         {
@@ -265,6 +404,7 @@ describe("Dataset", () => {
         { "name": "metroCode", "type": "NUMBER" }
       ]);
     });
+
   });
 
 
@@ -276,7 +416,7 @@ describe("Dataset", () => {
     ]);
 
     it("STRING, ascending", () => {
-      expect(someDataset.sort($('resource').getFn(), 'ascending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('resource'), 'ascending').toJS().data.map((d) => {
         return d.resource;
       })).to.deep.equal([
         null, 'A', 'B'
@@ -284,7 +424,7 @@ describe("Dataset", () => {
     });
 
     it("STRING, descending", () => {
-      expect(someDataset.sort($('resource').getFn(), 'descending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('resource'), 'descending').toJS().data.map((d) => {
         return d.resource;
       })).to.deep.equal([
         'B', 'A', null
@@ -292,7 +432,7 @@ describe("Dataset", () => {
     });
 
     it("NUMBER, ascending", () => {
-      expect(someDataset.sort($('value').getFn(), 'ascending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('value'), 'ascending').toJS().data.map((d) => {
         return d.value;
       })).to.deep.equal([
         null, 2, 7
@@ -300,7 +440,7 @@ describe("Dataset", () => {
     });
 
     it("NUMBER, descending", () => {
-      expect(someDataset.sort($('value').getFn(), 'descending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('value'), 'descending').toJS().data.map((d) => {
         return d.value;
       })).to.deep.equal([
         7, 2, null
@@ -308,7 +448,7 @@ describe("Dataset", () => {
     });
 
     it("BOOLEAN, ascending", () => {
-      expect(someDataset.sort($('nice').getFn(), 'ascending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('nice'), 'ascending').toJS().data.map((d) => {
         return d.nice;
       })).to.deep.equal([
         null, false, true
@@ -316,7 +456,7 @@ describe("Dataset", () => {
     });
 
     it("BOOLEAN, descending", () => {
-      expect(someDataset.sort($('nice').getFn(), 'descending', {}).toJS().map((d) => {
+      expect(someDataset.sort($('nice'), 'descending').toJS().data.map((d) => {
         return d.nice;
       })).to.deep.equal([
         true, false, null
@@ -334,6 +474,40 @@ describe("Dataset", () => {
         split: []
       }
     ]);
+
+    let totalsDataset = Dataset.fromJS([
+      { count: 0 }
+    ]);
+
+    let totalsDatasetWithSplit = Dataset.fromJS({
+      keys: [],
+      attributes: [
+        { name: 'count', type: 'NUMBER' },
+        { name: 'split', type: 'DATASET' }
+      ],
+      data: [
+        {
+          count: 90,
+          split: {
+            keys: ['model'],
+            attributes: [
+              { name: 'model', type: 'STRING' },
+              { name: 'count', type: 'NUMBER' }
+            ],
+            data: [
+              {
+                model: 'Civic',
+                count: 20
+              },
+              {
+                model: 'Prius',
+                count: 10
+              }
+            ]
+          }
+        }
+      ]
+    });
 
     let carDataset = Dataset.fromJS([
       {
@@ -508,16 +682,69 @@ describe("Dataset", () => {
 
     describe("#flatten", () => {
       it("works with empty dataset", () => {
-        expect(emptyDataset.flatten()).to.deep.equal([]);
+        expect(emptyDataset.flatten().data).to.deep.equal([]);
       });
 
       it("works with empty nested dataset", () => {
-        expect(emptyNestedDataset.flatten()).to.deep.equal([]);
+        expect(emptyNestedDataset.flatten().data).to.deep.equal([]);
       });
 
+      it("works with totals dataset", () => {
+        expect(totalsDataset.flatten().data).to.deep.equal([{ count: 0 }]);
+      });
+
+      it("works with totals dataset with split", () => {
+        expect(totalsDatasetWithSplit.flatten().toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "count",
+              "type": "NUMBER"
+            },
+            {
+              "name": "model",
+              "type": "STRING"
+            }
+          ],
+          "data": [
+            {
+              "count": 20,
+              "model": "Civic"
+            },
+            {
+              "count": 10,
+              "model": "Prius"
+            }
+          ]
+        });
+      });
+
+      it("works with totals dataset with split (columnOrdering: 'keys-first')", () => {
+        expect(totalsDatasetWithSplit.flatten({ columnOrdering: 'keys-first' }).toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "model",
+              "type": "STRING"
+            },
+            {
+              "name": "count",
+              "type": "NUMBER"
+            }
+          ],
+          "data": [
+            {
+              "count": 20,
+              "model": "Civic"
+            },
+            {
+              "count": 10,
+              "model": "Prius"
+            }
+          ]
+        });
+      });
 
       it("works with basic dataset", () => {
-        expect(carDataset.flatten()).to.deep.equal([
+        expect(carDataset.flatten().data).to.deep.equal([
           {
             "make": "Honda",
             "model": "Civic",
@@ -534,44 +761,178 @@ describe("Dataset", () => {
       });
 
       it("works with sub-dataset with prefix", () => {
-        expect(carAndPartsDataset.flatten({ prefixColumns: true })).to.deep.equal([
-          {
-            "make": "Honda",
-            "model": "Civic",
-            "parts.part": "Engine",
-            "parts.weight": 500,
-            "price": 10000,
-            "time": new Date("2015-01-04T12:32:43.000Z")
-          },
-          {
-            "make": "Honda",
-            "model": "Civic",
-            "parts.part": "Door",
-            "parts.weight": 20,
-            "price": 10000,
-            "time": new Date("2015-01-04T12:32:43.000Z")
-          },
-          {
-            "make": "Toyota",
-            "model": "Prius",
-            "parts.part": "Engine",
-            "parts.weight": 400,
-            "price": 20000,
-            "time": new Date("2015-01-04T14:00:40.000Z")
-          },
-          {
-            "make": "Toyota",
-            "model": "Prius",
-            "parts.part": "Door",
-            "parts.weight": 25,
-            "price": 20000,
-            "time": new Date("2015-01-04T14:00:40.000Z")
-          }
-        ]);
+        expect(carAndPartsDataset.flatten({ prefixColumns: true }).toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "time",
+              "type": "TIME"
+            },
+            {
+              "name": "make",
+              "type": "STRING"
+            },
+            {
+              "name": "model",
+              "type": "STRING"
+            },
+            {
+              "name": "price",
+              "type": "NUMBER"
+            },
+            {
+              "name": "parts.part",
+              "type": "STRING"
+            },
+            {
+              "name": "parts.weight",
+              "type": "NUMBER"
+            }
+          ],
+          "data": [
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "parts.part": "Engine",
+              "parts.weight": 500,
+              "price": 10000,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "parts.part": "Door",
+              "parts.weight": 20,
+              "price": 10000,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "parts.part": "Engine",
+              "parts.weight": 400,
+              "price": 20000,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "parts.part": "Door",
+              "parts.weight": 25,
+              "price": 20000,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            }
+          ]
+        });
+      });
+
+      it("works with two sub-datasets with prefix", () => {
+        const carAndPartsDatasetX2 = carAndPartsDataset.apply('smarts', $('parts', 'DATASET'));
+        expect(carAndPartsDatasetX2.flatten({ prefixColumns: true }).toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "time",
+              "type": "TIME"
+            },
+            {
+              "name": "make",
+              "type": "STRING"
+            },
+            {
+              "name": "model",
+              "type": "STRING"
+            },
+            {
+              "name": "price",
+              "type": "NUMBER"
+            },
+            {
+              "name": "parts.part",
+              "type": "STRING"
+            },
+            {
+              "name": "parts.weight",
+              "type": "NUMBER"
+            },
+            {
+              "name": "smarts.part",
+              "type": "STRING"
+            },
+            {
+              "name": "smarts.weight",
+              "type": "NUMBER"
+            }
+          ],
+          "data": [
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "parts.part": "Engine",
+              "parts.weight": 500,
+              "price": 10000,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "parts.part": "Door",
+              "parts.weight": 20,
+              "price": 10000,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "price": 10000,
+              "smarts.part": "Engine",
+              "smarts.weight": 500,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "price": 10000,
+              "smarts.part": "Door",
+              "smarts.weight": 20,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "parts.part": "Engine",
+              "parts.weight": 400,
+              "price": 20000,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "parts.part": "Door",
+              "parts.weight": 25,
+              "price": 20000,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "price": 20000,
+              "smarts.part": "Engine",
+              "smarts.weight": 400,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            },
+            {
+              "make": "Toyota",
+              "model": "Prius",
+              "price": 20000,
+              "smarts.part": "Door",
+              "smarts.weight": 25,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            }
+          ]
+        });
       });
 
       it("works with total and sub-split", () => {
-        expect(carTotalAndSubSplitDataset.flatten()).to.deep.equal([
+        expect(carTotalAndSubSplitDataset.flatten().data).to.deep.equal([
           {
             "make": "Honda",
             "model": "Civic",
@@ -600,7 +961,7 @@ describe("Dataset", () => {
       });
 
       it("works with total and sub-split with postorder", () => {
-        expect(carTotalAndSubSplitDataset.flatten({ order: 'postorder' })).to.deep.equal([
+        expect(carTotalAndSubSplitDataset.flatten({ order: 'postorder' }).data).to.deep.equal([
           {
             "make": "Honda",
             "model": "Civic",
@@ -643,7 +1004,7 @@ describe("Dataset", () => {
       });
 
       it("works with total and sub-split with preorder and nesting indicator", () => {
-        expect(carTotalAndSubSplitDataset.flatten({ order: 'preorder', nestingName: 'nest' })).to.deep.equal([
+        expect(carTotalAndSubSplitDataset.flatten({ order: 'preorder', nestingName: 'nest' }).data).to.deep.equal([
           {
             "nest": 0,
             "price": 10000,
@@ -692,27 +1053,8 @@ describe("Dataset", () => {
         ]);
       });
 
-      it("works with total and sub-split with preorder and parent indicator", () => {
-        expect(carTotalAndSubSplitDataset.flatten({ order: 'preorder', parentName: 'p' })[3]).to.deep.equal({
-          "make": "Honda",
-          "model": "Accord",
-          "p": {
-            "make": "Honda",
-            "p": {
-              "p": null,
-              "price": 10000,
-              "weight": 1000
-            },
-            "price": 12000,
-            "weight": 1200
-          },
-          "price": 13000,
-          "weight": 1300
-        });
-      });
-
       it("works with timeseries with preorder and nesting indicator", () => {
-        expect(timeSeriesResult.flatten({ order: 'preorder', nestingName: 'nest' })[0]).to.deep.equal(
+        expect(timeSeriesResult.flatten({ order: 'preorder', nestingName: 'nest' }).data[0]).to.deep.equal(
           {
             "added": 6686857,
             "count": 31427,
@@ -874,7 +1216,7 @@ describe("Dataset", () => {
           }
         ]);
 
-        expect(carDataset.toCSV({ lineBreak: '\n', orderedColumns: ['model', 'make', 'price', 'time'] })).to.deep.equal(sane`
+        expect(carDataset.select(['model', 'make', 'price', 'time']).toCSV({ lineBreak: '\n' })).to.deep.equal(sane`
           model,make,price,time
           Civic,Honda,10000,2015-01-04T12:32:43Z
           Prius,Toyota,20000,2015-01-04T14:00:40Z

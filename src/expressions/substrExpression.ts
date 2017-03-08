@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 export class SubstrExpression extends ChainableExpression {
   static op = "Substr";
@@ -35,7 +35,7 @@ export class SubstrExpression extends ChainableExpression {
     this.position = parameters.position;
     this.len = parameters.len;
     this._ensureOp("substr");
-    this._checkOperandTypes('STRING', 'SET/STRING');
+    this._checkOperandTypes('STRING');
     this.type = this.operand.type;
   }
 
@@ -64,9 +64,9 @@ export class SubstrExpression extends ChainableExpression {
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
-    const { position, len } = this;
     if (operandValue === null) return null;
-    return operandValue.substr(position, len);
+    const { position, len } = this;
+    return Set.crossUnary(operandValue, (a) => a.substr(position, len));
   }
 
   protected _getJSChainableHelper(operandJS: string): string {
@@ -75,8 +75,18 @@ export class SubstrExpression extends ChainableExpression {
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return `SUBSTR(${operandSQL},${this.position + 1},${this.len})`;
+    return dialect.substrExpression(operandSQL, this.position, this.len);
   }
+
+  public specialSimplify(): Expression {
+    const { len } = this;
+
+    // X.substr(_, 0)
+    if (len === 0) return Expression.EMPTY_STRING;
+
+    return this;
+  }
+
 }
 
 Expression.register(SubstrExpression);

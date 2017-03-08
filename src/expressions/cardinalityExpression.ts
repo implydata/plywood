@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ export class CardinalityExpression extends ChainableExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("cardinality");
-    this._checkOperandTypes('SET/STRING', 'SET/STRING_RANGE', 'SET/NUMBER', 'SET/NUMBER_RANGE', 'SET/TIME', 'SET/TIME_RANGE');
+    this._checkOperandTypes('BOOLEAN', 'STRING', 'STRING_RANGE', 'NUMBER', 'NUMBER_RANGE', 'TIME', 'TIME_RANGE');
     this.type = 'NUMBER';
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
-    // if (Array.isArray(inV)) return inV.length; // this is to allow passing an array into .compute()
-    return operandValue ? (operandValue as Set).cardinality() : operandValue;
+    if (operandValue == null) return null;
+    return operandValue instanceof Set ? operandValue.cardinality() : 1;
   }
 
   protected _getJSChainableHelper(operandJS: string): string {

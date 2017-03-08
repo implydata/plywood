@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  */
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { PlywoodValue } from '../datatypes/index';
-import { wrapSetType } from '../datatypes/common';
-import { Set } from '../datatypes/set';
+import { PlywoodValue, Set, Range } from '../datatypes/index';
 
 export class OverlapExpression extends ChainableUnaryExpression {
   static op = "Overlap";
@@ -28,24 +26,22 @@ export class OverlapExpression extends ChainableUnaryExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("overlap");
-    if (!this.expression.canHaveType('SET')) {
-      throw new Error(`${this.op} must have an expression of type SET (is: ${this.expression.type})`);
+    let operandType = Range.unwrapRangeType(Set.unwrapSetType(this.operand.type));
+    let expressionType = Range.unwrapRangeType(Set.unwrapSetType(this.expression.type));
+    if (!(!operandType || operandType === 'NULL' || !expressionType || expressionType === 'NULL' || operandType === expressionType)) {
+      throw new Error(`${this.op} must have matching types (are ${this.operand.type}, ${this.expression.type})`);
     }
-
-    let oType = this.operand.type;
-    let eType = this.expression.type;
-    if (oType && eType && oType !== 'NULL' && oType !== 'SET/NULL' && eType !== 'NULL' && eType !== 'SET/NULL') {
-      if (wrapSetType(oType) !== wrapSetType(eType)) {
-        throw new Error(`overlap expression has type mismatch between ${oType} and ${eType}`);
-      }
-    }
-
     this.type = 'BOOLEAN';
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    if (expressionValue == null) return null;
-    return operandValue instanceof Set ? operandValue.overlap(expressionValue) : expressionValue.contains(operandValue);
+    return Set.crossBinaryBoolean(operandValue, expressionValue, (a, b) => {
+      if (a instanceof Range) {
+        return b instanceof Range ? a.intersects(b) : a.contains(b);
+      } else {
+        return b instanceof Range ? b.contains(a) : a === b;
+      }
+    });
   }
 
   public isCommutative(): boolean {
@@ -58,8 +54,8 @@ export class OverlapExpression extends ChainableUnaryExpression {
     // X.overlap({})
     if (expression.equals(Expression.EMPTY_SET)) return Expression.FALSE;
 
-    // 5.overlap({5})
-    if ('SET/' + operand.type === expression.type) return operand.in(expression);
+    // NonRange.overlap(NonRange)
+    if (!Range.isRangeType(operand.type) && !Range.isRangeType(expression.type)) return operand.is(expression);
 
     return this;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-
-
+import * as hasOwnProp from 'has-own-prop';
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
-import { hasOwnProperty, continuousFloorExpression } from '../helper/utils';
+import { PlywoodValue, Set } from '../datatypes/index';
+import { continuousFloorExpression } from '../helper/utils';
 import { NumberRange } from '../datatypes/numberRange';
 
 export class NumberBucketExpression extends ChainableExpression {
@@ -27,7 +26,7 @@ export class NumberBucketExpression extends ChainableExpression {
   static fromJS(parameters: ExpressionJS): NumberBucketExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.size = parameters.size;
-    value.offset = hasOwnProperty(parameters, 'offset') ? parameters.offset : 0;
+    value.offset = hasOwnProp(parameters, 'offset') ? parameters.offset : 0;
     return new NumberBucketExpression(value);
   }
 
@@ -70,11 +69,7 @@ export class NumberBucketExpression extends ChainableExpression {
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
-    let size = this.size;
-    let offset = this.offset;
-      let num = operandValue;
-      if (num === null) return null;
-      return NumberRange.numberBucket(num, size, offset);
+    return operandValue !== null ? NumberRange.numberBucket(operandValue, this.size, this.offset) : null;
   }
 
   protected _getJSChainableHelper(operandJS: string): string {

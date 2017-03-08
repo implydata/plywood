@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
+import * as Promise from 'any-promise';
+import { PlywoodRequester } from 'plywood-base-api';
+import * as toArray from 'stream-to-array';
+import { PlyType } from '../types';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
 import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
@@ -31,7 +34,7 @@ export class PostgresExternal extends SQLExternal {
   static engine = 'postgres';
   static type = 'DATASET';
 
-  static fromJS(parameters: ExternalJS, requester: Requester.PlywoodRequester<any>): PostgresExternal {
+  static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): PostgresExternal {
     let value: ExternalValue = External.jsToValue(parameters, requester);
     return new PostgresExternal(value);
   }
@@ -39,48 +42,56 @@ export class PostgresExternal extends SQLExternal {
   static postProcessIntrospect(columns: PostgresSQLDescribeRow[]): Attributes {
     return columns.map((column: PostgresSQLDescribeRow) => {
       let name = column.name;
-      let sqlType = column.sqlType.toLowerCase();
-      if (sqlType.indexOf('timestamp') !== -1) {
-        return new AttributeInfo({ name, type: 'TIME' });
-      } else if (sqlType === 'character varying') {
-        return new AttributeInfo({ name, type: 'STRING' });
-      } else if (sqlType === 'integer' || sqlType === 'bigint') {
+      let type: PlyType;
+      let nativeType = column.sqlType.toLowerCase();
+      if (nativeType.indexOf('timestamp') !== -1) {
+        type = 'TIME';
+      } else if (nativeType === 'character varying') {
+        type = 'STRING';
+      } else if (nativeType === 'integer' || nativeType === 'bigint') {
         // ToDo: make something special for integers
-        return new AttributeInfo({ name, type: 'NUMBER' });
-      } else if (sqlType === 'double precision' || sqlType === 'float') {
-        return new AttributeInfo({ name, type: 'NUMBER' });
-      } else if (sqlType === 'boolean') {
-        return new AttributeInfo({ name, type: 'BOOLEAN' });
-      } else if (sqlType === 'array') {
-        let arrayType = column.arrayType.toLowerCase();
-        if (arrayType === 'character') {
-          return new AttributeInfo({ name, type: 'SET/STRING' });
-        } else if (arrayType === 'timestamp') {
-          return new AttributeInfo({ name, type: 'SET/TIME' });
-        } else if (arrayType === 'integer' || arrayType === 'bigint' || sqlType === 'double precision' || sqlType === 'float') {
-          return new AttributeInfo({ name, type: 'SET/NUMBER' });
-        } else if (arrayType === 'boolean') {
-          return new AttributeInfo({ name, type: 'SET/BOOLEAN' });
+        type = 'NUMBER';
+      } else if (nativeType === 'double precision' || nativeType === 'float') {
+        type = 'NUMBER';
+      } else if (nativeType === 'boolean') {
+        type = 'BOOLEAN';
+      } else if (nativeType === 'array') {
+        nativeType = column.arrayType.toLowerCase();
+        if (nativeType === 'character') {
+          type = 'SET/STRING';
+        } else if (nativeType === 'timestamp') {
+          type = 'SET/TIME';
+        } else if (nativeType === 'integer' || nativeType === 'bigint' || nativeType === 'double precision' || nativeType === 'float') {
+          type = 'SET/NUMBER';
+        } else if (nativeType === 'boolean') {
+          type = 'SET/BOOLEAN';
+        } else {
+          return null;
         }
+      } else {
         return null;
       }
-      return null;
+
+      return new AttributeInfo({
+        name,
+        type,
+        nativeType
+      });
     }).filter(Boolean);
   }
 
-  static getSourceList(requester: Requester.PlywoodRequester<any>): Q.Promise<string[]> {
-    return requester({
+  static getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
+    return toArray(requester({
       query: `SELECT table_name AS "tab" FROM INFORMATION_SCHEMA.TABLES WHERE table_type = 'BASE TABLE' AND table_schema = 'public'`
-    })
+    }))
       .then((sources) => {
-        if (!Array.isArray(sources)) throw new Error('invalid sources response');
         if (!sources.length) return sources;
         return sources.map((s: PseudoDatum) => s['tab']).sort();
       });
   }
 
-  static getVersion(requester: Requester.PlywoodRequester<any>): Q.Promise<string> {
-    return requester({ query: 'SELECT version()' })
+  static getVersion(requester: PlywoodRequester<any>): Promise<string> {
+    return toArray(requester({ query: 'SELECT version()' }))
       .then((res) => {
         if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
         let key = Object.keys(res[0])[0];
@@ -97,15 +108,16 @@ export class PostgresExternal extends SQLExternal {
     this._ensureEngine("postgres");
   }
 
-  protected getIntrospectAttributes(): Q.Promise<Attributes> {
+  protected getIntrospectAttributes(): Promise<Attributes> {
     // from https://www.postgresql.org/docs/9.1/static/infoschema-element-types.html
-    return this.requester({
+    return toArray(this.requester({
       query: `SELECT c.column_name as "name", c.data_type as "sqlType", e.data_type AS "arrayType"
        FROM information_schema.columns c LEFT JOIN information_schema.element_types e
        ON ((c.table_catalog, c.table_schema, c.table_name, 'TABLE', c.dtd_identifier)
        = (e.object_catalog, e.object_schema, e.object_name, e.object_type, e.collection_type_identifier))
        WHERE table_name = ${this.dialect.escapeLiteral(this.source as string)}`
-    }).then(PostgresExternal.postProcessIntrospect);
+    }))
+      .then(PostgresExternal.postProcessIntrospect);
   }
 }
 

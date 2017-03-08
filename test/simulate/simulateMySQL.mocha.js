@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 let { sane } = require('../utils');
 
 let plywood = require('../plywood');
@@ -30,7 +30,7 @@ let context = {
       { name: 'color', type: 'STRING' },
       { name: 'cut', type: 'STRING' },
       { name: 'tags', type: 'SET/STRING' },
-      { name: 'carat', type: 'NUMBER' },
+      { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
       { name: 'height_bucket', type: 'NUMBER' },
       { name: 'price', type: 'NUMBER' },
       { name: 'tax', type: 'NUMBER' }
@@ -316,7 +316,7 @@ describe("simulate MySQL", () => {
       COUNT(*) AS \`Count\`
       FROM \`diamonds\`
       WHERE \`color\` IN ("A","B","some_color")
-      GROUP BY 1, 2
+      GROUP BY 1,2
       LIMIT 3
     `]);
 

@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let plywood = require('../plywood');
 let { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
@@ -27,14 +27,14 @@ let attributes = [
   { name: 'isNice', type: 'BOOLEAN' },
   { name: 'tags', type: 'SET/STRING' },
   { name: 'pugs', type: 'SET/STRING' },
-  { name: 'carat', type: 'NUMBER' },
+  { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
   { name: 'height_bucket', type: 'NUMBER' },
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
-  { name: 'vendor_id', special: 'unique', unsplitable: true },
+  { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true },
 
-  { name: 'try', type: 'NUMBER' }, // Added here because 'try' is a JS keyword
-  { name: 'a+b', type: 'NUMBER' } // Added here because it is invalid JS without escaping
+  { name: 'try', type: 'NUMBER', nativeType: 'STRING' }, // Added here because 'try' is a JS keyword
+  { name: 'a+b', type: 'NUMBER', nativeType: 'STRING' } // Added here because it is invalid JS without escaping
 ];
 
 let customTransforms = {
@@ -66,7 +66,7 @@ let customTransforms = {
 
 let diamondsCompact = External.fromJS({
   engine: 'druid',
-  version: '0.9.2',
+  version: '0.10.0',
   source: 'diamonds-compact',
   timeAttribute: 'time',
   attributes: [
@@ -87,7 +87,7 @@ let diamondsCompact = External.fromJS({
 let context = {
   'diamonds': External.fromJS({
     engine: 'druid',
-    version: '0.9.2',
+    version: '0.10.0',
     source: 'diamonds',
     timeAttribute: 'time',
     attributes,
@@ -99,7 +99,7 @@ let context = {
   }).addDelegate(diamondsCompact),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
-    version: '0.9.2',
+    version: '0.10.0',
     source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
@@ -209,7 +209,7 @@ describe("simulate Druid", () => {
 
   it("works in advanced case", () => {
     let ex = ply()
-      .apply("diamonds", $('diamonds').filter($("color").is('D').and($('tags').overlap(['Good', 'Bad', 'Ugly']))))
+      .apply("diamonds", $('diamonds').filter($("color").is('D').and($('tags').is(['Good', 'Bad', 'Ugly']))))
       .apply('Count', '$diamonds.count()')
       .apply('TotalPrice', '$diamonds.sum($price)')
       .apply('PriceTimes2', '$diamonds.sum($price) * 2')
@@ -900,7 +900,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "alphaNumeric"
+          "type": "dimension",
+          "ordering": "numeric"
         },
         "queryType": "topN",
         "threshold": 20
@@ -946,7 +947,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "alphaNumeric"
+          "type": "dimension",
+          "ordering": "numeric"
         },
         "queryType": "topN",
         "threshold": 1000
@@ -1187,7 +1189,8 @@ describe("simulate Druid", () => {
       "granularity": "all",
       "intervals": "2015-03-12T00Z/2015-03-19T00Z",
       "metric": {
-        "type": "lexicographic"
+        "type": "dimension",
+        "ordering": "lexicographic"
       },
       "queryType": "topN",
       "threshold": 10
@@ -1391,7 +1394,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "lexicographic"
+          "type": "dimension",
+          "ordering": "lexicographic"
         },
         "queryType": "topN",
         "threshold": 10
@@ -1437,7 +1441,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "lexicographic"
+          "type": "dimension",
+          "ordering": "lexicographic"
         },
         "queryType": "topN",
         "threshold": 10
@@ -1586,7 +1591,8 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "metric": {
-            "type": "alphaNumeric"
+            "type": "dimension",
+            "ordering": "numeric"
           },
           "type": "inverted"
         },
@@ -1638,7 +1644,8 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "metric": {
-            "type": "lexicographic"
+            "type": "dimension",
+            "ordering": "lexicographic"
           },
           "type": "inverted"
         },
@@ -1763,7 +1770,8 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
           "metric": {
-            "type": "lexicographic"
+            "type": "dimension",
+            "ordering": "lexicographic"
           },
           "type": "inverted"
         },
@@ -2320,7 +2328,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "alphaNumeric"
+          "type": "dimension",
+          "ordering": "numeric"
         },
         "queryType": "topN",
         "threshold": 3
@@ -2392,7 +2401,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "lexicographic"
+          "type": "dimension",
+          "ordering": "lexicographic"
         },
         "queryType": "topN",
         "threshold": 10
@@ -2454,7 +2464,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "lexicographic"
+          "type": "dimension",
+          "ordering": "lexicographic"
         },
         "queryType": "topN",
         "threshold": 5
@@ -2670,6 +2681,28 @@ describe("simulate Druid", () => {
           }
         ],
         "queryType": "timeseries"
+      }
+    ]);
+  });
+
+  it("makes a query with countDistinct (cross prod)", () => {
+    let ex = ply()
+      .apply('NumColorCuts', '$diamonds.countDistinct($color ++ "lol" ++ $cut)');
+
+    ex = ex.referenceCheck(context).resolve(context).simplify();
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0].length).to.equal(1);
+    expect(queryPlan[0][0].aggregations).to.deep.equal([
+      {
+        "byRow": true,
+        "fieldNames": [
+          "color",
+          "cut"
+        ],
+        "name": "__VALUE__",
+        "type": "cardinality"
       }
     ]);
   });

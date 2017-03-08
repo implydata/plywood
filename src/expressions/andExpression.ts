@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression, ExpressionMatchFn, ExtractAndRest } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
-import { Set } from '../datatypes/set';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 const IS_OR_IN: Lookup<boolean> = {
   'is': true,
@@ -55,7 +54,8 @@ export class AndExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue && expressionValue;
+    if (operandValue === null || expressionValue === null) return null;
+    return Set.crossBinary(operandValue, expressionValue, (a, b) => a && b);
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {

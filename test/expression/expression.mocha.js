@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let { testImmutableClass } = require("immutable-class-tester");
 
@@ -517,9 +517,13 @@ describe("Expression", () => {
               "expression": {
                 "op": "literal",
                 "type": "DATASET",
-                "value": [
-                  {}
-                ]
+                "value": {
+                  "keys": [],
+                  "attributes": [],
+                  "data": [
+                    {}
+                  ]
+                }
               },
               "op": "chain"
             },
@@ -561,9 +565,13 @@ describe("Expression", () => {
         "expression": {
           "op": "literal",
           "type": "DATASET",
-          "value": [
-            {}
-          ]
+          "value": {
+            "keys": [],
+            "attributes": [],
+            "data": [
+              {}
+            ]
+          }
         },
         "op": "chain"
       };

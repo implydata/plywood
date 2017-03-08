@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let plywood = require('../plywood');
 let { Expression, Dataset, External, ExternalExpression, $, i$, ply, r } = plywood;
@@ -169,17 +169,43 @@ describe("resolve", () => {
       expect(ex.toJS()).to.deep.equal({
         "op": "literal",
         "type": "DATASET",
-        "value": [
-          {
-            "num": 8,
-            "subData": [
-              {
-                "x": 24,
-                "y": 70
+        "value": {
+          "attributes": [
+            {
+              "name": "num",
+              "type": "NUMBER"
+            },
+            {
+              "name": "subData",
+              "type": "DATASET"
+            }
+          ],
+          "data": [
+            {
+              "num": 8,
+              "subData": {
+                "attributes": [
+                  {
+                    "name": "x",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "y",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "x": 24,
+                    "y": 70
+                  }
+                ],
+                "keys": []
               }
-            ]
-          }
-        ]
+            }
+          ],
+          "keys": []
+        }
       });
     });
 
@@ -220,7 +246,7 @@ describe("resolve", () => {
           { name: '__time', type: 'TIME' },
           { name: 'color', type: 'STRING' },
           { name: 'cut', type: 'STRING' },
-          { name: 'carat', type: 'NUMBER' }
+          { name: 'carat', type: 'NUMBER', nativeType: 'STRING' }
         ]
       });
 
@@ -253,7 +279,7 @@ describe("resolve", () => {
         { name: '__time', type: 'TIME' },
         { name: 'color', type: 'STRING' },
         { name: 'cut', type: 'STRING' },
-        { name: 'carat', type: 'NUMBER' }
+        { name: 'carat', type: 'NUMBER', nativeType: 'STRING' }
       ]
     });
 

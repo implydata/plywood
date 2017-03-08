@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { hasOwnProperty } from '../../helper/utils';
+import * as hasOwnProp from 'has-own-prop';
 import { NamedArray } from 'immutable-class';
 
 import {
@@ -61,7 +61,6 @@ import {
   NotExpression,
   NumberBucketExpression,
   OrExpression,
-  OverlapExpression,
   PowerExpression,
   QuantileExpression,
   SplitExpression,
@@ -76,13 +75,7 @@ import {
   TransformCaseExpression
 } from '../../expressions/index';
 
-import {
-  NumberRange,
-  AttributeInfo,
-  UniqueAttributeInfo,
-  HistogramAttributeInfo,
-  ThetaAttributeInfo,
-} from '../../datatypes/index';
+import { AttributeInfo } from '../../datatypes/index';
 
 import { External } from '../baseExternal';
 import { CustomDruidAggregations, CustomDruidTransforms } from './druidTypes';
@@ -107,12 +100,6 @@ export interface DruidAggregationBuilderOptions {
 }
 
 export class DruidAggregationBuilder {
-  static AGGREGATE_TO_DRUID: Lookup<string> = {
-    sum: "doubleSum",
-    min: "doubleMin",
-    max: "doubleMax"
-  };
-
   static AGGREGATE_TO_FUNCTION: Lookup<Function> = {
     sum: (a: string, b: string) => `${a}+${b}`,
     min: (a: string, b: string) => `Math.min(${a},${b})`,
@@ -236,19 +223,21 @@ export class DruidAggregationBuilder {
   }
 
   private sumMinMaxToAggregation(name: string, expression: SumExpression | MinExpression | MaxExpression): Druid.Aggregation {
-    let aggregation: Druid.Aggregation = {
-      name: name,
-      type: DruidAggregationBuilder.AGGREGATE_TO_DRUID[expression.op]
-    };
+    let aggregation: Druid.Aggregation;
 
     let aggregateExpression = expression.expression;
     if (aggregateExpression instanceof RefExpression) {
       let refName = aggregateExpression.name;
       let attributeInfo = this.getAttributesInfo(refName);
-      if (attributeInfo.unsplitable) {
-        aggregation.fieldName = refName;
-      } else {
+      if (attributeInfo.nativeType === 'STRING') {
         aggregation = this.makeJavaScriptAggregation(name, expression);
+      } else {
+        let op = expression.op;
+        aggregation = {
+          name,
+          type: (attributeInfo.nativeType === 'LONG' ? 'long' : 'double') + op[0].toUpperCase() + op.substr(1),
+          fieldName: refName
+        };
       }
     } else {
       aggregation = this.makeJavaScriptAggregation(name, expression);
@@ -257,48 +246,69 @@ export class DruidAggregationBuilder {
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
   }
 
+  private isCardinalityCrossProductExpression(expression: Expression) {
+    return expression.every(ex => {
+      if (ex instanceof RefExpression || ex instanceof LiteralExpression) return true;
+      if (ex instanceof ConcatExpression || ex instanceof CastExpression) return null; // search within
+      return false;
+    });
+  }
+
   private countDistinctToAggregation(name: string, expression: CountDistinctExpression, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
     if (this.exactResultsOnly) {
       throw new Error("approximate query not allowed");
     }
 
-    let attribute = expression.expression;
-    let attributeName: string;
-    if (attribute instanceof RefExpression) {
-      attributeName = attribute.name;
-    } else {
-      throw new Error(`can not compute countDistinct on derived attribute: ${attribute}`);
-    }
-
-    let attributeInfo = this.getAttributesInfo(attributeName);
     let aggregation: Druid.Aggregation;
-    if (attributeInfo instanceof UniqueAttributeInfo) {
-      aggregation = {
-        name: name,
-        type: "hyperUnique",
-        fieldName: attributeName
-      };
+    let attribute = expression.expression;
+    if (attribute instanceof RefExpression) {
+      let attributeName = attribute.name;
 
-    } else if (attributeInfo instanceof ThetaAttributeInfo) {
-      let tempName = '!Theta_' + name;
-      postAggregations.push({
-        type: "thetaSketchEstimate",
-        name: name,
-        field: { type: 'fieldAccess', fieldName: tempName }
-      });
+      let attributeInfo = this.getAttributesInfo(attributeName);
+      if (attributeInfo.nativeType === 'hyperUnique') {
+        aggregation = {
+          name: name,
+          type: "hyperUnique",
+          fieldName: attributeName
+        };
 
-      aggregation = {
-        name: tempName,
-        type: "thetaSketch",
-        fieldName: attributeName
-      };
+      } else if (attributeInfo.nativeType === 'thetaSketch') {
+        let tempName = '!Theta_' + name;
+        postAggregations.push({
+          type: "thetaSketchEstimate",
+          name: name,
+          field: { type: 'fieldAccess', fieldName: tempName }
+        });
+
+        aggregation = {
+          name: tempName,
+          type: "thetaSketch",
+          fieldName: attributeName
+        };
+
+      } else {
+        aggregation = {
+          name: name,
+          type: "cardinality",
+          fieldNames: [attributeName]
+        };
+
+      }
+    } else if (attribute.type === 'STRING' || attribute.type === 'NUMBER') {
+      if (this.isCardinalityCrossProductExpression(attribute)) {
+        aggregation = {
+          name: name,
+          type: "cardinality",
+          fieldNames: attribute.getFreeReferences(),
+          byRow: true
+        };
+      } else {
+        throw new Error(`can not compute countDistinct on ${attribute}`);
+
+      }
 
     } else {
-      aggregation = {
-        name: name,
-        type: "cardinality",
-        fieldNames: [attributeName]
-      };
+      throw new Error(`can not compute countDistinct on ${attribute}`);
 
     }
 
@@ -330,7 +340,7 @@ export class DruidAggregationBuilder {
     if (attribute instanceof RefExpression) {
       attributeName = attribute.name;
     } else {
-      throw new Error(`can not compute countDistinct on derived attribute: ${attribute}`);
+      throw new Error(`can not compute quantile on derived attribute: ${attribute}`);
     }
 
     let histogramAggregationName = "!H_" + name;
@@ -380,7 +390,7 @@ export class DruidAggregationBuilder {
 
     let customAggregations = this.customAggregations;
     for (let customName in customAggregations) {
-      if (!hasOwnProperty(customAggregations, customName)) continue;
+      if (!hasOwnProp(customAggregations, customName)) continue;
       let customAggregation = customAggregations[customName];
       if (customAggregation.aggregation.type === aggregationType) {
         return customAggregation.accessType || 'fieldAccess';

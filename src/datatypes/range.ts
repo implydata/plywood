@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
  */
 
 import { Timezone } from 'chronoshift';
+import { PlyType } from '../types';
 
 const BOUNDS_REG_EXP = /^[\[(][\])]$/;
 
@@ -26,6 +27,15 @@ export abstract class Range<T> {
 
   static isRange(candidate: any): candidate is PlywoodRange {
     return candidate instanceof Range;
+  }
+
+  static isRangeType(type: PlyType): boolean {
+    return type && type.indexOf('_RANGE') > 0;
+  }
+
+  static unwrapRangeType(type: PlyType): PlyType {
+    if (!type) return null;
+    return Range.isRangeType(type) ? <PlyType>type.substr(0, type.length - 6) : type;
   }
 
   static classMap: Lookup<typeof Range> = {};
@@ -153,8 +163,10 @@ export abstract class Range<T> {
   }
 
   public intersects(other: Range<T>): boolean {
-    return this.contains(other.start) || this.contains(other.end)
-      || other.contains(this.start) || other.contains(this.end)
+    return this.contains(other.start)
+      || this.contains(other.end)
+      || other.contains(this.start)
+      || other.contains(this.end)
       || this._equalsHelper(other); // in case of (0, 1) and (0, 1)
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
-import { hasOwnProperty } from '../helper/utils';
+import { PlywoodValue, Set } from '../datatypes/index';
+import * as hasOwnProp from 'has-own-prop';
 
 export class JoinExpression extends ChainableUnaryExpression {
   static op = "Join";
@@ -47,7 +47,7 @@ export class JoinExpression extends ChainableUnaryExpression {
     }
     for (let k in expressionDatasetType) {
       let ft = expressionDatasetType[k];
-      if (hasOwnProperty(newDatasetType, k)) {
+      if (hasOwnProp(newDatasetType, k)) {
         if (newDatasetType[k].type !== ft.type) {
           throw new Error(`incompatible types of joins on ${k} between ${newDatasetType[k].type} and ${ft.type}`);
         }

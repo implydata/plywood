@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 import { TransformCaseExpression } from './transformCaseExpression';
 
 export class ContainsExpression extends ChainableUnaryExpression {
@@ -34,7 +34,7 @@ export class ContainsExpression extends ChainableUnaryExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._checkOperandTypes('STRING', 'SET/STRING');
+    this._checkOperandTypes('STRING');
     this._checkExpressionTypes('STRING');
 
     let { compare } = parameters;
@@ -71,11 +71,13 @@ export class ContainsExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
+    let fn: (a: any, b: any) => boolean;
     if (this.compare === ContainsExpression.NORMAL) {
-      return String(operandValue).indexOf(expressionValue) > -1;
+      fn = (a: any, b: any) => String(a).indexOf(b) > -1;
     } else {
-      return String(operandValue).toLowerCase().indexOf(String(expressionValue).toLowerCase()) > -1;
+      fn = (a: any, b: any) => String(a).toLowerCase().indexOf(String(b).toLowerCase()) > -1;
     }
+    return Set.crossBinaryBoolean(operandValue, expressionValue, fn);
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {

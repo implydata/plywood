@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-import * as Q from 'q';
-import { Expression } from '../expressions/baseExpression';
+import * as Promise from 'any-promise';
+import { Expression, ComputeOptions } from '../expressions/baseExpression';
 import { PlywoodValue, Datum } from '../datatypes/index';
-import { Environment } from '../types';
 
 export interface Executor {
-  (ex: Expression, env?: Environment): Q.Promise<PlywoodValue>;
+  (ex: Expression, opt?: ComputeOptions): Promise<PlywoodValue>;
 }
 
 export interface BasicExecutorParameters {
@@ -30,7 +29,7 @@ export interface BasicExecutorParameters {
 
 export function basicExecutorFactory(parameters: BasicExecutorParameters): Executor {
   let datasets = parameters.datasets;
-  return (ex: Expression, env: Environment = {}) => {
-    return ex.compute(datasets, env);
+  return (ex: Expression, opt: ComputeOptions = {}) => {
+    return ex.compute(datasets, opt);
   };
 }

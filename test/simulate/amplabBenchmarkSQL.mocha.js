@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let plywood = require('../plywood');
 let { Expression, External, TimeRange, $, i$, ply, r } = plywood;
@@ -23,34 +23,34 @@ let { Expression, External, TimeRange, $, i$, ply, r } = plywood;
 let context = {
   rankings: External.fromJS({
     engine: 'druid',
-    version: '0.9.0',
+    version: '0.10.0',
     source: 'rankings',
     timeAttribute: 'time',
     allowSelectQueries: true,
     allowEternity: true,
     attributes: [
-      { name: 'pageURL', type: 'STRING' }, // VARCHAR(300)
-      { name: 'pageRank', type: 'NUMBER' }, // INT
-      { name: 'avgDuration', type: 'NUMBER' } // INT
+      { name: 'pageURL', type: 'STRING', nativeType: 'STRING' }, // VARCHAR(300)
+      { name: 'pageRank', type: 'NUMBER', nativeType: 'LONG' }, // INT
+      { name: 'avgDuration', type: 'NUMBER', nativeType: 'LONG' } // INT
     ]
   }),
   uservisits: External.fromJS({
     engine: 'druid',
-    version: '0.9.0',
+    version: '0.10.0',
     source: 'uservisits',
     timeAttribute: 'visitDate',
     allowSelectQueries: true,
     allowEternity: true,
     attributes: [
-      { name: 'sourceIP', type: 'STRING' }, // VARCHAR(116)
-      { name: 'destURL', type: 'STRING' }, // VARCHAR(100)
-      { name: 'visitDate', type: 'TIME' }, // DATE
-      { name: 'adRevenue', type: 'NUMBER', unsplitable: true }, // FLOAT
-      { name: 'userAgent', type: 'STRING' }, // VARCHAR(256)
-      { name: 'countryCode', type: 'STRING' }, // CHAR(3)
-      { name: 'languageCode', type: 'STRING' }, // CHAR(6)
-      { name: 'searchWord', type: 'STRING' }, // VARCHAR(32)
-      { name: 'duration', type: 'NUMBER', unsplitable: true } // INT
+      { name: 'sourceIP', type: 'STRING', nativeType: 'STRING' }, // VARCHAR(116)
+      { name: 'destURL', type: 'STRING', nativeType: 'STRING' }, // VARCHAR(100)
+      { name: 'visitDate', type: 'TIME', nativeType: 'LONG' }, // DATE
+      { name: 'adRevenue', type: 'NUMBER', nativeType: 'FLOAT' }, // FLOAT
+      { name: 'userAgent', type: 'STRING', nativeType: 'STRING' }, // VARCHAR(256)
+      { name: 'countryCode', type: 'STRING', nativeType: 'STRING' }, // CHAR(3)
+      { name: 'languageCode', type: 'STRING', nativeType: 'STRING' }, // CHAR(6)
+      { name: 'searchWord', type: 'STRING', nativeType: 'STRING' }, // VARCHAR(32)
+      { name: 'duration', type: 'NUMBER', nativeType: 'FLOAT' } // INT
     ]
   })
 };
@@ -76,8 +76,7 @@ describe("simulate Druid for amplab benchmark", () => {
       {
         "dataSource": "rankings",
         "dimensions": [
-          "pageURL",
-          "pageRank"
+          "pageURL"
         ],
         "filter": {
           "alphaNumeric": true,
@@ -89,7 +88,7 @@ describe("simulate Druid for amplab benchmark", () => {
         "granularity": "all",
         "intervals": "1000/3000",
         "metrics": [
-          "!DUMMY"
+          "pageRank"
         ],
         "pagingSpec": {
           "pagingIdentifiers": {},
@@ -118,14 +117,9 @@ describe("simulate Druid for amplab benchmark", () => {
       {
         "aggregations": [
           {
-            "fieldNames": [
-              "pageRank"
-            ],
-            "fnAggregate": "function($$,_pageRank) { return $$+parseFloat(_pageRank); }",
-            "fnCombine": "function(a,b) { return a+b; }",
-            "fnReset": "function() { return 0; }",
+            "fieldName": "pageRank",
             "name": "pageRank",
-            "type": "javascript"
+            "type": "longSum"
           }
         ],
         "dataSource": "rankings",

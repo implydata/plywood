@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,6 @@ import {
   NotExpression,
   NumberBucketExpression,
   OrExpression,
-  OverlapExpression,
   PowerExpression,
   QuantileExpression,
   SplitExpression,
@@ -204,11 +203,14 @@ export class DruidExtractionFnBuilder {
 
   private expressionToExtractionFnPure(expression: Expression): Druid.ExtractionFn | null {
     let freeReferences = expression.getFreeReferences();
-    if (freeReferences.length !== 1) {
-      throw new Error(`must have 1 reference (has ${freeReferences.length}): ${expression}`);
+    if (freeReferences.length > 1) {
+      throw new Error(`must have at most 1 reference (has ${freeReferences.length}): ${expression}`);
     }
 
-    if (expression instanceof RefExpression) {
+    if (expression instanceof LiteralExpression) {
+      return this.literalToExtractionFn(expression);
+
+    } else if (expression instanceof RefExpression) {
       return this.refToExtractionFn(expression);
 
     } else if (expression instanceof ConcatExpression) {
@@ -248,6 +250,18 @@ export class DruidExtractionFnBuilder {
       return this.expressionToJavaScriptExtractionFn(expression);
 
     }
+  }
+
+  private literalToExtractionFn(expression: LiteralExpression): Druid.ExtractionFn {
+    return {
+      type: "lookup",
+      retainMissingValue: false,
+      replaceMissingValueWith: expression.getLiteralValue(),
+      lookup: {
+        type: "map",
+        map: {}
+      }
+    };
   }
 
   private refToExtractionFn(expression: RefExpression): Druid.ExtractionFn | null {
@@ -303,10 +317,10 @@ export class DruidExtractionFnBuilder {
     let myExtractionFn: Druid.ExtractionFn;
     if (spanValue === 1 && DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan]) {
       myExtractionFn = {
-        "format": DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan],
-        "locale": "en-US",
-        "timeZone": timezone.toString(),
-        "type": "timeFormat"
+        type: "timeFormat",
+        format: DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan],
+        locale: "en-US",
+        timeZone: timezone.toString()
       };
     } else {
       let prop = DruidExtractionFnBuilder.SPAN_TO_PROPERTY[singleSpan];
@@ -334,10 +348,10 @@ export class DruidExtractionFnBuilder {
     let format = DruidExtractionFnBuilder.TIME_PART_TO_FORMAT[part];
     if (format) {
       myExtractionFn = {
-        "format": format,
-        "locale": "en-US",
-        "timeZone": timezone.toString(),
-        "type": "timeFormat"
+        type: "timeFormat",
+        format: format,
+        locale: "en-US",
+        timeZone: timezone.toString()
       };
     } else {
       let expr = DruidExtractionFnBuilder.TIME_PART_TO_EXPR[part];

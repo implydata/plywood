@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let { testImmutableClass } = require("immutable-class-tester");
 
@@ -43,11 +43,11 @@ let diamonds = External.fromJS({
     { name: 'isNice', type: 'BOOLEAN' },
     { name: 'tags', type: 'SET/STRING' },
     { name: 'pugs', type: 'SET/STRING' },
-    { name: 'carat', type: 'NUMBER' },
+    { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
     { name: 'height_bucket', type: 'NUMBER' },
     { name: 'price', type: 'NUMBER', unsplitable: true },
     { name: 'tax', type: 'NUMBER', unsplitable: true },
-    { name: 'vendor_id', special: 'unique', unsplitable: true }
+    { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true }
   ],
   allowSelectQueries: true
 });
@@ -230,6 +230,12 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
+    it("removes self if operand is literal", () => {
+      let ex1 = r('hello').fallback('$x');
+      let ex2 = r('hello');
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 
@@ -316,6 +322,22 @@ describe("Simplify", () => {
       let ex2 = $('x').multiply(9);
       simplifiesTo(ex1, ex2);
     });
+  });
+
+
+  describe('multiply', () => {
+    it("collapses / 0", () => {
+      let ex1 = $('x').divide(0);
+      let ex2 = Expression.NULL;
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("removes 1 in simple case", () => {
+      let ex1 = $('x').multiply(1);
+      let ex2 = $('x');
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 
@@ -579,7 +601,7 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it.skip("simplifies to true with complex datatypes", () => {
+    it("simplifies to true with complex datatypes", () => {
       let ex1 = r(TimeRange.fromJS({
         start: new Date('2016-01-02Z'),
         end: new Date('2016-01-03Z')
@@ -606,6 +628,12 @@ describe("Simplify", () => {
     it('swaps yoda literal (with complex)', () => {
       let ex1 = r("Dhello").is($('color').concat(r('hello')));
       let ex2 = $('color').concat(r('hello')).is(r("Dhello"));
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('simplifies to singleton set', () => {
+      let ex1 = $('x').overlap(Set.fromJS(['A']));
+      let ex2 = $('x').is('A');
       simplifiesTo(ex1, ex2);
     });
 
@@ -733,7 +761,10 @@ describe("Simplify", () => {
 
   describe('overlap', () => {
     it('swaps yoda literal (with ref)', () => {
-      let someSet = Set.fromJS(['A', 'B', 'C']);
+      let someSet = Set.fromJS([
+        NumberRange.fromJS({ start: 1, end: 2 }),
+        NumberRange.fromJS({ start: 3, end: 4 })
+      ]);
       let ex1 = r(someSet).overlap('$x');
       let ex2 = $('x').overlap(someSet);
       simplifiesTo(ex1, ex2);
@@ -751,14 +782,14 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it('simplifies to IN', () => {
+    it('simplifies to IS', () => {
       let someSet = Set.fromJS(['A', 'B', 'C']);
       let ex1 = $('x', 'STRING').overlap(someSet);
-      let ex2 = $('x', 'STRING').in(someSet);
+      let ex2 = $('x', 'STRING').is(someSet);
       simplifiesTo(ex1, ex2);
     });
 
-    it('simplifies to IS (via IN)', () => {
+    it('simplifies to singleton IS (via IS)', () => {
       let ex1 = $('x', 'STRING').overlap(Set.fromJS(['A']));
       let ex2 = $('x', 'STRING').is('A');
       simplifiesTo(ex1, ex2);
@@ -782,6 +813,15 @@ describe("Simplify", () => {
     it('with reference value', () => {
       let ex1 = $('test').match('^\\d+');
       let ex2 = $('test').match('^\\d+');
+      simplifiesTo(ex1, ex2);
+    });
+  });
+
+
+  describe('substr', () => {
+    it('works with length 0', () => {
+      let ex1 = $("x").substr(0, 0);
+      let ex2 = r('');
       simplifiesTo(ex1, ex2);
     });
   });
@@ -981,10 +1021,30 @@ describe("Simplify", () => {
 
     it('simplifies on empty literal', () => {
       let ex1 = ply().split('$x', 'Page', 'data');
-      let ex2 = ply(Dataset.fromJS([
-        { Page: null }
-      ]));
-      simplifiesTo(ex1, ex2);
+      expect(ex1.simplify().toJS()).to.deep.equal({
+        "op": "literal",
+        "type": "DATASET",
+        "value": {
+          "attributes": [
+            {
+              "name": "Page",
+              "type": "STRING"
+            },
+            {
+              "name": "data",
+              "type": "DATASET"
+            }
+          ],
+          "data": [
+            {
+              "Page": null
+            }
+          ],
+          "keys": [
+            "Page"
+          ]
+        }
+      });
     });
 
     it('simplifies on non-empty literal', () => {
@@ -994,12 +1054,33 @@ describe("Simplify", () => {
         { a: 2, b: 30 }
       ])).split('$a', 'A', 'data');
 
-      let ex2 = ply(Dataset.fromJS([
-        { A: 1 },
-        { A: 2 }
-      ]));
-
-      simplifiesTo(ex1, ex2);
+      expect(ex1.simplify().toJS()).to.deep.equal({
+        "op": "literal",
+        "type": "DATASET",
+        "value": {
+          "attributes": [
+            {
+              "name": "A",
+              "type": "NUMBER"
+            },
+            {
+              "name": "data",
+              "type": "DATASET"
+            }
+          ],
+          "data": [
+            {
+              "A": 1
+            },
+            {
+              "A": 2
+            }
+          ],
+          "keys": [
+            "A"
+          ]
+        }
+      })
     });
   });
 
@@ -1057,9 +1138,10 @@ describe("Simplify", () => {
         .apply('Stuff', 5)
         .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)');
 
-      let ex2 = ply(Dataset.fromJS([{
-        Stuff: 5
-      }]))
+      let ex2 = ply(Dataset.fromJS({
+        keys: [],
+        data: [{ Stuff: 5 }]
+      }))
         .apply('AddedByDeleted', '$^wiki.sum($added) / $^wiki.sum($deleted)');
 
       simplifiesTo(ex1, ex2);

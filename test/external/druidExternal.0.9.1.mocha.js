@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
-let Q = require('q');
+const { expect } = require("chai");
+let Promise = require('any-promise');
 let { sane } = require('../utils');
 
 let plywood = require('../plywood');
@@ -43,7 +43,7 @@ let context = {
       { name: 'added', type: 'NUMBER', unsplitable: true },
       { name: 'deleted', type: 'NUMBER', unsplitable: true },
       { name: 'inserted', type: 'NUMBER', unsplitable: true },
-      { name: 'delta_hist', special: 'histogram' }
+      { name: 'delta_hist', type: 'NULL', nativeType: 'approximateHistogram', unsplitable: true }
     ],
     derivedAttributes: {
       pageInBrackets: "'[' ++ $page ++ ']'"
@@ -85,7 +85,7 @@ describe("DruidExternal 0.9.1", () => {
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
       expect(() => {
-        druidExternal.getQueryAndPostProcess();
+        druidExternal.getQueryAndPostTransform();
       }).to.throw('can not do secondary filtering on primary time dimension (https://github.com/druid-io/druid/issues/2816)');
     });
 

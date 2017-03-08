@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,10 @@
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlyType } from '../types';
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes/index';
 import { LiteralExpression } from './literalExpression';
 import { IndexOfExpression } from './indexOfExpression';
 import { NumberRange } from '../datatypes/numberRange';
-import { Set } from '../datatypes/set';
-import { isSetType, wrapSetType } from '../datatypes/common';
 import { TimeRange } from '../datatypes/timeRange';
 import { PlywoodRange } from '../datatypes/range';
 import { StringRange } from '../datatypes/stringRange';
@@ -41,7 +39,9 @@ export class InExpression extends ChainableUnaryExpression {
     let expression = this.expression;
     if (operandType) {
       if (!(
-          (!isSetType(operandType) && expression.canHaveType('SET')) ||
+          operandType === 'NULL' ||
+          expression.type === 'NULL' ||
+          (!Set.isSetType(operandType) && expression.canHaveType('SET')) ||
           (operandType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE')) ||
           (operandType === 'STRING' && expression.canHaveType('STRING_RANGE')) ||
           (operandType === 'TIME' && expression.canHaveType('TIME_RANGE'))
@@ -144,11 +144,11 @@ export class InExpression extends ChainableUnaryExpression {
 
       if (literalValue && !literalValue.isNullSet()) {
         if (literalValue.size() === 1) {
-          if (wrapSetType(operand.type) === expression.type) {
+          if (Set.wrapSetType(operand.type) === expression.type) {
             // This is x:NUMBER in Set(1)
             //      or x:NUMBER_RANGE in Set(Range(1,2))
             return operand.is(r(literalValue.elements[0]));
-          } else if (wrapSetType((operand.type + '_RANGE') as PlyType) === expression.type) {
+          } else if (Set.wrapSetType((operand.type + '_RANGE') as PlyType) === expression.type) {
             // This is x:NUMBER in Set(Range(1,2))
             return operand.in(r(literalValue.elements[0]));
           } else {

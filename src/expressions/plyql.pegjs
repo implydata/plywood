@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -266,9 +266,8 @@ fns.SYSTEM_USER = fns.USER;
 fns.CURRENT_USER = fns.USER;
 fns.SCHEMA = fns.DATABASE;
 
-var objectHasOwnProperty = Object.prototype.hasOwnProperty;
 function reserved(str) {
-  return objectHasOwnProperty.call(reservedWords, str.toUpperCase());
+  return reservedWords.hasOwnProperty(str.toUpperCase());
 }
 
 function makeDate(type, v) {

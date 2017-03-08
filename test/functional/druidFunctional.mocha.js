@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 let { sane } = require('../utils');
 
 let { druidRequesterFactory } = require('plywood-druid-requester');
 
 let plywood = require('../plywood');
-let { External, DruidExternal, TimeRange, $, i$, ply, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
+let { External, DruidExternal, TimeRange, $, i$, ply, r, basicExecutorFactory, verboseRequesterFactory, Expression } = plywood;
 
 let info = require('../info');
 
@@ -37,39 +37,219 @@ describe("Druid Functional", function() {
   this.timeout(10000);
 
   let wikiAttributes = [
-    { "name": "time", "type": "TIME" },
-    { "name": "added", "maker":{"op": "sum", "expression":{"name": "added", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "channel", "type": "STRING" },
-    { "name": "cityName", "type": "STRING" },
-    { "name": "comment", "type": "STRING" },
-    { "name": "commentLength", "type": "NUMBER" },
-    { "name": "commentLengthStr", "type": "STRING" },
-    { "name": "count", "maker":{"op": "count"}, "type": "NUMBER", "unsplitable":true },
-    { "name": "countryIsoCode", "type": "STRING" },
-    { "name": "countryName", "type": "STRING" },
-    { "name": "deleted", "maker":{"op": "sum", "expression":{"name": "deleted", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "delta", "maker":{"op": "sum", "expression":{"name": "delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "deltaBucket100", "type": "NUMBER" },
-    { "name": "deltaByTen", "maker":{"op": "sum", "expression":{"name": "deltaByTen", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "delta_hist", "special": "histogram", "type": "NUMBER" },
-    { "name": "isAnonymous", "type": "BOOLEAN" },
-    { "name": "isMinor", "type": "BOOLEAN" },
-    { "name": "isNew", "type": "BOOLEAN" },
-    { "name": "isRobot", "type": "BOOLEAN" },
-    { "name": "isUnpatrolled", "type": "BOOLEAN" },
-    { "name": "max_delta", "maker":{"op": "max", "expression":{"name": "max_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "metroCode", "type": "STRING" },
-    { "name": "min_delta", "maker":{"op": "min", "expression":{"name": "min_delta", "op": "ref"}},"type": "NUMBER", "unsplitable":true },
-    { "name": "namespace", "type": "STRING" },
-    { "name": "page", "type": "STRING" },
-    { "name": "page_unique", "special": "unique", "type": "STRING" },
-    { "name": "regionIsoCode", "type": "STRING" },
-    { "name": "regionName", "type": "STRING" },
-    { "name": "sometimeLater", "type": "TIME" },
-    { "name": "user", "type": "STRING" },
-    { "name": "userChars", "type": "SET/STRING" },
-    { "name": "user_theta", "special": "theta", "type": "STRING" },
-    { "name": "user_unique", "special": "unique", "type": "STRING" }
+    {
+      "name": "time",
+      "nativeType": "__time",
+      "type": "TIME"
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "added",
+          "op": "ref"
+        },
+        "op": "sum"
+      },
+      "name": "added",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "channel",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "cityName",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "comment",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "commentLength",
+      "type": "NUMBER"
+    },
+    {
+      "name": "commentLengthStr",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "maker": {
+        "op": "count"
+      },
+      "name": "count",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "countryIsoCode",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "countryName",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "deleted",
+          "op": "ref"
+        },
+        "op": "sum"
+      },
+      "name": "deleted",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "delta",
+          "op": "ref"
+        },
+        "op": "sum"
+      },
+      "name": "delta",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "deltaBucket100",
+      "type": "NUMBER"
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "deltaByTen",
+          "op": "ref"
+        },
+        "op": "sum"
+      },
+      "name": "deltaByTen",
+      "nativeType": "FLOAT",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "delta_hist",
+      "nativeType": "approximateHistogram",
+      "type": "NULL",
+      "unsplitable": true
+    },
+    {
+      "name": "isAnonymous",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isMinor",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isNew",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isRobot",
+      "type": "BOOLEAN"
+    },
+    {
+      "name": "isUnpatrolled",
+      "type": "BOOLEAN"
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "max_delta",
+          "op": "ref"
+        },
+        "op": "max"
+      },
+      "name": "max_delta",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "metroCode",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "maker": {
+        "expression": {
+          "name": "min_delta",
+          "op": "ref"
+        },
+        "op": "min"
+      },
+      "name": "min_delta",
+      "nativeType": "LONG",
+      "type": "NUMBER",
+      "unsplitable": true
+    },
+    {
+      "name": "namespace",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "page",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "page_unique",
+      "nativeType": "hyperUnique",
+      "type": "NULL",
+      "unsplitable": true
+    },
+    {
+      "name": "regionIsoCode",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "regionName",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "sometimeLater",
+      "type": "TIME"
+    },
+    {
+      "name": "user",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
+      "name": "userChars",
+      "nativeType": "STRING",
+      "type": "SET/STRING"
+    },
+    {
+      "name": "user_theta",
+      "nativeType": "thetaSketch",
+      "type": "NULL",
+      "unsplitable": true
+    },
+    {
+      "name": "user_unique",
+      "nativeType": "hyperUnique",
+      "type": "NULL",
+      "unsplitable": true
+    }
   ];
 
   let customTransforms = {
@@ -101,11 +281,10 @@ describe("Druid Functional", function() {
 
   describe("source list", () => {
     it("does a source list", () => {
-      DruidExternal.getSourceList(druidRequester)
+      return DruidExternal.getSourceList(druidRequester)
         .then((sources) => {
           expect(sources).to.deep.equal(['wikipedia', 'wikipedia-compact']);
-        })
-        .done()
+        });
     });
   });
 
@@ -144,7 +323,7 @@ describe("Druid Functional", function() {
         { name: 'delta', type: 'NUMBER', unsplitable: true },
         { name: 'added', type: 'NUMBER', unsplitable: true },
         { name: 'deleted', type: 'NUMBER', unsplitable: true },
-        { name: 'page_unique', special: 'unique', unsplitable: true }
+        { name: 'page_unique', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true }
       ],
       filter: $('time').in(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
@@ -183,6 +362,92 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with basic error (non-existent lookup)", () => {
+      let ex = $('wiki').split("$cityName.lookup(blah)", 'B');
+
+      return basicExecutor(ex)
+        .then(() => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch((e) => {
+          expect(e.message).to.contain('Lookup [blah] not found');
+        });
+    });
+
+    it("works basic total", () => {
+      let ex = ply()
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
+        .apply("Count", '$wiki.count()');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "wiki",
+                "type": "DATASET"
+              },
+              {
+                "name": "Count",
+                "type": "NUMBER"
+              }
+            ],
+            "data": [
+              {
+                "Count": 35485
+              }
+            ],
+            "keys": []
+          });
+
+          expect(result.flatten().toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "Count",
+                "type": "NUMBER"
+              }
+            ],
+            "data": [
+              {
+                "Count": 35485
+              }
+            ]
+          });
+        });
+    });
+
+    it("works with max time 1", () => {
+      let ex = ply()
+        .apply("max(time)", '$wiki.max($time)');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "max(time)",
+                "type": "TIME"
+              }
+            ],
+            "data": [
+              {
+                "max(time)": new Date('2015-09-12T23:00:00.000Z')
+              }
+            ],
+            "keys": []
+          });
+        });
+    });
+
+    it("works with max time 2", () => {
+      let ex = $('wiki').max('$time');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result).to.deep.equal(new Date('2015-09-12T23:00:00.000Z'));
+        });
+    });
+
     it("aggregate and splits plus select work with ordering last split first", () => {
       let ex = $('wiki')
         .split({ 'isNew': '$isNew', 'isRobot': '$isRobot' })
@@ -193,7 +458,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Page', 'Count', 'isRobot', 'isNew']);
+          expect(result.attributes.map((c => c.name))).to.deep.equal(['Page', 'Count', 'isRobot', 'isNew']);
         });
     });
 
@@ -207,7 +472,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['isRobot', 'Page', 'isNew', 'Count']);
+          expect(result.attributes.map((c => c.name))).to.deep.equal(['isRobot', 'Page', 'isNew', 'Count']);
         });
     });
 
@@ -221,7 +486,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.getNestedColumns().map((c => c.name))).to.deep.equal(['Count', 'isRobot', 'Page', 'isNew']);
+          expect(result.attributes.map((c => c.name))).to.deep.equal(['Count', 'isRobot', 'Page', 'isNew']);
         });
     });
 
@@ -238,22 +503,37 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "HoursOfDay": [
-                {
-                  "HourOfDay": 2,
-                  "TotalAdded": 3045966
-                },
-                {
-                  "HourOfDay": 17,
-                  "TotalAdded": 1883290
-                },
-                {
-                  "HourOfDay": 3,
-                  "TotalAdded": 1825954
-                }
-              ]
+              "HoursOfDay": {
+                "attributes": [
+                  {
+                    "name": "HourOfDay",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "TotalAdded",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "HourOfDay": 2,
+                    "TotalAdded": 3045966
+                  },
+                  {
+                    "HourOfDay": 17,
+                    "TotalAdded": 1883290
+                  },
+                  {
+                    "HourOfDay": 3,
+                    "TotalAdded": 1825954
+                  }
+                ],
+                "keys": [
+                  "HourOfDay"
+                ]
+              }
             }
           ]);
         });
@@ -266,7 +546,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Quarter": 3
             }
@@ -283,38 +563,26 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "cnt": 216909,
               "robot": false,
-              "t": {
-                "type": "TIME",
-                "value": new Date('2015-09-11T22:00:00.000Z')
-              }
+              "t": new Date('2015-09-11T22:00:00.000Z')
             },
             {
               "cnt": 143468,
               "robot": true,
-              "t": {
-                "type": "TIME",
-                "value": new Date('2015-09-11T22:00:00.000Z')
-              }
+              "t": new Date('2015-09-11T22:00:00.000Z')
             },
             {
               "cnt": 19213,
               "robot": false,
-              "t": {
-                "type": "TIME",
-                "value": new Date('2015-09-12T22:00:00.000Z')
-              }
+              "t": new Date('2015-09-12T22:00:00.000Z')
             },
             {
               "cnt": 11392,
               "robot": true,
-              "t": {
-                "type": "TIME",
-                "value": new Date('2015-09-12T22:00:00.000Z')
-              }
+              "t": new Date('2015-09-12T22:00:00.000Z')
             }
           ]);
         });
@@ -326,12 +594,9 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "tqr___time_ok": {
-                "type": "TIME",
-                "value": new Date('2015-07-01T00:00:00.000Z')
-              }
+              "tqr___time_ok": new Date('2015-07-01T00:00:00.000Z'),
             }
           ]);
         });
@@ -367,89 +632,147 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Count": 114711,
-              "Pages": [
-                {
-                  "Count": 255,
-                  "Page": "User:Cyde/List of candidates for speedy deletion/Subpage",
-                  "Time": [
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T13:00:00.000Z'),
-                        "start": new Date('2015-09-12T12:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 9231
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-13T00:00:00.000Z'),
-                        "start": new Date('2015-09-12T23:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 3956
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T02:00:00.000Z'),
-                        "start": new Date('2015-09-12T01:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 3363
+              "Pages": {
+                "attributes": [
+                  {
+                    "name": "Page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "Time",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 255,
+                    "Page": "User:Cyde/List of candidates for speedy deletion/Subpage",
+                    "Time": {
+                      "attributes": [
+                        {
+                          "name": "Timestamp",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "TotalAdded",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T13:00:00.000Z'),
+                            "start": new Date('2015-09-12T12:00:00.000Z')
+                          },
+                          "TotalAdded": 9231
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-13T00:00:00.000Z'),
+                            "start": new Date('2015-09-12T23:00:00.000Z')
+                          },
+                          "TotalAdded": 3956
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T02:00:00.000Z'),
+                            "start": new Date('2015-09-12T01:00:00.000Z')
+                          },
+                          "TotalAdded": 3363
+                        }
+                      ],
+                      "keys": [
+                        "Timestamp"
+                      ]
                     }
-                  ]
-                },
-                {
-                  "Count": 241,
-                  "Page": "Jeremy Corbyn",
-                  "Time": [
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T16:00:00.000Z'),
-                        "start": new Date('2015-09-12T15:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 28193
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T19:00:00.000Z'),
-                        "start": new Date('2015-09-12T18:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 2419
-                    },
-                    {
-                      "Timestamp": {
-                        "end": new Date('2015-09-12T11:00:00.000Z'),
-                        "start": new Date('2015-09-12T10:00:00.000Z'),
-                        "type": "TIME_RANGE"
-                      },
-                      "TotalAdded": 2041
+                  },
+                  {
+                    "Count": 241,
+                    "Page": "Jeremy Corbyn",
+                    "Time": {
+                      "attributes": [
+                        {
+                          "name": "Timestamp",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "TotalAdded",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T16:00:00.000Z'),
+                            "start": new Date('2015-09-12T15:00:00.000Z')
+                          },
+                          "TotalAdded": 28193
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T19:00:00.000Z'),
+                            "start": new Date('2015-09-12T18:00:00.000Z')
+                          },
+                          "TotalAdded": 2419
+                        },
+                        {
+                          "Timestamp": {
+                            "end": new Date('2015-09-12T11:00:00.000Z'),
+                            "start": new Date('2015-09-12T10:00:00.000Z')
+                          },
+                          "TotalAdded": 2041
+                        }
+                      ],
+                      "keys": [
+                        "Timestamp"
+                      ]
                     }
-                  ]
-                }
-              ],
-              "PagesHaving": [
-                {
-                  "Count": 255,
-                  "Page": "User:Cyde/List of candidates for speedy deletion/Subpage"
-                },
-                {
-                  "Count": 241,
-                  "Page": "Jeremy Corbyn"
-                },
-                {
-                  "Count": 228,
-                  "Page": "Wikipedia:Administrators' noticeboard/Incidents"
-                },
-                {
-                  "Count": 146,
-                  "Page": "Wikipedia:Administrator intervention against vandalism"
-                }
-              ],
+                  }
+                ],
+                "keys": [
+                  "Page"
+                ]
+              },
+              "PagesHaving": {
+                "attributes": [
+                  {
+                    "name": "Page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 255,
+                    "Page": "User:Cyde/List of candidates for speedy deletion/Subpage"
+                  },
+                  {
+                    "Count": 241,
+                    "Page": "Jeremy Corbyn"
+                  },
+                  {
+                    "Count": 228,
+                    "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+                  },
+                  {
+                    "Count": 146,
+                    "Page": "Wikipedia:Administrator intervention against vandalism"
+                  }
+                ],
+                "keys": [
+                  "Page"
+                ]
+              },
               "TotalAdded": 32553107
             }
           ]);
@@ -465,7 +788,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "SumIndexA": -1,
               "page": "!t.o.o.h.!"
@@ -510,7 +833,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "lastChar": "z"
             }
@@ -526,7 +849,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Times Two": "200"
             }
@@ -549,7 +872,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "UniqueIsRobot": 2.000977198748901,
               "UniqueUserChars": 1376.0314194627178,
@@ -573,7 +896,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "UniquePagesEn": 63849.8464587151,
               "UniquePagesEnOver2": 31924.92322935755
@@ -590,13 +913,22 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "UniquePagesEn": 63849.8464587151,
               "UniquePagesEs": 6870.355969047973,
               "UniquePagesChannelDiff": 56979.49048966713
             }
           ]);
+        });
+    });
+
+    it("works with multiple columns", () => {
+      let ex = $('wiki').countDistinct("$channel ++ 'lol' ++ $user");
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result).to.deep.equal(40082.255930715364);
         });
     });
 
@@ -618,36 +950,81 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Channels": [
-                {
-                  "Channel": "zh",
-                  "Users": [
-                    {
-                      "Count": 3698,
-                      "User": "Antigng-bot"
-                    },
-                    {
-                      "Count": 503,
-                      "User": "和平-bot"
+              "Channels": {
+                "attributes": [
+                  {
+                    "name": "Channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Users",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "Channel": "zh",
+                    "Users": {
+                      "attributes": [
+                        {
+                          "name": "User",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Count": 3698,
+                          "User": "Antigng-bot"
+                        },
+                        {
+                          "Count": 503,
+                          "User": "和平-bot"
+                        }
+                      ],
+                      "keys": [
+                        "User"
+                      ]
                     }
-                  ]
-                },
-                {
-                  "Channel": "war",
-                  "Users": [
-                    {
-                      "Count": 4,
-                      "User": "JinJian"
-                    },
-                    {
-                      "Count": 3,
-                      "User": "Xqbot"
+                  },
+                  {
+                    "Channel": "war",
+                    "Users": {
+                      "attributes": [
+                        {
+                          "name": "User",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Count": 4,
+                          "User": "JinJian"
+                        },
+                        {
+                          "Count": 3,
+                          "User": "Xqbot"
+                        }
+                      ],
+                      "keys": [
+                        "User"
+                      ]
                     }
-                  ]
-                }
-              ]
+                  }
+                ],
+                "keys": [
+                  "Channel"
+                ]
+              }
             }
           ]);
         });
@@ -661,7 +1038,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Abs": 114711,
               "Count": 114711,
@@ -683,26 +1060,41 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "UserChars": [
-                {
-                  "Count": 223134,
-                  "UserChar": "O"
-                },
-                {
-                  "Count": 222676,
-                  "UserChar": "A"
-                },
-                {
-                  "Count": 216186,
-                  "UserChar": "T"
-                },
-                {
-                  "Count": 176986,
-                  "UserChar": "B"
-                }
-              ]
+              "UserChars": {
+                "attributes": [
+                  {
+                    "name": "UserChar",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 223134,
+                    "UserChar": "O"
+                  },
+                  {
+                    "Count": 222676,
+                    "UserChar": "A"
+                  },
+                  {
+                    "Count": 216186,
+                    "UserChar": "T"
+                  },
+                  {
+                    "Count": 176986,
+                    "UserChar": "B"
+                  }
+                ],
+                "keys": [
+                  "UserChar"
+                ]
+              }
             }
           ]);
         });
@@ -725,7 +1117,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "AddedByDeleted": 24.909643797343193,
               "ChannelAdded": 97393743,
@@ -759,7 +1151,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "ChannelAdded": 53750772,
               "ChannelENAdded": 23136956,
@@ -806,61 +1198,118 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "ByHour": [
-                {
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T01:00:00.000Z'),
-                    "start": new Date('2015-09-12T00:00:00.000Z'),
+              "ByHour": {
+                "attributes": [
+                  {
+                    "name": "TimeByHour",
                     "type": "TIME_RANGE"
                   },
-                  "Users": [
-                    {
-                      "Count": 12,
-                      "Page": "User talk:Dudeperson176123"
+                  {
+                    "name": "Users",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T01:00:00.000Z'),
+                      "start": new Date('2015-09-12T00:00:00.000Z')
                     },
-                    {
-                      "Count": 11,
-                      "Page": "Israel Ballet"
+                    "Users": {
+                      "attributes": [
+                        {
+                          "name": "Page",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Count": 12,
+                          "Page": "User talk:Dudeperson176123"
+                        },
+                        {
+                          "Count": 11,
+                          "Page": "Israel Ballet"
+                        }
+                      ],
+                      "keys": [
+                        "Page"
+                      ]
                     }
-                  ]
-                },
-                {
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T02:00:00.000Z'),
-                    "start": new Date('2015-09-12T01:00:00.000Z'),
-                    "type": "TIME_RANGE"
                   },
-                  "Users": [
-                    {
-                      "Count": 26,
-                      "Page": "Campeonato Mundial de Voleibol Femenino Sub-20 de 2015"
+                  {
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T02:00:00.000Z'),
+                      "start": new Date('2015-09-12T01:00:00.000Z')
                     },
-                    {
-                      "Count": 22,
-                      "Page": "Flüchtlingskrise in Europa 2015"
+                    "Users": {
+                      "attributes": [
+                        {
+                          "name": "Page",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Count": 26,
+                          "Page": "Campeonato Mundial de Voleibol Femenino Sub-20 de 2015"
+                        },
+                        {
+                          "Count": 22,
+                          "Page": "Flüchtlingskrise in Europa 2015"
+                        }
+                      ],
+                      "keys": [
+                        "Page"
+                      ]
                     }
-                  ]
-                },
-                {
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T03:00:00.000Z'),
-                    "start": new Date('2015-09-12T02:00:00.000Z'),
-                    "type": "TIME_RANGE"
                   },
-                  "Users": [
-                    {
-                      "Count": 28,
-                      "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+                  {
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T03:00:00.000Z'),
+                      "start": new Date('2015-09-12T02:00:00.000Z')
                     },
-                    {
-                      "Count": 18,
-                      "Page": "2015 World Wrestling Championships"
+                    "Users": {
+                      "attributes": [
+                        {
+                          "name": "Page",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Count": 28,
+                          "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+                        },
+                        {
+                          "Count": 18,
+                          "Page": "2015 World Wrestling Championships"
+                        }
+                      ],
+                      "keys": [
+                        "Page"
+                      ]
                     }
-                  ]
-                }
-              ]
+                  }
+                ],
+                "keys": [
+                  "TimeByHour"
+                ]
+              }
             }
           ]);
         });
@@ -875,7 +1324,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.have.length(2);
+          expect(result.toJS().data).to.have.length(2);
         });
     });
 
@@ -890,13 +1339,12 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Delta95th": -39,
               "TimeByHour": {
                 "end": new Date('2015-09-12T07:00:00.000Z'),
-                "start": new Date('2015-09-12T06:00:00.000Z'),
-                "type": "TIME_RANGE"
+                "start": new Date('2015-09-12T06:00:00.000Z')
               },
               "count": 1
             },
@@ -904,8 +1352,7 @@ describe("Druid Functional", function() {
               "Delta95th": 0,
               "TimeByHour": {
                 "end": new Date('2015-09-12T17:00:00.000Z'),
-                "start": new Date('2015-09-12T16:00:00.000Z'),
-                "type": "TIME_RANGE"
+                "start": new Date('2015-09-12T16:00:00.000Z')
               },
               "count": 1
             }
@@ -926,22 +1373,37 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Pages": [
-                {
-                  "Count": 25,
-                  "Page": "Wikipedia:Checklijst langdurig structureel vandalisme/1wikideb1"
-                },
-                {
-                  "Count": 12,
-                  "Page": "Diskuse s wikipedistou:Zdenekk2"
-                },
-                {
-                  "Count": 11,
-                  "Page": "Overleg gebruiker:Wwikix"
-                }
-              ]
+              "Pages": {
+                "attributes": [
+                  {
+                    "name": "Page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 25,
+                    "Page": "Wikipedia:Checklijst langdurig structureel vandalisme/1wikideb1"
+                  },
+                  {
+                    "Count": 12,
+                    "Page": "Diskuse s wikipedistou:Zdenekk2"
+                  },
+                  {
+                    "Count": 11,
+                    "Page": "Overleg gebruiker:Wwikix"
+                  }
+                ],
+                "keys": [
+                  "Page"
+                ]
+              }
             }
           ]);
         });
@@ -960,22 +1422,37 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Pages": [
-                {
-                  "Count": 228,
-                  "Page": "Wikipedia:Administrators' noticeboard/Incidents"
-                },
-                {
-                  "Count": 186,
-                  "Page": "Wikipedia:Vandalismusmeldung"
-                },
-                {
-                  "Count": 146,
-                  "Page": "Wikipedia:Administrator intervention against vandalism"
-                }
-              ]
+              "Pages": {
+                "attributes": [
+                  {
+                    "name": "Page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 228,
+                    "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+                  },
+                  {
+                    "Count": 186,
+                    "Page": "Wikipedia:Vandalismusmeldung"
+                  },
+                  {
+                    "Count": 146,
+                    "Page": "Wikipedia:Administrator intervention against vandalism"
+                  }
+                ],
+                "keys": [
+                  "Page"
+                ]
+              }
             }
           ]);
         });
@@ -994,22 +1471,37 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Pages": [
-                {
-                  "Count": 54,
-                  "Page": "Wikipedia:Usernames for administrator attention/Bot"
-                },
-                {
-                  "Count": 23,
-                  "Page": "Usuari:TronaBot/log:Activitat reversors per hores"
-                },
-                {
-                  "Count": 23,
-                  "Page": "Usuari:TronaBot/log:Reversions i patrullatge"
-                }
-              ]
+              "Pages": {
+                "attributes": [
+                  {
+                    "name": "Page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 54,
+                    "Page": "Wikipedia:Usernames for administrator attention/Bot"
+                  },
+                  {
+                    "Count": 23,
+                    "Page": "Usuari:TronaBot/log:Activitat reversors per hores"
+                  },
+                  {
+                    "Count": 23,
+                    "Page": "Usuari:TronaBot/log:Reversions i patrullatge"
+                  }
+                ],
+                "keys": [
+                  "Page"
+                ]
+              }
             }
           ]);
         });
@@ -1026,19 +1518,30 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Channels": [
-                {
-                  "Channel": "ar"
-                },
-                {
-                  "Channel": "be"
-                },
-                {
-                  "Channel": "bg"
-                }
-              ]
+              "Channels": {
+                "attributes": [
+                  {
+                    "name": "Channel",
+                    "type": "STRING"
+                  }
+                ],
+                "data": [
+                  {
+                    "Channel": "ar"
+                  },
+                  {
+                    "Channel": "be"
+                  },
+                  {
+                    "Channel": "bg"
+                  }
+                ],
+                "keys": [
+                  "Channel"
+                ]
+              }
             }
           ]);
         });
@@ -1056,22 +1559,37 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Pages": [
-                {
-                  "Count": 318,
-                  "Page": "!!!<Jeremy Corbyn>!!!"
-                },
-                {
-                  "Count": 255,
-                  "Page": "!!!<User:Cyde/List of candidates for speedy deletion/Subpage>!!!"
-                },
-                {
-                  "Count": 228,
-                  "Page": "!!!<Wikipedia:Administrators' noticeboard/Incidents>!!!"
-                }
-              ]
+              "Pages": {
+                "attributes": [
+                  {
+                    "name": "Page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 318,
+                    "Page": "!!!<Jeremy Corbyn>!!!"
+                  },
+                  {
+                    "Count": 255,
+                    "Page": "!!!<User:Cyde/List of candidates for speedy deletion/Subpage>!!!"
+                  },
+                  {
+                    "Count": 228,
+                    "Page": "!!!<Wikipedia:Administrators' noticeboard/Incidents>!!!"
+                  }
+                ],
+                "keys": [
+                  "Page"
+                ]
+              }
             }
           ]);
         });
@@ -1089,22 +1607,37 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Pages": [
-                {
-                  "Count": 22503,
-                  "Page": "Ca"
-                },
-                {
-                  "Count": 20338,
-                  "Page": "Us"
-                },
-                {
-                  "Count": 15332,
-                  "Page": "Wi"
-                }
-              ]
+              "Pages": {
+                "attributes": [
+                  {
+                    "name": "Page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 22503,
+                    "Page": "Ca"
+                  },
+                  {
+                    "Count": 20338,
+                    "Page": "Us"
+                  },
+                  {
+                    "Count": 15332,
+                    "Page": "Wi"
+                  }
+                ],
+                "keys": [
+                  "Page"
+                ]
+              }
             }
           ]);
         });
@@ -1122,22 +1655,52 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Pages": [
-                {
-                  "Count": 387184,
-                  "Page": null
-                },
-                {
-                  "Count": 22,
-                  "Page": "75.108.94"
-                },
-                {
-                  "Count": 14,
-                  "Page": "120.29.65"
-                }
-              ]
+              "Pages": {
+                "attributes": [
+                  {
+                    "name": "Page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 387184,
+                    "Page": null
+                  },
+                  {
+                    "Count": 22,
+                    "Page": "75.108.94"
+                  },
+                  {
+                    "Count": 14,
+                    "Page": "120.29.65"
+                  }
+                ],
+                "keys": [
+                  "Page"
+                ]
+              }
+            }
+          ]);
+        });
+    });
+
+    it('works with constant lookup split', () => {
+      let ex = $('wiki').split(r('en').lookup('channel-lookup'), 'Channel')
+        .apply('Count', '$wiki.sum($count)');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Channel": "English",
+              "Count": 392443
             }
           ]);
         });
@@ -1169,26 +1732,107 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Channels": [
-                { "Channel": null, "Count": 227040 },
-                { "Channel": "English", "Count": 114711 },
-                { "Channel": "French", "Count": 21285 },
-                { "Channel": "Russian", "Count": 14031 }
-              ],
-              "ChannelFallbackLOL": [
-                { "Channel": "LOL", "Count": 227040 },
-                { "Channel": "English", "Count": 114711 },
-                { "Channel": "French", "Count": 21285 },
-                { "Channel": "Russian", "Count": 14031 }
-              ],
-              "ChannelFallbackSelf": [
-                { "Channel": "English", "Count": 114711 },
-                { "Channel": "vi", "Count": 99010 },
-                { "Channel": "de", "Count": 25103 },
-                { "Channel": "French", "Count": 21285 }
-              ]
+              "ChannelFallbackLOL": {
+                "attributes": [
+                  {
+                    "name": "Channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Channel": "LOL",
+                    "Count": 227040
+                  },
+                  {
+                    "Channel": "English",
+                    "Count": 114711
+                  },
+                  {
+                    "Channel": "French",
+                    "Count": 21285
+                  },
+                  {
+                    "Channel": "Russian",
+                    "Count": 14031
+                  }
+                ],
+                "keys": [
+                  "Channel"
+                ]
+              },
+              "ChannelFallbackSelf": {
+                "attributes": [
+                  {
+                    "name": "Channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Channel": "English",
+                    "Count": 114711
+                  },
+                  {
+                    "Channel": "vi",
+                    "Count": 99010
+                  },
+                  {
+                    "Channel": "de",
+                    "Count": 25103
+                  },
+                  {
+                    "Channel": "French",
+                    "Count": 21285
+                  }
+                ],
+                "keys": [
+                  "Channel"
+                ]
+              },
+              "Channels": {
+                "attributes": [
+                  {
+                    "name": "Channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Channel": null,
+                    "Count": 227040
+                  },
+                  {
+                    "Channel": "English",
+                    "Count": 114711
+                  },
+                  {
+                    "Channel": "French",
+                    "Count": 21285
+                  },
+                  {
+                    "Channel": "Russian",
+                    "Count": 14031
+                  }
+                ],
+                "keys": [
+                  "Channel"
+                ]
+              }
             }
           ]);
         });
@@ -1221,6 +1865,15 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with numeric fallback", () => {
+      let ex = $('wiki').sum('($added / ($added - $added)).fallback(10)');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result).to.equal(109199 * 10);
+        });
+    });
+
     it("works with absolute number split", () => {
       let ex = ply()
         .apply(
@@ -1240,36 +1893,66 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "AbsSplitAsc": [
-                {
-                  "AbsCommentLength": 1,
-                  "Count": 734
-                },
-                {
-                  "AbsCommentLength": 2,
-                  "Count": 1456
-                },
-                {
-                  "AbsCommentLength": 3,
-                  "Count": 1976
-                }
-              ],
-              "AbsSplitDesc": [
-                {
-                  "AbsCommentLength": 255,
-                  "Count": 193
-                },
-                {
-                  "AbsCommentLength": 254,
-                  "Count": 59
-                },
-                {
-                  "AbsCommentLength": 253,
-                  "Count": 243
-                }
-              ]
+              "AbsSplitAsc": {
+                "attributes": [
+                  {
+                    "name": "AbsCommentLength",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "AbsCommentLength": 1,
+                    "Count": 734
+                  },
+                  {
+                    "AbsCommentLength": 2,
+                    "Count": 1456
+                  },
+                  {
+                    "AbsCommentLength": 3,
+                    "Count": 1976
+                  }
+                ],
+                "keys": [
+                  "AbsCommentLength"
+                ]
+              },
+              "AbsSplitDesc": {
+                "attributes": [
+                  {
+                    "name": "AbsCommentLength",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "AbsCommentLength": 255,
+                    "Count": 193
+                  },
+                  {
+                    "AbsCommentLength": 254,
+                    "Count": 59
+                  },
+                  {
+                    "AbsCommentLength": 253,
+                    "Count": 243
+                  }
+                ],
+                "keys": [
+                  "AbsCommentLength"
+                ]
+              }
             }
           ]);
         });
@@ -1294,60 +1977,84 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "BucketSplitAsc": [
-                {
-                  "Bucket": {
-                    "end": 5,
-                    "start": 0,
+              "BucketSplitAsc": {
+                "attributes": [
+                  {
+                    "name": "Bucket",
                     "type": "NUMBER_RANGE"
                   },
-                  "Count": 6522
-                },
-                {
-                  "Bucket": {
-                    "end": 10,
-                    "start": 5,
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Bucket": {
+                      "end": 5,
+                      "start": 0
+                    },
+                    "Count": 6522
+                  },
+                  {
+                    "Bucket": {
+                      "end": 10,
+                      "start": 5
+                    },
+                    "Count": 15003
+                  },
+                  {
+                    "Bucket": {
+                      "end": 15,
+                      "start": 10
+                    },
+                    "Count": 70628
+                  }
+                ],
+                "keys": [
+                  "Bucket"
+                ]
+              },
+              "BucketSplitDesc": {
+                "attributes": [
+                  {
+                    "name": "Bucket",
                     "type": "NUMBER_RANGE"
                   },
-                  "Count": 15003
-                },
-                {
-                  "Bucket": {
-                    "end": 15,
-                    "start": 10,
-                    "type": "NUMBER_RANGE"
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Bucket": {
+                      "end": 260,
+                      "start": 255
+                    },
+                    "Count": 193
                   },
-                  "Count": 70628
-                }
-              ],
-              "BucketSplitDesc": [
-                {
-                  "Bucket": {
-                    "end": 260,
-                    "start": 255,
-                    "type": "NUMBER_RANGE"
+                  {
+                    "Bucket": {
+                      "end": 255,
+                      "start": 250
+                    },
+                    "Count": 556
                   },
-                  "Count": 193
-                },
-                {
-                  "Bucket": {
-                    "end": 255,
-                    "start": 250,
-                    "type": "NUMBER_RANGE"
-                  },
-                  "Count": 556
-                },
-                {
-                  "Bucket": {
-                    "end": 250,
-                    "start": 245,
-                    "type": "NUMBER_RANGE"
-                  },
-                  "Count": 1687
-                }
-              ]
+                  {
+                    "Bucket": {
+                      "end": 250,
+                      "start": 245
+                    },
+                    "Count": 1687
+                  }
+                ],
+                "keys": [
+                  "Bucket"
+                ]
+              }
             }
           ]);
         });
@@ -1372,60 +2079,84 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "BucketSplitAsc": [
-                {
-                  "Bucket": {
-                    "end": 5,
-                    "start": 0,
+              "BucketSplitAsc": {
+                "attributes": [
+                  {
+                    "name": "Bucket",
                     "type": "NUMBER_RANGE"
                   },
-                  "Count": 6521
-                },
-                {
-                  "Bucket": {
-                    "end": 10,
-                    "start": 5,
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Bucket": {
+                      "end": 5,
+                      "start": 0
+                    },
+                    "Count": 6521
+                  },
+                  {
+                    "Bucket": {
+                      "end": 10,
+                      "start": 5
+                    },
+                    "Count": 15004
+                  },
+                  {
+                    "Bucket": {
+                      "end": 15,
+                      "start": 10
+                    },
+                    "Count": 70627
+                  }
+                ],
+                "keys": [
+                  "Bucket"
+                ]
+              },
+              "BucketSplitDesc": {
+                "attributes": [
+                  {
+                    "name": "Bucket",
                     "type": "NUMBER_RANGE"
                   },
-                  "Count": 15004
-                },
-                {
-                  "Bucket": {
-                    "end": 15,
-                    "start": 10,
-                    "type": "NUMBER_RANGE"
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Bucket": {
+                      "end": 260,
+                      "start": 255
+                    },
+                    "Count": 193
                   },
-                  "Count": 70627
-                }
-              ],
-              "BucketSplitDesc": [
-                {
-                  "Bucket": {
-                    "end": 260,
-                    "start": 255,
-                    "type": "NUMBER_RANGE"
+                  {
+                    "Bucket": {
+                      "end": 255,
+                      "start": 250
+                    },
+                    "Count": 556
                   },
-                  "Count": 193
-                },
-                {
-                  "Bucket": {
-                    "end": 255,
-                    "start": 250,
-                    "type": "NUMBER_RANGE"
-                  },
-                  "Count": 556
-                },
-                {
-                  "Bucket": {
-                    "end": 250,
-                    "start": 245,
-                    "type": "NUMBER_RANGE"
-                  },
-                  "Count": 1687
-                }
-              ]
+                  {
+                    "Bucket": {
+                      "end": 250,
+                      "start": 245
+                    },
+                    "Count": 1687
+                  }
+                ],
+                "keys": [
+                  "Bucket"
+                ]
+              }
             }
           ]);
         });
@@ -1442,25 +2173,34 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([{
-            "Time": [
-              {
-                "TimeCol": {
-                  "end": new Date('2015-09-13T00:00:00.000Z'),
-                  "start": new Date('2015-09-12T23:00:00.000Z'),
-                  "type": "TIME_RANGE"
-                }
-              },
-              {
-                "TimeCol": {
-                  "end": new Date('2015-09-12T23:00:00.000Z'),
-                  "start": new Date('2015-09-12T22:00:00.000Z'),
-                  "type": "TIME_RANGE"
-                }
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Time": {
+                "attributes": [
+                  {
+                    "name": "TimeCol",
+                    "type": "TIME_RANGE"
+                  }
+                ],
+                "data": [
+                  {
+                    "TimeCol": {
+                      "end": new Date('2015-09-13T00:00:00.000Z'),
+                      "start": new Date('2015-09-12T23:00:00.000Z')
+                    }
+                  },
+                  {
+                    "TimeCol": {
+                      "end": new Date('2015-09-12T23:00:00.000Z'),
+                      "start": new Date('2015-09-12T22:00:00.000Z')
+                    }
+                  }
+                ],
+                "keys": [
+                  "TimeCol"
+                ]
               }
-            ]
-          }
-
+            }
           ]);
         });
     });
@@ -1475,45 +2215,51 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "TimeLater": [
-                {
-                  "SometimeLater": {
-                    "end": new Date('2016-09-12T01:00:00.000Z'),
-                    "start": new Date('2016-09-12T00:00:00.000Z'),
+              "TimeLater": {
+                "attributes": [
+                  {
+                    "name": "SometimeLater",
                     "type": "TIME_RANGE"
                   }
-                },
-                {
-                  "SometimeLater": {
-                    "end": new Date('2016-09-12T02:00:00.000Z'),
-                    "start": new Date('2016-09-12T01:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                ],
+                "data": [
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T01:00:00.000Z'),
+                      "start": new Date('2016-09-12T00:00:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T02:00:00.000Z'),
+                      "start": new Date('2016-09-12T01:00:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T03:00:00.000Z'),
+                      "start": new Date('2016-09-12T02:00:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T04:00:00.000Z'),
+                      "start": new Date('2016-09-12T03:00:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T05:00:00.000Z'),
+                      "start": new Date('2016-09-12T04:00:00.000Z')
+                    }
                   }
-                },
-                {
-                  "SometimeLater": {
-                    "end": new Date('2016-09-12T03:00:00.000Z'),
-                    "start": new Date('2016-09-12T02:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "SometimeLater": {
-                    "end": new Date('2016-09-12T04:00:00.000Z'),
-                    "start": new Date('2016-09-12T03:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "SometimeLater": {
-                    "end": new Date('2016-09-12T05:00:00.000Z'),
-                    "start": new Date('2016-09-12T04:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                }
-              ]
+                ],
+                "keys": [
+                  "SometimeLater"
+                ]
+              }
             }
           ]);
         });
@@ -1529,45 +2275,51 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "TimeLater": [
-                {
-                  "SometimeLater": {
-                    "end": new Date('2016-09-12T03:15:00.000Z'),
-                    "start": new Date('2016-09-12T00:15:00.000Z'),
+              "TimeLater": {
+                "attributes": [
+                  {
+                    "name": "SometimeLater",
                     "type": "TIME_RANGE"
                   }
-                },
-                {
-                  "SometimeLater": {
-                    "end": new Date('2016-09-12T06:15:00.000Z'),
-                    "start": new Date('2016-09-12T03:15:00.000Z'),
-                    "type": "TIME_RANGE"
+                ],
+                "data": [
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T03:15:00.000Z'),
+                      "start": new Date('2016-09-12T00:15:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T06:15:00.000Z'),
+                      "start": new Date('2016-09-12T03:15:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T09:15:00.000Z'),
+                      "start": new Date('2016-09-12T06:15:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T12:15:00.000Z'),
+                      "start": new Date('2016-09-12T09:15:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T15:15:00.000Z'),
+                      "start": new Date('2016-09-12T12:15:00.000Z')
+                    }
                   }
-                },
-                {
-                  "SometimeLater": {
-                    "end": new Date('2016-09-12T09:15:00.000Z'),
-                    "start": new Date('2016-09-12T06:15:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "SometimeLater": {
-                    "end": new Date('2016-09-12T12:15:00.000Z'),
-                    "start": new Date('2016-09-12T09:15:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "SometimeLater": {
-                    "end": new Date('2016-09-12T15:15:00.000Z'),
-                    "start": new Date('2016-09-12T12:15:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                }
-              ]
+                ],
+                "keys": [
+                  "SometimeLater"
+                ]
+              }
             }
           ]);
         });
@@ -1587,27 +2339,51 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "MaxCount": 15906,
               "MinCount": 14814,
-              "data1": [
-                {
-                  "Count": 14814,
-                  "TimeCol": {
-                    "type": "TIME",
-                    "value": new Date('2015-09-12T23:00:00.000Z')
+              "data1": {
+                "attributes": [
+                  {
+                    "name": "TimeCol",
+                    "type": "TIME"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
                   }
-                },
-                {
-                  "Count": 15906,
-                  "TimeCol": {
-                    "type": "TIME",
-                    "value": new Date('2015-09-12T22:00:00.000Z')
+                ],
+                "data": [
+                  {
+                    "Count": 14814,
+                    "TimeCol": new Date('2015-09-12T23:00:00.000Z')
+                  },
+                  {
+                    "Count": 15906,
+                    "TimeCol": new Date('2015-09-12T22:00:00.000Z')
                   }
-                }
-              ]
+                ],
+                "keys": [
+                  "TimeCol"
+                ]
+              }
             }
+          ]);
+        });
+    });
+
+    it.skip("can do a sub-split in aggregator", () => {
+      let ex = $("wiki").split('$channel', 'Channel')
+        .apply('Count', '$wiki.sum($count)')
+        .apply('MinByRobot', '$wiki.split($isRobot, Blah).apply(Cnt, $wiki.sum($count)).min($Cnt)')
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+
           ]);
         });
     });
@@ -1631,54 +2407,80 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Groups": [
-                {
-                  "Channel": "vi",
-                  "ChannelIsDE": false,
-                  "Count": 24258,
-                  "IsNew": false,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T08:00:00.000Z'),
-                    "start": new Date('2015-09-12T06:00:00.000Z'),
+              "Groups": {
+                "attributes": [
+                  {
+                    "name": "Channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "ChannelIsDE",
+                    "type": "BOOLEAN"
+                  },
+                  {
+                    "name": "IsNew",
+                    "type": "BOOLEAN"
+                  },
+                  {
+                    "name": "TimeByHour",
                     "type": "TIME_RANGE"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
                   }
-                },
-                {
-                  "Channel": "vi",
-                  "ChannelIsDE": false,
-                  "Count": 11215,
-                  "IsNew": false,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T18:00:00.000Z'),
-                    "start": new Date('2015-09-12T16:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                ],
+                "data": [
+                  {
+                    "Channel": "vi",
+                    "ChannelIsDE": false,
+                    "Count": 24258,
+                    "IsNew": false,
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T08:00:00.000Z'),
+                      "start": new Date('2015-09-12T06:00:00.000Z')
+                    }
+                  },
+                  {
+                    "Channel": "vi",
+                    "ChannelIsDE": false,
+                    "Count": 11215,
+                    "IsNew": false,
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T18:00:00.000Z'),
+                      "start": new Date('2015-09-12T16:00:00.000Z')
+                    }
+                  },
+                  {
+                    "Channel": "vi",
+                    "ChannelIsDE": false,
+                    "Count": 9246,
+                    "IsNew": false,
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T16:00:00.000Z'),
+                      "start": new Date('2015-09-12T14:00:00.000Z')
+                    }
+                  },
+                  {
+                    "Channel": "vi",
+                    "ChannelIsDE": false,
+                    "Count": 8917,
+                    "IsNew": false,
+                    "TimeByHour": {
+                      "end": new Date('2015-09-12T10:00:00.000Z'),
+                      "start": new Date('2015-09-12T08:00:00.000Z')
+                    }
                   }
-                },
-                {
-                  "Channel": "vi",
-                  "ChannelIsDE": false,
-                  "Count": 9246,
-                  "IsNew": false,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T16:00:00.000Z'),
-                    "start": new Date('2015-09-12T14:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                },
-                {
-                  "Channel": "vi",
-                  "ChannelIsDE": false,
-                  "Count": 8917,
-                  "IsNew": false,
-                  "TimeByHour": {
-                    "end": new Date('2015-09-12T10:00:00.000Z'),
-                    "start": new Date('2015-09-12T08:00:00.000Z'),
-                    "type": "TIME_RANGE"
-                  }
-                }
-              ]
+                ],
+                "keys": [
+                  "Channel",
+                  "ChannelIsDE",
+                  "IsNew",
+                  "TimeByHour"
+                ]
+              }
             }
           ]);
         });
@@ -1701,46 +2503,62 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
-              "Groups": [
-                {
-                  "Count": 24276,
-                  "__time": {
-                    "end": new Date('2015-09-12T08:00:00.000Z'),
-                    "start": new Date('2015-09-12T06:00:00.000Z'),
+              "Groups": {
+                "attributes": [
+                  {
+                    "name": "__time",
                     "type": "TIME_RANGE"
                   },
-                  "channel": "vi"
-                },
-                {
-                  "Count": 11223,
-                  "__time": {
-                    "end": new Date('2015-09-12T18:00:00.000Z'),
-                    "start": new Date('2015-09-12T16:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                  {
+                    "name": "channel",
+                    "type": "STRING"
                   },
-                  "channel": "vi"
-                },
-                {
-                  "Count": 9258,
-                  "__time": {
-                    "end": new Date('2015-09-12T16:00:00.000Z'),
-                    "start": new Date('2015-09-12T14:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 24276,
+                    "__time": {
+                      "end": new Date('2015-09-12T08:00:00.000Z'),
+                      "start": new Date('2015-09-12T06:00:00.000Z')
+                    },
+                    "channel": "vi"
                   },
-                  "channel": "vi"
-                },
-                {
-                  "Count": 8928,
-                  "__time": {
-                    "end": new Date('2015-09-12T10:00:00.000Z'),
-                    "start": new Date('2015-09-12T08:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                  {
+                    "Count": 11223,
+                    "__time": {
+                      "end": new Date('2015-09-12T18:00:00.000Z'),
+                      "start": new Date('2015-09-12T16:00:00.000Z')
+                    },
+                    "channel": "vi"
                   },
-                  "channel": "vi"
-                }
-              ]
+                  {
+                    "Count": 9258,
+                    "__time": {
+                      "end": new Date('2015-09-12T16:00:00.000Z'),
+                      "start": new Date('2015-09-12T14:00:00.000Z')
+                    },
+                    "channel": "vi"
+                  },
+                  {
+                    "Count": 8928,
+                    "__time": {
+                      "end": new Date('2015-09-12T10:00:00.000Z'),
+                      "start": new Date('2015-09-12T08:00:00.000Z')
+                    },
+                    "channel": "vi"
+                  }
+                ],
+                "keys": [
+                  "__time",
+                  "channel"
+                ]
+              }
             }
           ]);
         });
@@ -1756,7 +2574,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "SumTotalEdits": 368841,
               "isNew": false
@@ -1778,7 +2596,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "cityName": "Ōita",
               "comment": "/* 1982年（昭和57年） */",
@@ -1800,98 +2618,238 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
-            {
-              "added": 0,
-              "channel": "en",
-              "cityName": "El Paso",
-              "comment": "/* Clubs and organizations */",
-              "commentLength": 29,
-              "commentLengthStr": "29",
-              "count": 1,
-              "countryIsoCode": "US",
-              "countryName": "United States",
-              "deleted": 39,
-              "delta": -39,
-              "deltaBucket100": -100,
-              "deltaByTen": -3.9000000953674316,
-              "delta_hist": null,
-              "isAnonymous": true,
-              "isMinor": false,
-              "isNew": false,
-              "isRobot": false,
-              "isUnpatrolled": false,
-              "max_delta": -39,
-              "metroCode": "765",
-              "min_delta": -39,
-              "namespace": "Main",
-              "page": "Clint High School",
-              "page_unique": "AQAAAQAAAADYAQ==",
-              "regionIsoCode": "TX",
-              "regionName": "Texas",
-              "sometimeLater": {
-                "type": "TIME",
-                "value": new Date('2016-09-12T06:05:00Z')
+          expect(result.toJS()).to.deep.equal({
+            "attributes": [
+              {
+                "name": "time",
+                "type": "TIME"
               },
-              "time": {
-                "type": "TIME",
-                "value": new Date('2015-09-12T06:05:00.000Z')
+              {
+                "name": "added",
+                "type": "NUMBER"
               },
-              "user": "104.58.160.128",
-              "userChars": {
-                "elements": [".", "0", "1", "2", "4", "5", "6", "8"],
-                "setType": "STRING",
-                "type": "SET"
+              {
+                "name": "channel",
+                "type": "STRING"
               },
-              "user_theta": "AgMDAAAazJMBAAAAAACAP4LYKgb0JYUx",
-              "user_unique": "AQAAAQAAAAFzBQ=="
-            },
-            {
-              "added": 0,
-              "channel": "en",
-              "cityName": "El Paso",
-              "comment": "/* Early life */ spelling",
-              "commentLength": 25,
-              "commentLengthStr": "25",
-              "count": 1,
-              "countryIsoCode": "US",
-              "countryName": "United States",
-              "deleted": 0,
-              "delta": 0,
-              "deltaBucket100": 0,
-              "deltaByTen": 0,
-              "delta_hist": null,
-              "isAnonymous": true,
-              "isMinor": false,
-              "isNew": false,
-              "isRobot": false,
-              "isUnpatrolled": false,
-              "max_delta": 0,
-              "metroCode": "765",
-              "min_delta": 0,
-              "namespace": "Main",
-              "page": "Reggie Williams (linebacker)",
-              "page_unique": "AQAAAQAAAAOhEA==",
-              "regionIsoCode": "TX",
-              "regionName": "Texas",
-              "sometimeLater": {
-                "type": "TIME",
-                "value": new Date('2016-09-12T16:14:00Z')
+              {
+                "name": "cityName",
+                "type": "STRING"
               },
-              "time": {
-                "type": "TIME",
-                "value": new Date('2015-09-12T16:14:00.000Z')
+              {
+                "name": "comment",
+                "type": "STRING"
               },
-              "user": "67.10.203.15",
-              "userChars": {
-                "elements": [".", "0", "1", "2", "3", "5", "6", "7"],
-                "setType": "STRING",
-                "type": "SET"
+              {
+                "name": "commentLength",
+                "type": "NUMBER"
               },
-              "user_theta": "AgMDAAAazJMBAAAAAACAPykGTa6KslE/",
-              "user_unique": "AQAAAQAAAAOIQA=="
-            }
-          ]);
+              {
+                "name": "commentLengthStr",
+                "type": "STRING"
+              },
+              {
+                "name": "count",
+                "type": "NUMBER"
+              },
+              {
+                "name": "countryIsoCode",
+                "type": "STRING"
+              },
+              {
+                "name": "countryName",
+                "type": "STRING"
+              },
+              {
+                "name": "deleted",
+                "type": "NUMBER"
+              },
+              {
+                "name": "delta",
+                "type": "NUMBER"
+              },
+              {
+                "name": "deltaBucket100",
+                "type": "NUMBER"
+              },
+              {
+                "name": "deltaByTen",
+                "type": "NUMBER"
+              },
+              {
+                "name": "delta_hist",
+                "type": "NULL"
+              },
+              {
+                "name": "isAnonymous",
+                "type": "BOOLEAN"
+              },
+              {
+                "name": "isMinor",
+                "type": "BOOLEAN"
+              },
+              {
+                "name": "isNew",
+                "type": "BOOLEAN"
+              },
+              {
+                "name": "isRobot",
+                "type": "BOOLEAN"
+              },
+              {
+                "name": "isUnpatrolled",
+                "type": "BOOLEAN"
+              },
+              {
+                "name": "max_delta",
+                "type": "NUMBER"
+              },
+              {
+                "name": "metroCode",
+                "type": "STRING"
+              },
+              {
+                "name": "min_delta",
+                "type": "NUMBER"
+              },
+              {
+                "name": "namespace",
+                "type": "STRING"
+              },
+              {
+                "name": "page",
+                "type": "STRING"
+              },
+              {
+                "name": "page_unique",
+                "type": "NULL"
+              },
+              {
+                "name": "regionIsoCode",
+                "type": "STRING"
+              },
+              {
+                "name": "regionName",
+                "type": "STRING"
+              },
+              {
+                "name": "sometimeLater",
+                "type": "TIME"
+              },
+              {
+                "name": "user",
+                "type": "STRING"
+              },
+              {
+                "name": "userChars",
+                "type": "SET/STRING"
+              },
+              {
+                "name": "user_theta",
+                "type": "NULL"
+              },
+              {
+                "name": "user_unique",
+                "type": "NULL"
+              }
+            ],
+            "data": [
+              {
+                "added": 0,
+                "channel": "en",
+                "cityName": "El Paso",
+                "comment": "/* Clubs and organizations */",
+                "commentLength": 29,
+                "commentLengthStr": "29",
+                "count": 1,
+                "countryIsoCode": "US",
+                "countryName": "United States",
+                "deleted": 39,
+                "delta": -39,
+                "deltaBucket100": -100,
+                "deltaByTen": -3.9000000953674316,
+                "delta_hist": "/84BwhwAAA==",
+                "isAnonymous": true,
+                "isMinor": false,
+                "isNew": false,
+                "isRobot": false,
+                "isUnpatrolled": false,
+                "max_delta": -39,
+                "metroCode": "765",
+                "min_delta": -39,
+                "namespace": "Main",
+                "page": "Clint High School",
+                "page_unique": "AQAAAQAAAADYAQ==",
+                "regionIsoCode": "TX",
+                "regionName": "Texas",
+                "sometimeLater": new Date('2016-09-12T06:05:00.000Z'),
+                "time": new Date('2015-09-12T06:05:00.000Z'),
+                "user": "104.58.160.128",
+                "userChars": {
+                  "elements": [
+                    ".",
+                    "0",
+                    "1",
+                    "2",
+                    "4",
+                    "5",
+                    "6",
+                    "8"
+                  ],
+                  "setType": "STRING"
+                },
+                "user_theta": "AgMDAAAazJMBAAAAAACAP4LYKgb0JYUx",
+                "user_unique": "AQAAAQAAAAFzBQ=="
+              },
+              {
+                "added": 0,
+                "channel": "en",
+                "cityName": "El Paso",
+                "comment": "/* Early life */ spelling",
+                "commentLength": 25,
+                "commentLengthStr": "25",
+                "count": 1,
+                "countryIsoCode": "US",
+                "countryName": "United States",
+                "deleted": 0,
+                "delta": 0,
+                "deltaBucket100": 0,
+                "deltaByTen": 0,
+                "delta_hist": "/84BAAAAAA==",
+                "isAnonymous": true,
+                "isMinor": false,
+                "isNew": false,
+                "isRobot": false,
+                "isUnpatrolled": false,
+                "max_delta": 0,
+                "metroCode": "765",
+                "min_delta": 0,
+                "namespace": "Main",
+                "page": "Reggie Williams (linebacker)",
+                "page_unique": "AQAAAQAAAAOhEA==",
+                "regionIsoCode": "TX",
+                "regionName": "Texas",
+                "sometimeLater": new Date('2016-09-12T16:14:00.000Z'),
+                "time": new Date('2015-09-12T16:14:00.000Z'),
+                "user": "67.10.203.15",
+                "userChars": {
+                  "elements": [
+                    ".",
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "5",
+                    "6",
+                    "7"
+                  ],
+                  "setType": "STRING"
+                },
+                "user_theta": "AgMDAAAazJMBAAAAAACAPykGTa6KslE/",
+                "user_unique": "AQAAAQAAAAOIQA=="
+              }
+            ]
+          });
         });
     });
 
@@ -1900,7 +2858,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "added": 0,
               "channel": "ca",
@@ -1915,7 +2873,7 @@ describe("Druid Functional", function() {
               "delta": -1,
               "deltaBucket100": -100,
               "deltaByTen": -0.10000000149011612,
-              "delta_hist": null,
+              "delta_hist": "/84Bv4AAAA==",
               "isAnonymous": false,
               "isMinor": false,
               "isNew": false,
@@ -1929,19 +2887,12 @@ describe("Druid Functional", function() {
               "page_unique": "AQAAAQAAAAHHIA==",
               "regionIsoCode": null,
               "regionName": null,
-              "sometimeLater": {
-                "type": "TIME",
-                "value": new Date('2016-09-12T00:46:00.000Z')
-              },
-              "time": {
-                "type": "TIME",
-                "value": new Date('2015-09-12T00:46:00.000Z')
-              },
+              "sometimeLater": new Date('2016-09-12T00:46:00.000Z'),
+              "time": new Date('2015-09-12T00:46:00.000Z'),
               "user": "ChandraHelsinky",
               "userChars": {
                 "elements": ["A", "C", "D", "E", "H", "I", "K", "L", "N", "R", "S", "Y"],
-                "setType": "STRING",
-                "type": "SET"
+                "setType": "STRING"
               },
               "user_theta": "AgMDAAAazJMBAAAAAACAP5xSyQDWkQwY",
               "user_unique": "AQAAAQAAAALGBA=="
@@ -1960,7 +2911,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS().length).to.equal(limit);
+          expect(result.toJS().data.length).to.equal(limit);
         });
     });
 
@@ -1974,7 +2925,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS().length).to.equal(limit);
+          expect(result.toJS().data.length).to.equal(limit);
         });
     });
 
@@ -1994,66 +2945,80 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "City": "Santiago",
               "Edits": 135,
-              "Latest2Events": [
-                {
-                  "channel": "es",
-                  "commentLength": 15,
-                  "time": {
-                    "type": "TIME",
-                    "value": new Date('2015-09-12T23:35:00.000Z')
+              "Latest2Events": {
+                "attributes": [
+                  {
+                    "name": "time",
+                    "type": "TIME"
+                  },
+                  {
+                    "name": "channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "commentLength",
+                    "type": "NUMBER"
                   }
-                },
-                {
-                  "channel": "es",
-                  "commentLength": 73,
-                  "time": {
-                    "type": "TIME",
-                    "value": new Date('2015-09-12T23:17:00.000Z')
+                ],
+                "data": [
+                  {
+                    "channel": "es",
+                    "commentLength": 15,
+                    "time": new Date('2015-09-12T23:35:00.000Z')
+                  },
+                  {
+                    "channel": "es",
+                    "commentLength": 73,
+                    "time": new Date('2015-09-12T23:17:00.000Z')
+                  },
+                  {
+                    "channel": "es",
+                    "commentLength": 18,
+                    "time": new Date('2015-09-12T23:14:00.000Z')
                   }
-                },
-                {
-                  "channel": "es",
-                  "commentLength": 18,
-                  "time": {
-                    "type": "TIME",
-                    "value": new Date('2015-09-12T23:14:00.000Z')
-                  }
-                }
-              ]
+                ]
+              }
             },
             {
               "City": "San Juan",
               "Edits": 41,
-              "Latest2Events": [
-                {
-                  "channel": "en",
-                  "commentLength": 20,
-                  "time": {
-                    "type": "TIME",
-                    "value": new Date('2015-09-12T22:57:00.000Z')
+              "Latest2Events": {
+                "attributes": [
+                  {
+                    "name": "time",
+                    "type": "TIME"
+                  },
+                  {
+                    "name": "channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "commentLength",
+                    "type": "NUMBER"
                   }
-                },
-                {
-                  "channel": "en",
-                  "commentLength": 20,
-                  "time": {
-                    "type": "TIME",
-                    "value": new Date('2015-09-12T22:55:00.000Z')
+                ],
+                "data": [
+                  {
+                    "channel": "en",
+                    "commentLength": 20,
+                    "time": new Date('2015-09-12T22:57:00.000Z')
+                  },
+                  {
+                    "channel": "en",
+                    "commentLength": 20,
+                    "time": new Date('2015-09-12T22:55:00.000Z')
+                  },
+                  {
+                    "channel": "en",
+                    "commentLength": 15,
+                    "time": new Date('2015-09-12T19:42:00.000Z')
                   }
-                },
-                {
-                  "channel": "en",
-                  "commentLength": 15,
-                  "time": {
-                    "type": "TIME",
-                    "value": new Date('2015-09-12T19:42:00.000Z')
-                  }
-                }
-              ]
+                ]
+              }
             }
           ]);
         });
@@ -2068,7 +3033,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             { "userChar": "B" },
             { "userChar": "N" }
           ]);
@@ -2126,7 +3091,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Added": 54157728,
               "Count": 274140
@@ -2146,7 +3111,7 @@ describe("Druid Functional", function() {
 
         return basicExecutor(ex.expression)
           .then((result) => {
-            expect(result.toJS()).to.deep.equal([
+            expect(result.toJS().data).to.deep.equal([
               {
                 "TotalAdded": 2274537
               }
@@ -2220,7 +3185,7 @@ describe("Druid Functional", function() {
 
       return ex.compute({ wiki: wikiUserCharAsNumber })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Count": 2658542,
               "U": null
@@ -2245,7 +3210,7 @@ describe("Druid Functional", function() {
 
       return ex.compute({ wiki: wikiUserCharAsNumber })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Count": 2658542,
               "U": null
@@ -2254,16 +3219,14 @@ describe("Druid Functional", function() {
               "Count": 151159,
               "U": {
                 "end": 7.5,
-                "start": 2.5,
-                "type": "NUMBER_RANGE"
+                "start": 2.5
               }
             },
             {
               "Count": 150305,
               "U": {
                 "end": 2.5,
-                "start": -2.5,
-                "type": "NUMBER_RANGE"
+                "start": -2.5
               }
             }
           ]);
@@ -2278,7 +3241,7 @@ describe("Druid Functional", function() {
 
       return ex.compute({ wiki: wikiUserCharAsNumber })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Count": 2658542,
               "U": null
@@ -2303,7 +3266,7 @@ describe("Druid Functional", function() {
 
       return ex.compute({ wiki: wikiUserCharAsNumber })
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Count": 2658542,
               "dateCast": null,
@@ -2311,10 +3274,7 @@ describe("Druid Functional", function() {
             },
             {
               "Count": 379865,
-              "dateCast": {
-                "type": "TIME",
-                "value": new Date('1970-01-01T00:00:00.000Z')
-              },
+              "dateCast": new Date('1970-01-01T00:00:00.000Z'),
               "numberCast": null
             }
           ]);
@@ -2381,65 +3341,126 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Count": 114711,
-              "Time": [
-                {
-                  "Pages": [
-                    {
-                      "Count": 12,
-                      "Page": "User talk:Dudeperson176123"
-                    },
-                    {
-                      "Count": 8,
-                      "Page": "User:Attar-Aram syria/sandbox"
-                    }
-                  ],
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T01:00:00.000Z'),
-                    "start": new Date('2015-09-12T00:00:00.000Z'),
+              "Time": {
+                "attributes": [
+                  {
+                    "name": "Timestamp",
                     "type": "TIME_RANGE"
                   },
-                  "TotalAdded": 331925
-                },
-                {
-                  "Pages": [
-                    {
-                      "Count": 17,
-                      "Page": "John Adams"
-                    },
-                    {
-                      "Count": 17,
-                      "Page": "User:King Lui"
-                    }
-                  ],
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T02:00:00.000Z'),
-                    "start": new Date('2015-09-12T01:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                  {
+                    "name": "TotalAdded",
+                    "type": "NUMBER"
                   },
-                  "TotalAdded": 1418072
-                },
-                {
-                  "Pages": [
-                    {
-                      "Count": 28,
-                      "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+                  {
+                    "name": "Pages",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "Pages": {
+                      "attributes": [
+                        {
+                          "name": "Page",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Count": 12,
+                          "Page": "User talk:Dudeperson176123"
+                        },
+                        {
+                          "Count": 8,
+                          "Page": "User:Attar-Aram syria/sandbox"
+                        }
+                      ],
+                      "keys": [
+                        "Page"
+                      ]
                     },
-                    {
-                      "Count": 18,
-                      "Page": "2015 World Wrestling Championships"
-                    }
-                  ],
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T03:00:00.000Z'),
-                    "start": new Date('2015-09-12T02:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T01:00:00.000Z'),
+                      "start": new Date('2015-09-12T00:00:00.000Z')
+                    },
+                    "TotalAdded": 331925
                   },
-                  "TotalAdded": 3045966
-                }
-              ],
+                  {
+                    "Pages": {
+                      "attributes": [
+                        {
+                          "name": "Page",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Count": 17,
+                          "Page": "John Adams"
+                        },
+                        {
+                          "Count": 17,
+                          "Page": "User:King Lui"
+                        }
+                      ],
+                      "keys": [
+                        "Page"
+                      ]
+                    },
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T02:00:00.000Z'),
+                      "start": new Date('2015-09-12T01:00:00.000Z')
+                    },
+                    "TotalAdded": 1418072
+                  },
+                  {
+                    "Pages": {
+                      "attributes": [
+                        {
+                          "name": "Page",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "Count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Count": 28,
+                          "Page": "Wikipedia:Administrators' noticeboard/Incidents"
+                        },
+                        {
+                          "Count": 18,
+                          "Page": "2015 World Wrestling Championships"
+                        }
+                      ],
+                      "keys": [
+                        "Page"
+                      ]
+                    },
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T03:00:00.000Z'),
+                      "start": new Date('2015-09-12T02:00:00.000Z')
+                    },
+                    "TotalAdded": 3045966
+                  }
+                ],
+                "keys": [
+                  "Timestamp"
+                ]
+              },
               "TotalAdded": 32553107
             }
           ]);
@@ -2481,41 +3502,75 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal([
+          expect(result.toJS().data).to.deep.equal([
             {
               "Count": 229422,
-              "Time": [
-                {
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T01:00:00.000Z'),
-                    "start": new Date('2015-09-12T00:00:00.000Z'),
+              "Time": {
+                "attributes": [
+                  {
+                    "name": "Timestamp",
                     "type": "TIME_RANGE"
                   },
-                  "TotalAdded": 663850
-                },
-                {
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T02:00:00.000Z'),
-                    "start": new Date('2015-09-12T01:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                  {
+                    "name": "TotalAdded",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T01:00:00.000Z'),
+                      "start": new Date('2015-09-12T00:00:00.000Z')
+                    },
+                    "TotalAdded": 663850
                   },
-                  "TotalAdded": 2836144
-                },
-                {
-                  "Timestamp": {
-                    "end": new Date('2015-09-12T03:00:00.000Z'),
-                    "start": new Date('2015-09-12T02:00:00.000Z'),
-                    "type": "TIME_RANGE"
+                  {
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T02:00:00.000Z'),
+                      "start": new Date('2015-09-12T01:00:00.000Z')
+                    },
+                    "TotalAdded": 2836144
                   },
-                  "TotalAdded": 6091932
-                }
-              ],
+                  {
+                    "Timestamp": {
+                      "end": new Date('2015-09-12T03:00:00.000Z'),
+                      "start": new Date('2015-09-12T02:00:00.000Z')
+                    },
+                    "TotalAdded": 6091932
+                  }
+                ],
+                "keys": [
+                  "Timestamp"
+                ]
+              },
               "TotalAdded": 65106214
             }
           ]);
         });
     });
 
+  });
+
+  describe("introspection on non existent dataSource", () => {
+    let wikiExternal = External.fromJS({
+      engine: 'druid',
+      source: 'wikipedia_borat',
+      timeAttribute: 'time',
+      filter: $('time').in(TimeRange.fromJS({
+        start: new Date("2015-09-12T00:00:00Z"),
+        end: new Date("2015-09-13T00:00:00Z")
+      }))
+    }, druidRequester);
+
+    it("fail correctly", () => {
+      return wikiExternal.introspect()
+        .then(() => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch((e) => {
+          expect(e.message).to.contain('No such datasource');
+        })
+    });
   });
 
 });

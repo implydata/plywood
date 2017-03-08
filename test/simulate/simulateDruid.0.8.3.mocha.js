@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let plywood = require('../plywood');
 let { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
@@ -25,11 +25,11 @@ let attributes = [
   { name: 'cut', type: 'STRING' },
   { name: 'isNice', type: 'BOOLEAN' },
   { name: 'tags', type: 'SET/STRING' },
-  { name: 'carat', type: 'NUMBER' },
+  { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
   { name: 'height_bucket', type: 'NUMBER' },
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
-  { name: 'vendor_id', special: 'unique', unsplitable: true }
+  { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true }
 ];
 
 let context = {

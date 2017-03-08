@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
 let plywood = require('../plywood');
 let { Expression, External, $, ply, r } = plywood;
@@ -33,7 +33,7 @@ describe.skip("breakdown", () => {
         { name: 'time', type: 'TIME' },
         { name: 'color', type: 'STRING' },
         { name: 'cut', type: 'STRING' },
-        { name: 'carat', type: 'NUMBER' }
+        { name: 'carat', type: 'NUMBER', nativeType: 'STRING' }
       ]
     }),
     diamonds2: External.fromJS({
@@ -45,7 +45,7 @@ describe.skip("breakdown", () => {
         { name: 'time', type: 'TIME' },
         { name: 'color', type: 'STRING' },
         { name: 'cut', type: 'STRING' },
-        { name: 'carat', type: 'NUMBER' }
+        { name: 'carat', type: 'NUMBER', nativeType: 'STRING' }
       ]
     })
   };

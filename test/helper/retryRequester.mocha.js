@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,103 +15,151 @@
  * limitations under the License.
  */
 
-let { expect } = require("chai");
+const { expect } = require("chai");
 
-let Q = require('q');
+const { PassThrough } = require('readable-stream');
+const toArray = require('stream-to-array');
 
 let { retryRequesterFactory } = require("../../build/plywood");
 
-describe("Retry requester", () => {
+describe("Retry Requester", () => {
   let makeRequester = (failNumber, isTimeout) => {
     return (request) => {
-      if (failNumber > 0) {
-        failNumber--;
-        return Q.reject(new Error(isTimeout ? 'timeout' : 'some error'));
-      } else {
-        return Q([1, 2, 3]);
-      }
+      const stream = new PassThrough({ objectMode: true });
+      setTimeout(() => {
+        if (failNumber > 0) {
+          failNumber--;
+          stream.emit('error', new Error(isTimeout ? 'timeout' : 'some error'));
+          stream.end();
+        } else {
+          stream.emit('meta', { lol: 33 });
+          stream.write(1);
+          stream.write(2);
+          stream.write(3);
+          stream.end();
+        }
+      }, 1);
+      return stream;
     };
   };
 
+  let noSuchDataSourceRequester = (request) => {
+    const stream = new PassThrough({ objectMode: true });
+    setTimeout(() => {
+      stream.emit('error', new Error('No such datasource'));
+      stream.end();
+    }, 1);
+    return stream;
+  };
 
-  it("no retry needed (no fail)", (testComplete) => {
+
+  it("no retry needed (no fail)", () => {
     let retryRequester = retryRequesterFactory({
       requester: makeRequester(0),
       delay: 20,
       retry: 2
     });
 
-    return retryRequester({})
+    return toArray(retryRequester({}))
       .then((res) => {
-        expect(res).to.be.an('array');
-        testComplete();
-      })
-      .done();
+        expect(res).to.deep.equal([1, 2, 3])
+      });
   });
 
-  it("one fail", (testComplete) => {
+  it("one fail", () => {
     let retryRequester = retryRequesterFactory({
       requester: makeRequester(1),
       delay: 20,
       retry: 2
     });
 
-    return retryRequester({})
+    return toArray(retryRequester({}))
       .then((res) => {
-        expect(res).to.be.an('array');
-        testComplete();
-      })
-      .done();
+        expect(res).to.deep.equal([1, 2, 3])
+      });
   });
 
-  it("two fails", (testComplete) => {
+  it("two fails", () => {
     let retryRequester = retryRequesterFactory({
       requester: makeRequester(2),
       delay: 20,
       retry: 2
     });
 
-    return retryRequester({})
+    return toArray(retryRequester({}))
       .then((res) => {
-        expect(res).to.be.an('array');
-        testComplete();
-      })
-      .done();
+        expect(res).to.deep.equal([1, 2, 3])
+      });
   });
 
-  it("three fails", (testComplete) => {
+  it("two fails forwards meta", () => {
+    let retryRequester = retryRequesterFactory({
+      requester: makeRequester(2),
+      delay: 20,
+      retry: 2
+    });
+
+    const rs = retryRequester({});
+
+    let seenMeta = false;
+    rs.on('meta', (meta) => {
+      seenMeta = true;
+      expect(meta).to.deep.equal({ lol: 33 });
+    });
+
+    return toArray(rs)
+      .then((res) => {
+        expect(seenMeta).to.equal(true);
+        expect(res).to.deep.equal([1, 2, 3])
+      });
+  });
+
+  it("three fails", () => {
     let retryRequester = retryRequesterFactory({
       requester: makeRequester(3),
       delay: 20,
       retry: 2
     });
 
-    return retryRequester({})
+    return toArray(retryRequester({}))
       .then(() => {
         throw new Error('DID_NOT_THROW');
       })
       .catch((err) => {
         expect(err.message).to.equal('some error');
-        testComplete();
-      })
-      .done();
+      });
   });
 
-  it("timeout", (testComplete) => {
+  it("timeout", () => {
     let retryRequester = retryRequesterFactory({
       requester: makeRequester(1, true),
       delay: 20,
       retry: 2
     });
 
-    return retryRequester({})
+    return toArray(retryRequester({}))
       .then(() => {
         throw new Error('DID_NOT_THROW');
       })
       .catch((err) => {
         expect(err.message).to.equal('timeout');
-        testComplete();
-      })
-      .done();
+      });
   });
+
+  it("works with no such datasource", () => {
+    let retryRequester = retryRequesterFactory({
+      requester: noSuchDataSourceRequester,
+      delay: 20,
+      retry: 2
+    });
+
+    return toArray(retryRequester({}))
+      .then(() => {
+        throw new Error('DID_NOT_THROW');
+      })
+      .catch((err) => {
+        expect(err.message).to.equal('No such datasource');
+      });
+  });
+
 });

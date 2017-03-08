@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2017 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ export class DruidFilterBuilder {
   }
 
   public filterToDruid(filter: Expression): DruidFilterAndIntervals {
-    if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
+    if (!filter.canHaveType('BOOLEAN')) throw new Error(`can not filter on ${filter.type}`);
 
     if (filter.equals(Expression.FALSE)) {
       return {
@@ -148,7 +148,7 @@ export class DruidFilterBuilder {
   }
 
   public timeFilterToIntervals(filter: Expression): Druid.Intervals {
-    if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
+    if (!filter.canHaveType('BOOLEAN')) throw new Error(`can not filter on ${filter.type}`);
 
     if (filter instanceof LiteralExpression) {
       if (!filter.value) return DruidFilterBuilder.FALSE_INTERVAL;
@@ -163,7 +163,7 @@ export class DruidFilterBuilder {
         throw new Error(`can not convert ${filter} to Druid interval`);
       }
 
-    } else if (filter instanceof InExpression) {
+    } else if (filter instanceof OverlapExpression || filter instanceof InExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
         let timeRanges: TimeRange[];
@@ -188,7 +188,7 @@ export class DruidFilterBuilder {
   }
 
   public timelessFilterToFilter(filter: Expression, aggregatorFilter: boolean): Druid.Filter {
-    if (filter.type !== 'BOOLEAN') throw new Error("must be a BOOLEAN filter");
+    if (!filter.canHaveType('BOOLEAN')) throw new Error(`can not filter on ${filter.type}`);
 
     if (filter instanceof RefExpression) {
       filter = filter.is(true);
@@ -222,7 +222,12 @@ export class DruidFilterBuilder {
     } else if (filter instanceof IsExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (rhs instanceof LiteralExpression) {
-        return this.makeSelectorFilter(lhs, rhs.value);
+        if (Set.isSetType(rhs.type)) {
+          return this.makeInFilter(lhs, rhs.value);
+        } else {
+          return this.makeSelectorFilter(lhs, rhs.value);
+        }
+
       } else {
         throw new Error(`can not convert ${filter} to Druid filter`);
       }
@@ -323,7 +328,7 @@ export class DruidFilterBuilder {
     let druidFilter: Druid.Filter = {
       type: "selector",
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-      value: attributeInfo.serialize(value)
+      value
     };
     if (extractionFn) {
       druidFilter.extractionFn = extractionFn;
@@ -355,7 +360,7 @@ export class DruidFilterBuilder {
     let inFilter: Druid.Filter = {
       type: 'in',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-      values: elements.map((value: string) => attributeInfo.serialize(value))
+      values: elements
     };
     if (extractionFn) inFilter.extractionFn = extractionFn;
     return inFilter;
