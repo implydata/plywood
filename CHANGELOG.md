@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.16.5
+
+- PlyQL: support for `IF()` `CASE WHEN THEN END`, and `NULLIF()`
+
 ## 0.16.4
 
 - `DruidExternal` fixed some problems with JS code generation

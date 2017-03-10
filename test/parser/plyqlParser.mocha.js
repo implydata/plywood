@@ -634,6 +634,10 @@ describe("SQL parser", () => {
         TIME_RANGE(time, PT1H) AS 'TimeRange1',
         TIME_RANGE(time, PT1H, 3) AS 'TimeRange3',
         OVERLAP(x, y) AS 'Overlap',
+        IF(x, "hello", \`world\`) AS 'If1',
+        CASE moon WHEN 1 THEN 'one' WHEN 2 THEN 'two' ELSE 'more' END AS 'Case1',
+        CASE WHEN moon > 13 THEN 'T' ELSE 'F' END AS 'Case2',
+        CASE WHEN moon = 13 THEN 'TheOne' END AS 'Case3',
         CUSTOM('blah') AS 'Custom1',
         CUSTOM_AGGREGATE('blah') AS 'Custom2'
         FROM \`wiki\`
@@ -674,12 +678,17 @@ describe("SQL parser", () => {
         .apply('TimeRange1', i$('time').timeRange('PT1H'))
         .apply('TimeRange3', i$('time').timeRange('PT1H', 3))
         .apply('Overlap', i$('x').overlap('i$y'))
+        .apply('If1', i$('x').then('hello').fallback('i$world'))
+        .apply('Case1', 'i$moon.is(1).then(one).fallback(i$moon.is(2).then(two)).fallback(more)')
+        .apply('Case2', '(i$moon > 13).then(T).fallback(F)')
+        .apply('Case3', '(i$moon == 13).then(TheOne)')
         .apply('Custom1', $('data').customAggregate('blah'))
         .apply('Custom2', $('data').customAggregate('blah'))
         .select("aISb1", "aISb2", "aISb3", "Count1", "Count2", "Count3", "Count4", "Match", "CustomTransform",
           "TotalAdded", "Date", "TotalAddedOver4", "False", "MinusAdded", "AbsAdded", "AbsoluteAdded", "SqRtAdded",
           "SqRtAdded2", "SquareRoot", "One", "SimplyAdded", "Median", "Unique1", "Unique2", "Unique3",
-          "TimeBucket", "TimeFloor", "TimeShift1", "TimeShift3", "TimeRange1", "TimeRange3", "Overlap", "Custom1", "Custom2");
+          "TimeBucket", "TimeFloor", "TimeShift1", "TimeShift3", "TimeRange1", "TimeRange3", "Overlap",
+          "If1", "Case1", "Case2", "Case3", "Custom1", "Custom2");
 
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });

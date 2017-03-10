@@ -37,9 +37,9 @@ function undummyNull(x) {
 var reservedWords = {
   ALL: 1, AND: 1, AS: 1, ASC: 1,
   BETWEEN: 1, BY: 1,
-  CONTAINS: 1, CREATE: 1,
+  CONTAINS: 1, CREATE: 1, CASE: 1,
   DELETE: 1, DESC: 1, DESCRIBE: 1, DISTINCT: 1, DROP: 1,
-  EXISTS: 1, EXPLAIN: 1, ESCAPE: 1,
+  EXISTS: 1, EXPLAIN: 1, ESCAPE: 1, END: 1,
   FALSE: 1, FROM: 1,
   GROUP: 1,
   HAVING: 1,
@@ -51,10 +51,10 @@ var reservedWords = {
   ON: 1, OR: 1, ORDER: 1,
   REPLACE: 1, REGEXP: 1,
   SELECT: 1, SET: 1, SHOW: 1,
-  TABLE: 1, TRUE: 1,
+  TABLE: 1, TRUE: 1, THEN: 1,
   UNION: 1, UPDATE: 1,
   VALUES: 1,
-  WHERE: 1
+  WHERE: 1, WHEN: 1
 };
 
 var unsupportedVerbs = {
@@ -162,6 +162,8 @@ var fns = {
   CUSTOM_TRANSFORM: function(op, fn) { return upgrade(op).customTransform(fn); },
   ISNULL: function(ex) { return ex.is(null); },
   FALLBACK: function(op, ex) { return upgrade(op).fallback(ex); },
+  IF: function(op, ex1, ex2) { return upgrade(op).then(ex1).fallback(ex2); },
+  NULLIF: function(op, ex1) { return upgrade(op).isnt(ex1).then(upgrade(op)); },
   MATCH: function(op, reg) { return upgrade(op).match(reg); },
   EXTRACT: function(op, reg) { return upgrade(op).extract(reg); },
   CONCAT: function() {
@@ -856,6 +858,7 @@ BasicExpression
   = LiteralExpression
   / AggregateExpression
   / FunctionCallExpression
+  / CaseExpression
   / OpenParen sub:(Expression / SelectSubQuery) CloseParen { return sub; }
   / RefExpression
 
@@ -916,6 +919,21 @@ Params
     { return makeListMap1(head, tail); }
 
 Param = Number / String / Interval / Expression;
+
+
+CaseExpression
+  = CaseToken v:Expression? cases:(WhenToken Expression ThenToken Expression)+ els:(ElseToken Expression)? EndToken
+    {
+      var ex;
+      cases.forEach(function(c) {
+        var cond = c[1];
+        if (v) cond = v.is(cond);
+        var myEx = cond.then(c[3]);
+        ex = ex ? ex.fallback(myEx) : myEx;
+      });
+      if (els) ex = ex.fallback(els[1]);
+      return ex;
+    }
 
 RefExpression
   = ref:NamespacedRef { return i$(ref.name); }
@@ -1058,6 +1076,12 @@ MaxToken           = "MAX"i            !IdentifierPart _ { return 'max'; }
 QuantileToken      = "QUANTILE"i       !IdentifierPart _ { return 'quantile'; }
 CustomToken        = "CUSTOM"i         !IdentifierPart _ { return 'customAggregate'; }
 CustomAggregateToken = "CUSTOM_AGGREGATE"i  !IdentifierPart _ { return 'customAggregate'; }
+
+CaseToken          = "CASE"i           !IdentifierPart _
+WhenToken          = "WHEN"i           !IdentifierPart _
+ThenToken          = "THEN"i           !IdentifierPart _
+ElseToken          = "ELSE"i           !IdentifierPart _
+EndToken           = "END"i            !IdentifierPart _
 
 DateToken          = "DATE"i           !IdentifierPart _ { return 'd'; }
 TimeToken          = "TIME"i           !IdentifierPart _ { return 't'; }
