@@ -27,7 +27,9 @@
   ],
   "scripts": {
     "prepare": "tdi -q",
-    "compile": "./compile"
+    "compile": "./compile",
+    "pretest": "./compile",
+    "test": "./travis-test"
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {

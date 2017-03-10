@@ -255,18 +255,26 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with .concat().concat().contains() filter', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
-      expression: ply()
-        .apply('wiki', '$wiki.filter(("[" ++ $cityName ++ "]").contains("[san", "ignoreCase"))')
-        .apply('TotalEdits', '$wiki.sum($count)')
-        .apply('TotalAdded', '$wiki.sum($added)')
-    }));
-
     it('works with .overlap() filter [dimension without NULLs]', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter($channel.overlap(["en", "simple"]))')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with .overlap().not() filter [dimension without NULLs]', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      expression: ply()
+        .apply('wiki', '$wiki.filter($channel.overlap(["en", "simple"]).not())')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with .concat().concat().contains() filter', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      expression: ply()
+        .apply('wiki', '$wiki.filter(("[" ++ $cityName ++ "]").contains("[san", "ignoreCase"))')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -590,6 +598,14 @@ describe("Cross Functional", function() {
         .sort('$TotalAdded', 'descending')
     }));
 
+    it('works with BOOLEAN split (overlap)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      expression: $('wiki').split($('channel').overlap(['en', 'simple']), 'ChannelIsEnSimple')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+    }));
+
     it('works with STRING split (sort on split)', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('$channel', 'Channel') // ToDo: change this to user
@@ -906,14 +922,42 @@ describe("Cross Functional", function() {
         .limit(10)
     }));
 
-    it('works .then().fallback split', equalityTest({
-      executorNames: ['mysql', 'postgres'], // 'druid',
+    it('works .then(literal).fallback split', equalityTest({
+      executorNames: ['mysql', 'postgres'], // 'druid'
       expression: $('wiki')
         .split(
           $('__time').timePart('HOUR_OF_DAY').lessThan(10).then('Morning')
             .fallback($('__time').timePart('HOUR_OF_DAY').lessThan(20).then('Afternoon'))
             .fallback('Evening'),
           'Greeting'
+        )
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
+    it('works .then(variable).fallback split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split(
+          $('channel').overlap(['en', 'es', 'he']).then('$channel').fallback('Other'),
+          'Channel'
+        )
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
+    it('works .then(variable).fallback split complex', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split(
+          $('channel').overlap(['en', 'es', 'he']).then('$channel')
+            .fallback($('channel').overlap(['fr', 'ru']).then('War'))
+            .fallback('Other'),
+          'Channel'
         )
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')

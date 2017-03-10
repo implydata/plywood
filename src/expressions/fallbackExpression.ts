@@ -36,7 +36,7 @@ export class FallbackExpression extends ChainableUnaryExpression {
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `(_=${operandJS},(_===null||isNaN(_)?${expressionJS}:_))`;
+    return `((_=${operandJS}),(_!==null?_:${expressionJS}))`;
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {

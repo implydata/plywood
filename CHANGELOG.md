@@ -2,10 +2,19 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.16.2
+## 0.16.4
+
+- `DruidExternal` fixed some problems with JS code generation
+- `DruidExternal` support for planning `.then().fallback()`
+
+## 0.16.3
 
 - `DruidExternal` GroupBys will not correctly use 'numeric' order
 - `DruidExternal` fixed GroupBy output name
+
+## 0.16.2
+
+- Stable release
 
 ## 0.16.1
 

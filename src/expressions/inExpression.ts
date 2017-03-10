@@ -81,7 +81,7 @@ export class InExpression extends ChainableUnaryExpression {
             cmpStrings.push(`_ ${bounds[1] === ')' ? '<' : '<='} ${JSON.stringify(r1)}`);
           }
 
-          return `(_=${operandJS}, ${cmpStrings.join(' && ')})`;
+          return `((_=${operandJS}),${cmpStrings.join('&&')})`;
 
         case 'SET/STRING':
           let valueSet: Set = expression.value;

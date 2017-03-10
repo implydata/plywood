@@ -490,7 +490,7 @@ export class DruidExtractionFnBuilder {
 
     }
 
-    throw new Error(`unsupported fallback: ${expression}`);
+    return this.expressionToJavaScriptExtractionFn(expression);
   }
 
   private customTransformToExtractionFn(customTransform: CustomTransformExpression): Druid.ExtractionFn {

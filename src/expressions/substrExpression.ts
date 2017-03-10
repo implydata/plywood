@@ -71,7 +71,7 @@ export class SubstrExpression extends ChainableExpression {
 
   protected _getJSChainableHelper(operandJS: string): string {
     const { position, len } = this;
-    return `(_=${operandJS},_==null?null:(''+_).substr(${position},${len}))`;
+    return `((_=${operandJS}),_==null?null:(''+_).substr(${position},${len}))`;
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
