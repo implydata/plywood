@@ -728,6 +728,18 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
+    it('kills .then() 1', () => {
+      let ex1 = $('color').then('T').is('T');
+      let ex2 = $('color').is(true);
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('kills .then() 2', () => {
+      let ex1 = $('color').then('T').is('F');
+      let ex2 = $('color').isnt(true);
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 
@@ -822,6 +834,27 @@ describe("Simplify", () => {
     it('works with length 0', () => {
       let ex1 = $("x").substr(0, 0);
       let ex2 = r('');
+      simplifiesTo(ex1, ex2);
+    });
+  });
+
+
+  describe('contains', () => {
+    it('works with transformCase Upper', () => {
+      let ex1 = $("x").transformCase('upperCase').contains($("y").transformCase('upperCase'));
+      let ex2 = $("x").contains($("y"), 'ignoreCase');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('works with transformCase Lower', () => {
+      let ex1 = $("x").transformCase('lowerCase').contains($("y").transformCase('lowerCase'));
+      let ex2 = $("x").contains($("y"), 'ignoreCase');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('works removes useless ignoreCase', () => {
+      let ex1 = $("x").contains(r("[["), 'ignoreCase');
+      let ex2 = $("x").contains(r("[["));
       simplifiesTo(ex1, ex2);
     });
   });

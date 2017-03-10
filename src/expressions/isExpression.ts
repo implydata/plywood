@@ -21,6 +21,7 @@ import { SQLDialect } from '../dialect/baseDialect';
 import { IndexOfExpression } from './indexOfExpression';
 import { TimeBucketExpression } from './timeBucketExpression';
 import { NumberBucketExpression } from './numberBucketExpression';
+import { ThenExpression } from './thenExpression';
 import { FallbackExpression } from './fallbackExpression';
 
 export class IsExpression extends ChainableUnaryExpression {
@@ -78,13 +79,13 @@ export class IsExpression extends ChainableUnaryExpression {
         return operand.is(r(literalValue.elements[0]));
       }
 
-      // X.indexOf(Y) = -1
+      // X.indexOf(Y).is(-1)
       if (operand instanceof IndexOfExpression && literalValue === -1) {
         const { operand: x, expression: y } = operand;
         return x.contains(y).not();
       }
 
-      // X.timeBucket(duration, timezone) = TimeRange()
+      // X.timeBucket(duration, timezone).is(TimeRange())
       if (operand instanceof TimeBucketExpression && literalValue instanceof TimeRange && operand.timezone) {
         const { operand: x, duration, timezone } = operand;
         if (literalValue.start !== null && TimeRange.timeBucket(literalValue.start, duration, timezone).equals(literalValue)) {
@@ -94,7 +95,7 @@ export class IsExpression extends ChainableUnaryExpression {
         }
       }
 
-      // X.numberBucket(size, offset) = NumberRange()
+      // X.numberBucket(size, offset).is(NumberRange())
       if (operand instanceof NumberBucketExpression && literalValue instanceof NumberRange) {
         const { operand: x, size, offset } = operand;
         if (literalValue.start !== null && NumberRange.numberBucket(literalValue.start, size, offset).equals(literalValue)) {
@@ -104,11 +105,19 @@ export class IsExpression extends ChainableUnaryExpression {
         }
       }
 
-      // X.fallback(Y) = Z where Y literal, Y != Z
+      // X.fallback(Y).is(Z) where Y literal, Y != Z
       if (operand instanceof FallbackExpression) {
         const { operand: x, expression: y } = operand;
         if (y.isOp('literal') && !y.equals(expression)) {
           return this.changeOperand(x);
+        }
+      }
+
+      // X.then(Y).is(Z) where Y literal
+      if (operand instanceof ThenExpression) {
+        const { operand: x, expression: y } = operand;
+        if (y.isOp('literal')) {
+          return y.equals(expression) ? x.is(Expression.TRUE) : x.isnt(Expression.TRUE);
         }
       }
 

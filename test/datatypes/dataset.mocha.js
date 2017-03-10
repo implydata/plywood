@@ -110,7 +110,8 @@ describe("Dataset", () => {
       {
         attributes: [
           { name: 'Carat', type: 'NUMBER_RANGE' },
-          { name: 'Count', type: 'NUMBER' }
+          { name: 'Count', type: 'NUMBER' },
+          { name: 'Other', type: 'NULL' }
         ],
         data: [
           {
@@ -118,21 +119,24 @@ describe("Dataset", () => {
               end: 0.5,
               start: 0.25
             },
-            Count: 1360
+            Count: 1360,
+            Other: "hello"
           },
           {
             Carat: {
               end: 0.75,
               start: 0.5
             },
-            Count: 919
+            Count: 919,
+            Other: "hello"
           },
           {
             Carat: {
               end: 1.25,
               start: 1
             },
-            Count: 298
+            Count: 298,
+            Other: "hello"
           }
         ]
       }

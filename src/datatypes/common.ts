@@ -139,7 +139,7 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
             return v; // Allow native date
           }
           if (typeOverride) {
-            throw new Error(`unknown type ${typeOverride}`);
+            throw new Error(`unknown type ${typeOverride} on ${JSON.stringify(v)}`);
           } else {
             throw new Error(`can not have an object without a 'type' as a datum value: ${JSON.stringify(v)}`);
           }
