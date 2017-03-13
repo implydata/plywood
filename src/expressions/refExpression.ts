@@ -214,8 +214,16 @@ export class RefExpression extends Expression {
       expr = RefExpression.toJavaScriptSafeName(name);
     }
 
-    if (this.type === 'NUMBER') expr = `parseFloat(${expr})`;
-    return expr;
+    switch (this.type) {
+      case 'NUMBER':
+        return `parseFloat(${expr})`;
+
+      case 'TIME':
+        return `new Date(${expr})`;
+
+      default:
+        return expr;
+    }
   }
 
   public getSQL(dialect: SQLDialect, minimal = false): string {

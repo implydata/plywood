@@ -606,6 +606,22 @@ describe("Cross Functional", function() {
         .sort('$TotalAdded', 'descending')
     }));
 
+    it('works with BOOLEAN split (overlap __time)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      expression: $('wiki').split($('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z")), 'TheHour')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+    }));
+
+    it.skip('works with BOOLEAN split (overlap secondaryTime)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      expression: $('wiki').split($('sometimeLater').overlap(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z")), 'TheHour')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+    }));
+
     it('works with STRING split (sort on split)', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('$channel', 'Channel') // ToDo: change this to user

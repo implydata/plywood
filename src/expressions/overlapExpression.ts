@@ -58,10 +58,10 @@ export class OverlapExpression extends ChainableUnaryExpression {
 
         let cmpStrings: string[] = [];
         if (r0 != null) {
-          cmpStrings.push(`${JSON.stringify(r0)} ${bounds[0] === '(' ? '<' : '<='} _`);
+          cmpStrings.push(`${JSON.stringify(r0.valueOf())}${bounds[0] === '(' ? '<' : '<='}_`);
         }
         if (r1 != null) {
-          cmpStrings.push(`_ ${bounds[1] === ')' ? '<' : '<='} ${JSON.stringify(r1)}`);
+          cmpStrings.push(`_${bounds[1] === ')' ? '<' : '<='}${JSON.stringify(r1.valueOf())}`);
         }
 
         return `((_=${operandJS}),${cmpStrings.join('&&')})`;
