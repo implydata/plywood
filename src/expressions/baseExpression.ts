@@ -1168,8 +1168,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public in(ex: any): InExpression {
     if (arguments.length === 2) {
       // Back Compat
-      //return this.overlap(ex, arguments[1]) as any;
-      throw new Error('temp fail');
+      return this.overlap(ex, arguments[1]) as any;
     }
 
     if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);

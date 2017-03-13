@@ -17,8 +17,6 @@
 
 const { expect } = require("chai");
 
-let { testImmutableClass } = require("immutable-class-tester");
-
 let plywood = require('../plywood');
 let { Expression, TimeRange, NumberRange, $, r, ply, Set, Dataset, External, ExternalExpression } = plywood;
 
