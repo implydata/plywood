@@ -78,7 +78,7 @@ let diamondsCompact = External.fromJS({
   customTransforms,
   concealBuckets: true,
   allowSelectQueries: true,
-  filter: $("time").in({
+  filter: $("time").overlap({
     start: new Date('2015-03-12T00:00:00'),
     end: new Date('2015-03-19T00:00:00')
   })
@@ -92,7 +92,7 @@ let context = {
     timeAttribute: 'time',
     attributes,
     allowSelectQueries: true,
-    filter: $("time").in({
+    filter: $("time").overlap({
       start: new Date('2015-03-12T00:00:00'),
       end: new Date('2015-03-19T00:00:00')
     })
@@ -105,7 +105,7 @@ let context = {
     attributes,
     customTransforms,
     allowSelectQueries: true,
-    filter: $("time").in({
+    filter: $("time").overlap({
       start: new Date('2015-03-12T00:00:00'),
       end: new Date('2015-03-19T00:00:00')
     })
@@ -1452,7 +1452,7 @@ describe("simulate Druid", () => {
 
   it("works with lower bound only time filter", () => {
     let ex = ply()
-      .apply('diamonds', $("diamonds").filter($("time").in({ start: new Date('2015-03-12T00:00:00'), end: null })))
+      .apply('diamonds', $("diamonds").filter($("time").overlap({ start: new Date('2015-03-12T00:00:00'), end: null })))
       .apply('Count', $('diamonds').count());
 
     let queryPlan = ex.simulateQueryPlan(contextUnfiltered);
@@ -1462,7 +1462,7 @@ describe("simulate Druid", () => {
 
   it("works with upper bound only time filter", () => {
     let ex = ply()
-      .apply('diamonds', $("diamonds").filter($("time").in({ start: null, end: new Date('2015-03-12T00:00:00') })))
+      .apply('diamonds', $("diamonds").filter($("time").overlap({ start: null, end: new Date('2015-03-12T00:00:00') })))
       .apply('Count', $('diamonds').count());
 
     let queryPlan = ex.simulateQueryPlan(contextUnfiltered);
@@ -2163,7 +2163,7 @@ describe("simulate Druid", () => {
 
   it("makes a filter on timePart", () => {
     let ex = $("diamonds").filter(
-      $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').in([3, 4, 10]).and($("time").in([
+      $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').is([3, 4, 10]).and($("time").overlap([
         TimeRange.fromJS({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-15T00:00:00') }),
         TimeRange.fromJS({ start: new Date('2015-03-16T00:00:00'), end: new Date('2015-03-18T00:00:00') })
       ]))
@@ -2793,7 +2793,7 @@ describe("simulate Druid", () => {
 
   it("works on exact time filter (in interval)", () => {
     let ex = ply()
-      .apply('diamonds', $('diamonds').filter($('time').in(new Date('2015-03-12T01:00:00.123Z'), new Date('2015-03-12T01:00:00.124Z'))))
+      .apply('diamonds', $('diamonds').filter($('time').overlap(new Date('2015-03-12T01:00:00.123Z'), new Date('2015-03-12T01:00:00.124Z'))))
       .apply('Count', '$diamonds.count()');
 
     let queryPlan = ex.simulateQueryPlan(context);
@@ -2914,7 +2914,7 @@ describe("simulate Druid", () => {
 
   it("works multi-dimensional GROUP BYs", () => {
     let ex = ply()
-      .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
+      .apply("diamonds", $('diamonds').filter($("color").overlap(['A', 'B', 'some_color'])))
       .apply(
         'Cuts',
         $("diamonds").split({
@@ -3029,7 +3029,7 @@ describe("simulate Druid", () => {
 
   it("works multi-dimensional GROUP BYs (no limit)", () => {
     let ex = ply()
-      .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
+      .apply("diamonds", $('diamonds').filter($("color").overlap(['A', 'B', 'some_color'])))
       .apply(
         'Cuts',
         $("diamonds").split({
@@ -3087,7 +3087,7 @@ describe("simulate Druid", () => {
 
   it("works nested GROUP BYs", () => {
     let ex = $("diamonds")
-      .filter($("color").in(['A', 'B', 'some_color']))
+      .filter($("color").overlap(['A', 'B', 'some_color']))
       .split({ 'Cut': "$cut", 'Color': '$color' })
       .apply('Count', $('diamonds').count())
       .split('$Cut', 'Cut', 'data')
@@ -3147,7 +3147,7 @@ describe("simulate Druid", () => {
       timeAttribute: 'time',
       attributes,
       allowSelectQueries: true,
-      filter: $("time").in({
+      filter: $("time").overlap({
         start: new Date('2015-03-12T00:00:00'),
         end: new Date('2015-03-19T00:00:00')
       }),

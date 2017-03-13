@@ -171,18 +171,6 @@ export class LiteralExpression extends Expression {
     return value instanceof Set ? value.size() : 1;
   }
 
-  public bumpStringLiteralToTime(): Expression {
-    if (this.type !== 'STRING') return this;
-    let parse = parseISODate(this.value, Expression.defaultParserTimezone);
-    if (!parse) throw new Error(`could not parse '${this.value}' as time`);
-    return r(parse);
-  }
-
-  public bumpStringLiteralToSetString(): Expression {
-    if (this.type !== 'STRING') return this;
-    return r(Set.fromJS([this.value]));
-  }
-
   public upgradeToType(targetType: PlyType): Expression {
     const { type, value } = this;
     if (type === targetType) return this;

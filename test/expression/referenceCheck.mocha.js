@@ -428,8 +428,8 @@ describe("reference check", () => {
 
     it.skip("a join", () => {
       let ex1 = ply()
-        .apply('Data1', $('diamonds').filter($('price').in(105, 305)))
-        .apply('Data2', $('diamonds').filter($('price').in(105, 305).not()))
+        .apply('Data1', $('diamonds').filter($('price').overlap(105, 305)))
+        .apply('Data2', $('diamonds').filter($('price').overlap(105, 305).not()))
         .apply(
           'Cuts',
           $('Data1').split('$cut', 'Cut', 'K1').join($('Data2').split('$cut', 'Cut', 'K2'))
@@ -438,8 +438,8 @@ describe("reference check", () => {
         );
 
       let ex2 = ply()
-        .apply('Data1', $('diamonds', 1, 'DATASET').filter($('price', 'NUMBER').in(105, 305)))
-        .apply('Data2', $('diamonds', 1, 'DATASET').filter($('price', 'NUMBER').in(105, 305).not()))
+        .apply('Data1', $('diamonds', 1, 'DATASET').filter($('price', 'NUMBER').overlap(105, 305)))
+        .apply('Data2', $('diamonds', 1, 'DATASET').filter($('price', 'NUMBER').overlap(105, 305).not()))
         .apply(
           'Cuts',
           $('Data1', 'DATASET').split('$cut:STRING', 'Cut', 'K1').join($('Data2', 'DATASET').split('$cut:STRING', 'Cut', 'K2'))

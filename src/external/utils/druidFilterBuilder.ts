@@ -131,14 +131,8 @@ export class DruidFilterBuilder {
       };
     } else {
       const { extract, rest } = filter.extractFromAnd(ex => {
-        if (ex instanceof ChainableUnaryExpression) {
-          // time.is(Literal) // time.in(Literal)
-          const { op, operand: lhs, expression: rhs } = ex;
-          if (this.isTimeRef(lhs) && rhs instanceof LiteralExpression) {
-            return op === 'is' || op === 'in';
-          }
-        }
-        return false;
+        // time.is(Literal) || time.overlap(Literal)
+        return (ex instanceof IsExpression || ex instanceof OverlapExpression) && this.isTimeRef(ex.operand) && ex.expression instanceof LiteralExpression;
       });
       return {
         intervals: this.timeFilterToIntervals(extract),
@@ -163,7 +157,7 @@ export class DruidFilterBuilder {
         throw new Error(`can not convert ${filter} to Druid interval`);
       }
 
-    } else if (filter instanceof OverlapExpression || filter instanceof InExpression) {
+    } else if (filter instanceof OverlapExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
         let timeRanges: TimeRange[];
@@ -372,18 +366,18 @@ export class DruidFilterBuilder {
     let bounds = range.bounds;
 
     if (this.versionBefore('0.9.0') || r0 < 0 || r1 < 0) {
-      return this.makeJavaScriptFilter(ex.in(range));
+      return this.makeJavaScriptFilter(ex.overlap(range));
     }
 
     if (ex instanceof IndexOfExpression) {
-      return this.makeJavaScriptFilter(ex.in(range));
+      return this.makeJavaScriptFilter(ex.overlap(range));
     }
 
     let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
 
     if (this.versionBefore('0.9.1') && extractionFn) {
-      return this.makeJavaScriptFilter(ex.in(range));
+      return this.makeJavaScriptFilter(ex.overlap(range));
     }
 
     if (extractionFn) this.checkFilterExtractability(attributeInfo);

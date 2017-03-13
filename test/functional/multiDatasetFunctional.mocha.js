@@ -81,7 +81,7 @@ let mixedExecutor = basicExecutorFactory({
       timeAttribute: 'time',
       context: info.druidContext,
       attributes,
-      filter: $('time').in(TimeRange.fromJS({
+      filter: $('time').overlap(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       })),

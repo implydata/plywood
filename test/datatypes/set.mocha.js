@@ -461,4 +461,22 @@ describe("Set", () => {
     });
   });
 
+
+  describe("#simplify", () => {
+    it('works correctly', () => {
+      let s = Set.fromJS({
+        setType: 'NUMBER_RANGE',
+        elements: [
+          { start: 1, end: 3 },
+          { start: 2, end: 5 },
+        ]
+      });
+
+      expect(s.simplifyCover().toJS()).to.deep.equal({
+        "end": 5,
+        "start": 1
+      });
+    });
+  });
+
 });

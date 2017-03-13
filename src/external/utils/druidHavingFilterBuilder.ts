@@ -119,21 +119,15 @@ export class DruidHavingFilterBuilder {
     } else if (filter instanceof IsExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-        return {
-          type: "equalTo",
-          aggregation: lhs.name,
-          value: rhs.value
-        };
-
-      } else {
-        throw new Error(`can not convert ${filter} to Druid having filter`);
-      }
-
-    } else if (filter instanceof InExpression) {
-      const { operand: lhs, expression: rhs } = filter;
-      if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
         let rhsType = rhs.type;
-        if (rhsType === 'SET/STRING') {
+        if (rhsType === 'STRING' || rhsType === 'NUMBER') {
+          return {
+            type: "equalTo",
+            aggregation: lhs.name,
+            value: rhs.value
+          };
+
+        } else if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER') {
           return {
             type: "or",
             havingSpecs: rhs.value.elements.map((value: string) => {
@@ -145,7 +139,17 @@ export class DruidHavingFilterBuilder {
             })
           };
 
-        } else if (rhsType === 'SET/NUMBER_RANGE') {
+        }
+
+      } else {
+        throw new Error(`can not convert ${filter} to Druid having filter`);
+      }
+
+    } else if (filter instanceof OverlapExpression) {
+      const { operand: lhs, expression: rhs } = filter;
+      if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
+        let rhsType = rhs.type;
+        if (rhsType === 'SET/NUMBER_RANGE') {
           return {
             type: "or",
             havingSpecs: rhs.value.elements.map((value: NumberRange) => {
@@ -160,7 +164,7 @@ export class DruidHavingFilterBuilder {
           throw new Error("can not compute having filter on time");
 
         } else {
-          throw new Error("not supported " + rhsType);
+          throw new Error(`not supported ${rhsType}`);
         }
       } else {
         throw new Error(`can not convert ${filter} to Druid having filter`);

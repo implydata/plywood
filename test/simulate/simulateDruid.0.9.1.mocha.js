@@ -40,7 +40,7 @@ let context = {
     timeAttribute: 'time',
     attributes,
     allowSelectQueries: true,
-    filter: $("time").in({
+    filter: $("time").overlap({
       start: new Date('2015-03-12T00:00:00'),
       end: new Date('2015-03-19T00:00:00')
     })
@@ -51,7 +51,7 @@ describe("simulate Druid 0.9.1", () => {
 
   it("makes a filter on timePart", () => {
     let ex = $("diamonds").filter(
-      $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').in([3, 4, 10]).and($("time").in([
+      $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').is([3, 4, 10]).and($("time").overlap([
         TimeRange.fromJS({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-15T00:00:00') }),
         TimeRange.fromJS({ start: new Date('2015-03-16T00:00:00'), end: new Date('2015-03-18T00:00:00') })
       ]))

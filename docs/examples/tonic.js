@@ -31,11 +31,11 @@ var druidExternal = External.fromJS({
 var ex = ply()
   .apply("wiki",
     $('wiki').filter(
-      $("time").in({
+      $("time").overlap({
           start: new Date("2015-08-26T00:00:00Z"),
           end: new Date("2015-08-27T00:00:00Z")
         })
-        .and($('language').in(['English', 'Spanish']))
+        .and($('language').is(['English', 'Spanish']))
     )
   )
   .apply('TotalAdded', '$wiki.sum($added)')

@@ -70,7 +70,7 @@ describe("Expression", () => {
 
       {
         "operand": { "op": "ref", "name": "time" },
-        "op": "in",
+        "op": "overlap",
         "expression": {
           "op": "literal",
           "value": { "start": new Date("2013-02-26T19:00:00.000Z"), "end": new Date("2013-02-26T22:00:00.000Z") },

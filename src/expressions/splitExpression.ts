@@ -238,7 +238,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   public filterFromDatum(datum: Datum): Expression {
     return Expression.and(this.mapSplits((name, expression) => {
       if (Set.isSetType(expression.type)) {
-        return r(datum[name]).in(expression);
+        return r(datum[name]).overlap(expression);
       } else {
         return expression.is(r(datum[name]));
       }

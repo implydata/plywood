@@ -322,7 +322,7 @@ describe("Cross Functional", function() {
     it('works with primary time filter (single range)', equalityTest({
       executorNames: ['druid', 'druidSql', 'druidLegacy', 'mysql', 'postgres'],
       expression:  ply()
-        .apply('wiki', $('wiki').filter($('__time').in(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z"))))
+        .apply('wiki', $('wiki').filter($('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z"))))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -330,7 +330,7 @@ describe("Cross Functional", function() {
     it('works with alt time filter (single range)', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression:  ply()
-        .apply('wiki', $('wiki').filter($('sometimeLater').in(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z"))))
+        .apply('wiki', $('wiki').filter($('sometimeLater').overlap(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z"))))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -339,9 +339,9 @@ describe("Cross Functional", function() {
       executorNames: ['druid', 'druidSql', 'druidLegacy', 'mysql', 'postgres'],
       expression:  ply()
         .apply('wiki', $('wiki').filter(
-          $('__time').in(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z")).or(
-            $('__time').in(new Date("2015-09-12T03:00:00Z"), new Date("2015-09-12T04:30:00Z")),
-            $('__time').in(new Date("2015-09-12T05:00:00Z"), new Date("2015-09-12T06:30:00Z")))
+          $('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z")).or(
+            $('__time').overlap(new Date("2015-09-12T03:00:00Z"), new Date("2015-09-12T04:30:00Z")),
+            $('__time').overlap(new Date("2015-09-12T05:00:00Z"), new Date("2015-09-12T06:30:00Z")))
         ))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -351,9 +351,9 @@ describe("Cross Functional", function() {
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression:  ply()
         .apply('wiki', $('wiki').filter(
-          $('sometimeLater').in(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z")).or(
-            $('sometimeLater').in(new Date("2016-09-12T03:00:00Z"), new Date("2016-09-12T04:30:00Z")),
-            $('sometimeLater').in(new Date("2016-09-12T05:00:00Z"), new Date("2016-09-12T06:30:00Z")))
+          $('sometimeLater').overlap(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z")).or(
+            $('sometimeLater').overlap(new Date("2016-09-12T03:00:00Z"), new Date("2016-09-12T04:30:00Z")),
+            $('sometimeLater').overlap(new Date("2016-09-12T05:00:00Z"), new Date("2016-09-12T06:30:00Z")))
         ))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -362,7 +362,7 @@ describe("Cross Functional", function() {
     it.skip('works with .timePart().in()', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression:  ply()
-        .apply('wiki', $('wiki').filter($('__time').timePart('HOUR_OF_DAY').in([3, 7])))
+        .apply('wiki', $('wiki').filter($('__time').timePart('HOUR_OF_DAY').is([3, 7])))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -370,7 +370,7 @@ describe("Cross Functional", function() {
     it('works with .timePart().in() [alt time column]', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression:  ply()
-        .apply('wiki', $('wiki').filter($('sometimeLater').timePart('HOUR_OF_DAY').in([3, 7])))
+        .apply('wiki', $('wiki').filter($('sometimeLater').timePart('HOUR_OF_DAY').is([3, 7])))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));

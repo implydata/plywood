@@ -297,7 +297,7 @@ describe("Druid Functional", function() {
       context: info.druidContext,
       attributes: wikiAttributes,
       customTransforms,
-      filter: $('time').in(TimeRange.fromJS({
+      filter: $('time').overlap(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       })),
@@ -325,7 +325,7 @@ describe("Druid Functional", function() {
         { name: 'deleted', type: 'NUMBER', unsplitable: true },
         { name: 'page_unique', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true }
       ],
-      filter: $('time').in(TimeRange.fromJS({
+      filter: $('time').overlap(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       })),
@@ -3289,7 +3289,7 @@ describe("Druid Functional", function() {
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
-      filter: $('time').in(TimeRange.fromJS({
+      filter: $('time').overlap(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       })),
@@ -3475,7 +3475,7 @@ describe("Druid Functional", function() {
       engine: 'druid',
       source: ['wikipedia', 'wikipedia-compact'],
       timeAttribute: 'time',
-      filter: $('time').in(TimeRange.fromJS({
+      filter: $('time').overlap(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       }))
@@ -3556,7 +3556,7 @@ describe("Druid Functional", function() {
       engine: 'druid',
       source: 'wikipedia_borat',
       timeAttribute: 'time',
-      filter: $('time').in(TimeRange.fromJS({
+      filter: $('time').overlap(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       }))

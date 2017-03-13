@@ -43,11 +43,11 @@ let wikiDataset = External.fromJS({
 });
 
 let context = {
-  wiki: wikiDataset.addExpression(Expression._.filter($('time').in(TimeRange.fromJS({
+  wiki: wikiDataset.addExpression(Expression._.filter($('time').overlap(TimeRange.fromJS({
     start: new Date("2013-02-26T00:00:00Z"),
     end: new Date("2013-02-27T00:00:00Z")
   })))),
-  wikiCmp: wikiDataset.addExpression(Expression._.filter($('time').in(TimeRange.fromJS({
+  wikiCmp: wikiDataset.addExpression(Expression._.filter($('time').overlap(TimeRange.fromJS({
     start: new Date("2013-02-25T00:00:00Z"),
     end: new Date("2013-02-26T00:00:00Z")
   }))))
@@ -669,7 +669,7 @@ describe("External", () => {
         $('time').timeFloor('P1D', 'Etc/UTC'),
         $('time').timeBucket('P1D', 'Etc/UTC'),
         $('language').is('en').and($('time').timeFloor('PT1H', 'Etc/UTC').is('$blah')),
-        $('time').in(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:00Z'))
+        $('time').overlap(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:00Z'))
       ];
 
       for (let ex of exs) {
@@ -684,7 +684,7 @@ describe("External", () => {
         $('time').timeFloor('PT1M', 'Etc/UTC'),
         $('time').timeFloor('PT1S', 'Etc/UTC'),
         $('language').is('en').and($('time').timeFloor('PT1M', 'Etc/UTC').is('$blah')),
-        $('time').in(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:01Z'))
+        $('time').overlap(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:01Z'))
       ];
 
       for (let ex of exs) {
@@ -727,7 +727,7 @@ describe("External", () => {
         expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice', 'language', 'pageTm']);
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
         `);
       });
 
@@ -771,7 +771,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -790,7 +790,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -807,7 +807,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -837,7 +837,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -854,7 +854,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -871,7 +871,7 @@ describe("External", () => {
         let externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -894,7 +894,7 @@ describe("External", () => {
 
         expect(externalDataset.mode).to.equal('value');
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
@@ -914,7 +914,7 @@ describe("External", () => {
 
         expect(externalDataset.mode).to.equal('total');
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -936,7 +936,7 @@ describe("External", () => {
 
         expect(externalDataset.mode).to.equal('total');
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -959,7 +959,7 @@ describe("External", () => {
         let externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -998,7 +998,7 @@ describe("External", () => {
         let externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -1027,7 +1027,7 @@ describe("External", () => {
         let externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -1062,7 +1062,7 @@ describe("External", () => {
         expect(externalDataset.derivedAttributes).to.have.all.keys(['addedTwice', 'language', 'pageTm']);
 
         expect(externalDataset.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
         `);
 
         expect(externalDataset.applies.join('\n')).to.equal(sane`
@@ -1105,7 +1105,7 @@ describe("External", () => {
         let external0 = readyExternals[0].external;
 
         expect(external0.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
         `);
 
         expect(external0.applies.join('\n')).to.equal(sane`
@@ -1125,7 +1125,7 @@ describe("External", () => {
         let external1 = readyExternals[1].expressionAlterations[1].external;
 
         expect(external1.filter.toString()).to.equal(sane`
-          $time:TIME.in([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
+          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
         `);
 
         expect(external1.applies.join('\n')).to.equal(sane`

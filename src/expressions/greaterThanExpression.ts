@@ -53,11 +53,11 @@ export class GreaterThanExpression extends ChainableUnaryExpression {
     const { operand, expression } = this;
 
     if (expression instanceof LiteralExpression) { // x > 7
-      return operand.in(r(Range.fromJS({ start: expression.value, end: null, bounds: '()' })));
+      return operand.overlap(r(Range.fromJS({ start: expression.value, end: null, bounds: '()' })));
     }
 
     if (operand instanceof LiteralExpression) { // 7 > x
-      return expression.in(r(Range.fromJS({ start: null, end: operand.value, bounds: '()' })));
+      return expression.overlap(r(Range.fromJS({ start: null, end: operand.value, bounds: '()' })));
     }
 
     return this;

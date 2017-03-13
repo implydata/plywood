@@ -24,7 +24,7 @@ export class ContainsExpression extends ChainableUnaryExpression {
   static IGNORE_CASE = 'ignoreCase';
 
   static caseIndependent(str: string): boolean {
-    return str === str.toLowerCase();
+    return str.toUpperCase() === str.toLowerCase();
   }
 
   static op = "Contains";

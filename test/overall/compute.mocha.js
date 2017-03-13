@@ -2099,7 +2099,7 @@ describe("compute native", () => {
     let ds = Dataset.fromJS(data).hide();
 
     let ex = ply()
-      .apply('Data', ply(ds).filter($('price').in(105, 305)))
+      .apply('Data', ply(ds).filter($('price').overlap(105, 305)))
       .apply('Count', '$Data.count()');
 
     return ex.compute()
@@ -2330,8 +2330,8 @@ describe("compute native", () => {
       let ds = Dataset.fromJS(data).hide();
 
       let ex = ply()
-        .apply('Data1', ply(ds).filter($('price').in(105, 305)))
-        .apply('Data2', ply(ds).filter($('price').in(105, 305).not()))
+        .apply('Data1', ply(ds).filter($('price').overlap(105, 305)))
+        .apply('Data2', ply(ds).filter($('price').overlap(105, 305).not()))
         .apply('Count1', '$Data1.count()')
         .apply('Count2', '$Data2.count()')
         .apply(

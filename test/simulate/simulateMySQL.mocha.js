@@ -291,7 +291,7 @@ describe("simulate MySQL", () => {
 
   it("works multi-dimensional GROUP BYs", () => {
     let ex = ply()
-      .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
+      .apply("diamonds", $('diamonds').filter($("color").overlap(['A', 'B', 'some_color'])))
       .apply(
         'Cuts',
         $("diamonds").split({ 'Cut': "$cut", 'Color': '$color' })

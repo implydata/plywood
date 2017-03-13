@@ -53,11 +53,11 @@ export class LessThanOrEqualExpression extends ChainableUnaryExpression {
     const { operand, expression } = this;
 
     if (expression instanceof LiteralExpression) { // x <= 7
-      return operand.in(r(Range.fromJS({ start: null, end: expression.value, bounds: '(]' })));
+      return operand.overlap(r(Range.fromJS({ start: null, end: expression.value, bounds: '(]' })));
     }
 
     if (operand instanceof LiteralExpression) { // 7 <= x
-      return expression.in(r(Range.fromJS({ start: operand.value, end: null, bounds: '[)' })));
+      return expression.overlap(r(Range.fromJS({ start: operand.value, end: null, bounds: '[)' })));
     }
 
     return this;

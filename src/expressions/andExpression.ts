@@ -19,9 +19,9 @@ import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression,
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Set } from '../datatypes/index';
 
-const IS_OR_IN: Lookup<boolean> = {
+const IS_OR_OVERLAP: Lookup<boolean> = {
   'is': true,
-  'in': true
+  'overlap': true
 };
 
 export class AndExpression extends ChainableUnaryExpression {
@@ -33,16 +33,16 @@ export class AndExpression extends ChainableUnaryExpression {
   static merge(ex1: Expression, ex2: Expression): Expression | null {
     if (ex1.equals(ex2)) return ex1;
 
-    if (!IS_OR_IN[ex1.op] || !IS_OR_IN[ex2.op]) return null;
+    if (!IS_OR_OVERLAP[ex1.op] || !IS_OR_OVERLAP[ex2.op]) return null;
     const { operand: lhs1, expression: rhs1 } = ex1 as ChainableUnaryExpression;
     const { operand: lhs2, expression: rhs2 } = ex2 as ChainableUnaryExpression;
 
-    if (!lhs1.equals(lhs2) || !rhs1.isOp('literal') || !rhs2.isOp('literal')) return null;
+    if (!lhs1.equals(lhs2) || !Set.isAtomicType(lhs1.type) || !rhs1.isOp('literal') || !rhs2.isOp('literal')) return null;
 
-    let intersect = Set.generalIntersect(rhs1.getLiteralValue(), rhs2.getLiteralValue());
+    let intersect = Set.intersectCover(rhs1.getLiteralValue(), rhs2.getLiteralValue());
     if (intersect === null) return null;
 
-    return Expression.inOrIs(lhs1, intersect);
+    return lhs1.overlap(intersect).simplify();
   }
 
   constructor(parameters: ExpressionValue) {

@@ -214,7 +214,7 @@ var fns = {
   MINUTE: function(op, tz) { return upgrade(op).timePart('MINUTE_OF_HOUR', tz); },
   SECOND: function(op, tz) { return upgrade(op).timePart('SECOND_OF_MINUTE', tz); },
   DATE: function(op, tz) { return upgrade(op).timeFloor('P1D', tz); },
-  TIMESTAMP: function(op) { return upgrade(op).bumpStringLiteralToTime(); },
+  TIMESTAMP: function(op) { return upgrade(op).upgradeToType('TIME'); },
   TIME: function() { error('time literals are not supported'); },
   DATE_ADD: dateAddSub,
   DATE_SUB: dateAddSub,
@@ -798,7 +798,7 @@ ComparisonExpressionRhsNotable
     }
   / InToken list:(InSetLiteralExpression / AdditiveExpression)
     {
-      return function(ex) { return ex.in(list); };
+      return function(ex) { return ex.is(list); };
     }
   / ContainsToken string:String
     {

@@ -21,7 +21,7 @@ var context = {
 
 var ex = ply()
   .apply("wiki",
-    $('wiki').filter($("time").in({
+    $('wiki').filter($("time").overlap({
       start: new Date("2015-08-26T00:00:00Z"),
       end: new Date("2015-08-27T00:00:00Z")
     }))

@@ -41,7 +41,7 @@ let context = {
     timeAttribute: 'time',
     attributes,
     allowSelectQueries: true,
-    filter: $("time").in({
+    filter: $("time").overlap({
       start: new Date('2015-03-12T00:00:00'),
       end: new Date('2015-03-19T00:00:00')
     })

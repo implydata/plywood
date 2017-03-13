@@ -17,18 +17,23 @@
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlyType } from '../types';
-import { PlywoodValue, Set } from '../datatypes/index';
+import { PlywoodValue, Set, Range, PlywoodRange, NumberRange, TimeRange, StringRange } from '../datatypes/index';
 import { LiteralExpression } from './literalExpression';
-import { IndexOfExpression } from './indexOfExpression';
-import { NumberRange } from '../datatypes/numberRange';
-import { TimeRange } from '../datatypes/timeRange';
-import { PlywoodRange } from '../datatypes/range';
-import { StringRange } from '../datatypes/stringRange';
+import { OverlapExpression } from './overlapExpression';
 
 export class InExpression extends ChainableUnaryExpression {
   static op = "In";
   static fromJS(parameters: ExpressionJS): InExpression {
-    return new InExpression(ChainableUnaryExpression.jsToValue(parameters));
+    const value = ChainableUnaryExpression.jsToValue(parameters);
+
+    // Back compat.
+    if (Range.isRangeType(value.expression.type)) {
+      console.warn('In -> Overlap');
+      value.op = 'overlap';
+      return (new OverlapExpression(value) as any);
+    }
+
+    return new InExpression(value);
   }
 
   constructor(parameters: ExpressionValue) {
@@ -41,10 +46,10 @@ export class InExpression extends ChainableUnaryExpression {
       if (!(
           operandType === 'NULL' ||
           expression.type === 'NULL' ||
-          (!Set.isSetType(operandType) && expression.canHaveType('SET')) ||
-          (operandType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE')) ||
-          (operandType === 'STRING' && expression.canHaveType('STRING_RANGE')) ||
-          (operandType === 'TIME' && expression.canHaveType('TIME_RANGE'))
+          (!Set.isSetType(operandType) && expression.canHaveType('SET')) // ||
+          // (operandType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE')) ||
+          // (operandType === 'STRING' && expression.canHaveType('STRING_RANGE')) ||
+          // (operandType === 'TIME' && expression.canHaveType('TIME_RANGE'))
         )) {
         throw new TypeError(`in expression ${this} has a bad type combination ${operandType} IN ${expression.type || '*'}`);
       }
@@ -83,10 +88,6 @@ export class InExpression extends ChainableUnaryExpression {
 
           return `((_=${operandJS}),${cmpStrings.join('&&')})`;
 
-        case 'SET/STRING':
-          let valueSet: Set = expression.value;
-          return `${JSON.stringify(valueSet.elements)}.indexOf(${operandJS})>-1`;
-
         default:
           throw new Error(`can not convert ${this} to JS function, unsupported type ${expression.type}`);
       }
@@ -114,10 +115,6 @@ export class InExpression extends ChainableUnaryExpression {
         }
         throw new Error(`can not convert action to SQL ${this}`);
 
-      case 'SET/STRING':
-      case 'SET/NUMBER':
-        return `${operandSQL} IN ${expressionSQL}`;
-
       case 'SET/NUMBER_RANGE':
       case 'SET/TIME_RANGE':
         if (expression instanceof LiteralExpression) {
@@ -136,44 +133,8 @@ export class InExpression extends ChainableUnaryExpression {
   public specialSimplify(): Expression {
     const { operand, expression } = this;
 
-    let literalValue: Set = expression.getLiteralValue();
-
-    if (literalValue instanceof Set) {
-      // X.in({})
-      if (literalValue.empty()) return Expression.FALSE;
-
-      if (literalValue && !literalValue.isNullSet()) {
-        if (literalValue.size() === 1) {
-          if (Set.wrapSetType(operand.type) === expression.type) {
-            // This is x:NUMBER in Set(1)
-            //      or x:NUMBER_RANGE in Set(Range(1,2))
-            return operand.is(r(literalValue.elements[0]));
-          } else if (Set.wrapSetType((operand.type + '_RANGE') as PlyType) === expression.type) {
-            // This is x:NUMBER in Set(Range(1,2))
-            return operand.in(r(literalValue.elements[0]));
-          } else {
-            return this;
-          }
-        }
-
-        let unifiedSetValue = literalValue.unifyElements();
-        if (!literalValue.equals(unifiedSetValue)) {
-          return operand.in(r(unifiedSetValue));
-        }
-      }
-
-    }
-
-    // X.indexOf(Y).in([start, end])
-    if (operand instanceof IndexOfExpression && literalValue instanceof NumberRange) {
-      const { operand: x, expression: y } = operand;
-      const { start, end, bounds } = literalValue;
-
-      // contains could be either start less than 0 or start === 0 with inclusive bounds
-      if ((start < 0 && end === null) || (start === 0 && end === null && bounds[0] === '[')) {
-        return x.contains(y);
-      }
-    }
+    // NotSet.in(Y) => NotSet.is(Y)
+    if (operand.type && !Set.isSetType(operand.type)) return operand.is(expression);
 
     return this;
   }

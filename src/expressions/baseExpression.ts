@@ -508,18 +508,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return Expression.fromJS(expressionJS);
   }
 
-  static inOrIs(lhs: Expression, value: any): Expression {
-    let literal = r(value);
-    let literalType = literal.type;
-    let returnExpression: Expression = null;
-    if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || literalType === 'STRING_RANGE' || Set.isSetType(literalType)) {
-      returnExpression = lhs.in(literal);
-    } else {
-      returnExpression = lhs.is(literal);
-    }
-    return returnExpression.simplify();
-  }
-
   static jsNullSafetyUnary(inputJS: string, ifNotNull: (str: string) => string): string {
     return `(_=${inputJS},(_==null?null:${ifNotNull('_')}))`;
   }
@@ -1057,10 +1045,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return null;
   }
 
-  public bumpStringLiteralToSetString(): Expression {
-    return this;
-  }
-
   public upgradeToType(targetType: PlyType): Expression {
     return this;
   }
@@ -1181,11 +1165,24 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return new MatchExpression({ operand: this, regexp: getString(re) });
   }
 
-  public in(start: Date, end: Date): InExpression;
-  public in(start: number, end: number): InExpression;
-  public in(start: string, end: string): InExpression;
-  public in(ex: any): InExpression;
-  public in(ex: any, snd?: any): InExpression {
+  public in(ex: any): InExpression {
+    if (arguments.length === 2) {
+      // Back Compat
+      //return this.overlap(ex, arguments[1]) as any;
+      throw new Error('temp fail');
+    }
+
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
+
+    // Back Compat
+    if (Range.isRangeType(ex.type)) {
+      return (new OverlapExpression({ operand: this, expression: ex }) as any);
+    }
+
+    return new InExpression({ operand: this, expression: ex });
+  }
+
+  public overlap(ex: any, snd?: Date | number | string) {
     if (arguments.length === 2) {
       ex = getValue(ex);
       snd = getValue(snd);
@@ -1202,21 +1199,17 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
       if (typeof ex === 'number' && typeof snd === 'number') {
         ex = new NumberRange({ start: ex, end: snd });
-      } else if (ex.toISOString && snd.toISOString) {
-        ex = new TimeRange({ start: ex, end: snd });
+      } else if (ex.toISOString && (snd as Date).toISOString) {
+        ex = new TimeRange({ start: ex, end: (snd as Date) });
       } else if (typeof ex === 'string' && typeof snd === 'string') {
         ex = new StringRange({ start: ex, end: snd });
       } else {
         throw new Error('uninterpretable IN parameters');
       }
     }
-    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
-    return new InExpression({ operand: this, expression: ex });
-  }
 
-  public overlap(ex: any) {
     if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
-    return new OverlapExpression({ operand: this, expression: ex.bumpStringLiteralToSetString() });
+    return new OverlapExpression({ operand: this, expression: ex });
   }
 
   public not() {
