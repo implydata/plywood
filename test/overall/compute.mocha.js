@@ -1522,8 +1522,7 @@ describe("compute native", () => {
                 ]
               }
             }
-          ],
-          "keys": []
+          ]
         });
       });
   });

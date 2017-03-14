@@ -17,8 +17,7 @@
 import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
 import { SQLDialect } from '../dialect/baseDialect';
 import { PlyType } from '../types';
-import { PlywoodValue, Set, Range, PlywoodRange, NumberRange, TimeRange, StringRange } from '../datatypes/index';
-import { LiteralExpression } from './literalExpression';
+import { PlywoodValue, Set, Range } from '../datatypes/index';
 import { OverlapExpression } from './overlapExpression';
 
 export class InExpression extends ChainableUnaryExpression {
@@ -28,7 +27,7 @@ export class InExpression extends ChainableUnaryExpression {
 
     // Back compat.
     if (Range.isRangeType(value.expression.type)) {
-      console.warn('In -> Overlap');
+      console.warn('InExpression should no longer be used for ranges use OverlapExpression instead');
       value.op = 'overlap';
       return (new OverlapExpression(value) as any);
     }
@@ -46,10 +45,7 @@ export class InExpression extends ChainableUnaryExpression {
       if (!(
           operandType === 'NULL' ||
           expression.type === 'NULL' ||
-          (!Set.isSetType(operandType) && expression.canHaveType('SET')) // ||
-          // (operandType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE')) ||
-          // (operandType === 'STRING' && expression.canHaveType('STRING_RANGE')) ||
-          // (operandType === 'TIME' && expression.canHaveType('TIME_RANGE'))
+          (!Set.isSetType(operandType) && expression.canHaveType('SET'))
         )) {
         throw new TypeError(`in expression ${this} has a bad type combination ${operandType} IN ${expression.type || '*'}`);
       }
@@ -67,67 +63,11 @@ export class InExpression extends ChainableUnaryExpression {
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    const { expression } = this;
-    if (expression instanceof LiteralExpression) {
-      switch (expression.type) {
-        case 'NUMBER_RANGE':
-        case 'STRING_RANGE':
-        case 'TIME_RANGE':
-          let range: PlywoodRange = expression.value;
-          let r0 = range.start;
-          let r1 = range.end;
-          let bounds = range.bounds;
-
-          let cmpStrings: string[] = [];
-          if (r0 != null) {
-            cmpStrings.push(`${JSON.stringify(r0)} ${bounds[0] === '(' ? '<' : '<='} _`);
-          }
-          if (r1 != null) {
-            cmpStrings.push(`_ ${bounds[1] === ')' ? '<' : '<='} ${JSON.stringify(r1)}`);
-          }
-
-          return `((_=${operandJS}),${cmpStrings.join('&&')})`;
-
-        default:
-          throw new Error(`can not convert ${this} to JS function, unsupported type ${expression.type}`);
-      }
-    }
-
     throw new Error(`can not convert ${this} to JS function`);
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    let expression = this.expression;
-    let expressionType = expression.type;
-    switch (expressionType) {
-      case 'NUMBER_RANGE':
-      case 'TIME_RANGE':
-        if (expression instanceof LiteralExpression) {
-          let range: (NumberRange | TimeRange) = expression.value;
-          return dialect.inExpression(operandSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
-        }
-        throw new Error(`can not convert action to SQL ${this}`);
-
-      case 'STRING_RANGE':
-        if (expression instanceof LiteralExpression) {
-          let stringRange: StringRange = expression.value;
-          return dialect.inExpression(operandSQL, dialect.escapeLiteral(stringRange.start), dialect.escapeLiteral(stringRange.end), stringRange.bounds);
-        }
-        throw new Error(`can not convert action to SQL ${this}`);
-
-      case 'SET/NUMBER_RANGE':
-      case 'SET/TIME_RANGE':
-        if (expression instanceof LiteralExpression) {
-          let setOfRange: Set = expression.value;
-          return setOfRange.elements.map((range: (NumberRange | TimeRange)) => {
-            return dialect.inExpression(operandSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
-          }).join(' OR ');
-        }
-        throw new Error(`can not convert action to SQL ${this}`);
-
-      default:
-        throw new Error(`can not convert action to SQL ${this}`);
-    }
+    throw new Error(`can not convert action to SQL ${this}`);
   }
 
   public specialSimplify(): Expression {

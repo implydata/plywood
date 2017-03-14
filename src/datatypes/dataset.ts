@@ -248,7 +248,7 @@ function copy(obj: Lookup<any>): Lookup<any> {
 export interface DatasetValue {
   attributes?: Attributes;
   keys?: string[];
-  data?: Datum[];
+  data: Datum[];
   suppress?: boolean;
 }
 
@@ -360,30 +360,29 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       throw new Error('must have data');
     }
 
-    let value: DatasetValue = {};
+    let attributes: Attributes | undefined = undefined;
     let attributeLookup: Lookup<AttributeInfo> = {};
     if (parameters.attributes) {
-      const attributes = AttributeInfo.fromJSs(parameters.attributes);
-      value.attributes = attributes;
+      attributes = AttributeInfo.fromJSs(parameters.attributes);
       for (let attribute of attributes) attributeLookup[attribute.name] = attribute;
     }
 
-    value.keys = parameters.keys || null;
-    value.data = parameters.data.map((d) => Dataset.datumFromJS(d, attributeLookup));
-    return new Dataset(value);
+    return new Dataset({
+      attributes,
+      keys: parameters.keys || [],
+      data: parameters.data.map((d) => Dataset.datumFromJS(d, attributeLookup))
+    });
   }
 
   public suppress: boolean;
   public attributes: Attributes = null;
-  public keys: string[] | null = null;
+  public keys: string[];
   public data: Datum[];
 
   constructor(parameters: DatasetValue) {
     if (parameters.suppress === true) this.suppress = true;
 
-    if (parameters.keys) {
-      this.keys = parameters.keys;
-    }
+    this.keys = parameters.keys || [];
     let data = parameters.data;
     if (!Array.isArray(data)) {
       throw new TypeError("must have a `data` array");
@@ -397,17 +396,18 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public valueOf(): DatasetValue {
-    let value: DatasetValue = {};
+    let value: DatasetValue = {
+      keys: this.keys,
+      attributes: this.attributes,
+      data: this.data
+    };
     if (this.suppress) value.suppress = true;
-    if (this.attributes) value.attributes = this.attributes;
-    if (this.keys) value.keys = this.keys;
-    value.data = this.data;
     return value;
   }
 
   public toJS(): DatasetJS {
     const js: DatasetJSFull = {};
-    if (this.keys) js.keys = this.keys;
+    if (this.keys.length) js.keys = this.keys;
     if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
     js.data = this.data.map(Dataset.datumToJS);
     return js;
@@ -810,7 +810,6 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       finalData[i][datasetName] = new Dataset({
         suppress: true,
         attributes,
-        keys: null,
         data: finalDataset[i]
       });
     }

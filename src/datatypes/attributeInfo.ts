@@ -152,8 +152,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
   public dropOriginInfo(): AttributeInfo {
     let value = this.valueOf();
-    value.maker = null;
-    value.nativeType = null;
+    delete value.maker;
+    delete value.nativeType;
     value.unsplitable = false;
     return new AttributeInfo(value);
   }

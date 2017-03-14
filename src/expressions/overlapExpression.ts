@@ -40,9 +40,9 @@ export class OverlapExpression extends ChainableUnaryExpression {
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     return Set.crossBinaryBoolean(operandValue, expressionValue, (a, b) => {
       if (a instanceof Range) {
-        return b instanceof Range ? a.intersects(b) : a.contains(b);
+        return b instanceof Range ? a.intersects(b) : a.containsValue(b);
       } else {
-        return b instanceof Range ? b.contains(a) : a === b;
+        return b instanceof Range ? b.containsValue(a) : a === b;
       }
     });
   }

@@ -361,8 +361,7 @@ describe("compute native nontrivial data", function() {
                 ]
               }
             }
-          ],
-          "keys": []
+          ]
         });
       });
   });

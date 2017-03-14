@@ -101,7 +101,6 @@ describe("ValueStream", () => {
               "type": "DATASET"
             }
           ],
-          "keys": null,
           "type": "init"
         },
         {
@@ -127,7 +126,6 @@ describe("ValueStream", () => {
                 "type": "NUMBER"
               }
             ],
-            "keys": null,
             "type": "init"
           }
         },
@@ -176,7 +174,6 @@ describe("ValueStream", () => {
                 "type": "NUMBER"
               }
             ],
-            "keys": null,
             "type": "init"
           }
         },
@@ -502,8 +499,7 @@ describe("ValueStream", () => {
               ]
             }
           }
-        ],
-        "keys": []
+        ]
       });
 
     });

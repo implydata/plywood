@@ -269,8 +269,7 @@ describe("evaluate step", () => {
             "Total": 4,
             "TotalX2": 4
           }
-        ],
-        "keys": []
+        ]
       }
     });
 
@@ -428,8 +427,7 @@ describe("evaluate step", () => {
             "Total": 4,
             "TotalX2": 4
           }
-        ],
-        "keys": []
+        ]
       }
     });
 

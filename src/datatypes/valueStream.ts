@@ -89,11 +89,12 @@ export function datasetIteratorFactory(dataset: Dataset): PlywoodValueIterator {
   return () => {
     if (curRowIndex === -2) { // Initial run
       curRowIndex++;
-      return {
+      let initEvent: PlyBit = {
         type: 'init',
-        attributes: dataset.attributes,
-        keys: dataset.keys
+        attributes: dataset.attributes
       };
+      if (dataset.keys.length) initEvent.keys = dataset.keys;
+      return initEvent;
     }
 
     let pb: PlyBit;

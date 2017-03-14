@@ -430,16 +430,15 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   public contains(value: any): boolean {
-    return Range.isRangeType(this.setType) ? this.containsWithin(value) : hasOwnProp(this.hash, this.keyFn(value));
-  }
-
-  public containsWithin(value: any): boolean {
-    let elements = this.elements;
-    for (let k in elements) {
-      if (!hasOwnProp(elements, k)) continue;
-      if ((<NumberRange>elements[k]).contains(value)) return true;
+    if (value instanceof Set) {
+      return value.elements.every((element) => this.contains(element));
     }
-    return false;
+
+    if (Range.isRangeType(this.setType)) {
+      return this.elements.some((element) => (element as NumberRange).contains(value));
+    } else {
+      return hasOwnProp(this.hash, this.keyFn(value));
+    }
   }
 
   public add(value: any): Set {

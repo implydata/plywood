@@ -21,7 +21,7 @@ let { testImmutableClass } = require("immutable-class-tester");
 
 let { Timezone } = require('chronoshift');
 let plywood = require('../plywood');
-let { Set, $, ply, r } = plywood;
+let { Set, $, ply, r, NumberRange } = plywood;
 
 describe("Set", () => {
   it("is immutable class", () => {
@@ -478,5 +478,46 @@ describe("Set", () => {
       });
     });
   });
+
+
+  describe("#contains", () => {
+    let s = Set.fromJS({
+      setType: 'NUMBER_RANGE',
+      elements: [
+        { start: 1, end: 3 },
+        { start: 10, end: 30 }
+      ]
+    });
+
+    it('works correctly with atomics', () => {
+      expect(s.contains(1), '1').to.deep.equal(true);
+      expect(s.contains(2), '2').to.deep.equal(true);
+      expect(s.contains(3), '3').to.deep.equal(false);
+      expect(s.contains(4), '4').to.deep.equal(false);
+
+      expect(s.contains(15), '15').to.deep.equal(true);
+    });
+
+    it('works correctly with ranges', () => {
+      //expect(s.contains(NumberRange.fromJS({ start: 1, end: 2 }), '1-2')).to.deep.equal(true);
+      expect(s.contains(NumberRange.fromJS({ start: 2, end: 3 }), '2-3')).to.deep.equal(true);
+      expect(s.contains(NumberRange.fromJS({ start: 3, end: 4 }), '3-4')).to.deep.equal(false);
+    });
+
+    it('works correctly with sets', () => {
+      expect(s.contains(Set.fromJS([{ start: 1, end: 2 }]), '[1-2]')).to.deep.equal(true);
+      expect(s.contains(Set.fromJS([{ start: 2, end: 3 }]), '[2-3]')).to.deep.equal(true);
+      expect(s.contains(Set.fromJS([{ start: 3, end: 4 }]), '[3-4]')).to.deep.equal(false);
+
+      expect(s.contains(Set.fromJS([{ start: 2, end: 3 }, { start: 15, end: 16 }]), '[2-3, 15-16]')).to.deep.equal(true);
+      expect(s.contains(Set.fromJS([{ start: 2, end: 3 }, { start: 15, end: 36 }]), '[2-3, 15-36]')).to.deep.equal(false);
+    });
+  });
+
+  /*
+  "[{"start":"2015-09-12T23:00:00.000Z","end":"2015-09-13T00:00:00.000Z"}]"
+  JSON.stringify(temp2)
+  "[{"start":"2015-09-12T04:00:00.000Z","end":"2015-09-12T05:00:00.000Z"}]"
+  */
 
 });

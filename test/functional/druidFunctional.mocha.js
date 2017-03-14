@@ -396,8 +396,7 @@ describe("Druid Functional", function() {
               {
                 "Count": 35485
               }
-            ],
-            "keys": []
+            ]
           });
 
           expect(result.flatten().toJS()).to.deep.equal({
@@ -433,8 +432,7 @@ describe("Druid Functional", function() {
               {
                 "max(time)": new Date('2015-09-12T23:00:00.000Z')
               }
-            ],
-            "keys": []
+            ]
           });
         });
     });

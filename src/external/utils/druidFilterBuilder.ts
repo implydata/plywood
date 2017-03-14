@@ -230,13 +230,9 @@ export class DruidFilterBuilder {
       if (this.versionBefore('0.8.2')) throw new Error(`can not express aggregate filter ${filter} in druid < 0.8.2`);
       return this.makeExtractionFilter(filter);
 
-    } else if (filter instanceof InExpression || filter instanceof OverlapExpression) {
+    } else if (filter instanceof OverlapExpression) {
       const { operand: lhs, expression: rhs } = filter;
-      // Special handling for r('some_tag').in($tags)
-      if (filter instanceof InExpression && lhs instanceof LiteralExpression) {
-        return this.makeSelectorFilter(rhs, lhs.value);
-
-      } else if (rhs instanceof LiteralExpression) {
+      if (rhs instanceof LiteralExpression) {
         let rhsType = rhs.type;
         if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
           return this.makeInFilter(lhs, rhs.value);
@@ -244,16 +240,14 @@ export class DruidFilterBuilder {
         } else if (rhsType === 'NUMBER_RANGE' || rhsType === 'TIME_RANGE' || rhsType === 'STRING_RANGE') {
           return this.makeBoundFilter(lhs, rhs.value);
 
-        } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE') {
-          let elements = rhs.value.elements;
-          let fields = elements.map((range: PlywoodRange) => {
-            return this.makeBoundFilter(lhs, range);
-          });
-
-          return fields.length === 1 ? fields[0] : { type: "or", fields };
+        } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE' || rhsType === 'SET/STRING_RANGE') {
+          return {
+            type: "or",
+            fields: rhs.value.elements.map((range: PlywoodRange) => this.makeBoundFilter(lhs, range))
+          };
 
         } else {
-          throw new Error(`not supported IN rhs type ${rhsType}`);
+          throw new Error(`not supported OVERLAP rhs type ${rhsType}`);
 
         }
 

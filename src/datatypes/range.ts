@@ -33,7 +33,7 @@ export abstract class Range<T> {
     return type && type.indexOf('_RANGE') > 0;
   }
 
-  static unwrapRangeType(type: PlyType): PlyType {
+  static unwrapRangeType(type: PlyType): PlyType | null {
     if (!type) return null;
     return Range.isRangeType(type) ? <PlyType>type.substr(0, type.length - 6) : type;
   }
@@ -142,7 +142,29 @@ export abstract class Range<T> {
     return this._endpointEqual(this.start, this.end) && this.bounds === '[]';
   }
 
-  public contains(val: T): boolean {
+  public contains(val: T | Range<T>): boolean {
+    if (val instanceof Range) {
+      let valStart = val.start;
+      let valEnd = val.end;
+      let valBound = val.bounds;
+      if (valBound[0] === '[') {
+        if (!this.containsValue(valStart)) return false;
+      } else {
+        if (!this.containsValue(valStart) && valStart !== this.start) return false;
+      }
+      if (valBound[1] === ']') {
+        if (!this.containsValue(valEnd)) return false;
+      } else {
+        if (!this.containsValue(valEnd) && valEnd !== this.end) return false;
+      }
+      return true;
+
+    } else {
+      return this.containsValue(val);
+    }
+  }
+
+  public containsValue(val: T): boolean {
     if (val === null) return false;
 
     let start = this.start;
@@ -163,10 +185,10 @@ export abstract class Range<T> {
   }
 
   public intersects(other: Range<T>): boolean {
-    return this.contains(other.start)
-      || this.contains(other.end)
-      || other.contains(this.start)
-      || other.contains(this.end)
+    return this.containsValue(other.start)
+      || this.containsValue(other.end)
+      || other.containsValue(this.start)
+      || other.containsValue(this.end)
       || this._equalsHelper(other); // in case of (0, 1) and (0, 1)
   }
 
