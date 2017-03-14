@@ -150,12 +150,12 @@ export abstract class Range<T> {
       if (valBound[0] === '[') {
         if (!this.containsValue(valStart)) return false;
       } else {
-        if (!this.containsValue(valStart) && valStart !== this.start) return false;
+        if (!this.containsValue(valStart) && valStart.valueOf() !== this.start.valueOf()) return false;
       }
       if (valBound[1] === ']') {
         if (!this.containsValue(valEnd)) return false;
       } else {
-        if (!this.containsValue(valEnd) && valEnd !== this.end) return false;
+        if (!this.containsValue(valEnd) && valEnd.valueOf() !== this.end.valueOf()) return false;
       }
       return true;
 

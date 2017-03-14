@@ -429,15 +429,20 @@ export class Set implements Instance<SetValue, SetJS> {
     return false;
   }
 
+  public has(value: any): boolean {
+    return hasOwnProp(this.hash, this.keyFn(value));
+  }
+
   public contains(value: any): boolean {
     if (value instanceof Set) {
       return value.elements.every((element) => this.contains(element));
     }
 
     if (Range.isRangeType(this.setType)) {
-      return this.elements.some((element) => (element as NumberRange).contains(value));
+      if (value instanceof Range && this.has(value)) return true; // Shortcut
+      return this.elements.some((element) => (element as PlywoodRange).contains(value));
     } else {
-      return hasOwnProp(this.hash, this.keyFn(value));
+      return this.has(value);
     }
   }
 

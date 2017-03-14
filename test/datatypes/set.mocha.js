@@ -481,7 +481,7 @@ describe("Set", () => {
 
 
   describe("#contains", () => {
-    let s = Set.fromJS({
+    let nrs = Set.fromJS({
       setType: 'NUMBER_RANGE',
       elements: [
         { start: 1, end: 3 },
@@ -489,35 +489,54 @@ describe("Set", () => {
       ]
     });
 
+    let trs = Set.fromJS({
+      setType: 'TIME_RANGE',
+      elements: [
+        { start: new Date('2015-09-12T22:00:00Z'), end: new Date('2015-09-12T23:00:00Z') },
+        { start: new Date('2015-09-12T23:00:00Z'), end: new Date('2015-09-13T00:00:00Z') }
+      ]
+    });
+
     it('works correctly with atomics', () => {
-      expect(s.contains(1), '1').to.deep.equal(true);
-      expect(s.contains(2), '2').to.deep.equal(true);
-      expect(s.contains(3), '3').to.deep.equal(false);
-      expect(s.contains(4), '4').to.deep.equal(false);
+      expect(nrs.contains(1), '1').to.equal(true);
+      expect(nrs.contains(2), '2').to.equal(true);
+      expect(nrs.contains(3), '3').to.equal(false);
+      expect(nrs.contains(4), '4').to.equal(false);
 
-      expect(s.contains(15), '15').to.deep.equal(true);
+      expect(nrs.contains(15), '15').to.equal(true);
     });
 
-    it('works correctly with ranges', () => {
-      //expect(s.contains(NumberRange.fromJS({ start: 1, end: 2 }), '1-2')).to.deep.equal(true);
-      expect(s.contains(NumberRange.fromJS({ start: 2, end: 3 }), '2-3')).to.deep.equal(true);
-      expect(s.contains(NumberRange.fromJS({ start: 3, end: 4 }), '3-4')).to.deep.equal(false);
+    it('works correctly with number ranges', () => {
+      expect(nrs.contains(NumberRange.fromJS({ start: 1, end: 2 }), '1-2')).to.equal(true);
+      expect(nrs.contains(NumberRange.fromJS({ start: 2, end: 3 }), '2-3')).to.equal(true);
+      expect(nrs.contains(NumberRange.fromJS({ start: 3, end: 4 }), '3-4')).to.equal(false);
     });
 
-    it('works correctly with sets', () => {
-      expect(s.contains(Set.fromJS([{ start: 1, end: 2 }]), '[1-2]')).to.deep.equal(true);
-      expect(s.contains(Set.fromJS([{ start: 2, end: 3 }]), '[2-3]')).to.deep.equal(true);
-      expect(s.contains(Set.fromJS([{ start: 3, end: 4 }]), '[3-4]')).to.deep.equal(false);
-
-      expect(s.contains(Set.fromJS([{ start: 2, end: 3 }, { start: 15, end: 16 }]), '[2-3, 15-16]')).to.deep.equal(true);
-      expect(s.contains(Set.fromJS([{ start: 2, end: 3 }, { start: 15, end: 36 }]), '[2-3, 15-36]')).to.deep.equal(false);
+    it('works correctly with time ranges', () => {
+      expect(trs.contains(NumberRange.fromJS({ start: new Date('2015-09-12T23:00:00Z'), end: new Date('2015-09-13T00:00:00Z') }))).to.equal(true);
     });
+
+    it('works correctly with number sets', () => {
+      expect(nrs.contains(Set.fromJS([{ start: 1, end: 2 }]), '[1-2]')).to.equal(true);
+      expect(nrs.contains(Set.fromJS([{ start: 2, end: 3 }]), '[2-3]')).to.equal(true);
+      expect(nrs.contains(Set.fromJS([{ start: 1, end: 3 }]), '[1-3]')).to.equal(true);
+      expect(nrs.contains(Set.fromJS([{ start: 3, end: 4 }]), '[3-4]')).to.equal(false);
+
+      expect(nrs.contains(Set.fromJS([{ start: 2, end: 3 }, { start: 15, end: 16 }]), '[2-3, 15-16]')).to.equal(true);
+      expect(nrs.contains(Set.fromJS([{ start: 2, end: 3 }, { start: 15, end: 36 }]), '[2-3, 15-36]')).to.equal(false);
+    });
+
+    it('works correctly with time sets', () => {
+      expect(trs.contains(Set.fromJS([
+        { start: new Date('2015-09-12T23:00:00Z'), end: new Date('2015-09-13T00:00:00Z') }
+      ]))).to.equal(true);
+
+      expect(trs.contains(Set.fromJS([
+        { start: new Date('2015-09-12T23:00:00Z'), end: new Date('2015-09-12T23:20:00Z') },
+        { start: new Date('2015-09-12T23:40:00Z'), end: new Date('2015-09-13T00:00:00Z') }
+      ]))).to.equal(true);
+    });
+
   });
-
-  /*
-  "[{"start":"2015-09-12T23:00:00.000Z","end":"2015-09-13T00:00:00.000Z"}]"
-  JSON.stringify(temp2)
-  "[{"start":"2015-09-12T04:00:00.000Z","end":"2015-09-12T05:00:00.000Z"}]"
-  */
 
 });
