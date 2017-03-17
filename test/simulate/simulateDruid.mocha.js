@@ -832,12 +832,6 @@ describe("simulate Druid", () => {
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0][0]).to.deep.equal({
-      "aggregations": [
-        {
-          "name": "!DUMMY",
-          "type": "count"
-        }
-      ],
       "dataSource": "diamonds",
       "dimensions": [
         {
@@ -926,12 +920,6 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "diamonds",
         "dimension": {
           "dimension": "__time",
@@ -954,12 +942,6 @@ describe("simulate Druid", () => {
         "threshold": 1000
       },
       {
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "diamonds",
         "dimensions": [
           {
@@ -1121,9 +1103,14 @@ describe("simulate Druid", () => {
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].having).to.deep.equal({
-      "aggregation": "Count",
-      "type": "greaterThan",
-      "value": 100
+      "filter": {
+        "dimension": "Count",
+        "lower": 100,
+        "lowerStrict": true,
+        "ordering": "numeric",
+        "type": "bound"
+      },
+      "type": "filter"
     });
   });
 
@@ -1136,22 +1123,15 @@ describe("simulate Druid", () => {
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].having).to.deep.equal({
-      "havingSpecs": [
-        {
-          "aggregation": "Count",
-          "type": "greaterThan",
-          "value": 100
-        },
-        {
-          "havingSpec": {
-            "aggregation": "Count",
-            "type": "greaterThan",
-            "value": 200
-          },
-          "type": "not"
-        }
-      ],
-      "type": "and"
+      "filter": {
+        "dimension": "Count",
+        "lower": 100,
+        "lowerStrict": true,
+        "ordering": "numeric",
+        "type": "bound",
+        "upper": 200
+      },
+      "type": "filter"
     });
   });
 
@@ -1165,12 +1145,6 @@ describe("simulate Druid", () => {
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0][0]).to.deep.equal({
-      "aggregations": [
-        {
-          "name": "!DUMMY",
-          "type": "count"
-        }
-      ],
       "dataSource": "diamonds",
       "dimension": {
         "delegate": {
@@ -1207,12 +1181,6 @@ describe("simulate Druid", () => {
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0][0]).to.deep.equal({
-      "aggregations": [
-        {
-          "name": "!DUMMY",
-          "type": "count"
-        }
-      ],
       "dataSource": "diamonds",
       "dimensions": [
         {
@@ -1260,12 +1228,6 @@ describe("simulate Druid", () => {
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0][0]).to.deep.equal({
-      "aggregations": [
-        {
-          "name": "!DUMMY",
-          "type": "count"
-        }
-      ],
       "dataSource": "diamonds",
       "dimensions": [
         {
@@ -1350,9 +1312,14 @@ describe("simulate Druid", () => {
       },
       "granularity": "all",
       "having": {
-        "aggregation": "Count",
-        "type": "greaterThan",
-        "value": 100
+        "filter": {
+          "dimension": "Count",
+          "lower": 100,
+          "lowerStrict": true,
+          "ordering": "numeric",
+          "type": "bound"
+        },
+        "type": "filter"
       },
       "intervals": "2015-03-12T00Z/2015-03-19T00Z",
       "limitSpec": {
@@ -1376,12 +1343,6 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "diamonds-compact",
         "dimension": {
           "dimension": "cut",
@@ -1413,12 +1374,6 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "diamonds-compact",
         "dimension": {
           "dimension": "cut",
@@ -1575,12 +1530,6 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "diamonds",
         "dimension": {
           "dimension": "carat",
@@ -1623,12 +1572,6 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(2);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "diamonds",
         "dimension": {
           "dimension": "tags",
@@ -1750,12 +1693,6 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(2);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "diamonds",
         "dimension": {
           "dimension": "tags",
@@ -2351,7 +2288,7 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "filter": {
-          "alphaNumeric": true,
+          "ordering": "numeric",
           "dimension": "carat",
           "lower": 0,
           "type": "bound",
@@ -2449,12 +2386,6 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(2);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "diamonds-compact",
         "dimension": {
           "dimension": "cut",
@@ -2519,12 +2450,6 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(2);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "diamonds",
         "granularity": {
           "period": "PT1H",
@@ -2885,12 +2810,6 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "diamonds-compact",
         "dimensions": [
           {
@@ -2918,10 +2837,10 @@ describe("simulate Druid", () => {
       .apply(
         'Cuts',
         $("diamonds").split({
-            'Cut': "$cut",
-            'Color': '$color',
-            'TimeByHour': '$time.timeBucket(PT1H, "Etc/UTC")'
-          })
+          'Cut': "$cut",
+          'Color': '$color',
+          'TimeByHour': '$time.timeBucket(PT2H, "Etc/UTC")'
+        })
           .apply('Count', $('diamonds').count())
           .limit(3)
           .apply(
@@ -2958,8 +2877,12 @@ describe("simulate Druid", () => {
           {
             "dimension": "__time",
             "extractionFn": {
-              "format": "yyyy-MM-dd'T'HH':00'Z",
-              "locale": "en-US",
+              "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+              "granularity": {
+                "period": "PT2H",
+                "timeZone": "Etc/UTC",
+                "type": "period"
+              },
               "timeZone": "Etc/UTC",
               "type": "timeFormat"
             },
@@ -3019,7 +2942,7 @@ describe("simulate Druid", () => {
           "type": "and"
         },
         "granularity": "all",
-        "intervals": "2015-03-14T00Z/2015-03-14T01Z",
+        "intervals": "2015-03-14T00Z/2015-03-14T02Z",
         "metric": "Count",
         "queryType": "topN",
         "threshold": 3
@@ -3226,7 +3149,7 @@ describe("simulate Druid", () => {
         ],
         "dataSource": "diamonds",
         "filter": {
-          "alphaNumeric": true,
+          "ordering": "numeric",
           "dimension": "carat",
           "lower": 4,
           "lowerStrict": true,
@@ -3298,7 +3221,7 @@ describe("simulate Druid", () => {
         ],
         "dataSource": "diamonds",
         "filter": {
-          "alphaNumeric": true,
+          "ordering": "numeric",
           "dimension": "carat",
           "lower": 4,
           "lowerStrict": true,
@@ -3311,5 +3234,19 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("works on negative range", () => {
+    let ex = ply()
+      .apply('diamonds', $('diamonds').filter('-10 <= $carat'))
+      .apply('Count', '$diamonds.count()');
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].filter).to.deep.equal({
+      "ordering": "numeric",
+      "dimension": "carat",
+      "lower": -10,
+      "type": "bound"
+    });
+  });
 
 });

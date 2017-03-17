@@ -79,7 +79,7 @@ describe("simulate Druid for amplab benchmark", () => {
           "pageURL"
         ],
         "filter": {
-          "alphaNumeric": true,
+          "ordering": "numeric",
           "dimension": "pageRank",
           "lower": 5,
           "lowerStrict": true,
@@ -132,9 +132,14 @@ describe("simulate Druid for amplab benchmark", () => {
         ],
         "granularity": "all",
         "having": {
-          "aggregation": "pageRank",
-          "type": "greaterThan",
-          "value": 5
+          "filter": {
+            "dimension": "pageRank",
+            "lower": 5,
+            "lowerStrict": true,
+            "ordering": "numeric",
+            "type": "bound"
+          },
+          "type": "filter"
         },
         "intervals": "1000/3000",
         "limitSpec": {

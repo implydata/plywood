@@ -74,7 +74,7 @@ import {
   Range,
   Set
 } from '../datatypes/index';
-import { External, ExternalJS, ExternalValue, Inflater, NextFn, QueryAndPostTransform, TotalContainer } from './baseExternal';
+import { External, ExternalJS, ExternalValue, Inflater, NextFn, QueryAndPostTransform } from './baseExternal';
 import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
 import { DruidExtractionFnBuilder } from './utils/druidExtractionFnBuilder';
 import { DruidFilterBuilder, DruidFilterAndIntervals } from './utils/druidFilterBuilder';
@@ -97,10 +97,6 @@ function expressionNeedsNumericSort(ex: Expression): boolean {
 
 function simpleJSONEqual(a: any, b: any): boolean {
   return JSON.stringify(a) === JSON.stringify(b); // ToDo: fill this in;
-}
-
-export interface Normalizer {
-  (result: any): Datum[];
 }
 
 export interface GranularityInflater {
@@ -277,7 +273,7 @@ export class DruidExternal extends External {
     }
   }
 
-  static segmentMetadataPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
+  static segmentMetadataPostProcessFactory(timeAttribute: string, numericColumnSupport: boolean): IntrospectPostProcess {
     return (res: Druid.SegmentMetadataResults): Attributes => {
       let res0 = res[0];
       if (!res0 || !res0.columns) throw new InvalidResultError('malformed segmentMetadata response', res);
@@ -311,7 +307,7 @@ export class DruidExternal extends External {
                 name,
                 type: 'NUMBER',
                 nativeType,
-                unsplitable: true,
+                unsplitable: !(numericColumnSupport && !hasOwnProp(aggregators, name)),
                 maker: DruidExternal.generateMaker(aggregators[name])
               }));
               break;
@@ -1002,12 +998,14 @@ export class DruidExternal extends External {
 
         // Apply
         aggregationsAndPostAggregations = new DruidAggregationBuilder(this).makeAggregationsAndPostAggregations(applies);
+
         if (aggregationsAndPostAggregations.aggregations.length) {
           druidQuery.aggregations = aggregationsAndPostAggregations.aggregations;
-        } else {
+        } else if (this.versionBefore('0.9.2')) {
           // Druid hates not having aggregates so add a dummy count
           druidQuery.aggregations = [{ name: DruidExternal.DUMMY_NAME, type: "count" }];
         }
+
         if (aggregationsAndPostAggregations.postAggregations.length) {
           druidQuery.postAggregations = aggregationsAndPostAggregations.postAggregations;
         }
@@ -1145,7 +1143,7 @@ export class DruidExternal extends External {
     }
 
     return toArray(requester({ query }))
-      .then(DruidExternal.segmentMetadataPostProcessFactory(timeAttribute));
+      .then(DruidExternal.segmentMetadataPostProcessFactory(timeAttribute, !this.versionBefore('0.10.0')));
   }
 
   protected getIntrospectAttributesWithGet(): Promise<Attributes> {

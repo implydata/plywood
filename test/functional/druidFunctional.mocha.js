@@ -72,6 +72,7 @@ describe("Druid Functional", function() {
     },
     {
       "name": "commentLength",
+      "nativeType": "LONG",
       "type": "NUMBER"
     },
     {
@@ -126,6 +127,7 @@ describe("Druid Functional", function() {
     },
     {
       "name": "deltaBucket100",
+      "nativeType": "FLOAT",
       "type": "NUMBER"
     },
     {
@@ -229,6 +231,11 @@ describe("Druid Functional", function() {
       "type": "TIME"
     },
     {
+      "name": "sometimeLaterMs",
+      "nativeType": "LONG",
+      "type": "NUMBER"
+    },
+    {
       "name": "user",
       "nativeType": "STRING",
       "type": "STRING"
@@ -274,7 +281,7 @@ describe("Druid Functional", function() {
       concatWithConcat: {
         extractionFn: {
           "type" : "javascript",
-          "function" : "function(x) { return x.concat('concat') }"
+          "function" : "function(x) { return String(x).concat('concat') }"
         }
       }
     };
@@ -827,12 +834,14 @@ describe("Druid Functional", function() {
       let ex = $('wiki')
         .filter($("page").customTransform('sliceLastChar').is('z'))
         .split($("page").customTransform('getLastChar'), 'lastChar')
+        .apply('Temp', '$wiki.count()') // ToDo: Temp fix
         .limit(8);
 
       return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
+              Temp: 1984,
               "lastChar": "z"
             }
           ]);
@@ -843,12 +852,14 @@ describe("Druid Functional", function() {
       let ex = $('wiki')
         .filter($("commentLength").customTransform('concatWithConcat', 'STRING').is("'100concat'"))
         .split($("commentLength").customTransform('timesTwo', 'STRING'), "Times Two")
+        .apply('Temp', '$wiki.count()') // ToDo: Temp fix
         .limit(8);
 
       return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
+              Temp: 275,
               "Times Two": "200"
             }
           ]);
@@ -2735,6 +2746,10 @@ describe("Druid Functional", function() {
                 "type": "TIME"
               },
               {
+                "name": "sometimeLaterMs",
+                "type": "NUMBER"
+              },
+              {
                 "name": "user",
                 "type": "STRING"
               },
@@ -2781,6 +2796,7 @@ describe("Druid Functional", function() {
                 "regionIsoCode": "TX",
                 "regionName": "Texas",
                 "sometimeLater": new Date('2016-09-12T06:05:00.000Z'),
+                "sometimeLaterMs": 1473660300000,
                 "time": new Date('2015-09-12T06:05:00.000Z'),
                 "user": "104.58.160.128",
                 "userChars": {
@@ -2828,6 +2844,7 @@ describe("Druid Functional", function() {
                 "regionIsoCode": "TX",
                 "regionName": "Texas",
                 "sometimeLater": new Date('2016-09-12T16:14:00.000Z'),
+                "sometimeLaterMs": 1473696840000,
                 "time": new Date('2015-09-12T16:14:00.000Z'),
                 "user": "67.10.203.15",
                 "userChars": {
@@ -2886,6 +2903,7 @@ describe("Druid Functional", function() {
               "regionIsoCode": null,
               "regionName": null,
               "sometimeLater": new Date('2016-09-12T00:46:00.000Z'),
+              "sometimeLaterMs": 1473641160000,
               "time": new Date('2015-09-12T00:46:00.000Z'),
               "user": "ChandraHelsinky",
               "userChars": {
@@ -3293,8 +3311,6 @@ describe("Druid Functional", function() {
       })),
       attributeOverrides: [
         { "name": "sometimeLater", "type": "TIME" },
-        { "name": "commentLength", "type": "NUMBER" },
-        { "name": "deltaBucket100", "type": "NUMBER" },
         { "name": "isAnonymous", "type": "BOOLEAN" },
         { "name": "isMinor", "type": "BOOLEAN" },
         { "name": "isNew", "type": "BOOLEAN" },

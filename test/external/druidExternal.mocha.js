@@ -38,7 +38,7 @@ let context = {
       { name: 'language', type: 'STRING' },
       { name: 'page', type: 'STRING' },
       { name: 'tags', type: 'SET/STRING' },
-      { name: 'commentLength', type: 'NUMBER' },
+      { name: 'commentLength', type: 'NUMBER', nativeType: 'LONG' },
       { name: 'isRobot', type: 'BOOLEAN' },
       { name: 'count', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
       { name: 'added', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
@@ -929,7 +929,7 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
-        "alphaNumeric": true,
+        "ordering": "numeric",
         "dimension": "commentLength",
         "lower": 10,
         "type": "bound",
@@ -1696,7 +1696,12 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "sometimeLater",
         "extractionFn": {
-          "format": "yyyy-MM-dd'T00:00'Z",
+          "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+          "granularity": {
+            "period": "P1D",
+            "timeZone": "Etc/UTC",
+            "type": "period"
+          },
           "locale": "en-US",
           "timeZone": "Etc/UTC",
           "type": "timeFormat"
@@ -1760,12 +1765,6 @@ describe("DruidExternal", () => {
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "wikipedia",
         "dimensions": [
           {
@@ -1804,12 +1803,6 @@ describe("DruidExternal", () => {
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "wikipedia",
         "dimensions": [
           {

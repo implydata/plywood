@@ -266,4 +266,86 @@ describe("simulate Druid 0.9.1", () => {
     ]);
   });
 
+  it("works on negative range", () => {
+    let ex = ply()
+      .apply('diamonds', $('diamonds').filter('-10 <= $carat'))
+      .apply('Count', '$diamonds.count()');
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].filter).to.deep.equal({
+      "dimension": "carat",
+      "function": "function(d){var _,_2;return ((_=parseFloat(d)),-10<=_);}",
+      "type": "javascript"
+    });
+  });
+
+  it("works multi-dimensional GROUP BYs", () => {
+    let ex = ply()
+      .apply("diamonds", $('diamonds').filter($("color").overlap(['A', 'B', 'some_color'])))
+      .apply(
+        'Cuts',
+        $("diamonds").split({
+          'Cut': "$cut",
+          'Color': '$color',
+          'TimeByHour': '$time.timeBucket(PT1H, "Etc/UTC")'
+        })
+          .apply('Count', $('diamonds').count())
+          .limit(3)
+      );
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "name": "Count",
+            "type": "count"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimensions": [
+          {
+            "dimension": "color",
+            "outputName": "Color",
+            "type": "default"
+          },
+          {
+            "dimension": "cut",
+            "outputName": "Cut",
+            "type": "default"
+          },
+          {
+            "dimension": "__time",
+            "extractionFn": {
+              "format": "yyyy-MM-dd'T'HH':00'Z",
+              "locale": "en-US",
+              "timeZone": "Etc/UTC",
+              "type": "timeFormat"
+            },
+            "outputName": "TimeByHour",
+            "type": "extraction"
+          }
+        ],
+        "filter": {
+          "values": ["A", "B", "some_color"],
+          "type": "in",
+          "dimension": "color"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "limitSpec": {
+          "columns": [
+            { "dimension": "Color" }
+          ],
+          "limit": 3,
+          "type": "default"
+        },
+        "queryType": "groupBy"
+      },
+    ]);
+
+  });
+
 });

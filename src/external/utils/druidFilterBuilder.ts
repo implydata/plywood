@@ -104,7 +104,6 @@ export interface DruidFilterBuilderOptions {
 export class DruidFilterBuilder {
   static TIME_ATTRIBUTE = '__time';
   static TRUE_INTERVAL = "1000/3000";
-  static FALSE_INTERVAL = "1000/1001";
 
 
   public version: string;
@@ -126,7 +125,7 @@ export class DruidFilterBuilder {
 
     if (filter.equals(Expression.FALSE)) {
       return {
-        intervals: DruidFilterBuilder.FALSE_INTERVAL,
+        intervals: [],
         filter: null
       };
     } else {
@@ -145,7 +144,7 @@ export class DruidFilterBuilder {
     if (!filter.canHaveType('BOOLEAN')) throw new Error(`can not filter on ${filter.type}`);
 
     if (filter instanceof LiteralExpression) {
-      if (!filter.value) return DruidFilterBuilder.FALSE_INTERVAL;
+      if (!filter.value) return [];
       if (!this.allowEternity) throw new Error('must filter on time unless the allowEternity flag is set');
       return DruidFilterBuilder.TRUE_INTERVAL;
 
@@ -359,17 +358,20 @@ export class DruidFilterBuilder {
     let r1 = range.end;
     let bounds = range.bounds;
 
-    if (this.versionBefore('0.9.0') || r0 < 0 || r1 < 0) {
+    // only 0.9.0 can handle bounds
+    if (this.versionBefore('0.9.0')) {
       return this.makeJavaScriptFilter(ex.overlap(range));
     }
 
-    if (ex instanceof IndexOfExpression) {
+    // only 0.9.2 can handle bounds with negative start, end
+    if (this.versionBefore('0.9.2') && (r0 < 0 || r1 < 0)) {
       return this.makeJavaScriptFilter(ex.overlap(range));
     }
 
     let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
 
+    // only 0.9.1 can handle extraction functions
     if (this.versionBefore('0.9.1') && extractionFn) {
       return this.makeJavaScriptFilter(ex.overlap(range));
     }
@@ -382,7 +384,14 @@ export class DruidFilterBuilder {
     };
 
     if (extractionFn) boundFilter.extractionFn = extractionFn;
-    if (range instanceof NumberRange) boundFilter.alphaNumeric = true;
+
+    if (range instanceof NumberRange) {
+      if (this.versionBefore('0.9.2')) {
+        boundFilter.alphaNumeric = true;
+      } else {
+        boundFilter.ordering = 'numeric';
+      }
+    }
 
     if (r0 != null) {
       boundFilter.lower = isDate(r0) ? (r0 as Date).toISOString() : (r0 as number | string);

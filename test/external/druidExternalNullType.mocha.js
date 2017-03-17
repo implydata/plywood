@@ -52,7 +52,7 @@ let context = {
     },
     filter: timeFilter,
     allowSelectQueries: true,
-    version: '0.9.2',
+    version: '0.10.0',
     customAggregations: {
       crazy: {
         accessType: 'getSomeCrazy',
@@ -827,7 +827,7 @@ describe("DruidExternal Null Type", () => {
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
-        "alphaNumeric": true,
+        "ordering": "numeric",
         "dimension": "commentLength",
         "lower": 10,
         "type": "bound",
@@ -1471,8 +1471,12 @@ describe("DruidExternal Null Type", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "sometimeLater",
         "extractionFn": {
-          "format": "yyyy-MM-dd'T00:00'Z",
-          "locale": "en-US",
+          "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+          "granularity": {
+            "period": "P1D",
+            "timeZone": "Etc/UTC",
+            "type": "period"
+          },
           "timeZone": "Etc/UTC",
           "type": "timeFormat"
         },
@@ -1535,12 +1539,6 @@ describe("DruidExternal Null Type", () => {
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "wikipedia",
         "dimensions": [
           {
@@ -1579,12 +1577,6 @@ describe("DruidExternal Null Type", () => {
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "wikipedia",
         "dimensions": [
           {

@@ -63,8 +63,8 @@ describe("DruidSQL Functional", function() {
     },
     {
       "name": "commentLength",
-      "nativeType": "VARCHAR",
-      "type": "STRING"
+      "nativeType": "BIGINT",
+      "type": "NUMBER"
     },
     {
       "name": "commentLengthStr",
@@ -98,8 +98,8 @@ describe("DruidSQL Functional", function() {
     },
     {
       "name": "deltaBucket100",
-      "nativeType": "VARCHAR",
-      "type": "STRING"
+      "nativeType": "FLOAT",
+      "type": "NUMBER"
     },
     {
       "name": "deltaByTen",
@@ -180,6 +180,11 @@ describe("DruidSQL Functional", function() {
       "name": "sometimeLater",
       "nativeType": "VARCHAR",
       "type": "STRING"
+    },
+    {
+      "name": "sometimeLaterMs",
+      "nativeType": "BIGINT",
+      "type": "NUMBER"
     },
     {
       "name": "user",

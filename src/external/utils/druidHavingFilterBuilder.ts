@@ -18,79 +18,55 @@ import {
   Expression,
   LiteralExpression,
   RefExpression,
-  ChainableExpression,
-  ChainableUnaryExpression,
-
-  AbsoluteExpression,
-  AddExpression,
   AndExpression,
-  ApplyExpression,
-  AverageExpression,
-  CardinalityExpression,
-  CastExpression,
-  CollectExpression,
-  ConcatExpression,
-  ContainsExpression,
-  CountExpression,
-  CountDistinctExpression,
-  CustomAggregateExpression,
-  CustomTransformExpression,
-  DivideExpression,
-  ExtractExpression,
-  FallbackExpression,
-  GreaterThanExpression,
-  GreaterThanOrEqualExpression,
-  InExpression,
   IsExpression,
-  JoinExpression,
-  LengthExpression,
-  LessThanExpression,
-  LessThanOrEqualExpression,
-  IndexOfExpression,
-  LookupExpression,
-  LimitExpression,
-  MatchExpression,
-  MaxExpression,
-  MinExpression,
-  MultiplyExpression,
   NotExpression,
-  NumberBucketExpression,
   OrExpression,
-  OverlapExpression,
-  PowerExpression,
-  QuantileExpression,
-  SplitExpression,
-  SubstrExpression,
-  SubtractExpression,
-  SumExpression,
-  TimeBucketExpression,
-  TimeFloorExpression,
-  TimePartExpression,
-  TimeRangeExpression,
-  TimeShiftExpression,
-  TransformCaseExpression
+  OverlapExpression
 } from '../../expressions/index';
 
-import {
-  NumberRange
-} from '../../datatypes/index';
-
+import { NumberRange, AttributeInfo } from '../../datatypes/index';
 import { External } from '../baseExternal';
+import { CustomDruidTransforms } from './druidTypes';
+import { DruidFilterBuilder } from './druidFilterBuilder';
 
 
 export interface DruidHavingFilterBuilderOptions {
   version: string;
+  attributes: AttributeInfo[];
+  customTransforms: CustomDruidTransforms;
 }
 
 export class DruidHavingFilterBuilder {
 
   public version: string;
+  public attributes: AttributeInfo[];
+  public customTransforms: CustomDruidTransforms;
 
   constructor(options: DruidHavingFilterBuilderOptions) {
     this.version = options.version;
+    this.attributes = options.attributes;
+    this.customTransforms = options.customTransforms;
   }
 
   public filterToHavingFilter(filter: Expression): Druid.Having {
+    if (this.versionBefore('0.10.0')) {
+      return this.filterToLegacyHavingFilter(filter);
+    } else {
+      return {
+        type: 'filter',
+        filter: new DruidFilterBuilder({
+          version: this.version,
+          rawAttributes: this.attributes,
+          timeAttribute: '***',
+          allowEternity: true,
+          customTransforms: this.customTransforms
+        }).timelessFilterToFilter(filter, false)
+      };
+    }
+  }
+
+  public filterToLegacyHavingFilter(filter: Expression): Druid.Having {
     if (filter instanceof LiteralExpression) {
       if (filter.value === true) {
         return null;
@@ -200,5 +176,10 @@ export class DruidHavingFilterBuilder {
       havingSpecs.push(this.makeHavingComparison(agg, (range.bounds[1] === ']' ? '<=' : '<'), range.end));
     }
     return havingSpecs.length === 1 ? havingSpecs[0] : { type: 'and', havingSpecs };
+  }
+
+  private versionBefore(neededVersion: string): boolean {
+    const { version } = this;
+    return version && External.versionLessThan(version, neededVersion);
   }
 }

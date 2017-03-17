@@ -43,8 +43,8 @@ let postgresRequester = postgresRequesterFactory({
 });
 
 // druidRequester = verboseRequesterFactory({
-//   requester: druidRequester,
-//   onSuccess: () => {}
+//   //onSuccess: () => {},
+//   requester: druidRequester
 // });
 // mySqlRequester = verboseRequesterFactory({
 //   requester: mySqlRequester
@@ -223,8 +223,32 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with <', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(-200 < $deltaBucket100)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with <=', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(-200 <= $deltaBucket100)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it.skip('works with float bounds', equalityTest({ // ToDo: un-skip when Druid is fixed
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(45.5 < $commentLength and $commentLength < 55.5)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with .contains() and .is() filter', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      executorNames: ['druid', 'mysql', 'postgres'], // !!! 'druidSql'
       expression: ply()
         .apply('wiki', '$wiki.filter($cityName.contains("San") and $cityName == "San Francisco")')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -359,7 +383,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it.skip('works with .timePart().in()', equalityTest({
+    it('works with .timePart().is()', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression:  ply()
         .apply('wiki', $('wiki').filter($('__time').timePart('HOUR_OF_DAY').is([3, 7])))
@@ -367,7 +391,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with .timePart().in() [alt time column]', equalityTest({
+    it('works with .timePart().is() [alt time column]', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression:  ply()
         .apply('wiki', $('wiki').filter($('sometimeLater').timePart('HOUR_OF_DAY').is([3, 7])))
@@ -504,7 +528,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with indexOf action on filter', equalityTest({
-      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').filter('$cityName.indexOf(x) > 5')
         .split('$cityName', 'CityName')
         .apply('Count', '$wiki.sum($added)')
@@ -513,7 +537,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with transformCase action on filter', equalityTest({
-      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').filter('$cityName.transformCase("lowerCase") == "el paso"')
         .split('$cityName', 'CityName')
         .apply('Count', '$wiki.sum($added)')
@@ -521,17 +545,8 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
-    it('works with sub-query filter', equalityTest({
-      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
-      expression: $('wiki').filter('$commentLength > $wiki.average($commentLength)')
-        .split('$channel', 'Channel')
-        .apply('Count', '$wiki.sum($added)')
-        .sort('$Count', 'descending')
-        .limit(5)
-    }));
-
-    it('works with sub-query filter', equalityTest({
-      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+    it.skip('works with sub-query filter', equalityTest({ // ToDo: un-skip when Druid is fixed
+      executorNames: ['druid', 'druidLegacy', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').filter('$commentLength > $wiki.average($commentLength)')
         .split('$channel', 'Channel')
         .apply('Count', '$wiki.sum($added)')
@@ -614,7 +629,7 @@ describe("Cross Functional", function() {
         .sort('$TotalAdded', 'descending')
     }));
 
-    it.skip('works with BOOLEAN split (overlap secondaryTime)', equalityTest({
+    it('works with BOOLEAN split (overlap secondaryTime)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
       expression: $('wiki').split($('sometimeLater').overlap(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z")), 'TheHour')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -624,7 +639,7 @@ describe("Cross Functional", function() {
 
     it('works with STRING split (sort on split)', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
-      expression: $('wiki').split('$channel', 'Channel') // ToDo: change this to user
+      expression: $('wiki').split('$channel', 'Channel') // ToDo: change this to user to verify DruidSQL can handle it
         .sort('$Channel', 'ascending')
         .limit(20)
     }));
@@ -639,7 +654,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with STRING transform case action', equalityTest({
-      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').split('$cityName.transformCase("lowerCase")', 'CityLower')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -676,8 +691,8 @@ describe("Cross Functional", function() {
 
     it('works with chained number bucket', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
-      expression: $('wiki') // null handling varies
-        .split('$cityName.length().numberBucket(10)', 'cityNameBucket')
+      expression: $('wiki')
+        .split('$channel.length().numberBucket(2)', '$channelBucket') // null handling varies
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
@@ -756,7 +771,7 @@ describe("Cross Functional", function() {
         .limit(20) // To force a topN (for now)
     }));
 
-    it('works with NUMBER split (expression / 10).numberBucket (sort on apply)', equalityTest({
+    it.skip('works with NUMBER split (expression / 10).numberBucket (sort on apply)', equalityTest({ // ToDo unskip when "from what I can tell: commentLength is type LONG, I can not do a cascade of JS extractionFn => bucket" is fixed
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').split("($commentLength / 10).numberBucket(2, 0)", 'CommentLengthDivBucket')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -989,7 +1004,7 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
-    it('works with cast action from number to time on split', equalityTest({
+    it.skip('works with cast action from number to time on split', equalityTest({ // ToDo: unskip when it is ok not to have aggs
       executorNames: ['postgres', 'mysql', 'druid'],
       expression: $('wiki').filter('$deltaBucket100.in([1000, 2000, 3000, 8000])') // druid time is precise to seconds
         .split('$deltaBucket100.cast(TIME)', 'deltaBucketToDate')

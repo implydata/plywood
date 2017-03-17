@@ -219,7 +219,7 @@ export class RefExpression extends Expression {
         return `parseFloat(${expr})`;
 
       case 'TIME':
-        return `new Date(${expr})`;
+        return `new Date(+${expr})`;
 
       default:
         return expr;

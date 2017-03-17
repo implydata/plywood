@@ -101,7 +101,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       throw new Error("name must be a string");
     }
     this.name = parameters.name;
-    this.type = parameters.type || 'STRING';
+    this.type = parameters.type || 'NULL';
     if (!RefExpression.validType(this.type)) throw new Error(`invalid type: ${this.type}`);
 
     this.unsplitable = Boolean(parameters.unsplitable);
