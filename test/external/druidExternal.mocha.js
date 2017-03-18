@@ -2101,7 +2101,6 @@ describe("DruidExternal", () => {
       "dataSource": "wikipedia",
       "dimensions": [
         "page",
-        "commentLength",
         {
           "dimension": "commentLength",
           "extractionFn": {
@@ -2120,6 +2119,7 @@ describe("DruidExternal", () => {
       "granularity": "all",
       "intervals": "2013-02-26T00Z/2013-02-27T00Z",
       "metrics": [
+        "commentLength",
         "added"
       ],
       "pagingSpec": {

@@ -578,6 +578,31 @@ describe("simulate Druid", () => {
     });
   });
 
+  it("works on OR time filter", () => {
+    let ex = ply()
+      .apply("diamonds", $('diamonds').filter($("time").overlap(new Date('2015-03-12T00:00:00Z'), new Date('2015-03-13T00:00:00Z')).or("$color == 'D'")))
+      .apply('Count', '$diamonds.count()');
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
+      "fields": [
+        {
+          "dimension": "__time",
+          "intervals": [
+            "2015-03-12T00Z/2015-03-13T00Z"
+          ],
+          "type": "interval"
+        },
+        {
+          "dimension": "color",
+          "type": "selector",
+          "value": "D"
+        }
+      ],
+      "type": "or"
+    });
+  });
+
   it("works on fancy filter .concat().match()", () => {
     let ex = ply()
       .apply("diamonds", $('diamonds').filter("('A' ++ $color ++ 'Z').match('AB+')"))

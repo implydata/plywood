@@ -151,7 +151,7 @@ export class DruidFilterBuilder {
     } else if (filter instanceof IsExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-        return TimeRange.intervalFromDate(rhs.value);
+        return this.valueToIntervals(rhs.value);
       } else {
         throw new Error(`can not convert ${filter} to Druid interval`);
       }
@@ -159,24 +159,13 @@ export class DruidFilterBuilder {
     } else if (filter instanceof OverlapExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-        let timeRanges: TimeRange[];
-        let rhsType = rhs.type;
-        if (rhsType === 'SET/TIME_RANGE') {
-          timeRanges = rhs.value.elements;
-        } else if (rhsType === 'TIME_RANGE') {
-          timeRanges = [rhs.value];
-        } else {
-          throw new Error(`not supported ${rhsType} for time filtering`);
-        }
-
-        let intervals = timeRanges.map(timeRange => timeRange.toInterval());
-        return intervals.length === 1 ? intervals[0] : intervals;
+        return this.valueToIntervals(rhs.value);
       } else {
-        throw new Error(`can not convert ${filter} to Druid interval`);
+        throw new Error(`can not convert ${filter} to Druid intervals`);
       }
 
     } else {
-      throw new Error(`can not convert ${filter} to Druid interval`);
+      throw new Error(`can not convert ${filter} to Druid intervals`);
     }
   }
 
@@ -236,6 +225,9 @@ export class DruidFilterBuilder {
         if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
           return this.makeInFilter(lhs, rhs.value);
 
+        } else if (Set.unwrapSetType(rhsType) === 'TIME_RANGE' && this.isTimeRef(lhs)) {
+          return this.makeIntervalFilter(lhs, rhs.value);
+
         } else if (rhsType === 'NUMBER_RANGE' || rhsType === 'TIME_RANGE' || rhsType === 'STRING_RANGE') {
           return this.makeBoundFilter(lhs, rhs.value);
 
@@ -282,6 +274,26 @@ export class DruidFilterBuilder {
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
       "function": ex.getJSFn('d')
     };
+  }
+
+  private valueToIntervals(value: Date | TimeRange | Set): Druid.Intervals {
+    if (isDate(value)) {
+      return TimeRange.intervalFromDate(value as Date);
+    } else if (value instanceof TimeRange) {
+      return value.toInterval();
+    } else if (value instanceof Set) {
+      return value.elements.map((v) => {
+        if (isDate(v)) {
+          return TimeRange.intervalFromDate(v as Date);
+        } else if (v instanceof TimeRange) {
+          return v.toInterval();
+        } else {
+          throw new Error(`can not convert set value ${JSON.stringify(v)} to Druid interval`);
+        }
+      });
+    } else {
+      throw new Error(`can not convert ${JSON.stringify(value)} to Druid intervals`);
+    }
   }
 
   private makeExtractionFilter(ex: Expression): Druid.Filter {
@@ -402,6 +414,24 @@ export class DruidFilterBuilder {
       if (bounds[1] === ')') boundFilter.upperStrict = true;
     }
     return boundFilter;
+  }
+
+  private makeIntervalFilter(ex: Expression, range: TimeRange | Set): Druid.Filter {
+    if (this.versionBefore('0.9.2')) {
+      throw new Error(`Can not filter ${ex} on ${JSON.stringify(range)}`);
+    }
+
+    let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+    let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+
+    if (extractionFn) this.checkFilterExtractability(attributeInfo);
+
+    const interval = this.valueToIntervals(range);
+    return {
+      type: "interval",
+      dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
+      intervals: Array.isArray(interval) ? interval : [interval]
+    };
   }
 
   private makeRegexFilter(ex: Expression, regex: string): Druid.Filter {

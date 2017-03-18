@@ -351,6 +351,14 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with primary time filter (or)', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter($('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z")).or('$channel == en')))
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with alt time filter (single range)', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression:  ply()

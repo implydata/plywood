@@ -18,6 +18,7 @@
 import { Timezone, Duration, parseISODate } from 'chronoshift';
 import { Class, Instance } from 'immutable-class';
 import { Range } from './range';
+import { NumberRange } from './numberRange';
 import { Expression } from '../expressions/baseExpression';
 
 export interface TimeRangeValue {
@@ -154,6 +155,14 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
 
   public midpoint(): Date {
     return new Date((this.start.valueOf() + this.end.valueOf()) / 2);
+  }
+
+  public changeToNumber(): NumberRange {
+    return new NumberRange({
+      bounds: this.bounds,
+      start: this.start ? this.start.valueOf() : null,
+      end: this.end ? this.end.valueOf() : null
+    });
   }
 
   public isAligned(duration: Duration, timezone: Timezone): boolean {

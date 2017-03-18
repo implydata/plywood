@@ -15,6 +15,7 @@
  */
 
 import {
+  r,
   Expression,
   LiteralExpression,
   RefExpression,
@@ -52,6 +53,7 @@ import {
   NumberBucketExpression,
   OrExpression,
   PowerExpression,
+  OverlapExpression,
   QuantileExpression,
   SplitExpression,
   SubstrExpression,
@@ -243,6 +245,9 @@ export class DruidExtractionFnBuilder {
 
     } else if (expression instanceof CastExpression) {
       return this.castToExtractionFn(expression);
+
+    } else if (expression instanceof OverlapExpression) {
+      return this.overlapToExtractionFn(expression);
 
     } else {
       return this.expressionToJavaScriptExtractionFn(expression);
@@ -543,6 +548,19 @@ export class DruidExtractionFnBuilder {
       return this.expressionToExtractionFnPure(cast.operand);
     }
     return this.expressionToJavaScriptExtractionFn(cast);
+  }
+
+  private overlapToExtractionFn(expression: OverlapExpression): Druid.ExtractionFn {
+    let freeReferences = expression.operand.getFreeReferences();
+    let rhsType = expression.expression.type;
+    if (freeReferences[0] === '__time' && // hack
+      expression.expression instanceof LiteralExpression &&
+      (rhsType === 'TIME_RANGE' || rhsType === 'SET/TIME_RANGE')
+    ) {
+      expression = expression.operand.cast('NUMBER').overlap(r(expression.expression.getLiteralValue().changeToNumber()));
+    }
+
+    return this.expressionToJavaScriptExtractionFn(expression);
   }
 
   private expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {

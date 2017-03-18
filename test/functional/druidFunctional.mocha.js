@@ -2274,7 +2274,67 @@ describe("Druid Functional", function() {
         });
     });
 
-    it("can timeBucket a secondary time column (complex duration, tz)", () => {
+    it("can timeBucket a secondary time column (complex duration, tz - Asia/Kolkata)", () => {
+      let ex = ply()
+        .apply(
+          'TimeLater',
+          $("wiki").split($("sometimeLater").timeBucket('PT3H', 'Asia/Kolkata'), 'SometimeLater')
+            .limit(5)
+        );
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "TimeLater": {
+                "attributes": [
+                  {
+                    "name": "SometimeLater",
+                    "type": "TIME_RANGE"
+                  }
+                ],
+                "data": [
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T03:30:00.000Z'),
+                      "start": new Date('2016-09-12T00:30:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T06:30:00.000Z'),
+                      "start": new Date('2016-09-12T03:30:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T09:30:00.000Z'),
+                      "start": new Date('2016-09-12T06:30:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T12:30:00.000Z'),
+                      "start": new Date('2016-09-12T09:30:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T15:30:00.000Z'),
+                      "start": new Date('2016-09-12T12:30:00.000Z')
+                    }
+                  }
+                ],
+                "keys": [
+                  "SometimeLater"
+                ]
+              }
+            }
+          ]);
+        });
+    });
+
+    it.skip("can timeBucket a secondary time column (complex duration, tz - Kathmandu)", () => { // ToDo: wait for https://github.com/druid-io/druid/issues/4073
       let ex = ply()
         .apply(
           'TimeLater',

@@ -218,9 +218,6 @@ export class RefExpression extends Expression {
       case 'NUMBER':
         return `parseFloat(${expr})`;
 
-      case 'TIME':
-        return `new Date(+${expr})`;
-
       default:
         return expr;
     }
