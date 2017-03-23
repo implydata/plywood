@@ -557,7 +557,7 @@ describe("DruidExternal Null Type", () => {
             "type": "doubleSum"
           },
           {
-            "fieldNames": [
+            "fields": [
               "page"
             ],
             "name": "!T_1",

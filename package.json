@@ -35,7 +35,7 @@
   "dependencies": {
     "any-promise": "^1.3.0",
     "chronoshift": "~0.6.6",
-    "druid.d.ts": "~0.10.1",
+    "druid.d.ts": "~0.10.2",
     "has-own-prop": "^1.0.0",
     "immutable-class": "~0.6.26",
     "moment-timezone": "~0.5.11",
@@ -57,9 +57,9 @@
     "plywood-mysql-requester": "2.1.0",
     "plywood-postgres-requester": "1.1.0",
     "readable-stream": "^2.2.6",
-    "tdi": "0.2.20",
+    "tdi": "0.2.21",
     "tslint": "4.5.1",
     "typescript": "2.2.1",
-    "uglify-js": "2.8.13"
+    "uglify-js": "2.8.14"
   }
 }

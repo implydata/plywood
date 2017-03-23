@@ -624,7 +624,7 @@ describe("DruidExternal", () => {
             "type": "longSum"
           },
           {
-            "fieldNames": [
+            "fields": [
               "page"
             ],
             "name": "!T_1",

@@ -1847,6 +1847,24 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with count distinct on lookup", () => {
+      let ex = ply()
+        .apply('CntDistChannelNormal', $('wiki').countDistinct($('channel')))
+        .apply('CntDistChannelLookup',  $('wiki').countDistinct($('channel').lookup('channel-lookup')))
+        .apply('CntDistChannelLookupXPage',  $('wiki').countDistinct($('channel').lookup('channel-lookup').concat('$page.substr(0, 1)')));
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "CntDistChannelLookup": 6.008806266444944,
+              "CntDistChannelNormal": 52.671547981801545,
+              "CntDistChannelLookupXPage": 2641.0285765864232
+            }
+          ]);
+        });
+    });
+
     it("works with lookup IS filter", () => {
       let ex = $('wiki').filter($('channel').lookup('channel-lookup').is('English')).sum('$count');
 

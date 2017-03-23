@@ -2057,7 +2057,7 @@ describe("simulate Druid", () => {
           },
           {
             "aggregator": {
-              "fieldNames": [
+              "fields": [
                 "color"
               ],
               "name": "NotBadColors",
@@ -2588,7 +2588,9 @@ describe("simulate Druid", () => {
     let ex = ply()
       .apply('NumColors', '$diamonds.countDistinct($color)')
       .apply('NumVendors', '$diamonds.countDistinct($vendor_id)')
-      .apply('VendorsByColors', '$NumVendors / $NumColors');
+      .apply('VendorsByColors', '$NumVendors / $NumColors')
+      .apply('NumColorLookup', '$diamonds.countDistinct($color.lookup(color_lookup))')
+      .apply('NumColorCutLookup', '$diamonds.countDistinct($color.lookup(color_lookup) ++ lol ++ $cut.lookup(cut_lookup))');
 
     ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -2598,7 +2600,7 @@ describe("simulate Druid", () => {
       {
         "aggregations": [
           {
-            "fieldNames": [
+            "fields": [
               "color"
             ],
             "name": "NumColors",
@@ -2608,6 +2610,43 @@ describe("simulate Druid", () => {
             "fieldName": "vendor_id",
             "name": "NumVendors",
             "type": "hyperUnique"
+          },
+          {
+            "fields": [
+              {
+                "dimension": "color",
+                "extractionFn": {
+                  "lookup": "color_lookup",
+                  "type": "registeredLookup"
+                },
+                "type": "extraction"
+              }
+            ],
+            "name": "NumColorLookup",
+            "type": "cardinality"
+          },
+          {
+            "byRow": true,
+            "fields": [
+              {
+                "dimension": "color",
+                "extractionFn": {
+                  "lookup": "color_lookup",
+                  "type": "registeredLookup"
+                },
+                "type": "extraction"
+              },
+              {
+                "dimension": "cut",
+                "extractionFn": {
+                  "lookup": "cut_lookup",
+                  "type": "registeredLookup"
+                },
+                "type": "extraction"
+              }
+            ],
+            "name": "NumColorCutLookup",
+            "type": "cardinality"
           }
         ],
         "dataSource": "diamonds",
@@ -2647,7 +2686,7 @@ describe("simulate Druid", () => {
     expect(queryPlan[0][0].aggregations).to.deep.equal([
       {
         "byRow": true,
-        "fieldNames": [
+        "fields": [
           "color",
           "cut"
         ],
