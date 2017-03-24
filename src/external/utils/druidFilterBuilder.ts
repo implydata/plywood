@@ -353,7 +353,7 @@ export class DruidFilterBuilder {
         return this.makeSelectorFilter(ex, value);
       });
 
-      return fields.length === 1 ? fields[0] : { type: "or", fields };
+      return { type: "or", fields };
     }
 
     let inFilter: Druid.Filter = {

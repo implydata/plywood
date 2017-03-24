@@ -590,13 +590,15 @@ describe("SQL parser", () => {
     it("should parse a table alias", () => {
       let parse1 = Expression.parseSQL('SELECT * FROM my-table AS t;');
       let parse2 = Expression.parseSQL('SELECT * FROM my-table t;');
+      let parse3 = Expression.parseSQL('SELECT t.* FROM my-table t;');
 
-      let ex2 = $('my-table');
+      let ex = $('my-table');
 
       expect(parse1.verb).to.equal('SELECT');
       expect(parse1.table).to.equal('my-table');
-      expect(parse1.expression.toJS()).to.deep.equal(ex2.toJS());
-      expect(parse2.expression.toJS()).to.deep.equal(ex2.toJS());
+      expect(parse1.expression.toJS()).to.deep.equal(ex.toJS());
+      expect(parse2.expression.toJS()).to.deep.equal(ex.toJS());
+      expect(parse3.expression.toJS()).to.deep.equal(ex.toJS());
     });
 
     it("should parse a total expression with all sorts of applies", () => {

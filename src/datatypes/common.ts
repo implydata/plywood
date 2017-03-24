@@ -171,29 +171,6 @@ export function valueToJS(v: any): any {
   return v;
 }
 
-export function valueToJSInlineType(v: any): any {
-  if (v == null) {
-    return null;
-  } else {
-    let typeofV = typeof v;
-    if (typeofV === 'object') {
-      if (v.toISOString) {
-        return { type: 'TIME', value: v };
-      } else {
-        if (typeof v.toJS !== 'function') return String(v); // Technically we should never get here
-        let js = v.toJS();
-        if (!Array.isArray(js)) {
-          js.type = v.constructor.type || 'EXPRESSION';
-        }
-        return js;
-      }
-    } else if (typeofV === 'number' && !isFinite(v)) {
-      return { type: 'NUMBER', value: String(v) };
-    }
-  }
-  return v;
-}
-
 // External functionality
 
 export function datumHasExternal(datum: Datum): boolean {

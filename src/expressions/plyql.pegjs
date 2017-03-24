@@ -663,7 +663,7 @@ SelectSubQuery
     { return constructQuery(distinct, columns, null, where, groupBys, having, orderBy, limit); }
 
 Columns
-  = StarToken
+  = (Ref Dot)? StarToken
     { return '*'; }
   / head:Column tail:(Comma Column)*
     { return makeListMap1(head, tail); }

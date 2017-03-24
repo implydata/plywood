@@ -5,6 +5,8 @@ echo "Compiling..."
 rm -rf build/*
 mkdir -p build
 
+node_modules/.bin/tdi -q # not everyone has the latest npm
+
 echo "Compiling PEG.js"
 ./compile-pegjs
 

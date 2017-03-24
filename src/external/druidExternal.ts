@@ -666,7 +666,7 @@ export class DruidExternal extends External {
         let hfOperand = hf.operand;
         if (hfOperand instanceof RefExpression && hfOperand.name === label) {
           if (hfOp === 'match') return true;
-          if (hfOp === 'is' || hfOp === 'in') return (hf as ChainableUnaryExpression).expression.isOp('literal');
+          if (hfOp === 'is') return (hf as ChainableUnaryExpression).expression.isOp('literal');
         }
       }
       return false;
