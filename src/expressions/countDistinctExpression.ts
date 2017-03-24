@@ -37,7 +37,7 @@ export class CountDistinctExpression extends ChainableUnaryExpression implements
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    return `COUNT(DISTINCT ${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL, 'NULL')})`;
+    return `COUNT(DISTINCT ${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL)})`;
   }
 }
 

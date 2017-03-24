@@ -40,7 +40,7 @@ export class ThenExpression extends ChainableUnaryExpression {
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    return dialect.ifThenElseNullExpression(operandSQL, expressionSQL);
+    return dialect.ifThenElseExpression(operandSQL, expressionSQL);
   }
 
   public specialSimplify(): Expression {

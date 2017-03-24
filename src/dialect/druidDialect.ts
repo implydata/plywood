@@ -97,10 +97,6 @@ export class DruidDialect extends SQLDialect {
     return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
   }
 
-  public conditionalExpression(condition: string, thenPart: string, elsePart: string): string {
-    return `(CASE WHEN ${condition} THEN ${thenPart} ELSE ${elsePart} END)`;
-  }
-
   public concatExpression(a: string, b: string): string {
     return `(${a}||${b})`;
   }

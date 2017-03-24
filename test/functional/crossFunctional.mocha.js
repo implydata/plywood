@@ -239,7 +239,7 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it.skip('works with float bounds', equalityTest({ // ToDo: un-skip when Druid is fixed
+    it('works with float bounds', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter(45.5 < $commentLength and $commentLength < 55.5)')
@@ -553,7 +553,7 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
-    it.skip('works with sub-query filter', equalityTest({ // ToDo: un-skip when Druid is fixed
+    it('works with sub-query filter', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').filter('$commentLength > $wiki.average($commentLength)')
         .split('$channel', 'Channel')
@@ -779,7 +779,7 @@ describe("Cross Functional", function() {
         .limit(20) // To force a topN (for now)
     }));
 
-    it.skip('works with NUMBER split (expression / 10).numberBucket (sort on apply)', equalityTest({ // ToDo unskip when "from what I can tell: commentLength is type LONG, I can not do a cascade of JS extractionFn => bucket" is fixed
+    it('works with NUMBER split (expression / 10).numberBucket (sort on apply)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').split("($commentLength / 10).numberBucket(2, 0)", 'CommentLengthDivBucket')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -1012,7 +1012,7 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
-    it.skip('works with cast action from number to time on split', equalityTest({ // ToDo: unskip when it is ok not to have aggs
+    it('works with cast action from number to time on split', equalityTest({
       executorNames: ['postgres', 'mysql', 'druid'],
       expression: $('wiki').filter('$deltaBucket100.in([1000, 2000, 3000, 8000])') // druid time is precise to seconds
         .split('$deltaBucket100.cast(TIME)', 'deltaBucketToDate')
@@ -1183,6 +1183,7 @@ describe("Cross Functional", function() {
         .apply('AddedBYDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('TokyoAdded', '$wiki.filter($cityName == Tokyo).sum($added)')
         .apply('NullCities', '$wiki.filter($cityName == null).sum($added)')
+        //.apply('MinCommentLength', '$wiki.filter($cityName == Tokyo).min($commentLength)') // ToDo: fix this
         .apply('To*Added', '$wiki.filter($cityName.contains("to")).sum($added)')
         .apply('MinDelta', '$wiki.min($min_delta)')
         .apply('MaxDelta', '$wiki.max($max_delta)')

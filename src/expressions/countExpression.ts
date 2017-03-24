@@ -38,7 +38,7 @@ export class CountExpression extends ChainableExpression implements Aggregate {
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return operandSQL.indexOf(' WHERE ') === -1 ? `COUNT(*)` : `SUM(${dialect.aggregateFilterIfNeeded(operandSQL, '1')})`;
+    return operandSQL.indexOf(' WHERE ') === -1 ? `COUNT(*)` : `SUM(${dialect.aggregateFilterIfNeeded(operandSQL, '1', '0')})`;
   }
 }
 

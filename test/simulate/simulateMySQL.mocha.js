@@ -83,7 +83,7 @@ describe("simulate MySQL", () => {
       (SUM(\`price\`)-SUM(\`tax\`)) AS \`PriceMinusTax\`,
       (((SUM(\`price\`)-SUM(\`tax\`))+10)-SUM(\`carat\`)) AS \`Crazy\`,
       (SUM(\`price\`)+SUM(\`tax\`)) AS \`PriceAndTax\`,
-      SUM(IF((\`cut\`<=>"good"),\`price\`,0)) AS \`PriceGoodCut\`
+      SUM(CASE WHEN (\`cut\`<=>"good") THEN \`price\` ELSE 0 END) AS \`PriceGoodCut\`
       FROM \`diamonds\`
       WHERE (\`color\`<=>"D")
       GROUP BY ''

@@ -42,7 +42,7 @@ export class SumExpression extends ChainableUnaryExpression implements Aggregate
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    return `SUM(${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL)})`;
+    return `SUM(${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL, '0')})`;
   }
 
   public distribute(): Expression {

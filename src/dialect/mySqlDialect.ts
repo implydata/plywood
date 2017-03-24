@@ -99,10 +99,6 @@ export class MySQLDialect extends SQLDialect {
     return `LOCATE(${a},${b})>0`;
   }
 
-  public ifThenElseNullExpression(a: string, b: string): string {
-    return `IF(${a}, ${b}, ${this.nullConstant()})`;
-  }
-
   public isNotDistinctFromExpression(a: string, b: string): string {
     return `(${a}<=>${b})`;
   }

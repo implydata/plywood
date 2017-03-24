@@ -89,15 +89,11 @@ export abstract class SQLDialect {
 
   public abstract timeToSQL(date: Date): string;
 
-  public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, zeroSQL = '0'): string {
+  public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, elseSQL: string | null = null): string {
     let whereIndex = inputSQL.indexOf(' WHERE ');
     if (whereIndex === -1) return expressionSQL;
     let filterSQL = inputSQL.substr(whereIndex + 7);
-    return this.conditionalExpression(filterSQL, expressionSQL, zeroSQL);
-  }
-
-  public conditionalExpression(condition: string, thenPart: string, elsePart: string): string {
-    return `IF(${condition},${thenPart},${elsePart})`;
+    return this.ifThenElseExpression(filterSQL, expressionSQL, elseSQL);
   }
 
   public concatExpression(a: string, b: string): string {
@@ -116,8 +112,9 @@ export abstract class SQLDialect {
     return `COALESCE(${a}, ${b})`;
   }
 
-  public ifThenElseNullExpression(a: string, b: string): string {
-    return `CASE WHEN ${a} THEN ${b} END`;
+  public ifThenElseExpression(a: string, b: string, c: string | null = null): string {
+    const elsePart = c != null ? ` ELSE ${c}` : '';
+    return `CASE WHEN ${a} THEN ${b}${elsePart} END`;
   }
 
   public isNotDistinctFromExpression(a: string, b: string): string {
