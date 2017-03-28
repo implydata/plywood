@@ -20,7 +20,7 @@ import * as hasOwnProp from 'has-own-prop';
 import { Timezone, Duration, parseISODate } from 'chronoshift';
 import { Instance, isImmutableClass, SimpleArray } from 'immutable-class';
 import { ReadableStream, PassThrough } from 'readable-stream';
-import { shallowCopy } from '../helper/utils';
+import { shallowCopy, pipeWithError } from '../helper/utils';
 import { promiseWhile } from '../helper/promiseWhile';
 import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple, Environment } from '../types';
 import { fillExpressionExternalAlteration } from '../datatypes/index';
@@ -1745,9 +1745,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         if (readyExpression instanceof ExternalExpression) {
           // Top level externals need to be unsuppressed
           //readyExpression = readyExpression.unsuppress();
-          let s = readyExpression.external.queryValueStream(true);
-          s.pipe(pt);
-          s.on('error', (e: Error) => pt.emit('error', e));
+          pipeWithError(readyExpression.external.queryValueStream(true), pt);
           return;
         }
 

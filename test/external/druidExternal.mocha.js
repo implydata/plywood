@@ -2004,6 +2004,108 @@ describe("DruidExternal", () => {
   });
 
 
+  describe("should work when getting back an error", () => {
+    let errorExternal = External.fromJS({
+      engine: 'druid',
+      source: 'wikipedia',
+      timeAttribute: 'time',
+      allowSelectQueries: true,
+      attributes: [
+        { name: 'time', type: 'TIME' },
+        { name: 'language', type: 'STRING' },
+        { name: 'page', type: 'STRING' },
+        { name: 'added', type: 'NUMBER' }
+      ],
+      filter: timeFilter
+    }, () => {
+      const stream = new PassThrough({ objectMode: true });
+      setTimeout(() => {
+        stream.emit('error', new Error('something went wrong'));
+        stream.end();
+      }, 1);
+      return stream;
+    });
+
+    it("should return null correctly on a totals query", () => {
+      let ex = ply()
+        .apply('Count', '$wiki.count()');
+
+      return ex.compute({ wiki: errorExternal })
+        .then((result) => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch(e => {
+          expect(e.message).to.equal('something went wrong');
+        });
+    });
+
+    it("should return null correctly on a timeseries query", () => {
+      let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
+        .apply('Count', '$wiki.count()')
+        .sort('$Time', 'ascending');
+
+      return ex.compute({ wiki: errorExternal })
+        .then((result) => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch(e => {
+          expect(e.message).to.equal('something went wrong');
+        });
+    });
+
+    it("should return null correctly on a topN query", () => {
+      let ex = $('wiki').split("$page", 'Page')
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5);
+
+      return ex.compute({ wiki: errorExternal })
+        .then((result) => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch(e => {
+          expect(e.message).to.equal('something went wrong');
+        });
+    });
+
+    it("should return null correctly on a select query", () => {
+      let ex = $('wiki');
+
+      return ex.compute({ wiki: errorExternal })
+        .then((result) => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch(e => {
+          expect(e.message).to.equal('something went wrong');
+        });
+    });
+
+    it("should return null correctly on a double split", () => {
+      let ex = $('wiki').split("$page", 'Page')
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5)
+        .apply(
+          'times',
+          $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
+            .apply('Count', '$wiki.count()')
+            .sort('$Time', 'ascending')
+        );
+
+      return ex.compute({ wiki: errorExternal })
+        .then((result) => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch(e => {
+          expect(e.message).to.equal('something went wrong');
+        });
+    });
+
+  });
+
+
   describe("should work well with druid context", () => {
     it("should pass the context", () => {
       let external = External.fromJS({

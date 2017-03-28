@@ -1512,7 +1512,7 @@ export abstract class External {
     }
 
     if (!lastNode && mode === 'split') {
-      finalStream = finalStream.pipe(new Transform({
+      finalStream = pipeWithError(finalStream, new Transform({
         objectMode: true,
         transform: (chunk, enc, callback) => {
           if (chunk.type === 'datum') externalForNext.addNextExternalToDatum(chunk.datum);
