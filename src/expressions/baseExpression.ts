@@ -15,80 +15,89 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
-import * as hasOwnProp from 'has-own-prop';
-import { Timezone, Duration, parseISODate } from 'chronoshift';
-import { Instance, isImmutableClass, SimpleArray } from 'immutable-class';
-import { ReadableStream, PassThrough } from 'readable-stream';
-import { shallowCopy, pipeWithError } from '../helper/utils';
-import { promiseWhile } from '../helper/promiseWhile';
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple, Environment } from '../types';
-import { fillExpressionExternalAlteration } from '../datatypes/index';
-import { iteratorFactory, PlyBit } from '../datatypes/valueStream';
-import { LiteralExpression } from './literalExpression';
-import { RefExpression } from './refExpression';
-import { ExternalExpression } from './externalExpression';
+import * as Promise from "any-promise";
+import { Duration, parseISODate, Timezone } from "chronoshift";
+import * as hasOwnProp from "has-own-prop";
+import { Instance, isImmutableClass } from "immutable-class";
+import { PassThrough, ReadableStream } from "readable-stream";
 
-import { AbsoluteExpression } from './absoluteExpression';
-import { AddExpression } from './addExpression';
-import { AndExpression } from './andExpression';
-import { ApplyExpression } from './applyExpression';
-import { AverageExpression } from './averageExpression';
-import { CardinalityExpression } from './cardinalityExpression';
-import { CastExpression } from './castExpression';
-import { CollectExpression } from './collectExpression';
-import { ConcatExpression } from './concatExpression';
-import { ContainsExpression } from './containsExpression';
-import { CountExpression } from './countExpression';
-import { CountDistinctExpression } from './countDistinctExpression';
-import { CustomAggregateExpression } from './customAggregateExpression';
-import { CustomTransformExpression } from './customTransformExpression';
-import { DivideExpression } from './divideExpression';
-import { ExtractExpression } from './extractExpression';
-import { FallbackExpression } from './fallbackExpression';
-import { FilterExpression } from './filterExpression';
-import { GreaterThanExpression } from './greaterThanExpression';
-import { GreaterThanOrEqualExpression } from './greaterThanOrEqualExpression';
-import { InExpression } from './inExpression';
-import { IsExpression } from './isExpression';
-import { JoinExpression } from './joinExpression';
-import { LengthExpression } from './lengthExpression';
-import { LessThanExpression } from './lessThanExpression';
-import { LessThanOrEqualExpression } from './lessThanOrEqualExpression';
-import { IndexOfExpression } from './indexOfExpression';
-import { LookupExpression } from './lookupExpression';
-import { LimitExpression } from './limitExpression';
-import { MatchExpression } from './matchExpression';
-import { MaxExpression } from './maxExpression';
-import { MinExpression } from './minExpression';
-import { MultiplyExpression } from './multiplyExpression';
-import { NotExpression } from './notExpression';
-import { NumberBucketExpression } from './numberBucketExpression';
-import { OrExpression } from './orExpression';
-import { OverlapExpression } from './overlapExpression';
-import { PowerExpression } from './powerExpression';
-import { QuantileExpression } from './quantileExpression';
-import { SelectExpression } from './selectExpression';
-import { SortExpression, Direction } from './sortExpression';
-import { SplitExpression } from './splitExpression';
-import { SubstrExpression } from './substrExpression';
-import { SubtractExpression } from './subtractExpression';
-import { SumExpression } from './sumExpression';
-import { ThenExpression } from './thenExpression';
-import { TimeBucketExpression } from './timeBucketExpression';
-import { TimeFloorExpression } from './timeFloorExpression';
-import { TimePartExpression } from './timePartExpression';
-import { TimeRangeExpression } from './timeRangeExpression';
-import { TimeShiftExpression } from './timeShiftExpression';
-import { TransformCaseExpression } from './transformCaseExpression';
+import { failIfIntrospectNeededInDatum, getFullTypeFromDatum, introspectDatum } from "../datatypes/common";
+import {
+  ComputeFn,
+  Dataset,
+  DatasetExternalAlterations,
+  Datum,
+  fillExpressionExternalAlteration,
+  NumberRange,
+  PlywoodValue,
+  Range,
+  Set,
+  StringRange,
+  TimeRange
+} from "../datatypes/index";
+import { iteratorFactory, PlyBit } from "../datatypes/valueStream";
 
-import { SQLDialect } from '../dialect/baseDialect';
-import { repeat, emptyLookup, deduplicateSort } from '../helper/utils';
-import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from '../datatypes/index';
+import { SQLDialect } from "../dialect/baseDialect";
+import { External, ExternalJS } from "../external/baseExternal";
+import { promiseWhile } from "../helper/promiseWhile";
+import { deduplicateSort, pipeWithError, repeat, shallowCopy } from "../helper/utils";
+import { DatasetFullType, Environment, PlyType, PlyTypeSimple, PlyTypeSingleValue } from "../types";
 
-import { getFullTypeFromDatum, introspectDatum, failIfIntrospectNeededInDatum } from '../datatypes/common';
-import { ComputeFn } from '../datatypes/index';
-import { External, ExternalJS } from '../external/baseExternal';
+import { AbsoluteExpression } from "./absoluteExpression";
+import { AddExpression } from "./addExpression";
+import { AndExpression } from "./andExpression";
+import { ApplyExpression } from "./applyExpression";
+import { AverageExpression } from "./averageExpression";
+import { CardinalityExpression } from "./cardinalityExpression";
+import { CastExpression } from "./castExpression";
+import { CollectExpression } from "./collectExpression";
+import { ConcatExpression } from "./concatExpression";
+import { ContainsExpression } from "./containsExpression";
+import { CountDistinctExpression } from "./countDistinctExpression";
+import { CountExpression } from "./countExpression";
+import { CustomAggregateExpression } from "./customAggregateExpression";
+import { CustomTransformExpression } from "./customTransformExpression";
+import { DivideExpression } from "./divideExpression";
+import { ExternalExpression } from "./externalExpression";
+import { ExtractExpression } from "./extractExpression";
+import { FallbackExpression } from "./fallbackExpression";
+import { FilterExpression } from "./filterExpression";
+import { GreaterThanExpression } from "./greaterThanExpression";
+import { GreaterThanOrEqualExpression } from "./greaterThanOrEqualExpression";
+import { IndexOfExpression } from "./indexOfExpression";
+import { InExpression } from "./inExpression";
+import { IsExpression } from "./isExpression";
+import { JoinExpression } from "./joinExpression";
+import { LengthExpression } from "./lengthExpression";
+import { LessThanExpression } from "./lessThanExpression";
+import { LessThanOrEqualExpression } from "./lessThanOrEqualExpression";
+import { LimitExpression } from "./limitExpression";
+import { LiteralExpression } from "./literalExpression";
+import { LookupExpression } from "./lookupExpression";
+import { MatchExpression } from "./matchExpression";
+import { MaxExpression } from "./maxExpression";
+import { MinExpression } from "./minExpression";
+import { MultiplyExpression } from "./multiplyExpression";
+import { NotExpression } from "./notExpression";
+import { NumberBucketExpression } from "./numberBucketExpression";
+import { OrExpression } from "./orExpression";
+import { OverlapExpression } from "./overlapExpression";
+import { PowerExpression } from "./powerExpression";
+import { QuantileExpression } from "./quantileExpression";
+import { RefExpression } from "./refExpression";
+import { SelectExpression } from "./selectExpression";
+import { Direction, SortExpression } from "./sortExpression";
+import { SplitExpression } from "./splitExpression";
+import { SubstrExpression } from "./substrExpression";
+import { SubtractExpression } from "./subtractExpression";
+import { SumExpression } from "./sumExpression";
+import { ThenExpression } from "./thenExpression";
+import { TimeBucketExpression } from "./timeBucketExpression";
+import { TimeFloorExpression } from "./timeFloorExpression";
+import { TimePartExpression } from "./timePartExpression";
+import { TimeRangeExpression } from "./timeRangeExpression";
+import { TimeShiftExpression } from "./timeShiftExpression";
+import { TransformCaseExpression } from "./transformCaseExpression";
 
 export interface ComputeOptions extends Environment {
   maxQueries?: number;

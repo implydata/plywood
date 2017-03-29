@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import * as hasOwnProp from 'has-own-prop';
-import { ReadableStream, WritableStream } from 'readable-stream';
+import * as hasOwnProp from "has-own-prop";
+import { ReadableStream, WritableStream } from "readable-stream";
 
 export function repeat(str: string, times: int): string {
   return new Array(times + 1).join(str);

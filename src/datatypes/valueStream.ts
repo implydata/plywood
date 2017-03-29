@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Transform } from 'readable-stream';
-import { AttributeInfo } from './attributeInfo';
-import { PlywoodValue, Datum, Dataset } from './dataset';
+import { Transform } from "readable-stream";
+import { AttributeInfo } from "./attributeInfo";
+import { Dataset, Datum, PlywoodValue } from "./dataset";
 
 /*
 Types of bits:

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
-import { PlywoodRequester } from 'plywood-base-api';
-import * as toArray from 'stream-to-array';
-import { PlyType } from '../types';
-import { External, ExternalJS, ExternalValue } from './baseExternal';
-import { SQLExternal } from './sqlExternal';
-import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
-import { PostgresDialect } from '../dialect/postgresDialect';
-import { PseudoDatum } from '../datatypes/dataset';
+import * as Promise from "any-promise";
+import { PlywoodRequester } from "plywood-base-api";
+import * as toArray from "stream-to-array";
+import { AttributeInfo, Attributes } from "../datatypes/attributeInfo";
+import { PseudoDatum } from "../datatypes/dataset";
+import { PostgresDialect } from "../dialect/postgresDialect";
+import { PlyType } from "../types";
+import { External, ExternalJS, ExternalValue } from "./baseExternal";
+import { SQLExternal } from "./sqlExternal";
 
 export interface PostgresSQLDescribeRow {
   name: string;

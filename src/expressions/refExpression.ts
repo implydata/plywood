@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-import * as hasOwnProp from 'has-own-prop';
-import { SimpleArray } from 'immutable-class';
-import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
-import { SQLDialect } from '../dialect/baseDialect';
-import { repeat } from '../helper/utils';
-import { PlywoodValue, Set } from '../datatypes/index';
-import { Datum, ComputeFn } from '../datatypes/index';
+import * as hasOwnProp from "has-own-prop";
+import { SimpleArray } from "immutable-class";
+import { ComputeFn, Datum, PlywoodValue } from "../datatypes/index";
+import { SQLDialect } from "../dialect/index";
+import { repeat } from "../helper/index";
+import { DatasetFullType, PlyType } from "../types";
+import { Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
 
 export const POSSIBLE_TYPES: Lookup<number> = {
   'NULL': 1,

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Class, Instance } from 'immutable-class';
-import { Range } from './range';
+import { Class, Instance } from "immutable-class";
+import { Range } from "./range";
 
 export interface NumberRangeValue {
   start: number;

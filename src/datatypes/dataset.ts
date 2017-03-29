@@ -15,18 +15,24 @@
  * limitations under the License.
  */
 
-import * as hasOwnProp from 'has-own-prop';
-import { isDate, Timezone } from 'chronoshift';
-import { Class, Instance, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
-import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
-import { Attributes, AttributeInfo, AttributeJSs } from './attributeInfo';
-import { NumberRange } from './numberRange';
-import { Set } from './set';
-import { StringRange } from './stringRange';
-import { TimeRange } from './timeRange';
-import { valueFromJS, valueToJS, datumHasExternal } from './common';
-import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression, Direction } from '../expressions/index';
-import { External, TotalContainer } from '../external/baseExternal';
+import { isDate, Timezone } from "chronoshift";
+import * as hasOwnProp from "has-own-prop";
+import { Class, generalEqual, Instance, NamedArray, SimpleArray } from "immutable-class";
+import {
+  Direction,
+  Expression,
+  ExpressionExternalAlteration,
+  ExternalExpression,
+  LiteralExpression
+} from "../expressions/index";
+import { External, TotalContainer } from "../external/baseExternal";
+import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from "../types";
+import { AttributeInfo, AttributeJSs, Attributes } from "./attributeInfo";
+import { datumHasExternal, valueFromJS, valueToJS } from "./common";
+import { NumberRange } from "./numberRange";
+import { Set } from "./set";
+import { StringRange } from "./stringRange";
+import { TimeRange } from "./timeRange";
 
 export interface ComputeFn {
   (d: Datum): any;

@@ -14,70 +14,43 @@
  * limitations under the License.
  */
 
-import * as hasOwnProp from 'has-own-prop';
-import { NamedArray } from 'immutable-class';
+import * as hasOwnProp from "has-own-prop";
+import { NamedArray } from "immutable-class";
+
+import { AttributeInfo } from "../../datatypes/index";
 
 import {
   $,
-  Expression,
-  LiteralExpression,
-  RefExpression,
-  ChainableExpression,
-  ChainableUnaryExpression,
-
   AbsoluteExpression,
   AddExpression,
-  AndExpression,
   ApplyExpression,
-  AverageExpression,
-  CardinalityExpression,
   CastExpression,
-  CollectExpression,
+  ChainableUnaryExpression,
   ConcatExpression,
-  ContainsExpression,
-  CountExpression,
   CountDistinctExpression,
+  CountExpression,
   CustomAggregateExpression,
-  CustomTransformExpression,
   DivideExpression,
-  ExtractExpression,
+  Expression,
   FallbackExpression,
   FilterExpression,
-  GreaterThanExpression,
-  GreaterThanOrEqualExpression,
-  IsExpression,
-  JoinExpression,
-  LengthExpression,
   IndexOfExpression,
-  LookupExpression,
-  LimitExpression,
-  MatchExpression,
+  LiteralExpression,
   MaxExpression,
   MinExpression,
   MultiplyExpression,
-  NotExpression,
-  NumberBucketExpression,
-  OrExpression,
   PowerExpression,
   QuantileExpression,
-  SplitExpression,
-  SubstrExpression,
+  RefExpression,
   SubtractExpression,
   SumExpression,
-  TimeBucketExpression,
-  TimeFloorExpression,
-  TimePartExpression,
-  TimeRangeExpression,
-  TimeShiftExpression,
   TransformCaseExpression
-} from '../../expressions/index';
+} from "../../expressions/index";
 
-import { AttributeInfo } from '../../datatypes/index';
-
-import { External } from '../baseExternal';
-import { CustomDruidAggregations, CustomDruidTransforms } from './druidTypes';
-import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
-import { DruidFilterBuilder } from './druidFilterBuilder';
+import { External } from "../baseExternal";
+import { DruidExtractionFnBuilder } from "./druidExtractionFnBuilder";
+import { DruidFilterBuilder } from "./druidFilterBuilder";
+import { CustomDruidAggregations, CustomDruidTransforms } from "./druidTypes";
 
 
 export interface AggregationsAndPostAggregations {

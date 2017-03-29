@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { Aggregate } from './mixins/aggregate';
-import { PlywoodValue, Dataset } from '../datatypes/index';
+import { Dataset, PlywoodValue } from "../datatypes/index";
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
+import { Aggregate } from "./mixins/aggregate";
 
 export class QuantileExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Quantile";

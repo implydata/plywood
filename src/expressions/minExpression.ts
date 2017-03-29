@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { Aggregate } from './mixins/aggregate';
-import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Dataset, Set } from '../datatypes/index';
+import { Dataset, PlywoodValue, Set } from "../datatypes/index";
+import { SQLDialect } from "../dialect/baseDialect";
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
+import { Aggregate } from "./mixins/aggregate";
 
 export class MinExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Min";

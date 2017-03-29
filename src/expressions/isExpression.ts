@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { LiteralExpression } from './literalExpression';
-import { PlywoodValue, TimeRange, NumberRange, Set } from '../datatypes/index';
-import { SQLDialect } from '../dialect/baseDialect';
-import { IndexOfExpression } from './indexOfExpression';
-import { TimeBucketExpression } from './timeBucketExpression';
-import { NumberBucketExpression } from './numberBucketExpression';
-import { ThenExpression } from './thenExpression';
-import { FallbackExpression } from './fallbackExpression';
+import { NumberRange, PlywoodValue, Set, TimeRange } from "../datatypes/index";
+import { SQLDialect } from "../dialect/baseDialect";
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from "./baseExpression";
+import { FallbackExpression } from "./fallbackExpression";
+import { IndexOfExpression } from "./indexOfExpression";
+import { LiteralExpression } from "./literalExpression";
+import { NumberBucketExpression } from "./numberBucketExpression";
+import { ThenExpression } from "./thenExpression";
+import { TimeBucketExpression } from "./timeBucketExpression";
 
 export class IsExpression extends ChainableUnaryExpression {
   static op = "Is";

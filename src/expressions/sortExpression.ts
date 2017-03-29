@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Dataset } from '../datatypes/index';
-import { RefExpression } from './refExpression';
+import { Dataset, PlywoodValue } from "../datatypes/index";
+import { SQLDialect } from "../dialect/baseDialect";
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
+import { RefExpression } from "./refExpression";
 
 export type Direction = 'ascending' | 'descending';
 

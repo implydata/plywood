@@ -15,9 +15,16 @@
  */
 
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression, ExpressionMatchFn, ExtractAndRest } from './baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set } from '../datatypes/index';
+import { PlywoodValue, Set } from "../datatypes/index";
+import { SQLDialect } from "../dialect/baseDialect";
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionMatchFn,
+  ExpressionValue,
+  ExtractAndRest
+} from "./baseExpression";
 
 const IS_OR_OVERLAP: Lookup<boolean> = {
   'is': true,

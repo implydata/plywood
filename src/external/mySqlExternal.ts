@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
-import { PlywoodRequester } from 'plywood-base-api';
-import * as toArray from 'stream-to-array';
-import { PlyType } from '../types';
-import { External, ExternalJS, ExternalValue } from './baseExternal';
-import { SQLExternal } from './sqlExternal';
-import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes/index';
-import { MySQLDialect } from '../dialect/mySqlDialect';
+import * as Promise from "any-promise";
+import { PlywoodRequester } from "plywood-base-api";
+import * as toArray from "stream-to-array";
+import { AttributeInfo, Attributes, PseudoDatum } from "../datatypes/index";
+import { MySQLDialect } from "../dialect/mySqlDialect";
+import { PlyType } from "../types";
+import { External, ExternalJS, ExternalValue } from "./baseExternal";
+import { SQLExternal } from "./sqlExternal";
 
 export interface MySQLDescribeRow {
   Field: string;

@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
+import { AttributeInfo, NumberRange } from "../../datatypes/index";
 import {
-  Expression,
-  LiteralExpression,
-  RefExpression,
   AndExpression,
+  Expression,
   IsExpression,
+  LiteralExpression,
   NotExpression,
   OrExpression,
-  OverlapExpression
-} from '../../expressions/index';
-
-import { NumberRange, AttributeInfo } from '../../datatypes/index';
-import { External } from '../baseExternal';
-import { CustomDruidTransforms } from './druidTypes';
-import { DruidFilterBuilder } from './druidFilterBuilder';
+  OverlapExpression,
+  RefExpression
+} from "../../expressions/index";
+import { External } from "../baseExternal";
+import { DruidFilterBuilder } from "./druidFilterBuilder";
+import { CustomDruidTransforms } from "./druidTypes";
 
 
 export interface DruidHavingFilterBuilderOptions {

@@ -961,6 +961,21 @@ describe("Cross Functional", function() {
         .limit(10)
     }));
 
+    it('works .then(time range).fallback split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split(
+          $('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T03:00:00Z")).then('Before')
+            .fallback($('__time').overlap(new Date("2015-09-12T05:00:00Z"), new Date("2015-09-12T07:00:00Z")).then('After'))
+            .fallback('Other'),
+          'TC'
+        )
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
     it('works .then(literal).fallback split', equalityTest({
       executorNames: ['mysql', 'postgres'], // 'druid'
       expression: $('wiki')

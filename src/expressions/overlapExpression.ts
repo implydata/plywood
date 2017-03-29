@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { PlywoodValue, Set, Range, PlywoodRange, NumberRange, TimeRange, StringRange } from '../datatypes/index';
-import { LiteralExpression } from './literalExpression';
-import { IndexOfExpression } from './indexOfExpression';
-import { SQLDialect } from '../dialect/baseDialect';
+import { NumberRange, PlywoodRange, PlywoodValue, Range, Set, StringRange, TimeRange } from "../datatypes/index";
+import { SQLDialect } from "../dialect/baseDialect";
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from "./baseExpression";
+import { IndexOfExpression } from "./indexOfExpression";
+import { LiteralExpression } from "./literalExpression";
 
 export class OverlapExpression extends ChainableUnaryExpression {
   static op = "Overlap";

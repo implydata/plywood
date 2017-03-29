@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { PassThrough, Stream } from 'readable-stream';
+import { PassThrough, Stream } from "readable-stream";
 
 export class StreamConcat extends PassThrough {
   public next: () => Stream;

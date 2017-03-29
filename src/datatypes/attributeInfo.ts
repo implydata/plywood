@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { Class, Instance, NamedArray, immutableEqual } from 'immutable-class';
-import { PlyType, FullType } from '../types';
-import * as hasOwnProp from 'has-own-prop';
-import { Expression, ExpressionJS, RefExpression } from '../expressions/index';
+import * as hasOwnProp from "has-own-prop";
+import { Class, immutableEqual, Instance, NamedArray } from "immutable-class";
+import { Expression, ExpressionJS, RefExpression } from "../expressions/index";
+import { FullType, PlyType } from "../types";
 
 export type Attributes = AttributeInfo[];
 export type AttributeJSs = AttributeInfoJS[];

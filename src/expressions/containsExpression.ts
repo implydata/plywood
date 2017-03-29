@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set } from '../datatypes/index';
-import { TransformCaseExpression } from './transformCaseExpression';
+import { PlywoodValue, Set } from "../datatypes/index";
+import { SQLDialect } from "../dialect/baseDialect";
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
+import { TransformCaseExpression } from "./transformCaseExpression";
 
 export class ContainsExpression extends ChainableUnaryExpression {
   static NORMAL = 'normal';

@@ -14,61 +14,32 @@
  * limitations under the License.
  */
 
+import { TimeRange } from "../../datatypes/index";
 import {
-  r,
-  Expression,
-  LiteralExpression,
-  RefExpression,
-  ChainableExpression,
-  ChainableUnaryExpression,
-
-  AbsoluteExpression,
-  AddExpression,
-  AndExpression,
-  ApplyExpression,
-  AverageExpression,
-  CardinalityExpression,
+  $,
   CastExpression,
-  CollectExpression,
+  ChainableUnaryExpression,
   ConcatExpression,
-  ContainsExpression,
-  CountExpression,
-  CountDistinctExpression,
-  CustomAggregateExpression,
   CustomTransformExpression,
-  DivideExpression,
+  Expression,
   ExtractExpression,
   FallbackExpression,
-  IsExpression,
-  JoinExpression,
   LengthExpression,
-  IndexOfExpression,
+  LiteralExpression,
   LookupExpression,
-  LimitExpression,
-  MatchExpression,
-  MaxExpression,
-  MinExpression,
-  MultiplyExpression,
-  NotExpression,
   NumberBucketExpression,
-  OrExpression,
-  PowerExpression,
   OverlapExpression,
-  QuantileExpression,
-  SplitExpression,
+  r,
+  RefExpression,
   SubstrExpression,
-  SubtractExpression,
-  SumExpression,
   TimeBucketExpression,
   TimeFloorExpression,
   TimePartExpression,
-  TimeRangeExpression,
-  TimeShiftExpression,
   TransformCaseExpression
-} from '../../expressions/index';
+} from "../../expressions/index";
 
-import { External } from '../baseExternal';
-import { CustomDruidTransforms } from './druidTypes';
+import { External } from "../baseExternal";
+import { CustomDruidTransforms } from "./druidTypes";
 
 
 export interface DruidExtractionFnBuilderOptions {
@@ -569,6 +540,23 @@ export class DruidExtractionFnBuilder {
       type: "javascript",
       'function': null
     };
+
+    // Hack
+    if (ex.getFreeReferences()[0] === '__time') {
+      ex = ex.substitute((e) => {
+        if (e instanceof LiteralExpression) {
+          if (e.value instanceof TimeRange) {
+            return r(e.value.changeToNumber());
+          } else {
+            return null;
+          }
+        } else if (e instanceof RefExpression) {
+          return $('__time');
+        } else {
+          return null;
+        }
+      });
+    }
 
     try {
       jsExtractionFn['function'] = ex.getJSFn('d');

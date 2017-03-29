@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Dataset } from '../datatypes/index';
-import { DatasetFullType } from '../types';
-import { ApplyExpression } from './applyExpression';
+import { Dataset, PlywoodValue } from "../datatypes/index";
+import { SQLDialect } from "../dialect/baseDialect";
+import { DatasetFullType } from "../types";
+import { ApplyExpression } from "./applyExpression";
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
 
 export class SelectExpression extends ChainableExpression {
   static op = "Select";

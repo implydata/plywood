@@ -15,11 +15,10 @@
  */
 
 
-
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
-import { Aggregate } from './mixins/aggregate';
-import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set } from '../datatypes/index';
+import { PlywoodValue } from "../datatypes/index";
+import { SQLDialect } from "../dialect/baseDialect";
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
+import { Aggregate } from "./mixins/aggregate";
 
 export class CustomAggregateExpression extends ChainableExpression {
   static op = "CustomAggregate";

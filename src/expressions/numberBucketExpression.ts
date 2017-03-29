@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import * as hasOwnProp from 'has-own-prop';
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set } from '../datatypes/index';
-import { continuousFloorExpression } from '../helper/utils';
-import { NumberRange } from '../datatypes/numberRange';
+import * as hasOwnProp from "has-own-prop";
+import { PlywoodValue } from "../datatypes/index";
+import { NumberRange } from "../datatypes/numberRange";
+import { SQLDialect } from "../dialect/baseDialect";
+import { continuousFloorExpression } from "../helper/utils";
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
 
 export class NumberBucketExpression extends ChainableExpression {
   static op = "NumberBucket";

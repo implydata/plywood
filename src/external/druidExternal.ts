@@ -15,71 +15,42 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
-import * as Druid from 'druid.d.ts';
-import * as hasOwnProp from 'has-own-prop';
-import { PlywoodRequester } from 'plywood-base-api';
-import { Transform } from 'readable-stream';
-import * as toArray from 'stream-to-array';
-import { dictEqual, nonEmptyLookup, shallowCopy, ExtendableError } from '../helper/utils';
+import * as Promise from "any-promise";
+import * as Druid from "druid.d.ts";
+import * as hasOwnProp from "has-own-prop";
+import { PlywoodRequester } from "plywood-base-api";
+import { Transform } from "readable-stream";
+import * as toArray from "stream-to-array";
+import { AttributeInfo, Attributes, Datum, Set } from "../datatypes/index";
 import {
-  $, Expression,
-  RefExpression,
-  ChainableExpression,
-  ChainableUnaryExpression,
-
-  AddExpression,
-  AndExpression,
+  $,
   ApplyExpression,
   CardinalityExpression,
+  ChainableExpression,
+  ChainableUnaryExpression,
+  Expression,
   FilterExpression,
-  GreaterThanExpression,
-  GreaterThanOrEqualExpression,
   InExpression,
   IsExpression,
-  LengthExpression,
-  LessThanExpression,
-  LessThanOrEqualExpression,
-  IndexOfExpression,
-  LookupExpression,
   LimitExpression,
   MatchExpression,
   MaxExpression,
   MinExpression,
-  MultiplyExpression,
-  NotExpression,
   NumberBucketExpression,
-  OrExpression,
-  PowerExpression,
-  QuantileExpression,
-  SelectExpression,
-  SortExpression, Direction,
+  RefExpression,
+  SortExpression,
   SplitExpression,
-  SubstrExpression,
-  SubtractExpression,
-  SumExpression,
   TimeBucketExpression,
   TimeFloorExpression,
-  TimePartExpression,
-  TimeRangeExpression,
-  TimeShiftExpression,
-  TransformCaseExpression
-} from '../expressions/index';
-import {
-  AttributeInfo,
-  Attributes,
-  Dataset,
-  Datum,
-  NumberRange,
-  Range,
-  Set
-} from '../datatypes/index';
-import { External, ExternalJS, ExternalValue, Inflater, NextFn, QueryAndPostTransform } from './baseExternal';
-import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
-import { DruidExtractionFnBuilder } from './utils/druidExtractionFnBuilder';
-import { DruidFilterBuilder, DruidFilterAndIntervals } from './utils/druidFilterBuilder';
-import { DruidHavingFilterBuilder } from './utils/druidHavingFilterBuilder';
-import { DruidAggregationBuilder, AggregationsAndPostAggregations } from './utils/druidAggregationBuilder';
+  TimePartExpression
+} from "../expressions/index";
+import { dictEqual, ExtendableError, nonEmptyLookup, shallowCopy } from "../helper/utils";
+import { External, ExternalJS, ExternalValue, Inflater, NextFn, QueryAndPostTransform } from "./baseExternal";
+import { AggregationsAndPostAggregations, DruidAggregationBuilder } from "./utils/druidAggregationBuilder";
+import { DruidExtractionFnBuilder } from "./utils/druidExtractionFnBuilder";
+import { DruidFilterBuilder } from "./utils/druidFilterBuilder";
+import { DruidHavingFilterBuilder } from "./utils/druidHavingFilterBuilder";
+import { CustomDruidAggregations, CustomDruidTransforms } from "./utils/druidTypes";
 
 export class InvalidResultError extends ExtendableError {
   public result: any;

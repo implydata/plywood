@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from 'chronoshift';
-import { SQLDialect } from './baseDialect';
-import { PlyType } from '../types';
+import { Duration, Timezone } from "chronoshift";
+import { PlyType } from "../types";
+import { SQLDialect } from "./baseDialect";
 
 export class MySQLDialect extends SQLDialect {
   static TIME_BUCKETING: Lookup<string> = {
