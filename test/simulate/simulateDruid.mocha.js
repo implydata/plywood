@@ -552,6 +552,44 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("works with fancy post agg", () => {
+    let ex = ply()
+      .apply('Price', '$diamonds.sum($price)')
+      .apply('Tax', '$diamonds.sum($tax)')
+      .apply('Count', '$Price ^ $Tax');
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0]).to.deep.equal({
+      "aggregations": [
+        {
+          "fieldName": "price",
+          "name": "Price",
+          "type": "doubleSum"
+        },
+        {
+          "fieldName": "tax",
+          "name": "Tax",
+          "type": "doubleSum"
+        }
+      ],
+      "dataSource": "diamonds",
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "postAggregations": [
+        {
+          "fieldNames": [
+            "Price",
+            "Tax"
+          ],
+          "function": "function(_Price,_Tax) { return Math.pow(parseFloat(_Price),parseFloat(_Tax)); }",
+          "name": "Count",
+          "type": "javascript"
+        }
+      ],
+      "queryType": "timeseries"
+    });
+  });
+
   it("works on OVERLAP (single value) filter", () => {
     let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.overlap(['D'])"))
