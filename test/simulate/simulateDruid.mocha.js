@@ -556,7 +556,7 @@ describe("simulate Druid", () => {
     let ex = ply()
       .apply('Price', '$diamonds.sum($price)')
       .apply('Tax', '$diamonds.sum($tax)')
-      .apply('Count', '$Price ^ $Tax');
+      .apply('PT', '$Price ^ $Tax');
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0]).to.deep.equal({
@@ -582,7 +582,7 @@ describe("simulate Druid", () => {
             "Tax"
           ],
           "function": "function(_Price,_Tax) { return Math.pow(parseFloat(_Price),parseFloat(_Tax)); }",
-          "name": "Count",
+          "name": "PT",
           "type": "javascript"
         }
       ],
