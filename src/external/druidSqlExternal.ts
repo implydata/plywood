@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import * as Promise from "any-promise";
-import { PlywoodRequester } from "plywood-base-api";
-import * as toArray from "stream-to-array";
-import { AttributeInfo, Attributes } from "../datatypes/attributeInfo";
-import { PseudoDatum } from "../datatypes/dataset";
-import { DruidDialect } from "../dialect/druidDialect";
-import { PlyType } from "../types";
-import { External, ExternalJS, ExternalValue } from "./baseExternal";
-import { SQLExternal } from "./sqlExternal";
+import * as Promise from 'any-promise';
+import { PlywoodRequester } from 'plywood-base-api';
+import * as toArray from 'stream-to-array';
+import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
+import { PseudoDatum } from '../datatypes/dataset';
+import { DruidDialect } from '../dialect/druidDialect';
+import { PlyType } from '../types';
+import { External, ExternalJS, ExternalValue } from './baseExternal';
+import { SQLExternal } from './sqlExternal';
 
 export interface DruidSQLDescribeRow {
   COLUMN_NAME: string;

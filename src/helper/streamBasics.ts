@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Readable } from "readable-stream";
+import { Readable } from 'readable-stream';
 
 export class ReadableError extends Readable {
 

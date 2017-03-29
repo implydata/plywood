@@ -15,24 +15,24 @@
  * limitations under the License.
  */
 
-import { isDate, Timezone } from "chronoshift";
-import * as hasOwnProp from "has-own-prop";
-import { Class, generalEqual, Instance, NamedArray, SimpleArray } from "immutable-class";
+import { isDate, Timezone } from 'chronoshift';
+import * as hasOwnProp from 'has-own-prop';
+import { Class, generalEqual, Instance, NamedArray, SimpleArray } from 'immutable-class';
 import {
   Direction,
   Expression,
   ExpressionExternalAlteration,
   ExternalExpression,
   LiteralExpression
-} from "../expressions/index";
-import { External, TotalContainer } from "../external/baseExternal";
-import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from "../types";
-import { AttributeInfo, AttributeJSs, Attributes } from "./attributeInfo";
-import { datumHasExternal, valueFromJS, valueToJS } from "./common";
-import { NumberRange } from "./numberRange";
-import { Set } from "./set";
-import { StringRange } from "./stringRange";
-import { TimeRange } from "./timeRange";
+} from '../expressions/index';
+import { External, TotalContainer } from '../external/baseExternal';
+import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from '../types';
+import { AttributeInfo, AttributeJSs, Attributes } from './attributeInfo';
+import { datumHasExternal, valueFromJS, valueToJS } from './common';
+import { NumberRange } from './numberRange';
+import { Set } from './set';
+import { StringRange } from './stringRange';
+import { TimeRange } from './timeRange';
 
 export interface ComputeFn {
   (d: Datum): any;

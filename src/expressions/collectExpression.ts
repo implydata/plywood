@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Dataset, PlywoodValue, Set } from "../datatypes/index";
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
-import { Aggregate } from "./mixins/aggregate";
+import { Dataset, PlywoodValue, Set } from '../datatypes/index';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { Aggregate } from './mixins/aggregate';
 
 export class CollectExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Collect";

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Timezone } from "chronoshift";
+import { Timezone } from 'chronoshift';
 
 export type PlyTypeSingleValue = 'NULL' | 'BOOLEAN' | 'NUMBER' | 'TIME' | 'STRING';
 export type PlyTypeSimple = PlyTypeSingleValue | 'NUMBER_RANGE' | 'TIME_RANGE' | 'STRING_RANGE' |

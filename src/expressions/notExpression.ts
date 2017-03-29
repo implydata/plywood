@@ -15,9 +15,9 @@
  */
 
 
-import { PlywoodValue } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
+import { PlywoodValue } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class NotExpression extends ChainableExpression {
   static op = "Not";

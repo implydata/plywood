@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Dataset, PlywoodValue } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { ApplyExpression } from "./applyExpression";
-import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
+import { Dataset, PlywoodValue } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ApplyExpression } from './applyExpression';
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class LimitExpression extends ChainableExpression {
   static op = "Limit";

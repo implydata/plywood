@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import * as Promise from "any-promise";
-import { Transform } from "readable-stream";
-import { Attributes } from "../datatypes/attributeInfo";
-import { SQLDialect } from "../dialect/baseDialect";
+import * as Promise from 'any-promise';
+import { Transform } from 'readable-stream';
+import { Attributes } from '../datatypes/attributeInfo';
+import { SQLDialect } from '../dialect/baseDialect';
 import {
   ApplyExpression,
   Expression,
@@ -28,8 +28,8 @@ import {
   SortExpression,
   SplitExpression,
   TimeBucketExpression
-} from "../expressions/index";
-import { External, ExternalValue, Inflater, QueryAndPostTransform } from "./baseExternal";
+} from '../expressions/index';
+import { External, ExternalValue, Inflater, QueryAndPostTransform } from './baseExternal';
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
   return split.mapSplits((label, splitExpression) => {

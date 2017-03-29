@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { parseISODate } from "chronoshift";
-import * as hasOwnProp from "has-own-prop";
-import { isImmutableClass } from "immutable-class";
-import { getValueType, valueFromJS } from "../datatypes/common";
-import { ComputeFn, Dataset, Datum, PlywoodValue, Set, TimeRange } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { DatasetFullType, PlyType } from "../types";
-import { Expression, ExpressionJS, ExpressionValue, r } from "./baseExpression";
+import { parseISODate } from 'chronoshift';
+import * as hasOwnProp from 'has-own-prop';
+import { isImmutableClass } from 'immutable-class';
+import { getValueType, valueFromJS } from '../datatypes/common';
+import { ComputeFn, Dataset, Datum, PlywoodValue, Set, TimeRange } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { DatasetFullType, PlyType } from '../types';
+import { Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
 
 export class LiteralExpression extends Expression {
   static op = "Literal";

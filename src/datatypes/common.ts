@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-import * as Promise from "any-promise";
-import { isDate } from "chronoshift";
-import * as hasOwnProp from "has-own-prop";
-import { Expression } from "../expressions/baseExpression";
-import { External } from "../external/baseExternal";
-import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from "../types";
-import { Dataset, Datum } from "./dataset";
-import { NumberRange } from "./numberRange";
-import { Set } from "./set";
-import { StringRange } from "./stringRange";
-import { TimeRange } from "./timeRange";
+import * as Promise from 'any-promise';
+import { isDate } from 'chronoshift';
+import * as hasOwnProp from 'has-own-prop';
+import { Expression } from '../expressions/baseExpression';
+import { External } from '../external/baseExternal';
+import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from '../types';
+import { Dataset, Datum } from './dataset';
+import { NumberRange } from './numberRange';
+import { Set } from './set';
+import { StringRange } from './stringRange';
+import { TimeRange } from './timeRange';
 
 export function getValueType(value: any): PlyType {
   let typeofValue = typeof value;

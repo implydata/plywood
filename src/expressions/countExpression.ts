@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Dataset, Datum, PlywoodValue } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
-import { Aggregate } from "./mixins/aggregate";
+import { Dataset, Datum, PlywoodValue } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { Aggregate } from './mixins/aggregate';
 
 export class CountExpression extends ChainableExpression implements Aggregate {
   static op = "Count";

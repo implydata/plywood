@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-import { Timezone } from "chronoshift";
-import * as hasOwnProp from "has-own-prop";
-import { Class, Instance } from "immutable-class";
-import { PlyType } from "../types";
-import { getValueType, valueFromJS, valueToJS } from "./common";
-import { PlywoodValue } from "./dataset";
-import { NumberRange } from "./numberRange";
-import { PlywoodRange, Range } from "./range";
-import { StringRange } from "./stringRange";
-import { TimeRange } from "./timeRange";
+import { Timezone } from 'chronoshift';
+import * as hasOwnProp from 'has-own-prop';
+import { Class, Instance } from 'immutable-class';
+import { PlyType } from '../types';
+import { getValueType, valueFromJS, valueToJS } from './common';
+import { PlywoodValue } from './dataset';
+import { NumberRange } from './numberRange';
+import { PlywoodRange, Range } from './range';
+import { StringRange } from './stringRange';
+import { TimeRange } from './timeRange';
 
 export interface SetValue {
   setType: PlyType;

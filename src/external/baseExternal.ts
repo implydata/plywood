@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import * as Promise from "any-promise";
-import { Duration, Timezone } from "chronoshift";
-import * as hasOwnProp from "has-own-prop";
-import { immutableArraysEqual, immutableLookupsEqual, NamedArray, SimpleArray } from "immutable-class";
-import { PlywoodRequester } from "plywood-base-api";
-import { ReadableStream, Transform, Writable, WritableStream } from "readable-stream";
+import * as Promise from 'any-promise';
+import { Duration, Timezone } from 'chronoshift';
+import * as hasOwnProp from 'has-own-prop';
+import { immutableArraysEqual, immutableLookupsEqual, NamedArray, SimpleArray } from 'immutable-class';
+import { PlywoodRequester } from 'plywood-base-api';
+import { ReadableStream, Transform, Writable, WritableStream } from 'readable-stream';
 import {
   AttributeInfo,
   AttributeJSs,
@@ -29,11 +29,11 @@ import {
   NumberRange,
   PlywoodValue,
   PlywoodValueBuilder
-} from "../datatypes/index";
-import { Set } from "../datatypes/set";
-import { StringRange } from "../datatypes/stringRange";
-import { TimeRange } from "../datatypes/timeRange";
-import { ExpressionJS } from "../expressions/baseExpression";
+} from '../datatypes/index';
+import { Set } from '../datatypes/set';
+import { StringRange } from '../datatypes/stringRange';
+import { TimeRange } from '../datatypes/timeRange';
+import { ExpressionJS } from '../expressions/baseExpression';
 import {
   $,
   AndExpression,
@@ -51,12 +51,12 @@ import {
   SplitExpression,
   TimeBucketExpression,
   TimeFloorExpression
-} from "../expressions/index";
-import { ReadableError } from "../helper/streamBasics";
-import { StreamConcat } from "../helper/streamConcat";
-import { nonEmptyLookup, pipeWithError, safeAdd } from "../helper/utils";
-import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from "../types";
-import { CustomDruidAggregations, CustomDruidTransforms } from "./utils/druidTypes";
+} from '../expressions/index';
+import { ReadableError } from '../helper/streamBasics';
+import { StreamConcat } from '../helper/streamConcat';
+import { nonEmptyLookup, pipeWithError, safeAdd } from '../helper/utils';
+import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from '../types';
+import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
 
 export class TotalContainer {
   public datum: Datum;

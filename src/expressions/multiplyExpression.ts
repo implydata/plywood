@@ -15,10 +15,10 @@
  */
 
 
-import { PlywoodValue, Set } from "../datatypes/index";
+import { PlywoodValue, Set } from '../datatypes/index';
 
-import { SQLDialect } from "../dialect/baseDialect";
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
+import { SQLDialect } from '../dialect/baseDialect';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class MultiplyExpression extends ChainableUnaryExpression {
   static op = "Multiply";

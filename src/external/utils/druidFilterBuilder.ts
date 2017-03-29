@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { isDate } from "chronoshift";
-import { NamedArray } from "immutable-class";
+import { isDate } from 'chronoshift';
+import { NamedArray } from 'immutable-class';
 
-import { AttributeInfo, NumberRange, PlywoodRange, Range, Set, TimeRange } from "../../datatypes/index";
+import { AttributeInfo, NumberRange, PlywoodRange, Range, Set, TimeRange } from '../../datatypes/index';
 
 import {
   AndExpression,
@@ -30,11 +30,11 @@ import {
   OrExpression,
   OverlapExpression,
   RefExpression
-} from "../../expressions/index";
+} from '../../expressions/index';
 
-import { External } from "../baseExternal";
-import { DruidExtractionFnBuilder } from "./druidExtractionFnBuilder";
-import { CustomDruidTransforms } from "./druidTypes";
+import { External } from '../baseExternal';
+import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
+import { CustomDruidTransforms } from './druidTypes';
 
 
 export interface DruidFilterAndIntervals {

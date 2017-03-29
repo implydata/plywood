@@ -15,9 +15,9 @@
  */
 
 
-import { PlywoodValue } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
+import { PlywoodValue } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class IndexOfExpression extends ChainableUnaryExpression {
   static op = "IndexOf";

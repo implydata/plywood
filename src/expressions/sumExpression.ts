@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { Dataset, PlywoodValue } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { AddExpression } from "./addExpression";
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
-import { LiteralExpression } from "./literalExpression";
-import { Aggregate } from "./mixins/aggregate";
-import { MultiplyExpression } from "./multiplyExpression";
-import { SubtractExpression } from "./subtractExpression";
+import { Dataset, PlywoodValue } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { AddExpression } from './addExpression';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { LiteralExpression } from './literalExpression';
+import { Aggregate } from './mixins/aggregate';
+import { MultiplyExpression } from './multiplyExpression';
+import { SubtractExpression } from './subtractExpression';
 
 export class SumExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Sum";

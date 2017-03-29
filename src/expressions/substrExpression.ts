@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { PlywoodValue, Set } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
+import { PlywoodValue, Set } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class SubstrExpression extends ChainableExpression {
   static op = "Substr";

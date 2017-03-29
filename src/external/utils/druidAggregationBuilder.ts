@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import * as hasOwnProp from "has-own-prop";
-import { NamedArray } from "immutable-class";
+import * as hasOwnProp from 'has-own-prop';
+import { NamedArray } from 'immutable-class';
 
-import { AttributeInfo } from "../../datatypes/index";
+import { AttributeInfo } from '../../datatypes/index';
 
 import {
   $,
@@ -45,12 +45,12 @@ import {
   SubtractExpression,
   SumExpression,
   TransformCaseExpression
-} from "../../expressions/index";
+} from '../../expressions/index';
 
-import { External } from "../baseExternal";
-import { DruidExtractionFnBuilder } from "./druidExtractionFnBuilder";
-import { DruidFilterBuilder } from "./druidFilterBuilder";
-import { CustomDruidAggregations, CustomDruidTransforms } from "./druidTypes";
+import { External } from '../baseExternal';
+import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
+import { DruidFilterBuilder } from './druidFilterBuilder';
+import { CustomDruidAggregations, CustomDruidTransforms } from './druidTypes';
 
 
 export interface AggregationsAndPostAggregations {

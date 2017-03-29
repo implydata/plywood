@@ -15,8 +15,8 @@
  */
 
 
-import { PlywoodValue, Set } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
+import { PlywoodValue, Set } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
 import {
   ChainableUnaryExpression,
   Expression,
@@ -24,7 +24,7 @@ import {
   ExpressionMatchFn,
   ExpressionValue,
   ExtractAndRest
-} from "./baseExpression";
+} from './baseExpression';
 
 const IS_OR_OVERLAP: Lookup<boolean> = {
   'is': true,

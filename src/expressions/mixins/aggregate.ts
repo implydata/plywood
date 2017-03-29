@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Expression } from "../baseExpression";
+import { Expression } from '../baseExpression';
 
 export class Aggregate {
   public operand: Expression;

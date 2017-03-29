@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DatabaseRequest, PlywoodRequester } from "plywood-base-api";
+import { DatabaseRequest, PlywoodRequester } from 'plywood-base-api';
 
 export interface CallbackParameters {
   name?: string;

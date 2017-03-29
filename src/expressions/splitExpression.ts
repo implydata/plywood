@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import * as hasOwnProp from "has-own-prop";
-import { immutableLookupsEqual } from "immutable-class";
-import { Dataset, Datum, PlywoodValue, Set } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { DatasetFullType, FullType } from "../types";
+import * as hasOwnProp from 'has-own-prop';
+import { immutableLookupsEqual } from 'immutable-class';
+import { Dataset, Datum, PlywoodValue, Set } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { DatasetFullType, FullType } from '../types';
 import {
   ChainableExpression,
   Expression,
@@ -30,8 +30,8 @@ import {
   Splits,
   SplitsJS,
   SubstitutionFn
-} from "./baseExpression";
-import { Aggregate } from "./mixins/aggregate";
+} from './baseExpression';
+import { Aggregate } from './mixins/aggregate';
 
 export class SplitExpression extends ChainableExpression implements Aggregate {
   static op = "Split";

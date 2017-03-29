@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { Duration, Timezone } from "chronoshift";
-import { immutableEqual } from "immutable-class";
-import { PlywoodValue, Set, TimeRange } from "../datatypes/index";
-import { SQLDialect } from "../dialect/baseDialect";
-import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from "./baseExpression";
-import { HasTimezone } from "./mixins/hasTimezone";
-import { OverlapExpression } from "./overlapExpression";
-import { TimeBucketExpression } from "./timeBucketExpression";
+import { Duration, Timezone } from 'chronoshift';
+import { immutableEqual } from 'immutable-class';
+import { PlywoodValue, Set, TimeRange } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { HasTimezone } from './mixins/hasTimezone';
+import { OverlapExpression } from './overlapExpression';
+import { TimeBucketExpression } from './timeBucketExpression';
 
 export class TimeFloorExpression extends ChainableExpression implements HasTimezone {
   static op = "TimeFloor";

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { PlywoodValue, Set } from "../datatypes/index";
-import { Range } from "../datatypes/range";
-import { SQLDialect } from "../dialect/baseDialect";
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from "./baseExpression";
-import { LiteralExpression } from "./literalExpression";
+import { PlywoodValue, Set } from '../datatypes/index';
+import { Range } from '../datatypes/range';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
+import { LiteralExpression } from './literalExpression';
 
 export class GreaterThanExpression extends ChainableUnaryExpression {
   static op = "GreaterThan";

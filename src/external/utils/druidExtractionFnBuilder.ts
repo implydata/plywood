@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { TimeRange } from "../../datatypes/index";
+import { TimeRange } from '../../datatypes/index';
 import {
   $,
   CastExpression,
@@ -36,10 +36,10 @@ import {
   TimeFloorExpression,
   TimePartExpression,
   TransformCaseExpression
-} from "../../expressions/index";
+} from '../../expressions/index';
 
-import { External } from "../baseExternal";
-import { CustomDruidTransforms } from "./druidTypes";
+import { External } from '../baseExternal';
+import { CustomDruidTransforms } from './druidTypes';
 
 
 export interface DruidExtractionFnBuilderOptions {

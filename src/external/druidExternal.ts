@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import * as Promise from "any-promise";
-import * as Druid from "druid.d.ts";
-import * as hasOwnProp from "has-own-prop";
-import { PlywoodRequester } from "plywood-base-api";
-import { Transform } from "readable-stream";
-import * as toArray from "stream-to-array";
-import { AttributeInfo, Attributes, Datum, Set } from "../datatypes/index";
+import * as Promise from 'any-promise';
+import * as Druid from 'druid.d.ts';
+import * as hasOwnProp from 'has-own-prop';
+import { PlywoodRequester } from 'plywood-base-api';
+import { Transform } from 'readable-stream';
+import * as toArray from 'stream-to-array';
+import { AttributeInfo, Attributes, Datum, Set } from '../datatypes/index';
 import {
   $,
   ApplyExpression,
@@ -43,14 +43,14 @@ import {
   TimeBucketExpression,
   TimeFloorExpression,
   TimePartExpression
-} from "../expressions/index";
-import { dictEqual, ExtendableError, nonEmptyLookup, shallowCopy } from "../helper/utils";
-import { External, ExternalJS, ExternalValue, Inflater, NextFn, QueryAndPostTransform } from "./baseExternal";
-import { AggregationsAndPostAggregations, DruidAggregationBuilder } from "./utils/druidAggregationBuilder";
-import { DruidExtractionFnBuilder } from "./utils/druidExtractionFnBuilder";
-import { DruidFilterBuilder } from "./utils/druidFilterBuilder";
-import { DruidHavingFilterBuilder } from "./utils/druidHavingFilterBuilder";
-import { CustomDruidAggregations, CustomDruidTransforms } from "./utils/druidTypes";
+} from '../expressions/index';
+import { dictEqual, ExtendableError, nonEmptyLookup, shallowCopy } from '../helper/utils';
+import { External, ExternalJS, ExternalValue, Inflater, NextFn, QueryAndPostTransform } from './baseExternal';
+import { AggregationsAndPostAggregations, DruidAggregationBuilder } from './utils/druidAggregationBuilder';
+import { DruidExtractionFnBuilder } from './utils/druidExtractionFnBuilder';
+import { DruidFilterBuilder } from './utils/druidFilterBuilder';
+import { DruidHavingFilterBuilder } from './utils/druidHavingFilterBuilder';
+import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
 
 export class InvalidResultError extends ExtendableError {
   public result: any;
