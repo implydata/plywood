@@ -44,7 +44,7 @@ let context = {
       { name: 'added', type: 'NULL' },
       { name: 'deleted', type: 'NULL' },
       { name: 'inserted', type: 'NULL' },
-      { name: 'delta_hist', type: 'NULL' }
+      { name: 'delta_hist', type: 'NULL', nativeType: "approximateHistogram" }
     ],
     derivedAttributes: {
       pageInBrackets: "'[' ++ $page ++ ']'",
