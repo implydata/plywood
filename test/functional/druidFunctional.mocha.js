@@ -1865,6 +1865,30 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with quantiles", () => {
+      let ex = ply()
+        .apply('deltaHist95', $('wiki').quantile($('delta_hist'), 0.95))
+        .apply('deltaHistMedian', $('wiki').quantile($('delta_hist'), 0.5))
+        .apply('deltaBucket95', $('wiki').quantile($('deltaBucket100'), 0.95))
+        .apply('deltaBucketMedian', $('wiki').quantile($('deltaBucket100'), 0.5))
+        .apply('commentLength95', $('wiki').quantile($('commentLength'), 0.95))
+        .apply('commentLengthMedian', $('wiki').quantile($('commentLength'), 0.5));
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "commentLength95": 145.4637,
+              "commentLengthMedian": 28.108896,
+              "deltaBucket95": -500, // ToDo: find out why this is
+              "deltaBucketMedian": -500,
+              "deltaHist95": 161.95517,
+              "deltaHistMedian": 129.0191
+            }
+          ]);
+        });
+    });
+
     it("works with lookup IS filter", () => {
       let ex = $('wiki').filter($('channel').lookup('channel-lookup').is('English')).sum('$count');
 

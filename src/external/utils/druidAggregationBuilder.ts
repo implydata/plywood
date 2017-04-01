@@ -337,10 +337,11 @@ export class DruidAggregationBuilder {
       throw new Error(`can not compute quantile on derived attribute: ${attribute}`);
     }
 
+    const attributeInfo = this.getAttributesInfo(attributeName);
     let histogramAggregationName = "!H_" + name;
     let aggregation: Druid.Aggregation = {
       name: histogramAggregationName,
-      type: "approxHistogramFold",
+      type: 'approxHistogram' + (attributeInfo.nativeType === 'approximateHistogram' ? 'Fold' : ''),
       fieldName: attributeName
     };
 
