@@ -1058,12 +1058,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return this;
   }
 
-  public isAction(): boolean {
-    return false;
-  }
-
   public performAction(action: Expression): Expression {
-    if (!action.isAction()) throw new Error(`${action} is not an action`);
     return action.substitute((ex) => ex.equals(Expression._) ? this : null);
   }
 
@@ -1896,10 +1891,6 @@ export abstract class ChainableExpression extends Expression {
     } else {
       throw new Error('operand must be chainable');
     }
-  }
-
-  public isAction(): boolean {
-    return this.operand.equals(Expression._);
   }
 
   public getAction(): Expression {
