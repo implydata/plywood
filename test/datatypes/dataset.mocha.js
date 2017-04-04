@@ -1329,5 +1329,166 @@ describe("Dataset", () => {
 
     });
 
+    describe("#join", () => {
+      it("works on simple key values", () => {
+        let carDataset1 = Dataset.fromJS({
+          keys: ['make'],
+          data: [
+            {
+              time: new Date('2015-01-04T12:32:43'),
+              make: 'Honda',
+              model: 'Civic',
+              price: 10000
+            },
+            {
+              time: new Date('2015-01-04T14:00:40'),
+              make: 'Toyota',
+              model: 'Prius',
+              price: 20000
+            }
+          ]
+        });
+
+        let carDataset2 = Dataset.fromJS({
+          keys: ['make'],
+          data: [
+            {
+              make: 'Toyota',
+              model: 'Prius',
+              cmo: 23
+            },
+            {
+              make: 'Ford',
+              model: 'Focus',
+              cmo: 13
+            }
+          ]
+        });
+
+        expect(carDataset1.join(carDataset2).toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "time",
+              "type": "TIME"
+            },
+            {
+              "name": "make",
+              "type": "STRING"
+            },
+            {
+              "name": "model",
+              "type": "STRING"
+            },
+            {
+              "name": "price",
+              "type": "NUMBER"
+            },
+            {
+              "name": "cmo",
+              "type": "NUMBER"
+            }
+          ],
+          "data": [
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "price": 10000,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "cmo": 23,
+              "make": "Toyota",
+              "model": "Prius",
+              "price": 20000,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            }
+          ],
+          "keys": [
+            "make"
+          ]
+        });
+      });
+
+      it("works on complex key values", () => {
+        let carDataset1 = Dataset.fromJS({
+          keys: ['make'],
+          data: [
+            {
+              time: new Date('2015-01-04T12:32:43'),
+              make: 'Honda',
+              model: 'Civic',
+              price: 10000
+            },
+            {
+              time: new Date('2015-01-04T14:00:40'),
+              make: 'Toyota',
+              model: 'Prius',
+              price: 20000
+            }
+          ]
+        });
+
+        let carDataset2 = Dataset.fromJS({
+          keys: ['make'],
+          data: [
+            {
+              make: 'Toyota',
+              model: 'Prius',
+              cmo: 23
+            },
+            {
+              make: 'Ford',
+              model: 'Focus',
+              cmo: 13
+            }
+          ]
+        });
+
+        expect(carDataset1.join(carDataset2).toJS()).to.deep.equal({
+          "attributes": [
+            {
+              "name": "time",
+              "type": "TIME"
+            },
+            {
+              "name": "make",
+              "type": "STRING"
+            },
+            {
+              "name": "model",
+              "type": "STRING"
+            },
+            {
+              "name": "price",
+              "type": "NUMBER"
+            },
+            {
+              "name": "cmo",
+              "type": "NUMBER"
+            }
+          ],
+          "data": [
+            {
+              "make": "Honda",
+              "model": "Civic",
+              "price": 10000,
+              "time": new Date('2015-01-04T12:32:43.000Z')
+            },
+            {
+              "cmo": 23,
+              "make": "Toyota",
+              "model": "Prius",
+              "price": 20000,
+              "time": new Date('2015-01-04T14:00:40.000Z')
+            }
+          ],
+          "keys": [
+            "make"
+          ]
+        });
+      });
+
+    });
+
   });
 });

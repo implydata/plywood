@@ -446,4 +446,50 @@ describe("compute native nontrivial data", function() {
         ]);
       });
   });
+
+  it("works with join timeBucket case", () => {
+    let ex = $('data').split('$time.timeBucket(PT6H)', "Time", 'd1').join($('data').split('$time.timeShift(PT6H, 1).timeBucket(PT6H)', "Time", 'd2'))
+      .apply('CountD1', '$d1.count()')
+      .apply('CountD2', '$d2.count()')
+      .sort('$Time', 'ascending');
+
+    return ex.compute({ data: ds })
+      .then((v) => {
+        expect(v.toJS().data).to.deep.equal([
+          {
+            "CountD1": 5413,
+            "CountD2": 0,
+            "Time": {
+              "end": new Date('2015-09-12T06:00:00.000Z'),
+              "start": new Date('2015-09-12T00:00:00.000Z')
+            }
+          },
+          {
+            "CountD1": 11099,
+            "CountD2": 5413,
+            "Time": {
+              "end": new Date('2015-09-12T12:00:00.000Z'),
+              "start": new Date('2015-09-12T06:00:00.000Z')
+            }
+          },
+          {
+            "CountD1": 11879,
+            "CountD2": 11099,
+            "Time": {
+              "end": new Date('2015-09-12T18:00:00.000Z'),
+              "start": new Date('2015-09-12T12:00:00.000Z')
+            }
+          },
+          {
+            "CountD1": 10853,
+            "CountD2": 11879,
+            "Time": {
+              "end": new Date('2015-09-13T00:00:00.000Z'),
+              "start": new Date('2015-09-12T18:00:00.000Z')
+            }
+          }
+        ]);
+      });
+  });
+
 });

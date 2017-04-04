@@ -426,7 +426,7 @@ describe("reference check", () => {
       expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it.skip("a join", () => {
+    it("works with join", () => {
       let ex1 = ply()
         .apply('Data1', $('diamonds').filter($('price').overlap(105, 305)))
         .apply('Data2', $('diamonds').filter($('price').overlap(105, 305).not()))

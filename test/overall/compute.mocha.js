@@ -2325,7 +2325,7 @@ describe("compute native", () => {
 
 
   describe("joins", () => {
-    it.skip("does a join on split", () => {
+    it("does a join on split", () => {
       let ds = Dataset.fromJS(data).hide();
 
       let ex = ply()
@@ -2345,24 +2345,43 @@ describe("compute native", () => {
             {
               "Count1": 3,
               "Count2": 3,
-              "Cuts": [
-                {
-                  "Counts": 101,
-                  "Cut": "Good"
-                },
-                {
-                  "Counts": 100,
-                  "Cut": "Great"
-                },
-                {
-                  "Counts": 101,
-                  "Cut": "Wow"
-                },
-                {
-                  "Counts": 1,
-                  "Cut": null
-                }
-              ]
+              "Cuts": {
+                "attributes": [
+                  {
+                    "name": "Cut",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Data1",
+                    "type": "DATASET"
+                  },
+                  {
+                    "name": "K2",
+                    "type": "DATASET"
+                  },
+                  {
+                    "name": "Counts",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Counts": 101,
+                    "Cut": "Good"
+                  },
+                  {
+                    "Counts": 100,
+                    "Cut": "Great"
+                  },
+                  {
+                    "Counts": 101,
+                    "Cut": "Wow"
+                  }
+                ],
+                "keys": [
+                  "Cut"
+                ]
+              }
             }
           ]);
         });

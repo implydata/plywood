@@ -18,7 +18,7 @@
 import * as Promise from 'any-promise';
 import { Duration, parseISODate, Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
-import { Instance, isImmutableClass } from 'immutable-class';
+import { Instance, isImmutableClass, SimpleArray } from 'immutable-class';
 import { PassThrough, ReadableStream } from 'readable-stream';
 
 import { failIfIntrospectNeededInDatum, getFullTypeFromDatum, introspectDatum } from '../datatypes/common';
@@ -1012,17 +1012,17 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     }
   }
 
-  public breakdownByDataset(tempNamePrefix: string): DatasetBreakdown {
-    throw new Error('todo');
+  public breakdownByDataset(tempNamePrefix = 'b'): DatasetBreakdown {
+    throw new Error('ToDo');
     // let nameIndex = 0;
-    // let singleDatasetActions: ApplyAction[] = [];
+    // let singleDatasetActions: ApplyExpression[] = [];
     //
     // let externals = this.getBaseExternals();
     // if (externals.length < 2) {
     //   throw new Error('not a multiple dataset expression');
     // }
     //
-    // let combine = this.substitute(ex => {
+    // const combine = this.substitute(ex => {
     //   let externals = ex.getBaseExternals();
     //   if (externals.length !== 1) return null;
     //
@@ -1033,20 +1033,15 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     //     tempName = existingApply.name;
     //   } else {
     //     tempName = tempNamePrefix + (nameIndex++);
-    //     singleDatasetActions.push(new ApplyAction({
-    //       name: tempName,
-    //       expression: ex
-    //     }));
+    //     singleDatasetActions.push(Expression._.apply(tempName, ex));
     //   }
     //
-    //   return new RefExpression({
-    //     name: tempName,
-    //     nest: 0
-    //   });
+    //   return $(tempName);
     // });
+    //
     // return {
-    //   combineExpression: combine,
-    //   singleDatasetActions: singleDatasetActions
+    //   singleDatasetActions: singleDatasetActions,
+    //   combineExpression: combine
     // };
   }
 

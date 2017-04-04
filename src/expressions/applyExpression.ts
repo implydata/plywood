@@ -131,7 +131,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
       }
 
       dataset = dataset.applyFn(name, (d: Datum): any => {
-        let simp = expression.resolve(d).simplify();
+        let simp = expression.resolve(d, 'null').simplify();
         if (simp instanceof ExternalExpression) return simp.external;
         if (simp instanceof LiteralExpression) return simp.value;
         return simp;

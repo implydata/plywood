@@ -1478,12 +1478,8 @@ describe("External", () => {
 
       it.skip("a join of two splits", () => {
         let ex = $('wiki').split('$page', 'Page').join($('wikiCmp').split('$page', 'Page'))
-          .apply('wiki', '$wiki.filter($page = $^Page)')
-          .apply('wikiCmp', '$wikiCmp.filter($page = $^Page)')
           .apply('Count', '$wiki.count()')
-          .apply('CountDiff', '$wiki.count() - $wikiCmp.count()')
-          .sort('$CountDiff', 'descending')
-          .limit(5);
+          .apply('CountCmp', '$wikiCmp.count()');
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -1506,6 +1502,16 @@ describe("External", () => {
         ]);
 
         expect(ex.actions[0].toString()).to.equal('.apply(CountDiff, ($_br_0 + $_br_1))');
+      });
+
+      it.skip("a join of two splits sort on delta", () => {
+        let ex = $('wiki').split('$page', 'Page').join($('wikiCmp').split('$page', 'Page'))
+          .apply('Count', '$wiki.count()')
+          .apply('CountDiff', '$wiki.count() - $wikiCmp.count()')
+          .sort('$CountDiff', 'descending')
+          .limit(5);
+
+        // ToDo: fill in
       });
 
       it("works with a split and further compute", () => {

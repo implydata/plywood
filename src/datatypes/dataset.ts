@@ -940,41 +940,41 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     return new Dataset(value);
   }
 
+  public getKeyLookup(): Lookup<Datum> {
+    const { data, keys } = this;
+
+    let thisKey = keys[0]; // ToDo: temp fix
+    if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
+
+    let mapping: Lookup<Datum> = Object.create(null);
+    for (let i = 0; i < data.length; i++) {
+      let datum = data[i];
+      mapping[String(datum[thisKey])] = datum;
+    }
+
+    return mapping;
+  }
+
   public join(other: Dataset): Dataset {
     if (!other) return this;
+    const { data, keys, attributes } = this;
 
-    let thisKey = this.keys[0]; // ToDo: temp fix
+    let thisKey = keys[0]; // ToDo: temp fix
     if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
-    let otherKey = other.keys[0]; // ToDo: temp fix
-    if (!otherKey) throw new Error('join rhs must have a key (be a product of a split)');
 
-    let thisData = this.data;
-    let otherData = other.data;
-    let k: string;
+    const otherLookup = other.getKeyLookup();
 
-    let mapping: Lookup<Datum[]> = Object.create(null);
-    for (let i = 0; i < thisData.length; i++) {
-      let datum = thisData[i];
-      k = String(thisKey ? datum[thisKey] : i);
-      mapping[k] = [datum];
-    }
-    for (let i = 0; i < otherData.length; i++) {
-      let datum = otherData[i];
-      k = String(otherKey ? datum[otherKey] : i);
-      if (!mapping[k]) mapping[k] = [];
-      mapping[k].push(datum);
-    }
+    let newData = data.map((datum) => {
+      const otherDatum = otherLookup[String(datum[thisKey])];
+      if (!otherDatum) return datum;
+      return joinDatums(datum, otherDatum);
+    });
 
-    let newData: Datum[] = [];
-    for (let j in mapping) {
-      let datums = mapping[j];
-      if (datums.length === 1) {
-        newData.push(datums[0]);
-      } else {
-        newData.push(joinDatums(datums[0], datums[1]));
-      }
-    }
-    return new Dataset({ data: newData });
+    return new Dataset({
+      keys,
+      attributes: AttributeInfo.override(attributes, other.attributes),
+      data: newData
+    });
   }
 
   public findDatumByAttribute(attribute: string, value: any): Datum {
