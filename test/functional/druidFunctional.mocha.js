@@ -3275,8 +3275,8 @@ describe("Druid Functional", function() {
 
       it("works with two datasets totals only", () => {
         let ex = ply()
-          .apply("wikiA", $('wiki').filter($('time').overlap(new Date("2015-09-12T06:00:00Z"), new Date("2015-09-13T00:00:00Z"))))
-          .apply("wikiB", $('wiki').filter($('time').overlap(new Date("2015-09-12T00:00:00Z"), new Date("2015-09-12T06:00:00Z"))))
+          .apply("wikiA", $('wiki').filter($('time').overlap(new Date("2015-09-12T12:00:00Z"), new Date("2015-09-13T00:00:00Z"))))
+          .apply("wikiB", $('wiki').filter($('time').overlap(new Date("2015-09-12T00:00:00Z"), new Date("2015-09-12T12:00:00Z"))))
           .apply('CountA', '$wikiA.sum($count)')
           .apply('TotalAddedA', '$wikiA.sum($added)')
           .apply('CountB', '$wikiB.sum($count)');
@@ -3285,9 +3285,9 @@ describe("Druid Functional", function() {
           .then((result) => {
             expect(result.toJS().data).to.deep.equal([
               {
-                "CountA": 338304,
-                "CountB": 54139,
-                "TotalAddedA": 81966807
+                "CountA": 227318,
+                "CountB": 165125,
+                "TotalAddedA": 55970642
               }
             ]);
           });
@@ -3296,16 +3296,16 @@ describe("Druid Functional", function() {
 
       it.skip("works with two datasets with split", () => {
         let ex = ply()
-          .apply("wikiEn", $('wiki').filter($("channel").is('en')))
-          .apply("wikiFr", $('wiki').filter($("channel").is('fr')))
-          .apply('CountEn', '$wikiEn.sum($count)')
-          .apply('TotalAdded', '$wikiEn.sum($added)')
-          .apply('CountFr', '$wikiFr.sum($count)')
+          .apply("wikiA", $('wiki').filter($('time').overlap(new Date("2015-09-12T12:00:00Z"), new Date("2015-09-13T00:00:00Z"))))
+          .apply("wikiB", $('wiki').filter($('time').overlap(new Date("2015-09-12T00:00:00Z"), new Date("2015-09-12T12:00:00Z"))))
+          .apply('CountA', '$wikiA.sum($count)')
+          .apply('TotalAddedA', '$wikiA.sum($added)')
+          .apply('CountB', '$wikiB.sum($count)')
           .apply(
             'Sub',
-            $('wikiEn').split('$user', 'User').join($('wikiFr').split('$user', 'User'))
-              .apply('CountEn', '$wikiEn.sum($count)')
-              .apply('CountFr', '$wikiFr.sum($count)')
+            $('wikiA').split('$user', 'User').join($('wikiB').split('$user', 'User'))
+              .apply('CountA', '$wikiA.sum($count)')
+              .apply('CountB', '$wikiB.sum($count)')
           );
 
         return basicExecutor(ex)

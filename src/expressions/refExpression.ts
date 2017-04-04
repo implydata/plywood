@@ -240,11 +240,11 @@ export class RefExpression extends Expression {
     let myTypeContext = typeContext;
     for (let i = nest; i > 0; i--) {
       myTypeContext = myTypeContext.parent;
-      if (!myTypeContext) throw new Error('went too deep on ' + this.toString());
+      if (!myTypeContext) throw new Error(`went too deep on ${this}`);
     }
 
     let myName = ignoreCase ? RefExpression.findPropertyCI(myTypeContext.datasetType, name) : name;
-    if (myName == null) throw new Error('could not resolve ' + this.toString());
+    if (myName == null) throw new Error(`could not resolve ${this}`);
     // Look for the reference in the parent chain
     let nestDiff = 0;
     while (myTypeContext && !hasOwnProp(myTypeContext.datasetType, myName)) {
@@ -252,7 +252,7 @@ export class RefExpression extends Expression {
       nestDiff++;
     }
     if (!myTypeContext) {
-      throw new Error('could not resolve ' + this.toString());
+      throw new Error(`could not resolve ${this}`);
     }
 
     let myFullType = myTypeContext.datasetType[myName];
