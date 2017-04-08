@@ -30,7 +30,7 @@ export class SelectExpression extends ChainableExpression {
 
   public attributes: string[];
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("select");
     this._checkOperandTypes('DATASET');

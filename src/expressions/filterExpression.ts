@@ -30,7 +30,7 @@ export class FilterExpression extends ChainableUnaryExpression {
     return new FilterExpression(value);
   }
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("filter");
     this._checkExpressionTypes('BOOLEAN');

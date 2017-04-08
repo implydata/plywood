@@ -841,6 +841,15 @@ describe("Cross Functional", function() {
         .limit(10)
     }));
 
+    it.skip('works with TIME split (timeShift + timeBucket) (sort on apply)', equalityTest({ // ToDo: make this work
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split($('__time').timeShift('PT2H', 1).timeBucket('PT1H', 'Etc/UTC'), 'TimeShiftByHour')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
     it('works with TIME split (timePart) (sort on split)', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split($('__time').timePart('HOUR_OF_DAY', 'Etc/UTC'), 'HourOfDay')
@@ -1162,7 +1171,7 @@ describe("Cross Functional", function() {
         .apply('count', '$wiki.count()')
         .apply(
           'cells',
-          $('wiki').filter('$channel.in($xs.collect($v)).and($__time.in($ys.collect($v)))')
+          $('wiki').filter('$channel.overlap($xs.collect($v)).and($__time.overlap($ys.collect($v)))')
             .split({ __time: '$__time.timeBucket(PT1M)', channel: '$channel' })
             .apply('count', '$wiki.count()')
             .sort('$__time', 'ascending')

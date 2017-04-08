@@ -29,7 +29,7 @@ export class LimitExpression extends ChainableExpression {
 
   public value: int;
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("limit");
     this._checkOperandTypes('DATASET');

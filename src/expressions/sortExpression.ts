@@ -35,7 +35,7 @@ export class SortExpression extends ChainableUnaryExpression {
 
   public direction: Direction;
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("sort");
     this._checkOperandTypes('DATASET');

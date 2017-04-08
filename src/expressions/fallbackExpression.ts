@@ -24,7 +24,7 @@ export class FallbackExpression extends ChainableUnaryExpression {
     return new FallbackExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("fallback");
     this._checkOperandExpressionTypesAlign();

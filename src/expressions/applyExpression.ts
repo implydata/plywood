@@ -34,7 +34,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
 
   public name: string;
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this.name = parameters.name;
     this._ensureOp("apply");

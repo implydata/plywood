@@ -174,6 +174,8 @@ describe("Expression", () => {
       { op: 'match', regexp: 'A[B]' },
       { op: 'match', regexp: '^fu*$' },
 
+      { op: 'extract', regexp: '\\d{3}' },
+
       { op: 'lessThan', expression: { op: 'literal', type: 'TIME', value: new Date('2015-10-10Z') } },
 
       { op: 'overlap', expression: { op: 'ref', name: 'myVar' } },

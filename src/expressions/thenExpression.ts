@@ -24,7 +24,7 @@ export class ThenExpression extends ChainableUnaryExpression {
     return new ThenExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("then");
     this._checkOperandTypes('BOOLEAN');
