@@ -16,7 +16,7 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
 
 const IS_OR_OVERLAP: Lookup<boolean> = {
   'is': true,
@@ -41,7 +41,7 @@ export class OrExpression extends ChainableUnaryExpression {
     let union = Set.unionCover(rhs1.getLiteralValue(), rhs2.getLiteralValue());
     if (union === null) return null;
 
-    return lhs1.overlap(union).simplify();
+    return lhs1.overlap(r(union)).simplify();
   }
 
   constructor(parameters: ExpressionValue) {

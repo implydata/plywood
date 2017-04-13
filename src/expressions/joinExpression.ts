@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { PlywoodValue, Set } from '../datatypes/index';
+import * as hasOwnProp from 'has-own-prop';
+import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+import { DatasetFullType } from '../types';
 import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 import { ExternalExpression } from './externalExpression';
-import { DatasetFullType, FullType } from '../types';
-import * as hasOwnProp from 'has-own-prop';
 
 export class JoinExpression extends ChainableUnaryExpression {
   static op = "Join";

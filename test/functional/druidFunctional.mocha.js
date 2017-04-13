@@ -3215,6 +3215,127 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with filtered double split", () => {
+      let ex = ply()
+        .apply('wiki', $('wiki').filter($('time').overlap(new Date('2015-09-11T23:59:00Z'), new Date('2015-09-12T23:59:00Z'))))
+        .apply('count', '$wiki.sum($count)')
+        .apply(
+          'SPLIT',
+          $('wiki').split('$page','page')
+            .filter($('page').overlap(['Jeremy Corbyn', 'KalyeSerye']))
+            .apply('count', '$wiki.sum($count)')
+            .sort('$count', 'descending')
+            .limit(2)
+            .apply(
+              'SPLIT',
+              $('wiki').split('$time.timeBucket(PT1H)','time')
+                .apply('count', '$wiki.sum($count)')
+                .sort('$time', 'ascending')
+                .limit(2)
+            )
+        );
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "SPLIT": {
+                "attributes": [
+                  {
+                    "name": "page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "count",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "SPLIT",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "SPLIT": {
+                      "attributes": [
+                        {
+                          "name": "time",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "count": 1,
+                          "time": {
+                            "end": new Date('2015-09-12T02:00:00.000Z'),
+                            "start": new Date('2015-09-12T01:00:00.000Z')
+                          }
+                        },
+                        {
+                          "count": 1,
+                          "time": {
+                            "end": new Date('2015-09-12T08:00:00.000Z'),
+                            "start": new Date('2015-09-12T07:00:00.000Z')
+                          }
+                        }
+                      ],
+                      "keys": [
+                        "time"
+                      ]
+                    },
+                    "count": 318,
+                    "page": "Jeremy Corbyn"
+                  },
+                  {
+                    "SPLIT": {
+                      "attributes": [
+                        {
+                          "name": "time",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "count": 1,
+                          "time": {
+                            "end": new Date('2015-09-12T02:00:00.000Z'),
+                            "start": new Date('2015-09-12T01:00:00.000Z')
+                          }
+                        },
+                        {
+                          "count": 1,
+                          "time": {
+                            "end": new Date('2015-09-12T03:00:00.000Z'),
+                            "start": new Date('2015-09-12T02:00:00.000Z')
+                          }
+                        }
+                      ],
+                      "keys": [
+                        "time"
+                      ]
+                    },
+                    "count": 69,
+                    "page": "KalyeSerye"
+                  }
+                ],
+                "keys": [
+                  "page"
+                ]
+              },
+              "count": 392239
+            }
+          ]);
+        });
+    });
+
     describe("plyql end to end", () => {
       it("should work with <= <", () => {
         let ex = Expression.parseSQL(sane`
@@ -3291,7 +3412,6 @@ describe("Druid Functional", function() {
               }
             ]);
           });
-
       });
 
       it.skip("works with two datasets with split", () => {
@@ -3314,7 +3434,6 @@ describe("Druid Functional", function() {
 
             });
           });
-
       });
 
     })

@@ -23,7 +23,8 @@ import {
   ExpressionJS,
   ExpressionMatchFn,
   ExpressionValue,
-  ExtractAndRest
+  ExtractAndRest,
+  r
 } from './baseExpression';
 
 const IS_OR_OVERLAP: Lookup<boolean> = {
@@ -49,7 +50,7 @@ export class AndExpression extends ChainableUnaryExpression {
     let intersect = Set.intersectCover(rhs1.getLiteralValue(), rhs2.getLiteralValue());
     if (intersect === null) return null;
 
-    return lhs1.overlap(intersect).simplify();
+    return lhs1.overlap(r(intersect)).simplify();
   }
 
   constructor(parameters: ExpressionValue) {

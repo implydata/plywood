@@ -18,7 +18,7 @@
 import * as Promise from 'any-promise';
 import { Duration, parseISODate, Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
-import { Instance, isImmutableClass, SimpleArray } from 'immutable-class';
+import { Instance, isImmutableClass } from 'immutable-class';
 import { PassThrough, ReadableStream } from 'readable-stream';
 
 import { failIfIntrospectNeededInDatum, getFullTypeFromDatum, introspectDatum } from '../datatypes/common';
