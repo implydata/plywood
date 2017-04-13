@@ -22,6 +22,7 @@ let { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
 
 let attributes = [
   { name: 'time', type: 'TIME' },
+  { name: 'some_other_time', type: 'TIME' },
   { name: 'color', type: 'STRING' },
   { name: 'cut', type: 'STRING' },
   { name: 'isNice', type: 'BOOLEAN' },
@@ -1027,6 +1028,77 @@ describe("simulate Druid", () => {
               "direction": "ascending"
             }
           ],
+          "type": "default"
+        },
+        "queryType": "groupBy"
+      }
+    ]);
+  });
+
+  it("works with multi time column split", () => {
+    let ex = ply()
+      .apply(
+        'SecondOfDay',
+        $("diamonds").split({ t1: "$time.timeFloor('P1D')", t2: "$some_other_time.timeFloor('P1D')" })
+          .apply('TotalPrice', '$diamonds.sum($price)')
+          .sort('$TotalPrice', 'descending')
+          .limit(3)
+      );
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldName": "price",
+            "name": "TotalPrice",
+            "type": "doubleSum"
+          }
+        ],
+        "dataSource": "diamonds",
+        "dimensions": [
+          {
+            "dimension": "__time",
+            "extractionFn": {
+              "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+              "granularity": {
+                "period": "P1D",
+                "timeZone": "Etc/UTC",
+                "type": "period"
+              },
+              "timeZone": "Etc/UTC",
+              "type": "timeFormat"
+            },
+            "outputName": "t1",
+            "type": "extraction"
+          },
+          {
+            "dimension": "some_other_time",
+            "extractionFn": {
+              "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+              "granularity": {
+                "period": "P1D",
+                "timeZone": "Etc/UTC",
+                "type": "period"
+              },
+              "timeZone": "Etc/UTC",
+              "type": "timeFormat"
+            },
+            "outputName": "t2",
+            "type": "extraction"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "TotalPrice",
+              "direction": "descending"
+            }
+          ],
+          "limit": 3,
           "type": "default"
         },
         "queryType": "groupBy"
@@ -2874,6 +2946,7 @@ describe("simulate Druid", () => {
       {
         "dataSource": "diamonds",
         "dimensions": [
+          "some_other_time",
           "color",
           "cut",
           "isNice",
