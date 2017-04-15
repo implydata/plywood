@@ -17,8 +17,6 @@
 
 const { expect } = require("chai");
 
-let { testImmutableClass } = require("immutable-class-tester");
-
 let plywood = require('../plywood');
 let { Expression, TimeRange, NumberRange, $, r, ply, Set, Dataset, External, ExternalExpression } = plywood;
 
@@ -72,12 +70,6 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it("simplifies cast to in statement", () => {
-      let ex1 = $('time').greaterThan(r(1447430881000).cast('TIME')).and($('time').lessThan(r(1547430881000).cast('TIME')));
-      let ex2 = $('time').in(new NumberRange({start: new Date('2015-11-13T16:08:01.000Z'), end: new Date('2019-01-14T01:54:41.000Z'), bounds: '()'}));
-      simplifiesTo(ex1, ex2);
-    });
-
     it("simplifies double cast", () => {
       let ex1 = $('time', 'TIME').cast('TIME').cast('TIME');
       let ex2 = $('time', 'TIME');
@@ -87,12 +79,6 @@ describe("Simplify", () => {
     it("simplifies string cast", () => {
       let ex1 = r("blah").cast('STRING');
       let ex2 = r("blah");
-      simplifiesTo(ex1, ex2);
-    });
-
-    it("simplifies time range to in statement", () => {
-      let ex1 = $('time').greaterThan(r(new Date('2015-11-13T16:08:01.000Z'))).and($('time').lessThan(r(new Date('2019-01-14T01:54:41.000Z'))));
-      let ex2 = $('time').in(new NumberRange({start: new Date('2015-11-13T16:08:01.000Z'), end: new Date('2019-01-14T01:54:41.000Z'), bounds: '()'}));
       simplifiesTo(ex1, ex2);
     });
 
@@ -110,7 +96,7 @@ describe("Simplify", () => {
 
     it("str.indexOf(substr) < 1 should not simplify to contains", () => {
       let ex1 = $('page').indexOf('sdf').lessThan(1);
-      let ex2 = $('page').indexOf('sdf').in(new NumberRange({ start: null, end: 1, bounds: "()" }));
+      let ex2 = $('page').indexOf('sdf').overlap(new NumberRange({ start: null, end: 1, bounds: "()" }));
       simplifiesTo(ex1, ex2);
     });
 
@@ -129,12 +115,6 @@ describe("Simplify", () => {
     it("chained transform case simplifies to last one", () => {
       let ex1 = $('page').transformCase('lowerCase').transformCase('upperCase').transformCase('lowerCase').transformCase('upperCase');
       let ex2 = $('page').transformCase('upperCase');
-      simplifiesTo(ex1, ex2);
-    });
-
-    it("str.transformCase('lowerCase').contains(str.transformCase('lowerCase'))", () => {
-      let ex1 = $('page').transformCase('lowerCase').contains($('comment').transformCase('lowerCase'));
-      let ex2 = $('page').contains('$comment', 'ignoreCase');
       simplifiesTo(ex1, ex2);
     });
 
@@ -391,46 +371,68 @@ describe("Simplify", () => {
     });
 
     it("works with different filters", () => {
-      let ex1 = $('flight').is(5).and($('flight').is(7));
+      let ex1 = $('flight', 'NUMBER').is(5).and($('flight', 'NUMBER').is(7));
       let ex2 = r(false);
       simplifiesTo(ex1, ex2);
     });
 
     it("works with different filters across filter", () => {
-      let ex1 = $('flight').is(5).and($('lol').is(3)).and($('flight').is(7));
+      let ex1 = $('flight', 'NUMBER').is(5).and($('lol').is(3)).and($('flight', 'NUMBER').is(7));
       let ex2 = r(false);
       simplifiesTo(ex1, ex2);
     });
 
     it("works with same filters", () => {
-      let ex1 = $('flight').is(5).and($('flight').is(5));
-      let ex2 = $('flight').is(5);
+      let ex1 = $('flight', 'NUMBER').is(5).and($('flight', 'NUMBER').is(5));
+      let ex2 = $('flight', 'NUMBER').is(5);
       simplifiesTo(ex1, ex2);
     });
 
     it("works with same filters across filter", () => {
-      let ex1 = $('flight').is(5).and($('lol').is(3)).and($('flight').is(5));
-      let ex2 = $('flight').is(5).and($('lol').is(3));
+      let ex1 = $('flight', 'NUMBER').is(5).and($('lol').is(3)).and($('flight', 'NUMBER').is(5));
+      let ex2 = $('flight', 'NUMBER').is(5).and($('lol').is(3));
       simplifiesTo(ex1, ex2);
     });
 
-    it("works with IS and IN", () => {
-      let ex1 = $('flight').is(5).and($('flight').in(new NumberRange({ start: 5, end: 7 })));
-      let ex2 = $('flight').is(5);
+    it("leaves types filters 1", () => {
+      let ex1 = $('flight').is(5).and($('x').is(1)).and($('flight').is(7));
+      leavesAlone(ex1);
+    });
+
+    it("re-arranges filters 2", () => {
+      let ex1 = $('flight').is(5).and($('x').is(1)).and($('flight').is(5));
+      let ex2 = $('flight').is(5).and($('x').is(1));
       simplifiesTo(ex1, ex2);
+    });
+
+    it("works with IS and OVERLAP (with types)", () => {
+      let ex1 = $('flight', 'NUMBER').is(5).and($('flight', 'NUMBER').overlap({ start: 5, end: 7 }));
+      let ex2 = $('flight', 'NUMBER').is(5);
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("leaves IS and OVERLAP (without types)", () => {
+      let ex1 = $('flight').is(5).and($('flight').overlap({ start: 5, end: 7 }));
+      leavesAlone(ex1);
     });
 
     it("works with two number ranges", () => {
-      let ex1 = $('x', 'NUMBER').in({ start: 1, end: 5 })
-        .and($('x', 'NUMBER').in({ start: 1, end: 2 }));
-      let ex2 = $('x', 'NUMBER').in({ start: 1, end: 2 });
+      let ex1 = $('x', 'NUMBER').overlap({ start: 1, end: 5 })
+        .and($('x', 'NUMBER').overlap({ start: 1, end: 2 }));
+      let ex2 = $('x', 'NUMBER').overlap({ start: 1, end: 2 });
       simplifiesTo(ex1, ex2);
     });
 
     it("works with two time ranges", () => {
-      let ex1 = $('time', 'TIME').in({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-16T00:00:00') })
-        .and($('time', 'TIME').in({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-13T00:00:00') }));
-      let ex2 = $('time', 'TIME').in({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-13T00:00:00') });
+      let ex1 = $('time', 'TIME').overlap({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-16T00:00:00') })
+        .and($('time', 'TIME').overlap({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-13T00:00:00') }));
+      let ex2 = $('time', 'TIME').overlap({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-13T00:00:00') });
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("works with time range to overlap statement", () => {
+      let ex1 = $('time', 'TIME').greaterThan(r(new Date('2015-11-13T16:08:01.000Z'))).and($('time', 'TIME').lessThan(r(new Date('2019-01-14T01:54:41.000Z'))));
+      let ex2 = $('time', 'TIME').overlap(new NumberRange({start: new Date('2015-11-13T16:08:01.000Z'), end: new Date('2019-01-14T01:54:41.000Z'), bounds: '()'}));
       simplifiesTo(ex1, ex2);
     });
 
@@ -443,20 +445,8 @@ describe("Simplify", () => {
         start: new Date('2016-01-02Z'),
         end: new Date('2016-01-03Z')
       });
-      let ex1 = $('time').in(largeInterval).and($('time').timeBucket('P1D', 'Etc/UTC').is(smallInterval));
-      let ex2 = $('time').in(smallInterval);
-      simplifiesTo(ex1, ex2);
-    });
-
-    it("re-arranges filters 1", () => {
-      let ex1 = $('flight').is(5).and($('x').is(1)).and($('flight').is(7));
-      let ex2 = r(false);
-      simplifiesTo(ex1, ex2);
-    });
-
-    it("re-arranges filters 2", () => {
-      let ex1 = $('flight').is(5).and($('x').is(1)).and($('flight').is(5));
-      let ex2 = $('flight').is(5).and($('x').is(1));
+      let ex1 = $('time', 'TIME').overlap(largeInterval).and($('time', 'TIME').timeBucket('P1D', 'Etc/UTC').is(smallInterval));
+      let ex2 = $('time', 'TIME').overlap(smallInterval);
       simplifiesTo(ex1, ex2);
     });
 
@@ -525,7 +515,7 @@ describe("Simplify", () => {
 
     it("works with different filters", () => {
       let ex1 = $('flight').is(5).or($('flight').is(7));
-      let ex2 = $('flight').in([5, 7]);
+      let ex2 = $('flight').is([5, 7]);
       simplifiesTo(ex1, ex2);
     });
 
@@ -535,15 +525,15 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it("works with IS and IN", () => {
-      let ex1 = $('flight').is(5).or($('flight').in(new NumberRange({ start: 5, end: 7 })));
-      let ex2 = $('flight').in(new NumberRange({ start: 5, end: 7 }));
+    it("works with IS and OVERLAP", () => {
+      let ex1 = $('flight').is(5).or($('flight').overlap({ start: 5, end: 7 }));
+      let ex2 = $('flight').overlap({ start: 5, end: 7 });
       simplifiesTo(ex1, ex2);
     });
 
     it("re-arranges filters 1", () => {
       let ex1 = $('flight').is(5).or($('x').is(1)).or($('flight').is(7));
-      let ex2 = $('flight').in([5, 7]).or($('x').is(1));
+      let ex2 = $('flight').is([5, 7]).or($('x').is(1));
       simplifiesTo(ex1, ex2);
     });
 
@@ -631,19 +621,13 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it('simplifies to singleton set', () => {
-      let ex1 = $('x').overlap(Set.fromJS(['A']));
-      let ex2 = $('x').is('A');
-      simplifiesTo(ex1, ex2);
-    });
-
     it('removes a timeBucket', () => {
       let interval = TimeRange.fromJS({
         start: new Date('2016-01-02Z'),
         end: new Date('2016-01-03Z')
       });
       let ex1 = $('time').timeBucket('P1D', 'Etc/UTC').is(interval);
-      let ex2 = $('time').in(interval);
+      let ex2 = $('time').overlap(interval);
       simplifiesTo(ex1, ex2);
     });
 
@@ -682,7 +666,7 @@ describe("Simplify", () => {
         end: 6
       });
       let ex1 = $('num').numberBucket(5, 1).is(interval);
-      let ex2 = $('num').in(interval);
+      let ex2 = $('num').overlap(interval);
       simplifiesTo(ex1, ex2);
     });
 
@@ -692,7 +676,7 @@ describe("Simplify", () => {
         end: 5
       });
       let ex1 = $('num').numberBucket(5, 0).is(interval);
-      let ex2 = $('num').in(interval);
+      let ex2 = $('num').overlap(interval);
       simplifiesTo(ex1, ex2);
     });
 
@@ -728,31 +712,25 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
+    it('kills .then() 1', () => {
+      let ex1 = $('color').then('T').is('T');
+      let ex2 = $('color').is(true);
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('kills .then() 2', () => {
+      let ex1 = $('color').then('T').is('F');
+      let ex2 = $('color').isnt(true);
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 
   describe('in', () => {
-    it('simplifies when empty set', () => {
-      let ex1 = $('x').in([]);
-      let ex2 = r(false);
-      simplifiesTo(ex1, ex2);
-    });
-
     it('simplifies when singleton set', () => {
       let ex1 = $('x', 'STRING').in(['A']);
       let ex2 = $('x', 'STRING').is('A');
-      simplifiesTo(ex1, ex2);
-    });
-
-    it('simplifies when set can be unified', () => {
-      let ex1 = $('x', 'NUMBER').in(Set.fromJS({
-        setType: 'NUMBER_RANGE',
-        elements: [
-          { start: 1, end: 3 },
-          { start: 2, end: 5 },
-        ]
-      }));
-      let ex2 = $('x', 'NUMBER').in(NumberRange.fromJS({ start: 1, end: 5 }));
       simplifiesTo(ex1, ex2);
     });
 
@@ -789,11 +767,24 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it('simplifies to singleton IS (via IS)', () => {
+    it('simplifies to singleton IS', () => {
       let ex1 = $('x', 'STRING').overlap(Set.fromJS(['A']));
       let ex2 = $('x', 'STRING').is('A');
       simplifiesTo(ex1, ex2);
     });
+
+    it('simplifies when set can be unified', () => {
+      let ex1 = $('x', 'NUMBER').overlap(Set.fromJS({
+        setType: 'NUMBER_RANGE',
+        elements: [
+          { start: 1, end: 3 },
+          { start: 2, end: 5 },
+        ]
+      }));
+      let ex2 = $('x', 'NUMBER').overlap({ start: 1, end: 5 });
+      simplifiesTo(ex1, ex2);
+    });
+
   });
 
 
@@ -823,6 +814,32 @@ describe("Simplify", () => {
       let ex1 = $("x").substr(0, 0);
       let ex2 = r('');
       simplifiesTo(ex1, ex2);
+    });
+  });
+
+
+  describe('contains', () => {
+    it('works with transformCase Upper', () => {
+      let ex1 = $("x").transformCase('upperCase').contains($("y").transformCase('upperCase'));
+      let ex2 = $("x").contains($("y"), 'ignoreCase');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('works with transformCase Lower', () => {
+      let ex1 = $("x").transformCase('lowerCase').contains($("y").transformCase('lowerCase'));
+      let ex2 = $("x").contains($("y"), 'ignoreCase');
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('works removes useless ignoreCase', () => {
+      let ex1 = $("x").contains(r("[["), 'ignoreCase');
+      let ex2 = $("x").contains(r("[["));
+      simplifiesTo(ex1, ex2);
+    });
+
+    it('works removes useless ignoreCase', () => {
+      let ex1 = $("x").contains("xxx", 'ignoreCase');
+      leavesAlone(ex1);
     });
   });
 

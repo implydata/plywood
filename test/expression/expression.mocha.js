@@ -70,7 +70,7 @@ describe("Expression", () => {
 
       {
         "operand": { "op": "ref", "name": "time" },
-        "op": "in",
+        "op": "overlap",
         "expression": {
           "op": "literal",
           "value": { "start": new Date("2013-02-26T19:00:00.000Z"), "end": new Date("2013-02-26T22:00:00.000Z") },
@@ -173,6 +173,8 @@ describe("Expression", () => {
 
       { op: 'match', regexp: 'A[B]' },
       { op: 'match', regexp: '^fu*$' },
+
+      { op: 'extract', regexp: '\\d{3}' },
 
       { op: 'lessThan', expression: { op: 'literal', type: 'TIME', value: new Date('2015-10-10Z') } },
 
@@ -518,7 +520,6 @@ describe("Expression", () => {
                 "op": "literal",
                 "type": "DATASET",
                 "value": {
-                  "keys": [],
                   "attributes": [],
                   "data": [
                     {}
@@ -566,7 +567,6 @@ describe("Expression", () => {
           "op": "literal",
           "type": "DATASET",
           "value": {
-            "keys": [],
             "attributes": [],
             "data": [
               {}

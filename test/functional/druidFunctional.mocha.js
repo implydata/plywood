@@ -72,6 +72,7 @@ describe("Druid Functional", function() {
     },
     {
       "name": "commentLength",
+      "nativeType": "LONG",
       "type": "NUMBER"
     },
     {
@@ -126,6 +127,7 @@ describe("Druid Functional", function() {
     },
     {
       "name": "deltaBucket100",
+      "nativeType": "FLOAT",
       "type": "NUMBER"
     },
     {
@@ -229,6 +231,11 @@ describe("Druid Functional", function() {
       "type": "TIME"
     },
     {
+      "name": "sometimeLaterMs",
+      "nativeType": "LONG",
+      "type": "NUMBER"
+    },
+    {
       "name": "user",
       "nativeType": "STRING",
       "type": "STRING"
@@ -274,7 +281,7 @@ describe("Druid Functional", function() {
       concatWithConcat: {
         extractionFn: {
           "type" : "javascript",
-          "function" : "function(x) { return x.concat('concat') }"
+          "function" : "function(x) { return String(x).concat('concat') }"
         }
       }
     };
@@ -297,10 +304,7 @@ describe("Druid Functional", function() {
       context: info.druidContext,
       attributes: wikiAttributes,
       customTransforms,
-      filter: $('time').in(TimeRange.fromJS({
-        start: new Date("2015-09-12T00:00:00Z"),
-        end: new Date("2015-09-13T00:00:00Z")
-      })),
+      filter: $('time').overlap(new Date("2015-09-12T00:00:00Z"), new Date("2015-09-13T00:00:00Z")),
       version: info.druidVersion,
       allowSelectQueries: true
     }, druidRequester);
@@ -325,7 +329,7 @@ describe("Druid Functional", function() {
         { name: 'deleted', type: 'NUMBER', unsplitable: true },
         { name: 'page_unique', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true }
       ],
-      filter: $('time').in(TimeRange.fromJS({
+      filter: $('time').overlap(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       })),
@@ -396,8 +400,7 @@ describe("Druid Functional", function() {
               {
                 "Count": 35485
               }
-            ],
-            "keys": []
+            ]
           });
 
           expect(result.flatten().toJS()).to.deep.equal({
@@ -433,8 +436,7 @@ describe("Druid Functional", function() {
               {
                 "max(time)": new Date('2015-09-12T23:00:00.000Z')
               }
-            ],
-            "keys": []
+            ]
           });
         });
     });
@@ -829,12 +831,14 @@ describe("Druid Functional", function() {
       let ex = $('wiki')
         .filter($("page").customTransform('sliceLastChar').is('z'))
         .split($("page").customTransform('getLastChar'), 'lastChar')
+        .apply('Temp', '$wiki.count()') // ToDo: Temp fix
         .limit(8);
 
       return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
+              Temp: 1984,
               "lastChar": "z"
             }
           ]);
@@ -845,12 +849,14 @@ describe("Druid Functional", function() {
       let ex = $('wiki')
         .filter($("commentLength").customTransform('concatWithConcat', 'STRING').is("'100concat'"))
         .split($("commentLength").customTransform('timesTwo', 'STRING'), "Times Two")
+        .apply('Temp', '$wiki.count()') // ToDo: Temp fix
         .limit(8);
 
       return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
+              Temp: 275,
               "Times Two": "200"
             }
           ]);
@@ -1838,6 +1844,48 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with count distinct on lookup", () => {
+      let ex = ply()
+        .apply('CntDistChannelNormal', $('wiki').countDistinct($('channel')))
+        .apply('CntDistChannelLookup',  $('wiki').countDistinct($('channel').lookup('channel-lookup')))
+        .apply('CntDistChannelLookupXPage',  $('wiki').countDistinct($('channel').lookup('channel-lookup').concat('$page.substr(0, 1)')));
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "CntDistChannelLookup": 6.008806266444944,
+              "CntDistChannelNormal": 52.671547981801545,
+              "CntDistChannelLookupXPage": 2641.0285765864232
+            }
+          ]);
+        });
+    });
+
+    it("works with quantiles", () => {
+      let ex = ply()
+        .apply('deltaHist95', $('wiki').quantile($('delta_hist'), 0.95))
+        .apply('deltaHistMedian', $('wiki').quantile($('delta_hist'), 0.5))
+        .apply('deltaBucket95', $('wiki').quantile($('deltaBucket100'), 0.95))
+        .apply('deltaBucketMedian', $('wiki').quantile($('deltaBucket100'), 0.5))
+        .apply('commentLength95', $('wiki').quantile($('commentLength'), 0.95))
+        .apply('commentLengthMedian', $('wiki').quantile($('commentLength'), 0.5));
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "commentLength95": 145.4637,
+              "commentLengthMedian": 28.108896,
+              "deltaBucket95": -500, // ToDo: find out why this is
+              "deltaBucketMedian": -500,
+              "deltaHist95": 161.95517,
+              "deltaHistMedian": 129.0191
+            }
+          ]);
+        });
+    });
+
     it("works with lookup IS filter", () => {
       let ex = $('wiki').filter($('channel').lookup('channel-lookup').is('English')).sum('$count');
 
@@ -2265,7 +2313,67 @@ describe("Druid Functional", function() {
         });
     });
 
-    it("can timeBucket a secondary time column (complex duration, tz)", () => {
+    it("can timeBucket a secondary time column (complex duration, tz - Asia/Kolkata)", () => {
+      let ex = ply()
+        .apply(
+          'TimeLater',
+          $("wiki").split($("sometimeLater").timeBucket('PT3H', 'Asia/Kolkata'), 'SometimeLater')
+            .limit(5)
+        );
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "TimeLater": {
+                "attributes": [
+                  {
+                    "name": "SometimeLater",
+                    "type": "TIME_RANGE"
+                  }
+                ],
+                "data": [
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T03:30:00.000Z'),
+                      "start": new Date('2016-09-12T00:30:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T06:30:00.000Z'),
+                      "start": new Date('2016-09-12T03:30:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T09:30:00.000Z'),
+                      "start": new Date('2016-09-12T06:30:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T12:30:00.000Z'),
+                      "start": new Date('2016-09-12T09:30:00.000Z')
+                    }
+                  },
+                  {
+                    "SometimeLater": {
+                      "end": new Date('2016-09-12T15:30:00.000Z'),
+                      "start": new Date('2016-09-12T12:30:00.000Z')
+                    }
+                  }
+                ],
+                "keys": [
+                  "SometimeLater"
+                ]
+              }
+            }
+          ]);
+        });
+    });
+
+    it.skip("can timeBucket a secondary time column (complex duration, tz - Kathmandu)", () => { // ToDo: wait for https://github.com/druid-io/druid/issues/4073
       let ex = ply()
         .apply(
           'TimeLater',
@@ -2737,6 +2845,10 @@ describe("Druid Functional", function() {
                 "type": "TIME"
               },
               {
+                "name": "sometimeLaterMs",
+                "type": "NUMBER"
+              },
+              {
                 "name": "user",
                 "type": "STRING"
               },
@@ -2783,6 +2895,7 @@ describe("Druid Functional", function() {
                 "regionIsoCode": "TX",
                 "regionName": "Texas",
                 "sometimeLater": new Date('2016-09-12T06:05:00.000Z'),
+                "sometimeLaterMs": 1473660300000,
                 "time": new Date('2015-09-12T06:05:00.000Z'),
                 "user": "104.58.160.128",
                 "userChars": {
@@ -2830,6 +2943,7 @@ describe("Druid Functional", function() {
                 "regionIsoCode": "TX",
                 "regionName": "Texas",
                 "sometimeLater": new Date('2016-09-12T16:14:00.000Z'),
+                "sometimeLaterMs": 1473696840000,
                 "time": new Date('2015-09-12T16:14:00.000Z'),
                 "user": "67.10.203.15",
                 "userChars": {
@@ -2888,6 +3002,7 @@ describe("Druid Functional", function() {
               "regionIsoCode": null,
               "regionName": null,
               "sometimeLater": new Date('2016-09-12T00:46:00.000Z'),
+              "sometimeLaterMs": 1473641160000,
               "time": new Date('2015-09-12T00:46:00.000Z'),
               "user": "ChandraHelsinky",
               "userChars": {
@@ -3100,6 +3215,127 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with filtered double split", () => {
+      let ex = ply()
+        .apply('wiki', $('wiki').filter($('time').overlap(new Date('2015-09-11T23:59:00Z'), new Date('2015-09-12T23:59:00Z'))))
+        .apply('count', '$wiki.sum($count)')
+        .apply(
+          'SPLIT',
+          $('wiki').split('$page','page')
+            .filter($('page').overlap(['Jeremy Corbyn', 'KalyeSerye']))
+            .apply('count', '$wiki.sum($count)')
+            .sort('$count', 'descending')
+            .limit(2)
+            .apply(
+              'SPLIT',
+              $('wiki').split('$time.timeBucket(PT1H)','time')
+                .apply('count', '$wiki.sum($count)')
+                .sort('$time', 'ascending')
+                .limit(2)
+            )
+        );
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "SPLIT": {
+                "attributes": [
+                  {
+                    "name": "page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "count",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "SPLIT",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "SPLIT": {
+                      "attributes": [
+                        {
+                          "name": "time",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "count": 1,
+                          "time": {
+                            "end": new Date('2015-09-12T02:00:00.000Z'),
+                            "start": new Date('2015-09-12T01:00:00.000Z')
+                          }
+                        },
+                        {
+                          "count": 1,
+                          "time": {
+                            "end": new Date('2015-09-12T08:00:00.000Z'),
+                            "start": new Date('2015-09-12T07:00:00.000Z')
+                          }
+                        }
+                      ],
+                      "keys": [
+                        "time"
+                      ]
+                    },
+                    "count": 318,
+                    "page": "Jeremy Corbyn"
+                  },
+                  {
+                    "SPLIT": {
+                      "attributes": [
+                        {
+                          "name": "time",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "count": 1,
+                          "time": {
+                            "end": new Date('2015-09-12T02:00:00.000Z'),
+                            "start": new Date('2015-09-12T01:00:00.000Z')
+                          }
+                        },
+                        {
+                          "count": 1,
+                          "time": {
+                            "end": new Date('2015-09-12T03:00:00.000Z'),
+                            "start": new Date('2015-09-12T02:00:00.000Z')
+                          }
+                        }
+                      ],
+                      "keys": [
+                        "time"
+                      ]
+                    },
+                    "count": 69,
+                    "page": "KalyeSerye"
+                  }
+                ],
+                "keys": [
+                  "page"
+                ]
+              },
+              "count": 392239
+            }
+          ]);
+        });
+    });
+
     describe("plyql end to end", () => {
       it("should work with <= <", () => {
         let ex = Expression.parseSQL(sane`
@@ -3155,6 +3391,48 @@ describe("Druid Functional", function() {
                 "TotalAdded": 27126
               }
             ]);
+          });
+      });
+
+      it("works with two datasets totals only", () => {
+        let ex = ply()
+          .apply("wikiA", $('wiki').filter($('time').overlap(new Date("2015-09-12T12:00:00Z"), new Date("2015-09-13T00:00:00Z"))))
+          .apply("wikiB", $('wiki').filter($('time').overlap(new Date("2015-09-12T00:00:00Z"), new Date("2015-09-12T12:00:00Z"))))
+          .apply('CountA', '$wikiA.sum($count)')
+          .apply('TotalAddedA', '$wikiA.sum($added)')
+          .apply('CountB', '$wikiB.sum($count)');
+
+        return basicExecutor(ex)
+          .then((result) => {
+            expect(result.toJS().data).to.deep.equal([
+              {
+                "CountA": 227318,
+                "CountB": 165125,
+                "TotalAddedA": 55970642
+              }
+            ]);
+          });
+      });
+
+      it.skip("works with two datasets with split", () => {
+        let ex = ply()
+          .apply("wikiA", $('wiki').filter($('time').overlap(new Date("2015-09-12T12:00:00Z"), new Date("2015-09-13T00:00:00Z"))))
+          .apply("wikiB", $('wiki').filter($('time').overlap(new Date("2015-09-12T00:00:00Z"), new Date("2015-09-12T12:00:00Z"))))
+          .apply('CountA', '$wikiA.sum($count)')
+          .apply('TotalAddedA', '$wikiA.sum($added)')
+          .apply('CountB', '$wikiB.sum($count)')
+          .apply(
+            'Sub',
+            $('wikiA').split('$user', 'User').join($('wikiB').split('$user', 'User'))
+              .apply('CountA', '$wikiA.sum($count)')
+              .apply('CountB', '$wikiB.sum($count)')
+          );
+
+        return basicExecutor(ex)
+          .then((result) => {
+            expect(result.toJS().data).to.deep.equal({
+
+            });
           });
       });
 
@@ -3289,14 +3567,12 @@ describe("Druid Functional", function() {
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
-      filter: $('time').in(TimeRange.fromJS({
+      filter: $('time').overlap(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       })),
       attributeOverrides: [
         { "name": "sometimeLater", "type": "TIME" },
-        { "name": "commentLength", "type": "NUMBER" },
-        { "name": "deltaBucket100", "type": "NUMBER" },
         { "name": "isAnonymous", "type": "BOOLEAN" },
         { "name": "isMinor", "type": "BOOLEAN" },
         { "name": "isNew", "type": "BOOLEAN" },
@@ -3475,7 +3751,7 @@ describe("Druid Functional", function() {
       engine: 'druid',
       source: ['wikipedia', 'wikipedia-compact'],
       timeAttribute: 'time',
-      filter: $('time').in(TimeRange.fromJS({
+      filter: $('time').overlap(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       }))
@@ -3556,7 +3832,7 @@ describe("Druid Functional", function() {
       engine: 'druid',
       source: 'wikipedia_borat',
       timeAttribute: 'time',
-      filter: $('time').in(TimeRange.fromJS({
+      filter: $('time').overlap(TimeRange.fromJS({
         start: new Date("2015-09-12T00:00:00Z"),
         end: new Date("2015-09-13T00:00:00Z")
       }))

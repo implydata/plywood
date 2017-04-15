@@ -2,6 +2,25 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.7
+
+- Changed the meaning of IN to be a subset only operation with back compat provisions.
+- Better build process for people with older npm
+- `keys` not emitted if empty for `Dataset#toJS`
+- `Set#simplify` => `Set#simplifyCover`
+- `Set#generalUnion` => `Set#unionCover`
+- `Set#generalIntersect` => `Set#intersectCover`
+- Fixed SQL externals for filtered `Min` and `Max` aggregations
+- Fixed an instance of unhanded error in pipe
+- Simplification for case independent contains
+- Allow `table_alias.*` in PlyQL
+- Support new features added on Druid 0.10.0
+- Allow aproxHistogram calculation on numeric columns
+- verboseRequesterFactory parameter `preQuery` renamed to `onQuery`
+- verboseRequesterFactory callback parameters now get a single argument with lots of info
+- verboseRequesterFactory will now name queries
+
+
 ## 0.16.5
 
 - PlyQL: support for `IF()` `CASE WHEN THEN END`, and `NULLIF()`

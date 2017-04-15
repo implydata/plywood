@@ -21,7 +21,7 @@ let { sane } = require('../utils');
 let plywood = require('../plywood');
 let { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 
-let timeFilter = $('time').in(TimeRange.fromJS({
+let timeFilter = $('time').overlap(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
   end: new Date("2013-02-27T00:00:00Z")
 }));
@@ -78,7 +78,7 @@ describe("DruidExternal 0.9.1", () => {
   describe("filters", () => {
 
     it("works with .timePart().in()", () => {
-      let ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').in([3, 5]));
+      let ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').is([3, 5]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 

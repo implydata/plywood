@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set } from '../datatypes/index';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class FallbackExpression extends ChainableUnaryExpression {
   static op = "Fallback";
@@ -24,7 +24,7 @@ export class FallbackExpression extends ChainableUnaryExpression {
     return new FallbackExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("fallback");
     this._checkOperandExpressionTypesAlign();

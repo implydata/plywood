@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set } from '../datatypes/index';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class ThenExpression extends ChainableUnaryExpression {
   static op = "Then";
@@ -24,7 +24,7 @@ export class ThenExpression extends ChainableUnaryExpression {
     return new ThenExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("then");
     this._checkOperandTypes('BOOLEAN');
@@ -40,7 +40,7 @@ export class ThenExpression extends ChainableUnaryExpression {
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    return dialect.ifThenElseNullExpression(operandSQL, expressionSQL);
+    return dialect.ifThenElseExpression(operandSQL, expressionSQL);
   }
 
   public specialSimplify(): Expression {

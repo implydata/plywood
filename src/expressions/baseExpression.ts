@@ -16,18 +16,32 @@
  */
 
 import * as Promise from 'any-promise';
+import { Duration, parseISODate, Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
-import { Timezone, Duration, parseISODate } from 'chronoshift';
-import { Instance, isImmutableClass, SimpleArray } from 'immutable-class';
-import { ReadableStream, PassThrough } from 'readable-stream';
-import { shallowCopy } from '../helper/utils';
-import { promiseWhile } from '../helper/promiseWhile';
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType, PlyTypeSimple, Environment } from '../types';
-import { fillExpressionExternalAlteration } from '../datatypes/index';
+import { Instance, isImmutableClass } from 'immutable-class';
+import { PassThrough, ReadableStream } from 'readable-stream';
+
+import { failIfIntrospectNeededInDatum, getFullTypeFromDatum, introspectDatum } from '../datatypes/common';
+import {
+  ComputeFn,
+  Dataset,
+  DatasetExternalAlterations,
+  Datum,
+  fillExpressionExternalAlteration,
+  NumberRange,
+  PlywoodValue,
+  Range,
+  Set,
+  StringRange,
+  TimeRange
+} from '../datatypes/index';
 import { iteratorFactory, PlyBit } from '../datatypes/valueStream';
-import { LiteralExpression } from './literalExpression';
-import { RefExpression } from './refExpression';
-import { ExternalExpression } from './externalExpression';
+
+import { SQLDialect } from '../dialect/baseDialect';
+import { External, ExternalJS } from '../external/baseExternal';
+import { promiseWhile } from '../helper/promiseWhile';
+import { deduplicateSort, pipeWithError, repeat, shallowCopy } from '../helper/utils';
+import { DatasetFullType, Environment, PlyType, PlyTypeSimple, PlyTypeSingleValue } from '../types';
 
 import { AbsoluteExpression } from './absoluteExpression';
 import { AddExpression } from './addExpression';
@@ -39,25 +53,27 @@ import { CastExpression } from './castExpression';
 import { CollectExpression } from './collectExpression';
 import { ConcatExpression } from './concatExpression';
 import { ContainsExpression } from './containsExpression';
-import { CountExpression } from './countExpression';
 import { CountDistinctExpression } from './countDistinctExpression';
+import { CountExpression } from './countExpression';
 import { CustomAggregateExpression } from './customAggregateExpression';
 import { CustomTransformExpression } from './customTransformExpression';
 import { DivideExpression } from './divideExpression';
+import { ExternalExpression } from './externalExpression';
 import { ExtractExpression } from './extractExpression';
 import { FallbackExpression } from './fallbackExpression';
 import { FilterExpression } from './filterExpression';
 import { GreaterThanExpression } from './greaterThanExpression';
 import { GreaterThanOrEqualExpression } from './greaterThanOrEqualExpression';
+import { IndexOfExpression } from './indexOfExpression';
 import { InExpression } from './inExpression';
 import { IsExpression } from './isExpression';
 import { JoinExpression } from './joinExpression';
 import { LengthExpression } from './lengthExpression';
 import { LessThanExpression } from './lessThanExpression';
 import { LessThanOrEqualExpression } from './lessThanOrEqualExpression';
-import { IndexOfExpression } from './indexOfExpression';
-import { LookupExpression } from './lookupExpression';
 import { LimitExpression } from './limitExpression';
+import { LiteralExpression } from './literalExpression';
+import { LookupExpression } from './lookupExpression';
 import { MatchExpression } from './matchExpression';
 import { MaxExpression } from './maxExpression';
 import { MinExpression } from './minExpression';
@@ -68,8 +84,9 @@ import { OrExpression } from './orExpression';
 import { OverlapExpression } from './overlapExpression';
 import { PowerExpression } from './powerExpression';
 import { QuantileExpression } from './quantileExpression';
+import { RefExpression } from './refExpression';
 import { SelectExpression } from './selectExpression';
-import { SortExpression, Direction } from './sortExpression';
+import { Direction, SortExpression } from './sortExpression';
 import { SplitExpression } from './splitExpression';
 import { SubstrExpression } from './substrExpression';
 import { SubtractExpression } from './subtractExpression';
@@ -81,14 +98,6 @@ import { TimePartExpression } from './timePartExpression';
 import { TimeRangeExpression } from './timeRangeExpression';
 import { TimeShiftExpression } from './timeShiftExpression';
 import { TransformCaseExpression } from './transformCaseExpression';
-
-import { SQLDialect } from '../dialect/baseDialect';
-import { repeat, emptyLookup, deduplicateSort } from '../helper/utils';
-import { Dataset, Datum, PlywoodValue, NumberRange, Range, Set, StringRange, TimeRange, DatasetExternalAlterations } from '../datatypes/index';
-
-import { getFullTypeFromDatum, introspectDatum, failIfIntrospectNeededInDatum } from '../datatypes/common';
-import { ComputeFn } from '../datatypes/index';
-import { External, ExternalJS } from '../external/baseExternal';
 
 export interface ComputeOptions extends Environment {
   maxQueries?: number;
@@ -506,18 +515,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     }
 
     return Expression.fromJS(expressionJS);
-  }
-
-  static inOrIs(lhs: Expression, value: any): Expression {
-    let literal = r(value);
-    let literalType = literal.type;
-    let returnExpression: Expression = null;
-    if (literalType === 'NUMBER_RANGE' || literalType === 'TIME_RANGE' || literalType === 'STRING_RANGE' || Set.isSetType(literalType)) {
-      returnExpression = lhs.in(literal);
-    } else {
-      returnExpression = lhs.is(literal);
-    }
-    return returnExpression.simplify();
   }
 
   static jsNullSafetyUnary(inputJS: string, ifNotNull: (str: string) => string): string {
@@ -1015,17 +1012,17 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     }
   }
 
-  public breakdownByDataset(tempNamePrefix: string): DatasetBreakdown {
-    throw new Error('todo');
+  public breakdownByDataset(tempNamePrefix = 'b'): DatasetBreakdown {
+    throw new Error('ToDo');
     // let nameIndex = 0;
-    // let singleDatasetActions: ApplyAction[] = [];
+    // let singleDatasetActions: ApplyExpression[] = [];
     //
     // let externals = this.getBaseExternals();
     // if (externals.length < 2) {
     //   throw new Error('not a multiple dataset expression');
     // }
     //
-    // let combine = this.substitute(ex => {
+    // const combine = this.substitute(ex => {
     //   let externals = ex.getBaseExternals();
     //   if (externals.length !== 1) return null;
     //
@@ -1036,20 +1033,15 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     //     tempName = existingApply.name;
     //   } else {
     //     tempName = tempNamePrefix + (nameIndex++);
-    //     singleDatasetActions.push(new ApplyAction({
-    //       name: tempName,
-    //       expression: ex
-    //     }));
+    //     singleDatasetActions.push(Expression._.apply(tempName, ex));
     //   }
     //
-    //   return new RefExpression({
-    //     name: tempName,
-    //     nest: 0
-    //   });
+    //   return $(tempName);
     // });
+    //
     // return {
-    //   combineExpression: combine,
-    //   singleDatasetActions: singleDatasetActions
+    //   singleDatasetActions: singleDatasetActions,
+    //   combineExpression: combine
     // };
   }
 
@@ -1057,20 +1049,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return null;
   }
 
-  public bumpStringLiteralToSetString(): Expression {
-    return this;
-  }
-
   public upgradeToType(targetType: PlyType): Expression {
     return this;
   }
 
-  public isAction(): boolean {
-    return false;
-  }
-
   public performAction(action: Expression): Expression {
-    if (!action.isAction()) throw new Error(`${action} is not an action`);
     return action.substitute((ex) => ex.equals(Expression._) ? this : null);
   }
 
@@ -1181,11 +1164,23 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return new MatchExpression({ operand: this, regexp: getString(re) });
   }
 
-  public in(start: Date, end: Date): InExpression;
-  public in(start: number, end: number): InExpression;
-  public in(start: string, end: string): InExpression;
-  public in(ex: any): InExpression;
-  public in(ex: any, snd?: any): InExpression {
+  public in(ex: any): InExpression {
+    if (arguments.length === 2) {
+      // Back Compat
+      return this.overlap(ex, arguments[1]) as any;
+    }
+
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
+
+    // Back Compat
+    if (Range.isRangeType(ex.type)) {
+      return (new OverlapExpression({ operand: this, expression: ex }) as any);
+    }
+
+    return new InExpression({ operand: this, expression: ex });
+  }
+
+  public overlap(ex: any, snd?: Date | number | string) {
     if (arguments.length === 2) {
       ex = getValue(ex);
       snd = getValue(snd);
@@ -1202,21 +1197,17 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
       if (typeof ex === 'number' && typeof snd === 'number') {
         ex = new NumberRange({ start: ex, end: snd });
-      } else if (ex.toISOString && snd.toISOString) {
-        ex = new TimeRange({ start: ex, end: snd });
+      } else if (ex.toISOString && (snd as Date).toISOString) {
+        ex = new TimeRange({ start: ex, end: (snd as Date) });
       } else if (typeof ex === 'string' && typeof snd === 'string') {
         ex = new StringRange({ start: ex, end: snd });
       } else {
         throw new Error('uninterpretable IN parameters');
       }
     }
-    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
-    return new InExpression({ operand: this, expression: ex });
-  }
 
-  public overlap(ex: any) {
     if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
-    return new OverlapExpression({ operand: this, expression: ex.bumpStringLiteralToSetString() });
+    return new OverlapExpression({ operand: this, expression: ex });
   }
 
   public not() {
@@ -1753,9 +1744,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         if (readyExpression instanceof ExternalExpression) {
           // Top level externals need to be unsuppressed
           //readyExpression = readyExpression.unsuppress();
-          let s = readyExpression.external.queryValueStream(true);
-          s.pipe(pt);
-          s.on('error', (e: Error) => pt.emit('error', e));
+          pipeWithError(readyExpression.external.queryValueStream(true), pt);
           return;
         }
 
@@ -1897,10 +1886,6 @@ export abstract class ChainableExpression extends Expression {
     } else {
       throw new Error('operand must be chainable');
     }
-  }
-
-  public isAction(): boolean {
-    return this.operand.equals(Expression._);
   }
 
   public getAction(): Expression {

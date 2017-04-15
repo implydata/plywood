@@ -21,7 +21,7 @@ let { testImmutableClass } = require("immutable-class-tester");
 
 let { Timezone } = require('chronoshift');
 let plywood = require('../plywood');
-let { Set, $, ply, r } = plywood;
+let { Set, $, ply, r, NumberRange } = plywood;
 
 describe("Set", () => {
   it("is immutable class", () => {
@@ -459,6 +459,84 @@ describe("Set", () => {
         Set.fromJS(['A', 'B', 'hasOwnProperty']).overlap(Set.fromJS(['B', 'C', 'hasOwnProperty']))
       ).to.equal(true);
     });
+  });
+
+
+  describe("#simplify", () => {
+    it('works correctly', () => {
+      let s = Set.fromJS({
+        setType: 'NUMBER_RANGE',
+        elements: [
+          { start: 1, end: 3 },
+          { start: 2, end: 5 },
+        ]
+      });
+
+      expect(s.simplifyCover().toJS()).to.deep.equal({
+        "end": 5,
+        "start": 1
+      });
+    });
+  });
+
+
+  describe("#contains", () => {
+    let nrs = Set.fromJS({
+      setType: 'NUMBER_RANGE',
+      elements: [
+        { start: 1, end: 3 },
+        { start: 10, end: 30 }
+      ]
+    });
+
+    let trs = Set.fromJS({
+      setType: 'TIME_RANGE',
+      elements: [
+        { start: new Date('2015-09-12T22:00:00Z'), end: new Date('2015-09-12T23:00:00Z') },
+        { start: new Date('2015-09-12T23:00:00Z'), end: new Date('2015-09-13T00:00:00Z') }
+      ]
+    });
+
+    it('works correctly with atomics', () => {
+      expect(nrs.contains(1), '1').to.equal(true);
+      expect(nrs.contains(2), '2').to.equal(true);
+      expect(nrs.contains(3), '3').to.equal(false);
+      expect(nrs.contains(4), '4').to.equal(false);
+
+      expect(nrs.contains(15), '15').to.equal(true);
+    });
+
+    it('works correctly with number ranges', () => {
+      expect(nrs.contains(NumberRange.fromJS({ start: 1, end: 2 }), '1-2')).to.equal(true);
+      expect(nrs.contains(NumberRange.fromJS({ start: 2, end: 3 }), '2-3')).to.equal(true);
+      expect(nrs.contains(NumberRange.fromJS({ start: 3, end: 4 }), '3-4')).to.equal(false);
+    });
+
+    it('works correctly with time ranges', () => {
+      expect(trs.contains(NumberRange.fromJS({ start: new Date('2015-09-12T23:00:00Z'), end: new Date('2015-09-13T00:00:00Z') }))).to.equal(true);
+    });
+
+    it('works correctly with number sets', () => {
+      expect(nrs.contains(Set.fromJS([{ start: 1, end: 2 }]), '[1-2]')).to.equal(true);
+      expect(nrs.contains(Set.fromJS([{ start: 2, end: 3 }]), '[2-3]')).to.equal(true);
+      expect(nrs.contains(Set.fromJS([{ start: 1, end: 3 }]), '[1-3]')).to.equal(true);
+      expect(nrs.contains(Set.fromJS([{ start: 3, end: 4 }]), '[3-4]')).to.equal(false);
+
+      expect(nrs.contains(Set.fromJS([{ start: 2, end: 3 }, { start: 15, end: 16 }]), '[2-3, 15-16]')).to.equal(true);
+      expect(nrs.contains(Set.fromJS([{ start: 2, end: 3 }, { start: 15, end: 36 }]), '[2-3, 15-36]')).to.equal(false);
+    });
+
+    it('works correctly with time sets', () => {
+      expect(trs.contains(Set.fromJS([
+        { start: new Date('2015-09-12T23:00:00Z'), end: new Date('2015-09-13T00:00:00Z') }
+      ]))).to.equal(true);
+
+      expect(trs.contains(Set.fromJS([
+        { start: new Date('2015-09-12T23:00:00Z'), end: new Date('2015-09-12T23:20:00Z') },
+        { start: new Date('2015-09-12T23:40:00Z'), end: new Date('2015-09-13T00:00:00Z') }
+      ]))).to.equal(true);
+    });
+
   });
 
 });

@@ -43,7 +43,6 @@ describe("composition", () => {
       "op": "literal",
       "type": "DATASET",
       "value": {
-        "keys": [],
         "attributes": [],
         "data": [{}]
       }
@@ -177,7 +176,6 @@ describe("composition", () => {
                 "op": "literal",
                 "type": "DATASET",
                 "value": {
-                  "keys": [],
                   "attributes": [],
                   "data": [
                     {}
@@ -192,7 +190,6 @@ describe("composition", () => {
             "op": "literal",
             "type": "DATASET",
             "value": {
-              "keys": [],
               "attributes": [],
               "data": [
                 {}
@@ -266,7 +263,6 @@ describe("composition", () => {
                 "op": "literal",
                 "type": "DATASET",
                 "value": {
-                  "keys": [],
                   "attributes": [],
                   "data": [
                     {}
@@ -281,7 +277,6 @@ describe("composition", () => {
             "op": "literal",
             "type": "DATASET",
             "value": {
-              "keys": [],
               "attributes": [],
               "data": [
                 {}

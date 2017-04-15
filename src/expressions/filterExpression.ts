@@ -15,14 +15,13 @@
  */
 
 
-
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Dataset } from '../datatypes/index';
-import { RefExpression } from './refExpression';
-import { SplitExpression } from './splitExpression';
-import { SortExpression } from './sortExpression';
 import { ApplyExpression } from './applyExpression';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { RefExpression } from './refExpression';
+import { SortExpression } from './sortExpression';
+import { SplitExpression } from './splitExpression';
 
 export class FilterExpression extends ChainableUnaryExpression {
   static op = "Filter";
@@ -31,7 +30,7 @@ export class FilterExpression extends ChainableUnaryExpression {
     return new FilterExpression(value);
   }
 
-  constructor(parameters: ExpressionValue = {}) {
+  constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp("filter");
     this._checkExpressionTypes('BOOLEAN');

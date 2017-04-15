@@ -22,7 +22,7 @@ let { sane } = require('../utils');
 let plywood = require('../plywood');
 let { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 
-let timeFilter = $('time').in(TimeRange.fromJS({
+let timeFilter = $('time').overlap(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
   end: new Date("2013-02-27T00:00:00Z")
 }));
@@ -44,7 +44,7 @@ let context = {
       { name: 'added', type: 'NULL' },
       { name: 'deleted', type: 'NULL' },
       { name: 'inserted', type: 'NULL' },
-      { name: 'delta_hist', type: 'NULL' }
+      { name: 'delta_hist', type: 'NULL', nativeType: "approximateHistogram" }
     ],
     derivedAttributes: {
       pageInBrackets: "'[' ++ $page ++ ']'",
@@ -52,7 +52,7 @@ let context = {
     },
     filter: timeFilter,
     allowSelectQueries: true,
-    version: '0.9.2',
+    version: '0.10.0',
     customAggregations: {
       crazy: {
         accessType: 'getSomeCrazy',
@@ -557,7 +557,7 @@ describe("DruidExternal Null Type", () => {
             "type": "doubleSum"
           },
           {
-            "fieldNames": [
+            "fields": [
               "page"
             ],
             "name": "!T_1",
@@ -819,15 +819,15 @@ describe("DruidExternal Null Type", () => {
       });
     });
 
-    it("works with .in(NUMBER_RANGE)", () => {
-      let ex = $('wiki').filter($("commentLength").in(10, 30));
+    it("works with .overlap(NUMBER_RANGE)", () => {
+      let ex = $('wiki').filter($("commentLength").overlap(10, 30));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
-        "alphaNumeric": true,
+        "ordering": "numeric",
         "dimension": "commentLength",
         "lower": 10,
         "type": "bound",
@@ -985,7 +985,7 @@ describe("DruidExternal Null Type", () => {
     });
 
     it("works with .timePart().in()", () => {
-      let ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').in([3, 5]));
+      let ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').is([3, 5]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -1471,8 +1471,12 @@ describe("DruidExternal Null Type", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "sometimeLater",
         "extractionFn": {
-          "format": "yyyy-MM-dd'T00:00'Z",
-          "locale": "en-US",
+          "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+          "granularity": {
+            "period": "P1D",
+            "timeZone": "Etc/UTC",
+            "type": "period"
+          },
           "timeZone": "Etc/UTC",
           "type": "timeFormat"
         },
@@ -1535,12 +1539,6 @@ describe("DruidExternal Null Type", () => {
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "wikipedia",
         "dimensions": [
           {
@@ -1579,12 +1577,6 @@ describe("DruidExternal Null Type", () => {
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "wikipedia",
         "dimensions": [
           {

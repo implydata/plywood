@@ -18,11 +18,11 @@
 import * as Promise from 'any-promise';
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
+import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes/index';
+import { MySQLDialect } from '../dialect/mySqlDialect';
 import { PlyType } from '../types';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
-import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes/index';
-import { MySQLDialect } from '../dialect/mySqlDialect';
 
 export interface MySQLDescribeRow {
   Field: string;

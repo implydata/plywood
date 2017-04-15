@@ -15,18 +15,24 @@
  * limitations under the License.
  */
 
-import * as hasOwnProp from 'has-own-prop';
 import { isDate, Timezone } from 'chronoshift';
-import { Class, Instance, generalEqual, SimpleArray, NamedArray } from 'immutable-class';
-import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
-import { Attributes, AttributeInfo, AttributeJSs } from './attributeInfo';
+import * as hasOwnProp from 'has-own-prop';
+import { Class, generalEqual, Instance, NamedArray, SimpleArray } from 'immutable-class';
+import {
+  Direction,
+  Expression,
+  ExpressionExternalAlteration,
+  ExternalExpression,
+  LiteralExpression
+} from '../expressions/index';
+import { External, TotalContainer } from '../external/baseExternal';
+import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from '../types';
+import { AttributeInfo, AttributeJSs, Attributes } from './attributeInfo';
+import { datumHasExternal, valueFromJS, valueToJS } from './common';
 import { NumberRange } from './numberRange';
 import { Set } from './set';
 import { StringRange } from './stringRange';
 import { TimeRange } from './timeRange';
-import { valueFromJS, valueToJS, datumHasExternal } from './common';
-import { Expression, ExpressionExternalAlteration, ExternalExpression, LiteralExpression, Direction } from '../expressions/index';
-import { External, TotalContainer } from '../external/baseExternal';
 
 export interface ComputeFn {
   (d: Datum): any;
@@ -248,7 +254,7 @@ function copy(obj: Lookup<any>): Lookup<any> {
 export interface DatasetValue {
   attributes?: Attributes;
   keys?: string[];
-  data?: Datum[];
+  data: Datum[];
   suppress?: boolean;
 }
 
@@ -360,30 +366,29 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       throw new Error('must have data');
     }
 
-    let value: DatasetValue = {};
+    let attributes: Attributes | undefined = undefined;
     let attributeLookup: Lookup<AttributeInfo> = {};
     if (parameters.attributes) {
-      const attributes = AttributeInfo.fromJSs(parameters.attributes);
-      value.attributes = attributes;
+      attributes = AttributeInfo.fromJSs(parameters.attributes);
       for (let attribute of attributes) attributeLookup[attribute.name] = attribute;
     }
 
-    value.keys = parameters.keys || null;
-    value.data = parameters.data.map((d) => Dataset.datumFromJS(d, attributeLookup));
-    return new Dataset(value);
+    return new Dataset({
+      attributes,
+      keys: parameters.keys || [],
+      data: parameters.data.map((d) => Dataset.datumFromJS(d, attributeLookup))
+    });
   }
 
   public suppress: boolean;
   public attributes: Attributes = null;
-  public keys: string[] | null = null;
+  public keys: string[];
   public data: Datum[];
 
   constructor(parameters: DatasetValue) {
     if (parameters.suppress === true) this.suppress = true;
 
-    if (parameters.keys) {
-      this.keys = parameters.keys;
-    }
+    this.keys = parameters.keys || [];
     let data = parameters.data;
     if (!Array.isArray(data)) {
       throw new TypeError("must have a `data` array");
@@ -397,17 +402,18 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public valueOf(): DatasetValue {
-    let value: DatasetValue = {};
+    let value: DatasetValue = {
+      keys: this.keys,
+      attributes: this.attributes,
+      data: this.data
+    };
     if (this.suppress) value.suppress = true;
-    if (this.attributes) value.attributes = this.attributes;
-    if (this.keys) value.keys = this.keys;
-    value.data = this.data;
     return value;
   }
 
   public toJS(): DatasetJS {
     const js: DatasetJSFull = {};
-    if (this.keys) js.keys = this.keys;
+    if (this.keys.length) js.keys = this.keys;
     if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
     js.data = this.data.map(Dataset.datumToJS);
     return js;
@@ -810,7 +816,6 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       finalData[i][datasetName] = new Dataset({
         suppress: true,
         attributes,
-        keys: null,
         data: finalDataset[i]
       });
     }
@@ -935,41 +940,41 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     return new Dataset(value);
   }
 
+  public getKeyLookup(): Lookup<Datum> {
+    const { data, keys } = this;
+
+    let thisKey = keys[0]; // ToDo: temp fix
+    if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
+
+    let mapping: Lookup<Datum> = Object.create(null);
+    for (let i = 0; i < data.length; i++) {
+      let datum = data[i];
+      mapping[String(datum[thisKey])] = datum;
+    }
+
+    return mapping;
+  }
+
   public join(other: Dataset): Dataset {
     if (!other) return this;
+    const { data, keys, attributes } = this;
 
-    let thisKey = this.keys[0]; // ToDo: temp fix
+    let thisKey = keys[0]; // ToDo: temp fix
     if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
-    let otherKey = other.keys[0]; // ToDo: temp fix
-    if (!otherKey) throw new Error('join rhs must have a key (be a product of a split)');
 
-    let thisData = this.data;
-    let otherData = other.data;
-    let k: string;
+    const otherLookup = other.getKeyLookup();
 
-    let mapping: Lookup<Datum[]> = Object.create(null);
-    for (let i = 0; i < thisData.length; i++) {
-      let datum = thisData[i];
-      k = String(thisKey ? datum[thisKey] : i);
-      mapping[k] = [datum];
-    }
-    for (let i = 0; i < otherData.length; i++) {
-      let datum = otherData[i];
-      k = String(otherKey ? datum[otherKey] : i);
-      if (!mapping[k]) mapping[k] = [];
-      mapping[k].push(datum);
-    }
+    let newData = data.map((datum) => {
+      const otherDatum = otherLookup[String(datum[thisKey])];
+      if (!otherDatum) return datum;
+      return joinDatums(datum, otherDatum);
+    });
 
-    let newData: Datum[] = [];
-    for (let j in mapping) {
-      let datums = mapping[j];
-      if (datums.length === 1) {
-        newData.push(datums[0]);
-      } else {
-        newData.push(joinDatums(datums[0], datums[1]));
-      }
-    }
-    return new Dataset({ data: newData });
+    return new Dataset({
+      keys,
+      attributes: AttributeInfo.override(attributes, other.attributes),
+      data: newData
+    });
   }
 
   public findDatumByAttribute(attribute: string, value: any): Datum {

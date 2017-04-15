@@ -83,7 +83,7 @@ describe("simulate MySQL", () => {
       (SUM(\`price\`)-SUM(\`tax\`)) AS \`PriceMinusTax\`,
       (((SUM(\`price\`)-SUM(\`tax\`))+10)-SUM(\`carat\`)) AS \`Crazy\`,
       (SUM(\`price\`)+SUM(\`tax\`)) AS \`PriceAndTax\`,
-      SUM(IF((\`cut\`<=>"good"),\`price\`,0)) AS \`PriceGoodCut\`
+      SUM(CASE WHEN (\`cut\`<=>"good") THEN \`price\` ELSE 0 END) AS \`PriceGoodCut\`
       FROM \`diamonds\`
       WHERE (\`color\`<=>"D")
       GROUP BY ''
@@ -291,7 +291,7 @@ describe("simulate MySQL", () => {
 
   it("works multi-dimensional GROUP BYs", () => {
     let ex = ply()
-      .apply("diamonds", $('diamonds').filter($("color").in(['A', 'B', 'some_color'])))
+      .apply("diamonds", $('diamonds').filter($("color").overlap(['A', 'B', 'some_color'])))
       .apply(
         'Cuts',
         $("diamonds").split({ 'Cut': "$cut", 'Color': '$color' })

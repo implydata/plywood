@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { LiteralExpression } from './literalExpression';
-import { PlywoodValue, TimeRange, NumberRange, Set } from '../datatypes/index';
+import { NumberRange, PlywoodValue, Set, TimeRange } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { IndexOfExpression } from './indexOfExpression';
-import { TimeBucketExpression } from './timeBucketExpression';
-import { NumberBucketExpression } from './numberBucketExpression';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
 import { FallbackExpression } from './fallbackExpression';
+import { IndexOfExpression } from './indexOfExpression';
+import { LiteralExpression } from './literalExpression';
+import { NumberBucketExpression } from './numberBucketExpression';
+import { ThenExpression } from './thenExpression';
+import { TimeBucketExpression } from './timeBucketExpression';
 
 export class IsExpression extends ChainableUnaryExpression {
   static op = "Is";
@@ -54,7 +55,14 @@ export class IsExpression extends ChainableUnaryExpression {
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
     const expressionSet = this.expression.getLiteralValue();
     if (expressionSet instanceof Set) {
-      return expressionSet.elements.map((e) => dialect.isNotDistinctFromExpression(operandSQL, r(e).getSQL(dialect))).join(' OR ');
+      switch (this.expression.type) {
+        case 'SET/STRING':
+        case 'SET/NUMBER':
+          return `${operandSQL} IN ${expressionSQL}`;
+
+        default:
+          return expressionSet.elements.map((e) => dialect.isNotDistinctFromExpression(operandSQL, r(e).getSQL(dialect))).join(' OR ');
+      }
     } else {
       return dialect.isNotDistinctFromExpression(operandSQL, expressionSQL);
     }
@@ -78,37 +86,45 @@ export class IsExpression extends ChainableUnaryExpression {
         return operand.is(r(literalValue.elements[0]));
       }
 
-      // X.indexOf(Y) = -1
+      // X.indexOf(Y).is(-1)
       if (operand instanceof IndexOfExpression && literalValue === -1) {
         const { operand: x, expression: y } = operand;
         return x.contains(y).not();
       }
 
-      // X.timeBucket(duration, timezone) = TimeRange()
+      // X.timeBucket(duration, timezone).is(TimeRange())
       if (operand instanceof TimeBucketExpression && literalValue instanceof TimeRange && operand.timezone) {
         const { operand: x, duration, timezone } = operand;
         if (literalValue.start !== null && TimeRange.timeBucket(literalValue.start, duration, timezone).equals(literalValue)) {
-          return x.in(expression);
+          return x.overlap(expression);
         } else {
           return Expression.FALSE;
         }
       }
 
-      // X.numberBucket(size, offset) = NumberRange()
+      // X.numberBucket(size, offset).is(NumberRange())
       if (operand instanceof NumberBucketExpression && literalValue instanceof NumberRange) {
         const { operand: x, size, offset } = operand;
         if (literalValue.start !== null && NumberRange.numberBucket(literalValue.start, size, offset).equals(literalValue)) {
-          return x.in(expression);
+          return x.overlap(expression);
         } else {
           return Expression.FALSE;
         }
       }
 
-      // X.fallback(Y) = Z where Y literal, Y != Z
+      // X.fallback(Y).is(Z) where Y literal, Y != Z
       if (operand instanceof FallbackExpression) {
         const { operand: x, expression: y } = operand;
         if (y.isOp('literal') && !y.equals(expression)) {
           return this.changeOperand(x);
+        }
+      }
+
+      // X.then(Y).is(Z) where Y literal
+      if (operand instanceof ThenExpression) {
+        const { operand: x, expression: y } = operand;
+        if (y.isOp('literal')) {
+          return y.equals(expression) ? x.is(Expression.TRUE) : x.isnt(Expression.TRUE);
         }
       }
 

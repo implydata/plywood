@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from 'chronoshift';
-import { SQLDialect } from './baseDialect';
+import { Duration, Timezone } from 'chronoshift';
 import { PlyType } from '../types';
+import { SQLDialect } from './baseDialect';
 
 export class PostgresDialect extends SQLDialect {
   static TIME_BUCKETING: Lookup<string> = {
@@ -84,10 +84,6 @@ export class PostgresDialect extends SQLDialect {
   public timeToSQL(date: Date): string {
     if (!date) return this.nullConstant();
     return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
-  }
-
-  public conditionalExpression(condition: string, thenPart: string, elsePart: string): string {
-    return `(CASE WHEN ${condition} THEN ${thenPart} ELSE ${elsePart} END)`;
   }
 
   public concatExpression(a: string, b: string): string {

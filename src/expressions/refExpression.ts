@@ -17,12 +17,11 @@
 
 import * as hasOwnProp from 'has-own-prop';
 import { SimpleArray } from 'immutable-class';
-import { Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
-import { PlyType, DatasetFullType, PlyTypeSingleValue, FullType } from '../types';
-import { SQLDialect } from '../dialect/baseDialect';
-import { repeat } from '../helper/utils';
-import { PlywoodValue, Set } from '../datatypes/index';
-import { Datum, ComputeFn } from '../datatypes/index';
+import { ComputeFn, Datum, PlywoodValue } from '../datatypes/index';
+import { SQLDialect } from '../dialect/index';
+import { repeat } from '../helper/index';
+import { DatasetFullType, PlyType } from '../types';
+import { Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export const POSSIBLE_TYPES: Lookup<number> = {
   'NULL': 1,
@@ -214,8 +213,13 @@ export class RefExpression extends Expression {
       expr = RefExpression.toJavaScriptSafeName(name);
     }
 
-    if (this.type === 'NUMBER') expr = `parseFloat(${expr})`;
-    return expr;
+    switch (this.type) {
+      case 'NUMBER':
+        return `parseFloat(${expr})`;
+
+      default:
+        return expr;
+    }
   }
 
   public getSQL(dialect: SQLDialect, minimal = false): string {
@@ -236,11 +240,11 @@ export class RefExpression extends Expression {
     let myTypeContext = typeContext;
     for (let i = nest; i > 0; i--) {
       myTypeContext = myTypeContext.parent;
-      if (!myTypeContext) throw new Error('went too deep on ' + this.toString());
+      if (!myTypeContext) throw new Error(`went too deep on ${this}`);
     }
 
     let myName = ignoreCase ? RefExpression.findPropertyCI(myTypeContext.datasetType, name) : name;
-    if (myName == null) throw new Error('could not resolve ' + this.toString());
+    if (myName == null) throw new Error(`could not resolve ${this}`);
     // Look for the reference in the parent chain
     let nestDiff = 0;
     while (myTypeContext && !hasOwnProp(myTypeContext.datasetType, myName)) {
@@ -248,7 +252,7 @@ export class RefExpression extends Expression {
       nestDiff++;
     }
     if (!myTypeContext) {
-      throw new Error('could not resolve ' + this.toString());
+      throw new Error(`could not resolve ${this}`);
     }
 
     let myFullType = myTypeContext.datasetType[myName];

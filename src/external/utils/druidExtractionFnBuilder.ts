@@ -14,59 +14,27 @@
  * limitations under the License.
  */
 
+import { TimeRange } from '../../datatypes/index';
 import {
-  Expression,
-  LiteralExpression,
-  RefExpression,
-  ChainableExpression,
-  ChainableUnaryExpression,
-
-  AbsoluteExpression,
-  AddExpression,
-  AndExpression,
-  ApplyExpression,
-  AverageExpression,
-  CardinalityExpression,
+  $,
   CastExpression,
-  CollectExpression,
+  ChainableUnaryExpression,
   ConcatExpression,
-  ContainsExpression,
-  CountExpression,
-  CountDistinctExpression,
-  CustomAggregateExpression,
   CustomTransformExpression,
-  DivideExpression,
+  Expression,
   ExtractExpression,
   FallbackExpression,
-  GreaterThanExpression,
-  GreaterThanOrEqualExpression,
-  InExpression,
-  IsExpression,
-  JoinExpression,
   LengthExpression,
-  LessThanExpression,
-  LessThanOrEqualExpression,
-  IndexOfExpression,
+  LiteralExpression,
   LookupExpression,
-  LimitExpression,
-  MatchExpression,
-  MaxExpression,
-  MinExpression,
-  MultiplyExpression,
-  NotExpression,
   NumberBucketExpression,
-  OrExpression,
-  PowerExpression,
-  QuantileExpression,
-  SplitExpression,
+  OverlapExpression,
+  r,
+  RefExpression,
   SubstrExpression,
-  SubtractExpression,
-  SumExpression,
   TimeBucketExpression,
   TimeFloorExpression,
   TimePartExpression,
-  TimeRangeExpression,
-  TimeShiftExpression,
   TransformCaseExpression
 } from '../../expressions/index';
 
@@ -234,6 +202,9 @@ export class DruidExtractionFnBuilder {
     } else if (expression instanceof TransformCaseExpression) {
       return this.transformCaseToExtractionFn(expression);
 
+    } else if (expression instanceof LengthExpression) {
+      return this.lengthToExtractionFn(expression);
+
     } else if (expression instanceof ExtractExpression) {
       return this.extractToExtractionFn(expression);
 
@@ -245,6 +216,9 @@ export class DruidExtractionFnBuilder {
 
     } else if (expression instanceof CastExpression) {
       return this.castToExtractionFn(expression);
+
+    } else if (expression instanceof OverlapExpression) {
+      return this.overlapToExtractionFn(expression);
 
     } else {
       return this.expressionToJavaScriptExtractionFn(expression);
@@ -311,30 +285,49 @@ export class DruidExtractionFnBuilder {
     const { operand, duration } = expression;
     const timezone = expression.getTimezone();
 
-    let singleSpan = duration.getSingleSpan();
-    let spanValue = duration.getSingleSpanValue();
-
     let myExtractionFn: Druid.ExtractionFn;
-    if (spanValue === 1 && DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan]) {
+    if (this.versionBefore('0.9.2')) {
+      let singleSpan = duration.getSingleSpan();
+      let spanValue = duration.getSingleSpanValue();
+
+      if (spanValue === 1 && DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan]) {
+        myExtractionFn = {
+          type: "timeFormat",
+          format: DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan],
+          timeZone: timezone.toString()
+        };
+      } else {
+        let prop = DruidExtractionFnBuilder.SPAN_TO_PROPERTY[singleSpan];
+        if (!prop) throw new Error(`can not floor on ${duration}`);
+        myExtractionFn = {
+          type: 'javascript',
+          'function': DruidExtractionFnBuilder.wrapFunctionTryCatch([
+            'var d = new org.joda.time.DateTime(s);',
+            timezone.isUTC() ? null : `d = d.withZone(org.joda.time.DateTimeZone.forID(${JSON.stringify(timezone)}));`,
+            `d = d.${prop}().roundFloorCopy();`,
+            `d = d.${prop}().setCopy(Math.floor(d.${prop}().get() / ${spanValue}) * ${spanValue});`,
+            'return d;'
+          ])
+        };
+      }
+
+    } else {
       myExtractionFn = {
         type: "timeFormat",
-        format: DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan],
-        locale: "en-US",
-        timeZone: timezone.toString()
+        granularity: {
+          type: "period",
+          period: duration.toString(),
+          timeZone: timezone.toString()
+        },
+        format: DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT['second'],
+        timeZone: 'Etc/UTC' // ToDo: is this necessary?
       };
-    } else {
-      let prop = DruidExtractionFnBuilder.SPAN_TO_PROPERTY[singleSpan];
-      if (!prop) throw new Error(`can not floor on ${duration}`);
-      myExtractionFn = {
-        type: 'javascript',
-        'function': DruidExtractionFnBuilder.wrapFunctionTryCatch([
-          'var d = new org.joda.time.DateTime(s);',
-          timezone.isUTC() ? null : `d = d.withZone(org.joda.time.DateTimeZone.forID(${JSON.stringify(timezone)}));`,
-          `d = d.${prop}().roundFloorCopy();`,
-          `d = d.${prop}().setCopy(Math.floor(d.${prop}().get() / ${spanValue}) * ${spanValue});`,
-          'return d;'
-        ])
-      };
+
+    }
+
+    // Druid < 0.10.0 had a bug where not setting locale would produce a NPE in the cache key calcualtion
+    if (this.versionBefore('0.10.0') && myExtractionFn.type === "timeFormat") {
+      myExtractionFn.locale = "en-US";
     }
 
     return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), myExtractionFn);
@@ -400,6 +393,16 @@ export class DruidExtractionFnBuilder {
 
     return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), {
       type: type
+    });
+  }
+
+  private lengthToExtractionFn(expression: LengthExpression): Druid.ExtractionFn {
+    const { operand } = expression;
+
+    if (this.versionBefore('0.10.0')) return this.expressionToJavaScriptExtractionFn(expression);
+
+    return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), {
+      type: 'strlen'
     });
   }
 
@@ -518,12 +521,42 @@ export class DruidExtractionFnBuilder {
     return this.expressionToJavaScriptExtractionFn(cast);
   }
 
+  private overlapToExtractionFn(expression: OverlapExpression): Druid.ExtractionFn {
+    let freeReferences = expression.operand.getFreeReferences();
+    let rhsType = expression.expression.type;
+    if (freeReferences[0] === '__time' && // hack
+      expression.expression instanceof LiteralExpression &&
+      (rhsType === 'TIME_RANGE' || rhsType === 'SET/TIME_RANGE')
+    ) {
+      expression = expression.operand.cast('NUMBER').overlap(r(expression.expression.getLiteralValue().changeToNumber()));
+    }
+
+    return this.expressionToJavaScriptExtractionFn(expression);
+  }
+
   private expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {
     let prefixFn: Druid.ExtractionFn = null;
     let jsExtractionFn: Druid.ExtractionFn = {
       type: "javascript",
       'function': null
     };
+
+    // Hack
+    if (ex.getFreeReferences()[0] === '__time') {
+      ex = ex.substitute((e) => {
+        if (e instanceof LiteralExpression) {
+          if (e.value instanceof TimeRange) {
+            return r(e.value.changeToNumber());
+          } else {
+            return null;
+          }
+        } else if (e instanceof RefExpression) {
+          return $('__time');
+        } else {
+          return null;
+        }
+      });
+    }
 
     try {
       jsExtractionFn['function'] = ex.getJSFn('d');

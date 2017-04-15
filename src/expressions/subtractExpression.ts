@@ -15,11 +15,10 @@
  */
 
 
-
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { PlywoodValue, Set } from '../datatypes/index';
 
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set } from '../datatypes/index';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class SubtractExpression extends ChainableUnaryExpression {
   static op = "Subtract";

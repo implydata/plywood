@@ -16,13 +16,13 @@
  */
 
 import { parseISODate } from 'chronoshift';
-import { isImmutableClass } from 'immutable-class';
-import { PlyType, DatasetFullType, FullType, PlyTypeSimple } from '../types';
-import { r, Expression, ExpressionValue, ExpressionJS, Alterations, Indexer } from './baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
 import * as hasOwnProp from 'has-own-prop';
-import { Dataset, Set, TimeRange, PlywoodValue, ComputeFn, Datum } from '../datatypes/index';
-import { valueFromJS, getValueType } from '../datatypes/common';
+import { isImmutableClass } from 'immutable-class';
+import { getValueType, valueFromJS } from '../datatypes/common';
+import { ComputeFn, Dataset, Datum, PlywoodValue, Set, TimeRange } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { DatasetFullType, PlyType } from '../types';
+import { Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
 
 export class LiteralExpression extends Expression {
   static op = "Literal";
@@ -169,18 +169,6 @@ export class LiteralExpression extends Expression {
   public maxPossibleSplitValues(): number {
     const { value } = this;
     return value instanceof Set ? value.size() : 1;
-  }
-
-  public bumpStringLiteralToTime(): Expression {
-    if (this.type !== 'STRING') return this;
-    let parse = parseISODate(this.value, Expression.defaultParserTimezone);
-    if (!parse) throw new Error(`could not parse '${this.value}' as time`);
-    return r(parse);
-  }
-
-  public bumpStringLiteralToSetString(): Expression {
-    if (this.type !== 'STRING') return this;
-    return r(Set.fromJS([this.value]));
   }
 
   public upgradeToType(targetType: PlyType): Expression {

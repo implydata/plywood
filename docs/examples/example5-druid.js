@@ -20,7 +20,7 @@ var context = {
     engine: 'druid',
     source: 'wikipedia',  // The datasource name in Druid
     timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time'
-    filter: $("time").in({ start: new Date("2015-09-01T00:00:00Z"), end: new Date("2015-11-01T00:00:00Z") }),
+    filter: $("time").overlap({ start: new Date("2015-09-01T00:00:00Z"), end: new Date("2015-11-01T00:00:00Z") }),
     requester: druidRequester
   })
 };

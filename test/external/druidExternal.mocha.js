@@ -22,7 +22,7 @@ let { sane } = require('../utils');
 let plywood = require('../plywood');
 let { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 
-let timeFilter = $('time').in(TimeRange.fromJS({
+let timeFilter = $('time').overlap(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
   end: new Date("2013-02-27T00:00:00Z")
 }));
@@ -38,7 +38,7 @@ let context = {
       { name: 'language', type: 'STRING' },
       { name: 'page', type: 'STRING' },
       { name: 'tags', type: 'SET/STRING' },
-      { name: 'commentLength', type: 'NUMBER' },
+      { name: 'commentLength', type: 'NUMBER', nativeType: 'LONG' },
       { name: 'isRobot', type: 'BOOLEAN' },
       { name: 'count', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
       { name: 'added', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
@@ -624,7 +624,7 @@ describe("DruidExternal", () => {
             "type": "longSum"
           },
           {
-            "fieldNames": [
+            "fields": [
               "page"
             ],
             "name": "!T_1",
@@ -921,15 +921,15 @@ describe("DruidExternal", () => {
       });
     });
 
-    it("works with .in(NUMBER_RANGE)", () => {
-      let ex = $('wiki').filter($("commentLength").in(10, 30));
+    it("works with .overlap(NUMBER_RANGE)", () => {
+      let ex = $('wiki').filter($("commentLength").overlap(10, 30));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
-        "alphaNumeric": true,
+        "ordering": "numeric",
         "dimension": "commentLength",
         "lower": 10,
         "type": "bound",
@@ -1087,7 +1087,7 @@ describe("DruidExternal", () => {
     });
 
     it("works with .timePart().in()", () => {
-      let ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').in([3, 5]));
+      let ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').is([3, 5]));
 
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -1696,7 +1696,12 @@ describe("DruidExternal", () => {
       expect(query.dimensions[0]).to.deep.equal({
         "dimension": "sometimeLater",
         "extractionFn": {
-          "format": "yyyy-MM-dd'T00:00'Z",
+          "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+          "granularity": {
+            "period": "P1D",
+            "timeZone": "Etc/UTC",
+            "type": "period"
+          },
           "locale": "en-US",
           "timeZone": "Etc/UTC",
           "type": "timeFormat"
@@ -1760,12 +1765,6 @@ describe("DruidExternal", () => {
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "wikipedia",
         "dimensions": [
           {
@@ -1804,12 +1803,6 @@ describe("DruidExternal", () => {
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
-        "aggregations": [
-          {
-            "name": "!DUMMY",
-            "type": "count"
-          }
-        ],
         "dataSource": "wikipedia",
         "dimensions": [
           {
@@ -2011,6 +2004,108 @@ describe("DruidExternal", () => {
   });
 
 
+  describe("should work when getting back an error", () => {
+    let errorExternal = External.fromJS({
+      engine: 'druid',
+      source: 'wikipedia',
+      timeAttribute: 'time',
+      allowSelectQueries: true,
+      attributes: [
+        { name: 'time', type: 'TIME' },
+        { name: 'language', type: 'STRING' },
+        { name: 'page', type: 'STRING' },
+        { name: 'added', type: 'NUMBER' }
+      ],
+      filter: timeFilter
+    }, () => {
+      const stream = new PassThrough({ objectMode: true });
+      setTimeout(() => {
+        stream.emit('error', new Error('something went wrong'));
+        stream.end();
+      }, 1);
+      return stream;
+    });
+
+    it("should return null correctly on a totals query", () => {
+      let ex = ply()
+        .apply('Count', '$wiki.count()');
+
+      return ex.compute({ wiki: errorExternal })
+        .then((result) => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch(e => {
+          expect(e.message).to.equal('something went wrong');
+        });
+    });
+
+    it("should return null correctly on a timeseries query", () => {
+      let ex = $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
+        .apply('Count', '$wiki.count()')
+        .sort('$Time', 'ascending');
+
+      return ex.compute({ wiki: errorExternal })
+        .then((result) => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch(e => {
+          expect(e.message).to.equal('something went wrong');
+        });
+    });
+
+    it("should return null correctly on a topN query", () => {
+      let ex = $('wiki').split("$page", 'Page')
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5);
+
+      return ex.compute({ wiki: errorExternal })
+        .then((result) => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch(e => {
+          expect(e.message).to.equal('something went wrong');
+        });
+    });
+
+    it("should return null correctly on a select query", () => {
+      let ex = $('wiki');
+
+      return ex.compute({ wiki: errorExternal })
+        .then((result) => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch(e => {
+          expect(e.message).to.equal('something went wrong');
+        });
+    });
+
+    it("should return null correctly on a double split", () => {
+      let ex = $('wiki').split("$page", 'Page')
+        .apply('Count', '$wiki.count()')
+        .apply('Added', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5)
+        .apply(
+          'times',
+          $('wiki').split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
+            .apply('Count', '$wiki.count()')
+            .sort('$Time', 'ascending')
+        );
+
+      return ex.compute({ wiki: errorExternal })
+        .then((result) => {
+          throw new Error('DID_NOT_ERROR');
+        })
+        .catch(e => {
+          expect(e.message).to.equal('something went wrong');
+        });
+    });
+
+  });
+
+
   describe("should work well with druid context", () => {
     it("should pass the context", () => {
       let external = External.fromJS({
@@ -2108,7 +2203,6 @@ describe("DruidExternal", () => {
       "dataSource": "wikipedia",
       "dimensions": [
         "page",
-        "commentLength",
         {
           "dimension": "commentLength",
           "extractionFn": {
@@ -2127,6 +2221,7 @@ describe("DruidExternal", () => {
       "granularity": "all",
       "intervals": "2013-02-26T00Z/2013-02-27T00Z",
       "metrics": [
+        "commentLength",
         "added"
       ],
       "pagingSpec": {

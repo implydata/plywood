@@ -15,8 +15,8 @@
  */
 
 import { Timezone } from 'chronoshift';
-import { ExpressionValue, Expression } from '../baseExpression';
 import { Environment } from '../../types';
+import { Expression, ExpressionValue } from '../baseExpression';
 
 export class HasTimezone {
   public valueOf: () => ExpressionValue;

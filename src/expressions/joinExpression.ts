@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set } from '../datatypes/index';
 import * as hasOwnProp from 'has-own-prop';
+import { PlywoodValue } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { DatasetFullType } from '../types';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { ExternalExpression } from './externalExpression';
 
 export class JoinExpression extends ChainableUnaryExpression {
   static op = "Join";
@@ -33,36 +35,27 @@ export class JoinExpression extends ChainableUnaryExpression {
     this.type = 'DATASET';
   }
 
-  /*
-  public _fillRefSubstitutions__(typeContext: DatasetFullType, inputType: FullType, indexer: Indexer, alterations: Alterations): FullType {
-    let typeContextParent = typeContext.parent;
-    let expressionFullType = <DatasetFullType>this.expression._fillRefSubstitutions__(typeContextParent, indexer, alterations);
-
-    let inputDatasetType = typeContext.datasetType;
-    let expressionDatasetType = expressionFullType.datasetType;
-    let newDatasetType: Lookup<FullType> = Object.create(null);
-
-    for (let k in inputDatasetType) {
-      newDatasetType[k] = inputDatasetType[k];
-    }
+  public updateTypeContext(typeContext: DatasetFullType, expressionTypeContext: DatasetFullType): DatasetFullType {
+    const myDatasetType = typeContext.datasetType;
+    const expressionDatasetType = expressionTypeContext.datasetType;
     for (let k in expressionDatasetType) {
+      typeContext.datasetType[k] = expressionDatasetType[k];
+
       let ft = expressionDatasetType[k];
-      if (hasOwnProp(newDatasetType, k)) {
-        if (newDatasetType[k].type !== ft.type) {
-          throw new Error(`incompatible types of joins on ${k} between ${newDatasetType[k].type} and ${ft.type}`);
+      if (hasOwnProp(myDatasetType, k)) {
+        if (myDatasetType[k].type !== ft.type) {
+          throw new Error(`incompatible types of joins on ${k} between ${myDatasetType[k].type} and ${ft.type}`);
         }
       } else {
-        newDatasetType[k] = ft;
+        myDatasetType[k] = ft;
       }
     }
-
-    return {
-      parent: typeContextParent,
-      type: 'DATASET',
-      datasetType: newDatasetType
-    };
+    return typeContext;
   }
-  */
+
+  public pushIntoExternal(): ExternalExpression | null {
+    return null;
+  }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     return operandValue ? operandValue.join(expressionValue) : null;

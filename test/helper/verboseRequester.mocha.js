@@ -42,6 +42,7 @@ describe("Verbose requester", () => {
   it("works on success", () => {
     let lines = [];
     let verboseRequester = verboseRequesterFactory({
+      name: 'rq1',
       requester: requester,
       printLine(line) {
         return lines.push(line);
@@ -53,11 +54,11 @@ describe("Verbose requester", () => {
         expect(res).to.be.an('array');
         expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
           `vvvvvvvvvvvvvvvvvvvvvvvvvv
-Sending query 1:
+Requester rq1 sending query 1:
 "Query1"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 vvvvvvvvvvvvvvvvvvvvvvvvvv
-Got result from query 1: (in Xms)
+Requester rq1 got result from query 1: (in Xms)
 [
   1,
   2,
@@ -70,6 +71,7 @@ Got result from query 1: (in Xms)
   it("works on failure", () => {
     let lines = [];
     let verboseRequester = verboseRequesterFactory({
+      name: 'rq2',
       requester: requester,
       printLine(line) {
         return lines.push(line);
@@ -83,11 +85,11 @@ Got result from query 1: (in Xms)
       .catch((error) => {
         expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
           `vvvvvvvvvvvvvvvvvvvvvvvvvv
-Sending query 1:
+Requester rq2 sending query 1:
 "failThis"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 vvvvvvvvvvvvvvvvvvvvvvvvvv
-Got error in query 1: some error (in Xms)
+Requester rq2 got error in query 1: some error (in Xms)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^`);
       });
   });

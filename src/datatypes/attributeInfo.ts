@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-import { Class, Instance, NamedArray, immutableEqual } from 'immutable-class';
-import { PlyType, FullType } from '../types';
 import * as hasOwnProp from 'has-own-prop';
+import { Class, immutableEqual, Instance, NamedArray } from 'immutable-class';
 import { Expression, ExpressionJS, RefExpression } from '../expressions/index';
+import { FullType, PlyType } from '../types';
 
 export type Attributes = AttributeInfo[];
 export type AttributeJSs = AttributeInfoJS[];
@@ -101,7 +101,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       throw new Error("name must be a string");
     }
     this.name = parameters.name;
-    this.type = parameters.type || 'STRING';
+    this.type = parameters.type || 'NULL';
     if (!RefExpression.validType(this.type)) throw new Error(`invalid type: ${this.type}`);
 
     this.unsplitable = Boolean(parameters.unsplitable);
@@ -152,8 +152,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
   public dropOriginInfo(): AttributeInfo {
     let value = this.valueOf();
-    value.maker = null;
-    value.nativeType = null;
+    delete value.maker;
+    delete value.nativeType;
     value.unsplitable = false;
     return new AttributeInfo(value);
   }

@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Set } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 import { TransformCaseExpression } from './transformCaseExpression';
 
 export class ContainsExpression extends ChainableUnaryExpression {
   static NORMAL = 'normal';
   static IGNORE_CASE = 'ignoreCase';
+
+  static caseIndependent(str: string): boolean {
+    return str.toUpperCase() === str.toLowerCase();
+  }
 
   static op = "Contains";
   static fromJS(parameters: ExpressionJS): ContainsExpression {
@@ -98,8 +102,14 @@ export class ContainsExpression extends ChainableUnaryExpression {
     return dialect.containsExpression(expressionSQL, operandSQL);
   }
 
+  public changeCompare(compare: string): ContainsExpression {
+    let value = this.valueOf();
+    value.compare = compare;
+    return new ContainsExpression(value);
+  }
+
   public specialSimplify(): Expression {
-    const { operand, expression } = this;
+    const { operand, expression, compare } = this;
 
     // X.transformCase(tt1).contains(Y.transformCase(tt2))
     if (operand instanceof TransformCaseExpression && expression instanceof TransformCaseExpression) {
@@ -107,6 +117,20 @@ export class ContainsExpression extends ChainableUnaryExpression {
       const { operand: y, transformType: tt2 } = expression;
       if (tt1 === tt2) {
         return x.contains(y, ContainsExpression.IGNORE_CASE);
+      }
+    }
+
+    if (compare === 'ignoreCase') {
+      // X.contains(CaseIndependentLiteral, ignoreCase)
+      const expressionLiteral = expression.getLiteralValue();
+      if (
+        expressionLiteral != null &&
+        (
+          (typeof expressionLiteral === 'string' && ContainsExpression.caseIndependent(expressionLiteral)) ||
+          (expressionLiteral instanceof Set && expressionLiteral.elements.every(ContainsExpression.caseIndependent))
+        )
+      ) {
+        return this.changeCompare('normal');
       }
     }
 

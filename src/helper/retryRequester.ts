@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { PlywoodRequester, DatabaseRequest } from 'plywood-base-api';
+import { DatabaseRequest, PlywoodRequester } from 'plywood-base-api';
 import { PassThrough } from 'readable-stream';
 
 export interface RetryRequesterParameters<T> {

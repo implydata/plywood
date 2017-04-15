@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import { DatabaseRequest, PlywoodRequester } from 'plywood-base-api';
 import { PassThrough } from 'readable-stream';
-import { PlywoodRequester, DatabaseRequest } from 'plywood-base-api';
 import { pipeWithError } from './utils';
 
 export interface ConcurrentLimitRequesterParameters<T> {

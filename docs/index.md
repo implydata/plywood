@@ -161,7 +161,7 @@ Now, a simple query can be issued:
 var ex = ply()
   // Define the external in scope with a filter on time and language
   .apply("wiki",
-    $('wiki').filter($("time").in({
+    $('wiki').filter($("time").overlap({
       start: new Date("2015-09-12T00:00:00Z"),
       end: new Date("2015-09-13T00:00:00Z")
     }).and($('channel').is('en')))
@@ -210,7 +210,7 @@ var context = {
 
 var ex = ply()
   .apply("wiki",
-    $('wiki').filter($("time").in({
+    $('wiki').filter($("time").overlap({
       start: new Date("2015-09-12T00:00:00Z"),
       end: new Date("2015-09-13T00:00:00Z")
     }))

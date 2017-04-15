@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
+import { PlywoodValue, Range, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlyType } from '../types';
-import { PlywoodValue, Set } from '../datatypes/index';
-import { LiteralExpression } from './literalExpression';
-import { IndexOfExpression } from './indexOfExpression';
-import { NumberRange } from '../datatypes/numberRange';
-import { TimeRange } from '../datatypes/timeRange';
-import { PlywoodRange } from '../datatypes/range';
-import { StringRange } from '../datatypes/stringRange';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { OverlapExpression } from './overlapExpression';
 
 export class InExpression extends ChainableUnaryExpression {
   static op = "In";
   static fromJS(parameters: ExpressionJS): InExpression {
-    return new InExpression(ChainableUnaryExpression.jsToValue(parameters));
+    const value = ChainableUnaryExpression.jsToValue(parameters);
+
+    // Back compat.
+    if (Range.isRangeType(value.expression.type)) {
+      console.warn('InExpression should no longer be used for ranges use OverlapExpression instead');
+      value.op = 'overlap';
+      return (new OverlapExpression(value) as any);
+    }
+
+    return new InExpression(value);
   }
 
   constructor(parameters: ExpressionValue) {
@@ -41,10 +44,7 @@ export class InExpression extends ChainableUnaryExpression {
       if (!(
           operandType === 'NULL' ||
           expression.type === 'NULL' ||
-          (!Set.isSetType(operandType) && expression.canHaveType('SET')) ||
-          (operandType === 'NUMBER' && expression.canHaveType('NUMBER_RANGE')) ||
-          (operandType === 'STRING' && expression.canHaveType('STRING_RANGE')) ||
-          (operandType === 'TIME' && expression.canHaveType('TIME_RANGE'))
+          (!Set.isSetType(operandType) && expression.canHaveType('SET'))
         )) {
         throw new TypeError(`in expression ${this} has a bad type combination ${operandType} IN ${expression.type || '*'}`);
       }
@@ -62,118 +62,18 @@ export class InExpression extends ChainableUnaryExpression {
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    const { expression } = this;
-    if (expression instanceof LiteralExpression) {
-      switch (expression.type) {
-        case 'NUMBER_RANGE':
-        case 'STRING_RANGE':
-        case 'TIME_RANGE':
-          let range: PlywoodRange = expression.value;
-          let r0 = range.start;
-          let r1 = range.end;
-          let bounds = range.bounds;
-
-          let cmpStrings: string[] = [];
-          if (r0 != null) {
-            cmpStrings.push(`${JSON.stringify(r0)} ${bounds[0] === '(' ? '<' : '<='} _`);
-          }
-          if (r1 != null) {
-            cmpStrings.push(`_ ${bounds[1] === ')' ? '<' : '<='} ${JSON.stringify(r1)}`);
-          }
-
-          return `((_=${operandJS}),${cmpStrings.join('&&')})`;
-
-        case 'SET/STRING':
-          let valueSet: Set = expression.value;
-          return `${JSON.stringify(valueSet.elements)}.indexOf(${operandJS})>-1`;
-
-        default:
-          throw new Error(`can not convert ${this} to JS function, unsupported type ${expression.type}`);
-      }
-    }
-
     throw new Error(`can not convert ${this} to JS function`);
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    let expression = this.expression;
-    let expressionType = expression.type;
-    switch (expressionType) {
-      case 'NUMBER_RANGE':
-      case 'TIME_RANGE':
-        if (expression instanceof LiteralExpression) {
-          let range: (NumberRange | TimeRange) = expression.value;
-          return dialect.inExpression(operandSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
-        }
-        throw new Error(`can not convert action to SQL ${this}`);
-
-      case 'STRING_RANGE':
-        if (expression instanceof LiteralExpression) {
-          let stringRange: StringRange = expression.value;
-          return dialect.inExpression(operandSQL, dialect.escapeLiteral(stringRange.start), dialect.escapeLiteral(stringRange.end), stringRange.bounds);
-        }
-        throw new Error(`can not convert action to SQL ${this}`);
-
-      case 'SET/STRING':
-      case 'SET/NUMBER':
-        return `${operandSQL} IN ${expressionSQL}`;
-
-      case 'SET/NUMBER_RANGE':
-      case 'SET/TIME_RANGE':
-        if (expression instanceof LiteralExpression) {
-          let setOfRange: Set = expression.value;
-          return setOfRange.elements.map((range: (NumberRange | TimeRange)) => {
-            return dialect.inExpression(operandSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
-          }).join(' OR ');
-        }
-        throw new Error(`can not convert action to SQL ${this}`);
-
-      default:
-        throw new Error(`can not convert action to SQL ${this}`);
-    }
+    throw new Error(`can not convert action to SQL ${this}`);
   }
 
   public specialSimplify(): Expression {
     const { operand, expression } = this;
 
-    let literalValue: Set = expression.getLiteralValue();
-
-    if (literalValue instanceof Set) {
-      // X.in({})
-      if (literalValue.empty()) return Expression.FALSE;
-
-      if (literalValue && !literalValue.isNullSet()) {
-        if (literalValue.size() === 1) {
-          if (Set.wrapSetType(operand.type) === expression.type) {
-            // This is x:NUMBER in Set(1)
-            //      or x:NUMBER_RANGE in Set(Range(1,2))
-            return operand.is(r(literalValue.elements[0]));
-          } else if (Set.wrapSetType((operand.type + '_RANGE') as PlyType) === expression.type) {
-            // This is x:NUMBER in Set(Range(1,2))
-            return operand.in(r(literalValue.elements[0]));
-          } else {
-            return this;
-          }
-        }
-
-        let unifiedSetValue = literalValue.unifyElements();
-        if (!literalValue.equals(unifiedSetValue)) {
-          return operand.in(r(unifiedSetValue));
-        }
-      }
-
-    }
-
-    // X.indexOf(Y).in([start, end])
-    if (operand instanceof IndexOfExpression && literalValue instanceof NumberRange) {
-      const { operand: x, expression: y } = operand;
-      const { start, end, bounds } = literalValue;
-
-      // contains could be either start less than 0 or start === 0 with inclusive bounds
-      if ((start < 0 && end === null) || (start === 0 && end === null && bounds[0] === '[')) {
-        return x.contains(y);
-      }
-    }
+    // NotSet.in(Y) => NotSet.is(Y)
+    if (operand.type && !Set.isSetType(operand.type)) return operand.is(expression);
 
     return this;
   }

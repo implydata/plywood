@@ -20,7 +20,7 @@ let { sane } = require('../utils');
 let plywood = require('../plywood');
 let { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 
-let timeFilter = $('time').in(TimeRange.fromJS({
+let timeFilter = $('time').overlap(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
   end: new Date("2013-02-27T00:00:00Z")
 }));

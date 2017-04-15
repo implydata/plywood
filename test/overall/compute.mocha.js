@@ -1522,8 +1522,7 @@ describe("compute native", () => {
                 ]
               }
             }
-          ],
-          "keys": []
+          ]
         });
       });
   });
@@ -2099,7 +2098,7 @@ describe("compute native", () => {
     let ds = Dataset.fromJS(data).hide();
 
     let ex = ply()
-      .apply('Data', ply(ds).filter($('price').in(105, 305)))
+      .apply('Data', ply(ds).filter($('price').overlap(105, 305)))
       .apply('Count', '$Data.count()');
 
     return ex.compute()
@@ -2326,12 +2325,12 @@ describe("compute native", () => {
 
 
   describe("joins", () => {
-    it.skip("does a join on split", () => {
+    it("does a join on split", () => {
       let ds = Dataset.fromJS(data).hide();
 
       let ex = ply()
-        .apply('Data1', ply(ds).filter($('price').in(105, 305)))
-        .apply('Data2', ply(ds).filter($('price').in(105, 305).not()))
+        .apply('Data1', ply(ds).filter($('price').overlap(105, 305)))
+        .apply('Data2', ply(ds).filter($('price').overlap(105, 305).not()))
         .apply('Count1', '$Data1.count()')
         .apply('Count2', '$Data2.count()')
         .apply(
@@ -2346,24 +2345,43 @@ describe("compute native", () => {
             {
               "Count1": 3,
               "Count2": 3,
-              "Cuts": [
-                {
-                  "Counts": 101,
-                  "Cut": "Good"
-                },
-                {
-                  "Counts": 100,
-                  "Cut": "Great"
-                },
-                {
-                  "Counts": 101,
-                  "Cut": "Wow"
-                },
-                {
-                  "Counts": 1,
-                  "Cut": null
-                }
-              ]
+              "Cuts": {
+                "attributes": [
+                  {
+                    "name": "Cut",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Data1",
+                    "type": "DATASET"
+                  },
+                  {
+                    "name": "K2",
+                    "type": "DATASET"
+                  },
+                  {
+                    "name": "Counts",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Counts": 101,
+                    "Cut": "Good"
+                  },
+                  {
+                    "Counts": 100,
+                    "Cut": "Great"
+                  },
+                  {
+                    "Counts": 101,
+                    "Cut": "Wow"
+                  }
+                ],
+                "keys": [
+                  "Cut"
+                ]
+              }
             }
           ]);
         });

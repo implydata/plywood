@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from 'chronoshift';
+import { Duration, Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
-import { HasTimezone } from './mixins/hasTimezone';
+import { PlywoodValue, Set, TimeRange } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, TimeRange, Set } from '../datatypes/index';
-import { InExpression } from './inExpression';
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { HasTimezone } from './mixins/hasTimezone';
 import { OverlapExpression } from './overlapExpression';
 import { TimeBucketExpression } from './timeBucketExpression';
 
@@ -99,7 +98,7 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
       return timezone.equals(ex.timezone) && ex.duration.dividesBy(duration);
     }
 
-    if (ex instanceof InExpression || ex instanceof OverlapExpression) {
+    if (ex instanceof OverlapExpression) {
       let literal = ex.expression.getLiteralValue();
       if (literal instanceof TimeRange) {
         return literal.isAligned(duration, timezone);

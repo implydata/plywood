@@ -19,13 +19,13 @@ import * as Promise from 'any-promise';
 import { isDate } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
 import { Expression } from '../expressions/baseExpression';
-import { Dataset, Datum } from './dataset';
-import { Set } from './set';
-import { TimeRange } from './timeRange';
-import { StringRange } from './stringRange';
-import { NumberRange } from './numberRange';
 import { External } from '../external/baseExternal';
-import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
+import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from '../types';
+import { Dataset, Datum } from './dataset';
+import { NumberRange } from './numberRange';
+import { Set } from './set';
+import { StringRange } from './stringRange';
+import { TimeRange } from './timeRange';
 
 export function getValueType(value: any): PlyType {
   let typeofValue = typeof value;
@@ -139,7 +139,7 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
             return v; // Allow native date
           }
           if (typeOverride) {
-            throw new Error(`unknown type ${typeOverride}`);
+            throw new Error(`unknown type ${typeOverride} on ${JSON.stringify(v)}`);
           } else {
             throw new Error(`can not have an object without a 'type' as a datum value: ${JSON.stringify(v)}`);
           }
@@ -166,29 +166,6 @@ export function valueToJS(v: any): any {
       }
     } else if (typeofV === 'number' && !isFinite(v)) {
       return String(v);
-    }
-  }
-  return v;
-}
-
-export function valueToJSInlineType(v: any): any {
-  if (v == null) {
-    return null;
-  } else {
-    let typeofV = typeof v;
-    if (typeofV === 'object') {
-      if (v.toISOString) {
-        return { type: 'TIME', value: v };
-      } else {
-        if (typeof v.toJS !== 'function') return String(v); // Technically we should never get here
-        let js = v.toJS();
-        if (!Array.isArray(js)) {
-          js.type = v.constructor.type || 'EXPRESSION';
-        }
-        return js;
-      }
-    } else if (typeofV === 'number' && !isFinite(v)) {
-      return { type: 'NUMBER', value: String(v) };
     }
   }
   return v;

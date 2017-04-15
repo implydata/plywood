@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { Aggregate } from './mixins/aggregate';
+import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Dataset } from '../datatypes/index';
-import { LiteralExpression } from './literalExpression';
 import { AddExpression } from './addExpression';
-import { SubtractExpression } from './subtractExpression';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { LiteralExpression } from './literalExpression';
+import { Aggregate } from './mixins/aggregate';
 import { MultiplyExpression } from './multiplyExpression';
+import { SubtractExpression } from './subtractExpression';
 
 export class SumExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "Sum";
@@ -42,7 +42,7 @@ export class SumExpression extends ChainableUnaryExpression implements Aggregate
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    return `SUM(${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL)})`;
+    return `SUM(${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL, '0')})`;
   }
 
   public distribute(): Expression {

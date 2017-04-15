@@ -17,75 +17,24 @@
 import { isDate } from 'chronoshift';
 import { NamedArray } from 'immutable-class';
 
-import {
-  Expression,
-  LiteralExpression,
-  RefExpression,
-  ChainableExpression,
-  ChainableUnaryExpression,
+import { AttributeInfo, NumberRange, PlywoodRange, Range, Set, TimeRange } from '../../datatypes/index';
 
-  AbsoluteExpression,
-  AddExpression,
+import {
   AndExpression,
-  ApplyExpression,
-  AverageExpression,
-  CardinalityExpression,
-  CastExpression,
-  CollectExpression,
-  ConcatExpression,
   ContainsExpression,
-  CountExpression,
-  CountDistinctExpression,
-  CustomAggregateExpression,
-  CustomTransformExpression,
-  DivideExpression,
-  ExtractExpression,
-  FallbackExpression,
-  GreaterThanExpression,
-  GreaterThanOrEqualExpression,
-  InExpression,
+  Expression,
   IsExpression,
-  JoinExpression,
-  LengthExpression,
-  LessThanExpression,
-  LessThanOrEqualExpression,
-  IndexOfExpression,
-  LookupExpression,
-  LimitExpression,
+  LiteralExpression,
   MatchExpression,
-  MaxExpression,
-  MinExpression,
-  MultiplyExpression,
   NotExpression,
-  NumberBucketExpression,
   OrExpression,
   OverlapExpression,
-  PowerExpression,
-  QuantileExpression,
-  SplitExpression,
-  SubstrExpression,
-  SubtractExpression,
-  SumExpression,
-  TimeBucketExpression,
-  TimeFloorExpression,
-  TimePartExpression,
-  TimeRangeExpression,
-  TimeShiftExpression,
-  TransformCaseExpression
+  RefExpression
 } from '../../expressions/index';
 
-import {
-  AttributeInfo,
-  NumberRange,
-  Range,
-  Set,
-  PlywoodRange,
-  TimeRange
-} from '../../datatypes/index';
-
 import { External } from '../baseExternal';
-import { CustomDruidTransforms } from './druidTypes';
 import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
+import { CustomDruidTransforms } from './druidTypes';
 
 
 export interface DruidFilterAndIntervals {
@@ -104,7 +53,6 @@ export interface DruidFilterBuilderOptions {
 export class DruidFilterBuilder {
   static TIME_ATTRIBUTE = '__time';
   static TRUE_INTERVAL = "1000/3000";
-  static FALSE_INTERVAL = "1000/1001";
 
 
   public version: string;
@@ -126,19 +74,13 @@ export class DruidFilterBuilder {
 
     if (filter.equals(Expression.FALSE)) {
       return {
-        intervals: DruidFilterBuilder.FALSE_INTERVAL,
+        intervals: [],
         filter: null
       };
     } else {
       const { extract, rest } = filter.extractFromAnd(ex => {
-        if (ex instanceof ChainableUnaryExpression) {
-          // time.is(Literal) // time.in(Literal)
-          const { op, operand: lhs, expression: rhs } = ex;
-          if (this.isTimeRef(lhs) && rhs instanceof LiteralExpression) {
-            return op === 'is' || op === 'in';
-          }
-        }
-        return false;
+        // time.is(Literal) || time.overlap(Literal)
+        return (ex instanceof IsExpression || ex instanceof OverlapExpression) && this.isTimeRef(ex.operand) && ex.expression instanceof LiteralExpression;
       });
       return {
         intervals: this.timeFilterToIntervals(extract),
@@ -151,39 +93,28 @@ export class DruidFilterBuilder {
     if (!filter.canHaveType('BOOLEAN')) throw new Error(`can not filter on ${filter.type}`);
 
     if (filter instanceof LiteralExpression) {
-      if (!filter.value) return DruidFilterBuilder.FALSE_INTERVAL;
+      if (!filter.value) return [];
       if (!this.allowEternity) throw new Error('must filter on time unless the allowEternity flag is set');
       return DruidFilterBuilder.TRUE_INTERVAL;
 
     } else if (filter instanceof IsExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-        return TimeRange.intervalFromDate(rhs.value);
+        return this.valueToIntervals(rhs.value);
       } else {
         throw new Error(`can not convert ${filter} to Druid interval`);
       }
 
-    } else if (filter instanceof OverlapExpression || filter instanceof InExpression) {
+    } else if (filter instanceof OverlapExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-        let timeRanges: TimeRange[];
-        let rhsType = rhs.type;
-        if (rhsType === 'SET/TIME_RANGE') {
-          timeRanges = rhs.value.elements;
-        } else if (rhsType === 'TIME_RANGE') {
-          timeRanges = [rhs.value];
-        } else {
-          throw new Error(`not supported ${rhsType} for time filtering`);
-        }
-
-        let intervals = timeRanges.map(timeRange => timeRange.toInterval());
-        return intervals.length === 1 ? intervals[0] : intervals;
+        return this.valueToIntervals(rhs.value);
       } else {
-        throw new Error(`can not convert ${filter} to Druid interval`);
+        throw new Error(`can not convert ${filter} to Druid intervals`);
       }
 
     } else {
-      throw new Error(`can not convert ${filter} to Druid interval`);
+      throw new Error(`can not convert ${filter} to Druid intervals`);
     }
   }
 
@@ -236,30 +167,27 @@ export class DruidFilterBuilder {
       if (this.versionBefore('0.8.2')) throw new Error(`can not express aggregate filter ${filter} in druid < 0.8.2`);
       return this.makeExtractionFilter(filter);
 
-    } else if (filter instanceof InExpression || filter instanceof OverlapExpression) {
+    } else if (filter instanceof OverlapExpression) {
       const { operand: lhs, expression: rhs } = filter;
-      // Special handling for r('some_tag').in($tags)
-      if (filter instanceof InExpression && lhs instanceof LiteralExpression) {
-        return this.makeSelectorFilter(rhs, lhs.value);
-
-      } else if (rhs instanceof LiteralExpression) {
+      if (rhs instanceof LiteralExpression) {
         let rhsType = rhs.type;
         if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
           return this.makeInFilter(lhs, rhs.value);
 
+        } else if (Set.unwrapSetType(rhsType) === 'TIME_RANGE' && this.isTimeRef(lhs)) {
+          return this.makeIntervalFilter(lhs, rhs.value);
+
         } else if (rhsType === 'NUMBER_RANGE' || rhsType === 'TIME_RANGE' || rhsType === 'STRING_RANGE') {
           return this.makeBoundFilter(lhs, rhs.value);
 
-        } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE') {
-          let elements = rhs.value.elements;
-          let fields = elements.map((range: PlywoodRange) => {
-            return this.makeBoundFilter(lhs, range);
-          });
-
-          return fields.length === 1 ? fields[0] : { type: "or", fields };
+        } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE' || rhsType === 'SET/STRING_RANGE') {
+          return {
+            type: "or",
+            fields: rhs.value.elements.map((range: PlywoodRange) => this.makeBoundFilter(lhs, range))
+          };
 
         } else {
-          throw new Error(`not supported IN rhs type ${rhsType}`);
+          throw new Error(`not supported OVERLAP rhs type ${rhsType}`);
 
         }
 
@@ -295,6 +223,26 @@ export class DruidFilterBuilder {
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
       "function": ex.getJSFn('d')
     };
+  }
+
+  private valueToIntervals(value: Date | TimeRange | Set): Druid.Intervals {
+    if (isDate(value)) {
+      return TimeRange.intervalFromDate(value as Date);
+    } else if (value instanceof TimeRange) {
+      return value.toInterval();
+    } else if (value instanceof Set) {
+      return value.elements.map((v) => {
+        if (isDate(v)) {
+          return TimeRange.intervalFromDate(v as Date);
+        } else if (v instanceof TimeRange) {
+          return v.toInterval();
+        } else {
+          throw new Error(`can not convert set value ${JSON.stringify(v)} to Druid interval`);
+        }
+      });
+    } else {
+      throw new Error(`can not convert ${JSON.stringify(value)} to Druid intervals`);
+    }
   }
 
   private makeExtractionFilter(ex: Expression): Druid.Filter {
@@ -354,7 +302,7 @@ export class DruidFilterBuilder {
         return this.makeSelectorFilter(ex, value);
       });
 
-      return fields.length === 1 ? fields[0] : { type: "or", fields };
+      return { type: "or", fields };
     }
 
     let inFilter: Druid.Filter = {
@@ -371,19 +319,22 @@ export class DruidFilterBuilder {
     let r1 = range.end;
     let bounds = range.bounds;
 
-    if (this.versionBefore('0.9.0') || r0 < 0 || r1 < 0) {
-      return this.makeJavaScriptFilter(ex.in(range));
+    // only 0.9.0 can handle bounds
+    if (this.versionBefore('0.9.0')) {
+      return this.makeJavaScriptFilter(ex.overlap(range));
     }
 
-    if (ex instanceof IndexOfExpression) {
-      return this.makeJavaScriptFilter(ex.in(range));
+    // only 0.9.2 can handle bounds with negative start, end
+    if (this.versionBefore('0.9.2') && (r0 < 0 || r1 < 0)) {
+      return this.makeJavaScriptFilter(ex.overlap(range));
     }
 
     let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
 
+    // only 0.9.1 can handle extraction functions
     if (this.versionBefore('0.9.1') && extractionFn) {
-      return this.makeJavaScriptFilter(ex.in(range));
+      return this.makeJavaScriptFilter(ex.overlap(range));
     }
 
     if (extractionFn) this.checkFilterExtractability(attributeInfo);
@@ -394,7 +345,14 @@ export class DruidFilterBuilder {
     };
 
     if (extractionFn) boundFilter.extractionFn = extractionFn;
-    if (range instanceof NumberRange) boundFilter.alphaNumeric = true;
+
+    if (range instanceof NumberRange) {
+      if (this.versionBefore('0.9.2')) {
+        boundFilter.alphaNumeric = true;
+      } else {
+        boundFilter.ordering = 'numeric';
+      }
+    }
 
     if (r0 != null) {
       boundFilter.lower = isDate(r0) ? (r0 as Date).toISOString() : (r0 as number | string);
@@ -405,6 +363,24 @@ export class DruidFilterBuilder {
       if (bounds[1] === ')') boundFilter.upperStrict = true;
     }
     return boundFilter;
+  }
+
+  private makeIntervalFilter(ex: Expression, range: TimeRange | Set): Druid.Filter {
+    if (this.versionBefore('0.9.2')) {
+      throw new Error(`Can not filter ${ex} on ${JSON.stringify(range)}`);
+    }
+
+    let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+    let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+
+    if (extractionFn) this.checkFilterExtractability(attributeInfo);
+
+    const interval = this.valueToIntervals(range);
+    return {
+      type: "interval",
+      dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
+      intervals: Array.isArray(interval) ? interval : [interval]
+    };
   }
 
   private makeRegexFilter(ex: Expression, regex: string): Druid.Filter {

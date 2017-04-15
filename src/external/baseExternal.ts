@@ -15,46 +15,48 @@
  */
 
 import * as Promise from 'any-promise';
-import { ReadableStream, WritableStream, Transform, Writable } from 'readable-stream';
-import { Timezone, Duration } from 'chronoshift';
-import { immutableArraysEqual, immutableLookupsEqual, SimpleArray, NamedArray } from 'immutable-class';
+import { Duration, Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
+import { immutableArraysEqual, immutableLookupsEqual, NamedArray, SimpleArray } from 'immutable-class';
 import { PlywoodRequester } from 'plywood-base-api';
-import { pipeWithError } from '../helper/utils';
-import { PlyType, DatasetFullType, PlyTypeSimple, FullType } from '../types';
-import { nonEmptyLookup, safeAdd } from '../helper/utils';
-import { ReadableError } from '../helper/streamBasics';
+import { ReadableStream, Transform, Writable, WritableStream } from 'readable-stream';
 import {
-  $, Expression, RefExpression, ExternalExpression,
+  AttributeInfo,
+  AttributeJSs,
+  Attributes,
+  Dataset,
+  Datum,
+  NumberRange,
+  PlywoodValue,
+  PlywoodValueBuilder
+} from '../datatypes/index';
+import { Set } from '../datatypes/set';
+import { StringRange } from '../datatypes/stringRange';
+import { TimeRange } from '../datatypes/timeRange';
+import { ExpressionJS } from '../expressions/baseExpression';
+import {
+  $,
+  AndExpression,
+  ApplyExpression,
   ChainableExpression,
   ChainableUnaryExpression,
-  ApplyExpression,
+  Expression,
+  ExternalExpression,
   FilterExpression,
   LimitExpression,
   NumberBucketExpression,
+  RefExpression,
   SelectExpression,
   SortExpression,
   SplitExpression,
   TimeBucketExpression,
-  TimeFloorExpression,
-  AndExpression
+  TimeFloorExpression
 } from '../expressions/index';
-import {
-  PlywoodValue,
-  Datum,
-  Dataset,
-  PlywoodValueBuilder,
-  Attributes,
-  AttributeInfo,
-  AttributeJSs,
-  NumberRange
-} from '../datatypes/index';
-import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
-import { ExpressionJS } from '../expressions/baseExpression';
-import { Set } from '../datatypes/set';
-import { StringRange } from '../datatypes/stringRange';
-import { TimeRange } from '../datatypes/timeRange';
+import { ReadableError } from '../helper/streamBasics';
 import { StreamConcat } from '../helper/streamConcat';
+import { nonEmptyLookup, pipeWithError, safeAdd } from '../helper/utils';
+import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from '../types';
+import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
 
 export class TotalContainer {
   public datum: Datum;
@@ -1512,7 +1514,7 @@ export abstract class External {
     }
 
     if (!lastNode && mode === 'split') {
-      finalStream = finalStream.pipe(new Transform({
+      finalStream = pipeWithError(finalStream, new Transform({
         objectMode: true,
         transform: (chunk, enc, callback) => {
           if (chunk.type === 'datum') externalForNext.addNextExternalToDatum(chunk.datum);

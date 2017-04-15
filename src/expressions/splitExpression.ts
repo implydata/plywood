@@ -16,11 +16,22 @@
 
 import * as hasOwnProp from 'has-own-prop';
 import { immutableLookupsEqual } from 'immutable-class';
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression, Splits, SplitsJS, SubstitutionFn, Indexer, ExpressionTypeContext } from './baseExpression';
-import { PlyType, DatasetFullType, SimpleFullType, FullType } from '../types';
-import { Aggregate } from './mixins/aggregate';
+import { Dataset, Datum, PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { Datum, PlywoodValue, Dataset, Set } from '../datatypes/index';
+import { DatasetFullType, FullType } from '../types';
+import {
+  ChainableExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionTypeContext,
+  ExpressionValue,
+  Indexer,
+  r,
+  Splits,
+  SplitsJS,
+  SubstitutionFn
+} from './baseExpression';
+import { Aggregate } from './mixins/aggregate';
 
 export class SplitExpression extends ChainableExpression implements Aggregate {
   static op = "Split";
@@ -238,7 +249,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   public filterFromDatum(datum: Datum): Expression {
     return Expression.and(this.mapSplits((name, expression) => {
       if (Set.isSetType(expression.type)) {
-        return r(datum[name]).in(expression);
+        return r(datum[name]).overlap(expression);
       } else {
         return expression.is(r(datum[name]));
       }

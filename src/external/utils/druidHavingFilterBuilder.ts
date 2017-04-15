@@ -14,83 +14,58 @@
  * limitations under the License.
  */
 
+import { AttributeInfo, NumberRange } from '../../datatypes/index';
 import {
-  Expression,
-  LiteralExpression,
-  RefExpression,
-  ChainableExpression,
-  ChainableUnaryExpression,
-
-  AbsoluteExpression,
-  AddExpression,
   AndExpression,
-  ApplyExpression,
-  AverageExpression,
-  CardinalityExpression,
-  CastExpression,
-  CollectExpression,
-  ConcatExpression,
-  ContainsExpression,
-  CountExpression,
-  CountDistinctExpression,
-  CustomAggregateExpression,
-  CustomTransformExpression,
-  DivideExpression,
-  ExtractExpression,
-  FallbackExpression,
-  GreaterThanExpression,
-  GreaterThanOrEqualExpression,
-  InExpression,
+  Expression,
   IsExpression,
-  JoinExpression,
-  LengthExpression,
-  LessThanExpression,
-  LessThanOrEqualExpression,
-  IndexOfExpression,
-  LookupExpression,
-  LimitExpression,
-  MatchExpression,
-  MaxExpression,
-  MinExpression,
-  MultiplyExpression,
+  LiteralExpression,
   NotExpression,
-  NumberBucketExpression,
   OrExpression,
   OverlapExpression,
-  PowerExpression,
-  QuantileExpression,
-  SplitExpression,
-  SubstrExpression,
-  SubtractExpression,
-  SumExpression,
-  TimeBucketExpression,
-  TimeFloorExpression,
-  TimePartExpression,
-  TimeRangeExpression,
-  TimeShiftExpression,
-  TransformCaseExpression
+  RefExpression
 } from '../../expressions/index';
-
-import {
-  NumberRange
-} from '../../datatypes/index';
-
 import { External } from '../baseExternal';
+import { DruidFilterBuilder } from './druidFilterBuilder';
+import { CustomDruidTransforms } from './druidTypes';
 
 
 export interface DruidHavingFilterBuilderOptions {
   version: string;
+  attributes: AttributeInfo[];
+  customTransforms: CustomDruidTransforms;
 }
 
 export class DruidHavingFilterBuilder {
 
   public version: string;
+  public attributes: AttributeInfo[];
+  public customTransforms: CustomDruidTransforms;
 
   constructor(options: DruidHavingFilterBuilderOptions) {
     this.version = options.version;
+    this.attributes = options.attributes;
+    this.customTransforms = options.customTransforms;
   }
 
   public filterToHavingFilter(filter: Expression): Druid.Having {
+    if (this.versionBefore('0.10.0')) {
+      return this.filterToLegacyHavingFilter(filter);
+    } else {
+      return {
+        type: 'filter',
+        filter: new DruidFilterBuilder({
+          version: this.version,
+          rawAttributes: this.attributes,
+          timeAttribute: '***',
+          allowEternity: true,
+          customTransforms: this.customTransforms
+        }).timelessFilterToFilter(filter, false)
+      };
+    }
+  }
+
+  public filterToLegacyHavingFilter(filter: Expression): Druid.Having {
     if (filter instanceof LiteralExpression) {
       if (filter.value === true) {
         return null;
@@ -119,21 +94,15 @@ export class DruidHavingFilterBuilder {
     } else if (filter instanceof IsExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
-        return {
-          type: "equalTo",
-          aggregation: lhs.name,
-          value: rhs.value
-        };
-
-      } else {
-        throw new Error(`can not convert ${filter} to Druid having filter`);
-      }
-
-    } else if (filter instanceof InExpression) {
-      const { operand: lhs, expression: rhs } = filter;
-      if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
         let rhsType = rhs.type;
-        if (rhsType === 'SET/STRING') {
+        if (rhsType === 'STRING' || rhsType === 'NUMBER') {
+          return {
+            type: "equalTo",
+            aggregation: lhs.name,
+            value: rhs.value
+          };
+
+        } else if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER') {
           return {
             type: "or",
             havingSpecs: rhs.value.elements.map((value: string) => {
@@ -145,7 +114,17 @@ export class DruidHavingFilterBuilder {
             })
           };
 
-        } else if (rhsType === 'SET/NUMBER_RANGE') {
+        }
+
+      } else {
+        throw new Error(`can not convert ${filter} to Druid having filter`);
+      }
+
+    } else if (filter instanceof OverlapExpression) {
+      const { operand: lhs, expression: rhs } = filter;
+      if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
+        let rhsType = rhs.type;
+        if (rhsType === 'SET/NUMBER_RANGE') {
           return {
             type: "or",
             havingSpecs: rhs.value.elements.map((value: NumberRange) => {
@@ -160,7 +139,7 @@ export class DruidHavingFilterBuilder {
           throw new Error("can not compute having filter on time");
 
         } else {
-          throw new Error("not supported " + rhsType);
+          throw new Error(`not supported ${rhsType}`);
         }
       } else {
         throw new Error(`can not convert ${filter} to Druid having filter`);
@@ -196,5 +175,10 @@ export class DruidHavingFilterBuilder {
       havingSpecs.push(this.makeHavingComparison(agg, (range.bounds[1] === ']' ? '<=' : '<'), range.end));
     }
     return havingSpecs.length === 1 ? havingSpecs[0] : { type: 'and', havingSpecs };
+  }
+
+  private versionBefore(neededVersion: string): boolean {
+    const { version } = this;
+    return version && External.versionLessThan(version, neededVersion);
   }
 }

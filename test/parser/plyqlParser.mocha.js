@@ -21,7 +21,7 @@ let { sane } = require('../utils');
 let { Timezone } = require('chronoshift');
 
 let plywood = require('../plywood');
-let { Expression, i$, $, ply, r, Set, Dataset, External, ExternalExpression } = plywood;
+let { Expression, i$, $, ply, r, Set } = plywood;
 
 function resolvesProperly(parse) {
   let resolveString = parse.expression.resolve({ t: 'STR' });
@@ -181,7 +181,7 @@ describe("SQL parser", () => {
     it("works with IN expression (value list)", () => {
       let parse = Expression.parseSQL("language IN ( 'ca', 'cs', 'da', 'el' )");
 
-      let ex2 = i$('language').in(['ca', 'cs', 'da', 'el']);
+      let ex2 = i$('language').is(['ca', 'cs', 'da', 'el']);
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -190,7 +190,7 @@ describe("SQL parser", () => {
     it("works with IN expression (list literal)", () => {
       let parse = Expression.parseSQL("language IN { 'ca', 'cs', 'da', 'el' }");
 
-      let ex2 = i$('language').in(['ca', 'cs', 'da', 'el']);
+      let ex2 = i$('language').is(['ca', 'cs', 'da', 'el']);
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -199,7 +199,7 @@ describe("SQL parser", () => {
     it("works with IN expression (variable)", () => {
       let parse = Expression.parseSQL("language IN languages");
 
-      let ex2 = i$('language').in('i$languages');
+      let ex2 = i$('language').is('i$languages');
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
@@ -590,13 +590,15 @@ describe("SQL parser", () => {
     it("should parse a table alias", () => {
       let parse1 = Expression.parseSQL('SELECT * FROM my-table AS t;');
       let parse2 = Expression.parseSQL('SELECT * FROM my-table t;');
+      let parse3 = Expression.parseSQL('SELECT t.* FROM my-table t;');
 
-      let ex2 = $('my-table');
+      let ex = $('my-table');
 
       expect(parse1.verb).to.equal('SELECT');
       expect(parse1.table).to.equal('my-table');
-      expect(parse1.expression.toJS()).to.deep.equal(ex2.toJS());
-      expect(parse2.expression.toJS()).to.deep.equal(ex2.toJS());
+      expect(parse1.expression.toJS()).to.deep.equal(ex.toJS());
+      expect(parse2.expression.toJS()).to.deep.equal(ex.toJS());
+      expect(parse3.expression.toJS()).to.deep.equal(ex.toJS());
     });
 
     it("should parse a total expression with all sorts of applies", () => {
@@ -799,7 +801,7 @@ describe("SQL parser", () => {
 
       //let ex2s = ply()
       //  .apply('data', $('data').filter(
-      //    $('language').is("en").and($('time').in({
+      //    $('language').is("en").and($('time').overlap({
       //      start: new Date('2015-01-01T10:30:00'),
       //      end: new Date('2015-01-02T12:30:00')
       //    }))
@@ -1198,7 +1200,7 @@ describe("SQL parser", () => {
         GROUP BY 1
       `);
 
-      let ex2 = $('wiki').filter(i$('page').indexOf('title').add(1).in({start: 0, end: null, bounds: '()'})).split("i$page", 'Page', 'data')
+      let ex2 = $('wiki').filter(i$('page').indexOf('title').add(1).overlap({ start: 0, end: null, bounds: '()' })).split("i$page", 'Page', 'data')
         .apply('TotalAdded', '$data.sum(i$added)')
         .select('Page', 'TotalAdded');
 
@@ -1263,10 +1265,10 @@ describe("SQL parser", () => {
             i$('user').is(r("Bot Master 1"))
               .and(i$('page').isnt(r("Hello World")))
               .and(i$('added').lessThan(5))
-              .and(i$('language').in(['ca', 'cs', 'da', 'el']))
-              .and(i$('language').in(['ca', 'cs', 'da', 'el']))
-              .and(i$('language').in('i$languages'))
-              .and(i$('namespace').in(['simple', 'dict']).not())
+              .and(i$('language').is(['ca', 'cs', 'da', 'el']))
+              .and(i$('language').is(['ca', 'cs', 'da', 'el']))
+              .and(i$('language').is('i$languages'))
+              .and(i$('namespace').is(['simple', 'dict']).not())
               .and(i$('geo').isnt(null))
               .and(i$('page').contains('World', 'ignoreCase'))
               .and(i$('page').match('^.*Hello_World.*$'))

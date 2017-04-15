@@ -17,69 +17,40 @@
 import * as hasOwnProp from 'has-own-prop';
 import { NamedArray } from 'immutable-class';
 
+import { AttributeInfo } from '../../datatypes/index';
+
 import {
   $,
-  Expression,
-  LiteralExpression,
-  RefExpression,
-  ChainableExpression,
-  ChainableUnaryExpression,
-
   AbsoluteExpression,
   AddExpression,
-  AndExpression,
   ApplyExpression,
-  AverageExpression,
-  CardinalityExpression,
   CastExpression,
-  CollectExpression,
+  ChainableUnaryExpression,
   ConcatExpression,
-  ContainsExpression,
-  CountExpression,
   CountDistinctExpression,
+  CountExpression,
   CustomAggregateExpression,
-  CustomTransformExpression,
   DivideExpression,
-  ExtractExpression,
+  Expression,
   FallbackExpression,
   FilterExpression,
-  GreaterThanExpression,
-  GreaterThanOrEqualExpression,
-  InExpression,
-  IsExpression,
-  JoinExpression,
-  LengthExpression,
-  LessThanExpression,
-  LessThanOrEqualExpression,
   IndexOfExpression,
-  LookupExpression,
-  LimitExpression,
-  MatchExpression,
+  LiteralExpression,
   MaxExpression,
   MinExpression,
   MultiplyExpression,
-  NotExpression,
-  NumberBucketExpression,
-  OrExpression,
   PowerExpression,
   QuantileExpression,
-  SplitExpression,
-  SubstrExpression,
+  RefExpression,
   SubtractExpression,
   SumExpression,
-  TimeBucketExpression,
-  TimeFloorExpression,
-  TimePartExpression,
-  TimeRangeExpression,
-  TimeShiftExpression,
   TransformCaseExpression
 } from '../../expressions/index';
 
-import { AttributeInfo } from '../../datatypes/index';
-
 import { External } from '../baseExternal';
-import { CustomDruidAggregations, CustomDruidTransforms } from './druidTypes';
+import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
 import { DruidFilterBuilder } from './druidFilterBuilder';
+import { CustomDruidAggregations, CustomDruidTransforms } from './druidTypes';
 
 
 export interface AggregationsAndPostAggregations {
@@ -246,12 +217,24 @@ export class DruidAggregationBuilder {
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
   }
 
-  private isCardinalityCrossProductExpression(expression: Expression) {
-    return expression.every(ex => {
-      if (ex instanceof RefExpression || ex instanceof LiteralExpression) return true;
-      if (ex instanceof ConcatExpression || ex instanceof CastExpression) return null; // search within
-      return false;
-    });
+  private getCardinalityExpressions(expression: Expression): Expression[] {
+    if (expression instanceof LiteralExpression) {
+      return [];
+
+    } else if (expression instanceof CastExpression) {
+      return [expression.operand];
+
+    } else if (expression instanceof ConcatExpression) {
+      const subEx = expression.getExpressionList().map(ex => this.getCardinalityExpressions(ex));
+      return [].concat(...subEx);
+
+    } else if (expression.getFreeReferences().length === 1) {
+      return [expression];
+
+    } else {
+      throw new Error(`can not convert ${expression} to cardinality expressions`);
+
+    }
   }
 
   private countDistinctToAggregation(name: string, expression: CountDistinctExpression, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
@@ -290,26 +273,37 @@ export class DruidAggregationBuilder {
         aggregation = {
           name: name,
           type: "cardinality",
-          fieldNames: [attributeName]
+          fields: [attributeName]
         };
 
       }
-    } else if (attribute.type === 'STRING' || attribute.type === 'NUMBER') {
-      if (this.isCardinalityCrossProductExpression(attribute)) {
-        aggregation = {
-          name: name,
-          type: "cardinality",
-          fieldNames: attribute.getFreeReferences(),
-          byRow: true
-        };
-      } else {
-        throw new Error(`can not compute countDistinct on ${attribute}`);
-
-      }
-
     } else {
-      throw new Error(`can not compute countDistinct on ${attribute}`);
+      let cardinalityExpressions = this.getCardinalityExpressions(attribute);
 
+      let druidExtractionFnBuilder: DruidExtractionFnBuilder;
+      aggregation = {
+        name: name,
+        type: "cardinality",
+        fields: cardinalityExpressions.map(cardinalityExpression => {
+          if (cardinalityExpression instanceof RefExpression) return cardinalityExpression.name;
+          if (this.versionBefore('0.9.2')) throw new Error(`can not have complex expression like ${cardinalityExpression} in cardinality in Druid < 0.9.2`);
+
+          if (!druidExtractionFnBuilder) druidExtractionFnBuilder = new DruidExtractionFnBuilder(this);
+          return {
+            type: "extraction",
+            dimension: cardinalityExpression.getFreeReferences()[0],
+            extractionFn: druidExtractionFnBuilder.expressionToExtractionFn(cardinalityExpression)
+          };
+        })
+      };
+
+      if (cardinalityExpressions.length > 1) aggregation.byRow = true;
+    }
+
+    // fields were only added in 0.9.2
+    if (aggregation.type === "cardinality" && this.versionBefore('0.9.2')) {
+      aggregation.fieldNames = aggregation.fields as string[];
+      delete aggregation.fields;
     }
 
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
@@ -343,10 +337,11 @@ export class DruidAggregationBuilder {
       throw new Error(`can not compute quantile on derived attribute: ${attribute}`);
     }
 
+    const attributeInfo = this.getAttributesInfo(attributeName);
     let histogramAggregationName = "!H_" + name;
     let aggregation: Druid.Aggregation = {
       name: histogramAggregationName,
-      type: "approxHistogramFold",
+      type: 'approxHistogram' + (attributeInfo.nativeType === 'approximateHistogram' ? 'Fold' : ''),
       fieldName: attributeName
     };
 
@@ -529,5 +524,10 @@ export class DruidAggregationBuilder {
 
   public getAttributesInfo(attributeName: string) {
     return NamedArray.get(this.rawAttributes, attributeName);
+  }
+
+  private versionBefore(neededVersion: string): boolean {
+    const { version } = this;
+    return version && External.versionLessThan(version, neededVersion);
   }
 }

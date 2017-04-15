@@ -43,8 +43,8 @@ let postgresRequester = postgresRequesterFactory({
 });
 
 // druidRequester = verboseRequesterFactory({
-//   requester: druidRequester,
-//   onSuccess: () => {}
+//   //onSuccess: () => {},
+//   requester: druidRequester
 // });
 // mySqlRequester = verboseRequesterFactory({
 //   requester: mySqlRequester
@@ -223,8 +223,32 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with <', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(-200 < $deltaBucket100)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with <=', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(-200 <= $deltaBucket100)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with float bounds', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: ply()
+        .apply('wiki', '$wiki.filter(45.5 < $commentLength and $commentLength < 55.5)')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with .contains() and .is() filter', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      executorNames: ['druid', 'mysql', 'postgres'], // !!! 'druidSql'
       expression: ply()
         .apply('wiki', '$wiki.filter($cityName.contains("San") and $cityName == "San Francisco")')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -322,7 +346,15 @@ describe("Cross Functional", function() {
     it('works with primary time filter (single range)', equalityTest({
       executorNames: ['druid', 'druidSql', 'druidLegacy', 'mysql', 'postgres'],
       expression:  ply()
-        .apply('wiki', $('wiki').filter($('__time').in(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z"))))
+        .apply('wiki', $('wiki').filter($('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z"))))
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with primary time filter (or)', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression:  ply()
+        .apply('wiki', $('wiki').filter($('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z")).or('$channel == en')))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -330,7 +362,7 @@ describe("Cross Functional", function() {
     it('works with alt time filter (single range)', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression:  ply()
-        .apply('wiki', $('wiki').filter($('sometimeLater').in(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z"))))
+        .apply('wiki', $('wiki').filter($('sometimeLater').overlap(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z"))))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -339,9 +371,9 @@ describe("Cross Functional", function() {
       executorNames: ['druid', 'druidSql', 'druidLegacy', 'mysql', 'postgres'],
       expression:  ply()
         .apply('wiki', $('wiki').filter(
-          $('__time').in(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z")).or(
-            $('__time').in(new Date("2015-09-12T03:00:00Z"), new Date("2015-09-12T04:30:00Z")),
-            $('__time').in(new Date("2015-09-12T05:00:00Z"), new Date("2015-09-12T06:30:00Z")))
+          $('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z")).or(
+            $('__time').overlap(new Date("2015-09-12T03:00:00Z"), new Date("2015-09-12T04:30:00Z")),
+            $('__time').overlap(new Date("2015-09-12T05:00:00Z"), new Date("2015-09-12T06:30:00Z")))
         ))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -351,26 +383,26 @@ describe("Cross Functional", function() {
       executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression:  ply()
         .apply('wiki', $('wiki').filter(
-          $('sometimeLater').in(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z")).or(
-            $('sometimeLater').in(new Date("2016-09-12T03:00:00Z"), new Date("2016-09-12T04:30:00Z")),
-            $('sometimeLater').in(new Date("2016-09-12T05:00:00Z"), new Date("2016-09-12T06:30:00Z")))
+          $('sometimeLater').overlap(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z")).or(
+            $('sometimeLater').overlap(new Date("2016-09-12T03:00:00Z"), new Date("2016-09-12T04:30:00Z")),
+            $('sometimeLater').overlap(new Date("2016-09-12T05:00:00Z"), new Date("2016-09-12T06:30:00Z")))
         ))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it.skip('works with .timePart().in()', equalityTest({
+    it('works with .timePart().is()', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression:  ply()
-        .apply('wiki', $('wiki').filter($('__time').timePart('HOUR_OF_DAY').in([3, 7])))
+        .apply('wiki', $('wiki').filter($('__time').timePart('HOUR_OF_DAY').is([3, 7])))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
-    it('works with .timePart().in() [alt time column]', equalityTest({
+    it('works with .timePart().is() [alt time column]', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression:  ply()
-        .apply('wiki', $('wiki').filter($('sometimeLater').timePart('HOUR_OF_DAY').in([3, 7])))
+        .apply('wiki', $('wiki').filter($('sometimeLater').timePart('HOUR_OF_DAY').is([3, 7])))
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -504,7 +536,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with indexOf action on filter', equalityTest({
-      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').filter('$cityName.indexOf(x) > 5')
         .split('$cityName', 'CityName')
         .apply('Count', '$wiki.sum($added)')
@@ -513,7 +545,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with transformCase action on filter', equalityTest({
-      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').filter('$cityName.transformCase("lowerCase") == "el paso"')
         .split('$cityName', 'CityName')
         .apply('Count', '$wiki.sum($added)')
@@ -522,16 +554,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with sub-query filter', equalityTest({
-      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
-      expression: $('wiki').filter('$commentLength > $wiki.average($commentLength)')
-        .split('$channel', 'Channel')
-        .apply('Count', '$wiki.sum($added)')
-        .sort('$Count', 'descending')
-        .limit(5)
-    }));
-
-    it('works with sub-query filter', equalityTest({
-      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      executorNames: ['druid', 'druidLegacy', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').filter('$commentLength > $wiki.average($commentLength)')
         .split('$channel', 'Channel')
         .apply('Count', '$wiki.sum($added)')
@@ -606,9 +629,25 @@ describe("Cross Functional", function() {
         .sort('$TotalAdded', 'descending')
     }));
 
+    it('works with BOOLEAN split (overlap __time)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      expression: $('wiki').split($('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z")), 'TheHour')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+    }));
+
+    it('works with BOOLEAN split (overlap secondaryTime)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      expression: $('wiki').split($('sometimeLater').overlap(new Date("2016-09-12T01:00:00Z"), new Date("2016-09-12T02:30:00Z")), 'TheHour')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+    }));
+
     it('works with STRING split (sort on split)', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
-      expression: $('wiki').split('$channel', 'Channel') // ToDo: change this to user
+      expression: $('wiki').split('$channel', 'Channel') // ToDo: change this to user to verify DruidSQL can handle it
         .sort('$Channel', 'ascending')
         .limit(20)
     }));
@@ -623,7 +662,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with STRING transform case action', equalityTest({
-      executorNames: ['mysql', 'druidLegacy', 'postgres', 'druid'],
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').split('$cityName.transformCase("lowerCase")', 'CityLower')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -660,8 +699,8 @@ describe("Cross Functional", function() {
 
     it('works with chained number bucket', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
-      expression: $('wiki') // null handling varies
-        .split('$cityName.length().numberBucket(10)', 'cityNameBucket')
+      expression: $('wiki')
+        .split('$channel.length().numberBucket(2)', '$channelBucket') // null handling varies
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
@@ -802,6 +841,15 @@ describe("Cross Functional", function() {
         .limit(10)
     }));
 
+    it.skip('works with TIME split (timeShift + timeBucket) (sort on apply)', equalityTest({ // ToDo: make this work
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split($('__time').timeShift('PT2H', 1).timeBucket('PT1H', 'Etc/UTC'), 'TimeShiftByHour')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
     it('works with TIME split (timePart) (sort on split)', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split($('__time').timePart('HOUR_OF_DAY', 'Etc/UTC'), 'HourOfDay')
@@ -916,6 +964,21 @@ describe("Cross Functional", function() {
     it('works with secondary TIME split (timePart, TZ) (sort on apply)', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').split($("sometimeLater").timePart('DAY_OF_YEAR', 'America/New_York'), 'HourOfDay')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
+    it('works .then(time range).fallback split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split(
+          $('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T03:00:00Z")).then('Before')
+            .fallback($('__time').overlap(new Date("2015-09-12T05:00:00Z"), new Date("2015-09-12T07:00:00Z")).then('After'))
+            .fallback('Other'),
+          'TC'
+        )
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TotalAdded', 'descending')
@@ -1108,7 +1171,7 @@ describe("Cross Functional", function() {
         .apply('count', '$wiki.count()')
         .apply(
           'cells',
-          $('wiki').filter('$channel.in($xs.collect($v)).and($__time.in($ys.collect($v)))')
+          $('wiki').filter('$channel.overlap($xs.collect($v)).and($__time.overlap($ys.collect($v)))')
             .split({ __time: '$__time.timeBucket(PT1M)', channel: '$channel' })
             .apply('count', '$wiki.count()')
             .sort('$__time', 'ascending')
@@ -1144,6 +1207,7 @@ describe("Cross Functional", function() {
         .apply('AddedBYDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
         .apply('TokyoAdded', '$wiki.filter($cityName == Tokyo).sum($added)')
         .apply('NullCities', '$wiki.filter($cityName == null).sum($added)')
+        //.apply('MinCommentLength', '$wiki.filter($cityName == Tokyo).min($commentLength)') // ToDo: fix this
         .apply('To*Added', '$wiki.filter($cityName.contains("to")).sum($added)')
         .apply('MinDelta', '$wiki.min($min_delta)')
         .apply('MaxDelta', '$wiki.max($max_delta)')

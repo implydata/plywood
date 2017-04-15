@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Timezone, Duration } from 'chronoshift';
-import { SQLDialect } from './baseDialect';
+import { Duration, Timezone } from 'chronoshift';
 import { PlyType } from '../types';
+import { SQLDialect } from './baseDialect';
 
 export class MySQLDialect extends SQLDialect {
   static TIME_BUCKETING: Lookup<string> = {
@@ -97,10 +97,6 @@ export class MySQLDialect extends SQLDialect {
 
   public containsExpression(a: string, b: string): string {
     return `LOCATE(${a},${b})>0`;
-  }
-
-  public ifThenElseNullExpression(a: string, b: string): string {
-    return `IF(${a}, ${b}, ${this.nullConstant()})`;
   }
 
   public isNotDistinctFromExpression(a: string, b: string): string {

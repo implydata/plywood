@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { SQLDialect } from '../dialect/baseDialect';
 import { PlywoodValue, Set } from '../datatypes/index';
+import { SQLDialect } from '../dialect/baseDialect';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
 
-const IS_OR_IN: Lookup<boolean> = {
+const IS_OR_OVERLAP: Lookup<boolean> = {
   'is': true,
-  'in': true
+  'overlap': true
 };
 
 export class OrExpression extends ChainableUnaryExpression {
@@ -32,16 +32,16 @@ export class OrExpression extends ChainableUnaryExpression {
   static merge(ex1: Expression, ex2: Expression): Expression | null {
     if (ex1.equals(ex2)) return ex1;
 
-    if (!IS_OR_IN[ex1.op] || !IS_OR_IN[ex2.op]) return null;
+    if (!IS_OR_OVERLAP[ex1.op] || !IS_OR_OVERLAP[ex2.op]) return null;
     const { operand: lhs1, expression: rhs1 } = ex1 as ChainableUnaryExpression;
     const { operand: lhs2, expression: rhs2 } = ex2 as ChainableUnaryExpression;
 
     if (!lhs1.equals(lhs2) || !rhs1.isOp('literal') || !rhs2.isOp('literal')) return null;
 
-    let union = Set.generalUnion(rhs1.getLiteralValue(), rhs2.getLiteralValue());
+    let union = Set.unionCover(rhs1.getLiteralValue(), rhs2.getLiteralValue());
     if (union === null) return null;
 
-    return Expression.inOrIs(lhs1, union);
+    return lhs1.overlap(r(union)).simplify();
   }
 
   constructor(parameters: ExpressionValue) {

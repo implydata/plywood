@@ -29,6 +29,7 @@ describe.skip("breakdown", () => {
       source: 'diamonds',
       timeAttribute: 'time',
       context: null,
+      filter: $('color').is('cA'),
       attributes: [
         { name: 'time', type: 'TIME' },
         { name: 'color', type: 'STRING' },
@@ -41,6 +42,7 @@ describe.skip("breakdown", () => {
       source: 'diamonds2',
       timeAttribute: 'time',
       context: null,
+      filter: $('color').is('cB'),
       attributes: [
         { name: 'time', type: 'TIME' },
         { name: 'color', type: 'STRING' },
@@ -55,7 +57,7 @@ describe.skip("breakdown", () => {
 
     ex = ex.referenceCheck(context);
     expect(() => {
-      ex.breakdownByDataset('b');
+      ex.breakdownByDataset();
     }).to.throw();
   });
 
@@ -64,7 +66,7 @@ describe.skip("breakdown", () => {
 
     ex = ex.referenceCheck(context);
     expect(() => {
-      ex.breakdownByDataset('b');
+      ex.breakdownByDataset();
     }).to.throw();
   });
 
@@ -73,7 +75,8 @@ describe.skip("breakdown", () => {
     let ex = Expression.parse('$diamonds.count() * $diamonds2.count() + $diamonds.sum($carat)');
 
     ex = ex.referenceCheck(context);
-    let breakdown = ex.breakdownByDataset('b');
+
+    let breakdown = ex.breakdownByDataset();
     expect(breakdown.singleDatasetActions.join(' | ')).to.equal(
       '.apply(b0, $diamonds:DATASET.count()) | .apply(b1, $diamonds2:DATASET.count()) | .apply(b2, $diamonds:DATASET.sum($carat:NUMBER))'
     );
@@ -84,7 +87,7 @@ describe.skip("breakdown", () => {
     let ex = Expression.parse('$diamonds.count() * $diamonds2.sum($carat) + $diamonds.count()');
 
     ex = ex.referenceCheck(context);
-    let breakdown = ex.breakdownByDataset('b');
+    let breakdown = ex.breakdownByDataset();
     expect(breakdown.singleDatasetActions.join(' | ')).to.equal(
       '.apply(b0, $diamonds:DATASET.count()) | .apply(b1, $diamonds2:DATASET.sum($carat:NUMBER))'
     );

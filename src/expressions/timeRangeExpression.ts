@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
+import { Duration, Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
-import { Timezone, Duration } from 'chronoshift';
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression } from './baseExpression';
-import { HasTimezone } from './mixins/hasTimezone';
-import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set } from '../datatypes/index';
+import { PlywoodValue } from '../datatypes/index';
 import { TimeRange } from '../datatypes/timeRange';
-import { pluralIfNeeded } from "../helper/utils";
+import { SQLDialect } from '../dialect/baseDialect';
+import { pluralIfNeeded } from '../helper/utils';
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { HasTimezone } from './mixins/hasTimezone';
 
 export class TimeRangeExpression extends ChainableExpression implements HasTimezone {
   static DEFAULT_STEP = 1;

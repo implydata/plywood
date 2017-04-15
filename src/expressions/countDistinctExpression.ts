@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableUnaryExpression } from './baseExpression';
-import { Aggregate } from './mixins/aggregate';
+import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Dataset } from '../datatypes/index';
+import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { Aggregate } from './mixins/aggregate';
 
 export class CountDistinctExpression extends ChainableUnaryExpression implements Aggregate {
   static op = "CountDistinct";
@@ -37,7 +37,7 @@ export class CountDistinctExpression extends ChainableUnaryExpression implements
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    return `COUNT(DISTINCT ${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL, 'NULL')})`;
+    return `COUNT(DISTINCT ${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL)})`;
   }
 }
 

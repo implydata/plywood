@@ -17,19 +17,19 @@
 
 import * as Promise from 'any-promise';
 import { Transform } from 'readable-stream';
+import { Attributes } from '../datatypes/attributeInfo';
+import { SQLDialect } from '../dialect/baseDialect';
 import {
-  Expression,
   ApplyExpression,
+  Expression,
+  FilterExpression,
   LimitExpression,
   NumberBucketExpression,
   SortExpression,
   SplitExpression,
-  FilterExpression,
   TimeBucketExpression
 } from '../expressions/index';
-import { Attributes } from '../datatypes/attributeInfo';
-import { External, ExternalValue, Inflater, QueryAndPostTransform, TotalContainer } from './baseExternal';
-import { SQLDialect } from '../dialect/baseDialect';
+import { External, ExternalValue, Inflater, QueryAndPostTransform } from './baseExternal';
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
   return split.mapSplits((label, splitExpression) => {

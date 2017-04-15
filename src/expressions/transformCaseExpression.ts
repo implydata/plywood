@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { r, ExpressionJS, ExpressionValue, Expression, ChainableExpression, CaseType } from './baseExpression';
+import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { PlywoodValue, Set } from '../datatypes/index';
+import { CaseType, ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class TransformCaseExpression extends ChainableExpression {
   static UPPER_CASE = 'upperCase';

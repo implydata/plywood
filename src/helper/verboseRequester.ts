@@ -15,49 +15,72 @@
  * limitations under the License.
  */
 
-import { PlywoodRequester, DatabaseRequest } from 'plywood-base-api';
+import { DatabaseRequest, PlywoodRequester } from 'plywood-base-api';
+
+export interface CallbackParameters {
+  name?: string;
+  queryNumber?: number;
+  query?: any;
+  context?: any;
+  time?: number;
+  data?: any[];
+  error?: Error;
+}
 
 export interface VerboseRequesterParameters<T> {
   requester: PlywoodRequester<T>;
+  name?: string;
   printLine?: (line: string) => void;
-  preQuery?: (query: any) => void;
-  onSuccess?: (data: any, time: number, query: any) => void;
-  onError?: (error: Error, time: number, query: any) => void;
+  onQuery?: (param: CallbackParameters) => void;
+  onSuccess?: (param: CallbackParameters) => void;
+  onError?: (param: CallbackParameters) => void;
 }
 
 export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameters<T>): PlywoodRequester<any> {
-  let requester = parameters.requester;
+  const requester = parameters.requester;
+  const myName = parameters.name || 'rq' + String(Math.random()).substr(2, 5);
+
+  // Back compat.
+  if ((parameters as any).preQuery) {
+    console.warn('verboseRequesterFactory option preQuery has been renamed to onQuery');
+    parameters.onQuery = (parameters as any).preQuery;
+  }
 
   let printLine = parameters.printLine || ((line: string): void => {
       console['log'](line);
     });
 
-  let preQuery = parameters.preQuery || ((query: any, queryNumber: int, context?: any): void => {
+  let onQuery = parameters.onQuery || ((param: CallbackParameters): void => {
       printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
-      const ctx = context ? ` [context: ${JSON.stringify(context)}]` : '';
-      printLine(`Sending query ${queryNumber}:${ctx}`);
-      printLine(JSON.stringify(query, null, 2));
+      const ctx = param.context ? ` [context: ${JSON.stringify(param.context)}]` : '';
+      printLine(`Requester ${param.name} sending query ${param.queryNumber}:${ctx}`);
+      printLine(JSON.stringify(param.query, null, 2));
       printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
     });
 
-  let onSuccess = parameters.onSuccess || ((data: any, time: number, query: any, queryNumber: int, context?: any): void => {
+  let onSuccess = parameters.onSuccess || ((param: CallbackParameters): void => {
       printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
-      printLine(`Got result from query ${queryNumber}: (in ${time}ms)`);
-      printLine(JSON.stringify(data, null, 2));
+      printLine(`Requester ${param.name} got result from query ${param.queryNumber}: (in ${param.time}ms)`);
+      printLine(JSON.stringify(param.data, null, 2));
       printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
     });
 
-  let onError = parameters.onError || ((error: Error, time: number, query: any, queryNumber: int, context?: any): void => {
+  let onError = parameters.onError || ((param: CallbackParameters): void => {
       printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
-      printLine(`Got error in query ${queryNumber}: ${error.message} (in ${time}ms)`);
+      printLine(`Requester ${param.name} got error in query ${param.queryNumber}: ${param.error.message} (in ${param.time}ms)`);
       printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
     });
 
-  let queryNumber: int = 0;
+  let curQueryNumber: int = 0;
   return (request: DatabaseRequest<any>) => {
-    queryNumber++;
-    let myQueryNumber = queryNumber;
-    preQuery(request.query, myQueryNumber, request.context);
+    curQueryNumber++;
+    let myQueryNumber = curQueryNumber;
+    onQuery({
+      name: myName,
+      queryNumber: myQueryNumber,
+      query: request.query,
+      context: request.context
+    });
 
     let startTime = Date.now();
     let stream = requester(request);
@@ -65,14 +88,30 @@ export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameter
     let errorSeen = false;
     stream.on('error', (error: Error) => {
       errorSeen = true;
-      onError(error, Date.now() - startTime, request.query, myQueryNumber, request.context);
+      onError({
+        name: myName,
+        queryNumber: myQueryNumber,
+        query: request.query,
+        context: request.context,
+        time: Date.now() - startTime,
+        error
+      });
     });
 
     let data: any[] = [];
-    stream.on('data', (datum: any) => data.push(datum));
+    stream.on('data', (datum: any) => {
+      data.push(JSON.parse(JSON.stringify(datum)));
+    });
     stream.on('end', () => {
       if (errorSeen) return;
-      onSuccess(data, Date.now() - startTime, request.query, myQueryNumber, request.context);
+      onSuccess({
+        name: myName,
+        queryNumber: myQueryNumber,
+        query: request.query,
+        context: request.context,
+        time: Date.now() - startTime,
+        data
+      });
     });
 
     return stream;
