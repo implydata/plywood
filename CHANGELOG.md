@@ -2,7 +2,7 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
-## 0.17.7
+## 0.17.8
 
 - Changed the meaning of IN to be a subset only operation with back compat provisions.
 - Better build process for people with older npm
