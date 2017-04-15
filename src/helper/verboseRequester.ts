@@ -99,7 +99,9 @@ export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameter
     });
 
     let data: any[] = [];
-    stream.on('data', (datum: any) => data.push(datum));
+    stream.on('data', (datum: any) => {
+      data.push(JSON.parse(JSON.stringify(datum)));
+    });
     stream.on('end', () => {
       if (errorSeen) return;
       onSuccess({
