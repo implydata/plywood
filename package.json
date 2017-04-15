@@ -38,10 +38,10 @@
     "druid.d.ts": "~0.10.2",
     "has-own-prop": "^1.0.0",
     "immutable-class": "~0.6.26",
-    "moment-timezone": "~0.5.12",
+    "moment-timezone": "~0.5.13",
     "plywood-base-api": "^0.2.5",
     "stream-to-array": "^2.3.0",
-    "readable-stream": "^2.2.6",
+    "readable-stream": "^2.2.9",
     "tslib": "^1.6.0"
   },
   "devDependencies": {
@@ -56,10 +56,10 @@
     "plywood-druid-requester": "2.1.1",
     "plywood-mysql-requester": "2.1.0",
     "plywood-postgres-requester": "1.1.0",
-    "readable-stream": "^2.2.6",
+    "readable-stream": "^2.2.9",
     "tdi": "0.2.23",
-    "tslint": "5.0.0",
+    "tslint": "5.1.0",
     "typescript": "2.2.2",
-    "uglify-js": "2.8.21"
+    "uglify-js": "2.8.22"
   }
 }
