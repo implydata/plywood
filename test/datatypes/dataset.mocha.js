@@ -1109,6 +1109,19 @@ describe("Dataset", () => {
         `);
       });
 
+      it("works with basic dataset, NULL types", () => {
+        const nullCarDataset = new Dataset({
+          attributes: carDataset.attributes.map(a => a.changeType('NULL')),
+          data: carDataset.data
+        });
+
+        expect(nullCarDataset.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
+          time,make,model,price
+          2015-01-04T12:32:43.000Z,Honda,Civic,10000
+          2015-01-04T14:00:40.000Z,Toyota,Prius,20000
+        `);
+      });
+
       it("works with sub-dataset", () => {
         expect(carAndPartsDataset.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
           time,make,model,price,part,weight

@@ -161,7 +161,7 @@ export interface Formatter extends Lookup<Function | undefined> {
 }
 
 const DEFAULT_FORMATTER: Formatter = {
-  'NULL': (v: any) => 'NULL',
+  'NULL': (v: any) => isDate(v) ? v.toISOString() : '' + v,
   'TIME': (v: Date, tz: Timezone) => Timezone.formatDateWithTimezone(v, tz),
   'TIME_RANGE': (v: TimeRange, tz: Timezone) => v.toString(tz),
   'SET/TIME': (v: Set, tz: Timezone) => v.toString(tz),

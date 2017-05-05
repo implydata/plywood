@@ -169,6 +169,12 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     return new AttributeInfo(v);
   }
 
+  public changeType(type: PlyType): AttributeInfo {
+    let value = this.valueOf();
+    value.type = type;
+    return new AttributeInfo(value);
+  }
+
   public getUnsplitable(): boolean {
     return this.unsplitable;
   }

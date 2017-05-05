@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.9
+
+- Fix typos
+- Add `AttributeInfo#changeType`
+- Fix to DSV in dataset for NULL type columns
+
 ## 0.17.8
 
 - Changed the meaning of IN to be a subset only operation with back compat provisions.

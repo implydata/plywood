@@ -17,9 +17,8 @@
 import * as Promise from 'any-promise';
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
-import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
-import { PseudoDatum } from '../datatypes/dataset';
-import { DruidDialect } from '../dialect/druidDialect';
+import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes';
+import { DruidDialect } from '../dialect';
 import { PlyType } from '../types';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
@@ -46,7 +45,7 @@ export class DruidSQLExternal extends SQLExternal {
       let nativeType = column.DATA_TYPE;
       switch (nativeType) {
         case 'TIMESTAMP':
-        case 'DATA':
+        case 'DATE':
           type = 'TIME';
           break;
 

@@ -41,8 +41,7 @@ ex.compute(context)
   .then(function(data) {
     // Log the data while converting it to a readable standard
     console.log(JSON.stringify(data.toJS(), null, 2));
-  })
-  .done();
+  });
 
 // ----------------------------------
 
