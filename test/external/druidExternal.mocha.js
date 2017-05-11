@@ -56,11 +56,15 @@ let context = {
     version: '0.9.2',
     customAggregations: {
       crazy: {
-        accessType: 'getSomeCrazy',
         aggregation: {
+          name: '!T_LOL',
           type: 'crazy',
           the: 'borg will rise again',
           activate: false
+        },
+        postAggregation: {
+          type: 'double_up',
+          fieldName: '!T_LOL'
         }
       },
       stupid: {
@@ -392,7 +396,7 @@ describe("DruidExternal", () => {
         "aggregations": [
           {
             "activate": false,
-            "name": "!T_0",
+            "name": "!T_LOL",
             "the": "borg will rise again",
             "type": "crazy"
           },
@@ -414,10 +418,15 @@ describe("DruidExternal", () => {
         "metric": "CrazyStupid",
         "postAggregations": [
           {
+            "fieldName": "!T_LOL",
+            "name": "!T_0",
+            "type": "double_up"
+          },
+          {
             "fields": [
               {
                 "fieldName": "!T_0",
-                "type": "getSomeCrazy"
+                "type": "fieldAccess"
               },
               {
                 "fieldName": "!T_1",
@@ -432,7 +441,7 @@ describe("DruidExternal", () => {
             "fields": [
               {
                 "fieldName": "!T_0",
-                "type": "getSomeCrazy"
+                "type": "fieldAccess"
               },
               {
                 "fieldName": "!T_1",
@@ -632,7 +641,7 @@ describe("DruidExternal", () => {
           },
           {
             "activate": false,
-            "name": "!T_2",
+            "name": "!T_LOL",
             "the": "borg will rise again",
             "type": "crazy"
           }
@@ -647,6 +656,11 @@ describe("DruidExternal", () => {
         "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "metric": "Count",
         "postAggregations": [
+          {
+            "fieldName": "!T_LOL",
+            "name": "!T_2",
+            "type": "double_up"
+          },
           {
             "fieldName": "!T_1",
             "name": "!F_!T_1",
@@ -665,7 +679,7 @@ describe("DruidExternal", () => {
               },
               {
                 "fieldName": "!T_2",
-                "type": "getSomeCrazy"
+                "type": "fieldAccess"
               }
             ],
             "fn": "+",
@@ -1923,6 +1937,38 @@ describe("DruidExternal", () => {
           "fn": "/",
           "name": "P99by2",
           "type": "arithmetic"
+        }
+      ]);
+    });
+
+    it("works with quantile agg + tuning", () => {
+      let ex = ply()
+        .apply('P95', $('wiki').quantile('$delta_hist', 0.95, 'resolution=51,numBuckets=8,lowerLimit=0,upperLimit=300'))
+        .apply('P99', $('wiki').quantile('$delta_hist', 0.99, 'resolution=52,numBuckets=9'));
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('literal');
+      let druidExternal = ex.value.getReadyExternals()[0].external;
+
+      let query = druidExternal.getQueryAndPostTransform().query;
+      expect(query.queryType).to.equal('timeseries');
+      expect(query.aggregations).to.deep.equal([
+        {
+          "fieldName": "delta_hist",
+          "lowerLimit": 0,
+          "name": "!H_P95",
+          "numBuckets": 8,
+          "resolution": 51,
+          "type": "approxHistogramFold",
+          "upperLimit": 300
+        },
+        {
+          "fieldName": "delta_hist",
+          "name": "!H_P99",
+          "numBuckets": 9,
+          "resolution": 52,
+          "type": "approxHistogramFold"
         }
       ]);
     });

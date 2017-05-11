@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.10
+
+- Add support for a `tuning` config for Druid approximate histograms
+- Add support for a finalizing postAgg for a custom aggregation
+
 ## 0.17.9
 
 - Fix typos

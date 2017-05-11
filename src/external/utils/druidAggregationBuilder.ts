@@ -52,6 +52,12 @@ import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
 import { DruidFilterBuilder } from './druidFilterBuilder';
 import { CustomDruidAggregations, CustomDruidTransforms } from './druidTypes';
 
+const APPROX_HISTOGRAM_TUNINGS = [
+  "resolution",
+  "numBuckets",
+  "lowerLimit",
+  "upperLimit"
+];
 
 export interface AggregationsAndPostAggregations {
   aggregations: Druid.Aggregation[];
@@ -178,7 +184,7 @@ export class DruidAggregationBuilder {
       return this.quantileToAggregation(name, expression, postAggregations);
 
     } else if (expression instanceof CustomAggregateExpression) {
-      return this.customAggregateToAggregation(name, expression);
+      return this.customAggregateToAggregation(name, expression, postAggregations);
 
     } else {
       throw new Error(`unsupported aggregate action ${expression} (as ${name})`);
@@ -309,7 +315,7 @@ export class DruidAggregationBuilder {
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
   }
 
-  private customAggregateToAggregation(name: string, expression: CustomAggregateExpression): Druid.Aggregation {
+  private customAggregateToAggregation(name: string, expression: CustomAggregateExpression, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
     let customAggregationName = expression.custom;
     let customAggregation = this.customAggregations[customAggregationName];
     if (!customAggregation) throw new Error(`could not find '${customAggregationName}'`);
@@ -320,7 +326,21 @@ export class DruidAggregationBuilder {
     } catch (e) {
       throw new Error(`must have JSON custom aggregation '${customAggregationName}'`);
     }
-    aggregationObj.name = name;
+
+    let postAggregationObj = customAggregation.postAggregation;
+    if (postAggregationObj) {
+      try {
+        postAggregationObj = JSON.parse(JSON.stringify(postAggregationObj));
+      } catch (e) {
+        throw new Error(`must have JSON custom post aggregation '${customAggregationName}'`);
+      }
+      // Name the post aggregation instead and let the aggregation and post aggregation sort out their internal name references
+      postAggregationObj.name = name;
+      postAggregations.push(postAggregationObj);
+    } else {
+      aggregationObj.name = name;
+    }
+
     return aggregationObj;
   }
 
@@ -337,6 +357,7 @@ export class DruidAggregationBuilder {
       throw new Error(`can not compute quantile on derived attribute: ${attribute}`);
     }
 
+    const tuning = Expression.parseTuning(expression.tuning);
     const attributeInfo = this.getAttributesInfo(attributeName);
     let histogramAggregationName = "!H_" + name;
     let aggregation: Druid.Aggregation = {
@@ -344,6 +365,12 @@ export class DruidAggregationBuilder {
       type: 'approxHistogram' + (attributeInfo.nativeType === 'approximateHistogram' ? 'Fold' : ''),
       fieldName: attributeName
     };
+
+    for (let k of APPROX_HISTOGRAM_TUNINGS) {
+      if (!isNaN(tuning[k] as any)) {
+        (aggregation as any)[k] = Number(tuning[k]);
+      }
+    }
 
     postAggregations.push({
       name,

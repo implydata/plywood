@@ -218,6 +218,7 @@ export interface ExpressionValue {
   attributes?: string[];
   transformType?: CaseType;
   outputType?: PlyTypeSimple;
+  tuning?: string;
 }
 
 export interface ExpressionJS {
@@ -251,6 +252,7 @@ export interface ExpressionJS {
   attributes?: string[];
   transformType?: CaseType;
   outputType?: PlyTypeSimple;
+  tuning?: string;
 }
 
 export interface ExtractAndRest {
@@ -535,6 +537,18 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         return `(_=${rhs},_2=${lhs},(_==null||_2==null)?null:(${combine('_', '_2')})`;
       }
     }
+  }
+
+  static parseTuning(tuning: string): Lookup<string> {
+    if (!tuning) return {};
+    const parts = tuning.split(',');
+    let parsed: Lookup<string> = {};
+    for (let part of parts) {
+      let subParts = part.split('=');
+      if (subParts.length !== 2) throw new Error(`can not parse tuning '${tuning}'`);
+      parsed[subParts[0]] = subParts[1];
+    }
+    return parsed;
   }
 
   /**
@@ -1409,9 +1423,9 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return new CountDistinctExpression({ operand: this, expression: ex });
   }
 
-  public quantile(ex: any, value: number) {
+  public quantile(ex: any, value: number, tuning?: string) {
     if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
-    return new QuantileExpression({ operand: this, expression: ex, value: getNumber(value) });
+    return new QuantileExpression({ operand: this, expression: ex, value: getNumber(value), tuning });
   }
 
   public collect(ex: any) {

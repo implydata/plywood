@@ -24,6 +24,7 @@ export type CustomDruidTransforms = Lookup<CustomDruidTransform>;
 
 export interface CustomDruidAggregation {
   aggregation: Druid.Aggregation;
+  postAggregation?: Druid.PostAggregation;
   accessType?: string;
 }
 
