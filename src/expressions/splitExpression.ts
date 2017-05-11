@@ -127,7 +127,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   }
 
   public updateTypeContext(typeContext: DatasetFullType): DatasetFullType {
-    let newDatasetType: Lookup<FullType> = {};
+    let newDatasetType: Record<string, FullType> = {};
     this.mapSplits((name, expression) => {
       newDatasetType[name] = {
         type: Set.unwrapSetType(expression.type)
@@ -164,9 +164,9 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
     return res;
   }
 
-  public mapSplitExpressions<T>(fn: (expression: Expression, name?: string) => T): Lookup<T> {
+  public mapSplitExpressions<T>(fn: (expression: Expression, name?: string) => T): Record<string, T> {
     let { splits, keys } = this;
-    let ret: Lookup<T> = Object.create(null);
+    let ret: Record<string, T> = Object.create(null);
     for (let key of keys) {
       ret[key] = fn(splits[key], key);
     }

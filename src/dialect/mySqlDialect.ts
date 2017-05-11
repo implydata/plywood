@@ -20,7 +20,7 @@ import { PlyType } from '../types';
 import { SQLDialect } from './baseDialect';
 
 export class MySQLDialect extends SQLDialect {
-  static TIME_BUCKETING: Lookup<string> = {
+  static TIME_BUCKETING: Record<string, string> = {
     "PT1S": "%Y-%m-%d %H:%i:%SZ",
     "PT1M": "%Y-%m-%d %H:%i:00Z",
     "PT1H": "%Y-%m-%d %H:00:00Z",
@@ -29,7 +29,7 @@ export class MySQLDialect extends SQLDialect {
     "P1Y":  "%Y-01-01 00:00:00Z"
   };
 
-  static TIME_PART_TO_FUNCTION: Lookup<string> = {
+  static TIME_PART_TO_FUNCTION: Record<string, string> = {
     SECOND_OF_MINUTE: 'SECOND($$)',
     SECOND_OF_HOUR: '(MINUTE($$)*60+SECOND($$))',
     SECOND_OF_DAY: '((HOUR($$)*60+MINUTE($$))*60+SECOND($$))',

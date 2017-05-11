@@ -6,6 +6,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 - Add support for a `tuning` config for Druid approximate histograms
 - Add support for a finalizing postAgg for a custom aggregation
+- Replaced TS `Lookup<T>` type with the TS2.2 native `Record<string, T>`
 
 ## 0.17.9
 
@@ -26,7 +27,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - Simplification for case independent contains
 - Allow `table_alias.*` in PlyQL
 - Support new features added on Druid 0.10.0
-- Allow aproxHistogram calculation on numeric columns
+- Allow approxHistogram calculation on numeric columns
 - verboseRequesterFactory parameter `preQuery` renamed to `onQuery`
 - verboseRequesterFactory callback parameters now get a single argument with lots of info
 - verboseRequesterFactory will now name queries

@@ -18,7 +18,7 @@ import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
 
-const IS_OR_OVERLAP: Lookup<boolean> = {
+const IS_OR_OVERLAP: Record<string, boolean> = {
   'is': true,
   'overlap': true
 };

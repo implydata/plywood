@@ -93,7 +93,7 @@ export function fillDatasetExternalAlterations(alterations: DatasetExternalAlter
   }
 }
 
-let directionFns: Lookup<DirectionFn> = {
+let directionFns: Record<string, DirectionFn> = {
   ascending: (a: any, b: any): number => {
     if (a == null) {
       return b == null ? 0 : -1;
@@ -128,7 +128,7 @@ let escapeFnTSV = (v: string) => {
   return removeLineBreaks(v).replace(/\t/g, "").replace(/"/g, '""');
 };
 
-let typeOrder: Lookup<number> = {
+let typeOrder: Record<string, number> = {
   'NULL': 0,
   'TIME': 1,
   'TIME_RANGE': 2,
@@ -144,7 +144,7 @@ let typeOrder: Lookup<number> = {
   'DATASET': 12
 };
 
-export interface Formatter extends Lookup<Function | undefined> {
+export interface Formatter extends Record<string, Function | undefined> {
   'NULL'?: (v: any) => string;
   'TIME'?: (v: Date, tz?: Timezone) => string;
   'TIME_RANGE'?: (v: TimeRange, tz?: Timezone) => string;
@@ -242,8 +242,8 @@ function joinDatums(datumA: Datum, datumB: Datum): Datum {
   return newDatum;
 }
 
-function copy(obj: Lookup<any>): Lookup<any> {
-  let newObj: Lookup<any> = {};
+function copy(obj: Record<string, any>): Record<string, any> {
+  let newObj: Record<string, any> = {};
   let k: string;
   for (k in obj) {
     if (hasOwnProp(obj, k)) newObj[k] = obj[k];
@@ -274,7 +274,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     return candidate instanceof Dataset;
   }
 
-  static datumFromJS(js: PseudoDatum, attributeLookup: Lookup<AttributeInfo> = {}): Datum {
+  static datumFromJS(js: PseudoDatum, attributeLookup: Record<string, AttributeInfo> = {}): Datum {
     if (typeof js !== 'object') throw new TypeError("datum must be an object");
 
     let datum: Datum = Object.create(null);
@@ -367,7 +367,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     }
 
     let attributes: Attributes | undefined = undefined;
-    let attributeLookup: Lookup<AttributeInfo> = {};
+    let attributeLookup: Record<string, AttributeInfo> = {};
     if (parameters.attributes) {
       attributes = AttributeInfo.fromJSs(parameters.attributes);
       for (let attribute of attributes) attributeLookup[attribute.name] = attribute;
@@ -453,7 +453,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     let { attributes } = this;
     if (!attributes) throw new Error("dataset has not been introspected");
 
-    let myDatasetType: Lookup<FullType> = {};
+    let myDatasetType: Record<string, FullType> = {};
     for (let attribute of attributes) {
       let attrName = attribute.name;
       if (attribute.type === 'DATASET') {
@@ -483,7 +483,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   public select(attrs: string[]): Dataset {
     let attributes = this.attributes;
     let newAttributes: Attributes = [];
-    let attrLookup: Lookup<boolean> = Object.create(null);
+    let attrLookup: Record<string, boolean> = Object.create(null);
     for (let attr of attrs) {
       attrLookup[attr] = true;
       let existingAttribute = NamedArray.get(attributes, attr);
@@ -533,7 +533,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     }
 
     // // Hack
-    // let datasetType: Lookup<FullType> = null;
+    // let datasetType: Record<string, FullType> = null;
     // if (type === 'DATASET' && newData[0] && newData[0][name]) {
     //   let thing: any = newData[0][name];
     //   if (thing instanceof Dataset) {
@@ -685,7 +685,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
 
   public countDistinctFn(exFn: ComputeFn): number {
     let data = this.data;
-    let seen: Lookup<number> = Object.create(null);
+    let seen: Record<string, number> = Object.create(null);
     let count = 0;
     for (let datum of data) {
       let v = exFn(datum);
@@ -745,8 +745,8 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
 
-  public split(splits: Lookup<Expression>, datasetName: string): Dataset {
-    let splitFns: Lookup<ComputeFn> = {};
+  public split(splits: Record<string, Expression>, datasetName: string): Dataset {
+    let splitFns: Record<string, ComputeFn> = {};
     for (let k in splits) {
       let ex = splits[k];
       if (typeof ex === 'function') {
@@ -759,15 +759,15 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     return this.splitFn(splitFns, datasetName);
   }
 
-  public splitFn(splitFns: Lookup<ComputeFn>, datasetName: string): Dataset {
+  public splitFn(splitFns: Record<string, ComputeFn>, datasetName: string): Dataset {
     let { data, attributes } = this;
 
     let keys = Object.keys(splitFns);
     let numberOfKeys = keys.length;
     let splitFnList = keys.map(k => splitFns[k]);
 
-    let splits: Lookup<Datum> = {};
-    let datumGroups: Lookup<Datum[]> = {};
+    let splits: Record<string, Datum> = {};
+    let datumGroups: Record<string, Datum[]> = {};
     let finalData: Datum[] = [];
     let finalDataset: Datum[][] = [];
 
@@ -940,13 +940,13 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     return new Dataset(value);
   }
 
-  public getKeyLookup(): Lookup<Datum> {
+  public getKeyLookup(): Record<string, Datum> {
     const { data, keys } = this;
 
     let thisKey = keys[0]; // ToDo: temp fix
     if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
 
-    let mapping: Lookup<Datum> = Object.create(null);
+    let mapping: Record<string, Datum> = Object.create(null);
     for (let i = 0; i < data.length; i++) {
       let datum = data[i];
       mapping[String(datum[thisKey])] = datum;
@@ -987,7 +987,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
 
   private _flattenHelper(
     prefix: string, order: string, nestingName: string, nesting: number, context: Datum,
-    primaryFlatAttributes: AttributeInfo[], secondaryFlatAttributes: AttributeInfo[], seenAttributes: Lookup<boolean>, flatData: Datum[]
+    primaryFlatAttributes: AttributeInfo[], secondaryFlatAttributes: AttributeInfo[], seenAttributes: Record<string, boolean>, flatData: Datum[]
   ): void {
     const { attributes, data, keys } = this;
 

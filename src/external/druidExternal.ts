@@ -361,7 +361,7 @@ export class DruidExternal extends External {
   public allowSelectQueries: boolean;
   public introspectionStrategy: string;
   public exactResultsOnly: boolean;
-  public context: Lookup<any>;
+  public context: Record<string, any>;
 
   constructor(parameters: ExternalValue) {
     super(parameters, dummyObject);

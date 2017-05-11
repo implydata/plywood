@@ -26,7 +26,7 @@ export function indentBy(str: string, indent: int): string {
   return str.split('\n').map((x) => spaces + x).join('\n');
 }
 
-export function dictEqual(dictA: Lookup<any>, dictB: Lookup<any>): boolean {
+export function dictEqual(dictA: Record<string, any>, dictB: Record<string, any>): boolean {
   if (dictA === dictB) return true;
   if (!dictA !== !dictB) return false;
   let keys = Object.keys(dictA);
@@ -56,22 +56,22 @@ export function deduplicateSort(a: string[]): string[] {
   return newA;
 }
 
-export function mapLookup<T, U>(thing: Lookup<T>, fn: (x: T) => U): Lookup<U> {
-  let newThing: Lookup<U> = Object.create(null);
+export function mapLookup<T, U>(thing: Record<string, T>, fn: (x: T) => U): Record<string, U> {
+  let newThing: Record<string, U> = Object.create(null);
   for (let k in thing) {
     if (hasOwnProp(thing, k)) newThing[k] = fn(thing[k]);
   }
   return newThing;
 }
 
-export function emptyLookup(lookup: Lookup<any>): boolean {
+export function emptyLookup(lookup: Record<string, any>): boolean {
   for (let k in lookup) {
     if (hasOwnProp(lookup, k)) return false;
   }
   return true;
 }
 
-export function nonEmptyLookup(lookup: Lookup<any>): boolean {
+export function nonEmptyLookup(lookup: Record<string, any>): boolean {
   return !emptyLookup(lookup);
 }
 

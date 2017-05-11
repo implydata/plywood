@@ -65,7 +65,7 @@ export function getFullType(value: any): FullType {
 }
 
 export function getFullTypeFromDatum(datum: Datum): DatasetFullType {
-  let datasetType: Lookup<FullType> = {};
+  let datasetType: Record<string, FullType> = {};
   for (let k in datum) {
     if (!hasOwnProp(datum, k)) continue;
     datasetType[k] = getFullType(datum[k]);

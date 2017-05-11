@@ -19,7 +19,7 @@ export interface CustomDruidTransform {
   extractionFn: Druid.ExtractionFn;
 }
 
-export type CustomDruidTransforms = Lookup<CustomDruidTransform>;
+export type CustomDruidTransforms = Record<string, CustomDruidTransform>;
 
 
 export interface CustomDruidAggregation {
@@ -28,5 +28,5 @@ export interface CustomDruidAggregation {
   accessType?: string;
 }
 
-export type CustomDruidAggregations = Lookup<CustomDruidAggregation>;
+export type CustomDruidAggregations = Record<string, CustomDruidAggregation>;
 

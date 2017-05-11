@@ -44,7 +44,7 @@ function arrayFromJS(xs: Array<any>, setType: string): Array<any> {
   return xs.map(x => valueFromJS(x, setType));
 }
 
-let typeUpgrades: Lookup<string> = {
+let typeUpgrades: Record<string, string> = {
   'NUMBER': 'NUMBER_RANGE',
   'TIME': 'TIME_RANGE',
   'STRING': 'STRING_RANGE'
@@ -56,7 +56,7 @@ export class Set implements Instance<SetValue, SetJS> {
   static EMPTY: Set;
 
   static unifyElements(elements: Array<PlywoodRange>): Array<PlywoodRange> {
-    let newElements: Lookup<PlywoodRange> = Object.create(null);
+    let newElements: Record<string, PlywoodRange> = Object.create(null);
     for (let accumulator of elements) {
       let newElementsKeys = Object.keys(newElements);
       for (let newElementsKey of newElementsKeys) {
@@ -224,7 +224,7 @@ export class Set implements Instance<SetValue, SetJS> {
   public elements: Array<any>;
 
   private keyFn: (v: any) => string;
-  private hash: Lookup<any>;
+  private hash: Record<string, any>;
 
   constructor(parameters: SetValue) {
     let setType = parameters.setType;
@@ -234,7 +234,7 @@ export class Set implements Instance<SetValue, SetJS> {
 
     let elements = parameters.elements;
     let newElements: any[] = null;
-    let hash: Lookup<any> = Object.create(null);
+    let hash: Record<string, any> = Object.create(null);
     for (let i = 0; i < elements.length; i++) {
       let element = elements[i];
       let key = keyFn(element);

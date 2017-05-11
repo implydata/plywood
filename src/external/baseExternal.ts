@@ -78,7 +78,7 @@ export interface NextFn<Q> {
 
 export interface QueryAndPostTransform<T> {
   query: T;
-  context?: Lookup<any>;
+  context?: Record<string, any>;
   postTransform: Transform;
   next?: NextFn<T>;
 }
@@ -127,8 +127,8 @@ function getCommonFilter(filter1: Expression, filter2: Expression): Expression {
   return Expression.and(commonExpressions);
 }
 
-function mergeDerivedAttributes(derivedAttributes1: Lookup<Expression>, derivedAttributes2: Lookup<Expression>): Lookup<Expression> {
-  let derivedAttributes: Lookup<Expression> = Object.create(null);
+function mergeDerivedAttributes(derivedAttributes1: Record<string, Expression>, derivedAttributes2: Record<string, Expression>): Record<string, Expression> {
+  let derivedAttributes: Record<string, Expression> = Object.create(null);
   for (let k in derivedAttributes1) {
     derivedAttributes[k] = derivedAttributes1[k];
   }
@@ -203,7 +203,7 @@ function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
   }
 }
 
-function immutableAdd<T>(obj: Lookup<T>, key: string, value: T): Lookup<T> {
+function immutableAdd<T>(obj: Record<string, T>, key: string, value: T): Record<string, T> {
   let newObj = Object.create(null);
   for (let k in obj) newObj[k] = obj[k];
   newObj[key] = value;
@@ -225,7 +225,7 @@ export interface ExternalValue {
   rollup?: boolean;
   attributes?: Attributes;
   attributeOverrides?: Attributes;
-  derivedAttributes?: Lookup<Expression>;
+  derivedAttributes?: Record<string, Expression>;
   delegates?: External[];
   concealBuckets?: boolean;
   mode?: QueryMode;
@@ -249,7 +249,7 @@ export interface ExternalValue {
   allowSelectQueries?: boolean;
   introspectionStrategy?: string;
   exactResultsOnly?: boolean;
-  context?: Lookup<any>;
+  context?: Record<string, any>;
 
   requester?: PlywoodRequester<any>;
 }
@@ -261,7 +261,7 @@ export interface ExternalJS {
   rollup?: boolean;
   attributes?: AttributeJSs;
   attributeOverrides?: AttributeJSs;
-  derivedAttributes?: Lookup<ExpressionJS>;
+  derivedAttributes?: Record<string, ExpressionJS>;
   filter?: ExpressionJS;
   rawAttributes?: AttributeJSs;
   concealBuckets?: boolean;
@@ -275,7 +275,7 @@ export interface ExternalJS {
   allowSelectQueries?: boolean;
   introspectionStrategy?: string;
   exactResultsOnly?: boolean;
-  context?: Lookup<any>;
+  context?: Record<string, any>;
 }
 
 export interface ApplySegregation {
@@ -351,7 +351,7 @@ export abstract class External {
   static normalizeAndAddApply(attributesAndApplies: AttributesAndApplies, apply: ApplyExpression): AttributesAndApplies {
     let { attributes, applies } = attributesAndApplies;
 
-    let expressions: Lookup<Expression> = Object.create(null);
+    let expressions: Record<string, Expression> = Object.create(null);
     for (let existingApply of applies) expressions[existingApply.name] = existingApply.expression;
     apply = apply.changeExpression(apply.expression.resolveWithExpressions(expressions, 'leave').simplify());
 
@@ -412,7 +412,7 @@ export abstract class External {
     return commonFilter;
   }
 
-  static getMergedDerivedAttributesFromExternals(externals: External[]): Lookup<Expression> {
+  static getMergedDerivedAttributesFromExternals(externals: External[]): Record<string, Expression> {
     if (!externals.length) throw new Error('must have externals');
     let derivedAttributes = externals[0].derivedAttributes;
     for (let i = 1; i < externals.length; i++) {
@@ -533,9 +533,9 @@ export abstract class External {
     };
   }
 
-  static typeCheckDerivedAttributes(derivedAttributes: Lookup<Expression>, typeContext: DatasetFullType): Lookup<Expression> {
+  static typeCheckDerivedAttributes(derivedAttributes: Record<string, Expression>, typeContext: DatasetFullType): Record<string, Expression> {
     let changed = false;
-    let newDerivedAttributes: Lookup<Expression> = {};
+    let newDerivedAttributes: Record<string, Expression> = {};
     for (let k in derivedAttributes) {
       let ex = derivedAttributes[k];
       let newEx = ex.changeInTypeContext(typeContext);
@@ -625,7 +625,7 @@ export abstract class External {
     return value;
   }
 
-  static classMap: Lookup<typeof External> = {};
+  static classMap: Record<string, typeof External> = {};
   static register(ex: typeof External): void {
     let engine = (<any>ex).engine.replace(/^\w/, (s: string) => s.toLowerCase());
     External.classMap[engine] = ex;
@@ -685,7 +685,7 @@ export abstract class External {
   public rollup: boolean;
   public attributes: Attributes = null;
   public attributeOverrides: Attributes = null;
-  public derivedAttributes: Lookup<Expression>;
+  public derivedAttributes: Record<string, Expression>;
   public delegates: External[];
   public concealBuckets: boolean;
 
@@ -1571,7 +1571,7 @@ export abstract class External {
     let { rawAttributes, derivedAttributes } = this;
     if (!rawAttributes.length) throw new Error("dataset has not been introspected");
 
-    let myDatasetType: Lookup<FullType> = {};
+    let myDatasetType: Record<string, FullType> = {};
     for (let rawAttribute of rawAttributes) {
       let attrName = rawAttribute.name;
       myDatasetType[attrName] = {
@@ -1600,7 +1600,7 @@ export abstract class External {
     let myFullType = this.getRawFullType();
 
     if (mode !== 'raw') {
-      let splitDatasetType: Lookup<FullType> = {};
+      let splitDatasetType: Record<string, FullType> = {};
       splitDatasetType[this.dataName || External.SEGMENT_NAME] = myFullType;
 
       for (let attribute of attributes) {

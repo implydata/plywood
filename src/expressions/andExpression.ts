@@ -27,7 +27,7 @@ import {
   r
 } from './baseExpression';
 
-const IS_OR_OVERLAP: Lookup<boolean> = {
+const IS_OR_OVERLAP: Record<string, boolean> = {
   'is': true,
   'overlap': true
 };

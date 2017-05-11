@@ -19,7 +19,7 @@ import { PlyType } from '../types';
 import { SQLDialect } from './baseDialect';
 
 export class DruidDialect extends SQLDialect {
-  static TIME_BUCKETING: Lookup<string> = {
+  static TIME_BUCKETING: Record<string, string> = {
     "PT1S": "second",
     "PT1M": "minute",
     "PT1H": "hour",
@@ -30,7 +30,7 @@ export class DruidDialect extends SQLDialect {
     "P1Y":  "year"
   };
 
-  static TIME_PART_TO_FUNCTION: Lookup<string> = {
+  static TIME_PART_TO_FUNCTION: Record<string, string> = {
     SECOND_OF_MINUTE: "EXTRACT(SECOND FROM $$)",
     SECOND_OF_HOUR: "(EXTRACT(MINUTE FROM $$)*60+EXTRACT(SECOND FROM $$))",
     SECOND_OF_DAY: "((EXTRACT(HOUR_FROM $$)*60+EXTRACT(MINUTE FROM $$))*60+EXTRACT(SECOND FROM $$))",
@@ -60,7 +60,7 @@ export class DruidDialect extends SQLDialect {
     YEAR: "EXTRACT(YEAR FROM $$)"
   };
 
-  static CAST_TO_FUNCTION: Lookup<Lookup<string>> = {
+  static CAST_TO_FUNCTION: Record<string, Record<string, string>> = {
     TIME: {
       NUMBER: 'TO_TIMESTAMP($$::double precision / 1000)'
     },

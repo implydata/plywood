@@ -134,7 +134,7 @@ export interface ExpressionExternalAlterationSimple {
   result?: any;
 }
 
-export type ExpressionExternalAlteration = Lookup<ExpressionExternalAlterationSimple | DatasetExternalAlterations>;
+export type ExpressionExternalAlteration = Record<string, ExpressionExternalAlterationSimple | DatasetExternalAlterations>;
 
 export interface BooleanExpressionIterator {
   (ex: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
@@ -166,7 +166,7 @@ export interface ExpressionTypeContext {
   typeContext: DatasetFullType;
 }
 
-export type Alterations = Lookup<Expression>;
+export type Alterations = Record<string, Expression>;
 
 export interface SQLParse {
   verb: string;
@@ -410,8 +410,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return candidate instanceof Expression;
   }
 
-  static expressionLookupFromJS(expressionJSs: Lookup<ExpressionJS>): Lookup<Expression> {
-    let expressions: Lookup<Expression> = Object.create(null);
+  static expressionLookupFromJS(expressionJSs: Record<string, ExpressionJS>): Record<string, Expression> {
+    let expressions: Record<string, Expression> = Object.create(null);
     for (let name in expressionJSs) {
       if (!hasOwnProp(expressionJSs, name)) continue;
       expressions[name] = Expression.fromJSLoose(expressionJSs[name]);
@@ -419,8 +419,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return expressions;
   }
 
-  static expressionLookupToJS(expressions: Lookup<Expression>): Lookup<ExpressionJS> {
-    let expressionsJSs: Lookup<ExpressionJS> = {};
+  static expressionLookupToJS(expressions: Record<string, Expression>): Record<string, ExpressionJS> {
+    let expressionsJSs: Record<string, ExpressionJS> = {};
     for (let name in expressions) {
       if (!hasOwnProp(expressions, name)) continue;
       expressionsJSs[name] = expressions[name].toJS();
@@ -539,10 +539,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     }
   }
 
-  static parseTuning(tuning: string): Lookup<string> {
+  static parseTuning(tuning: string): Record<string, string> {
     if (!tuning) return {};
     const parts = tuning.split(',');
-    let parsed: Lookup<string> = {};
+    let parsed: Record<string, string> = {};
     for (let part of parts) {
       let subParts = part.split('=');
       if (subParts.length !== 2) throw new Error(`can not parse tuning '${tuning}'`);
@@ -595,7 +595,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return chainVia('concat', expressions, Expression.EMPTY_STRING);
   }
 
-  static classMap: Lookup<typeof Expression> = {};
+  static classMap: Record<string, typeof Expression> = {};
   static register(ex: typeof Expression): void {
     let op = (<any>ex).op.replace(/^\w/, (s: string) => s.toLowerCase());
     Expression.classMap[op] = ex;
@@ -795,7 +795,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public getReadyExternals(): ExpressionExternalAlteration {
-    let indexToSkip: Lookup<boolean> = {};
+    let indexToSkip: Record<string, boolean> = {};
     let externalsByIndex: ExpressionExternalAlteration = {};
 
     this.every((ex: Expression, index: int) => {
@@ -1526,7 +1526,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * @return The resolved expression
    */
   public resolve(context: Datum, ifNotFound: IfNotFound = 'throw'): Expression {
-    let expressions: Lookup<Expression> = Object.create(null);
+    let expressions: Record<string, Expression> = Object.create(null);
     for (let k in context) {
       if (!hasOwnProp(context, k)) continue;
       let value = context[k];
@@ -1542,7 +1542,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return this.resolveWithExpressions(expressions, ifNotFound);
   }
 
-  public resolveWithExpressions(expressions: Lookup<Expression>, ifNotFound: IfNotFound = 'throw'): Expression {
+  public resolveWithExpressions(expressions: Record<string, Expression>, ifNotFound: IfNotFound = 'throw'): Expression {
     return this.substitute((ex: Expression, index: int, depth: int, nestDiff: int) => {
       if (ex instanceof RefExpression) {
         const { nest, ignoreCase, name } = ex;

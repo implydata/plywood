@@ -38,7 +38,7 @@ export abstract class Range<T> {
     return Range.isRangeType(type) ? <PlyType>type.substr(0, type.length - 6) : type;
   }
 
-  static classMap: Lookup<typeof Range> = {};
+  static classMap: Record<string, typeof Range> = {};
 
   static register(ctr: typeof Range): void {
     let rangeType = (<any>ctr).type.replace('_RANGE', '').toLowerCase();

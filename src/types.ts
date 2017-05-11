@@ -28,7 +28,7 @@ export interface SimpleFullType {
 
 export interface DatasetFullType {
   type: 'DATASET';
-  datasetType: Lookup<FullType>;
+  datasetType: Record<string, FullType>;
   parent?: DatasetFullType;
 }
 

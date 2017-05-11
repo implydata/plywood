@@ -23,7 +23,7 @@ import { repeat } from '../helper/index';
 import { DatasetFullType, PlyType } from '../types';
 import { Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
-export const POSSIBLE_TYPES: Lookup<number> = {
+export const POSSIBLE_TYPES: Record<string, number> = {
   'NULL': 1,
   'BOOLEAN': 1,
   'NUMBER': 1,

@@ -49,7 +49,7 @@ export interface DruidExtractionFnBuilderOptions {
 
 export class DruidExtractionFnBuilder {
 
-  static SPAN_TO_FLOOR_FORMAT: Lookup<string> = {
+  static SPAN_TO_FLOOR_FORMAT: Record<string, string> = {
     second: "yyyy-MM-dd'T'HH:mm:ss'Z",
     minute: "yyyy-MM-dd'T'HH:mm'Z",
     hour: "yyyy-MM-dd'T'HH':00'Z",
@@ -58,7 +58,7 @@ export class DruidExtractionFnBuilder {
     year: "yyyy'-01-01T00:00'Z"
   };
 
-  static SPAN_TO_PROPERTY: Lookup<string> = {
+  static SPAN_TO_PROPERTY: Record<string, string> = {
     second: 'secondOfMinute',
     minute: 'minuteOfHour',
     hour: 'hourOfDay',
@@ -68,12 +68,12 @@ export class DruidExtractionFnBuilder {
     year: 'yearOfEra'
   };
 
-  static CASE_TO_DRUID: Lookup<string> = {
+  static CASE_TO_DRUID: Record<string, string> = {
     upperCase: 'upper',
     lowerCase: 'lower'
   };
 
-  static TIME_PART_TO_FORMAT: Lookup<string> = {
+  static TIME_PART_TO_FORMAT: Record<string, string> = {
     SECOND_OF_MINUTE: "s",
     MINUTE_OF_HOUR: "m",
     HOUR_OF_DAY: "H",
@@ -85,7 +85,7 @@ export class DruidExtractionFnBuilder {
     YEAR: "Y"
   };
 
-  static TIME_PART_TO_EXPR: Lookup<string> = {
+  static TIME_PART_TO_EXPR: Record<string, string> = {
     SECOND_OF_MINUTE: "d.getSecondOfMinute()",
     SECOND_OF_HOUR: "d.getSecondOfHour()",
     SECOND_OF_DAY: "d.getSecondOfDay()",

@@ -19,7 +19,7 @@ import { PlyType } from '../types';
 import { SQLDialect } from './baseDialect';
 
 export class PostgresDialect extends SQLDialect {
-  static TIME_BUCKETING: Lookup<string> = {
+  static TIME_BUCKETING: Record<string, string> = {
     "PT1S": "second",
     "PT1M": "minute",
     "PT1H": "hour",
@@ -30,7 +30,7 @@ export class PostgresDialect extends SQLDialect {
     "P1Y":  "year"
   };
 
-  static TIME_PART_TO_FUNCTION: Lookup<string> = {
+  static TIME_PART_TO_FUNCTION: Record<string, string> = {
     SECOND_OF_MINUTE: "DATE_PART('second',$$)",
     SECOND_OF_HOUR: "(DATE_PART('minute',$$)*60+DATE_PART('second',$$))",
     SECOND_OF_DAY: "((DATE_PART('hour',$$)*60+DATE_PART('minute',$$))*60+DATE_PART('second',$$))",
@@ -60,7 +60,7 @@ export class PostgresDialect extends SQLDialect {
     YEAR: "DATE_PART('year',$$)"
   };
 
-  static CAST_TO_FUNCTION: Lookup<Lookup<string>> = {
+  static CAST_TO_FUNCTION: Record<string, Record<string, string>> = {
     TIME: {
       NUMBER: 'TO_TIMESTAMP($$::double precision / 1000)'
     },

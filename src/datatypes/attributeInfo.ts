@@ -45,7 +45,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     return candidate instanceof AttributeInfo;
   }
 
-  static NATIVE_TYPE_FROM_SPECIAL: Lookup<string> = {
+  static NATIVE_TYPE_FROM_SPECIAL: Record<string, string> = {
     unique: 'hyperUnique',
     theta: 'thetaSketch',
     histogram: 'approximateHistogram'
@@ -92,7 +92,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   public name: string;
   public nativeType: string;
   public type: PlyType;
-  public datasetType?: Lookup<FullType>;
+  public datasetType?: Record<string, FullType>;
   public unsplitable: boolean;
   public maker?: Expression;
 

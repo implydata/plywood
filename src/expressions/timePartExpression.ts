@@ -31,7 +31,7 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     return new TimePartExpression(value);
   }
 
-  static PART_TO_FUNCTION: Lookup<(d: any) => number> = { // Moment
+  static PART_TO_FUNCTION: Record<string, (d: any) => number> = { // Moment
     SECOND_OF_MINUTE: d => d.seconds(),
     SECOND_OF_HOUR: d => d.minutes() * 60 + d.seconds(),
     SECOND_OF_DAY: d => (d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
@@ -63,7 +63,7 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     QUARTER: d => d.quarter()
   };
 
-  static PART_TO_MAX_VALUES: Lookup<number> = {
+  static PART_TO_MAX_VALUES: Record<string, number> = {
     SECOND_OF_MINUTE: 61, // Leap seconds
     SECOND_OF_HOUR: 3601,
     SECOND_OF_DAY: 93601,

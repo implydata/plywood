@@ -46,7 +46,7 @@ const CAST_TYPE_TO_FN: Caster = {
   }
 };
 
-const CAST_TYPE_TO_JS: Lookup<Lookup<(operandJS: string) => string>> = {
+const CAST_TYPE_TO_JS: Record<string, Record<string, (operandJS: string) => string>> = {
   TIME: {
     NUMBER: (operandJS) => `new Date(${operandJS})`
   },

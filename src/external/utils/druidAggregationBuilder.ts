@@ -68,7 +68,7 @@ export interface DruidAggregationBuilderOptions {
   version: string;
   rawAttributes: AttributeInfo[];
   timeAttribute: string;
-  derivedAttributes: Lookup<Expression>;
+  derivedAttributes: Record<string, Expression>;
   customAggregations: CustomDruidAggregations;
   customTransforms: CustomDruidTransforms;
   rollup: boolean;
@@ -77,13 +77,13 @@ export interface DruidAggregationBuilderOptions {
 }
 
 export class DruidAggregationBuilder {
-  static AGGREGATE_TO_FUNCTION: Lookup<Function> = {
+  static AGGREGATE_TO_FUNCTION: Record<string, Function> = {
     sum: (a: string, b: string) => `${a}+${b}`,
     min: (a: string, b: string) => `Math.min(${a},${b})`,
     max: (a: string, b: string) => `Math.max(${a},${b})`
   };
 
-  static AGGREGATE_TO_ZERO: Lookup<string> = {
+  static AGGREGATE_TO_ZERO: Record<string, string> = {
     sum: "0",
     min: "Infinity",
     max: "-Infinity"
@@ -93,7 +93,7 @@ export class DruidAggregationBuilder {
   public version: string;
   public rawAttributes: AttributeInfo[];
   public timeAttribute: string;
-  public derivedAttributes: Lookup<Expression>;
+  public derivedAttributes: Record<string, Expression>;
   public customAggregations: CustomDruidAggregations;
   public customTransforms: CustomDruidTransforms;
   public rollup: boolean;
