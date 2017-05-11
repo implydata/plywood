@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.11
+
+- Fix bug in formula parsing related to tuning
+- Added tuning support to PlyQL
+
 ## 0.17.10
 
 - Add support for a `tuning` config for Druid approximate histograms

@@ -539,8 +539,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     }
   }
 
-  static parseTuning(tuning: string): Record<string, string> {
-    if (!tuning) return {};
+  static parseTuning(tuning: string | null): Record<string, string> {
+    if (typeof tuning !== 'string') return {};
     const parts = tuning.split(',');
     let parsed: Record<string, string> = {};
     for (let part of parts) {
@@ -1425,7 +1425,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public quantile(ex: any, value: number, tuning?: string) {
     if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
-    return new QuantileExpression({ operand: this, expression: ex, value: getNumber(value), tuning });
+    return new QuantileExpression({ operand: this, expression: ex, value: getNumber(value), tuning: tuning ? getString(tuning) : null });
   }
 
   public collect(ex: any) {

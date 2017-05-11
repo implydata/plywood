@@ -881,11 +881,11 @@ AggregateExpression
       if (exd.ex === '*') error('can not use * for ' + fn + ' aggregator');
       return exd.data[fn](exd.ex);
     }
-  / QuantileToken OpenParen distinct:DistinctToken? exd:ExpressionMaybeFiltered Comma value:Number CloseParen
+  / QuantileToken OpenParen distinct:DistinctToken? exd:ExpressionMaybeFiltered Comma value:Number tuning:(Comma String)? CloseParen
     {
       if (distinct) error('can not use DISTINCT for quantile aggregator');
       if (exd.ex === '*') error('can not use * for quantile aggregator');
-      return exd.data.quantile(exd.ex, value);
+      return exd.data.quantile(exd.ex, value, tuning ? tuning[1] : null);
     }
   / (CustomAggregateToken / CustomToken) OpenParen value:String filter:WhereClause? CloseParen
     {

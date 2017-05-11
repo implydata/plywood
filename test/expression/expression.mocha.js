@@ -158,6 +158,7 @@ describe("Expression", () => {
       { op: 'average', expression: { op: 'ref', name: 'myVar' } },
       { op: 'countDistinct', expression: { op: 'ref', name: 'myVar' } },
       { op: 'quantile', expression: { op: 'ref', name: 'myVar' }, value: 0.5 },
+      { op: 'quantile', expression: { op: 'ref', name: 'myVar' }, value: 0.5, tuning: 'resolution=400' },
       { op: 'collect', expression: { op: 'ref', name: 'myVar' } },
       { op: 'cast', outputType: 'TIME' },
       { op: 'cast', outputType: 'NUMBER' },

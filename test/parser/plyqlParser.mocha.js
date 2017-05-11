@@ -626,6 +626,7 @@ describe("SQL parser", () => {
         EXP(0) AS One,
         +SUM(added) AS SimplyAdded,
         QUANTILE(added, 0.5) AS Median,
+        QUANTILE(added, 0.5, "resolution=400") AS MedianTuned,
         COUNT_DISTINCT(visitor) AS 'Unique1',
         COUNT( DISTINCT visitor) AS 'Unique2',
         COUNT(DISTINCT(visitor)) AS 'Unique3',
@@ -670,6 +671,7 @@ describe("SQL parser", () => {
         .apply('One', r(Math.E).power(0))
         .apply('SimplyAdded', '$data.sum(i$added)')
         .apply('Median', $('data').quantile('i$added', 0.5))
+        .apply('MedianTuned', $('data').quantile('i$added', 0.5, 'resolution=400'))
         .apply('Unique1', $('data').countDistinct('i$visitor'))
         .apply('Unique2', $('data').countDistinct('i$visitor'))
         .apply('Unique3', $('data').countDistinct('i$visitor'))
@@ -688,7 +690,7 @@ describe("SQL parser", () => {
         .apply('Custom2', $('data').customAggregate('blah'))
         .select("aISb1", "aISb2", "aISb3", "Count1", "Count2", "Count3", "Count4", "Match", "CustomTransform",
           "TotalAdded", "Date", "TotalAddedOver4", "False", "MinusAdded", "AbsAdded", "AbsoluteAdded", "SqRtAdded",
-          "SqRtAdded2", "SquareRoot", "One", "SimplyAdded", "Median", "Unique1", "Unique2", "Unique3",
+          "SqRtAdded2", "SquareRoot", "One", "SimplyAdded", "Median", "MedianTuned", "Unique1", "Unique2", "Unique3",
           "TimeBucket", "TimeFloor", "TimeShift1", "TimeShift3", "TimeRange1", "TimeRange3", "Overlap",
           "If1", "Case1", "Case2", "Case3", "Custom1", "Custom2");
 
