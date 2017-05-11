@@ -1,19 +1,19 @@
-var plywood = require('../../build/plywood');
-var ply = plywood.ply;
-var $ = plywood.$;
-var Dataset = plywood.Dataset;
+let plywood = require('../../build/plywood');
+let ply = plywood.ply;
+let $ = plywood.$;
+let Dataset = plywood.Dataset;
 
-var diamondsData = require('../../data/diamonds.js');
+let diamondsData = require('../../data/diamonds.js');
 
 // ----------------------------------
 
-var context = {
+let context = {
   diamonds: Dataset.fromJS({
     data: diamondsData
   }).hide()
 };
 
-var ex = ply()
+let ex = ply()
   .apply("diamonds", $('diamonds').filter($("color").is('D')))
   .apply('Count', $('diamonds').count())
   .apply('TotalPrice', '$diamonds.sum($price)');

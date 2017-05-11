@@ -1,11 +1,11 @@
-var druidRequesterFactory = require('plywood-druid-requester').druidRequesterFactory;
-var plywood = require('../../build/plywood');
-var ply = plywood.ply;
-var $ = plywood.$;
-var External = plywood.External;
-var helper = plywood.helper;
+let druidRequesterFactory = require('plywood-druid-requester').druidRequesterFactory;
+let plywood = require('../../build/plywood');
+let ply = plywood.ply;
+let $ = plywood.$;
+let External = plywood.External;
+let helper = plywood.helper;
 
-var druidRequester = druidRequesterFactory({
+let druidRequester = druidRequesterFactory({
   host: 'localhost:8082' // Where ever your Druid may be
 });
 
@@ -15,7 +15,7 @@ druidRequester = helper.verboseRequesterFactory({
 
 // ----------------------------------
 
-var context = {
+let context = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',  // The datasource name in Druid
@@ -25,7 +25,7 @@ var context = {
   })
 };
 
-var ex = $('wiki')
+let ex = $('wiki')
   .filter('$region != null and $country == "United States"')
   .split('$region', 'State')
     .apply('Edits', '$wiki.count()')
