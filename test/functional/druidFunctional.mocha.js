@@ -1186,7 +1186,7 @@ describe("Druid Functional", function() {
         });
     });
 
-    it("works with no applies in time split dataset", () => {
+    it("works with no applies in time split dataset (+rawQueries monitoring)", () => {
       let ex = ply()
         .apply(
           'ByHour',
@@ -1202,8 +1202,111 @@ describe("Druid Functional", function() {
             )
         );
 
-      return basicExecutor(ex)
+      let rawQueries = [];
+      return basicExecutor(ex, { rawQueries })
         .then((result) => {
+          expect(rawQueries).to.deep.equal([
+            {
+              "query": {
+                "context": {
+                  "populateCache": false,
+                  "skipEmptyBuckets": "true",
+                  "timeout": 10000,
+                  "useCache": false
+                },
+                "dataSource": "wikipedia-compact",
+                "granularity": {
+                  "period": "PT1H",
+                  "timeZone": "Etc/UTC",
+                  "type": "period"
+                },
+                "intervals": "2015-09-12T00Z/2015-09-13T00Z",
+                "queryType": "timeseries"
+              }
+            },
+            {
+              "query": {
+                "aggregations": [
+                  {
+                    "fieldName": "count",
+                    "name": "Count",
+                    "type": "longSum"
+                  }
+                ],
+                "context": {
+                  "populateCache": false,
+                  "timeout": 10000,
+                  "useCache": false
+                },
+                "dataSource": "wikipedia",
+                "dimension": {
+                  "dimension": "page",
+                  "outputName": "Page",
+                  "type": "default"
+                },
+                "granularity": "all",
+                "intervals": "2015-09-12T00Z/2015-09-12T01Z",
+                "metric": "Count",
+                "queryType": "topN",
+                "threshold": 2
+              }
+            },
+            {
+              "query": {
+                "aggregations": [
+                  {
+                    "fieldName": "count",
+                    "name": "Count",
+                    "type": "longSum"
+                  }
+                ],
+                "context": {
+                  "populateCache": false,
+                  "timeout": 10000,
+                  "useCache": false
+                },
+                "dataSource": "wikipedia",
+                "dimension": {
+                  "dimension": "page",
+                  "outputName": "Page",
+                  "type": "default"
+                },
+                "granularity": "all",
+                "intervals": "2015-09-12T01Z/2015-09-12T02Z",
+                "metric": "Count",
+                "queryType": "topN",
+                "threshold": 2
+              }
+            },
+            {
+              "query": {
+                "aggregations": [
+                  {
+                    "fieldName": "count",
+                    "name": "Count",
+                    "type": "longSum"
+                  }
+                ],
+                "context": {
+                  "populateCache": false,
+                  "timeout": 10000,
+                  "useCache": false
+                },
+                "dataSource": "wikipedia",
+                "dimension": {
+                  "dimension": "page",
+                  "outputName": "Page",
+                  "type": "default"
+                },
+                "granularity": "all",
+                "intervals": "2015-09-12T02Z/2015-09-12T03Z",
+                "metric": "Count",
+                "queryType": "topN",
+                "threshold": 2
+              }
+            }
+          ]);
+
           expect(result.toJS().data).to.deep.equal([
             {
               "ByHour": {

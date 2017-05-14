@@ -100,6 +100,7 @@ import { TimeShiftExpression } from './timeShiftExpression';
 import { TransformCaseExpression } from './transformCaseExpression';
 
 export interface ComputeOptions extends Environment {
+  rawQueries?: any[];
   maxQueries?: number;
   maxRows?: number;
   maxComputeCycles?: number;
@@ -1752,13 +1753,15 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public computeStream(context: Datum = {}, options: ComputeOptions = {}): ReadableStream {
     const pt = new PassThrough({ objectMode: true });
 
+    let rawQueries = options.rawQueries;
+
     introspectDatum(context)
       .then((introspectedContext: Datum) => {
         let readyExpression = this._initialPrepare(introspectedContext, options);
         if (readyExpression instanceof ExternalExpression) {
           // Top level externals need to be unsuppressed
           //readyExpression = readyExpression.unsuppress();
-          pipeWithError(readyExpression.external.queryValueStream(true), pt);
+          pipeWithError(readyExpression.external.queryValueStream(true, rawQueries), pt);
           return;
         }
 
@@ -1781,6 +1784,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   private _computeResolved(options: ComputeOptions): Promise<PlywoodValue> {
     const {
+      rawQueries,
       maxComputeCycles = 5,
       maxQueries = 500
     } = options;
@@ -1789,17 +1793,17 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     let readyExternals = ex.getReadyExternals();
 
     let computeCycles = 0;
-    let queries = 0;
+    let queriesMade = 0;
 
     return promiseWhile(
-      () => Object.keys(readyExternals).length > 0 && computeCycles < maxComputeCycles && queries < maxQueries,
+      () => Object.keys(readyExternals).length > 0 && computeCycles < maxComputeCycles && queriesMade < maxQueries,
       () => {
         return fillExpressionExternalAlterationAsync(readyExternals, (external, terminal) => {
-          if (queries < maxQueries) {
-            queries++;
-            return external.queryValue(terminal);
+          if (queriesMade < maxQueries) {
+            queriesMade++;
+            return external.queryValue(terminal, rawQueries);
           } else {
-            queries++;
+            queriesMade++;
             return Promise.resolve(null); // Query limit reached, don't do any more queries.
           }
         })

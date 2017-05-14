@@ -288,8 +288,32 @@ describe("DruidSQL Functional", function() {
       //     .limit(3)
       // );
 
-      return basicExecutor(ex)
+      let rawQueries = [];
+      return basicExecutor(ex, { rawQueries })
         .then((result) => {
+          expect(rawQueries).to.deep.equal([
+            {
+              "query": {
+                "query": "SELECT\nSUM(\"count\") AS \"Count\",\nSUM(\"added\") AS \"TotalAdded\"\nFROM \"wikipedia\"\nWHERE (\"channel\"='en')\nGROUP BY ''"
+              }
+            },
+            {
+              "query": {
+                "query": "SELECT\n\"namespace\" AS \"Namespace\",\nSUM(\"added\") AS \"Added\"\nFROM \"wikipedia\"\nWHERE (\"channel\"='en')\nGROUP BY \"namespace\"\nORDER BY \"Added\" DESC\nLIMIT 2"
+              }
+            },
+            {
+              "query": {
+                "query": "SELECT\nFLOOR(\"__time\" TO hour) AS \"Timestamp\",\nSUM(\"added\") AS \"TotalAdded\"\nFROM \"wikipedia\"\nWHERE ((\"channel\"='en') AND (\"namespace\"='Main'))\nGROUP BY FLOOR(\"__time\" TO hour)\nORDER BY \"TotalAdded\" DESC\nLIMIT 3"
+              }
+            },
+            {
+              "query": {
+                "query": "SELECT\nFLOOR(\"__time\" TO hour) AS \"Timestamp\",\nSUM(\"added\") AS \"TotalAdded\"\nFROM \"wikipedia\"\nWHERE ((\"channel\"='en') AND (\"namespace\"='User talk'))\nGROUP BY FLOOR(\"__time\" TO hour)\nORDER BY \"TotalAdded\" DESC\nLIMIT 3"
+              }
+            }
+          ]);
+
           expect(result.toJS().data).to.deep.equal([
             {
               "Count": 114711,

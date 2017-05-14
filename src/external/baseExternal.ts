@@ -1436,7 +1436,7 @@ export abstract class External {
     throw new Error("can not call getQueryAndPostTransform directly");
   }
 
-  public queryValue(lastNode: boolean, externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
+  public queryValue(lastNode: boolean, rawQueries: any[], externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
     const { mode } = this;
 
     return new Promise((resolve, reject) => {
@@ -1454,7 +1454,7 @@ export abstract class External {
           resolve(v);
         });
 
-      const stream = this.queryValueStream(lastNode, externalForNext);
+      const stream = this.queryValueStream(lastNode, rawQueries, externalForNext);
       stream.pipe(target);
       stream.on('error', (e: Error) => {
         stream.unpipe(target);
@@ -1463,14 +1463,14 @@ export abstract class External {
     });
   }
 
-  public queryValueStream(lastNode: boolean, externalForNext: External = null): ReadableStream {
+  public queryValueStream(lastNode: boolean, rawQueries: any[], externalForNext: External = null): ReadableStream {
     const { mode, requester } = this;
 
     if (!externalForNext) externalForNext = this;
 
     let delegate = this.getDelegate();
     if (delegate) {
-      return delegate.queryValueStream(lastNode, externalForNext);
+      return delegate.queryValueStream(lastNode, rawQueries, externalForNext);
     }
 
     if (!requester) {
@@ -1499,6 +1499,7 @@ export abstract class External {
           if (streamNumber) query = next(query, numResults, meta);
           if (!query) return null;
           streamNumber++;
+          if (rawQueries) rawQueries.push({ query });
           const stream = requester({ query, context });
           meta = null;
           stream.on('meta', (m: any) => meta = m);
@@ -1510,6 +1511,7 @@ export abstract class External {
 
       finalStream = pipeWithError(resultStream, queryAndPostTransform.postTransform);
     } else {
+      if (rawQueries) rawQueries.push({ query });
       finalStream = pipeWithError(requester({ query, context }), queryAndPostTransform.postTransform);
     }
 

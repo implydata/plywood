@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.12
+
+- Allow `rawQueries` collection for externals
+
 ## 0.17.11
 
 - Fix bug in formula parsing related to tuning
