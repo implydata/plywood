@@ -1464,7 +1464,7 @@ export abstract class External {
   }
 
   public queryValueStream(lastNode: boolean, rawQueries: any[], externalForNext: External = null): ReadableStream {
-    const { mode, requester } = this;
+    const { engine, mode, requester } = this;
 
     if (!externalForNext) externalForNext = this;
 
@@ -1499,7 +1499,7 @@ export abstract class External {
           if (streamNumber) query = next(query, numResults, meta);
           if (!query) return null;
           streamNumber++;
-          if (rawQueries) rawQueries.push({ query });
+          if (rawQueries) rawQueries.push({ engine, query });
           const stream = requester({ query, context });
           meta = null;
           stream.on('meta', (m: any) => meta = m);
@@ -1511,7 +1511,7 @@ export abstract class External {
 
       finalStream = pipeWithError(resultStream, queryAndPostTransform.postTransform);
     } else {
-      if (rawQueries) rawQueries.push({ query });
+      if (rawQueries) rawQueries.push({ engine, query });
       finalStream = pipeWithError(requester({ query, context }), queryAndPostTransform.postTransform);
     }
 

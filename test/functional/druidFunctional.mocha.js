@@ -1207,6 +1207,7 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(rawQueries).to.deep.equal([
             {
+              "engine": "druid",
               "query": {
                 "context": {
                   "populateCache": false,
@@ -1225,6 +1226,7 @@ describe("Druid Functional", function() {
               }
             },
             {
+              "engine": "druid",
               "query": {
                 "aggregations": [
                   {
@@ -1252,6 +1254,7 @@ describe("Druid Functional", function() {
               }
             },
             {
+              "engine": "druid",
               "query": {
                 "aggregations": [
                   {
@@ -1279,6 +1282,7 @@ describe("Druid Functional", function() {
               }
             },
             {
+              "engine": "druid",
               "query": {
                 "aggregations": [
                   {
