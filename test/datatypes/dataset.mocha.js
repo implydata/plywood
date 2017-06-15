@@ -414,9 +414,9 @@ describe("Dataset", () => {
 
   describe("sorts", () => {
     let someDataset = Dataset.fromJS([
-      { time: new Date('2015-01-04T12:32:43'), resource: 'A', value: 7, nice: false },
+      { time: new Date('2015-01-04T12:32:43Z'), resource: 'A', value: 7, nice: false },
       { time: null, resource: 'B', value: 2, nice: true },
-      { time: new Date('2015-01-03T12:32:43'), resource: null, value: null, nice: null }
+      { time: new Date('2015-01-03T12:32:43Z'), resource: null, value: null, nice: null }
     ]);
 
     it("STRING, ascending", () => {
@@ -515,13 +515,13 @@ describe("Dataset", () => {
 
     let carDataset = Dataset.fromJS([
       {
-        time: new Date('2015-01-04T12:32:43'),
+        time: new Date('2015-01-04T12:32:43Z'),
         make: 'Honda',
         model: 'Civic',
         price: 10000
       },
       {
-        time: new Date('2015-01-04T14:00:40'),
+        time: new Date('2015-01-04T14:00:40Z'),
         make: 'Toyota',
         model: 'Prius',
         price: 20000
@@ -530,7 +530,7 @@ describe("Dataset", () => {
 
     let carAndPartsDataset = Dataset.fromJS([
       {
-        time: new Date('2015-01-04T12:32:43'),
+        time: new Date('2015-01-04T12:32:43Z'),
         make: 'Honda',
         model: 'Civic',
         price: 10000,
@@ -540,7 +540,7 @@ describe("Dataset", () => {
         ]
       },
       {
-        time: new Date('2015-01-04T14:00:40'),
+        time: new Date('2015-01-04T14:00:40Z'),
         make: 'Toyota',
         model: 'Prius',
         price: 20000,
@@ -636,14 +636,14 @@ describe("Dataset", () => {
         expect(carDataset.findDatumByAttribute('make', 'Kaka')).to.deep.equal(null);
 
         expect(carDataset.findDatumByAttribute('make', 'Honda')).to.deep.equal({
-          time: new Date('2015-01-04T12:32:43'),
+          time: new Date('2015-01-04T12:32:43Z'),
           make: 'Honda',
           model: 'Civic',
           price: 10000
         });
 
-        expect(carDataset.findDatumByAttribute('time', new Date('2015-01-04T12:32:43'))).to.deep.equal({
-          time: new Date('2015-01-04T12:32:43'),
+        expect(carDataset.findDatumByAttribute('time', new Date('2015-01-04T12:32:43Z'))).to.deep.equal({
+          time: new Date('2015-01-04T12:32:43Z'),
           make: 'Honda',
           model: 'Civic',
           price: 10000
@@ -1196,13 +1196,13 @@ describe("Dataset", () => {
       it("works with timezones", () => {
         let ds = Dataset.fromJS([
           {
-            time: new Date('2015-01-04T12:32:43'),
+            time: new Date('2015-01-04T12:32:43Z'),
             make: 'Honda',
             model: 'Civic',
             price: 10000
           },
           {
-            time: new Date('2015-01-04T14:00:40'),
+            time: new Date('2015-01-04T14:00:40Z'),
             make: 'Toyota',
             model: 'Prius',
             price: 20000
@@ -1220,13 +1220,13 @@ describe("Dataset", () => {
       it("respects ordered columns", () => {
         let carDataset = Dataset.fromJS([
           {
-            time: new Date('2015-01-04T12:32:43'),
+            time: new Date('2015-01-04T12:32:43Z'),
             make: 'Honda',
             model: 'Civic',
             price: 10000
           },
           {
-            time: new Date('2015-01-04T14:00:40'),
+            time: new Date('2015-01-04T14:00:40Z'),
             make: 'Toyota',
             model: 'Prius',
             price: 20000
@@ -1287,24 +1287,24 @@ describe("Dataset", () => {
             { name: 'favoriteTimeRange', type: 'TIME_RANGE'}
           ],
           data: [{
-            time: new Date('2015-01-04T14:00:40'),
+            time: new Date('2015-01-04T14:00:40Z'),
             favoriteTimeRanges: {
               type: 'SET',
               setType: 'TIME_RANGE',
               elements: [
-                { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-21T00:00:00") },
-                { start: new Date("2015-02-22T00:00:00"), end: new Date("2015-02-24T00:00:00") }
+                { start: new Date('2015-02-20T00:00:00Z'), end: new Date('2015-02-21T00:00:00Z') },
+                { start: new Date('2015-02-22T00:00:00Z'), end: new Date('2015-02-24T00:00:00Z') }
               ]
             },
             favoriteTimeRange: {
               type: 'TIME_RANGE',
-              start: new Date("2015-02-20T00:00:00"),
-              end: new Date("2015-02-21T00:00:00")
+              start: new Date('2015-02-20T00:00:00Z'),
+              end: new Date('2015-02-21T00:00:00Z')
             },
             favoriteTimes:  {
               type: 'SET',
               setType: 'TIME',
-              elements: [ new Date("2015-02-20T00:00:00"), new Date("2015-02-24T00:00:00")]
+              elements: [ new Date('2015-02-20T00:00:00Z'), new Date('2015-02-24T00:00:00Z')]
             }
           }
         ]});
@@ -1319,13 +1319,13 @@ describe("Dataset", () => {
       it("respects order", () => {
         let carDataset = Dataset.fromJS([
           {
-            time: new Date('2015-01-04T12:32:43'),
+            time: new Date('2015-01-04T12:32:43Z'),
             make: 'Honda',
             model: 'Civic',
             price: 10000
           },
           {
-            time: new Date('2015-01-04T14:00:40'),
+            time: new Date('2015-01-04T14:00:40Z'),
             make: 'Toyota',
             model: 'Prius',
             price: 20000
@@ -1348,13 +1348,13 @@ describe("Dataset", () => {
           keys: ['make'],
           data: [
             {
-              time: new Date('2015-01-04T12:32:43'),
+              time: new Date('2015-01-04T12:32:43Z'),
               make: 'Honda',
               model: 'Civic',
               price: 10000
             },
             {
-              time: new Date('2015-01-04T14:00:40'),
+              time: new Date('2015-01-04T14:00:40Z'),
               make: 'Toyota',
               model: 'Prius',
               price: 20000
@@ -1427,13 +1427,13 @@ describe("Dataset", () => {
           keys: ['make'],
           data: [
             {
-              time: new Date('2015-01-04T12:32:43'),
+              time: new Date('2015-01-04T12:32:43Z'),
               make: 'Honda',
               model: 'Civic',
               price: 10000
             },
             {
-              time: new Date('2015-01-04T14:00:40'),
+              time: new Date('2015-01-04T14:00:40Z'),
               make: 'Toyota',
               model: 'Prius',
               price: 20000

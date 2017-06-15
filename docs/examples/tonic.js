@@ -18,7 +18,6 @@ let mysqlExternal = External.fromJS({
 let druidExternal = External.fromJS({
   engine: 'druid',
   source: 'wikipedia',
-  timeAttribute: 'time',
   attributes: [
     { name: 'time', type: 'TIME' },
     { name: 'page', type: 'STRING' },
@@ -31,7 +30,7 @@ let druidExternal = External.fromJS({
 let ex = ply()
   .apply("wiki",
     $('wiki').filter(
-      $("time").overlap({
+      $("__time").overlap({
           start: new Date("2015-08-26T00:00:00Z"),
           end: new Date("2015-08-27T00:00:00Z")
         })

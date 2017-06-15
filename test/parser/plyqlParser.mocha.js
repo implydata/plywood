@@ -804,8 +804,8 @@ describe("SQL parser", () => {
       //let ex2s = ply()
       //  .apply('data', $('data').filter(
       //    $('language').is("en").and($('time').overlap({
-      //      start: new Date('2015-01-01T10:30:00'),
-      //      end: new Date('2015-01-02T12:30:00')
+      //      start: new Date('2015-01-01T10:30:00Z'),
+      //      end: new Date('2015-01-02T12:30:00Z')
       //    }))
       //  ))
       //  .apply('TotalAdded', '$data.sum($added)');

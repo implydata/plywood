@@ -14,14 +14,12 @@ let context = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',
-    timeAttribute: 'time',
-    requester: druidRequester
-  })
+  }, druidRequester)
 };
 
 let ex = ply()
   .apply("wiki",
-    $('wiki').filter($("time").overlap({
+    $('wiki').filter($("__time").overlap({
       start: new Date("2015-08-26T00:00:00Z"),
       end: new Date("2015-08-27T00:00:00Z")
     }).and($('language').is('en')))

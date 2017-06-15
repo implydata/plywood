@@ -32,9 +32,8 @@ let context = {
     engine: 'druid',
     source: 'wikipedia',  // The datasource name in Druid
     filter: $("__time").overlap({ start: new Date("2015-09-12T00:00:00Z"), end: new Date("2015-09-13T00:00:00Z") }),
-    requester: druidRequester,
     exactResultsOnly: true // force groupBys
-  })
+  }, druidRequester)
 };
 
 let ex = $('wiki')

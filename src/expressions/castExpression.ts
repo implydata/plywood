@@ -51,10 +51,10 @@ const CAST_TYPE_TO_JS: Record<string, Record<string, (operandJS: string) => stri
     NUMBER: (operandJS) => `new Date(${operandJS})`
   },
   NUMBER: {
-    _: (s) => `+(${s})`
+    _: (s) => `(+(${s}))` // The outer () are important because the + can merge with another + to form an inlaid operator
   },
   STRING: {
-    _: (operandJS) => `('' + ${operandJS})`
+    _: (operandJS) => `(''+${operandJS})`
   }
 };
 

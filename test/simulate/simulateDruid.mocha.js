@@ -80,8 +80,8 @@ let diamondsCompact = External.fromJS({
   concealBuckets: true,
   allowSelectQueries: true,
   filter: $("time").overlap({
-    start: new Date('2015-03-12T00:00:00'),
-    end: new Date('2015-03-19T00:00:00')
+    start: new Date('2015-03-12T00:00:00Z'),
+    end: new Date('2015-03-19T00:00:00Z')
   })
 });
 
@@ -94,8 +94,8 @@ let context = {
     attributes,
     allowSelectQueries: true,
     filter: $("time").overlap({
-      start: new Date('2015-03-12T00:00:00'),
-      end: new Date('2015-03-19T00:00:00')
+      start: new Date('2015-03-12T00:00:00Z'),
+      end: new Date('2015-03-19T00:00:00Z')
     })
   }).addDelegate(diamondsCompact),
   'diamonds-alt:;<>': External.fromJS({
@@ -107,8 +107,8 @@ let context = {
     customTransforms,
     allowSelectQueries: true,
     filter: $("time").overlap({
-      start: new Date('2015-03-12T00:00:00'),
-      end: new Date('2015-03-19T00:00:00')
+      start: new Date('2015-03-12T00:00:00Z'),
+      end: new Date('2015-03-19T00:00:00Z')
     })
   })
 };
@@ -882,7 +882,7 @@ describe("simulate Druid", () => {
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "height_bucket",
       "extractionFn": {
-        "function": "function(d){var _,_2;_=+(('' + Math.abs(parseFloat(d))));return isNaN(_)?null:_}",
+        "function": "function(d){var _,_2;_=(+((''+Math.abs(parseFloat(d)))));return isNaN(_)?null:_}",
         "type": "javascript"
       },
       "type": "selector",
@@ -901,7 +901,7 @@ describe("simulate Druid", () => {
         {
           "dimension": "height_bucket",
           "extractionFn": {
-            "function": "function(d){var _,_2;_=new Date(+(('' + Math.abs(parseFloat(d)))));return isNaN(_)?null:_}",
+            "function": "function(d){var _,_2;_=new Date((+((''+Math.abs(parseFloat(d))))));return isNaN(_)?null:_}",
             "type": "javascript"
           },
           "outputName": "TaxCode",
@@ -1542,7 +1542,7 @@ describe("simulate Druid", () => {
 
   it("works with lower bound only time filter", () => {
     let ex = ply()
-      .apply('diamonds', $("diamonds").filter($("time").overlap({ start: new Date('2015-03-12T00:00:00'), end: null })))
+      .apply('diamonds', $("diamonds").filter($("time").overlap({ start: new Date('2015-03-12T00:00:00Z'), end: null })))
       .apply('Count', $('diamonds').count());
 
     let queryPlan = ex.simulateQueryPlan(contextUnfiltered);
@@ -1552,7 +1552,7 @@ describe("simulate Druid", () => {
 
   it("works with upper bound only time filter", () => {
     let ex = ply()
-      .apply('diamonds', $("diamonds").filter($("time").overlap({ start: null, end: new Date('2015-03-12T00:00:00') })))
+      .apply('diamonds', $("diamonds").filter($("time").overlap({ start: null, end: new Date('2015-03-12T00:00:00Z') })))
       .apply('Count', $('diamonds').count());
 
     let queryPlan = ex.simulateQueryPlan(contextUnfiltered);
@@ -2236,8 +2236,8 @@ describe("simulate Druid", () => {
   it("makes a filter on timePart", () => {
     let ex = $("diamonds").filter(
       $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').is([3, 4, 10]).and($("time").overlap([
-        TimeRange.fromJS({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-15T00:00:00') }),
-        TimeRange.fromJS({ start: new Date('2015-03-16T00:00:00'), end: new Date('2015-03-18T00:00:00') })
+        TimeRange.fromJS({ start: new Date('2015-03-12T00:00:00Z'), end: new Date('2015-03-15T00:00:00Z') }),
+        TimeRange.fromJS({ start: new Date('2015-03-16T00:00:00Z'), end: new Date('2015-03-18T00:00:00Z') })
       ]))
     ).split("$color", 'Color')
       .apply('Count', $('diamonds').count())
@@ -3246,8 +3246,8 @@ describe("simulate Druid", () => {
       attributes,
       allowSelectQueries: true,
       filter: $("time").overlap({
-        start: new Date('2015-03-12T00:00:00'),
-        end: new Date('2015-03-19T00:00:00')
+        start: new Date('2015-03-12T00:00:00Z'),
+        end: new Date('2015-03-19T00:00:00Z')
       }),
       context: {
         priority: -1,

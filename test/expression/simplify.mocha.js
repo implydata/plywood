@@ -424,9 +424,9 @@ describe("Simplify", () => {
     });
 
     it("works with two time ranges", () => {
-      let ex1 = $('time', 'TIME').overlap({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-16T00:00:00') })
-        .and($('time', 'TIME').overlap({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-13T00:00:00') }));
-      let ex2 = $('time', 'TIME').overlap({ start: new Date('2015-03-12T00:00:00'), end: new Date('2015-03-13T00:00:00') });
+      let ex1 = $('time', 'TIME').overlap({ start: new Date('2015-03-12T00:00:00Z'), end: new Date('2015-03-16T00:00:00Z') })
+        .and($('time', 'TIME').overlap({ start: new Date('2015-03-12T00:00:00Z'), end: new Date('2015-03-13T00:00:00Z') }));
+      let ex2 = $('time', 'TIME').overlap({ start: new Date('2015-03-12T00:00:00Z'), end: new Date('2015-03-13T00:00:00Z') });
       simplifiesTo(ex1, ex2);
     });
 
@@ -846,8 +846,8 @@ describe("Simplify", () => {
 
   describe('timeFloor', () => {
     it('with simple expression', () => {
-      let ex1 = r(new Date('2015-02-20T15:41:12')).timeFloor('P1D', 'Etc/UTC');
-      let ex2 = r(new Date('2015-02-20T00:00:00'));
+      let ex1 = r(new Date('2015-02-20T15:41:12Z')).timeFloor('P1D', 'Etc/UTC');
+      let ex2 = r(new Date('2015-02-20T00:00:00Z'));
       simplifiesTo(ex1, ex2);
     });
 
@@ -861,8 +861,8 @@ describe("Simplify", () => {
 
   describe('timeShift', () => {
     it('with simple expression', () => {
-      let ex1 = r(new Date('2015-02-20T15:41:12')).timeShift('P1D', 1, 'Etc/UTC');
-      let ex2 = r(new Date('2015-02-21T15:41:12'));
+      let ex1 = r(new Date('2015-02-20T15:41:12Z')).timeShift('P1D', 1, 'Etc/UTC');
+      let ex2 = r(new Date('2015-02-21T15:41:12Z'));
       simplifiesTo(ex1, ex2);
     });
 

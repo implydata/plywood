@@ -19,10 +19,8 @@ let context = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',  // The datasource name in Druid
-    timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time'
-    filter: $("time").overlap({ start: new Date("2015-09-01T00:00:00Z"), end: new Date("2015-11-01T00:00:00Z") }),
-    requester: druidRequester
-  })
+    filter: $("__time").overlap({ start: new Date("2015-09-01T00:00:00Z"), end: new Date("2015-11-01T00:00:00Z") }),
+  }, druidRequester)
 };
 
 let ex = $('wiki')
@@ -32,7 +30,7 @@ let ex = $('wiki')
     .sort('$Edits', 'descending')
     .limit(5)
     .apply('DaysOfWeek',
-      $('wiki').split($("time").timePart('DAY_OF_WEEK', 'America/New_York'), 'DayOfWeek')
+      $('wiki').split($("__time").timePart('DAY_OF_WEEK', 'America/New_York'), 'DayOfWeek')
         .apply('Edits', '$wiki.count()')
         .sort('$DayOfWeek', 'ascending')
     );

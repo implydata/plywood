@@ -32,13 +32,13 @@ Native example: `NumberRange.fromJS({ start: 4, end: 7.5 })`
 
 Represents time based attributes
 
-Native example: `new Date('2015-02-24T18:00:00')`
+Native example: `new Date('2015-02-24T18:00:00Z')`
 
 ## TIME_RANGE
 
 Represents an interval of time, often the result of a bucketing.
 
-Native example: `TimeRange.fromJS({ start: new Date('2015-02-24T18:00:00'), end: new Date('2015-02-24T19:00:00') })`
+Native example: `TimeRange.fromJS({ start: new Date('2015-02-24T18:00:00Z'), end: new Date('2015-02-24T19:00:00Z') })`
 
 ## STRING
 

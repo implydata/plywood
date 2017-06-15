@@ -14,20 +14,18 @@ let context = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',  // The datasource name in Druid
-    timeAttribute: 'time',  // Druid's anonymous time attribute will be called 'time'
-    requester: druidRequester
-  })
+  }, druidRequester)
 };
 
 let ex = ply()
   .apply("wiki",
-    $('wiki').filter($("time").overlap({
+    $('wiki').filter($("__time").overlap({
       start: new Date("2015-08-26T00:00:00Z"),
       end: new Date("2015-08-27T00:00:00Z")
     }))
   )
   .apply('ByHour',
-    $('wiki').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
+    $('wiki').split($("__time").timeBucket('PT1H', 'Etc/UTC'), 'TimeByHour')
       .sort('$TimeByHour', 'ascending')
       .apply('Users',
         $('wiki').split('$user', 'User')

@@ -75,13 +75,13 @@ describe("Set", () => {
       },
       {
         setType: 'TIME',
-        elements: [new Date("2015-02-20T00:00:00"), new Date("2015-02-21T00:00:00")]
+        elements: [new Date('2015-02-20T00:00:00Z'), new Date('2015-02-21T00:00:00Z')]
       },
       {
         setType: 'TIME_RANGE',
         elements: [
-          { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-21T00:00:00") },
-          { start: new Date("2015-02-22T00:00:00"), end: new Date("2015-02-24T00:00:00") }
+          { start: new Date('2015-02-20T00:00:00Z'), end: new Date('2015-02-21T00:00:00Z') },
+          { start: new Date('2015-02-22T00:00:00Z'), end: new Date('2015-02-24T00:00:00Z') }
         ]
       }
     ]);
@@ -92,16 +92,16 @@ describe("Set", () => {
       expect(Set.fromJS({
         setType: 'TIME_RANGE',
         elements: [
-          { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-21T00:00:00") },
-          { start: new Date("2015-02-22T00:00:00"), end: new Date("2015-02-24T00:00:00") }
+          { start: new Date('2015-02-20T00:00:00Z'), end: new Date('2015-02-21T00:00:00Z') },
+          { start: new Date('2015-02-22T00:00:00Z'), end: new Date('2015-02-24T00:00:00Z') }
         ]
       }).toString()).to.deep.equal('[2015-02-20T00:00:00Z,2015-02-21T00:00:00Z], [2015-02-22T00:00:00Z,2015-02-24T00:00:00Z]');
 
       expect(Set.fromJS({
         setType: 'TIME_RANGE',
         elements: [
-          { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-21T00:00:00") },
-          { start: new Date("2015-02-22T00:00:00"), end: new Date("2015-02-24T00:00:00") }
+          { start: new Date('2015-02-20T00:00:00Z'), end: new Date('2015-02-21T00:00:00Z') },
+          { start: new Date('2015-02-22T00:00:00Z'), end: new Date('2015-02-24T00:00:00Z') }
         ]
       }).toString(Timezone.fromJS('Asia/Kathmandu'))).to.deep.equal('[2015-02-20T05:45:00+05:45,2015-02-21T05:45:00+05:45], [2015-02-22T05:45:00+05:45,2015-02-24T05:45:00+05:45]');
 
@@ -211,21 +211,21 @@ describe("Set", () => {
       expect(Set.fromJS({
         setType: 'TIME_RANGE',
         elements: [
-          { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-21T00:00:00") },
-          { start: new Date("2015-02-21T00:00:00"), end: new Date("2015-02-22T00:00:00") },
-          { start: new Date("2015-02-22T00:00:00"), end: new Date("2015-02-23T00:00:00") },
+          { start: new Date('2015-02-20T00:00:00Z'), end: new Date('2015-02-21T00:00:00Z') },
+          { start: new Date('2015-02-21T00:00:00Z'), end: new Date('2015-02-22T00:00:00Z') },
+          { start: new Date('2015-02-22T00:00:00Z'), end: new Date('2015-02-23T00:00:00Z') },
 
-          { start: new Date("2015-02-25T00:00:00"), end: new Date("2015-02-26T00:00:00") },
-          { start: new Date("2015-02-26T00:00:00"), end: new Date("2015-02-27T00:00:00") },
+          { start: new Date('2015-02-25T00:00:00Z'), end: new Date('2015-02-26T00:00:00Z') },
+          { start: new Date('2015-02-26T00:00:00Z'), end: new Date('2015-02-27T00:00:00Z') },
 
-          { start: new Date("2015-02-28T00:00:00"), end: null }
+          { start: new Date('2015-02-28T00:00:00Z'), end: null }
         ]
       }).unifyElements().toJS()).to.deep.equal({
         setType: 'TIME_RANGE',
         elements: [
-          { start: new Date("2015-02-20T00:00:00"), end: new Date("2015-02-23T00:00:00") },
-          { start: new Date("2015-02-25T00:00:00"), end: new Date("2015-02-27T00:00:00") },
-          { start: new Date("2015-02-28T00:00:00"), end: null }
+          { start: new Date('2015-02-20T00:00:00Z'), end: new Date('2015-02-23T00:00:00Z') },
+          { start: new Date('2015-02-25T00:00:00Z'), end: new Date('2015-02-27T00:00:00Z') },
+          { start: new Date('2015-02-28T00:00:00Z'), end: null }
         ]
       });
     });

@@ -94,8 +94,8 @@ describe("DruidExternal Rollup", () => {
       ],
       allowSelectQueries: true,
       filter: $("time").overlap({
-        start: new Date('2015-03-12T00:00:00'),
-        end: new Date('2015-03-19T00:00:00')
+        start: new Date('2015-03-12T00:00:00Z'),
+        end: new Date('2015-03-19T00:00:00Z')
       })
     })
   };

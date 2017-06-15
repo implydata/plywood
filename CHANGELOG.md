@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.14
+
+- Fix bug in `.cast("NUMBER")`
+- Change tests to work with node8
+- Updated examples
+
 ## 0.17.13
 
 - Add engine property to `rawQueries`

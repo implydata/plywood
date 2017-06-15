@@ -163,18 +163,18 @@ function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
       }
 
     case 'TIME':
-      return new Date('2015-03-14T00:00:00');
+      return new Date('2015-03-14T00:00:00Z');
 
     case 'TIME_RANGE':
       if (ex instanceof TimeBucketExpression) {
         let timezone = ex.timezone || Timezone.UTC;
-        let start = ex.duration.floor(new Date('2015-03-14T00:00:00'), timezone);
+        let start = ex.duration.floor(new Date('2015-03-14T00:00:00Z'), timezone);
         return new TimeRange({
           start,
           end: ex.duration.shift(start, timezone, 1)
         });
       } else {
-        return new TimeRange({ start: new Date('2015-03-14T00:00:00'), end: new Date('2015-03-15T00:00:00') });
+        return new TimeRange({ start: new Date('2015-03-14T00:00:00Z'), end: new Date('2015-03-15T00:00:00Z') });
       }
 
     case 'STRING':

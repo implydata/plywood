@@ -360,7 +360,7 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toCSV({ lineBreak: '\n' })).to.deep.equal(sane`
             City,TotalAdded
-            NULL,31529720
+            null,31529720
             Mineola,50836
           `);
         });
@@ -1468,6 +1468,57 @@ describe("Druid Functional", function() {
                 "start": new Date('2015-09-12T16:00:00.000Z')
               },
               "count": 1
+            }
+          ]);
+        });
+    });
+
+    it.skip("works with single apply on string column (total)", () => {
+      let ex = $('wiki')
+        .apply('count', '$wiki.sum($commentLengthStr.cast("NUMBER"))');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          console.log('result', result);
+          expect(result.toJS().data).to.deep.equal([
+
+          ]);
+        });
+    });
+
+    it("works with applies on string columns", () => {
+      let ex = $('wiki')
+        .split($("channel"), 'Channel')
+        .apply('sum_cl', '$wiki.sum($commentLength)')
+        .apply('sum_cls', '$wiki.sum($commentLengthStr.cast("NUMBER"))')
+        .apply('min_cls', '$wiki.min($commentLengthStr.cast("NUMBER"))')
+        .apply('max_cls', '$wiki.max($commentLengthStr.cast("NUMBER"))')
+        .limit(3);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          console.log('result', result);
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "max_cls": 253,
+              "min_cls": 1,
+              "sum_cl": 267579,
+              "sum_cls": 267579,
+              "Channel": "ar"
+            },
+            {
+              "max_cls": 253,
+              "min_cls": 4,
+              "sum_cl": 12192,
+              "sum_cls": 12192,
+              "Channel": "be"
+            },
+            {
+              "max_cls": 253,
+              "min_cls": 1,
+              "sum_cl": 46398,
+              "sum_cls": 46398,
+              "Channel": "bg"
             }
           ]);
         });

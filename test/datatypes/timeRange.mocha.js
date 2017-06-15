@@ -84,7 +84,7 @@ describe("TimeRange", () => {
           start: '2015-01-26T00:00:00',
           end: '2015-01-26T02:00:00'
         }).union(TimeRange.fromJS({ start: '2015-01-26T01:00:00', end: '2015-01-26T03:00:00' })).toJS()
-      ).to.deep.equal({ start: new Date('2015-01-26T00:00:00'), end: new Date('2015-01-26T03:00:00') });
+      ).to.deep.equal({ start: new Date('2015-01-26T00:00:00Z'), end: new Date('2015-01-26T03:00:00Z') });
     });
 
     it('works correctly with a disjoint range', () => {
@@ -102,7 +102,7 @@ describe("TimeRange", () => {
           start: '2015-01-26T00:00:00',
           end: '2015-01-26T01:00:00'
         }).union(TimeRange.fromJS({ start: '2015-01-26T01:00:00', end: '2015-01-26T02:00:00' })).toJS()
-      ).to.deep.equal({ start: new Date('2015-01-26T00:00:00'), end: new Date('2015-01-26T02:00:00') });
+      ).to.deep.equal({ start: new Date('2015-01-26T00:00:00Z'), end: new Date('2015-01-26T02:00:00Z') });
     });
   });
 
@@ -114,7 +114,7 @@ describe("TimeRange", () => {
           start: '2015-01-26T00:00:00',
           end: '2015-01-26T02:00:00'
         }).intersect(TimeRange.fromJS({ start: '2015-01-26T01:00:00', end: '2015-01-26T03:00:00' })).toJS()
-      ).to.deep.equal({ start: new Date('2015-01-26T01:00:00'), end: new Date('2015-01-26T02:00:00') });
+      ).to.deep.equal({ start: new Date('2015-01-26T01:00:00Z'), end: new Date('2015-01-26T02:00:00Z') });
     });
 
     it('works correctly with a disjoint range', () => {
