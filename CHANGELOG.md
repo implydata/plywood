@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.15
+
+- Fix bug in `LOCATE`
+
 ## 0.17.14
 
 - Fix bug in `.cast("NUMBER")`

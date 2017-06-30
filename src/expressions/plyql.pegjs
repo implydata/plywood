@@ -177,7 +177,7 @@ var fns = {
   UPPER: function(op) { return upgrade(op).transformCase('upperCase'); },
   LOWER: function(op) { return upgrade(op).transformCase('lowerCase'); },
   LENGTH: function(op) { return upgrade(op).length(); },
-  LOCATE: function(op, ex) { return upgrade(op).indexOf(ex).add(1); },
+  LOCATE: function(op, ex) { return upgrade(ex).indexOf(op).add(1); },
   TIME_FLOOR: function(op, d, tz) { return upgrade(op).timeFloor(d, tz); },
   TIME_SHIFT: function(op, d, s, tz) { return upgrade(op).timeShift(d, s, tz); },
   TIME_RANGE: function(op, d, s, tz) { return upgrade(op).timeRange(d, s, tz); },

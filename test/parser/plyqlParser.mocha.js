@@ -1198,11 +1198,28 @@ describe("SQL parser", () => {
       let parse = Expression.parseSQL(sane`
         SELECT \`page\` AS 'Page',
         SUM(added) AS 'TotalAdded'
-        FROM \`wiki\` WHERE LOCATE(\`page\`, 'title') > 0
+        FROM \`wiki\` WHERE LOCATE('title', \`page\`) > 0
         GROUP BY 1
       `);
 
-      let ex2 = $('wiki').filter(i$('page').indexOf('title').add(1).overlap({ start: 0, end: null, bounds: '()' })).split("i$page", 'Page', 'data')
+      let ex2 = $('wiki').filter(i$('page').indexOf('title').add(1).overlap({ start: 0, end: null, bounds: '()' }))
+        .split("i$page", 'Page', 'data')
+        .apply('TotalAdded', '$data.sum(i$added)')
+        .select('Page', 'TotalAdded');
+
+      expect(parse.expression.simplify().toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it("should work with a LOCATE LOWER function greater than 0", () => {
+      let parse = Expression.parseSQL(sane`
+        SELECT \`page\` AS 'Page',
+        SUM(added) AS 'TotalAdded'
+        FROM \`wiki\` WHERE LOCATE('title', LOWER(\`page\`)) > 0
+        GROUP BY 1
+      `);
+
+      let ex2 = $('wiki').filter(i$('page').transformCase('lowerCase').indexOf('title').add(1).overlap({ start: 0, end: null, bounds: '()' }))
+        .split("i$page", 'Page', 'data')
         .apply('TotalAdded', '$data.sum(i$added)')
         .select('Page', 'TotalAdded');
 

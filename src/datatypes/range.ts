@@ -40,7 +40,7 @@ export abstract class Range<T> {
 
   static classMap: Record<string, typeof Range> = {};
 
-  static register(ctr: typeof Range): void {
+  static register(ctr: any): void {
     let rangeType = (<any>ctr).type.replace('_RANGE', '').toLowerCase();
     Range.classMap[rangeType] = ctr;
   }
