@@ -16,7 +16,7 @@
 
 const { expect } = require("chai");
 
-let Promise = require('any-promise');
+
 let { promiseWhile } = require("../../build/plywood");
 
 describe('Promise While', () => {

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
+
 import { Transform } from 'readable-stream';
 import { Attributes } from '../datatypes/attributeInfo';
 import { SQLDialect } from '../dialect/baseDialect';

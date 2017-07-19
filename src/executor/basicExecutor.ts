@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
 import { Datum, PlywoodValue } from '../datatypes/index';
 import { ComputeOptions, Expression } from '../expressions/baseExpression';
 

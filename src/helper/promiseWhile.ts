@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
+
 
 export function promiseWhile(condition: () => boolean, action: () => Promise<any>): Promise<any> {
   let loop = (): Promise<any> => {

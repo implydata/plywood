@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
+
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
 import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes/index';

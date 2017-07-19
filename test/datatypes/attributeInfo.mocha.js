@@ -28,6 +28,8 @@ describe("AttributeInfo", () => {
       { name: 'time', type: 'TIME' },
       { name: 'color', type: 'STRING' },
       { name: 'cut', type: 'STRING' },
+      { name: 'cut', type: 'STRING', cardinality: 100 },
+      { name: 'cut', type: 'STRING', range: { start: 'A', end: 'F' } },
       { name: 'tags', type: 'SET/STRING' },
       { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
       { name: 'count', type: 'NUMBER', unsplitable: true, maker: { op: 'count' } },

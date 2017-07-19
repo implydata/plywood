@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
 import { Duration, Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
 import { immutableArraysEqual, immutableLookupsEqual, NamedArray, SimpleArray } from 'immutable-class';
@@ -85,6 +84,10 @@ export interface QueryAndPostTransform<T> {
 
 export interface Inflater {
   (d: Datum): void;
+}
+
+export interface IntrospectOptions {
+  deep?: boolean;
 }
 
 export type QueryMode = "raw" | "value" | "total" | "split";
@@ -1534,9 +1537,9 @@ export abstract class External {
     return !this.rawAttributes.length;
   }
 
-  protected abstract getIntrospectAttributes(): Promise<Attributes>
+  protected abstract getIntrospectAttributes(deep: boolean): Promise<Attributes>;
 
-  public introspect(): Promise<External> {
+  public introspect(options: IntrospectOptions = {}): Promise<External> {
     if (!this.requester) {
       return <Promise<External>>Promise.reject(new Error('must have a requester to introspect'));
     }
@@ -1545,11 +1548,11 @@ export abstract class External {
       return (this.constructor as any).getVersion(this.requester).then((version: string) => {
         version = External.extractVersion(version);
         if (!version) throw new Error('external version not found, please specify explicitly');
-        return this.changeVersion(version).introspect();
+        return this.changeVersion(version).introspect(options);
       });
     }
 
-    return this.getIntrospectAttributes()
+    return this.getIntrospectAttributes(options.deep)
       .then((attributes) => {
         let value = this.valueOf();
 

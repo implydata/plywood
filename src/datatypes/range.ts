@@ -22,6 +22,12 @@ const BOUNDS_REG_EXP = /^[\[(][\])]$/;
 
 export type PlywoodRange = Range<number | Date | string>;
 
+export interface PlywoodRangeJS {
+  start: null | number | Date | string;
+  end: null | number | Date | string;
+  bounds?: string;
+}
+
 export abstract class Range<T> {
   static DEFAULT_BOUNDS = '[)';
 
@@ -45,8 +51,7 @@ export abstract class Range<T> {
     Range.classMap[rangeType] = ctr;
   }
 
-  // ToDo: enforce stricter typing here
-  static fromJS(parameters: any): PlywoodRange {
+  static fromJS(parameters: PlywoodRangeJS): PlywoodRange {
     let ctr: string;
     if (typeof parameters.start === 'number' || typeof parameters.end === 'number') {
       ctr = 'number';
@@ -114,6 +119,12 @@ export abstract class Range<T> {
   }
 
   public abstract equals(other: Range<T>): boolean;
+
+  public abstract toJS(): PlywoodRangeJS;
+
+  public toJSON(): any {
+    return this.toJS();
+  }
 
   public toString(tz?: Timezone): string {
     let bounds = this.bounds;

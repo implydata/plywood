@@ -78,10 +78,6 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
     return js;
   }
 
-  public toJSON(): StringRangeJS {
-    return this.toJS();
-  }
-
   public equals(other: StringRange): boolean {
     return other instanceof StringRange && this._equalsHelper(other);
   }

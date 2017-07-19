@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
+
 import * as Druid from 'druid.d.ts';
 import * as hasOwnProp from 'has-own-prop';
 import { PlywoodRequester } from 'plywood-base-api';
 import { Transform } from 'readable-stream';
 import * as toArray from 'stream-to-array';
-import { AttributeInfo, Attributes, Datum, Set } from '../datatypes/index';
+import { AttributeInfo, Attributes, Datum, PlywoodRange, Range, Set, TimeRange } from '../datatypes/index';
 import {
   $,
   ApplyExpression,
@@ -93,11 +93,6 @@ export interface DruidSplit {
   leftoverHavingFilter?: Expression;
   postTransform: Transform;
 }
-
-export interface IntrospectPostProcess {
-  (result: any): Attributes;
-}
-
 
 export class DruidExternal extends External {
   static engine = 'druid';
@@ -244,100 +239,112 @@ export class DruidExternal extends External {
     }
   }
 
-  static segmentMetadataPostProcessFactory(timeAttribute: string, numericColumnSupport: boolean): IntrospectPostProcess {
-    return (res: Druid.SegmentMetadataResults): Attributes => {
-      let res0 = res[0];
-      if (!res0 || !res0.columns) throw new InvalidResultError('malformed segmentMetadata response', res);
-      let columns = res0.columns;
-      let aggregators = res0.aggregators || {};
-
-      let foundTime = false;
-      let attributes: Attributes = [];
-      for (let name in columns) {
-        if (!hasOwnProp(columns, name)) continue;
-        let columnData = columns[name];
-
-        // Error conditions
-        if (columnData.errorMessage || columnData.size < 0) continue;
-
-        if (name === DruidExternal.TIME_ATTRIBUTE) {
-          attributes.push(new AttributeInfo({
-            name: timeAttribute,
-            type: 'TIME',
-            nativeType: '__time'
-          }));
-          foundTime = true;
-
-        } else {
-          if (name === timeAttribute) continue; // Ignore dimensions and metrics that clash with the timeAttribute name
-          const nativeType = columnData.type;
-          switch (columnData.type) {
-            case 'FLOAT':
-            case 'LONG':
-              attributes.push(new AttributeInfo({
-                name,
-                type: 'NUMBER',
-                nativeType,
-                unsplitable: !(numericColumnSupport && !hasOwnProp(aggregators, name)),
-                maker: DruidExternal.generateMaker(aggregators[name])
-              }));
-              break;
-
-            case 'STRING':
-              attributes.push(new AttributeInfo({
-                name,
-                type: columnData.hasMultipleValues ? 'SET/STRING' : 'STRING',
-                nativeType
-              }));
-              break;
-
-            case 'hyperUnique':
-            case 'approximateHistogram':
-            case 'thetaSketch':
-              attributes.push(new AttributeInfo({
-                name,
-                type: 'NULL',
-                nativeType,
-                unsplitable: true
-              }));
-              break;
-
-            default:
-              attributes.push(new AttributeInfo({
-                name,
-                type: 'NULL',
-                nativeType
-              }));
-              break;
-          }
-        }
-      }
-
-      if (!foundTime) throw new Error(`no valid ${DruidExternal.TIME_ATTRIBUTE} in segmentMetadata response`);
-      return attributes;
-    };
+  static columnMetadataToRange(columnMetadata: Druid.ColumnMetadata): null | PlywoodRange {
+    const { minValue, maxValue } = columnMetadata;
+    if (minValue == null || maxValue == null) return null;
+    return Range.fromJS({
+      start: minValue,
+      end: maxValue,
+      bounds: '[]'
+    });
   }
 
-  static introspectPostProcessFactory(timeAttribute: string): IntrospectPostProcess {
-    return (res: Druid.DatasourceIntrospectResult[]): Attributes => {
-      const res0 = res[0];
-      if (!Array.isArray(res0.dimensions) || !Array.isArray(res0.metrics)) {
-        throw new InvalidResultError('malformed GET introspect response', res);
-      }
+  static segmentMetadataPostProcess(timeAttribute: string, numericColumnSupport: boolean, res: Druid.SegmentMetadataResults): Attributes {
+    let res0 = res[0];
+    if (!res0 || !res0.columns) throw new InvalidResultError('malformed segmentMetadata response', res);
+    let columns = res0.columns;
+    let aggregators = res0.aggregators || {};
 
-      let attributes: Attributes = [
-        new AttributeInfo({ name: timeAttribute, type: 'TIME', nativeType: '__time' })
-      ];
-      res0.dimensions.forEach(dimension => {
-        if (dimension === timeAttribute) return; // Ignore dimensions that clash with the timeAttribute name
-        attributes.push(new AttributeInfo({ name: dimension, type: 'STRING', nativeType: 'STRING' }));
-      });
-      res0.metrics.forEach(metric => {
-        if (metric === timeAttribute) return; // Ignore metrics that clash with the timeAttribute name
-        attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', nativeType: 'FLOAT', unsplitable: true }));
-      });
-      return attributes;
-    };
+    let foundTime = false;
+    let attributes: Attributes = [];
+    for (let name in columns) {
+      if (!hasOwnProp(columns, name)) continue;
+      let columnData = columns[name];
+
+      // Error conditions
+      if (columnData.errorMessage || columnData.size < 0) continue;
+
+      if (name === DruidExternal.TIME_ATTRIBUTE) {
+        attributes.unshift(new AttributeInfo({
+          name: timeAttribute,
+          type: 'TIME',
+          nativeType: '__time',
+          cardinality: columnData.cardinality,
+          range: DruidExternal.columnMetadataToRange(columnData)
+        }));
+        foundTime = true;
+
+      } else {
+        if (name === timeAttribute) continue; // Ignore dimensions and metrics that clash with the timeAttribute name
+        const nativeType = columnData.type;
+        switch (columnData.type) {
+          case 'FLOAT':
+          case 'LONG':
+            attributes.push(new AttributeInfo({
+              name,
+              type: 'NUMBER',
+              nativeType,
+              unsplitable: !(numericColumnSupport && !hasOwnProp(aggregators, name)),
+              maker: DruidExternal.generateMaker(aggregators[name]),
+              cardinality: columnData.cardinality,
+              range: DruidExternal.columnMetadataToRange(columnData)
+            }));
+            break;
+
+          case 'STRING':
+            attributes.push(new AttributeInfo({
+              name,
+              type: columnData.hasMultipleValues ? 'SET/STRING' : 'STRING',
+              nativeType,
+              cardinality: columnData.cardinality,
+              range: DruidExternal.columnMetadataToRange(columnData)
+            }));
+            break;
+
+          case 'hyperUnique':
+          case 'approximateHistogram':
+          case 'thetaSketch':
+            attributes.push(new AttributeInfo({
+              name,
+              type: 'NULL',
+              nativeType,
+              unsplitable: true
+            }));
+            break;
+
+          default:
+            attributes.push(new AttributeInfo({
+              name,
+              type: 'NULL',
+              nativeType
+            }));
+            break;
+        }
+      }
+    }
+
+    if (!foundTime) throw new Error(`no valid ${DruidExternal.TIME_ATTRIBUTE} in segmentMetadata response`);
+    return attributes;
+  }
+
+  static introspectPostProcessFactory(timeAttribute: string, res: Druid.DatasourceIntrospectResult[]): Attributes {
+    const res0 = res[0];
+    if (!Array.isArray(res0.dimensions) || !Array.isArray(res0.metrics)) {
+      throw new InvalidResultError('malformed GET introspect response', res);
+    }
+
+    let attributes: Attributes = [
+      new AttributeInfo({ name: timeAttribute, type: 'TIME', nativeType: '__time' })
+    ];
+    res0.dimensions.forEach(dimension => {
+      if (dimension === timeAttribute) return; // Ignore dimensions that clash with the timeAttribute name
+      attributes.push(new AttributeInfo({ name: dimension, type: 'STRING', nativeType: 'STRING' }));
+    });
+    res0.metrics.forEach(metric => {
+      if (metric === timeAttribute) return; // Ignore metrics that clash with the timeAttribute name
+      attributes.push(new AttributeInfo({ name: metric, type: 'NUMBER', nativeType: 'FLOAT', unsplitable: true }));
+    });
+    return attributes;
   }
 
   /**
@@ -1088,14 +1095,19 @@ export class DruidExternal extends External {
     }
   }
 
-  protected getIntrospectAttributesWithSegmentMetadata(): Promise<Attributes> {
+  protected async getIntrospectAttributesWithSegmentMetadata(deep: boolean): Promise<Attributes> {
     let { requester, timeAttribute, context } = this;
+
+    let analysisTypes: string[] = ['aggregators'];
+    if (deep) {
+      analysisTypes.push('cardinality', 'minmax');
+    }
 
     let query: Druid.Query = {
       queryType: 'segmentMetadata',
       dataSource: this.getDruidDataSource(),
       merge: true,
-      analysisTypes: ['aggregators'],
+      analysisTypes,
       lenientAggregatorMerge: true
     };
 
@@ -1113,33 +1125,56 @@ export class DruidExternal extends External {
       query.dataSource = (query.dataSource as Druid.DataSourceFull).dataSources[0];
     }
 
-    return toArray(requester({ query }))
-      .then(DruidExternal.segmentMetadataPostProcessFactory(timeAttribute, !this.versionBefore('0.10.0')));
+    const res = await toArray(requester({ query }));
+    let attributes = DruidExternal.segmentMetadataPostProcess(timeAttribute, !this.versionBefore('0.10.0'), res);
+
+    if (deep && attributes.length && !attributes[0].range) {
+      query = {
+        queryType: "timeBoundary",
+        dataSource: this.getDruidDataSource()
+      };
+
+      if (context) {
+        query.context = context;
+      }
+
+      const resTB = await toArray(requester({ query }));
+      const resTB0: any = resTB[0];
+
+      attributes[0] = attributes[0].changeRange(TimeRange.fromJS({
+        start: resTB0.minTime,
+        end: resTB0.maxTime,
+        bounds: '[]'
+      }));
+    }
+
+    return attributes;
   }
 
-  protected getIntrospectAttributesWithGet(): Promise<Attributes> {
+  protected async getIntrospectAttributesWithGet(): Promise<Attributes> {
     let { requester, timeAttribute } = this;
 
-    return toArray(requester({
+    const res = await toArray(requester({
       query: {
         queryType: 'introspect',
         dataSource: this.getDruidDataSource()
       }
-    }))
-      .then(DruidExternal.introspectPostProcessFactory(timeAttribute));
+    }));
+
+    return DruidExternal.introspectPostProcessFactory(timeAttribute, res);
   }
 
-  protected getIntrospectAttributes(): Promise<Attributes> {
+  protected getIntrospectAttributes(deep: boolean): Promise<Attributes> {
     switch (this.introspectionStrategy) {
       case 'segment-metadata-fallback':
-        return this.getIntrospectAttributesWithSegmentMetadata()
+        return this.getIntrospectAttributesWithSegmentMetadata(deep)
           .catch((err: Error) => {
             if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
             return this.getIntrospectAttributesWithGet();
           });
 
       case 'segment-metadata-only':
-        return this.getIntrospectAttributesWithSegmentMetadata();
+        return this.getIntrospectAttributesWithSegmentMetadata(deep);
 
       case 'datasource-get':
         return this.getIntrospectAttributesWithGet();

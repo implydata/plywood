@@ -15,7 +15,7 @@
  */
 
 const { expect } = require("chai");
-let Promise = require('any-promise');
+
 let { sane } = require('../utils');
 
 let plywood = require('../plywood');

@@ -19,6 +19,7 @@ import * as hasOwnProp from 'has-own-prop';
 import { Class, immutableEqual, Instance, NamedArray } from 'immutable-class';
 import { Expression, ExpressionJS, RefExpression } from '../expressions/index';
 import { FullType, PlyType } from '../types';
+import { Range, PlywoodRange, PlywoodRangeJS } from './range';
 
 export type Attributes = AttributeInfo[];
 export type AttributeJSs = AttributeInfoJS[];
@@ -29,6 +30,8 @@ export interface AttributeInfoValue {
   nativeType?: string;
   unsplitable?: boolean;
   maker?: Expression;
+  cardinality?: number;
+  range?: PlywoodRange;
 }
 
 export interface AttributeInfoJS {
@@ -37,6 +40,8 @@ export interface AttributeInfoJS {
   nativeType?: string;
   unsplitable?: boolean;
   maker?: ExpressionJS;
+  cardinality?: number;
+  range?: PlywoodRangeJS;
 }
 
 let check: Class<AttributeInfoValue, AttributeInfoJS>;
@@ -71,6 +76,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
     let maker = parameters.maker || (parameters as any).makerAction;
     if (maker) value.maker = Expression.fromJS(maker);
+    if (parameters.cardinality) value.cardinality = parameters.cardinality;
+    if (parameters.range) value.range = Range.fromJS(parameters.range);
 
     return new AttributeInfo(value);
   }
@@ -95,6 +102,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   public datasetType?: Record<string, FullType>;
   public unsplitable: boolean;
   public maker?: Expression;
+  public cardinality?: number;
+  public range?: PlywoodRange;
 
   constructor(parameters: AttributeInfoValue) {
     if (typeof parameters.name !== "string") {
@@ -106,9 +115,9 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
     this.unsplitable = Boolean(parameters.unsplitable);
     this.maker = parameters.maker;
-    if (parameters.nativeType) {
-      this.nativeType = parameters.nativeType;
-    }
+    if (parameters.nativeType) this.nativeType = parameters.nativeType;
+    if (parameters.cardinality) this.cardinality = parameters.cardinality;
+    if (parameters.range) this.range = parameters.range;
   }
 
   public toString(): string {
@@ -122,7 +131,9 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       type: this.type,
       unsplitable: this.unsplitable,
       nativeType: this.nativeType,
-      maker: this.maker
+      maker: this.maker,
+      cardinality: this.cardinality,
+      range: this.range
     };
   }
 
@@ -134,6 +145,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     if (this.nativeType) js.nativeType = this.nativeType;
     if (this.unsplitable) js.unsplitable = true;
     if (this.maker) js.maker = this.maker.toJS();
+    if (this.cardinality) js.cardinality = this.cardinality;
+    if (this.range) js.range = this.range.toJS();
     return js;
   }
 
@@ -147,7 +160,9 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       this.type === other.type &&
       this.nativeType === other.nativeType &&
       this.unsplitable === other.unsplitable &&
-      immutableEqual(this.maker, other.maker);
+      immutableEqual(this.maker, other.maker) &&
+      this.cardinality === other.cardinality &&
+      immutableEqual(this.range, other.range);
   }
 
   public dropOriginInfo(): AttributeInfo {
@@ -155,6 +170,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     delete value.maker;
     delete value.nativeType;
     value.unsplitable = false;
+    delete value.cardinality;
+    delete value.range;
     return new AttributeInfo(value);
   }
 
@@ -182,6 +199,12 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   public changeUnsplitable(unsplitable: boolean): AttributeInfo {
     let value = this.valueOf();
     value.unsplitable = unsplitable;
+    return new AttributeInfo(value);
+  }
+
+  public changeRange(range: PlywoodRange): AttributeInfo {
+    let value = this.valueOf();
+    value.range = range;
     return new AttributeInfo(value);
   }
 }

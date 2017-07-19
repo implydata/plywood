@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.17
+
+- Allow deep introspection
+- Move away from any-promise towards native promises
+
 ## 0.17.16
 
 - Fix bug in several PlyQL functions where string inputs were interpreted as plywood expressions leading to errors on values with spaces

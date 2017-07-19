@@ -40,6 +40,11 @@ describe("Druid Functional", function() {
     {
       "name": "time",
       "nativeType": "__time",
+      "range": {
+        "bounds": "[]",
+        "end": new Date('2015-09-12T23:59:00.000Z'),
+        "start": new Date('2015-09-12T00:46:00.000Z')
+      },
       "type": "TIME"
     },
     {
@@ -56,18 +61,36 @@ describe("Druid Functional", function() {
       "unsplitable": true
     },
     {
+      "cardinality": 52,
       "name": "channel",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "zh",
+        "start": "ar"
+      },
       "type": "STRING"
     },
     {
+      "cardinality": 3719,
       "name": "cityName",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "Ōita",
+        "start": ""
+      },
       "type": "STRING"
     },
     {
+      "cardinality": 138678,
       "name": "comment",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "ｒｖ",
+        "start": "!"
+      },
       "type": "STRING"
     },
     {
@@ -76,8 +99,14 @@ describe("Druid Functional", function() {
       "type": "NUMBER"
     },
     {
+      "cardinality": 255,
       "name": "commentLengthStr",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "99",
+        "start": "1"
+      },
       "type": "STRING"
     },
     {
@@ -90,13 +119,25 @@ describe("Druid Functional", function() {
       "unsplitable": true
     },
     {
+      "cardinality": 157,
       "name": "countryIsoCode",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "ZW",
+        "start": ""
+      },
       "type": "STRING"
     },
     {
+      "cardinality": 157,
       "name": "countryName",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "Zimbabwe",
+        "start": ""
+      },
       "type": "STRING"
     },
     {
@@ -183,8 +224,14 @@ describe("Druid Functional", function() {
       "unsplitable": true
     },
     {
+      "cardinality": 167,
       "name": "metroCode",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "881",
+        "start": ""
+      },
       "type": "STRING"
     },
     {
@@ -201,13 +248,25 @@ describe("Druid Functional", function() {
       "unsplitable": true
     },
     {
+      "cardinality": 416,
       "name": "namespace",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "파일",
+        "start": "2"
+      },
       "type": "STRING"
     },
     {
+      "cardinality": 279893,
       "name": "page",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "［Alexandros］",
+        "start": "!T.O.O.H.!"
+      },
       "type": "STRING"
     },
     {
@@ -217,13 +276,25 @@ describe("Druid Functional", function() {
       "unsplitable": true
     },
     {
+      "cardinality": 670,
       "name": "regionIsoCode",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "ZP",
+        "start": ""
+      },
       "type": "STRING"
     },
     {
+      "cardinality": 1068,
       "name": "regionName",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "Świętokrzyskie",
+        "start": ""
+      },
       "type": "STRING"
     },
     {
@@ -236,13 +307,25 @@ describe("Druid Functional", function() {
       "type": "NUMBER"
     },
     {
+      "cardinality": 38234,
       "name": "user",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "ＫＡＺＵ",
+        "start": "! Bikkit !"
+      },
       "type": "STRING"
     },
     {
+      "cardinality": 1401,
       "name": "userChars",
       "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "～",
+        "start": " "
+      },
       "type": "SET/STRING"
     },
     {
@@ -3745,7 +3828,7 @@ describe("Druid Functional", function() {
     });
 
     it("introspects version and attributes", () => {
-      return wikiExternal.introspect()
+      return wikiExternal.introspect({ deep: true })
         .then((introspectedExternal) => {
           expect(introspectedExternal.version).to.equal(info.druidVersion);
           expect(introspectedExternal.toJS().attributes).to.deep.equal(wikiAttributes);

@@ -18,7 +18,7 @@
 const { expect } = require("chai");
 
 const { PassThrough } = require('readable-stream');
-let Promise = require('any-promise');
+
 const toArray = require('stream-to-array');
 
 let { concurrentLimitRequesterFactory } = require("../../build/plywood");

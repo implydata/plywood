@@ -16,7 +16,7 @@
  */
 
 const { expect } = require("chai");
-let Promise = require('any-promise');
+
 
 let { Expression, toJS } = require('../build/plywood');
 

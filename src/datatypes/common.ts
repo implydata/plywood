@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as Promise from 'any-promise';
 import { isDate } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
 import { Expression } from '../expressions/baseExpression';

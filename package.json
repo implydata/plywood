@@ -33,9 +33,8 @@
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
-    "any-promise": "^1.3.0",
     "chronoshift": "~0.6.7",
-    "druid.d.ts": "~0.10.3",
+    "druid.d.ts": "~0.10.4",
     "has-own-prop": "^1.0.0",
     "immutable-class": "~0.6.33",
     "moment-timezone": "~0.5.13",
@@ -57,7 +56,7 @@
     "plywood-mysql-requester": "2.1.0",
     "plywood-postgres-requester": "1.2.0",
     "readable-stream": "^2.3.3",
-    "tdi": "0.3.10",
+    "tdi": "0.3.11",
     "tslint": "5.5.0",
     "typescript": "2.4.1",
     "uglify-js": "3.0.25"

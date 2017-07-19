@@ -16,7 +16,7 @@
 
 const { expect } = require("chai");
 const { PassThrough } = require('readable-stream');
-let Promise = require('any-promise');
+
 let { sane } = require('../utils');
 
 let plywood = require('../plywood');

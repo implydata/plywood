@@ -125,10 +125,6 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
     return js;
   }
 
-  public toJSON(): TimeRangeJS {
-    return this.toJS();
-  }
-
   public equals(other: TimeRange): boolean {
     return other instanceof TimeRange && this._equalsHelper(other);
   }

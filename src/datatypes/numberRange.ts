@@ -92,10 +92,6 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
     return js;
   }
 
-  public toJSON(): NumberRangeJS {
-    return this.toJS();
-  }
-
   public equals(other: NumberRange): boolean {
     return other instanceof NumberRange && this._equalsHelper(other);
   }
