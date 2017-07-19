@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.16
+
+- Fix bug in several PlyQL functions where string inputs were interpreted as plywood expressions leading to errors on values with spaces
+
 ## 0.17.15
 
 - Fix bug in `LOCATE`

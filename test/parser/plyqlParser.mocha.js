@@ -214,21 +214,25 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
-    it("should handle fallback --", () => {
+    it("should handle fallback", () => {
       let parse = Expression.parseSQL("IFNULL(null,'fallback')");
       let parse2 = Expression.parseSQL("IFNULL(null, SUM(deleted))");
       let parse3 = Expression.parseSQL("IFNULL(SUM(`added`), SUM(deleted))");
       let parse4 = Expression.parseSQL("FALLBACK(SUM(`added`), SUM(deleted))");
+      let parse5 = Expression.parseSQL("FALLBACK(`added`, 'lol lol')");
 
       let ex = r(null).fallback('fallback');
       let ex2 = r(null).fallback('$data.sum(i$deleted)');
       let ex3 = $data.sum('i$added').fallback('$data.sum(i$deleted)');
+      let ex4 = ex3;
+      let ex5 = i$('added').fallback(r('lol lol'));
 
       expect(parse.verb).to.equal(null);
       expect(parse.expression.toJS()).to.deep.equal(ex.toJS());
       expect(parse2.expression.toJS()).to.deep.equal(ex2.toJS());
       expect(parse3.expression.toJS()).to.deep.equal(ex3.toJS());
-      expect(parse4.expression.toJS()).to.deep.equal(ex3.toJS());
+      expect(parse4.expression.toJS()).to.deep.equal(ex4.toJS());
+      expect(parse5.expression.toJS()).to.deep.equal(ex5.toJS());
     });
 
     it("works with NOW()", () => {
@@ -1158,6 +1162,14 @@ describe("SQL parser", () => {
       expect(parse.expression.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it("should fail gracefully on invalid cast", () => {
+      expect(() => {
+        Expression.parseSQL(sane`
+          SELECT CAST(\`commentLength\` AS MOOMIN) as castedString FROM \`wiki\`
+        `);
+      }).to.throw('can not handle CAST to MOOMIN');
+    });
+
     it("should work with a SUBSTR and CONCAT function", () => {
       let parse = Expression.parseSQL(sane`
         SELECT
@@ -1202,7 +1214,7 @@ describe("SQL parser", () => {
         GROUP BY 1
       `);
 
-      let ex2 = $('wiki').filter(i$('page').indexOf('title').add(1).overlap({ start: 0, end: null, bounds: '()' }))
+      let ex2 = $('wiki').filter(i$('page').indexOf(r('title')).add(1).overlap({ start: 0, end: null, bounds: '()' }))
         .split("i$page", 'Page', 'data')
         .apply('TotalAdded', '$data.sum(i$added)')
         .select('Page', 'TotalAdded');
@@ -1214,11 +1226,11 @@ describe("SQL parser", () => {
       let parse = Expression.parseSQL(sane`
         SELECT \`page\` AS 'Page',
         SUM(added) AS 'TotalAdded'
-        FROM \`wiki\` WHERE LOCATE('title', LOWER(\`page\`)) > 0
+        FROM \`wiki\` WHERE LOCATE('good title', LOWER(\`page\`)) > 0
         GROUP BY 1
       `);
 
-      let ex2 = $('wiki').filter(i$('page').transformCase('lowerCase').indexOf('title').add(1).overlap({ start: 0, end: null, bounds: '()' }))
+      let ex2 = $('wiki').filter(i$('page').transformCase('lowerCase').indexOf(r('good title')).add(1).overlap({ start: 0, end: null, bounds: '()' }))
         .split("i$page", 'Page', 'data')
         .apply('TotalAdded', '$data.sum(i$added)')
         .select('Page', 'TotalAdded');

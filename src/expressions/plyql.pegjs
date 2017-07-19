@@ -22,6 +22,7 @@ var $ = plywood.$;
 var i$ = plywood.i$;
 var r = plywood.r;
 var Expression = plywood.Expression;
+var LiteralExpression = plywood.LiteralExpression;
 var MatchExpression = plywood.MatchExpression;
 var SortExpression = plywood.SortExpression;
 var Set = plywood.Set;
@@ -123,7 +124,16 @@ function findTimePart(fmt, lookup) {
 
 var castTypes = {
   CHAR: 'STRING',
-  SIGNED: 'NUMBER'
+  CHARACTER: 'STRING',
+  VARCHAR: 'STRING',
+  TEXT: 'STRING',
+  SIGNED: 'NUMBER',
+  FLOAT: 'NUMBER',
+  REAL: 'NUMBER',
+  INTEGER: 'NUMBER',
+  BIGINT: 'NUMBER',
+  DECIMAL: 'NUMBER',
+  NUMERIC: 'NUMBER'
 }
 
 function upgrade(v) {
@@ -131,9 +141,15 @@ function upgrade(v) {
   return v;
 }
 
+function extractString(param) {
+  if (param instanceof LiteralExpression && param.type === 'STRING') {
+    return param.value;
+  }
+  error('expecting a string but got ' + param + ' instead');
+}
+
 function dateAddSub(op, d) {
-  if (d !== 0) error('only zero interval supported in date add and sub');
-  op = upgrade(op);
+  if (!Expression.ZERO.equals(d)) error('only zero interval supported in date add and sub');
 
   var headOperand = op.getHeadOperand();
   if (headOperand.op === 'ref') {
@@ -152,49 +168,49 @@ function dateAddSub(op, d) {
 
 var notImplemented = function() { error('not implemented yet'); };
 var fns = {
-  ABSOLUTE: function(op) { return upgrade(op).absolute(); },
-  OVERLAP: function(op, ex) { return upgrade(op).overlap(ex); },
-  SQRT: function(op) { return upgrade(op).power(0.5); },
+  ABSOLUTE: function(op) { return op.absolute(); },
+  OVERLAP: function(op, ex) { return op.overlap(ex); },
+  SQRT: function(op) { return op.power(0.5); },
   EXP: function(ex) { return r(Math.E).power(ex); },
-  POWER: function(op, ex) { return upgrade(op).power(ex); },
+  POWER: function(op, ex) { return op.power(ex); },
   NOW: function() { return r(new Date()); },
   CURDATE: function() { return r(chronoshift.day.floor(new Date(), Timezone.UTC)); },
-  CUSTOM_TRANSFORM: function(op, fn) { return upgrade(op).customTransform(fn); },
+  CUSTOM_TRANSFORM: function(op, fn) { return op.customTransform(fn); },
   ISNULL: function(ex) { return ex.is(null); },
-  FALLBACK: function(op, ex) { return upgrade(op).fallback(ex); },
-  IF: function(op, ex1, ex2) { return upgrade(op).then(ex1).fallback(ex2); },
-  NULLIF: function(op, ex1) { return upgrade(op).isnt(ex1).then(upgrade(op)); },
-  MATCH: function(op, reg) { return upgrade(op).match(reg); },
-  EXTRACT: function(op, reg) { return upgrade(op).extract(reg); },
+  FALLBACK: function(op, ex) { return op.fallback(ex); },
+  IF: function(op, ex1, ex2) { return op.then(ex1).fallback(ex2); },
+  NULLIF: function(op, ex1) { return op.isnt(ex1).then(op); },
+  MATCH: function(op, reg) { return op.match(reg); },
+  EXTRACT: function(op, reg) { return op.extract(reg); },
   CONCAT: function() {
-    return Expression.concat(Array.prototype.map.call(arguments, function(arg) {
-      var e = upgrade(arg);
+    return Expression.concat(Array.prototype.map.call(arguments, function(e) {
       if (e.type === 'NUMBER') e = e.cast('STRING');
       return e;
     }));
   },
-  SUBSTRING: function(op, i, n) { return upgrade(op).substr(i, n); },
-  UPPER: function(op) { return upgrade(op).transformCase('upperCase'); },
-  LOWER: function(op) { return upgrade(op).transformCase('lowerCase'); },
-  LENGTH: function(op) { return upgrade(op).length(); },
-  LOCATE: function(op, ex) { return upgrade(ex).indexOf(op).add(1); },
-  TIME_FLOOR: function(op, d, tz) { return upgrade(op).timeFloor(d, tz); },
-  TIME_SHIFT: function(op, d, s, tz) { return upgrade(op).timeShift(d, s, tz); },
-  TIME_RANGE: function(op, d, s, tz) { return upgrade(op).timeRange(d, s, tz); },
-  TIME_BUCKET: function(op, d, tz) { return upgrade(op).timeBucket(d, tz); },
-  NUMBER_BUCKET: function(op, s, o) { return upgrade(op).numberBucket(s, o); },
-  TIME_PART: function(op, part, tz) { return upgrade(op).timePart(part, tz); },
-  LOOKUP: function(op, name) { return upgrade(op).lookup(name); },
+  SUBSTRING: function(op, i, n) { return op.substr(i, n); },
+  UPPER: function(op) { return op.transformCase('upperCase'); },
+  LOWER: function(op) { return op.transformCase('lowerCase'); },
+  LENGTH: function(op) { return op.length(); },
+  LOCATE: function(op, ex) { return ex.indexOf(op).add(1); },
+  TIME_FLOOR: function(op, d, tz) { return op.timeFloor(d, tz); },
+  TIME_SHIFT: function(op, d, s, tz) { return op.timeShift(d, s, tz); },
+  TIME_RANGE: function(op, d, s, tz) { return op.timeRange(d, s, tz); },
+  TIME_BUCKET: function(op, d, tz) { return op.timeBucket(d, tz); },
+  NUMBER_BUCKET: function(op, s, o) { return op.numberBucket(s, o); },
+  TIME_PART: function(op, part, tz) { return op.timePart(part, tz); },
+  LOOKUP: function(op, name) { return op.lookup(name); },
   PI: function() { return r(Math.PI); },
   STD: notImplemented,
   DATE_FORMAT: function(op, format) {
+    format = extractString(format);
     var duration = durationFormats[format.replace(/ 00:00:00$/, '')];
     if (duration) {
-      return upgrade(op).timeFloor(duration);
+      return op.timeFloor(duration);
     } else {
       var timePart = findTimePart(format, timePartFormats);
       if (!timePart) error('unsupported format: ' + format);
-      var ex = upgrade(op).timePart(timePart.part);
+      var ex = op.timePart(timePart.part);
       if (timePart.pre || timePart.post) ex = ex.cast("STRING");
       if (timePart.pre) ex = r(timePart.pre).concat(ex);
       if (timePart.post) ex = ex.concat(r(timePart.post));
@@ -202,25 +218,30 @@ var fns = {
     }
   },
 
-  YEAR: function(op, tz) { return upgrade(op).timePart('YEAR', tz); },
-  QUARTER: function(op, tz) { return upgrade(op).timePart('QUARTER', tz) },
-  MONTH: function(op, tz) { return upgrade(op).timePart('MONTH_OF_YEAR', tz); },
-  WEEK_OF_YEAR: function(op, tz) { return upgrade(op).timePart('WEEK_OF_YEAR', tz); },
-  DAY_OF_YEAR: function(op, tz) { return upgrade(op).timePart('DAY_OF_YEAR', tz); },
-  DAY_OF_MONTH: function(op, tz) { return upgrade(op).timePart('DAY_OF_MONTH', tz); },
-  DAY_OF_WEEK: function(op, tz) { return upgrade(op).timePart('DAY_OF_WEEK', tz); },
+  YEAR: function(op, tz) { return op.timePart('YEAR', tz); },
+  QUARTER: function(op, tz) { return op.timePart('QUARTER', tz) },
+  MONTH: function(op, tz) { return op.timePart('MONTH_OF_YEAR', tz); },
+  WEEK_OF_YEAR: function(op, tz) { return op.timePart('WEEK_OF_YEAR', tz); },
+  DAY_OF_YEAR: function(op, tz) { return op.timePart('DAY_OF_YEAR', tz); },
+  DAY_OF_MONTH: function(op, tz) { return op.timePart('DAY_OF_MONTH', tz); },
+  DAY_OF_WEEK: function(op, tz) { return op.timePart('DAY_OF_WEEK', tz); },
   WEEKDAY: notImplemented,
-  HOUR: function(op, tz) { return upgrade(op).timePart('HOUR_OF_DAY', tz); },
-  MINUTE: function(op, tz) { return upgrade(op).timePart('MINUTE_OF_HOUR', tz); },
-  SECOND: function(op, tz) { return upgrade(op).timePart('SECOND_OF_MINUTE', tz); },
-  DATE: function(op, tz) { return upgrade(op).timeFloor('P1D', tz); },
-  TIMESTAMP: function(op) { return upgrade(op).upgradeToType('TIME'); },
+  HOUR: function(op, tz) { return op.timePart('HOUR_OF_DAY', tz); },
+  MINUTE: function(op, tz) { return op.timePart('MINUTE_OF_HOUR', tz); },
+  SECOND: function(op, tz) { return op.timePart('SECOND_OF_MINUTE', tz); },
+  DATE: function(op, tz) { return op.timeFloor('P1D', tz); },
+  TIMESTAMP: function(op) { return op.upgradeToType('TIME'); },
   TIME: function() { error('time literals are not supported'); },
   DATE_ADD: dateAddSub,
   DATE_SUB: dateAddSub,
-  FROM_UNIXTIME: function(op) { return upgrade(op).multiply(1000).cast('TIME') },
-  CAST: function(op, ct) { return upgrade(op).cast(castTypes[ct]) },
-  UNIX_TIMESTAMP: function(op) { return upgrade(op).cast('NUMBER').divide(1000); },
+  FROM_UNIXTIME: function(op) { return op.multiply(1000).cast('TIME') },
+  CAST: function(op, ct) {
+    ct = extractString(ct);
+    var castTo = castTypes[ct.toUpperCase()];
+    if (!castTo) error('can not handle CAST to ' + ct);
+    return op.cast(castTo);
+  },
+  UNIX_TIMESTAMP: function(op) { return op.cast('NUMBER').divide(1000); },
 
   // Information Functions
   BENCHMARK: function() { return r(0); },
@@ -908,7 +929,7 @@ ExpressionMaybeFiltered
 
 FunctionCallExpression
   = fn:Fn OpenParen params:(Expression AsMandatory / Params) CloseParen
-    { return fn.apply(null, params); }
+    { return fn.apply(null, params.map(upgrade)); }
 
 Fn
   = name:Name &{ return fns[name.toUpperCase()]; }

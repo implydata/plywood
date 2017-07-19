@@ -1497,7 +1497,6 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          console.log('result', result);
           expect(result.toJS().data).to.deep.equal([
             {
               "max_cls": 253,
