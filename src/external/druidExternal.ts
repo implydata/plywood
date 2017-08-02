@@ -278,6 +278,7 @@ export class DruidExternal extends External {
         if (name === timeAttribute) continue; // Ignore dimensions and metrics that clash with the timeAttribute name
         const nativeType = columnData.type;
         switch (columnData.type) {
+          case 'DOUBLE':
           case 'FLOAT':
           case 'LONG':
             attributes.push(new AttributeInfo({

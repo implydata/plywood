@@ -53,6 +53,7 @@ export class DruidSQLExternal extends SQLExternal {
           type = 'STRING';
           break;
 
+        case 'DOUBLE':
         case 'FLOAT':
         case 'BIGINT':
           type = 'NUMBER';

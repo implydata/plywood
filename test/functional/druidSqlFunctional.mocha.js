@@ -213,11 +213,8 @@ describe("DruidSQL Functional", function() {
   };
 
   describe("source list", () => {
-    it("does a source list", () => {
-      return DruidSQLExternal.getSourceList(druidRequester)
-        .then((sources) => {
-          expect(sources).to.deep.equal(['wikipedia', 'wikipedia-compact']);
-        })
+    it("does a source list", async () => {
+      expect(await DruidSQLExternal.getSourceList(druidRequester)).to.deep.equal(['wikipedia', 'wikipedia-compact']);
     });
 
   });

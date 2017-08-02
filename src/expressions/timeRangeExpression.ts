@@ -81,9 +81,9 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     return ret;
   }
 
-  public getQualifiedDurationDescription() {
+  public getQualifiedDurationDescription(capitalize?: boolean) {
     const step = Math.abs(this.step);
-    const durationDescription = this.duration.getDescription(true);
+    const durationDescription = this.duration.getDescription(capitalize);
     return step !== 1 ? pluralIfNeeded(step, durationDescription) : durationDescription;
   }
 

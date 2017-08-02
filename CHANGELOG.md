@@ -2,6 +2,13 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.18
+
+- Updated dependencies
+- `TimeRangeExpression.getQualifiedDurationDescription` now accepts a capitalization flag
+- Testing with newer Druid
+- Support Druid `DOUBLE` types
+
 ## 0.17.17
 
 - Allow deep introspection

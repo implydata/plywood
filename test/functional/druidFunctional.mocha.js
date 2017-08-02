@@ -180,7 +180,7 @@ describe("Druid Functional", function() {
         "op": "sum"
       },
       "name": "deltaByTen",
-      "nativeType": "FLOAT",
+      "nativeType": "FLOAT", // On day "DOUBLE"
       "type": "NUMBER",
       "unsplitable": true
     },

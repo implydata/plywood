@@ -29,6 +29,7 @@ let attributes = [
   { name: 'tags', type: 'SET/STRING' },
   { name: 'pugs', type: 'SET/STRING' },
   { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
+  { name: 'carat_n', nativeType: 'STRING' },
   { name: 'height_bucket', type: 'NUMBER' },
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
@@ -920,6 +921,32 @@ describe("simulate Druid", () => {
       },
       "queryType": "groupBy"
     });
+  });
+
+  it("works with cast to number in agg", () => {
+    let ex = $('diamonds').sum('$carat_n');
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldNames": [
+              "carat_n"
+            ],
+            "fnAggregate": "function($$,_carat_n) { return $$+_carat_n; }",
+            "fnCombine": "function(a,b) { return a+b; }",
+            "fnReset": "function() { return 0; }",
+            "name": "__VALUE__",
+            "type": "javascript"
+          }
+        ],
+        "dataSource": "diamonds",
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "queryType": "timeseries"
+      }
+    ]);
   });
 
   it("works with timePart (with limit)", () => {
@@ -2953,6 +2980,7 @@ describe("simulate Druid", () => {
           "tags",
           "pugs",
           "carat",
+          "carat_n",
           "height_bucket",
           "try",
           "a+b"

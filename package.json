@@ -36,7 +36,7 @@
     "chronoshift": "~0.6.7",
     "druid.d.ts": "~0.10.4",
     "has-own-prop": "^1.0.0",
-    "immutable-class": "~0.6.33",
+    "immutable-class": "~0.6.34",
     "moment-timezone": "~0.5.13",
     "plywood-base-api": "^0.2.7",
     "stream-to-array": "^2.3.0",
@@ -50,15 +50,15 @@
     "immutable-class-tester": "0.5.11",
     "imonit": "0.2.0",
     "istanbul": "0.4.5",
-    "mocha": "3.4.2",
+    "mocha": "3.5.0",
     "pegjs": "0.10.0",
     "plywood-druid-requester": "2.4.0",
     "plywood-mysql-requester": "2.1.0",
     "plywood-postgres-requester": "1.2.0",
     "readable-stream": "^2.3.3",
-    "tdi": "0.3.11",
+    "tdi": "0.3.13",
     "tslint": "5.5.0",
-    "typescript": "2.4.1",
-    "uglify-js": "3.0.25"
+    "typescript": "2.4.2",
+    "uglify-js": "3.0.27"
   }
 }
