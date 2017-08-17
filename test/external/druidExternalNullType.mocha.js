@@ -594,7 +594,8 @@ describe("DruidExternal Null Type", () => {
                   "Count"
                 ],
                 "function": "function(_$33T_0,_$33T_1,_Count) { return Math.pow(Math.abs(((_=Math.pow(Math.abs(parseFloat(_Count)),0.5),(_===0||isNaN(_)?null:parseFloat(_$33T_0)/Math.pow(Math.abs(parseFloat(_Count)),0.5)))+(parseFloat(_$33T_1)*100))),2); }",
-                "type": "javascript"
+                "type": "javascript",
+                "name": "dummy"
               },
               {
                 "fieldName": "!T_2",

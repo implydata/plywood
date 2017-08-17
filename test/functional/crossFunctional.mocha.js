@@ -553,7 +553,7 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
-    it.skip('works with sub-query filter', equalityTest({ // ToDo: Noooooooo
+    it('works with sub-query filter', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').filter('$commentLength > $wiki.average($commentLength)')
         .split('$channel', 'Channel')
@@ -1136,7 +1136,7 @@ describe("Cross Functional", function() {
         )
     }));
 
-    it.skip('works with NUMBER_BUCKET, STRING', equalityTest({ // ToDo: Noooooooo
+    it('works with NUMBER_BUCKET, STRING', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').split('$commentLength.numberBucket(10)', 'CommentLengthB10')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -1295,6 +1295,14 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
+    it('works with sqrt in apply', equalityTest({
+      executorNames: ['druid', 'postgres'],
+      expression: $('wiki').split('$channel', 'Channel')
+        .apply('sqrt_added_by_2', ('$wiki.sum($added).sqrt() / 2'))
+        .sort('$Channel', 'descending')
+        .limit(5)
+    }));
+
     // min and maxes don't work for stuff that's not primary time column
     it.skip('works with cast from number to time in apply', equalityTest({
       executorNames: ['druid', 'postgres'],
@@ -1350,7 +1358,7 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it.skip('works with greaterThan', equalityTest({ // ToDo: Noooooooo
+    it('works with greaterThan', equalityTest({
       executorNames: ['druid', 'mysql'], // 'druidSql', 'postgres'
       expression: $('wiki').split('$channel', 'Channel')
         .sort('$Channel', 'ascending')
@@ -1359,7 +1367,7 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it.skip('works with greaterThanOrEqual', equalityTest({ // ToDo: Noooooooo
+    it('works with greaterThanOrEqual', equalityTest({
       executorNames: ['druid', 'mysql'], // 'druidSql', 'postgres'
       expression: $('wiki').split('$channel', 'Channel')
         .sort('$Channel', 'ascending')

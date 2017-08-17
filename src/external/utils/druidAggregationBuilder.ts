@@ -469,6 +469,7 @@ export class DruidAggregationBuilder {
       });
 
       return {
+        name: 'dummy', // always need to have a dummy name
         type: 'javascript',
         fieldNames: fieldNames,
         'function': `function(${fieldNameRefs.map(RefExpression.toJavaScriptSafeName)}) { return ${ex.getJS(null)}; }`

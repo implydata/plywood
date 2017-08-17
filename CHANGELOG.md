@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.19
+
+- Fixed planning for nested JS postagg
+- Fixed tests
+
 ## 0.17.18
 
 - Updated dependencies
