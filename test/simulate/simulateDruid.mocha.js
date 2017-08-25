@@ -1433,6 +1433,39 @@ describe("simulate Druid", () => {
     });
   });
 
+  it("works with multi-value, multi-dim dimension with in clause", () => {
+    let ex = $("diamonds")
+      .split("$pugs", 'Pug')
+      .filter('$Pug == "a" or $Pug == "b"')
+      .limit(10);
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
+      "dataSource": "diamonds",
+      "dimension": {
+        "delegate": {
+          "dimension": "pugs",
+          "outputName": "Pug",
+          "type": "default"
+        },
+        "type": "listFiltered",
+        "values": [
+          "a",
+          "b"
+        ]
+      },
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "metric": {
+        "ordering": "lexicographic",
+        "type": "dimension"
+      },
+      "queryType": "topN",
+      "threshold": 10
+    });
+  });
+
   it("works with multi-value, multi-dim dimension regexp having filter and extra having filters", () => {
     let ex = $("diamonds")
       .filter('$tags.match("[ab]+")')

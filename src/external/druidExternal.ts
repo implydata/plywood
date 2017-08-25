@@ -665,11 +665,12 @@ export class DruidExternal extends External {
       };
 
     } else if (extract instanceof IsExpression) {
+      const value = extract.expression.getLiteralValue();
       return {
         dimension: {
           type: "listFiltered",
           delegate: dimensionInflater.dimension,
-          values: [extract.expression.getLiteralValue()]
+          values: Set.isSet(value) ? value.elements : [value]
         },
         inflater: dimensionInflater.inflater,
         having: rest

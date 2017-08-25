@@ -3395,6 +3395,22 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with multi-value dimension list (in) having filter", () => {
+      let ex = $("wiki")
+        .filter('$userChars.match("[ABN]")')
+        .split("$userChars", 'userChar')
+        .filter('$userChar == "B" or $userChar == "N"')
+        .limit(5);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            { "userChar": "B" },
+            { "userChar": "N" }
+          ]);
+        });
+    });
+
     it("works with basic collect", () => {
       let ex = $('wiki').split('$channel', 'channel').collect('$channel');
 
