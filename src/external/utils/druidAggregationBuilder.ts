@@ -260,6 +260,7 @@ export class DruidAggregationBuilder {
           type: "hyperUnique",
           fieldName: attributeName
         };
+        if (!this.versionBefore('0.10.1')) aggregation.round = true;
 
       } else if (attributeInfo.nativeType === 'thetaSketch') {
         let tempName = '!Theta_' + name;
@@ -281,6 +282,7 @@ export class DruidAggregationBuilder {
           type: "cardinality",
           fields: [attributeName]
         };
+        if (!this.versionBefore('0.10.1')) aggregation.round = true;
 
       }
     } else {
@@ -302,6 +304,7 @@ export class DruidAggregationBuilder {
           };
         })
       };
+      if (!this.versionBefore('0.10.1')) aggregation.round = true;
 
       if (cardinalityExpressions.length > 1) aggregation.byRow = true;
     }

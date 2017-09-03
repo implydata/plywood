@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.21
+
+0 Added `round: true` to cardinality
+
 ## 0.17.20
 
 - Fixed issue with milti-value list filter

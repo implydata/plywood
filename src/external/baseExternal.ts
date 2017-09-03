@@ -38,7 +38,7 @@ import {
   AndExpression,
   ApplyExpression,
   ChainableExpression,
-  ChainableUnaryExpression,
+  ChainableUnaryExpression, CountDistinctExpression,
   Expression,
   ExternalExpression,
   FilterExpression,

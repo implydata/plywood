@@ -68,7 +68,7 @@ let customTransforms = {
 
 let diamondsCompact = External.fromJS({
   engine: 'druid',
-  version: '0.10.0',
+  version: '0.10.1',
   source: 'diamonds-compact',
   timeAttribute: 'time',
   attributes: [
@@ -89,7 +89,7 @@ let diamondsCompact = External.fromJS({
 let context = {
   'diamonds': External.fromJS({
     engine: 'druid',
-    version: '0.10.0',
+    version: '0.10.1',
     source: 'diamonds',
     timeAttribute: 'time',
     attributes,
@@ -101,7 +101,7 @@ let context = {
   }).addDelegate(diamondsCompact),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
-    version: '0.10.0',
+    version: '0.10.1',
     source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
@@ -2231,7 +2231,8 @@ describe("simulate Druid", () => {
                 "color"
               ],
               "name": "NotBadColors",
-              "type": "cardinality"
+              "type": "cardinality",
+              "round": true
             },
             "filter": {
               "field": {
@@ -2774,12 +2775,14 @@ describe("simulate Druid", () => {
               "color"
             ],
             "name": "NumColors",
-            "type": "cardinality"
+            "type": "cardinality",
+            "round": true
           },
           {
             "fieldName": "vendor_id",
             "name": "NumVendors",
-            "type": "hyperUnique"
+            "type": "hyperUnique",
+            "round": true
           },
           {
             "fields": [
@@ -2793,7 +2796,8 @@ describe("simulate Druid", () => {
               }
             ],
             "name": "NumColorLookup",
-            "type": "cardinality"
+            "type": "cardinality",
+            "round": true
           },
           {
             "byRow": true,
@@ -2816,7 +2820,8 @@ describe("simulate Druid", () => {
               }
             ],
             "name": "NumColorCutLookup",
-            "type": "cardinality"
+            "type": "cardinality",
+            "round": true
           }
         ],
         "dataSource": "diamonds",
@@ -2861,7 +2866,8 @@ describe("simulate Druid", () => {
           "cut"
         ],
         "name": "__VALUE__",
-        "type": "cardinality"
+        "type": "cardinality",
+        "round": true
       }
     ]);
   });
