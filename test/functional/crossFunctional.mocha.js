@@ -264,7 +264,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with .in().not() filter [dimension without NULLs]', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter($channel.in(["en", "simple"]).not())')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -272,7 +272,7 @@ describe("Cross Functional", function() {
     }));
 
     it.skip('works with .in().not() filter [dimension with NULLs]', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter($cityName.in(["Moscow", "Tel Aviv", "London", "San Francisco"]).not())')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -288,7 +288,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with .overlap().not() filter [dimension without NULLs]', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter($channel.overlap(["en", "simple"]).not())')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -502,7 +502,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with static derived attribute .is()', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter($pageInBrackets == "[Deaths_in_2015]")')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -518,7 +518,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with attribute dynamically derived from transformCase .is()', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.apply(city3, $cityName.transformCase("upperCase")).filter($city3 == "SAN FRANCISCO")')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -576,7 +576,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with constant split', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki')
         .split('blah', 'Constant')
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -606,7 +606,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with BOOLEAN split (expression, defined)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('$channel == de', 'ChannelIsDE')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -614,7 +614,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with BOOLEAN split (expression, nullable)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('$cityName == "San Francisco"', 'CityIsSF')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -622,7 +622,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with BOOLEAN split (overlap)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split($('channel').overlap(['en', 'simple']), 'ChannelIsEnSimple')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -630,7 +630,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with BOOLEAN split (overlap __time)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split($('__time').overlap(new Date("2015-09-12T01:00:00Z"), new Date("2015-09-12T02:30:00Z")), 'TheHour')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -698,7 +698,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with chained number bucket', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki')
         .split('$channel.length().numberBucket(2)', '$channelBucket') // null handling varies
         .apply('TotalEdits', '$wiki.sum($count)')
@@ -708,7 +708,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with STRING split .fallback() no match', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('$cityName.fallback("NoCity")', 'CityFallback')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -717,7 +717,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with STRING split .fallback() with match', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('$cityName.fallback("Bucharest")', 'CityFallback')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -726,7 +726,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with NUMBER split (numberBucket) (sort on split)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split($("commentLength").numberBucket(10), 'CommentLength10')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -735,7 +735,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with NUMBER split (numberBucket) (sort on apply)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split($("commentLength").numberBucket(10), 'CommentLength10')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -753,7 +753,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with NUMBER split (-expression) (sort on split)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split("1000 - $commentLength", 'MinusCommentLength')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -762,7 +762,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with NUMBER split (1 + expression) (sort on split)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split("1 + $commentLength", 'OnePlusCommentLength')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -780,7 +780,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with NUMBER split (expression / 10).numberBucket (sort on apply)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split("($commentLength / 10).numberBucket(2, 0)", 'CommentLengthDivBucket')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -789,7 +789,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with NUMBER split (expression^2) (sort on split)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split("$commentLength^2", 'CommentLengthSq')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -866,7 +866,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with TIME split (timePart(DAY_OF_YEAR)) (sort on split)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split($('__time').timePart('DAY_OF_YEAR'), 'TimePart')
         .apply('TotalEdits', '$wiki.sum($count)')
         .sort('$TimePart', 'ascending')
@@ -880,7 +880,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with TIME split (timePart(DAY_OF_WEEK)) (sort on split)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split($('__time').timePart('DAY_OF_WEEK'), 'TimePart')
         .apply('TotalEdits', '$wiki.sum($count)')
         .sort('$TimePart', 'ascending')
@@ -894,7 +894,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with TIME split (timePart(MINUTE_OF_DAY)) (sort on split)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split($('__time').timePart('MINUTE_OF_DAY'), 'TimePart')
         .apply('TotalEdits', '$wiki.sum($count)')
         .sort('$TimePart', 'ascending')
@@ -1075,7 +1075,7 @@ describe("Cross Functional", function() {
 
   describe("splits (single, multi-dim)", () => {
     it('works with BOOLEAN multi-dim-split', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki')
         .split({
           'isNew': '$isNew',
@@ -1089,7 +1089,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with various multi-dimensional split', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki')
         .split({
           'Channel': "$channel",
@@ -1137,7 +1137,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with NUMBER_BUCKET, STRING', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('$commentLength.numberBucket(10)', 'CommentLengthB10')
         .apply('TotalEdits', '$wiki.sum($count)')
         .sort('$CommentLengthB10', 'ascending')
@@ -1251,7 +1251,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with min/max numeric dimension', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql' !!!
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()
         .apply('MinCommentLength', '$wiki.min($commentLength)')
         .apply('MaxCommentLength', '$wiki.max($commentLength)')
@@ -1279,7 +1279,7 @@ describe("Cross Functional", function() {
         druid and postgres returns: "Page": "𠊎話" (len 2) and mysql has: "Page": "?話"(len 2)
         druid and postgres returns: 虾子𡎚站 (len 5) and mysql has 虾子?站(len 4)
        */
-      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()
         .apply('wiki', '$wiki.filter($channel != "zh")')
         .apply('PageLength', '$wiki.sum($page.length())')

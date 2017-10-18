@@ -29,12 +29,13 @@
     "prepare": "tdi -q",
     "compile": "./compile",
     "pretest": "./compile",
-    "test": "./travis-test"
+    "test": "./travis-test",
+    "full-test": "./run-tests"
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
     "chronoshift": "~0.6.7",
-    "druid.d.ts": "^0.10.5",
+    "druid.d.ts": "~0.10.5",
     "has-own-prop": "~1.0.0",
     "immutable-class": "~0.6.34",
     "moment-timezone": "~0.5.13",

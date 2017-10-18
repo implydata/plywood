@@ -175,8 +175,14 @@ export abstract class Range<T> {
     }
   }
 
+  protected validMemberType(val: any): boolean {
+    return typeof val === 'number';
+  }
+
   public containsValue(val: T): boolean {
     if (val === null) return false;
+    val = (val as any).valueOf(); // Turn a Date into a number
+    if (!this.validMemberType(val)) return false;
 
     let start = this.start;
     let end = this.end;

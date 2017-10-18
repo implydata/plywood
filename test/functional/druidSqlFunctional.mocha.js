@@ -103,7 +103,7 @@ describe("DruidSQL Functional", function() {
     },
     {
       "name": "deltaByTen",
-      "nativeType": "FLOAT",
+      "nativeType": "DOUBLE",
       "type": "NUMBER"
     },
     {

@@ -89,6 +89,10 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
   protected _zeroEndpoint() {
     return "";
   }
+
+  protected validMemberType(val: any): boolean {
+    return typeof val === 'string';
+  }
 }
 check = StringRange;
 Range.register(StringRange);

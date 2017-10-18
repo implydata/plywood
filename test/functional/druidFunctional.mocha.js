@@ -180,7 +180,7 @@ describe("Druid Functional", function() {
         "op": "sum"
       },
       "name": "deltaByTen",
-      "nativeType": "FLOAT", // On day "DOUBLE"
+      "nativeType": "DOUBLE",
       "type": "NUMBER",
       "unsplitable": true
     },
@@ -276,12 +276,12 @@ describe("Druid Functional", function() {
       "unsplitable": true
     },
     {
-      "cardinality": 670,
+      "cardinality": 671,
       "name": "regionIsoCode",
       "nativeType": "STRING",
       "range": {
         "bounds": "[]",
-        "end": "ZP",
+        "end": "null",
         "start": ""
       },
       "type": "STRING"
@@ -963,15 +963,15 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "UniqueIsRobot": 2.000977198748901,
-              "UniqueUserChars": 1376.0314194627178,
-              "Diff_Users_1_2": 1507.8377206866207,
-              "Diff_Users_1_3": 1055.998647896362,
-              "Diff_Users_2_3": -451.8390727902588,
-              "UniquePages1": 279107.1992807899,
-              "UniquePages2": 281588.11316378025,
-              "UniqueUsers1": 39220.49269175933,
-              "UniqueUsers2": 37712.65497107271,
+              "Diff_Users_1_2": 1507,
+              "Diff_Users_1_3": 1055.505956137029,
+              "Diff_Users_2_3": -451.494043862971,
+              "UniqueIsRobot": 2,
+              "UniquePages1": 279107,
+              "UniquePages2": 281588,
+              "UniqueUserChars": 1376,
+              "UniqueUsers1": 39220,
+              "UniqueUsers2": 37713,
               "UniqueUsers3": 38164.49404386297
             }
           ]);
@@ -987,8 +987,8 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "UniquePagesEn": 63849.8464587151,
-              "UniquePagesEnOver2": 31924.92322935755
+              "UniquePagesEn": 63850,
+              "UniquePagesEnOver2": 31925
             }
           ]);
         });
@@ -1004,9 +1004,9 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "UniquePagesEn": 63849.8464587151,
-              "UniquePagesEs": 6870.355969047973,
-              "UniquePagesChannelDiff": 56979.49048966713
+              "UniquePagesEn": 63850,
+              "UniquePagesEs": 6870,
+              "UniquePagesChannelDiff": 56980
             }
           ]);
         });
@@ -1017,7 +1017,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result).to.deep.equal(40082.255930715364);
+          expect(result).to.deep.equal(40082);
         });
     });
 
@@ -1215,8 +1215,8 @@ describe("Druid Functional", function() {
               "Count": 392443,
               "CountSquareRoot": 626.4527117029664,
               "CountSquared": 154011508249,
-              "NumEnPages": 63849.8464587151,
-              "NumPages": 279107.1992807899,
+              "NumEnPages": 63850,
+              "NumPages": 279107,
               "One": 1,
               "Delta95th": 161.95517,
               "Delta99thX2": 328.9096984863281
@@ -1248,8 +1248,8 @@ describe("Druid Functional", function() {
               "Count": 368841,
               "CountSquareRoot": 607.3228136666694,
               "CountSquared": 136043683281,
-              "NumEnPages": 57395.11747644384,
-              "NumPages": 262439.60590555385,
+              "NumEnPages": 57395,
+              "NumPages": 262440,
               "One": 1,
               "isNew": false
             },
@@ -1260,8 +1260,8 @@ describe("Druid Functional", function() {
               "Count": 23602,
               "CountSquareRoot": 153.62942426501507,
               "CountSquared": 557054404,
-              "NumEnPages": 8166.062824215849,
-              "NumPages": 22270.407985514667,
+              "NumEnPages": 8166,
+              "NumPages": 22270,
               "One": 1,
               "isNew": true
             }
@@ -2094,9 +2094,9 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "CntDistChannelLookup": 6.008806266444944,
-              "CntDistChannelNormal": 52.671547981801545,
-              "CntDistChannelLookupXPage": 2641.0285765864232
+              "CntDistChannelLookup": 6,
+              "CntDistChannelNormal": 53,
+              "CntDistChannelLookupXPage": 2641
             }
           ]);
         });
@@ -3119,7 +3119,7 @@ describe("Druid Functional", function() {
                 "deleted": 39,
                 "delta": -39,
                 "deltaBucket100": -100,
-                "deltaByTen": -3.9000000953674316,
+                "deltaByTen": -3.9,
                 "delta_hist": "/84BwhwAAA==",
                 "isAnonymous": true,
                 "isMinor": false,
@@ -3226,7 +3226,7 @@ describe("Druid Functional", function() {
               "deleted": 1,
               "delta": -1,
               "deltaBucket100": -100,
-              "deltaByTen": -0.10000000149011612,
+              "deltaByTen": -0.1,
               "delta_hist": "/84Bv4AAAA==",
               "isAnonymous": false,
               "isMinor": false,
