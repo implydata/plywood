@@ -45,7 +45,7 @@ export class PowerExpression extends ChainableUnaryExpression {
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    return `POW(${operandSQL},${expressionSQL})`;
+    return `POWER(${operandSQL},${expressionSQL})`;
   }
 
   protected specialSimplify(): Expression {

@@ -17,7 +17,7 @@
 
 import { Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
-import { Class, Instance } from 'immutable-class';
+import { Class, Instance, generalEqual } from 'immutable-class';
 import { PlyType } from '../types';
 import { getValueType, valueFromJS, valueToJS } from './common';
 import { PlywoodValue } from './dataset';
@@ -429,7 +429,8 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   public has(value: any): boolean {
-    return hasOwnProp(this.hash, this.keyFn(value));
+    const key = this.keyFn(value);
+    return hasOwnProp(this.hash, key) && generalEqual(this.hash[key], value);
   }
 
   public contains(value: any): boolean {

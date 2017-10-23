@@ -18,7 +18,7 @@
 const { expect } = require("chai");
 
 let plywood = require('../plywood');
-let { Expression, TimeRange, NumberRange, $, r, ply, Set, Dataset, External, ExternalExpression } = plywood;
+let { Expression, TimeRange, NumberRange, StringRange, $, r, ply, Set, Dataset, External, ExternalExpression } = plywood;
 
 function simplifiesTo(ex1, ex2) {
   let ex1Simple = ex1.simplify();
@@ -433,6 +433,12 @@ describe("Simplify", () => {
     it("works with time range to overlap statement", () => {
       let ex1 = $('time', 'TIME').greaterThan(r(new Date('2015-11-13T16:08:01.000Z'))).and($('time', 'TIME').lessThan(r(new Date('2019-01-14T01:54:41.000Z'))));
       let ex2 = $('time', 'TIME').overlap(new NumberRange({start: new Date('2015-11-13T16:08:01.000Z'), end: new Date('2019-01-14T01:54:41.000Z'), bounds: '()'}));
+      simplifiesTo(ex1, ex2);
+    });
+
+    it("works with string overlaps", () => {
+      let ex1 = $('cityName', 'STRING').greaterThan('Kab').and($('cityName', 'STRING').lessThan('Kar'));
+      let ex2 = $('cityName', 'STRING').overlap({ start: 'Kab', end: 'Kar', bounds: "()" });
       simplifiesTo(ex1, ex2);
     });
 

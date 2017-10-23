@@ -614,11 +614,12 @@ describe("MySQL Functional", function() {
     });
 
 
-    it("works string range", () => {
+    it("works string range (two bounds)", () => {
       let ex = $('wiki')
         .filter($('cityName').greaterThan('Kab').and($('cityName').lessThan('Kar')))
         .split('$cityName', 'City')
         .limit(5);
+
       return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
@@ -641,12 +642,13 @@ describe("MySQL Functional", function() {
         });
     });
 
-    it("works string range", () => {
+    it("works string range (1 bound)", () => {
       let ex = $('wiki')
         .filter($('cityName').lessThan('P'))
         .filter('$comment < "zebra"')
         .split('$cityName', 'City')
         .limit(5);
+
       return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
