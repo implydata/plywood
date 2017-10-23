@@ -2,9 +2,15 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.22
+
+- Updated tests for Druid 0.11.0
+- Added and enabled previously skipped tests
+- Fixed bug where `Set(null)` and `Set("null")` would be subsets of each other
+
 ## 0.17.21
 
-0 Added `round: true` to cardinality
+- Added `round: true` to cardinality
 
 ## 0.17.20
 
