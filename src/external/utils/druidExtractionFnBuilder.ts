@@ -514,11 +514,11 @@ export class DruidExtractionFnBuilder {
   }
 
   private castToExtractionFn(cast: CastExpression): Druid.ExtractionFn {
-    if (cast.outputType === 'STRING') {
-      // Do nothing, just swallow the cast
-      return this.expressionToExtractionFnPure(cast.operand);
+    if (this.versionBefore('0.10.0') || cast.outputType === 'TIME') {
+      return this.expressionToJavaScriptExtractionFn(cast);
     }
-    return this.expressionToJavaScriptExtractionFn(cast);
+    // Do nothing, just swallow the cast
+    return this.expressionToExtractionFnPure(cast.operand);
   }
 
   private overlapToExtractionFn(expression: OverlapExpression): Druid.ExtractionFn {

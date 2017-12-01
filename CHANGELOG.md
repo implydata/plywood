@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.23
+
+- Now setting `outputType` in Druid dimension specs
+
 ## 0.17.22
 
 - Updated tests for Druid 0.11.0

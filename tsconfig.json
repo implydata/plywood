@@ -9,7 +9,7 @@
     "strictNullChecks": false,
     "skipLibCheck": false,
     "importHelpers": true,
-    "lib": ["es2016"],
+    "lib": ["es2016", "dom"],
     "target": "es5",
     "module": "es6",
     "rootDir": "src",

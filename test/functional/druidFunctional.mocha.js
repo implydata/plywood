@@ -3804,12 +3804,12 @@ describe("Druid Functional", function() {
             {
               "Count": 2658542,
               "dateCast": null,
-              "numberCast": null
+              "numberCast": 0
             },
             {
               "Count": 379865,
               "dateCast": new Date('1970-01-01T00:00:00.000Z'),
-              "numberCast": null
+              "numberCast": 0
             }
           ]);
         });

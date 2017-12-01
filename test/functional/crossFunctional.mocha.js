@@ -42,10 +42,10 @@ let postgresRequester = postgresRequesterFactory({
   password: info.postgresPassword
 });
 
-// druidRequester = verboseRequesterFactory({
-//   //onSuccess: () => {},
-//   requester: druidRequester
-// });
+druidRequester = verboseRequesterFactory({
+  //onSuccess: () => {},
+  requester: druidRequester
+});
 // mySqlRequester = verboseRequesterFactory({
 //   requester: mySqlRequester
 // });

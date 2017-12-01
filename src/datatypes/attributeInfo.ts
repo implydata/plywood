@@ -175,6 +175,14 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     return new AttributeInfo(value);
   }
 
+  public get(propertyName: string): any {
+    return (this as any)[propertyName];
+  }
+
+  public deepGet(propertyName: string): any {
+    return this.get(propertyName);
+  }
+
   public change(propertyName: string, newValue: any): AttributeInfo {
     let v = this.valueOf();
 
@@ -184,6 +192,10 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
 
     (v as any)[propertyName] = newValue;
     return new AttributeInfo(v);
+  }
+
+  public deepChange(propertyName: string, newValue: any): AttributeInfo {
+    return this.change(propertyName, newValue);
   }
 
   public changeType(type: PlyType): AttributeInfo {

@@ -1434,6 +1434,7 @@ describe("DruidExternal Null Type", () => {
           "type": "javascript"
         },
         "outputName": "Split",
+        "outputType": "FLOAT",
         "type": "extraction"
       });
     });
@@ -1506,6 +1507,7 @@ describe("DruidExternal Null Type", () => {
           "type": "timeFormat"
         },
         "outputName": "Split1",
+        "outputType": "LONG",
         "type": "extraction"
       });
     });

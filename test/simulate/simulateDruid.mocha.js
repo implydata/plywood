@@ -68,7 +68,7 @@ let customTransforms = {
 
 let diamondsCompact = External.fromJS({
   engine: 'druid',
-  version: '0.10.1',
+  version: '0.11.0',
   source: 'diamonds-compact',
   timeAttribute: 'time',
   attributes: [
@@ -89,7 +89,7 @@ let diamondsCompact = External.fromJS({
 let context = {
   'diamonds': External.fromJS({
     engine: 'druid',
-    version: '0.10.1',
+    version: '0.11.0',
     source: 'diamonds',
     timeAttribute: 'time',
     attributes,
@@ -101,7 +101,7 @@ let context = {
   }).addDelegate(diamondsCompact),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
-    version: '0.10.1',
+    version: '0.11.0',
     source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
@@ -883,11 +883,41 @@ describe("simulate Druid", () => {
     expect(queryPlan[0][0].filter).to.deep.equal({
       "dimension": "height_bucket",
       "extractionFn": {
-        "function": "function(d){var _,_2;_=(+((''+Math.abs(parseFloat(d)))));return isNaN(_)?null:_}",
+        "function": "function(d){var _,_2;_=Math.abs(parseFloat(d));return isNaN(_)?null:_}",
         "type": "javascript"
       },
       "type": "selector",
       "value": 555
+    });
+  });
+
+  it("works on cast string to number in split", () => {
+    let ex = $('diamonds').split('$color.cast("NUMBER")', 'Synesthesia');
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
+      "dataSource": "diamonds-compact",
+      "dimensions": [
+        {
+          "dimension": "color",
+          "outputName": "Synesthesia",
+          "outputType": "FLOAT",
+          "type": "default"
+        }
+      ],
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "limitSpec": {
+        "columns": [
+          {
+            "dimension": "Synesthesia",
+            "dimensionOrder": "numeric"
+          }
+        ],
+        "type": "default"
+      },
+      "queryType": "groupBy"
     });
   });
 
@@ -980,6 +1010,7 @@ describe("simulate Druid", () => {
             "type": "timeFormat"
           },
           "outputName": "HourOfDay",
+          "outputType": "LONG",
           "type": "extraction"
         },
         "granularity": "all",
@@ -1021,6 +1052,7 @@ describe("simulate Druid", () => {
             "type": "timeFormat"
           },
           "outputName": "HourOfDay",
+          "outputType": "LONG",
           "type": "extraction"
         },
         "granularity": "all",
@@ -1042,6 +1074,7 @@ describe("simulate Druid", () => {
               "type": "javascript"
             },
             "outputName": "HourOfDay",
+            "outputType": "LONG",
             "type": "extraction"
           }
         ],
@@ -1729,6 +1762,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "carat",
           "outputName": "Carat",
+          "outputType": "FLOAT",
           "type": "default"
         },
         "granularity": "all",
@@ -1975,6 +2009,7 @@ describe("simulate Druid", () => {
         "dimension": {
           "dimension": "height_bucket",
           "outputName": "HeightBucket",
+          "outputType": "FLOAT",
           "type": "default"
         },
         "granularity": "all",
@@ -2079,6 +2114,7 @@ describe("simulate Druid", () => {
             "type": "javascript"
           },
           "outputName": "Time",
+          "outputType": "LONG",
           "type": "extraction"
         },
         "granularity": "all",
@@ -2381,6 +2417,7 @@ describe("simulate Druid", () => {
             "type": "timeFormat"
           },
           "outputName": "hourOfDay",
+          "outputType": "LONG",
           "type": "extraction"
         },
         "granularity": "all",

@@ -587,6 +587,9 @@ export class DruidExternal extends External {
       dimension.type = "extraction";
       dimension.extractionFn = extractionFn;
     }
+    if (expression.type === 'NUMBER' && !this.versionBefore('0.10.0')) {
+      dimension.outputType = dimension.dimension === DruidExternal.TIME_ATTRIBUTE ? 'LONG' : 'FLOAT';
+    }
 
     if (expression instanceof RefExpression) {
       return {

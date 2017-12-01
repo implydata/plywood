@@ -53,7 +53,7 @@ let context = {
     },
     filter: timeFilter,
     allowSelectQueries: true,
-    version: '0.9.2',
+    version: '0.11.0',
     customAggregations: {
       crazy: {
         aggregation: {
@@ -637,6 +637,7 @@ describe("DruidExternal", () => {
               "page"
             ],
             "name": "!T_1",
+            "round": true,
             "type": "cardinality"
           },
           {
@@ -1626,6 +1627,7 @@ describe("DruidExternal", () => {
           "type": "javascript"
         },
         "outputName": "Split",
+        "outputType": "FLOAT",
         "type": "extraction"
       });
     });
@@ -1645,6 +1647,7 @@ describe("DruidExternal", () => {
           "type": "javascript"
         },
         "outputName": "Split",
+        "outputType": "FLOAT",
         "type": "extraction"
       });
     });
@@ -1717,7 +1720,6 @@ describe("DruidExternal", () => {
             "timeZone": "Etc/UTC",
             "type": "period"
           },
-          "locale": "en-US",
           "timeZone": "Etc/UTC",
           "type": "timeFormat"
         },
@@ -1746,6 +1748,7 @@ describe("DruidExternal", () => {
           "type": "timeFormat"
         },
         "outputName": "Split1",
+        "outputType": "LONG",
         "type": "extraction"
       });
     });
