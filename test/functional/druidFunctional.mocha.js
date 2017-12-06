@@ -1189,6 +1189,123 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with split on a SET/STRING dimension + time + filter", () => {
+      let ex = ply()
+        .apply('wiki', $('wiki').filter('$userChars.is("O")'))
+        .apply(
+          'UserChars',
+          $('wiki').split("$userChars", 'UserChar')
+            .apply("Count", $('wiki').sum('$count'))
+            .sort('$Count', 'descending')
+            .limit(2)
+            .apply(
+              "Split",
+              $('wiki').split('$time.timeBucket(PT12H)', 'T')
+                .apply("Count", $('wiki').sum('$count'))
+                .sort("$T", 'ascending')
+            )
+        );
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "UserChars": {
+                "attributes": [
+                  {
+                    "name": "UserChar",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "Split",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 223134,
+                    "Split": {
+                      "attributes": [
+                        {
+                          "name": "T",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "Count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Count": 93346,
+                          "T": {
+                            "end": new Date('2015-09-12T12:00:00.000Z'),
+                            "start": new Date('2015-09-12T00:00:00.000Z')
+                          }
+                        },
+                        {
+                          "Count": 129788,
+                          "T": {
+                            "end": new Date('2015-09-13T00:00:00.000Z'),
+                            "start": new Date('2015-09-12T12:00:00.000Z')
+                          }
+                        }
+                      ],
+                      "keys": [
+                        "T"
+                      ]
+                    },
+                    "UserChar": "O"
+                  },
+                  {
+                    "Count": 173377,
+                    "Split": {
+                      "attributes": [
+                        {
+                          "name": "T",
+                          "type": "TIME_RANGE"
+                        },
+                        {
+                          "name": "Count",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "Count": 74042,
+                          "T": {
+                            "end": new Date('2015-09-12T12:00:00.000Z'),
+                            "start": new Date('2015-09-12T00:00:00.000Z')
+                          }
+                        },
+                        {
+                          "Count": 99335,
+                          "T": {
+                            "end": new Date('2015-09-13T00:00:00.000Z'),
+                            "start": new Date('2015-09-12T12:00:00.000Z')
+                          }
+                        }
+                      ],
+                      "keys": [
+                        "T"
+                      ]
+                    },
+                    "UserChar": "T"
+                  }
+                ],
+                "keys": [
+                  "UserChar"
+                ]
+              }
+            }
+          ]);
+        });
+    });
+
     it("works with all kinds of cool aggregates on totals level", () => {
       let ex = ply()
         .apply("NumPages", $('wiki').countDistinct('$page'))
@@ -3722,7 +3839,7 @@ describe("Druid Functional", function() {
           expect(result.toJS().data).to.deep.equal([
             {
               "Count": 2658542,
-              "U": null
+              "U": 0
             },
             {
               "Count": 68663,
@@ -3778,7 +3895,7 @@ describe("Druid Functional", function() {
           expect(result.toJS().data).to.deep.equal([
             {
               "Count": 2658542,
-              "U": null
+              "U": 0
             },
             {
               "Count": 68663,
