@@ -864,6 +864,108 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works in advanced case (with trim)", () => {
+      let ex = ply()
+        .apply("wiki", $('wiki').filter($("channel").is('en')))
+        .apply('Count', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .apply(
+          'Pages',
+          $("wiki").split("$page", 'Page')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(100)
+            .apply(
+              'Time',
+              $("wiki").split("$user", 'User')
+                .apply('TotalAdded', '$wiki.sum($added)')
+                .sort('$TotalAdded', 'descending')
+                .limit(24)
+            )
+        );
+
+      return basicExecutor(ex, { maxRows: 5 })
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Count": 114711,
+              "Pages": {
+                "attributes": [
+                  {
+                    "name": "Page",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "Time",
+                    "type": "DATASET"
+                  }
+                ],
+                "data": [
+                  {
+                    "Count": 255,
+                    "Page": "User:Cyde/List of candidates for speedy deletion/Subpage",
+                    "Time": {
+                      "attributes": [
+                        {
+                          "name": "User",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "TotalAdded",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "TotalAdded": 35445,
+                          "User": "Cydebot"
+                        }
+                      ],
+                      "keys": [
+                        "User"
+                      ]
+                    }
+                  },
+                  {
+                    "Count": 241,
+                    "Page": "Jeremy Corbyn",
+                    "Time": {
+                      "attributes": [
+                        {
+                          "name": "User",
+                          "type": "STRING"
+                        },
+                        {
+                          "name": "TotalAdded",
+                          "type": "NUMBER"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "TotalAdded": 30035,
+                          "User": "Hazhk"
+                        }
+                      ],
+                      "keys": [
+                        "User"
+                      ]
+                    }
+                  }
+                ],
+                "keys": [
+                  "Page"
+                ]
+              },
+              "TotalAdded": 32553107
+            }
+          ]);
+        });
+    });
+
     it("works with case transform in filter split and apply", () => {
       let ex = $('wiki')
         .filter($("channel").transformCase('upperCase').is('EN'))

@@ -630,6 +630,72 @@ describe("Dataset", () => {
       }
     ]);
 
+    describe("#rows", () => {
+      it("works", () => {
+        expect(carTotalAndSubSplitDataset.rows()).to.equal(7);
+      });
+    });
+
+    describe("#depthFirstTrimTo", () => {
+      it("works", () => {
+        expect(carTotalAndSubSplitDataset.depthFirstTrimTo(3).toJS().data).to.deep.equal([
+          {
+            "ByMake": {
+              "attributes": [
+                {
+                  "name": "make",
+                  "type": "STRING"
+                },
+                {
+                  "name": "price",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "weight",
+                  "type": "NUMBER"
+                },
+                {
+                  "name": "ByModel",
+                  "type": "DATASET"
+                }
+              ],
+              "data": [
+                {
+                  "ByModel": {
+                    "attributes": [
+                      {
+                        "name": "model",
+                        "type": "STRING"
+                      },
+                      {
+                        "name": "price",
+                        "type": "NUMBER"
+                      },
+                      {
+                        "name": "weight",
+                        "type": "NUMBER"
+                      }
+                    ],
+                    "data": [
+                      {
+                        "model": "Civic",
+                        "price": 11000,
+                        "weight": 1100
+                      }
+                    ]
+                  },
+                  "make": "Honda",
+                  "price": 12000,
+                  "weight": 1200
+                }
+              ]
+            },
+            "price": 10000,
+            "weight": 1000
+          }
+        ]);
+      });
+    });
 
     describe("#findDatumByAttribute", () => {
       it("works with basic dataset", () => {

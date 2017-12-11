@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.24
+
+- Allow `maxRows` and support dataset trimming
+
 ## 0.17.23
 
 - Now setting `outputType` in Druid dimension specs

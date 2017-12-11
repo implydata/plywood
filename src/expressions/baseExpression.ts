@@ -1694,7 +1694,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   private _computeResolvedSimulate(options: ComputeOptions, simulatedQueryGroups: any[][]): PlywoodValue {
     const {
       maxComputeCycles = 5,
-      maxQueries = 500
+      maxQueries = 500,
+      maxRows
     } = options;
 
     let ex: Expression = this;
@@ -1717,6 +1718,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
       simulatedQueryGroups.push(simulatedQueryGroup);
       ex = ex.applyReadyExternals(readyExternals);
+      const literalValue = ex.getLiteralValue();
+      if (maxRows && literalValue instanceof Dataset) {
+        ex = r(literalValue.depthFirstTrimTo(maxRows));
+      }
       readyExternals = ex.getReadyExternals();
       computeCycles++;
     }
@@ -1785,7 +1790,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     const {
       rawQueries,
       maxComputeCycles = 5,
-      maxQueries = 500
+      maxQueries = 500,
+      maxRows
     } = options;
 
     let ex: Expression = this;
@@ -1808,6 +1814,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         })
           .then((readyExternalsFilled) => {
             ex = ex.applyReadyExternals(readyExternalsFilled);
+            const literalValue = ex.getLiteralValue();
+            if (maxRows && literalValue instanceof Dataset) {
+              ex = r(literalValue.depthFirstTrimTo(maxRows));
+            }
             readyExternals = ex.getReadyExternals();
             computeCycles++;
           });

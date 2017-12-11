@@ -439,6 +439,12 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     return new Dataset(value);
   }
 
+  public changeData(data: Datum[]): Dataset {
+    let value = this.valueOf();
+    value.data = data;
+    return new Dataset(value);
+  }
+
   public basis(): boolean {
     let data = this.data;
     return data.length === 1 && Object.keys(data[0]).length === 0;
@@ -1108,6 +1114,52 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
     tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
     return this.toTabular(tabulatorOptions);
+  }
+
+  public rows(): number {
+    const { data, attributes } = this;
+    let c = data.length;
+
+    for (let datum of data) {
+      for (let attribute of attributes) {
+        let v = datum[attribute.name];
+        if (v instanceof Dataset) {
+          c += v.rows();
+        }
+      }
+    }
+
+    return c;
+  }
+
+  public depthFirstTrimTo(n: number): Dataset {
+    const mySize = this.rows();
+    if (mySize < n) return this;
+    const { data, attributes } = this;
+
+    let newData: Datum[] = [];
+    for (let datum of data) {
+      if (n <= 0) break;
+      n--; // Account for self
+
+      let newDatum: Datum = {};
+      let newDatumRows = 0;
+      for (let attribute of attributes) {
+        let v = datum[attribute.name];
+        if (v instanceof Dataset) {
+          let vTrim = v.depthFirstTrimTo(n);
+          newDatum[attribute.name] = vTrim;
+          newDatumRows += vTrim.rows();
+        } else {
+          newDatum[attribute.name] = v;
+        }
+      }
+
+      n -= newDatumRows;
+      newData.push(newDatum);
+    }
+
+    return this.changeData(newData);
   }
 
 }
