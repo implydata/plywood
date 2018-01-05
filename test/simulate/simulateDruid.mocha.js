@@ -66,6 +66,17 @@ let customTransforms = {
   }
 };
 
+let customAggregations = {
+  crazy: {
+    accessType: 'getSomeCrazy',
+    aggregation: {
+      type: 'crazy',
+      the: 'borg will rise again',
+      activate: false
+    }
+  }
+};
+
 let diamondsCompact = External.fromJS({
   engine: 'druid',
   version: '0.11.0',
@@ -78,6 +89,7 @@ let diamondsCompact = External.fromJS({
     { name: 'price', type: 'NUMBER', unsplitable: true }
   ],
   customTransforms,
+  customAggregations,
   concealBuckets: true,
   allowSelectQueries: true,
   filter: $("time").overlap({
@@ -93,6 +105,8 @@ let context = {
     source: 'diamonds',
     timeAttribute: 'time',
     attributes,
+    customTransforms,
+    customAggregations,
     allowSelectQueries: true,
     filter: $("time").overlap({
       start: new Date('2015-03-12T00:00:00Z'),
@@ -105,6 +119,8 @@ let context = {
     source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
+    customTransforms,
+    customAggregations,
     customTransforms,
     allowSelectQueries: true,
     filter: $("time").overlap({
@@ -2885,6 +2901,112 @@ describe("simulate Druid", () => {
       }
     ]);
   });
+
+  it("makes a query with countDistinct", () => {
+    let ex = ply()
+      .apply('Num', '$diamonds.filter($color == A).count()')
+      .apply('PRice', '$diamonds.filter($color == B).sum($price)')
+      .apply('NumCuts', '$diamonds.filter($color == C).countDistinct($cut)')
+      .apply('NumVendors', '$diamonds.filter($color == D).countDistinct($vendor_id)')
+      .apply('P95Vendors', '$diamonds.filter($color == E).quantile($vendor_id, 0.95)')
+      .apply('Crazy', '$diamonds.filter($color == F).customAggregate(crazy)');
+
+    ex = ex.referenceCheck(context).resolve(context).simplify();
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].aggregations).to.deep.equal([
+      {
+        "aggregator": {
+          "name": "Num",
+          "type": "count"
+        },
+        "filter": {
+          "dimension": "color",
+          "type": "selector",
+          "value": "A"
+        },
+        "name": "Num",
+        "type": "filtered"
+      },
+      {
+        "aggregator": {
+          "fieldName": "price",
+          "name": "PRice",
+          "type": "doubleSum"
+        },
+        "filter": {
+          "dimension": "color",
+          "type": "selector",
+          "value": "B"
+        },
+        "name": "PRice",
+        "type": "filtered"
+      },
+      {
+        "aggregator": {
+          "fields": [
+            "cut"
+          ],
+          "name": "NumCuts",
+          "round": true,
+          "type": "cardinality"
+        },
+        "filter": {
+          "dimension": "color",
+          "type": "selector",
+          "value": "C"
+        },
+        "name": "NumCuts",
+        "type": "filtered"
+      },
+      {
+        "aggregator": {
+          "fieldName": "vendor_id",
+          "name": "NumVendors",
+          "round": true,
+          "type": "hyperUnique"
+        },
+        "filter": {
+          "dimension": "color",
+          "type": "selector",
+          "value": "D"
+        },
+        "name": "NumVendors",
+        "type": "filtered"
+      },
+      {
+        "aggregator": {
+          "fieldName": "vendor_id",
+          "name": "!H_P95Vendors",
+          "type": "approxHistogram"
+        },
+        "filter": {
+          "dimension": "color",
+          "type": "selector",
+          "value": "E"
+        },
+        "name": "!H_P95Vendors",
+        "type": "filtered"
+      },
+      {
+        "aggregator": {
+          "activate": false,
+          "name": "Crazy",
+          "the": "borg will rise again",
+          "type": "crazy"
+        },
+        "filter": {
+          "dimension": "color",
+          "type": "selector",
+          "value": "F"
+        },
+        "name": "Crazy",
+        "type": "filtered"
+      }
+    ]);
+  });
+
 
   it("makes a query with countDistinct (cross prod)", () => {
     let ex = ply()

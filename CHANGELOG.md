@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.25
+
+- Respect filtered aggregations for quantile and custom aggregates
+
 ## 0.17.24
 
 - Allow `maxRows` and support dataset trimming

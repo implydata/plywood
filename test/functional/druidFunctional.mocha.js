@@ -1421,7 +1421,9 @@ describe("Druid Functional", function() {
         .apply('One', $('wiki').sum('$count').power(0))
         .apply('AddedByDeleted', $('wiki').sum('$added').divide($('wiki').sum('$deleted')))
         .apply('Delta95th', $('wiki').quantile('$delta_hist', 0.95))
-        .apply('Delta99thX2', $('wiki').quantile('$delta_hist', 0.99).multiply(2));
+        .apply('Delta99thX2', $('wiki').quantile('$delta_hist', 0.99).multiply(2))
+        .apply('Delta98thEn', $('wiki').filter($("channel").is('en')).quantile('$delta_hist', 0.98))
+        .apply('Delta98thDe', $('wiki').filter($("channel").is('de')).quantile('$delta_hist', 0.98));
 
       return basicExecutor(ex)
         .then((result) => {
@@ -1438,7 +1440,9 @@ describe("Druid Functional", function() {
               "NumPages": 279107,
               "One": 1,
               "Delta95th": 161.95517,
-              "Delta99thX2": 328.9096984863281
+              "Delta99thX2": 328.9096984863281,
+              "Delta98thEn": 176.93568,
+              "Delta98thDe": 112.789635
             }
           ]);
         });

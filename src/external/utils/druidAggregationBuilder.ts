@@ -344,7 +344,7 @@ export class DruidAggregationBuilder {
       aggregationObj.name = name;
     }
 
-    return aggregationObj;
+    return this.filterAggregateIfNeeded(expression.operand, aggregationObj);
   }
 
   private quantileToAggregation(name: string, expression: QuantileExpression, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
@@ -382,7 +382,7 @@ export class DruidAggregationBuilder {
       probability: expression.value
     });
 
-    return aggregation;
+    return this.filterAggregateIfNeeded(expression.operand, aggregation);
   }
 
   private makeJavaScriptAggregation(name: string, aggregate: Expression): Druid.Aggregation {
