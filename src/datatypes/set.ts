@@ -89,7 +89,7 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   static isAtomicType(type: PlyType): boolean {
-    return type && type.indexOf('SET/') === -1;
+    return type && type !== 'NULL' && type.indexOf('SET/') === -1;
   }
 
   static isSetType(type: PlyType): boolean {

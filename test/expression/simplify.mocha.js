@@ -399,6 +399,11 @@ describe("Simplify", () => {
       leavesAlone(ex1);
     });
 
+    it("leaves NULL types", () => {
+      let ex1 = $('uc', 'NULL').is('A').and($('uc', 'NULL').is('B'));
+      leavesAlone(ex1);
+    });
+
     it("re-arranges filters 2", () => {
       let ex1 = $('flight').is(5).and($('x').is(1)).and($('flight').is(5));
       let ex2 = $('flight').is(5).and($('x').is(1));
