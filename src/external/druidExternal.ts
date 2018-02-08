@@ -45,7 +45,10 @@ import {
   TimePartExpression
 } from '../expressions/index';
 import { dictEqual, ExtendableError, nonEmptyLookup, shallowCopy } from '../helper/utils';
-import { External, ExternalJS, ExternalValue, Inflater, NextFn, QueryAndPostTransform } from './baseExternal';
+import {
+  External, ExternalJS, ExternalValue, Inflater, IntrospectionDepth, NextFn,
+  QueryAndPostTransform
+} from './baseExternal';
 import { AggregationsAndPostAggregations, DruidAggregationBuilder } from './utils/druidAggregationBuilder';
 import { DruidExtractionFnBuilder } from './utils/druidExtractionFnBuilder';
 import { DruidFilterBuilder } from './utils/druidFilterBuilder';
@@ -1100,11 +1103,11 @@ export class DruidExternal extends External {
     }
   }
 
-  protected async getIntrospectAttributesWithSegmentMetadata(deep: boolean): Promise<Attributes> {
+  protected async getIntrospectAttributesWithSegmentMetadata(depth: IntrospectionDepth): Promise<Attributes> {
     let { requester, timeAttribute, context } = this;
 
     let analysisTypes: string[] = ['aggregators'];
-    if (deep) {
+    if (depth === 'deep') {
       analysisTypes.push('cardinality', 'minmax');
     }
 
@@ -1133,7 +1136,7 @@ export class DruidExternal extends External {
     const res = await toArray(requester({ query }));
     let attributes = DruidExternal.segmentMetadataPostProcess(timeAttribute, !this.versionBefore('0.10.0'), res);
 
-    if (deep && attributes.length && !attributes[0].range) {
+    if (depth !== 'shallow' && attributes.length && attributes[0].nativeType === '__time' && !attributes[0].range) {
       query = {
         queryType: "timeBoundary",
         dataSource: this.getDruidDataSource()
@@ -1169,17 +1172,17 @@ export class DruidExternal extends External {
     return DruidExternal.introspectPostProcessFactory(timeAttribute, res);
   }
 
-  protected getIntrospectAttributes(deep: boolean): Promise<Attributes> {
+  protected getIntrospectAttributes(depth: IntrospectionDepth): Promise<Attributes> {
     switch (this.introspectionStrategy) {
       case 'segment-metadata-fallback':
-        return this.getIntrospectAttributesWithSegmentMetadata(deep)
+        return this.getIntrospectAttributesWithSegmentMetadata(depth)
           .catch((err: Error) => {
             if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
             return this.getIntrospectAttributesWithGet();
           });
 
       case 'segment-metadata-only':
-        return this.getIntrospectAttributesWithSegmentMetadata(deep);
+        return this.getIntrospectAttributesWithSegmentMetadata(depth);
 
       case 'datasource-get':
         return this.getIntrospectAttributesWithGet();

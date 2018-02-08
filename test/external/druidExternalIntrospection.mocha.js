@@ -178,6 +178,12 @@ describe("DruidExternal Introspection", () => {
         metrics: ['added', 'count', 'delta_hist', 'user_unique']
       });
 
+    } else if (query.queryType === 'timeBoundary') {
+      return Promise.resolve({
+        "minTime" : "2013-05-09T18:24:00.000Z",
+        "maxTime" : "2013-05-09T18:37:00.000Z"
+      });
+
     } else {
       throw new Error(`unsupported query ${query.queryType}`);
     }
@@ -280,6 +286,12 @@ describe("DruidExternal Introspection", () => {
       return Promise.resolve({
         dimensions: ['anonymous', 'language', 'namespace', 'newPage', 'page', 'time'],
         metrics: ['added', 'count', 'delta_hist', 'user_unique']
+      });
+
+    } else if (query.queryType === 'timeBoundary') {
+      return Promise.resolve({
+        "minTime" : "2013-05-09T18:24:00.000Z",
+        "maxTime" : "2013-05-09T18:37:00.000Z"
       });
 
     } else {
@@ -394,7 +406,12 @@ describe("DruidExternal Introspection", () => {
           {
             "name": "time",
             "nativeType": "__time",
-            "type": "TIME"
+            "type": "TIME",
+            "range": {
+              "bounds": "[]",
+              "end": new Date('2013-05-09T18:37:00.000Z'),
+              "start": new Date('2013-05-09T18:24:00.000Z')
+            }
           },
           {
             "maker": {
@@ -484,7 +501,12 @@ describe("DruidExternal Introspection", () => {
           {
             "name": "time",
             "nativeType": "__time",
-            "type": "TIME"
+            "type": "TIME",
+            "range": {
+              "bounds": "[]",
+              "end": new Date('2013-05-09T18:37:00.000Z'),
+              "start": new Date('2013-05-09T18:24:00.000Z')
+            }
           },
           {
             "name": "added",
@@ -541,7 +563,7 @@ describe("DruidExternal Introspection", () => {
       timeAttribute: 'time'
     }, requesterDruid_0_8_2);
 
-    return wikiExternal.introspect()
+    return wikiExternal.introspect({ depth: 'shallow' })
       .then((introspectedExternal) => {
         expect(introspectedExternal.version).to.equal('0.8.2');
         expect(introspectedExternal.toJS().attributes).to.deep.equal([

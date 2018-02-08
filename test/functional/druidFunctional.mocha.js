@@ -4067,9 +4067,76 @@ describe("Druid Functional", function() {
     });
 
     it("introspects version and attributes", () => {
-      return wikiExternal.introspect({ deep: true })
+      return wikiExternal.introspect()
         .then((introspectedExternal) => {
           expect(introspectedExternal.version).to.equal(info.druidVersion);
+          expect(introspectedExternal.toJS().attributes.slice(0, 3)).to.deep.equal([
+            {
+              "name": "time",
+              "nativeType": "__time",
+              "range": {
+                "bounds": "[]",
+                "end": new Date('2015-09-12T23:59:00.000Z'),
+                "start": new Date('2015-09-12T00:46:00.000Z')
+              },
+              "type": "TIME"
+            },
+            {
+              "maker": {
+                "expression": {
+                  "name": "added",
+                  "op": "ref"
+                },
+                "op": "sum"
+              },
+              "name": "added",
+              "nativeType": "LONG",
+              "type": "NUMBER",
+              "unsplitable": true
+            },
+            {
+              "name": "channel",
+              "nativeType": "STRING",
+              "type": "STRING"
+            }
+          ]);
+        });
+    });
+
+    it("introspects attributes (shallow)", () => {
+      return wikiExternal.introspect({ depth: 'shallow' })
+        .then((introspectedExternal) => {
+          expect(introspectedExternal.toJS().attributes.slice(0, 3)).to.deep.equal([
+            {
+              "name": "time",
+              "nativeType": "__time",
+              "type": "TIME"
+            },
+            {
+              "maker": {
+                "expression": {
+                  "name": "added",
+                  "op": "ref"
+                },
+                "op": "sum"
+              },
+              "name": "added",
+              "nativeType": "LONG",
+              "type": "NUMBER",
+              "unsplitable": true
+            },
+            {
+              "name": "channel",
+              "nativeType": "STRING",
+              "type": "STRING"
+            }
+          ]);
+        });
+    });
+
+    it("introspects attributes (deep)", () => {
+      return wikiExternal.introspect({ depth: 'deep' })
+        .then((introspectedExternal) => {
           expect(introspectedExternal.toJS().attributes).to.deep.equal(wikiAttributes);
         });
     });

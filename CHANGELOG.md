@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.27
+
+- Change the External#introspect method to take a `depth: "deep" | "default" | "shallow"` parameter instead of `deep: boolean` (`deep: true` => `depth: deep`)
+- Druid introspect route will query time range on `depth: "default"` and not query it on `depth: "shallow"`  
+
 ## 0.17.26
 
 - Fix `Set#isAtomicType` to work correctly for `NULL`

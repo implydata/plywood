@@ -86,8 +86,11 @@ export interface Inflater {
   (d: Datum): void;
 }
 
+export type IntrospectionDepth = "deep" | "default" | "shallow";
+
 export interface IntrospectOptions {
-  deep?: boolean;
+  depth?: IntrospectionDepth;
+  deep?: boolean; // legacy proxy for depth: "deep"
 }
 
 export type QueryMode = "raw" | "value" | "total" | "split";
@@ -1537,7 +1540,7 @@ export abstract class External {
     return !this.rawAttributes.length;
   }
 
-  protected abstract getIntrospectAttributes(deep: boolean): Promise<Attributes>;
+  protected abstract getIntrospectAttributes(depth: IntrospectionDepth): Promise<Attributes>;
 
   public introspect(options: IntrospectOptions = {}): Promise<External> {
     if (!this.requester) {
@@ -1552,7 +1555,8 @@ export abstract class External {
       });
     }
 
-    return this.getIntrospectAttributes(options.deep)
+    const depth = options.depth || (options.deep ? 'deep' : 'default');
+    return this.getIntrospectAttributes(depth)
       .then((attributes) => {
         let value = this.valueOf();
 
