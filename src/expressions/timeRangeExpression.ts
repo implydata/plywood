@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 Imply Data, Inc.
+ * Copyright 2016-2018 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
 
   protected _toStringParameters(indent?: int): string[] {
     let ret = [this.duration.toString(), this.step.toString()];
-    if (this.timezone) ret.push(this.timezone.toString());
+    if (this.timezone) ret.push(Expression.safeString(this.timezone.toString()));
     return ret;
   }
 

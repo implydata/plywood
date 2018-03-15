@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017 Imply Data, Inc.
+ * Copyright 2015-2018 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ let { sane, grabConsoleWarn } = require('../utils');
 
 let { testImmutableClass } = require("immutable-class-tester");
 
+const { Duration, Timezone } = require('chronoshift');
 let plywood = require('../plywood');
 let { Expression, Dataset, External, TimeRange, AttributeInfo, $, ply, r } = plywood;
 
@@ -147,6 +148,20 @@ describe("External", () => {
     });
   });
 
+  describe.skip("#timeRangeInflaterFactory(label, duration, timezone)", () => {
+    it('works for daylight savings', () => {
+      let duration = Duration.fromJS('PT1H');
+      let tz = Timezone.fromJS('America/Los_Angeles');
+      let inf = External.timeRangeInflaterFactory('__time', duration, tz);
+      let d = { __time: "2018-03-11T09:00:00.000Z" };
+      inf(d);
+
+      let s = duration.shift(new Date("2018-03-11T09:00:00.000Z"), tz);
+      console.log('s', s);
+
+      expect(d.__time.toJS()).to.deep.equal({});
+    });
+  });
 
   describe("does not die with hasOwnProperty", () => {
     it("survives a troll", () => {

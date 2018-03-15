@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.28
+
+- Better stringification of strings in expressions
+
 ## 0.17.27
 
 - Change the External#introspect method to take a `depth: "deep" | "default" | "shallow"` parameter instead of `deep: boolean` (`deep: true` => `depth: deep`)

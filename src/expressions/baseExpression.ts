@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2017 Imply Data, Inc.
+ * Copyright 2015-2018 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -549,6 +549,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       parsed[subParts[0]] = subParts[1];
     }
     return parsed;
+  }
+
+  static safeString(str: string): string {
+    return /^[a-z]\w+$/i.test(str) ? str : JSON.stringify(str);
   }
 
   /**

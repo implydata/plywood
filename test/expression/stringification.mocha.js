@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2017 Imply Data, Inc.
+ * Copyright 2015-2018 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,6 +90,16 @@ describe("stringification", () => {
     expect(ex.toString(2)).to.equal("$diamonds.split($cut.lookup(hello_lookup),CutLookup,diamonds)");
   });
 
+  it("works with lookup with fancy name 1", () => {
+    let ex = $('diamonds').split("$cut.lookup('99hello')", 'CutLookup');
+    expect(ex.toString(2)).to.equal(`$diamonds.split($cut.lookup("99hello"),CutLookup,diamonds)`);
+  });
+
+  it("works with lookup with fancy name 2", () => {
+    let ex = $('diamonds').split("$cut.lookup('hello=lookup')", 'CutLookup');
+    expect(ex.toString(2)).to.equal(`$diamonds.split($cut.lookup("hello=lookup"),CutLookup,diamonds)`);
+  });
+
   it("works with timePart", () => {
     let ex = $('time').timePart('DAY_OF_WEEK');
     expect(ex.toString(2)).to.equal("$time.timePart(DAY_OF_WEEK)");
@@ -98,6 +108,11 @@ describe("stringification", () => {
   it("works with timeShift", () => {
     let ex = $('time').timeShift('P1D', 2);
     expect(ex.toString(2)).to.equal("$time.timeShift(P1D,2)");
+  });
+
+  it("works with timeShift with timezone", () => {
+    let ex = $('time').timeShift('P1D', 2, 'Etc/UTC');
+    expect(ex.toString(2)).to.equal(`$time.timeShift(P1D,2,"Etc/UTC")`);
   });
 
   it("works with timeRange", () => {
@@ -113,5 +128,10 @@ describe("stringification", () => {
   it("works with substr", () => {
     let ex = $('x').substr(1, 5);
     expect(ex.toString(2)).to.equal("$x.substr(1,5)");
+  });
+
+  it("works with quantile with resolution", () => {
+    let ex = $('x').quantile('$hist', 0.98, "resolution=2000");
+    expect(ex.toString(2)).to.equal(`$x.quantile($hist,0.98,"resolution=2000")`);
   });
 });
