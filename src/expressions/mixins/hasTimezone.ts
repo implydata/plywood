@@ -45,7 +45,12 @@ export class HasTimezone {
     if (typeof environment.timezone === 'string') environment = { timezone: Timezone.fromJS(environment.timezone as any) };
 
     if (this.timezone || !environment.timezone) return (this as any);
-    return this.changeTimezone(environment.timezone);
+    return this.changeTimezone(environment.timezone).substitute((ex) => {
+      if (ex.needsEnvironment()) {
+        return ex.defineEnvironment(environment);
+      }
+      return null;
+    });
   }
 
   /*

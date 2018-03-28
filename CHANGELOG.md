@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.29
+
+- `Expression#defineEnvironment` works recursively
+
 ## 0.17.28
 
 - Better stringification of strings in expressions

@@ -16,6 +16,7 @@
  */
 
 const { expect } = require("chai");
+const { Timezone } = require("chronoshift");
 
 let { testImmutableClass } = require("immutable-class-tester");
 
@@ -471,6 +472,46 @@ describe("Expression", () => {
       });
     });
 
+  });
+
+  describe('#defineEnvironment', () => {
+    let timezone = Timezone.fromJS('America/Los_Angeles');
+
+    it('works in simple case', () => {
+      let ex = $('x').timeRange('P1D');
+
+      expect(ex.defineEnvironment({ timezone }).toJS()).to.deep.equal({
+        "duration": "P1D",
+        "op": "timeRange",
+        "operand": {
+          "name": "x",
+          "op": "ref"
+        },
+        "step": 1,
+        "timezone": "America/Los_Angeles"
+      });
+    });
+
+    it('works in nested case', () => {
+      let ex = $('x').timeShift('P1D', 1).timeRange('P1D');
+
+      expect(ex.defineEnvironment({ timezone }).toJS()).to.deep.equal({
+        "duration": "P1D",
+        "op": "timeRange",
+        "operand": {
+          "duration": "P1D",
+          "op": "timeShift",
+          "operand": {
+            "name": "x",
+            "op": "ref"
+          },
+          "step": 1,
+          "timezone": "America/Los_Angeles"
+        },
+        "step": 1,
+        "timezone": "America/Los_Angeles"
+      });
+    });
   });
 
   describe('fromJS API back comparability', () => {

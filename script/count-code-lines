@@ -1,3 +1,0 @@
-#!/bin/bash -eu
-
-find src -type f -name "*.ts*" ! -name "*.mocha.*" -print0 | xargs -0 -n 10 cat | wc -l
