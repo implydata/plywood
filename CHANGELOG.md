@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.31
+
+- Also working in filter
+
 ## 0.17.30
 
 - Started virtualColumn implementation

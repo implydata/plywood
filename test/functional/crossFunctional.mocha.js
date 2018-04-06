@@ -553,6 +553,15 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
+    it('works with concat in filter', equalityTest({
+      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
+      expression: $('wiki').filter('$channel.concat(", ").concat($namespace) == "en, Main"')
+        .split('$cityName', 'CityName')
+        .apply('Count', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
     it('works with sub-query filter', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').filter('$commentLength > $wiki.average($commentLength)')

@@ -33,6 +33,7 @@ import {
 } from '../../expressions/index';
 
 import { External } from '../baseExternal';
+import { DruidExpressionBuilder } from './druidExpressionBuilder';
 import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
 import { CustomDruidTransforms } from './druidTypes';
 
@@ -150,59 +151,74 @@ export class DruidFilterBuilder {
         fields: filter.getExpressionList().map(p => this.timelessFilterToFilter(p, aggregatorFilter))
       };
 
-    } else if (filter instanceof IsExpression) {
-      const { operand: lhs, expression: rhs } = filter;
-      if (rhs instanceof LiteralExpression) {
-        if (Set.isSetType(rhs.type)) {
-          return this.makeInFilter(lhs, rhs.value);
-        } else {
-          return this.makeSelectorFilter(lhs, rhs.value);
-        }
-
-      } else {
-        throw new Error(`can not convert ${filter} to Druid filter`);
-      }
-
-    } else if (aggregatorFilter && this.versionBefore('0.9.1')) {
-      if (this.versionBefore('0.8.2')) throw new Error(`can not express aggregate filter ${filter} in druid < 0.8.2`);
-      return this.makeExtractionFilter(filter);
-
-    } else if (filter instanceof OverlapExpression) {
-      const { operand: lhs, expression: rhs } = filter;
-      if (rhs instanceof LiteralExpression) {
-        let rhsType = rhs.type;
-        if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
-          return this.makeInFilter(lhs, rhs.value);
-
-        } else if (Set.unwrapSetType(rhsType) === 'TIME_RANGE' && this.isTimeRef(lhs)) {
-          return this.makeIntervalFilter(lhs, rhs.value);
-
-        } else if (rhsType === 'NUMBER_RANGE' || rhsType === 'TIME_RANGE' || rhsType === 'STRING_RANGE') {
-          return this.makeBoundFilter(lhs, rhs.value);
-
-        } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE' || rhsType === 'SET/STRING_RANGE') {
-          return {
-            type: "or",
-            fields: rhs.value.elements.map((range: PlywoodRange) => this.makeBoundFilter(lhs, range))
-          };
-
-        } else {
-          throw new Error(`not supported OVERLAP rhs type ${rhsType}`);
-
-        }
-
-      } else {
-        throw new Error(`can not convert ${filter} to Druid filter`);
-      }
-
-    } else if (filter instanceof MatchExpression) {
-      return this.makeRegexFilter(filter.operand, filter.regexp);
-
-    } else if (filter instanceof ContainsExpression) {
-      const { operand: lhs, expression: rhs, compare } = filter;
-      return this.makeContainsFilter(lhs, rhs, compare);
-
     } else {
+      let freeReferences = filter.getFreeReferences();
+      if (freeReferences.length > 1) {
+        let druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(filter);
+        if (druidExpression === null) {
+          throw new Error(`could not convert ${filter} to Druid expression for filter`);
+        }
+
+        return {
+          type: "expression",
+          expression: druidExpression
+        };
+      }
+
+      if (filter instanceof IsExpression) {
+        const { operand: lhs, expression: rhs } = filter;
+        if (rhs instanceof LiteralExpression) {
+          if (Set.isSetType(rhs.type)) {
+            return this.makeInFilter(lhs, rhs.value);
+          } else {
+            return this.makeSelectorFilter(lhs, rhs.value);
+          }
+
+        } else {
+          throw new Error(`can not convert ${filter} to Druid filter`);
+        }
+
+      } else if (aggregatorFilter && this.versionBefore('0.9.1')) {
+        if (this.versionBefore('0.8.2')) throw new Error(`can not express aggregate filter ${filter} in druid < 0.8.2`);
+        return this.makeExtractionFilter(filter);
+
+      } else if (filter instanceof OverlapExpression) {
+        const { operand: lhs, expression: rhs } = filter;
+        if (rhs instanceof LiteralExpression) {
+          let rhsType = rhs.type;
+          if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
+            return this.makeInFilter(lhs, rhs.value);
+
+          } else if (Set.unwrapSetType(rhsType) === 'TIME_RANGE' && this.isTimeRef(lhs)) {
+            return this.makeIntervalFilter(lhs, rhs.value);
+
+          } else if (rhsType === 'NUMBER_RANGE' || rhsType === 'TIME_RANGE' || rhsType === 'STRING_RANGE') {
+            return this.makeBoundFilter(lhs, rhs.value);
+
+          } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE' || rhsType === 'SET/STRING_RANGE') {
+            return {
+              type: "or",
+              fields: rhs.value.elements.map((range: PlywoodRange) => this.makeBoundFilter(lhs, range))
+            };
+
+          } else {
+            throw new Error(`not supported OVERLAP rhs type ${rhsType}`);
+
+          }
+
+        } else {
+          throw new Error(`can not convert ${filter} to Druid filter`);
+        }
+
+      } else if (filter instanceof MatchExpression) {
+        return this.makeRegexFilter(filter.operand, filter.regexp);
+
+      } else if (filter instanceof ContainsExpression) {
+        const { operand: lhs, expression: rhs, compare } = filter;
+        return this.makeContainsFilter(lhs, rhs, compare);
+
+      }
+
       throw new Error(`could not convert filter ${filter} to Druid filter`);
     }
   }

@@ -23,6 +23,7 @@ import {
   ConcatExpression,
   CustomTransformExpression,
   Expression,
+  IsExpression,
   ExtractExpression,
   FallbackExpression,
   LengthExpression,
@@ -90,6 +91,10 @@ export class DruidExpressionBuilder {
 
         if (expression instanceof ConcatExpression) {
           return `concat(${ex1},${ex2})`;
+
+        } else if (expression instanceof OverlapExpression || expression instanceof IsExpression) {
+          return `(${ex1} == ${ex2})`;
+
         }
       }
     }
@@ -126,7 +131,7 @@ export class DruidExpressionBuilder {
       return this.overlapToDruidExpression(expression);
     */
 
-    throw new Error('not yet implemented');
+    throw new Error(`not implemented Druid expression for ${expression}`);
   }
 
   /*
