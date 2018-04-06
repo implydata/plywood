@@ -20,7 +20,7 @@ const { PassThrough } = require('readable-stream');
 let { sane } = require('../utils');
 
 let plywood = require('../plywood');
-let { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
+let { External, TimeRange, $, ply, r, AttributeInfo, DruidExpressionBuilder } = plywood;
 
 let timeFilter = $('time').overlap(TimeRange.fromJS({
   start: new Date("2013-02-26T00:00:00Z"),
@@ -119,6 +119,14 @@ let contextNoApprox = {
 
 
 describe("DruidExternal", () => {
+
+  describe("DruidExpressionBuilder", () => {
+    it('escapes', () => {
+      expect(DruidExpressionBuilder.escape('lol')).to.deep.equal('lol');
+      expect(DruidExpressionBuilder.escape('Здравствуйте')).to.deep.equal('\\u0417\\u0434\\u0440\\u0430\\u0432\\u0441\\u0442\\u0432\\u0443\\u0439\\u0442\\u0435');
+    });
+  });
+
 
   describe("simplifies / digests", () => {
     it("a (timeBoundary) total", () => {
@@ -1167,6 +1175,32 @@ describe("DruidExternal", () => {
       });
     });
 
+  });
+
+
+  describe("splits (makes correct dimension virtualColumns)", () => {
+
+    it("works with concat", () => {
+      let ex = $('wiki')
+        .split('$language ++ "," ++ $page', 'Split')
+        .apply("m", "$wiki.sum($added)")
+        .sort("$m", "descending")
+        .limit(10);
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      let query = ex.external.getQueryAndPostTransform().query;
+      expect(query.queryType).to.equal('topN');
+      expect(query.virtualColumns).to.deep.equal([
+        {
+          "expression": "concat(concat(\"language\",','),\"page\")",
+          "name": "Split",
+          "outputType": "STRING",
+          "type": "expression"
+        }
+      ]);
+    });
   });
 
 

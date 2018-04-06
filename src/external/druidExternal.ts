@@ -50,6 +50,7 @@ import {
   QueryAndPostTransform
 } from './baseExternal';
 import { AggregationsAndPostAggregations, DruidAggregationBuilder } from './utils/druidAggregationBuilder';
+import { DruidExpressionBuilder } from './utils/druidExpressionBuilder';
 import { DruidExtractionFnBuilder } from './utils/druidExtractionFnBuilder';
 import { DruidFilterBuilder } from './utils/druidFilterBuilder';
 import { DruidHavingFilterBuilder } from './utils/druidHavingFilterBuilder';
@@ -79,6 +80,7 @@ export interface GranularityInflater {
 }
 
 export interface DimensionInflater {
+  virtualColumn?: Druid.VirtualColumn;
   dimension: Druid.DimensionSpec;
   inflater?: Inflater;
 }
@@ -90,6 +92,7 @@ export interface DimensionInflaterHaving extends DimensionInflater {
 export interface DruidSplit {
   queryType: string;
   timestampLabel?: string;
+  virtualColumns?: Druid.VirtualColumn[];
   granularity: Druid.Granularity | string;
   dimension?: Druid.DimensionSpec;
   dimensions?: Druid.DimensionSpec[];
@@ -568,8 +571,32 @@ export class DruidExternal extends External {
     }
 
     if (freeReferences.length > 1) {
-      throw new Error(`must have at most 1 reference (has ${freeReferences.length}): ${expression}`);
+      if (this.versionBefore('0.10.0')) {
+        throw new Error(`expressions not supported in Druid 0.10.0`);
+      }
+
+      let druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(expression);
+      if (druidExpression === null) {
+        throw new Error(`could not convert ${expression} to Druid expression`);
+      }
+
+      const outputName = this.makeOutputName(label);
+      return {
+        virtualColumn: {
+          type: "expression",
+          name: outputName,
+          expression: druidExpression,
+          outputType: "STRING"
+        },
+        dimension: {
+          type: "default",
+          dimension: outputName,
+          outputType: "STRING"
+        },
+        inflater: null
+      };
     }
+
     let referenceName = freeReferences[0];
 
     let attributeInfo = this.getAttributesInfo(referenceName);
@@ -705,6 +732,7 @@ export class DruidExternal extends External {
     if (split.isMultiSplit()) {
       let timestampLabel: string = null;
       let granularity: Druid.Granularity = null;
+      let virtualColumns: Druid.VirtualColumn[] = [];
       let dimensions: Druid.DimensionSpec[] = [];
       let inflaters: Inflater[] = [];
       split.mapSplits((name, expression) => {
@@ -720,8 +748,9 @@ export class DruidExternal extends External {
           }
         }
 
-        let { dimension, inflater, having } = this.expressionToDimensionInflaterHaving(expression, name, leftoverHavingFilter);
+        let { virtualColumn, dimension, inflater, having } = this.expressionToDimensionInflaterHaving(expression, name, leftoverHavingFilter);
         leftoverHavingFilter = having;
+        if (virtualColumn) virtualColumns.push(virtualColumn);
         dimensions.push(dimension);
         if (inflater) {
           inflaters.push(inflater);
@@ -729,6 +758,7 @@ export class DruidExternal extends External {
       });
       return {
         queryType: 'groupBy',
+        virtualColumns,
         dimensions: dimensions,
         timestampLabel,
         granularity: granularity || 'all',
@@ -763,6 +793,7 @@ export class DruidExternal extends External {
     ) {
       return {
         queryType: 'topN',
+        virtualColumns: dimensionInflater.virtualColumn ? [dimensionInflater.virtualColumn] : null,
         dimension: dimensionInflater.dimension,
         granularity: 'all',
         leftoverHavingFilter,
@@ -975,6 +1006,7 @@ export class DruidExternal extends External {
         let splitSpec = this.splitToDruid(split);
         druidQuery.queryType = splitSpec.queryType;
         druidQuery.granularity = splitSpec.granularity;
+        if (splitSpec.virtualColumns && splitSpec.virtualColumns.length) druidQuery.virtualColumns = splitSpec.virtualColumns;
         if (splitSpec.dimension) druidQuery.dimension = splitSpec.dimension;
         if (splitSpec.dimensions) druidQuery.dimensions = splitSpec.dimensions;
         let leftoverHavingFilter = splitSpec.leftoverHavingFilter;

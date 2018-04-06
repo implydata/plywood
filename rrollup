@@ -90,6 +90,7 @@ cat \
   build/expressions/transformCaseExpression.js \
   \
   build/external/baseExternal.js \
+  build/external/utils/druidExpressionBuilder.js \
   build/external/utils/druidExtractionFnBuilder.js \
   build/external/utils/druidFilterBuilder.js \
   build/external/utils/druidHavingFilterBuilder.js \

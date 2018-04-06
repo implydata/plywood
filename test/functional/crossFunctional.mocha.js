@@ -1028,6 +1028,22 @@ describe("Cross Functional", function() {
         .limit(10)
     }));
 
+    it('works with concat in split', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split('$channel ++ $page', 'Concat')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with concat/substr in split', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split('$channel ++ $page.substr(0,2)', 'Concat')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
     it('works with length action on split', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split({ 'PageLength': '$page.length()' })
@@ -1109,6 +1125,19 @@ describe("Cross Functional", function() {
         .split({
           'Channel': "$channel",
           'TimeByHour': '$__time.timeFloor(PT1M)'
+        })
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(4)
+    }));
+
+    it('works with multi-dimensional split with concat', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split({
+          'Channel': "$channel",
+          'Other': '$namespace ++ $user'
         })
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
