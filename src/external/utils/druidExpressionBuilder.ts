@@ -75,7 +75,12 @@ export class DruidExpressionBuilder {
 
   public expressionToDruidExpression(expression: Expression): string | null {
     if (expression instanceof LiteralExpression) {
-      return `'${DruidExpressionBuilder.escape(expression.getLiteralValue())}'`;
+      const literalValue = expression.getLiteralValue();
+      if (literalValue === null) {
+        return `null`;
+      } else {
+        return `'${DruidExpressionBuilder.escape(String(literalValue))}'`;
+      }
 
     } else if (expression instanceof RefExpression) {
       return `"${DruidExpressionBuilder.escape(expression.name)}"`;

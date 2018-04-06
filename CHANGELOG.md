@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.32
+
+- Correctly handle IN filters on virtualColumns
+
 ## 0.17.31
 
 - Also working in filter
