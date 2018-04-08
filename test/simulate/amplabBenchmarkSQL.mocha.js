@@ -74,27 +74,22 @@ describe("simulate Druid for amplab benchmark", () => {
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "dataSource": "rankings",
-        "dimensions": [
-          "pageURL"
+        "columns": [
+          "pageURL",
+          "pageRank"
         ],
+        "dataSource": "rankings",
         "filter": {
-          "ordering": "numeric",
           "dimension": "pageRank",
           "lower": 5,
           "lowerStrict": true,
+          "ordering": "numeric",
           "type": "bound"
         },
         "granularity": "all",
         "intervals": "1000/3000",
-        "metrics": [
-          "pageRank"
-        ],
-        "pagingSpec": {
-          "pagingIdentifiers": {},
-          "threshold": 50
-        },
-        "queryType": "select"
+        "queryType": "scan",
+        "resultFormat": "compactedList"
       }
     ]);
   });

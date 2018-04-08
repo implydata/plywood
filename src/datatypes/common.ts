@@ -160,8 +160,10 @@ export function valueToJS(v: any): any {
     if (typeofV === 'object') {
       if (v.toISOString) {
         return v;
-      } else {
+      } else if (v.toJS) {
         return v.toJS();
+      } else {
+        throw new Error(`can not convert ${JSON.stringify(v)} to JS`);
       }
     } else if (typeofV === 'number' && !isFinite(v)) {
       return String(v);

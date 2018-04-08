@@ -35,7 +35,7 @@
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
     "chronoshift": "~0.6.8",
-    "druid.d.ts": "~0.11.1",
+    "druid.d.ts": "~0.11.2",
     "has-own-prop": "~1.0.0",
     "immutable-class": "~0.6.42",
     "moment-timezone": "~0.5.14",
@@ -53,7 +53,7 @@
     "istanbul": "0.4.5",
     "mocha": "3.5.0",
     "pegjs": "0.10.0",
-    "plywood-druid-requester": "2.4.2",
+    "plywood-druid-requester": "2.4.3",
     "plywood-mysql-requester": "2.1.0",
     "plywood-postgres-requester": "1.2.0",
     "readable-stream": "^2.3.3",

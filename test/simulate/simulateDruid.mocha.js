@@ -3169,8 +3169,8 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
       {
-        "dataSource": "diamonds",
-        "dimensions": [
+        "columns": [
+          "time",
           "some_other_time",
           "color",
           "cut",
@@ -3180,9 +3180,13 @@ describe("simulate Druid", () => {
           "carat",
           "carat_n",
           "height_bucket",
+          "price",
+          "tax",
+          "vendor_id",
           "try",
           "a+b"
         ],
+        "dataSource": "diamonds",
         "filter": {
           "dimension": "color",
           "type": "selector",
@@ -3190,16 +3194,9 @@ describe("simulate Druid", () => {
         },
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
-        "metrics": [
-          "price",
-          "tax",
-          "vendor_id"
-        ],
-        "pagingSpec": {
-          "pagingIdentifiers": {},
-          "threshold": 10
-        },
-        "queryType": "select"
+        "limit": 10,
+        "queryType": "scan",
+        "resultFormat": "compactedList"
       }
     ]);
   });

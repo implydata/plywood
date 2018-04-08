@@ -65,9 +65,9 @@ let attributes = [
   { name: "countryName", type: 'STRING', nativeType: 'STRING' },
   { name: "deltaBucket100", type: 'NUMBER', nativeType: 'STRING' },
   { name: "isAnonymous", type: 'BOOLEAN', nativeType: 'STRING' },
-  { name: "isMinor", type: 'NULL', nativeType: 'STRING' },
+  { name: "isMinor", type: 'BOOLEAN', nativeType: 'STRING' },
   { name: "isNew", type: 'BOOLEAN', nativeType: 'STRING' },
-  { name: "isRobot", type: 'NULL', nativeType: 'STRING' },
+  { name: "isRobot", type: 'BOOLEAN', nativeType: 'STRING' },
   { name: "isUnpatrolled", type: 'BOOLEAN', nativeType: 'STRING' },
   { name: "metroCode", type: 'NUMBER', nativeType: 'STRING' },
   { name: "namespace", type: 'STRING', nativeType: 'STRING' },
@@ -1247,7 +1247,6 @@ describe("Cross Functional", function() {
 
     it('works with heatmap with concat query with time', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
-      verbose: true,
       expression: ply()
         .apply(
           'ys',
@@ -1530,7 +1529,7 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it('works with sort on time descending and limit', equalityTest({
+    it.skip('works with sort on time descending and limit', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').filter('$cityName == "Munich"')
         .select('__time', 'added', 'deleted')
@@ -1546,36 +1545,55 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it('works with derived dimension columns (SUBSTR)', equalityTest({
+    it('works with derived dimension columns', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki')
-        .filter('$cityName == "El Paso"')
+        .filter('$cityName == "Ajax"')
         .apply('reg', '$regionName.substr(1, 3)')
-        .select('reg')
-    }));
-
-    it('works with derived dimension columns (CONCAT)', equalityTest({
-      executorNames: ['druid', 'mysql', 'postgres'], // , 'druidSql'
-      expression: $('wiki')
-        .filter('$cityName == "El Paso"')
         .apply('regionNameLOL', '$regionName.concat(LOL)')
-        .select('regionNameLOL')
+        .apply('REGION_NAME', '$regionName.transformCase(upperCase)')
+        .apply('regionname', '$regionName.transformCase(lowerCase)')
+        .select('reg', 'regionNameLOL', 'REGION_NAME', 'regionname')
     }));
 
-    it.skip('works with derived measure columns', equalityTest({
+    it('works with derived metric columns', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki')
-        .filter('$cityName == "El Paso"')
-        .apply('AddedX2', '$added * 2')
+        .filter('$cityName == "Ajax"')
+        .apply('formula', '(($added - 1) * 2 + 5 + $deleted.power(2)).absolute()')
+        .select('formula')
+    }));
+
+    it('works with derived time column', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .filter('$cityName == "Ajax"')
+        .apply('otherTime', '$__time')
+        .apply('SECOND_OF_MINUTE', '$__time.timePart(SECOND_OF_MINUTE)')
+        .apply('MINUTE_OF_HOUR', '$__time.timePart(MINUTE_OF_HOUR)')
+        .apply('HOUR_OF_DAY', '$__time.timePart(HOUR_OF_DAY)')
+        .apply('timeFloorP1D', '$__time.timeFloor(P1D)')
+        .apply('timeFloorPT1M', '$__time.timeFloor(PT1M)')
+        //.apply('timeShift', '$__time.timeShift(P1D, 1)')
+        .select(
+          '__time',
+          'otherTime',
+          'SECOND_OF_MINUTE',
+          'MINUTE_OF_HOUR',
+          'HOUR_OF_DAY',
+          'timeFloorP1D',
+          'timeFloorPT1M',
+          //'timeShift'
+        )
     }));
 
     it("works with raw data inside a split", equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki')
-        .filter('$cityName.match("^San")')
+        .filter('$cityName.overlap(["Ada","Ajax"])') // These cities have only one edit in them
         .split('$cityName', 'City')
         .apply('Edits', '$wiki.sum($count)')
-        .sort('$Edits', 'descending')
+        .sort('$City', 'descending')
         .limit(2)
         .apply(
           'Latest2Events',
@@ -1585,7 +1603,7 @@ describe("Cross Functional", function() {
         )
     }));
 
-    it('works with cardinality in select', equalityTest({
+    it.skip('works with cardinality in select', equalityTest({
       executorNames: ['druid', 'postgres'],
       expression: $('wiki').filter('$cityName == "El Paso"')
         .select('userChars')
