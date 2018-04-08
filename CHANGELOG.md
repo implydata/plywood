@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.33
+
+- Adding more tests
+- Fix null handling in IN filters for SQL drivers
+
 ## 0.17.32
 
 - Correctly handle IN filters on virtualColumns

@@ -213,6 +213,7 @@ export class Set implements Instance<SetValue, SetJS> {
     let elements = parameters.elements;
     if (!setType) {
       setType = getValueType(elements.length ? elements[0] : null);
+      if (setType === 'NULL' && elements.length > 1) setType = getValueType(elements[1]);
     }
     return new Set({
       setType: setType,

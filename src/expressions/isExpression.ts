@@ -53,12 +53,19 @@ export class IsExpression extends ChainableUnaryExpression {
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    const expressionSet = this.expression.getLiteralValue();
+    let expressionSet = this.expression.getLiteralValue();
     if (expressionSet instanceof Set) {
       switch (this.expression.type) {
         case 'SET/STRING':
         case 'SET/NUMBER':
-          return `${operandSQL} IN ${expressionSQL}`;
+          let nullCheck: string = null;
+          if (expressionSet.has(null)) {
+            nullCheck = `(${operandSQL} IS NULL)`;
+            expressionSet = expressionSet.remove(null);
+          }
+
+          let inCheck = `${operandSQL} IN (${expressionSet.elements.map((v: any) => typeof v === 'number' ? v : dialect.escapeLiteral(v)).join(',')})`;
+          return nullCheck ? `(${nullCheck} OR ${inCheck})` : inCheck;
 
         default:
           return expressionSet.elements.map((e) => dialect.isNotDistinctFromExpression(operandSQL, r(e).getSQL(dialect))).join(' OR ');

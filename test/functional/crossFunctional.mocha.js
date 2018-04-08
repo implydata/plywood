@@ -65,9 +65,9 @@ let attributes = [
   { name: "countryName", type: 'STRING', nativeType: 'STRING' },
   { name: "deltaBucket100", type: 'NUMBER', nativeType: 'STRING' },
   { name: "isAnonymous", type: 'BOOLEAN', nativeType: 'STRING' },
-  { name: "isMinor", type: 'BOOLEAN', nativeType: 'STRING' },
+  { name: "isMinor", type: 'NULL', nativeType: 'STRING' },
   { name: "isNew", type: 'BOOLEAN', nativeType: 'STRING' },
-  { name: "isRobot", type: 'BOOLEAN', nativeType: 'STRING' },
+  { name: "isRobot", type: 'NULL', nativeType: 'STRING' },
   { name: "isUnpatrolled", type: 'BOOLEAN', nativeType: 'STRING' },
   { name: "metroCode", type: 'NUMBER', nativeType: 'STRING' },
   { name: "namespace", type: 'STRING', nativeType: 'STRING' },
@@ -164,7 +164,7 @@ let equalityTest = utils.makeEqualityTest({
 });
 
 describe("Cross Functional", function() {
-  this.timeout(10000);
+  this.timeout(15000);
 
   describe("filters", () => {
     it('works with empty filter', equalityTest({
@@ -1219,6 +1219,35 @@ describe("Cross Functional", function() {
 
     it('works with heatmap with concat query', equalityTest({
       executorNames: ['druid', 'mysql', 'postgres'],
+      expression: ply()
+        .apply(
+          'ys',
+          $('wiki').split('$countryName', 'v')
+            .apply('count', '$wiki.count()')
+            .sort('$count', 'descending')
+            .limit(3)
+        )
+        .apply(
+          'xs',
+          $('wiki').split('$channel ++ "," ++ $user', 'v')
+            .apply('count', '$wiki.count()')
+            .sort('$count', 'descending')
+            .limit(3)
+        )
+        .apply('count', '$wiki.count()')
+        .apply(
+          'cells',
+          $('wiki').filter('($channel ++ "," ++ $user).overlap($xs.collect($v)).and($countryName.overlap($ys.collect($v)))')
+            .split({ countryName: '$countryName', channelUser: '$channel ++ "," ++ $user' })
+            .apply('count', '$wiki.sum($count)')
+            .sort('$count', 'descending')
+            .limit(9)
+        )
+    }));
+
+    it('works with heatmap with concat query with time', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'],
+      verbose: true,
       expression: ply()
         .apply(
           'ys',

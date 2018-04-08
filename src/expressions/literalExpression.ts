@@ -126,11 +126,9 @@ export class LiteralExpression extends Expression {
 
       case 'SET/STRING':
       case 'SET/NUMBER':
-        return '(' + (<Set>value).elements.map((v: any) => typeof v === 'number' ? v : dialect.escapeLiteral(v)).join(',') + ')';
-
       case 'SET/NUMBER_RANGE':
       case 'SET/TIME_RANGE':
-        return 'FALSE'; // ToDo: fix these dummies
+        return '<DUMMY>';
 
       default:
         throw new Error("currently unsupported type: " + this.type);
