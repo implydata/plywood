@@ -1,6 +1,6 @@
 {
   "name": "plywood",
-  "version": "0.17.32",
+  "version": "0.17.33",
   "description": "A query planner and executor",
   "keywords": [
     "split",
