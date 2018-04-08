@@ -2284,19 +2284,13 @@ describe("DruidExternal", () => {
 
     let external = ex.operand.external;
     expect(external.getQueryAndPostTransform().query).to.deep.equal({
-      "dataSource": "wikipedia",
-      "dimensions": [
+      "columns": [
         "page",
-        {
-          "dimension": "commentLength",
-          "extractionFn": {
-            "function": "function(d){var _,_2;_=new Date(parseFloat(d));return isNaN(_)?null:_}",
-            "type": "javascript"
-          },
-          "outputName": "castTime",
-          "type": "extraction"
-        }
+        "commentLength",
+        "castTime",
+        "added"
       ],
+      "dataSource": "wikipedia",
       "filter": {
         "dimension": "page",
         "type": "selector",
@@ -2304,15 +2298,16 @@ describe("DruidExternal", () => {
       },
       "granularity": "all",
       "intervals": "2013-02-26T00Z/2013-02-27T00Z",
-      "metrics": [
-        "commentLength",
-        "added"
-      ],
-      "pagingSpec": {
-        "pagingIdentifiers": {},
-        "threshold": 50
-      },
-      "queryType": "select"
+      "queryType": "scan",
+      "resultFormat": "compactedList",
+      "virtualColumns": [
+        {
+          "expression": "timestamp(\"commentLength\")",
+          "name": "castTime",
+          "outputType": "STRING",
+          "type": "expression"
+        }
+      ]
     });
   });
 

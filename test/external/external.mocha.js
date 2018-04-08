@@ -1586,20 +1586,7 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         let external = ex.external;
-        expect(external.getQueryAndPostTransform().query.dimensions).to.deep.equal([
-          'page',
-          {
-            "dimension": "language",
-            "extractionFn": {
-              "index": 0,
-              "length": 100,
-              "type": "substring"
-            },
-            "outputName": "language",
-            "type": "extraction"
-          },
-          'user'
-        ]);
+        expect(external.getQueryAndPostTransform().query.columns).to.deep.equal([ 'page', 'language', 'user' ]);
       });
 
     });

@@ -892,39 +892,118 @@ export class DruidExternal extends External {
     switch (mode) {
       case 'raw':
         if (!this.allowSelectQueries) {
-          throw new Error("to issues 'select' queries allowSelectQueries flag must be set");
+          throw new Error("to issue 'scan' or 'select' queries allowSelectQueries flag must be set");
         }
 
-        let selectDimensions: Druid.DimensionSpec[] = [];
-        let selectMetrics: string[] = [];
-        let inflaters: Inflater[] = [];
-
-        let timeAttribute = this.timeAttribute;
         let derivedAttributes = this.derivedAttributes;
         let selectedAttributes = this.getSelectedAttributes();
+
+        if (this.versionBefore('0.10.0')) {
+          let selectDimensions: Druid.DimensionSpec[] = [];
+          let selectMetrics: string[] = [];
+          let inflaters: Inflater[] = [];
+
+          let timeAttribute = this.timeAttribute;
+          selectedAttributes.forEach(attribute => {
+            let { name, type, nativeType, unsplitable } = attribute;
+
+            if (name === timeAttribute) {
+              requesterContext.timestamp = name;
+            } else {
+              if (nativeType === 'STRING' || (!nativeType && !unsplitable)) {
+                let derivedAttribute = derivedAttributes[name];
+                if (derivedAttribute) {
+                  if (this.versionBefore('0.9.1')) {
+                    throw new Error(`can not have derived attributes in Druid select in ${this.version}, upgrade to 0.9.1`);
+                  }
+                  let dimensionInflater = this.expressionToDimensionInflater(derivedAttribute, name);
+                  selectDimensions.push(dimensionInflater.dimension);
+                  if (dimensionInflater.inflater) inflaters.push(dimensionInflater.inflater);
+                  return; // No need to add default inflater
+                } else {
+                  selectDimensions.push(name);
+                }
+              } else {
+                selectMetrics.push(name);
+              }
+            }
+
+            switch (type) {
+              case 'BOOLEAN':
+                inflaters.push(External.booleanInflaterFactory(name));
+                break;
+
+              case 'NUMBER':
+                inflaters.push(External.numberInflaterFactory(name));
+                break;
+
+              case 'TIME':
+                inflaters.push(External.timeInflaterFactory(name));
+                break;
+
+              case 'SET/STRING':
+                inflaters.push(External.setStringInflaterFactory(name));
+                break;
+            }
+          });
+
+          // If dimensions or metrics are [] everything is returned, prevent this by asking for !DUMMY
+          if (!selectDimensions.length) selectDimensions.push(DruidExternal.DUMMY_NAME);
+          if (!selectMetrics.length) selectMetrics.push(DruidExternal.DUMMY_NAME);
+
+          let resultLimit = limit ? limit.value : Infinity;
+          druidQuery.queryType = 'select';
+          druidQuery.dimensions = selectDimensions;
+          druidQuery.metrics = selectMetrics;
+          druidQuery.pagingSpec = {
+            "pagingIdentifiers": {},
+            "threshold": Math.min(resultLimit, DruidExternal.SELECT_INIT_LIMIT)
+          };
+
+          let descending = sort && sort.direction === 'descending';
+          if (descending) {
+            druidQuery.descending = true;
+          }
+
+          return {
+            query: druidQuery,
+            context: requesterContext,
+            postTransform: External.postTransformFactory(inflaters, selectedAttributes.map((a) => a.dropOriginInfo()), null, null),
+            next: DruidExternal.selectNextFactory(resultLimit, descending)
+          };
+        }
+
+        let virtualColumns: Druid.VirtualColumn[] = [];
+        let columns: string[] = [];
+        let inflaters: Inflater[] = [];
+
         selectedAttributes.forEach(attribute => {
           let { name, type, nativeType, unsplitable } = attribute;
 
-          if (name === timeAttribute) {
-            requesterContext.timestamp = name;
+          if (nativeType === '__time' && name !== '__time') {
+            virtualColumns.push({
+              type: "expression",
+              name,
+              expression: "__time",
+              outputType: "STRING"
+            });
           } else {
-            if (nativeType === 'STRING' || (!nativeType && !unsplitable)) {
-              let derivedAttribute = derivedAttributes[name];
-              if (derivedAttribute) {
-                if (this.versionBefore('0.9.1')) {
-                  throw new Error(`can not have derived attributes in Druid select in ${this.version}, upgrade to 0.9.1`);
-                }
-                let dimensionInflater = this.expressionToDimensionInflater(derivedAttribute, name);
-                selectDimensions.push(dimensionInflater.dimension);
-                if (dimensionInflater.inflater) inflaters.push(dimensionInflater.inflater);
-                return; // No need to add default inflater
-              } else {
-                selectDimensions.push(name);
+            let derivedAttribute = derivedAttributes[name];
+            if (derivedAttribute) {
+              let druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(derivedAttribute);
+              if (druidExpression === null) {
+                throw new Error(`could not convert ${derivedAttribute} to Druid expression`);
               }
-            } else {
-              selectMetrics.push(name);
+
+              virtualColumns.push({
+                type: "expression",
+                name,
+                expression: druidExpression,
+                outputType: "STRING"
+              });
             }
           }
+          columns.push(name);
 
           switch (type) {
             case 'BOOLEAN':
@@ -945,29 +1024,16 @@ export class DruidExternal extends External {
           }
         });
 
-        // If dimensions or metrics are [] everything is returned, prevent this by asking for !DUMMY
-        if (!selectDimensions.length) selectDimensions.push(DruidExternal.DUMMY_NAME);
-        if (!selectMetrics.length) selectMetrics.push(DruidExternal.DUMMY_NAME);
-
-        let resultLimit = limit ? limit.value : Infinity;
-        druidQuery.queryType = 'select';
-        druidQuery.dimensions = selectDimensions;
-        druidQuery.metrics = selectMetrics;
-        druidQuery.pagingSpec = {
-          "pagingIdentifiers": {},
-          "threshold": Math.min(resultLimit, DruidExternal.SELECT_INIT_LIMIT)
-        };
-
-        let descending = sort && sort.direction === 'descending';
-        if (descending) {
-          druidQuery.descending = true;
-        }
+        druidQuery.queryType = 'scan';
+        druidQuery.resultFormat = 'compactedList';
+        if (virtualColumns.length) druidQuery.virtualColumns = virtualColumns;
+        druidQuery.columns = columns;
+        if (limit) druidQuery.limit = limit.value;
 
         return {
           query: druidQuery,
           context: requesterContext,
-          postTransform: External.postTransformFactory(inflaters, selectedAttributes.map((a) => a.dropOriginInfo()), null, null),
-          next: DruidExternal.selectNextFactory(resultLimit, descending)
+          postTransform: External.postTransformFactory(inflaters, selectedAttributes.map((a) => a.dropOriginInfo()), null, null)
         };
 
       case 'value':
