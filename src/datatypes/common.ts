@@ -131,7 +131,7 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
           return Dataset.fromJS(v);
 
         default:
-          if (String(typeOverride).indexOf('SET') === 0) {
+          if (String(typeOverride).indexOf('SET') === 0 || Array.isArray(v.elements)) {
             return Set.fromJS(v);
           }
           if (v.toISOString) {

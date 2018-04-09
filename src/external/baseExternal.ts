@@ -565,6 +565,15 @@ export abstract class External {
     });
   }
 
+  static inflateArrays(d: Datum, attributes: Attributes): void {
+    for (let attribute of attributes) {
+      let attributeName = attribute.name;
+      if (Array.isArray(d[attributeName])) {
+        d[attributeName] = Set.fromJS(d[attributeName] as any);
+      }
+    }
+  }
+
   static postTransformFactory(inflaters: Inflater[], attributes: Attributes, keys: string[], zeroTotalApplies: ApplyExpression[]) {
     let valueSeen = false;
     return new Transform({
@@ -578,9 +587,13 @@ export abstract class External {
           });
           valueSeen = true;
         }
+
         for (let inflater of inflaters) {
           inflater(d);
         }
+
+        External.inflateArrays(d, attributes);
+
         callback(null, {
           type: 'datum',
           datum: d

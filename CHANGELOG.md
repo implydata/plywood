@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.35
+
+- More forgiving deserialization of sets
+
 ## 0.17.34
 
 - Use `scan` query instead of `select`
