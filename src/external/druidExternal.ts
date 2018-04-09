@@ -898,7 +898,7 @@ export class DruidExternal extends External {
         let derivedAttributes = this.derivedAttributes;
         let selectedAttributes = this.getSelectedAttributes();
 
-        if (this.versionBefore('0.10.0')) {
+        if (this.versionBefore('0.11.0')) {
           let selectDimensions: Druid.DimensionSpec[] = [];
           let selectMetrics: string[] = [];
           let inflaters: Inflater[] = [];

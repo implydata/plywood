@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.36
+
+- Correctly gate `scan` query on 0.11.0
+
 ## 0.17.35
 
 - More forgiving deserialization of sets

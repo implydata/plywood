@@ -23,7 +23,7 @@ let { Expression, External, TimeRange, $, i$, ply, r } = plywood;
 let context = {
   rankings: External.fromJS({
     engine: 'druid',
-    version: '0.10.0',
+    version: '0.11.0',
     source: 'rankings',
     timeAttribute: 'time',
     allowSelectQueries: true,
