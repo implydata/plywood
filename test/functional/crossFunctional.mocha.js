@@ -42,10 +42,10 @@ let postgresRequester = postgresRequesterFactory({
   password: info.postgresPassword
 });
 
-// druidRequester = verboseRequesterFactory({
-//   //onSuccess: () => {},
-//   requester: druidRequester
-// });
+druidRequester = verboseRequesterFactory({
+  //onSuccess: () => {},
+  requester: druidRequester
+});
 // mySqlRequester = verboseRequesterFactory({
 //   requester: mySqlRequester
 // });
@@ -1088,6 +1088,14 @@ describe("Cross Functional", function() {
     it('works with string if-then-else (also cast)', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('$countryIsoCode.is(US).then($cityName).fallback($commentLength.cast(STRING))', 'CityOrChannel')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with null comparison', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split('("bo" < $channel and $channel < "mo") or $countryIsoCode.is(null)', 'Split')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(5)
