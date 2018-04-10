@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { NumberRange, Set, StringRange } from '../../datatypes';
 import { TimeRange } from '../../datatypes/index';
 import {
   $,
@@ -21,7 +22,6 @@ import {
   ChainableExpression,
   ChainableUnaryExpression,
   ConcatExpression,
-  CustomTransformExpression,
   Expression,
   IsExpression,
   ExtractExpression,
@@ -43,7 +43,12 @@ import {
   SubtractExpression,
   DivideExpression,
   TimeShiftExpression,
-  PowerExpression, AbsoluteExpression
+  PowerExpression,
+  AbsoluteExpression,
+  AndExpression,
+  OrExpression,
+  NotExpression,
+  ThenExpression
 } from '../../expressions/index';
 
 export interface DruidExpressionBuilderOptions {
@@ -70,6 +75,22 @@ export class DruidExpressionBuilder {
     });
   }
 
+  static escapeVariable(name: string): string {
+    return `"${DruidExpressionBuilder.escape(name)}"`;
+  }
+
+  static escapeStringLiteral(s: string): string {
+    return `'${DruidExpressionBuilder.escape(String(s))}'`;
+  }
+
+  static numberOrTime(x: number | Date): string {
+    if ((x as Date).toISOString) {
+      return String(x.valueOf());
+    } else {
+      return String(x);
+    }
+  }
+
   constructor(options: DruidExpressionBuilderOptions) {
   }
 
@@ -78,33 +99,44 @@ export class DruidExpressionBuilder {
       const literalValue = expression.getLiteralValue();
       if (literalValue === null) {
         return `null`;
-      } else if (typeof literalValue === 'number') {
-        return String(literalValue);
       } else {
-        return `'${DruidExpressionBuilder.escape(String(literalValue))}'`;
+        switch (typeof literalValue) {
+          case 'string':
+            return DruidExpressionBuilder.escapeStringLiteral(literalValue);
+
+          case 'number':
+            return String(literalValue);
+
+          default:
+            return `no_such_type`;
+        }
       }
 
     } else if (expression instanceof RefExpression) {
-      return `"${DruidExpressionBuilder.escape(expression.name)}"`;
+      return DruidExpressionBuilder.escapeVariable(expression.name);
 
     } else if (expression instanceof ChainableExpression) {
       const ex1 = this.expressionToDruidExpression(expression.operand);
 
       if (expression instanceof CastExpression) {
-        if (expression.outputType === 'TIME') {
-          return `timestamp(${ex1})`;
-        } else {
-          throw new Error(`cast to ${expression.outputType} not implemented yet`);
+        switch (expression.outputType) {
+          case 'TIME': return `timestamp(${ex1})`;
+          case 'STRING': return `cast(${ex1},'STRING')`;
+          case 'NUMBER': return `cast(${ex1},'DOUBLE')`;
+          default: throw new Error(`cast to ${expression.outputType} not implemented yet`);
         }
 
       } else if (expression instanceof SubstrExpression) {
         return `substring(${ex1},${expression.position},${expression.len})`;
 
       } else if (expression instanceof ExtractExpression) {
-        return `regexp_extract(${ex1},'${DruidExpressionBuilder.escape(expression.regexp)}',1)`;
+        return `regexp_extract(${ex1},${DruidExpressionBuilder.escapeStringLiteral(expression.regexp)},1)`;
 
       } else if (expression instanceof LengthExpression) {
         return `strlen(${ex1})`;
+
+      } else if (expression instanceof NotExpression) {
+        return `!${ex1}`;
 
       } else if (expression instanceof AbsoluteExpression) {
         return `abs(${ex1})`;
@@ -112,16 +144,16 @@ export class DruidExpressionBuilder {
       } else if (expression instanceof TimePartExpression) {
         const format = DruidExpressionBuilder.TIME_PART_TO_FORMAT[expression.part];
         if (!format) throw new Error(`can not convert ${expression.part} to Druid expression format`);
-        return `timestamp_extract(${ex1},'${format}','${DruidExpressionBuilder.escape(expression.timezone.toString())}')`;
+        return `timestamp_extract(${ex1},'${format}',${DruidExpressionBuilder.escapeStringLiteral(expression.timezone.toString())})`;
 
       } else if (expression instanceof TimeFloorExpression || expression instanceof TimeBucketExpression) {
-        return `timestamp_floor(${ex1},'${expression.duration}','','${DruidExpressionBuilder.escape(expression.timezone.toString())}')`;
+        return `timestamp_floor(${ex1},'${expression.duration}','',${DruidExpressionBuilder.escapeStringLiteral(expression.timezone.toString())})`;
 
       } else if (expression instanceof TimeShiftExpression) {
-        return `timestamp_shift(${ex1},'${expression.duration}',${expression.step},'${DruidExpressionBuilder.escape(expression.timezone.toString())}')`;
+        return `timestamp_shift(${ex1},'${expression.duration}',${expression.step},${DruidExpressionBuilder.escapeStringLiteral(expression.timezone.toString())})`;
 
       } else if (expression instanceof LookupExpression) {
-        return `lookup(${ex1},'${DruidExpressionBuilder.escape(expression.lookupFn)}')`;
+        return `lookup(${ex1},${DruidExpressionBuilder.escapeStringLiteral(expression.lookupFn)})`;
 
       } else if (expression instanceof TransformCaseExpression) {
         if (expression.transformType === TransformCaseExpression.UPPER_CASE) {
@@ -131,7 +163,8 @@ export class DruidExpressionBuilder {
         }
 
       } else if (expression instanceof ChainableUnaryExpression) {
-        const ex2 = this.expressionToDruidExpression(expression.expression);
+        const myExpression = expression.expression;
+        const ex2 = this.expressionToDruidExpression(myExpression);
 
         if (expression instanceof AddExpression) {
           return `(${ex1}+${ex2})`;
@@ -151,14 +184,74 @@ export class DruidExpressionBuilder {
         } else if (expression instanceof ConcatExpression) {
           return `concat(${ex1},${ex2})`;
 
-        } else if (expression instanceof OverlapExpression || expression instanceof IsExpression) {
+        } else if (expression instanceof ThenExpression) {
+          return `if(${ex1},${ex2},'')`;
+
+        } else if (expression instanceof FallbackExpression) {
+          return `nvl(${ex1},${ex2})`;
+
+        } else if (expression instanceof AndExpression) {
+          return `(${ex1}&&${ex2})`;
+
+        } else if (expression instanceof OrExpression) {
+          return `(${ex1}||${ex2})`;
+
+        } else if (expression instanceof IsExpression) {
           return `(${ex1}==${ex2})`;
 
+        } else if (expression instanceof OverlapExpression) {
+          let myExpressionType = myExpression.type;
+          switch (myExpressionType) {
+            case 'NUMBER_RANGE':
+            case 'TIME_RANGE':
+              if (myExpression instanceof LiteralExpression) {
+                let range: (NumberRange | TimeRange) = myExpression.value;
+                return this.overlapExpression(ex1, DruidExpressionBuilder.numberOrTime(range.start), DruidExpressionBuilder.numberOrTime(range.end), range.bounds);
+              }
+              throw new Error(`can not convert ${expression} to Druid expression`);
+
+            case 'STRING_RANGE':
+              if (myExpression instanceof LiteralExpression) {
+                let stringRange: StringRange = myExpression.value;
+                return this.overlapExpression(ex1, DruidExpressionBuilder.escapeStringLiteral(stringRange.start), DruidExpressionBuilder.escapeStringLiteral(stringRange.end), stringRange.bounds);
+              }
+              throw new Error(`can not convert ${expression} to Druid expression`);
+
+            case 'SET/NUMBER_RANGE':
+            case 'SET/TIME_RANGE':
+              if (myExpression instanceof LiteralExpression) {
+                let setOfRange: Set = myExpression.value;
+                return setOfRange.elements.map((range: (NumberRange | TimeRange)) => {
+                  return this.overlapExpression(ex1, DruidExpressionBuilder.numberOrTime(range.start), DruidExpressionBuilder.numberOrTime(range.end), range.bounds);
+                }).join(' || ');
+              }
+              throw new Error(`can not convert ${expression} to Druid expression`);
+
+            default:
+              throw new Error(`can not convert ${expression} to Druid expression`);
+          }
         }
       }
     }
 
-    throw new Error(`not implemented Druid expression for ${expression}`);
+    throw new Error(`not implemented Druid exprenot implemented yetssion for ${expression}`);
+  }
+
+  private overlapExpression(operand: string, start: string, end: string, bounds: string) {
+    if (start === end && bounds === '[]') return `(${operand}==${start})`;
+    let startExpression: string = null;
+    if (start !== 'null') {
+      startExpression = start + (bounds[0] === '[' ? '<=' : '<') + operand;
+    }
+    let endExpression: string = null;
+    if (end !== 'null') {
+      endExpression = operand + (bounds[1] === ']' ? '<=' : '<') + end;
+    }
+    if (startExpression) {
+      return endExpression ? `(${startExpression} && ${endExpression})` : startExpression;
+    } else {
+      return endExpression ? endExpression : 'true';
+    }
   }
 
 }

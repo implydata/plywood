@@ -593,7 +593,7 @@ export class DruidExternal extends External {
           dimension: outputName,
           outputType: "STRING"
         },
-        inflater: null
+        inflater: External.getSimpleInflater(expression.type, outputName)
       };
     }
 

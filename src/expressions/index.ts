@@ -70,3 +70,4 @@ export * from './timePartExpression';
 export * from './timeRangeExpression';
 export * from './timeShiftExpression';
 export * from './transformCaseExpression';
+export * from './thenExpression';

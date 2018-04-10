@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.37
+
+- Support complex boolean math expressions for Druid
+
 ## 0.17.36
 
 - Correctly gate `scan` query on 0.11.0

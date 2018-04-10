@@ -1053,6 +1053,46 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
+    it('works with concat/substr + length in split', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split('($channel ++ $user.substr(0,2)).length() * 2', 'Concat')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with fancy boolean expression in split', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split('($channel.is(en) and $namespace.is(Main)) or ($countryIsoCode.isnt(US) and 10 <= $commentLength and $commentLength < 100)', 'Bool')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with string range, time range expression in split', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split('("bo" < $channel and $channel < "mo") or ("2015-09-12T01:00:00Z" < $__time and $__time < "2015-09-12T02:30:00Z")', 'StrRange')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with string fallback', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split('$countryIsoCode.fallback($channel)', 'CountryOrChannel')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with string if-then-else (also cast)', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split('$countryIsoCode.is(US).then($cityName).fallback($commentLength.cast(STRING))', 'CityOrChannel')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
     it('works with length action on split', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split({ 'PageLength': '$page.length()' })
