@@ -2,6 +2,12 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.38
+
+- Fix bug where CSV/TSV headers were not being escaped
+- Added `attributeTitle` to TabulatorOptions
+- Added `attributeFilter` to TabulatorOptions
+
 ## 0.17.37
 
 - Support complex boolean math expressions for Druid

@@ -1154,12 +1154,12 @@ describe("Dataset", () => {
         ]);
 
         let finalizer = (v) => {
-          return !v + 2;
+          return `[${v}]`;
         };
 
         expect(ds.toTabular({ finalizer: finalizer, lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
-          isEmpty,number
-          2,2
+          [isEmpty],[number]
+          [true],[2]
         `);
 
       })

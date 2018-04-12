@@ -120,7 +120,7 @@ function removeLineBreaks(v: string): string {
 
 let escapeFnCSV = (v: string) => {
   v = removeLineBreaks(v);
-  if (v.indexOf('"') === -1 &&  v.indexOf(",") === -1) return v;
+  if (v.indexOf('"') === -1 && v.indexOf(",") === -1) return v;
   return `"${v.replace(/"/g, '""')}"`;
 };
 
@@ -192,6 +192,8 @@ export interface TabulatorOptions extends FlattenOptions {
   formatter?: Formatter;
   finalizer?: (v: string) => string;
   timezone?: Timezone;
+  attributeTitle?: (attribute: AttributeInfo) => string;
+  attributeFilter?: (attribute: AttributeInfo) => boolean;
 }
 
 function isBoolean(b: any) {
@@ -1078,12 +1080,18 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   public toTabular(tabulatorOptions: TabulatorOptions): string {
     let formatter: Formatter = tabulatorOptions.formatter || {};
     const timezone = tabulatorOptions.timezone || Timezone.UTC;
-    const { finalizer } = tabulatorOptions;
+    const finalizer = tabulatorOptions.finalizer || String;
+    const separator = tabulatorOptions.separator || ',';
+    const attributeTitle = tabulatorOptions.attributeTitle || ((a: AttributeInfo) => a.name);
 
-    const { data, attributes } = this.flatten(tabulatorOptions);
+    let { data, attributes } = this.flatten(tabulatorOptions);
+
+    if (tabulatorOptions.attributeFilter) {
+      attributes = attributes.filter(tabulatorOptions.attributeFilter);
+    }
 
     let lines: string[] = [];
-    lines.push(attributes.map(c => c.name).join(tabulatorOptions.separator || ','));
+    lines.push(attributes.map(c => finalizer(attributeTitle(c))).join(separator));
 
     for (let i = 0; i < data.length; i++) {
       let datum = data[i];
@@ -1091,9 +1099,8 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
         const value = datum[c.name];
         const fmtr = value != null ? (formatter[c.type] || DEFAULT_FORMATTER[c.type]) : (formatter['NULL'] || DEFAULT_FORMATTER['NULL']);
         let formatted = String(fmtr(value, timezone));
-        let finalized = formatted && finalizer ? finalizer(formatted) : formatted;
-        return finalized;
-      }).join(tabulatorOptions.separator || ','));
+        return finalizer(formatted);
+      }).join(separator));
     }
 
     let lineBreak = tabulatorOptions.lineBreak || '\n';
@@ -1105,6 +1112,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     tabulatorOptions.separator = tabulatorOptions.separator || ',';
     tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
     tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
+    tabulatorOptions.columnOrdering = tabulatorOptions.columnOrdering || 'keys-first';
     return this.toTabular(tabulatorOptions);
   }
 
@@ -1113,6 +1121,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     tabulatorOptions.separator = tabulatorOptions.separator || '\t';
     tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
     tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
+    tabulatorOptions.columnOrdering = tabulatorOptions.columnOrdering || 'keys-first';
     return this.toTabular(tabulatorOptions);
   }
 
