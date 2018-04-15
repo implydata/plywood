@@ -82,6 +82,7 @@ import { NumberBucketExpression } from './numberBucketExpression';
 import { OrExpression } from './orExpression';
 import { OverlapExpression } from './overlapExpression';
 import { PowerExpression } from './powerExpression';
+import { LogExpression } from './logExpression';
 import { QuantileExpression } from './quantileExpression';
 import { RefExpression } from './refExpression';
 import { SelectExpression } from './selectExpression';
@@ -1127,6 +1128,15 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public power(...exs: any[]) {
     return this._mkChain<PowerExpression>(PowerExpression, exs);
+  }
+
+  public log(ex: any = Math.E) {
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
+    return new LogExpression({ operand: this, expression: ex });
+  }
+
+  public ln(): LogExpression {
+    return new LogExpression({ operand: this, expression: r(Math.E) });
   }
 
   // Control flow

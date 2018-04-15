@@ -1027,7 +1027,8 @@ describe("compute native", () => {
       .apply('timeFloorDay', $('time').timeFloor('P1D'))
       .apply('timeShiftDay2', $('time').timeShift('P1D', 2))
       .apply('timeRangeHours', $('time').timeRange('PT2H', -1))
-      .apply('isSuperCool', $('tags').is(['super', 'cool']));
+      .apply('isSuperCool', $('tags').is(['super', 'cool']))
+      .apply('logPrice', $('price').log());
 
     return ex.compute()
       .then((v) => {
@@ -1036,13 +1037,14 @@ describe("compute native", () => {
             "cut": "Good",
             "cutConcat": "[Good]",
             "cutInGoodGreat": true,
-            "cutIsGoodIsFalse": false,
-            "cutMatch": true,
             "cutIsGoodGreat": true,
+            "cutIsGoodIsFalse": false,
             "cutIsNull": false,
+            "cutMatch": true,
             "cutThenFallback": "Noice",
             "cutThenFallbackX2": "Nice",
             "isSuperCool": true,
+            "logPrice": 5.991464547107982,
             "price": 400,
             "tags": {
               "elements": [
@@ -1063,13 +1065,14 @@ describe("compute native", () => {
             "cut": "Good",
             "cutConcat": "[Good]",
             "cutInGoodGreat": true,
-            "cutIsGoodIsFalse": false,
-            "cutMatch": true,
             "cutIsGoodGreat": true,
+            "cutIsGoodIsFalse": false,
             "cutIsNull": false,
+            "cutMatch": true,
             "cutThenFallback": "Noice",
             "cutThenFallbackX2": "Nice",
             "isSuperCool": true,
+            "logPrice": 5.703782474656201,
             "price": 300,
             "tags": {
               "elements": [
@@ -1089,13 +1092,14 @@ describe("compute native", () => {
             "cut": "Great",
             "cutConcat": "[Great]",
             "cutInGoodGreat": true,
-            "cutIsGoodIsFalse": true,
-            "cutMatch": true,
             "cutIsGoodGreat": true,
+            "cutIsGoodIsFalse": true,
             "cutIsNull": false,
+            "cutMatch": true,
             "cutThenFallback": "Boo",
             "cutThenFallbackX2": "Amaze",
             "isSuperCool": true,
+            "logPrice": 4.820281565605037,
             "price": 124,
             "tags": {
               "elements": [
@@ -1112,13 +1116,14 @@ describe("compute native", () => {
             "cut": "Wow",
             "cutConcat": "[Wow]",
             "cutInGoodGreat": false,
-            "cutIsGoodIsFalse": true,
-            "cutMatch": false,
             "cutIsGoodGreat": false,
+            "cutIsGoodIsFalse": true,
             "cutIsNull": false,
+            "cutMatch": false,
             "cutThenFallback": "Boo",
             "cutThenFallbackX2": "Neither",
             "isSuperCool": false,
+            "logPrice": 5.075173815233827,
             "price": 160,
             "tags": {
               "elements": [
@@ -1138,13 +1143,14 @@ describe("compute native", () => {
             "cut": "Wow",
             "cutConcat": "[Wow]",
             "cutInGoodGreat": false,
-            "cutIsGoodIsFalse": true,
-            "cutMatch": false,
             "cutIsGoodGreat": false,
+            "cutIsGoodIsFalse": true,
             "cutIsNull": false,
+            "cutMatch": false,
             "cutThenFallback": "Boo",
             "cutThenFallbackX2": "Neither",
             "isSuperCool": false,
+            "logPrice": 4.605170185988092,
             "price": 100,
             "tags": null,
             "time": new Date('2015-10-05T05:20:30.000Z'),
@@ -1159,13 +1165,14 @@ describe("compute native", () => {
             "cut": null,
             "cutConcat": null,
             "cutInGoodGreat": false,
-            "cutIsGoodIsFalse": true,
-            "cutMatch": null,
             "cutIsGoodGreat": false,
+            "cutIsGoodIsFalse": true,
             "cutIsNull": true,
+            "cutMatch": null,
             "cutThenFallback": "Boo",
             "cutThenFallbackX2": "Neither",
             "isSuperCool": true,
+            "logPrice": null,
             "price": null,
             "tags": {
               "elements": [

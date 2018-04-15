@@ -46,6 +46,7 @@ export * from './lengthExpression';
 export * from './lessThanExpression';
 export * from './lessThanOrEqualExpression';
 export * from './indexOfExpression';
+export * from './logExpression';
 export * from './lookupExpression';
 export * from './limitExpression';
 export * from './matchExpression';

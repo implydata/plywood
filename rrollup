@@ -63,6 +63,7 @@ cat \
   build/expressions/lessThanExpression.js \
   build/expressions/lessThanOrEqualExpression.js \
   build/expressions/indexOfExpression.js \
+  build/expressions/logExpression.js \
   build/expressions/lookupExpression.js \
   build/expressions/limitExpression.js \
   build/expressions/matchExpression.js \
@@ -161,6 +162,7 @@ cat \
   build/expressions/lessThanExpression.js \
   build/expressions/lessThanOrEqualExpression.js \
   build/expressions/indexOfExpression.js \
+  build/expressions/logExpression.js \
   build/expressions/lookupExpression.js \
   build/expressions/limitExpression.js \
   build/expressions/matchExpression.js \

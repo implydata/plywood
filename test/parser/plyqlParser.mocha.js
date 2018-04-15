@@ -628,6 +628,11 @@ describe("SQL parser", () => {
         POW(MinusAdded, 0.5) AS SqRtAdded2,
         SQRT(TotalAddedOver4) AS SquareRoot,
         EXP(0) AS One,
+        LN(added) AS Ln,
+        LOG(added) AS LogBaseE,
+        LOG2(added) AS LogBase2,
+        LOG(5, added) AS LogBase5,
+        LOG10(added) AS LogBase10,
         +SUM(added) AS SimplyAdded,
         QUANTILE(added, 0.5) AS Median,
         QUANTILE(added, 0.5, "resolution=400") AS MedianTuned,
@@ -673,6 +678,11 @@ describe("SQL parser", () => {
         .apply('SqRtAdded2', 'i$MinusAdded.power(0.5)')
         .apply('SquareRoot', 'i$TotalAddedOver4.power(0.5)')
         .apply('One', r(Math.E).power(0))
+        .apply('Ln', i$('added').log())
+        .apply('LogBaseE', i$('added').log())
+        .apply('LogBase2', i$('added').log(2))
+        .apply('LogBase5', i$('added').log(5))
+        .apply('LogBase10', i$('added').log(10))
         .apply('SimplyAdded', '$data.sum(i$added)')
         .apply('Median', $('data').quantile('i$added', 0.5))
         .apply('MedianTuned', $('data').quantile('i$added', 0.5, 'resolution=400'))
@@ -694,7 +704,8 @@ describe("SQL parser", () => {
         .apply('Custom2', $('data').customAggregate('blah'))
         .select("aISb1", "aISb2", "aISb3", "Count1", "Count2", "Count3", "Count4", "Match", "CustomTransform",
           "TotalAdded", "Date", "TotalAddedOver4", "False", "MinusAdded", "AbsAdded", "AbsoluteAdded", "SqRtAdded",
-          "SqRtAdded2", "SquareRoot", "One", "SimplyAdded", "Median", "MedianTuned", "Unique1", "Unique2", "Unique3",
+          "SqRtAdded2", "SquareRoot", "One", "Ln", "LogBaseE", "LogBase2", "LogBase5", "LogBase10", "SimplyAdded",
+          "Median", "MedianTuned", "Unique1", "Unique2", "Unique3",
           "TimeBucket", "TimeFloor", "TimeShift1", "TimeShift3", "TimeRange1", "TimeRange3", "Overlap",
           "If1", "Case1", "Case2", "Case3", "Custom1", "Custom2");
 

@@ -155,6 +155,19 @@ var ex = $('x').power(0.5);
 ex.compute({ x: 4 }).then(console.log); // => 2
 ```
 
+<a id="log" href="#log">#</a>
+*operand*.**log**(baseEx?: number)
+
+Takes the logarithm of the operand relative to the provided base.
+If the base is not provided Math.E is used acting as a natural logarithm.
+
+```javascript
+var ex1 = $('x').log();
+ex1.compute({ x: 4 }).then(console.log); // => 1.3862943611198906
+
+var ex2 = $('x').log(2);
+ex2.compute({ x: 4 }).then(console.log); // => 2
+```
 
 ### Boolean predicates
 
@@ -337,7 +350,7 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => 'ello '
 
 <a id="extract" href="#extract">#</a>
 *operand*.**extract**(re: string)
-  
+
 Extracts a substring from the operand.
 
 ```javascript
@@ -373,7 +386,7 @@ ex.compute({ str: 'Hello World' }).then(console.log); // => 'HELLO WORLD'
 <a id="indexOf" href="#indexOf">#</a>
 *operand*.**indexOf**(substr: string)
 
-Returns the 0 based index of the substring in the operand. 
+Returns the 0 based index of the substring in the operand.
 
 ```javascript
 var ex = r('hello').indexOf('e');
@@ -389,7 +402,7 @@ Performs a lookup within the specified namespace.
 <a id="fallback" href="#fallback">#</a>
 *operand*.**fallback**(...exs: typeof operand)
 
-Returns value of given expression if operand is null. 
+Returns value of given expression if operand is null.
 Writing `$('str').fallback(r('hello'))` is the same as parsing `$str === null ? 'hello' : $str`
 
 ```javascript
@@ -415,7 +428,7 @@ ex.compute({ str: 'morning' }).then(console.log); // => 7
 
 Applies a custom transformation function on a value.
 `custom` maps to a function defined in the specified namespace.
-`outputType` is an optional argument specifying the function's return type. If not specified defaults to the input value type. 
+`outputType` is an optional argument specifying the function's return type. If not specified defaults to the input value type.
 
 ### Number manipulation
 
@@ -452,7 +465,7 @@ ex.compute({ colors: ['red', 'orange', 'green', 'blue'] }).then(console.log); //
 *operand*.**timeBucket**(duration: any, timezone?: string)
 
 Buckets the operand time to the nearest `duration` within the given `timezone`.
-Creates a TimeRange of size `duration`. 
+Creates a TimeRange of size `duration`.
 
 ```javascript
 var ex = $('time').timeBucket('P1D');
@@ -493,7 +506,7 @@ var ex = $('time').timeRange('P1D', -2);
 <a id="timePart" href="#timePart">#</a>
 *operand*.**timePart**(part: string, timezone?: string)
 
-This will 'part' the operand into the (integer) number that represents what day of the year it is within the given `timezone`. 
+This will 'part' the operand into the (integer) number that represents what day of the year it is within the given `timezone`.
 
 The possible part values are:
 
@@ -514,11 +527,11 @@ var ex = $('time').timePart('DAY_OF_WEEK');
 *operand*.**cast**(castType: string)
 
 Casts a number to a supported cast type.  Currently, the following actions are supported:
- 
- - from number to time (castType: `TIME`) 
- - from number to string (castType: `STRING`) 
+
+ - from number to time (castType: `TIME`)
+ - from number to string (castType: `STRING`)
  - from time to number (castType: `NUMBER`)
- - from string to number (castType: `NUMBER`) 
+ - from string to number (castType: `NUMBER`)
 
 ```javascript
 // number to date
@@ -662,7 +675,7 @@ Dataset.fromJS([
 <a id="select" href="#select">#</a>
 *operand*.**select**(...attributes: string[])
 
-Select only the provided attributes in the dataset. 
+Select only the provided attributes in the dataset.
 
 ```javascript
 var ex = $('data').select('cut', 'time');

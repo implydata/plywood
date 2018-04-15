@@ -4,7 +4,8 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
 ## 0.17.39
 
-- Use expressions in post ags
+- Use expressions in post aggs
+- Added `LogExpression` (`.log()`)
 
 ## 0.17.38
 

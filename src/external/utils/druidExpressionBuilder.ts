@@ -44,6 +44,7 @@ import {
   DivideExpression,
   TimeShiftExpression,
   PowerExpression,
+  LogExpression,
   AbsoluteExpression,
   AndExpression,
   OrExpression,
@@ -181,6 +182,12 @@ export class DruidExpressionBuilder {
 
         } else if (expression instanceof PowerExpression) {
           return `pow(${ex1},${ex2})`;
+
+        } else if (expression instanceof LogExpression) {
+          const myLiteral = myExpression.getLiteralValue();
+          if (myLiteral === Math.E) return `log(${ex1})`;
+          if (myLiteral === 10) return `log10(${ex1})`;
+          return `log(${ex1})/log(${ex2})`;
 
         } else if (expression instanceof ConcatExpression) {
           return `concat(${ex1},${ex2})`;
