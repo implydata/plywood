@@ -176,19 +176,9 @@ describe("DruidExternal Null Type", () => {
         "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_1",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "+",
+            "expression": "(\"!T_0\"+\"!T_1\")",
             "name": "__VALUE__",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "timeseries"
@@ -254,19 +244,9 @@ describe("DruidExternal Null Type", () => {
         "intervals": "2013-02-26T00Z/2013-02-27T00Z",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "TotalAdded",
-                "type": "fieldAccess"
-              },
-              {
-                "type": "constant",
-                "value": 2
-              }
-            ],
-            "fn": "*",
+            "expression": "(\"TotalAdded\"*2)",
             "name": "TotalAddedX2",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "timeseries"
@@ -347,34 +327,14 @@ describe("DruidExternal Null Type", () => {
         "metric": "CrazyStupid",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "!T_0",
-                "type": "getSomeCrazy"
-              },
-              {
-                "fieldName": "!T_1",
-                "type": "iAmWithStupid"
-              }
-            ],
-            "fn": "*",
+            "expression": "(\"!T_0\"*\"!T_1\")",
             "name": "CrazyStupid",
-            "type": "arithmetic"
+            "type": "expression"
           },
           {
-            "fields": [
-              {
-                "fieldName": "!T_0",
-                "type": "getSomeCrazy"
-              },
-              {
-                "fieldName": "!T_1",
-                "type": "iAmWithStupid"
-              }
-            ],
-            "fn": "*",
+            "expression": "(\"!T_0\"*\"!T_1\")",
             "name": "CrazyStupidBackCompat",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "topN",
@@ -513,20 +473,14 @@ describe("DruidExternal Null Type", () => {
         "metric": "Abs",
         "postAggregations": [
           {
-            "fieldNames": [
-              "!T_0"
-            ],
-            "function": "function(_$33T_0) { return Math.abs(parseFloat(_$33T_0)); }",
+            "expression": "abs(\"!T_0\")",
             "name": "Abs",
-            "type": "javascript"
+            "type": "expression"
           },
           {
-            "fieldNames": [
-              "!T_0"
-            ],
-            "function": "function(_$33T_0) { return Math.pow(parseFloat(_$33T_0),2); }",
+            "expression": "pow(\"!T_0\",2)",
             "name": "Abs2",
-            "type": "javascript"
+            "type": "expression"
           }
         ],
         "queryType": "topN",
@@ -581,30 +535,9 @@ describe("DruidExternal Null Type", () => {
         "metric": "Count",
         "postAggregations": [
           {
-            "fieldName": "!T_1",
-            "name": "!F_!T_1",
-            "type": "hyperUniqueCardinality"
-          },
-          {
-            "fields": [
-              {
-                "fieldNames": [
-                  "!T_0",
-                  "!F_!T_1",
-                  "Count"
-                ],
-                "function": "function(_$33T_0,_$33T_1,_Count) { return Math.pow(Math.abs(((_=Math.pow(Math.abs(parseFloat(_Count)),0.5),(_===0||isNaN(_)?null:parseFloat(_$33T_0)/Math.pow(Math.abs(parseFloat(_Count)),0.5)))+(parseFloat(_$33T_1)*100))),2); }",
-                "type": "javascript",
-                "name": "dummy"
-              },
-              {
-                "fieldName": "!T_2",
-                "type": "getSomeCrazy"
-              }
-            ],
-            "fn": "+",
+            "expression": "(pow(abs(((cast(\"!T_0\",'DOUBLE')/pow(abs(\"Count\"),0.5))+(\"!T_1\"*100))),2)+\"!T_2\")",
             "name": "Abs",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "topN",
@@ -1675,19 +1608,9 @@ describe("DruidExternal Null Type", () => {
           "type": "quantile"
         },
         {
-          "fields": [
-            {
-              "fieldName": "!T_0",
-              "type": "fieldAccess"
-            },
-            {
-              "type": "constant",
-              "value": 2
-            }
-          ],
-          "fn": "/",
+          "expression": "(cast(\"!T_0\",'DOUBLE')/2)",
           "name": "P99by2",
-          "type": "arithmetic"
+          "type": "expression"
         }
       ]);
     });

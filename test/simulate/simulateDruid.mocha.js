@@ -328,114 +328,34 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "type": "constant",
-                "value": 2
-              }
-            ],
-            "fn": "*",
+            "expression": "(\"TotalPrice\"*2)",
             "name": "PriceTimes2",
-            "type": "arithmetic"
+            "type": "expression"
           },
           {
-            "fields": [
-              {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "-",
+            "expression": "(\"TotalPrice\"-\"!T_0\")",
             "name": "PriceMinusTax",
-            "type": "arithmetic"
+            "type": "expression"
           },
           {
-            "fields": [
-              {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "-",
+            "expression": "(\"TotalPrice\"-\"!T_0\")",
             "name": "PriceDiff",
-            "type": "arithmetic"
+            "type": "expression"
           },
           {
-            "fields": [
-              {
-                "fields": [
-                  {
-                    "fields": [
-                      {
-                        "fieldName": "TotalPrice",
-                        "type": "fieldAccess"
-                      },
-                      {
-                        "fieldName": "!T_0",
-                        "type": "fieldAccess"
-                      }
-                    ],
-                    "fn": "-",
-                    "type": "arithmetic"
-                  },
-                  {
-                    "type": "constant",
-                    "value": 10
-                  }
-                ],
-                "fn": "+",
-                "type": "arithmetic"
-              },
-              {
-                "fieldName": "!T_1",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "-",
+            "expression": "(((\"TotalPrice\"-\"!T_0\")+10)-\"!T_1\")",
             "name": "Crazy",
-            "type": "arithmetic"
+            "type": "expression"
           },
           {
-            "fields": [
-              {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "*",
+            "expression": "(\"TotalPrice\"*\"!T_0\")",
             "name": "PriceAndTax",
-            "type": "arithmetic"
+            "type": "expression"
           },
           {
-            "fields": [
-              {
-                "fieldName": "TotalPrice",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "Count",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "/",
+            "expression": "(cast(\"TotalPrice\",'DOUBLE')/\"Count\")",
             "name": "AvgPrice",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "timeseries"
@@ -595,13 +515,9 @@ describe("simulate Druid", () => {
       "intervals": "2015-03-12T00Z/2015-03-19T00Z",
       "postAggregations": [
         {
-          "fieldNames": [
-            "Price",
-            "Tax"
-          ],
-          "function": "function(_Price,_Tax) { return Math.pow(parseFloat(_Price),parseFloat(_Tax)); }",
+          "expression": "pow(\"Price\",\"Tax\")",
           "name": "PT",
-          "type": "javascript"
+          "type": "expression"
         }
       ],
       "queryType": "timeseries"
@@ -2770,19 +2686,9 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_1",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "+",
+            "expression": "(\"!T_0\"+\"!T_1\")",
             "name": "TotalSalePrice",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "timeseries",
@@ -2882,19 +2788,9 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "NumVendors",
-                "type": "hyperUniqueCardinality"
-              },
-              {
-                "fieldName": "NumColors",
-                "type": "hyperUniqueCardinality"
-              }
-            ],
-            "fn": "/",
+            "expression": "(cast(\"NumVendors\",'DOUBLE')/\"NumColors\")",
             "name": "VendorsByColors",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "timeseries"
@@ -3065,19 +2961,9 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              },
-              {
-                "type": "constant",
-                "value": 3
-              }
-            ],
-            "fn": "*",
+            "expression": "(\"!T_0\"*3)",
             "name": "Post",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "timeseries"
@@ -3518,19 +3404,9 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_1",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "/",
+            "expression": "(cast(\"!T_0\",'DOUBLE')/\"!T_1\")",
             "name": "__VALUE__",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "timeseries"
@@ -3590,19 +3466,9 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_1",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "/",
+            "expression": "(cast(\"!T_0\",'DOUBLE')/\"!T_1\")",
             "name": "__VALUE__",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "timeseries"

@@ -48,6 +48,7 @@ import {
 } from '../../expressions/index';
 
 import { External } from '../baseExternal';
+import { DruidExpressionBuilder } from './druidExpressionBuilder';
 import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
 import { DruidFilterBuilder } from './druidFilterBuilder';
 import { CustomDruidAggregations, CustomDruidTransforms } from './druidTypes';
@@ -436,6 +437,19 @@ export class DruidAggregationBuilder {
   }
 
   private expressionToPostAggregation(ex: Expression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): Druid.PostAggregation {
+    const druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(ex);
+
+    if (!druidExpression || this.versionBefore('0.10.0')) {
+      return this.expressionToLegacyPostAggregation(ex, aggregations, postAggregations);
+    }
+
+    return {
+      type: "expression",
+      expression: druidExpression
+    };
+  }
+
+  private expressionToLegacyPostAggregation(ex: Expression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): Druid.PostAggregation {
     if (ex instanceof RefExpression) {
       let refName = ex.name;
       return {

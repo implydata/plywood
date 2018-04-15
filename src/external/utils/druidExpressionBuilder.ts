@@ -176,7 +176,8 @@ export class DruidExpressionBuilder {
           return `(${ex1}*${ex2})`;
 
         } else if (expression instanceof DivideExpression) {
-          return `(${ex1}/${ex2})`;
+          // Need to cast to double otherwise it might default to integer division and no one wants that
+          return `(cast(${ex1},'DOUBLE')/${ex2})`;
 
         } else if (expression instanceof PowerExpression) {
           return `pow(${ex1},${ex2})`;

@@ -224,4 +224,99 @@ describe("simulate Druid 0.9.2", () => {
     ]);
   });
 
+  it("works with fancy post agg", () => {
+    let ex = ply()
+      .apply('Price', '$diamonds.sum($price)')
+      .apply('Tax', '$diamonds.sum($tax)')
+      .apply('PT', '$Price ^ $Tax');
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0]).to.deep.equal({
+      "aggregations": [
+        {
+          "fieldName": "price",
+          "name": "Price",
+          "type": "doubleSum"
+        },
+        {
+          "fieldName": "tax",
+          "name": "Tax",
+          "type": "doubleSum"
+        }
+      ],
+      "dataSource": "diamonds",
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "postAggregations": [
+        {
+          "fieldNames": [
+            "Price",
+            "Tax"
+          ],
+          "function": "function(_Price,_Tax) { return Math.pow(parseFloat(_Price),parseFloat(_Tax)); }",
+          "name": "PT",
+          "type": "javascript"
+        }
+      ],
+      "queryType": "timeseries"
+    });
+  });
+
+  it("inlines a defined derived attribute", () => {
+    let ex = ply()
+      .apply("diamonds", $('diamonds').apply('sale_price', '$price + $tax'))
+      .apply(
+        'ByTime',
+        $('diamonds').split($("time").timeBucket('P1D', 'Etc/UTC'), 'Time')
+          .apply('TotalSalePrice', $('diamonds').sum('$sale_price'))
+      );
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldName": "price",
+            "name": "!T_0",
+            "type": "doubleSum"
+          },
+          {
+            "fieldName": "tax",
+            "name": "!T_1",
+            "type": "doubleSum"
+          }
+        ],
+        "dataSource": "diamonds",
+        "granularity": {
+          "period": "P1D",
+          "timeZone": "Etc/UTC",
+          "type": "period"
+        },
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "postAggregations": [
+          {
+            "fields": [
+              {
+                "fieldName": "!T_0",
+                "type": "fieldAccess"
+              },
+              {
+                "fieldName": "!T_1",
+                "type": "fieldAccess"
+              }
+            ],
+            "fn": "+",
+            "name": "TotalSalePrice",
+            "type": "arithmetic"
+          }
+        ],
+        "queryType": "timeseries",
+        "context": {
+          "skipEmptyBuckets": "true"
+        }
+      }
+    ]);
+  });
+
 });

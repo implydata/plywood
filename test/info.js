@@ -17,7 +17,7 @@
 // This assumes that `dm` is defined as an alias in your hosts file to your docker machine
 const DOCKER_MACHINE = 'dm';
 
-exports.druidVersion = '0.13.0-SNAPSHOT';
+exports.druidVersion = '0.12.0-iap7';
 exports.druidHost = `${DOCKER_MACHINE}:8082`;
 exports.druidContext = {
   timeout: 10000,
