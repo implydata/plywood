@@ -1053,6 +1053,30 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
+    it('works with concat with nulls in split', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      expression: $('wiki').split('$cityName ++ ", " ++ $countryName', 'Concat')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with concat with nulls with fallback in split (1)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      expression: $('wiki').split('$cityName.fallback("NOPE") ++ ", " ++ $countryName', 'Concat')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with concat with nulls with fallback in split (2)', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      expression: $('wiki').split('$cityName ++ ", " ++ $countryName.fallback("NOPE")', 'Concat')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
     it('works with concat/substr + length in split', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('($channel ++ $user.substr(0,2)).length() * 2', 'Concat')

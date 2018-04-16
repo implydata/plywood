@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.40
+
+- Add `.ln()` to expression parser
+- Fix Druid concat to null out on empty strings
+
 ## 0.17.39
 
 - Use expressions in post aggs

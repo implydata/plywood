@@ -117,7 +117,8 @@ export class DruidExpressionBuilder {
       return DruidExpressionBuilder.escapeVariable(expression.name);
 
     } else if (expression instanceof ChainableExpression) {
-      const ex1 = this.expressionToDruidExpression(expression.operand);
+      const myOperand = expression.operand;
+      const ex1 = this.expressionToDruidExpression(myOperand);
 
       if (expression instanceof CastExpression) {
         switch (expression.outputType) {
@@ -190,7 +191,21 @@ export class DruidExpressionBuilder {
           return `log(${ex1})/log(${ex2})`;
 
         } else if (expression instanceof ConcatExpression) {
-          return `concat(${ex1},${ex2})`;
+          const ex1Nullable = this.isNullable(myOperand);
+          const ex2Nullable = this.isNullable(myExpression);
+          if (ex1Nullable) {
+            if (ex2Nullable) {
+              return `if(${ex1}!=''&&${ex2}!='',concat(${ex1},${ex2}),null)`;
+            } else {
+              return `if(${ex1}!='',concat(${ex1},${ex2}),null)`;
+            }
+          } else {
+            if (ex2Nullable) {
+              return `if(${ex2}!='',concat(${ex1},${ex2}),null)`;
+            } else {
+              return `concat(${ex1},${ex2})`;
+            }
+          }
 
         } else if (expression instanceof ThenExpression) {
           return `if(${ex1},${ex2},'')`;
@@ -260,6 +275,10 @@ export class DruidExpressionBuilder {
     } else {
       return endExpression ? endExpression : 'true';
     }
+  }
+
+  private isNullable(ex: Expression): boolean {
+    return !(ex instanceof FallbackExpression || ex instanceof LiteralExpression);
   }
 
 }

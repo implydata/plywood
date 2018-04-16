@@ -32,6 +32,7 @@ delete possibleCalls['external'];
 possibleCalls['negate'] = 1;
 possibleCalls['isnt'] = 1;
 possibleCalls['sqrt'] = 1;
+possibleCalls['ln'] = 1;
 
 var renameCalls = {
   custom: 'customAggregate'
