@@ -353,7 +353,7 @@ describe("simulate Druid", () => {
             "type": "expression"
           },
           {
-            "expression": "(cast(\"TotalPrice\",'DOUBLE')/\"Count\")",
+            "expression": "if(\"Count\"!=0,(cast(\"TotalPrice\",'DOUBLE')/\"Count\"),0)",
             "name": "AvgPrice",
             "type": "expression"
           }
@@ -2788,7 +2788,7 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "expression": "(cast(\"NumVendors\",'DOUBLE')/\"NumColors\")",
+            "expression": "if(\"NumColors\"!=0,(cast(\"NumVendors\",'DOUBLE')/\"NumColors\"),0)",
             "name": "VendorsByColors",
             "type": "expression"
           }
@@ -3404,7 +3404,7 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "expression": "(cast(\"!T_0\",'DOUBLE')/\"!T_1\")",
+            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),0)",
             "name": "__VALUE__",
             "type": "expression"
           }
@@ -3466,7 +3466,7 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "expression": "(cast(\"!T_0\",'DOUBLE')/\"!T_1\")",
+            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),0)",
             "name": "__VALUE__",
             "type": "expression"
           }

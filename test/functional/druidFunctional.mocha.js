@@ -3184,6 +3184,48 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with division by 0", () => {
+      let ex = $('wiki')
+        .split('$countryName', 'CountryName')
+        .apply('AddedNyDeleted', '$wiki.sum($added) / $wiki.sum($deleted)')
+        .sort('$AddedNyDeleted', 'descending')
+        .limit(7);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "AddedNyDeleted": 804,
+              "CountryName": "Zimbabwe"
+            },
+            {
+              "AddedNyDeleted": 353.45454545454544,
+              "CountryName": "Iraq"
+            },
+            {
+              "AddedNyDeleted": 328,
+              "CountryName": "Malta"
+            },
+            {
+              "AddedNyDeleted": 278,
+              "CountryName": "Myanmar [Burma]"
+            },
+            {
+              "AddedNyDeleted": 130.8679245283019,
+              "CountryName": "Costa Rica"
+            },
+            {
+              "AddedNyDeleted": 116,
+              "CountryName": "Jersey"
+            },
+            {
+              "AddedNyDeleted": 113.30950378469302,
+              "CountryName": "Romania"
+            }
+          ]);
+        });
+    });
+
     it("works with raw (SELECT) + filter", () => {
       let ex = $('wiki').filter('$cityName == "El Paso"');
 

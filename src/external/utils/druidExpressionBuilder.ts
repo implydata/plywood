@@ -85,6 +85,7 @@ export class DruidExpressionBuilder {
   }
 
   static numberOrTime(x: number | Date): string {
+    if (x == null) return 'null';
     if ((x as Date).toISOString) {
       return String(x.valueOf());
     } else {
@@ -179,7 +180,11 @@ export class DruidExpressionBuilder {
 
         } else if (expression instanceof DivideExpression) {
           // Need to cast to double otherwise it might default to integer division and no one wants that
-          return `(cast(${ex1},'DOUBLE')/${ex2})`;
+          if (myExpression instanceof LiteralExpression) {
+            return `(cast(${ex1},'DOUBLE')/${ex2})`;
+          } else {
+            return `if(${ex2}!=0,(cast(${ex1},'DOUBLE')/${ex2}),0)`;
+          }
 
         } else if (expression instanceof PowerExpression) {
           return `pow(${ex1},${ex2})`;

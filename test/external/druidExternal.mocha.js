@@ -625,7 +625,7 @@ describe("DruidExternal", () => {
             "type": "double_up"
           },
           {
-            "expression": "(pow(abs(((cast(\"!T_0\",'DOUBLE')/pow(abs(\"Count\"),0.5))+(\"!T_1\"*100))),2)+\"!T_2\")",
+            "expression": "(pow(abs((if(pow(abs(\"Count\"),0.5)!=0,(cast(\"!T_0\",'DOUBLE')/pow(abs(\"Count\"),0.5)),0)+(\"!T_1\"*100))),2)+\"!T_2\")",
             "name": "Abs",
             "type": "expression"
           }
