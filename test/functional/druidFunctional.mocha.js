@@ -16,6 +16,7 @@
  */
 
 const { expect } = require("chai");
+const { Duration } = require("chronoshift");
 let { sane } = require('../utils');
 
 let { druidRequesterFactory } = require('plywood-druid-requester');
@@ -2890,6 +2891,166 @@ describe("Druid Functional", function() {
                 "keys": [
                   "SometimeLater"
                 ]
+              }
+            }
+          ]);
+        });
+    });
+
+    it("can timeBucket on joined column", () => {
+      let prevRange = TimeRange.fromJS({ start: new Date('2015-09-12T00:00:00Z'), end: new Date('2015-09-12T12:00:00Z')});
+      let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
+      let ex = $("wiki")
+        .split(
+          $("time").overlap(mainRange)
+            .then($("time"))
+            .fallback($("time").timeShift(Duration.fromJS('PT12H')))
+            .timeBucket('PT2H'),
+          'TimeJoin'
+        )
+        .apply('CountAll', $('wiki').sum('$count'))
+        .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
+        .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'));
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "CountAll": 51939,
+              "CountMain": 37816,
+              "CountPrev": 14123,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T14:00:00.000Z'),
+                "start": new Date('2015-09-12T12:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 57556,
+              "CountMain": 38388,
+              "CountPrev": 19168,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T16:00:00.000Z'),
+                "start": new Date('2015-09-12T14:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 63437,
+              "CountMain": 42589,
+              "CountPrev": 20848,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T18:00:00.000Z'),
+                "start": new Date('2015-09-12T16:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 85395,
+              "CountMain": 41828,
+              "CountPrev": 43567,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T20:00:00.000Z'),
+                "start": new Date('2015-09-12T18:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 69236,
+              "CountMain": 35977,
+              "CountPrev": 33259,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T22:00:00.000Z'),
+                "start": new Date('2015-09-12T20:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 64880,
+              "CountMain": 30720,
+              "CountPrev": 34160,
+              "TimeJoin": {
+                "end": new Date('2015-09-13T00:00:00.000Z'),
+                "start": new Date('2015-09-12T22:00:00.000Z')
+              }
+            }
+          ]);
+        });
+    });
+
+    it("can timeBucket on joined column (sort by delta)", () => {
+      let prevRange = TimeRange.fromJS({ start: new Date('2015-09-12T00:00:00Z'), end: new Date('2015-09-12T12:00:00Z')});
+      let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
+      let ex = $("wiki")
+        .split(
+          $("time").overlap(mainRange)
+            .then($("time"))
+            .fallback($("time").timeShift(Duration.fromJS('PT12H')))
+            .timeBucket('PT2H'),
+          'TimeJoin'
+        )
+        .apply('CountAll', $('wiki').sum('$count'))
+        .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
+        .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'))
+        .apply('Delta', '$CountMain - $CountPrev')
+        .sort('$Delta', 'descending');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "CountAll": 51939,
+              "CountMain": 37816,
+              "CountPrev": 14123,
+              "Delta": 23693,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T14:00:00.000Z'),
+                "start": new Date('2015-09-12T12:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 63437,
+              "CountMain": 42589,
+              "CountPrev": 20848,
+              "Delta": 21741,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T18:00:00.000Z'),
+                "start": new Date('2015-09-12T16:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 57556,
+              "CountMain": 38388,
+              "CountPrev": 19168,
+              "Delta": 19220,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T16:00:00.000Z'),
+                "start": new Date('2015-09-12T14:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 69236,
+              "CountMain": 35977,
+              "CountPrev": 33259,
+              "Delta": 2718,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T22:00:00.000Z'),
+                "start": new Date('2015-09-12T20:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 85395,
+              "CountMain": 41828,
+              "CountPrev": 43567,
+              "Delta": -1739,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T20:00:00.000Z'),
+                "start": new Date('2015-09-12T18:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 64880,
+              "CountMain": 30720,
+              "CountPrev": 34160,
+              "Delta": -3440,
+              "TimeJoin": {
+                "end": new Date('2015-09-13T00:00:00.000Z'),
+                "start": new Date('2015-09-12T22:00:00.000Z')
               }
             }
           ]);

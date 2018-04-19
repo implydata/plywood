@@ -570,9 +570,9 @@ export class DruidExternal extends External {
       };
     }
 
-    if (freeReferences.length > 1) {
+    if (freeReferences.length > 1 || expression.some(ex => ex.isOp('then') || null)) {
       if (this.versionBefore('0.10.0')) {
-        throw new Error(`expressions not supported in Druid 0.10.0`);
+        throw new Error(`expressions only supported in Druid 0.10.0 or better`);
       }
 
       let druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(expression);
@@ -581,19 +581,32 @@ export class DruidExternal extends External {
       }
 
       const outputName = this.makeOutputName(label);
-      return {
-        virtualColumn: {
+      const outputType = DruidExpressionBuilder.expressionTypeToOutputType(expression.type);
+      let inflater: Inflater;
+      if (expression instanceof TimeBucketExpression) {
+        inflater = External.timeRangeInflaterFactory(label, expression.duration, expression.timezone);
+      } else {
+        inflater = External.getSimpleInflater(expression.type, label);
+      }
+
+      let virtualColumn: Druid.VirtualColumn = null;
+      if (!(expression instanceof RefExpression)) {
+        virtualColumn = {
           type: "expression",
           name: outputName,
           expression: druidExpression,
-          outputType: "STRING"
-        },
+          outputType
+        };
+      }
+
+      return {
+        virtualColumn,
         dimension: {
           type: "default",
           dimension: outputName,
-          outputType: "STRING"
+          outputType
         },
-        inflater: External.getSimpleInflater(expression.type, outputName)
+        inflater
       };
     }
 
@@ -804,6 +817,7 @@ export class DruidExternal extends External {
 
     return {
       queryType: 'groupBy',
+      virtualColumns: dimensionInflater.virtualColumn ? [dimensionInflater.virtualColumn] : null,
       dimensions: [dimensionInflater.dimension],
       granularity: 'all',
       leftoverHavingFilter,

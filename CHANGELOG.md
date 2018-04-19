@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.42
+
+- Use expressions to handle cases where an extraction function would have been used instead
+
 ## 0.17.41
 
 - Changed Druid expression division to work how the post aggregators used to work (return 0 when dividing by 0)
