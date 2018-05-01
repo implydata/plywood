@@ -158,7 +158,7 @@ export class DruidAggregationBuilder {
       return {
         type: "filtered",
         name: aggregator.name,
-        filter: new DruidFilterBuilder(this).timelessFilterToFilter(datasetExpression.expression, true),
+        filter: new DruidFilterBuilder(this).timelessFilterToFilter(datasetExpression.expression),
         aggregator
       };
 
@@ -295,7 +295,6 @@ export class DruidAggregationBuilder {
         type: "cardinality",
         fields: cardinalityExpressions.map(cardinalityExpression => {
           if (cardinalityExpression instanceof RefExpression) return cardinalityExpression.name;
-          if (this.versionBefore('0.9.2')) throw new Error(`can not have complex expression like ${cardinalityExpression} in cardinality in Druid < 0.9.2`);
 
           if (!druidExtractionFnBuilder) druidExtractionFnBuilder = new DruidExtractionFnBuilder(this);
           return {
@@ -308,12 +307,6 @@ export class DruidAggregationBuilder {
       if (!this.versionBefore('0.10.1')) aggregation.round = true;
 
       if (cardinalityExpressions.length > 1) aggregation.byRow = true;
-    }
-
-    // fields were only added in 0.9.2
-    if (aggregation.type === "cardinality" && this.versionBefore('0.9.2')) {
-      aggregation.fieldNames = aggregation.fields as string[];
-      delete aggregation.fields;
     }
 
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
@@ -439,7 +432,7 @@ export class DruidAggregationBuilder {
   private expressionToPostAggregation(ex: Expression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): Druid.PostAggregation {
     const druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(ex);
 
-    if (!druidExpression || this.versionBefore('0.10.0')) {
+    if (!druidExpression) {
       return this.expressionToLegacyPostAggregation(ex, aggregations, postAggregations);
     }
 

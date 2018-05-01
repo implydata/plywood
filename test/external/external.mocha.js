@@ -82,7 +82,7 @@ describe("External", () => {
 
       {
         engine: 'druid',
-        version: '0.9.0',
+        version: '0.10.0',
         source: 'wiki',
         timeAttribute: 'time',
         allowEternity: true,
@@ -96,7 +96,7 @@ describe("External", () => {
 
       {
         engine: 'druid',
-        version: '0.8.0',
+        version: '0.10.1',
         source: 'moon_child',
         timeAttribute: 'time',
         attributeOverrides: [
@@ -118,7 +118,7 @@ describe("External", () => {
 
       {
         engine: 'druid',
-        version: '0.8.0',
+        version: '0.10.0',
         rollup: true,
         source: 'moon_child',
         timeAttribute: 'time',
@@ -136,7 +136,7 @@ describe("External", () => {
 
       {
         engine: 'druid',
-        version: '0.9.0',
+        version: '0.11.0',
         source: 'wiki',
         timeAttribute: 'time',
         derivedAttributes: {
@@ -167,12 +167,12 @@ describe("External", () => {
     it("survives a troll", () => {
       expect(External.fromJS({
         engine: 'druid',
-        version: '0.8.2',
+        version: '0.10.0',
         source: 'wiki',
         hasOwnProperty: 'troll'
       }).toJS()).to.deep.equal({
         engine: 'druid',
-        version: '0.8.2',
+        version: '0.10.0',
         source: 'wiki'
       });
     });
@@ -204,31 +204,17 @@ describe("External", () => {
       expect(() => {
         External.fromJS({
           engine: 'druid',
-          version: '0.7.3',
+          version: '0.9.2',
           source: 'wiki',
           timeAttribute: 'time'
         });
-      }).to.throw('only druid versions >= 0.8.0 are supported');
+      }).to.throw('only druid versions >= 0.10.0 are supported');
     });
 
   });
 
 
   describe("back compat", () => {
-    it("druidVersion -> version", () => {
-      expect(grabConsoleWarn(() => {
-        expect(External.fromJS({
-          engine: 'druid',
-          druidVersion: '0.8.2',
-          source: 'wiki'
-        }).toJS()).to.deep.equal({
-          engine: 'druid',
-          version: '0.8.2',
-          source: 'wiki'
-        });
-      })).to.equal("'druidVersion' parameter is deprecated, use 'version: 0.8.2' instead\n");
-    });
-
     it("requester in JS", () => {
       expect(grabConsoleWarn(() => {
         let requester = () => null;
@@ -271,27 +257,27 @@ describe("External", () => {
     });
 
     it("works in basic case", () => {
-      expect(External.extractVersion('0.8.1')).to.equal('0.8.1');
+      expect(External.extractVersion('0.10.1')).to.equal('0.10.1');
     });
 
     it("works in basic case 2", () => {
-      expect(External.extractVersion('0.8.10')).to.equal('0.8.10');
+      expect(External.extractVersion('0.18.10')).to.equal('0.18.10');
     });
 
     it("works in extra stuff case", () => {
-      expect(External.extractVersion('0.9.1-iap1')).to.equal('0.9.1-iap1');
+      expect(External.extractVersion('0.10.1-iap1')).to.equal('0.10.1-iap1');
     });
 
     it("works in multiple -s", () => {
-      expect(External.extractVersion('0.9.1-iap1-legacy-lookups')).to.equal('0.9.1-iap1-legacy-lookups');
+      expect(External.extractVersion('0.10.1-iap1-lol')).to.equal('0.10.1-iap1-lol');
     });
 
     it("works in bad case", () => {
-      expect(External.extractVersion('lol: 0.9.1-iap1')).to.equal(null);
+      expect(External.extractVersion('lol: 0.10.1-iap1')).to.equal(null);
     });
 
     it("works in extra numbers case", () => {
-      expect(External.extractVersion('0.9.1.1')).to.equal('0.9.1');
+      expect(External.extractVersion('0.10.1.1')).to.equal('0.10.1');
     });
 
   });
@@ -299,15 +285,15 @@ describe("External", () => {
 
   describe(".versionLessThan", () => {
     it("works in basic case", () => {
-      expect(External.versionLessThan('0.0.0', '0.8.0')).to.equal(true);
+      expect(External.versionLessThan('0.0.0', '0.5.0')).to.equal(true);
     });
 
     it("works in basic case 2", () => {
-      expect(External.versionLessThan('0.8.2', '0.9.1')).to.equal(true);
+      expect(External.versionLessThan('0.4.2', '0.5.1')).to.equal(true);
     });
 
     it("works in basic case 3", () => {
-      expect(External.versionLessThan('0.8.2', '0.8.3')).to.equal(true);
+      expect(External.versionLessThan('0.5.2', '0.5.3')).to.equal(true);
     });
 
     it("works in basic case 3", () => {
@@ -323,7 +309,7 @@ describe("External", () => {
     });
 
     it("works in reverse inputs", () => {
-      expect(External.versionLessThan('0.9.1', '0.8.2')).to.equal(false);
+      expect(External.versionLessThan('0.5.1', '0.4.2')).to.equal(false);
     });
 
     it("works as numbers in major, minor, patch", () => {
@@ -340,7 +326,7 @@ describe("External", () => {
       let dummyRequester = () => null;
       let external = External.fromJS({
         engine: 'druid',
-        version: '0.9.0-yo',
+        version: '0.10.0-yo',
         source: 'moon_child',
         attributeOverrides: [
           { "name": "unique_thing", "nativeType": "hyperUnique", "type": "NULL" }
@@ -363,7 +349,7 @@ describe("External", () => {
         .then((introspectedExternal1) => {
           expect(introspectedExternal1.toJS()).to.deep.equal({
             engine: 'druid',
-            version: '0.9.0-yo',
+            version: '0.10.0-yo',
             source: 'moon_child',
             attributeOverrides: [
               { name: "unique_thing", nativeType: "hyperUnique", type: "NULL" }
@@ -393,7 +379,7 @@ describe("External", () => {
         .then((introspectedExternal2) => {
           expect(introspectedExternal2.toJS()).to.deep.equal({
             engine: 'druid',
-            version: '0.9.0-yo',
+            version: '0.10.0-yo',
             source: 'moon_child',
             attributeOverrides: [
               { name: "unique_thing", nativeType: "hyperUnique", type: "NULL" }

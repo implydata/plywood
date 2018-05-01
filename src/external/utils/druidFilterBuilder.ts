@@ -86,7 +86,7 @@ export class DruidFilterBuilder {
       });
       return {
         intervals: this.timeFilterToIntervals(extract),
-        filter: this.timelessFilterToFilter(rest, false)
+        filter: this.timelessFilterToFilter(rest)
       };
     }
   }
@@ -120,7 +120,7 @@ export class DruidFilterBuilder {
     }
   }
 
-  public timelessFilterToFilter(filter: Expression, aggregatorFilter: boolean): Druid.Filter {
+  public timelessFilterToFilter(filter: Expression): Druid.Filter {
     if (!filter.canHaveType('BOOLEAN')) throw new Error(`can not filter on ${filter.type}`);
 
     if (filter instanceof RefExpression) {
@@ -137,19 +137,19 @@ export class DruidFilterBuilder {
     } else if (filter instanceof NotExpression) {
       return {
         type: 'not',
-        field: this.timelessFilterToFilter(filter.operand, aggregatorFilter)
+        field: this.timelessFilterToFilter(filter.operand)
       };
 
     } else if (filter instanceof AndExpression) {
       return {
         type: 'and',
-        fields: filter.getExpressionList().map(p => this.timelessFilterToFilter(p, aggregatorFilter))
+        fields: filter.getExpressionList().map(p => this.timelessFilterToFilter(p))
       };
 
     } else if (filter instanceof OrExpression) {
       return {
         type: 'or',
-        fields: filter.getExpressionList().map(p => this.timelessFilterToFilter(p, aggregatorFilter))
+        fields: filter.getExpressionList().map(p => this.timelessFilterToFilter(p))
       };
 
     } else if (filter instanceof IsExpression) {
@@ -164,9 +164,6 @@ export class DruidFilterBuilder {
       } else {
         throw new Error(`can not convert ${filter} to Druid filter`);
       }
-
-    } else if (aggregatorFilter && this.versionBefore('0.9.1')) {
-      return this.makeExtractionFilter(filter);
 
     } else if (filter instanceof OverlapExpression) {
       const { operand: lhs, expression: rhs } = filter;
@@ -208,17 +205,9 @@ export class DruidFilterBuilder {
     throw new Error(`could not convert filter ${filter} to Druid filter`);
   }
 
-  private checkFilterExtractability(attributeInfo: AttributeInfo): void {
-    if (this.versionBefore('0.9.2') && attributeInfo.name === this.timeAttribute) {
-      throw new Error('can not do secondary filtering on primary time dimension (https://github.com/druid-io/druid/issues/2816)');
-    }
-  }
-
   private makeJavaScriptFilter(ex: Expression): Druid.Filter {
     let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     if (!attributeInfo) throw new Error(`can not construct JS filter on multiple`);
-
-    this.checkFilterExtractability(attributeInfo);
 
     return {
       type: "javascript",
@@ -247,24 +236,6 @@ export class DruidFilterBuilder {
     }
   }
 
-  private makeExtractionFilter(ex: Expression): Druid.Filter {
-    let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
-    if (!attributeInfo) {
-      return this.makeExpressionFilter(ex);
-    }
-
-    let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
-
-    if (extractionFn) this.checkFilterExtractability(attributeInfo);
-
-    return {
-      type: "extraction",
-      dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-      extractionFn: extractionFn,
-      value: "true"
-    };
-  }
-
   // Makes a filter of (ex = value) or (value in ex) which are the same in Druid
   private makeSelectorFilter(ex: Expression, value: any): Druid.Filter {
     let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
@@ -278,8 +249,6 @@ export class DruidFilterBuilder {
 
     let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
 
-    if (extractionFn) this.checkFilterExtractability(attributeInfo);
-
     // Kill range
     if (value instanceof Range) value = value.start;
 
@@ -288,11 +257,7 @@ export class DruidFilterBuilder {
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
       value
     };
-    if (extractionFn) {
-      druidFilter.extractionFn = extractionFn;
-      if (this.versionBefore('0.9.1')) druidFilter.type = "extraction";
-      if (this.versionBefore('0.9.0') && druidFilter.value === null) druidFilter.value = '';
-    }
+    if (extractionFn) druidFilter.extractionFn = extractionFn;
     return druidFilter;
   }
 
@@ -310,20 +275,6 @@ export class DruidFilterBuilder {
 
     let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
 
-    if (extractionFn) this.checkFilterExtractability(attributeInfo);
-
-    if (
-      elements.length < 2 ||
-      (this.versionBefore('0.9.1') && extractionFn) ||
-      this.versionBefore('0.9.0')
-    ) {
-      let fields = elements.map((value: string) => {
-        return this.makeSelectorFilter(ex, value);
-      });
-
-      return { type: "or", fields };
-    }
-
     let inFilter: Druid.Filter = {
       type: 'in',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
@@ -338,29 +289,12 @@ export class DruidFilterBuilder {
     let r1 = range.end;
     let bounds = range.bounds;
 
-    // only 0.9.0 can handle bounds
-    if (this.versionBefore('0.9.0')) {
-      return this.makeJavaScriptFilter(ex.overlap(range));
-    }
-
-    // only 0.9.2 can handle bounds with negative start, end
-    if (this.versionBefore('0.9.2') && (r0 < 0 || r1 < 0)) {
-      return this.makeJavaScriptFilter(ex.overlap(range));
-    }
-
     let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     if (!attributeInfo) {
       return this.makeExpressionFilter(ex.overlap(range));
     }
 
     let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
-
-    // only 0.9.1 can handle extraction functions
-    if (this.versionBefore('0.9.1') && extractionFn) {
-      return this.makeJavaScriptFilter(ex.overlap(range));
-    }
-
-    if (extractionFn) this.checkFilterExtractability(attributeInfo);
 
     let boundFilter: Druid.Filter = {
       type: "bound",
@@ -370,11 +304,7 @@ export class DruidFilterBuilder {
     if (extractionFn) boundFilter.extractionFn = extractionFn;
 
     if (range instanceof NumberRange) {
-      if (this.versionBefore('0.9.2')) {
-        boundFilter.alphaNumeric = true;
-      } else {
-        boundFilter.ordering = 'numeric';
-      }
+      boundFilter.ordering = 'numeric';
     }
 
     if (r0 != null) {
@@ -389,10 +319,6 @@ export class DruidFilterBuilder {
   }
 
   private makeIntervalFilter(ex: Expression, range: TimeRange | Set): Druid.Filter {
-    if (this.versionBefore('0.9.2')) {
-      throw new Error(`Can not filter ${ex} on ${JSON.stringify(range)}`);
-    }
-
     let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     if (!attributeInfo) {
       return this.makeExpressionFilter(ex.overlap(range));
@@ -400,14 +326,14 @@ export class DruidFilterBuilder {
 
     let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
 
-    if (extractionFn) this.checkFilterExtractability(attributeInfo);
-
     const interval = this.valueToIntervals(range);
-    return {
+    let intervalFilter: Druid.Filter = {
       type: "interval",
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
       intervals: Array.isArray(interval) ? interval : [interval]
     };
+    if (extractionFn) intervalFilter.extractionFn = extractionFn;
+    return intervalFilter;
   }
 
   private makeRegexFilter(ex: Expression, regex: string): Druid.Filter {
@@ -417,12 +343,6 @@ export class DruidFilterBuilder {
     }
 
     let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
-
-    if (this.versionBefore('0.9.1') && extractionFn) {
-      return this.makeExtractionFilter(ex.match(regex));
-    }
-
-    if (extractionFn) this.checkFilterExtractability(attributeInfo);
 
     let regexFilter: Druid.Filter = {
       type: "regex",
@@ -441,27 +361,6 @@ export class DruidFilterBuilder {
       }
 
       let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(lhs);
-
-      if (extractionFn) this.checkFilterExtractability(attributeInfo);
-
-      if (this.versionBefore('0.9.0')) {
-        if (compare === ContainsExpression.IGNORE_CASE) {
-          return {
-            type: "search",
-            dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-            query: {
-              type: "insensitive_contains",
-              value: rhs.value
-            }
-          };
-        } else {
-          return this.makeJavaScriptFilter(lhs.contains(rhs, compare));
-        }
-      }
-
-      if (this.versionBefore('0.9.1') && extractionFn) {
-        return this.makeExtractionFilter(lhs.contains(rhs, compare));
-      }
 
       let searchFilter: Druid.Filter = {
         type: "search",

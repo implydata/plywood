@@ -115,7 +115,7 @@ let druidLegacyExecutor = basicExecutorFactory({
       }),
       attributes,
       derivedAttributes,
-      version: '0.9.0',
+      version: '0.10.0',
       allowSelectQueries: true,
       allowEternity: true
     }, druidRequester)

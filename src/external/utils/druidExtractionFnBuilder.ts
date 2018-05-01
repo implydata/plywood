@@ -49,25 +49,6 @@ export interface DruidExtractionFnBuilderOptions {
 
 export class DruidExtractionFnBuilder {
 
-  static SPAN_TO_FLOOR_FORMAT: Record<string, string> = {
-    second: "yyyy-MM-dd'T'HH:mm:ss'Z",
-    minute: "yyyy-MM-dd'T'HH:mm'Z",
-    hour: "yyyy-MM-dd'T'HH':00'Z",
-    day: "yyyy-MM-dd'T00:00'Z",
-    month: "yyyy-MM'-01T00:00'Z",
-    year: "yyyy'-01-01T00:00'Z"
-  };
-
-  static SPAN_TO_PROPERTY: Record<string, string> = {
-    second: 'secondOfMinute',
-    minute: 'minuteOfHour',
-    hour: 'hourOfDay',
-    day: 'dayOfMonth',
-    week: 'weekOfWeekyear',
-    month: 'monthOfYear',
-    year: 'yearOfEra'
-  };
-
   static CASE_TO_DRUID: Record<string, string> = {
     upperCase: 'upper',
     lowerCase: 'lower'
@@ -152,17 +133,8 @@ export class DruidExtractionFnBuilder {
     const extractionFn = this.expressionToExtractionFnPure(expression);
     if (extractionFn && extractionFn.type === 'cascade') {
       if (extractionFn.extractionFns.every(extractionFn => extractionFn.type === 'javascript')) {
-        // If they are all JS anyway might as well make a single JS function (this is better for Druid < 0.9.0)
+        // If they are all JS anyway might as well make a single JS function
         return this.expressionToJavaScriptExtractionFn(expression);
-      }
-
-      if (this.versionBefore('0.9.0')) {
-        try {
-          // Try a Hail Mary pass - maybe we can plan the whole thing with JS
-          return this.expressionToJavaScriptExtractionFn(expression);
-        } catch (e) {
-          throw new Error(`can not convert ${expression} to filter in Druid < 0.9.0`);
-        }
       }
     }
     return extractionFn;
@@ -258,11 +230,6 @@ export class DruidExtractionFnBuilder {
   }
 
   private concatToExtractionFn(expression: ConcatExpression): Druid.ExtractionFn | null {
-    if (this.versionBefore('0.9.1')) {
-      // Druid < 0.9.1 behaves badly on null https://github.com/druid-io/druid/issues/2706 (does not have nullHandling: 'returnNull')
-      return this.expressionToJavaScriptExtractionFn(expression);
-    }
-
     let innerExtractionFn: Druid.ExtractionFn | null = null;
     let format = expression.getExpressionList().map(ex => {
       if (ex instanceof LiteralExpression) {
@@ -285,50 +252,16 @@ export class DruidExtractionFnBuilder {
     const { operand, duration } = expression;
     const timezone = expression.getTimezone();
 
-    let myExtractionFn: Druid.ExtractionFn;
-    if (this.versionBefore('0.9.2')) {
-      let singleSpan = duration.getSingleSpan();
-      let spanValue = duration.getSingleSpanValue();
-
-      if (spanValue === 1 && DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan]) {
-        myExtractionFn = {
-          type: "timeFormat",
-          format: DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT[singleSpan],
-          timeZone: timezone.toString()
-        };
-      } else {
-        let prop = DruidExtractionFnBuilder.SPAN_TO_PROPERTY[singleSpan];
-        if (!prop) throw new Error(`can not floor on ${duration}`);
-        myExtractionFn = {
-          type: 'javascript',
-          'function': DruidExtractionFnBuilder.wrapFunctionTryCatch([
-            'var d = new org.joda.time.DateTime(s);',
-            timezone.isUTC() ? null : `d = d.withZone(org.joda.time.DateTimeZone.forID(${JSON.stringify(timezone)}));`,
-            `d = d.${prop}().roundFloorCopy();`,
-            `d = d.${prop}().setCopy(Math.floor(d.${prop}().get() / ${spanValue}) * ${spanValue});`,
-            'return d;'
-          ])
-        };
-      }
-
-    } else {
-      myExtractionFn = {
-        type: "timeFormat",
-        granularity: {
-          type: "period",
-          period: duration.toString(),
-          timeZone: timezone.toString()
-        },
-        format: DruidExtractionFnBuilder.SPAN_TO_FLOOR_FORMAT['second'],
-        timeZone: 'Etc/UTC' // ToDo: is this necessary?
-      };
-
-    }
-
-    // Druid < 0.10.0 had a bug where not setting locale would produce a NPE in the cache key calcualtion
-    if (this.versionBefore('0.10.0') && myExtractionFn.type === "timeFormat") {
-      myExtractionFn.locale = "en-US";
-    }
+    let myExtractionFn: Druid.ExtractionFn = {
+      type: "timeFormat",
+      granularity: {
+        type: "period",
+        period: duration.toString(),
+        timeZone: timezone.toString()
+      },
+      format: "yyyy-MM-dd'T'HH:mm:ss'Z",
+      timeZone: 'Etc/UTC' // ToDo: is this necessary?
+    };
 
     return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), myExtractionFn);
   }
@@ -364,7 +297,6 @@ export class DruidExtractionFnBuilder {
   }
 
   private numberBucketToExtractionFn(expression: NumberBucketExpression): Druid.ExtractionFn | null {
-    if (this.versionBefore('0.9.2')) return this.expressionToJavaScriptExtractionFn(expression);
     const { operand, size, offset } = expression;
 
     let bucketExtractionFn: Druid.ExtractionFn = { type: "bucket" };
@@ -374,7 +306,6 @@ export class DruidExtractionFnBuilder {
   }
 
   private substrToExtractionFn(expression: SubstrExpression): Druid.ExtractionFn | null {
-    if (this.versionBefore('0.9.0')) return this.expressionToJavaScriptExtractionFn(expression);
     const { operand, position, len } = expression;
     return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), {
       type: "substring",
@@ -385,8 +316,6 @@ export class DruidExtractionFnBuilder {
 
   private transformCaseToExtractionFn(expression: TransformCaseExpression): Druid.ExtractionFn | null {
     const { operand, transformType } = expression;
-
-    if (this.versionBefore('0.9.1')) return this.expressionToJavaScriptExtractionFn(expression);
 
     let type = DruidExtractionFnBuilder.CASE_TO_DRUID[transformType];
     if (!type) throw new Error(`unsupported case transformation '${type}'`);
@@ -399,8 +328,6 @@ export class DruidExtractionFnBuilder {
   private lengthToExtractionFn(expression: LengthExpression): Druid.ExtractionFn {
     const { operand } = expression;
 
-    if (this.versionBefore('0.10.0')) return this.expressionToJavaScriptExtractionFn(expression);
-
     return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), {
       type: 'strlen'
     });
@@ -408,8 +335,6 @@ export class DruidExtractionFnBuilder {
 
   private extractToExtractionFn(expression: ExtractExpression): Druid.ExtractionFn | null {
     const { operand, regexp } = expression;
-
-    if (this.versionBefore('0.9.0')) return this.expressionToJavaScriptExtractionFn(expression);
 
     return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), {
       type: "regex",
@@ -425,16 +350,6 @@ export class DruidExtractionFnBuilder {
       type: "registeredLookup",
       lookup: lookupFn
     };
-
-    if (this.versionBefore('0.9.1') || /-legacy-lookups/.test(this.version)) {
-      lookupExtractionFn = {
-        type: "lookup",
-        lookup: {
-          type: "namespace",
-          "namespace": lookupFn
-        }
-      };
-    }
 
     return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(operand), lookupExtractionFn);
   }
@@ -514,7 +429,7 @@ export class DruidExtractionFnBuilder {
   }
 
   private castToExtractionFn(cast: CastExpression): Druid.ExtractionFn {
-    if (this.versionBefore('0.10.0') || cast.outputType === 'TIME') {
+    if (cast.outputType === 'TIME') {
       return this.expressionToJavaScriptExtractionFn(cast);
     }
     // Do nothing, just swallow the cast

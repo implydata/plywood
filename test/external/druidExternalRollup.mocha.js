@@ -24,7 +24,7 @@ describe("DruidExternal Rollup", () => {
   let context = {
     wiki: External.fromJS({
       engine: 'druid',
-      version: '0.9.1',
+      version: '0.11.0',
       source: 'diamonds',
       rollup: true,
       timeAttribute: 'time',
@@ -126,19 +126,9 @@ describe("DruidExternal Rollup", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "Count",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "/",
+            "expression": "if(\"Count\"!=0,(cast(\"!T_0\",'DOUBLE')/\"Count\"),0)",
             "name": "AvgAdded",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "timeseries"
@@ -218,34 +208,14 @@ describe("DruidExternal Rollup", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "fields": [
-              {
-                "fieldName": "!T_0",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_1",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "/",
+            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),0)",
             "name": "AvgEnAdded",
-            "type": "arithmetic"
+            "type": "expression"
           },
           {
-            "fields": [
-              {
-                "fieldName": "!T_2",
-                "type": "fieldAccess"
-              },
-              {
-                "fieldName": "!T_3",
-                "type": "fieldAccess"
-              }
-            ],
-            "fn": "/",
+            "expression": "if(\"!T_3\"!=0,(cast(\"!T_2\",'DOUBLE')/\"!T_3\"),0)",
             "name": "AvgHeDeleted",
-            "type": "arithmetic"
+            "type": "expression"
           }
         ],
         "queryType": "timeseries"
