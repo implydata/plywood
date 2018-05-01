@@ -17,7 +17,7 @@
 
 import * as hasOwnProp from 'has-own-prop';
 import { Class, immutableEqual, Instance, NamedArray } from 'immutable-class';
-import { Expression, ExpressionJS, RefExpression } from '../expressions/index';
+import { Expression, ExpressionJS, RefExpression } from '../expressions';
 import { FullType, PlyType } from '../types';
 import { Range, PlywoodRange, PlywoodRangeJS } from './range';
 

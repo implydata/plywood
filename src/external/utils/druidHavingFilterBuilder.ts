@@ -24,7 +24,7 @@ import {
   OrExpression,
   OverlapExpression,
   RefExpression
-} from '../../expressions/index';
+} from '../../expressions';
 import { External } from '../baseExternal';
 import { DruidFilterBuilder } from './druidFilterBuilder';
 import { CustomDruidTransforms } from './druidTypes';

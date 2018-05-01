@@ -31,7 +31,7 @@ import {
   OrExpression,
   OverlapExpression,
   RefExpression
-} from '../../expressions/index';
+} from '../../expressions';
 
 import { External } from '../baseExternal';
 import { DruidExpressionBuilder } from './druidExpressionBuilder';

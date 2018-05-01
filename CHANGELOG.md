@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.43
+
+- Better error messages for unsupported Druid expressions in older (< 0.11.0) Druid
+- Fixed legacy cross functional test
+
 ## 0.17.42
 
 - Use expressions to handle cases where an extraction function would have been used instead

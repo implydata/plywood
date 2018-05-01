@@ -36,7 +36,7 @@ import {
   TimeFloorExpression,
   TimePartExpression,
   TransformCaseExpression
-} from '../../expressions/index';
+} from '../../expressions';
 
 import { External } from '../baseExternal';
 import { CustomDruidTransforms } from './druidTypes';

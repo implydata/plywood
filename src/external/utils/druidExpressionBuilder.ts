@@ -50,11 +50,13 @@ import {
   OrExpression,
   NotExpression,
   ThenExpression
-} from '../../expressions/index';
+} from '../../expressions';
 import { PlyType } from '../../types';
+import { External } from '../baseExternal';
 
 export interface DruidExpressionBuilderOptions {
-  timeAttribute?: string;
+  version: string;
+  timeAttribute: string;
 }
 
 export class DruidExpressionBuilder {
@@ -108,9 +110,11 @@ export class DruidExpressionBuilder {
     }
   }
 
+  public version: string;
   public timeAttribute: string;
 
   constructor(options: DruidExpressionBuilderOptions) {
+    this.version = options.version;
     this.timeAttribute = options.timeAttribute;
   }
 
@@ -152,12 +156,15 @@ export class DruidExpressionBuilder {
         }
 
       } else if (expression instanceof SubstrExpression) {
+        this.checkDruid11('substring');
         return `substring(${ex1},${expression.position},${expression.len})`;
 
       } else if (expression instanceof ExtractExpression) {
+        this.checkDruid11('regexp_extract');
         return `regexp_extract(${ex1},${DruidExpressionBuilder.escapeLiteral(expression.regexp)},1)`;
 
       } else if (expression instanceof LengthExpression) {
+        this.checkDruid11('strlen');
         return `strlen(${ex1})`;
 
       } else if (expression instanceof NotExpression) {
@@ -167,23 +174,29 @@ export class DruidExpressionBuilder {
         return `abs(${ex1})`;
 
       } else if (expression instanceof TimePartExpression) {
+        this.checkDruid11('timestamp_extract');
         const format = DruidExpressionBuilder.TIME_PART_TO_FORMAT[expression.part];
         if (!format) throw new Error(`can not convert ${expression.part} to Druid expression format`);
         return `timestamp_extract(${ex1},'${format}',${DruidExpressionBuilder.escapeLiteral(expression.timezone.toString())})`;
 
       } else if (expression instanceof TimeFloorExpression || expression instanceof TimeBucketExpression) {
+        this.checkDruid11('timestamp_floor');
         return `timestamp_floor(${ex1},'${expression.duration}','',${DruidExpressionBuilder.escapeLiteral(expression.timezone.toString())})`;
 
       } else if (expression instanceof TimeShiftExpression) {
+        this.checkDruid11('timestamp_shift');
         return `timestamp_shift(${ex1},'${expression.duration}',${expression.step},${DruidExpressionBuilder.escapeLiteral(expression.timezone.toString())})`;
 
       } else if (expression instanceof LookupExpression) {
+        this.checkDruid11('timestamp_lookup');
         return `lookup(${ex1},${DruidExpressionBuilder.escapeLiteral(expression.lookupFn)})`;
 
       } else if (expression instanceof TransformCaseExpression) {
         if (expression.transformType === TransformCaseExpression.UPPER_CASE) {
+          this.checkDruid11('upper');
           return `upper(${ex1})`;
         } else {
+          this.checkDruid11('lower');
           return `lower(${ex1})`;
         }
 
@@ -218,6 +231,7 @@ export class DruidExpressionBuilder {
           return `log(${ex1})/log(${ex2})`;
 
         } else if (expression instanceof ConcatExpression) {
+          this.checkDruid11('concat');
           const ex1Nullable = this.isNullable(myOperand);
           const ex2Nullable = this.isNullable(myExpression);
           if (ex1Nullable) {
@@ -291,7 +305,7 @@ export class DruidExpressionBuilder {
       }
     }
 
-    throw new Error(`not implemented Druid exprenot implemented yetssion for ${expression}`);
+    throw new Error(`can not convert ${expression} to Druid expression`);
   }
 
   private overlapExpression(operand: string, start: string, end: string, bounds: string) {
@@ -315,4 +329,14 @@ export class DruidExpressionBuilder {
     return !(ex instanceof FallbackExpression || ex instanceof LiteralExpression);
   }
 
+  private checkDruid11(expr: string): void {
+    if (this.versionBefore('0.11.0')) {
+      throw new Error(`expression '${expr}' requires Druid 0.11.0 or newer`);
+    }
+  }
+
+  private versionBefore(neededVersion: string): boolean {
+    const { version } = this;
+    return version && External.versionLessThan(version, neededVersion);
+  }
 }

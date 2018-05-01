@@ -115,7 +115,7 @@ let druidLegacyExecutor = basicExecutorFactory({
       }),
       attributes,
       derivedAttributes,
-      version: '0.8.3',
+      version: '0.9.0',
       allowSelectQueries: true,
       allowEternity: true
     }, druidRequester)
@@ -554,7 +554,7 @@ describe("Cross Functional", function() {
     }));
 
     it('works with concat in filter', equalityTest({
-      executorNames: ['druid', 'druidLegacy', 'mysql', 'postgres'], // 'druidSql'
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').filter('$channel.concat(", ").concat($namespace) == "en, Main"')
         .split('$cityName', 'CityName')
         .apply('Count', '$wiki.sum($added)')
