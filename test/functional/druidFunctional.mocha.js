@@ -1977,6 +1977,28 @@ describe("Druid Functional", function() {
         });
     });
 
+    it('works with rank boosting', () => {
+      let ex = $('wiki')
+        .filter('$cityName.contains("An", "ignoreCase")')
+        .split('$cityName', 'City')
+        .apply('Rank', '$wiki.sum($count) * $City.transformCase("lowerCase").match("\\ban").then(10).fallback(1)')
+        .sort('$Rank', 'descending')
+        .limit(7);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            { "City": "Los Angeles", "Rank": 520 },
+            { "City": "Milan", "Rank": 267 },
+            { "City": "Hanoi", "Rank": 183 },
+            { "City": "Bangalore", "Rank": 181 },
+            { "City": "Santo Antonio de Jesus", "Rank": 140 },
+            { "City": "Santiago", "Rank": 135 },
+            { "City": "Ankara", "Rank": 110 }
+          ]);
+        });
+    });
+
     it("works with split sort on string", () => {
       let ex = ply()
         .apply(

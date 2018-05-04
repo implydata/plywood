@@ -1,10 +1,12 @@
 # Change Log
 
-For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
-
 ## 0.18.0
 
 - Removing support for Druid < 0.10.0, cleaning up code
+
+## 0.17.44
+
+- Support for MatchExpression in Druid expression builder
 
 ## 0.17.43
 
