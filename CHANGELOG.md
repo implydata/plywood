@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.44
+
+- Support for MatchExpression in Druid expression builder
+
 ## 0.17.43
 
 - Better error messages for unsupported Druid expressions in older (< 0.11.0) Druid

@@ -39,6 +39,7 @@ import {
   TimePartExpression,
   TransformCaseExpression,
   MultiplyExpression,
+  MatchExpression,
   AddExpression,
   SubtractExpression,
   DivideExpression,
@@ -162,6 +163,10 @@ export class DruidExpressionBuilder {
       } else if (expression instanceof ExtractExpression) {
         this.checkDruid11('regexp_extract');
         return `regexp_extract(${ex1},${DruidExpressionBuilder.escapeLiteral(expression.regexp)},1)`;
+
+      } else if (expression instanceof MatchExpression) {
+        this.checkDruid11('regexp_extract');
+        return `(regexp_extract(${ex1},${DruidExpressionBuilder.escapeLiteral(expression.regexp)})!='')`;
 
       } else if (expression instanceof LengthExpression) {
         this.checkDruid11('strlen');
