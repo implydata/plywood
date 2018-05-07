@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.45
+
+- Allow query concurrency control
+
 ## 0.17.44
 
 - Support for MatchExpression in Druid expression builder
