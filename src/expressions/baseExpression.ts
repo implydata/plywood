@@ -27,6 +27,7 @@ import {
   DatasetExternalAlterations,
   Datum,
   fillExpressionExternalAlteration,
+  sizeOfDatasetExternalAlterations,
   NumberRange,
   PlywoodValue,
   Range,
@@ -104,6 +105,7 @@ export interface ComputeOptions extends Environment {
   maxQueries?: number;
   maxRows?: number;
   maxComputeCycles?: number;
+  concurrentQueryLimit?: number;
 }
 
 export interface AlterationFillerPromise {
@@ -799,14 +801,17 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return External.deduplicateExternals(externals);
   }
 
-  public getReadyExternals(): ExpressionExternalAlteration {
+  public getReadyExternals(limit = Infinity): ExpressionExternalAlteration {
     let indexToSkip: Record<string, boolean> = {};
     let externalsByIndex: ExpressionExternalAlteration = {};
 
     this.every((ex: Expression, index: int) => {
+      if (limit <= 0) return null;
+
       if (ex instanceof ExternalExpression) {
         if (indexToSkip[index]) return null;
         if (!ex.external.suppress) {
+          limit--;
           externalsByIndex[index] = {
             external: ex.external,
             terminal: true
@@ -817,6 +822,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         let h = ex._headExternal();
         if (h) {
           if (h.allGood) {
+            limit--;
             externalsByIndex[index + h.offset] = { external: h.external };
             return true;
           } else {
@@ -826,8 +832,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         }
 
       } else if (ex instanceof LiteralExpression && ex.type === 'DATASET') {
-        let datasetExternals = ex.value.getReadyExternals();
-        if (datasetExternals.length) externalsByIndex[index] = datasetExternals;
+        let datasetExternals = (ex.value as Dataset).getReadyExternals(limit);
+        let size = sizeOfDatasetExternalAlterations(datasetExternals);
+        if (size) {
+          limit -= size;
+          externalsByIndex[index] = datasetExternals;
+        }
         return null;
       }
       return null;
@@ -1709,11 +1719,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     const {
       maxComputeCycles = 5,
       maxQueries = 500,
-      maxRows
+      maxRows,
+      concurrentQueryLimit = Infinity
     } = options;
 
     let ex: Expression = this;
-    let readyExternals = ex.getReadyExternals();
+    let readyExternals = ex.getReadyExternals(concurrentQueryLimit);
 
     let computeCycles = 0;
     let queries = 0;
@@ -1736,7 +1747,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       if (maxRows && literalValue instanceof Dataset) {
         ex = r(literalValue.depthFirstTrimTo(maxRows));
       }
-      readyExternals = ex.getReadyExternals();
+      readyExternals = ex.getReadyExternals(concurrentQueryLimit);
       computeCycles++;
     }
     return ex.getLiteralValue();
@@ -1805,11 +1816,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       rawQueries,
       maxComputeCycles = 5,
       maxQueries = 500,
-      maxRows
+      maxRows,
+      concurrentQueryLimit = Infinity
     } = options;
 
     let ex: Expression = this;
-    let readyExternals = ex.getReadyExternals();
+    let readyExternals = ex.getReadyExternals(concurrentQueryLimit);
 
     let computeCycles = 0;
     let queriesMade = 0;
@@ -1832,7 +1844,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
             if (maxRows && literalValue instanceof Dataset) {
               ex = r(literalValue.depthFirstTrimTo(maxRows));
             }
-            readyExternals = ex.getReadyExternals();
+            readyExternals = ex.getReadyExternals(concurrentQueryLimit);
             computeCycles++;
           });
       }
