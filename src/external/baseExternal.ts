@@ -994,8 +994,6 @@ export abstract class External {
 
   // -----------------
 
-  public abstract canHandleTotal(): boolean;
-
   public abstract canHandleFilter(filter: FilterExpression): boolean;
 
   public abstract canHandleSplit(split: SplitExpression): boolean;
@@ -1056,7 +1054,6 @@ export abstract class External {
 
   public makeTotal(applies: ApplyExpression[]): External {
     if (this.mode !== 'raw') return null;
-    if (!this.canHandleTotal()) return null;
 
     if (!applies.length) throw new Error('must have applies');
 

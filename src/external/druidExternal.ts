@@ -431,10 +431,6 @@ export class DruidExternal extends External {
 
   // -----------------
 
-  public canHandleTotal(): boolean {
-    return true;
-  }
-
   public canHandleFilter(filter: FilterExpression): boolean {
     return !filter.expression.some((ex) => ex.isOp('cardinality') ? true : null);
   }

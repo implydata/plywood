@@ -60,10 +60,6 @@ export abstract class SQLExternal extends External {
 
   // -----------------
 
-  public canHandleTotal(): boolean {
-    return true;
-  }
-
   public canHandleFilter(filter: FilterExpression): boolean {
     return true;
   }
