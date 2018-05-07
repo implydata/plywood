@@ -79,6 +79,19 @@ export function fillExpressionExternalAlteration(alteration: ExpressionExternalA
   }
 }
 
+export function sizeOfExpressionExternalAlteration(alteration: ExpressionExternalAlteration): number {
+  let count = 0;
+  for (let k in alteration) {
+    let thing = alteration[k];
+    if (Array.isArray(thing)) {
+      count += sizeOfDatasetExternalAlterations(thing);
+    } else {
+      count++;
+    }
+  }
+  return count;
+}
+
 export function fillDatasetExternalAlterations(alterations: DatasetExternalAlterations, filler: AlterationFiller): void {
   for (let alteration of alterations) {
     if (alteration.external) {
@@ -91,6 +104,22 @@ export function fillDatasetExternalAlterations(alterations: DatasetExternalAlter
       throw new Error('fell through');
     }
   }
+}
+
+export function sizeOfDatasetExternalAlterations(alterations: DatasetExternalAlterations): number {
+  let count = 0;
+  for (let alteration of alterations) {
+    if (alteration.external) {
+      count += 1;
+    } else if (alteration.datasetAlterations) {
+      count += sizeOfDatasetExternalAlterations(alteration.datasetAlterations);
+    } else if (alteration.expressionAlterations) {
+      count += sizeOfExpressionExternalAlteration(alteration.expressionAlterations);
+    } else {
+      throw new Error('fell through');
+    }
+  }
+  return count;
 }
 
 let directionFns: Record<string, DirectionFn> = {
@@ -834,19 +863,23 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     });
   }
 
-  public getReadyExternals(): DatasetExternalAlterations {
+  public getReadyExternals(limit = Infinity): DatasetExternalAlterations {
     let externalAlterations: DatasetExternalAlterations = [];
     const { data, attributes } = this;
 
     for (let i = 0; i < data.length; i++) {
+      if (limit <= 0) break;
+
       let datum = data[i];
       let normalExternalAlterations: DatasetExternalAlterations = [];
       let valueExternalAlterations: DatasetExternalAlterations = [];
       for (let attribute of attributes) {
         let value = datum[attribute.name];
         if (value instanceof Expression) {
-          let subExpressionAlterations = value.getReadyExternals();
-          if (Object.keys(subExpressionAlterations).length) {
+          let subExpressionAlterations = value.getReadyExternals(limit);
+          let size = sizeOfExpressionExternalAlteration(subExpressionAlterations);
+          if (size) {
+            limit -= size;
             normalExternalAlterations.push({
               index: i,
               key: attribute.name,
@@ -855,8 +888,10 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
           }
 
         } else if (value instanceof Dataset) {
-          let subDatasetAlterations = value.getReadyExternals();
-          if (subDatasetAlterations.length) {
+          let subDatasetAlterations = value.getReadyExternals(limit);
+          let size = sizeOfDatasetExternalAlterations(subDatasetAlterations);
+          if (size) {
+            limit -= size;
             normalExternalAlterations.push({
               index: i,
               key: attribute.name,
@@ -876,6 +911,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
             if (value.mode === 'value') {
               valueExternalAlterations.push(externalAlteration);
             } else {
+              limit--;
               normalExternalAlterations.push(externalAlteration);
             }
           }
@@ -883,6 +919,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       }
 
       if (valueExternalAlterations.length) {
+        limit--;
         if (valueExternalAlterations.length === 1) {
           externalAlterations.push(valueExternalAlterations[0]);
         } else {
