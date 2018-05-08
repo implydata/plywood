@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.18.1
+
+- Control query concurrency
+
 ## 0.18.0
 
 - Removing support for Druid < 0.10.0, cleaning up code
