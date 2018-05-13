@@ -583,7 +583,9 @@ export class DruidExternal extends External {
       const outputName = this.makeOutputName(label);
       const outputType = DruidExpressionBuilder.expressionTypeToOutputType(expression.type);
       let inflater: Inflater;
-      if (expression instanceof TimeBucketExpression) {
+      if (expression instanceof NumberBucketExpression) {
+        inflater = External.numberRangeInflaterFactory(label, expression.size);
+      } else if (expression instanceof TimeBucketExpression) {
         inflater = External.timeRangeInflaterFactory(label, expression.duration, expression.timezone);
       } else {
         inflater = External.getSimpleInflater(expression.type, label);

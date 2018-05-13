@@ -52,6 +52,7 @@ import {
   NotExpression,
   ThenExpression
 } from '../../expressions';
+import { continuousFloorExpression } from '../../helper';
 import { PlyType } from '../../types';
 import { External } from '../baseExternal';
 
@@ -177,6 +178,9 @@ export class DruidExpressionBuilder {
 
       } else if (expression instanceof AbsoluteExpression) {
         return `abs(${ex1})`;
+
+      } else if (expression instanceof NumberBucketExpression) {
+        return continuousFloorExpression(ex1, 'floor', expression.size, expression.offset);
 
       } else if (expression instanceof TimePartExpression) {
         this.checkDruid11('timestamp_extract');

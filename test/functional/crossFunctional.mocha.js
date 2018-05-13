@@ -716,6 +716,16 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
+    it('works with complex number bucket', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki')
+        .split('($commentLength - $channel.length()).numberBucket(2, 1)', '$complexBucket')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TotalAdded', 'descending')
+        .limit(10)
+    }));
+
     it('works with STRING split .fallback() no match', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('$cityName.fallback("NoCity")', 'CityFallback')
