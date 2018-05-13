@@ -591,11 +591,13 @@ export class DruidExternal extends External {
         inflater = External.getSimpleInflater(expression.type, label);
       }
 
+      let dimensionSrcName = outputName;
       let virtualColumn: Druid.VirtualColumn = null;
       if (!(expression instanceof RefExpression)) {
+        dimensionSrcName = 'v:' + dimensionSrcName;
         virtualColumn = {
           type: "expression",
-          name: outputName,
+          name: dimensionSrcName,
           expression: druidExpression,
           outputType
         };
@@ -605,7 +607,8 @@ export class DruidExternal extends External {
         virtualColumn,
         dimension: {
           type: "default",
-          dimension: outputName,
+          dimension: dimensionSrcName,
+          outputName,
           outputType
         },
         inflater
