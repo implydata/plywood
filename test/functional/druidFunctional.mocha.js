@@ -2010,6 +2010,32 @@ describe("Druid Functional", function() {
         });
     });
 
+    it('works name reassignment', () => {
+      let ex = $('wiki')
+        .split('$cityName ++ $countryIsoCode', 'cityName')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Count": 371151,
+              "cityName": null
+            },
+            {
+              "Count": 460,
+              "cityName": "TokyoJP"
+            },
+            {
+              "Count": 425,
+              "cityName": "Central DistrictHK"
+            }
+          ]);
+        });
+    });
+
     it("works with split sort on string", () => {
       let ex = ply()
         .apply(
