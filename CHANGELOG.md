@@ -2,6 +2,11 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.46
+
+- fix error where virtual columns can refer to themselves
+- added number bucket expression support
+
 ## 0.17.45
 
 - Allow query concurrency control
