@@ -360,6 +360,16 @@ export class DruidFilterBuilder {
         return this.makeExpressionFilter(lhs.contains(rhs));
       }
 
+      if (lhs instanceof RefExpression && attributeInfo.termsDelegate) {
+        return {
+          "type": "fullText",
+          "textColumn": this.getDimensionNameForAttributeInfo(attributeInfo),
+          "termsColumn": attributeInfo.termsDelegate,
+          "query": rhs.value,
+          "matchAll": true
+        };
+      }
+
       let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(lhs);
 
       let searchFilter: Druid.Filter = {

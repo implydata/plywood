@@ -24,6 +24,7 @@ exports.druidContext = {
   useCache: false,
   populateCache: false
 };
+exports.druidHasFullText = true;
 
 exports.mySqlVersion = '5.7.13';
 exports.mySqlHost = `${DOCKER_MACHINE}:3306`;

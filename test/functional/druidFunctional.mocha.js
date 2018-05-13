@@ -110,6 +110,17 @@ describe("Druid Functional", function() {
       },
       "type": "STRING"
     },
+    info.druidHasFullText ? {
+      "cardinality": 157447,
+      "name": "commentTerms",
+      "nativeType": "STRING",
+      "range": {
+        "bounds": "[]",
+        "end": "～と指摘されるは曖昧な表現",
+        "start": ""
+      },
+      "type": "SET/STRING"
+    } : null,
     {
       "maker": {
         "op": "count"
@@ -341,7 +352,7 @@ describe("Druid Functional", function() {
       "type": "NULL",
       "unsplitable": true
     }
-  ];
+  ].filter(Boolean);
 
   let customTransforms = {
       sliceLastChar: {
@@ -3445,6 +3456,10 @@ describe("Druid Functional", function() {
                 "type": "STRING"
               },
               {
+                "name": "commentTerms",
+                "type": "SET/STRING"
+              },
+              {
                 "name": "count",
                 "type": "NUMBER"
               },
@@ -3561,6 +3576,14 @@ describe("Druid Functional", function() {
                 "comment": "/* Clubs and organizations */",
                 "commentLength": 29,
                 "commentLengthStr": "29",
+                "commentTerms": {
+                  "elements": [
+                    "and",
+                    "clubs",
+                    "organizations"
+                  ],
+                  "setType": "STRING"
+                },
                 "count": 1,
                 "countryIsoCode": "US",
                 "countryName": "United States",
@@ -3609,6 +3632,14 @@ describe("Druid Functional", function() {
                 "comment": "/* Early life */ spelling",
                 "commentLength": 25,
                 "commentLengthStr": "25",
+                "commentTerms": {
+                  "elements": [
+                    "early",
+                    "life",
+                    "spelling"
+                  ],
+                  "setType": "STRING"
+                },
                 "count": 1,
                 "countryIsoCode": "US",
                 "countryName": "United States",
@@ -3668,6 +3699,13 @@ describe("Druid Functional", function() {
               "comment": "/* Enllaços externs */",
               "commentLength": 22,
               "commentLengthStr": "22",
+              "commentTerms": {
+                "elements": [
+                  "enllaços",
+                  "externs"
+                ],
+                "setType": "STRING"
+              },
               "count": 1,
               "countryIsoCode": null,
               "countryName": null,
@@ -3694,7 +3732,20 @@ describe("Druid Functional", function() {
               "time": new Date('2015-09-12T00:46:00.000Z'),
               "user": "ChandraHelsinky",
               "userChars": {
-                "elements": ["A", "C", "D", "E", "H", "I", "K", "L", "N", "R", "S", "Y"],
+                "elements": [
+                  "A",
+                  "C",
+                  "D",
+                  "E",
+                  "H",
+                  "I",
+                  "K",
+                  "L",
+                  "N",
+                  "R",
+                  "S",
+                  "Y"
+                ],
                 "setType": "STRING"
               },
               "user_theta": "AgMDAAAazJMBAAAAAACAP5xSyQDWkQwY",

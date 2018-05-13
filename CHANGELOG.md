@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.18.2
+
+- Added `termsDelegate` and fullText search prototype
+
 ## 0.18.1
 
 - Control query concurrency

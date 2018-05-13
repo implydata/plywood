@@ -32,6 +32,7 @@ export interface AttributeInfoValue {
   maker?: Expression;
   cardinality?: number;
   range?: PlywoodRange;
+  termsDelegate?: string;
 }
 
 export interface AttributeInfoJS {
@@ -42,6 +43,7 @@ export interface AttributeInfoJS {
   maker?: ExpressionJS;
   cardinality?: number;
   range?: PlywoodRangeJS;
+  termsDelegate?: string;
 }
 
 let check: Class<AttributeInfoValue, AttributeInfoJS>;
@@ -78,6 +80,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     if (maker) value.maker = Expression.fromJS(maker);
     if (parameters.cardinality) value.cardinality = parameters.cardinality;
     if (parameters.range) value.range = Range.fromJS(parameters.range);
+    if (parameters.termsDelegate) value.termsDelegate = parameters.termsDelegate;
 
     return new AttributeInfo(value);
   }
@@ -104,6 +107,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   public maker?: Expression;
   public cardinality?: number;
   public range?: PlywoodRange;
+  public termsDelegate?: string;
 
   constructor(parameters: AttributeInfoValue) {
     if (typeof parameters.name !== "string") {
@@ -118,6 +122,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     if (parameters.nativeType) this.nativeType = parameters.nativeType;
     if (parameters.cardinality) this.cardinality = parameters.cardinality;
     if (parameters.range) this.range = parameters.range;
+    if (parameters.termsDelegate) this.termsDelegate = parameters.termsDelegate;
   }
 
   public toString(): string {
@@ -133,7 +138,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       nativeType: this.nativeType,
       maker: this.maker,
       cardinality: this.cardinality,
-      range: this.range
+      range: this.range,
+      termsDelegate: this.termsDelegate
     };
   }
 
@@ -147,6 +153,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     if (this.maker) js.maker = this.maker.toJS();
     if (this.cardinality) js.cardinality = this.cardinality;
     if (this.range) js.range = this.range.toJS();
+    if (this.termsDelegate) js.termsDelegate = this.termsDelegate;
     return js;
   }
 
@@ -162,7 +169,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       this.unsplitable === other.unsplitable &&
       immutableEqual(this.maker, other.maker) &&
       this.cardinality === other.cardinality &&
-      immutableEqual(this.range, other.range);
+      immutableEqual(this.range, other.range) &&
+      this.termsDelegate === other.termsDelegate;
   }
 
   public dropOriginInfo(): AttributeInfo {

@@ -71,6 +71,11 @@ describe("DruidSQL Functional", function() {
       "nativeType": "VARCHAR",
       "type": "STRING"
     },
+    info.druidHasFullText ? {
+      "name": "commentTerms",
+      "nativeType": "VARCHAR",
+      "type": "STRING"
+    } : null,
     {
       "name": "count",
       "nativeType": "BIGINT",
@@ -206,7 +211,7 @@ describe("DruidSQL Functional", function() {
       "nativeType": "OTHER",
       "type": "NULL"
     }
-  ];
+  ].filter(Boolean);
 
   let wikiDerivedAttributes = {
     pageInBrackets: "'[' ++ $page ++ ']'"
