@@ -3,6 +3,8 @@
 ## 0.18.2
 
 - Added `termsDelegate` and fullText search prototype
+- fix error where virtual columns can refer to themselves
+- added number bucket expression support
 
 ## 0.18.1
 
