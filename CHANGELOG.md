@@ -2,6 +2,10 @@
 
 For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 
+## 0.17.47
+
+- remove aggressive fallback simplification
+
 ## 0.17.46
 
 - fix error where virtual columns can refer to themselves
