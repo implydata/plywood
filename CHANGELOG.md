@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.18.3
+
+- Remove aggressive fallback simplification
+
 ## 0.18.2
 
 - Added `termsDelegate` and fullText search prototype
