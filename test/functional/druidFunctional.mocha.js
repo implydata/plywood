@@ -2418,6 +2418,29 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with lookup IS filter with fallback", () => {
+      let ex = $('wiki')
+        .filter($('channel').lookup('channel-lookup').fallback(r("LOL")).overlap(['English', "LOL"]))
+        .split($('channel').lookup('channel-lookup').fallback(r("LOL")), 'C')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Count": 227040,
+              "C": "LOL"
+            },
+            {
+              "Count": 114711,
+              "C": "English"
+            }
+          ]);
+        });
+    });
+
     it("works with lookup CONTAINS filter", () => {
       let ex = $('wiki').filter($('channel').lookup('channel-lookup').contains('Eng', 'ignoreCase')).sum('$count');
 

@@ -615,19 +615,6 @@ describe("simulate Druid", () => {
     });
   });
 
-  it("works on fancy filter .fallback().is() [impossible]", () => {
-    let ex = ply()
-      .apply("diamonds", $('diamonds').filter("$color.fallback('NoColor') == 'D'"))
-      .apply('Count', '$diamonds.count()');
-
-    let queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan[0][0].filter).to.deep.equal({
-      "dimension": "color",
-      "type": "selector",
-      "value": "D"
-    });
-  });
-
   it("works on fancy filter .fallback().is() [possible]", () => {
     let ex = ply()
       .apply("diamonds", $('diamonds').filter("$color.fallback('D') == 'D'"))

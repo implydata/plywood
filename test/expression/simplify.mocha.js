@@ -711,12 +711,6 @@ describe("Simplify", () => {
       simplifiesTo(ex1, ex2);
     });
 
-    it('kills impossible fallback', () => {
-      let ex1 = $('color').fallback('NoColor').is('D');
-      let ex2 = $('color').is('D');
-      simplifiesTo(ex1, ex2);
-    });
-
     it('leaves possible fallback', () => {
       let ex1 = $('color').fallback('D').is('D');
       let ex2 = $('color').fallback('D').is('D');
@@ -733,6 +727,11 @@ describe("Simplify", () => {
       let ex1 = $('color').then('T').is('F');
       let ex2 = $('color').isnt(true);
       simplifiesTo(ex1, ex2);
+    });
+
+    it("leaves with lookup", () => {
+      let ex = $('channel').lookup('channel-lookup').fallback(r('LOL')).is(['English', 'LOL']);
+      leavesAlone(ex);
     });
 
   });
