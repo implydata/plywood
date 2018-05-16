@@ -12,7 +12,7 @@ For updates follow [@implydata](https://twitter.com/implydata) on Twitter.
 - added number bucket expression support
 
 ## 0.17.45
-
+                                                                                            impossible
 - Allow query concurrency control
 
 ## 0.17.44
