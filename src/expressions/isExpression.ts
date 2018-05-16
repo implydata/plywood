@@ -119,14 +119,6 @@ export class IsExpression extends ChainableUnaryExpression {
         }
       }
 
-      // X.fallback(Y).is(Z) where Y literal, Y != Z
-      if (operand instanceof FallbackExpression) {
-        const { operand: x, expression: y } = operand;
-        if (y.isOp('literal') && !y.equals(expression)) {
-          return this.changeOperand(x);
-        }
-      }
-
       // X.then(Y).is(Z) where Y literal
       if (operand instanceof ThenExpression) {
         const { operand: x, expression: y } = operand;
