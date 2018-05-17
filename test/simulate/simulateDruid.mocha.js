@@ -2249,6 +2249,20 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it.only("makes a re-split query", () => {
+    let ex = $('diamonds').split('$color', 'Color')
+      .apply('TotalPrice', $('diamonds').sum('$price'))
+      .apply('Quantile', $('diamonds').split('$time.timeBucket(PT5M)', 'S').apply('C', '$diamonds.sum($price)').quantile('$C', 0.95))
+      .sort('$TotalPrice', 'descending')
+      .limit(10);
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+
+    ]);
+  });
+
   it("makes a filter on timePart", () => {
     let ex = $("diamonds").filter(
       $("time").timePart('HOUR_OF_DAY', 'Etc/UTC').is([3, 4, 10]).and($("time").overlap([

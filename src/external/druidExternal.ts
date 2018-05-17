@@ -55,6 +55,7 @@ import { DruidExtractionFnBuilder } from './utils/druidExtractionFnBuilder';
 import { DruidFilterBuilder } from './utils/druidFilterBuilder';
 import { DruidHavingFilterBuilder } from './utils/druidHavingFilterBuilder';
 import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
+import apply = Reflect.apply;
 
 export class InvalidResultError extends ExtendableError {
   public result: any;
@@ -448,11 +449,7 @@ export class DruidExternal extends External {
   }
 
   public canHandleSort(sort: SortExpression): boolean {
-    if (this.isTimeseries()) {
-      if (sort.direction !== 'ascending') return false;
-      return sort.refName() === this.split.firstSplitName();
-
-    } else if (this.mode === 'raw') {
+    if (this.mode === 'raw') {
       if (sort.refName() !== this.timeAttribute) return false;
       return sort.direction === 'ascending'; // scan queries can only sort ascending
 
@@ -851,6 +848,59 @@ export class DruidExternal extends External {
     };
   }
 
+  public nestedGroupByIfNeeded(): QueryAndPostTransform<Druid.Query> | null {
+    interface ParseResplitAgg {
+      resplitAgg: ChainableExpression;
+      resplitApply: ApplyExpression;
+      resplitSplit: SplitExpression;
+    }
+
+    const parseResplitAgg = (resplitAgg: Expression): ParseResplitAgg => {
+      if (!(resplitAgg instanceof ChainableExpression) || !resplitAgg.isAggregate()) return null;
+
+      const resplitApply = resplitAgg.operand;
+      if (!(resplitApply instanceof ApplyExpression)) return null;
+
+      const resplitSplit = resplitApply.operand;
+      if (!(resplitSplit instanceof SplitExpression)) return null;
+
+      return {
+        resplitAgg,
+        resplitApply,
+        resplitSplit
+      };
+    };
+
+    const { applies } = this;
+    const possibleResplits = applies.map((a) => parseResplitAgg(a.expression));
+    const resplits = possibleResplits.filter(Boolean);
+    if (!resplits.length) return null;
+    if (resplits.length > 1) throw new Error('can have max of one resplit aggregator');
+
+    const normalApplies = this.applies.filter((a, i) => !possibleResplits[i]);
+
+    const innerApplies: ApplyExpression[] = [];
+    const outerApplies = normalApplies.map((apply) => {
+
+    });
+
+    // OUTER
+    const innerValue = this.valueOf();
+    innerValue.applies = normalApplies;
+    const innerExternal = new DruidExternal(innerValue);
+
+    // INNER
+    const outerValue = this.valueOf();
+    outerValue.applies = normalApplies;
+    const outerExternal = new DruidExternal(outerValue);
+
+    let outerQueryAndPostTransform = outerExternal.getQueryAndPostTransform();
+    outerQueryAndPostTransform.query.dataSource = {
+      type: 'lol'
+    };
+    return outerQueryAndPostTransform;
+  }
+
   public getQueryAndPostTransform(): QueryAndPostTransform<Druid.Query> {
     const { mode, applies, sort, limit, context } = this;
 
@@ -1060,6 +1110,9 @@ export class DruidExternal extends External {
         };
 
       case 'split':
+        const nestedGroupBy = this.nestedGroupByIfNeeded();
+        if (nestedGroupBy) return nestedGroupBy;
+
         // Split
         let split = this.getQuerySplit();
         let splitSpec = this.splitToDruid(split);
