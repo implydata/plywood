@@ -368,7 +368,7 @@ export class DruidFilterBuilder {
           "query": rhs.value,
           "matchAll": true,
           "usePrefixForLastTerm": true
-        } as any;
+        };
       }
 
       let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(lhs);
