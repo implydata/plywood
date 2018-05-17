@@ -366,8 +366,9 @@ export class DruidFilterBuilder {
           "textColumn": this.getDimensionNameForAttributeInfo(attributeInfo),
           "termsColumn": attributeInfo.termsDelegate,
           "query": rhs.value,
-          "matchAll": true
-        };
+          "matchAll": true,
+          "usePrefixForLastTerm": true
+        } as any;
       }
 
       let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(lhs);
