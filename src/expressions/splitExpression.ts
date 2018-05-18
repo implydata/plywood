@@ -173,6 +173,21 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
     return ret;
   }
 
+  public addSplits(splits: Splits): SplitExpression {
+    const newSplits = this.mapSplitExpressions((ex) => ex);
+    for (let k in splits) {
+      newSplits[k] = splits[k];
+    }
+
+    return this.changeSplits(newSplits);
+  }
+
+  public changeSplits(splits: Splits): SplitExpression {
+    let value = this.valueOf();
+    value.splits = splits;
+    return new SplitExpression(value);
+  }
+
   public calc(datum: Datum): PlywoodValue {
     let { operand, splits, dataName } = this;
     const operandValue = operand.calc(datum);

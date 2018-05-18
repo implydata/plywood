@@ -30,9 +30,9 @@ let druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
-// druidRequester = verboseRequesterFactory({
-//   requester: druidRequester
-// });
+druidRequester = verboseRequesterFactory({
+  requester: druidRequester
+});
 
 describe("Druid Functional", function() {
   this.timeout(10000);
@@ -2414,7 +2414,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result).to.equal(114711);
+          expect(result).to.deep.equal(114711);
         });
     });
 
@@ -2446,7 +2446,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result).to.equal(114711);
+          expect(result).to.deep.equal(114711);
         });
     });
 
@@ -2455,7 +2455,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result).to.equal(1621);
+          expect(result).to.deep.equal(1621);
         });
     });
 
@@ -2464,7 +2464,77 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result).to.equal(109199 * 10);
+          expect(result).to.deep.equal(109199 * 10);
+        });
+    });
+
+    it("works with resplit agg on total", () => {
+      let ex = ply()
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Quantile', $('wiki').split('$time.timeBucket(PT1H)', 'S').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Count": 392443,
+              "Quantile": 22373
+            }
+          ]);
+        });
+    });
+
+    it("works with resplit agg on different dimension split", () => {
+      let ex = $('wiki').split('$channel', 'Channel')
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Quantile', $('wiki').split('$time.timeBucket(PT1H)', 'S').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
+        .sort('$Count', 'descending')
+        .limit(5);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Channel": "en",
+              "Count": 114711,
+              "Quantile": 6313.8
+            },
+            {
+              "Channel": "vi",
+              "Count": 99010,
+              "Quantile": 10748.596
+            },
+            {
+              "Channel": "de",
+              "Count": 25103,
+              "Quantile": 1737.9999
+            },
+            {
+              "Channel": "fr",
+              "Count": 21285,
+              "Quantile": 1379.4
+            },
+            {
+              "Channel": "ru",
+              "Count": 14031,
+              "Quantile": 898.5999
+            }
+          ]);
+        });
+    });
+
+    it("works with resplit agg on same dimension split", () => {
+      let ex = $('wiki').split('$time.timeBucket(PT1H)', 'Hour')
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Quantile', $('wiki').split('$time.timeBucket(PT1H)', 'S').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
+        .sort('$Count', 'descending')
+        .limit(5);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+
+          ]);
         });
     });
 
@@ -3814,7 +3884,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS().data.length).to.equal(limit);
+          expect(result.toJS().data.length).to.deep.equal(limit);
         });
     });
 
@@ -3828,7 +3898,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS().data.length).to.equal(limit);
+          expect(result.toJS().data.length).to.deep.equal(limit);
         });
     });
 
@@ -4299,7 +4369,7 @@ describe("Druid Functional", function() {
     it("introspects version and attributes", () => {
       return wikiExternal.introspect()
         .then((introspectedExternal) => {
-          expect(introspectedExternal.version).to.equal(info.druidVersion);
+          expect(introspectedExternal.version).to.deep.equal(info.druidVersion);
           expect(introspectedExternal.toJS().attributes.slice(0, 3)).to.deep.equal([
             {
               "name": "time",

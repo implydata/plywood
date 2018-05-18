@@ -27,7 +27,7 @@ import {
   ApplyExpression,
   CardinalityExpression,
   ChainableExpression,
-  ChainableUnaryExpression,
+  ChainableUnaryExpression, CountExpression,
   Expression,
   FilterExpression,
   InExpression,
@@ -39,14 +39,14 @@ import {
   NumberBucketExpression,
   RefExpression,
   SortExpression,
-  SplitExpression,
+  SplitExpression, Splits,
   TimeBucketExpression,
   TimeFloorExpression,
   TimePartExpression
 } from '../expressions/index';
 import { dictEqual, ExtendableError, nonEmptyLookup, shallowCopy } from '../helper/utils';
 import {
-  External, ExternalJS, ExternalValue, Inflater, IntrospectionDepth, NextFn,
+  External, ExternalJS, ExternalValue, Inflater, IntrospectionDepth, NextFn, QuerySelection,
   QueryAndPostTransform
 } from './baseExternal';
 import { AggregationsAndPostAggregations, DruidAggregationBuilder } from './utils/druidAggregationBuilder';
@@ -122,6 +122,7 @@ export class DruidExternal extends External {
     value.allowSelectQueries = Boolean(parameters.allowSelectQueries);
     value.introspectionStrategy = parameters.introspectionStrategy;
     value.exactResultsOnly = Boolean(parameters.exactResultsOnly);
+    value.querySelection = parameters.querySelection;
     value.context = parameters.context;
     return new DruidExternal(value);
   }
@@ -370,6 +371,7 @@ export class DruidExternal extends External {
   public allowSelectQueries: boolean;
   public introspectionStrategy: string;
   public exactResultsOnly: boolean;
+  public querySelection: QuerySelection;
   public context: Record<string, any>;
 
   constructor(parameters: ExternalValue) {
@@ -389,6 +391,7 @@ export class DruidExternal extends External {
     this.introspectionStrategy = introspectionStrategy;
 
     this.exactResultsOnly = parameters.exactResultsOnly;
+    this.querySelection = parameters.querySelection;
     this.context = parameters.context;
   }
 
@@ -401,6 +404,7 @@ export class DruidExternal extends External {
     value.allowSelectQueries = this.allowSelectQueries;
     value.introspectionStrategy = this.introspectionStrategy;
     value.exactResultsOnly = this.exactResultsOnly;
+    value.querySelection = this.querySelection;
     value.context = this.context;
     return value;
   }
@@ -414,6 +418,7 @@ export class DruidExternal extends External {
     if (this.allowSelectQueries) js.allowSelectQueries = true;
     if (this.introspectionStrategy !== DruidExternal.DEFAULT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
     if (this.exactResultsOnly) js.exactResultsOnly = true;
+    if (this.querySelection) js.querySelection = this.querySelection;
     if (this.context) js.context = this.context;
     return js;
   }
@@ -427,6 +432,7 @@ export class DruidExternal extends External {
       this.allowSelectQueries === other.allowSelectQueries &&
       this.introspectionStrategy === other.introspectionStrategy &&
       this.exactResultsOnly === other.exactResultsOnly &&
+      this.querySelection === other.querySelection &&
       dictEqual(this.context, other.context);
   }
 
@@ -467,6 +473,10 @@ export class DruidExternal extends External {
   }
 
   // -----------------
+
+  public getQuerySelection(): QuerySelection {
+    return this.querySelection || 'any';
+  }
 
   public isTimeseries(): boolean {
     const { split } = this;
@@ -721,7 +731,7 @@ export class DruidExternal extends External {
     let leftoverHavingFilter = this.havingFilter;
     let selectedAttributes = this.getSelectedAttributes();
 
-    if (split.isMultiSplit()) {
+    if (this.getQuerySelection() === 'group-by-only' || split.isMultiSplit()) {
       let timestampLabel: string = null;
       let granularity: Druid.Granularity = null;
       let virtualColumns: Druid.VirtualColumn[] = [];
@@ -781,7 +791,8 @@ export class DruidExternal extends External {
     if (
       leftoverHavingFilter.equals(Expression.TRUE) && // There is no leftover having filter
       (this.limit || split.maxBucketNumber() < 1000) && // There is a limit (or the split range is limited)
-      !this.exactResultsOnly // We do not care about exact results
+      !this.exactResultsOnly && // We do not care about exact results
+      this.getQuerySelection() === 'any' // We allow any query
     ) {
       return {
         queryType: 'topN',
@@ -849,13 +860,15 @@ export class DruidExternal extends External {
   }
 
   public nestedGroupByIfNeeded(): QueryAndPostTransform<Druid.Query> | null {
-    interface ParseResplitAgg {
+    interface ParsedResplitAgg {
+      name: string;
       resplitAgg: ChainableExpression;
       resplitApply: ApplyExpression;
       resplitSplit: SplitExpression;
     }
 
-    const parseResplitAgg = (resplitAgg: Expression): ParseResplitAgg => {
+    const parseResplitAgg = (apply: ApplyExpression): ParsedResplitAgg | null => {
+      const resplitAgg = apply.expression;
       if (!(resplitAgg instanceof ChainableExpression) || !resplitAgg.isAggregate()) return null;
 
       const resplitApply = resplitAgg.operand;
@@ -865,38 +878,82 @@ export class DruidExternal extends External {
       if (!(resplitSplit instanceof SplitExpression)) return null;
 
       return {
-        resplitAgg,
-        resplitApply,
-        resplitSplit
+        name: apply.name,
+        resplitAgg: resplitAgg.changeOperand(Expression._),
+        resplitApply: resplitApply.changeOperand(Expression._),
+        resplitSplit: resplitSplit.changeOperand(Expression._)
       };
     };
 
-    const { applies } = this;
-    const possibleResplits = applies.map((a) => parseResplitAgg(a.expression));
+    const { applies, split } = this;
+    const possibleResplits = applies.map(parseResplitAgg);
     const resplits = possibleResplits.filter(Boolean);
     if (!resplits.length) return null;
     if (resplits.length > 1) throw new Error('can have max of one resplit aggregator');
+    const resplit = resplits[0];
 
     const normalApplies = this.applies.filter((a, i) => !possibleResplits[i]);
 
-    const innerApplies: ApplyExpression[] = [];
-    const outerApplies = normalApplies.map((apply) => {
+    const outerAttributes: Attributes = split
+      .mapSplits((name, ex) => AttributeInfo.fromJS({ name, type: ex.type }))
+      .concat(resplit.resplitSplit.mapSplits((name, ex) => AttributeInfo.fromJS({ name, type: ex.type })));
 
+    //const outerSplits: Splits = {};
+
+    const innerApplies: ApplyExpression[] = [];
+    const outerApplies = normalApplies.map((apply, i) => {
+      let c = 0;
+      return apply.changeExpression(apply.expression.substitute((ex) => {
+        if (ex.isAggregate()) {
+          const tempName = `a${i}_${c++}`;
+          innerApplies.push(Expression._.apply(tempName, ex));
+          outerAttributes.push(AttributeInfo.fromJS({ name: tempName, type: ex.type }));
+
+          if (ex instanceof CountExpression) {
+            return ex.operand.sum($(tempName));
+
+          } else if (ex instanceof ChainableUnaryExpression) {
+            return ex.changeExpression($(tempName));
+
+          } else {
+            throw new Error('should never get here ');
+          }
+        }
+        return null;
+      }));
     });
 
-    // OUTER
-    const innerValue = this.valueOf();
-    innerValue.applies = normalApplies;
-    const innerExternal = new DruidExternal(innerValue);
+    // Add the resplit stuff
+    innerApplies.push(resplit.resplitApply);
+    outerAttributes.push(AttributeInfo.fromJS({ name: resplit.resplitApply.name, type: 'NUMBER' }));
+    outerApplies.push(Expression._.apply(resplit.name, resplit.resplitAgg));
 
     // INNER
+    const innerValue = this.valueOf();
+    innerValue.applies = innerApplies;
+    innerValue.querySelection = 'group-by-only';
+    innerValue.split = split.addSplits(resplit.resplitSplit.splits);
+    innerValue.limit = null;
+    innerValue.sort = null;
+    const innerExternal = new DruidExternal(innerValue);
+    const innerQuery = innerExternal.getQueryAndPostTransform().query;
+    delete innerQuery.context;
+
+    // OUTER
     const outerValue = this.valueOf();
-    outerValue.applies = normalApplies;
+    outerValue.rawAttributes = outerAttributes;
+    outerValue.applies = outerApplies;
+    outerValue.filter = Expression.TRUE;
+    outerValue.allowEternity = true;
+    outerValue.querySelection = 'group-by-only';
+    outerValue.split = split.changeSplits(split.mapSplitExpressions((ex, name) => $(name)));
     const outerExternal = new DruidExternal(outerValue);
 
+    // Put it together
     let outerQueryAndPostTransform = outerExternal.getQueryAndPostTransform();
     outerQueryAndPostTransform.query.dataSource = {
-      type: 'lol'
+      type: 'query',
+      query: innerQuery
     };
     return outerQueryAndPostTransform;
   }
@@ -1095,6 +1152,9 @@ export class DruidExternal extends External {
         };
 
       case 'total':
+        const nestedGroupByTotal = this.nestedGroupByIfNeeded();
+        if (nestedGroupByTotal) return nestedGroupByTotal;
+
         aggregationsAndPostAggregations = new DruidAggregationBuilder(this).makeAggregationsAndPostAggregations(this.applies);
         if (aggregationsAndPostAggregations.aggregations.length) {
           druidQuery.aggregations = aggregationsAndPostAggregations.aggregations;

@@ -86,6 +86,8 @@ export interface Inflater {
   (d: Datum): void;
 }
 
+export type QuerySelection = "any" | "no-top-n" | "group-by-only";
+
 export type IntrospectionDepth = "deep" | "default" | "shallow";
 
 export interface IntrospectOptions {
@@ -255,6 +257,7 @@ export interface ExternalValue {
   allowSelectQueries?: boolean;
   introspectionStrategy?: string;
   exactResultsOnly?: boolean;
+  querySelection?: QuerySelection;
   context?: Record<string, any>;
 
   requester?: PlywoodRequester<any>;
@@ -281,6 +284,7 @@ export interface ExternalJS {
   allowSelectQueries?: boolean;
   introspectionStrategy?: string;
   exactResultsOnly?: boolean;
+  querySelection?: QuerySelection;
   context?: Record<string, any>;
 }
 
@@ -943,7 +947,9 @@ export abstract class External {
   }
 
   public getAttributesInfo(attributeName: string) {
-    return NamedArray.get(this.rawAttributes, attributeName);
+    const attributeInfo = NamedArray.get(this.rawAttributes, attributeName);
+    if (!attributeInfo) throw new Error(`could not get attribute info for '${attributeName}'`);
+    return attributeInfo;
   }
 
   public updateAttribute(newAttribute: AttributeInfo): External {
