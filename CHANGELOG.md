@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.18.6
+
+- allow multiple resplit measures
+
 ## 0.18.5
 
 - basic resplit ability
