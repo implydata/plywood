@@ -147,6 +147,18 @@ export class DruidExternal extends External {
       });
   }
 
+  static isTimestampCompatibleSort(sort: SortExpression, label: string): boolean {
+    if (!sort) return true;
+    if (sort.direction !== 'ascending') return false;
+
+    const sortExpression = sort.expression;
+    if (sortExpression instanceof RefExpression) {
+      return sortExpression.name === label;
+    }
+
+    return false;
+  }
+
   static timeBoundaryPostTransformFactory(applies?: ApplyExpression[]) {
     return new Transform({
       objectMode: true,
@@ -442,18 +454,6 @@ export class DruidExternal extends External {
     return !filter.expression.some((ex) => ex.isOp('cardinality') ? true : null);
   }
 
-  public canHandleSplit(split: SplitExpression): boolean {
-    return true;
-  }
-
-  public canHandleSplitExpression(ex: Expression): boolean {
-    return true;
-  }
-
-  public canHandleApply(apply: ApplyExpression): boolean {
-    return true;
-  }
-
   public canHandleSort(sort: SortExpression): boolean {
     if (this.mode === 'raw') {
       if (sort.refName() !== this.timeAttribute) return false;
@@ -464,27 +464,10 @@ export class DruidExternal extends External {
     }
   }
 
-  public canHandleLimit(limit: LimitExpression): boolean {
-    return !this.isTimeseries();
-  }
-
-  public canHandleHavingFilter(havingFilter: FilterExpression): boolean {
-    return !this.limit;
-  }
-
   // -----------------
 
   public getQuerySelection(): QuerySelection {
     return this.querySelection || 'any';
-  }
-
-  public isTimeseries(): boolean {
-    const { split } = this;
-    if (!split || split.isMultiSplit()) return false;
-    let splitExpression = split.firstSplitExpression();
-    if (this.isTimeRef(splitExpression)) return true;
-    const { op } = splitExpression;
-    return op === 'timeBucket' || op === 'timeFloor';
   }
 
   public getDruidDataSource(): Druid.DataSource {
@@ -505,7 +488,7 @@ export class DruidExternal extends External {
     return ex instanceof RefExpression && ex.name === this.timeAttribute;
   }
 
-  public splitExpressionToGranularityInflater(splitExpression: Expression, label: string): GranularityInflater {
+  public splitExpressionToGranularityInflater(splitExpression: Expression, label: string): GranularityInflater | null {
     if (this.isTimeRef(splitExpression)) {
       return {
         granularity: 'none',
@@ -738,17 +721,17 @@ export class DruidExternal extends External {
       let dimensions: Druid.DimensionSpec[] = [];
       let inflaters: Inflater[] = [];
       split.mapSplits((name, expression) => {
-        if (!granularity && !this.limit && !this.sort) {
-          // We have to add !this.limit && !this.sort because of a bug in groupBy sorting
-          // Remove it when fixed https://github.com/druid-io/druid/issues/1926
-          let granularityInflater = this.splitExpressionToGranularityInflater(expression, name);
-          if (granularityInflater) {
-            timestampLabel = name;
-            granularity = granularityInflater.granularity;
-            inflaters.push(granularityInflater.inflater);
-            return;
-          }
-        }
+        // if (!granularity && !this.limit && !this.sort) {
+        //   // We have to add !this.limit && !this.sort because of a bug in groupBy sorting
+        //   // Remove it when fixed https://github.com/druid-io/druid/issues/1926
+        //   let granularityInflater = this.splitExpressionToGranularityInflater(expression, name);
+        //   if (granularityInflater) {
+        //     timestampLabel = name;
+        //     granularity = granularityInflater.granularity;
+        //     inflaters.push(granularityInflater.inflater);
+        //     return;
+        //   }
+        // }
 
         let { virtualColumn, dimension, inflater, having } = this.expressionToDimensionInflaterHaving(expression, name, leftoverHavingFilter);
         leftoverHavingFilter = having;
@@ -773,15 +756,17 @@ export class DruidExternal extends External {
     let label = split.firstSplitName();
 
     // Can it be a time series?
-    let granularityInflater = this.splitExpressionToGranularityInflater(splitExpression, label);
-    if (granularityInflater) {
-      return {
-        queryType: 'timeseries',
-        granularity: granularityInflater.granularity,
-        leftoverHavingFilter,
-        timestampLabel: label,
-        postTransform: External.postTransformFactory([granularityInflater.inflater], selectedAttributes, [label], null)
-      };
+    if (!this.limit && DruidExternal.isTimestampCompatibleSort(this.sort, label)) {
+      let granularityInflater = this.splitExpressionToGranularityInflater(splitExpression, label);
+      if (granularityInflater) {
+        return {
+          queryType: 'timeseries',
+          granularity: granularityInflater.granularity,
+          leftoverHavingFilter,
+          timestampLabel: label,
+          postTransform: External.postTransformFactory([granularityInflater.inflater], selectedAttributes, [label], null)
+        };
+      }
     }
 
     let dimensionInflater = this.expressionToDimensionInflaterHaving(splitExpression, label, leftoverHavingFilter);
@@ -894,11 +879,38 @@ export class DruidExternal extends External {
 
     const normalApplies = this.applies.filter((a, i) => !possibleResplits[i]);
 
-    const outerAttributes: Attributes = split
-      .mapSplits((name, ex) => AttributeInfo.fromJS({ name, type: ex.type }))
-      .concat(resplit.resplitSplit.mapSplits((name, ex) => AttributeInfo.fromJS({ name, type: ex.type })));
+    const outerAttributes: Attributes = [];
+    const outerSplits: Splits = {};
+    const innerSplits: Splits = {};
 
-    //const outerSplits: Splits = {};
+    resplit.resplitSplit.mapSplits((name, ex) => {
+      let outerSplitName = null;
+      split.mapSplits((name, myEx) => {
+        if (ex.equals(myEx)) {
+          outerSplitName = name;
+        }
+      });
+
+      outerAttributes.push(AttributeInfo.fromJS({ name, type: ex.type }));
+      innerSplits[name] = ex;
+      if (outerSplitName) {
+        outerSplits[outerSplitName] = $(name);
+      }
+    });
+
+    split.mapSplits((name, ex) => {
+      if (outerSplits[name]) return; // already taken care of
+      innerSplits[name] = ex;
+      outerSplits[name] = $(name);
+      outerAttributes.push(AttributeInfo.fromJS({ name, type: ex.type }));
+    });
+
+    //console.log('innerSplits', innerSplits);
+    //console.log('outerSplits', outerSplits);
+
+    // split
+    //   .mapSplits((name, ex) => AttributeInfo.fromJS({ name, type: ex.type }))
+    //   .concat(resplit.resplitSplit.mapSplits((name, ex) => AttributeInfo.fromJS({ name, type: ex.type })));
 
     const innerApplies: ApplyExpression[] = [];
     const outerApplies = normalApplies.map((apply, i) => {
@@ -932,7 +944,7 @@ export class DruidExternal extends External {
     const innerValue = this.valueOf();
     innerValue.applies = innerApplies;
     innerValue.querySelection = 'group-by-only';
-    innerValue.split = split.addSplits(resplit.resplitSplit.splits);
+    innerValue.split = split.changeSplits(innerSplits);
     innerValue.limit = null;
     innerValue.sort = null;
     const innerExternal = new DruidExternal(innerValue);
@@ -946,7 +958,7 @@ export class DruidExternal extends External {
     outerValue.filter = Expression.TRUE;
     outerValue.allowEternity = true;
     outerValue.querySelection = 'group-by-only';
-    outerValue.split = split.changeSplits(split.mapSplitExpressions((ex, name) => $(name)));
+    outerValue.split = split.changeSplits(outerSplits);
     const outerExternal = new DruidExternal(outerValue);
 
     // Put it together
@@ -1254,25 +1266,31 @@ export class DruidExternal extends External {
                   orderByColumn.dimensionOrder = 'numeric';
                 }
               }
-            } else { // Going to sortOnLabel implicitly
-              // Find the first non primary time key
-              let splitKeys = split.keys.filter(k => k !== timestampLabel);
-              if (!splitKeys.length) throw new Error('could not find order by column for group by');
-              let splitKey = splitKeys[0];
-              let keyExpression = split.splits[splitKey];
-              orderByColumn = {
-                dimension: this.makeOutputName(splitKey)
+              druidQuery.limitSpec = {
+                type: "default",
+                columns: [orderByColumn]
               };
-              if (expressionNeedsNumericSort(keyExpression)) {
-                orderByColumn.dimensionOrder = 'numeric';
-              }
+            } else { // Going to sortOnLabel implicitly
+              // // Find the first non primary time key
+              // let splitKeys = split.keys.filter(k => k !== timestampLabel);
+              // if (!splitKeys.length) throw new Error('could not find order by column for group by');
+              // let splitKey = splitKeys[0];
+              // let keyExpression = split.splits[splitKey];
+              // orderByColumn = {
+              //   dimension: this.makeOutputName(splitKey)
+              // };
+              // if (expressionNeedsNumericSort(keyExpression)) {
+              //   orderByColumn.dimensionOrder = 'numeric';
+              // }
             }
 
-            druidQuery.limitSpec = {
-              type: "default",
-              columns: [orderByColumn || this.makeOutputName(split.firstSplitName())]
-            };
             if (limit) {
+              if (!druidQuery.limitSpec) {
+                druidQuery.limitSpec = {
+                  type: "default",
+                  columns: [this.makeOutputName(split.firstSplitName())]
+                };
+              }
               druidQuery.limitSpec.limit = limit.value;
             }
             if (!leftoverHavingFilter.equals(Expression.TRUE)) {

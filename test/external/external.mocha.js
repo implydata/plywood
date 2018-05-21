@@ -659,7 +659,8 @@ describe("External", () => {
       timeAttribute: 'time',
       attributes: [
         { name: 'time', type: 'TIME', maker: { action: 'timeFloor', duration: 'PT1H', timezone: 'Etc/UTC' } },
-        { name: 'language', type: 'STRING' }
+        { name: 'language', type: 'STRING' },
+        { name: 'blah', type: 'NULL' }
       ]
     });
 
@@ -1217,9 +1218,8 @@ describe("External", () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        expect(ex.op).to.equal('limit');
-        expect(ex.operand.op).to.equal('sort');
-        let externalDataset = ex.operand.operand.external;
+        expect(ex.op).to.equal('external');
+        let externalDataset = ex.external;
         expect(externalDataset.applies).to.have.length(2);
         expect(externalDataset.toJS().attributes).to.deep.equal([
           { name: "Timestamp", "type": "TIME_RANGE" },

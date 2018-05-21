@@ -1678,21 +1678,38 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
-      expect(query.dimensions[0]).to.deep.equal({
-        "dimension": "sometimeLater",
-        "extractionFn": {
-          "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
-          "granularity": {
-            "period": "P1D",
+      expect(query.dimensions).to.deep.equal([
+        {
+          "dimension": "__time",
+          "extractionFn": {
+            "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+            "granularity": {
+              "period": "P1D",
+              "timeZone": "Etc/UTC",
+              "type": "period"
+            },
             "timeZone": "Etc/UTC",
-            "type": "period"
+            "type": "timeFormat"
           },
-          "timeZone": "Etc/UTC",
-          "type": "timeFormat"
+          "outputName": "Split1",
+          "type": "extraction"
         },
-        "outputName": "Split2",
-        "type": "extraction"
-      });
+        {
+          "dimension": "sometimeLater",
+          "extractionFn": {
+            "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+            "granularity": {
+              "period": "P1D",
+              "timeZone": "Etc/UTC",
+              "type": "period"
+            },
+            "timeZone": "Etc/UTC",
+            "type": "timeFormat"
+          },
+          "outputName": "Split2",
+          "type": "extraction"
+        }
+      ]);
     });
 
     it("works with .timePart()", () => {
@@ -1766,14 +1783,6 @@ describe("DruidExternal", () => {
         ],
         "granularity": "all",
         "intervals": "2013-02-26T00Z/2013-02-27T00Z",
-        "limitSpec": {
-          "columns": [
-            {
-              "dimension": "FrenchCanadian"
-            }
-          ],
-          "type": "default"
-        },
         "queryType": "groupBy"
       });
     });
@@ -1802,14 +1811,6 @@ describe("DruidExternal", () => {
         ],
         "granularity": "all",
         "intervals": "2013-02-26T00Z/2013-02-27T00Z",
-        "limitSpec": {
-          "columns": [
-            {
-              "dimension": "Excited"
-            }
-          ],
-          "type": "default"
-        },
         "queryType": "groupBy"
       });
     });

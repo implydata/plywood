@@ -516,7 +516,9 @@ export abstract class External {
         return;
       }
 
-      d[label] = new Date(v);
+      let dt = new Date(v);
+      if (isNaN(dt.valueOf())) dt = new Date(Number(v)); // in case v === "1442018760000"
+      d[label] = dt;
     };
   }
 
@@ -1002,17 +1004,7 @@ export abstract class External {
 
   public abstract canHandleFilter(filter: FilterExpression): boolean;
 
-  public abstract canHandleSplit(split: SplitExpression): boolean;
-
-  public abstract canHandleSplitExpression(ex: Expression): boolean;
-
-  public abstract canHandleApply(apply: ApplyExpression): boolean;
-
   public abstract canHandleSort(sort: SortExpression): boolean;
-
-  public abstract canHandleLimit(limit: LimitExpression): boolean;
-
-  public abstract canHandleHavingFilter(havingFilter: FilterExpression): boolean;
 
   // -----------------
 
@@ -1135,7 +1127,7 @@ export abstract class External {
         break;
 
       case 'split':
-        if (!this.canHandleHavingFilter(filter)) return null;
+        if (this.limit) return null;
         value.havingFilter = value.havingFilter.and(expression).simplify();
         break;
 
@@ -1177,9 +1169,7 @@ export abstract class External {
       let splitExpression = split.splits[splitKey];
       if (!this.expressionDefined(splitExpression)) return null;
       if (this.concealBuckets && !this.bucketsConcealed(splitExpression)) return null;
-      if (!this.canHandleSplitExpression(splitExpression)) return null;
     }
-    if (!this.canHandleSplit(split)) return null;
 
     let value = this.valueOf();
     value.suppress = false;
@@ -1197,7 +1187,6 @@ export abstract class External {
     if (expression.type === 'DATASET') return null;
     if (!expression.resolved()) return null;
     if (!this.expressionDefined(expression)) return null;
-    if (!this.canHandleApply(apply)) return null;
 
     let value: ExternalValue;
     if (this.mode === 'raw') {
@@ -1234,8 +1223,6 @@ export abstract class External {
   }
 
   private _addLimitExpression(limit: LimitExpression): External {
-    if (!this.canHandleLimit(limit)) return null;
-
     let value = this.valueOf();
     value.suppress = false;
     if (!value.limit || limit.value < value.limit.value) {

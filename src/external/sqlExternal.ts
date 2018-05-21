@@ -64,27 +64,7 @@ export abstract class SQLExternal extends External {
     return true;
   }
 
-  public canHandleSplit(split: SplitExpression): boolean {
-    return true;
-  }
-
-  public canHandleSplitExpression(ex: Expression): boolean {
-    return true;
-  }
-
-  public canHandleApply(apply: ApplyExpression): boolean {
-    return true;
-  }
-
   public canHandleSort(sort: SortExpression): boolean {
-    return true;
-  }
-
-  public canHandleLimit(limit: LimitExpression): boolean {
-    return true;
-  }
-
-  public canHandleHavingFilter(havingFilter: FilterExpression): boolean {
     return true;
   }
 

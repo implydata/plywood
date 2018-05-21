@@ -249,7 +249,6 @@ describe("simulate Druid", () => {
             $("diamonds").split($("time").timeBucket('P1D', 'America/Los_Angeles'), 'Timestamp')
               .apply('TotalPrice', $('diamonds').sum('$price'))
               .sort('$Timestamp', 'ascending')
-              //.limit(10)
               .apply(
                 'Carats',
                 $("diamonds").split($("carat").numberBucket(0.25), 'Carat')
@@ -827,15 +826,6 @@ describe("simulate Druid", () => {
       ],
       "granularity": "all",
       "intervals": "2015-03-12T00Z/2015-03-19T00Z",
-      "limitSpec": {
-        "columns": [
-          {
-            "dimension": "Synesthesia",
-            "dimensionOrder": "numeric"
-          }
-        ],
-        "type": "default"
-      },
       "queryType": "groupBy"
     });
   });
@@ -860,14 +850,6 @@ describe("simulate Druid", () => {
       ],
       "granularity": "all",
       "intervals": "2015-03-12T00Z/2015-03-19T00Z",
-      "limitSpec": {
-        "columns": [
-          {
-            "dimension": "TaxCode"
-          }
-        ],
-        "type": "default"
-      },
       "queryType": "groupBy"
     });
   });
@@ -1321,9 +1303,7 @@ describe("simulate Druid", () => {
       "intervals": "2015-03-12T00Z/2015-03-19T00Z",
       "limitSpec": {
         "columns": [
-          {
-            "dimension": "Cut"
-          }
+          "Cut"
         ],
         "limit": 10,
         "type": "default"
@@ -1374,9 +1354,7 @@ describe("simulate Druid", () => {
       "intervals": "2015-03-12T00Z/2015-03-19T00Z",
       "limitSpec": {
         "columns": [
-          {
-            "dimension": "Pug"
-          }
+          "Pug"
         ],
         "limit": 10,
         "type": "default"
@@ -1471,9 +1449,7 @@ describe("simulate Druid", () => {
       "intervals": "2015-03-12T00Z/2015-03-19T00Z",
       "limitSpec": {
         "columns": [
-          {
-            "dimension": "Cut"
-          }
+          "Cut"
         ],
         "limit": 10,
         "type": "default"
@@ -2249,7 +2225,7 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it.only("makes a re-split query", () => {
+  it("makes a re-split query", () => {
     let ex = $('diamonds').split('$color', 'Color')
       .apply('TotalPrice', $('diamonds').sum('$price'))
       .apply('Quantile', $('diamonds').split('$time.timeBucket(PT5M)', 'S').apply('C', '$diamonds.sum($price)').quantile('$C', 0.95))
@@ -2259,7 +2235,91 @@ describe("simulate Druid", () => {
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
-
+      {
+        "aggregations": [
+          {
+            "fieldName": "a0_0",
+            "name": "TotalPrice",
+            "type": "doubleSum"
+          },
+          {
+            "fieldName": "C",
+            "name": "!H_Quantile",
+            "type": "approxHistogram"
+          }
+        ],
+        "dataSource": {
+          "query": {
+            "aggregations": [
+              {
+                "fieldName": "price",
+                "name": "a0_0",
+                "type": "doubleSum"
+              },
+              {
+                "fieldName": "price",
+                "name": "C",
+                "type": "doubleSum"
+              }
+            ],
+            "dataSource": "diamonds-compact",
+            "dimensions": [
+              {
+                "dimension": "color",
+                "outputName": "Color",
+                "type": "default"
+              },
+              {
+                "dimension": "__time",
+                "extractionFn": {
+                  "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+                  "granularity": {
+                    "period": "PT5M",
+                    "timeZone": "Etc/UTC",
+                    "type": "period"
+                  },
+                  "timeZone": "Etc/UTC",
+                  "type": "timeFormat"
+                },
+                "outputName": "S",
+                "type": "extraction"
+              }
+            ],
+            "granularity": "all",
+            "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+            "queryType": "groupBy"
+          },
+          "type": "query"
+        },
+        "dimensions": [
+          {
+            "dimension": "Color",
+            "outputName": "Color",
+            "type": "default"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "1000/3000",
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "TotalPrice",
+              "direction": "descending"
+            }
+          ],
+          "limit": 10,
+          "type": "default"
+        },
+        "postAggregations": [
+          {
+            "fieldName": "!H_Quantile",
+            "name": "Quantile",
+            "probability": 0.95,
+            "type": "quantile"
+          }
+        ],
+        "queryType": "groupBy"
+      }
     ]);
   });
 
@@ -2504,8 +2564,8 @@ describe("simulate Druid", () => {
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": {
-          "type": "dimension",
-          "ordering": "lexicographic"
+          "ordering": "lexicographic",
+          "type": "dimension"
         },
         "queryType": "topN",
         "threshold": 10
@@ -2518,16 +2578,29 @@ describe("simulate Druid", () => {
           }
         ],
         "dataSource": "diamonds",
-        "granularity": {
-          "period": "P1D",
-          "timeZone": "America/Los_Angeles",
-          "type": "period"
+        "dimension": {
+          "dimension": "__time",
+          "extractionFn": {
+            "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+            "granularity": {
+              "period": "P1D",
+              "timeZone": "America/Los_Angeles",
+              "type": "period"
+            },
+            "timeZone": "Etc/UTC",
+            "type": "timeFormat"
+          },
+          "outputName": "Timestamp",
+          "type": "extraction"
         },
+        "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
-        "queryType": "timeseries",
-        "context": {
-          "skipEmptyBuckets": "true"
-        }
+        "metric": {
+          "ordering": "lexicographic",
+          "type": "dimension"
+        },
+        "queryType": "topN",
+        "threshold": 10
       }
     ]);
   });
@@ -3105,12 +3178,6 @@ describe("simulate Druid", () => {
         ],
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
-        "limitSpec": {
-          "columns": [
-            { "dimension": "Cut" }
-          ],
-          "type": "default"
-        },
         "queryType": "groupBy"
       }
     ]);
@@ -3184,7 +3251,7 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "limitSpec": {
           "columns": [
-            { "dimension": "Color" }
+            "Color"
           ],
           "limit": 3,
           "type": "default"
@@ -3261,6 +3328,21 @@ describe("simulate Druid", () => {
         "dataSource": "diamonds",
         "dimensions": [
           {
+            "dimension": "__time",
+            "extractionFn": {
+              "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+              "granularity": {
+                "period": "PT1H",
+                "timeZone": "Etc/UTC",
+                "type": "period"
+              },
+              "timeZone": "Etc/UTC",
+              "type": "timeFormat"
+            },
+            "outputName": "ATimeByHour",
+            "type": "extraction"
+          },
+          {
             "dimension": "color",
             "outputName": "Color",
             "type": "default"
@@ -3272,22 +3354,16 @@ describe("simulate Druid", () => {
           }
         ],
         "filter": {
-          "values": ["A", "B", "some_color"],
+          "dimension": "color",
           "type": "in",
-          "dimension": "color"
+          "values": [
+            "A",
+            "B",
+            "some_color"
+          ]
         },
-        "granularity": {
-          "period": "PT1H",
-          "timeZone": "Etc/UTC",
-          "type": "period"
-        },
+        "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
-        "limitSpec": {
-          "columns": [
-            { "dimension": "Color" }
-          ],
-          "type": "default"
-        },
         "queryType": "groupBy"
       }
     ]);
@@ -3335,14 +3411,6 @@ describe("simulate Druid", () => {
         },
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
-        "limitSpec": {
-          "columns": [
-            {
-              "dimension": "Color"
-            }
-          ],
-          "type": "default"
-        },
         "queryType": "groupBy"
       }
     ]);
