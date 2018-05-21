@@ -2243,7 +2243,7 @@ describe("simulate Druid", () => {
             "type": "doubleSum"
           },
           {
-            "fieldName": "C",
+            "fieldName": "C_0",
             "name": "!H_Quantile",
             "type": "approxHistogram"
           }
@@ -2258,7 +2258,7 @@ describe("simulate Druid", () => {
               },
               {
                 "fieldName": "price",
-                "name": "C",
+                "name": "C_0",
                 "type": "doubleSum"
               }
             ],
