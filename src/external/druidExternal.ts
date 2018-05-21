@@ -496,7 +496,7 @@ export class DruidExternal extends External {
       };
 
     } else if (splitExpression instanceof TimeBucketExpression || splitExpression instanceof TimeFloorExpression) {
-      const { op, operand, duration } = splitExpression;
+      const { operand, duration } = splitExpression;
       const timezone = splitExpression.getTimezone();
       if (this.isTimeRef(operand)) {
         return {
@@ -505,9 +505,7 @@ export class DruidExternal extends External {
             period: duration.toString(),
             timeZone: timezone.toString()
           },
-          inflater: op === 'timeBucket' ?
-            External.timeRangeInflaterFactory(label, duration, timezone) :
-            External.timeInflaterFactory(label)
+          inflater: External.getInteligentInflater(splitExpression, label)
         };
       }
     }
@@ -549,14 +547,7 @@ export class DruidExternal extends External {
 
       const outputName = this.makeOutputName(label);
       const outputType = DruidExpressionBuilder.expressionTypeToOutputType(expression.type);
-      let inflater: Inflater;
-      if (expression instanceof NumberBucketExpression) {
-        inflater = External.numberRangeInflaterFactory(label, expression.size);
-      } else if (expression instanceof TimeBucketExpression) {
-        inflater = External.timeRangeInflaterFactory(label, expression.duration, expression.timezone);
-      } else {
-        inflater = External.getSimpleInflater(expression.type, label);
-      }
+      const inflater = External.getInteligentInflater(expression, label);
 
       let dimensionSrcName = outputName;
       let virtualColumn: Druid.VirtualColumn = null;
@@ -591,7 +582,7 @@ export class DruidExternal extends External {
 
     let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(expression);
 
-    let simpleInflater = External.getSimpleInflater(expression.type, label);
+    let simpleInflater = External.getInteligentInflater(expression, label);
 
     let dimension: Druid.DimensionSpecFull = {
       type: "default",
@@ -606,31 +597,10 @@ export class DruidExternal extends External {
       dimension.outputType = dimension.dimension === DruidExternal.TIME_ATTRIBUTE ? 'LONG' : 'FLOAT';
     }
 
-    if (expression instanceof RefExpression) {
+    if (expression instanceof RefExpression || expression instanceof TimeBucketExpression || expression instanceof TimePartExpression || expression instanceof NumberBucketExpression) {
       return {
         dimension,
         inflater: simpleInflater
-      };
-    }
-
-    if (expression instanceof TimeBucketExpression) {
-      return {
-        dimension,
-        inflater: External.timeRangeInflaterFactory(label, expression.duration, expression.getTimezone())
-      };
-    }
-
-    if (expression instanceof TimePartExpression) {
-      return {
-        dimension,
-        inflater: simpleInflater
-      };
-    }
-
-    if (expression instanceof NumberBucketExpression) {
-      return {
-        dimension,
-        inflater: External.numberRangeInflaterFactory(label, expression.size)
       };
     }
 
@@ -862,12 +832,45 @@ export class DruidExternal extends External {
       const resplitSplit = resplitApply.operand;
       if (!(resplitSplit instanceof SplitExpression)) return null;
 
+      const resplitRefOrFilter = resplitSplit.operand;
+      let resplitRef: Expression;
+      let effectiveResplitApply: ApplyExpression = resplitApply.changeOperand(Expression._);
+      if (resplitRefOrFilter instanceof FilterExpression) {
+        resplitRef = resplitRefOrFilter.operand;
+
+        const filterExpression = resplitRefOrFilter.expression;
+        effectiveResplitApply = effectiveResplitApply.changeExpression(effectiveResplitApply.expression.substitute((ex) => {
+          if (ex instanceof RefExpression && ex.type === 'DATASET') {
+            return ex.filter(filterExpression);
+          }
+          return null;
+        }));
+      } else {
+        resplitRef = resplitRefOrFilter;
+      }
+
+      if (!(resplitRef instanceof RefExpression)) return null;
+
       return {
         name: apply.name,
         resplitAgg: resplitAgg.changeOperand(Expression._),
-        resplitApply: resplitApply.changeOperand(Expression._),
+        resplitApply: effectiveResplitApply,
         resplitSplit: resplitSplit.changeOperand(Expression._)
       };
+    };
+
+    const divvyUpNestedSplitExpression = (splitExpression: Expression, intermediateName: string): { inner: Expression, outer: Expression } => {
+      if (splitExpression instanceof TimeBucketExpression || splitExpression instanceof NumberBucketExpression) {
+        return {
+          inner: splitExpression,
+          outer: splitExpression.changeOperand($(intermediateName))
+        };
+      } else {
+        return {
+          inner: splitExpression,
+          outer: $(intermediateName)
+        };
+      }
     };
 
     const { applies, split } = this;
@@ -883,6 +886,7 @@ export class DruidExternal extends External {
     const outerSplits: Splits = {};
     const innerSplits: Splits = {};
 
+    let splitCount = 0;
     resplit.resplitSplit.mapSplits((name, ex) => {
       let outerSplitName = null;
       split.mapSplits((name, myEx) => {
@@ -891,26 +895,23 @@ export class DruidExternal extends External {
         }
       });
 
-      outerAttributes.push(AttributeInfo.fromJS({ name, type: ex.type }));
-      innerSplits[name] = ex;
+      const intermediateName = `s${splitCount++}`;
+      const divvy = divvyUpNestedSplitExpression(ex, intermediateName);
+      outerAttributes.push(AttributeInfo.fromJS({ name: intermediateName, type: divvy.inner.type }));
+      innerSplits[intermediateName] = divvy.inner;
       if (outerSplitName) {
-        outerSplits[outerSplitName] = $(name);
+        outerSplits[outerSplitName] = divvy.outer;
       }
     });
 
     split.mapSplits((name, ex) => {
       if (outerSplits[name]) return; // already taken care of
-      innerSplits[name] = ex;
-      outerSplits[name] = $(name);
-      outerAttributes.push(AttributeInfo.fromJS({ name, type: ex.type }));
+      const intermediateName = `s${splitCount++}`;
+      const divvy = divvyUpNestedSplitExpression(ex, intermediateName);
+      innerSplits[intermediateName] = divvy.inner;
+      outerAttributes.push(AttributeInfo.fromJS({ name: intermediateName, type: divvy.inner.type }));
+      outerSplits[name] = divvy.outer;
     });
-
-    //console.log('innerSplits', innerSplits);
-    //console.log('outerSplits', outerSplits);
-
-    // split
-    //   .mapSplits((name, ex) => AttributeInfo.fromJS({ name, type: ex.type }))
-    //   .concat(resplit.resplitSplit.mapSplits((name, ex) => AttributeInfo.fromJS({ name, type: ex.type })));
 
     const innerApplies: ApplyExpression[] = [];
     const outerApplies = normalApplies.map((apply, i) => {
@@ -1270,18 +1271,6 @@ export class DruidExternal extends External {
                 type: "default",
                 columns: [orderByColumn]
               };
-            } else { // Going to sortOnLabel implicitly
-              // // Find the first non primary time key
-              // let splitKeys = split.keys.filter(k => k !== timestampLabel);
-              // if (!splitKeys.length) throw new Error('could not find order by column for group by');
-              // let splitKey = splitKeys[0];
-              // let keyExpression = split.splits[splitKey];
-              // orderByColumn = {
-              //   dimension: this.makeOutputName(splitKey)
-              // };
-              // if (expressionNeedsNumericSort(keyExpression)) {
-              //   orderByColumn.dimensionOrder = 'numeric';
-              // }
             }
 
             if (limit) {

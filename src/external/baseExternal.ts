@@ -433,6 +433,16 @@ export abstract class External {
 
   // ==== Inflaters
 
+  static getInteligentInflater(expression: Expression, label: string): Inflater {
+    if (expression instanceof NumberBucketExpression) {
+      return External.numberRangeInflaterFactory(label, expression.size);
+    } else if (expression instanceof TimeBucketExpression) {
+      return External.timeRangeInflaterFactory(label, expression.duration, expression.timezone);
+    } else {
+      return External.getSimpleInflater(expression.type, label);
+    }
+  }
+
   static getSimpleInflater(type: PlyType, label: string): Inflater {
     switch (type) {
       case 'BOOLEAN': return External.booleanInflaterFactory(label);

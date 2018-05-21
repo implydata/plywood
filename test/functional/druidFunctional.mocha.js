@@ -2411,7 +2411,7 @@ describe("Druid Functional", function() {
     it("works with resplit agg on total", () => {
       let ex = ply()
         .apply('Count', $('wiki').sum('$count'))
-        .apply('Quantile', $('wiki').split('$time.timeBucket(PT1H)', 'S').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
+        .apply('Quantile', $('wiki').split('$time.timeBucket(PT1H)').apply('C', '$wiki.sum($count)').quantile('$C', 0.95));
 
       return basicExecutor(ex)
         .then((result) => {
@@ -2427,7 +2427,7 @@ describe("Druid Functional", function() {
     it("works with resplit agg on different dimension split", () => {
       let ex = $('wiki').split('$channel', 'Channel')
         .apply('Count', $('wiki').sum('$count'))
-        .apply('Quantile', $('wiki').split('$time.timeBucket(PT1H)', 'S').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
+        .apply('Quantile', $('wiki').split('$time.timeBucket(PT1H)').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
         .sort('$Count', 'descending')
         .limit(5);
 
@@ -2466,7 +2466,7 @@ describe("Druid Functional", function() {
     it("works with resplit agg on same dimension split", () => {
       let ex = $('wiki').split('$time.timeBucket(PT1H)', 'Hour')
         .apply('Count', $('wiki').sum('$count'))
-        .apply('Quantile', $('wiki').split('$time.timeBucket(PT1H)', 'S').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
+        .apply('Quantile', $('wiki').split('$time.timeBucket(PT1H)').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
         .sort('$Count', 'descending')
         .limit(5);
 
@@ -2475,28 +2475,135 @@ describe("Druid Functional", function() {
           expect(result.toJS().data).to.deep.equal([
             {
               "Count": 23001,
-              "Hour": "2015-09-12T17:00:00Z",
+              "Hour": {
+                "end": new Date('2015-09-12T18:00:00.000Z'),
+                "start": new Date('2015-09-12T17:00:00.000Z')
+              },
               "Quantile": 23001
             },
             {
               "Count": 22373,
-              "Hour": "2015-09-12T07:00:00Z",
+              "Hour": {
+                "end": new Date('2015-09-12T08:00:00.000Z'),
+                "start": new Date('2015-09-12T07:00:00.000Z')
+              },
               "Quantile": 22373
             },
             {
               "Count": 21699,
-              "Hour": "2015-09-12T18:00:00Z",
+              "Hour": {
+                "end": new Date('2015-09-12T19:00:00.000Z'),
+                "start": new Date('2015-09-12T18:00:00.000Z')
+              },
               "Quantile": 21699
             },
             {
               "Count": 21194,
-              "Hour": "2015-09-12T06:00:00Z",
+              "Hour": {
+                "end": new Date('2015-09-12T07:00:00.000Z'),
+                "start": new Date('2015-09-12T06:00:00.000Z')
+              },
               "Quantile": 21194
             },
             {
               "Count": 20725,
-              "Hour": "2015-09-12T13:00:00Z",
+              "Hour": {
+                "end": new Date('2015-09-12T14:00:00.000Z'),
+                "start": new Date('2015-09-12T13:00:00.000Z')
+              },
               "Quantile": 20725
+            }
+          ]);
+        });
+    });
+
+    it("works with resplit agg on more granular dimension split", () => {
+      let ex = $('wiki').split('$time.timeBucket(PT6H)', 'Hour')
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Quantile', $('wiki').split('$time.timeBucket(PT1H)').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
+        .sort('$Count', 'descending')
+        .limit(5);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Count": 118793,
+              "Hour": {
+                "end": new Date('2015-09-12T18:00:00.000Z'),
+                "start": new Date('2015-09-12T12:00:00.000Z')
+              },
+              "Quantile": 22318.2
+            },
+            {
+              "Count": 110986,
+              "Hour": {
+                "end": new Date('2015-09-12T12:00:00.000Z'),
+                "start": new Date('2015-09-12T06:00:00.000Z')
+              },
+              "Quantile": 22019.299
+            },
+            {
+              "Count": 108525,
+              "Hour": {
+                "end": new Date('2015-09-13T00:00:00.000Z'),
+                "start": new Date('2015-09-12T18:00:00.000Z')
+              },
+              "Quantile": 21228
+            },
+            {
+              "Count": 54139,
+              "Hour": {
+                "end": new Date('2015-09-12T06:00:00.000Z'),
+                "start": new Date('2015-09-12T00:00:00.000Z')
+              },
+              "Quantile": 12258.2
+            }
+          ]);
+        });
+    });
+
+    it("works with resplit agg on more granular dimension split (+filter)", () => {
+      let ex = $('wiki').split('$time.timeBucket(PT6H)', 'Hour')
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('Quantile', $('wiki').filter('$channel == "en"').split('$time.timeBucket(PT1H)').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
+        .sort('$Count', 'descending')
+        .limit(5);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Count": 118793,
+              "Hour": {
+                "end": new Date('2015-09-12T18:00:00.000Z'),
+                "start": new Date('2015-09-12T12:00:00.000Z')
+              },
+              "Quantile": 6117.6
+            },
+            {
+              "Count": 110986,
+              "Hour": {
+                "end": new Date('2015-09-12T12:00:00.000Z'),
+                "start": new Date('2015-09-12T06:00:00.000Z')
+              },
+              "Quantile": 4333.8
+            },
+            {
+              "Count": 108525,
+              "Hour": {
+                "end": new Date('2015-09-13T00:00:00.000Z'),
+                "start": new Date('2015-09-12T18:00:00.000Z')
+              },
+              "Quantile": 6544.1
+            },
+            {
+              "Count": 54139,
+              "Hour": {
+                "end": new Date('2015-09-12T06:00:00.000Z'),
+                "start": new Date('2015-09-12T00:00:00.000Z')
+              },
+              "Quantile": 4995.7
             }
           ]);
         });

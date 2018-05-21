@@ -1366,9 +1366,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public split(ex: any, name: string, dataName?: string): SplitExpression;
   public split(splits: any, name?: string, dataName?: string): SplitExpression {
     // Determine if use case #2
-    if (arguments.length === 3 ||
-      (arguments.length === 2 && splits && (typeof splits === 'string' || typeof splits.op === 'string'))) {
-      name = getString(name);
+    if (
+      arguments.length === 3 ||
+      ((arguments.length === 2 || arguments.length === 1) && (typeof splits === 'string' || typeof splits.op === 'string'))
+    ) {
+      name = arguments.length === 1 ? 'split' : getString(name);
       let realSplits = Object.create(null);
       realSplits[name] = splits;
       splits = realSplits;

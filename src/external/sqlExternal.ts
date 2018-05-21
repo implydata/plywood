@@ -33,17 +33,8 @@ import { External, ExternalValue, Inflater, QueryAndPostTransform } from './base
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
   return split.mapSplits((label, splitExpression) => {
-    let simpleInflater = External.getSimpleInflater(splitExpression.type, label);
+    let simpleInflater = External.getInteligentInflater(splitExpression, label);
     if (simpleInflater) return simpleInflater;
-
-    if (splitExpression instanceof TimeBucketExpression) {
-      return External.timeRangeInflaterFactory(label, splitExpression.duration, splitExpression.getTimezone());
-    }
-
-    if (splitExpression instanceof NumberBucketExpression) {
-      return External.numberRangeInflaterFactory(label, splitExpression.size);
-    }
-
     return undefined;
   });
 }

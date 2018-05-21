@@ -2265,11 +2265,6 @@ describe("simulate Druid", () => {
             "dataSource": "diamonds-compact",
             "dimensions": [
               {
-                "dimension": "color",
-                "outputName": "Color",
-                "type": "default"
-              },
-              {
                 "dimension": "__time",
                 "extractionFn": {
                   "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
@@ -2281,8 +2276,13 @@ describe("simulate Druid", () => {
                   "timeZone": "Etc/UTC",
                   "type": "timeFormat"
                 },
-                "outputName": "S",
+                "outputName": "s0",
                 "type": "extraction"
+              },
+              {
+                "dimension": "color",
+                "outputName": "s1",
+                "type": "default"
               }
             ],
             "granularity": "all",
@@ -2293,7 +2293,7 @@ describe("simulate Druid", () => {
         },
         "dimensions": [
           {
-            "dimension": "Color",
+            "dimension": "s1",
             "outputName": "Color",
             "type": "default"
           }

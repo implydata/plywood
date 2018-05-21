@@ -44,7 +44,7 @@ export class DruidHavingFilterBuilder {
       filter: new DruidFilterBuilder({
         version: this.version,
         rawAttributes: this.attributes,
-        timeAttribute: '***',
+        timeAttribute: 'z',
         allowEternity: true,
         customTransforms: this.customTransforms
       }).timelessFilterToFilter(filter)
