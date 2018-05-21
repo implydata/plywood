@@ -1365,7 +1365,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public split(splits: any, dataName?: string): SplitExpression;
   public split(ex: any, name: string, dataName?: string): SplitExpression;
   public split(splits: any, name?: string, dataName?: string): SplitExpression {
-    // Determine if use case #2
+    // Determine if use case #2 (ex + name)
     if (
       arguments.length === 3 ||
       ((arguments.length === 2 || arguments.length === 1) && (typeof splits === 'string' || typeof splits.op === 'string'))

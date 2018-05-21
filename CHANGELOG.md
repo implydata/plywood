@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.18.5
+
+- basic resplit ability
+
 ## 0.18.4
 
 - use `usePrefixForLastTerm`
