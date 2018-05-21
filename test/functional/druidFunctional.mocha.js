@@ -2563,10 +2563,11 @@ describe("Druid Functional", function() {
         });
     });
 
-    it("works with resplit agg on more granular dimension split (+filter)", () => {
+    it("works with resplit agg on more granular dimension split (+filters)", () => {
       let ex = $('wiki').split('$time.timeBucket(PT6H)', 'Hour')
         .apply('Count', $('wiki').sum('$count'))
-        .apply('Quantile', $('wiki').filter('$channel == "en"').split('$time.timeBucket(PT1H)').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
+        .apply('QuantileEn', $('wiki').filter('$channel == "en"').split('$time.timeBucket(PT1H)').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
+        .apply('QuantileHe', $('wiki').filter('$channel == "he"').split('$time.timeBucket(PT1H)').apply('C', '$wiki.sum($count)').quantile('$C', 0.95))
         .sort('$Count', 'descending')
         .limit(5);
 
@@ -2579,7 +2580,8 @@ describe("Druid Functional", function() {
                 "end": new Date('2015-09-12T18:00:00.000Z'),
                 "start": new Date('2015-09-12T12:00:00.000Z')
               },
-              "Quantile": 6117.6
+              "QuantileEn": 6117.6,
+              "QuantileHe": 186.09999
             },
             {
               "Count": 110986,
@@ -2587,7 +2589,8 @@ describe("Druid Functional", function() {
                 "end": new Date('2015-09-12T12:00:00.000Z'),
                 "start": new Date('2015-09-12T06:00:00.000Z')
               },
-              "Quantile": 4333.8
+              "QuantileEn": 4333.8,
+              "QuantileHe": 175.3
             },
             {
               "Count": 108525,
@@ -2595,7 +2598,8 @@ describe("Druid Functional", function() {
                 "end": new Date('2015-09-13T00:00:00.000Z'),
                 "start": new Date('2015-09-12T18:00:00.000Z')
               },
-              "Quantile": 6544.1
+              "QuantileEn": 6544.1,
+              "QuantileHe": 172.8
             },
             {
               "Count": 54139,
@@ -2603,7 +2607,8 @@ describe("Druid Functional", function() {
                 "end": new Date('2015-09-12T06:00:00.000Z'),
                 "start": new Date('2015-09-12T00:00:00.000Z')
               },
-              "Quantile": 4995.7
+              "QuantileEn": 4995.7,
+              "QuantileHe": 51.1
             }
           ]);
         });

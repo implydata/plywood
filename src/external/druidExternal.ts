@@ -873,11 +873,20 @@ export class DruidExternal extends External {
       }
     };
 
+    const allEqual = (exs: Expression[]): boolean => {
+      if (exs.length < 2) return true;
+      const firstEx = exs[0];
+      for (let i = 1; i < exs.length; i++) {
+        if (!firstEx.equals(exs[i])) return false;
+      }
+      return true;
+    };
+
     const { applies, split } = this;
     const possibleResplits = applies.map(parseResplitAgg);
     const resplits = possibleResplits.filter(Boolean);
     if (!resplits.length) return null;
-    if (resplits.length > 1) throw new Error('can have max of one resplit aggregator');
+    if (!allEqual(resplits.map(r => r.resplitSplit))) throw new Error('all resplit aggregators must have the same split');
     const resplit = resplits[0];
 
     const normalApplies = this.applies.filter((a, i) => !possibleResplits[i]);
@@ -937,9 +946,21 @@ export class DruidExternal extends External {
     });
 
     // Add the resplit stuff
-    innerApplies.push(resplit.resplitApply);
-    outerAttributes.push(AttributeInfo.fromJS({ name: resplit.resplitApply.name, type: 'NUMBER' }));
-    outerApplies.push(Expression._.apply(resplit.name, resplit.resplitAgg));
+    resplits.forEach((resplit, i) => {
+      const oldName = resplit.resplitApply.name;
+      const newName = oldName + '_' + i;
+
+      innerApplies.push(resplit.resplitApply.changeName(newName));
+      outerAttributes.push(AttributeInfo.fromJS({ name: newName, type: 'NUMBER' }));
+
+      const renamedResplitAgg = resplit.resplitAgg.substitute((ex) => {
+        if (ex instanceof RefExpression && ex.name === oldName) {
+          return ex.changeName(newName);
+        }
+        return null;
+      });
+      outerApplies.push(Expression._.apply(resplit.name, renamedResplitAgg));
+    });
 
     // INNER
     const innerValue = this.valueOf();

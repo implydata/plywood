@@ -83,6 +83,12 @@ export class ApplyExpression extends ChainableUnaryExpression {
       this.name === other.name;
   }
 
+  public changeName(name: string): ApplyExpression {
+    let value = this.valueOf();
+    value.name = name;
+    return new ApplyExpression(value);
+  }
+
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     if (!operandValue) return null;
     const { name, expression } = this;

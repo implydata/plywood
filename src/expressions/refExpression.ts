@@ -183,6 +183,12 @@ export class RefExpression extends Expression {
     return (ignoreCase ? 'i$' : '$') + str;
   }
 
+  public changeName(name: string): RefExpression {
+    let value = this.valueOf();
+    value.name = name;
+    return new RefExpression(value);
+  }
+
   public getFn(): ComputeFn {
     const { name, nest, ignoreCase } = this;
     if (nest) throw new Error('can not getFn on a nested function');
