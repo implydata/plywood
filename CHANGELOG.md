@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.18.7
+
+- avoid topN for filtered on time aggregate sort
+
 ## 0.18.6
 
 - allow multiple resplit measures
