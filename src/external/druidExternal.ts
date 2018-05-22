@@ -525,6 +525,28 @@ export class DruidExternal extends External {
     return name;
   }
 
+  public topNCompatibleSort(): boolean {
+    const { sort } = this;
+    if (!sort) return true;
+
+    let refExpression = sort.expression;
+    if (refExpression instanceof RefExpression) {
+      let sortRefName = refExpression.name;
+      const sortApply = this.applies.find(apply => apply.name === sortRefName);
+      if (sortApply) {
+        // not compatible if there is a filter on time somewhere
+        return !sortApply.expression.some((ex) => {
+          if (ex instanceof FilterExpression) {
+            return ex.expression.some((ex) => this.isTimeRef(ex) || null);
+          }
+          return null;
+        });
+      }
+    }
+
+    return true;
+  }
+
   public expressionToDimensionInflater(expression: Expression, label: string): DimensionInflater {
     let freeReferences = expression.getFreeReferences();
     if (freeReferences.length === 0) {
@@ -747,6 +769,7 @@ export class DruidExternal extends External {
       leftoverHavingFilter.equals(Expression.TRUE) && // There is no leftover having filter
       (this.limit || split.maxBucketNumber() < 1000) && // There is a limit (or the split range is limited)
       !this.exactResultsOnly && // We do not care about exact results
+      this.topNCompatibleSort() && // Is this sort Kosher for topNs
       this.getQuerySelection() === 'any' // We allow any query
     ) {
       return {

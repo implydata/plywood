@@ -3125,6 +3125,54 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("can do compare column", () => {
+      let prevRange = TimeRange.fromJS({ start: new Date('2015-09-12T00:00:00Z'), end: new Date('2015-09-12T12:00:00Z')});
+      let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
+      let ex = $("wiki")
+        .split($('channel'), 'Channel')
+        .apply('CountAll', $('wiki').sum('$count'))
+        .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
+        .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'))
+        .sort($('CountMain'), 'descending')
+        .limit(5);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Channel": "en",
+              "CountAll": 114711,
+              "CountMain": 68606,
+              "CountPrev": 46105
+            },
+            {
+              "Channel": "vi",
+              "CountAll": 99010,
+              "CountMain": 48521,
+              "CountPrev": 50489
+            },
+            {
+              "Channel": "de",
+              "CountAll": 25103,
+              "CountMain": 15857,
+              "CountPrev": 9246
+            },
+            {
+              "Channel": "fr",
+              "CountAll": 21285,
+              "CountMain": 14779,
+              "CountPrev": 6506
+            },
+            {
+              "Channel": "uz",
+              "CountAll": 10072,
+              "CountMain": 10064,
+              "CountPrev": 8
+            }
+          ]);
+        });
+    });
+
     it("can timeBucket on joined column", () => {
       let prevRange = TimeRange.fromJS({ start: new Date('2015-09-12T00:00:00Z'), end: new Date('2015-09-12T12:00:00Z')});
       let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
