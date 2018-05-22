@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.18.8
+
+- Nothing. Npm is not replicating so it is a crap shoot to install 0.18.7 hence bumping version and publishing again to hopefully kickstart it into action.
+
 ## 0.18.7
 
 - avoid topN for filtered on time aggregate sort
