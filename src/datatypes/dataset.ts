@@ -147,16 +147,6 @@ function removeLineBreaks(v: string): string {
   return v.replace(/(?:\r\n|\r|\n)/g, ' ');
 }
 
-let escapeFnCSV = (v: string) => {
-  v = removeLineBreaks(v);
-  if (v.indexOf('"') === -1 && v.indexOf(",") === -1) return v;
-  return `"${v.replace(/"/g, '""')}"`;
-};
-
-let escapeFnTSV = (v: string) => {
-  return removeLineBreaks(v).replace(/\t/g, "").replace(/"/g, '""');
-};
-
 let typeOrder: Record<string, number> = {
   'NULL': 0,
   'TIME': 1,
@@ -189,21 +179,9 @@ export interface Formatter extends Record<string, Function | undefined> {
   'DATASET'?: (v: Dataset) => string;
 }
 
-const DEFAULT_FORMATTER: Formatter = {
-  'NULL': (v: any) => isDate(v) ? v.toISOString() : '' + v,
-  'TIME': (v: Date, tz: Timezone) => Timezone.formatDateWithTimezone(v, tz),
-  'TIME_RANGE': (v: TimeRange, tz: Timezone) => v.toString(tz),
-  'SET/TIME': (v: Set, tz: Timezone) => v.toString(tz),
-  'SET/TIME_RANGE': (v: Set, tz: Timezone) => v.toString(tz),
-  'STRING': (v: string) => '' + v,
-  'SET/STRING': (v: Set) => '' + v,
-  'BOOLEAN': (v: boolean) => '' + v,
-  'NUMBER': (v: number) => '' + v,
-  'NUMBER_RANGE': (v: NumberRange) => '' + v,
-  'SET/NUMBER': (v: Set) => '' + v,
-  'SET/NUMBER_RANGE': (v: Set) => '' + v,
-  'DATASET': (v: Dataset) => 'DATASET'
-};
+export interface Finalizer {
+  (v: string): string;
+}
 
 export interface FlattenOptions {
   prefixColumns?: boolean;
@@ -219,7 +197,7 @@ export interface TabulatorOptions extends FlattenOptions {
   lineBreak?: string;
   finalLineBreak?: FinalLineBreak;
   formatter?: Formatter;
-  finalizer?: (v: string) => string;
+  finalizer?: Finalizer;
   timezone?: Timezone;
   attributeTitle?: (attribute: AttributeInfo) => string;
   attributeFilter?: (attribute: AttributeInfo) => boolean;
@@ -300,6 +278,42 @@ export type DatasetJS = DatasetJSFull | Datum[];
 let check: Class<DatasetValue, DatasetJS>;
 export class Dataset implements Instance<DatasetValue, DatasetJS> {
   static type = 'DATASET';
+
+  static DEFAULT_FORMATTER: Formatter = {
+    'NULL': (v: any) => isDate(v) ? v.toISOString() : '' + v,
+    'TIME': (v: Date, tz: Timezone) => Timezone.formatDateWithTimezone(v, tz),
+    'TIME_RANGE': (v: TimeRange, tz: Timezone) => v.toString(tz),
+    'SET/TIME': (v: Set, tz: Timezone) => v.toString(tz),
+    'SET/TIME_RANGE': (v: Set, tz: Timezone) => v.toString(tz),
+    'STRING': (v: string) => '' + v,
+    'SET/STRING': (v: Set) => '' + v,
+    'BOOLEAN': (v: boolean) => '' + v,
+    'NUMBER': (v: number) => '' + v,
+    'NUMBER_RANGE': (v: NumberRange) => '' + v,
+    'SET/NUMBER': (v: Set) => '' + v,
+    'SET/NUMBER_RANGE': (v: Set) => '' + v,
+    'DATASET': (v: Dataset) => 'DATASET'
+  };
+
+  static CSV_FINALIZER: Finalizer = (v: string) => {
+    v = removeLineBreaks(v);
+    if (v.indexOf('"') === -1 && v.indexOf(",") === -1) return v;
+    return `"${v.replace(/"/g, '""')}"`;
+  };
+
+  static TSV_FINALIZER: Finalizer = (v: string) => {
+    return removeLineBreaks(v).replace(/\t/g, "").replace(/"/g, '""');
+  };
+
+  static datumToLine(datum: Datum, attributes: Attributes, timezone: Timezone, formatter: Formatter, finalizer: Finalizer, separator: string) {
+    return attributes.map(c => {
+      const value = datum[c.name];
+      const fmtrType = value != null ? c.type : 'NULL';
+      const fmtr = formatter[fmtrType] || Dataset.DEFAULT_FORMATTER[fmtrType];
+      let formatted = String(fmtr(value, timezone));
+      return finalizer(formatted);
+    }).join(separator);
+  }
 
   static isDataset(candidate: any): candidate is Dataset {
     return candidate instanceof Dataset;
@@ -1131,13 +1145,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     lines.push(attributes.map(c => finalizer(attributeTitle(c))).join(separator));
 
     for (let i = 0; i < data.length; i++) {
-      let datum = data[i];
-      lines.push(attributes.map(c => {
-        const value = datum[c.name];
-        const fmtr = value != null ? (formatter[c.type] || DEFAULT_FORMATTER[c.type]) : (formatter['NULL'] || DEFAULT_FORMATTER['NULL']);
-        let formatted = String(fmtr(value, timezone));
-        return finalizer(formatted);
-      }).join(separator));
+      lines.push(Dataset.datumToLine(data[i], attributes, timezone, formatter, finalizer, separator));
     }
 
     let lineBreak = tabulatorOptions.lineBreak || '\n';
@@ -1145,7 +1153,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public toCSV(tabulatorOptions: TabulatorOptions = {}): string {
-    tabulatorOptions.finalizer = escapeFnCSV;
+    tabulatorOptions.finalizer = Dataset.CSV_FINALIZER;
     tabulatorOptions.separator = tabulatorOptions.separator || ',';
     tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
     tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
@@ -1154,7 +1162,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public toTSV(tabulatorOptions: TabulatorOptions = {}): string {
-    tabulatorOptions.finalizer = escapeFnTSV;
+    tabulatorOptions.finalizer = Dataset.TSV_FINALIZER;
     tabulatorOptions.separator = tabulatorOptions.separator || '\t';
     tabulatorOptions.lineBreak = tabulatorOptions.lineBreak || '\r\n';
     tabulatorOptions.finalLineBreak = tabulatorOptions.finalLineBreak || 'suppress';
