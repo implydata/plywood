@@ -484,7 +484,7 @@ export abstract class External {
         return;
       }
 
-      let start = new Date(v);
+      let start = isNaN(Number(v)) ? new Date(Number(v)) : new Date(v);
       d[label] = new TimeRange({ start, end: duration.shift(start, timezone) });
     };
   }
