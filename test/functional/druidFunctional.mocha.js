@@ -3170,7 +3170,6 @@ describe("Druid Functional", function() {
       let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
       let ex = $("wiki")
         .split($('channel'), 'Channel')
-        .apply('CountAll', $('wiki').sum('$count'))
         .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
         .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'))
         .sort($('CountMain'), 'descending')
@@ -3181,31 +3180,26 @@ describe("Druid Functional", function() {
           expect(result.toJS().data).to.deep.equal([
             {
               "Channel": "en",
-              "CountAll": 114711,
               "CountMain": 68606,
               "CountPrev": 46105
             },
             {
               "Channel": "vi",
-              "CountAll": 99010,
               "CountMain": 48521,
               "CountPrev": 50489
             },
             {
               "Channel": "de",
-              "CountAll": 25103,
               "CountMain": 15857,
               "CountPrev": 9246
             },
             {
               "Channel": "fr",
-              "CountAll": 21285,
               "CountMain": 14779,
               "CountPrev": 6506
             },
             {
               "Channel": "uz",
-              "CountAll": 10072,
               "CountMain": 10064,
               "CountPrev": 8
             }
@@ -3224,7 +3218,6 @@ describe("Druid Functional", function() {
             .timeBucket('PT2H'),
           'TimeJoin'
         )
-        .apply('CountAll', $('wiki').sum('$count'))
         .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
         .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'));
 
@@ -3232,7 +3225,6 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "CountAll": 51939,
               "CountMain": 37816,
               "CountPrev": 14123,
               "TimeJoin": {
@@ -3241,7 +3233,6 @@ describe("Druid Functional", function() {
               }
             },
             {
-              "CountAll": 57556,
               "CountMain": 38388,
               "CountPrev": 19168,
               "TimeJoin": {
@@ -3250,7 +3241,6 @@ describe("Druid Functional", function() {
               }
             },
             {
-              "CountAll": 63437,
               "CountMain": 42589,
               "CountPrev": 20848,
               "TimeJoin": {
@@ -3259,7 +3249,6 @@ describe("Druid Functional", function() {
               }
             },
             {
-              "CountAll": 85395,
               "CountMain": 41828,
               "CountPrev": 43567,
               "TimeJoin": {
@@ -3268,7 +3257,6 @@ describe("Druid Functional", function() {
               }
             },
             {
-              "CountAll": 69236,
               "CountMain": 35977,
               "CountPrev": 33259,
               "TimeJoin": {
@@ -3277,7 +3265,6 @@ describe("Druid Functional", function() {
               }
             },
             {
-              "CountAll": 64880,
               "CountMain": 30720,
               "CountPrev": 34160,
               "TimeJoin": {

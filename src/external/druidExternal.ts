@@ -19,7 +19,7 @@
 import * as Druid from 'druid.d.ts';
 import * as hasOwnProp from 'has-own-prop';
 import { PlywoodRequester } from 'plywood-base-api';
-import { Transform } from 'readable-stream';
+import { Transform, ReadableStream } from 'readable-stream';
 import * as toArray from 'stream-to-array';
 import { AttributeInfo, Attributes, Datum, PlywoodRange, Range, Set, TimeRange } from '../datatypes/index';
 import {
@@ -28,7 +28,7 @@ import {
   CardinalityExpression,
   ChainableExpression,
   ChainableUnaryExpression, CountExpression,
-  Expression,
+  Expression, FallbackExpression,
   FilterExpression,
   InExpression,
   IsExpression,
@@ -36,14 +36,15 @@ import {
   MatchExpression,
   MaxExpression,
   MinExpression,
-  NumberBucketExpression,
+  NumberBucketExpression, OverlapExpression,
   RefExpression,
   SortExpression,
   SplitExpression, Splits,
   TimeBucketExpression,
   TimeFloorExpression,
-  TimePartExpression
+  TimePartExpression, TimeShiftExpression
 } from '../expressions/index';
+import { ReadableError } from '../helper/streamBasics';
 import { dictEqual, ExtendableError, nonEmptyLookup, shallowCopy } from '../helper/utils';
 import {
   External, ExternalJS, ExternalValue, Inflater, IntrospectionDepth, NextFn, QuerySelection,
@@ -1429,6 +1430,92 @@ export class DruidExternal extends External {
       default:
         throw new Error('invalid introspectionStrategy');
     }
+  }
+
+  private groupAppliesByTimeFilterValue(): { filterValue: Set | TimeRange; unfilteredApplies: ApplyExpression[] }[] | null {
+    const { applies } = this;
+    let groups: { filterValue: Set | TimeRange; unfilteredApplies: ApplyExpression[] }[] = [];
+
+    for (let apply of applies) {
+      let applyFilterValue: Set | TimeRange = null;
+      let badCondition = false;
+      let newApply = apply.changeExpression(apply.expression.substitute(ex => {
+        if (ex instanceof OverlapExpression && this.isTimeRef(ex.operand) && ex.expression.getLiteralValue()) {
+          let myValue = ex.expression.getLiteralValue();
+          if (applyFilterValue && !(applyFilterValue as any).equals(myValue)) badCondition = true;
+          applyFilterValue = myValue;
+          return Expression.TRUE;
+        }
+        return null;
+      }));
+
+      if (badCondition || !applyFilterValue) return null;
+
+      let myGroup = groups.find(r => (applyFilterValue as any).equals(r.filterValue));
+      if (myGroup) {
+        myGroup.unfilteredApplies.push(newApply);
+      } else {
+        groups.push({ filterValue: applyFilterValue, unfilteredApplies: [newApply] });
+      }
+    }
+
+    return groups;
+  }
+
+  public getJoinDecompositionShortcut(): { external1: DruidExternal, external2: DruidExternal, timeShift?: TimeShiftExpression } | null {
+    if (this.mode !== 'split') return null;
+
+    // Must have a single split
+    if (this.split.numSplits() !== 1) return null;
+    const splitName = this.split.firstSplitName();
+    const splitExpression = this.split.firstSplitExpression();
+
+    // Applies must decompose into 2 things
+    const appliesByTimeFilterValue = this.groupAppliesByTimeFilterValue();
+    if (!appliesByTimeFilterValue || appliesByTimeFilterValue.length !== 2) return null;
+
+    //console.log('appliesByTimeFilterValue', appliesByTimeFilterValue);
+
+    // Check for timeseries decomposition
+    if (splitExpression instanceof TimeBucketExpression && !this.sort && !this.limit) {
+      const fallbackExpression = splitExpression.operand;
+      if (fallbackExpression instanceof FallbackExpression) {
+        const timeShiftExpression = fallbackExpression.expression;
+        if (timeShiftExpression instanceof TimeShiftExpression) {
+          const timeRef = timeShiftExpression.operand;
+          if (this.isTimeRef(timeRef)) {
+            const simpleSplit = this.split.changeSplits({ [splitName]: splitExpression.changeOperand(timeRef) });
+
+            const external1Value = this.valueOf();
+            external1Value.split = simpleSplit;
+            external1Value.applies = appliesByTimeFilterValue[0].unfilteredApplies;
+
+            const external2Value = this.valueOf();
+            external2Value.split = simpleSplit;
+            external2Value.applies = appliesByTimeFilterValue[0].unfilteredApplies;
+
+            return {
+              external1: new DruidExternal(external1Value),
+              external2: new DruidExternal(external2Value),
+              timeShift: timeShiftExpression.changeOperand(Expression._)
+            };
+          }
+        }
+      }
+    }
+
+    // Check for topN decomposition
+
+    return null;
+  }
+
+  protected queryBasicValueStream(rawQueries: any[] | null): ReadableStream {
+    const decomposed = this.getJoinDecompositionShortcut();
+    if (decomposed) {
+      console.log('decomposed', decomposed);
+    }
+
+    return super.queryBasicValueStream(rawQueries);
   }
 
 }

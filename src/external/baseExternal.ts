@@ -639,6 +639,43 @@ export abstract class External {
     });
   }
 
+  static performQueryAndPostTransform(queryAndPostTransform: QueryAndPostTransform<any>, requester: PlywoodRequester<any>, engine: string, rawQueries: any[] | null): ReadableStream {
+    if (!requester) {
+      return new ReadableError('must have a requester to make queries');
+    }
+
+    let { query, context, postTransform, next } = queryAndPostTransform;
+    if (!query || !postTransform) {
+      return new ReadableError('no query or postTransform');
+    }
+
+    if (next) {
+      let streamNumber = 0;
+      let meta: any = null;
+      let numResults: number;
+      const resultStream = new StreamConcat({
+        objectMode: true,
+        next: () => {
+          if (streamNumber) query = next(query, numResults, meta);
+          if (!query) return null;
+          streamNumber++;
+          if (rawQueries) rawQueries.push({ engine, query });
+          const stream = requester({ query, context });
+          meta = null;
+          stream.on('meta', (m: any) => meta = m);
+          numResults = 0;
+          stream.on('data', () => numResults++);
+          return stream;
+        }
+      });
+
+      return pipeWithError(resultStream, postTransform);
+    } else {
+      if (rawQueries) rawQueries.push({ engine, query });
+      return pipeWithError(requester({ query, context }), postTransform);
+    }
+  }
+
   static jsToValue(parameters: ExternalJS, requester: PlywoodRequester<any>): ExternalValue {
     let value: ExternalValue = {
       engine: parameters.engine,
@@ -1486,19 +1523,9 @@ export abstract class External {
     });
   }
 
-  public queryValueStream(lastNode: boolean, rawQueries: any[], externalForNext: External = null): ReadableStream {
-    const { engine, mode, requester } = this;
+  protected queryBasicValueStream(rawQueries: any[] | null): ReadableStream {
+    const { engine, requester } = this;
 
-    if (!externalForNext) externalForNext = this;
-
-    let delegate = this.getDelegate();
-    if (delegate) {
-      return delegate.queryValueStream(lastNode, rawQueries, externalForNext);
-    }
-
-    if (!requester) {
-      return new ReadableError('must have a requester to make queries');
-    }
     let queryAndPostTransform: QueryAndPostTransform<any>;
     try {
       queryAndPostTransform = this.getQueryAndPostTransform();
@@ -1506,39 +1533,20 @@ export abstract class External {
       return new ReadableError(e);
     }
 
-    let { query, context, postTransform, next } = queryAndPostTransform;
-    if (!query || !postTransform) {
-      return new ReadableError('no query or postTransform');
+    return External.performQueryAndPostTransform(queryAndPostTransform, requester, engine, rawQueries);
+  }
+
+  public queryValueStream(lastNode: boolean, rawQueries: any[] | null, externalForNext: External = null): ReadableStream {
+    if (!externalForNext) externalForNext = this;
+
+    let delegate = this.getDelegate();
+    if (delegate) {
+      return delegate.queryValueStream(lastNode, rawQueries, externalForNext);
     }
 
-    let finalStream: ReadableStream;
-    if (next) {
-      let streamNumber = 0;
-      let meta: any = null;
-      let numResults: number;
-      const resultStream = new StreamConcat({
-        objectMode: true,
-        next: () => {
-          if (streamNumber) query = next(query, numResults, meta);
-          if (!query) return null;
-          streamNumber++;
-          if (rawQueries) rawQueries.push({ engine, query });
-          const stream = requester({ query, context });
-          meta = null;
-          stream.on('meta', (m: any) => meta = m);
-          numResults = 0;
-          stream.on('data', () => numResults++);
-          return stream;
-        }
-      });
+    let finalStream = this.queryBasicValueStream(rawQueries);
 
-      finalStream = pipeWithError(resultStream, queryAndPostTransform.postTransform);
-    } else {
-      if (rawQueries) rawQueries.push({ engine, query });
-      finalStream = pipeWithError(requester({ query, context }), queryAndPostTransform.postTransform);
-    }
-
-    if (!lastNode && mode === 'split') {
+    if (!lastNode && this.mode === 'split') {
       finalStream = pipeWithError(finalStream, new Transform({
         objectMode: true,
         transform: (chunk, enc, callback) => {
@@ -1644,31 +1652,5 @@ export abstract class External {
 
     return myFullType;
   }
-
-  // ------------------------
-
-  /*
-  private _joinDigestHelper(joinExpression: JoinExpression, action: Action): JoinExpression {
-    let ids = action.expression.getExternalIds();
-    if (ids.length !== 1) throw new Error('must be single dataset');
-    if (ids[0] === (<External>(<LiteralExpression>joinExpression.lhs).value).getId()) {
-      let lhsDigest = this.digest(joinExpression.lhs, action);
-      if (!lhsDigest) return null;
-      return new JoinExpression({
-        op: 'join',
-        lhs: lhsDigest.expression,
-        rhs: joinExpression.rhs
-      });
-    } else {
-      let rhsDigest = this.digest(joinExpression.rhs, action);
-      if (!rhsDigest) return null;
-      return new JoinExpression({
-        op: 'join',
-        lhs: joinExpression.lhs,
-        rhs: rhsDigest.expression
-      });
-    }
-  }
-  */
 
 }
