@@ -3249,6 +3249,56 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("can timeBucket on joined column with limit", () => {
+      let prevRange = TimeRange.fromJS({ start: new Date('2015-09-12T00:00:00Z'), end: new Date('2015-09-12T12:00:00Z')});
+      let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
+      let ex = $("wiki")
+        .split(
+          $("time").overlap(mainRange)
+            .then($("time"))
+            .fallback($("time").timeShift(Duration.fromJS('PT12H')))
+            .timeBucket('PT2H'),
+          'TimeJoin'
+        )
+        .apply('CountAll', $('wiki').sum('$count'))
+        .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
+        .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'))
+        .limit(3);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "CountAll": 51939,
+              "CountMain": 37816,
+              "CountPrev": 14123,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T14:00:00.000Z'),
+                "start": new Date('2015-09-12T12:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 57556,
+              "CountMain": 38388,
+              "CountPrev": 19168,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T16:00:00.000Z'),
+                "start": new Date('2015-09-12T14:00:00.000Z')
+              }
+            },
+            {
+              "CountAll": 63437,
+              "CountMain": 42589,
+              "CountPrev": 20848,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T18:00:00.000Z'),
+                "start": new Date('2015-09-12T16:00:00.000Z')
+              }
+            }
+          ]);
+        });
+    });
+
     it("can timeBucket on joined column (sort by delta)", () => {
       let prevRange = TimeRange.fromJS({ start: new Date('2015-09-12T00:00:00Z'), end: new Date('2015-09-12T12:00:00Z')});
       let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});

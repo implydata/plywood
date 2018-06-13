@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.18.10
+
+- Correct time bucket inflation in case of string dates (as returned by topN queries)
+
 ## 0.18.9
 
 - Move some Dataset methods into statics
