@@ -97,7 +97,7 @@ export interface IntrospectOptions {
 
 export type QueryMode = "raw" | "value" | "total" | "split";
 
-function toDate(thing: any) {
+function makeDate(thing: any) {
   let dt = new Date(thing);
   if (isNaN(dt.valueOf())) dt = new Date(Number(thing)); // in case v === "1442018760000"
   return dt;
@@ -490,7 +490,7 @@ export abstract class External {
         return;
       }
 
-      let start = toDate(v);
+      let start = makeDate(v);
       d[label] = new TimeRange({ start, end: duration.shift(start, timezone) });
     };
   }
@@ -532,7 +532,7 @@ export abstract class External {
         return;
       }
 
-      d[label] = toDate(v);
+      d[label] = makeDate(v);
     };
   }
 
