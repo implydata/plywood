@@ -247,7 +247,12 @@ export class DruidFilterBuilder {
       throw new Error(`can not convert ${ex} = ${value} to filter because it references an un-filterable metric '${attributeInfo.name}' which is most likely rolled up.`);
     }
 
-    let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+    let extractionFn: Druid.ExtractionFn;
+    try {
+      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+    } catch {
+      return this.makeExpressionFilter(ex.is(r(value)));
+    }
 
     // Kill range
     if (value instanceof Range) value = value.start;
@@ -294,7 +299,12 @@ export class DruidFilterBuilder {
       return this.makeExpressionFilter(ex.overlap(range));
     }
 
-    let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+    let extractionFn: Druid.ExtractionFn;
+    try {
+      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+    } catch {
+      return this.makeExpressionFilter(ex.overlap(range));
+    }
 
     let boundFilter: Druid.Filter = {
       type: "bound",
@@ -324,7 +334,12 @@ export class DruidFilterBuilder {
       return this.makeExpressionFilter(ex.overlap(range));
     }
 
-    let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+    let extractionFn: Druid.ExtractionFn;
+    try {
+      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+    } catch {
+      return this.makeExpressionFilter(ex.overlap(range));
+    }
 
     const interval = this.valueToIntervals(range);
     let intervalFilter: Druid.Filter = {
@@ -342,7 +357,12 @@ export class DruidFilterBuilder {
       return this.makeExpressionFilter(ex.match(regex));
     }
 
-    let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+    let extractionFn: Druid.ExtractionFn;
+    try {
+      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+    } catch {
+      return this.makeExpressionFilter(ex.match(regex));
+    }
 
     let regexFilter: Druid.Filter = {
       type: "regex",
@@ -371,7 +391,12 @@ export class DruidFilterBuilder {
         };
       }
 
-      let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(lhs);
+      let extractionFn: Druid.ExtractionFn;
+      try {
+        extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(lhs);
+      } catch {
+        return this.makeExpressionFilter(lhs.contains(rhs));
+      }
 
       let searchFilter: Druid.Filter = {
         type: "search",

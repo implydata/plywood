@@ -3299,6 +3299,117 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("can timeBucket on joined column with sub-split", () => {
+      let prevRange = TimeRange.fromJS({ start: new Date('2015-09-12T00:00:00Z'), end: new Date('2015-09-12T12:00:00Z')});
+      let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
+      let ex = $("wiki")
+        .split(
+          $("time").overlap(mainRange)
+            .then($("time"))
+            .fallback($("time").timeShift(Duration.fromJS('PT12H')))
+            .timeBucket('PT2H'),
+          'TimeJoin'
+        )
+        .apply('CountAll', $('wiki').sum('$count'))
+        .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
+        .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'))
+        .limit(2)
+        .apply(
+          'Channels',
+          $('wiki').split('$channel', 'Channel')
+            .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
+            .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'))
+            .sort('$CountMain', 'descending')
+            .limit(2)
+        );
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Channels": {
+                "attributes": [
+                  {
+                    "name": "Channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "CountPrev",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "CountMain",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Channel": "en",
+                    "CountMain": 10698,
+                    "CountPrev": 5906
+                  },
+                  {
+                    "Channel": "vi",
+                    "CountMain": 7650,
+                    "CountPrev": 3771
+                  }
+                ],
+                "keys": [
+                  "Channel"
+                ]
+              },
+              "CountAll": 51939,
+              "CountMain": 37816,
+              "CountPrev": 14123,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T14:00:00.000Z'),
+                "start": new Date('2015-09-12T12:00:00.000Z')
+              }
+            },
+            {
+              "Channels": {
+                "attributes": [
+                  {
+                    "name": "Channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "CountPrev",
+                    "type": "NUMBER"
+                  },
+                  {
+                    "name": "CountMain",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Channel": "en",
+                    "CountMain": 10844,
+                    "CountPrev": 9439
+                  },
+                  {
+                    "Channel": "vi",
+                    "CountMain": 9258,
+                    "CountPrev": 2969
+                  }
+                ],
+                "keys": [
+                  "Channel"
+                ]
+              },
+              "CountAll": 57556,
+              "CountMain": 38388,
+              "CountPrev": 19168,
+              "TimeJoin": {
+                "end": new Date('2015-09-12T16:00:00.000Z'),
+                "start": new Date('2015-09-12T14:00:00.000Z')
+              }
+            }
+          ]);
+        });
+    });
+
     it("can timeBucket on joined column (sort by delta)", () => {
       let prevRange = TimeRange.fromJS({ start: new Date('2015-09-12T00:00:00Z'), end: new Date('2015-09-12T12:00:00Z')});
       let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
