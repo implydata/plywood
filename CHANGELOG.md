@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.18.11
+
+- Use expressions in fallback when extraction functions fail
+
 ## 0.18.10
 
 - Correct time bucket inflation in case of string dates (as returned by topN queries)
