@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.0
+
+- Update dependencies
+
 ## 0.18.11
 
 - Use expressions in fallback when extraction functions fail
