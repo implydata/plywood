@@ -18,7 +18,7 @@
 import { Duration, parseISODate, Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
 import { Instance, isImmutableClass } from 'immutable-class';
-import { PassThrough, ReadableStream } from 'readable-stream';
+import { PassThrough } from 'readable-stream';
 
 import { failIfIntrospectNeededInDatum, getFullTypeFromDatum, introspectDatum } from '../datatypes/common';
 import {
@@ -1810,7 +1810,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
         pt.emit('error', e);
       });
 
-    return pt;
+    return pt as any;
   }
 
   private _computeResolved(options: ComputeOptions): Promise<PlywoodValue> {

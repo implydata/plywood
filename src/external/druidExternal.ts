@@ -21,7 +21,7 @@ import * as hasOwnProp from 'has-own-prop';
 import { PlywoodRequester } from 'plywood-base-api';
 import { Transform, ReadableStream } from 'readable-stream';
 import * as toArray from 'stream-to-array';
-import { AttributeInfo, Attributes, Datum, PlywoodRange, Range, Set, TimeRange } from '../datatypes/index';
+import { AttributeInfo, Attributes, Dataset, Datum, PlywoodRange, Range, Set, TimeRange } from '../datatypes/index';
 import {
   $,
   ApplyExpression,
@@ -1483,8 +1483,6 @@ export class DruidExternal extends External {
     // Make sure that the first value of appliesByTimeFilterValue is now
     if (filterV0.start < filterV1.start) appliesByTimeFilterValue.reverse();
 
-    //console.log('appliesByTimeFilterValue', appliesByTimeFilterValue);
-
     // Check for timeseries decomposition
     if (splitExpression instanceof TimeBucketExpression && !this.sort && !this.limit) {
       const fallbackExpression = splitExpression.operand;
@@ -1523,8 +1521,32 @@ export class DruidExternal extends External {
   protected queryBasicValueStream(rawQueries: any[] | null): ReadableStream {
     const decomposed = this.getJoinDecompositionShortcut();
     if (decomposed) {
-      console.log('decomposed.external1.filter', decomposed.external1.filter);
-      return decomposed.external1.queryBasicValueStream(rawQueries);
+      let plywoodValue1Promise = External.buildValueFromStream(decomposed.external1.queryBasicValueStream(rawQueries));
+      let plywoodValue2Promise = External.buildValueFromStream(decomposed.external2.queryBasicValueStream(rawQueries));
+
+      return External.valuePromiseToStream(
+        Promise.all([plywoodValue1Promise, plywoodValue2Promise]).then(([pv1, pv2]) => {
+          let ds1 = pv1 as Dataset;
+          let ds2 = pv2 as Dataset;
+
+          const { timeShift } = decomposed;
+          if (timeShift) {
+            const timeLabel = ds2.keys[0];
+            const timeShiftDuration = timeShift.duration;
+            const timeShiftTimezone = timeShift.timezone;
+            ds2 = ds2.applyFn(timeLabel, (d: Datum) => {
+              const tr = d[timeLabel] as TimeRange;
+              return new TimeRange({
+                start: timeShiftDuration.shift(tr.start, timeShiftTimezone, 1),
+                end: timeShiftDuration.shift(tr.end, timeShiftTimezone, 1),
+                bounds: tr.bounds
+              });
+            }, 'TIME');
+          }
+
+          return ds1.join(ds2);
+        })
+      );
     }
 
     return super.queryBasicValueStream(rawQueries);

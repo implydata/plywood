@@ -18,7 +18,7 @@ import { Duration, Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
 import { immutableArraysEqual, immutableLookupsEqual, NamedArray, SimpleArray } from 'immutable-class';
 import { PlywoodRequester } from 'plywood-base-api';
-import { ReadableStream, Transform, Writable, WritableStream } from 'readable-stream';
+import { ReadableStream, Transform, Writable, WritableStream, Readable, PassThrough } from 'readable-stream';
 import {
   AttributeInfo,
   AttributeJSs,
@@ -32,6 +32,7 @@ import {
 import { Set } from '../datatypes/set';
 import { StringRange } from '../datatypes/stringRange';
 import { TimeRange } from '../datatypes/timeRange';
+import { iteratorFactory, PlyBit } from '../datatypes/valueStream';
 import { ExpressionJS } from '../expressions/baseExpression';
 import {
   $,
@@ -674,6 +675,47 @@ export abstract class External {
       if (rawQueries) rawQueries.push({ engine, query });
       return pipeWithError(requester({ query, context }), postTransform);
     }
+  }
+
+  static buildValueFromStream(stream: ReadableStream): Promise<PlywoodValue> {
+    return new Promise((resolve, reject) => {
+      let pvb = new PlywoodValueBuilder();
+      const target = new Writable({
+        objectMode: true,
+        write: function(chunk, encoding, callback) {
+          pvb.processBit(chunk);
+          callback(null);
+        }
+      })
+        .on('finish', () => {
+          resolve(pvb.getValue());
+        });
+
+      stream.pipe(target);
+      stream.on('error', (e: Error) => {
+        stream.unpipe(target);
+        reject(e);
+      });
+    });
+  }
+
+  static valuePromiseToStream(valuePromise: Promise<PlywoodValue>): ReadableStream {
+    const pt = new PassThrough({ objectMode: true });
+
+    valuePromise
+      .then((v) => {
+        const i = iteratorFactory(v as Dataset);
+        let bit: PlyBit;
+        while (bit = i()) {
+          pt.write(bit);
+        }
+        pt.end();
+      })
+      .catch((e) => {
+        pt.emit('error', e);
+      });
+
+    return pt as any;
   }
 
   static jsToValue(parameters: ExternalJS, requester: PlywoodRequester<any>): ExternalValue {
@@ -1497,30 +1539,16 @@ export abstract class External {
   }
 
   public queryValue(lastNode: boolean, rawQueries: any[], externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
-    const { mode } = this;
+    const stream = this.queryValueStream(lastNode, rawQueries, externalForNext);
+    let valuePromise = External.buildValueFromStream(stream);
 
-    return new Promise((resolve, reject) => {
-      let pvb = new PlywoodValueBuilder();
-      const target = new Writable({
-        objectMode: true,
-        write: function(chunk, encoding, callback) {
-          pvb.processBit(chunk);
-          callback(null);
-        }
-      })
-        .on('finish', () => {
-          let v: PlywoodValue | TotalContainer = pvb.getValue();
-          if (mode === 'total' && v instanceof Dataset && v.data.length === 1) v = new TotalContainer(v.data[0]);
-          resolve(v);
-        });
-
-      const stream = this.queryValueStream(lastNode, rawQueries, externalForNext);
-      stream.pipe(target);
-      stream.on('error', (e: Error) => {
-        stream.unpipe(target);
-        reject(e);
+    if (this.mode === 'total') {
+      return valuePromise.then(v => {
+        return (v instanceof Dataset && v.data.length === 1) ? new TotalContainer(v.data[0]) : v;
       });
-    });
+    }
+
+    return valuePromise;
   }
 
   protected queryBasicValueStream(rawQueries: any[] | null): ReadableStream {
