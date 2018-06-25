@@ -1447,7 +1447,7 @@ export class DruidExternal extends External {
           return Expression.TRUE;
         }
         return null;
-      }));
+      }).simplify());
 
       if (badCondition || !applyFilterValue) return null;
 
@@ -1464,6 +1464,7 @@ export class DruidExternal extends External {
 
   public getJoinDecompositionShortcut(): { external1: DruidExternal, external2: DruidExternal, timeShift?: TimeShiftExpression } | null {
     if (this.mode !== 'split') return null;
+    const { timeAttribute } = this;
 
     // Must have a single split
     if (this.split.numSplits() !== 1) return null;
@@ -1473,6 +1474,14 @@ export class DruidExternal extends External {
     // Applies must decompose into 2 things
     const appliesByTimeFilterValue = this.groupAppliesByTimeFilterValue();
     if (!appliesByTimeFilterValue || appliesByTimeFilterValue.length !== 2) return null;
+
+    // Those two things need to be TimeRanges
+    const filterV0 = appliesByTimeFilterValue[0].filterValue;
+    const filterV1 = appliesByTimeFilterValue[1].filterValue;
+    if (!(filterV0 instanceof TimeRange && filterV1 instanceof TimeRange)) return null;
+
+    // Make sure that the first value of appliesByTimeFilterValue is now
+    if (filterV0.start < filterV1.start) appliesByTimeFilterValue.reverse();
 
     //console.log('appliesByTimeFilterValue', appliesByTimeFilterValue);
 
@@ -1487,12 +1496,14 @@ export class DruidExternal extends External {
             const simpleSplit = this.split.changeSplits({ [splitName]: splitExpression.changeOperand(timeRef) });
 
             const external1Value = this.valueOf();
+            external1Value.filter = $(timeAttribute, 'TIME').overlap(appliesByTimeFilterValue[0].filterValue).and(external1Value.filter).simplify();
             external1Value.split = simpleSplit;
             external1Value.applies = appliesByTimeFilterValue[0].unfilteredApplies;
 
             const external2Value = this.valueOf();
+            external2Value.filter = $(timeAttribute, 'TIME').overlap(appliesByTimeFilterValue[1].filterValue).and(external2Value.filter).simplify();
             external2Value.split = simpleSplit;
-            external2Value.applies = appliesByTimeFilterValue[0].unfilteredApplies;
+            external2Value.applies = appliesByTimeFilterValue[1].unfilteredApplies;
 
             return {
               external1: new DruidExternal(external1Value),
@@ -1512,7 +1523,8 @@ export class DruidExternal extends External {
   protected queryBasicValueStream(rawQueries: any[] | null): ReadableStream {
     const decomposed = this.getJoinDecompositionShortcut();
     if (decomposed) {
-      console.log('decomposed', decomposed);
+      console.log('decomposed.external1.filter', decomposed.external1.filter);
+      return decomposed.external1.queryBasicValueStream(rawQueries);
     }
 
     return super.queryBasicValueStream(rawQueries);
