@@ -1432,9 +1432,9 @@ export class DruidExternal extends External {
     }
   }
 
-  private groupAppliesByTimeFilterValue(): { filterValue: Set | TimeRange; unfilteredApplies: ApplyExpression[] }[] | null {
-    const { applies } = this;
-    let groups: { filterValue: Set | TimeRange; unfilteredApplies: ApplyExpression[] }[] = [];
+  private groupAppliesByTimeFilterValue(): { filterValue: Set | TimeRange; unfilteredApplies: ApplyExpression[]; hasSort: boolean }[] | null {
+    const { applies, sort } = this;
+    let groups: { filterValue: Set | TimeRange; unfilteredApplies: ApplyExpression[]; hasSort: boolean }[] = [];
 
     for (let apply of applies) {
       let applyFilterValue: Set | TimeRange = null;
@@ -1452,17 +1452,23 @@ export class DruidExternal extends External {
       if (badCondition || !applyFilterValue) return null;
 
       let myGroup = groups.find(r => (applyFilterValue as any).equals(r.filterValue));
+      let mySort = Boolean(sort && sort.expression instanceof RefExpression && newApply.name === sort.expression.name);
       if (myGroup) {
         myGroup.unfilteredApplies.push(newApply);
+        if (mySort) myGroup.hasSort = true;
       } else {
-        groups.push({ filterValue: applyFilterValue, unfilteredApplies: [newApply] });
+        groups.push({
+          filterValue: applyFilterValue,
+          unfilteredApplies: [newApply],
+          hasSort: mySort
+        });
       }
     }
 
     return groups;
   }
 
-  public getJoinDecompositionShortcut(): { external1: DruidExternal, external2: DruidExternal, timeShift?: TimeShiftExpression } | null {
+  public getJoinDecompositionShortcut(): { external1: DruidExternal, external2: DruidExternal, timeShift?: TimeShiftExpression, waterfallFilterExpression?: Expression } | null {
     if (this.mode !== 'split') return null;
     const { timeAttribute } = this;
 
@@ -1514,6 +1520,22 @@ export class DruidExternal extends External {
     }
 
     // Check for topN decomposition
+    if (appliesByTimeFilterValue[0].hasSort && this.limit) {
+      const external1Value = this.valueOf();
+      external1Value.filter = $(timeAttribute, 'TIME').overlap(appliesByTimeFilterValue[0].filterValue).and(external1Value.filter).simplify();
+      external1Value.applies = appliesByTimeFilterValue[0].unfilteredApplies;
+
+      const external2Value = this.valueOf();
+      external2Value.filter = $(timeAttribute, 'TIME').overlap(appliesByTimeFilterValue[1].filterValue).and(external2Value.filter).simplify();
+      external2Value.applies = appliesByTimeFilterValue[1].unfilteredApplies;
+      external2Value.sort = external2Value.sort.changeExpression($(external2Value.applies[0].name));
+
+      return {
+        external1: new DruidExternal(external1Value),
+        external2: new DruidExternal(external2Value),
+        waterfallFilterExpression: external1Value.split
+      };
+    }
 
     return null;
   }

@@ -3448,7 +3448,6 @@ describe("Druid Functional", function() {
             .timeBucket('PT2H'),
           'TimeJoin'
         )
-        .apply('CountAll', $('wiki').sum('$count'))
         .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
         .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'))
         .apply('Delta', '$CountMain - $CountPrev')
@@ -3458,7 +3457,6 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "CountAll": 51939,
               "CountMain": 37816,
               "CountPrev": 14123,
               "Delta": 23693,
@@ -3468,7 +3466,6 @@ describe("Druid Functional", function() {
               }
             },
             {
-              "CountAll": 63437,
               "CountMain": 42589,
               "CountPrev": 20848,
               "Delta": 21741,
@@ -3478,7 +3475,6 @@ describe("Druid Functional", function() {
               }
             },
             {
-              "CountAll": 57556,
               "CountMain": 38388,
               "CountPrev": 19168,
               "Delta": 19220,
@@ -3488,7 +3484,6 @@ describe("Druid Functional", function() {
               }
             },
             {
-              "CountAll": 69236,
               "CountMain": 35977,
               "CountPrev": 33259,
               "Delta": 2718,
@@ -3498,7 +3493,6 @@ describe("Druid Functional", function() {
               }
             },
             {
-              "CountAll": 85395,
               "CountMain": 41828,
               "CountPrev": 43567,
               "Delta": -1739,
@@ -3508,7 +3502,6 @@ describe("Druid Functional", function() {
               }
             },
             {
-              "CountAll": 64880,
               "CountMain": 30720,
               "CountPrev": 34160,
               "Delta": -3440,
