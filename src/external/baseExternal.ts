@@ -704,8 +704,8 @@ export abstract class External {
       console.warn("'requester' parameter should be passed as context (2nd argument)");
       requester = (parameters as any).requester;
     }
-    if (!parameters.source) {
-      parameters.source = (parameters as any).dataSource || (parameters as any).table;
+    if (parameters.source == null) {
+      parameters.source = (parameters as any).dataSource != null ? (parameters as any).dataSource : (parameters as any).table;
     }
 
     return ClassFn.fromJS(parameters, requester);

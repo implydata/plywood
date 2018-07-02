@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.1
+
+- Handle empty string sources
+
 ## 0.19.0
 
 - Update dependencies
