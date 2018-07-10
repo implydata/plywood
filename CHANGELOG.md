@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.2
+
+- Handle concat with different expressions
+
 ## 0.19.1
 
 - Handle empty string sources

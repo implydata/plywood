@@ -2197,6 +2197,13 @@ describe("Druid Functional", function() {
             .apply('Count', '$wiki.sum($count)')
             .sort('$Count', 'descending')
             .limit(4)
+        )
+        .apply(
+          'ChannelFancy',
+          $('wiki').split($('channel').lookup('channel-lookup').fallback('"???"').concat(r(' ('), '$channel', r(')')), 'Channel')
+            .apply('Count', '$wiki.sum($count)')
+            .sort('$Count', 'descending')
+            .limit(4)
         );
 
       return basicExecutor(ex)
@@ -2262,6 +2269,39 @@ describe("Druid Functional", function() {
                   },
                   {
                     "Channel": "French",
+                    "Count": 21285
+                  }
+                ],
+                "keys": [
+                  "Channel"
+                ]
+              },
+              "ChannelFancy": {
+                "attributes": [
+                  {
+                    "name": "Channel",
+                    "type": "STRING"
+                  },
+                  {
+                    "name": "Count",
+                    "type": "NUMBER"
+                  }
+                ],
+                "data": [
+                  {
+                    "Channel": "English (en)",
+                    "Count": 114711
+                  },
+                  {
+                    "Channel": "??? (vi)",
+                    "Count": 99010
+                  },
+                  {
+                    "Channel": "??? (de)",
+                    "Count": 25103
+                  },
+                  {
+                    "Channel": "French (fr)",
                     "Count": 21285
                   }
                 ],

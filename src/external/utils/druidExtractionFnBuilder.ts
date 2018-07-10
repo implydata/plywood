@@ -230,18 +230,21 @@ export class DruidExtractionFnBuilder {
   }
 
   private concatToExtractionFn(expression: ConcatExpression): Druid.ExtractionFn | null {
-    let innerExtractionFn: Druid.ExtractionFn | null = null;
+    let innerExpression: Expression | null = null;
     let format = expression.getExpressionList().map(ex => {
       if (ex instanceof LiteralExpression) {
         return ex.value.replace(/%/g, '\\%');
       }
-      if (!ex.isOp('literal')) {
-        innerExtractionFn = this.expressionToExtractionFnPure(ex);
+      if (innerExpression && !innerExpression.equals(ex)) {
+        throw new Error(`can not have multiple expressions '${innerExpression}' and '${ex}' in concat '${expression}'`);
       }
+      innerExpression = ex;
       return '%s';
     }).join('');
 
-    return DruidExtractionFnBuilder.composeFns(innerExtractionFn, {
+    if (!innerExpression) throw new Error(`invalid concat expression '${expression}'`);
+
+    return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFnPure(innerExpression), {
       type: 'stringFormat',
       format,
       nullHandling: 'returnNull'

@@ -561,7 +561,7 @@ export class DruidExternal extends External {
       };
     }
 
-    if (freeReferences.length > 1 || expression.some(ex => ex.isOp('then') || null)) {
+    const makeExpression: () => DimensionInflater = () => {
       let druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(expression);
       if (druidExpression === null) {
         throw new Error(`could not convert ${expression} to Druid expression`);
@@ -593,6 +593,10 @@ export class DruidExternal extends External {
         },
         inflater
       };
+    };
+
+    if (freeReferences.length > 1 || expression.some(ex => ex.isOp('then') || null)) {
+      return makeExpression();
     }
 
     let referenceName = freeReferences[0];
@@ -602,7 +606,12 @@ export class DruidExternal extends External {
       throw new Error(`can not convert ${expression} to split because it references an un-splitable metric '${referenceName}' which is most likely rolled up.`);
     }
 
-    let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(expression);
+    let extractionFn: Druid.ExtractionFn | null;
+    try {
+      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(expression);
+    } catch {
+      return makeExpression();
+    }
 
     let simpleInflater = External.getInteligentInflater(expression, label);
 
