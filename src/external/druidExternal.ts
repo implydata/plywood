@@ -1468,7 +1468,7 @@ export class DruidExternal extends External {
     return groups;
   }
 
-  public getJoinDecompositionShortcut(): { external1: DruidExternal, external2: DruidExternal, timeShift?: TimeShiftExpression, waterfallFilterExpression?: Expression } | null {
+  public getJoinDecompositionShortcut(): { external1: DruidExternal, external2: DruidExternal, timeShift?: TimeShiftExpression, waterfallFilterExpression?: SplitExpression } | null {
     if (this.mode !== 'split') return null;
     const { timeAttribute } = this;
 
@@ -1543,32 +1543,52 @@ export class DruidExternal extends External {
   protected queryBasicValueStream(rawQueries: any[] | null): ReadableStream {
     const decomposed = this.getJoinDecompositionShortcut();
     if (decomposed) {
-      let plywoodValue1Promise = External.buildValueFromStream(decomposed.external1.queryBasicValueStream(rawQueries));
-      let plywoodValue2Promise = External.buildValueFromStream(decomposed.external2.queryBasicValueStream(rawQueries));
+      const { waterfallFilterExpression } = decomposed;
+      if (waterfallFilterExpression) {
+        return External.valuePromiseToStream(
+          External.buildValueFromStream(decomposed.external1.queryBasicValueStream(rawQueries)).then(pv1 => {
+            let ds1 = pv1 as Dataset;
+            const ds1Filter = Expression.or(ds1.data.map(datum => waterfallFilterExpression.filterFromDatum(datum)));
 
-      return External.valuePromiseToStream(
-        Promise.all([plywoodValue1Promise, plywoodValue2Promise]).then(([pv1, pv2]) => {
-          let ds1 = pv1 as Dataset;
-          let ds2 = pv2 as Dataset;
+            // Add filter
+            let ex2Value = decomposed.external2.valueOf();
+            ex2Value.filter = ex2Value.filter.and(ds1Filter);
+            let filteredExternal = new DruidExternal(ex2Value);
 
-          const { timeShift } = decomposed;
-          if (timeShift) {
-            const timeLabel = ds2.keys[0];
-            const timeShiftDuration = timeShift.duration;
-            const timeShiftTimezone = timeShift.timezone;
-            ds2 = ds2.applyFn(timeLabel, (d: Datum) => {
-              const tr = d[timeLabel] as TimeRange;
-              return new TimeRange({
-                start: timeShiftDuration.shift(tr.start, timeShiftTimezone, 1),
-                end: timeShiftDuration.shift(tr.end, timeShiftTimezone, 1),
-                bounds: tr.bounds
-              });
-            }, 'TIME');
-          }
+            return External.buildValueFromStream(filteredExternal.queryBasicValueStream(rawQueries)).then(pv2 => {
+              return ds1.join(pv2 as Dataset);
+            });
+          })
+        );
 
-          return ds1.join(ds2);
-        })
-      );
+      } else {
+        let plywoodValue1Promise = External.buildValueFromStream(decomposed.external1.queryBasicValueStream(rawQueries));
+        let plywoodValue2Promise = External.buildValueFromStream(decomposed.external2.queryBasicValueStream(rawQueries));
+
+        return External.valuePromiseToStream(
+          Promise.all([plywoodValue1Promise, plywoodValue2Promise]).then(([pv1, pv2]) => {
+            let ds1 = pv1 as Dataset;
+            let ds2 = pv2 as Dataset;
+
+            const { timeShift } = decomposed;
+            if (timeShift) {
+              const timeLabel = ds2.keys[0];
+              const timeShiftDuration = timeShift.duration;
+              const timeShiftTimezone = timeShift.timezone;
+              ds2 = ds2.applyFn(timeLabel, (d: Datum) => {
+                const tr = d[timeLabel] as TimeRange;
+                return new TimeRange({
+                  start: timeShiftDuration.shift(tr.start, timeShiftTimezone, 1),
+                  end: timeShiftDuration.shift(tr.end, timeShiftTimezone, 1),
+                  bounds: tr.bounds
+                });
+              }, 'TIME');
+            }
+
+            return ds1.join(ds2);
+          })
+        );
+      }
     }
 
     return super.queryBasicValueStream(rawQueries);
