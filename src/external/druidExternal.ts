@@ -32,7 +32,7 @@ import {
   FilterExpression,
   InExpression,
   IsExpression,
-  LimitExpression,
+  LiteralExpression,
   MatchExpression,
   MaxExpression,
   MinExpression,
@@ -1435,8 +1435,14 @@ export class DruidExternal extends External {
   private groupAppliesByTimeFilterValue(): { filterValue: Set | TimeRange; unfilteredApplies: ApplyExpression[]; hasSort: boolean }[] | null {
     const { applies, sort } = this;
     let groups: { filterValue: Set | TimeRange; unfilteredApplies: ApplyExpression[]; hasSort: boolean }[] = [];
+    let constantApplies: ApplyExpression[] = [];
 
     for (let apply of applies) {
+      if (apply.expression instanceof LiteralExpression) {
+        constantApplies.push(apply);
+        continue;
+      }
+
       let applyFilterValue: Set | TimeRange = null;
       let badCondition = false;
       let newApply = apply.changeExpression(apply.expression.substitute(ex => {
@@ -1465,6 +1471,10 @@ export class DruidExternal extends External {
       }
     }
 
+    if (constantApplies.length) {
+      groups[0].unfilteredApplies.push(...constantApplies);
+    }
+
     return groups;
   }
 
@@ -1490,7 +1500,7 @@ export class DruidExternal extends External {
     if (filterV0.start < filterV1.start) appliesByTimeFilterValue.reverse();
 
     // Check for timeseries decomposition
-    if (splitExpression instanceof TimeBucketExpression && !this.sort && !this.limit) {
+    if (splitExpression instanceof TimeBucketExpression && (!this.sort || this.sortOnLabel()) && !this.limit) {
       const fallbackExpression = splitExpression.operand;
       if (fallbackExpression instanceof FallbackExpression) {
         const timeShiftExpression = fallbackExpression.expression;
@@ -1520,7 +1530,7 @@ export class DruidExternal extends External {
     }
 
     // Check for topN decomposition
-    if (appliesByTimeFilterValue[0].hasSort && this.limit) {
+    if (appliesByTimeFilterValue[0].hasSort && this.limit && this.limit.value <= 1000) {
       const external1Value = this.valueOf();
       external1Value.filter = $(timeAttribute, 'TIME').overlap(appliesByTimeFilterValue[0].filterValue).and(external1Value.filter).simplify();
       external1Value.applies = appliesByTimeFilterValue[0].unfilteredApplies;
@@ -1550,7 +1560,7 @@ export class DruidExternal extends External {
             let ds1 = pv1 as Dataset;
             const ds1Filter = Expression.or(ds1.data.map(datum => waterfallFilterExpression.filterFromDatum(datum)));
 
-            // Add filter
+            // Add filter to second external
             let ex2Value = decomposed.external2.valueOf();
             ex2Value.filter = ex2Value.filter.and(ds1Filter);
             let filteredExternal = new DruidExternal(ex2Value);
@@ -1582,7 +1592,7 @@ export class DruidExternal extends External {
                   end: timeShiftDuration.shift(tr.end, timeShiftTimezone, 1),
                   bounds: tr.bounds
                 });
-              }, 'TIME');
+              }, 'TIME_RANGE');
             }
 
             return ds1.join(ds2);
