@@ -1199,13 +1199,14 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       let newDatum: Datum = {};
       let newDatumRows = 0;
       for (let attribute of attributes) {
-        let v = datum[attribute.name];
+        const attributeName = attribute.name;
+        let v = datum[attributeName];
         if (v instanceof Dataset) {
           let vTrim = v.depthFirstTrimTo(n);
-          newDatum[attribute.name] = vTrim;
+          newDatum[attributeName] = vTrim;
           newDatumRows += vTrim.rows();
-        } else {
-          newDatum[attribute.name] = v;
+        } else if (typeof v !== 'undefined') {
+          newDatum[attributeName] = v;
         }
       }
 

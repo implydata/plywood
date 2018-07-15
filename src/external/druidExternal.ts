@@ -1529,7 +1529,7 @@ export class DruidExternal extends External {
       }
     }
 
-    // Check for topN decomposition
+    // Check for topN decomposition (we already checked that there is only a single split)
     if (appliesByTimeFilterValue[0].hasSort && this.limit && this.limit.value <= 1000) {
       const external1Value = this.valueOf();
       external1Value.filter = $(timeAttribute, 'TIME').overlap(appliesByTimeFilterValue[0].filterValue).and(external1Value.filter).simplify();
