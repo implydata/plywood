@@ -1015,8 +1015,13 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public join(other: Dataset): Dataset {
-    if (!other) return this;
+    return this.leftJoin(other);
+  }
+
+  public leftJoin(other: Dataset): Dataset {
+    if (!other || !other.data.length) return this;
     const { data, keys, attributes } = this;
+    if (!data.length) return this;
 
     let thisKey = keys[0]; // ToDo: temp fix
     if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
@@ -1028,6 +1033,53 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       if (!otherDatum) return datum;
       return joinDatums(datum, otherDatum);
     });
+
+    return new Dataset({
+      keys,
+      attributes: AttributeInfo.override(attributes, other.attributes),
+      data: newData
+    });
+  }
+
+  public fullJoin(other: Dataset, compare: (v1: any, v2: any) => number): Dataset {
+    if (!other || !other.data.length) return this;
+    const { data, keys, attributes } = this;
+    if (!data.length) return other;
+
+    let thisKey = keys[0]; // ToDo: temp fix
+    if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
+    if (thisKey !== other.keys[0]) throw new Error('this and other keys must match');
+
+    const otherData = other.data;
+    const dataLength = data.length;
+    const otherDataLength = otherData.length;
+    let newData: Datum[] = [];
+    let i = 0;
+    let j = 0;
+    while (i < dataLength || j < otherDataLength) {
+      if (i < dataLength && j < otherDataLength) {
+        const nextDatum = data[i];
+        const nextOtherDatum = otherData[j];
+        const cmp = compare(nextDatum[thisKey], nextOtherDatum[thisKey]);
+        if (cmp < 0) {
+          newData.push(nextDatum);
+          i++;
+        } else if (cmp > 0) {
+          newData.push(nextOtherDatum);
+          j++;
+        } else {
+          newData.push(joinDatums(nextDatum, nextOtherDatum));
+          i++;
+          j++;
+        }
+      } else if (i === dataLength) {
+        newData.push(otherData[j]);
+        j++;
+      } else { // j === otherDataLength
+        newData.push(data[j]);
+        i++;
+      }
+    }
 
     return new Dataset({
       keys,

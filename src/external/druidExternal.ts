@@ -1566,7 +1566,7 @@ export class DruidExternal extends External {
             let filteredExternal = new DruidExternal(ex2Value);
 
             return External.buildValueFromStream(filteredExternal.queryBasicValueStream(rawQueries)).then(pv2 => {
-              return ds1.join(pv2 as Dataset);
+              return ds1.leftJoin(pv2 as Dataset);
             });
           })
         );
@@ -1581,7 +1581,7 @@ export class DruidExternal extends External {
             let ds2 = pv2 as Dataset;
 
             const { timeShift } = decomposed;
-            if (timeShift) {
+            if (timeShift && ds2.data.length) {
               const timeLabel = ds2.keys[0];
               const timeShiftDuration = timeShift.duration;
               const timeShiftTimezone = timeShift.timezone;
@@ -1595,7 +1595,7 @@ export class DruidExternal extends External {
               }, 'TIME_RANGE');
             }
 
-            return ds1.join(ds2);
+            return ds1.fullJoin(ds2, (a: TimeRange, b: TimeRange) => a.start.valueOf() - b.start.valueOf());
           })
         );
       }
