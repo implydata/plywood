@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.3
+
+- Shortcut to decompose certain compare type queries
+
 ## 0.19.2
 
 - Handle concat with different expressions
