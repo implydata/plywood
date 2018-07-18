@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.4
+
+- Changed how concat is calculated in Druid to me more efficient
+
 ## 0.19.3
 
 - Shortcut to decompose certain compare type queries

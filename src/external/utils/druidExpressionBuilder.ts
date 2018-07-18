@@ -211,6 +211,12 @@ export class DruidExpressionBuilder {
 
       } else if (expression instanceof ChainableUnaryExpression) {
         const myExpression = expression.expression;
+
+        if (expression instanceof ConcatExpression) {
+          this.checkDruid11('concat');
+          return 'concat(' + expression.getExpressionList().map(ex => this.expressionToDruidExpression(ex)).join(',') + ')';
+        }
+
         const ex2 = this.expressionToDruidExpression(myExpression);
 
         if (expression instanceof AddExpression) {
@@ -238,24 +244,6 @@ export class DruidExpressionBuilder {
           if (myLiteral === Math.E) return `log(${ex1})`;
           if (myLiteral === 10) return `log10(${ex1})`;
           return `log(${ex1})/log(${ex2})`;
-
-        } else if (expression instanceof ConcatExpression) {
-          this.checkDruid11('concat');
-          const ex1Nullable = this.isNullable(myOperand);
-          const ex2Nullable = this.isNullable(myExpression);
-          if (ex1Nullable) {
-            if (ex2Nullable) {
-              return `if(${ex1}!=''&&${ex2}!='',concat(${ex1},${ex2}),null)`;
-            } else {
-              return `if(${ex1}!='',concat(${ex1},${ex2}),null)`;
-            }
-          } else {
-            if (ex2Nullable) {
-              return `if(${ex2}!='',concat(${ex1},${ex2}),null)`;
-            } else {
-              return `concat(${ex1},${ex2})`;
-            }
-          }
 
         } else if (expression instanceof ThenExpression) {
           return `if(${ex1},${ex2},'')`;
@@ -332,10 +320,6 @@ export class DruidExpressionBuilder {
     } else {
       return endExpression ? endExpression : 'true';
     }
-  }
-
-  private isNullable(ex: Expression): boolean {
-    return !(ex instanceof FallbackExpression || ex instanceof LiteralExpression);
   }
 
   private checkDruid11(expr: string): void {

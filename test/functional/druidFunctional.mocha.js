@@ -1952,7 +1952,7 @@ describe("Druid Functional", function() {
 
     it('works name reassignment', () => {
       let ex = $('wiki')
-        .split('$cityName ++ $countryIsoCode', 'cityName')
+        .split('$cityName.fallback("NA") ++ "-" ++ $countryIsoCode.fallback("NA")', 'cityName')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(3);
@@ -1961,16 +1961,16 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "Count": 371151,
-              "cityName": null
+              "Count": 354931,
+              "cityName": "NA-NA"
             },
             {
-              "Count": 460,
-              "cityName": "TokyoJP"
+              "Count": 1033,
+              "cityName": "NA-IT"
             },
             {
-              "Count": 425,
-              "cityName": "Central DistrictHK"
+              "Count": 942,
+              "cityName": "NA-JP"
             }
           ]);
         });

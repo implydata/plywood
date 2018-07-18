@@ -1057,13 +1057,13 @@ describe("Cross Functional", function() {
 
     it('works with concat/substr in split', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
-      expression: $('wiki').split('$channel ++ $page.substr(0,2)', 'Concat')
+      expression: $('wiki').split('$channel ++ "-" ++ $page.substr(0,2)', 'Concat')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(5)
     }));
 
-    it('works with concat with nulls in split', equalityTest({
+    it.skip('works with concat with nulls in split', equalityTest({ // ToDo: add when nullHandling in enabled
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').split('$cityName ++ ", " ++ $countryName', 'Concat')
         .apply('Count', '$wiki.sum($count)')
@@ -1071,7 +1071,7 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
-    it('works with concat with nulls with fallback in split (1)', equalityTest({
+    it.skip('works with concat with nulls with fallback in split (1)', equalityTest({ // ToDo: add when nullHandling in enabled
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').split('$cityName.fallback("NOPE") ++ ", " ++ $countryName', 'Concat')
         .apply('Count', '$wiki.sum($count)')
@@ -1079,7 +1079,7 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
-    it('works with concat with nulls with fallback in split (2)', equalityTest({
+    it.skip('works with concat with nulls with fallback in split (2)', equalityTest({ // ToDo: add when nullHandling in enabled
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: $('wiki').split('$cityName ++ ", " ++ $countryName.fallback("NOPE")', 'Concat')
         .apply('Count', '$wiki.sum($count)')

@@ -1127,7 +1127,7 @@ describe("DruidExternal", () => {
       expect(query.queryType).to.equal('topN');
       expect(query.virtualColumns).to.deep.equal([
         {
-          "expression": "if(if(\"language\"!='',concat(\"language\",','),null)!=''&&\"page\"!='',concat(if(\"language\"!='',concat(\"language\",','),null),\"page\"),null)",
+          "expression": "concat(\"language\",',',\"page\")",
           "name": "v:Split",
           "outputType": "STRING",
           "type": "expression"
