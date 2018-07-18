@@ -377,7 +377,7 @@ export class DruidFilterBuilder {
     if (rhs instanceof LiteralExpression) {
       let attributeInfo = this.getSingleReferenceAttributeInfo(lhs);
       if (!attributeInfo) {
-        return this.makeExpressionFilter(lhs.contains(rhs));
+        return this.makeExpressionFilter(lhs.contains(rhs, compare));
       }
 
       if (lhs instanceof RefExpression && attributeInfo.termsDelegate) {

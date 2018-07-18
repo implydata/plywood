@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.5
+
+- Support contains on Druid expressions
+
 ## 0.19.4
 
 - Changed how concat is calculated in Druid to me more efficient

@@ -562,6 +562,24 @@ describe("Cross Functional", function() {
         .limit(5)
     }));
 
+    it('works with concat / contains in filter', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      expression: $('wiki').filter('$channel.concat(", ").concat($namespace).contains("ma")')
+        .split('$channel.concat(", ").concat($namespace)', 'SPLIT')
+        .apply('Count', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with concat / contains(ignoreCase) in filter', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      expression: $('wiki').filter('$channel.concat(", ").concat($namespace).contains("ma", "ignoreCase")')
+        .split('$channel.concat(", ").concat($namespace)', 'SPLIT')
+        .apply('Count', '$wiki.sum($added)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
     it('works with sub-query filter', equalityTest({
       executorNames: ['druid', 'druidLegacy', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').filter('$commentLength > $wiki.average($commentLength)')

@@ -31,6 +31,7 @@ import {
   LookupExpression,
   NumberBucketExpression,
   OverlapExpression,
+  ContainsExpression,
   r,
   RefExpression,
   SubstrExpression,
@@ -95,6 +96,10 @@ export class DruidExpressionBuilder {
     } else {
       return `'${DruidExpressionBuilder.escape(String(x))}'`;
     }
+  }
+
+  static escapeLike(str: string): string {
+    return str.replace(/([%_\\])/g, '\\$1');
   }
 
   static expressionTypeToOutputType(type: PlyType): Druid.OutputType {
@@ -168,6 +173,21 @@ export class DruidExpressionBuilder {
       } else if (expression instanceof MatchExpression) {
         this.checkDruid11('regexp_extract');
         return `(regexp_extract(${ex1},${DruidExpressionBuilder.escapeLiteral(expression.regexp)})!='')`;
+
+      } else if (expression instanceof ContainsExpression) {
+        const needle = expression.expression;
+        if (needle instanceof LiteralExpression) {
+          const needleValue = DruidExpressionBuilder.escape(DruidExpressionBuilder.escapeLike(needle.value));
+          if (expression.compare === ContainsExpression.IGNORE_CASE) {
+            this.checkDruid11('lower');
+            return `like(lower(${ex1}),'%${needleValue.toLowerCase()}%','\\')`;
+          } else {
+            return `like(${ex1},'%${needleValue}%','\\')`;
+          }
+
+        } else {
+          throw new Error(`can not plan ${expression} into Druid`);
+        }
 
       } else if (expression instanceof LengthExpression) {
         this.checkDruid11('strlen');
