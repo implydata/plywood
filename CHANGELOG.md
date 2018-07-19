@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.7
+
+- Fix previous NPE for real
+
 ## 0.19.6
 
 - Fix NPE
