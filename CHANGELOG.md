@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.6
+
+- Fix NPE
+
 ## 0.19.5
 
 - Support contains on Druid expressions

@@ -1471,7 +1471,7 @@ export class DruidExternal extends External {
       }
     }
 
-    if (constantApplies.length) {
+    if (groups && constantApplies.length) {
       groups[0].unfilteredApplies.push(...constantApplies);
     }
 
