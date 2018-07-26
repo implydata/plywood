@@ -278,7 +278,12 @@ export class DruidFilterBuilder {
       return { type: "or", fields };
     }
 
-    let extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+    let extractionFn: Druid.ExtractionFn;
+    try {
+      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+    } catch {
+      return this.makeExpressionFilter(ex.is(r(valueSet)));
+    }
 
     let inFilter: Druid.Filter = {
       type: 'in',

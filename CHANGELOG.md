@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.8
+
+- Fix `in` filtering on fancy lookup expressions
+
 ## 0.19.7
 
 - Fix previous NPE for real

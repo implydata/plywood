@@ -1251,6 +1251,27 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with fancy lookup filter", () => {
+      let ex = ply()
+        .apply('wiki', $('wiki').filter(
+          $('channel')
+            .lookup('channel-lookup')
+            .fallback('"???"')
+            .concat(r(' ('), '$channel', r(')'))
+            .in(["English (en)", "German (de)"])
+        ))
+        .apply('Count', '$wiki.sum($count)');
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Count": 114711
+            }
+          ]);
+        });
+    });
+
     it("works with split on a SET/STRING dimension", () => {
       let ex = ply()
         .apply(
