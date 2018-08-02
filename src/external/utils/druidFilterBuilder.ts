@@ -400,7 +400,7 @@ export class DruidFilterBuilder {
       try {
         extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(lhs);
       } catch {
-        return this.makeExpressionFilter(lhs.contains(rhs));
+        return this.makeExpressionFilter(lhs.contains(rhs, compare));
       }
 
       let searchFilter: Druid.Filter = {

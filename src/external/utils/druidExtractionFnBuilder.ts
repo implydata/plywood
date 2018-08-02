@@ -235,8 +235,8 @@ export class DruidExtractionFnBuilder {
       if (ex instanceof LiteralExpression) {
         return ex.value.replace(/%/g, '\\%');
       }
-      if (innerExpression && !innerExpression.equals(ex)) {
-        throw new Error(`can not have multiple expressions '${innerExpression}' and '${ex}' in concat '${expression}'`);
+      if (innerExpression) {
+        throw new Error(`can not have multiple expressions in concat '${expression}'`);
       }
       innerExpression = ex;
       return '%s';

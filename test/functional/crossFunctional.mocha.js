@@ -42,10 +42,10 @@ let postgresRequester = postgresRequesterFactory({
   password: info.postgresPassword
 });
 
-druidRequester = verboseRequesterFactory({
-  //onSuccess: () => {},
-  requester: druidRequester
-});
+// druidRequester = verboseRequesterFactory({
+//   //onSuccess: () => {},
+//   requester: druidRequester
+// });
 // mySqlRequester = verboseRequesterFactory({
 //   requester: mySqlRequester
 // });
@@ -299,6 +299,14 @@ describe("Cross Functional", function() {
       executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
       expression: ply()
         .apply('wiki', '$wiki.filter(("[" ++ $cityName ++ "]").contains("[san", "ignoreCase"))')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
+    it('works with .concat().concat().contains() filter fancy', equalityTest({
+      executorNames: ['druid', 'mysql', 'postgres'], // 'druidSql'
+      expression: ply()
+        .apply('wiki', '$wiki.filter(($cityName ++ " - " ++ $cityName).contains("san", "ignoreCase"))')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
@@ -1083,6 +1091,14 @@ describe("Cross Functional", function() {
     it('works with concat/substr in split', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split('$channel ++ "-" ++ $page.substr(0,2)', 'Concat')
+        .apply('Count', '$wiki.sum($count)')
+        .sort('$Count', 'descending')
+        .limit(5)
+    }));
+
+    it('works with concat to self in split', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split('$channel ++ "-" ++ $channel', 'Concat')
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
         .limit(5)

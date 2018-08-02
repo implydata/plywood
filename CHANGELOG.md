@@ -3,6 +3,8 @@
 ## 0.19.9
 
 - Support Druid timeseries sorted descending
+- Fixed Druid planning bug where contains case insensitivity preference would be swallowed up when LHS is a concatenation over a single dimension
+- Fixed Druid planning bug with concatenating a dimension to itself
 
 ## 0.19.8
 
