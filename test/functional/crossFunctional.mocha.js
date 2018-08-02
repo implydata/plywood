@@ -42,10 +42,10 @@ let postgresRequester = postgresRequesterFactory({
   password: info.postgresPassword
 });
 
-// druidRequester = verboseRequesterFactory({
-//   //onSuccess: () => {},
-//   requester: druidRequester
-// });
+druidRequester = verboseRequesterFactory({
+  //onSuccess: () => {},
+  requester: druidRequester
+});
 // mySqlRequester = verboseRequesterFactory({
 //   requester: mySqlRequester
 // });
@@ -842,13 +842,20 @@ describe("Cross Functional", function() {
         .limit(20)
     }));
 
-    it('works with TIME split (timeFloor) (sort on split)', equalityTest({
+    it('works with TIME split (timeFloor) (sort on split / ascending)', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: $('wiki').split($('__time').timeFloor('PT1H', 'Etc/UTC'), 'TimeFloorHour')
         .apply('TotalEdits', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
         .sort('$TimeFloorHour', 'ascending')
-        .limit(20)
+    }));
+
+    it('works with TIME split (timeFloor) (sort on split / descending)', equalityTest({
+      executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+      expression: $('wiki').split($('__time').timeFloor('PT1H', 'Etc/UTC'), 'TimeFloorHour')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .sort('$TimeFloorHour', 'descending')
     }));
 
     it('works with TIME split (timeBucket) (sort on split)', equalityTest({

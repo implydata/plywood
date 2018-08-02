@@ -150,7 +150,6 @@ export class DruidExternal extends External {
 
   static isTimestampCompatibleSort(sort: SortExpression, label: string): boolean {
     if (!sort) return true;
-    if (sort.direction !== 'ascending') return false;
 
     const sortExpression = sort.expression;
     if (sortExpression instanceof RefExpression) {
@@ -1267,8 +1266,11 @@ export class DruidExternal extends External {
         // Combine
         switch (druidQuery.queryType) {
           case 'timeseries':
-            if (sort && (sort.direction !== 'ascending' || !split.hasKey(sort.refName()))) {
-              throw new Error('can not sort within timeseries query');
+            if (sort) {
+              if (!split.hasKey(sort.refName())) {
+                throw new Error('can not sort within timeseries query');
+              }
+              if (sort.direction === 'descending') druidQuery.descending = true;
             }
             if (limit) {
               throw new Error('can not limit within timeseries query');

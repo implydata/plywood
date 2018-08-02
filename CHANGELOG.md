@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.9
+
+- Support Druid timeseries sorted descending
+
 ## 0.19.8
 
 - Fix `in` filtering on fancy lookup expressions
