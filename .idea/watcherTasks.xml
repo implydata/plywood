@@ -4,7 +4,7 @@
     <TaskOptions isEnabled="true">
       <option name="arguments" value="" />
       <option name="checkSyntaxErrors" value="true" />
-      <option name="description" value="Compiles .ts files into .js files" />
+      <option name="description" />
       <option name="exitCodeBehavior" value="ERROR" />
       <option name="fileExtension" value="ts" />
       <option name="immediateSync" value="false" />
@@ -13,14 +13,15 @@
       <option name="outputFilters">
         <array>
           <FilterInfo>
-            <option name="description" value="tsc error format" />
-            <option name="name" value="tsc" />
+            <option name="description" value="" />
+            <option name="name" value="" />
             <option name="regExp" value="$FILE_PATH$\($LINE$,$COLUMN$\): $MESSAGE$$" />
           </FilterInfo>
         </array>
       </option>
       <option name="outputFromStdout" value="false" />
       <option name="program" value="$ProjectFileDir$/script/compile-tsc" />
+      <option name="runOnExternalChanges" value="true" />
       <option name="scopeName" value="Source Files" />
       <option name="trackOnlyRoot" value="true" />
       <option name="workingDir" value="$ProjectFileDir$" />
@@ -40,6 +41,7 @@
       </option>
       <option name="outputFromStdout" value="false" />
       <option name="program" value="$ProjectFileDir$/script/compile-pegjs" />
+      <option name="runOnExternalChanges" value="true" />
       <option name="scopeName" value="PEG.js Files" />
       <option name="trackOnlyRoot" value="false" />
       <option name="workingDir" value="$ProjectFileDir$" />

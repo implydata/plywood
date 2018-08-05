@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.10
+
+- Fix totals calculation for resplit measures
+
 ## 0.19.9
 
 - Support Druid timeseries sorted descending

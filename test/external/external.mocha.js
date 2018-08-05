@@ -1091,9 +1091,9 @@ describe("External", () => {
           .apply('CountX3', '$wiki.count() * 3')
           .apply('AddedPlusDeleted', '$wiki.sum($added) + $wiki.sum($deleted)')
           .apply("Six", 6)
-          .apply('AddedUsPlusDeleted', '$wiki.filter($page == USA).sum($added) + $wiki.sum($deleted)')
+          .apply('AddedUsPlusDeleted', '$wiki.filter($page == USA).sum($added) + $wiki.sum($deleted)');
           //.apply('CountX3Plus5', '$CountX3 + 5');
-          .apply('MinSum', '$wiki.split($user, Blah).apply(Added, $wiki.sum($added)).min($Added)');
+          //.apply('MinSum', '$wiki.split($user, Blah).apply(Added, $wiki.sum($added)).min($Added)');
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -1102,7 +1102,7 @@ describe("External", () => {
         expect(ex.value.data[0]['Six']).to.equal(6);
 
         let readyExternals = ex.value.getReadyExternals();
-        expect(readyExternals.length).to.equal(2);
+        expect(readyExternals.length).to.equal(1);
 
         let external0 = readyExternals[0].external;
 
@@ -1123,16 +1123,6 @@ describe("External", () => {
           { name: "AddedUsPlusDeleted", "type": "NUMBER" },
           //{ name: "CountX3Plus5", "type": "NUMBER" }
         ]);
-
-        let external1 = readyExternals[1].expressionAlterations[1].external;
-
-        expect(external1.filter.toString()).to.equal(sane`
-          $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
-        `);
-
-        expect(external1.applies.join('\n')).to.equal(sane`
-          $_.apply(Added,$wiki:DATASET.sum($added:NUMBER))
-        `);
       });
 
     });

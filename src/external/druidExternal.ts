@@ -914,13 +914,14 @@ export class DruidExternal extends External {
     };
 
     const { applies, split } = this;
-    const possibleResplits = applies.map(parseResplitAgg);
+    const effectiveApplies = applies ? applies : [Expression._.apply('__VALUE__', this.valueExpression)];
+    const possibleResplits = effectiveApplies.map(parseResplitAgg);
     const resplits = possibleResplits.filter(Boolean);
     if (!resplits.length) return null;
     if (!allEqual(resplits.map(r => r.resplitSplit))) throw new Error('all resplit aggregators must have the same split');
     const resplit = resplits[0];
 
-    const normalApplies = this.applies.filter((a, i) => !possibleResplits[i]);
+    const normalApplies = effectiveApplies.filter((a, i) => !possibleResplits[i]);
 
     const outerAttributes: Attributes = [];
     const outerSplits: Splits = {};
@@ -929,11 +930,13 @@ export class DruidExternal extends External {
     let splitCount = 0;
     resplit.resplitSplit.mapSplits((name, ex) => {
       let outerSplitName = null;
-      split.mapSplits((name, myEx) => {
-        if (ex.equals(myEx)) {
-          outerSplitName = name;
-        }
-      });
+      if (split) {
+        split.mapSplits((name, myEx) => {
+          if (ex.equals(myEx)) {
+            outerSplitName = name;
+          }
+        });
+      }
 
       const intermediateName = `s${splitCount++}`;
       const divvy = divvyUpNestedSplitExpression(ex, intermediateName);
@@ -944,14 +947,16 @@ export class DruidExternal extends External {
       }
     });
 
-    split.mapSplits((name, ex) => {
-      if (outerSplits[name]) return; // already taken care of
-      const intermediateName = `s${splitCount++}`;
-      const divvy = divvyUpNestedSplitExpression(ex, intermediateName);
-      innerSplits[intermediateName] = divvy.inner;
-      outerAttributes.push(AttributeInfo.fromJS({ name: intermediateName, type: divvy.inner.type }));
-      outerSplits[name] = divvy.outer;
-    });
+    if (split) {
+      split.mapSplits((name, ex) => {
+        if (outerSplits[name]) return; // already taken care of
+        const intermediateName = `s${splitCount++}`;
+        const divvy = divvyUpNestedSplitExpression(ex, intermediateName);
+        innerSplits[intermediateName] = divvy.inner;
+        outerAttributes.push(AttributeInfo.fromJS({ name: intermediateName, type: divvy.inner.type }));
+        outerSplits[name] = divvy.outer;
+      });
+    }
 
     const innerApplies: ApplyExpression[] = [];
     const outerApplies = normalApplies.map((apply, i) => {
@@ -995,9 +1000,10 @@ export class DruidExternal extends External {
 
     // INNER
     const innerValue = this.valueOf();
+    innerValue.mode = 'split';
     innerValue.applies = innerApplies;
     innerValue.querySelection = 'group-by-only';
-    innerValue.split = split.changeSplits(innerSplits);
+    innerValue.split = split ? split.changeSplits(innerSplits) : Expression._.split(innerSplits);
     innerValue.limit = null;
     innerValue.sort = null;
     const innerExternal = new DruidExternal(innerValue);
@@ -1007,11 +1013,15 @@ export class DruidExternal extends External {
     // OUTER
     const outerValue = this.valueOf();
     outerValue.rawAttributes = outerAttributes;
-    outerValue.applies = outerApplies;
+    if (applies) {
+      outerValue.applies = outerApplies;
+    } else {
+      outerValue.valueExpression = outerApplies[0].expression;
+    }
     outerValue.filter = Expression.TRUE;
     outerValue.allowEternity = true;
     outerValue.querySelection = 'group-by-only';
-    outerValue.split = split.changeSplits(outerSplits);
+    if (split) outerValue.split = split.changeSplits(outerSplits);
     const outerExternal = new DruidExternal(outerValue);
 
     // Put it together
@@ -1024,12 +1034,14 @@ export class DruidExternal extends External {
   }
 
   public getQueryAndPostTransform(): QueryAndPostTransform<Druid.Query> {
-    const { mode, applies, sort, limit, context } = this;
+    const { mode, applies, sort, limit, context, querySelection } = this;
 
-    if (mode === 'total' && applies && applies.length && applies.every(apply => this.isMinMaxTimeExpression(apply.expression))) {
-      return this.getTimeBoundaryQueryAndPostTransform();
-    } else if (mode === 'value' && this.isMinMaxTimeExpression(this.valueExpression)) {
-      return this.getTimeBoundaryQueryAndPostTransform();
+    if (querySelection !== 'group-by-only') {
+      if (mode === 'total' && applies && applies.length && applies.every(apply => this.isMinMaxTimeExpression(apply.expression))) {
+        return this.getTimeBoundaryQueryAndPostTransform();
+      } else if (mode === 'value' && this.isMinMaxTimeExpression(this.valueExpression)) {
+        return this.getTimeBoundaryQueryAndPostTransform();
+      }
     }
 
     let druidQuery: Druid.Query = {
@@ -1202,12 +1214,20 @@ export class DruidExternal extends External {
         };
 
       case 'value':
+        const nestedGroupByValue = this.nestedGroupByIfNeeded();
+        if (nestedGroupByValue) return nestedGroupByValue;
+
         aggregationsAndPostAggregations = new DruidAggregationBuilder(this).makeAggregationsAndPostAggregations([this.toValueApply()]);
         if (aggregationsAndPostAggregations.aggregations.length) {
           druidQuery.aggregations = aggregationsAndPostAggregations.aggregations;
         }
         if (aggregationsAndPostAggregations.postAggregations.length) {
           druidQuery.postAggregations = aggregationsAndPostAggregations.postAggregations;
+        }
+
+        if (querySelection === 'group-by-only') {
+          druidQuery.queryType = 'groupBy';
+          druidQuery.dimensions = [];
         }
 
         return {
@@ -1226,6 +1246,11 @@ export class DruidExternal extends External {
         }
         if (aggregationsAndPostAggregations.postAggregations.length) {
           druidQuery.postAggregations = aggregationsAndPostAggregations.postAggregations;
+        }
+
+        if (querySelection === 'group-by-only') {
+          druidQuery.queryType = 'groupBy';
+          druidQuery.dimensions = [];
         }
 
         return {

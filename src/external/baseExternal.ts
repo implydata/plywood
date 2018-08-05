@@ -1326,6 +1326,25 @@ export abstract class External {
   }
 
   private _addAggregateExpression(aggregate: Expression): External {
+    if (this.mode === 'split') {
+      if (aggregate.type !== 'NUMBER') return null; // Only works for numbers, avoids 'collect'
+      // This is in case of a resplit that needs to be folded
+
+      let valueExpression = $(External.SEGMENT_NAME, 'DATASET').performAction(this.split.getAction());
+      this.applies.forEach((apply) => {
+        valueExpression = valueExpression.performAction(apply.getAction());
+      });
+      valueExpression = valueExpression.performAction(aggregate);
+
+      let value = this.valueOf();
+      value.mode = 'value';
+      value.suppress = false;
+      value.valueExpression = valueExpression;
+      value.attributes = null;
+      value.delegates = nullMap(value.delegates, (e) => e._addAggregateExpression(aggregate));
+      return External.fromValue(value);
+    }
+
     if (this.mode !== 'raw' || this.limit) return null; // Can not value aggregate something with a limit
     if (aggregate instanceof ChainableExpression) {
       if (aggregate instanceof ChainableUnaryExpression) {

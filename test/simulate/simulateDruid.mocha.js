@@ -2225,7 +2225,145 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it("makes a re-split query", () => {
+  it("makes a re-split value query", () => {
+    let ex = ply()
+      .apply('Quantile', $('diamonds').split('$time.timeBucket(PT5M)', 'S').apply('C', '$diamonds.sum($price)').quantile('$C', 0.95));
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldName": "C_0",
+            "name": "!H___VALUE__",
+            "type": "approxHistogram"
+          }
+        ],
+        "dataSource": {
+          "query": {
+            "aggregations": [
+              {
+                "fieldName": "price",
+                "name": "C_0",
+                "type": "doubleSum"
+              }
+            ],
+            "dataSource": "diamonds",
+            "dimensions": [
+              {
+                "dimension": "__time",
+                "extractionFn": {
+                  "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+                  "granularity": {
+                    "period": "PT5M",
+                    "timeZone": "Etc/UTC",
+                    "type": "period"
+                  },
+                  "timeZone": "Etc/UTC",
+                  "type": "timeFormat"
+                },
+                "outputName": "s0",
+                "type": "extraction"
+              }
+            ],
+            "granularity": "all",
+            "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+            "queryType": "groupBy"
+          },
+          "type": "query"
+        },
+        "dimensions": [],
+        "granularity": "all",
+        "intervals": "1000/3000",
+        "postAggregations": [
+          {
+            "fieldName": "!H___VALUE__",
+            "name": "__VALUE__",
+            "probability": 0.95,
+            "type": "quantile"
+          }
+        ],
+        "queryType": "groupBy"
+      }
+    ]);
+  });
+
+  it("makes a re-split total query", () => {
+    let ex = ply()
+      .apply('Count', $('diamonds').count())
+      .apply('Quantile', $('diamonds').split('$time.timeBucket(PT5M)', 'S').apply('C', '$diamonds.sum($price)').quantile('$C', 0.95));
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldName": "a0_0",
+            "name": "Count",
+            "type": "doubleSum"
+          },
+          {
+            "fieldName": "C_0",
+            "name": "!H_Quantile",
+            "type": "approxHistogram"
+          }
+        ],
+        "dataSource": {
+          "query": {
+            "aggregations": [
+              {
+                "name": "a0_0",
+                "type": "count"
+              },
+              {
+                "fieldName": "price",
+                "name": "C_0",
+                "type": "doubleSum"
+              }
+            ],
+            "dataSource": "diamonds-compact",
+            "dimensions": [
+              {
+                "dimension": "__time",
+                "extractionFn": {
+                  "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+                  "granularity": {
+                    "period": "PT5M",
+                    "timeZone": "Etc/UTC",
+                    "type": "period"
+                  },
+                  "timeZone": "Etc/UTC",
+                  "type": "timeFormat"
+                },
+                "outputName": "s0",
+                "type": "extraction"
+              }
+            ],
+            "granularity": "all",
+            "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+            "queryType": "groupBy"
+          },
+          "type": "query"
+        },
+        "dimensions": [],
+        "granularity": "all",
+        "intervals": "1000/3000",
+        "postAggregations": [
+          {
+            "fieldName": "!H_Quantile",
+            "name": "Quantile",
+            "probability": 0.95,
+            "type": "quantile"
+          }
+        ],
+        "queryType": "groupBy"
+      }
+    ]);
+  });
+
+  it("makes a re-split split query", () => {
     let ex = $('diamonds').split('$color', 'Color')
       .apply('TotalPrice', $('diamonds').sum('$price'))
       .apply('Quantile', $('diamonds').split('$time.timeBucket(PT5M)', 'S').apply('C', '$diamonds.sum($price)').quantile('$C', 0.95))

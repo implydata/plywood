@@ -2479,7 +2479,7 @@ describe("Druid Functional", function() {
           expect(result.toJS().data).to.deep.equal([
             {
               "Count": 392443,
-              "Quantile": 22373
+              "Quantile": 22238.2
             }
           ]);
         });

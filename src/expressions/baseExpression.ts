@@ -1002,15 +1002,15 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     };
   }
 
-  public abstract getFn(): ComputeFn
+  public abstract getFn(): ComputeFn;
 
   public fullyDefined(): boolean {
     return true;
   }
 
-  public abstract calc(datum: Datum): PlywoodValue
+  public abstract calc(datum: Datum): PlywoodValue;
 
-  public abstract getJS(datumVar: string): string
+  public abstract getJS(datumVar: string): string;
 
   public getJSFn(datumVar = 'd[]'): string {
     const { type } = this;
@@ -1024,7 +1024,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return `function(${datumVar.replace('[]', '')}){var _,_2;${body}}`;
   }
 
-  public abstract getSQL(dialect: SQLDialect): string
+  public abstract getSQL(dialect: SQLDialect): string;
 
   public extractFromAnd(matchFn: ExpressionMatchFn): ExtractAndRest {
     if (this.type !== 'BOOLEAN') return null;
