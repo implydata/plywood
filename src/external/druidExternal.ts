@@ -56,7 +56,6 @@ import { DruidExtractionFnBuilder } from './utils/druidExtractionFnBuilder';
 import { DruidFilterBuilder } from './utils/druidFilterBuilder';
 import { DruidHavingFilterBuilder } from './utils/druidHavingFilterBuilder';
 import { CustomDruidAggregations, CustomDruidTransforms } from './utils/druidTypes';
-import apply = Reflect.apply;
 
 export class InvalidResultError extends ExtendableError {
   public result: any;
