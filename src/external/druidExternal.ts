@@ -27,7 +27,7 @@ import {
   ApplyExpression,
   CardinalityExpression,
   ChainableExpression,
-  ChainableUnaryExpression, CountExpression,
+  ChainableUnaryExpression, CountExpression, CustomAggregateExpression,
   Expression, FallbackExpression,
   FilterExpression,
   InExpression,
@@ -847,14 +847,13 @@ export class DruidExternal extends External {
 
   public nestedGroupByIfNeeded(): QueryAndPostTransform<Druid.Query> | null {
     interface ParsedResplitAgg {
-      name: string;
       resplitAgg: ChainableExpression;
       resplitApply: ApplyExpression;
       resplitSplit: SplitExpression;
     }
 
-    const parseResplitAgg = (apply: ApplyExpression): ParsedResplitAgg | null => {
-      const resplitAgg = apply.expression;
+    const parseResplitAgg = (applyExpression: Expression): ParsedResplitAgg | null => {
+      const resplitAgg = applyExpression;
       if (!(resplitAgg instanceof ChainableExpression) || !resplitAgg.isAggregate()) return null;
 
       const resplitApply = resplitAgg.operand;
@@ -883,7 +882,6 @@ export class DruidExternal extends External {
       if (!(resplitRef instanceof RefExpression)) return null;
 
       return {
-        name: apply.name,
         resplitAgg: resplitAgg.changeOperand(Expression._),
         resplitApply: effectiveResplitApply,
         resplitSplit: resplitSplit.changeOperand(Expression._)
@@ -904,31 +902,72 @@ export class DruidExternal extends External {
       }
     };
 
-    const allEqual = (exs: Expression[]): boolean => {
-      if (exs.length < 2) return true;
-      const firstEx = exs[0];
-      for (let i = 1; i < exs.length; i++) {
-        if (!firstEx.equals(exs[i])) return false;
-      }
-      return true;
-    };
-
     const { applies, split } = this;
     const effectiveApplies = applies ? applies : [Expression._.apply('__VALUE__', this.valueExpression)];
-    const possibleResplits = effectiveApplies.map(parseResplitAgg);
-    const resplits = possibleResplits.filter(Boolean);
-    if (!resplits.length) return null;
-    if (!allEqual(resplits.map(r => r.resplitSplit))) throw new Error('all resplit aggregators must have the same split');
-    const resplit = resplits[0];
 
-    const normalApplies = effectiveApplies.filter((a, i) => !possibleResplits[i]);
+    // Check for early exit condition - if there are no applies with splits in them then there is nothing to do.
+    if (!effectiveApplies.some(apply => {
+      return apply.expression.some(ex => ex instanceof SplitExpression ? true : null);
+    })) return null;
 
+    // Split up applies
+    let globalResplitSplit: SplitExpression = null;
     const outerAttributes: Attributes = [];
+    const innerApplies: ApplyExpression[] = [];
+    const outerApplies = effectiveApplies.map((apply, i) => {
+      let c = 0;
+      return apply.changeExpression(apply.expression.substitute((ex) => {
+        if (ex.isAggregate()) {
+          const resplit = parseResplitAgg(ex);
+          if (resplit) {
+            if (globalResplitSplit) {
+              if (!globalResplitSplit.equals(resplit.resplitSplit)) throw new Error('all resplit aggregators must have the same split');
+            } else {
+              globalResplitSplit = resplit.resplitSplit;
+            }
+
+            const oldName = resplit.resplitApply.name;
+            const newName = oldName + '_' + i;
+
+            innerApplies.push(resplit.resplitApply.changeName(newName));
+            outerAttributes.push(AttributeInfo.fromJS({ name: newName, type: 'NUMBER' }));
+
+            return resplit.resplitAgg.substitute((ex) => {
+              if (ex instanceof RefExpression && ex.name === oldName) {
+                return ex.changeName(newName);
+              }
+              return null;
+            });
+          } else {
+            const tempName = `a${i}_${c++}`;
+            innerApplies.push(Expression._.apply(tempName, ex));
+            outerAttributes.push(AttributeInfo.fromJS({ name: tempName, type: ex.type }));
+
+            if (ex instanceof CountExpression) {
+              return Expression._.sum($(tempName));
+
+            } else if (ex instanceof ChainableUnaryExpression) {
+              return ex.changeOperand(Expression._).changeExpression($(tempName));
+
+            } else if (ex instanceof CustomAggregateExpression) {
+              throw new Error('can not currently combine custom aggregation and re-split');
+
+            } else {
+              throw new Error(`bad '${ex.op}' aggregate in custom expression`);
+            }
+          }
+        }
+        return null;
+      }));
+    });
+
+    if (!globalResplitSplit) return null;
+
     const outerSplits: Splits = {};
     const innerSplits: Splits = {};
 
     let splitCount = 0;
-    resplit.resplitSplit.mapSplits((name, ex) => {
+    globalResplitSplit.mapSplits((name, ex) => {
       let outerSplitName = null;
       if (split) {
         split.mapSplits((name, myEx) => {
@@ -957,46 +996,6 @@ export class DruidExternal extends External {
         outerSplits[name] = divvy.outer;
       });
     }
-
-    const innerApplies: ApplyExpression[] = [];
-    const outerApplies = normalApplies.map((apply, i) => {
-      let c = 0;
-      return apply.changeExpression(apply.expression.substitute((ex) => {
-        if (ex.isAggregate()) {
-          const tempName = `a${i}_${c++}`;
-          innerApplies.push(Expression._.apply(tempName, ex));
-          outerAttributes.push(AttributeInfo.fromJS({ name: tempName, type: ex.type }));
-
-          if (ex instanceof CountExpression) {
-            return ex.operand.sum($(tempName));
-
-          } else if (ex instanceof ChainableUnaryExpression) {
-            return ex.changeExpression($(tempName));
-
-          } else {
-            throw new Error('should never get here ');
-          }
-        }
-        return null;
-      }));
-    });
-
-    // Add the resplit stuff
-    resplits.forEach((resplit, i) => {
-      const oldName = resplit.resplitApply.name;
-      const newName = oldName + '_' + i;
-
-      innerApplies.push(resplit.resplitApply.changeName(newName));
-      outerAttributes.push(AttributeInfo.fromJS({ name: newName, type: 'NUMBER' }));
-
-      const renamedResplitAgg = resplit.resplitAgg.substitute((ex) => {
-        if (ex instanceof RefExpression && ex.name === oldName) {
-          return ex.changeName(newName);
-        }
-        return null;
-      });
-      outerApplies.push(Expression._.apply(resplit.name, renamedResplitAgg));
-    });
 
     // INNER
     const innerValue = this.valueOf();

@@ -2305,7 +2305,7 @@ describe("simulate Druid", () => {
             "type": "doubleSum"
           },
           {
-            "fieldName": "C_0",
+            "fieldName": "C_1",
             "name": "!H_Quantile",
             "type": "approxHistogram"
           }
@@ -2319,7 +2319,7 @@ describe("simulate Druid", () => {
               },
               {
                 "fieldName": "price",
-                "name": "C_0",
+                "name": "C_1",
                 "type": "doubleSum"
               }
             ],
@@ -2381,7 +2381,7 @@ describe("simulate Druid", () => {
             "type": "doubleSum"
           },
           {
-            "fieldName": "C_0",
+            "fieldName": "C_1",
             "name": "!H_Quantile",
             "type": "approxHistogram"
           }
@@ -2396,7 +2396,7 @@ describe("simulate Druid", () => {
               },
               {
                 "fieldName": "price",
-                "name": "C_0",
+                "name": "C_1",
                 "type": "doubleSum"
               }
             ],
@@ -2454,6 +2454,165 @@ describe("simulate Druid", () => {
             "name": "Quantile",
             "probability": 0.95,
             "type": "quantile"
+          }
+        ],
+        "queryType": "groupBy"
+      }
+    ]);
+  });
+
+  it("makes a re-split split (complex) query", () => {
+    let ex = $('diamonds').split('$color', 'Color')
+      .apply('TotalPrice', $('diamonds').sum('$price'))
+      .apply('RedPrice', $('diamonds').filter('$color == "Red"').sum('$price'))
+      .apply('Quantile', $('diamonds').split('$time.timeBucket(PT5M)', 'S').apply('C', '$diamonds.sum($price)').quantile('$C', 0.95))
+      .apply('QuantileByRedPrice', $('diamonds').filter('$color == "Red"').sum('$price').divide($('diamonds').split('$time.timeBucket(PT5M)', 'S').apply('C', '$diamonds.sum($price)').quantile('$C', 0.95)))
+      .sort('$TotalPrice', 'descending')
+      .limit(10);
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldName": "a0_0",
+            "name": "TotalPrice",
+            "type": "doubleSum"
+          },
+          {
+            "fieldName": "a1_0",
+            "name": "RedPrice",
+            "type": "doubleSum"
+          },
+          {
+            "fieldName": "C_2",
+            "name": "!H_Quantile",
+            "type": "approxHistogram"
+          },
+          {
+            "fieldName": "a3_0",
+            "name": "!T_0",
+            "type": "doubleSum"
+          },
+          {
+            "fieldName": "C_3",
+            "name": "!H_!T_1",
+            "type": "approxHistogram"
+          }
+        ],
+        "dataSource": {
+          "query": {
+            "aggregations": [
+              {
+                "fieldName": "price",
+                "name": "a0_0",
+                "type": "doubleSum"
+              },
+              {
+                "aggregator": {
+                  "fieldName": "price",
+                  "name": "a1_0",
+                  "type": "doubleSum"
+                },
+                "filter": {
+                  "dimension": "color",
+                  "type": "selector",
+                  "value": "Red"
+                },
+                "name": "a1_0",
+                "type": "filtered"
+              },
+              {
+                "fieldName": "price",
+                "name": "C_2",
+                "type": "doubleSum"
+              },
+              {
+                "aggregator": {
+                  "fieldName": "price",
+                  "name": "a3_0",
+                  "type": "doubleSum"
+                },
+                "filter": {
+                  "dimension": "color",
+                  "type": "selector",
+                  "value": "Red"
+                },
+                "name": "a3_0",
+                "type": "filtered"
+              },
+              {
+                "fieldName": "price",
+                "name": "C_3",
+                "type": "doubleSum"
+              }
+            ],
+            "dataSource": "diamonds-compact",
+            "dimensions": [
+              {
+                "dimension": "__time",
+                "extractionFn": {
+                  "format": "yyyy-MM-dd'T'HH:mm:ss'Z",
+                  "granularity": {
+                    "period": "PT5M",
+                    "timeZone": "Etc/UTC",
+                    "type": "period"
+                  },
+                  "timeZone": "Etc/UTC",
+                  "type": "timeFormat"
+                },
+                "outputName": "s0",
+                "type": "extraction"
+              },
+              {
+                "dimension": "color",
+                "outputName": "s1",
+                "type": "default"
+              }
+            ],
+            "granularity": "all",
+            "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+            "queryType": "groupBy"
+          },
+          "type": "query"
+        },
+        "dimensions": [
+          {
+            "dimension": "s1",
+            "outputName": "Color",
+            "type": "default"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "1000/3000",
+        "limitSpec": {
+          "columns": [
+            {
+              "dimension": "TotalPrice",
+              "direction": "descending"
+            }
+          ],
+          "limit": 10,
+          "type": "default"
+        },
+        "postAggregations": [
+          {
+            "fieldName": "!H_Quantile",
+            "name": "Quantile",
+            "probability": 0.95,
+            "type": "quantile"
+          },
+          {
+            "fieldName": "!H_!T_1",
+            "name": "!T_1",
+            "probability": 0.95,
+            "type": "quantile"
+          },
+          {
+            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),0)",
+            "name": "QuantileByRedPrice",
+            "type": "expression"
           }
         ],
         "queryType": "groupBy"

@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.11
+
+- Allow re-splitting complex expressions
+
 ## 0.19.10
 
 - Fix totals calculation for resplit measures
