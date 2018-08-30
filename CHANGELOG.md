@@ -1,8 +1,12 @@
 # Change Log
 
-## 0.19.12
+## 0.19.13
 
 - Fix typo in `Dataset#fullJoin`
+
+## 0.19.12
+
+(publish error)
 
 ## 0.19.11
 
