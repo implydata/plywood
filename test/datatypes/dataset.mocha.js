@@ -21,7 +21,7 @@ const { testImmutableClass } = require("immutable-class-tester");
 
 const { sane } = require('../utils');
 const plywood = require('../plywood');
-const { Dataset, AttributeInfo, $, Set, r } = plywood;
+const { Dataset, AttributeInfo, $, Set, r, TimeRange } = plywood;
 
 describe("Dataset", () => {
   it("is immutable class", () => {
@@ -1570,4 +1570,214 @@ describe("Dataset", () => {
     });
 
   });
+
+  describe("#fullJoin", () => {
+    it("works on simple key values", () => {
+      function mkHour(s) {
+        const start = new Date(s);
+        const end = new Date(start.valueOf() + 60 * 60 * 1000);
+        return { type: 'TIME_RANGE', start, end };
+      }
+
+      let ds1 = Dataset.fromJS({
+        keys: ['__time'],
+        data: [
+          {
+            "count": 1,
+            "__time": mkHour("2018-08-28T12:00:00.000Z")
+          },
+          {
+            "count": 2,
+            "__time": mkHour("2018-08-28T13:00:00.000Z")
+          },
+          {
+            "count": 1,
+            "__time": mkHour("2018-08-28T14:00:00.000Z")
+          },
+          {
+            "count": 3,
+            "__time": mkHour("2018-08-28T15:00:00.000Z")
+          },
+          {
+            "count": 12,
+            "__time": mkHour("2018-08-28T17:00:00.000Z")
+          },
+          {
+            "count": 1,
+            "__time": mkHour("2018-08-28T18:00:00.000Z")
+          },
+          {
+            "count": 10,
+            "__time": mkHour("2018-08-28T20:00:00.000Z")
+          },
+          {
+            "count": 1,
+            "__time": mkHour("2018-08-28T22:00:00.000Z")
+          },
+          {
+            "count": 4,
+            "__time": mkHour("2018-08-28T23:00:00.000Z")
+          },
+          {
+            "count": 11,
+            "__time": mkHour("2018-08-29T00:00:00.000Z")
+          },
+          {
+            "count": 1,
+            "__time": mkHour("2018-08-29T01:00:00.000Z")
+          },
+          {
+            "count": 3,
+            "__time": mkHour("2018-08-29T02:00:00.000Z")
+          },
+          {
+            "count": 5,
+            "__time": mkHour("2018-08-29T03:00:00.000Z")
+          }
+        ]
+      });
+
+      let ds2 = Dataset.fromJS({
+        keys: ['__time'],
+        data: [
+          {
+            "_cmp_count": 2,
+            "__time": mkHour("2018-08-28T15:00:00.000Z")
+          },
+          {
+            "_cmp_count": 4,
+            "__time": mkHour("2018-08-28T17:00:00.000Z")
+          },
+          {
+            "_cmp_count": 2,
+            "__time": mkHour("2018-08-28T20:00:00.000Z")
+          },
+          {
+            "_cmp_count": 4,
+            "__time": mkHour("2018-08-28T22:00:00.000Z")
+          },
+          {
+            "_cmp_count": 6,
+            "__time": mkHour("2018-08-28T23:00:00.000Z")
+          },
+          {
+            "_cmp_count": 3,
+            "__time": mkHour("2018-08-29T00:00:00.000Z")
+          },
+          {
+            "_cmp_count": 1,
+            "__time": mkHour("2018-08-29T01:00:00.000Z")
+          },
+          {
+            "_cmp_count": 1,
+            "__time": mkHour("2018-08-29T02:00:00.000Z")
+          }
+        ]
+      });
+
+
+      expect(ds1.fullJoin(ds2, (a, b) => a.start.valueOf() - b.start.valueOf()).toJS().data).to.deep.equal([
+        {
+          "__time": {
+            "end": new Date('2018-08-28T13:00:00.000Z'),
+            "start": new Date('2018-08-28T12:00:00.000Z')
+          },
+          "count": 1
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-28T14:00:00.000Z'),
+            "start": new Date('2018-08-28T13:00:00.000Z')
+          },
+          "count": 2
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-28T15:00:00.000Z'),
+            "start": new Date('2018-08-28T14:00:00.000Z')
+          },
+          "count": 1
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-28T16:00:00.000Z'),
+            "start": new Date('2018-08-28T15:00:00.000Z')
+          },
+          "_cmp_count": 2,
+          "count": 3
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-28T18:00:00.000Z'),
+            "start": new Date('2018-08-28T17:00:00.000Z')
+          },
+          "_cmp_count": 4,
+          "count": 12
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-28T19:00:00.000Z'),
+            "start": new Date('2018-08-28T18:00:00.000Z')
+          },
+          "count": 1
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-28T21:00:00.000Z'),
+            "start": new Date('2018-08-28T20:00:00.000Z')
+          },
+          "_cmp_count": 2,
+          "count": 10
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-28T23:00:00.000Z'),
+            "start": new Date('2018-08-28T22:00:00.000Z')
+          },
+          "_cmp_count": 4,
+          "count": 1
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-29T00:00:00.000Z'),
+            "start": new Date('2018-08-28T23:00:00.000Z')
+          },
+          "_cmp_count": 6,
+          "count": 4
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-29T01:00:00.000Z'),
+            "start": new Date('2018-08-29T00:00:00.000Z')
+          },
+          "_cmp_count": 3,
+          "count": 11
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-29T02:00:00.000Z'),
+            "start": new Date('2018-08-29T01:00:00.000Z')
+          },
+          "_cmp_count": 1,
+          "count": 1
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-29T03:00:00.000Z'),
+            "start": new Date('2018-08-29T02:00:00.000Z')
+          },
+          "_cmp_count": 1,
+          "count": 3
+        },
+        {
+          "__time": {
+            "end": new Date('2018-08-29T04:00:00.000Z'),
+            "start": new Date('2018-08-29T03:00:00.000Z')
+          },
+          "count": 5
+        }
+      ]);
+    });
+  });
+
 });

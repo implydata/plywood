@@ -1076,7 +1076,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
         newData.push(otherData[j]);
         j++;
       } else { // j === otherDataLength
-        newData.push(data[j]);
+        newData.push(data[i]);
         i++;
       }
     }

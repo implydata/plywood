@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.12
+
+- Fix typo in `Dataset#fullJoin`
+
 ## 0.19.11
 
 - Allow re-splitting complex expressions
