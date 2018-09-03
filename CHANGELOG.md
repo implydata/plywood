@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.14
+
+- Send less javascript to Druid
+
 ## 0.19.13
 
 - Fix typo in `Dataset#fullJoin`

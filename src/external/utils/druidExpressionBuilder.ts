@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { NumberRange, Set, StringRange } from '../../datatypes';
+import { NamedArray } from 'immutable-class';
+import { AttributeInfo, NumberRange, Set, StringRange } from '../../datatypes';
 import { TimeRange } from '../../datatypes/index';
 import {
   $,
@@ -59,6 +60,7 @@ import { External } from '../baseExternal';
 
 export interface DruidExpressionBuilderOptions {
   version: string;
+  rawAttributes: AttributeInfo[];
   timeAttribute: string;
 }
 
@@ -118,10 +120,12 @@ export class DruidExpressionBuilder {
   }
 
   public version: string;
+  public rawAttributes: AttributeInfo[];
   public timeAttribute: string;
 
   constructor(options: DruidExpressionBuilderOptions) {
     this.version = options.version;
+    this.rawAttributes = options.rawAttributes;
     this.timeAttribute = options.timeAttribute;
   }
 
@@ -138,6 +142,9 @@ export class DruidExpressionBuilder {
           case 'number':
             return String(literalValue);
 
+          case 'boolean':
+            return String(Number(literalValue));
+
           default:
             return `no_such_type`;
         }
@@ -147,7 +154,18 @@ export class DruidExpressionBuilder {
       if (expression.name === this.timeAttribute) {
         return '__time';
       } else {
-        return DruidExpressionBuilder.escapeVariable(expression.name);
+        let exStr = DruidExpressionBuilder.escapeVariable(expression.name);
+
+        const info = this.getAttributesInfo(expression.name);
+        if (info) {
+          if (info.nativeType === 'STRING') {
+            if (info.type === 'TIME') {
+              exStr = this.castToType(exStr, info.nativeType, info.type);
+            }
+          }
+        }
+
+        return exStr;
       }
 
     } else if (expression instanceof ChainableExpression) {
@@ -155,12 +173,7 @@ export class DruidExpressionBuilder {
       const ex1 = this.expressionToDruidExpression(myOperand);
 
       if (expression instanceof CastExpression) {
-        switch (expression.outputType) {
-          case 'TIME': return `timestamp(${ex1})`;
-          case 'STRING': return `cast(${ex1},'STRING')`;
-          case 'NUMBER': return `cast(${ex1},'DOUBLE')`;
-          default: throw new Error(`cast to ${expression.outputType} not implemented yet`);
-        }
+        return this.castToType(ex1, expression.operand.type, expression.outputType);
 
       } else if (expression instanceof SubstrExpression) {
         this.checkDruid11('substring');
@@ -325,6 +338,26 @@ export class DruidExpressionBuilder {
     throw new Error(`can not convert ${expression} to Druid expression`);
   }
 
+  private castToType(operand: string, sourceType: PlyType, destType: PlyType): string {
+    switch (destType) {
+      case 'TIME':
+        if (sourceType === 'NUMBER') {
+          return `cast(${operand},'LONG')`;
+        } else {
+          return `timestamp(${operand})`;
+        }
+
+      case 'STRING':
+        return `cast(${operand},'STRING')`;
+
+      case 'NUMBER':
+        return `cast(${operand},'DOUBLE')`;
+
+      default:
+        throw new Error(`cast to ${destType} not implemented yet`);
+    }
+  }
+
   private overlapExpression(operand: string, start: string, end: string, bounds: string) {
     if (start === end && bounds === '[]') return `(${operand}==${start})`;
     let startExpression: string = null;
@@ -346,6 +379,10 @@ export class DruidExpressionBuilder {
     if (this.versionBefore('0.11.0')) {
       throw new Error(`expression '${expr}' requires Druid 0.11.0 or newer`);
     }
+  }
+
+  public getAttributesInfo(attributeName: string) {
+    return NamedArray.get(this.rawAttributes, attributeName);
   }
 
   private versionBefore(neededVersion: string): boolean {

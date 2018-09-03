@@ -1360,15 +1360,27 @@ describe("DruidExternal Null Type", () => {
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
-      expect(query.dimensions[0]).to.deep.equal({
-        "dimension": "commentLength",
-        "extractionFn": {
-          "function": "function(d){var _,_2;_=Math.pow(d,2);return isNaN(_)?null:_}",
-          "type": "javascript"
-        },
-        "outputName": "Split",
-        "outputType": "FLOAT",
-        "type": "extraction"
+      expect(query).to.deep.equal({
+        "dataSource": "wikipedia",
+        "dimensions": [
+          {
+            "dimension": "v:Split",
+            "outputName": "Split",
+            "outputType": "FLOAT",
+            "type": "default"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+        "queryType": "groupBy",
+        "virtualColumns": [
+          {
+            "expression": "pow(\"commentLength\",2)",
+            "name": "v:Split",
+            "outputType": "FLOAT",
+            "type": "expression"
+          }
+        ]
       });
     });
 

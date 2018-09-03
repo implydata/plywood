@@ -773,13 +773,8 @@ describe("simulate Druid", () => {
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
-      "dimension": "color",
-      "extractionFn": {
-        "function": "function(d){var _,_2;return [\"D\",\"C\"].indexOf(d)>-1;}",
-        "type": "javascript"
-      },
-      "type": "selector",
-      "value": true
+      "expression": "((\"color\"=='D'||\"color\"=='C')==1)",
+      "type": "expression"
     });
   });
 
@@ -799,13 +794,8 @@ describe("simulate Druid", () => {
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
-      "dimension": "height_bucket",
-      "extractionFn": {
-        "function": "function(d){var _,_2;_=Math.abs(parseFloat(d));return isNaN(_)?null:_}",
-        "type": "javascript"
-      },
-      "type": "selector",
-      "value": 555
+      "expression": "(cast(cast(abs(\"height_bucket\"),'STRING'),'DOUBLE')==555)",
+      "type": "expression"
     });
   });
 
@@ -839,18 +829,23 @@ describe("simulate Druid", () => {
       "dataSource": "diamonds",
       "dimensions": [
         {
-          "dimension": "height_bucket",
-          "extractionFn": {
-            "function": "function(d){var _,_2;_=new Date((+((''+Math.abs(parseFloat(d))))));return isNaN(_)?null:_}",
-            "type": "javascript"
-          },
+          "dimension": "v:TaxCode",
           "outputName": "TaxCode",
-          "type": "extraction"
+          "outputType": "LONG",
+          "type": "default"
         }
       ],
       "granularity": "all",
       "intervals": "2015-03-12T00Z/2015-03-19T00Z",
-      "queryType": "groupBy"
+      "queryType": "groupBy",
+      "virtualColumns": [
+        {
+          "expression": "cast(cast(cast(abs(\"height_bucket\"),'STRING'),'DOUBLE'),'LONG')",
+          "name": "v:TaxCode",
+          "outputType": "LONG",
+          "type": "expression"
+        }
+      ]
     });
   });
 
@@ -1113,6 +1108,38 @@ describe("simulate Druid", () => {
     });
   });
 
+  it("works contains in split", () => {
+    let ex = $('diamonds').split('$color.contains("LOL")', 'S');
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
+      "dataSource": "diamonds-compact",
+      "dimension": {
+        "dimension": "v:S",
+        "outputName": "S",
+        "outputType": "STRING",
+        "type": "default"
+      },
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "metric": {
+        "ordering": "lexicographic",
+        "type": "dimension"
+      },
+      "queryType": "topN",
+      "threshold": 1000,
+      "virtualColumns": [
+        {
+          "expression": "like(\"color\",'%LOL%','\\')",
+          "name": "v:S",
+          "outputType": "STRING",
+          "type": "expression"
+        }
+      ]
+    });
+  });
+
   it("works with basic index of in split", () => {
     let ex = ply()
       .apply(
@@ -1124,14 +1151,34 @@ describe("simulate Druid", () => {
       );
 
     let queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan[0][0].dimension).to.deep.equal({
-      "dimension": "color",
-      "extractionFn": {
-        "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"p\")>-1));}",
-        "type": "javascript"
+    expect(queryPlan[0][0]).to.deep.equal({
+      "aggregations": [
+        {
+          "fieldName": "price",
+          "name": "TotalPrice",
+          "type": "doubleSum"
+        }
+      ],
+      "dataSource": "diamonds-compact",
+      "dimension": {
+        "dimension": "v:Colors",
+        "outputName": "Colors",
+        "outputType": "STRING",
+        "type": "default"
       },
-      "outputName": "Colors",
-      "type": "extraction"
+      "granularity": "all",
+      "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+      "metric": "TotalPrice",
+      "queryType": "topN",
+      "threshold": 3,
+      "virtualColumns": [
+        {
+          "expression": "like(\"color\",'%p%','\\')",
+          "name": "v:Colors",
+          "outputType": "STRING",
+          "type": "expression"
+        }
+      ]
     });
   });
 
@@ -1173,19 +1220,24 @@ describe("simulate Druid", () => {
         ],
         "dataSource": "diamonds-compact",
         "dimension": {
-          "dimension": "color",
-          "extractionFn": {
-            "function": "function(d){var _,_2;return (d===\"A\");}",
-            "type": "javascript"
-          },
+          "dimension": "v:IsA",
           "outputName": "IsA",
-          "type": "extraction"
+          "outputType": "STRING",
+          "type": "default"
         },
         "granularity": "all",
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "metric": "TotalPrice",
         "queryType": "topN",
-        "threshold": 10
+        "threshold": 10,
+        "virtualColumns": [
+          {
+            "expression": "(\"color\"=='A')",
+            "name": "v:IsA",
+            "outputType": "STRING",
+            "type": "expression"
+          }
+        ]
       }
     ]);
   });

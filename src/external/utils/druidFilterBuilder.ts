@@ -249,9 +249,13 @@ export class DruidFilterBuilder {
 
     let extractionFn: Druid.ExtractionFn;
     try {
-      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+      extractionFn = new DruidExtractionFnBuilder(this, false).expressionToExtractionFn(ex);
     } catch {
-      return this.makeExpressionFilter(ex.is(r(value)));
+      try {
+        return this.makeExpressionFilter(ex.is(r(value)));
+      } catch {
+        extractionFn = new DruidExtractionFnBuilder(this, true).expressionToExtractionFn(ex);
+      }
     }
 
     // Kill range
@@ -280,9 +284,13 @@ export class DruidFilterBuilder {
 
     let extractionFn: Druid.ExtractionFn;
     try {
-      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+      extractionFn = new DruidExtractionFnBuilder(this, false).expressionToExtractionFn(ex);
     } catch {
-      return this.makeExpressionFilter(ex.is(r(valueSet)));
+      try {
+        return this.makeExpressionFilter(ex.is(r(valueSet)));
+      } catch {
+        extractionFn = new DruidExtractionFnBuilder(this, true).expressionToExtractionFn(ex);
+      }
     }
 
     let inFilter: Druid.Filter = {
@@ -306,9 +314,13 @@ export class DruidFilterBuilder {
 
     let extractionFn: Druid.ExtractionFn;
     try {
-      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+      extractionFn = new DruidExtractionFnBuilder(this, false).expressionToExtractionFn(ex);
     } catch {
-      return this.makeExpressionFilter(ex.overlap(range));
+      try {
+        return this.makeExpressionFilter(ex.overlap(range));
+      } catch {
+        extractionFn = new DruidExtractionFnBuilder(this, true).expressionToExtractionFn(ex);
+      }
     }
 
     let boundFilter: Druid.Filter = {
@@ -341,9 +353,13 @@ export class DruidFilterBuilder {
 
     let extractionFn: Druid.ExtractionFn;
     try {
-      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+      extractionFn = new DruidExtractionFnBuilder(this, false).expressionToExtractionFn(ex);
     } catch {
-      return this.makeExpressionFilter(ex.overlap(range));
+      try {
+        return this.makeExpressionFilter(ex.overlap(range));
+      } catch {
+        extractionFn = new DruidExtractionFnBuilder(this, true).expressionToExtractionFn(ex);
+      }
     }
 
     const interval = this.valueToIntervals(range);
@@ -364,9 +380,13 @@ export class DruidFilterBuilder {
 
     let extractionFn: Druid.ExtractionFn;
     try {
-      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(ex);
+      extractionFn = new DruidExtractionFnBuilder(this, false).expressionToExtractionFn(ex);
     } catch {
-      return this.makeExpressionFilter(ex.match(regex));
+      try {
+        return this.makeExpressionFilter(ex.match(regex));
+      } catch {
+        extractionFn = new DruidExtractionFnBuilder(this, true).expressionToExtractionFn(ex);
+      }
     }
 
     let regexFilter: Druid.Filter = {
@@ -398,9 +418,13 @@ export class DruidFilterBuilder {
 
       let extractionFn: Druid.ExtractionFn;
       try {
-        extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(lhs);
+        extractionFn = new DruidExtractionFnBuilder(this, false).expressionToExtractionFn(lhs);
       } catch {
-        return this.makeExpressionFilter(lhs.contains(rhs, compare));
+        try {
+          return this.makeExpressionFilter(lhs.contains(rhs, compare));
+        } catch {
+          extractionFn = new DruidExtractionFnBuilder(this, true).expressionToExtractionFn(lhs);
+        }
       }
 
       let searchFilter: Druid.Filter = {

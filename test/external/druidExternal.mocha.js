@@ -1511,24 +1511,30 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('topN');
-      expect(query.dimension).to.deep.equal({
-        "dimension": "page",
-        "extractionFn": {
-          "extractionFns": [
-            {
-              "lookup": "wikipedia-page-lookup",
-              "retainMissingValue": true,
-              "type": "registeredLookup"
-            },
-            {
-              "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"lol\")>-1));}",
-              "type": "javascript"
-            }
-          ],
-          "type": "cascade"
+      expect(query).to.deep.equal({
+        "dataSource": "wikipedia",
+        "dimension": {
+          "dimension": "v:Split",
+          "outputName": "Split",
+          "outputType": "STRING",
+          "type": "default"
         },
-        "outputName": "Split",
-        "type": "extraction"
+        "granularity": "all",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+        "metric": {
+          "ordering": "lexicographic",
+          "type": "dimension"
+        },
+        "queryType": "topN",
+        "threshold": 1000,
+        "virtualColumns": [
+          {
+            "expression": "like(nvl(lookup(\"page\",'wikipedia-page-lookup'),\"page\"),'%lol%','\\')",
+            "name": "v:Split",
+            "outputType": "STRING",
+            "type": "expression"
+          }
+        ]
       });
     });
 
@@ -1559,23 +1565,30 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('topN');
-      expect(query.dimension).to.deep.equal({
-        "dimension": "tags",
-        "extractionFn": {
-          "extractionFns": [
-            {
-              "lookup": "tag-lookup",
-              "type": "registeredLookup"
-            },
-            {
-              "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"lol\").toLowerCase())>-1));}",
-              "type": "javascript"
-            }
-          ],
-          "type": "cascade"
+      expect(query).to.deep.equal({
+        "dataSource": "wikipedia",
+        "dimension": {
+          "dimension": "v:Split",
+          "outputName": "Split",
+          "outputType": "STRING",
+          "type": "default"
         },
-        "outputName": "Split",
-        "type": "extraction"
+        "granularity": "all",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+        "metric": {
+          "ordering": "lexicographic",
+          "type": "dimension"
+        },
+        "queryType": "topN",
+        "threshold": 1000,
+        "virtualColumns": [
+          {
+            "expression": "like(lower(lookup(\"tags\",'tag-lookup')),'%lol%','\\')",
+            "name": "v:Split",
+            "outputType": "STRING",
+            "type": "expression"
+          }
+        ]
       });
     });
 
@@ -1587,15 +1600,27 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
-      expect(query.dimensions[0]).to.deep.equal({
-        "dimension": "commentLength",
-        "extractionFn": {
-          "function": "function(d){var _,_2;_=Math.abs(parseFloat(d));return isNaN(_)?null:_}",
-          "type": "javascript"
-        },
-        "outputName": "Split",
-        "outputType": "FLOAT",
-        "type": "extraction"
+      expect(query).to.deep.equal({
+        "dataSource": "wikipedia",
+        "dimensions": [
+          {
+            "dimension": "v:Split",
+            "outputName": "Split",
+            "outputType": "FLOAT",
+            "type": "default"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+        "queryType": "groupBy",
+        "virtualColumns": [
+          {
+            "expression": "abs(\"commentLength\")",
+            "name": "v:Split",
+            "outputType": "FLOAT",
+            "type": "expression"
+          }
+        ]
       });
     });
 
@@ -1607,15 +1632,27 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
-      expect(query.dimensions[0]).to.deep.equal({
-        "dimension": "commentLength",
-        "extractionFn": {
-          "function": "function(d){var _,_2;_=Math.pow(parseFloat(d),2);return isNaN(_)?null:_}",
-          "type": "javascript"
-        },
-        "outputName": "Split",
-        "outputType": "FLOAT",
-        "type": "extraction"
+      expect(query).to.deep.equal({
+        "dataSource": "wikipedia",
+        "dimensions": [
+          {
+            "dimension": "v:Split",
+            "outputName": "Split",
+            "outputType": "FLOAT",
+            "type": "default"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+        "queryType": "groupBy",
+        "virtualColumns": [
+          {
+            "expression": "pow(\"commentLength\",2)",
+            "name": "v:Split",
+            "outputType": "FLOAT",
+            "type": "expression"
+          }
+        ]
       });
     });
 
@@ -1647,23 +1684,27 @@ describe("DruidExternal", () => {
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
-      expect(query.dimensions[0]).to.deep.equal({
-        "dimension": "commentLength",
-        "extractionFn": {
-          "extractionFns": [
-            {
-              "function": "function(d){var _,_2;_=Math.abs(parseFloat(d));return isNaN(_)?null:_}",
-              "type": "javascript"
-            },
-            {
-              "size": 10,
-              "type": "bucket"
-            }
-          ],
-          "type": "cascade"
-        },
-        "outputName": "Split",
-        "type": "extraction"
+      expect(query).to.deep.equal({
+        "dataSource": "wikipedia",
+        "dimensions": [
+          {
+            "dimension": "v:Split",
+            "outputName": "Split",
+            "outputType": "FLOAT",
+            "type": "default"
+          }
+        ],
+        "granularity": "all",
+        "intervals": "2013-02-26T00Z/2013-02-27T00Z",
+        "queryType": "groupBy",
+        "virtualColumns": [
+          {
+            "expression": "floor(abs(\"commentLength\") / 10) * 10",
+            "name": "v:Split",
+            "outputType": "FLOAT",
+            "type": "expression"
+          }
+        ]
       });
     });
 
@@ -2226,7 +2267,7 @@ describe("DruidExternal", () => {
       "resultFormat": "compactedList",
       "virtualColumns": [
         {
-          "expression": "timestamp(\"commentLength\")",
+          "expression": "cast(\"commentLength\",'LONG')",
           "name": "castTime",
           "outputType": "STRING",
           "type": "expression"

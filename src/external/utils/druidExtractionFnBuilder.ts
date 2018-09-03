@@ -124,9 +124,13 @@ export class DruidExtractionFnBuilder {
   public version: string;
   public customTransforms: CustomDruidTransforms;
 
-  constructor(options: DruidExtractionFnBuilderOptions) {
+  public allowJavaScript: boolean;
+
+  constructor(options: DruidExtractionFnBuilderOptions, allowJavaScript: boolean) {
     this.version = options.version;
     this.customTransforms = options.customTransforms;
+
+    this.allowJavaScript = allowJavaScript;
   }
 
   public expressionToExtractionFn(expression: Expression): Druid.ExtractionFn | null {
@@ -453,6 +457,8 @@ export class DruidExtractionFnBuilder {
   }
 
   private expressionToJavaScriptExtractionFn(ex: Expression): Druid.ExtractionFn {
+    if (!this.allowJavaScript) throw new Error('avoiding javascript');
+
     let prefixFn: Druid.ExtractionFn = null;
     let jsExtractionFn: Druid.ExtractionFn = {
       type: "javascript",

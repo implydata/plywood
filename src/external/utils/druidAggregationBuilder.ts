@@ -296,7 +296,7 @@ export class DruidAggregationBuilder {
         fields: cardinalityExpressions.map(cardinalityExpression => {
           if (cardinalityExpression instanceof RefExpression) return cardinalityExpression.name;
 
-          if (!druidExtractionFnBuilder) druidExtractionFnBuilder = new DruidExtractionFnBuilder(this);
+          if (!druidExtractionFnBuilder) druidExtractionFnBuilder = new DruidExtractionFnBuilder(this, true);
           return {
             type: "extraction",
             dimension: cardinalityExpression.getFreeReferences()[0],
