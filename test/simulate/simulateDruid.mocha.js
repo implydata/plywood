@@ -1131,7 +1131,7 @@ describe("simulate Druid", () => {
       "threshold": 1000,
       "virtualColumns": [
         {
-          "expression": "like(\"color\",'%LOL%','\\')",
+          "expression": "like(\"color\",'%LOL%','~')",
           "name": "v:S",
           "outputType": "STRING",
           "type": "expression"
@@ -1173,7 +1173,7 @@ describe("simulate Druid", () => {
       "threshold": 3,
       "virtualColumns": [
         {
-          "expression": "like(\"color\",'%p%','\\')",
+          "expression": "like(\"color\",'%p%','~')",
           "name": "v:Colors",
           "outputType": "STRING",
           "type": "expression"

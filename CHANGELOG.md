@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.15
+
+- Fix escaping in Druid `like`
+
 ## 0.19.14
 
 - Send less javascript to Druid

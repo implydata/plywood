@@ -255,6 +255,15 @@ describe("Cross Functional", function() {
         .apply('TotalAdded', '$wiki.sum($added)')
     }));
 
+    it('works with fancy character .contains() filter', equalityTest({
+      verbose: true,
+      executorNames: ['druid', 'mysql', 'postgres'], // !!! 'druidSql'
+      expression: ply()
+        .apply('wiki', '$wiki.filter($page.contains("%").is(true))')
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+    }));
+
     it('works with .in() filter [dimension without NULLs]', equalityTest({
       executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
       expression: ply()

@@ -101,7 +101,7 @@ export class DruidExpressionBuilder {
   }
 
   static escapeLike(str: string): string {
-    return str.replace(/([%_\\])/g, '\\$1');
+    return str.replace(/([%_~])/g, '~$1');
   }
 
   static expressionTypeToOutputType(type: PlyType): Druid.OutputType {
@@ -193,9 +193,9 @@ export class DruidExpressionBuilder {
           const needleValue = DruidExpressionBuilder.escape(DruidExpressionBuilder.escapeLike(needle.value));
           if (expression.compare === ContainsExpression.IGNORE_CASE) {
             this.checkDruid11('lower');
-            return `like(lower(${ex1}),'%${needleValue.toLowerCase()}%','\\')`;
+            return `like(lower(${ex1}),'%${needleValue.toLowerCase()}%','~')`;
           } else {
-            return `like(${ex1},'%${needleValue}%','\\')`;
+            return `like(${ex1},'%${needleValue}%','~')`;
           }
 
         } else {

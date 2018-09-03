@@ -1529,7 +1529,7 @@ describe("DruidExternal", () => {
         "threshold": 1000,
         "virtualColumns": [
           {
-            "expression": "like(nvl(lookup(\"page\",'wikipedia-page-lookup'),\"page\"),'%lol%','\\')",
+            "expression": "like(nvl(lookup(\"page\",'wikipedia-page-lookup'),\"page\"),'%lol%','~')",
             "name": "v:Split",
             "outputType": "STRING",
             "type": "expression"
@@ -1583,7 +1583,7 @@ describe("DruidExternal", () => {
         "threshold": 1000,
         "virtualColumns": [
           {
-            "expression": "like(lower(lookup(\"tags\",'tag-lookup')),'%lol%','\\')",
+            "expression": "like(lower(lookup(\"tags\",'tag-lookup')),'%lol%','~')",
             "name": "v:Split",
             "outputType": "STRING",
             "type": "expression"
