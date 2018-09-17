@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.20.0
+
+- Updated dependencies
+
+
 ## 0.19.15
 
 - Fix escaping in Druid `like`
