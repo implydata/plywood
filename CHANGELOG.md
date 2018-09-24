@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.20.1
+
+- Fix Druid filtering on alternative time columns represented as LONG
+
 ## 0.20.0
 
 - Updated dependencies
