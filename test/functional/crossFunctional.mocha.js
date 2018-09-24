@@ -256,7 +256,6 @@ describe("Cross Functional", function() {
     }));
 
     it('works with fancy character .contains() filter', equalityTest({
-      verbose: true,
       executorNames: ['druid', 'mysql', 'postgres'], // !!! 'druidSql'
       expression: ply()
         .apply('wiki', '$wiki.filter($page.contains("%").is(true))')

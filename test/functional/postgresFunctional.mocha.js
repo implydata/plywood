@@ -139,6 +139,11 @@ describe("Postgres Functional", function() {
       "type": "STRING"
     },
     {
+      "name": "geohash",
+      "nativeType": "character varying",
+      "type": "STRING"
+    },
+    {
       "name": "user",
       "nativeType": "character varying",
       "type": "STRING"

@@ -330,16 +330,24 @@ export class DruidFilterBuilder {
 
     if (extractionFn) boundFilter.extractionFn = extractionFn;
 
-    if (range instanceof NumberRange) {
+    if (range instanceof NumberRange || attributeInfo.nativeType === 'LONG') {
       boundFilter.ordering = 'numeric';
     }
 
+    function dataToBound(d: Date) {
+      if (attributeInfo.nativeType === 'LONG') {
+        return d.valueOf();
+      } else {
+        return d.toISOString();
+      }
+    }
+
     if (r0 != null) {
-      boundFilter.lower = isDate(r0) ? (r0 as Date).toISOString() : (r0 as number | string);
+      boundFilter.lower = isDate(r0) ? dataToBound(r0 as Date) : (r0 as number | string);
       if (bounds[0] === '(') boundFilter.lowerStrict = true;
     }
     if (r1 != null) {
-      boundFilter.upper = isDate(r1) ? (r1 as Date).toISOString() : (r1 as number | string);
+      boundFilter.upper = isDate(r1) ? dataToBound(r1 as Date) : (r1 as number | string);
       if (bounds[1] === ')') boundFilter.upperStrict = true;
     }
     return boundFilter;
