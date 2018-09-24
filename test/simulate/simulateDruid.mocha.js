@@ -23,6 +23,7 @@ let { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
 let attributes = [
   { name: 'time', type: 'TIME' },
   { name: 'some_other_time', type: 'TIME' },
+  { name: 'some_other_time_long', type: 'TIME', nativeType: 'LONG' },
   { name: 'color', type: 'STRING' },
   { name: 'cut', type: 'STRING' },
   { name: 'isNice', type: 'BOOLEAN' },
@@ -1058,6 +1059,54 @@ describe("simulate Druid", () => {
           "type": "default"
         },
         "queryType": "groupBy"
+      }
+    ]);
+  });
+
+  it("works with alt time column filters", () => {
+    let ex = ply()
+      .apply('diamonds',
+        $('diamonds')
+          .filter($('some_other_time').overlap(new Date('2015-03-12T00:00:00Z'), new Date('2015-03-13T00:00:00Z')))
+          .filter($('some_other_time_long').overlap(new Date('2015-03-12T00:00:00Z'), new Date('2015-03-13T00:00:00Z')))
+      )
+      .apply('TotalPrice', '$diamonds.sum($price)');
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0]).to.deep.equal([
+      {
+        "aggregations": [
+          {
+            "fieldName": "price",
+            "name": "__VALUE__",
+            "type": "doubleSum"
+          }
+        ],
+        "dataSource": "diamonds",
+        "filter": {
+          "fields": [
+            {
+              "dimension": "some_other_time",
+              "lower": "2015-03-12T00:00:00.000Z",
+              "type": "bound",
+              "upper": "2015-03-13T00:00:00.000Z",
+              "upperStrict": true
+            },
+            {
+              "dimension": "some_other_time_long",
+              "lower": 1426118400000,
+              "ordering": "numeric",
+              "type": "bound",
+              "upper": 1426204800000,
+              "upperStrict": true
+            }
+          ],
+          "type": "and"
+        },
+        "granularity": "all",
+        "intervals": "2015-03-12T00Z/2015-03-19T00Z",
+        "queryType": "timeseries"
       }
     ]);
   });
@@ -3481,6 +3530,7 @@ describe("simulate Druid", () => {
         "columns": [
           "time",
           "some_other_time",
+          "some_other_time_long",
           "color",
           "cut",
           "isNice",
