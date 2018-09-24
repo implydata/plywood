@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.16
+
+- Fix Druid filtering on alternative time columns represented as LONG
+
 ## 0.19.15
 
 - Fix escaping in Druid `like`
