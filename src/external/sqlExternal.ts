@@ -70,8 +70,18 @@ export abstract class SQLExternal extends External {
     return sql;
   }
 
+  protected getFrom(): string {
+    const { source, dialect } = this;
+    const m = String(source).match(/^(\w+)\.(.+)$/);
+    if (m) {
+      return "FROM " + m[1] + '.' + dialect.escapeName(m[2]);
+    } else {
+      return "FROM " + dialect.escapeName(source as string);
+    }
+  }
+
   public getQueryAndPostTransform(): QueryAndPostTransform<string> {
-    const { source, mode, applies, sort, limit, derivedAttributes, dialect } = this;
+    const { mode, applies, sort, limit, derivedAttributes, dialect } = this;
 
     let query = ['SELECT'];
     let postTransform: Transform = null;
@@ -80,7 +90,7 @@ export abstract class SQLExternal extends External {
     let zeroTotalApplies: ApplyExpression[] = null;
 
     //dialect.setTable(null);
-    let from = "FROM " + dialect.escapeName(source as string);
+    let from = this.getFrom();
     //dialect.setTable(source as string);
 
     let filter = this.getQueryFilter();
