@@ -142,7 +142,7 @@ export class DruidAggregationBuilder {
 
   private applyToAggregation(action: ApplyExpression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
     const { name, expression } = action;
-    aggregations.push(this.expressionToAggregation(name, expression, postAggregations));
+    this.expressionToAggregation(name, expression, aggregations, postAggregations);
   }
 
   private applyToPostAggregation(apply: ApplyExpression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
@@ -171,21 +171,21 @@ export class DruidAggregationBuilder {
     }
   }
 
-  private expressionToAggregation(name: string, expression: Expression, postAggregations: Druid.PostAggregation[]) {
+  private expressionToAggregation(name: string, expression: Expression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
     if (expression instanceof CountExpression) {
-      return this.countToAggregation(name, expression);
+      aggregations.push(this.countToAggregation(name, expression));
 
     } else if (expression instanceof SumExpression || expression instanceof MinExpression || expression instanceof MaxExpression) {
-      return this.sumMinMaxToAggregation(name, expression);
+      aggregations.push(this.sumMinMaxToAggregation(name, expression));
 
     } else if (expression instanceof CountDistinctExpression) {
-      return this.countDistinctToAggregation(name, expression, postAggregations);
+      aggregations.push(this.countDistinctToAggregation(name, expression, postAggregations));
 
     } else if (expression instanceof QuantileExpression) {
-      return this.quantileToAggregation(name, expression, postAggregations);
+      aggregations.push(this.quantileToAggregation(name, expression, postAggregations));
 
     } else if (expression instanceof CustomAggregateExpression) {
-      return this.customAggregateToAggregation(name, expression, postAggregations);
+      this.customAggregateToAggregation(name, expression, aggregations, postAggregations);
 
     } else {
       throw new Error(`unsupported aggregate action ${expression} (as ${name})`);
@@ -312,22 +312,29 @@ export class DruidAggregationBuilder {
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
   }
 
-  private customAggregateToAggregation(name: string, expression: CustomAggregateExpression, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
+  private customAggregateToAggregation(name: string, expression: CustomAggregateExpression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
     let customAggregationName = expression.custom;
     let customAggregation = this.customAggregations[customAggregationName];
     if (!customAggregation) throw new Error(`could not find '${customAggregationName}'`);
-    let aggregationObj = customAggregation.aggregation;
-    if (typeof aggregationObj.type !== 'string') throw new Error(`must have type in custom aggregation '${customAggregationName}'`);
-    try {
-      aggregationObj = JSON.parse(JSON.stringify(aggregationObj));
-    } catch (e) {
-      throw new Error(`must have JSON custom aggregation '${customAggregationName}'`);
-    }
+
+    let nonce = String(Math.random()).substr(2);
+
+    let aggregationObjs = (
+      Array.isArray(customAggregation.aggregations) ?
+        customAggregation.aggregations :
+        (customAggregation.aggregation ? [customAggregation.aggregation] : [])
+    ).map(a => {
+      try {
+        return JSON.parse(JSON.stringify(a).replace(/\{\{random\}\}/g, nonce));
+      } catch (e) {
+        throw new Error(`must have JSON custom aggregation '${customAggregationName}'`);
+      }
+    });
 
     let postAggregationObj = customAggregation.postAggregation;
     if (postAggregationObj) {
       try {
-        postAggregationObj = JSON.parse(JSON.stringify(postAggregationObj));
+        postAggregationObj = JSON.parse(JSON.stringify(postAggregationObj).replace(/\{\{random\}\}/g, nonce));
       } catch (e) {
         throw new Error(`must have JSON custom post aggregation '${customAggregationName}'`);
       }
@@ -335,10 +342,12 @@ export class DruidAggregationBuilder {
       postAggregationObj.name = name;
       postAggregations.push(postAggregationObj);
     } else {
-      aggregationObj.name = name;
+      if (!aggregationObjs.length) throw new Error(`must have an aggregation or postAggregation in custom aggregation '${customAggregationName}'`);
+      aggregationObjs[0].name = name;
     }
 
-    return this.filterAggregateIfNeeded(expression.operand, aggregationObj);
+    aggregationObjs = aggregationObjs.map(a => this.filterAggregateIfNeeded(expression.operand, a));
+    aggregations.push(...aggregationObjs);
   }
 
   private quantileToAggregation(name: string, expression: QuantileExpression, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
@@ -411,7 +420,10 @@ export class DruidAggregationBuilder {
     for (let customName in customAggregations) {
       if (!hasOwnProp(customAggregations, customName)) continue;
       let customAggregation = customAggregations[customName];
-      if (customAggregation.aggregation.type === aggregationType) {
+      if (
+        (customAggregation.aggregation && customAggregation.aggregation.type === aggregationType) ||
+        (Array.isArray(customAggregation.aggregations) && customAggregation.aggregations.find(a => a.type === aggregationType))
+      ) {
         return customAggregation.accessType || 'fieldAccess';
       }
     }

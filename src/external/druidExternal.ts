@@ -28,7 +28,7 @@ import {
   CardinalityExpression,
   ChainableExpression,
   ChainableUnaryExpression, CountExpression, CustomAggregateExpression,
-  Expression, FallbackExpression,
+  Expression, ExtractExpression, FallbackExpression,
   FilterExpression,
   InExpression,
   IsExpression,
@@ -594,7 +594,17 @@ export class DruidExternal extends External {
       };
     };
 
-    if (freeReferences.length > 1 || expression.some(ex => ex.isOp('then') || null)) {
+    function isComplexFallback(expression: Expression) {
+      // Check to see if the expression is something like $(...).blah(...).blah(...).fallback($(...))
+      if (expression instanceof FallbackExpression) {
+        if (!expression.expression.isOp('ref')) return false;
+        const myOp = expression.operand;
+        return (myOp instanceof ChainableExpression && myOp.operand instanceof ChainableExpression);
+      }
+      return false;
+    }
+
+    if (freeReferences.length > 1 || expression.some(ex => ex.isOp('then') || null) || isComplexFallback(expression)) {
       return makeExpression();
     }
 

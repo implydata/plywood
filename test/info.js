@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-// This assumes that `dm` is defined as an alias in your hosts file to your docker machine
-const DOCKER_MACHINE = 'dm';
-
-exports.druidVersion = '0.12.2-iap5';
-exports.druidHost = `${DOCKER_MACHINE}:8082`;
+exports.druidVersion = '0.13.0-incubating-iap1';
+exports.druidHost = `localhost:8082`;
 exports.druidContext = {
   timeout: 10000,
   useCache: false,
@@ -26,14 +23,14 @@ exports.druidContext = {
 };
 exports.druidHasFullText = true;
 
-exports.mySqlVersion = '5.7.13';
-exports.mySqlHost = `${DOCKER_MACHINE}:3306`;
+exports.mySqlVersion = '5.7.24';
+exports.mySqlHost = `localhost:3306`;
 exports.mySqlDatabase = 'datazoo';
-exports.mySqlUser = 'root';
-exports.mySqlPassword = '';
+exports.mySqlUser = 'datazoo';
+exports.mySqlPassword = 'datazoo';
 
-exports.postgresVersion = '9.5.2';
-exports.postgresHost = `${DOCKER_MACHINE}:5432`;
+exports.postgresVersion = '9.5.14';
+exports.postgresHost = `localhost:5432`;
 exports.postgresDatabase = 'datazoo';
 exports.postgresUser = 'root';
 exports.postgresPassword = 'datazoo';

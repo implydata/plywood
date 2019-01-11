@@ -23,7 +23,8 @@ export type CustomDruidTransforms = Record<string, CustomDruidTransform>;
 
 
 export interface CustomDruidAggregation {
-  aggregation: Druid.Aggregation;
+  aggregation?: Druid.Aggregation;
+  aggregations?: Druid.Aggregation[];
   postAggregation?: Druid.PostAggregation;
   accessType?: string;
 }

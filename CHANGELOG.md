@@ -1,5 +1,14 @@
 # Change Log
 
+## 0.20.3
+
+- Fix bug when planning complex fallback
+- Allow multiple aggregations in custom agg
+
+## 0.20.2
+
+- Better sql escaping
+
 ## 0.20.1
 
 - Fix Druid filtering on alternative time columns represented as LONG

@@ -56,15 +56,23 @@ let context = {
     version: '0.11.0',
     customAggregations: {
       crazy: {
-        aggregation: {
-          name: '!T_LOL',
-          type: 'crazy',
-          the: 'borg will rise again',
-          activate: false
-        },
+        aggregations: [
+          {
+            name: '!T_LOL',
+            type: 'crazy',
+            the: 'borg will rise again',
+            activate: false
+          },
+          {
+            name: '!T_LOL2',
+            type: 'crazy',
+            the: 'borg will rize again'
+          }
+        ],
         postAggregation: {
           type: 'double_up',
-          fieldName: '!T_LOL'
+          fieldName: '!T_LOL',
+          fieldName2: '!T_LOL2'
         }
       },
       stupid: {
@@ -389,6 +397,11 @@ describe("DruidExternal", () => {
             "type": "crazy"
           },
           {
+            "name": "!T_LOL2",
+            "the": "borg will rize again",
+            "type": "crazy"
+          },
+          {
             "globalWarming": "hoax",
             "name": "!T_1",
             "onePlusOne": 3,
@@ -407,6 +420,7 @@ describe("DruidExternal", () => {
         "postAggregations": [
           {
             "fieldName": "!T_LOL",
+            "fieldName2": "!T_LOL2",
             "name": "!T_0",
             "type": "double_up"
           },
@@ -575,7 +589,7 @@ describe("DruidExternal", () => {
     it("works with complex absolute and power expressions", () => {
       let ex = $('wiki').split("$page", 'Page')
         .apply('Count', '$wiki.count()')
-        .apply('Abs', '(($wiki.sum($added)/$wiki.count().absolute().power(0.5) + 100 * $wiki.countDistinct($page)).absolute()).power(2) + $wiki.custom(crazy)')
+        .apply('Abs', '(($wiki.sum($added)/$wiki.count().absolute().power(0.5) + 100 * $wiki.countDistinct($page)).absolute()).power(2) + $wiki.filter($page == "A").custom(crazy)')
         .sort('$Count', 'descending')
         .limit(5);
 
@@ -603,10 +617,33 @@ describe("DruidExternal", () => {
             "type": "cardinality"
           },
           {
-            "activate": false,
+            "aggregator": {
+              "activate": false,
+              "name": "!T_LOL",
+              "the": "borg will rise again",
+              "type": "crazy"
+            },
+            "filter": {
+              "dimension": "page",
+              "type": "selector",
+              "value": "A"
+            },
             "name": "!T_LOL",
-            "the": "borg will rise again",
-            "type": "crazy"
+            "type": "filtered"
+          },
+          {
+            "aggregator": {
+              "name": "!T_LOL2",
+              "the": "borg will rize again",
+              "type": "crazy"
+            },
+            "filter": {
+              "dimension": "page",
+              "type": "selector",
+              "value": "A"
+            },
+            "name": "!T_LOL2",
+            "type": "filtered"
           }
         ],
         "dataSource": "wikipedia",
@@ -621,6 +658,7 @@ describe("DruidExternal", () => {
         "postAggregations": [
           {
             "fieldName": "!T_LOL",
+            "fieldName2": "!T_LOL2",
             "name": "!T_2",
             "type": "double_up"
           },
@@ -1500,6 +1538,28 @@ describe("DruidExternal", () => {
         },
         "outputName": "Split",
         "type": "extraction"
+      });
+    });
+
+    it("works with .lookup().extract().fallback()", () => {
+      let ex = $('wiki').split($('page').lookup('wikipedia-page-lookup').extract("\\d+").fallback('$page'), 'Split');
+
+      ex = ex.referenceCheck(context).resolve(context).simplify();
+
+      expect(ex.op).to.equal('external');
+      let query = ex.external.getQueryAndPostTransform().query;
+      expect(query.queryType).to.equal('groupBy');
+      expect(query.dimensions[0]).to.deep.equal({
+        "dimension": "v:Split",
+        "outputName": "Split",
+        "outputType": "STRING",
+        "type": "default"
+      });
+      expect(query.virtualColumns[0]).to.deep.equal({
+        "expression": "nvl(regexp_extract(lookup(\"page\",'wikipedia-page-lookup'),'\\u005cd\\u002b',1),\"page\")",
+        "name": "v:Split",
+        "outputType": "STRING",
+        "type": "expression"
       });
     });
 

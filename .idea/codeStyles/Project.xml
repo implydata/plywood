@@ -6,14 +6,14 @@
         <option name="TAB_SIZE" value="2" />
       </value>
     </option>
-    <JSCodeStyleSettings>
+    <JSCodeStyleSettings version="0">
       <option name="SPACE_BEFORE_FUNCTION_LEFT_PARENTH" value="false" />
       <option name="SPACES_WITHIN_OBJECT_LITERAL_BRACES" value="true" />
     </JSCodeStyleSettings>
     <MarkdownNavigatorCodeStyleSettings>
       <option name="RIGHT_MARGIN" value="72" />
     </MarkdownNavigatorCodeStyleSettings>
-    <TypeScriptCodeStyleSettings>
+    <TypeScriptCodeStyleSettings version="0">
       <option name="FORCE_SEMICOLON_STYLE" value="true" />
       <option name="SPACE_BEFORE_FUNCTION_LEFT_PARENTH" value="false" />
       <option name="USE_DOUBLE_QUOTES" value="false" />
