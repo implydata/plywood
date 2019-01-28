@@ -2624,6 +2624,54 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with fractional bucketing", () => {
+      let ex = $('wiki').split($('commentLength').divide(13).numberBucket(0.1), 'Point1')
+        .apply('Count', $('wiki').sum('$count'))
+        .sort('$Point1', 'ascending')
+        .limit(5);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Count": 734,
+              "Point1": {
+                "end": 0.1,
+                "start": 0
+              }
+            },
+            {
+              "Count": 1456,
+              "Point1": {
+                "end": 0.2,
+                "start": 0.1
+              }
+            },
+            {
+              "Count": 1976,
+              "Point1": {
+                "end": 0.3,
+                "start": 0.2
+              }
+            },
+            {
+              "Count": 4041,
+              "Point1": {
+                "end": 0.4,
+                "start": 0.3
+              }
+            },
+            {
+              "Count": 2336,
+              "Point1": {
+                "end": 0.5,
+                "start": 0.4
+              }
+            }
+          ]);
+        });
+    });
+
     it("works with resplit agg on more granular dimension split (+filters)", () => {
       let ex = $('wiki').split('$time.timeBucket(PT6H)', 'Hour')
         .apply('Count', $('wiki').sum('$count'))

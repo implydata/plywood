@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.20.4
+
+- Fix clipping of badly rounded doubles
+
 ## 0.20.3
 
 - Fix bug when planning complex fallback

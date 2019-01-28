@@ -75,6 +75,11 @@ export function nonEmptyLookup(lookup: Record<string, any>): boolean {
   return !emptyLookup(lookup);
 }
 
+export function clip(x: number): number {
+  const rx = Math.round(x);
+  return Math.abs(x - rx) < 1e-5 ? rx : x;
+}
+
 export function safeAdd(num: number, delta: number): number {
   let stringDelta = String(delta);
   let dotIndex = stringDelta.indexOf(".");
@@ -83,6 +88,24 @@ export function safeAdd(num: number, delta: number): number {
   } else {
     let scale = Math.pow(10, stringDelta.length - dotIndex - 1);
     return (num * scale + delta * scale) / scale;
+  }
+}
+
+export function safeRange(num: number, delta: number): { start: number, end: number } {
+  let stringDelta = String(delta);
+  let dotIndex = stringDelta.indexOf(".");
+  if (dotIndex === -1 || stringDelta.length === 18) {
+    return {
+      start: num,
+      end: num + delta
+    };
+  } else {
+    let scale = Math.pow(10, stringDelta.length - dotIndex - 1);
+    num = clip(num * scale) / scale;
+    return {
+      start: num,
+      end: (num * scale + delta * scale) / scale
+    };
   }
 }
 
