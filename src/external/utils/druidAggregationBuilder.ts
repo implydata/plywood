@@ -75,6 +75,7 @@ export interface DruidAggregationBuilderOptions {
   rollup: boolean;
   exactResultsOnly: boolean;
   allowEternity: boolean;
+  forceFinalize: boolean;
 }
 
 export class DruidAggregationBuilder {
@@ -100,6 +101,7 @@ export class DruidAggregationBuilder {
   public rollup: boolean;
   public exactResultsOnly: boolean;
   public allowEternity: boolean;
+  public forceFinalize: boolean;
 
   constructor(options: DruidAggregationBuilderOptions) {
     this.version = options.version;
@@ -111,6 +113,7 @@ export class DruidAggregationBuilder {
     this.rollup = options.rollup;
     this.exactResultsOnly = options.exactResultsOnly;
     this.allowEternity = options.allowEternity;
+    this.forceFinalize = options.forceFinalize;
   }
 
   public makeAggregationsAndPostAggregations(applies: ApplyExpression[]): AggregationsAndPostAggregations {
@@ -256,12 +259,20 @@ export class DruidAggregationBuilder {
 
       let attributeInfo = this.getAttributesInfo(attributeName);
       if (attributeInfo.nativeType === 'hyperUnique') {
+        let tempName = '!Hyper_' + name;
         aggregation = {
-          name: name,
+          name: this.forceFinalize ? tempName : name,
           type: "hyperUnique",
           fieldName: attributeName
         };
         if (!this.versionBefore('0.10.1')) aggregation.round = true;
+        if (this.forceFinalize) {
+          postAggregations.push({
+            type: 'finalizingFieldAccess',
+            name,
+            fieldName: tempName
+          });
+        }
 
       } else if (attributeInfo.nativeType === 'thetaSketch') {
         let tempName = '!Theta_' + name;
@@ -278,12 +289,20 @@ export class DruidAggregationBuilder {
         };
 
       } else {
+        let tempName = '!Card_' + name;
         aggregation = {
-          name: name,
+          name: this.forceFinalize ? tempName : name,
           type: "cardinality",
           fields: [attributeName]
         };
         if (!this.versionBefore('0.10.1')) aggregation.round = true;
+        if (this.forceFinalize) {
+          postAggregations.push({
+            type: 'finalizingFieldAccess',
+            name,
+            fieldName: tempName
+          });
+        }
 
       }
     } else {

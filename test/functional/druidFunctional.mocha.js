@@ -2723,6 +2723,45 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with resplit Hourly-Active-Users agg", () => {
+      let ex = $('wiki').split('$channel', 'Channel')
+        .apply('Count', $('wiki').sum('$count'))
+        .apply('HAU', $('wiki').split($('time').timeBucket('P1D')).apply('U', '$wiki.countDistinct($user)').average('$U'))
+        .sort('$Count', 'descending')
+        .limit(5);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Channel": "en",
+              "Count": 114711,
+              "HAU": 16609
+            },
+            {
+              "Channel": "vi",
+              "Count": 99010,
+              "HAU": 201
+            },
+            {
+              "Channel": "de",
+              "Count": 25103,
+              "HAU": 2950
+            },
+            {
+              "Channel": "fr",
+              "Count": 21285,
+              "HAU": 2757
+            },
+            {
+              "Channel": "ru",
+              "Count": 14031,
+              "HAU": 2184
+            }
+          ]);
+        });
+    });
+
     it("works with absolute number split", () => {
       let ex = ply()
         .apply(

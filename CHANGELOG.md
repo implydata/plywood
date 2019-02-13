@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.20.5
+
+- Added `forceFinalize` to fix DAU calculation
+
 ## 0.20.4
 
 - Fix clipping of badly rounded doubles
