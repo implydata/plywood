@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 Imply Data, Inc.
+ * Copyright 2015-2019 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-exports.druidVersion = '0.13.0-incubating-iap1';
+exports.druidVersion = '0.13.0-incubating-iap8';
 exports.druidHost = `localhost:8082`;
 exports.druidContext = {
   timeout: 10000,
