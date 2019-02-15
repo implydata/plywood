@@ -30,6 +30,20 @@ let druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
+let druidRequesterWithLol = druidRequesterFactory({
+  host: info.druidHost,
+  requestDecorator: (decoratorRequest) => {
+    var query = decoratorRequest.query;
+
+    var decoration = {
+      query: Object.assign(query, { dataSource: 'lol' })
+    };
+
+    // This can also be async if instead of a value of a promise is returned.
+    return decoration;
+  }
+});
+
 // druidRequester = verboseRequesterFactory({
 //   requester: druidRequester
 // });
@@ -355,31 +369,31 @@ describe("Druid Functional", function() {
   ].filter(Boolean);
 
   let customTransforms = {
-      sliceLastChar: {
-        extractionFn: {
-          "type" : "javascript",
-          "function" : "function(x) { return x.slice(-1) }"
-        }
-      },
-      getLastChar: {
-        extractionFn: {
-          "type" : "javascript",
-          "function" : "function(x) { return x.charAt(x.length - 1) }"
-        }
-      },
-      timesTwo: {
-        extractionFn: {
-          "type" : "javascript",
-          "function" : "function(x) { return x * 2 }"
-        }
-      },
-      concatWithConcat: {
-        extractionFn: {
-          "type" : "javascript",
-          "function" : "function(x) { return String(x).concat('concat') }"
-        }
+    sliceLastChar: {
+      extractionFn: {
+        "type" : "javascript",
+        "function" : "function(x) { return x.slice(-1) }"
       }
-    };
+    },
+    getLastChar: {
+      extractionFn: {
+        "type" : "javascript",
+        "function" : "function(x) { return x.charAt(x.length - 1) }"
+      }
+    },
+    timesTwo: {
+      extractionFn: {
+        "type" : "javascript",
+        "function" : "function(x) { return x * 2 }"
+      }
+    },
+    concatWithConcat: {
+      extractionFn: {
+        "type" : "javascript",
+        "function" : "function(x) { return String(x).concat('concat') }"
+      }
+    }
+  };
 
   describe("source list", () => {
     it("does a source list", () => {
