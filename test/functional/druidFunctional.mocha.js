@@ -30,20 +30,6 @@ let druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
-let druidRequesterWithLol = druidRequesterFactory({
-  host: info.druidHost,
-  requestDecorator: (decoratorRequest) => {
-    var query = decoratorRequest.query;
-
-    var decoration = {
-      query: Object.assign(query, { dataSource: 'lol' })
-    };
-
-    // This can also be async if instead of a value of a promise is returned.
-    return decoration;
-  }
-});
-
 // druidRequester = verboseRequesterFactory({
 //   requester: druidRequester
 // });
