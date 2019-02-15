@@ -1424,23 +1424,27 @@ export class DruidExternal extends External {
     let attributes = DruidExternal.segmentMetadataPostProcess(timeAttribute, res);
 
     if (depth !== 'shallow' && attributes.length && attributes[0].nativeType === '__time' && !attributes[0].range) {
-      query = {
-        queryType: "timeBoundary",
-        dataSource: this.getDruidDataSource()
-      };
+      try {
+        query = {
+          queryType: "timeBoundary",
+          dataSource: this.getDruidDataSource()
+        };
 
-      if (context) {
-        query.context = context;
+        if (context) {
+          query.context = context;
+        }
+
+        const resTB = await toArray(requester({ query }));
+        const resTB0: any = resTB[0];
+
+        attributes[0] = attributes[0].changeRange(TimeRange.fromJS({
+          start: resTB0.minTime,
+          end: resTB0.maxTime,
+          bounds: '[]'
+        }));
+      } catch (e) {
+        // Nothing to do, swallow this error
       }
-
-      const resTB = await toArray(requester({ query }));
-      const resTB0: any = resTB[0];
-
-      attributes[0] = attributes[0].changeRange(TimeRange.fromJS({
-        start: resTB0.minTime,
-        end: resTB0.maxTime,
-        bounds: '[]'
-      }));
     }
 
     return attributes;
