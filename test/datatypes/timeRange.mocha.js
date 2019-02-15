@@ -37,6 +37,18 @@ describe("TimeRange", () => {
     ]);
   });
 
+  describe("allows number", () => {
+    it("basic number", () => {
+      expect(TimeRange.fromJS({
+        start: new Date('2015-01-26T04:54:10Z').valueOf(),
+        end: new Date('2015-01-26T05:54:10Z').valueOf()
+      }).toJS()).to.deep.equal({
+        start: new Date('2015-01-26T04:54:10Z'),
+        end: new Date('2015-01-26T05:54:10Z')
+      });
+    });
+  });
+
   describe("does not die with hasOwnProperty", () => {
     it("survives", () => {
       expect(TimeRange.fromJS({
@@ -47,6 +59,17 @@ describe("TimeRange", () => {
         start: new Date('2015-01-26T04:54:10Z'),
         end: new Date('2015-01-26T05:54:10Z')
       });
+    });
+  });
+
+  describe("throws a good error", () => {
+    it("bad date", () => {
+      expect(() => {
+        TimeRange.fromJS({
+          start: "hello",
+          end: null
+        });
+      }).to.throw(`could not parse 'hello' as date`);
     });
   });
 

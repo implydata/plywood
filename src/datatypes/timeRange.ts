@@ -35,8 +35,15 @@ export interface TimeRangeJS {
 
 function toDate(date: any, name: string): Date | null {
   if (date === null) return null;
-  if (typeof date === "undefined") throw new TypeError(`timeRange must have a ${name}`);
-  if (typeof date === 'string' || typeof date === 'number') date = parseISODate(date as string, Expression.defaultParserTimezone);
+  const typeofDate = typeof date;
+  if (typeofDate === "undefined") throw new TypeError(`timeRange must have a ${name}`);
+  if (typeofDate === 'string') {
+    const parsedDate = parseISODate(date as string, Expression.defaultParserTimezone);
+    if (!parsedDate) throw new Error(`could not parse '${date}' as date`);
+    date = parsedDate;
+  } else if (typeofDate === 'number') {
+    date = new Date(date);
+  }
   if (!date.getDay) throw new TypeError(`timeRange must have a ${name} that is a Date`);
   return date;
 }
