@@ -1,9 +1,17 @@
 # Change Log
 
-## 0.20.6
+## 0.20.8
 
 - Use expressions over JS aggs when possible
 - Support more datasketches
+
+## 0.20.7
+
+- Handle large overrides better, fix `O(n^2)` issue 
+
+## 0.20.6
+
+- More robust `toDate` does not crash if bogus date is introspected in DruidExternal
 
 ## 0.20.5
 
