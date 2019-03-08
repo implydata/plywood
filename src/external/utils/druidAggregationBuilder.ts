@@ -53,13 +53,6 @@ import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
 import { DruidFilterBuilder } from './druidFilterBuilder';
 import { CustomDruidAggregations, CustomDruidTransforms } from './druidTypes';
 
-const APPROX_HISTOGRAM_TUNINGS = [
-  "resolution",
-  "numBuckets",
-  "lowerLimit",
-  "upperLimit"
-];
-
 export interface AggregationsAndPostAggregations {
   aggregations: Druid.Aggregation[];
   postAggregations: Druid.PostAggregation[];
@@ -91,6 +84,16 @@ export class DruidAggregationBuilder {
     max: "-Infinity"
   };
 
+  static APPROX_HISTOGRAM_TUNINGS: string[] = [
+    "resolution",
+    "numBuckets",
+    "lowerLimit",
+    "upperLimit"
+  ];
+
+  static QUANTILES_DOUBLES_TUNINGS: string[] = [
+    "k"
+  ];
 
   public version: string;
   public rawAttributes: AttributeInfo[];
@@ -258,53 +261,74 @@ export class DruidAggregationBuilder {
       let attributeName = attribute.name;
 
       let attributeInfo = this.getAttributesInfo(attributeName);
-      if (attributeInfo.nativeType === 'hyperUnique') {
-        let tempName = '!Hyper_' + name;
-        aggregation = {
-          name: this.forceFinalize ? tempName : name,
-          type: "hyperUnique",
-          fieldName: attributeName
-        };
-        if (!this.versionBefore('0.10.1')) aggregation.round = true;
-        if (this.forceFinalize) {
+      let tempName: string;
+      switch (attributeInfo.nativeType) {
+        case 'hyperUnique':
+          tempName = '!Hyper_' + name;
+          aggregation = {
+            name: this.forceFinalize ? tempName : name,
+            type: "hyperUnique",
+            fieldName: attributeName
+          };
+          if (!this.versionBefore('0.10.1')) aggregation.round = true;
+          if (this.forceFinalize) {
+            postAggregations.push({
+              type: 'finalizingFieldAccess',
+              name,
+              fieldName: tempName
+            });
+          }
+          break;
+
+        case 'thetaSketch':
+          tempName = '!Theta_' + name;
           postAggregations.push({
-            type: 'finalizingFieldAccess',
-            name,
-            fieldName: tempName
+            type: "thetaSketchEstimate",
+            name: name,
+            field: { type: 'fieldAccess', fieldName: tempName }
           });
-        }
 
-      } else if (attributeInfo.nativeType === 'thetaSketch') {
-        let tempName = '!Theta_' + name;
-        postAggregations.push({
-          type: "thetaSketchEstimate",
-          name: name,
-          field: { type: 'fieldAccess', fieldName: tempName }
-        });
+          aggregation = {
+            name: tempName,
+            type: "thetaSketch",
+            fieldName: attributeName
+          };
+          break;
 
-        aggregation = {
-          name: tempName,
-          type: "thetaSketch",
-          fieldName: attributeName
-        };
+        case 'HLLSketch':
+          tempName = '!HLLSketch_' + name;
+          aggregation = {
+            name: this.forceFinalize ? tempName : name,
+            type: "HLLSketchMerge",
+            fieldName: attributeName
+          };
+          if (this.forceFinalize) {
+            postAggregations.push({
+              type: 'finalizingFieldAccess',
+              name,
+              fieldName: tempName
+            });
+          }
+          break;
 
-      } else {
-        let tempName = '!Card_' + name;
-        aggregation = {
-          name: this.forceFinalize ? tempName : name,
-          type: "cardinality",
-          fields: [attributeName]
-        };
-        if (!this.versionBefore('0.10.1')) aggregation.round = true;
-        if (this.forceFinalize) {
-          postAggregations.push({
-            type: 'finalizingFieldAccess',
-            name,
-            fieldName: tempName
-          });
-        }
-
+        default:
+          tempName = '!Card_' + name;
+          aggregation = {
+            name: this.forceFinalize ? tempName : name,
+            type: "cardinality",
+            fields: [attributeName]
+          };
+          if (!this.versionBefore('0.10.1')) aggregation.round = true;
+          if (this.forceFinalize) {
+            postAggregations.push({
+              type: 'finalizingFieldAccess',
+              name,
+              fieldName: tempName
+            });
+          }
+          break;
       }
+
     } else {
       let cardinalityExpressions = this.getCardinalityExpressions(attribute);
 
@@ -383,26 +407,95 @@ export class DruidAggregationBuilder {
     }
 
     const tuning = Expression.parseTuning(expression.tuning);
-    const attributeInfo = this.getAttributesInfo(attributeName);
-    let histogramAggregationName = "!H_" + name;
-    let aggregation: Druid.Aggregation = {
-      name: histogramAggregationName,
-      type: 'approxHistogram' + (attributeInfo.nativeType === 'approximateHistogram' ? 'Fold' : ''),
-      fieldName: attributeName
+    const addTuningsToAggregation = (aggregation: Druid.Aggregation, tuningKeys: string[]) => {
+      for (let k of tuningKeys) {
+        if (!isNaN(tuning[k] as any)) {
+          (aggregation as any)[k] = Number(tuning[k]);
+        }
+      }
     };
 
-    for (let k of APPROX_HISTOGRAM_TUNINGS) {
-      if (!isNaN(tuning[k] as any)) {
-        (aggregation as any)[k] = Number(tuning[k]);
-      }
-    }
+    const attributeInfo = this.getAttributesInfo(attributeName);
+    let aggregation: Druid.Aggregation;
+    let tempName: string;
+    switch (attributeInfo.nativeType) {
+      case 'approximateHistogram':
+        tempName = "!H_" + name;
+        aggregation = {
+          name: tempName,
+          type: 'approxHistogramFold',
+          fieldName: attributeName
+        };
+        addTuningsToAggregation(aggregation, DruidAggregationBuilder.APPROX_HISTOGRAM_TUNINGS);
 
-    postAggregations.push({
-      name,
-      type: "quantile",
-      fieldName: histogramAggregationName,
-      probability: expression.value
-    });
+        postAggregations.push({
+          name,
+          type: "quantile",
+          fieldName: tempName,
+          probability: expression.value
+        });
+
+        break;
+
+      case 'quantilesDoublesSketch':
+        tempName = "!QD_" + name;
+        aggregation = {
+          name: tempName,
+          type: 'quantilesDoublesSketch',
+          fieldName: attributeName
+        };
+        addTuningsToAggregation(aggregation, DruidAggregationBuilder.QUANTILES_DOUBLES_TUNINGS);
+
+        postAggregations.push({
+          name,
+          type: "quantilesDoublesSketchToQuantile",
+          field: {
+            type: "fieldAccess",
+            fieldName: tempName
+          },
+          fraction: expression.value
+        } as any);
+        break;
+
+      default:
+        if (Number(tuning['v']) === 2) {
+          tempName = "!QD_" + name;
+          aggregation = {
+            name: tempName,
+            type: 'quantilesDoublesSketch',
+            fieldName: attributeName
+          };
+          addTuningsToAggregation(aggregation, DruidAggregationBuilder.QUANTILES_DOUBLES_TUNINGS);
+
+          postAggregations.push({
+            name,
+            type: "quantilesDoublesSketchToQuantile",
+            field: {
+              type: "fieldAccess",
+              fieldName: tempName
+            },
+            fraction: expression.value
+          } as any);
+
+        } else {
+          tempName = "!H_" + name;
+          aggregation = {
+            name: tempName,
+            type: 'approxHistogram',
+            fieldName: attributeName
+          };
+          addTuningsToAggregation(aggregation, DruidAggregationBuilder.APPROX_HISTOGRAM_TUNINGS);
+
+          postAggregations.push({
+            name,
+            type: "quantile",
+            fieldName: tempName,
+            probability: expression.value
+          });
+
+        }
+        break;
+    }
 
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
   }

@@ -319,6 +319,8 @@ export class DruidExternal extends External {
           case 'hyperUnique':
           case 'approximateHistogram':
           case 'thetaSketch':
+          case 'HLLSketch':
+          case 'quantilesDoublesSketch':
             attributes.push(new AttributeInfo({
               name,
               type: 'NULL',

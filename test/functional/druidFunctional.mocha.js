@@ -203,6 +203,12 @@ describe("Druid Functional", function() {
       "unsplitable": true
     },
     {
+      "name": "delta_quantilesDoublesSketch",
+      "nativeType": "quantilesDoublesSketch",
+      "type": "NULL",
+      "unsplitable": true
+    },
+    {
       "name": "isAnonymous",
       "type": "BOOLEAN"
     },
@@ -339,6 +345,12 @@ describe("Druid Functional", function() {
         "start": " "
       },
       "type": "SET/STRING"
+    },
+    {
+      "name": "user_hll",
+      "nativeType": "HLLSketch",
+      "type": "NULL",
+      "unsplitable": true
     },
     {
       "name": "user_theta",
@@ -654,7 +666,7 @@ describe("Druid Functional", function() {
     it("works with time floor + timezone", () => {
       let ex = $('wiki')
         .split({ t: $('time').timeFloor('P1D', 'Europe/Paris'), robot: '$isRobot'})
-        .apply('cnt', '$wiki.count()')
+        .apply('cnt', '$wiki.sum($count)')
         .sort('$cnt', 'descending')
         .limit(10);
 
@@ -662,17 +674,17 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "cnt": 216909,
+              "cnt": 218234,
               "robot": false,
               "t": new Date('2015-09-11T22:00:00.000Z')
             },
             {
-              "cnt": 143468,
+              "cnt": 143489,
               "robot": true,
               "t": new Date('2015-09-11T22:00:00.000Z')
             },
             {
-              "cnt": 19213,
+              "cnt": 19328,
               "robot": false,
               "t": new Date('2015-09-12T22:00:00.000Z')
             },
@@ -1069,24 +1081,28 @@ describe("Druid Functional", function() {
         .apply('UniqueUsers1', $('wiki').countDistinct("$user"))
         .apply('UniqueUsers2', $('wiki').countDistinct("$user_unique"))
         .apply('UniqueUsers3', $('wiki').countDistinct("$user_theta"))
+        .apply('UniqueUsers4', $('wiki').countDistinct("$user_hll"))
         .apply('Diff_Users_1_2', '$UniqueUsers1 - $UniqueUsers2')
         .apply('Diff_Users_2_3', '$UniqueUsers2 - $UniqueUsers3')
-        .apply('Diff_Users_1_3', '$UniqueUsers1 - $UniqueUsers3');
+        .apply('Diff_Users_1_3', '$UniqueUsers1 - $UniqueUsers3')
+        .apply('Diff_Users_3_4', '$UniqueUsers3 - $UniqueUsers4');
 
       return basicExecutor(ex)
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "Diff_Users_1_2": 1507,
-              "Diff_Users_1_3": 1055.505956137029,
-              "Diff_Users_2_3": -451.494043862971,
+              "Diff_Users_1_2": 1555,
+              "Diff_Users_1_3": 1102.7885680156833,
+              "Diff_Users_2_3": -452.21143198431673,
+              "Diff_Users_3_4": 145.2340991483652,
               "UniqueIsRobot": 2,
               "UniquePages1": 279107,
               "UniquePages2": 281588,
               "UniqueUserChars": 1376,
-              "UniqueUsers1": 39220,
+              "UniqueUsers1": 39268,
               "UniqueUsers2": 37713,
-              "UniqueUsers3": 38164.49404386297
+              "UniqueUsers3": 38165.21143198432,
+              "UniqueUsers4": 38019.97733283595
             }
           ]);
         });
@@ -2386,7 +2402,7 @@ describe("Druid Functional", function() {
         });
     });
 
-    it("works with quantiles", () => {
+    it("works with quantiles (histogram)", () => {
       let ex = ply()
         .apply('deltaHist95', $('wiki').quantile($('delta_hist'), 0.95))
         .apply('deltaHistMedian', $('wiki').quantile($('delta_hist'), 0.5))
@@ -2399,14 +2415,44 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "commentLength95": 145.4637,
-              "commentLengthMedian": 28.108896,
+              "commentLength95": 145.46353,
+              "commentLengthMedian": 28.108738,
               "deltaBucket95": -500, // ToDo: find out why this is
               "deltaBucketMedian": -500,
               "deltaHist95": 161.95517,
               "deltaHistMedian": 129.0191
             }
           ]);
+        });
+    });
+
+    it("works with quantiles (quantile doubles)", () => {
+      let ex = ply()
+        .apply('deltaQuantiles95', $('wiki').quantile($('delta_quantilesDoublesSketch'), 0.95))
+        .apply('deltaQuantilesMedian', $('wiki').quantile($('delta_quantilesDoublesSketch'), 0.5, 'k=256'))
+        .apply('commentLength95', $('wiki').quantile($('commentLength'), 0.95, 'v=2'))
+        .apply('commentLengthMedian', $('wiki').quantile($('commentLength'), 0.5, 'v=2,k=256'))
+        .apply('DeltaDq98thEn', $('wiki').filter($("channel").is('en')).quantile('$delta_quantilesDoublesSketch', 0.98))
+        .apply('DeltaDq98thDe', $('wiki').filter($("channel").is('de')).quantile('$delta_quantilesDoublesSketch', 0.98));
+
+      return basicExecutor(ex)
+        .then((result) => {
+          const datum = result.toJS().data[0];
+          expect(datum).to.have.keys(
+            "deltaQuantiles95",
+            "commentLength95",
+            "deltaQuantilesMedian",
+            "commentLengthMedian",
+            "DeltaDq98thEn",
+            "DeltaDq98thDe"
+          );
+
+          // These quantile doubles are non-deterministic - so just check against some bounds
+          const between = (k, min, max) => expect(min < datum[k] && datum[k] < max).to.equal(true);
+          between("deltaQuantiles95", 500, 2000);
+          between("commentLength95", 100, 200);
+          between("deltaQuantilesMedian", 8, 40);
+          between("commentLengthMedian", 15, 60);
         });
     });
 
@@ -2465,7 +2511,7 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result).to.deep.equal(109199 * 10);
+          expect(result).to.deep.equal(109204 * 10);
         });
     });
 
@@ -3000,7 +3046,7 @@ describe("Druid Functional", function() {
                       "end": 15,
                       "start": 10
                     },
-                    "Count": 70627
+                    "Count": 70626
                   }
                 ],
                 "keys": [
@@ -4140,6 +4186,10 @@ describe("Druid Functional", function() {
                 "type": "NULL"
               },
               {
+                "name": "delta_quantilesDoublesSketch",
+                "type": "NULL"
+              },
+              {
                 "name": "isAnonymous",
                 "type": "BOOLEAN"
               },
@@ -4208,6 +4258,10 @@ describe("Druid Functional", function() {
                 "type": "SET/STRING"
               },
               {
+                "name": "user_hll",
+                "type": "NULL"
+              },
+              {
                 "name": "user_theta",
                 "type": "NULL"
               },
@@ -4224,14 +4278,7 @@ describe("Druid Functional", function() {
                 "comment": "/* Clubs and organizations */",
                 "commentLength": 29,
                 "commentLengthStr": "29",
-                "commentTerms": {
-                  "elements": [
-                    "and",
-                    "clubs",
-                    "organizations"
-                  ],
-                  "setType": "STRING"
-                },
+                "commentTerms": null,
                 "count": 1,
                 "countryIsoCode": "US",
                 "countryName": "United States",
@@ -4240,6 +4287,7 @@ describe("Druid Functional", function() {
                 "deltaBucket100": -100,
                 "deltaByTen": -3.9,
                 "delta_hist": "/84BwhwAAA==",
+                "delta_quantilesDoublesSketch": "AgMIGoAAAAABAAAAAAAAAAAAAAAAgEPAAAAAAACAQ8AAAAAAAIBDwA==",
                 "isAnonymous": true,
                 "isMinor": false,
                 "isNew": false,
@@ -4270,7 +4318,8 @@ describe("Druid Functional", function() {
                   ],
                   "setType": "STRING"
                 },
-                "user_theta": "AgMDAAAazJMBAAAAAACAP4LYKgb0JYUx",
+                "user_hll": "AgEHDAMIAQDnuDoG",
+                "user_theta": "AQMDAAAazJOC2CoG9CWFMQ==",
                 "user_unique": "AQAAAQAAAAFzBQ=="
               },
               {
@@ -4280,14 +4329,7 @@ describe("Druid Functional", function() {
                 "comment": "/* Early life */ spelling",
                 "commentLength": 25,
                 "commentLengthStr": "25",
-                "commentTerms": {
-                  "elements": [
-                    "early",
-                    "life",
-                    "spelling"
-                  ],
-                  "setType": "STRING"
-                },
+                "commentTerms": null,
                 "count": 1,
                 "countryIsoCode": "US",
                 "countryName": "United States",
@@ -4296,6 +4338,7 @@ describe("Druid Functional", function() {
                 "deltaBucket100": 0,
                 "deltaByTen": 0,
                 "delta_hist": "/84BAAAAAA==",
+                "delta_quantilesDoublesSketch": "AgMIGoAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
                 "isAnonymous": true,
                 "isMinor": false,
                 "isNew": false,
@@ -4326,7 +4369,8 @@ describe("Druid Functional", function() {
                   ],
                   "setType": "STRING"
                 },
-                "user_theta": "AgMDAAAazJMBAAAAAACAPykGTa6KslE/",
+                "user_hll": "AgEHDAMIAQC8oGoY",
+                "user_theta": "AQMDAAAazJMpBk2uirJRPw==",
                 "user_unique": "AQAAAQAAAAOIQA=="
               }
             ]
@@ -4347,13 +4391,7 @@ describe("Druid Functional", function() {
               "comment": "/* Enllaços externs */",
               "commentLength": 22,
               "commentLengthStr": "22",
-              "commentTerms": {
-                "elements": [
-                  "enllaços",
-                  "externs"
-                ],
-                "setType": "STRING"
-              },
+              "commentTerms": null,
               "count": 1,
               "countryIsoCode": null,
               "countryName": null,
@@ -4362,6 +4400,7 @@ describe("Druid Functional", function() {
               "deltaBucket100": -100,
               "deltaByTen": -0.1,
               "delta_hist": "/84Bv4AAAA==",
+              "delta_quantilesDoublesSketch": "AgMIGoAAAAABAAAAAAAAAAAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvw==",
               "isAnonymous": false,
               "isMinor": false,
               "isNew": false,
@@ -4396,7 +4435,8 @@ describe("Druid Functional", function() {
                 ],
                 "setType": "STRING"
               },
-              "user_theta": "AgMDAAAazJMBAAAAAACAP5xSyQDWkQwY",
+              "user_hll": "AgEHDAMIAQAsNv0H",
+              "user_theta": "AQMDAAAazJOcUskA1pEMGA==",
               "user_unique": "AQAAAQAAAALGBA=="
             }
           ]);
