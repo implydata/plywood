@@ -994,8 +994,8 @@ describe("Druid Functional", function() {
       let ex = $('wiki')
         .filter($("channel").transformCase('upperCase').is('EN'))
         .split($("page").transformCase('lowerCase'), 'page')
-        .apply('SumIndexA', $('wiki').sum($("page").transformCase('upperCase').indexOf("A")))
-        .limit(8);
+        .apply('SumIndexA', $('wiki').sum($("channel").transformCase('upperCase').indexOf("A")))
+        .limit(5);
 
       return basicExecutor(ex)
         .then((result) => {
@@ -1005,32 +1005,20 @@ describe("Druid Functional", function() {
               "page": "!t.o.o.h.!"
             },
             {
-              "SumIndexA": 1,
+              "SumIndexA": -1,
               "page": "'ajde jano"
             },
             {
-              "SumIndexA": 1,
+              "SumIndexA": -1,
               "page": "'asir region"
             },
             {
-              "SumIndexA": 1,
+              "SumIndexA": -1,
               "page": "'asta bowen"
             },
             {
-              "SumIndexA": 1,
-              "page": "'atika wahbi al-khazraji"
-            },
-            {
-              "SumIndexA": -2,
-              "page": "'cue detective"
-            },
-            {
               "SumIndexA": -1,
-              "page": "'from hell' letter"
-            },
-            {
-              "SumIndexA": 2,
-              "page": "'marriage, migration and gender'"
+              "page": "'atika wahbi al-khazraji"
             }
           ]);
         });

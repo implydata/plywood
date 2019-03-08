@@ -126,7 +126,7 @@ describe("DruidExternal Rollup", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "expression": "if(\"Count\"!=0,(cast(\"!T_0\",'DOUBLE')/\"Count\"),0)",
+            "expression": "if(\"Count\"!=0,(cast(\"!T_0\",'DOUBLE')/\"Count\"),null)",
             "name": "AvgAdded",
             "type": "expression"
           }
@@ -208,12 +208,12 @@ describe("DruidExternal Rollup", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),0)",
+            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),null)",
             "name": "AvgEnAdded",
             "type": "expression"
           },
           {
-            "expression": "if(\"!T_3\"!=0,(cast(\"!T_2\",'DOUBLE')/\"!T_3\"),0)",
+            "expression": "if(\"!T_3\"!=0,(cast(\"!T_2\",'DOUBLE')/\"!T_3\"),null)",
             "name": "AvgHeDeleted",
             "type": "expression"
           }

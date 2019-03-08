@@ -52,7 +52,7 @@ import {
   AndExpression,
   OrExpression,
   NotExpression,
-  ThenExpression
+  ThenExpression, IndexOfExpression
 } from '../../expressions';
 import { continuousFloorExpression } from '../../helper';
 import { PlyType } from '../../types';
@@ -266,7 +266,7 @@ export class DruidExpressionBuilder {
           if (myExpression instanceof LiteralExpression) {
             return `(cast(${ex1},'DOUBLE')/${ex2})`;
           } else {
-            return `if(${ex2}!=0,(cast(${ex1},'DOUBLE')/${ex2}),0)`;
+            return `if(${ex2}!=0,(cast(${ex1},'DOUBLE')/${ex2}),null)`;
           }
 
         } else if (expression instanceof PowerExpression) {
@@ -331,6 +331,11 @@ export class DruidExpressionBuilder {
             default:
               throw new Error(`can not convert ${expression} to Druid expression`);
           }
+
+        } else if (expression instanceof IndexOfExpression) {
+          this.checkDruid12('strpos');
+          return `strpos(${ex1},${ex2})`;
+
         }
       }
     }
@@ -372,6 +377,12 @@ export class DruidExpressionBuilder {
       return endExpression ? `(${startExpression} && ${endExpression})` : startExpression;
     } else {
       return endExpression ? endExpression : 'true';
+    }
+  }
+
+  private checkDruid12(expr: string): void {
+    if (this.versionBefore('0.12.0')) {
+      throw new Error(`expression '${expr}' requires Druid 0.12.0 or newer`);
     }
   }
 

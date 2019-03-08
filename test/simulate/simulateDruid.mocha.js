@@ -294,14 +294,9 @@ describe("simulate Druid", () => {
             "type": "doubleSum"
           },
           {
-            "fieldNames": [
-              "carat"
-            ],
-            "fnAggregate": "function($$,_carat) { return $$+parseFloat(_carat); }",
-            "fnCombine": "function(a,b) { return a+b; }",
-            "fnReset": "function() { return 0; }",
+            "expression": "cast(\"carat\",'DOUBLE')",
             "name": "!T_1",
-            "type": "javascript"
+            "type": "doubleSum"
           }
         ],
         "dataSource": "diamonds",
@@ -353,7 +348,7 @@ describe("simulate Druid", () => {
             "type": "expression"
           },
           {
-            "expression": "if(\"Count\"!=0,(cast(\"TotalPrice\",'DOUBLE')/\"Count\"),0)",
+            "expression": "if(\"Count\"!=0,(cast(\"TotalPrice\",'DOUBLE')/\"Count\"),null)",
             "name": "AvgPrice",
             "type": "expression"
           }
@@ -858,14 +853,9 @@ describe("simulate Druid", () => {
       {
         "aggregations": [
           {
-            "fieldNames": [
-              "carat_n"
-            ],
-            "fnAggregate": "function($$,_carat_n) { return $$+_carat_n; }",
-            "fnCombine": "function(a,b) { return a+b; }",
-            "fnReset": "function() { return 0; }",
+            "expression": "cast(\"carat_n\",'DOUBLE')",
             "name": "__VALUE__",
-            "type": "javascript"
+            "type": "doubleSum"
           }
         ],
         "dataSource": "diamonds",
@@ -2131,55 +2121,14 @@ describe("simulate Druid", () => {
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0][0].aggregations).to.deep.equal([
       {
-        "fieldNames": [
-          "carat"
-        ],
-        "fnAggregate": "function($$,_carat) { return Math.max($$,parseFloat(_carat)); }",
-        "fnCombine": "function(a,b) { return Math.max(a,b); }",
-        "fnReset": "function() { return -Infinity; }",
+        "expression": "cast(\"carat\",'DOUBLE')",
         "name": "maxCarat",
-        "type": "javascript"
+        "type": "doubleMax"
       },
       {
-        "fieldNames": [
-          "carat"
-        ],
-        "fnAggregate": "function($$,_carat) { return Math.min($$,parseFloat(_carat)); }",
-        "fnCombine": "function(a,b) { return Math.min(a,b); }",
-        "fnReset": "function() { return Infinity; }",
+        "expression": "cast(\"carat\",'DOUBLE')",
         "name": "minCarat",
-        "type": "javascript"
-      }
-    ]);
-  });
-
-  it("makes a query on a reserved JS word", () => {
-    let ex = ply()
-      .apply('maxTry', '$diamonds.max($try)')
-      .apply('maxA+B', '$diamonds.max(${a+b})');
-
-    let queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan.length).to.equal(1);
-    expect(queryPlan[0][0].aggregations).to.deep.equal([
-      {
-        "fieldNames": [
-          "try"
-        ],
-        "fnAggregate": "function($$,_try) { return Math.max($$,parseFloat(_try)); }",
-        "fnCombine": "function(a,b) { return Math.max(a,b); }",
-        "fnReset": "function() { return -Infinity; }",
-        "name": "maxTry",
-        "type": "javascript"
-      },
-      {
-        "fieldNames": [
-          "a+b"
-        ],
-        "fnAggregate": "function($$,_a$43b) { return Math.max($$,parseFloat(_a$43b)); }",
-        "fnCombine": "function(a,b) { return Math.max(a,b); }",
-        "fnReset": "function() { return -Infinity; }",
-        "name": "maxA+B",
-        "type": "javascript"
+        "type": "doubleMin"
       }
     ]);
   });
@@ -2222,14 +2171,9 @@ describe("simulate Druid", () => {
           },
           {
             "aggregator": {
-              "fieldNames": [
-                "price"
-              ],
-              "fnAggregate": "function($$,_price) { return $$+Math.pow(parseFloat(_price),2); }",
-              "fnCombine": "function(a,b) { return a+b; }",
-              "fnReset": "function() { return 0; }",
+              "expression": "pow(\"price\",2)",
               "name": "GoodPrice2",
-              "type": "javascript"
+              "type": "doubleSum"
             },
             "filter": {
               "dimension": "cut",
@@ -2263,8 +2207,8 @@ describe("simulate Druid", () => {
                 "color"
               ],
               "name": "NotBadColors",
-              "type": "cardinality",
-              "round": true
+              "round": true,
+              "type": "cardinality"
             },
             "filter": {
               "field": {
@@ -2278,6 +2222,9 @@ describe("simulate Druid", () => {
             "type": "filtered"
           }
         ],
+        "context": {
+          "skipEmptyBuckets": "true"
+        },
         "dataSource": "diamonds",
         "granularity": {
           "period": "PT1H",
@@ -2285,10 +2232,7 @@ describe("simulate Druid", () => {
           "type": "period"
         },
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
-        "queryType": "timeseries",
-        "context": {
-          "skipEmptyBuckets": "true"
-        }
+        "queryType": "timeseries"
       }
     ]);
   });
@@ -2711,7 +2655,7 @@ describe("simulate Druid", () => {
             "type": "quantile"
           },
           {
-            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),0)",
+            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),null)",
             "name": "QuantileByRedPrice",
             "type": "expression"
           }
@@ -3260,7 +3204,7 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "expression": "if(\"NumColors\"!=0,(cast(\"NumVendors\",'DOUBLE')/\"NumColors\"),0)",
+            "expression": "if(\"NumColors\"!=0,(cast(\"NumVendors\",'DOUBLE')/\"NumColors\"),null)",
             "name": "VendorsByColors",
             "type": "expression"
           }
@@ -3443,22 +3387,16 @@ describe("simulate Druid", () => {
     ]);
   });
 
-  it("works with binary JS aggregate", () => {
+  it("works with complex aggregate", () => {
     let ex = ply()
       .apply('Thing', '$diamonds.sum($price.absolute() * $carat.power(2))');
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0][0].aggregations[0]).to.deep.equal({
-      "fieldNames": [
-        "carat",
-        "price"
-      ],
-      "fnAggregate": "function($$,_carat,_price) { return $$+(Math.abs(parseFloat(_price))*Math.pow(parseFloat(_carat),2)); }",
-      "fnCombine": "function(a,b) { return a+b; }",
-      "fnReset": "function() { return 0; }",
+      "expression": "(abs(\"price\")*pow(\"carat\",2))",
       "name": "__VALUE__",
-      "type": "javascript"
+      "type": "doubleSum"
     });
   });
 
@@ -3853,14 +3791,9 @@ describe("simulate Druid", () => {
       {
         "aggregations": [
           {
-            "fieldNames": [
-              "carat"
-            ],
-            "fnAggregate": "function($$,_carat) { return $$+parseFloat(_carat); }",
-            "fnCombine": "function(a,b) { return a+b; }",
-            "fnReset": "function() { return 0; }",
+            "expression": "cast(\"carat\",'DOUBLE')",
             "name": "!T_0",
-            "type": "javascript"
+            "type": "doubleSum"
           },
           {
             "name": "!T_1",
@@ -3872,7 +3805,7 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),0)",
+            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),null)",
             "name": "__VALUE__",
             "type": "expression"
           }
@@ -3915,14 +3848,9 @@ describe("simulate Druid", () => {
       {
         "aggregations": [
           {
-            "fieldNames": [
-              "carat"
-            ],
-            "fnAggregate": "function($$,_carat) { return $$+parseFloat(_carat); }",
-            "fnCombine": "function(a,b) { return a+b; }",
-            "fnReset": "function() { return 0; }",
+            "expression": "cast(\"carat\",'DOUBLE')",
             "name": "!T_0",
-            "type": "javascript"
+            "type": "doubleSum"
           },
           {
             "name": "!T_1",
@@ -3934,7 +3862,7 @@ describe("simulate Druid", () => {
         "intervals": "2015-03-12T00Z/2015-03-19T00Z",
         "postAggregations": [
           {
-            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),0)",
+            "expression": "if(\"!T_1\"!=0,(cast(\"!T_0\",'DOUBLE')/\"!T_1\"),null)",
             "name": "__VALUE__",
             "type": "expression"
           }

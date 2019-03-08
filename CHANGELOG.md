@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.20.6
+
+- Use expressions over JS aggs when possible
+- Support more datasketches
+
 ## 0.20.5
 
 - Added `forceFinalize` to fix DAU calculation

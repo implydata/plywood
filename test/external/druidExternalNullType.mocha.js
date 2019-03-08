@@ -354,25 +354,14 @@ describe("DruidExternal Null Type", () => {
 
       expect(druidExternal.getQueryAndPostTransform().query.aggregations).to.deep.equal([
         {
-          "fieldNames": [
-            "added"
-          ],
-          "fnAggregate": "function($$,_added) { return $$+Math.abs(_added); }",
-          "fnCombine": "function(a,b) { return a+b; }",
-          "fnReset": "function() { return 0; }",
+          "expression": "abs(\"added\")",
           "name": "SumAbs",
-          "type": "javascript"
+          "type": "doubleSum"
         },
         {
-          "fieldNames": [
-            "added",
-            "deleted"
-          ],
-          "fnAggregate": "function($$,_added,_deleted) { return $$+(_=Math.abs(_added),(_===0||isNaN(_)?null:(Math.pow(_added,2)*_deleted)/Math.abs(_added))); }",
-          "fnCombine": "function(a,b) { return a+b; }",
-          "fnReset": "function() { return 0; }",
+          "expression": "if(abs(\"added\")!=0,(cast((pow(\"added\",2)*\"deleted\"),'DOUBLE')/abs(\"added\")),null)",
           "name": "SumComplex",
-          "type": "javascript"
+          "type": "doubleSum"
         }
       ]);
     });
@@ -535,7 +524,7 @@ describe("DruidExternal Null Type", () => {
         "metric": "Count",
         "postAggregations": [
           {
-            "expression": "(pow(abs((if(pow(abs(\"Count\"),0.5)!=0,(cast(\"!T_0\",'DOUBLE')/pow(abs(\"Count\"),0.5)),0)+(\"!T_1\"*100))),2)+\"!T_2\")",
+            "expression": "(pow(abs((if(pow(abs(\"Count\"),0.5)!=0,(cast(\"!T_0\",'DOUBLE')/pow(abs(\"Count\"),0.5)),null)+(\"!T_1\"*100))),2)+\"!T_2\")",
             "name": "Abs",
             "type": "expression"
           }

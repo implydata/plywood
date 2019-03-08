@@ -207,6 +207,9 @@ export class DruidAggregationBuilder {
   }
 
   private sumMinMaxToAggregation(name: string, expression: SumExpression | MinExpression | MaxExpression): Druid.Aggregation {
+    const op = expression.op;
+    const opCap = op[0].toUpperCase() + op.substr(1);
+
     let aggregation: Druid.Aggregation;
 
     let aggregateExpression = expression.expression;
@@ -214,17 +217,32 @@ export class DruidAggregationBuilder {
       let refName = aggregateExpression.name;
       let attributeInfo = this.getAttributesInfo(refName);
       if (attributeInfo.nativeType === 'STRING') {
-        aggregation = this.makeJavaScriptAggregation(name, expression);
+        try {
+          aggregation = {
+            name,
+            type: 'double' + opCap,
+            expression: new DruidExpressionBuilder(this).expressionToDruidExpression(aggregateExpression.cast('NUMBER'))
+          } as any;
+        } catch {
+          aggregation = this.makeJavaScriptAggregation(name, expression);
+        }
       } else {
-        let op = expression.op;
         aggregation = {
           name,
-          type: (attributeInfo.nativeType === 'LONG' ? 'long' : 'double') + op[0].toUpperCase() + op.substr(1),
+          type: (attributeInfo.nativeType === 'LONG' ? 'long' : 'double') + opCap,
           fieldName: refName
         };
       }
     } else {
-      aggregation = this.makeJavaScriptAggregation(name, expression);
+      try {
+        aggregation = {
+          name,
+          type: 'double' + opCap,
+          expression: new DruidExpressionBuilder(this).expressionToDruidExpression(aggregateExpression)
+        } as any;
+      } catch {
+        aggregation = this.makeJavaScriptAggregation(name, expression);
+      }
     }
 
     return this.filterAggregateIfNeeded(expression.operand, aggregation);

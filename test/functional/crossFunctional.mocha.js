@@ -1518,7 +1518,7 @@ describe("Cross Functional", function() {
     it('works with set cardinality in apply', equalityTest({
       executorNames: ['druid', 'postgres'],
       expression: $('wiki').split('$channel', 'Channel')
-        .apply('SIZE', ('$wiki.max($userChars.cardinality())'))
+        .apply('SIZE', '$wiki.max($userChars.cardinality())')
         .sort('$Channel', 'descending')
         .limit(5)
     }));
