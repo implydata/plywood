@@ -113,7 +113,7 @@ describe("Expression", () => {
         op: "external",
         external: {
           engine: 'druid',
-          version: '0.11.0',
+          version: '0.13.0',
           source: 'moon_child',
           attributes: [
             { name: 'color', type: 'STRING' },

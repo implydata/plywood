@@ -266,7 +266,11 @@ export class DruidExpressionBuilder {
           if (myExpression instanceof LiteralExpression) {
             return `(cast(${ex1},'DOUBLE')/${ex2})`;
           } else {
-            return `if(${ex2}!=0,(cast(${ex1},'DOUBLE')/${ex2}),null)`;
+            let nullValue = 'null';
+            if (this.versionBefore('0.13.0')) {
+              nullValue = '0';
+            }
+            return `if(${ex2}!=0,(cast(${ex1},'DOUBLE')/${ex2}),${nullValue})`;
           }
 
         } else if (expression instanceof PowerExpression) {

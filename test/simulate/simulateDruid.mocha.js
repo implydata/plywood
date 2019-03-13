@@ -80,7 +80,7 @@ let customAggregations = {
 
 let diamondsCompact = External.fromJS({
   engine: 'druid',
-  version: '0.11.0',
+  version: '0.13.0',
   source: 'diamonds-compact',
   timeAttribute: 'time',
   attributes: [
@@ -102,7 +102,7 @@ let diamondsCompact = External.fromJS({
 let context = {
   'diamonds': External.fromJS({
     engine: 'druid',
-    version: '0.11.0',
+    version: '0.13.0',
     source: 'diamonds',
     timeAttribute: 'time',
     attributes,
@@ -116,7 +116,7 @@ let context = {
   }).addDelegate(diamondsCompact),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
-    version: '0.11.0',
+    version: '0.13.0',
     source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,

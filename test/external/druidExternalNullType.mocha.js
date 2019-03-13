@@ -52,7 +52,7 @@ let context = {
     },
     filter: timeFilter,
     allowSelectQueries: true,
-    version: '0.10.0',
+    version: '0.13.0',
     customAggregations: {
       crazy: {
         accessType: 'getSomeCrazy',
@@ -504,6 +504,7 @@ describe("DruidExternal Null Type", () => {
               "page"
             ],
             "name": "!T_1",
+            "round": true,
             "type": "cardinality"
           },
           {
@@ -1273,24 +1274,19 @@ describe("DruidExternal Null Type", () => {
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('topN');
+      expect(query.virtualColumns).to.deep.equal([
+        {
+          "expression": "like(nvl(lookup(\"page\",'wikipedia-page-lookup'),\"page\"),'%lol%','~')",
+          "name": "v:Split",
+          "outputType": "STRING",
+          "type": "expression"
+        }
+      ]);
       expect(query.dimension).to.deep.equal({
-        "dimension": "page",
-        "extractionFn": {
-          "extractionFns": [
-            {
-              "lookup": "wikipedia-page-lookup",
-              "retainMissingValue": true,
-              "type": "registeredLookup"
-            },
-            {
-              "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).indexOf(\"lol\")>-1));}",
-              "type": "javascript"
-            }
-          ],
-          "type": "cascade"
-        },
+        "dimension": "v:Split",
         "outputName": "Split",
-        "type": "extraction"
+        "outputType": "STRING",
+        "type": "default"
       });
     });
 
@@ -1321,23 +1317,19 @@ describe("DruidExternal Null Type", () => {
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('topN');
+      expect(query.virtualColumns).to.deep.equal([
+        {
+          "expression": "like(lower(lookup(\"tags\",'tag-lookup')),'%lol%','~')",
+          "name": "v:Split",
+          "outputType": "STRING",
+          "type": "expression"
+        }
+      ]);
       expect(query.dimension).to.deep.equal({
-        "dimension": "tags",
-        "extractionFn": {
-          "extractionFns": [
-            {
-              "lookup": "tag-lookup",
-              "type": "registeredLookup"
-            },
-            {
-              "function": "function(d){var _,_2;return (_=d,(_==null)?null:((''+_).toLowerCase().indexOf((''+\"lol\").toLowerCase())>-1));}",
-              "type": "javascript"
-            }
-          ],
-          "type": "cascade"
-        },
+        "dimension": "v:Split",
         "outputName": "Split",
-        "type": "extraction"
+        "outputType": "STRING",
+        "type": "default"
       });
     });
 
