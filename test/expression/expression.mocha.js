@@ -631,4 +631,23 @@ describe("Expression", () => {
 
   });
 
+  describe('options', () => {
+    let ex = $('main').count();
+
+    it('gets options', () => {
+      expect(ex.getOptions()).to.deep.equal({});
+    });
+
+    it('sets options', () => {
+      ex = ex.setOptions({ hello: 'world' });
+      expect(ex.getOptions()).to.deep.equal({ hello: 'world' });
+    });
+
+    it('resets options', () => {
+      ex = ex.setOptions(null);
+      expect(ex.getOptions()).to.deep.equal({});
+    });
+
+  });
+
 });

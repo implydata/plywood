@@ -1099,6 +1099,16 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return ex;
   }
 
+  public getOptions(): Record<string, any> {
+    return this.options || {};
+  }
+
+  public setOptions(options: Record<string, any> | null): Expression {
+    let value = this.valueOf();
+    value.options = options;
+    return Expression.fromValue(value);
+  }
+
   // ------------------------------------------------------------------------
   // API behaviour
 

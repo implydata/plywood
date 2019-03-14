@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.20.10
+
+- Add get and set options
+
 ## 0.20.9
 
 - Allow options on expressions
