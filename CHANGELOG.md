@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.20.9
+
+- Allow options on expressions
+- Fix version checks on `null` in Druid expressions
+
 ## 0.20.8
 
 - Use expressions over JS aggs when possible

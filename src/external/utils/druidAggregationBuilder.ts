@@ -95,6 +95,13 @@ export class DruidAggregationBuilder {
     "k"
   ];
 
+  static addOptionsToAggregation(aggregation: Druid.Aggregation, expression: Expression) {
+    const options = expression.options;
+    if (options && options.csum) {
+      (aggregation as any)._csum = true;
+    }
+  }
+
   public version: string;
   public rawAttributes: AttributeInfo[];
   public timeAttribute: string;
@@ -178,6 +185,8 @@ export class DruidAggregationBuilder {
   }
 
   private expressionToAggregation(name: string, expression: Expression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
+    const initAggregationsLength = aggregations.length;
+
     if (expression instanceof CountExpression) {
       aggregations.push(this.countToAggregation(name, expression));
 
@@ -196,6 +205,12 @@ export class DruidAggregationBuilder {
     } else {
       throw new Error(`unsupported aggregate action ${expression} (as ${name})`);
 
+    }
+
+    // Add options to all the newly added aggregations
+    const finalAggregationsLength = aggregations.length;
+    for (let i = initAggregationsLength; i < finalAggregationsLength; i++) {
+      DruidAggregationBuilder.addOptionsToAggregation(aggregations[i], expression);
     }
   }
 
@@ -222,7 +237,7 @@ export class DruidAggregationBuilder {
             name,
             type: 'double' + opCap,
             expression: new DruidExpressionBuilder(this).expressionToDruidExpression(aggregateExpression.cast('NUMBER'))
-          } as any;
+          };
         } catch {
           aggregation = this.makeJavaScriptAggregation(name, expression);
         }
@@ -239,7 +254,7 @@ export class DruidAggregationBuilder {
           name,
           type: 'double' + opCap,
           expression: new DruidExpressionBuilder(this).expressionToDruidExpression(aggregateExpression)
-        } as any;
+        };
       } catch {
         aggregation = this.makeJavaScriptAggregation(name, expression);
       }
@@ -472,7 +487,7 @@ export class DruidAggregationBuilder {
             fieldName: tempName
           },
           fraction: expression.value
-        } as any);
+        });
         break;
 
       default:
@@ -493,7 +508,7 @@ export class DruidAggregationBuilder {
               fieldName: tempName
             },
             fraction: expression.value
-          } as any);
+          });
 
         } else {
           tempName = "!H_" + name;

@@ -17,7 +17,7 @@
 
 import { Duration, parseISODate, Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
-import { Instance, isImmutableClass } from 'immutable-class';
+import { Instance, isImmutableClass, generalLookupsEqual } from 'immutable-class';
 import { PassThrough } from 'readable-stream';
 
 import { failIfIntrospectNeededInDatum, getFullTypeFromDatum, introspectDatum } from '../datatypes/common';
@@ -194,6 +194,7 @@ export interface ExpressionValue {
   op?: string;
   type?: PlyType;
   simple?: boolean;
+  options?: Record<string, any>;
   operand?: Expression;
   value?: any;
   name?: string;
@@ -227,6 +228,7 @@ export interface ExpressionValue {
 export interface ExpressionJS {
   op?: string;
   type?: PlyType;
+  options?: Record<string, any>;
   value?: any;
   operand?: ExpressionJS;
   name?: string;
@@ -626,7 +628,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   static jsToValue(js: ExpressionJS): ExpressionValue {
     return {
       op: js.op,
-      type: js.type
+      type: js.type,
+      options: js.options
     };
   }
 
@@ -677,6 +680,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public op: string;
   public type: PlyType;
   public simple: boolean;
+  public options?: Record<string, any>;
 
   constructor(parameters: ExpressionValue, dummy: any = null) {
     this.op = parameters.op;
@@ -684,6 +688,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
       throw new TypeError("can not call `new Expression` directly use Expression.fromJS instead");
     }
     if (parameters.simple) this.simple = true;
+    if (parameters.options) this.options = parameters.options;
   }
 
   protected _ensureOp(op: string) {
@@ -699,6 +704,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public valueOf(): ExpressionValue {
     let value: ExpressionValue = { op: this.op };
     if (this.simple) value.simple = true;
+    if (this.options) value.options = this.options;
     return value;
   }
 
@@ -706,9 +712,9 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Serializes the expression into a simple JS object that can be passed to JSON.serialize
    */
   public toJS(): ExpressionJS {
-    return {
-      op: this.op
-    };
+    let js: ExpressionJS = { op: this.op };
+    if (this.options) js.options = this.options;
+    return js;
   }
 
   /**
@@ -727,7 +733,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public equals(other: Expression): boolean {
     return other instanceof Expression &&
       this.op === other.op &&
-      this.type === other.type;
+      this.type === other.type &&
+      generalLookupsEqual(this.options, other.options);
   }
 
   /**
@@ -1830,8 +1837,8 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
     return promiseWhile(
       () => Object.keys(readyExternals).length > 0 && computeCycles < maxComputeCycles && queriesMade < maxQueries,
-      () => {
-        return fillExpressionExternalAlterationAsync(readyExternals, (external, terminal) => {
+      async () => {
+        const readyExternalsFilled = await fillExpressionExternalAlterationAsync(readyExternals, (external, terminal) => {
           if (queriesMade < maxQueries) {
             queriesMade++;
             return external.queryValue(terminal, rawQueries);
@@ -1839,16 +1846,15 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
             queriesMade++;
             return Promise.resolve(null); // Query limit reached, don't do any more queries.
           }
-        })
-          .then((readyExternalsFilled) => {
-            ex = ex.applyReadyExternals(readyExternalsFilled);
-            const literalValue = ex.getLiteralValue();
-            if (maxRows && literalValue instanceof Dataset) {
-              ex = r(literalValue.depthFirstTrimTo(maxRows));
-            }
-            readyExternals = ex.getReadyExternals(concurrentQueryLimit);
-            computeCycles++;
-          });
+        });
+
+        ex = ex.applyReadyExternals(readyExternalsFilled);
+        const literalValue = ex.getLiteralValue();
+        if (maxRows && literalValue instanceof Dataset) {
+          ex = r(literalValue.depthFirstTrimTo(maxRows));
+        }
+        readyExternals = ex.getReadyExternals(concurrentQueryLimit);
+        computeCycles++;
       }
     )
       .then(() => {

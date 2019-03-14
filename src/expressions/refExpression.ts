@@ -50,18 +50,10 @@ export class RefExpression extends Expression {
 
   static op = "Ref";
   static fromJS(parameters: ExpressionJS): RefExpression {
-    let value: ExpressionValue;
-    if (hasOwnProp(parameters, 'nest')) {
-      value = <any>parameters;
-    } else {
-      value = {
-        op: 'ref',
-        nest: 0,
-        name: parameters.name,
-        type: parameters.type,
-        ignoreCase: parameters.ignoreCase
-      };
-    }
+    let value: ExpressionValue = Expression.jsToValue(parameters);
+    value.nest = parameters.nest || 0;
+    value.name = parameters.name;
+    value.ignoreCase = parameters.ignoreCase;
     return new RefExpression(value);
   }
 

@@ -49,6 +49,9 @@ describe("Expression", () => {
       { op: 'ref', name: 'a fish will "save" you - lol / (or not)' },
       { op: 'ref', name: 'a thing', ignoreCase: true },
 
+      { op: 'ref', name: 'a thing', ignoreCase: true, options: { hello: 'world' } },
+      { op: 'ref', name: 'a thing', ignoreCase: true, options: { hello: 'druid' } },
+
       {
         op: 'add',
         operand: { op: 'ref', name: 'x' },
