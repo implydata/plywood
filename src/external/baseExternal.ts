@@ -265,7 +265,6 @@ export interface ExternalValue {
   introspectionStrategy?: string;
   exactResultsOnly?: boolean;
   querySelection?: QuerySelection;
-  forceFinalize?: boolean;
   context?: Record<string, any>;
 
   requester?: PlywoodRequester<any>;
@@ -293,7 +292,6 @@ export interface ExternalJS {
   introspectionStrategy?: string;
   exactResultsOnly?: boolean;
   querySelection?: QuerySelection;
-  forceFinalize?: boolean;
   context?: Record<string, any>;
 }
 

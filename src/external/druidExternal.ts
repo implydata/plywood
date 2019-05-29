@@ -27,7 +27,7 @@ import {
   ApplyExpression,
   CardinalityExpression,
   ChainableExpression,
-  ChainableUnaryExpression, CountExpression, CustomAggregateExpression,
+  ChainableUnaryExpression, CountDistinctExpression, CountExpression, CustomAggregateExpression,
   Expression, ExtractExpression, FallbackExpression,
   FilterExpression,
   InExpression,
@@ -123,7 +123,6 @@ export class DruidExternal extends External {
     value.introspectionStrategy = parameters.introspectionStrategy;
     value.exactResultsOnly = Boolean(parameters.exactResultsOnly);
     value.querySelection = parameters.querySelection;
-    value.forceFinalize = parameters.forceFinalize;
     value.context = parameters.context;
     return new DruidExternal(value);
   }
@@ -386,7 +385,6 @@ export class DruidExternal extends External {
   public introspectionStrategy: string;
   public exactResultsOnly: boolean;
   public querySelection: QuerySelection;
-  public forceFinalize: boolean;
   public context: Record<string, any>;
 
   constructor(parameters: ExternalValue) {
@@ -407,7 +405,6 @@ export class DruidExternal extends External {
 
     this.exactResultsOnly = parameters.exactResultsOnly;
     this.querySelection = parameters.querySelection;
-    this.forceFinalize = parameters.forceFinalize;
     this.context = parameters.context;
   }
 
@@ -421,7 +418,6 @@ export class DruidExternal extends External {
     value.introspectionStrategy = this.introspectionStrategy;
     value.exactResultsOnly = this.exactResultsOnly;
     value.querySelection = this.querySelection;
-    value.forceFinalize = this.forceFinalize;
     value.context = this.context;
     return value;
   }
@@ -436,7 +432,6 @@ export class DruidExternal extends External {
     if (this.introspectionStrategy !== DruidExternal.DEFAULT_INTROSPECTION_STRATEGY) js.introspectionStrategy = this.introspectionStrategy;
     if (this.exactResultsOnly) js.exactResultsOnly = true;
     if (this.querySelection) js.querySelection = this.querySelection;
-    if (this.forceFinalize) js.forceFinalize = this.forceFinalize;
     if (this.context) js.context = this.context;
     return js;
   }
@@ -451,7 +446,6 @@ export class DruidExternal extends External {
       this.introspectionStrategy === other.introspectionStrategy &&
       this.exactResultsOnly === other.exactResultsOnly &&
       this.querySelection === other.querySelection &&
-      this.forceFinalize === other.forceFinalize &&
       dictEqual(this.context, other.context);
   }
 
@@ -949,10 +943,15 @@ export class DruidExternal extends External {
               globalResplitSplit = resplit.resplitSplit;
             }
 
-            const oldName = resplit.resplitApply.name;
+            const resplitApply = resplit.resplitApply;
+            const oldName = resplitApply.name;
             const newName = oldName + '_' + i;
 
-            innerApplies.push(resplit.resplitApply.changeName(newName));
+            innerApplies.push(
+              resplitApply
+                .changeName(newName)
+                .changeExpression(resplitApply.expression.setOption('forceFinalize', true))
+            );
             outerAttributes.push(AttributeInfo.fromJS({ name: newName, type: 'NUMBER' }));
 
             return resplit.resplitAgg.substitute((ex) => {
@@ -964,7 +963,11 @@ export class DruidExternal extends External {
           } else {
             const tempName = `a${i}_${c++}`;
             innerApplies.push(Expression._.apply(tempName, ex));
-            outerAttributes.push(AttributeInfo.fromJS({ name: tempName, type: ex.type }));
+            outerAttributes.push(AttributeInfo.fromJS({
+              name: tempName,
+              type: ex.type,
+              nativeType: (ex instanceof CountDistinctExpression) ? 'hyperUnique' : null
+            }));
 
             if (ex instanceof CountExpression) {
               return Expression._.sum($(tempName));
@@ -1028,7 +1031,6 @@ export class DruidExternal extends External {
     innerValue.split = split ? split.changeSplits(innerSplits) : Expression._.split(innerSplits);
     innerValue.limit = null;
     innerValue.sort = null;
-    innerValue.forceFinalize = true;
     const innerExternal = new DruidExternal(innerValue);
     const innerQuery = innerExternal.getQueryAndPostTransform().query;
     delete innerQuery.context;

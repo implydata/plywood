@@ -1103,10 +1103,16 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return this.options || {};
   }
 
-  public setOptions(options: Record<string, any> | null): Expression {
+  public setOptions(options: Record<string, any> | null): this {
     let value = this.valueOf();
     value.options = options;
-    return Expression.fromValue(value);
+    return Expression.fromValue(value) as any;
+  }
+
+  public setOption(optionKey: string, optionValue: any): this {
+    const newOptions = Object.assign({}, this.getOptions());
+    newOptions[optionKey] = optionValue;
+    return this.setOptions(newOptions);
   }
 
   // ------------------------------------------------------------------------

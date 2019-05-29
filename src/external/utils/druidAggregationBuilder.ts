@@ -68,7 +68,6 @@ export interface DruidAggregationBuilderOptions {
   rollup: boolean;
   exactResultsOnly: boolean;
   allowEternity: boolean;
-  forceFinalize: boolean;
 }
 
 export class DruidAggregationBuilder {
@@ -111,7 +110,6 @@ export class DruidAggregationBuilder {
   public rollup: boolean;
   public exactResultsOnly: boolean;
   public allowEternity: boolean;
-  public forceFinalize: boolean;
 
   constructor(options: DruidAggregationBuilderOptions) {
     this.version = options.version;
@@ -123,7 +121,6 @@ export class DruidAggregationBuilder {
     this.rollup = options.rollup;
     this.exactResultsOnly = options.exactResultsOnly;
     this.allowEternity = options.allowEternity;
-    this.forceFinalize = options.forceFinalize;
   }
 
   public makeAggregationsAndPostAggregations(applies: ApplyExpression[]): AggregationsAndPostAggregations {
@@ -290,6 +287,7 @@ export class DruidAggregationBuilder {
 
     let aggregation: Druid.Aggregation;
     let attribute = expression.expression;
+    const forceFinalize: boolean = expression.getOptions().forceFinalize;
     if (attribute instanceof RefExpression) {
       let attributeName = attribute.name;
 
@@ -299,12 +297,12 @@ export class DruidAggregationBuilder {
         case 'hyperUnique':
           tempName = '!Hyper_' + name;
           aggregation = {
-            name: this.forceFinalize ? tempName : name,
+            name: forceFinalize ? tempName : name,
             type: "hyperUnique",
             fieldName: attributeName
           };
           if (!this.versionBefore('0.10.1')) aggregation.round = true;
-          if (this.forceFinalize) {
+          if (forceFinalize) {
             postAggregations.push({
               type: 'finalizingFieldAccess',
               name,
@@ -331,11 +329,11 @@ export class DruidAggregationBuilder {
         case 'HLLSketch':
           tempName = '!HLLSketch_' + name;
           aggregation = {
-            name: this.forceFinalize ? tempName : name,
+            name: forceFinalize ? tempName : name,
             type: "HLLSketchMerge",
             fieldName: attributeName
           };
-          if (this.forceFinalize) {
+          if (forceFinalize) {
             postAggregations.push({
               type: 'finalizingFieldAccess',
               name,
@@ -347,12 +345,12 @@ export class DruidAggregationBuilder {
         default:
           tempName = '!Card_' + name;
           aggregation = {
-            name: this.forceFinalize ? tempName : name,
+            name: forceFinalize ? tempName : name,
             type: "cardinality",
             fields: [attributeName]
           };
           if (!this.versionBefore('0.10.1')) aggregation.round = true;
-          if (this.forceFinalize) {
+          if (forceFinalize) {
             postAggregations.push({
               type: 'finalizingFieldAccess',
               name,

@@ -2760,6 +2760,7 @@ describe("Druid Functional", function() {
     it("works with resplit Hourly-Active-Users agg", () => {
       let ex = $('wiki').split('$channel', 'Channel')
         .apply('Count', $('wiki').sum('$count'))
+        .apply('Unique Users', $('wiki').countDistinct($('user')))
         .apply('HAU', $('wiki').split($('time').timeBucket('P1D')).apply('U', '$wiki.countDistinct($user)').average('$U'))
         .sort('$Count', 'descending')
         .limit(5);
@@ -2770,27 +2771,32 @@ describe("Druid Functional", function() {
             {
               "Channel": "en",
               "Count": 114711,
-              "HAU": 16609
+              "HAU": 16609,
+              "Unique Users": 16609
             },
             {
               "Channel": "vi",
               "Count": 99010,
-              "HAU": 201
+              "HAU": 201,
+              "Unique Users": 201
             },
             {
               "Channel": "de",
               "Count": 25103,
-              "HAU": 2950
+              "HAU": 2950,
+              "Unique Users": 2950
             },
             {
               "Channel": "fr",
               "Count": 21285,
-              "HAU": 2757
+              "HAU": 2757,
+              "Unique Users": 2757
             },
             {
               "Channel": "ru",
               "Count": 14031,
-              "HAU": 2184
+              "HAU": 2184,
+              "Unique Users": 2184
             }
           ]);
         });
