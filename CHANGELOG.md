@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.20.11
+
+- Move force finalize into expression options
+
 ## 0.20.10
 
 - Add get and set options
