@@ -140,15 +140,15 @@ export interface ExpressionExternalAlterationSimple {
 export type ExpressionExternalAlteration = Record<string, ExpressionExternalAlterationSimple | DatasetExternalAlterations>;
 
 export interface BooleanExpressionIterator {
-  (ex: Expression, index?: int, depth?: int, nestDiff?: int): boolean;
+  (ex: Expression, index: int, depth: int, nestDiff: int): boolean | null;
 }
 
 export interface VoidExpressionIterator {
-  (ex: Expression, index?: int, depth?: int, nestDiff?: int): void;
+  (ex: Expression, index: int, depth: int, nestDiff: int): void;
 }
 
 export interface SubstitutionFn {
-  (ex: Expression, index?: int, depth?: int, nestDiff?: int, typeContext?: DatasetFullType): Expression;
+  (ex: Expression, index: int, depth: int, nestDiff: int, typeContext: DatasetFullType): Expression | null;
 }
 
 export interface ExpressionMatchFn {

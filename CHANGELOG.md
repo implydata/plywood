@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.20.12
+
+- Adjusted types
+
 ## 0.20.11
 
 - Move force finalize into expression options

@@ -34,15 +34,15 @@
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
-    "chronoshift": "~0.8.0",
-    "druid.d.ts": "~0.12.1",
-    "has-own-prop": "~1.0.1",
-    "immutable-class": "~0.7.7",
-    "moment-timezone": "~0.5.21",
-    "plywood-base-api": "~0.2.8",
-    "readable-stream": "~3.0.3",
-    "stream-to-array": "~2.3.0",
-    "tslib": "~1.9.3"
+    "chronoshift": "^0.8.0",
+    "druid.d.ts": "^0.12.1",
+    "has-own-prop": "^1.0.1",
+    "immutable-class": "^0.7.7",
+    "moment-timezone": "^0.5.21",
+    "plywood-base-api": "^0.2.8",
+    "readable-stream": "^3.0.3",
+    "stream-to-array": "^2.3.0",
+    "tslib": "^1.9.3"
   },
   "devDependencies": {
     "browserify": "16.2.3",
