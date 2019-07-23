@@ -92,7 +92,7 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
     return js;
   }
 
-  public equals(other: NumberRange): boolean {
+  public equals(other: NumberRange | undefined): boolean {
     return other instanceof NumberRange && this._equalsHelper(other);
   }
 

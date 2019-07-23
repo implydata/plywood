@@ -132,7 +132,7 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
     return js;
   }
 
-  public equals(other: TimeRange): boolean {
+  public equals(other: TimeRange | undefined): boolean {
     return other instanceof TimeRange && this._equalsHelper(other);
   }
 

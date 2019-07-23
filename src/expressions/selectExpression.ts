@@ -50,7 +50,7 @@ export class SelectExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: SelectExpression): boolean {
+  public equals(other: SelectExpression | undefined): boolean {
     return super.equals(other) &&
       String(this.attributes) === String(other.attributes);
   }

@@ -64,7 +64,7 @@ export class TimeBucketExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: TimeBucketExpression): boolean {
+  public equals(other: TimeBucketExpression | undefined): boolean {
     return super.equals(other) &&
       this.duration.equals(other.duration) &&
       immutableEqual(this.timezone, other.timezone);

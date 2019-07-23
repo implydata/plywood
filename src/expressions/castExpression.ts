@@ -90,7 +90,7 @@ export class CastExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: CastExpression): boolean {
+  public equals(other: CastExpression | undefined): boolean {
     return super.equals(other) &&
       this.outputType === other.outputType;
   }

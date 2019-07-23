@@ -994,7 +994,7 @@ export abstract class External {
 
   }
 
-  public equals(other: External): boolean {
+  public equals(other: External | undefined): boolean {
     return this.equalBaseAndFilter(other) &&
       immutableLookupsEqual(this.derivedAttributes, other.derivedAttributes) &&
       immutableArraysEqual(this.attributes, other.attributes) &&

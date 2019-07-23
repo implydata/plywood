@@ -65,7 +65,7 @@ export class ContainsExpression extends ChainableUnaryExpression {
     return js;
   }
 
-  public equals(other: ContainsExpression): boolean {
+  public equals(other: ContainsExpression | undefined): boolean {
     return super.equals(other) &&
       this.compare === other.compare;
   }

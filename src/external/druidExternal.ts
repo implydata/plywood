@@ -436,7 +436,7 @@ export class DruidExternal extends External {
     return js;
   }
 
-  public equals(other: DruidExternal): boolean {
+  public equals(other: DruidExternal | undefined): boolean {
     return super.equals(other) &&
       this.timeAttribute === other.timeAttribute &&
       simpleJSONEqual(this.customAggregations, other.customAggregations) &&

@@ -56,7 +56,7 @@ export class NumberBucketExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: NumberBucketExpression): boolean {
+  public equals(other: NumberBucketExpression | undefined): boolean {
     return super.equals(other) &&
       this.size === other.size &&
       this.offset === other.offset;

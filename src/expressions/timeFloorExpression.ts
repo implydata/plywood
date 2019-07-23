@@ -66,7 +66,7 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
     return js;
   }
 
-  public equals(other: TimeBucketExpression): boolean {
+  public equals(other: TimeBucketExpression | undefined): boolean {
     return super.equals(other) &&
       this.duration.equals(other.duration) &&
       immutableEqual(this.timezone, other.timezone);

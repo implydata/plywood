@@ -135,7 +135,7 @@ export class LiteralExpression extends Expression {
     }
   }
 
-  public equals(other: LiteralExpression): boolean {
+  public equals(other: LiteralExpression | undefined): boolean {
     if (!super.equals(other) || this.type !== other.type) return false;
     if (this.value && this.type !== 'DATASET') { // ToDo: make dataset equals work
       if (this.value.equals) {

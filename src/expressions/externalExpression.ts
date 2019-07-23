@@ -74,7 +74,7 @@ export class ExternalExpression extends Expression {
     throw new Error('should not call getSQL on External');
   }
 
-  public equals(other: ExternalExpression): boolean {
+  public equals(other: ExternalExpression | undefined): boolean {
     return super.equals(other) &&
       this.external.equals(other.external);
   }

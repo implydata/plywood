@@ -92,7 +92,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
     return js;
   }
 
-  public equals(other: SplitExpression): boolean {
+  public equals(other: SplitExpression | undefined): boolean {
     return super.equals(other) &&
       immutableLookupsEqual(this.splits, other.splits) &&
       this.dataName === other.dataName;

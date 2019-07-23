@@ -289,7 +289,7 @@ export class Set implements Instance<SetValue, SetJS> {
     return `${this.elements.map(stringFn).join(", ")}`;
   }
 
-  public equals(other: Set): boolean {
+  public equals(other: Set | undefined): boolean {
     return other instanceof Set &&
       this.setType === other.setType &&
       this.elements.length === other.elements.length &&

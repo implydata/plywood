@@ -68,7 +68,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     return js;
   }
 
-  public equals(other: TimeRangeExpression): boolean {
+  public equals(other: TimeRangeExpression | undefined): boolean {
     return super.equals(other) &&
       this.duration.equals(other.duration) &&
       this.step === other.step &&

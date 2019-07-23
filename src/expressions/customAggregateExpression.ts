@@ -50,7 +50,7 @@ export class CustomAggregateExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: CustomAggregateExpression): boolean {
+  public equals(other: CustomAggregateExpression | undefined): boolean {
     return super.equals(other) &&
       this.custom === other.custom;
   }

@@ -225,7 +225,7 @@ export class RefExpression extends Expression {
     return dialect.maybeNamespacedName(this.name);
   }
 
-  public equals(other: RefExpression): boolean {
+  public equals(other: RefExpression | undefined): boolean {
     return super.equals(other) &&
       this.name === other.name &&
       this.nest === other.nest &&

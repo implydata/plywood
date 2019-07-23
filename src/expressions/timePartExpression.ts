@@ -124,7 +124,7 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     return js;
   }
 
-  public equals(other: TimePartExpression): boolean {
+  public equals(other: TimePartExpression | undefined): boolean {
     return super.equals(other) &&
       this.part === other.part &&
       immutableEqual(this.timezone, other.timezone);

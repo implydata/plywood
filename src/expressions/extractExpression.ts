@@ -49,7 +49,7 @@ export class ExtractExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: ExtractExpression): boolean {
+  public equals(other: ExtractExpression | undefined): boolean {
     return super.equals(other) &&
       this.regexp === other.regexp;
   }

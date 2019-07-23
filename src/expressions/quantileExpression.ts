@@ -54,7 +54,7 @@ export class QuantileExpression extends ChainableUnaryExpression implements Aggr
     return js;
   }
 
-  public equals(other: QuantileExpression): boolean {
+  public equals(other: QuantileExpression | undefined): boolean {
     return super.equals(other) &&
       this.value === other.value &&
       this.tuning === other.tuning;

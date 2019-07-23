@@ -53,7 +53,7 @@ export class SubstrExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: SubstrExpression): boolean {
+  public equals(other: SubstrExpression | undefined): boolean {
     return super.equals(other) &&
       this.position === other.position &&
       this.len === other.len;

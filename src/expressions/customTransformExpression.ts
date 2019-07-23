@@ -53,7 +53,7 @@ export class CustomTransformExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: CustomTransformExpression): boolean {
+  public equals(other: CustomTransformExpression | undefined): boolean {
     return super.equals(other) &&
       this.custom === other.custom &&
       this.outputType === other.outputType;

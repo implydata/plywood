@@ -161,7 +161,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     return this.toJS();
   }
 
-  public equals(other: AttributeInfo): boolean {
+  public equals(other: AttributeInfo | undefined): boolean {
     return other instanceof AttributeInfo &&
       this.name === other.name &&
       this.type === other.type &&

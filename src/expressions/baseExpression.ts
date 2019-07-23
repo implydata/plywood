@@ -730,7 +730,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Validate that two expressions are equal in their meaning
    * @param other
    */
-  public equals(other: Expression): boolean {
+  public equals(other: Expression | undefined): boolean {
     return other instanceof Expression &&
       this.op === other.op &&
       this.type === other.type &&
@@ -1942,7 +1942,7 @@ export abstract class ChainableExpression extends Expression {
     return `${this.operand.toString(indent)}.${this.op}(${this._toStringParameters(indent).join(',')})`;
   }
 
-  public equals(other: ChainableExpression): boolean {
+  public equals(other: ChainableExpression | undefined): boolean {
     return super.equals(other) &&
       this.operand.equals(other.operand);
   }
@@ -2173,7 +2173,7 @@ export abstract class ChainableUnaryExpression extends ChainableExpression {
     return `${this.operand.toString(indent)}.${this.op}(${this._toStringParameters(indent).join(',')})`;
   }
 
-  public equals(other: ChainableUnaryExpression): boolean {
+  public equals(other: ChainableUnaryExpression | undefined): boolean {
     return super.equals(other) &&
       this.expression.equals(other.expression);
   }

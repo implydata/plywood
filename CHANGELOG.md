@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.20.13
+
+- Adjusted more types, to make plywood friendlier with strict nulls
+
 ## 0.20.12
 
 - Adjusted types

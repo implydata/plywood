@@ -67,7 +67,7 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
     return js;
   }
 
-  public equals(other: TimeShiftExpression): boolean {
+  public equals(other: TimeShiftExpression | undefined): boolean {
     return super.equals(other) &&
       this.duration.equals(other.duration) &&
       this.step === other.step &&

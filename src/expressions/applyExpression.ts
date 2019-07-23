@@ -78,7 +78,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
     return `${this.operand.toString(indent)}\n${actionStr}`;
   }
 
-  public equals(other: ApplyExpression): boolean {
+  public equals(other: ApplyExpression | undefined): boolean {
     return super.equals(other) &&
       this.name === other.name;
   }

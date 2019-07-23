@@ -79,7 +79,7 @@ export class MatchExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: MatchExpression): boolean {
+  public equals(other: MatchExpression | undefined): boolean {
     return super.equals(other) &&
       this.regexp === other.regexp;
   }

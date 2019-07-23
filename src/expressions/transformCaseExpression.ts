@@ -55,7 +55,7 @@ export class TransformCaseExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: TransformCaseExpression): boolean {
+  public equals(other: TransformCaseExpression | undefined): boolean {
     return super.equals(other) &&
       this.transformType === other.transformType;
   }

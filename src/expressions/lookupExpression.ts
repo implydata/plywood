@@ -48,7 +48,7 @@ export class LookupExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: LookupExpression): boolean {
+  public equals(other: LookupExpression | undefined): boolean {
     return super.equals(other) &&
       this.lookupFn === other.lookupFn;
   }

@@ -54,7 +54,7 @@ export class LimitExpression extends ChainableExpression {
     return js;
   }
 
-  public equals(other: LimitExpression): boolean {
+  public equals(other: LimitExpression | undefined): boolean {
     return super.equals(other) &&
       this.value === other.value;
   }

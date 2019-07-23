@@ -65,7 +65,7 @@ export class SortExpression extends ChainableUnaryExpression {
     return js;
   }
 
-  public equals(other: SortExpression): boolean {
+  public equals(other: SortExpression | undefined): boolean {
     return super.equals(other) &&
       this.direction === other.direction;
   }

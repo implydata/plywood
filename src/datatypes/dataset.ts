@@ -472,7 +472,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     return this.toJS();
   }
 
-  public equals(other: Dataset): boolean {
+  public equals(other: Dataset | undefined): boolean {
     return other instanceof Dataset &&
       this.data.length === other.data.length;
       // ToDo: probably add something else here?

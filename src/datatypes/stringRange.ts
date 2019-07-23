@@ -78,7 +78,7 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
     return js;
   }
 
-  public equals(other: StringRange): boolean {
+  public equals(other: StringRange | undefined): boolean {
     return other instanceof StringRange && this._equalsHelper(other);
   }
 
