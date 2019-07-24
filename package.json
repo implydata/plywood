@@ -58,7 +58,6 @@
     "plywood-postgres-requester": "1.4.0",
     "tdi": "0.6.5",
     "tslint": "5.12.1",
-    "typescript": "3.3.3",
-    "uglify-js": "3.4.9"
+    "typescript": "3.3.3"
   }
 }

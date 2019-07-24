@@ -15,7 +15,3 @@ echo "Compiling TypeScript"
 
 echo "Compiling package"
 ./compile-package
-
-echo "Minifying"
-node_modules/.bin/uglifyjs package/plywood.js -o package/plywood.min.js
-node_modules/.bin/uglifyjs package/plywood-lite.js -o package/plywood-lite.min.js
