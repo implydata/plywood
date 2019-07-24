@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.21.0
+
+- Bumping dependencies
+
 ## 0.20.13
 
 - Adjusted more types, to make plywood friendlier with strict nulls

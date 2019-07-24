@@ -45,7 +45,7 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
     this.timezone = parameters.timezone;
     this._ensureOp("timeShift");
     this._checkOperandTypes('TIME');
-    if (!Duration.isDuration(this.duration)) {
+    if (!(this.duration instanceof Duration)) {
       throw new Error("`duration` must be a Duration");
     }
     this.type = 'TIME';

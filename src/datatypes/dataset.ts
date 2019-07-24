@@ -165,10 +165,10 @@ let typeOrder: Record<string, number> = {
 
 export interface Formatter extends Record<string, Function | undefined> {
   'NULL'?: (v: any) => string;
-  'TIME'?: (v: Date, tz?: Timezone) => string;
-  'TIME_RANGE'?: (v: TimeRange, tz?: Timezone) => string;
-  'SET/TIME'?: (v: Set, tz?: Timezone) => string;
-  'SET/TIME_RANGE'?: (v: Set, tz?: Timezone) => string;
+  'TIME'?: (v: Date, tz: Timezone) => string;
+  'TIME_RANGE'?: (v: TimeRange, tz: Timezone) => string;
+  'SET/TIME'?: (v: Set, tz: Timezone) => string;
+  'SET/TIME_RANGE'?: (v: Set, tz: Timezone) => string;
   'STRING'?: (v: string) => string;
   'SET/STRING'?: (v: Set) => string;
   'BOOLEAN'?: (v: boolean) => string;

@@ -34,7 +34,7 @@
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
-    "chronoshift": "^0.8.0",
+    "chronoshift": "^0.9.2",
     "druid.d.ts": "^0.12.1",
     "has-own-prop": "^1.0.1",
     "immutable-class": "^0.7.7",
