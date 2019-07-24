@@ -699,7 +699,7 @@ describe("Dataset", () => {
 
     describe("#findDatumByAttribute", () => {
       it("works with basic dataset", () => {
-        expect(carDataset.findDatumByAttribute('make', 'Kaka')).to.deep.equal(null);
+        expect(carDataset.findDatumByAttribute('make', 'Kaka')).to.deep.equal(undefined);
 
         expect(carDataset.findDatumByAttribute('make', 'Honda')).to.deep.equal({
           time: new Date('2015-01-04T12:32:43Z'),

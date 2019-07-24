@@ -1088,7 +1088,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     });
   }
 
-  public findDatumByAttribute(attribute: string, value: any): Datum {
+  public findDatumByAttribute(attribute: string, value: any): Datum | undefined {
     return SimpleArray.find(this.data, (d) => generalEqual(d[attribute], value));
   }
 

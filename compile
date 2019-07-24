@@ -12,6 +12,3 @@ echo "Compiling PEG.js"
 
 echo "Compiling TypeScript"
 ./compile-tsc
-
-echo "Compiling package"
-./compile-package
