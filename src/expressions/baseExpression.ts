@@ -966,7 +966,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public some(iter: BooleanExpressionIterator, thisArg?: any): boolean {
     return !this.every((ex: Expression, index: int, depth: int, nestDiff: int) => {
       let v = iter.call(this, ex, index, depth, nestDiff);
-      return (v == null) ? null : !v;
+      return v ? false : null;
     }, thisArg);
   }
 
