@@ -187,4 +187,17 @@ describe("TimeRange", () => {
       ).to.deep.equal('2015-01-26T00:00:00.001Z/2015-01-27T00:00:00.001Z');
     });
   });
+
+  describe("#rebaseOnStart", () => {
+    it("works in general", () => {
+      let timeRange = TimeRange.fromJS({
+        start: '2015-01-26T04:54:10Z',
+        end: '2015-01-26T05:00:00Z'
+      });
+      expect(timeRange.rebaseOnStart(new Date('2015-02-26T04:54:10Z')).toJS()).to.deep.equal({
+        "start": new Date('2015-02-26T04:54:10.000Z'),
+        "end": new Date('2015-02-26T05:00:00.000Z')
+      });
+    });
+  });
 });

@@ -99,6 +99,16 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
   public midpoint(): number {
     return (this.start + this.end) / 2;
   }
+
+  public rebaseOnStart(newStart: number): NumberRange {
+    const { start, end, bounds } = this;
+    if (!start) return this;
+    return new NumberRange({
+      start: newStart,
+      end: end ? end - start + newStart : end,
+      bounds
+    });
+  }
 }
 check = NumberRange;
 Range.register(NumberRange);

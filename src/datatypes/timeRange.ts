@@ -172,6 +172,16 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
     const { start, end } = this;
     return (!start || duration.isAligned(start, timezone)) && (!end || duration.isAligned(end, timezone));
   }
+
+  public rebaseOnStart(newStart: Date): TimeRange {
+    const { start, end, bounds } = this;
+    if (!start) return this;
+    return new TimeRange({
+      start: newStart,
+      end: end ? new Date(end.valueOf() - start.valueOf() + newStart.valueOf()) : end,
+      bounds
+    });
+  }
 }
 check = TimeRange;
 Range.register(TimeRange);
