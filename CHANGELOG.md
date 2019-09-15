@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.21.2
+
+- Add `rebaseOnStart` to `Range`
+
 ## 0.21.1
 
 - Make time joiner more robust
