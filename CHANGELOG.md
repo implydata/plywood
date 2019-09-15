@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.21.1
+
+- Make time joiner more robust
+
 ## 0.21.0
 
 - Bumping dependencies
