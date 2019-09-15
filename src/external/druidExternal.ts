@@ -1642,10 +1642,11 @@ export class DruidExternal extends External {
               const timeShiftTimezone = timeShift.timezone;
               ds2 = ds2.applyFn(timeLabel, (d: Datum) => {
                 const tr = d[timeLabel] as TimeRange;
+                const shiftedStart = timeShiftDuration.shift(tr.start, timeShiftTimezone, 1);
                 return new TimeRange({
-                  start: timeShiftDuration.shift(tr.start, timeShiftTimezone, 1),
-                  end: timeShiftDuration.shift(tr.end, timeShiftTimezone, 1),
-                  bounds: tr.bounds
+                  start: shiftedStart,
+                  end: shiftedStart, // We do not actually care about the end since later we compare by start only
+                  bounds: '[]' // Make this range represent a single data point
                 });
               }, 'TIME_RANGE');
             }

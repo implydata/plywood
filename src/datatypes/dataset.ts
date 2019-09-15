@@ -242,11 +242,11 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
 
 function joinDatums(datumA: Datum, datumB: Datum): Datum {
   let newDatum: Datum = Object.create(null);
-  for (let k in datumA) {
-    newDatum[k] = datumA[k];
-  }
   for (let k in datumB) {
     newDatum[k] = datumB[k];
+  }
+  for (let k in datumA) {
+    newDatum[k] = datumA[k];
   }
   return newDatum;
 }
