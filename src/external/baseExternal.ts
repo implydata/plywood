@@ -454,6 +454,7 @@ export abstract class External {
     switch (type) {
       case 'BOOLEAN': return External.booleanInflaterFactory(label);
       case 'NUMBER': return External.numberInflaterFactory(label);
+      case 'STRING': return External.stringInflaterFactory(label);
       case 'TIME': return External.timeInflaterFactory(label);
       default: return null;
     }
@@ -519,6 +520,15 @@ export abstract class External {
 
       v = Number(v);
       d[label] = isNaN(v) ? null : v;
+    };
+  }
+
+  static stringInflaterFactory(label: string): Inflater  {
+    return (d: any) => {
+      let v = d[label];
+      if (typeof v === 'undefined') {
+        d[label] = null;
+      }
     };
   }
 
