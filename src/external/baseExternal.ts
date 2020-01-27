@@ -453,6 +453,7 @@ export abstract class External {
   static getSimpleInflater(type: PlyType, label: string): Inflater {
     switch (type) {
       case 'BOOLEAN': return External.booleanInflaterFactory(label);
+      case 'NULL': return External.nullInflaterFactory(label);
       case 'NUMBER': return External.numberInflaterFactory(label);
       case 'STRING': return External.stringInflaterFactory(label);
       case 'TIME': return External.timeInflaterFactory(label);
@@ -494,6 +495,15 @@ export abstract class External {
 
       let start = makeDate(v);
       d[label] = new TimeRange({ start, end: duration.shift(start, timezone) });
+    };
+  }
+
+  static nullInflaterFactory(label: string): Inflater {
+    return (d: any) => {
+      let v = d[label];
+      if (typeof v === 'undefined') {
+        d[label] = null;
+      }
     };
   }
 
