@@ -463,6 +463,11 @@ export abstract class External {
 
   static booleanInflaterFactory(label: string): Inflater {
     return (d: any) => {
+      if (typeof d[label] === 'undefined') {
+        d[label] = null;
+        return;
+      }
+
       let v = '' + d[label];
       switch (v) {
         case 'null':
@@ -501,7 +506,7 @@ export abstract class External {
   static nullInflaterFactory(label: string): Inflater {
     return (d: any) => {
       let v = d[label];
-      if (typeof v === 'undefined') {
+      if ('' + v === "null" || typeof v === 'undefined') {
         d[label] = null;
       }
     };
@@ -545,7 +550,7 @@ export abstract class External {
   static timeInflaterFactory(label: string): Inflater  {
     return (d: any) => {
       let v = d[label];
-      if ('' + v === "null") {
+      if ('' + v === "null" || typeof v === 'undefined') {
         d[label] = null;
         return;
       }

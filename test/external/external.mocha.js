@@ -561,6 +561,144 @@ describe("External", () => {
     });
   });
 
+  describe(".getSimpleInflater inflates correctly", () => {
+    const label = 'testProperty';
+
+    function expectValueToInflate(inflater, value, mappedValue = value) {
+      const data = {[label]: value};
+      inflater(data);
+      expect(data).to.deep.equal({[label]: mappedValue});
+    }
+
+    function expectNullToInflate(inflater) {
+      expectValueToInflate(inflater, null);
+    }
+
+    function expectNullStringToInflate(inflater) {
+      expectValueToInflate(inflater, 'null', null);
+    }
+
+    function expectUndefinedToInflate(inflater) {
+      const data = {};
+      inflater(data);
+      expect(data).to.deep.equal({[label]: null});
+    }
+
+    describe("with NULL plytype", () => {
+      const inflater = External.getSimpleInflater('NULL', label);
+      it("and a null value", () => {
+        expectNullToInflate(inflater);
+      });
+
+      it("and a 'null' value", () => {
+        expectNullStringToInflate(inflater);
+      });
+
+      it("and an undefined value", () => {
+        expectUndefinedToInflate(inflater);
+      });
+    });
+
+    describe("with STRING plytype", () => {
+      const inflater = External.getSimpleInflater('STRING', label);
+      it("and a valid string", () => {
+        expectValueToInflate(inflater, "here's my string");
+      });
+
+      it("and a null value", () => {
+        expectNullToInflate(inflater);
+      });
+
+      // it.skip("and a 'null' value", () => {
+      //   expectNullStringToInflate(inflater);
+      // });
+
+      it("and an undefined value", () => {
+        expectUndefinedToInflate(inflater);
+      });
+    });
+
+    describe("with BOOLEAN plytype", () => {
+      const inflater = External.getSimpleInflater('BOOLEAN', label);
+      it("and a true value", () => {
+        expectValueToInflate(inflater, true);
+      });
+
+      it("and a false value", () => {
+        expectValueToInflate(inflater, false);
+      });
+
+      it("and a 'true' value", () => {
+        expectValueToInflate(inflater, 'true', true);
+      });
+
+      it("and a 'false' value", () => {
+        expectValueToInflate(inflater, 'false', false);
+      });
+
+      it("and a null value", () => {
+        expectNullToInflate(inflater);
+      });
+
+      it("and a 'null' value", () => {
+        expectNullStringToInflate(inflater);
+      });
+
+      it("and an undefined value", () => {
+        expectUndefinedToInflate(inflater);
+      });
+
+      it("and a '0' value", () => {
+        expectValueToInflate(inflater, '0', false);
+      });
+
+      it("and a '1' value", () => {
+        expectValueToInflate(inflater, '1', true);
+      });
+
+      it("and an unrecognized invalid value", () => {
+        expect(() => inflater({[label]: 'not a boolean'})).to.throw();
+      });
+    });
+
+    describe("with NUMBER plytype", () => {
+      const inflater = External.getSimpleInflater('NUMBER', label);
+      it("and a valid number", () => {
+        expectValueToInflate(inflater, 123);
+      });
+
+      it("and a null value", () => {
+        expectNullToInflate(inflater);
+      });
+
+      it("and a 'null' value", () => {
+        expectNullStringToInflate(inflater);
+      });
+
+      it("and an undefined value", () => {
+        expectUndefinedToInflate(inflater);
+      });
+    });
+
+    describe("with TIME plytype", () => {
+      const inflater = External.getSimpleInflater('TIME', label);
+      it("and a valid time", () => {
+        expectValueToInflate(inflater, new Date(1));
+      });
+
+      it("and a null value", () => {
+        expectNullToInflate(inflater);
+      });
+
+      it("and a 'null' value", () => {
+        expectNullStringToInflate(inflater);
+      });
+
+      it("and an undefined value", () => {
+        expectUndefinedToInflate(inflater);
+      });
+    });
+  });
 
   describe("#hasAttribute", () => {
     let rawExternal = External.fromJS({
