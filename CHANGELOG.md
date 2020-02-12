@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.21.3
+
+- Better handle `undefined` in druid groupBys
+
 ## 0.21.2
 
 - Add `rebaseOnStart` to `Range`
