@@ -116,14 +116,20 @@ describe("Concurrent Limit Requester", () => {
         expect(e.message).to.equal('fail');
         expect(nextQuery).to.equal('a');
         nextQuery = 'b';
+        expect(requester.hasQuery('c', 'has c')).to.equal(true);
+        expect(requester.hasQuery('d', 'has d')).to.equal(false);
+
+        requester.reject('b');
       });
 
     let rb = toArray(concurrentLimitRequester({ query: 'b' }))
       .catch((e) => {
         expect(e.message).to.equal('fail');
         expect(nextQuery).to.equal('b');
+
+        expect(requester.hasQuery('d', 'has d')).to.equal(true);
+
         nextQuery = 'c';
-        expect(requester.hasQuery('c', 'has c')).to.equal(true);
         requester.resolve('c');
       });
 
@@ -131,14 +137,22 @@ describe("Concurrent Limit Requester", () => {
       .then((res) => {
         expect(res).to.deep.equal([1, 2, 3]);
         expect(nextQuery).to.equal('c');
+        nextQuery = 'd';
+        requester.resolve('d');
+      });
+
+      let rd = toArray(concurrentLimitRequester({ query: 'd' }))
+      .then((res) => {
+        expect(res).to.deep.equal([1, 2, 3]);
+        expect(nextQuery).to.equal('d');
       });
 
     expect(requester.hasQuery('a'), 'has a').to.equal(true);
     expect(requester.hasQuery('b'), 'has b').to.equal(true);
     expect(requester.hasQuery('c'), 'has c').to.equal(false);
+    expect(requester.hasQuery('d'), 'has d').to.equal(false);
     requester.reject('a');
-    requester.reject('b');
-    return Promise.all([ra, rb, rc]);
-  });
 
+    return Promise.all([ra, rb, rc, rd]);
+  });
 });
