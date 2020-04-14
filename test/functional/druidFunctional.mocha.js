@@ -2519,6 +2519,28 @@ describe("Druid Functional", function() {
         });
     });
 
+    it("works with resplit agg on total with average", () => {
+      let range = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
+      let filterEx = $('time').overlap(range);
+
+      let ex = ply()
+        .apply('Count', $('wiki').sum('$count'))
+        .apply(
+          'HourlyCd',
+          $('wiki').filter(filterEx).split('$time.timeBucket(PT6H)').apply('C', '$wiki.countDistinct($user)').average('$C')
+        );
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Count": 392443,
+              "HourlyCd": 15101.5
+            }
+          ]);
+        });
+    });
+
     it("works with resplit agg on different dimension split", () => {
       let ex = $('wiki').split('$channel', 'Channel')
         .apply('Count', $('wiki').sum('$count'))

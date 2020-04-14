@@ -24,6 +24,7 @@ import * as toArray from 'stream-to-array';
 import { AttributeInfo, Attributes, Dataset, Datum, PlywoodRange, Range, Set, TimeRange } from '../datatypes/index';
 import {
   $,
+  r,
   ApplyExpression,
   CardinalityExpression,
   ChainableExpression,
@@ -954,12 +955,25 @@ export class DruidExternal extends External {
             );
             outerAttributes.push(AttributeInfo.fromJS({ name: newName, type: 'NUMBER' }));
 
-            return resplit.resplitAgg.substitute((ex) => {
+            let resplitAggWithUpdatedNames = resplit.resplitAgg.substitute((ex) => {
               if (ex instanceof RefExpression && ex.name === oldName) {
                 return ex.changeName(newName);
               }
               return null;
-            });
+            }) as ChainableExpression;
+
+            // If there is a filter defined on the inner agg then we need to filter the outer aggregate to only the buckets that have a non-zero count with said filter.
+            if (resplit.resplitApply.expression instanceof ChainableExpression && resplit.resplitApply.expression.operand instanceof FilterExpression) {
+              const filterExpression = resplit.resplitApply.expression.operand;
+              const definedFilterName = newName + '_def';
+              innerApplies.push(
+                $('_').apply(definedFilterName, filterExpression.count())
+              );
+              outerAttributes.push(AttributeInfo.fromJS({ name: definedFilterName, type: 'NUMBER' }));
+              resplitAggWithUpdatedNames = resplitAggWithUpdatedNames.changeOperand($('_').filter($(definedFilterName).greaterThan(r(0))));
+            }
+
+            return resplitAggWithUpdatedNames;
           } else {
             const tempName = `a${i}_${c++}`;
             innerApplies.push(Expression._.apply(tempName, ex));
