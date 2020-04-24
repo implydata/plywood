@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.21.5
+
+- Fix bug when having filter was being swallowed for the timeseries
+
+## 0.21.4
+
+- Fix filtering for filtered averages in resplit queries 
+
 ## 0.21.3
 
 - Better handle `undefined` in druid groupBys

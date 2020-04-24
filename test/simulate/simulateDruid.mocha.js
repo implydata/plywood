@@ -2237,6 +2237,20 @@ describe("simulate Druid", () => {
     ]);
   });
 
+  it("makes a query for timesplit with having filter", () => {
+    let ex = ply()
+      .apply(
+        'BySegment',
+        $('diamonds').split($("time").timeBucket('PT1H', 'Etc/UTC'), 'TimeSegment')
+          .apply('Total', $('diamonds').sum('$price'))
+          .filter('$Total > 1000')
+      );
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].queryType).to.deep.equal('groupBy');
+  });
+
   it("makes a filtered aggregate query 2", () => {
     let ex = ply()
       .apply(

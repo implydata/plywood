@@ -774,7 +774,7 @@ export class DruidExternal extends External {
     let label = split.firstSplitName();
 
     // Can it be a time series?
-    if (!this.limit && DruidExternal.isTimestampCompatibleSort(this.sort, label)) {
+    if (!this.limit && DruidExternal.isTimestampCompatibleSort(this.sort, label) && leftoverHavingFilter.equals(Expression.TRUE)) {
       let granularityInflater = this.splitExpressionToGranularityInflater(splitExpression, label);
       if (granularityInflater) {
         return {
