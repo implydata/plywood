@@ -1569,7 +1569,7 @@ export class DruidExternal extends External {
     if (filterV0.start < filterV1.start) appliesByTimeFilterValue.reverse();
 
     // Check for timeseries decomposition
-    if (splitExpression instanceof TimeBucketExpression && (!this.sort || this.sortOnLabel()) && !this.limit) {
+    if (splitExpression instanceof TimeBucketExpression) {
       const fallbackExpression = splitExpression.operand;
       if (fallbackExpression instanceof FallbackExpression) {
         const timeShiftExpression = fallbackExpression.expression;
@@ -1582,11 +1582,15 @@ export class DruidExternal extends External {
             external1Value.filter = $(timeAttribute, 'TIME').overlap(appliesByTimeFilterValue[0].filterValue).and(external1Value.filter).simplify();
             external1Value.split = simpleSplit;
             external1Value.applies = appliesByTimeFilterValue[0].unfilteredApplies;
+            external1Value.limit = null; // Remove limit and sort
+            external1Value.sort = null;  // So we get a timeseries
 
             const external2Value = this.valueOf();
             external2Value.filter = $(timeAttribute, 'TIME').overlap(appliesByTimeFilterValue[1].filterValue).and(external2Value.filter).simplify();
             external2Value.split = simpleSplit;
             external2Value.applies = appliesByTimeFilterValue[1].unfilteredApplies;
+            external2Value.limit = null;
+            external2Value.sort = null;
 
             return {
               external1: new DruidExternal(external1Value),
@@ -1665,7 +1669,20 @@ export class DruidExternal extends External {
               }, 'TIME_RANGE');
             }
 
-            return ds1.fullJoin(ds2, (a: TimeRange, b: TimeRange) => a.start.valueOf() - b.start.valueOf());
+            let joined = ds1.fullJoin(ds2, (a: TimeRange, b: TimeRange) => a.start.valueOf() - b.start.valueOf());
+
+            // Apply sort and limit
+            const mySort = this.sort;
+            if (mySort && !(this.sortOnLabel() && mySort.direction === 'ascending')) {
+              joined = joined.sort(mySort.expression, mySort.direction);
+            }
+
+            const myLimit = this.limit;
+            if (myLimit) {
+              joined = joined.limit(myLimit.value);
+            }
+
+            return joined;
           })
         );
       }
