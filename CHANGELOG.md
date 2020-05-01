@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.21.6
+
+- Better decomposition for time compare
+
 ## 0.21.5
 
 - Fix bug when having filter was being swallowed for the timeseries
