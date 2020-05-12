@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.21.7
+
+- Updated Druid SQL driver to be up to date with latest Druid
+
 ## 0.21.6
 
 - Better decomposition for time compare
