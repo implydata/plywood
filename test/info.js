@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-exports.druidVersion = '0.14.0-iap-pre1';
+exports.druidVersion = '0.18.0-iap4';
 exports.druidHost = `localhost:8082`;
 exports.druidContext = {
   timeout: 10000,
   useCache: false,
   populateCache: false
 };
-exports.druidHasFullText = true;
 
 exports.mySqlVersion = '5.7.24';
 exports.mySqlHost = `localhost:3306`;

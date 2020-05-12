@@ -76,20 +76,15 @@ describe("Druid Functional", function() {
       "cardinality": 3719,
       "name": "cityName",
       "nativeType": "STRING",
-      "range": {
-        "bounds": "[]",
-        "end": "Ōita",
-        "start": ""
-      },
       "type": "STRING"
     },
     {
-      "cardinality": 138678,
+      "cardinality": 138731,
       "name": "comment",
       "nativeType": "STRING",
       "range": {
         "bounds": "[]",
-        "end": "ｒｖ",
+        "end": "��творена сторінка: {{Пишу}} '''Jaguar Mark VIII''' [[люкс-автомобіль]] [[Велика Британія|британської]] компанії [[Jaguar]] 195...",
         "start": "!"
       },
       "type": "STRING"
@@ -110,17 +105,6 @@ describe("Druid Functional", function() {
       },
       "type": "STRING"
     },
-    info.druidHasFullText ? {
-      "cardinality": 157447,
-      "name": "commentTerms",
-      "nativeType": "STRING",
-      "range": {
-        "bounds": "[]",
-        "end": "～と指摘されるは曖昧な表現",
-        "start": ""
-      },
-      "type": "SET/STRING"
-    } : null,
     {
       "maker": {
         "op": "count"
@@ -134,22 +118,12 @@ describe("Druid Functional", function() {
       "cardinality": 157,
       "name": "countryIsoCode",
       "nativeType": "STRING",
-      "range": {
-        "bounds": "[]",
-        "end": "ZW",
-        "start": ""
-      },
       "type": "STRING"
     },
     {
       "cardinality": 157,
       "name": "countryName",
       "nativeType": "STRING",
-      "range": {
-        "bounds": "[]",
-        "end": "Zimbabwe",
-        "start": ""
-      },
       "type": "STRING"
     },
     {
@@ -209,6 +183,12 @@ describe("Druid Functional", function() {
       "unsplitable": true
     },
     {
+      "cardinality": 8086,
+      "name": "geohash",
+      "nativeType": "STRING",
+      "type": "STRING"
+    },
+    {
       "name": "isAnonymous",
       "type": "BOOLEAN"
     },
@@ -245,11 +225,6 @@ describe("Druid Functional", function() {
       "cardinality": 167,
       "name": "metroCode",
       "nativeType": "STRING",
-      "range": {
-        "bounds": "[]",
-        "end": "881",
-        "start": ""
-      },
       "type": "STRING"
     },
     {
@@ -266,23 +241,23 @@ describe("Druid Functional", function() {
       "unsplitable": true
     },
     {
-      "cardinality": 416,
+      "cardinality": 425,
       "name": "namespace",
       "nativeType": "STRING",
       "range": {
         "bounds": "[]",
-        "end": "파일",
+        "end": "��нкубатор",
         "start": "2"
       },
       "type": "STRING"
     },
     {
-      "cardinality": 279893,
+      "cardinality": 279915,
       "name": "page",
       "nativeType": "STRING",
       "range": {
         "bounds": "[]",
-        "end": "［Alexandros］",
+        "end": "���周列国志",
         "start": "!T.O.O.H.!"
       },
       "type": "STRING"
@@ -297,22 +272,12 @@ describe("Druid Functional", function() {
       "cardinality": 671,
       "name": "regionIsoCode",
       "nativeType": "STRING",
-      "range": {
-        "bounds": "[]",
-        "end": "null",
-        "start": ""
-      },
       "type": "STRING"
     },
     {
-      "cardinality": 1068,
+      "cardinality": 1069,
       "name": "regionName",
       "nativeType": "STRING",
-      "range": {
-        "bounds": "[]",
-        "end": "Świętokrzyskie",
-        "start": ""
-      },
       "type": "STRING"
     },
     {
@@ -325,23 +290,23 @@ describe("Druid Functional", function() {
       "type": "NUMBER"
     },
     {
-      "cardinality": 38234,
+      "cardinality": 38240,
       "name": "user",
       "nativeType": "STRING",
       "range": {
         "bounds": "[]",
-        "end": "ＫＡＺＵ",
+        "end": "���バコはマーダー",
         "start": "! Bikkit !"
       },
       "type": "STRING"
     },
     {
-      "cardinality": 1401,
+      "cardinality": 1403,
       "name": "userChars",
       "nativeType": "STRING",
       "range": {
         "bounds": "[]",
-        "end": "～",
+        "end": "���",
         "start": " "
       },
       "type": "SET/STRING"
@@ -364,9 +329,9 @@ describe("Druid Functional", function() {
       "type": "NULL",
       "unsplitable": true
     }
-  ].filter(Boolean);
+  ];
 
-  let customTransforms = {
+  const customTransforms = {
     sliceLastChar: {
       extractionFn: {
         "type" : "javascript",
@@ -2382,9 +2347,9 @@ describe("Druid Functional", function() {
         .then((result) => {
           expect(result.toJS().data).to.deep.equal([
             {
-              "CntDistChannelLookup": 6,
+              "CntDistChannelLookup": 5,
               "CntDistChannelNormal": 53,
-              "CntDistChannelLookupXPage": 2641
+              "CntDistChannelLookupXPage": 2612
             }
           ]);
         });
@@ -4276,262 +4241,110 @@ describe("Druid Functional", function() {
 
       return basicExecutor(ex)
         .then((result) => {
-          expect(result.toJS()).to.deep.equal({
-            "attributes": [
-              {
-                "name": "time",
-                "type": "TIME"
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "added": 0,
+              "channel": "en",
+              "cityName": "El Paso",
+              "comment": "/* Clubs and organizations */",
+              "commentLength": 29,
+              "commentLengthStr": "29",
+              "commentTerms": null,
+              "count": 1,
+              "countryIsoCode": "US",
+              "countryName": "United States",
+              "deleted": 39,
+              "delta": -39,
+              "deltaBucket100": -100,
+              "deltaByTen": -3.9,
+              "delta_hist": "/84BwhwAAA==",
+              "delta_quantilesDoublesSketch": "AgMIGoAAAAABAAAAAAAAAAAAAAAAgEPAAAAAAACAQ8AAAAAAAIBDwA==",
+              "isAnonymous": true,
+              "isMinor": false,
+              "isNew": false,
+              "isRobot": false,
+              "isUnpatrolled": false,
+              "max_delta": -39,
+              "metroCode": "765",
+              "min_delta": -39,
+              "namespace": "Main",
+              "page": "Clint High School",
+              "page_unique": "AQAAAQAAAADYAQ==",
+              "regionIsoCode": "TX",
+              "regionName": "Texas",
+              "sometimeLater": new Date('2016-09-12T06:05:00.000Z'),
+              "sometimeLaterMs": 1473660300000,
+              "time": new Date('2015-09-12T06:05:00.000Z'),
+              "user": "104.58.160.128",
+              "userChars": {
+                "elements": [
+                  ".",
+                  "0",
+                  "1",
+                  "2",
+                  "4",
+                  "5",
+                  "6",
+                  "8"
+                ],
+                "setType": "STRING"
               },
-              {
-                "name": "added",
-                "type": "NUMBER"
+              "user_hll": "AgEHDAMIAQDnuDoG",
+              "user_theta": "AQMDAAA6zJOC2CoG9CWFMQ==",
+              "user_unique": "AQAAAQAAAAFzBQ=="
+            },
+            {
+              "added": 0,
+              "channel": "en",
+              "cityName": "El Paso",
+              "comment": "/* Early life */ spelling",
+              "commentLength": 25,
+              "commentLengthStr": "25",
+              "commentTerms": null,
+              "count": 1,
+              "countryIsoCode": "US",
+              "countryName": "United States",
+              "deleted": 0,
+              "delta": 0,
+              "deltaBucket100": 0,
+              "deltaByTen": 0,
+              "delta_hist": "/84BAAAAAA==",
+              "delta_quantilesDoublesSketch": "AgMIGoAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "isAnonymous": true,
+              "isMinor": false,
+              "isNew": false,
+              "isRobot": false,
+              "isUnpatrolled": false,
+              "max_delta": 0,
+              "metroCode": "765",
+              "min_delta": 0,
+              "namespace": "Main",
+              "page": "Reggie Williams (linebacker)",
+              "page_unique": "AQAAAQAAAAOhEA==",
+              "regionIsoCode": "TX",
+              "regionName": "Texas",
+              "sometimeLater": new Date('2016-09-12T16:14:00.000Z'),
+              "sometimeLaterMs": 1473696840000,
+              "time": new Date('2015-09-12T16:14:00.000Z'),
+              "user": "67.10.203.15",
+              "userChars": {
+                "elements": [
+                  ".",
+                  "0",
+                  "1",
+                  "2",
+                  "3",
+                  "5",
+                  "6",
+                  "7"
+                ],
+                "setType": "STRING"
               },
-              {
-                "name": "channel",
-                "type": "STRING"
-              },
-              {
-                "name": "cityName",
-                "type": "STRING"
-              },
-              {
-                "name": "comment",
-                "type": "STRING"
-              },
-              {
-                "name": "commentLength",
-                "type": "NUMBER"
-              },
-              {
-                "name": "commentLengthStr",
-                "type": "STRING"
-              },
-              {
-                "name": "commentTerms",
-                "type": "SET/STRING"
-              },
-              {
-                "name": "count",
-                "type": "NUMBER"
-              },
-              {
-                "name": "countryIsoCode",
-                "type": "STRING"
-              },
-              {
-                "name": "countryName",
-                "type": "STRING"
-              },
-              {
-                "name": "deleted",
-                "type": "NUMBER"
-              },
-              {
-                "name": "delta",
-                "type": "NUMBER"
-              },
-              {
-                "name": "deltaBucket100",
-                "type": "NUMBER"
-              },
-              {
-                "name": "deltaByTen",
-                "type": "NUMBER"
-              },
-              {
-                "name": "delta_hist",
-                "type": "NULL"
-              },
-              {
-                "name": "delta_quantilesDoublesSketch",
-                "type": "NULL"
-              },
-              {
-                "name": "isAnonymous",
-                "type": "BOOLEAN"
-              },
-              {
-                "name": "isMinor",
-                "type": "BOOLEAN"
-              },
-              {
-                "name": "isNew",
-                "type": "BOOLEAN"
-              },
-              {
-                "name": "isRobot",
-                "type": "BOOLEAN"
-              },
-              {
-                "name": "isUnpatrolled",
-                "type": "BOOLEAN"
-              },
-              {
-                "name": "max_delta",
-                "type": "NUMBER"
-              },
-              {
-                "name": "metroCode",
-                "type": "STRING"
-              },
-              {
-                "name": "min_delta",
-                "type": "NUMBER"
-              },
-              {
-                "name": "namespace",
-                "type": "STRING"
-              },
-              {
-                "name": "page",
-                "type": "STRING"
-              },
-              {
-                "name": "page_unique",
-                "type": "NULL"
-              },
-              {
-                "name": "regionIsoCode",
-                "type": "STRING"
-              },
-              {
-                "name": "regionName",
-                "type": "STRING"
-              },
-              {
-                "name": "sometimeLater",
-                "type": "TIME"
-              },
-              {
-                "name": "sometimeLaterMs",
-                "type": "NUMBER"
-              },
-              {
-                "name": "user",
-                "type": "STRING"
-              },
-              {
-                "name": "userChars",
-                "type": "SET/STRING"
-              },
-              {
-                "name": "user_hll",
-                "type": "NULL"
-              },
-              {
-                "name": "user_theta",
-                "type": "NULL"
-              },
-              {
-                "name": "user_unique",
-                "type": "NULL"
-              }
-            ],
-            "data": [
-              {
-                "added": 0,
-                "channel": "en",
-                "cityName": "El Paso",
-                "comment": "/* Clubs and organizations */",
-                "commentLength": 29,
-                "commentLengthStr": "29",
-                "commentTerms": null,
-                "count": 1,
-                "countryIsoCode": "US",
-                "countryName": "United States",
-                "deleted": 39,
-                "delta": -39,
-                "deltaBucket100": -100,
-                "deltaByTen": -3.9,
-                "delta_hist": "/84BwhwAAA==",
-                "delta_quantilesDoublesSketch": "AgMIGoAAAAABAAAAAAAAAAAAAAAAgEPAAAAAAACAQ8AAAAAAAIBDwA==",
-                "isAnonymous": true,
-                "isMinor": false,
-                "isNew": false,
-                "isRobot": false,
-                "isUnpatrolled": false,
-                "max_delta": -39,
-                "metroCode": "765",
-                "min_delta": -39,
-                "namespace": "Main",
-                "page": "Clint High School",
-                "page_unique": "AQAAAQAAAADYAQ==",
-                "regionIsoCode": "TX",
-                "regionName": "Texas",
-                "sometimeLater": new Date('2016-09-12T06:05:00.000Z'),
-                "sometimeLaterMs": 1473660300000,
-                "time": new Date('2015-09-12T06:05:00.000Z'),
-                "user": "104.58.160.128",
-                "userChars": {
-                  "elements": [
-                    ".",
-                    "0",
-                    "1",
-                    "2",
-                    "4",
-                    "5",
-                    "6",
-                    "8"
-                  ],
-                  "setType": "STRING"
-                },
-                "user_hll": "AgEHDAMIAQDnuDoG",
-                "user_theta": "AQMDAAAazJOC2CoG9CWFMQ==",
-                "user_unique": "AQAAAQAAAAFzBQ=="
-              },
-              {
-                "added": 0,
-                "channel": "en",
-                "cityName": "El Paso",
-                "comment": "/* Early life */ spelling",
-                "commentLength": 25,
-                "commentLengthStr": "25",
-                "commentTerms": null,
-                "count": 1,
-                "countryIsoCode": "US",
-                "countryName": "United States",
-                "deleted": 0,
-                "delta": 0,
-                "deltaBucket100": 0,
-                "deltaByTen": 0,
-                "delta_hist": "/84BAAAAAA==",
-                "delta_quantilesDoublesSketch": "AgMIGoAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-                "isAnonymous": true,
-                "isMinor": false,
-                "isNew": false,
-                "isRobot": false,
-                "isUnpatrolled": false,
-                "max_delta": 0,
-                "metroCode": "765",
-                "min_delta": 0,
-                "namespace": "Main",
-                "page": "Reggie Williams (linebacker)",
-                "page_unique": "AQAAAQAAAAOhEA==",
-                "regionIsoCode": "TX",
-                "regionName": "Texas",
-                "sometimeLater": new Date('2016-09-12T16:14:00.000Z'),
-                "sometimeLaterMs": 1473696840000,
-                "time": new Date('2015-09-12T16:14:00.000Z'),
-                "user": "67.10.203.15",
-                "userChars": {
-                  "elements": [
-                    ".",
-                    "0",
-                    "1",
-                    "2",
-                    "3",
-                    "5",
-                    "6",
-                    "7"
-                  ],
-                  "setType": "STRING"
-                },
-                "user_hll": "AgEHDAMIAQC8oGoY",
-                "user_theta": "AQMDAAAazJMpBk2uirJRPw==",
-                "user_unique": "AQAAAQAAAAOIQA=="
-              }
-            ]
-          });
+              "user_hll": "AgEHDAMIAQC8oGoY",
+              "user_theta": "AQMDAAA6zJMpBk2uirJRPw==",
+              "user_unique": "AQAAAQAAAAOIQA=="
+            }
+          ]);
         });
     });
 
@@ -4593,7 +4406,7 @@ describe("Druid Functional", function() {
                 "setType": "STRING"
               },
               "user_hll": "AgEHDAMIAQAsNv0H",
-              "user_theta": "AQMDAAAazJOcUskA1pEMGA==",
+              "user_theta": "AQMDAAA6zJOcUskA1pEMGA==",
               "user_unique": "AQAAAQAAAALGBA=="
             }
           ]);

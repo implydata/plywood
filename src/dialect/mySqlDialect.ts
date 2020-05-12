@@ -135,10 +135,12 @@ export class MySQLDialect extends SQLDialect {
     return timePartFunction.replace(/\$\$/g, this.utcToWalltime(operand, timezone));
   }
 
-  public timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string {
+  public timeShiftExpression(operand: string, duration: Duration, step: int, timezone: Timezone): string {
+    if (step === 0) return operand;
+
     // https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_date-add
-    let sqlFn = "DATE_ADD("; //warpDirection > 0 ? "DATE_ADD(" : "DATE_SUB(";
-    let spans = duration.valueOf();
+    let sqlFn = step > 0 ? "DATE_ADD(" : "DATE_SUB(";
+    let spans = duration.multiply(Math.abs(step)).valueOf();
     if (spans.week) {
       return sqlFn + operand + ", INTERVAL " + String(spans.week) + ' WEEK)';
     }

@@ -65,6 +65,10 @@ export abstract class SQLDialect {
     return ('' + bool).toUpperCase();
   }
 
+  public floatDivision(numerator: string, denominator: string): string {
+    return `(${numerator}/${denominator})`;
+  }
+
   public numberOrTimeToSQL(x: number | Date): string {
     if (x === null) return this.nullConstant();
     if ((x as Date).toISOString) {
@@ -125,7 +129,7 @@ export abstract class SQLDialect {
   }
 
   public regexpExpression(expression: string, regexp: string): string {
-    return `(${expression} REGEXP '${regexp}')`; // ToDo: escape this.regexp
+    return `(${expression} REGEXP ${this.escapeLiteral(regexp)})`;
   }
 
   public inExpression(operand: string, start: string, end: string, bounds: string) {
@@ -145,22 +149,27 @@ export abstract class SQLDialect {
     }
   }
 
-  public abstract castExpression(inputType: PlyType, operand: string, cast: PlyTypeSimple): string
+  public abstract castExpression(inputType: PlyType, operand: string, cast: PlyTypeSimple): string;
 
   public lengthExpression(a: string): string {
     return `CHAR_LENGTH(${a})`;
   }
 
-  public abstract timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string
+  public abstract timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string;
 
-  public abstract timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string
+  public abstract timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string;
 
-  public abstract timePartExpression(operand: string, part: string, timezone: Timezone): string
+  public abstract timePartExpression(operand: string, part: string, timezone: Timezone): string;
 
-  public abstract timeShiftExpression(operand: string, duration: Duration, timezone: Timezone): string
+  public abstract timeShiftExpression(operand: string, duration: Duration, step: int, timezone: Timezone): string;
 
-  public abstract extractExpression(operand: string, regexp: string): string
+  public abstract extractExpression(operand: string, regexp: string): string;
 
-  public abstract indexOfExpression(str: string, substr: string): string
+  public abstract indexOfExpression(str: string, substr: string): string;
+
+  public logExpression(base: string, operand: string): string {
+    if (base === String(Math.E)) return `LN(${operand})`;
+    return `LOG(${base},${operand})`;
+  }
 }
 

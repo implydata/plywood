@@ -299,9 +299,9 @@ export class DruidAggregationBuilder {
           aggregation = {
             name: forceFinalize ? tempName : name,
             type: "hyperUnique",
-            fieldName: attributeName
+            fieldName: attributeName,
+            round: true
           };
-          if (!this.versionBefore('0.10.1')) aggregation.round = true;
           if (forceFinalize) {
             postAggregations.push({
               type: 'finalizingFieldAccess',
@@ -347,9 +347,9 @@ export class DruidAggregationBuilder {
           aggregation = {
             name: forceFinalize ? tempName : name,
             type: "cardinality",
-            fields: [attributeName]
+            fields: [attributeName],
+            round: true
           };
-          if (!this.versionBefore('0.10.1')) aggregation.round = true;
           if (forceFinalize) {
             postAggregations.push({
               type: 'finalizingFieldAccess',
@@ -376,9 +376,9 @@ export class DruidAggregationBuilder {
             dimension: cardinalityExpression.getFreeReferences()[0],
             extractionFn: druidExtractionFnBuilder.expressionToExtractionFn(cardinalityExpression)
           };
-        })
+        }),
+        round: true
       };
-      if (!this.versionBefore('0.10.1')) aggregation.round = true;
 
       if (cardinalityExpressions.length > 1) aggregation.byRow = true;
     }

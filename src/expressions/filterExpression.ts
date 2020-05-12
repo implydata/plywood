@@ -19,6 +19,7 @@ import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { ApplyExpression } from './applyExpression';
 import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import { LiteralExpression } from './literalExpression';
 import { RefExpression } from './refExpression';
 import { SortExpression } from './sortExpression';
 import { SplitExpression } from './splitExpression';
@@ -42,6 +43,9 @@ export class FilterExpression extends ChainableUnaryExpression {
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+    if (this.expression instanceof RefExpression) {
+      expressionSQL = `(${expressionSQL} = TRUE)`;
+    }
     return `${operandSQL} WHERE ${expressionSQL}`;
   }
 

@@ -617,19 +617,8 @@ describe("simulate Druid", () => {
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
-      "dimension": "color",
-      "extractionFn": {
-        "lookup": {
-          "map": {
-            "": "D"
-          },
-          "type": "map"
-        },
-        "retainMissingValue": true,
-        "type": "lookup"
-      },
-      "type": "selector",
-      "value": "D"
+      "expression": "(nvl(\"color\",'D')=='D')",
+      "type": "expression"
     });
   });
 

@@ -1244,6 +1244,14 @@ export class DruidExternal extends External {
         druidQuery.resultFormat = 'compactedList';
         if (virtualColumns.length) druidQuery.virtualColumns = virtualColumns;
         druidQuery.columns = columns;
+
+        if (sort && sort.refName() === this.timeAttribute && this.select.attributes.includes(this.timeAttribute)) {
+          (druidQuery as any).order = sort.direction; // ToDo: update Druid types
+          if (!druidQuery.columns.includes('__time')) {
+            druidQuery.columns = druidQuery.columns.concat(['__time']);
+          }
+        }
+
         if (limit) druidQuery.limit = limit.value;
 
         return {

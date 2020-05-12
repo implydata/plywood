@@ -89,7 +89,7 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return dialect.timeShiftExpression(operandSQL, this.duration, this.getTimezone());
+    return dialect.timeShiftExpression(operandSQL, this.duration, this.step, this.getTimezone());
   }
 
   protected changeStep(step: int): Expression {

@@ -45,9 +45,7 @@ export class LogExpression extends ChainableUnaryExpression {
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    const myLiteral = this.expression.getLiteralValue();
-    if (myLiteral === Math.E) return `LN(${operandSQL})`;
-    return `LOG(${expressionSQL},${operandSQL})`;
+    return dialect.logExpression(expressionSQL, operandSQL);
   }
 
   protected specialSimplify(): Expression {

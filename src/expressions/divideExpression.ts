@@ -42,7 +42,7 @@ export class DivideExpression extends ChainableUnaryExpression {
   }
 
   protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
-    return `(${operandSQL}/${expressionSQL})`;
+    return dialect.floatDivision(operandSQL, expressionSQL);
   }
 
   protected specialSimplify(): Expression {
