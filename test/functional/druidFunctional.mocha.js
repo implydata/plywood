@@ -4654,64 +4654,7 @@ describe("Druid Functional", function() {
         });
     });
 
-    describe("plyql end to end", () => {
-      it("should work with <= <", () => {
-        let ex = Expression.parseSQL(sane`
-          SELECT
-          SUM(added) AS 'TotalAdded'
-          FROM \`wiki\`
-          WHERE \`channel\`="en" AND '2015-09-12T10:00:00' <= \`time\` AND \`time\` < '2015-09-12T12:00:00'
-        `);
-
-        return basicExecutor(ex.expression)
-          .then((result) => {
-            expect(result.toJS().data).to.deep.equal([
-              {
-                "TotalAdded": 2274537
-              }
-            ]);
-          });
-      });
-
-      it("should work with between and without top level GROUP BY", () => {
-        let ex = Expression.parseSQL(sane`
-          SELECT
-          \`page\` AS 'Page',
-          SUM(added) AS 'TotalAdded'
-          FROM \`wiki\`
-          WHERE \`channel\`="en" AND \`time\` BETWEEN '2015-09-12T10:00:00' AND '2015-09-12T12:00:00'
-          GROUP BY 1
-          ORDER BY \`TotalAdded\` DESC
-          LIMIT 5
-        `);
-
-        return basicExecutor(ex.expression)
-          .then((result) => {
-            expect(result.data).to.deep.equal([
-              {
-                "Page": "Wikipedia:Administrators' noticeboard/Archive274",
-                "TotalAdded": 96997
-              },
-              {
-                "Page": "User:Afernand74/sandbox 2",
-                "TotalAdded": 37103
-              },
-              {
-                "Page": "Draft:Nha San Collective",
-                "TotalAdded": 29978
-              },
-              {
-                "Page": "Crazy Frog",
-                "TotalAdded": 28685
-              },
-              {
-                "Page": "Template:Singapore MRT stations",
-                "TotalAdded": 27126
-              }
-            ]);
-          });
-      });
-
+    describe("more tests", () => {
       it("works with two datasets totals only", () => {
         let ex = ply()
           .apply("wikiA", $('wiki').filter($('time').overlap(new Date("2015-09-12T12:00:00Z"), new Date("2015-09-13T00:00:00Z"))))

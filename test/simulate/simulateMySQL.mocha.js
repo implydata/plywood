@@ -236,26 +236,6 @@ describe("simulate MySQL", () => {
     `]);
   });
 
-  it("should be able to find column name case insensitively", () => {
-    let ex = Expression.parseSQL(`
-        SELECT
-        SUM(PrIcE) AS 'TotalPrice'
-        FROM \`diamonds\`
-      `);
-
-
-    let queryPlan = ex.expression.simulateQueryPlan(context);
-    expect(queryPlan).to.have.length(1);
-
-    expect(queryPlan[0]).to.deep.equal([sane`
-      SELECT
-      SUM(\`price\`) AS \`__VALUE__\`
-      FROM \`diamonds\`
-      GROUP BY ''
-    `]);
-  });
-
-
   it("works with value query", () => {
     let ex = $('diamonds').filter('$color == "D"').sum('$price');
 

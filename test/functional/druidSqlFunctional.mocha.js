@@ -309,13 +309,13 @@ describe("DruidSQL Functional", function() {
             {
               "engine": "druidsql",
               "query": {
-                "query": "SELECT\nFLOOR(\"__time\" TO hour) AS \"Timestamp\",\nSUM(\"added\") AS \"TotalAdded\"\nFROM \"wikipedia\"\nWHERE ((\"channel\"='en') AND (\"namespace\"='Main'))\nGROUP BY FLOOR(\"__time\" TO hour)\nORDER BY \"TotalAdded\" DESC\nLIMIT 3"
+                "query": "SELECT\nTIME_FLOOR(\"__time\", 'PT1H', NULL, 'Etc/UTC') AS \"Timestamp\",\nSUM(\"added\") AS \"TotalAdded\"\nFROM \"wikipedia\"\nWHERE ((\"channel\"='en') AND (\"namespace\"='Main'))\nGROUP BY TIME_FLOOR(\"__time\", 'PT1H', NULL, 'Etc/UTC')\nORDER BY \"TotalAdded\" DESC\nLIMIT 3"
               }
             },
             {
               "engine": "druidsql",
               "query": {
-                "query": "SELECT\nFLOOR(\"__time\" TO hour) AS \"Timestamp\",\nSUM(\"added\") AS \"TotalAdded\"\nFROM \"wikipedia\"\nWHERE ((\"channel\"='en') AND (\"namespace\"='User talk'))\nGROUP BY FLOOR(\"__time\" TO hour)\nORDER BY \"TotalAdded\" DESC\nLIMIT 3"
+                "query": "SELECT\nTIME_FLOOR(\"__time\", 'PT1H', NULL, 'Etc/UTC') AS \"Timestamp\",\nSUM(\"added\") AS \"TotalAdded\"\nFROM \"wikipedia\"\nWHERE ((\"channel\"='en') AND (\"namespace\"='User talk'))\nGROUP BY TIME_FLOOR(\"__time\", 'PT1H', NULL, 'Etc/UTC')\nORDER BY \"TotalAdded\" DESC\nLIMIT 3"
               }
             }
           ]);

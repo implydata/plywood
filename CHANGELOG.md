@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.22.0
+
+- Remove PlyQL
+
+
 ## 0.21.7
 
 - Updated Druid SQL driver to be up to date with latest Druid

@@ -407,7 +407,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   static _: RefExpression;
 
   static expressionParser: PEGParser;
-  static plyqlParser: PEGParser;
   static defaultParserTimezone: Timezone = Timezone.UTC; // The default timezone within which dates in expressions are parsed
 
 
@@ -450,24 +449,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     } catch (e) {
       // Re-throw to add the stacktrace
       throw new Error(`Expression parse error: ${e.message} on '${str}'`);
-    } finally {
-      Expression.defaultParserTimezone = original;
-    }
-  }
-
-  /**
-   * Parses SQL statements into a plywood expressions
-   * @param str The SQL to parse
-   * @param timezone The timezone within which to evaluate any untimezoned date strings
-   */
-  static parseSQL(str: string, timezone?: Timezone): SQLParse {
-    let original = Expression.defaultParserTimezone;
-    if (timezone) Expression.defaultParserTimezone = timezone;
-    try {
-      return Expression.plyqlParser.parse(str);
-    } catch (e) {
-      // Re-throw to add the stacktrace
-      throw new Error(`SQL parse error: ${e.message} on '${str}'`);
     } finally {
       Expression.defaultParserTimezone = original;
     }
