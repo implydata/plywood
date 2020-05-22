@@ -41,16 +41,6 @@ Let's assume that you are adding an expression called `foo bar`
   * Is there a special 'zero' literal that, when acted upon, renders this expression is irrelevant (e.g. `X.multiply(0)` => `r(0)`)?     
   * Is there a special 'one' condition that, when in the expression, renders the expression useless (e.g. `X.multiply(1)` => `X`)?
   * Does it interact with other expressions in a specific way?    
-      
-1. Add this function to the PlyQL grammar in [plyql.pegjs](src/expressions/plyql.pegjs).
-   Figure out what names you will give this function.
-   You should allow both `'FOO_BAR'` and whatever is standard to call it in general SQL dialects.
-   In general PlyQL tries to be MySQL compliant so have a look if a similar function is implemented by MySQL.
-   It is also possible that by adding this function you will facilitate some other function to be implemented
-   (for example when `MatchExpression` was added it allowed for `LIKE` and `REGEXP` to be implemented as well as `MATCH`).
-
-1. Add tests for `FOO_BAR` and all the other functions in the PlyQL parser.
-   The tests go in [plyqlParser.mocha.js](test/overall/plyqlParser.mocha.js).
    
 1. All expressions should (preferably) be supported by all Externals. Add the functionality and tests accordingly. 
   * MySQL External: [code](src/external/mySqlExternal.ts), [test](test/external/mySqlExternal.mocha.js)

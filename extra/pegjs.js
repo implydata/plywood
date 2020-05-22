@@ -40,4 +40,3 @@ function mkParser(pegjsFilename, outputFilename) {
 // Expressions
 
 mkParser('./src/expressions/expression.pegjs', './build/expressionParser.js');
-mkParser('./src/expressions/plyql.pegjs', './build/plyqlParser.js');

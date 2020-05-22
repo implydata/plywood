@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.22.0
+
+- Remove PlyQL
+
+
 ## 0.21.8
 
 - Fix measure re-splitter with filter

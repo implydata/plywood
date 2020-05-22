@@ -268,43 +268,4 @@ describe("resolve", () => {
       );
     });
   });
-
-  describe("sql resolve", () => {
-    let external = External.fromJS({
-      engine: 'druid',
-      source: 'diamonds',
-      attributes: [
-        { name: '__time', type: 'TIME' },
-        { name: 'color', type: 'STRING' },
-        { name: 'cut', type: 'STRING' },
-        { name: 'carat', type: 'NUMBER', nativeType: 'STRING' }
-      ]
-    });
-
-    let datum = {
-      Count: 5,
-      diamonds: external
-    };
-
-    it("finds the right column with inline resolve", () => {
-      let parse = Expression.parseSQL("CITYnAME = 'San Francisco'");
-      let resolveString = parse.expression.resolve({ cityName: "" });
-      expect(resolveString).to.not.deep.equal(null);
-
-      let parse2 = Expression.parseSQL("NOTACOLUMN = 'San Francisco'");
-
-      expect(() => {
-        parse2.expression.resolve({ cityName: "" });
-      }).to.throw('could not resolve i$NOTACOLUMN because is was not in the context');
-    });
-
-    it("does not allow for improperly cased table names", () => {
-      let parse = Expression.parseSQL("SELECT __time FROM dIaMoNds");
-      expect(() => {
-        parse.expression.resolve(datum)
-      }).to.throw('could not resolve $dIaMoNds because is was not in the context');
-    });
-
-  });
-
 });
