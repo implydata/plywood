@@ -74,9 +74,9 @@ export abstract class SQLExternal extends External {
     const { source, dialect } = this;
     const m = String(source).match(/^(\w+)\.(.+)$/);
     if (m) {
-      return "FROM " + m[1] + '.' + dialect.escapeName(m[2]);
+      return `FROM ${m[1]}.${dialect.escapeName(m[2])} AS t`;
     } else {
-      return "FROM " + dialect.escapeName(source as string);
+      return `FROM ${dialect.escapeName(source as string)} AS t`;
     }
   }
 

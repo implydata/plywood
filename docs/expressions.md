@@ -804,3 +804,13 @@ Computes the custom of the given expression in the operand dataset
 ```javascript
 var ex = $('data').customAggregate('customAggregator');
 ```
+
+
+<a id="sqlAggregate" href="#sqlAggregate">#</a>
+*operand*.**sqlAggregate**(sql: string)
+
+Computes a SQL aggregate
+
+```javascript
+var ex = $('data').sqlAggregate('SUM(A)');
+```

@@ -28,9 +28,9 @@ let druidRequester = druidRequesterFactory({
   host: info.druidHost
 });
 
-// druidRequester = verboseRequesterFactory({
-//  requester: druidRequester
-// });
+druidRequester = verboseRequesterFactory({
+ requester: druidRequester
+});
 
 describe("DruidSQL Functional", function() {
   this.timeout(10000);
@@ -224,6 +224,90 @@ describe("DruidSQL Functional", function() {
 
   });
 
+
+  describe("custom SQL", () => {
+    let basicExecutor = basicExecutorFactory({
+      datasets: {
+        wiki: External.fromJS({
+          engine: 'druidsql',
+          source: 'wikipedia',
+          attributes: wikiAttributes,
+          derivedAttributes: wikiDerivedAttributes
+        }, druidRequester)
+      }
+    });
+
+    it("works in simple aggregate case", () => {
+      let ex = $("wiki").split("$channel", 'Channel')
+        .apply('Count', $('wiki').sqlAggregate(r(`SUM(t."count")`)))
+        .apply('Fancy', $('wiki').sqlAggregate(r(`SQRT(SUM(t."added" * t."added"))`)))
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Channel": "en",
+              "Count": 114711,
+              "Fancy": 717274.3671253002
+            },
+            {
+              "Channel": "vi",
+              "Count": 99010,
+              "Fancy": 70972.1877005352
+            },
+            {
+              "Channel": "de",
+              "Count": 25103,
+              "Fancy": 284404.77477356105
+            }
+          ]);
+        });
+    });
+
+    it("can do compare column", () => {
+      let prevRange = TimeRange.fromJS({ start: new Date('2015-09-12T00:00:00Z'), end: new Date('2015-09-12T12:00:00Z')});
+      let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
+      let ex = $("wiki")
+        .split($('channel'), 'Channel')
+        .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sqlAggregate(r(`SUM(t."count")`)))
+        .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sqlAggregate(r(`SUM(t."count")`)))
+        .sort($('CountMain'), 'descending')
+        .limit(5);
+
+      return basicExecutor(ex)
+        .then((result) => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              "Channel": "en",
+              "CountMain": 68606,
+              "CountPrev": 46105
+            },
+            {
+              "Channel": "vi",
+              "CountMain": 48521,
+              "CountPrev": 50489
+            },
+            {
+              "Channel": "de",
+              "CountMain": 15857,
+              "CountPrev": 9246
+            },
+            {
+              "Channel": "fr",
+              "CountMain": 14779,
+              "CountPrev": 6506
+            },
+            {
+              "Channel": "uz",
+              "CountMain": 10064,
+              "CountPrev": 8
+            }
+          ]);
+        });
+    });
+  });
 
   describe("defined attributes in datasource", () => {
     let basicExecutor = basicExecutorFactory({

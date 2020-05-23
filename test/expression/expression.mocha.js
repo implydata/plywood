@@ -220,7 +220,10 @@ describe("Expression", () => {
       { op: 'transformCase', transformType: 'lowerCase'},
 
       { op: 'customAggregate', custom: 'lol1' },
-      { op: 'customAggregate', custom: 'lol2' }
+      { op: 'customAggregate', custom: 'lol2' },
+
+      { op: 'sqlAggregate', sql: 'SUM(t.A)' },
+      { op: 'sqlAggregate', sql: 'SUM(t.B)' }
 
     ], {
       newThrows: true
