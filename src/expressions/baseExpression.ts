@@ -56,6 +56,7 @@ import { ContainsExpression } from './containsExpression';
 import { CountDistinctExpression } from './countDistinctExpression';
 import { CountExpression } from './countExpression';
 import { CustomAggregateExpression } from './customAggregateExpression';
+import { SqlAggregateExpression } from './sqlAggregateExpression';
 import { CustomTransformExpression } from './customTransformExpression';
 import { DivideExpression } from './divideExpression';
 import { ExternalExpression } from './externalExpression';
@@ -223,6 +224,7 @@ export interface ExpressionValue {
   transformType?: CaseType;
   outputType?: PlyTypeSimple;
   tuning?: string;
+  sql?: string;
 }
 
 export interface ExpressionJS {
@@ -258,6 +260,7 @@ export interface ExpressionJS {
   transformType?: CaseType;
   outputType?: PlyTypeSimple;
   tuning?: string;
+  sql?: string;
 }
 
 export interface ExtractAndRest {
@@ -1465,6 +1468,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public customAggregate(custom: string) {
     return new CustomAggregateExpression({ operand: this, custom: getString(custom) });
+  }
+
+  public sqlAggregate(sql: string) {
+    return new SqlAggregateExpression({ operand: this, sql: getString(sql) });
   }
 
   // Undocumented (for now)

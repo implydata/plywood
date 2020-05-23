@@ -49,6 +49,7 @@ cat \
   build/expressions/countExpression.js \
   build/expressions/countDistinctExpression.js \
   build/expressions/customAggregateExpression.js \
+  build/expressions/sqlAggregateExpression.js \
   build/expressions/customTransformExpression.js \
   build/expressions/divideExpression.js \
   build/expressions/extractExpression.js \
@@ -148,6 +149,7 @@ cat \
   build/expressions/countExpression.js \
   build/expressions/countDistinctExpression.js \
   build/expressions/customAggregateExpression.js \
+  build/expressions/sqlAggregateExpression.js \
   build/expressions/customTransformExpression.js \
   build/expressions/divideExpression.js \
   build/expressions/extractExpression.js \
