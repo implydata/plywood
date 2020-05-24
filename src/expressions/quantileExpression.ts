@@ -15,11 +15,16 @@
  */
 
 import { Dataset, PlywoodValue } from '../datatypes/index';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 
 export class QuantileExpression extends ChainableUnaryExpression implements Aggregate {
-  static op = "Quantile";
+  static op = 'Quantile';
   static fromJS(parameters: ExpressionJS): QuantileExpression {
     let value = ChainableUnaryExpression.jsToValue(parameters);
     value.value = parameters.value || (parameters as any).quantile;
@@ -32,7 +37,7 @@ export class QuantileExpression extends ChainableUnaryExpression implements Aggr
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("quantile");
+    this._ensureOp('quantile');
     this._checkOperandTypes('DATASET');
     this._checkExpressionTypes('NUMBER');
     this.value = parameters.value;
@@ -55,9 +60,7 @@ export class QuantileExpression extends ChainableUnaryExpression implements Aggr
   }
 
   public equals(other: QuantileExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.value === other.value &&
-      this.tuning === other.tuning;
+    return super.equals(other) && this.value === other.value && this.tuning === other.tuning;
   }
 
   protected _toStringParameters(indent?: int): string[] {

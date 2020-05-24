@@ -20,7 +20,7 @@ import { ApplyExpression } from './applyExpression';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class LimitExpression extends ChainableExpression {
-  static op = "Limit";
+  static op = 'Limit';
   static fromJS(parameters: ExpressionJS): LimitExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.value = parameters.value || (parameters as any).limit;
@@ -31,7 +31,7 @@ export class LimitExpression extends ChainableExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("limit");
+    this._ensureOp('limit');
     this._checkOperandTypes('DATASET');
 
     let value = parameters.value;
@@ -55,8 +55,7 @@ export class LimitExpression extends ChainableExpression {
   }
 
   public equals(other: LimitExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.value === other.value;
+    return super.equals(other) && this.value === other.value;
   }
 
   protected _toStringParameters(indent?: int): string[] {

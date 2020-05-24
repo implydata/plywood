@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-
 import { PlywoodValue, Set } from '../datatypes/index';
 
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 
 export class MultiplyExpression extends ChainableUnaryExpression {
-  static op = "Multiply";
+  static op = 'Multiply';
   static fromJS(parameters: ExpressionJS): MultiplyExpression {
     return new MultiplyExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("multiply");
+    this._ensureOp('multiply');
     this._checkOperandTypes('NUMBER');
     this._checkExpressionTypes('NUMBER');
     this.type = 'NUMBER';
@@ -43,7 +47,11 @@ export class MultiplyExpression extends ChainableUnaryExpression {
     return `(${operandJS}*${expressionJS})`;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return `(${operandSQL}*${expressionSQL})`;
   }
 

@@ -112,10 +112,12 @@ export abstract class Range<T> {
   }
 
   protected _equalsHelper(other: Range<T>) {
-    return Boolean(other) &&
+    return (
+      Boolean(other) &&
       this.bounds === other.bounds &&
       this._endpointEqual(this.start, other.start) &&
-      this._endpointEqual(this.end, other.end);
+      this._endpointEqual(this.end, other.end)
+    );
   }
 
   public abstract equals(other: Range<T>): boolean;
@@ -128,13 +130,21 @@ export abstract class Range<T> {
 
   public toString(tz?: Timezone): string {
     let bounds = this.bounds;
-    return '[' + (bounds[0] === '(' ? '~' : '') + this._endpointToString(this.start, tz) + ',' + this._endpointToString(this.end, tz) + (bounds[1] === ')' ? '' : '!') + ']';
+    return (
+      '[' +
+      (bounds[0] === '(' ? '~' : '') +
+      this._endpointToString(this.start, tz) +
+      ',' +
+      this._endpointToString(this.end, tz) +
+      (bounds[1] === ')' ? '' : '!') +
+      ']'
+    );
   }
 
   public compare(other: Range<T>): number {
     const myStart = this.start;
     const otherStart = other.start;
-    return myStart < otherStart ? -1 : (otherStart < myStart ? 1 : 0);
+    return myStart < otherStart ? -1 : otherStart < myStart ? 1 : 0;
   }
 
   public openStart(): boolean {
@@ -161,7 +171,8 @@ export abstract class Range<T> {
       if (valBound[0] === '[') {
         if (!this.containsValue(valStart)) return false;
       } else {
-        if (!this.containsValue(valStart) && valStart.valueOf() !== this.start.valueOf()) return false;
+        if (!this.containsValue(valStart) && valStart.valueOf() !== this.start.valueOf())
+          return false;
       }
       if (valBound[1] === ']') {
         if (!this.containsValue(valEnd)) return false;
@@ -169,7 +180,6 @@ export abstract class Range<T> {
         if (!this.containsValue(valEnd) && valEnd.valueOf() !== this.end.valueOf()) return false;
       }
       return true;
-
     } else {
       return this.containsValue(val);
     }
@@ -202,11 +212,13 @@ export abstract class Range<T> {
   }
 
   public intersects(other: Range<T>): boolean {
-    return this.containsValue(other.start)
-      || this.containsValue(other.end)
-      || other.containsValue(this.start)
-      || other.containsValue(this.end)
-      || this._equalsHelper(other); // in case of (0, 1) and (0, 1)
+    return (
+      this.containsValue(other.start) ||
+      this.containsValue(other.end) ||
+      other.containsValue(this.start) ||
+      other.containsValue(this.end) ||
+      this._equalsHelper(other)
+    ); // in case of (0, 1) and (0, 1)
   }
 
   /**
@@ -215,8 +227,10 @@ export abstract class Range<T> {
    * @param other The range to check against
    */
   public adjacent(other: Range<T>): boolean {
-    return (this._endpointEqual(this.end, other.start) && this.openEnd() !== other.openStart())
-        || (this._endpointEqual(this.start, other.end) && this.openStart() !== other.openEnd());
+    return (
+      (this._endpointEqual(this.end, other.start) && this.openEnd() !== other.openStart()) ||
+      (this._endpointEqual(this.start, other.end) && this.openStart() !== other.openEnd())
+    );
   }
 
   /**
@@ -282,7 +296,7 @@ export abstract class Range<T> {
       endBound = this.bounds[1];
     }
 
-    return new (<any>this.constructor)({start: start, end: end, bounds: startBound + endBound});
+    return new (<any>this.constructor)({ start: start, end: end, bounds: startBound + endBound });
   }
 
   /**
@@ -335,7 +349,7 @@ export abstract class Range<T> {
       endBound = this.bounds[1];
     }
 
-    return new (<any>this.constructor)({start: start, end: end, bounds: startBound + endBound});
+    return new (<any>this.constructor)({ start: start, end: end, bounds: startBound + endBound });
   }
 
   /**

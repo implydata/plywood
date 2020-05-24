@@ -16,15 +16,21 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+  r,
+} from './baseExpression';
 
 const IS_OR_OVERLAP: Record<string, boolean> = {
-  'is': true,
-  'overlap': true
+  is: true,
+  overlap: true,
 };
 
 export class OrExpression extends ChainableUnaryExpression {
-  static op = "Or";
+  static op = 'Or';
   static fromJS(parameters: ExpressionJS): OrExpression {
     return new OrExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
@@ -46,21 +52,25 @@ export class OrExpression extends ChainableUnaryExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("or");
+    this._ensureOp('or');
     this._checkOperandTypes('BOOLEAN');
     this._checkExpressionTypes('BOOLEAN');
     this.type = 'BOOLEAN';
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-      return operandValue || expressionValue;
+    return operandValue || expressionValue;
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
     return `(${operandJS}||${expressionJS})`;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return `(${operandSQL} OR ${expressionSQL})`;
   }
 

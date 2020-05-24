@@ -21,7 +21,7 @@ import { ApplyExpression } from './applyExpression';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class SelectExpression extends ChainableExpression {
-  static op = "Select";
+  static op = 'Select';
   static fromJS(parameters: ExpressionJS): SelectExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.attributes = parameters.attributes;
@@ -32,7 +32,7 @@ export class SelectExpression extends ChainableExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("select");
+    this._ensureOp('select');
     this._checkOperandTypes('DATASET');
     this.attributes = parameters.attributes;
     this.type = 'DATASET';
@@ -51,8 +51,7 @@ export class SelectExpression extends ChainableExpression {
   }
 
   public equals(other: SelectExpression | undefined): boolean {
-    return super.equals(other) &&
-      String(this.attributes) === String(other.attributes);
+    return super.equals(other) && String(this.attributes) === String(other.attributes);
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -71,7 +70,7 @@ export class SelectExpression extends ChainableExpression {
     return {
       type: 'DATASET',
       datasetType: newDatasetType,
-      parent
+      parent,
     };
   }
 
@@ -91,7 +90,7 @@ export class SelectExpression extends ChainableExpression {
       const { operand: x, attributes: attr } = operand;
       return x.select(attr.filter(a => attributes.indexOf(a) !== -1));
 
-    // X.apply('foo', _).select(<not foo>)
+      // X.apply('foo', _).select(<not foo>)
     } else if (operand instanceof ApplyExpression) {
       const { operand: x, name } = operand;
       if (attributes.indexOf(name) === -1) {
@@ -101,7 +100,6 @@ export class SelectExpression extends ChainableExpression {
 
     return this;
   }
-
 }
 
 Expression.register(SelectExpression);

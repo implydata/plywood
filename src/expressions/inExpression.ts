@@ -16,19 +16,26 @@
 
 import { PlywoodValue, Range, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 import { OverlapExpression } from './overlapExpression';
 
 export class InExpression extends ChainableUnaryExpression {
-  static op = "In";
+  static op = 'In';
   static fromJS(parameters: ExpressionJS): InExpression {
     const value = ChainableUnaryExpression.jsToValue(parameters);
 
     // Back compat.
     if (Range.isRangeType(value.expression.type)) {
-      console.warn('InExpression should no longer be used for ranges use OverlapExpression instead');
+      console.warn(
+        'InExpression should no longer be used for ranges use OverlapExpression instead',
+      );
       value.op = 'overlap';
-      return (new OverlapExpression(value) as any);
+      return new OverlapExpression(value) as any;
     }
 
     return new InExpression(value);
@@ -36,20 +43,32 @@ export class InExpression extends ChainableUnaryExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("in");
+    this._ensureOp('in');
 
     let operandType = this.operand.type;
     let expression = this.expression;
     if (operandType) {
-      if (!(
+      if (
+        !(
           operandType === 'NULL' ||
           expression.type === 'NULL' ||
           (!Set.isSetType(operandType) && expression.canHaveType('SET'))
-        )) {
-        throw new TypeError(`in expression ${this} has a bad type combination ${operandType} IN ${expression.type || '*'}`);
+        )
+      ) {
+        throw new TypeError(
+          `in expression ${this} has a bad type combination ${operandType} IN ${expression.type ||
+            '*'}`,
+        );
       }
     } else {
-      if (!(expression.canHaveType('NUMBER_RANGE') || expression.canHaveType('STRING_RANGE') || expression.canHaveType('TIME_RANGE') || expression.canHaveType('SET'))) {
+      if (
+        !(
+          expression.canHaveType('NUMBER_RANGE') ||
+          expression.canHaveType('STRING_RANGE') ||
+          expression.canHaveType('TIME_RANGE') ||
+          expression.canHaveType('SET')
+        )
+      ) {
         throw new TypeError(`in expression has invalid expression type ${expression.type}`);
       }
     }
@@ -65,7 +84,11 @@ export class InExpression extends ChainableUnaryExpression {
     throw new Error(`can not convert ${this} to JS function`);
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     throw new Error(`can not convert action to SQL ${this}`);
   }
 

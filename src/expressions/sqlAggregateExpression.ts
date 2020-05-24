@@ -21,7 +21,7 @@ import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from '
 import { Aggregate } from './mixins/aggregate';
 
 export class SqlAggregateExpression extends ChainableExpression {
-  static op = "SqlAggregate";
+  static op = 'SqlAggregate';
   static fromJS(parameters: ExpressionJS): SqlAggregateExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.sql = parameters.sql;
@@ -34,7 +34,7 @@ export class SqlAggregateExpression extends ChainableExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this.sql = parameters.sql;
-    this._ensureOp("sqlAggregate");
+    this._ensureOp('sqlAggregate');
     this._checkOperandTypes('DATASET');
     this.type = 'NUMBER';
 
@@ -54,8 +54,7 @@ export class SqlAggregateExpression extends ChainableExpression {
   }
 
   public equals(other: SqlAggregateExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.sql === other.sql;
+    return super.equals(other) && this.sql === other.sql;
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -69,7 +68,6 @@ export class SqlAggregateExpression extends ChainableExpression {
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return this.sql;
   }
-
 }
 
 Expression.applyMixins(SqlAggregateExpression, [Aggregate]);

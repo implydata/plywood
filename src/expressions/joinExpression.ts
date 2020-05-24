@@ -18,24 +18,32 @@ import * as hasOwnProp from 'has-own-prop';
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { DatasetFullType } from '../types';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 import { ExternalExpression } from './externalExpression';
 
 export class JoinExpression extends ChainableUnaryExpression {
-  static op = "Join";
+  static op = 'Join';
   static fromJS(parameters: ExpressionJS): JoinExpression {
     return new JoinExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("join");
+    this._ensureOp('join');
     this._checkOperandTypes('DATASET');
     this._checkExpressionTypes('DATASET');
     this.type = 'DATASET';
   }
 
-  public updateTypeContext(typeContext: DatasetFullType, expressionTypeContext: DatasetFullType): DatasetFullType {
+  public updateTypeContext(
+    typeContext: DatasetFullType,
+    expressionTypeContext: DatasetFullType,
+  ): DatasetFullType {
     const myDatasetType = typeContext.datasetType;
     const expressionDatasetType = expressionTypeContext.datasetType;
     for (let k in expressionDatasetType) {
@@ -44,7 +52,9 @@ export class JoinExpression extends ChainableUnaryExpression {
       let ft = expressionDatasetType[k];
       if (hasOwnProp(myDatasetType, k)) {
         if (myDatasetType[k].type !== ft.type) {
-          throw new Error(`incompatible types of joins on ${k} between ${myDatasetType[k].type} and ${ft.type}`);
+          throw new Error(
+            `incompatible types of joins on ${k} between ${myDatasetType[k].type} and ${ft.type}`,
+          );
         }
       } else {
         myDatasetType[k] = ft;
@@ -61,10 +71,13 @@ export class JoinExpression extends ChainableUnaryExpression {
     return operandValue ? operandValue.join(expressionValue) : null;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     throw new Error('not possible');
   }
-
 }
 
 Expression.register(JoinExpression);

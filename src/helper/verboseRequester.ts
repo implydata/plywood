@@ -36,7 +36,9 @@ export interface VerboseRequesterParameters<T> {
   onError?: (param: CallbackParameters) => void;
 }
 
-export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameters<T>): PlywoodRequester<any> {
+export function verboseRequesterFactory<T>(
+  parameters: VerboseRequesterParameters<T>,
+): PlywoodRequester<any> {
   const requester = parameters.requester;
   const myName = parameters.name || 'rq' + String(Math.random()).substr(2, 5);
 
@@ -46,29 +48,41 @@ export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameter
     parameters.onQuery = (parameters as any).preQuery;
   }
 
-  let printLine = parameters.printLine || ((line: string): void => {
+  let printLine =
+    parameters.printLine ||
+    ((line: string): void => {
       console['log'](line);
     });
 
-  let onQuery = parameters.onQuery || ((param: CallbackParameters): void => {
-      printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
+  let onQuery =
+    parameters.onQuery ||
+    ((param: CallbackParameters): void => {
+      printLine('vvvvvvvvvvvvvvvvvvvvvvvvvv');
       const ctx = param.context ? ` [context: ${JSON.stringify(param.context)}]` : '';
       printLine(`Requester ${param.name} sending query ${param.queryNumber}:${ctx}`);
       printLine(JSON.stringify(param.query, null, 2));
-      printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
+      printLine('^^^^^^^^^^^^^^^^^^^^^^^^^^');
     });
 
-  let onSuccess = parameters.onSuccess || ((param: CallbackParameters): void => {
-      printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
-      printLine(`Requester ${param.name} got result from query ${param.queryNumber}: (in ${param.time}ms)`);
+  let onSuccess =
+    parameters.onSuccess ||
+    ((param: CallbackParameters): void => {
+      printLine('vvvvvvvvvvvvvvvvvvvvvvvvvv');
+      printLine(
+        `Requester ${param.name} got result from query ${param.queryNumber}: (in ${param.time}ms)`,
+      );
       printLine(JSON.stringify(param.data, null, 2));
-      printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
+      printLine('^^^^^^^^^^^^^^^^^^^^^^^^^^');
     });
 
-  let onError = parameters.onError || ((param: CallbackParameters): void => {
-      printLine("vvvvvvvvvvvvvvvvvvvvvvvvvv");
-      printLine(`Requester ${param.name} got error in query ${param.queryNumber}: ${param.error.message} (in ${param.time}ms)`);
-      printLine("^^^^^^^^^^^^^^^^^^^^^^^^^^");
+  let onError =
+    parameters.onError ||
+    ((param: CallbackParameters): void => {
+      printLine('vvvvvvvvvvvvvvvvvvvvvvvvvv');
+      printLine(
+        `Requester ${param.name} got error in query ${param.queryNumber}: ${param.error.message} (in ${param.time}ms)`,
+      );
+      printLine('^^^^^^^^^^^^^^^^^^^^^^^^^^');
     });
 
   let curQueryNumber: int = 0;
@@ -79,7 +93,7 @@ export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameter
       name: myName,
       queryNumber: myQueryNumber,
       query: request.query,
-      context: request.context
+      context: request.context,
     });
 
     let startTime = Date.now();
@@ -94,7 +108,7 @@ export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameter
         query: request.query,
         context: request.context,
         time: Date.now() - startTime,
-        error
+        error,
       });
     });
 
@@ -110,7 +124,7 @@ export function verboseRequesterFactory<T>(parameters: VerboseRequesterParameter
         query: request.query,
         context: request.context,
         time: Date.now() - startTime,
-        data
+        data,
       });
     });
 

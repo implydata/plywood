@@ -15,10 +15,20 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 let plywood = require('../plywood');
-let { Expression, $, r, ply, Set, Dataset, External, ExternalExpression, fillExpressionExternalAlteration } = plywood;
+let {
+  Expression,
+  $,
+  r,
+  ply,
+  Set,
+  Dataset,
+  External,
+  ExternalExpression,
+  fillExpressionExternalAlteration,
+} = plywood;
 
 let diamonds = External.fromJS({
   engine: 'druid',
@@ -35,88 +45,91 @@ let diamonds = External.fromJS({
     { name: 'height_bucket', type: 'NUMBER' },
     { name: 'price', type: 'NUMBER', unsplitable: true },
     { name: 'tax', type: 'NUMBER', unsplitable: true },
-    { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true }
+    { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true },
   ],
   allowEternity: true,
-  allowSelectQueries: true
+  allowSelectQueries: true,
 });
 
-describe("simulate", () => {
-
+describe('simulate', () => {
   it('works in basic case', () => {
     let ex = ply()
       .apply('Total', '$diamonds.count()')
       .apply('TotalX2', '$Total * 2')
-      .apply('SomeSplit', $('diamonds').split('$cut:STRING', 'Cut').limit(10))
-      .apply('SomeNestedSplit',
-        $('diamonds').split('$color:STRING', 'Color')
+      .apply(
+        'SomeSplit',
+        $('diamonds')
+          .split('$cut:STRING', 'Cut')
+          .limit(10),
+      )
+      .apply(
+        'SomeNestedSplit',
+        $('diamonds')
+          .split('$color:STRING', 'Color')
           .limit(10)
-          .apply('SubSplit', $('diamonds').split('$cut:STRING', 'SubCut').limit(5))
+          .apply(
+            'SubSplit',
+            $('diamonds')
+              .split('$cut:STRING', 'SubCut')
+              .limit(5),
+          ),
       );
 
     expect(ex.simulate({ diamonds: diamonds }).toJS().data).to.deep.equal([
       {
-        "SomeNestedSplit": {
-          "attributes": [
+        SomeNestedSplit: {
+          attributes: [
             {
-              "name": "Color",
-              "type": "STRING"
+              name: 'Color',
+              type: 'STRING',
             },
             {
-              "name": "diamonds",
-              "type": "DATASET"
+              name: 'diamonds',
+              type: 'DATASET',
             },
             {
-              "name": "SubSplit",
-              "type": "DATASET"
-            }
+              name: 'SubSplit',
+              type: 'DATASET',
+            },
           ],
-          "data": [
+          data: [
             {
-              "Color": "some_color",
-              "SubSplit": {
-                "attributes": [
+              Color: 'some_color',
+              SubSplit: {
+                attributes: [
                   {
-                    "name": "SubCut",
-                    "type": "STRING"
-                  }
+                    name: 'SubCut',
+                    type: 'STRING',
+                  },
                 ],
-                "data": [
+                data: [
                   {
-                    "SubCut": "some_cut"
-                  }
+                    SubCut: 'some_cut',
+                  },
                 ],
-                "keys": [
-                  "SubCut"
-                ]
-              }
-            }
+                keys: ['SubCut'],
+              },
+            },
           ],
-          "keys": [
-            "Color"
-          ]
+          keys: ['Color'],
         },
-        "SomeSplit": {
-          "attributes": [
+        SomeSplit: {
+          attributes: [
             {
-              "name": "Cut",
-              "type": "STRING"
-            }
+              name: 'Cut',
+              type: 'STRING',
+            },
           ],
-          "data": [
+          data: [
             {
-              "Cut": "some_cut"
-            }
+              Cut: 'some_cut',
+            },
           ],
-          "keys": [
-            "Cut"
-          ]
+          keys: ['Cut'],
         },
-        "Total": 4,
-        "TotalX2": 4
-      }
+        Total: 4,
+        TotalX2: 4,
+      },
     ]);
-
   });
-
 });

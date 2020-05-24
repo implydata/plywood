@@ -16,17 +16,22 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 
 export class AddExpression extends ChainableUnaryExpression {
-  static op = "Add";
+  static op = 'Add';
   static fromJS(parameters: ExpressionJS): AddExpression {
     return new AddExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("add");
+    this._ensureOp('add');
     this._checkOperandTypes('NUMBER');
     this._checkExpressionTypes('NUMBER');
     this.type = 'NUMBER';
@@ -41,7 +46,11 @@ export class AddExpression extends ChainableUnaryExpression {
     return `(${operandJS}+${expressionJS})`;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return `(${operandSQL}+${expressionSQL})`;
   }
 

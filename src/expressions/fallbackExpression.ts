@@ -16,17 +16,22 @@
 
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 
 export class FallbackExpression extends ChainableUnaryExpression {
-  static op = "Fallback";
+  static op = 'Fallback';
   static fromJS(parameters: ExpressionJS): FallbackExpression {
     return new FallbackExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("fallback");
+    this._ensureOp('fallback');
     this._checkOperandExpressionTypesAlign();
     this.type = this.operand.type || this.expression.type;
   }
@@ -39,7 +44,11 @@ export class FallbackExpression extends ChainableUnaryExpression {
     return `((_=${operandJS}),(_!==null?_:${expressionJS}))`;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return dialect.coalesceExpression(operandSQL, expressionSQL);
   }
 
@@ -60,7 +69,6 @@ export class FallbackExpression extends ChainableUnaryExpression {
 
     return this;
   }
-
 }
 
 Expression.register(FallbackExpression);

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 export function promiseWhile(condition: () => boolean, action: () => Promise<any>): Promise<any> {
   let loop = (): Promise<any> => {
     if (!condition()) return Promise.resolve(null);

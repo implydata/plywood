@@ -17,18 +17,24 @@
 import { PlywoodValue, Set } from '../datatypes/index';
 import { Range } from '../datatypes/range';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+  r,
+} from './baseExpression';
 import { LiteralExpression } from './literalExpression';
 
 export class LessThanOrEqualExpression extends ChainableUnaryExpression {
-  static op = "LessThanOrEqual";
+  static op = 'LessThanOrEqual';
   static fromJS(parameters: ExpressionJS): LessThanOrEqualExpression {
     return new LessThanOrEqualExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("lessThanOrEqual");
+    this._ensureOp('lessThanOrEqual');
     this._checkOperandTypes('NUMBER', 'TIME', 'STRING');
     this._checkExpressionTypes('NUMBER', 'TIME', 'STRING');
     this._bumpOperandExpressionToTime();
@@ -45,18 +51,24 @@ export class LessThanOrEqualExpression extends ChainableUnaryExpression {
     return `(${operandJS}<=${expressionJS})`;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return `(${operandSQL}<=${expressionSQL})`;
   }
 
   protected specialSimplify(): Expression {
     const { operand, expression } = this;
 
-    if (expression instanceof LiteralExpression) { // x <= 7
+    if (expression instanceof LiteralExpression) {
+      // x <= 7
       return operand.overlap(r(Range.fromJS({ start: null, end: expression.value, bounds: '(]' })));
     }
 
-    if (operand instanceof LiteralExpression) { // 7 <= x
+    if (operand instanceof LiteralExpression) {
+      // 7 <= x
       return expression.overlap(r(Range.fromJS({ start: operand.value, end: null, bounds: '[)' })));
     }
 
@@ -65,4 +77,3 @@ export class LessThanOrEqualExpression extends ChainableUnaryExpression {
 }
 
 Expression.register(LessThanOrEqualExpression);
-

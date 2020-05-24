@@ -23,7 +23,7 @@ import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from '
 import { HasTimezone } from './mixins/hasTimezone';
 
 export class TimeBucketExpression extends ChainableExpression {
-  static op = "TimeBucket";
+  static op = 'TimeBucket';
   static fromJS(parameters: ExpressionJS): TimeBucketExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
@@ -39,10 +39,10 @@ export class TimeBucketExpression extends ChainableExpression {
     let duration = parameters.duration;
     this.duration = duration;
     this.timezone = parameters.timezone;
-    this._ensureOp("timeBucket");
+    this._ensureOp('timeBucket');
     this._checkOperandTypes('TIME');
     if (!(duration instanceof Duration)) {
-      throw new Error("`duration` must be a Duration");
+      throw new Error('`duration` must be a Duration');
     }
     if (!duration.isFloorable()) {
       throw new Error(`duration '${duration.toString()}' is not floorable`);
@@ -65,9 +65,11 @@ export class TimeBucketExpression extends ChainableExpression {
   }
 
   public equals(other: TimeBucketExpression | undefined): boolean {
-    return super.equals(other) &&
+    return (
+      super.equals(other) &&
       this.duration.equals(other.duration) &&
-      immutableEqual(this.timezone, other.timezone);
+      immutableEqual(this.timezone, other.timezone)
+    );
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -77,11 +79,13 @@ export class TimeBucketExpression extends ChainableExpression {
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
-    return operandValue ? TimeRange.timeBucket(operandValue, this.duration, this.getTimezone()) : null;
+    return operandValue
+      ? TimeRange.timeBucket(operandValue, this.duration, this.getTimezone())
+      : null;
   }
 
   protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error("implement me");
+    throw new Error('implement me');
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {

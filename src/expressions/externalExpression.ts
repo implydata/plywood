@@ -18,13 +18,18 @@ import { ComputeFn, Datum, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { External } from '../external/baseExternal';
 import { DatasetFullType } from '../types';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 
 export class ExternalExpression extends Expression {
-  static op = "external";
+  static op = 'external';
   static fromJS(parameters: ExpressionJS): ExternalExpression {
     let value: ExpressionValue = {
-      op: parameters.op
+      op: parameters.op,
     };
     value.external = External.fromJS(parameters.external);
     return new ExternalExpression(value);
@@ -75,8 +80,7 @@ export class ExternalExpression extends Expression {
   }
 
   public equals(other: ExternalExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.external.equals(other.external);
+    return super.equals(other) && this.external.equals(other.external);
   }
 
   public updateTypeContext(typeContext: DatasetFullType): DatasetFullType {

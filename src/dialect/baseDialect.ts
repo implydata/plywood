@@ -18,7 +18,6 @@
 import { Duration, Timezone } from 'chronoshift';
 import { PlyType, PlyTypeSimple } from '../types';
 
-
 export abstract class SQLDialect {
   private escapedTableName: string | null = null;
 
@@ -31,7 +30,6 @@ export abstract class SQLDialect {
       this.escapedTableName = null;
     }
   }
-
 
   public nullConstant(): string {
     return 'NULL';
@@ -84,7 +82,8 @@ export abstract class SQLDialect {
   }
 
   public dateToSQLDateString(date: Date): string {
-    return date.toISOString()
+    return date
+      .toISOString()
       .replace('T', ' ')
       .replace('Z', '')
       .replace(/\.000$/, '')
@@ -93,7 +92,11 @@ export abstract class SQLDialect {
 
   public abstract timeToSQL(date: Date): string;
 
-  public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, elseSQL: string | null = null): string {
+  public aggregateFilterIfNeeded(
+    inputSQL: string,
+    expressionSQL: string,
+    elseSQL: string | null = null,
+  ): string {
     let whereIndex = inputSQL.indexOf(' WHERE ');
     if (whereIndex === -1) return expressionSQL;
     let filterSQL = inputSQL.substr(whereIndex + 7);
@@ -155,13 +158,26 @@ export abstract class SQLDialect {
     return `CHAR_LENGTH(${a})`;
   }
 
-  public abstract timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string;
+  public abstract timeFloorExpression(
+    operand: string,
+    duration: Duration,
+    timezone: Timezone,
+  ): string;
 
-  public abstract timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string;
+  public abstract timeBucketExpression(
+    operand: string,
+    duration: Duration,
+    timezone: Timezone,
+  ): string;
 
   public abstract timePartExpression(operand: string, part: string, timezone: Timezone): string;
 
-  public abstract timeShiftExpression(operand: string, duration: Duration, step: int, timezone: Timezone): string;
+  public abstract timeShiftExpression(
+    operand: string,
+    duration: Duration,
+    step: int,
+    timezone: Timezone,
+  ): string;
 
   public abstract extractExpression(operand: string, regexp: string): string;
 
@@ -172,4 +188,3 @@ export abstract class SQLDialect {
     return `LOG(${base},${operand})`;
   }
 }
-

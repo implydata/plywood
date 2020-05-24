@@ -24,7 +24,7 @@ import { OverlapExpression } from './overlapExpression';
 import { TimeBucketExpression } from './timeBucketExpression';
 
 export class TimeFloorExpression extends ChainableExpression implements HasTimezone {
-  static op = "TimeFloor";
+  static op = 'TimeFloor';
   static fromJS(parameters: ExpressionJS): TimeFloorExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
@@ -40,11 +40,11 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
     let duration = parameters.duration;
     this.duration = duration;
     this.timezone = parameters.timezone;
-    this._ensureOp("timeFloor");
+    this._ensureOp('timeFloor');
     this._bumpOperandToTime();
     this._checkOperandTypes('TIME');
     if (!(duration instanceof Duration)) {
-      throw new Error("`duration` must be a Duration");
+      throw new Error('`duration` must be a Duration');
     }
     if (!duration.isFloorable()) {
       throw new Error(`duration '${duration.toString()}' is not floorable`);
@@ -67,9 +67,11 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
   }
 
   public equals(other: TimeBucketExpression | undefined): boolean {
-    return super.equals(other) &&
+    return (
+      super.equals(other) &&
       this.duration.equals(other.duration) &&
-      immutableEqual(this.timezone, other.timezone);
+      immutableEqual(this.timezone, other.timezone)
+    );
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -83,7 +85,7 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
   }
 
   protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error("implement me");
+    throw new Error('implement me');
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {

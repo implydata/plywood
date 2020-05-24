@@ -36,7 +36,7 @@ export interface TimeRangeJS {
 function toDate(date: any, name: string): Date | null {
   if (date === null) return null;
   const typeofDate = typeof date;
-  if (typeofDate === "undefined") throw new TypeError(`timeRange must have a ${name}`);
+  if (typeofDate === 'undefined') throw new TypeError(`timeRange must have a ${name}`);
   if (typeofDate === 'string') {
     const parsedDate = parseISODate(date as string, Expression.defaultParserTimezone);
     if (!parsedDate) throw new Error(`could not parse '${date}' as date`);
@@ -48,11 +48,12 @@ function toDate(date: any, name: string): Date | null {
   return date;
 }
 
-const START_OF_TIME = "1000";
-const END_OF_TIME = "3000";
+const START_OF_TIME = '1000';
+const END_OF_TIME = '3000';
 
 function dateToIntervalPart(date: Date): string {
-  return date.toISOString()
+  return date
+    .toISOString()
     .replace('.000Z', 'Z')
     .replace(':00Z', 'Z')
     .replace(':00Z', 'Z'); // Do not do a final .replace('T00Z', 'Z');
@@ -76,7 +77,7 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
     return new TimeRange({
       start: start,
       end: duration.shift(start, timezone, 1),
-      bounds: Range.DEFAULT_BOUNDS
+      bounds: Range.DEFAULT_BOUNDS,
     });
   }
 
@@ -85,13 +86,13 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
   }
 
   static fromJS(parameters: TimeRangeJS): TimeRange {
-    if (typeof parameters !== "object") {
-      throw new Error("unrecognizable timeRange");
+    if (typeof parameters !== 'object') {
+      throw new Error('unrecognizable timeRange');
     }
     return new TimeRange({
       start: toDate(parameters.start, 'start'),
       end: toDate(parameters.end, 'end'),
-      bounds: parameters.bounds
+      bounds: parameters.bounds,
     });
   }
 
@@ -119,14 +120,14 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
     return {
       start: this.start,
       end: this.end,
-      bounds: this.bounds
+      bounds: this.bounds,
     };
   }
 
   public toJS(): TimeRangeJS {
     let js: TimeRangeJS = {
       start: this.start,
-      end: this.end
+      end: this.end,
     };
     if (this.bounds !== Range.DEFAULT_BOUNDS) js.bounds = this.bounds;
     return js;
@@ -153,7 +154,7 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
       if (bounds[1] === ']') end = new Date(end.valueOf() + 1); // add a m.sec
       interval[1] = dateToIntervalPart(end);
     }
-    return interval.join("/");
+    return interval.join('/');
   }
 
   public midpoint(): Date {
@@ -164,13 +165,15 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
     return new NumberRange({
       bounds: this.bounds,
       start: this.start ? this.start.valueOf() : null,
-      end: this.end ? this.end.valueOf() : null
+      end: this.end ? this.end.valueOf() : null,
     });
   }
 
   public isAligned(duration: Duration, timezone: Timezone): boolean {
     const { start, end } = this;
-    return (!start || duration.isAligned(start, timezone)) && (!end || duration.isAligned(end, timezone));
+    return (
+      (!start || duration.isAligned(start, timezone)) && (!end || duration.isAligned(end, timezone))
+    );
   }
 
   public rebaseOnStart(newStart: Date): TimeRange {
@@ -179,7 +182,7 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
     return new TimeRange({
       start: newStart,
       end: end ? new Date(end.valueOf() - start.valueOf() + newStart.valueOf()) : end,
-      bounds
+      bounds,
     });
   }
 }

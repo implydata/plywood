@@ -16,17 +16,22 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 
 export class DivideExpression extends ChainableUnaryExpression {
-  static op = "Divide";
+  static op = 'Divide';
   static fromJS(parameters: ExpressionJS): DivideExpression {
     return new DivideExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("divide");
+    this._ensureOp('divide');
     this._checkOperandTypes('NUMBER');
     this._checkExpressionTypes('NUMBER');
     this.type = 'NUMBER';
@@ -34,14 +39,18 @@ export class DivideExpression extends ChainableUnaryExpression {
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     if (operandValue === null || expressionValue === null) return null;
-    return Set.crossBinary(operandValue, expressionValue, (a, b) => b !== 0 ? a / b : null);
+    return Set.crossBinary(operandValue, expressionValue, (a, b) => (b !== 0 ? a / b : null));
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
     return `(_=${expressionJS},(_===0||isNaN(_)?null:${operandJS}/${expressionJS}))`;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return dialect.floatDivision(operandSQL, expressionSQL);
   }
 

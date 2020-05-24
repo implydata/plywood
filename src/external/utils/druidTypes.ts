@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-
 export interface CustomDruidTransform {
   extractionFn: Druid.ExtractionFn;
 }
 
 export type CustomDruidTransforms = Record<string, CustomDruidTransform>;
-
 
 export interface CustomDruidAggregation {
   aggregation?: Druid.Aggregation;
@@ -30,4 +28,3 @@ export interface CustomDruidAggregation {
 }
 
 export type CustomDruidAggregations = Record<string, CustomDruidAggregation>;
-

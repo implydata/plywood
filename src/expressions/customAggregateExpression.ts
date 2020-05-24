@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 
 export class CustomAggregateExpression extends ChainableExpression {
-  static op = "CustomAggregate";
+  static op = 'CustomAggregate';
   static fromJS(parameters: ExpressionJS): CustomAggregateExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.custom = parameters.custom;
@@ -33,7 +32,7 @@ export class CustomAggregateExpression extends ChainableExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this.custom = parameters.custom;
-    this._ensureOp("customAggregate");
+    this._ensureOp('customAggregate');
     this._checkOperandTypes('DATASET');
     this.type = 'NUMBER';
   }
@@ -51,8 +50,7 @@ export class CustomAggregateExpression extends ChainableExpression {
   }
 
   public equals(other: CustomAggregateExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.custom === other.custom;
+    return super.equals(other) && this.custom === other.custom;
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -66,7 +64,6 @@ export class CustomAggregateExpression extends ChainableExpression {
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     throw new Error('custom action not implemented');
   }
-
 }
 
 Expression.applyMixins(CustomAggregateExpression, [Aggregate]);

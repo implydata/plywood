@@ -16,13 +16,19 @@
 
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { CaseType, ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  CaseType,
+  ChainableExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 
 export class TransformCaseExpression extends ChainableExpression {
   static UPPER_CASE = 'upperCase';
   static LOWER_CASE = 'lowerCase';
 
-  static op = "TransformCase";
+  static op = 'TransformCase';
   static fromJS(parameters: ExpressionJS): TransformCaseExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.transformType = parameters.transformType;
@@ -34,11 +40,16 @@ export class TransformCaseExpression extends ChainableExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     let transformType = parameters.transformType;
-    if (transformType !== TransformCaseExpression.UPPER_CASE && transformType !== TransformCaseExpression.LOWER_CASE) {
-      throw new Error(`Must supply transform type of '${TransformCaseExpression.UPPER_CASE}' or '${TransformCaseExpression.LOWER_CASE}'`);
+    if (
+      transformType !== TransformCaseExpression.UPPER_CASE &&
+      transformType !== TransformCaseExpression.LOWER_CASE
+    ) {
+      throw new Error(
+        `Must supply transform type of '${TransformCaseExpression.UPPER_CASE}' or '${TransformCaseExpression.LOWER_CASE}'`,
+      );
     }
     this.transformType = transformType;
-    this._ensureOp("transformCase");
+    this._ensureOp('transformCase');
     this._checkOperandTypes('STRING');
     this.type = 'STRING';
   }
@@ -56,25 +67,30 @@ export class TransformCaseExpression extends ChainableExpression {
   }
 
   public equals(other: TransformCaseExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.transformType === other.transformType;
+    return super.equals(other) && this.transformType === other.transformType;
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
     const { transformType } = this;
-    return transformType === TransformCaseExpression.UPPER_CASE ? String(operandValue).toLocaleUpperCase() : String(operandValue).toLocaleLowerCase();
+    return transformType === TransformCaseExpression.UPPER_CASE
+      ? String(operandValue).toLocaleUpperCase()
+      : String(operandValue).toLocaleLowerCase();
   }
 
   protected _getJSChainableHelper(operandJS: string): string {
     const { transformType } = this;
     return Expression.jsNullSafetyUnary(operandJS, (input: string) => {
-      return transformType === TransformCaseExpression.UPPER_CASE ? `String(${input}).toLocaleUpperCase()` : `String(${input}).toLocaleLowerCase()`;
+      return transformType === TransformCaseExpression.UPPER_CASE
+        ? `String(${input}).toLocaleUpperCase()`
+        : `String(${input}).toLocaleLowerCase()`;
     });
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     const { transformType } = this;
-    return transformType === TransformCaseExpression.UPPER_CASE ? `UPPER(${operandSQL})` : `LOWER(${operandSQL})`;
+    return transformType === TransformCaseExpression.UPPER_CASE
+      ? `UPPER(${operandSQL})`
+      : `LOWER(${operandSQL})`;
   }
 
   public specialSimplify(): Expression {

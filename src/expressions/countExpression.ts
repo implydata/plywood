@@ -20,14 +20,14 @@ import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from '
 import { Aggregate } from './mixins/aggregate';
 
 export class CountExpression extends ChainableExpression implements Aggregate {
-  static op = "Count";
+  static op = 'Count';
   static fromJS(parameters: ExpressionJS): CountExpression {
     return new CountExpression(ChainableExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("count");
+    this._ensureOp('count');
     this._checkOperandTypes('DATASET');
     this.type = 'NUMBER';
   }
@@ -38,7 +38,9 @@ export class CountExpression extends ChainableExpression implements Aggregate {
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return operandSQL.indexOf(' WHERE ') === -1 ? `COUNT(*)` : `SUM(${dialect.aggregateFilterIfNeeded(operandSQL, '1', '0')})`;
+    return operandSQL.indexOf(' WHERE ') === -1
+      ? `COUNT(*)`
+      : `SUM(${dialect.aggregateFilterIfNeeded(operandSQL, '1', '0')})`;
   }
 }
 

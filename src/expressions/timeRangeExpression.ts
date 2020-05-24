@@ -26,7 +26,7 @@ import { HasTimezone } from './mixins/hasTimezone';
 export class TimeRangeExpression extends ChainableExpression implements HasTimezone {
   static DEFAULT_STEP = 1;
 
-  static op = "TimeRange";
+  static op = 'TimeRange';
   static fromJS(parameters: ExpressionJS): TimeRangeExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
@@ -44,10 +44,10 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     this.duration = parameters.duration;
     this.step = parameters.step || TimeRangeExpression.DEFAULT_STEP;
     this.timezone = parameters.timezone;
-    this._ensureOp("timeRange");
+    this._ensureOp('timeRange');
     this._checkOperandTypes('TIME');
     if (!(this.duration instanceof Duration)) {
-      throw new Error("`duration` must be a Duration");
+      throw new Error('`duration` must be a Duration');
     }
     this.type = 'TIME_RANGE';
   }
@@ -69,10 +69,12 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
   }
 
   public equals(other: TimeRangeExpression | undefined): boolean {
-    return super.equals(other) &&
+    return (
+      super.equals(other) &&
       this.duration.equals(other.duration) &&
       this.step === other.step &&
-      immutableEqual(this.timezone, other.timezone);
+      immutableEqual(this.timezone, other.timezone)
+    );
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -102,11 +104,11 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
   }
 
   protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error("implement me");
+    throw new Error('implement me');
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    throw new Error("implement me");
+    throw new Error('implement me');
   }
 
   // HasTimezone mixin:

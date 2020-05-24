@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 let plywood = require('../plywood');
 let { $, ply, r, Expression } = plywood;
 
-describe("SqlAggregateExpression", () => {
-
-  describe("errors", () => {
+describe('SqlAggregateExpression', () => {
+  describe('errors', () => {
     it('errors on non-parsable SQL', () => {
       expect(() => {
         Expression.fromJS({
           op: 'sqlAggregate',
-          sql: 'SUM(A'
+          sql: 'SUM(A',
         });
-      }).to.throw("Expected");
+      }).to.throw('Expected');
     });
-
   });
-
 });

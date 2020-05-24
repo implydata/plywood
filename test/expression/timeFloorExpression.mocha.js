@@ -14,79 +14,77 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 let plywood = require('../plywood');
 let { $, ply, r, Expression } = plywood;
 
-describe("TimeFloorExpression", () => {
-
-  describe("errors", () => {
+describe('TimeFloorExpression', () => {
+  describe('errors', () => {
     it('errors on non-floorable duration', () => {
       expect(() => {
         Expression.fromJS({
           op: 'timeFloor',
           operand: { op: 'ref', name: '_' },
-          duration: 'PT5H'
+          duration: 'PT5H',
         });
       }).to.throw("duration 'PT5H' is not floorable");
     });
-
   });
 
-  describe("#alignsWith", () => {
+  describe('#alignsWith', () => {
     let hourFloorUTC = Expression.fromJS({
       op: 'timeFloor',
       operand: { op: 'ref', name: '_' },
       duration: 'PT1H',
-      timezone: 'Etc/UTC'
+      timezone: 'Etc/UTC',
     });
 
-    it("works with higher floor (PT2H)", () => {
+    it('works with higher floor (PT2H)', () => {
       let ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'PT2H',
-        timezone: 'Etc/UTC'
+        timezone: 'Etc/UTC',
       });
 
       expect(hourFloorUTC.alignsWith(ex)).to.equal(true);
     });
 
-    it("works with higher floor (P1D)", () => {
+    it('works with higher floor (P1D)', () => {
       let ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'P1D',
-        timezone: 'Etc/UTC'
+        timezone: 'Etc/UTC',
       });
 
       expect(hourFloorUTC.alignsWith(ex)).to.equal(true);
     });
 
-    it("works fails on different timezone", () => {
+    it('works fails on different timezone', () => {
       let ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'PT2H',
-        timezone: 'America/Los_Angeles'
+        timezone: 'America/Los_Angeles',
       });
 
       expect(hourFloorUTC.alignsWith(ex)).to.equal(false);
     });
 
-    it("works fails on lower duration", () => {
+    it('works fails on lower duration', () => {
       let ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'PT30M',
-        timezone: 'Etc/UTC'
+        timezone: 'Etc/UTC',
       });
 
       expect(hourFloorUTC.alignsWith(ex)).to.equal(false);
     });
 
-    it("works with OVERLAP range", () => {
+    it('works with OVERLAP range', () => {
       let ex = Expression.fromJS({
         op: 'overlap',
         operand: { op: 'ref', name: '_' },
@@ -95,15 +93,15 @@ describe("TimeFloorExpression", () => {
           type: 'TIME_RANGE',
           value: {
             start: '2016-09-01T01:00:00Z',
-            end: '2016-09-01T02:00:00Z'
-          }
-        }
+            end: '2016-09-01T02:00:00Z',
+          },
+        },
       });
 
       expect(hourFloorUTC.alignsWith(ex)).to.equal(true);
     });
 
-    it("works fails OVERLAP range (bad)", () => {
+    it('works fails OVERLAP range (bad)', () => {
       let ex = Expression.fromJS({
         op: 'overlap',
         operand: { op: 'ref', name: '_' },
@@ -112,15 +110,15 @@ describe("TimeFloorExpression", () => {
           type: 'TIME_RANGE',
           value: {
             start: '2016-09-01T01:00:00Z',
-            end: '2016-09-01T02:00:01Z'
-          }
-        }
+            end: '2016-09-01T02:00:01Z',
+          },
+        },
       });
 
       expect(hourFloorUTC.alignsWith(ex)).to.equal(false);
     });
 
-    it("works with OVERLAP set", () => {
+    it('works with OVERLAP set', () => {
       let ex = Expression.fromJS({
         op: 'overlap',
         operand: { op: 'ref', name: '_' },
@@ -131,16 +129,16 @@ describe("TimeFloorExpression", () => {
             setType: 'TIME_RANGE',
             elements: [
               { start: '2016-09-01T01:00:00Z', end: '2016-09-01T02:00:00Z' },
-              { start: '2016-09-01T05:00:00Z', end: '2016-09-01T07:00:00Z' }
-            ]
-          }
-        }
+              { start: '2016-09-01T05:00:00Z', end: '2016-09-01T07:00:00Z' },
+            ],
+          },
+        },
       });
 
       expect(hourFloorUTC.alignsWith(ex)).to.equal(true);
     });
 
-    it("works fails OVERLAP set (bad)", () => {
+    it('works fails OVERLAP set (bad)', () => {
       let ex = Expression.fromJS({
         op: 'overlap',
         operand: { op: 'ref', name: '_' },
@@ -151,15 +149,13 @@ describe("TimeFloorExpression", () => {
             setType: 'TIME_RANGE',
             elements: [
               { start: '2016-09-01T01:00:00Z', end: '2016-09-01T02:00:00Z' },
-              { start: '2016-09-01T05:00:00Z', end: '2016-09-01T07:00:01Z' }
-            ]
-          }
-        }
+              { start: '2016-09-01T05:00:00Z', end: '2016-09-01T07:00:01Z' },
+            ],
+          },
+        },
       });
 
       expect(hourFloorUTC.alignsWith(ex)).to.equal(false);
     });
-
   });
-
 });

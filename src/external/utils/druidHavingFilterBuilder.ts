@@ -19,7 +19,6 @@ import { Expression } from '../../expressions';
 import { DruidFilterBuilder } from './druidFilterBuilder';
 import { CustomDruidTransforms } from './druidTypes';
 
-
 export interface DruidHavingFilterBuilderOptions {
   version: string;
   attributes: AttributeInfo[];
@@ -27,7 +26,6 @@ export interface DruidHavingFilterBuilderOptions {
 }
 
 export class DruidHavingFilterBuilder {
-
   public version: string;
   public attributes: AttributeInfo[];
   public customTransforms: CustomDruidTransforms;
@@ -46,9 +44,8 @@ export class DruidHavingFilterBuilder {
         rawAttributes: this.attributes,
         timeAttribute: 'z',
         allowEternity: true,
-        customTransforms: this.customTransforms
-      }).timelessFilterToFilter(filter)
+        customTransforms: this.customTransforms,
+      }).timelessFilterToFilter(filter),
     };
   }
-
 }

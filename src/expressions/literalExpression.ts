@@ -25,11 +25,11 @@ import { DatasetFullType, PlyType } from '../types';
 import { Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
 
 export class LiteralExpression extends Expression {
-  static op = "Literal";
+  static op = 'Literal';
   static fromJS(parameters: ExpressionJS): LiteralExpression {
     let value: ExpressionValue = {
       op: parameters.op,
-      type: parameters.type
+      type: parameters.type,
     };
     if (!hasOwnProp(parameters, 'value')) throw new Error('literal expression must have value');
     let v: any = parameters.value;
@@ -47,9 +47,9 @@ export class LiteralExpression extends Expression {
     super(parameters, dummyObject);
     let value = parameters.value;
     this.value = value;
-    this._ensureOp("literal");
+    this._ensureOp('literal');
     if (typeof this.value === 'undefined') {
-      throw new TypeError("must have a `value`");
+      throw new TypeError('must have a `value`');
     }
     this.type = getValueType(value);
     this.simple = true;
@@ -131,13 +131,14 @@ export class LiteralExpression extends Expression {
         return '<DUMMY>';
 
       default:
-        throw new Error("currently unsupported type: " + this.type);
+        throw new Error('currently unsupported type: ' + this.type);
     }
   }
 
   public equals(other: LiteralExpression | undefined): boolean {
     if (!super.equals(other) || this.type !== other.type) return false;
-    if (this.value && this.type !== 'DATASET') { // ToDo: make dataset equals work
+    if (this.value && this.type !== 'DATASET') {
+      // ToDo: make dataset equals work
       if (this.value.equals) {
         return this.value.equals(other.value);
       } else if (this.value.toISOString && other.value.toISOString) {
@@ -177,7 +178,6 @@ export class LiteralExpression extends Expression {
       let parse = parseISODate(value, Expression.defaultParserTimezone);
       if (!parse) throw new Error(`can not upgrade ${value} to TIME`);
       return r(parse);
-
     } else if (type === 'STRING_RANGE' && targetType === 'TIME_RANGE') {
       let parseStart = parseISODate(value.start, Expression.defaultParserTimezone);
       if (!parseStart) throw new Error(`can not upgrade ${value.start} to TIME`);
@@ -185,11 +185,13 @@ export class LiteralExpression extends Expression {
       let parseEnd = parseISODate(value.end, Expression.defaultParserTimezone);
       if (!parseEnd) throw new Error(`can not upgrade ${value.end} to TIME`);
 
-      return r(TimeRange.fromJS({
-        start: parseStart,
-        end: parseEnd,
-        bounds: '[]'
-      }));
+      return r(
+        TimeRange.fromJS({
+          start: parseStart,
+          end: parseEnd,
+          bounds: '[]',
+        }),
+      );
     }
 
     throw new Error(`can not upgrade ${type} to ${targetType}`);
