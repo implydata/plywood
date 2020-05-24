@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import { Duration, Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
 import { PlywoodValue } from '../datatypes/index';
@@ -25,7 +24,7 @@ import { HasTimezone } from './mixins/hasTimezone';
 export class TimeShiftExpression extends ChainableExpression implements HasTimezone {
   static DEFAULT_STEP = 1;
 
-  static op = "TimeShift";
+  static op = 'TimeShift';
   static fromJS(parameters: ExpressionJS): TimeShiftExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
@@ -43,10 +42,10 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
     this.duration = parameters.duration;
     this.step = parameters.step != null ? parameters.step : TimeShiftExpression.DEFAULT_STEP;
     this.timezone = parameters.timezone;
-    this._ensureOp("timeShift");
+    this._ensureOp('timeShift');
     this._checkOperandTypes('TIME');
     if (!(this.duration instanceof Duration)) {
-      throw new Error("`duration` must be a Duration");
+      throw new Error('`duration` must be a Duration');
     }
     this.type = 'TIME';
   }
@@ -68,10 +67,12 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
   }
 
   public equals(other: TimeShiftExpression | undefined): boolean {
-    return super.equals(other) &&
+    return (
+      super.equals(other) &&
       this.duration.equals(other.duration) &&
       this.step === other.step &&
-      immutableEqual(this.timezone, other.timezone);
+      immutableEqual(this.timezone, other.timezone)
+    );
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -85,7 +86,7 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
   }
 
   protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error("implement me");
+    throw new Error('implement me');
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {

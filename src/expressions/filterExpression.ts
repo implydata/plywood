@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-
 import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { ApplyExpression } from './applyExpression';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 import { LiteralExpression } from './literalExpression';
 import { RefExpression } from './refExpression';
 import { SortExpression } from './sortExpression';
 import { SplitExpression } from './splitExpression';
 
 export class FilterExpression extends ChainableUnaryExpression {
-  static op = "Filter";
+  static op = 'Filter';
   static fromJS(parameters: ExpressionJS): FilterExpression {
     let value = ChainableUnaryExpression.jsToValue(parameters);
     return new FilterExpression(value);
@@ -33,7 +37,7 @@ export class FilterExpression extends ChainableUnaryExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("filter");
+    this._ensureOp('filter');
     this._checkExpressionTypes('BOOLEAN');
     this.type = 'DATASET';
   }
@@ -42,7 +46,11 @@ export class FilterExpression extends ChainableUnaryExpression {
     return operandValue ? (operandValue as Dataset).filter(this.expression) : null;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     if (this.expression instanceof RefExpression) {
       expressionSQL = `(${expressionSQL} = TRUE)`;
     }
@@ -71,13 +79,15 @@ export class FilterExpression extends ChainableUnaryExpression {
 
     // X.apply(...).filter(...)
     if (operand instanceof ApplyExpression) {
-      return expression.getFreeReferences().indexOf(operand.name) === -1 ? this.swapWithOperand() : this;
+      return expression.getFreeReferences().indexOf(operand.name) === -1
+        ? this.swapWithOperand()
+        : this;
     }
 
     // X.split(splits, dataName).filter(...)
     if (operand instanceof SplitExpression && operand.isLinear()) {
       const { operand: x, splits, dataName } = operand;
-      const newFilter = expression.substitute((ex) => {
+      const newFilter = expression.substitute(ex => {
         if (ex instanceof RefExpression && splits[ex.name]) return splits[ex.name];
         return null;
       });

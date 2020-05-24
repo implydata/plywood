@@ -23,7 +23,10 @@ export function repeat(str: string, times: int): string {
 
 export function indentBy(str: string, indent: int): string {
   const spaces = repeat(' ', indent);
-  return str.split('\n').map((x) => spaces + x).join('\n');
+  return str
+    .split('\n')
+    .map(x => spaces + x)
+    .join('\n');
 }
 
 export function dictEqual(dictA: Record<string, any>, dictB: Record<string, any>): boolean {
@@ -82,7 +85,7 @@ export function clip(x: number): number {
 
 export function safeAdd(num: number, delta: number): number {
   let stringDelta = String(delta);
-  let dotIndex = stringDelta.indexOf(".");
+  let dotIndex = stringDelta.indexOf('.');
   if (dotIndex === -1 || stringDelta.length === 18) {
     return num + delta;
   } else {
@@ -91,41 +94,46 @@ export function safeAdd(num: number, delta: number): number {
   }
 }
 
-export function safeRange(num: number, delta: number): { start: number, end: number } {
+export function safeRange(num: number, delta: number): { start: number; end: number } {
   let stringDelta = String(delta);
-  let dotIndex = stringDelta.indexOf(".");
+  let dotIndex = stringDelta.indexOf('.');
   if (dotIndex === -1 || stringDelta.length === 18) {
     return {
       start: num,
-      end: num + delta
+      end: num + delta,
     };
   } else {
     let scale = Math.pow(10, stringDelta.length - dotIndex - 1);
     num = clip(num * scale) / scale;
     return {
       start: num,
-      end: (num * scale + delta * scale) / scale
+      end: (num * scale + delta * scale) / scale,
     };
   }
 }
 
-export function continuousFloorExpression(variable: string, floorFn: string, size: number, offset: number): string {
+export function continuousFloorExpression(
+  variable: string,
+  floorFn: string,
+  size: number,
+  offset: number,
+): string {
   let expr = variable;
   if (offset !== 0) {
-    expr = expr + " - " + offset;
+    expr = expr + ' - ' + offset;
   }
   if (offset !== 0 && size !== 1) {
-    expr = "(" + expr + ")";
+    expr = '(' + expr + ')';
   }
   if (size !== 1) {
-    expr = expr + " / " + size;
+    expr = expr + ' / ' + size;
   }
-  expr = floorFn + "(" + expr + ")";
+  expr = floorFn + '(' + expr + ')';
   if (size !== 1) {
-    expr = expr + " * " + size;
+    expr = expr + ' * ' + size;
   }
   if (offset !== 0) {
-    expr = expr + " + " + offset;
+    expr = expr + ' + ' + offset;
   }
   return expr;
 }

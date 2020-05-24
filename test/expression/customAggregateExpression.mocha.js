@@ -14,29 +14,33 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 let plywood = require('../plywood');
 let { $, Expression } = plywood;
 
-describe("CustomAggregateExpression", () => {
-  it("back compat using Expression from JS", () => {
-    expect(Expression.fromJS({
-      op: 'custom',
-      custom: 'thing'
-    }).toJS()).to.deep.equal({
+describe('CustomAggregateExpression', () => {
+  it('back compat using Expression from JS', () => {
+    expect(
+      Expression.fromJS({
+        op: 'custom',
+        custom: 'thing',
+      }).toJS(),
+    ).to.deep.equal({
       op: 'customAggregate',
-      custom: 'thing'
+      custom: 'thing',
     });
   });
 
-  it("back compat using CustomAggregateExpression from js", () => {
-    expect(Expression.fromJS({
-      action: 'custom',
-      custom: 'thing'
-    }).toJS()).to.deep.equal({
+  it('back compat using CustomAggregateExpression from js', () => {
+    expect(
+      Expression.fromJS({
+        action: 'custom',
+        custom: 'thing',
+      }).toJS(),
+    ).to.deep.equal({
       op: 'customAggregate',
-      custom: 'thing'
+      custom: 'thing',
     });
   });
 });

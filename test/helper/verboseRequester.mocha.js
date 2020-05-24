@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 const { PassThrough } = require('readable-stream');
 const toArray = require('stream-to-array');
 
-let { verboseRequesterFactory } = require("../../build/plywood");
+let { verboseRequesterFactory } = require('../../build/plywood');
 
-describe("Verbose requester", () => {
-  let requester = (request) => {
+describe('Verbose requester', () => {
+  let requester = request => {
     const stream = new PassThrough({ objectMode: true });
     setTimeout(() => {
       if (/^fail/.test(request.query)) {
@@ -39,21 +39,20 @@ describe("Verbose requester", () => {
     return stream;
   };
 
-  it("works on success", () => {
+  it('works on success', () => {
     let lines = [];
     let verboseRequester = verboseRequesterFactory({
       name: 'rq1',
       requester: requester,
       printLine(line) {
         return lines.push(line);
-      }
+      },
     });
 
-    return toArray(verboseRequester({ query: 'Query1' }))
-      .then((res) => {
-        expect(res).to.be.an('array');
-        expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
-          `vvvvvvvvvvvvvvvvvvvvvvvvvv
+    return toArray(verboseRequester({ query: 'Query1' })).then(res => {
+      expect(res).to.be.an('array');
+      expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
+        `vvvvvvvvvvvvvvvvvvvvvvvvvv
 Requester rq1 sending query 1:
 "Query1"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -64,25 +63,26 @@ Requester rq1 got result from query 1: (in Xms)
   2,
   3
 ]
-^^^^^^^^^^^^^^^^^^^^^^^^^^`);
-      });
+^^^^^^^^^^^^^^^^^^^^^^^^^^`,
+      );
+    });
   });
 
-  it("works on failure", () => {
+  it('works on failure', () => {
     let lines = [];
     let verboseRequester = verboseRequesterFactory({
       name: 'rq2',
       requester: requester,
       printLine(line) {
         return lines.push(line);
-      }
+      },
     });
 
     return toArray(verboseRequester({ query: 'failThis' }))
       .then(() => {
         throw new Error('did not fail');
       })
-      .catch((error) => {
+      .catch(error => {
         expect(lines.join('\n').replace(/\d+ms/, 'Xms')).to.equal(
           `vvvvvvvvvvvvvvvvvvvvvvvvvv
 Requester rq2 sending query 1:
@@ -90,7 +90,8 @@ Requester rq2 sending query 1:
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 vvvvvvvvvvvvvvvvvvvvvvvvvv
 Requester rq2 got error in query 1: some error (in Xms)
-^^^^^^^^^^^^^^^^^^^^^^^^^^`);
+^^^^^^^^^^^^^^^^^^^^^^^^^^`,
+        );
       });
   });
 });

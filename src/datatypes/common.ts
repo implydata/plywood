@@ -37,7 +37,7 @@ export function getValueType(value: any): PlyType {
       if (isDate(value.start) || isDate(value.end)) return 'TIME_RANGE';
       if (typeof value.start === 'number' || typeof value.end === 'number') return 'NUMBER_RANGE';
       if (typeof value.start === 'string' || typeof value.end === 'string') return 'STRING_RANGE';
-      throw new Error("unrecognizable range");
+      throw new Error('unrecognizable range');
     } else {
       let ctrType = value.constructor.type;
       if (!ctrType) {
@@ -72,7 +72,7 @@ export function getFullTypeFromDatum(datum: Datum): DatasetFullType {
 
   return {
     type: 'DATASET',
-    datasetType: datasetType
+    datasetType: datasetType,
   };
 }
 
@@ -91,7 +91,6 @@ function timeFromJS(v: any): Date | null {
     default:
       throw new Error(`can not interpret ${v} as TIME`);
   }
-
 }
 
 export function valueFromJS(v: any, typeOverride: string | null = null): any {
@@ -140,7 +139,9 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
           if (typeOverride) {
             throw new Error(`unknown type ${typeOverride} on ${JSON.stringify(v)}`);
           } else {
-            throw new Error(`can not have an object without a 'type' as a datum value: ${JSON.stringify(v)}`);
+            throw new Error(
+              `can not have an object without a 'type' as a datum value: ${JSON.stringify(v)}`,
+            );
           }
       }
     } else if (typeofV === 'string' && typeOverride === 'TIME') {
@@ -186,30 +187,27 @@ export function datumHasExternal(datum: Datum): boolean {
 export function introspectDatum(datum: Datum): Promise<Datum> {
   let promises: Promise<void>[] = [];
   let newDatum: Datum = Object.create(null);
-  Object.keys(datum)
-    .forEach(name => {
-      let v = datum[name];
-      if (v instanceof External && v.needsIntrospect()) {
-        promises.push(
-          v.introspect().then((introspectedExternal: External) => {
-            newDatum[name] = introspectedExternal;
-          })
-        );
-      } else {
-        newDatum[name] = v;
-      }
-    });
+  Object.keys(datum).forEach(name => {
+    let v = datum[name];
+    if (v instanceof External && v.needsIntrospect()) {
+      promises.push(
+        v.introspect().then((introspectedExternal: External) => {
+          newDatum[name] = introspectedExternal;
+        }),
+      );
+    } else {
+      newDatum[name] = v;
+    }
+  });
 
   return Promise.all(promises).then(() => newDatum);
 }
 
 export function failIfIntrospectNeededInDatum(datum: Datum): void {
-  Object.keys(datum)
-    .forEach(name => {
-      let v = datum[name];
-      if (v instanceof External && v.needsIntrospect()) {
-        throw new Error('Can not have un-introspected external');
-      }
-    });
+  Object.keys(datum).forEach(name => {
+    let v = datum[name];
+    if (v instanceof External && v.needsIntrospect()) {
+      throw new Error('Can not have un-introspected external');
+    }
+  });
 }
-

@@ -16,18 +16,23 @@
 
 import { Dataset, PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 
 export class MaxExpression extends ChainableUnaryExpression implements Aggregate {
-  static op = "Max";
+  static op = 'Max';
   static fromJS(parameters: ExpressionJS): MaxExpression {
     return new MaxExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("max");
+    this._ensureOp('max');
     this._checkOperandTypes('DATASET');
     this._checkExpressionTypes('NUMBER', 'TIME');
     this.type = Set.unwrapSetType(this.expression.type);
@@ -37,7 +42,11 @@ export class MaxExpression extends ChainableUnaryExpression implements Aggregate
     return operandValue ? (operandValue as Dataset).max(this.expression) : null;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return `MAX(${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL)})`;
   }
 }

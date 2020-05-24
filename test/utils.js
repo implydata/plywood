@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
-
+const { expect } = require('chai');
 
 let { Expression, toJS } = require('../build/plywood');
 
 let hasOwnProperty = Object.prototype.hasOwnProperty;
 
-let uniformizeDoubles = (v) => {
+let uniformizeDoubles = v => {
   let t = typeof v;
   if (t === 'number') {
     if (v !== Math.floor(v)) {
@@ -31,7 +30,8 @@ let uniformizeDoubles = (v) => {
       return v;
     }
   } else if (t === 'object') {
-    if (!v) { // null
+    if (!v) {
+      // null
       return v;
     } else if (Array.isArray(v)) {
       return v.map(uniformizeDoubles);
@@ -55,47 +55,47 @@ let uniformizeDoubles = (v) => {
 };
 
 exports.wrapVerbose = (requester, name) => {
-  return (request) => {
+  return request => {
     console.log(`Requesting ${name}:`);
     console.log('', JSON.stringify(request.query, null, 2));
     let startTime = Date.now();
     return requester(request).then(
-      (result) => {
+      result => {
         console.log(`GOT RESULT FROM ${name} (took ${Date.now() - startTime}ms)`);
         return result;
       },
-      (err) => {
+      err => {
         console.log(`GOT ${name} ERROR`, err);
         throw err;
-      }
+      },
     );
   };
 };
 
-exports.makeEqualityTest = (executorMap) => {
-  return ({executorNames, expression, verbose, before, after}) => {
+exports.makeEqualityTest = executorMap => {
+  return ({ executorNames, expression, verbose, before, after }) => {
     if (executorNames.length < 2) {
-      throw new Error("must have at least two executorNames");
+      throw new Error('must have at least two executorNames');
     }
 
     if (typeof expression === 'string') {
       expression = Expression.parse(expression);
     }
 
-    let executors = executorNames.map((executorName) => {
+    let executors = executorNames.map(executorName => {
       let executor = executorMap[executorName];
       if (!executor) throw new Error(`no such executor ${executorName}`);
       return executor;
     });
 
     return () => {
-      if (typeof before === "function") before();
+      if (typeof before === 'function') before();
 
-      return Promise.all(executors.map((executor) => executor(expression)))
-        .then((results) => {
-          if (typeof after === "function") after(null, results[0], results);
+      return Promise.all(executors.map(executor => executor(expression))).then(
+        results => {
+          if (typeof after === 'function') after(null, results[0], results);
 
-          results = results.map((result) => {
+          results = results.map(result => {
             return uniformizeDoubles(toJS(result));
           });
 
@@ -107,19 +107,23 @@ exports.makeEqualityTest = (executorMap) => {
           }
 
           for (let i = 1; i < executorNames.length; i++) {
-            expect(results[i]).to.deep.equal(results[0], `results of '${executorNames[0]}' (expected) and '${executorNames[i]}' (actual) must match`);
+            expect(results[i]).to.deep.equal(
+              results[0],
+              `results of '${executorNames[0]}' (expected) and '${executorNames[i]}' (actual) must match`,
+            );
           }
 
           return results[0];
         },
-        (err) => {
-          if (typeof after === "function") {
+        err => {
+          if (typeof after === 'function') {
             after(err);
           }
-          console.log("got error from executor");
+          console.log('got error from executor');
           console.log(err);
           throw err;
-        });
+        },
+      );
     };
   };
 };
@@ -134,15 +138,15 @@ exports.sane = function() {
 
   let lines = str.split('\n');
   lines.shift(); // Remove the first empty lines
-  lines = lines.map((line) => line.substr(spaces)); // Remove indentation
+  lines = lines.map(line => line.substr(spaces)); // Remove indentation
   if (lines[lines.length - 1] === '') lines.pop(); // Remove last line if empty
 
-  return lines.join('\n')
-    .replace(/\\`/g, '`')    // Fix \` that should be `
-    .replace(/\\\{/g, '{')   // Fix \{ that should be {
+  return lines
+    .join('\n')
+    .replace(/\\`/g, '`') // Fix \` that should be `
+    .replace(/\\\{/g, '{') // Fix \{ that should be {
     .replace(/\\\\/g, '\\'); // Fix \\ that should be \
 };
-
 
 exports.grabConsoleWarn = function(fn) {
   let originalConsoleWarn = console.warn;

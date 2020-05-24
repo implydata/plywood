@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
-let { testImmutableClass } = require("immutable-class-tester");
+let { testImmutableClass } = require('immutable-class-tester');
 
 let plywood = require('../plywood');
 let { AttributeInfo, $, ply, r } = plywood;
 
-describe("AttributeInfo", () => {
-  it("is immutable class", () => {
+describe('AttributeInfo', () => {
+  it('is immutable class', () => {
     testImmutableClass(AttributeInfo, [
       { name: 'time', type: 'TIME' },
       { name: 'color', type: 'STRING' },
@@ -37,10 +37,10 @@ describe("AttributeInfo", () => {
         name: 'price',
         type: 'NUMBER',
         unsplitable: true,
-        maker: { op: 'sum', expression: { op: 'ref', name: 'price' } }
+        maker: { op: 'sum', expression: { op: 'ref', name: 'price' } },
       },
       { name: 'tax', type: 'NUMBER', unsplitable: true },
-      { name: 'vendor_id', nativeType: 'hyperUnique', type: "NULL" }
+      { name: 'vendor_id', nativeType: 'hyperUnique', type: 'NULL' },
     ]);
   });
 });

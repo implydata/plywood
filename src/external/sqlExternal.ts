@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import { Transform } from 'readable-stream';
 import { Attributes } from '../datatypes/attributeInfo';
 import { SQLDialect } from '../dialect/baseDialect';
@@ -27,7 +26,7 @@ import {
   NumberBucketExpression,
   SortExpression,
   SplitExpression,
-  TimeBucketExpression
+  TimeBucketExpression,
 } from '../expressions/index';
 import { External, ExternalValue, Inflater, QueryAndPostTransform } from './baseExternal';
 
@@ -101,35 +100,39 @@ export abstract class SQLExternal extends External {
     let selectedAttributes = this.getSelectedAttributes();
     switch (mode) {
       case 'raw':
-        selectedAttributes = selectedAttributes.map((a) => a.dropOriginInfo());
+        selectedAttributes = selectedAttributes.map(a => a.dropOriginInfo());
 
-        inflaters = selectedAttributes.map(attribute => {
-          let { name, type } = attribute;
-          switch (type) {
-            case 'BOOLEAN':
-              return External.booleanInflaterFactory(name);
+        inflaters = selectedAttributes
+          .map(attribute => {
+            let { name, type } = attribute;
+            switch (type) {
+              case 'BOOLEAN':
+                return External.booleanInflaterFactory(name);
 
-            case 'TIME':
-              return External.timeInflaterFactory(name);
+              case 'TIME':
+                return External.timeInflaterFactory(name);
 
-            case 'SET/STRING':
-              return External.setStringInflaterFactory(name);
+              case 'SET/STRING':
+                return External.setStringInflaterFactory(name);
 
-            default:
-              return null;
-          }
-        }).filter(Boolean);
+              default:
+                return null;
+            }
+          })
+          .filter(Boolean);
 
         query.push(
-          selectedAttributes.map(a => {
-            let name = a.name;
-            if (derivedAttributes[name]) {
-              return Expression._.apply(name, derivedAttributes[name]).getSQL(dialect);
-            } else {
-              return dialect.escapeName(name);
-            }
-          }).join(', '),
-          from
+          selectedAttributes
+            .map(a => {
+              let name = a.name;
+              if (derivedAttributes[name]) {
+                return Expression._.apply(name, derivedAttributes[name]).getSQL(dialect);
+              } else {
+                return dialect.escapeName(name);
+              }
+            })
+            .join(', '),
+          from,
         );
         if (sort) {
           query.push(sort.getSQL(dialect));
@@ -140,40 +143,43 @@ export abstract class SQLExternal extends External {
         break;
 
       case 'value':
-        query.push(
-          this.toValueApply().getSQL(dialect),
-          from,
-          dialect.constantGroupBy()
-        );
+        query.push(this.toValueApply().getSQL(dialect), from, dialect.constantGroupBy());
         postTransform = External.valuePostTransformFactory();
         break;
 
       case 'total':
         zeroTotalApplies = applies;
-        inflaters = applies.map(apply => {
-          let { name, expression } = apply;
-          return External.getSimpleInflater(expression.type, name);
-        }).filter(Boolean);
+        inflaters = applies
+          .map(apply => {
+            let { name, expression } = apply;
+            return External.getSimpleInflater(expression.type, name);
+          })
+          .filter(Boolean);
 
         keys = [];
         query.push(
           applies.map(apply => apply.getSQL(dialect)).join(',\n'),
           from,
-          dialect.constantGroupBy()
+          dialect.constantGroupBy(),
         );
         break;
 
       case 'split':
         let split = this.getQuerySplit();
-        keys = split.mapSplits((name) => name);
+        keys = split.mapSplits(name => name);
         query.push(
-          split.getSelectSQL(dialect)
+          split
+            .getSelectSQL(dialect)
             .concat(applies.map(apply => apply.getSQL(dialect)))
             .join(',\n'),
           from,
-          'GROUP BY ' + (this.capability('shortcut-group-by') ? split.getShortGroupBySQL() : split.getGroupBySQL(dialect)).join(',')
+          'GROUP BY ' +
+            (this.capability('shortcut-group-by')
+              ? split.getShortGroupBySQL()
+              : split.getGroupBySQL(dialect)
+            ).join(','),
         );
-        if (!(this.havingFilter.equals(Expression.TRUE))) {
+        if (!this.havingFilter.equals(Expression.TRUE)) {
           query.push('HAVING ' + this.havingFilter.getSQL(dialect));
         }
         if (sort) {
@@ -191,9 +197,11 @@ export abstract class SQLExternal extends External {
 
     return {
       query: this.sqlToQuery(query.join('\n')),
-      postTransform: postTransform || External.postTransformFactory(inflaters, selectedAttributes, keys, zeroTotalApplies)
+      postTransform:
+        postTransform ||
+        External.postTransformFactory(inflaters, selectedAttributes, keys, zeroTotalApplies),
     };
   }
 
-  protected abstract getIntrospectAttributes(): Promise<Attributes>
+  protected abstract getIntrospectAttributes(): Promise<Attributes>;
 }

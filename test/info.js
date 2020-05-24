@@ -19,16 +19,16 @@ exports.druidHost = `localhost:8082`;
 exports.druidContext = {
   timeout: 10000,
   useCache: false,
-  populateCache: false
+  populateCache: false,
 };
 
-exports.mySqlVersion = '5.7.24';
+exports.mySqlVersion = '5.7.29';
 exports.mySqlHost = `localhost:3306`;
 exports.mySqlDatabase = 'datazoo';
 exports.mySqlUser = 'datazoo';
 exports.mySqlPassword = 'datazoo';
 
-exports.postgresVersion = '9.5.14';
+exports.postgresVersion = '9.5.21';
 exports.postgresHost = `localhost:5432`;
 exports.postgresDatabase = 'datazoo';
 exports.postgresUser = 'root';

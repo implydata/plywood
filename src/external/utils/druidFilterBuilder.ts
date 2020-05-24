@@ -17,7 +17,14 @@
 import { isDate } from 'chronoshift';
 import { NamedArray } from 'immutable-class';
 
-import { AttributeInfo, NumberRange, PlywoodRange, Range, Set, TimeRange } from '../../datatypes/index';
+import {
+  AttributeInfo,
+  NumberRange,
+  PlywoodRange,
+  Range,
+  Set,
+  TimeRange,
+} from '../../datatypes/index';
 
 import {
   r,
@@ -30,14 +37,13 @@ import {
   NotExpression,
   OrExpression,
   OverlapExpression,
-  RefExpression
+  RefExpression,
 } from '../../expressions';
 
 import { External } from '../baseExternal';
 import { DruidExpressionBuilder } from './druidExpressionBuilder';
 import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
 import { CustomDruidTransforms } from './druidTypes';
-
 
 export interface DruidFilterAndIntervals {
   filter: Druid.Filter;
@@ -54,8 +60,7 @@ export interface DruidFilterBuilderOptions {
 
 export class DruidFilterBuilder {
   static TIME_ATTRIBUTE = '__time';
-  static TRUE_INTERVAL = "1000/3000";
-
+  static TRUE_INTERVAL = '1000/3000';
 
   public version: string;
   public rawAttributes: AttributeInfo[];
@@ -77,16 +82,20 @@ export class DruidFilterBuilder {
     if (filter.equals(Expression.FALSE)) {
       return {
         intervals: [],
-        filter: null
+        filter: null,
       };
     } else {
       const { extract, rest } = filter.extractFromAnd(ex => {
         // time.is(Literal) || time.overlap(Literal)
-        return (ex instanceof IsExpression || ex instanceof OverlapExpression) && this.isTimeRef(ex.operand) && ex.expression instanceof LiteralExpression;
+        return (
+          (ex instanceof IsExpression || ex instanceof OverlapExpression) &&
+          this.isTimeRef(ex.operand) &&
+          ex.expression instanceof LiteralExpression
+        );
       });
       return {
         intervals: this.timeFilterToIntervals(extract),
-        filter: this.timelessFilterToFilter(rest)
+        filter: this.timelessFilterToFilter(rest),
       };
     }
   }
@@ -96,9 +105,9 @@ export class DruidFilterBuilder {
 
     if (filter instanceof LiteralExpression) {
       if (!filter.value) return [];
-      if (!this.allowEternity) throw new Error('must filter on time unless the allowEternity flag is set');
+      if (!this.allowEternity)
+        throw new Error('must filter on time unless the allowEternity flag is set');
       return DruidFilterBuilder.TRUE_INTERVAL;
-
     } else if (filter instanceof IsExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
@@ -106,7 +115,6 @@ export class DruidFilterBuilder {
       } else {
         throw new Error(`can not convert ${filter} to Druid interval`);
       }
-
     } else if (filter instanceof OverlapExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (lhs instanceof RefExpression && rhs instanceof LiteralExpression) {
@@ -114,7 +122,6 @@ export class DruidFilterBuilder {
       } else {
         throw new Error(`can not convert ${filter} to Druid intervals`);
       }
-
     } else {
       throw new Error(`can not convert ${filter} to Druid intervals`);
     }
@@ -131,27 +138,23 @@ export class DruidFilterBuilder {
       if (filter.value === true) {
         return null;
       } else {
-        throw new Error("should never get here");
+        throw new Error('should never get here');
       }
-
     } else if (filter instanceof NotExpression) {
       return {
         type: 'not',
-        field: this.timelessFilterToFilter(filter.operand)
+        field: this.timelessFilterToFilter(filter.operand),
       };
-
     } else if (filter instanceof AndExpression) {
       return {
         type: 'and',
-        fields: filter.getExpressionList().map(p => this.timelessFilterToFilter(p))
+        fields: filter.getExpressionList().map(p => this.timelessFilterToFilter(p)),
       };
-
     } else if (filter instanceof OrExpression) {
       return {
         type: 'or',
-        fields: filter.getExpressionList().map(p => this.timelessFilterToFilter(p))
+        fields: filter.getExpressionList().map(p => this.timelessFilterToFilter(p)),
       };
-
     } else if (filter instanceof IsExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (rhs instanceof LiteralExpression) {
@@ -160,46 +163,45 @@ export class DruidFilterBuilder {
         } else {
           return this.makeSelectorFilter(lhs, rhs.value);
         }
-
       } else {
         throw new Error(`can not convert ${filter} to Druid filter`);
       }
-
     } else if (filter instanceof OverlapExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (rhs instanceof LiteralExpression) {
         let rhsType = rhs.type;
         if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
           return this.makeInFilter(lhs, rhs.value);
-
         } else if (Set.unwrapSetType(rhsType) === 'TIME_RANGE' && this.isTimeRef(lhs)) {
           return this.makeIntervalFilter(lhs, rhs.value);
-
-        } else if (rhsType === 'NUMBER_RANGE' || rhsType === 'TIME_RANGE' || rhsType === 'STRING_RANGE') {
+        } else if (
+          rhsType === 'NUMBER_RANGE' ||
+          rhsType === 'TIME_RANGE' ||
+          rhsType === 'STRING_RANGE'
+        ) {
           return this.makeBoundFilter(lhs, rhs.value);
-
-        } else if (rhsType === 'SET/NUMBER_RANGE' || rhsType === 'SET/TIME_RANGE' || rhsType === 'SET/STRING_RANGE') {
+        } else if (
+          rhsType === 'SET/NUMBER_RANGE' ||
+          rhsType === 'SET/TIME_RANGE' ||
+          rhsType === 'SET/STRING_RANGE'
+        ) {
           return {
-            type: "or",
-            fields: rhs.value.elements.map((range: PlywoodRange) => this.makeBoundFilter(lhs, range))
+            type: 'or',
+            fields: rhs.value.elements.map((range: PlywoodRange) =>
+              this.makeBoundFilter(lhs, range),
+            ),
           };
-
         } else {
           throw new Error(`not supported OVERLAP rhs type ${rhsType}`);
-
         }
-
       } else {
         throw new Error(`can not convert ${filter} to Druid filter`);
       }
-
     } else if (filter instanceof MatchExpression) {
       return this.makeRegexFilter(filter.operand, filter.regexp);
-
     } else if (filter instanceof ContainsExpression) {
       const { operand: lhs, expression: rhs, compare } = filter;
       return this.makeContainsFilter(lhs, rhs, compare);
-
     }
 
     throw new Error(`could not convert filter ${filter} to Druid filter`);
@@ -210,9 +212,9 @@ export class DruidFilterBuilder {
     if (!attributeInfo) throw new Error(`can not construct JS filter on multiple`);
 
     return {
-      type: "javascript",
+      type: 'javascript',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-      "function": ex.getJSFn('d')
+      function: ex.getJSFn('d'),
     };
   }
 
@@ -222,7 +224,7 @@ export class DruidFilterBuilder {
     } else if (value instanceof TimeRange) {
       return value.toInterval();
     } else if (value instanceof Set) {
-      return value.elements.map((v) => {
+      return value.elements.map(v => {
         if (isDate(v)) {
           return TimeRange.intervalFromDate(v as Date);
         } else if (v instanceof TimeRange) {
@@ -244,7 +246,9 @@ export class DruidFilterBuilder {
     }
 
     if (attributeInfo.unsplitable) {
-      throw new Error(`can not convert ${ex} = ${value} to filter because it references an un-filterable metric '${attributeInfo.name}' which is most likely rolled up.`);
+      throw new Error(
+        `can not convert ${ex} = ${value} to filter because it references an un-filterable metric '${attributeInfo.name}' which is most likely rolled up.`,
+      );
     }
 
     let extractionFn: Druid.ExtractionFn;
@@ -262,9 +266,9 @@ export class DruidFilterBuilder {
     if (value instanceof Range) value = value.start;
 
     let druidFilter: Druid.Filter = {
-      type: "selector",
+      type: 'selector',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-      value
+      value,
     };
     if (extractionFn) druidFilter.extractionFn = extractionFn;
     return druidFilter;
@@ -279,7 +283,7 @@ export class DruidFilterBuilder {
         return this.makeSelectorFilter(ex, value);
       });
 
-      return { type: "or", fields };
+      return { type: 'or', fields };
     }
 
     let extractionFn: Druid.ExtractionFn;
@@ -296,7 +300,7 @@ export class DruidFilterBuilder {
     let inFilter: Druid.Filter = {
       type: 'in',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-      values: elements
+      values: elements,
     };
     if (extractionFn) inFilter.extractionFn = extractionFn;
     return inFilter;
@@ -324,8 +328,8 @@ export class DruidFilterBuilder {
     }
 
     let boundFilter: Druid.Filter = {
-      type: "bound",
-      dimension: this.getDimensionNameForAttributeInfo(attributeInfo)
+      type: 'bound',
+      dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
     };
 
     if (extractionFn) boundFilter.extractionFn = extractionFn;
@@ -372,9 +376,9 @@ export class DruidFilterBuilder {
 
     const interval = this.valueToIntervals(range);
     let intervalFilter: Druid.Filter = {
-      type: "interval",
+      type: 'interval',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-      intervals: Array.isArray(interval) ? interval : [interval]
+      intervals: Array.isArray(interval) ? interval : [interval],
     };
     if (extractionFn) intervalFilter.extractionFn = extractionFn;
     return intervalFilter;
@@ -398,9 +402,9 @@ export class DruidFilterBuilder {
     }
 
     let regexFilter: Druid.Filter = {
-      type: "regex",
+      type: 'regex',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
-      pattern: regex
+      pattern: regex,
     };
     if (extractionFn) regexFilter.extractionFn = extractionFn;
     return regexFilter;
@@ -415,12 +419,12 @@ export class DruidFilterBuilder {
 
       if (lhs instanceof RefExpression && attributeInfo.termsDelegate) {
         return {
-          "type": "fullText",
-          "textColumn": this.getDimensionNameForAttributeInfo(attributeInfo),
-          "termsColumn": attributeInfo.termsDelegate,
-          "query": rhs.value,
-          "matchAll": true,
-          "usePrefixForLastTerm": true
+          type: 'fullText',
+          textColumn: this.getDimensionNameForAttributeInfo(attributeInfo),
+          termsColumn: attributeInfo.termsDelegate,
+          query: rhs.value,
+          matchAll: true,
+          usePrefixForLastTerm: true,
         };
       }
 
@@ -436,17 +440,16 @@ export class DruidFilterBuilder {
       }
 
       let searchFilter: Druid.Filter = {
-        type: "search",
+        type: 'search',
         dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
         query: {
-          type: "contains",
+          type: 'contains',
           value: rhs.value,
-          caseSensitive: compare === ContainsExpression.NORMAL
-        }
+          caseSensitive: compare === ContainsExpression.NORMAL,
+        },
       };
       if (extractionFn) searchFilter.extractionFn = extractionFn;
       return searchFilter;
-
     } else {
       return this.makeJavaScriptFilter(lhs.contains(rhs, compare));
     }
@@ -459,8 +462,8 @@ export class DruidFilterBuilder {
     }
 
     return {
-      type: "expression",
-      expression: druidExpression
+      type: 'expression',
+      expression: druidExpression,
     };
   }
 
@@ -472,7 +475,9 @@ export class DruidFilterBuilder {
   }
 
   private getDimensionNameForAttributeInfo(attributeInfo: AttributeInfo): string {
-    return attributeInfo.name === this.timeAttribute ? DruidFilterBuilder.TIME_ATTRIBUTE : attributeInfo.name;
+    return attributeInfo.name === this.timeAttribute
+      ? DruidFilterBuilder.TIME_ATTRIBUTE
+      : attributeInfo.name;
   }
 
   private versionBefore(neededVersion: string): boolean {

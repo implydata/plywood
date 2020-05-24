@@ -16,7 +16,13 @@
 
 import { NumberRange, PlywoodValue, Set, TimeRange } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+  r,
+} from './baseExpression';
 import { FallbackExpression } from './fallbackExpression';
 import { IndexOfExpression } from './indexOfExpression';
 import { LiteralExpression } from './literalExpression';
@@ -25,20 +31,24 @@ import { ThenExpression } from './thenExpression';
 import { TimeBucketExpression } from './timeBucketExpression';
 
 export class IsExpression extends ChainableUnaryExpression {
-  static op = "Is";
+  static op = 'Is';
   static fromJS(parameters: ExpressionJS): IsExpression {
     return new IsExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("is");
+    this._ensureOp('is');
     this._checkOperandExpressionTypesAlign();
     this.type = 'BOOLEAN';
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return Set.crossBinaryBoolean(operandValue, expressionValue, (a, b) => a === b || Boolean(a && a.equals && a.equals(b)));
+    return Set.crossBinaryBoolean(
+      operandValue,
+      expressionValue,
+      (a, b) => a === b || Boolean(a && a.equals && a.equals(b)),
+    );
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
@@ -52,7 +62,11 @@ export class IsExpression extends ChainableUnaryExpression {
     return `(${operandJS}===${expressionJS})`;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     let expressionSet = this.expression.getLiteralValue();
     if (expressionSet instanceof Set) {
       switch (this.expression.type) {
@@ -64,11 +78,15 @@ export class IsExpression extends ChainableUnaryExpression {
             expressionSet = expressionSet.remove(null);
           }
 
-          let inCheck = `${operandSQL} IN (${expressionSet.elements.map((v: any) => typeof v === 'number' ? v : dialect.escapeLiteral(v)).join(',')})`;
+          let inCheck = `${operandSQL} IN (${expressionSet.elements
+            .map((v: any) => (typeof v === 'number' ? v : dialect.escapeLiteral(v)))
+            .join(',')})`;
           return nullCheck ? `(${nullCheck} OR ${inCheck})` : inCheck;
 
         default:
-          return expressionSet.elements.map((e) => dialect.isNotDistinctFromExpression(operandSQL, r(e).getSQL(dialect))).join(' OR ');
+          return expressionSet.elements
+            .map(e => dialect.isNotDistinctFromExpression(operandSQL, r(e).getSQL(dialect)))
+            .join(' OR ');
       }
     } else {
       return dialect.isNotDistinctFromExpression(operandSQL, expressionSQL);
@@ -100,9 +118,16 @@ export class IsExpression extends ChainableUnaryExpression {
       }
 
       // X.timeBucket(duration, timezone).is(TimeRange())
-      if (operand instanceof TimeBucketExpression && literalValue instanceof TimeRange && operand.timezone) {
+      if (
+        operand instanceof TimeBucketExpression &&
+        literalValue instanceof TimeRange &&
+        operand.timezone
+      ) {
         const { operand: x, duration, timezone } = operand;
-        if (literalValue.start !== null && TimeRange.timeBucket(literalValue.start, duration, timezone).equals(literalValue)) {
+        if (
+          literalValue.start !== null &&
+          TimeRange.timeBucket(literalValue.start, duration, timezone).equals(literalValue)
+        ) {
           return x.overlap(expression);
         } else {
           return Expression.FALSE;
@@ -112,7 +137,10 @@ export class IsExpression extends ChainableUnaryExpression {
       // X.numberBucket(size, offset).is(NumberRange())
       if (operand instanceof NumberBucketExpression && literalValue instanceof NumberRange) {
         const { operand: x, size, offset } = operand;
-        if (literalValue.start !== null && NumberRange.numberBucket(literalValue.start, size, offset).equals(literalValue)) {
+        if (
+          literalValue.start !== null &&
+          NumberRange.numberBucket(literalValue.start, size, offset).equals(literalValue)
+        ) {
           return x.overlap(expression);
         } else {
           return Expression.FALSE;
@@ -126,7 +154,6 @@ export class IsExpression extends ChainableUnaryExpression {
           return y.equals(expression) ? x.is(Expression.TRUE) : x.isnt(Expression.TRUE);
         }
       }
-
     }
 
     return this;

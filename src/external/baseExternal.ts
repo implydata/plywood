@@ -16,9 +16,21 @@
 
 import { Duration, Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
-import { immutableArraysEqual, immutableLookupsEqual, NamedArray, SimpleArray } from 'immutable-class';
+import {
+  immutableArraysEqual,
+  immutableLookupsEqual,
+  NamedArray,
+  SimpleArray,
+} from 'immutable-class';
 import { PlywoodRequester } from 'plywood-base-api';
-import { ReadableStream, Transform, Writable, WritableStream, Readable, PassThrough } from 'readable-stream';
+import {
+  ReadableStream,
+  Transform,
+  Writable,
+  WritableStream,
+  Readable,
+  PassThrough,
+} from 'readable-stream';
 import {
   AttributeInfo,
   AttributeJSs,
@@ -27,7 +39,7 @@ import {
   Datum,
   NumberRange,
   PlywoodValue,
-  PlywoodValueBuilder
+  PlywoodValueBuilder,
 } from '../datatypes/index';
 import { Set } from '../datatypes/set';
 import { StringRange } from '../datatypes/stringRange';
@@ -39,7 +51,8 @@ import {
   AndExpression,
   ApplyExpression,
   ChainableExpression,
-  ChainableUnaryExpression, CountDistinctExpression,
+  ChainableUnaryExpression,
+  CountDistinctExpression,
   Expression,
   ExternalExpression,
   FilterExpression,
@@ -50,7 +63,7 @@ import {
   SortExpression,
   SplitExpression,
   TimeBucketExpression,
-  TimeFloorExpression
+  TimeFloorExpression,
 } from '../expressions/index';
 import { ReadableError } from '../helper/streamBasics';
 import { StreamConcat } from '../helper/streamConcat';
@@ -67,7 +80,7 @@ export class TotalContainer {
 
   toJS(): any {
     return {
-      datum: Dataset.datumToJS(this.datum)
+      datum: Dataset.datumToJS(this.datum),
     };
   }
 }
@@ -87,16 +100,16 @@ export interface Inflater {
   (d: Datum): void;
 }
 
-export type QuerySelection = "any" | "no-top-n" | "group-by-only";
+export type QuerySelection = 'any' | 'no-top-n' | 'group-by-only';
 
-export type IntrospectionDepth = "deep" | "default" | "shallow";
+export type IntrospectionDepth = 'deep' | 'default' | 'shallow';
 
 export interface IntrospectOptions {
   depth?: IntrospectionDepth;
   deep?: boolean; // legacy proxy for depth: "deep"
 }
 
-export type QueryMode = "raw" | "value" | "total" | "split";
+export type QueryMode = 'raw' | 'value' | 'total' | 'split';
 
 function makeDate(thing: any) {
   let dt = new Date(thing);
@@ -125,7 +138,7 @@ function filterDiff(strongerFilter: Expression, weakerFilter: Expression): Expre
   let weakerFilterAnds = filterToAnds(weakerFilter);
   if (weakerFilterAnds.length > strongerFilterAnds.length) return null;
   for (let i = 0; i < weakerFilterAnds.length; i++) {
-    if (!(weakerFilterAnds[i].equals(strongerFilterAnds[i]))) return null;
+    if (!weakerFilterAnds[i].equals(strongerFilterAnds[i])) return null;
   }
   return Expression.and(strongerFilterAnds.slice(weakerFilterAnds.length));
 }
@@ -142,7 +155,10 @@ function getCommonFilter(filter1: Expression, filter2: Expression): Expression {
   return Expression.and(commonExpressions);
 }
 
-function mergeDerivedAttributes(derivedAttributes1: Record<string, Expression>, derivedAttributes2: Record<string, Expression>): Record<string, Expression> {
+function mergeDerivedAttributes(
+  derivedAttributes1: Record<string, Expression>,
+  derivedAttributes2: Record<string, Expression>,
+): Record<string, Expression> {
   let derivedAttributes: Record<string, Expression> = Object.create(null);
   for (let k in derivedAttributes1) {
     derivedAttributes[k] = derivedAttributes1[k];
@@ -171,7 +187,7 @@ function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
       if (ex instanceof NumberBucketExpression) {
         return new NumberRange({
           start: ex.offset,
-          end: ex.offset + ex.size
+          end: ex.offset + ex.size,
         });
       } else {
         return new NumberRange({ start: 0, end: 1 });
@@ -186,10 +202,13 @@ function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
         let start = ex.duration.floor(new Date('2015-03-14T00:00:00Z'), timezone);
         return new TimeRange({
           start,
-          end: ex.duration.shift(start, timezone, 1)
+          end: ex.duration.shift(start, timezone, 1),
         });
       } else {
-        return new TimeRange({ start: new Date('2015-03-14T00:00:00Z'), end: new Date('2015-03-15T00:00:00Z') });
+        return new TimeRange({
+          start: new Date('2015-03-14T00:00:00Z'),
+          end: new Date('2015-03-15T00:00:00Z'),
+        });
       }
 
     case 'STRING':
@@ -208,13 +227,13 @@ function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
 
     case 'STRING_RANGE':
       if (ex instanceof RefExpression) {
-        return StringRange.fromJS({start: 'some_' + ex.name, end: null});
+        return StringRange.fromJS({ start: 'some_' + ex.name, end: null });
       } else {
-        return StringRange.fromJS({start: 'something', end: null});
+        return StringRange.fromJS({ start: 'something', end: null });
       }
 
     default:
-      throw new Error("unsupported simulation on: " + valueType);
+      throw new Error('unsupported simulation on: ' + valueType);
   }
 }
 
@@ -225,7 +244,10 @@ function immutableAdd<T>(obj: Record<string, T>, key: string, value: T): Record<
   return newObj;
 }
 
-function findApplyByExpression(applies: ApplyExpression[], expression: Expression): ApplyExpression {
+function findApplyByExpression(
+  applies: ApplyExpression[],
+  expression: Expression,
+): ApplyExpression {
   for (let apply of applies) {
     if (apply.expression.equals(expression)) return apply;
   }
@@ -348,7 +370,11 @@ export abstract class External {
     if (extraFilter.equals(Expression.TRUE)) return ex;
 
     return ex.substitute(ex => {
-      if (ex instanceof RefExpression && ex.type === 'DATASET' && ex.name === External.SEGMENT_NAME) {
+      if (
+        ex instanceof RefExpression &&
+        ex.type === 'DATASET' &&
+        ex.name === External.SEGMENT_NAME
+      ) {
         return ex.filter(extraFilter);
       }
       return null;
@@ -365,16 +391,24 @@ export abstract class External {
     return newDatum;
   }
 
-  static normalizeAndAddApply(attributesAndApplies: AttributesAndApplies, apply: ApplyExpression): AttributesAndApplies {
+  static normalizeAndAddApply(
+    attributesAndApplies: AttributesAndApplies,
+    apply: ApplyExpression,
+  ): AttributesAndApplies {
     let { attributes, applies } = attributesAndApplies;
 
     let expressions: Record<string, Expression> = Object.create(null);
     for (let existingApply of applies) expressions[existingApply.name] = existingApply.expression;
-    apply = apply.changeExpression(apply.expression.resolveWithExpressions(expressions, 'leave').simplify());
+    apply = apply.changeExpression(
+      apply.expression.resolveWithExpressions(expressions, 'leave').simplify(),
+    );
 
     return {
-      attributes: NamedArray.overrideByName(attributes, new AttributeInfo({ name: apply.name, type: apply.expression.type })),
-      applies: NamedArray.overrideByName(applies, apply)
+      attributes: NamedArray.overrideByName(
+        attributes,
+        new AttributeInfo({ name: apply.name, type: apply.expression.type }),
+      ),
+      applies: NamedArray.overrideByName(applies, apply),
     };
   }
 
@@ -397,13 +431,13 @@ export abstract class External {
 
     // Now do all the segregation
     for (let apply of appliesToSegregate) {
-      let newExpression = apply.expression.substitute((ex) => {
+      let newExpression = apply.expression.substitute(ex => {
         if (ex.isAggregate()) {
           let existingApply = findApplyByExpression(aggregateApplies, ex);
           if (existingApply) {
             return $(existingApply.name, ex.type);
           } else {
-            let name = '!T_' + (nameIndex++);
+            let name = '!T_' + nameIndex++;
             aggregateApplies.push(Expression._.apply(name, ex));
             return $(name, ex.type);
           }
@@ -416,7 +450,7 @@ export abstract class External {
 
     return {
       aggregateApplies,
-      postAggregateApplies
+      postAggregateApplies,
     };
   }
 
@@ -429,7 +463,9 @@ export abstract class External {
     return commonFilter;
   }
 
-  static getMergedDerivedAttributesFromExternals(externals: External[]): Record<string, Expression> {
+  static getMergedDerivedAttributesFromExternals(
+    externals: External[],
+  ): Record<string, Expression> {
     if (!externals.length) throw new Error('must have externals');
     let derivedAttributes = externals[0].derivedAttributes;
     for (let i = 1; i < externals.length; i++) {
@@ -452,12 +488,18 @@ export abstract class External {
 
   static getSimpleInflater(type: PlyType, label: string): Inflater {
     switch (type) {
-      case 'BOOLEAN': return External.booleanInflaterFactory(label);
-      case 'NULL': return External.nullInflaterFactory(label);
-      case 'NUMBER': return External.numberInflaterFactory(label);
-      case 'STRING': return External.stringInflaterFactory(label);
-      case 'TIME': return External.timeInflaterFactory(label);
-      default: return null;
+      case 'BOOLEAN':
+        return External.booleanInflaterFactory(label);
+      case 'NULL':
+        return External.nullInflaterFactory(label);
+      case 'NUMBER':
+        return External.numberInflaterFactory(label);
+      case 'STRING':
+        return External.stringInflaterFactory(label);
+      case 'TIME':
+        return External.timeInflaterFactory(label);
+      default:
+        return null;
     }
   }
 
@@ -485,7 +527,7 @@ export abstract class External {
           break;
 
         default:
-          throw new Error("got strange result from boolean: " + v);
+          throw new Error('got strange result from boolean: ' + v);
       }
     };
   }
@@ -493,7 +535,7 @@ export abstract class External {
   static timeRangeInflaterFactory(label: string, duration: Duration, timezone: Timezone): Inflater {
     return (d: any) => {
       let v = d[label];
-      if ('' + v === "null") {
+      if ('' + v === 'null') {
         d[label] = null;
         return;
       }
@@ -506,16 +548,16 @@ export abstract class External {
   static nullInflaterFactory(label: string): Inflater {
     return (d: any) => {
       let v = d[label];
-      if ('' + v === "null" || typeof v === 'undefined') {
+      if ('' + v === 'null' || typeof v === 'undefined') {
         d[label] = null;
       }
     };
   }
 
-  static numberRangeInflaterFactory(label: string, rangeSize: number): Inflater  {
+  static numberRangeInflaterFactory(label: string, rangeSize: number): Inflater {
     return (d: any) => {
       let v = d[label];
-      if ('' + v === "null") {
+      if ('' + v === 'null') {
         d[label] = null;
         return;
       }
@@ -525,10 +567,10 @@ export abstract class External {
     };
   }
 
-  static numberInflaterFactory(label: string): Inflater  {
+  static numberInflaterFactory(label: string): Inflater {
     return (d: any) => {
       let v = d[label];
-      if ('' + v === "null") {
+      if ('' + v === 'null') {
         d[label] = null;
         return;
       }
@@ -538,7 +580,7 @@ export abstract class External {
     };
   }
 
-  static stringInflaterFactory(label: string): Inflater  {
+  static stringInflaterFactory(label: string): Inflater {
     return (d: any) => {
       let v = d[label];
       if (typeof v === 'undefined') {
@@ -547,10 +589,10 @@ export abstract class External {
     };
   }
 
-  static timeInflaterFactory(label: string): Inflater  {
+  static timeInflaterFactory(label: string): Inflater {
     return (d: any) => {
       let v = d[label];
-      if ('' + v === "null" || typeof v === 'undefined') {
+      if ('' + v === 'null' || typeof v === 'undefined') {
         d[label] = null;
         return;
       }
@@ -559,10 +601,10 @@ export abstract class External {
     };
   }
 
-  static setStringInflaterFactory(label: string): Inflater  {
+  static setStringInflaterFactory(label: string): Inflater {
     return (d: any) => {
       let v = d[label];
-      if ('' + v === "null") {
+      if ('' + v === 'null') {
         d[label] = null;
         return;
       }
@@ -570,19 +612,22 @@ export abstract class External {
       if (typeof v === 'string') v = [v];
       d[label] = Set.fromJS({
         setType: 'STRING',
-        elements: v
+        elements: v,
       });
     };
   }
 
-  static setCardinalityInflaterFactory(label: string): Inflater  {
+  static setCardinalityInflaterFactory(label: string): Inflater {
     return (d: any) => {
       let v = d[label];
       d[label] = Array.isArray(v) ? v.length : 1;
     };
   }
 
-  static typeCheckDerivedAttributes(derivedAttributes: Record<string, Expression>, typeContext: DatasetFullType): Record<string, Expression> {
+  static typeCheckDerivedAttributes(
+    derivedAttributes: Record<string, Expression>,
+    typeContext: DatasetFullType,
+  ): Record<string, Expression> {
     let changed = false;
     let newDerivedAttributes: Record<string, Expression> = {};
     for (let k in derivedAttributes) {
@@ -602,9 +647,9 @@ export abstract class External {
         valueSeen = true;
         callback(null, { type: 'value', value: d[External.VALUE_NAME] });
       },
-      flush: (callback) => {
+      flush: callback => {
         callback(null, valueSeen ? null : { type: 'value', value: 0 });
-      }
+      },
     });
   }
 
@@ -617,7 +662,12 @@ export abstract class External {
     }
   }
 
-  static postTransformFactory(inflaters: Inflater[], attributes: Attributes, keys: string[], zeroTotalApplies: ApplyExpression[]) {
+  static postTransformFactory(
+    inflaters: Inflater[],
+    attributes: Attributes,
+    keys: string[],
+    zeroTotalApplies: ApplyExpression[],
+  ) {
     let valueSeen = false;
     return new Transform({
       objectMode: true,
@@ -626,7 +676,7 @@ export abstract class External {
           this.push({
             type: 'init',
             attributes,
-            keys
+            keys,
           });
           valueSeen = true;
         }
@@ -639,7 +689,7 @@ export abstract class External {
 
         callback(null, {
           type: 'datum',
-          datum: d
+          datum: d,
         });
       },
       flush: function(callback) {
@@ -647,22 +697,27 @@ export abstract class External {
           this.push({
             type: 'init',
             attributes,
-            keys: null
+            keys: null,
           });
 
           if (zeroTotalApplies) {
             this.push({
               type: 'datum',
-              datum: External.makeZeroDatum(zeroTotalApplies)
+              datum: External.makeZeroDatum(zeroTotalApplies),
             });
           }
         }
         callback();
-      }
+      },
     });
   }
 
-  static performQueryAndPostTransform(queryAndPostTransform: QueryAndPostTransform<any>, requester: PlywoodRequester<any>, engine: string, rawQueries: any[] | null): ReadableStream {
+  static performQueryAndPostTransform(
+    queryAndPostTransform: QueryAndPostTransform<any>,
+    requester: PlywoodRequester<any>,
+    engine: string,
+    rawQueries: any[] | null,
+  ): ReadableStream {
     if (!requester) {
       return new ReadableError('must have a requester to make queries');
     }
@@ -685,11 +740,11 @@ export abstract class External {
           if (rawQueries) rawQueries.push({ engine, query });
           const stream = requester({ query, context });
           meta = null;
-          stream.on('meta', (m: any) => meta = m);
+          stream.on('meta', (m: any) => (meta = m));
           numResults = 0;
           stream.on('data', () => numResults++);
           return stream;
-        }
+        },
       });
 
       return pipeWithError(resultStream, postTransform);
@@ -707,11 +762,10 @@ export abstract class External {
         write: function(chunk, encoding, callback) {
           pvb.processBit(chunk);
           callback(null);
-        }
-      })
-        .on('finish', () => {
-          resolve(pvb.getValue());
-        });
+        },
+      }).on('finish', () => {
+        resolve(pvb.getValue());
+      });
 
       stream.pipe(target);
       stream.on('error', (e: Error) => {
@@ -725,15 +779,15 @@ export abstract class External {
     const pt = new PassThrough({ objectMode: true });
 
     valuePromise
-      .then((v) => {
+      .then(v => {
         const i = iteratorFactory(v as Dataset);
         let bit: PlyBit;
-        while (bit = i()) {
+        while ((bit = i())) {
           pt.write(bit);
         }
         pt.end();
       })
-      .catch((e) => {
+      .catch(e => {
         pt.emit('error', e);
       });
 
@@ -748,7 +802,7 @@ export abstract class External {
       suppress: true,
       rollup: parameters.rollup,
       concealBuckets: Boolean(parameters.concealBuckets),
-      requester
+      requester,
     };
     if (parameters.attributes) {
       value.attributes = AttributeInfo.fromJSs(parameters.attributes);
@@ -777,7 +831,9 @@ export abstract class External {
     return ClassFn;
   }
 
-  static uniteValueExternalsIntoTotal(keyExternals: { key: string, external?: External }[]): External {
+  static uniteValueExternalsIntoTotal(
+    keyExternals: { key: string; external?: External }[],
+  ): External {
     if (keyExternals.length === 0) return null;
     let applies: ApplyExpression[] = [];
 
@@ -793,11 +849,11 @@ export abstract class External {
   }
 
   static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any> = null): External {
-    if (!hasOwnProp(parameters, "engine")) {
-      throw new Error("external `engine` must be defined");
+    if (!hasOwnProp(parameters, 'engine')) {
+      throw new Error('external `engine` must be defined');
     }
     let engine: string = parameters.engine;
-    if (typeof engine !== "string") throw new Error("engine must be a string");
+    if (typeof engine !== 'string') throw new Error('engine must be a string');
     let ClassFn = External.getConstructorFor(engine);
 
     // Back compat
@@ -806,7 +862,10 @@ export abstract class External {
       requester = (parameters as any).requester;
     }
     if (parameters.source == null) {
-      parameters.source = (parameters as any).dataSource != null ? (parameters as any).dataSource : (parameters as any).table;
+      parameters.source =
+        (parameters as any).dataSource != null
+          ? (parameters as any).dataSource
+          : (parameters as any).table;
     }
 
     return ClassFn.fromJS(parameters, requester);
@@ -844,7 +903,7 @@ export abstract class External {
 
   constructor(parameters: ExternalValue, dummy: any = null) {
     if (dummy !== dummyObject) {
-      throw new TypeError("can not call `new External` directly use External.fromJS instead");
+      throw new TypeError('can not call `new External` directly use External.fromJS instead');
     }
     this.engine = parameters.engine;
 
@@ -877,7 +936,10 @@ export abstract class External {
     this.filter = parameters.filter || Expression.TRUE;
 
     if (this.rawAttributes.length) {
-      this.derivedAttributes = External.typeCheckDerivedAttributes(this.derivedAttributes, this.getRawFullType(true));
+      this.derivedAttributes = External.typeCheckDerivedAttributes(
+        this.derivedAttributes,
+        this.getRawFullType(true),
+      );
       this.filter = this.filter.changeInTypeContext(this.getRawFullType());
     }
 
@@ -931,7 +993,7 @@ export abstract class External {
       version: this.version,
       source: this.source,
       rollup: this.rollup,
-      mode: this.mode
+      mode: this.mode,
     };
     if (this.suppress) value.suppress = this.suppress;
     if (this.attributes) value.attributes = this.attributes;
@@ -978,16 +1040,19 @@ export abstract class External {
   public toJS(): ExternalJS {
     let js: ExternalJS = {
       engine: this.engine,
-      source: this.source
+      source: this.source,
     };
     if (this.version) js.version = this.version;
     if (this.rollup) js.rollup = true;
     if (this.attributes) js.attributes = AttributeInfo.toJSs(this.attributes);
-    if (this.attributeOverrides) js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
-    if (nonEmptyLookup(this.derivedAttributes)) js.derivedAttributes = Expression.expressionLookupToJS(this.derivedAttributes);
+    if (this.attributeOverrides)
+      js.attributeOverrides = AttributeInfo.toJSs(this.attributeOverrides);
+    if (nonEmptyLookup(this.derivedAttributes))
+      js.derivedAttributes = Expression.expressionLookupToJS(this.derivedAttributes);
     if (this.concealBuckets) js.concealBuckets = true;
 
-    if (this.mode !== 'raw' && this.rawAttributes) js.rawAttributes = AttributeInfo.toJSs(this.rawAttributes);
+    if (this.mode !== 'raw' && this.rawAttributes)
+      js.rawAttributes = AttributeInfo.toJSs(this.rawAttributes);
     if (!this.filter.equals(Expression.TRUE)) {
       js.filter = this.filter.toJS();
     }
@@ -1016,30 +1081,32 @@ export abstract class External {
       default:
         throw new Error(`unknown mode: ${mode}`);
     }
-
   }
 
   public equals(other: External | undefined): boolean {
-    return this.equalBaseAndFilter(other) &&
+    return (
+      this.equalBaseAndFilter(other) &&
       immutableLookupsEqual(this.derivedAttributes, other.derivedAttributes) &&
       immutableArraysEqual(this.attributes, other.attributes) &&
       immutableArraysEqual(this.delegates, other.delegates) &&
       this.concealBuckets === other.concealBuckets &&
-      Boolean(this.requester) === Boolean(other.requester);
+      Boolean(this.requester) === Boolean(other.requester)
+    );
   }
 
   public equalBaseAndFilter(other: External): boolean {
-    return this.equalBase(other) &&
-      this.filter.equals(other.filter);
+    return this.equalBase(other) && this.filter.equals(other.filter);
   }
 
   public equalBase(other: External): boolean {
-    return other instanceof External &&
+    return (
+      other instanceof External &&
       this.engine === other.engine &&
       String(this.source) === String(other.source) &&
       this.version === other.version &&
       this.rollup === other.rollup &&
-      this.mode === other.mode;
+      this.mode === other.mode
+    );
   }
 
   public changeVersion(version: string) {
@@ -1084,7 +1151,7 @@ export abstract class External {
 
   public hasAttribute(name: string): boolean {
     const { attributes, rawAttributes, derivedAttributes } = this;
-    if (SimpleArray.find(rawAttributes || attributes, (a) => a.name === name)) return true;
+    if (SimpleArray.find(rawAttributes || attributes, a => a.name === name)) return true;
     return hasOwnProp(derivedAttributes, name);
   }
 
@@ -1100,7 +1167,6 @@ export abstract class External {
         if (refAttributeInfo && refAttributeInfo.maker instanceof TimeFloorExpression) {
           return refAttributeInfo.maker.alignsWith(ex);
         }
-
       } else if (ex instanceof ChainableExpression) {
         let refExpression = ex.operand;
         if (refExpression instanceof RefExpression) {
@@ -1109,7 +1175,6 @@ export abstract class External {
             return refAttributeInfo.maker.alignsWith(ex);
           }
         }
-
       }
       return null;
     });
@@ -1143,7 +1208,7 @@ export abstract class External {
     value.sort = null;
     value.limit = null;
 
-    value.delegates = nullMap(value.delegates, (e) => e.getBase());
+    value.delegates = nullMap(value.delegates, e => e.getBase());
     return External.fromValue(value);
   }
 
@@ -1161,7 +1226,7 @@ export abstract class External {
     value.sort = null;
     value.limit = null;
 
-    value.delegates = nullMap(value.delegates, (e) => e.getRaw());
+    value.delegates = nullMap(value.delegates, e => e.getRaw());
     return External.fromValue(value);
   }
 
@@ -1188,7 +1253,7 @@ export abstract class External {
     value.filter = commonFilter;
     value.attributes = [];
     value.applies = [];
-    value.delegates = nullMap(value.delegates, (e) => e.makeTotal(applies));
+    value.delegates = nullMap(value.delegates, e => e.makeTotal(applies));
     let totalExternal = External.fromValue(value);
 
     for (let apply of applies) {
@@ -1250,7 +1315,7 @@ export abstract class External {
         return null; // can not add filter in total mode
     }
 
-    value.delegates = nullMap(value.delegates, (e) => e._addFilterExpression(filter));
+    value.delegates = nullMap(value.delegates, e => e._addFilterExpression(filter));
     return External.fromValue(value);
   }
 
@@ -1267,11 +1332,13 @@ export abstract class External {
     let value = this.valueOf();
     value.suppress = false;
     value.select = selectExpression;
-    value.delegates = nullMap(value.delegates, (e) => e._addSelectExpression(selectExpression));
+    value.delegates = nullMap(value.delegates, e => e._addSelectExpression(selectExpression));
 
     if (mode === 'split') {
-      value.applies = value.applies.filter((apply) => attributes.indexOf(apply.name) !== -1);
-      value.attributes = value.attributes.filter((attribute) => attributes.indexOf(attribute.name) !== -1);
+      value.applies = value.applies.filter(apply => attributes.indexOf(apply.name) !== -1);
+      value.attributes = value.attributes.filter(
+        attribute => attributes.indexOf(attribute.name) !== -1,
+      );
     }
 
     return External.fromValue(value);
@@ -1292,8 +1359,10 @@ export abstract class External {
     value.dataName = split.dataName;
     value.split = split;
     value.rawAttributes = value.attributes;
-    value.attributes = split.mapSplits((name, expression) => new AttributeInfo({ name, type: Set.unwrapSetType(expression.type) }));
-    value.delegates = nullMap(value.delegates, (e) => e._addSplitExpression(split));
+    value.attributes = split.mapSplits(
+      (name, expression) => new AttributeInfo({ name, type: Set.unwrapSetType(expression.type) }),
+    );
+    value.delegates = nullMap(value.delegates, e => e._addSplitExpression(split));
     return External.fromValue(value);
   }
 
@@ -1306,16 +1375,16 @@ export abstract class External {
     let value: ExternalValue;
     if (this.mode === 'raw') {
       value = this.valueOf();
-      value.derivedAttributes = immutableAdd(
-        value.derivedAttributes, apply.name, apply.expression
-      );
+      value.derivedAttributes = immutableAdd(value.derivedAttributes, apply.name, apply.expression);
     } else {
       // Can not redefine index for now.
       if (this.split && this.split.hasKey(apply.name)) return null;
 
       let applyExpression = apply.expression;
       if (applyExpression instanceof ExternalExpression) {
-        apply = <ApplyExpression>apply.changeExpression(applyExpression.external.valueExpressionWithinFilter(this.filter));
+        apply = <ApplyExpression>(
+          apply.changeExpression(applyExpression.external.valueExpressionWithinFilter(this.filter))
+        );
       }
 
       value = this.valueOf();
@@ -1323,7 +1392,7 @@ export abstract class External {
       value.applies = added.applies;
       value.attributes = added.attributes;
     }
-    value.delegates = nullMap(value.delegates, (e) => e._addApplyExpression(apply));
+    value.delegates = nullMap(value.delegates, e => e._addApplyExpression(apply));
     return External.fromValue(value);
   }
 
@@ -1333,7 +1402,7 @@ export abstract class External {
 
     let value = this.valueOf();
     value.sort = sort;
-    value.delegates = nullMap(value.delegates, (e) => e._addSortExpression(sort));
+    value.delegates = nullMap(value.delegates, e => e._addSortExpression(sort));
     return External.fromValue(value);
   }
 
@@ -1343,7 +1412,7 @@ export abstract class External {
     if (!value.limit || limit.value < value.limit.value) {
       value.limit = limit;
     }
-    value.delegates = nullMap(value.delegates, (e) => e._addLimitExpression(limit));
+    value.delegates = nullMap(value.delegates, e => e._addLimitExpression(limit));
     return External.fromValue(value);
   }
 
@@ -1352,8 +1421,10 @@ export abstract class External {
       if (aggregate.type !== 'NUMBER') return null; // Only works for numbers, avoids 'collect'
       // This is in case of a resplit that needs to be folded
 
-      let valueExpression = $(External.SEGMENT_NAME, 'DATASET').performAction(this.split.getAction());
-      this.applies.forEach((apply) => {
+      let valueExpression = $(External.SEGMENT_NAME, 'DATASET').performAction(
+        this.split.getAction(),
+      );
+      this.applies.forEach(apply => {
         valueExpression = valueExpression.performAction(apply.getAction());
       });
       valueExpression = valueExpression.performAction(aggregate);
@@ -1363,7 +1434,7 @@ export abstract class External {
       value.suppress = false;
       value.valueExpression = valueExpression;
       value.attributes = null;
-      value.delegates = nullMap(value.delegates, (e) => e._addAggregateExpression(aggregate));
+      value.delegates = nullMap(value.delegates, e => e._addAggregateExpression(aggregate));
       return External.fromValue(value);
     }
 
@@ -1379,7 +1450,7 @@ export abstract class External {
       value.valueExpression = aggregate.changeOperand($(External.SEGMENT_NAME, 'DATASET'));
       value.rawAttributes = value.attributes;
       value.attributes = null;
-      value.delegates = nullMap(value.delegates, (e) => e._addAggregateExpression(aggregate));
+      value.delegates = nullMap(value.delegates, e => e._addAggregateExpression(aggregate));
       return External.fromValue(value);
     } else {
       return null;
@@ -1387,7 +1458,8 @@ export abstract class External {
   }
 
   private _addPostAggregateExpression(action: Expression): External {
-    if (this.mode !== 'value') throw new Error('must be in value mode to call addPostAggregateExpression');
+    if (this.mode !== 'value')
+      throw new Error('must be in value mode to call addPostAggregateExpression');
     if (action instanceof ChainableExpression) {
       if (!action.operand.equals(Expression._)) return null;
 
@@ -1401,12 +1473,14 @@ export abstract class External {
           if (!this.equalBase(otherExternal)) return null;
 
           commonFilter = getCommonFilter(commonFilter, otherExternal.filter);
-          let newExpression = action.changeExpression(otherExternal.valueExpressionWithinFilter(commonFilter));
-          newValueExpression = this.valueExpressionWithinFilter(commonFilter).performAction(newExpression);
-
+          let newExpression = action.changeExpression(
+            otherExternal.valueExpressionWithinFilter(commonFilter),
+          );
+          newValueExpression = this.valueExpressionWithinFilter(commonFilter).performAction(
+            newExpression,
+          );
         } else if (!actionExpression.hasExternal()) {
           newValueExpression = this.valueExpression.performAction(action);
-
         } else {
           return null;
         }
@@ -1417,7 +1491,7 @@ export abstract class External {
       let value = this.valueOf();
       value.valueExpression = newValueExpression;
       value.filter = commonFilter;
-      value.delegates = nullMap(value.delegates, (e) => e._addPostAggregateExpression(action));
+      value.delegates = nullMap(value.delegates, e => e._addPostAggregateExpression(action));
       return External.fromValue(value);
     } else {
       return null;
@@ -1431,7 +1505,7 @@ export abstract class External {
 
     let value = this.valueOf();
     value.valueExpression = ex.changeExpression(value.valueExpression);
-    value.delegates = nullMap(value.delegates, (e) => e.prePush(ex));
+    value.delegates = nullMap(value.delegates, e => e.prePush(ex));
     return External.fromValue(value);
   }
 
@@ -1465,7 +1539,7 @@ export abstract class External {
   }
 
   public getQuerySplit(): SplitExpression {
-    return this.split.transformExpressions((ex) => {
+    return this.split.transformExpressions(ex => {
       return this.inlineDerivedAttributes(ex);
     });
   }
@@ -1496,7 +1570,9 @@ export abstract class External {
     let { mode, select, attributes, derivedAttributes } = this;
     if (mode === 'raw') {
       for (let k in derivedAttributes) {
-        attributes = attributes.concat(new AttributeInfo({ name: k, type: derivedAttributes[k].type }));
+        attributes = attributes.concat(
+          new AttributeInfo({ name: k, type: derivedAttributes[k].type }),
+        );
       }
     }
     if (!select) return attributes;
@@ -1515,7 +1591,9 @@ export abstract class External {
   public addNextExternalToDatum(datum: Datum): void {
     const { mode, dataName, split } = this;
     if (mode !== 'split') throw new Error('must be in split mode to addNextExternalToDatum');
-    datum[dataName] = this.getRaw()._addFilterExpression(Expression._.filter(split.filterFromDatum(datum)));
+    datum[dataName] = this.getRaw()._addFilterExpression(
+      Expression._.filter(split.filterFromDatum(datum)),
+    );
   }
 
   public getDelegate(): External {
@@ -1524,7 +1602,11 @@ export abstract class External {
     return delegates[0];
   }
 
-  public simulateValue(lastNode: boolean, simulatedQueries: any[], externalForNext: External = null): PlywoodValue | TotalContainer {
+  public simulateValue(
+    lastNode: boolean,
+    simulatedQueries: any[],
+    externalForNext: External = null,
+  ): PlywoodValue | TotalContainer {
     const { mode } = this;
 
     if (!externalForNext) externalForNext = this;
@@ -1553,7 +1635,7 @@ export abstract class External {
         this.split.mapSplits((name, expression) => {
           datum[name] = getSampleValue(Set.unwrapSetType(expression.type), expression);
         });
-        keys = this.split.mapSplits((name) => name);
+        keys = this.split.mapSplits(name => name);
       }
 
       let applies = this.applies;
@@ -1571,21 +1653,25 @@ export abstract class External {
     }
     return new Dataset({
       keys,
-      data: [datum]
+      data: [datum],
     });
   }
 
   public getQueryAndPostTransform(): QueryAndPostTransform<any> {
-    throw new Error("can not call getQueryAndPostTransform directly");
+    throw new Error('can not call getQueryAndPostTransform directly');
   }
 
-  public queryValue(lastNode: boolean, rawQueries: any[], externalForNext: External = null): Promise<PlywoodValue | TotalContainer> {
+  public queryValue(
+    lastNode: boolean,
+    rawQueries: any[],
+    externalForNext: External = null,
+  ): Promise<PlywoodValue | TotalContainer> {
     const stream = this.queryValueStream(lastNode, rawQueries, externalForNext);
     let valuePromise = External.buildValueFromStream(stream);
 
     if (this.mode === 'total') {
       return valuePromise.then(v => {
-        return (v instanceof Dataset && v.data.length === 1) ? new TotalContainer(v.data[0]) : v;
+        return v instanceof Dataset && v.data.length === 1 ? new TotalContainer(v.data[0]) : v;
       });
     }
 
@@ -1602,10 +1688,19 @@ export abstract class External {
       return new ReadableError(e);
     }
 
-    return External.performQueryAndPostTransform(queryAndPostTransform, requester, engine, rawQueries);
+    return External.performQueryAndPostTransform(
+      queryAndPostTransform,
+      requester,
+      engine,
+      rawQueries,
+    );
   }
 
-  public queryValueStream(lastNode: boolean, rawQueries: any[] | null, externalForNext: External = null): ReadableStream {
+  public queryValueStream(
+    lastNode: boolean,
+    rawQueries: any[] | null,
+    externalForNext: External = null,
+  ): ReadableStream {
     if (!externalForNext) externalForNext = this;
 
     let delegate = this.getDelegate();
@@ -1616,13 +1711,16 @@ export abstract class External {
     let finalStream = this.queryBasicValueStream(rawQueries);
 
     if (!lastNode && this.mode === 'split') {
-      finalStream = pipeWithError(finalStream, new Transform({
-        objectMode: true,
-        transform: (chunk, enc, callback) => {
-          if (chunk.type === 'datum') externalForNext.addNextExternalToDatum(chunk.datum);
-          callback(null, chunk);
-        }
-      }));
+      finalStream = pipeWithError(
+        finalStream,
+        new Transform({
+          objectMode: true,
+          transform: (chunk, enc, callback) => {
+            if (chunk.type === 'datum') externalForNext.addNextExternalToDatum(chunk.datum);
+            callback(null, chunk);
+          },
+        }),
+      );
     }
 
     return finalStream;
@@ -1650,49 +1748,48 @@ export abstract class External {
     }
 
     const depth = options.depth || (options.deep ? 'deep' : 'default');
-    return this.getIntrospectAttributes(depth)
-      .then((attributes) => {
-        let value = this.valueOf();
+    return this.getIntrospectAttributes(depth).then(attributes => {
+      let value = this.valueOf();
 
-        // Apply user provided (if any) overrides to the received attributes
-        if (value.attributeOverrides) {
-          attributes = AttributeInfo.override(attributes, value.attributeOverrides);
-        }
+      // Apply user provided (if any) overrides to the received attributes
+      if (value.attributeOverrides) {
+        attributes = AttributeInfo.override(attributes, value.attributeOverrides);
+      }
 
-        // Override any existing attributes (we do not just replace them)
-        if (value.attributes) {
-          attributes = AttributeInfo.override(value.attributes, attributes);
-        }
+      // Override any existing attributes (we do not just replace them)
+      if (value.attributes) {
+        attributes = AttributeInfo.override(value.attributes, attributes);
+      }
 
-        value.attributes = attributes;
-        // Once attributes are set attributeOverrides will be ignored
-        return External.fromValue(value);
-      });
+      value.attributes = attributes;
+      // Once attributes are set attributeOverrides will be ignored
+      return External.fromValue(value);
+    });
   }
 
   public getRawFullType(skipDerived = false): DatasetFullType {
     let { rawAttributes, derivedAttributes } = this;
-    if (!rawAttributes.length) throw new Error("dataset has not been introspected");
+    if (!rawAttributes.length) throw new Error('dataset has not been introspected');
 
     let myDatasetType: Record<string, FullType> = {};
     for (let rawAttribute of rawAttributes) {
       let attrName = rawAttribute.name;
       myDatasetType[attrName] = {
-        type: <PlyTypeSimple>rawAttribute.type
+        type: <PlyTypeSimple>rawAttribute.type,
       };
     }
 
     if (!skipDerived) {
       for (let name in derivedAttributes) {
         myDatasetType[name] = {
-          type: <PlyTypeSimple>derivedAttributes[name].type
+          type: <PlyTypeSimple>derivedAttributes[name].type,
         };
       }
     }
 
     return {
       type: 'DATASET',
-      datasetType: myDatasetType
+      datasetType: myDatasetType,
     };
   }
 
@@ -1709,17 +1806,16 @@ export abstract class External {
       for (let attribute of attributes) {
         let attrName = attribute.name;
         splitDatasetType[attrName] = {
-          type: <PlyTypeSimple>attribute.type
+          type: <PlyTypeSimple>attribute.type,
         };
       }
 
       myFullType = {
         type: 'DATASET',
-        datasetType: splitDatasetType
+        datasetType: splitDatasetType,
       };
     }
 
     return myFullType;
   }
-
 }

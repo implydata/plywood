@@ -16,17 +16,22 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 
 export class ConcatExpression extends ChainableUnaryExpression {
-  static op = "Concat";
+  static op = 'Concat';
   static fromJS(parameters: ExpressionJS): ConcatExpression {
     return new ConcatExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("concat");
+    this._ensureOp('concat');
     this._checkOperandTypes('STRING');
     this._checkExpressionTypes('STRING');
     this.type = Set.isSetType(this.operand.type) ? this.operand.type : this.expression.type;
@@ -38,10 +43,20 @@ export class ConcatExpression extends ChainableUnaryExpression {
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return Expression.jsNullSafetyBinary(operandJS, expressionJS, ((a, b) => `${a}+${b}`), operandJS[0] === '"', expressionJS[0] === '"');
+    return Expression.jsNullSafetyBinary(
+      operandJS,
+      expressionJS,
+      (a, b) => `${a}+${b}`,
+      operandJS[0] === '"',
+      expressionJS[0] === '"',
+    );
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return dialect.concatExpression(operandSQL, expressionSQL);
   }
 

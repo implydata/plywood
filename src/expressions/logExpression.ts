@@ -16,17 +16,22 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 
 export class LogExpression extends ChainableUnaryExpression {
-  static op = "Log";
+  static op = 'Log';
   static fromJS(parameters: ExpressionJS): LogExpression {
     return new LogExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("log");
+    this._ensureOp('log');
     this._checkOperandTypes('NUMBER');
     this._checkExpressionTypes('NUMBER');
     this.type = Set.isSetType(this.operand.type) ? this.operand.type : this.expression.type;
@@ -44,7 +49,11 @@ export class LogExpression extends ChainableUnaryExpression {
     return `(Math.log(${operandJS})/Math.log(${expressionJS}))`;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return dialect.logExpression(expressionSQL, operandSQL);
   }
 
@@ -53,7 +62,6 @@ export class LogExpression extends ChainableUnaryExpression {
     if (operand.equals(Expression.ONE)) return Expression.ZERO;
     return this;
   }
-
 }
 
 Expression.register(LogExpression);

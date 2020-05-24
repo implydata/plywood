@@ -16,7 +16,12 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 import { TransformCaseExpression } from './transformCaseExpression';
 
 export class ContainsExpression extends ChainableUnaryExpression {
@@ -27,7 +32,7 @@ export class ContainsExpression extends ChainableUnaryExpression {
     return str.toUpperCase() === str.toLowerCase();
   }
 
-  static op = "Contains";
+  static op = 'Contains';
   static fromJS(parameters: ExpressionJS): ContainsExpression {
     let value = ChainableUnaryExpression.jsToValue(parameters);
     value.compare = parameters.compare;
@@ -44,11 +49,16 @@ export class ContainsExpression extends ChainableUnaryExpression {
     let { compare } = parameters;
     if (!compare) {
       compare = ContainsExpression.NORMAL;
-    } else if (compare !== ContainsExpression.NORMAL && compare !== ContainsExpression.IGNORE_CASE) {
-      throw new Error(`compare must be '${ContainsExpression.NORMAL}' or '${ContainsExpression.IGNORE_CASE}'`);
+    } else if (
+      compare !== ContainsExpression.NORMAL &&
+      compare !== ContainsExpression.IGNORE_CASE
+    ) {
+      throw new Error(
+        `compare must be '${ContainsExpression.NORMAL}' or '${ContainsExpression.IGNORE_CASE}'`,
+      );
     }
     this.compare = compare;
-    this._ensureOp("contains");
+    this._ensureOp('contains');
 
     this.type = 'BOOLEAN';
   }
@@ -66,8 +76,7 @@ export class ContainsExpression extends ChainableUnaryExpression {
   }
 
   public equals(other: ContainsExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.compare === other.compare;
+    return super.equals(other) && this.compare === other.compare;
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -79,7 +88,10 @@ export class ContainsExpression extends ChainableUnaryExpression {
     if (this.compare === ContainsExpression.NORMAL) {
       fn = (a: any, b: any) => String(a).indexOf(b) > -1;
     } else {
-      fn = (a: any, b: any) => String(a).toLowerCase().indexOf(String(b).toLowerCase()) > -1;
+      fn = (a: any, b: any) =>
+        String(a)
+          .toLowerCase()
+          .indexOf(String(b).toLowerCase()) > -1;
     }
     return Set.crossBinaryBoolean(operandValue, expressionValue, fn);
   }
@@ -91,10 +103,20 @@ export class ContainsExpression extends ChainableUnaryExpression {
     } else {
       combine = (lhs, rhs) => `(''+${lhs}).toLowerCase().indexOf((''+${rhs}).toLowerCase())>-1`;
     }
-    return Expression.jsNullSafetyBinary(operandJS, expressionJS, combine, operandJS[0] === '"', expressionJS[0] === '"');
+    return Expression.jsNullSafetyBinary(
+      operandJS,
+      expressionJS,
+      combine,
+      operandJS[0] === '"',
+      expressionJS[0] === '"',
+    );
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     if (this.compare === ContainsExpression.IGNORE_CASE) {
       expressionSQL = `LOWER(${expressionSQL})`;
       operandSQL = `LOWER(${operandSQL})`;
@@ -112,7 +134,10 @@ export class ContainsExpression extends ChainableUnaryExpression {
     const { operand, expression, compare } = this;
 
     // X.transformCase(tt1).contains(Y.transformCase(tt2))
-    if (operand instanceof TransformCaseExpression && expression instanceof TransformCaseExpression) {
+    if (
+      operand instanceof TransformCaseExpression &&
+      expression instanceof TransformCaseExpression
+    ) {
       const { operand: x, transformType: tt1 } = operand;
       const { operand: y, transformType: tt2 } = expression;
       if (tt1 === tt2) {
@@ -125,10 +150,10 @@ export class ContainsExpression extends ChainableUnaryExpression {
       const expressionLiteral = expression.getLiteralValue();
       if (
         expressionLiteral != null &&
-        (
-          (typeof expressionLiteral === 'string' && ContainsExpression.caseIndependent(expressionLiteral)) ||
-          (expressionLiteral instanceof Set && expressionLiteral.elements.every(ContainsExpression.caseIndependent))
-        )
+        ((typeof expressionLiteral === 'string' &&
+          ContainsExpression.caseIndependent(expressionLiteral)) ||
+          (expressionLiteral instanceof Set &&
+            expressionLiteral.elements.every(ContainsExpression.caseIndependent)))
       ) {
         return this.changeCompare('normal');
       }

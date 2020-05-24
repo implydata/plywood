@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
 import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes/index';
@@ -39,64 +38,65 @@ export class MySQLExternal extends SQLExternal {
   }
 
   static postProcessIntrospect(columns: MySQLDescribeRow[]): Attributes {
-    return columns.map((column: MySQLDescribeRow) => {
-      let name = column.Field;
-      let type: PlyType;
-      let nativeType = column.Type.toLowerCase();
-      if (nativeType === "datetime" || nativeType === "timestamp") {
-        type = 'TIME';
-      } else if (nativeType.indexOf("varchar(") === 0 || nativeType.indexOf("blob") === 0) {
-        type = 'STRING';
-      } else if (
-        nativeType.indexOf("int(") === 0 ||
-        nativeType.indexOf("bigint(") === 0 ||
-        nativeType.indexOf("decimal(") === 0 ||
-        nativeType.indexOf("float") === 0 ||
-        nativeType.indexOf("double") === 0
-      ) {
-        type = 'NUMBER';
-      } else if (nativeType.indexOf("tinyint(1)") === 0) {
-        type = 'BOOLEAN';
-      } else {
-        return null;
-      }
-      return new AttributeInfo({
-        name,
-        type,
-        nativeType
-      });
-    }).filter(Boolean);
+    return columns
+      .map((column: MySQLDescribeRow) => {
+        let name = column.Field;
+        let type: PlyType;
+        let nativeType = column.Type.toLowerCase();
+        if (nativeType === 'datetime' || nativeType === 'timestamp') {
+          type = 'TIME';
+        } else if (nativeType.indexOf('varchar(') === 0 || nativeType.indexOf('blob') === 0) {
+          type = 'STRING';
+        } else if (
+          nativeType.indexOf('int(') === 0 ||
+          nativeType.indexOf('bigint(') === 0 ||
+          nativeType.indexOf('decimal(') === 0 ||
+          nativeType.indexOf('float') === 0 ||
+          nativeType.indexOf('double') === 0
+        ) {
+          type = 'NUMBER';
+        } else if (nativeType.indexOf('tinyint(1)') === 0) {
+          type = 'BOOLEAN';
+        } else {
+          return null;
+        }
+        return new AttributeInfo({
+          name,
+          type,
+          nativeType,
+        });
+      })
+      .filter(Boolean);
   }
 
   static getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
-    return toArray(requester({ query: "SHOW TABLES" }))
-      .then((sources) => {
-        if (!Array.isArray(sources)) throw new Error('invalid sources response');
-        if (!sources.length) return sources;
-        let key = Object.keys(sources[0])[0];
-        if (!key) throw new Error('invalid sources response (no key)');
-        return sources.map((s: PseudoDatum) => s[key]).sort();
-      });
+    return toArray(requester({ query: 'SHOW TABLES' })).then(sources => {
+      if (!Array.isArray(sources)) throw new Error('invalid sources response');
+      if (!sources.length) return sources;
+      let key = Object.keys(sources[0])[0];
+      if (!key) throw new Error('invalid sources response (no key)');
+      return sources.map((s: PseudoDatum) => s[key]).sort();
+    });
   }
 
   static getVersion(requester: PlywoodRequester<any>): Promise<string> {
-    return toArray(requester({ query: 'SELECT @@version' }))
-      .then((res) => {
-        if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
-        let key = Object.keys(res[0])[0];
-        if (!key) throw new Error('invalid version response (no key)');
-        return res[0][key];
-      });
+    return toArray(requester({ query: 'SELECT @@version' })).then(res => {
+      if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
+      let key = Object.keys(res[0])[0];
+      if (!key) throw new Error('invalid version response (no key)');
+      return res[0][key];
+    });
   }
 
   constructor(parameters: ExternalValue) {
     super(parameters, new MySQLDialect());
-    this._ensureEngine("mysql");
+    this._ensureEngine('mysql');
   }
 
   protected getIntrospectAttributes(): Promise<Attributes> {
-    return toArray(this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.source as string)}` }))
-      .then(MySQLExternal.postProcessIntrospect);
+    return toArray(
+      this.requester({ query: `DESCRIBE ${this.dialect.escapeName(this.source as string)}` }),
+    ).then(MySQLExternal.postProcessIntrospect);
   }
 }
 

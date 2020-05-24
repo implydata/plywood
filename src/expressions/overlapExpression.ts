@@ -14,25 +14,49 @@
  * limitations under the License.
  */
 
-import { NumberRange, PlywoodRange, PlywoodValue, Range, Set, StringRange, TimeRange } from '../datatypes/index';
+import {
+  NumberRange,
+  PlywoodRange,
+  PlywoodValue,
+  Range,
+  Set,
+  StringRange,
+  TimeRange,
+} from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+  r,
+} from './baseExpression';
 import { IndexOfExpression } from './indexOfExpression';
 import { LiteralExpression } from './literalExpression';
 
 export class OverlapExpression extends ChainableUnaryExpression {
-  static op = "Overlap";
+  static op = 'Overlap';
   static fromJS(parameters: ExpressionJS): OverlapExpression {
     return new OverlapExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("overlap");
+    this._ensureOp('overlap');
     let operandType = Range.unwrapRangeType(Set.unwrapSetType(this.operand.type));
     let expressionType = Range.unwrapRangeType(Set.unwrapSetType(this.expression.type));
-    if (!(!operandType || operandType === 'NULL' || !expressionType || expressionType === 'NULL' || operandType === expressionType)) {
-      throw new Error(`${this.op} must have matching types (are ${this.operand.type}, ${this.expression.type})`);
+    if (
+      !(
+        !operandType ||
+        operandType === 'NULL' ||
+        !expressionType ||
+        expressionType === 'NULL' ||
+        operandType === expressionType
+      )
+    ) {
+      throw new Error(
+        `${this.op} must have matching types (are ${this.operand.type}, ${this.expression.type})`,
+      );
     }
     this.type = 'BOOLEAN';
   }
@@ -66,29 +90,45 @@ export class OverlapExpression extends ChainableUnaryExpression {
 
         return `((_=${operandJS}),${cmpStrings.join('&&')})`;
       } else {
-        throw new Error(`can not convert ${this} to JS function, unsupported type ${expression.type}`);
+        throw new Error(
+          `can not convert ${this} to JS function, unsupported type ${expression.type}`,
+        );
       }
     }
 
     throw new Error(`can not convert ${this} to JS function`);
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     let expression = this.expression;
     let expressionType = expression.type;
     switch (expressionType) {
       case 'NUMBER_RANGE':
       case 'TIME_RANGE':
         if (expression instanceof LiteralExpression) {
-          let range: (NumberRange | TimeRange) = expression.value;
-          return dialect.inExpression(operandSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
+          let range: NumberRange | TimeRange = expression.value;
+          return dialect.inExpression(
+            operandSQL,
+            dialect.numberOrTimeToSQL(range.start),
+            dialect.numberOrTimeToSQL(range.end),
+            range.bounds,
+          );
         }
         throw new Error(`can not convert action to SQL ${this}`);
 
       case 'STRING_RANGE':
         if (expression instanceof LiteralExpression) {
           let stringRange: StringRange = expression.value;
-          return dialect.inExpression(operandSQL, dialect.escapeLiteral(stringRange.start), dialect.escapeLiteral(stringRange.end), stringRange.bounds);
+          return dialect.inExpression(
+            operandSQL,
+            dialect.escapeLiteral(stringRange.start),
+            dialect.escapeLiteral(stringRange.end),
+            stringRange.bounds,
+          );
         }
         throw new Error(`can not convert action to SQL ${this}`);
 
@@ -96,9 +136,16 @@ export class OverlapExpression extends ChainableUnaryExpression {
       case 'SET/TIME_RANGE':
         if (expression instanceof LiteralExpression) {
           let setOfRange: Set = expression.value;
-          return setOfRange.elements.map((range: (NumberRange | TimeRange)) => {
-            return dialect.inExpression(operandSQL, dialect.numberOrTimeToSQL(range.start), dialect.numberOrTimeToSQL(range.end), range.bounds);
-          }).join(' OR ');
+          return setOfRange.elements
+            .map((range: NumberRange | TimeRange) => {
+              return dialect.inExpression(
+                operandSQL,
+                dialect.numberOrTimeToSQL(range.start),
+                dialect.numberOrTimeToSQL(range.end),
+                range.bounds,
+              );
+            })
+            .join(' OR ');
         }
         throw new Error(`can not convert action to SQL ${this}`);
 
@@ -126,7 +173,8 @@ export class OverlapExpression extends ChainableUnaryExpression {
     }
 
     // NonRange.overlap(NonRange)
-    if (!Range.isRangeType(operand.type) && !Range.isRangeType(expression.type)) return operand.is(expression);
+    if (!Range.isRangeType(operand.type) && !Range.isRangeType(expression.type))
+      return operand.is(expression);
 
     // X.indexOf(Y).overlap([start, end])
     if (operand instanceof IndexOfExpression && literalValue instanceof NumberRange) {

@@ -15,25 +15,23 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 let plywood = require('../plywood');
 let { $, ply, r, MatchExpression, Set } = plywood;
 
-describe("MatchExpression", () => {
-  it(".likeToRegExp", () => {
+describe('MatchExpression', () => {
+  it('.likeToRegExp', () => {
     expect(MatchExpression.likeToRegExp('%David\\_R_ss%')).to.equal('^.*David_R.ss.*$');
 
     expect(MatchExpression.likeToRegExp('%David|_R_ss||%', '|')).to.equal('^.*David_R.ss\\|.*$');
   });
 
-  it("matches on set (no comma)", () => {
+  it('matches on set (no comma)', () => {
     let ex = r(Set.fromJS(['a', 'b'])).match(',');
 
-    return ex.compute()
-      .then((v) => {
-        expect(v).to.deep.equal(false);
-      });
+    return ex.compute().then(v => {
+      expect(v).to.deep.equal(false);
+    });
   });
-
 });

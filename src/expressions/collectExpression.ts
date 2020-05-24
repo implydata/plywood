@@ -15,27 +15,39 @@
  */
 
 import { Dataset, PlywoodValue, Set } from '../datatypes/index';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 
 export class CollectExpression extends ChainableUnaryExpression implements Aggregate {
-  static op = "Collect";
+  static op = 'Collect';
   static fromJS(parameters: ExpressionJS): CollectExpression {
     return new CollectExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("collect");
+    this._ensureOp('collect');
     this._checkOperandTypes('DATASET');
-    this._checkExpressionTypes('BOOLEAN', 'NUMBER', 'TIME', 'STRING', 'NUMBER_RANGE', 'TIME_RANGE', 'STRING_RANGE');
+    this._checkExpressionTypes(
+      'BOOLEAN',
+      'NUMBER',
+      'TIME',
+      'STRING',
+      'NUMBER_RANGE',
+      'TIME_RANGE',
+      'STRING_RANGE',
+    );
     this.type = Set.wrapSetType(this.expression.type);
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     return operandValue ? (operandValue as Dataset).collect(this.expression) : null;
   }
-
 }
 
 Expression.applyMixins(CollectExpression, [Aggregate]);

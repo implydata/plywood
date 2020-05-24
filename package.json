@@ -25,6 +25,14 @@
     "package/",
     "typings/"
   ],
+  "prettier": {
+    "trailingComma": "all",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true,
+    "printWidth": 100,
+    "endOfLine": "lf"
+  },
   "scripts": {
     "prepare": "tdi -q",
     "compile": "./compile",
@@ -46,6 +54,7 @@
     "tslib": "^1.10.0"
   },
   "devDependencies": {
+    "awesome-code-style": "^1.4.3",
     "chai": "4.2.0",
     "f-tool": "0.1.3",
     "immutable-class-tester": "0.7.2",

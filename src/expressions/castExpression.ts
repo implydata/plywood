@@ -21,7 +21,7 @@ import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from '
 
 interface Caster {
   TIME: {
-    NUMBER: (n: number) => Date
+    NUMBER: (n: number) => Date;
   };
   NUMBER: {
     TIME: (d: Date) => number;
@@ -30,36 +30,36 @@ interface Caster {
   STRING: {
     _: (v: any) => string;
   };
-  [castTo: string]: {[inputType: string]: any};
+  [castTo: string]: { [inputType: string]: any };
 }
 
 const CAST_TYPE_TO_FN: Caster = {
   TIME: {
-    NUMBER: n => new Date(n)
+    NUMBER: n => new Date(n),
   },
   NUMBER: {
     TIME: (n: Date) => Date.parse(n.toString()),
-    _: (s: any) => Number(s)
+    _: (s: any) => Number(s),
   },
   STRING: {
-    _: (v: any) => '' + v
-  }
+    _: (v: any) => '' + v,
+  },
 };
 
 const CAST_TYPE_TO_JS: Record<string, Record<string, (operandJS: string) => string>> = {
   TIME: {
-    NUMBER: (operandJS) => `new Date(${operandJS})`
+    NUMBER: operandJS => `new Date(${operandJS})`,
   },
   NUMBER: {
-    _: (s) => `(+(${s}))` // The outer () are important because the + can merge with another + to form an inlaid operator
+    _: s => `(+(${s}))`, // The outer () are important because the + can merge with another + to form an inlaid operator
   },
   STRING: {
-    _: (operandJS) => `(''+${operandJS})`
-  }
+    _: operandJS => `(''+${operandJS})`,
+  },
 };
 
 export class CastExpression extends ChainableExpression {
-  static op = "Cast";
+  static op = 'Cast';
   static fromJS(parameters: ExpressionJS): CastExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.outputType = parameters.outputType || (parameters as any).castType; // Back compat
@@ -71,9 +71,9 @@ export class CastExpression extends ChainableExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this.outputType = parameters.outputType;
-    this._ensureOp("cast");
+    this._ensureOp('cast');
     if (typeof this.outputType !== 'string') {
-      throw new Error("`outputType` must be a string");
+      throw new Error('`outputType` must be a string');
     }
     this.type = this.outputType;
   }
@@ -91,8 +91,7 @@ export class CastExpression extends ChainableExpression {
   }
 
   public equals(other: CastExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.outputType === other.outputType;
+    return super.equals(other) && this.outputType === other.outputType;
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -121,7 +120,8 @@ export class CastExpression extends ChainableExpression {
     if (!castJS) throw new Error(`unsupported cast type in getJS '${outputType}'`);
 
     let js = castJS[inputType] || castJS['_'];
-    if (!js) throw new Error(`unsupported combo in getJS of cast action: ${inputType} to ${outputType}`);
+    if (!js)
+      throw new Error(`unsupported combo in getJS of cast action: ${inputType} to ${outputType}`);
     return js(operandJS);
   }
 

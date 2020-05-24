@@ -75,7 +75,7 @@ export function datasetIteratorFactory(dataset: Dataset): PlywoodValueIterator {
         if (v instanceof Dataset) {
           cutRowDatasets.push({
             attribute: k,
-            datasetIterator: datasetIteratorFactory(v)
+            datasetIterator: datasetIteratorFactory(v),
           });
         } else {
           curRow[k] = v;
@@ -87,11 +87,12 @@ export function datasetIteratorFactory(dataset: Dataset): PlywoodValueIterator {
   }
 
   return () => {
-    if (curRowIndex === -2) { // Initial run
+    if (curRowIndex === -2) {
+      // Initial run
       curRowIndex++;
       let initEvent: PlyBit = {
         type: 'init',
-        attributes: dataset.attributes
+        attributes: dataset.attributes,
       };
       if (dataset.keys.length) initEvent.keys = dataset.keys;
       return initEvent;
@@ -107,15 +108,17 @@ export function datasetIteratorFactory(dataset: Dataset): PlywoodValueIterator {
       return {
         type: 'within',
         attribute: cutRowDatasets[0].attribute,
-        within: pb
+        within: pb,
       };
     }
 
     nextSelfRow();
-    return curRow ? {
-      type: 'datum',
-      datum: curRow
-    } : null;
+    return curRow
+      ? {
+          type: 'datum',
+          datum: curRow,
+        }
+      : null;
   };
 }
 
@@ -183,11 +186,10 @@ export class PlywoodValueBuilder {
       return new Dataset({
         attributes: this._attributes,
         keys: this._keys,
-        data: _data
+        data: _data,
       });
     } else {
       return this._value;
     }
   }
 }
-

@@ -29,11 +29,14 @@ interface QueueItem<T> {
   stream: PassThrough;
 }
 
-export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRequesterParameters<T>): PlywoodRequester<T> {
+export function concurrentLimitRequesterFactory<T>(
+  parameters: ConcurrentLimitRequesterParameters<T>,
+): PlywoodRequester<T> {
   let requester = parameters.requester;
   let concurrentLimit = parameters.concurrentLimit || 5;
 
-  if (typeof concurrentLimit !== "number") throw new TypeError("concurrentLimit should be a number");
+  if (typeof concurrentLimit !== 'number')
+    throw new TypeError('concurrentLimit should be a number');
 
   let requestQueue: QueueItem<T>[] = [];
   let outstandingRequests: int = 0;
@@ -61,7 +64,7 @@ export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRe
       const stream = new PassThrough({ objectMode: true });
       requestQueue.push({
         request,
-        stream
+        stream,
       });
       return stream;
     }

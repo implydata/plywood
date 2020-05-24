@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 
 export class IndexOfExpression extends ChainableUnaryExpression {
-  static op = "IndexOf";
+  static op = 'IndexOf';
   static fromJS(parameters: ExpressionJS): IndexOfExpression {
     return new IndexOfExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("indexOf");
+    this._ensureOp('indexOf');
     this._checkOperandTypes('STRING');
     this._checkExpressionTypes('STRING');
     this.type = 'NUMBER';
@@ -38,10 +42,20 @@ export class IndexOfExpression extends ChainableUnaryExpression {
   }
 
   protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return Expression.jsNullSafetyBinary(operandJS, expressionJS, ((a, b) => `${a}.indexOf(${b})`), operandJS[0] === '"', expressionJS[0] === '"');
+    return Expression.jsNullSafetyBinary(
+      operandJS,
+      expressionJS,
+      (a, b) => `${a}.indexOf(${b})`,
+      operandJS[0] === '"',
+      expressionJS[0] === '"',
+    );
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return dialect.indexOfExpression(operandSQL, expressionSQL);
   }
 }

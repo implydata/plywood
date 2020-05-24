@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import {
@@ -24,16 +23,16 @@ import {
   ExpressionMatchFn,
   ExpressionValue,
   ExtractAndRest,
-  r
+  r,
 } from './baseExpression';
 
 const IS_OR_OVERLAP: Record<string, boolean> = {
-  'is': true,
-  'overlap': true
+  is: true,
+  overlap: true,
 };
 
 export class AndExpression extends ChainableUnaryExpression {
-  static op = "And";
+  static op = 'And';
   static fromJS(parameters: ExpressionJS): AndExpression {
     return new AndExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
@@ -45,7 +44,13 @@ export class AndExpression extends ChainableUnaryExpression {
     const { operand: lhs1, expression: rhs1 } = ex1 as ChainableUnaryExpression;
     const { operand: lhs2, expression: rhs2 } = ex2 as ChainableUnaryExpression;
 
-    if (!lhs1.equals(lhs2) || !Set.isAtomicType(lhs1.type) || !rhs1.isOp('literal') || !rhs2.isOp('literal')) return null;
+    if (
+      !lhs1.equals(lhs2) ||
+      !Set.isAtomicType(lhs1.type) ||
+      !rhs1.isOp('literal') ||
+      !rhs2.isOp('literal')
+    )
+      return null;
 
     let intersect = Set.intersectCover(rhs1.getLiteralValue(), rhs2.getLiteralValue());
     if (intersect === null) return null;
@@ -55,7 +60,7 @@ export class AndExpression extends ChainableUnaryExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("and");
+    this._ensureOp('and');
     this._checkOperandTypes('BOOLEAN');
     this._checkExpressionTypes('BOOLEAN');
     this.type = 'BOOLEAN';
@@ -70,7 +75,11 @@ export class AndExpression extends ChainableUnaryExpression {
     return `(${operandJS}&&${expressionJS})`;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return `(${operandSQL} AND ${expressionSQL})`;
   }
 
@@ -122,7 +131,7 @@ export class AndExpression extends ChainableUnaryExpression {
 
     return {
       extract: Expression.and(includedExpressions),
-      rest: Expression.and(excludedExpressions)
+      rest: Expression.and(excludedExpressions),
     };
   }
 }

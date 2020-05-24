@@ -29,12 +29,12 @@ import {
   r,
   Splits,
   SplitsJS,
-  SubstitutionFn
+  SubstitutionFn,
 } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 
 export class SplitExpression extends ChainableExpression implements Aggregate {
-  static op = "Split";
+  static op = 'Split';
   static fromJS(parameters: ExpressionJS): SplitExpression {
     let value = ChainableExpression.jsToValue(parameters);
 
@@ -56,7 +56,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("split");
+    this._ensureOp('split');
     this._checkOperandTypes('DATASET');
 
     let splits = parameters.splits;
@@ -93,9 +93,11 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   }
 
   public equals(other: SplitExpression | undefined): boolean {
-    return super.equals(other) &&
+    return (
+      super.equals(other) &&
       immutableLookupsEqual(this.splits, other.splits) &&
-      this.dataName === other.dataName;
+      this.dataName === other.dataName
+    );
   }
 
   public changeSplits(splits: Splits): SplitExpression {
@@ -130,7 +132,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
     let newDatasetType: Record<string, FullType> = {};
     this.mapSplits((name, expression) => {
       newDatasetType[name] = {
-        type: Set.unwrapSetType(expression.type)
+        type: Set.unwrapSetType(expression.type),
       } as any;
     });
     newDatasetType[this.dataName] = typeContext;
@@ -138,7 +140,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
     return {
       parent: typeContext.parent,
       type: 'DATASET',
-      datasetType: newDatasetType
+      datasetType: newDatasetType,
     };
   }
 
@@ -164,7 +166,9 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
     return res;
   }
 
-  public mapSplitExpressions<T>(fn: (expression: Expression, name?: string) => T): Record<string, T> {
+  public mapSplitExpressions<T>(
+    fn: (expression: Expression, name?: string) => T,
+  ): Record<string, T> {
     let { splits, keys } = this;
     let ret: Record<string, T> = Object.create(null);
     for (let key of keys) {
@@ -174,7 +178,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   }
 
   public addSplits(splits: Splits): SplitExpression {
-    const newSplits = this.mapSplitExpressions((ex) => ex);
+    const newSplits = this.mapSplitExpressions(ex => ex);
     for (let k in splits) {
       newSplits[k] = splits[k];
     }
@@ -194,7 +198,9 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   }
 
   public getSelectSQL(dialect: SQLDialect): string[] {
-    return this.mapSplits((name, expression) => `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`);
+    return this.mapSplits(
+      (name, expression) => `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`,
+    );
   }
 
   public getGroupBySQL(dialect: SQLDialect): string[] {
@@ -206,14 +212,17 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   }
 
   public fullyDefined(): boolean {
-    return this.operand.isOp('literal') && this.mapSplits((name, expression) => expression.resolved()).every(Boolean);
+    return (
+      this.operand.isOp('literal') &&
+      this.mapSplits((name, expression) => expression.resolved()).every(Boolean)
+    );
   }
 
   public simplify(): Expression {
     if (this.simple) return this;
 
     let simpleOperand = this.operand.simplify();
-    let simpleSplits = this.mapSplitExpressions((ex) => ex.simplify());
+    let simpleSplits = this.mapSplitExpressions(ex => ex.simplify());
     let simpler: Expression = this.changeOperand(simpleOperand).changeSplits(simpleSplits);
     if (simpler.fullyDefined()) return r(this.calc({}));
 
@@ -225,29 +234,47 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
     return simpler.markSimple();
   }
 
-  public _substituteHelper(substitutionFn: SubstitutionFn, indexer: Indexer, depth: int, nestDiff: int, typeContext: DatasetFullType): ExpressionTypeContext {
+  public _substituteHelper(
+    substitutionFn: SubstitutionFn,
+    indexer: Indexer,
+    depth: int,
+    nestDiff: int,
+    typeContext: DatasetFullType,
+  ): ExpressionTypeContext {
     let sub = substitutionFn.call(this, this, indexer.index, depth, nestDiff);
     if (sub) {
       indexer.index += this.expressionCount();
       return {
         expression: sub,
-        typeContext: sub.updateTypeContextIfNeeded(typeContext)
+        typeContext: sub.updateTypeContextIfNeeded(typeContext),
       };
     } else {
       indexer.index++;
     }
     depth++;
 
-    const operandSubs = this.operand._substituteHelper(substitutionFn, indexer, depth, nestDiff, typeContext);
+    const operandSubs = this.operand._substituteHelper(
+      substitutionFn,
+      indexer,
+      depth,
+      nestDiff,
+      typeContext,
+    );
     const nestDiffNext = nestDiff + 1;
-    const splitsSubs = this.mapSplitExpressions((ex) => {
-      return ex._substituteHelper(substitutionFn, indexer, depth, nestDiffNext, operandSubs.typeContext).expression;
+    const splitsSubs = this.mapSplitExpressions(ex => {
+      return ex._substituteHelper(
+        substitutionFn,
+        indexer,
+        depth,
+        nestDiffNext,
+        operandSubs.typeContext,
+      ).expression;
     });
     const updatedThis = this.changeOperand(operandSubs.expression).changeSplits(splitsSubs);
 
     return {
       expression: updatedThis,
-      typeContext: updatedThis.updateTypeContextIfNeeded(operandSubs.typeContext)
+      typeContext: updatedThis.updateTypeContextIfNeeded(operandSubs.typeContext),
     };
   }
 
@@ -256,13 +283,15 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   }
 
   public filterFromDatum(datum: Datum): Expression {
-    return Expression.and(this.mapSplits((name, expression) => {
-      if (Set.isSetType(expression.type)) {
-        return r(datum[name]).overlap(expression);
-      } else {
-        return expression.is(r(datum[name]));
-      }
-    })).simplify();
+    return Expression.and(
+      this.mapSplits((name, expression) => {
+        if (Set.isSetType(expression.type)) {
+          return r(datum[name]).overlap(expression);
+        } else {
+          return expression.is(r(datum[name]));
+        }
+      }),
+    ).simplify();
   }
 
   public hasKey(key: string): boolean {
