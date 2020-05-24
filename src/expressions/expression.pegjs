@@ -22,6 +22,7 @@ var r = plywood.r;
 var Expression = plywood.Expression;
 var LiteralExpression = plywood.LiteralExpression;
 var RefExpression = plywood.RefExpression;
+var SqlRefExpression = plywood.SqlRefExpression;
 var Set = plywood.Set;
 
 var possibleCalls = {};
@@ -175,6 +176,7 @@ Params
 BasicExpression
   = OpenParen _ ex:Expression CloseParen { return ex; }
   / "ply" OpenParen CloseParen { return ply(); }
+  / SqlRefExpression
   / RefExpression
   / LiteralExpression
 
@@ -184,6 +186,13 @@ RefExpression
     { return RefExpression.parse(name).toCaseInsensitive(); }
   / "$" name:RefExpName
     { return RefExpression.parse(name); }
+
+SqlRefExpression
+  = "s$" sql:SqlBody
+    { return new SqlRefExpression({ sql: sql }); }
+
+SqlBody
+  = "{" sql:$([^}]+) "}" { return sql; }
 
 LiteralExpression
   = value:(NullToken / FalseToken / TrueToken) { return r(value); }

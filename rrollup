@@ -49,7 +49,6 @@ cat \
   build/expressions/countExpression.js \
   build/expressions/countDistinctExpression.js \
   build/expressions/customAggregateExpression.js \
-  build/expressions/sqlAggregateExpression.js \
   build/expressions/customTransformExpression.js \
   build/expressions/divideExpression.js \
   build/expressions/extractExpression.js \
@@ -80,6 +79,8 @@ cat \
   build/expressions/selectExpression.js \
   build/expressions/sortExpression.js \
   build/expressions/splitExpression.js \
+  build/expressions/sqlAggregateExpression.js \
+  build/expressions/sqlRefExpression.js \
   build/expressions/substrExpression.js \
   build/expressions/subtractExpression.js \
   build/expressions/sumExpression.js \
@@ -149,7 +150,6 @@ cat \
   build/expressions/countExpression.js \
   build/expressions/countDistinctExpression.js \
   build/expressions/customAggregateExpression.js \
-  build/expressions/sqlAggregateExpression.js \
   build/expressions/customTransformExpression.js \
   build/expressions/divideExpression.js \
   build/expressions/extractExpression.js \
@@ -180,6 +180,8 @@ cat \
   build/expressions/selectExpression.js \
   build/expressions/sortExpression.js \
   build/expressions/splitExpression.js \
+  build/expressions/sqlAggregateExpression.js \
+  build/expressions/sqlRefExpression.js \
   build/expressions/substrExpression.js \
   build/expressions/subtractExpression.js \
   build/expressions/sumExpression.js \

@@ -58,6 +58,9 @@ describe('Expression', () => {
         { op: 'ref', name: 'a thing', ignoreCase: true, options: { hello: 'world' } },
         { op: 'ref', name: 'a thing', ignoreCase: true, options: { hello: 'druid' } },
 
+        { op: 'sqlRef', sql: `A` },
+        { op: 'sqlRef', sql: `Substr(A, 1, 2)` },
+
         {
           op: 'add',
           operand: { op: 'ref', name: 'x' },
