@@ -25,7 +25,7 @@ let {
   DruidSQLExternal,
   TimeRange,
   $,
-  i$,
+  s$,
   ply,
   r,
   basicExecutorFactory,
@@ -256,7 +256,7 @@ describe('DruidSQL Functional', function() {
 
     it('works in simple aggregate case', () => {
       let ex = $('wiki')
-        .split('$channel', 'Channel')
+        .split(s$(`CONCAT(channel, '~')`), 'Channel')
         .apply('Count', $('wiki').sqlAggregate(r(`SUM(t."count")`)))
         .apply('Fancy', $('wiki').sqlAggregate(r(`SQRT(SUM(t."added" * t."added"))`)))
         .sort('$Count', 'descending')
@@ -265,17 +265,17 @@ describe('DruidSQL Functional', function() {
       return basicExecutor(ex).then(result => {
         expect(result.toJS().data).to.deep.equal([
           {
-            Channel: 'en',
+            Channel: 'en~',
             Count: 114711,
             Fancy: 717274.3671253002,
           },
           {
-            Channel: 'vi',
+            Channel: 'vi~',
             Count: 99010,
             Fancy: 70972.1877005352,
           },
           {
-            Channel: 'de',
+            Channel: 'de~',
             Count: 25103,
             Fancy: 284404.77477356105,
           },

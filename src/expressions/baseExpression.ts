@@ -91,6 +91,7 @@ import { PowerExpression } from './powerExpression';
 import { LogExpression } from './logExpression';
 import { QuantileExpression } from './quantileExpression';
 import { RefExpression } from './refExpression';
+import { SqlRefExpression } from './sqlRefExpression';
 import { SelectExpression } from './selectExpression';
 import { Direction, SortExpression } from './sortExpression';
 import { SplitExpression } from './splitExpression';
@@ -362,7 +363,7 @@ export function $(name: string, nest?: any, type?: PlyType): RefExpression {
 }
 
 export function i$(name: string, nest?: number, type?: PlyType): RefExpression {
-  if (typeof name !== 'string') throw new TypeError('$() argument must be a string');
+  if (typeof name !== 'string') throw new TypeError('i$() argument must be a string');
   if (typeof nest === 'string') {
     type = nest as PlyType;
     nest = 0;
@@ -374,6 +375,12 @@ export function i$(name: string, nest?: number, type?: PlyType): RefExpression {
     type,
     ignoreCase: true,
   });
+}
+
+export function s$(sql: string): SqlRefExpression {
+  if (typeof sql !== 'string') throw new TypeError('s$() argument must be a string');
+
+  return new SqlRefExpression({ sql });
 }
 
 export function r(value: any): LiteralExpression {

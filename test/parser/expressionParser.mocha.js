@@ -18,7 +18,7 @@
 const { expect } = require('chai');
 
 let plywood = require('../plywood');
-let { Expression, $, ply, r } = plywood;
+let { Expression, $, s$, ply, r } = plywood;
 
 describe('expression parser', () => {
   describe('errors', () => {
@@ -248,6 +248,13 @@ describe('expression parser', () => {
     it('should work with SET/STRING type', () => {
       let ex1 = Expression.parse('$tags:SET/STRING');
       let ex2 = $('tags', 'SET/STRING');
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it('should work with SQL', () => {
+      let ex1 = Expression.parse('s${SUBSTR(A, 1, 2)}');
+      let ex2 = s$(`SUBSTR(A, 1, 2)`);
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
