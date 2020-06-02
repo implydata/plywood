@@ -25,7 +25,8 @@ export abstract class SQLDialect {
 
   public setTable(name: string | null): void {
     if (name) {
-      this.escapedTableName = this.escapeName(name);
+      // If it is one char no escape is needed (kind of a hack)
+      this.escapedTableName = name.length === 1 ? name : this.escapeName(name);
     } else {
       this.escapedTableName = null;
     }

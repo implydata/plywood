@@ -39,9 +39,9 @@ let druidRequester = druidRequesterFactory({
   host: info.druidHost,
 });
 
-druidRequester = verboseRequesterFactory({
-  requester: druidRequester,
-});
+// druidRequester = verboseRequesterFactory({
+//   requester: druidRequester,
+// });
 
 describe('DruidSQL Functional', function() {
   this.timeout(10000);
@@ -283,7 +283,7 @@ describe('DruidSQL Functional', function() {
       });
     });
 
-    it.skip('can do compare column', () => {
+    it('can do compare column', () => {
       let prevRange = TimeRange.fromJS({
         start: new Date('2015-09-12T00:00:00Z'),
         end: new Date('2015-09-12T12:00:00Z'),

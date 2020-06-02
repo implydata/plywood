@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { parseSql, SqlBase } from 'druid-query-toolkit';
+import { parseSqlExpression, SqlRef, SqlExpression, SqlFunction, SqlCaseSearched } from 'druid-query-toolkit';
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
@@ -22,6 +22,21 @@ import { Aggregate } from './mixins/aggregate';
 
 export class SqlAggregateExpression extends ChainableExpression {
   static op = 'SqlAggregate';
+
+  static substituteFilter(sqlExpression: SqlExpression, condition: SqlExpression): SqlExpression {
+    return sqlExpression.walk(x => {
+      if (x instanceof SqlRef) {
+        if (x.column && x.table === 't') {
+          return SqlCaseSearched.ifFactory(condition, x);
+        }
+      }
+      if (x instanceof SqlFunction && x.isCountStar()) {
+        return x.changeWhereExpression(condition);
+      }
+      return x;
+    }) as SqlExpression;
+  }
+
   static fromJS(parameters: ExpressionJS): SqlAggregateExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.sql = parameters.sql;
@@ -29,7 +44,7 @@ export class SqlAggregateExpression extends ChainableExpression {
   }
 
   public sql: string;
-  public parsedSql: SqlBase;
+  public parsedSql: SqlExpression;
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
@@ -38,7 +53,7 @@ export class SqlAggregateExpression extends ChainableExpression {
     this._checkOperandTypes('DATASET');
     this.type = 'NUMBER';
 
-    this.parsedSql = parseSql(this.sql);
+    this.parsedSql = parseSqlExpression(this.sql);
   }
 
   public valueOf(): ExpressionValue {
@@ -66,7 +81,12 @@ export class SqlAggregateExpression extends ChainableExpression {
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return this.sql;
+    if (operandSQL.includes(' WHERE ')) {
+      const filterParse = parseSqlExpression(operandSQL.split(' WHERE ')[1]);
+      return String(SqlAggregateExpression.substituteFilter(this.parsedSql, filterParse));
+    } else {
+      return `(${this.sql})`;
+    }
   }
 }
 

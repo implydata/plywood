@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { parseSql, SqlBase } from 'druid-query-toolkit';
+import { parseSqlExpression, SqlBase } from 'druid-query-toolkit';
 import { ComputeFn, Datum, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/index';
 import { Expression, ExpressionJS, ExpressionValue } from './baseExpression';
@@ -41,7 +41,7 @@ export class SqlRefExpression extends Expression {
     this.sql = sql;
 
     this.simple = true;
-    this.parsedSql = parseSql(this.sql);
+    this.parsedSql = parseSqlExpression(this.sql);
   }
 
   public valueOf(): ExpressionValue {
@@ -79,7 +79,7 @@ export class SqlRefExpression extends Expression {
   }
 
   public getSQL(dialect: SQLDialect, minimal = false): string {
-    return this.sql;
+    return `(${this.sql})`;
   }
 
   public equals(other: SqlRefExpression | undefined): boolean {
