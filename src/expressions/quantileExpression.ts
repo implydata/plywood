@@ -15,6 +15,7 @@
  */
 
 import { Dataset, PlywoodValue } from '../datatypes/index';
+import { SQLDialect } from '../dialect';
 import {
   ChainableUnaryExpression,
   Expression,
@@ -71,6 +72,14 @@ export class QuantileExpression extends ChainableUnaryExpression implements Aggr
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     return operandValue ? (operandValue as Dataset).quantile(this.expression, this.value) : null;
+  }
+
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
+    return dialect.quantileExpression(operandSQL, expressionSQL);
   }
 }
 

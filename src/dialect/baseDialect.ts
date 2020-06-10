@@ -184,6 +184,10 @@ export abstract class SQLDialect {
 
   public abstract indexOfExpression(str: string, substr: string): string;
 
+  public quantileExpression(str: string, substr: string): string {
+    throw new Error('must implement');
+  }
+
   public logExpression(base: string, operand: string): string {
     if (base === String(Math.E)) return `LN(${operand})`;
     return `LOG(${base},${operand})`;

@@ -341,6 +341,42 @@ describe('DruidSQL Functional', function() {
     });
   });
 
+  describe('custom SQL with WITH', () => {
+    let basicExecutor = basicExecutorFactory({
+      datasets: {
+        wiki: External.fromJS(
+          {
+            engine: 'druidsql',
+            source: 'wikipedia_zzz',
+            attributes: wikiAttributes,
+            derivedAttributes: wikiDerivedAttributes,
+            withQuery: `SELECT * FROM wikipedia WHERE channel = 'en'`,
+          },
+          druidRequester,
+        ),
+      },
+    });
+
+    it('works in simple aggregate case', () => {
+      let ex = $('wiki')
+        .split(s$(`CONCAT(channel, '~')`), 'Channel')
+        .apply('Count', $('wiki').sqlAggregate(r(`SUM(t."count")`)))
+        .apply('Fancy', $('wiki').sqlAggregate(r(`SQRT(SUM(t."added" * t."added"))`)))
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            Channel: 'en~',
+            Count: 114711,
+            Fancy: 717274.3671253002,
+          },
+        ]);
+      });
+    });
+  });
+
   describe('defined attributes in datasource', () => {
     let basicExecutor = basicExecutorFactory({
       datasets: {

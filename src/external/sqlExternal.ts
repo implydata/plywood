@@ -28,7 +28,8 @@ import {
   SplitExpression,
   TimeBucketExpression,
 } from '../expressions/index';
-import { External, ExternalValue, Inflater, QueryAndPostTransform } from './baseExternal';
+import { External, ExternalJS, ExternalValue, Inflater, QueryAndPostTransform } from './baseExternal';
+import { PlywoodRequester } from 'plywood-base-api';
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
   return split.mapSplits((label, splitExpression) => {
@@ -41,11 +42,26 @@ function getSplitInflaters(split: SplitExpression): Inflater[] {
 export abstract class SQLExternal extends External {
   static type = 'DATASET';
 
+  static jsToValue(parameters: ExternalJS, requester: PlywoodRequester<any>): ExternalValue {
+    let value: ExternalValue = External.jsToValue(parameters, requester);
+    value.withQuery = parameters.withQuery;
+    return value;
+  }
+
+  public withQuery?: string;
+
   public dialect: SQLDialect;
 
   constructor(parameters: ExternalValue, dialect: SQLDialect) {
     super(parameters, dummyObject);
+    this.withQuery = parameters.withQuery;
     this.dialect = dialect;
+  }
+
+  public valueOf(): ExternalValue {
+    let value: ExternalValue = super.valueOf();
+    value.withQuery = this.withQuery;
+    return value;
   }
 
   // -----------------
@@ -70,7 +86,11 @@ export abstract class SQLExternal extends External {
   }
 
   protected getFrom(): string {
-    const { source, dialect } = this;
+    const { source, dialect, withQuery } = this;
+    if (withQuery) {
+      return `FROM __with__ AS t`;
+    }
+
     const m = String(source).match(/^(\w+)\.(.+)$/);
     if (m) {
       return `FROM ${m[1]}.${dialect.escapeName(m[2])} AS t`;
@@ -80,9 +100,15 @@ export abstract class SQLExternal extends External {
   }
 
   public getQueryAndPostTransform(): QueryAndPostTransform<string> {
-    const { mode, applies, sort, limit, derivedAttributes, dialect } = this;
+    const { mode, applies, sort, limit, derivedAttributes, dialect, withQuery } = this;
 
-    let query = ['SELECT'];
+    let query = [];
+    if (withQuery) {
+      query.push(`WITH __with__ AS (${withQuery})\n`);
+    }
+
+    query.push('SELECT');
+
     let postTransform: Transform = null;
     let inflaters: Inflater[] = [];
     let keys: string[] = null;
