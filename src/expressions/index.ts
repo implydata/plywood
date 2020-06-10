@@ -62,6 +62,8 @@ export * from './quantileExpression';
 export * from './selectExpression';
 export * from './sortExpression';
 export * from './splitExpression';
+export * from './sqlRefExpression';
+export * from './sqlAggregateExpression';
 export * from './substrExpression';
 export * from './subtractExpression';
 export * from './sumExpression';

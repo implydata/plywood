@@ -277,6 +277,10 @@ export interface ExternalValue {
   limit?: LimitExpression;
   havingFilter?: Expression;
 
+  // SQL
+
+  withQuery?: string;
+
   // Druid
 
   timeAttribute?: string;
@@ -304,6 +308,10 @@ export interface ExternalJS {
   rawAttributes?: AttributeJSs;
   concealBuckets?: boolean;
 
+  // SQL
+
+  withQuery?: string;
+  
   // Druid
 
   timeAttribute?: string;

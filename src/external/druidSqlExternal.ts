@@ -32,7 +32,7 @@ export class DruidSQLExternal extends SQLExternal {
   static type = 'DATASET';
 
   static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): DruidSQLExternal {
-    let value: ExternalValue = External.jsToValue(parameters, requester);
+    let value: ExternalValue = SQLExternal.jsToValue(parameters, requester);
     return new DruidSQLExternal(value);
   }
 

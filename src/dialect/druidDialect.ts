@@ -166,6 +166,10 @@ export class DruidDialect extends SQLDialect {
     return `POSITION(${substr} IN ${str}) - 1`;
   }
 
+  public quantileExpression(str: string, quantile: string): string {
+    return `APPROX_QUANTILE_DS(${str}, ${quantile})`;
+  }
+
   public logExpression(base: string, operand: string): string {
     if (base === String(Math.E)) return `LN(${operand})`;
     if (base === '10') return `LOG10(${operand})`;
