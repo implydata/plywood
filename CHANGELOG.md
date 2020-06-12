@@ -3,9 +3,11 @@
 ## 0.22.0
 
 - Remove PlyQL
+- Switch code to prettier
 - Add `withQuery` to SQLExternal
 - add `s$` (SQL ref function)
 - add `sqlAgregate`
+- Remove plywood-light build
 
 
 ## 0.21.8
