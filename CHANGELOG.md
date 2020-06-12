@@ -3,6 +3,9 @@
 ## 0.22.0
 
 - Remove PlyQL
+- Add `withQuery` to SQLExternal
+- add `s$` (SQL ref function)
+- add `sqlAgregate`
 
 
 ## 0.21.7
