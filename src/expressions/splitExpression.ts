@@ -193,8 +193,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   }
 
   public getSQL(dialect: SQLDialect): string {
-    let groupBys = this.mapSplits((name, expression) => expression.getSQL(dialect));
-    return `GROUP BY ${groupBys.join(', ')}`;
+    throw new Error('can not convert split expression to SQL directly');
   }
 
   public getSelectSQL(dialect: SQLDialect): string[] {
