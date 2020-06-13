@@ -128,7 +128,7 @@ export class DruidSQLExternal extends SQLExternal {
   }
 
   protected capability(cap: string): boolean {
-    if (cap === 'filter-on-attribute' || cap === 'shortcut-group-by') return false;
+    if (cap === 'filter-on-attribute') return false;
     return super.capability(cap);
   }
 }
