@@ -2725,6 +2725,30 @@ describe('Druid Functional', function() {
       });
     });
 
+    it('works with resplit agg on different dimension split with sum', () => {
+      let ex = $('wiki')
+        .split('$channel', 'Channel')
+        .apply('Count', $('wiki').sum('$count'))
+        .apply(
+          'SumCountDistinct',
+          $('wiki')
+            .filter(
+              $('countryIsoCode')
+                .in(['US', 'IT'])
+                .and($('cityName').isnt(null)),
+            )
+            .split('$time.timeBucket(PT1H)')
+            .apply('C', '$wiki.countDistinct($user)')
+            .sum('$C'),
+        )
+        .sort('$Count', 'descending')
+        .limit(5);
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([]);
+      });
+    });
+
     it('works with resplit agg on same dimension split', () => {
       let ex = $('wiki')
         .split('$time.timeBucket(PT1H)', 'Hour')

@@ -1102,7 +1102,7 @@ export class DruidExternal extends External {
                   AttributeInfo.fromJS({ name: definedFilterName, type: 'NUMBER' }),
                 );
                 resplitAggWithUpdatedNames = resplitAggWithUpdatedNames.changeOperand(
-                  $('_').filter($(definedFilterName).greaterThan(r(0))),
+                  $('_').filter($(definedFilterName).greaterThan(r(0)).simplify()),
                 );
               }
 
