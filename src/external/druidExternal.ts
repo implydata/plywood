@@ -970,7 +970,7 @@ export class DruidExternal extends External {
                 $('_').apply(definedFilterName, filterExpression.count())
               );
               outerAttributes.push(AttributeInfo.fromJS({ name: definedFilterName, type: 'NUMBER' }));
-              resplitAggWithUpdatedNames = resplitAggWithUpdatedNames.changeOperand($('_').filter($(definedFilterName).greaterThan(r(0))));
+              resplitAggWithUpdatedNames = resplitAggWithUpdatedNames.changeOperand($('_').filter($(definedFilterName).greaterThan(r(0)).simplify()));
             }
 
             return resplitAggWithUpdatedNames;

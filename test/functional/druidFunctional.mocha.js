@@ -2545,6 +2545,56 @@ describe("Druid Functional", function() {
         });
     });
 
+    it('works with resplit agg on different dimension split with sum', () => {
+      let ex = $('wiki')
+        .split('$channel', 'Channel')
+        .apply('Count', $('wiki').sum('$count'))
+        .apply(
+          'SumCountDistinct',
+          $('wiki')
+            .filter(
+              $('countryIsoCode')
+                .in(['US', 'IT'])
+                .and($('cityName').isnt(null)),
+            )
+            .split('$time.timeBucket(PT1H)')
+            .apply('C', '$wiki.countDistinct($user)')
+            .sum('$C'),
+        )
+        .sort('$Count', 'descending')
+        .limit(5);
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            "Channel": "en",
+            "Count": 114711,
+            "SumCountDistinct": 2342
+          },
+          {
+            "Channel": "vi",
+            "Count": 99010,
+            "SumCountDistinct": 2
+          },
+          {
+            "Channel": "de",
+            "Count": 25103,
+            "SumCountDistinct": 3
+          },
+          {
+            "Channel": "fr",
+            "Count": 21285,
+            "SumCountDistinct": 23
+          },
+          {
+            "Channel": "ru",
+            "Count": 14031,
+            "SumCountDistinct": 10
+          }
+        ]);
+      });
+    });
+
     it("works with resplit agg on same dimension split", () => {
       let ex = $('wiki').split('$time.timeBucket(PT1H)', 'Hour')
         .apply('Count', $('wiki').sum('$count'))

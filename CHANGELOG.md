@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.21.8
+
+- Fix measure re-splitter with filter
+
 ## 0.21.7
 
 - Updated Druid SQL driver to be up to date with latest Druid
