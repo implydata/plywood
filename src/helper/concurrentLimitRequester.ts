@@ -37,7 +37,6 @@ export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRe
 
   let requestQueue: QueueItem<T>[] = [];
   let outstandingRequests: int = 0;
-
   function requestFinished(): void {
     outstandingRequests--;
     if (!(requestQueue.length && outstandingRequests < concurrentLimit)) return;
@@ -45,8 +44,11 @@ export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRe
     outstandingRequests++;
 
     const stream = requester(queueItem.request);
-    stream.on('error', requestFinished);
-    stream.on('end', requestFinished);
+
+    const requestFinishedOnce = getOnceCallback(requestFinished);
+    stream.on('error', requestFinishedOnce);
+    stream.on('end', requestFinishedOnce);
+
     pipeWithError(stream, queueItem.stream);
   }
 
@@ -54,8 +56,11 @@ export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRe
     if (outstandingRequests < concurrentLimit) {
       outstandingRequests++;
       const stream = requester(request);
-      stream.on('error', requestFinished);
-      stream.on('end', requestFinished);
+
+      const requestFinishedOnce = getOnceCallback(requestFinished);
+      stream.on('error', requestFinishedOnce);
+      stream.on('end', requestFinishedOnce);
+
       return stream;
     } else {
       const stream = new PassThrough({ objectMode: true });
@@ -64,6 +69,17 @@ export function concurrentLimitRequesterFactory<T>(parameters: ConcurrentLimitRe
         stream
       });
       return stream;
+    }
+  };
+}
+
+function getOnceCallback(callback: () => void) {
+  let called = false;
+
+  return () => {
+    if (!called) {
+      called = true;
+      callback();
     }
   };
 }
