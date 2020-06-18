@@ -344,7 +344,7 @@ describe('DruidSQL Functional', function() {
   describe('custom SQL with WITH', () => {
     let basicExecutor = basicExecutorFactory({
       datasets: {
-        wiki: External.fromJS(
+        wikiWith: External.fromJS(
           {
             engine: 'druidsql',
             source: 'wikipedia_zzz',
@@ -358,10 +358,10 @@ describe('DruidSQL Functional', function() {
     });
 
     it('works in simple aggregate case', () => {
-      let ex = $('wiki')
+      let ex = $('wikiWith')
         .split(s$(`CONCAT(channel, '~')`), 'Channel')
-        .apply('Count', $('wiki').sqlAggregate(r(`SUM(t."count")`)))
-        .apply('Fancy', $('wiki').sqlAggregate(r(`SQRT(SUM(t."added" * t."added"))`)))
+        .apply('Count', $('wikiWith').sqlAggregate(r(`SUM(t."count")`)))
+        .apply('Fancy', $('wikiWith').sqlAggregate(r(`SQRT(SUM(t."added" * t."added"))`)))
         .sort('$Count', 'descending')
         .limit(3);
 
@@ -646,6 +646,29 @@ describe('DruidSQL Functional', function() {
           },
           {
             CityName: 'Élancourt',
+          },
+        ]);
+      });
+    });
+
+    it('works with fancy lookup filter', () => {
+      let ex = ply()
+        .apply(
+          'wiki',
+          $('wiki').filter(
+            $('channel')
+              .lookup('channel-lookup')
+              .fallback('"???"')
+              .concat(r(' ('), '$channel', r(')'))
+              .in(['English (en)', 'German (de)']),
+          ),
+        )
+        .apply('Count', '$wiki.sum($count)');
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            Count: 114711,
           },
         ]);
       });
