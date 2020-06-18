@@ -192,4 +192,8 @@ export abstract class SQLDialect {
     if (base === String(Math.E)) return `LN(${operand})`;
     return `LOG(${base},${operand})`;
   }
+
+  public lookupExpression(base: string, lookup: string): string {
+    throw new Error('can not express a lookup as a function');
+  }
 }

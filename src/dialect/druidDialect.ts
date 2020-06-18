@@ -175,4 +175,8 @@ export class DruidDialect extends SQLDialect {
     if (base === '10') return `LOG10(${operand})`;
     return `LN(${operand})/LN(${base})`;
   }
+
+  public lookupExpression(base: string, lookup: string): string {
+    return `LOOKUP(${base}, ${this.escapeLiteral(lookup)})`;
+  }
 }
