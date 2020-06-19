@@ -34,6 +34,6 @@ var parseSqlExpression = druidQueryToolkit.parseSqlExpression;
 var SqlRef = druidQueryToolkit.SqlRef;
 var SqlExpression = druidQueryToolkit.SqlExpression;
 var SqlFunction = druidQueryToolkit.SqlFunction;
-var SqlCaseSearched = druidQueryToolkit.SqlCaseSearched;
+var SqlCase = druidQueryToolkit.SqlCase;
 
 var dummyObject = {};

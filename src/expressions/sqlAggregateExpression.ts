@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { parseSqlExpression, SqlRef, SqlExpression, SqlFunction, SqlCaseSearched } from 'druid-query-toolkit';
+import { parseSqlExpression, SqlRef, SqlExpression, SqlFunction, SqlCase } from 'druid-query-toolkit';
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
@@ -27,7 +27,7 @@ export class SqlAggregateExpression extends ChainableExpression {
     return sqlExpression.walk(x => {
       if (x instanceof SqlRef) {
         if (x.column && x.table === 't') {
-          return SqlCaseSearched.ifFactory(condition, x);
+          return SqlCase.ifFactory(condition, x);
         }
       }
       if (x instanceof SqlFunction && x.isCountStar()) {
