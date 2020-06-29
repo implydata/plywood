@@ -27,7 +27,7 @@ export class SqlAggregateExpression extends ChainableExpression {
     return sqlExpression.walk(x => {
       if (x instanceof SqlRef) {
         if (x.column && x.table === 't') {
-          return SqlCase.ifFactory(condition, x);
+          return SqlCase.ifThenElse(condition, x);
         }
       }
       if (x instanceof SqlFunction && x.isCountStar()) {
