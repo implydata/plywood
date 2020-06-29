@@ -16,17 +16,22 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 
 export class PowerExpression extends ChainableUnaryExpression {
-  static op = "Power";
+  static op = 'Power';
   static fromJS(parameters: ExpressionJS): PowerExpression {
     return new PowerExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("power");
+    this._ensureOp('power');
     this._checkOperandTypes('NUMBER');
     this._checkExpressionTypes('NUMBER');
     this.type = Set.isSetType(this.operand.type) ? this.operand.type : this.expression.type;
@@ -44,7 +49,11 @@ export class PowerExpression extends ChainableUnaryExpression {
     return `Math.pow(${operandJS},${expressionJS})`;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return `POWER(${operandSQL},${expressionSQL})`;
   }
 
@@ -54,7 +63,6 @@ export class PowerExpression extends ChainableUnaryExpression {
     if (expression.equals(Expression.ONE)) return operand;
     return this;
   }
-
 }
 
 Expression.register(PowerExpression);

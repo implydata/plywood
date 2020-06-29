@@ -20,7 +20,7 @@ import { PlyTypeSingleValue } from '../types';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class CustomTransformExpression extends ChainableExpression {
-  static op = "CustomTransform";
+  static op = 'CustomTransform';
   static fromJS(parameters: ExpressionJS): CustomTransformExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.custom = parameters.custom;
@@ -33,7 +33,7 @@ export class CustomTransformExpression extends ChainableExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("customTransform");
+    this._ensureOp('customTransform');
     this.custom = parameters.custom;
     if (parameters.outputType) this.outputType = parameters.outputType as PlyTypeSingleValue;
     this.type = this.outputType || this.operand.type;
@@ -54,9 +54,9 @@ export class CustomTransformExpression extends ChainableExpression {
   }
 
   public equals(other: CustomTransformExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.custom === other.custom &&
-      this.outputType === other.outputType;
+    return (
+      super.equals(other) && this.custom === other.custom && this.outputType === other.outputType
+    );
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -70,7 +70,7 @@ export class CustomTransformExpression extends ChainableExpression {
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    throw new Error("Custom transform not supported in SQL");
+    throw new Error('Custom transform not supported in SQL');
   }
 
   protected _getJSChainableHelper(operandJS: string): string {

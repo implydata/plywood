@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 let plywood = require('../plywood');
 let { $, ply, r } = plywood;
 
-describe("substitute", () => {
-  it("should substitute on IS", () => {
+describe('substitute', () => {
+  it('should substitute on IS', () => {
     let ex1 = r(5).is('$hello');
 
-    let subs = (ex) => {
+    let subs = ex => {
       if (ex.op === 'literal' && ex.type === 'NUMBER') {
         return r(ex.value + 10);
       } else {
@@ -37,7 +37,7 @@ describe("substitute", () => {
     expect(ex1.substitute(subs).toJS()).to.deep.equal(ex2.toJS());
   });
 
-  it("should substitute on complex expression", () => {
+  it('should substitute on complex expression', () => {
     let ex1 = ply()
       .apply('num', 5)
       .apply(
@@ -46,10 +46,10 @@ describe("substitute", () => {
           .apply('x', '$num + 1')
           .apply('y', '$foo * 2')
           .apply('z', ply().sum('$a + 3'))
-          .apply('w', ply().sum('$a + 4 + $b'))
+          .apply('w', ply().sum('$a + 4 + $b')),
       );
 
-    let subs = (ex) => {
+    let subs = ex => {
       if (ex.op === 'literal' && ex.type === 'NUMBER') {
         return r(ex.value + 10);
       } else {
@@ -65,13 +65,13 @@ describe("substitute", () => {
           .apply('x', '$num + 11')
           .apply('y', '$foo * 12')
           .apply('z', ply().sum('$a + 13'))
-          .apply('w', ply().sum('$a + 14 + $b'))
+          .apply('w', ply().sum('$a + 14 + $b')),
       );
 
     expect(ex1.substitute(subs).toJS()).to.deep.equal(ex2.toJS());
   });
 
-  it("has sequential indexes", () => {
+  it('has sequential indexes', () => {
     let ex = ply()
       .apply('num', 5)
       .apply(
@@ -80,7 +80,7 @@ describe("substitute", () => {
           .apply('x', '$num + 1')
           .apply('y', '$foo * 2')
           .apply('z', ply().sum('$a + 3'))
-          .apply('w', ply().sum('$a + 4 + $b'))
+          .apply('w', ply().sum('$a + 4 + $b')),
       );
 
     let indexes = [];
@@ -93,11 +93,9 @@ describe("substitute", () => {
     ex.substitute(subs);
     expect(expressionCount).to.equal(27);
 
-
     let range = [];
     for (let i = 0; i < expressionCount; i++) range.push(i);
 
     expect(indexes).to.deep.equal(range);
   });
 });
-

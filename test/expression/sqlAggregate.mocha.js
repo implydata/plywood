@@ -1,6 +1,5 @@
 /*
- * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2020 Imply Data, Inc.
+ * Copyright 2020 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +15,22 @@
  */
 
 const { expect } = require('chai');
+const { parseSqlExpression } = require('druid-query-toolkit');
 
 let plywood = require('../plywood');
-let { $, ply, r, MatchExpression, Set } = plywood;
+let { SqlAggregateExpression } = plywood;
 
-describe('MatchExpression', () => {
-  it('.likeToRegExp', () => {
-    expect(MatchExpression.likeToRegExp('%David\\_R_ss%')).to.equal('^.*David_R.ss.*$');
-
-    expect(MatchExpression.likeToRegExp('%David|_R_ss||%', '|')).to.equal('^.*David_R.ss\\|.*$');
-  });
-
-  it('matches on set (no comma)', () => {
-    let ex = r(Set.fromJS(['a', 'b'])).match(',');
-
-    return ex.compute().then(v => {
-      expect(v).to.deep.equal(false);
-    });
+describe('SqlAggregateExpression', () => {
+  it('.substituteFilter', () => {
+    expect(
+      String(
+        SqlAggregateExpression.substituteFilter(
+          parseSqlExpression(`SUM(t.revenue) / MIN(t.lol)`),
+          parseSqlExpression(`t.channel = 'en'`),
+        ),
+      ),
+    ).to.equal(
+      `SUM(CASE WHEN t.channel = 'en' THEN t.revenue END) / MIN(CASE WHEN t.channel = 'en' THEN t.lol END)`,
+    );
   });
 });

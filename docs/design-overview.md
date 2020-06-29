@@ -59,7 +59,3 @@ External.fromJS({
 
 A varied collection of helper functions are included with Plywood with the idea of making the task of building a query
 layer as simple as possible.
-
-One notable example of a helper is the SQL parser which parses [PlyQL](https://github.com/implydata/plyql), 
-a SQL-like language, into plywood expressions allowing those to be executed via the Plywood externals. 
-This is how Plywood can provide a SQL-like interface to Druid.

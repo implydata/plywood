@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class NotExpression extends ChainableExpression {
-  static op = "Not";
+  static op = 'Not';
   static fromJS(parameters: ExpressionJS): NotExpression {
     return new NotExpression(ChainableExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("not");
+    this._ensureOp('not');
     this._checkOperandTypes('BOOLEAN');
     this.type = 'BOOLEAN';
   }

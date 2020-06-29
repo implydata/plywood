@@ -16,18 +16,23 @@
 
 import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 
 export class CountDistinctExpression extends ChainableUnaryExpression implements Aggregate {
-  static op = "CountDistinct";
+  static op = 'CountDistinct';
   static fromJS(parameters: ExpressionJS): CountDistinctExpression {
     return new CountDistinctExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("countDistinct");
+    this._ensureOp('countDistinct');
     this._checkOperandTypes('DATASET');
     this.type = 'NUMBER';
   }
@@ -36,7 +41,11 @@ export class CountDistinctExpression extends ChainableUnaryExpression implements
     return operandValue ? (operandValue as Dataset).countDistinct(this.expression) : null;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return `COUNT(DISTINCT ${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL)})`;
   }
 }

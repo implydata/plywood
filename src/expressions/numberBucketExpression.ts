@@ -22,7 +22,7 @@ import { continuousFloorExpression } from '../helper/utils';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class NumberBucketExpression extends ChainableExpression {
-  static op = "NumberBucket";
+  static op = 'NumberBucket';
   static fromJS(parameters: ExpressionJS): NumberBucketExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.size = parameters.size;
@@ -37,7 +37,7 @@ export class NumberBucketExpression extends ChainableExpression {
     super(parameters, dummyObject);
     this.size = parameters.size;
     this.offset = parameters.offset;
-    this._ensureOp("numberBucket");
+    this._ensureOp('numberBucket');
     this._checkOperandTypes('NUMBER');
     this.type = 'NUMBER_RANGE';
   }
@@ -57,9 +57,7 @@ export class NumberBucketExpression extends ChainableExpression {
   }
 
   public equals(other: NumberBucketExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.size === other.size &&
-      this.offset === other.offset;
+    return super.equals(other) && this.size === other.size && this.offset === other.offset;
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -69,15 +67,19 @@ export class NumberBucketExpression extends ChainableExpression {
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
-    return operandValue !== null ? NumberRange.numberBucket(operandValue, this.size, this.offset) : null;
+    return operandValue !== null
+      ? NumberRange.numberBucket(operandValue, this.size, this.offset)
+      : null;
   }
 
   protected _getJSChainableHelper(operandJS: string): string {
-    return Expression.jsNullSafetyUnary(operandJS, (n) => continuousFloorExpression(n, "Math.floor", this.size, this.offset));
+    return Expression.jsNullSafetyUnary(operandJS, n =>
+      continuousFloorExpression(n, 'Math.floor', this.size, this.offset),
+    );
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return continuousFloorExpression(operandSQL, "FLOOR", this.size, this.offset);
+    return continuousFloorExpression(operandSQL, 'FLOOR', this.size, this.offset);
   }
 }
 

@@ -3,4 +3,3 @@ gallery
 design-overview
 expressions
 datatypes
-plyql

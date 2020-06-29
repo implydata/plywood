@@ -19,7 +19,7 @@ import { SQLDialect } from '../dialect/baseDialect';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class LookupExpression extends ChainableExpression {
-  static op = "Lookup";
+  static op = 'Lookup';
   static fromJS(parameters: ExpressionJS): LookupExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.lookupFn = parameters.lookupFn || (parameters as any).lookup;
@@ -30,7 +30,7 @@ export class LookupExpression extends ChainableExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("lookup");
+    this._ensureOp('lookup');
     this._checkOperandTypes('STRING');
     this.lookupFn = parameters.lookupFn;
     this.type = this.operand.type;
@@ -49,8 +49,7 @@ export class LookupExpression extends ChainableExpression {
   }
 
   public equals(other: LookupExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.lookupFn === other.lookupFn;
+    return super.equals(other) && this.lookupFn === other.lookupFn;
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -70,7 +69,7 @@ export class LookupExpression extends ChainableExpression {
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    throw new Error('can not express as SQL');
+    return dialect.lookupExpression(operandSQL, this.lookupFn);
   }
 }
 

@@ -44,7 +44,7 @@ import {
   RefExpression,
   SubtractExpression,
   SumExpression,
-  TransformCaseExpression
+  TransformCaseExpression,
 } from '../../expressions';
 
 import { External } from '../baseExternal';
@@ -74,25 +74,23 @@ export class DruidAggregationBuilder {
   static AGGREGATE_TO_FUNCTION: Record<string, Function> = {
     sum: (a: string, b: string) => `${a}+${b}`,
     min: (a: string, b: string) => `Math.min(${a},${b})`,
-    max: (a: string, b: string) => `Math.max(${a},${b})`
+    max: (a: string, b: string) => `Math.max(${a},${b})`,
   };
 
   static AGGREGATE_TO_ZERO: Record<string, string> = {
-    sum: "0",
-    min: "Infinity",
-    max: "-Infinity"
+    sum: '0',
+    min: 'Infinity',
+    max: '-Infinity',
   };
 
   static APPROX_HISTOGRAM_TUNINGS: string[] = [
-    "resolution",
-    "numBuckets",
-    "lowerLimit",
-    "upperLimit"
+    'resolution',
+    'numBuckets',
+    'lowerLimit',
+    'upperLimit',
   ];
 
-  static QUANTILES_DOUBLES_TUNINGS: string[] = [
-    "k"
-  ];
+  static QUANTILES_DOUBLES_TUNINGS: string[] = ['k'];
 
   static addOptionsToAggregation(aggregation: Druid.Aggregation, expression: Expression) {
     const options = expression.options;
@@ -123,13 +121,17 @@ export class DruidAggregationBuilder {
     this.allowEternity = options.allowEternity;
   }
 
-  public makeAggregationsAndPostAggregations(applies: ApplyExpression[]): AggregationsAndPostAggregations {
+  public makeAggregationsAndPostAggregations(
+    applies: ApplyExpression[],
+  ): AggregationsAndPostAggregations {
     let { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(
       applies.map(apply => {
         let expression = apply.expression;
-        expression = this.switchToRollupCount(this.inlineDerivedAttributesInAggregate(expression).decomposeAverage()).distribute();
+        expression = this.switchToRollupCount(
+          this.inlineDerivedAttributesInAggregate(expression).decomposeAverage(),
+        ).distribute();
         return apply.changeExpression(expression);
-      })
+      }),
     );
 
     let aggregations: Druid.Aggregation[] = [];
@@ -145,63 +147,77 @@ export class DruidAggregationBuilder {
 
     return {
       aggregations,
-      postAggregations
+      postAggregations,
     };
   }
 
-
-  private applyToAggregation(action: ApplyExpression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
+  private applyToAggregation(
+    action: ApplyExpression,
+    aggregations: Druid.Aggregation[],
+    postAggregations: Druid.PostAggregation[],
+  ): void {
     const { name, expression } = action;
     this.expressionToAggregation(name, expression, aggregations, postAggregations);
   }
 
-  private applyToPostAggregation(apply: ApplyExpression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
-    let postAgg = this.expressionToPostAggregation(apply.expression, aggregations, postAggregations);
+  private applyToPostAggregation(
+    apply: ApplyExpression,
+    aggregations: Druid.Aggregation[],
+    postAggregations: Druid.PostAggregation[],
+  ): void {
+    let postAgg = this.expressionToPostAggregation(
+      apply.expression,
+      aggregations,
+      postAggregations,
+    );
     postAgg.name = apply.name;
     postAggregations.push(postAgg);
   }
 
   // -----------------------------------
 
-  private filterAggregateIfNeeded(datasetExpression: Expression, aggregator: Druid.Aggregation): Druid.Aggregation {
+  private filterAggregateIfNeeded(
+    datasetExpression: Expression,
+    aggregator: Druid.Aggregation,
+  ): Druid.Aggregation {
     if (datasetExpression instanceof FilterExpression) {
       return {
-        type: "filtered",
+        type: 'filtered',
         name: aggregator.name,
         filter: new DruidFilterBuilder(this).timelessFilterToFilter(datasetExpression.expression),
-        aggregator
+        aggregator,
       };
-
     } else if (datasetExpression instanceof RefExpression) {
       return aggregator;
-
     } else {
       throw new Error(`could not construct aggregate on ${datasetExpression}`);
-
     }
   }
 
-  private expressionToAggregation(name: string, expression: Expression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
+  private expressionToAggregation(
+    name: string,
+    expression: Expression,
+    aggregations: Druid.Aggregation[],
+    postAggregations: Druid.PostAggregation[],
+  ): void {
     const initAggregationsLength = aggregations.length;
 
     if (expression instanceof CountExpression) {
       aggregations.push(this.countToAggregation(name, expression));
-
-    } else if (expression instanceof SumExpression || expression instanceof MinExpression || expression instanceof MaxExpression) {
+    } else if (
+      expression instanceof SumExpression ||
+      expression instanceof MinExpression ||
+      expression instanceof MaxExpression
+    ) {
       aggregations.push(this.sumMinMaxToAggregation(name, expression));
-
     } else if (expression instanceof CountDistinctExpression) {
       aggregations.push(this.countDistinctToAggregation(name, expression, postAggregations));
-
     } else if (expression instanceof QuantileExpression) {
       aggregations.push(this.quantileToAggregation(name, expression, postAggregations));
-
     } else if (expression instanceof CustomAggregateExpression) {
       this.customAggregateToAggregation(name, expression, aggregations, postAggregations);
-
     } else {
       throw new Error(`unsupported aggregate action ${expression} (as ${name})`);
-
     }
 
     // Add options to all the newly added aggregations
@@ -214,11 +230,14 @@ export class DruidAggregationBuilder {
   private countToAggregation(name: string, expression: CountExpression): Druid.Aggregation {
     return this.filterAggregateIfNeeded(expression.operand, {
       name,
-      type: 'count'
+      type: 'count',
     });
   }
 
-  private sumMinMaxToAggregation(name: string, expression: SumExpression | MinExpression | MaxExpression): Druid.Aggregation {
+  private sumMinMaxToAggregation(
+    name: string,
+    expression: SumExpression | MinExpression | MaxExpression,
+  ): Druid.Aggregation {
     const op = expression.op;
     const opCap = op[0].toUpperCase() + op.substr(1);
 
@@ -233,7 +252,9 @@ export class DruidAggregationBuilder {
           aggregation = {
             name,
             type: 'double' + opCap,
-            expression: new DruidExpressionBuilder(this).expressionToDruidExpression(aggregateExpression.cast('NUMBER'))
+            expression: new DruidExpressionBuilder(this).expressionToDruidExpression(
+              aggregateExpression.cast('NUMBER'),
+            ),
           };
         } catch {
           aggregation = this.makeJavaScriptAggregation(name, expression);
@@ -242,7 +263,7 @@ export class DruidAggregationBuilder {
         aggregation = {
           name,
           type: (attributeInfo.nativeType === 'LONG' ? 'long' : 'double') + opCap,
-          fieldName: refName
+          fieldName: refName,
         };
       }
     } else {
@@ -250,7 +271,9 @@ export class DruidAggregationBuilder {
         aggregation = {
           name,
           type: 'double' + opCap,
-          expression: new DruidExpressionBuilder(this).expressionToDruidExpression(aggregateExpression)
+          expression: new DruidExpressionBuilder(this).expressionToDruidExpression(
+            aggregateExpression,
+          ),
         };
       } catch {
         aggregation = this.makeJavaScriptAggregation(name, expression);
@@ -263,26 +286,25 @@ export class DruidAggregationBuilder {
   private getCardinalityExpressions(expression: Expression): Expression[] {
     if (expression instanceof LiteralExpression) {
       return [];
-
     } else if (expression instanceof CastExpression) {
       return [expression.operand];
-
     } else if (expression instanceof ConcatExpression) {
       const subEx = expression.getExpressionList().map(ex => this.getCardinalityExpressions(ex));
       return [].concat(...subEx);
-
     } else if (expression.getFreeReferences().length === 1) {
       return [expression];
-
     } else {
       throw new Error(`can not convert ${expression} to cardinality expressions`);
-
     }
   }
 
-  private countDistinctToAggregation(name: string, expression: CountDistinctExpression, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
+  private countDistinctToAggregation(
+    name: string,
+    expression: CountDistinctExpression,
+    postAggregations: Druid.PostAggregation[],
+  ): Druid.Aggregation {
     if (this.exactResultsOnly) {
-      throw new Error("approximate query not allowed");
+      throw new Error('approximate query not allowed');
     }
 
     let aggregation: Druid.Aggregation;
@@ -298,15 +320,15 @@ export class DruidAggregationBuilder {
           tempName = '!Hyper_' + name;
           aggregation = {
             name: forceFinalize ? tempName : name,
-            type: "hyperUnique",
+            type: 'hyperUnique',
             fieldName: attributeName,
-            round: true
+            round: true,
           };
           if (forceFinalize) {
             postAggregations.push({
               type: 'finalizingFieldAccess',
               name,
-              fieldName: tempName
+              fieldName: tempName,
             });
           }
           break;
@@ -314,15 +336,15 @@ export class DruidAggregationBuilder {
         case 'thetaSketch':
           tempName = '!Theta_' + name;
           postAggregations.push({
-            type: "thetaSketchEstimate",
+            type: 'thetaSketchEstimate',
             name: name,
-            field: { type: 'fieldAccess', fieldName: tempName }
+            field: { type: 'fieldAccess', fieldName: tempName },
           });
 
           aggregation = {
             name: tempName,
-            type: "thetaSketch",
-            fieldName: attributeName
+            type: 'thetaSketch',
+            fieldName: attributeName,
           };
           break;
 
@@ -330,14 +352,14 @@ export class DruidAggregationBuilder {
           tempName = '!HLLSketch_' + name;
           aggregation = {
             name: forceFinalize ? tempName : name,
-            type: "HLLSketchMerge",
-            fieldName: attributeName
+            type: 'HLLSketchMerge',
+            fieldName: attributeName,
           };
           if (forceFinalize) {
             postAggregations.push({
               type: 'finalizingFieldAccess',
               name,
-              fieldName: tempName
+              fieldName: tempName,
             });
           }
           break;
@@ -346,38 +368,38 @@ export class DruidAggregationBuilder {
           tempName = '!Card_' + name;
           aggregation = {
             name: forceFinalize ? tempName : name,
-            type: "cardinality",
+            type: 'cardinality',
             fields: [attributeName],
-            round: true
+            round: true,
           };
           if (forceFinalize) {
             postAggregations.push({
               type: 'finalizingFieldAccess',
               name,
-              fieldName: tempName
+              fieldName: tempName,
             });
           }
           break;
       }
-
     } else {
       let cardinalityExpressions = this.getCardinalityExpressions(attribute);
 
       let druidExtractionFnBuilder: DruidExtractionFnBuilder;
       aggregation = {
         name: name,
-        type: "cardinality",
+        type: 'cardinality',
         fields: cardinalityExpressions.map(cardinalityExpression => {
           if (cardinalityExpression instanceof RefExpression) return cardinalityExpression.name;
 
-          if (!druidExtractionFnBuilder) druidExtractionFnBuilder = new DruidExtractionFnBuilder(this, true);
+          if (!druidExtractionFnBuilder)
+            druidExtractionFnBuilder = new DruidExtractionFnBuilder(this, true);
           return {
-            type: "extraction",
+            type: 'extraction',
             dimension: cardinalityExpression.getFreeReferences()[0],
-            extractionFn: druidExtractionFnBuilder.expressionToExtractionFn(cardinalityExpression)
+            extractionFn: druidExtractionFnBuilder.expressionToExtractionFn(cardinalityExpression),
           };
         }),
-        round: true
+        round: true,
       };
 
       if (cardinalityExpressions.length > 1) aggregation.byRow = true;
@@ -386,17 +408,23 @@ export class DruidAggregationBuilder {
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
   }
 
-  private customAggregateToAggregation(name: string, expression: CustomAggregateExpression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): void {
+  private customAggregateToAggregation(
+    name: string,
+    expression: CustomAggregateExpression,
+    aggregations: Druid.Aggregation[],
+    postAggregations: Druid.PostAggregation[],
+  ): void {
     let customAggregationName = expression.custom;
     let customAggregation = this.customAggregations[customAggregationName];
     if (!customAggregation) throw new Error(`could not find '${customAggregationName}'`);
 
     let nonce = String(Math.random()).substr(2);
 
-    let aggregationObjs = (
-      Array.isArray(customAggregation.aggregations) ?
-        customAggregation.aggregations :
-        (customAggregation.aggregation ? [customAggregation.aggregation] : [])
+    let aggregationObjs = (Array.isArray(customAggregation.aggregations)
+      ? customAggregation.aggregations
+      : customAggregation.aggregation
+      ? [customAggregation.aggregation]
+      : []
     ).map(a => {
       try {
         return JSON.parse(JSON.stringify(a).replace(/\{\{random\}\}/g, nonce));
@@ -408,7 +436,9 @@ export class DruidAggregationBuilder {
     let postAggregationObj = customAggregation.postAggregation;
     if (postAggregationObj) {
       try {
-        postAggregationObj = JSON.parse(JSON.stringify(postAggregationObj).replace(/\{\{random\}\}/g, nonce));
+        postAggregationObj = JSON.parse(
+          JSON.stringify(postAggregationObj).replace(/\{\{random\}\}/g, nonce),
+        );
       } catch (e) {
         throw new Error(`must have JSON custom post aggregation '${customAggregationName}'`);
       }
@@ -416,7 +446,10 @@ export class DruidAggregationBuilder {
       postAggregationObj.name = name;
       postAggregations.push(postAggregationObj);
     } else {
-      if (!aggregationObjs.length) throw new Error(`must have an aggregation or postAggregation in custom aggregation '${customAggregationName}'`);
+      if (!aggregationObjs.length)
+        throw new Error(
+          `must have an aggregation or postAggregation in custom aggregation '${customAggregationName}'`,
+        );
       aggregationObjs[0].name = name;
     }
 
@@ -424,9 +457,13 @@ export class DruidAggregationBuilder {
     aggregations.push(...aggregationObjs);
   }
 
-  private quantileToAggregation(name: string, expression: QuantileExpression, postAggregations: Druid.PostAggregation[]): Druid.Aggregation {
+  private quantileToAggregation(
+    name: string,
+    expression: QuantileExpression,
+    postAggregations: Druid.PostAggregation[],
+  ): Druid.Aggregation {
     if (this.exactResultsOnly) {
-      throw new Error("approximate query not allowed");
+      throw new Error('approximate query not allowed');
     }
 
     let attribute = expression.expression;
@@ -451,79 +488,77 @@ export class DruidAggregationBuilder {
     let tempName: string;
     switch (attributeInfo.nativeType) {
       case 'approximateHistogram':
-        tempName = "!H_" + name;
+        tempName = '!H_' + name;
         aggregation = {
           name: tempName,
           type: 'approxHistogramFold',
-          fieldName: attributeName
+          fieldName: attributeName,
         };
         addTuningsToAggregation(aggregation, DruidAggregationBuilder.APPROX_HISTOGRAM_TUNINGS);
 
         postAggregations.push({
           name,
-          type: "quantile",
+          type: 'quantile',
           fieldName: tempName,
-          probability: expression.value
+          probability: expression.value,
         });
 
         break;
 
       case 'quantilesDoublesSketch':
-        tempName = "!QD_" + name;
+        tempName = '!QD_' + name;
         aggregation = {
           name: tempName,
           type: 'quantilesDoublesSketch',
-          fieldName: attributeName
+          fieldName: attributeName,
         };
         addTuningsToAggregation(aggregation, DruidAggregationBuilder.QUANTILES_DOUBLES_TUNINGS);
 
         postAggregations.push({
           name,
-          type: "quantilesDoublesSketchToQuantile",
+          type: 'quantilesDoublesSketchToQuantile',
           field: {
-            type: "fieldAccess",
-            fieldName: tempName
+            type: 'fieldAccess',
+            fieldName: tempName,
           },
-          fraction: expression.value
+          fraction: expression.value,
         });
         break;
 
       default:
         if (Number(tuning['v']) === 2) {
-          tempName = "!QD_" + name;
+          tempName = '!QD_' + name;
           aggregation = {
             name: tempName,
             type: 'quantilesDoublesSketch',
-            fieldName: attributeName
+            fieldName: attributeName,
           };
           addTuningsToAggregation(aggregation, DruidAggregationBuilder.QUANTILES_DOUBLES_TUNINGS);
 
           postAggregations.push({
             name,
-            type: "quantilesDoublesSketchToQuantile",
+            type: 'quantilesDoublesSketchToQuantile',
             field: {
-              type: "fieldAccess",
-              fieldName: tempName
+              type: 'fieldAccess',
+              fieldName: tempName,
             },
-            fraction: expression.value
+            fraction: expression.value,
           });
-
         } else {
-          tempName = "!H_" + name;
+          tempName = '!H_' + name;
           aggregation = {
             name: tempName,
             type: 'approxHistogram',
-            fieldName: attributeName
+            fieldName: attributeName,
           };
           addTuningsToAggregation(aggregation, DruidAggregationBuilder.APPROX_HISTOGRAM_TUNINGS);
 
           postAggregations.push({
             name,
-            type: "quantile",
+            type: 'quantile',
             fieldName: tempName,
-            probability: expression.value
+            probability: expression.value,
           });
-
         }
         break;
     }
@@ -543,11 +578,14 @@ export class DruidAggregationBuilder {
       let simpleFieldNames = fieldNames.map(RefExpression.toJavaScriptSafeName);
       return {
         name,
-        type: "javascript",
+        type: 'javascript',
         fieldNames: fieldNames,
-        fnAggregate: `function($$,${simpleFieldNames.join(',')}) { return ${aggregateFunction('$$', aggregateExpression.getJS(null))}; }`,
+        fnAggregate: `function($$,${simpleFieldNames.join(',')}) { return ${aggregateFunction(
+          '$$',
+          aggregateExpression.getJS(null),
+        )}; }`,
         fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
-        fnReset: `function() { return ${zero}; }`
+        fnReset: `function() { return ${zero}; }`,
       };
     } else {
       throw new Error(`Can not convert ${aggregate} to JS aggregate`);
@@ -557,7 +595,8 @@ export class DruidAggregationBuilder {
   // ------------------------------
 
   private getAccessTypeForAggregation(aggregationType: string): string {
-    if (aggregationType === 'hyperUnique' || aggregationType === 'cardinality') return 'hyperUniqueCardinality';
+    if (aggregationType === 'hyperUnique' || aggregationType === 'cardinality')
+      return 'hyperUniqueCardinality';
 
     let customAggregations = this.customAggregations;
     for (let customName in customAggregations) {
@@ -565,7 +604,8 @@ export class DruidAggregationBuilder {
       let customAggregation = customAggregations[customName];
       if (
         (customAggregation.aggregation && customAggregation.aggregation.type === aggregationType) ||
-        (Array.isArray(customAggregation.aggregations) && customAggregation.aggregations.find(a => a.type === aggregationType))
+        (Array.isArray(customAggregation.aggregations) &&
+          customAggregation.aggregations.find(a => a.type === aggregationType))
       ) {
         return customAggregation.accessType || 'fieldAccess';
       }
@@ -584,7 +624,11 @@ export class DruidAggregationBuilder {
     return 'fieldAccess'; // If not found it must be a post-agg
   }
 
-  private expressionToPostAggregation(ex: Expression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): Druid.PostAggregation {
+  private expressionToPostAggregation(
+    ex: Expression,
+    aggregations: Druid.Aggregation[],
+    postAggregations: Druid.PostAggregation[],
+  ): Druid.PostAggregation {
     const druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(ex);
 
     if (!druidExpression) {
@@ -592,26 +636,28 @@ export class DruidAggregationBuilder {
     }
 
     return {
-      type: "expression",
-      expression: druidExpression
+      type: 'expression',
+      expression: druidExpression,
     };
   }
 
-  private expressionToLegacyPostAggregation(ex: Expression, aggregations: Druid.Aggregation[], postAggregations: Druid.PostAggregation[]): Druid.PostAggregation {
+  private expressionToLegacyPostAggregation(
+    ex: Expression,
+    aggregations: Druid.Aggregation[],
+    postAggregations: Druid.PostAggregation[],
+  ): Druid.PostAggregation {
     if (ex instanceof RefExpression) {
       let refName = ex.name;
       return {
         type: this.getAccessType(aggregations, refName),
-        fieldName: refName
+        fieldName: refName,
       };
-
     } else if (ex instanceof LiteralExpression) {
-      if (ex.type !== 'NUMBER') throw new Error("must be a NUMBER type");
+      if (ex.type !== 'NUMBER') throw new Error('must be a NUMBER type');
       return {
         type: 'constant',
-        value: ex.value
+        value: ex.value,
       };
-
     } else if (
       ex instanceof AbsoluteExpression ||
       ex instanceof PowerExpression ||
@@ -628,7 +674,7 @@ export class DruidAggregationBuilder {
         postAggregations.push({
           name: fieldNameRefTemp,
           type: accessType,
-          fieldName: fieldNameRef
+          fieldName: fieldNameRef,
         });
         return fieldNameRefTemp;
       });
@@ -637,37 +683,42 @@ export class DruidAggregationBuilder {
         name: 'dummy', // always need to have a dummy name
         type: 'javascript',
         fieldNames: fieldNames,
-        'function': `function(${fieldNameRefs.map(RefExpression.toJavaScriptSafeName)}) { return ${ex.getJS(null)}; }`
+        function: `function(${fieldNameRefs.map(
+          RefExpression.toJavaScriptSafeName,
+        )}) { return ${ex.getJS(null)}; }`,
       };
-
     } else if (ex instanceof AddExpression) {
       return {
         type: 'arithmetic',
         fn: '+',
-        fields: ex.getExpressionList().map(e => this.expressionToPostAggregation(e, aggregations, postAggregations))
+        fields: ex
+          .getExpressionList()
+          .map(e => this.expressionToPostAggregation(e, aggregations, postAggregations)),
       };
-
     } else if (ex instanceof SubtractExpression) {
       return {
         type: 'arithmetic',
         fn: '-',
-        fields: ex.getExpressionList().map(e => this.expressionToPostAggregation(e, aggregations, postAggregations))
+        fields: ex
+          .getExpressionList()
+          .map(e => this.expressionToPostAggregation(e, aggregations, postAggregations)),
       };
-
     } else if (ex instanceof MultiplyExpression) {
       return {
         type: 'arithmetic',
         fn: '*',
-        fields: ex.getExpressionList().map(e => this.expressionToPostAggregation(e, aggregations, postAggregations))
+        fields: ex
+          .getExpressionList()
+          .map(e => this.expressionToPostAggregation(e, aggregations, postAggregations)),
       };
-
     } else if (ex instanceof DivideExpression) {
       return {
         type: 'arithmetic',
         fn: '/',
-        fields: ex.getExpressionList().map(e => this.expressionToPostAggregation(e, aggregations, postAggregations))
+        fields: ex
+          .getExpressionList()
+          .map(e => this.expressionToPostAggregation(e, aggregations, postAggregations)),
       };
-
     } else {
       throw new Error(`can not convert expression to post agg: ${ex}`);
     }
@@ -677,7 +728,7 @@ export class DruidAggregationBuilder {
     if (!this.rollup) return expression;
 
     let countRef: RefExpression = null;
-    return expression.substitute((ex) => {
+    return expression.substitute(ex => {
       if (ex instanceof CountExpression) {
         if (!countRef) countRef = $(this.getRollupCountName(), 'NUMBER');
         return ex.operand.sum(countRef);
@@ -707,7 +758,7 @@ export class DruidAggregationBuilder {
   }
 
   private inlineDerivedAttributesInAggregate(expression: Expression): Expression {
-    return expression.substitute((ex) => {
+    return expression.substitute(ex => {
       if (ex.isAggregate()) {
         return this.inlineDerivedAttributes(ex);
       }

@@ -17,7 +17,6 @@
 import { Readable } from 'readable-stream';
 
 export class ReadableError extends Readable {
-
   constructor(message: string | Error, options: any = {}) {
     super(options);
 
@@ -26,10 +25,7 @@ export class ReadableError extends Readable {
     setTimeout(() => {
       this.emit('error', err);
     }, 1);
-  };
-
-  protected _read() {
-
   }
 
+  protected _read() {}
 }

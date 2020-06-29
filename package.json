@@ -1,6 +1,6 @@
 {
   "name": "plywood",
-  "version": "0.21.8",
+  "version": "0.22.0-8",
   "description": "A query planner and executor",
   "keywords": [
     "split",
@@ -25,6 +25,14 @@
     "package/",
     "typings/"
   ],
+  "prettier": {
+    "trailingComma": "all",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true,
+    "printWidth": 100,
+    "endOfLine": "lf"
+  },
   "scripts": {
     "prepare": "tdi -q",
     "compile": "./compile",
@@ -35,6 +43,7 @@
   "tonicExampleFilename": "docs/examples/tonic.js",
   "dependencies": {
     "chronoshift": "^0.9.4",
+    "druid-query-toolkit": "^0.7.20",
     "druid.d.ts": "^0.12.1",
     "has-own-prop": "^1.0.1",
     "immutable-class": "^0.9.4",
@@ -45,6 +54,7 @@
     "tslib": "^1.10.0"
   },
   "devDependencies": {
+    "awesome-code-style": "^1.4.3",
     "chai": "4.2.0",
     "f-tool": "0.1.3",
     "immutable-class-tester": "0.7.2",

@@ -16,18 +16,23 @@
 
 import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+} from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 
 export class AverageExpression extends ChainableUnaryExpression implements Aggregate {
-  static op = "Average";
+  static op = 'Average';
   static fromJS(parameters: ExpressionJS): AverageExpression {
     return new AverageExpression(ChainableUnaryExpression.jsToValue(parameters));
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp("average");
+    this._ensureOp('average');
     this._checkOperandTypes('DATASET');
     this._checkExpressionTypes('NUMBER');
     this.type = 'NUMBER';
@@ -37,7 +42,11 @@ export class AverageExpression extends ChainableUnaryExpression implements Aggre
     return operandValue ? (operandValue as Dataset).average(this.expression) : null;
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return `AVG(${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL)})`;
   }
 

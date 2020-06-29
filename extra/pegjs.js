@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2015 Metamarkets Group Inc.
- * Copyright 2015-2016 Imply Data, Inc.
+ * Copyright 2015-2020 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  */
 
 var fs = require('fs');
-var peg = require("pegjs");
+var peg = require('pegjs');
 
 function mkParser(pegjsFilename, outputFilename) {
   var grammar = fs.readFileSync(pegjsFilename, 'utf8');
@@ -25,14 +25,18 @@ function mkParser(pegjsFilename, outputFilename) {
     var parserSrc = peg.generate(grammar, {
       format: 'bare',
       output: 'source',
-      optimize: "speed" // or "size"
+      optimize: 'speed', // or "size"
     });
   } catch (e) {
     console.error(e);
     process.exit(1);
   }
 
-  parserSrc = 'module.exports =\n' + parserSrc.replace("\n(function() {\n", "\nfunction(plywood, chronoshift) {\n").replace("\n})()", "\n}");
+  parserSrc =
+    'module.exports =\n' +
+    parserSrc
+      .replace('\n(function() {\n', '\nfunction(plywood, chronoshift) {\n')
+      .replace('\n})()', '\n}');
 
   fs.writeFileSync(outputFilename, parserSrc, 'utf8');
 }
@@ -40,4 +44,3 @@ function mkParser(pegjsFilename, outputFilename) {
 // Expressions
 
 mkParser('./src/expressions/expression.pegjs', './build/expressionParser.js');
-mkParser('./src/expressions/plyql.pegjs', './build/plyqlParser.js');

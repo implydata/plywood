@@ -15,64 +15,65 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 let plywood = require('../plywood');
 let { Expression, $, ply, r } = plywood;
 
-describe("typecheck", () => {
-  it("should throw silly ref type", () => {
+describe('typecheck', () => {
+  it('should throw silly ref type', () => {
     expect(() => {
       Expression.fromJS({ op: 'ref', type: 'Corn', name: 'str' });
     }).to.throw("unsupported type 'Corn'");
   });
 
-  it("should throw on unbalanced IS", () => {
+  it('should throw on unbalanced IS', () => {
     expect(() => {
       r(5).is('hello');
     }).to.throw('is must have matching types (are NUMBER, STRING)');
   });
 
-  it("should throw on unbalanced IS (via explicit type)", () => {
+  it('should throw on unbalanced IS (via explicit type)', () => {
     expect(() => {
       r(5).is('$hello:STRING');
     }).to.throw('is must have matching types (are NUMBER, STRING)');
   });
 
-  it("should throw on non numeric lessThan", () => {
+  it('should throw on non numeric lessThan', () => {
     expect(() => {
       r(5).lessThan('hello');
-    }).to.throw("lessThan must have matching types (are NUMBER, STRING)");
+    }).to.throw('lessThan must have matching types (are NUMBER, STRING)');
   });
 
-  it("should throw on bad IN", () => {
+  it('should throw on bad IN', () => {
     expect(() => {
       r(5).in('hello');
     }).to.throw('in expression 5.in("hello") has a bad type combination NUMBER IN STRING');
   });
 
-  it("should throw on SET IN", () => {
+  it('should throw on SET IN', () => {
     expect(() => {
       $('tags', 'SET/STRING').in('$more_tags');
-    }).to.throw('in expression $tags:SET/STRING.in($more_tags) has a bad type combination SET/STRING IN *');
+    }).to.throw(
+      'in expression $tags:SET/STRING.in($more_tags) has a bad type combination SET/STRING IN *',
+    );
   });
 
-  it("should throw on mismatching fallback type", () => {
+  it('should throw on mismatching fallback type', () => {
     expect(() => {
       r(5).fallback('hello');
     }).to.throw('fallback must have matching types (are NUMBER, STRING)');
   });
 
-  it("should throw on bad aggregate (SUM)", () => {
+  it('should throw on bad aggregate (SUM)', () => {
     expect(() => {
       ply().sum($('x', 'STRING'));
     }).to.throw('sum must have expression of type NUMBER (is STRING)');
   });
 
-  it("should throw on is type mismatch", () => {
+  it('should throw on is type mismatch', () => {
     expect(() => {
       $('x', 'NUMBER').is($('y', 'SET/STRING'));
     }).to.throw('is must have matching types (are NUMBER, SET/STRING)');
   });
-
 });

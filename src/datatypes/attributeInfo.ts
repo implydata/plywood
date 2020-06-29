@@ -55,16 +55,16 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   static NATIVE_TYPE_FROM_SPECIAL: Record<string, string> = {
     unique: 'hyperUnique',
     theta: 'thetaSketch',
-    histogram: 'approximateHistogram'
+    histogram: 'approximateHistogram',
   };
 
   static fromJS(parameters: AttributeInfoJS): AttributeInfo {
-    if (typeof parameters !== "object") {
-      throw new Error("unrecognizable attributeMeta");
+    if (typeof parameters !== 'object') {
+      throw new Error('unrecognizable attributeMeta');
     }
 
     let value: AttributeInfoValue = {
-      name: parameters.name
+      name: parameters.name,
     };
     if (parameters.type) value.type = parameters.type;
 
@@ -86,7 +86,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   static fromJSs(attributeJSs: AttributeJSs): Attributes {
-    if (!Array.isArray(attributeJSs)) throw new TypeError("invalid attributeJSs");
+    if (!Array.isArray(attributeJSs)) throw new TypeError('invalid attributeJSs');
     return attributeJSs.map(attributeJS => AttributeInfo.fromJS(attributeJS));
   }
 
@@ -97,7 +97,6 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   static override(attributes: Attributes, attributeOverrides: Attributes): Attributes {
     return NamedArray.overridesByName(attributes, attributeOverrides);
   }
-
 
   public name: string;
   public nativeType: string;
@@ -110,8 +109,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   public termsDelegate?: string;
 
   constructor(parameters: AttributeInfoValue) {
-    if (typeof parameters.name !== "string") {
-      throw new Error("name must be a string");
+    if (typeof parameters.name !== 'string') {
+      throw new Error('name must be a string');
     }
     this.name = parameters.name;
     this.type = parameters.type || 'NULL';
@@ -139,14 +138,14 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       maker: this.maker,
       cardinality: this.cardinality,
       range: this.range,
-      termsDelegate: this.termsDelegate
+      termsDelegate: this.termsDelegate,
     };
   }
 
   public toJS(): AttributeInfoJS {
     let js: AttributeInfoJS = {
       name: this.name,
-      type: this.type
+      type: this.type,
     };
     if (this.nativeType) js.nativeType = this.nativeType;
     if (this.unsplitable) js.unsplitable = true;
@@ -162,7 +161,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public equals(other: AttributeInfo | undefined): boolean {
-    return other instanceof AttributeInfo &&
+    return (
+      other instanceof AttributeInfo &&
       this.name === other.name &&
       this.type === other.type &&
       this.nativeType === other.nativeType &&
@@ -170,7 +170,8 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       immutableEqual(this.maker, other.maker) &&
       this.cardinality === other.cardinality &&
       immutableEqual(this.range, other.range) &&
-      this.termsDelegate === other.termsDelegate;
+      this.termsDelegate === other.termsDelegate
+    );
   }
 
   public dropOriginInfo(): AttributeInfo {

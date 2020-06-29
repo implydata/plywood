@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-exports.druidVersion = '0.18.0-iap4';
-exports.druidHost = `localhost:8082`;
-exports.druidContext = {
-  timeout: 10000,
-  useCache: false,
-  populateCache: false,
-};
+const { expect } = require('chai');
 
-exports.mySqlVersion = '5.7.29';
-exports.mySqlHost = `localhost:3306`;
-exports.mySqlDatabase = 'datazoo';
-exports.mySqlUser = 'datazoo';
-exports.mySqlPassword = 'datazoo';
+let plywood = require('../plywood');
+let { $, ply, r, Expression } = plywood;
 
-exports.postgresVersion = '9.5.21';
-exports.postgresHost = `localhost:5432`;
-exports.postgresDatabase = 'datazoo';
-exports.postgresUser = 'root';
-exports.postgresPassword = 'datazoo';
+describe('SqlAggregateExpression', () => {
+  describe('errors', () => {
+    it('errors on non-parsable SQL', () => {
+      expect(() => {
+        Expression.fromJS({
+          op: 'sqlAggregate',
+          sql: 'SUM(A',
+        });
+      }).to.throw('Expected');
+    });
+  });
+});

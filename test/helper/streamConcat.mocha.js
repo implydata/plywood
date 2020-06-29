@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 const { Readable } = require('readable-stream');
 const toArray = require('stream-to-array');
 
-const { StreamConcat } = require("../../build/plywood");
+const { StreamConcat } = require('../../build/plywood');
 
 function emits(arr) {
   let out = new Readable({
@@ -26,7 +26,7 @@ function emits(arr) {
     read: function() {
       if (!out.index) out.index = 0;
       out.push(arr[out.index++] || null);
-    }
+    },
   });
   return out;
 }
@@ -36,7 +36,7 @@ function emitsError(message) {
     objectMode: true,
     read: function() {
       out.emit('error', new Error(message));
-    }
+    },
   });
   return out;
 }
@@ -46,47 +46,49 @@ function makeIter(arr) {
   return () => {
     let v = arr[index];
     index++;
-    return v
-  }
+    return v;
+  };
 }
 
 describe('Stream Concat', () => {
   it('concatenates', () => {
     const sc = new StreamConcat({
       next: makeIter([emits('abc'), emits('def')]),
-      objectMode: true
+      objectMode: true,
     });
 
-    return toArray(sc)
-      .then((a) => {
-        expect(a).to.deep.equal(['a', 'b', 'c', 'd', 'e', 'f']);
-      });
+    return toArray(sc).then(a => {
+      expect(a).to.deep.equal(['a', 'b', 'c', 'd', 'e', 'f']);
+    });
   });
 
   it('forward errors 1', () => {
-    return toArray(new StreamConcat({
-      next: makeIter([emitsError('oops')]),
-      objectMode: true
-    }))
+    return toArray(
+      new StreamConcat({
+        next: makeIter([emitsError('oops')]),
+        objectMode: true,
+      }),
+    )
       .then(() => {
         throw new Error('DID_NOT_THROW');
       })
-      .catch((e) => {
+      .catch(e => {
         expect(e.message).to.equal('oops');
       });
   });
 
   it('forward errors 2', () => {
-    return toArray(new StreamConcat({
-      next: makeIter([emits('abc'), emitsError('oops')]),
-      objectMode: true
-    }))
+    return toArray(
+      new StreamConcat({
+        next: makeIter([emits('abc'), emitsError('oops')]),
+        objectMode: true,
+      }),
+    )
       .then(() => {
         throw new Error('DID_NOT_THROW');
       })
-      .catch((e) => {
+      .catch(e => {
         expect(e.message).to.equal('oops');
       });
   });
-
 });

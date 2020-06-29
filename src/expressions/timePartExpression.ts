@@ -23,7 +23,7 @@ import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from '
 import { HasTimezone } from './mixins/hasTimezone';
 
 export class TimePartExpression extends ChainableExpression implements HasTimezone {
-  static op = "TimePart";
+  static op = 'TimePart';
   static fromJS(parameters: ExpressionJS): TimePartExpression {
     let value = ChainableExpression.jsToValue(parameters);
     value.part = parameters.part;
@@ -31,19 +31,21 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     return new TimePartExpression(value);
   }
 
-  static PART_TO_FUNCTION: Record<string, (d: any) => number> = { // Moment
+  static PART_TO_FUNCTION: Record<string, (d: any) => number> = {
+    // Moment
     SECOND_OF_MINUTE: d => d.seconds(),
     SECOND_OF_HOUR: d => d.minutes() * 60 + d.seconds(),
     SECOND_OF_DAY: d => (d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
-    SECOND_OF_WEEK: d => ((d.day() * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
-    SECOND_OF_MONTH: d => (((d.date() - 1) * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
-    SECOND_OF_YEAR: d => (((d.dayOfYear() - 1) * 24) + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
+    SECOND_OF_WEEK: d => (d.day() * 24 + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
+    SECOND_OF_MONTH: d => ((d.date() - 1) * 24 + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
+    SECOND_OF_YEAR: d =>
+      ((d.dayOfYear() - 1) * 24 + d.hours() * 60 + d.minutes()) * 60 + d.seconds(),
 
     MINUTE_OF_HOUR: d => d.minutes(),
     MINUTE_OF_DAY: d => d.hours() * 60 + d.minutes(),
-    MINUTE_OF_WEEK: d => (d.day() * 24) + d.hours() * 60 + d.minutes(),
-    MINUTE_OF_MONTH: d => ((d.date() - 1) * 24) + d.hours() * 60 + d.minutes(),
-    MINUTE_OF_YEAR: d => ((d.dayOfYear() - 1) * 24) + d.hours() * 60 + d.minutes(),
+    MINUTE_OF_WEEK: d => d.day() * 24 + d.hours() * 60 + d.minutes(),
+    MINUTE_OF_MONTH: d => (d.date() - 1) * 24 + d.hours() * 60 + d.minutes(),
+    MINUTE_OF_YEAR: d => (d.dayOfYear() - 1) * 24 + d.hours() * 60 + d.minutes(),
 
     HOUR_OF_DAY: d => d.hours(),
     HOUR_OF_WEEK: d => d.day() * 24 + d.hours(),
@@ -60,7 +62,7 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     MONTH_OF_YEAR: d => d.month(),
     YEAR: d => d.year(),
 
-    QUARTER: d => d.quarter()
+    QUARTER: d => d.quarter(),
   };
 
   static PART_TO_MAX_VALUES: Record<string, number> = {
@@ -89,7 +91,7 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     WEEK_OF_MONTH: 5,
     WEEK_OF_YEAR: 53,
 
-    MONTH_OF_YEAR: 12
+    MONTH_OF_YEAR: 12,
     // YEAR: null
 
     // QUARTER: null
@@ -102,10 +104,10 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     super(parameters, dummyObject);
     this.part = parameters.part;
     this.timezone = parameters.timezone;
-    this._ensureOp("timePart");
+    this._ensureOp('timePart');
     this._checkOperandTypes('TIME');
     if (typeof this.part !== 'string') {
-      throw new Error("`part` must be a string");
+      throw new Error('`part` must be a string');
     }
     this.type = 'NUMBER';
   }
@@ -125,9 +127,11 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
   }
 
   public equals(other: TimePartExpression | undefined): boolean {
-    return super.equals(other) &&
+    return (
+      super.equals(other) &&
       this.part === other.part &&
-      immutableEqual(this.timezone, other.timezone);
+      immutableEqual(this.timezone, other.timezone)
+    );
   }
 
   protected _toStringParameters(indent?: int): string[] {
@@ -146,7 +150,7 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
   }
 
   protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error("implement me");
+    throw new Error('implement me');
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {

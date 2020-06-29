@@ -18,7 +18,6 @@
 import { Duration, Timezone } from 'chronoshift';
 import { PlyType, PlyTypeSimple } from '../types';
 
-
 export abstract class SQLDialect {
   private escapedTableName: string | null = null;
 
@@ -26,12 +25,12 @@ export abstract class SQLDialect {
 
   public setTable(name: string | null): void {
     if (name) {
-      this.escapedTableName = this.escapeName(name);
+      // If it is one char no escape is needed (kind of a hack)
+      this.escapedTableName = name.length === 1 ? name : this.escapeName(name);
     } else {
       this.escapedTableName = null;
     }
   }
-
 
   public nullConstant(): string {
     return 'NULL';
@@ -84,7 +83,8 @@ export abstract class SQLDialect {
   }
 
   public dateToSQLDateString(date: Date): string {
-    return date.toISOString()
+    return date
+      .toISOString()
       .replace('T', ' ')
       .replace('Z', '')
       .replace(/\.000$/, '')
@@ -93,7 +93,11 @@ export abstract class SQLDialect {
 
   public abstract timeToSQL(date: Date): string;
 
-  public aggregateFilterIfNeeded(inputSQL: string, expressionSQL: string, elseSQL: string | null = null): string {
+  public aggregateFilterIfNeeded(
+    inputSQL: string,
+    expressionSQL: string,
+    elseSQL: string | null = null,
+  ): string {
     let whereIndex = inputSQL.indexOf(' WHERE ');
     if (whereIndex === -1) return expressionSQL;
     let filterSQL = inputSQL.substr(whereIndex + 7);
@@ -155,21 +159,41 @@ export abstract class SQLDialect {
     return `CHAR_LENGTH(${a})`;
   }
 
-  public abstract timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string;
+  public abstract timeFloorExpression(
+    operand: string,
+    duration: Duration,
+    timezone: Timezone,
+  ): string;
 
-  public abstract timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string;
+  public abstract timeBucketExpression(
+    operand: string,
+    duration: Duration,
+    timezone: Timezone,
+  ): string;
 
   public abstract timePartExpression(operand: string, part: string, timezone: Timezone): string;
 
-  public abstract timeShiftExpression(operand: string, duration: Duration, step: int, timezone: Timezone): string;
+  public abstract timeShiftExpression(
+    operand: string,
+    duration: Duration,
+    step: int,
+    timezone: Timezone,
+  ): string;
 
   public abstract extractExpression(operand: string, regexp: string): string;
 
   public abstract indexOfExpression(str: string, substr: string): string;
 
+  public quantileExpression(str: string, substr: string): string {
+    throw new Error('dialect does not implement quantile');
+  }
+
   public logExpression(base: string, operand: string): string {
     if (base === String(Math.E)) return `LN(${operand})`;
     return `LOG(${base},${operand})`;
   }
-}
 
+  public lookupExpression(base: string, lookup: string): string {
+    throw new Error('can not express a lookup as a function');
+  }
+}

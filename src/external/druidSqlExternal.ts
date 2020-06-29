@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
 import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes';
@@ -33,81 +32,89 @@ export class DruidSQLExternal extends SQLExternal {
   static type = 'DATASET';
 
   static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): DruidSQLExternal {
-    let value: ExternalValue = External.jsToValue(parameters, requester);
+    let value: ExternalValue = SQLExternal.jsToValue(parameters, requester);
     return new DruidSQLExternal(value);
   }
 
   static postProcessIntrospect(columns: DruidSQLDescribeRow[]): Attributes {
     // only support BIGINT, FLOAT, VARCHAR, TIMESTAMP, DATE, OTHER
-    return columns.map((column: DruidSQLDescribeRow) => {
-      let name = column.COLUMN_NAME;
-      let type: PlyType;
-      let nativeType = column.DATA_TYPE;
-      switch (nativeType) {
-        case 'TIMESTAMP':
-        case 'DATE':
-          type = 'TIME';
-          break;
+    return columns
+      .map((column: DruidSQLDescribeRow) => {
+        let name = column.COLUMN_NAME;
+        let type: PlyType;
+        let nativeType = column.DATA_TYPE;
+        switch (nativeType) {
+          case 'TIMESTAMP':
+          case 'DATE':
+            type = 'TIME';
+            break;
 
-        case 'VARCHAR':
-          type = 'STRING';
-          break;
+          case 'VARCHAR':
+            type = 'STRING';
+            break;
 
-        case 'DOUBLE':
-        case 'FLOAT':
-        case 'BIGINT':
-          type = 'NUMBER';
-          break;
+          case 'DOUBLE':
+          case 'FLOAT':
+          case 'BIGINT':
+            type = 'NUMBER';
+            break;
 
-        default: // OTHER
-          type = 'NULL';
-          break;
-      }
+          default:
+            // OTHER
+            type = 'NULL';
+            break;
+        }
 
-      return new AttributeInfo({
-        name,
-        type,
-        nativeType
-      });
-    }).filter(Boolean);
+        return new AttributeInfo({
+          name,
+          type,
+          nativeType,
+        });
+      })
+      .filter(Boolean);
   }
 
   static getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
-    return toArray(requester({
-      query: {
-        query: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'druid' AND TABLE_TYPE = 'TABLE'`
-      }
-    }))
-      .then((sources) => {
-        if (!sources.length) return sources;
-        return sources.map((s: PseudoDatum) => s['TABLE_NAME']).sort();
-      });
+    return toArray(
+      requester({
+        query: {
+          query: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'druid' AND TABLE_TYPE = 'TABLE'`,
+        },
+      }),
+    ).then(sources => {
+      if (!sources.length) return sources;
+      return sources.map((s: PseudoDatum) => s['TABLE_NAME']).sort();
+    });
   }
 
   static getVersion(requester: PlywoodRequester<any>): Promise<string> {
-    return toArray(requester({
-      query: {
-        queryType: 'status'
-      }
-    }))
-      .then((res) => {
-        return res[0].version;
-      });
+    return toArray(
+      requester({
+        query: {
+          queryType: 'status',
+        },
+      }),
+    ).then(res => {
+      return res[0].version;
+    });
   }
 
   constructor(parameters: ExternalValue) {
     super(parameters, new DruidDialect());
-    this._ensureEngine("druidsql");
+    this._ensureEngine('druidsql');
   }
 
   protected getIntrospectAttributes(): Promise<Attributes> {
     // from http://druid.io/docs/0.10.0-rc1/querying/sql.html
-    return toArray(this.requester({
-      query: {
-        query: `SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'druid' AND TABLE_NAME = ${this.dialect.escapeLiteral(this.source as string)}`
-      }
-    }))
-      .then(DruidSQLExternal.postProcessIntrospect);
+    return toArray(
+      this.requester({
+        query: {
+          query: `SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'druid' AND TABLE_NAME = ${this.dialect.escapeLiteral(
+            this.source as string,
+          )}`,
+        },
+      }),
+    ).then(DruidSQLExternal.postProcessIntrospect);
   }
 
   protected sqlToQuery(sql: string): any {
@@ -121,7 +128,7 @@ export class DruidSQLExternal extends SQLExternal {
   }
 
   protected capability(cap: string): boolean {
-    if (cap === 'filter-on-attribute' || cap === 'shortcut-group-by') return false;
+    if (cap === 'filter-on-attribute') return false;
     return super.capability(cap);
   }
 }

@@ -18,14 +18,19 @@ import { Dataset, Datum, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { indentBy } from '../helper/utils';
 import { DatasetFullType } from '../types';
-import { ChainableUnaryExpression, Expression, ExpressionJS, ExpressionValue, r } from './baseExpression';
+import {
+  ChainableUnaryExpression,
+  Expression,
+  ExpressionJS,
+  ExpressionValue,
+  r,
+} from './baseExpression';
 import { ExternalExpression } from './externalExpression';
 import { LiteralExpression } from './literalExpression';
 import { RefExpression } from './refExpression';
 
-
 export class ApplyExpression extends ChainableUnaryExpression {
-  static op = "Apply";
+  static op = 'Apply';
   static fromJS(parameters: ExpressionJS): ApplyExpression {
     let value = ChainableUnaryExpression.jsToValue(parameters);
     value.name = parameters.name;
@@ -37,7 +42,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this.name = parameters.name;
-    this._ensureOp("apply");
+    this._ensureOp('apply');
     this._checkOperandTypes('DATASET');
     this.type = 'DATASET';
   }
@@ -54,9 +59,13 @@ export class ApplyExpression extends ChainableUnaryExpression {
     return js;
   }
 
-  public updateTypeContext(typeContext: DatasetFullType, expressionTypeContext: DatasetFullType): DatasetFullType {
+  public updateTypeContext(
+    typeContext: DatasetFullType,
+    expressionTypeContext: DatasetFullType,
+  ): DatasetFullType {
     const exprType: any = this.expression.type;
-    typeContext.datasetType[this.name] = exprType === 'DATASET' ? expressionTypeContext : { type: exprType };
+    typeContext.datasetType[this.name] =
+      exprType === 'DATASET' ? expressionTypeContext : { type: exprType };
     return typeContext;
   }
 
@@ -79,8 +88,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
   }
 
   public equals(other: ApplyExpression | undefined): boolean {
-    return super.equals(other) &&
-      this.name === other.name;
+    return super.equals(other) && this.name === other.name;
   }
 
   public changeName(name: string): ApplyExpression {
@@ -95,7 +103,11 @@ export class ApplyExpression extends ChainableUnaryExpression {
     return (operandValue as Dataset).apply(name, expression);
   }
 
-  protected _getSQLChainableUnaryHelper(dialect: SQLDialect, operandSQL: string, expressionSQL: string): string {
+  protected _getSQLChainableUnaryHelper(
+    dialect: SQLDialect,
+    operandSQL: string,
+    expressionSQL: string,
+  ): string {
     return `${expressionSQL} AS ${dialect.escapeName(this.name)}`;
   }
 
@@ -132,16 +144,23 @@ export class ApplyExpression extends ChainableUnaryExpression {
       // Ensure that non of the free references in this expression are to be resolved with chain expressions
       let freeReferences = expression.getFreeReferences();
       let datum = dataset.data[0];
-      if (datum && freeReferences.some(freeReference => datum[freeReference] instanceof Expression)) {
+      if (
+        datum &&
+        freeReferences.some(freeReference => datum[freeReference] instanceof Expression)
+      ) {
         return this;
       }
 
-      dataset = dataset.applyFn(name, (d: Datum): any => {
-        let simp = expression.resolve(d, 'null').simplify();
-        if (simp instanceof ExternalExpression) return simp.external;
-        if (simp instanceof LiteralExpression) return simp.value;
-        return simp;
-      }, expression.type);
+      dataset = dataset.applyFn(
+        name,
+        (d: Datum): any => {
+          let simp = expression.resolve(d, 'null').simplify();
+          if (simp instanceof ExternalExpression) return simp.external;
+          if (simp instanceof LiteralExpression) return simp.value;
+          return simp;
+        },
+        expression.type,
+      );
 
       return r(dataset);
     }

@@ -30,7 +30,8 @@ export interface StringRangeJS {
 }
 
 let check: Class<StringRangeValue, StringRangeJS>;
-export class StringRange extends Range<string> implements Instance<StringRangeValue, StringRangeJS> {
+export class StringRange extends Range<string>
+  implements Instance<StringRangeValue, StringRangeJS> {
   static type = 'STRING_RANGE';
 
   static isStringRange(candidate: any): candidate is StringRange {
@@ -42,21 +43,24 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
   }
 
   static fromJS(parameters: StringRangeJS): StringRange {
-    if (typeof parameters !== "object") {
-      throw new Error("unrecognizable StringRange");
+    if (typeof parameters !== 'object') {
+      throw new Error('unrecognizable StringRange');
     }
     let start = parameters.start;
     let end = parameters.end;
     let bounds = parameters.bounds;
 
     return new StringRange({
-      start, end, bounds
+      start,
+      end,
+      bounds,
     });
   }
 
   constructor(parameters: StringRangeValue) {
     let { start, end } = parameters;
-    if (typeof start !== 'string' && start !== null) throw new TypeError('`start` must be a string');
+    if (typeof start !== 'string' && start !== null)
+      throw new TypeError('`start` must be a string');
     if (typeof end !== 'string' && end !== null) throw new TypeError('`end` must be a string');
     super(start, end, parameters.bounds);
   }
@@ -65,14 +69,14 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
     return {
       start: this.start,
       end: this.end,
-      bounds: this.bounds
+      bounds: this.bounds,
     };
   }
 
   public toJS(): StringRangeJS {
     let js: StringRangeJS = {
       start: this.start,
-      end: this.end
+      end: this.end,
     };
     if (this.bounds !== Range.DEFAULT_BOUNDS) js.bounds = this.bounds;
     return js;
@@ -83,11 +87,11 @@ export class StringRange extends Range<string> implements Instance<StringRangeVa
   }
 
   public midpoint(): string {
-    throw new Error("midpoint not supported in string range");
+    throw new Error('midpoint not supported in string range');
   }
 
   protected _zeroEndpoint() {
-    return "";
+    return '';
   }
 
   protected validMemberType(val: any): boolean {

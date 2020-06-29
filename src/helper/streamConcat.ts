@@ -29,7 +29,7 @@ export class StreamConcat extends PassThrough {
     this.streamIndex = 0;
 
     this._nextStream();
-  };
+  }
 
   private _nextStream() {
     this.currentStream = null;
@@ -38,7 +38,7 @@ export class StreamConcat extends PassThrough {
     if (this.currentStream == null) {
       this.push(null);
     } else {
-      this.currentStream.pipe(this, {end: false});
+      this.currentStream.pipe(this, { end: false });
       this.currentStream.on('error', (e: any) => this.emit('error', e));
       this.currentStream.on('end', this._nextStream.bind(this));
     }

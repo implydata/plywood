@@ -29,16 +29,6 @@ Plywood can also be used by the browser.
 
 To learn more, see [http://plywood.imply.io](http://plywood.imply.io/)
 
-## Also see
-
-* [Pivot](http://pivot.imply.io) - a data exploration GUI built using Plywood.
-* [PlyQL](https://github.com/implydata/plyql) - a SQL-like interface to plywood
-* Vadim Ogievetsky talks about the [inspiration behind Plywood](https://www.youtube.com/watch?v=JNMbLxqzGFA)
-
-## Development
-
-To run all the Plywood unit tests you will need to set up the data sources in the [DataZoo](https://github.com/implydata/datazoo).  
-
 ## Questions & Support
 
 For updates about new and upcoming features follow [@implydata](https://twitter.com/implydata) on Twitter.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2016 Imply Data, Inc.
+ * Copyright 2016-2020 Imply Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,47 +14,44 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 let plywood = require('../plywood');
 let { $, ply, r, Expression } = plywood;
 
-describe("SplitExpression", () => {
-
-  describe("#maxBucketNumber", () => {
-    it("works with boolean ref case", () => {
+describe('SplitExpression', () => {
+  describe('#maxBucketNumber', () => {
+    it('works with boolean ref case', () => {
       let splitExpression = Expression._.split({
-        bool: $('bool', 'BOOLEAN')
+        bool: $('bool', 'BOOLEAN'),
       });
 
       expect(splitExpression.maxBucketNumber()).to.equal(3);
     });
 
-    it("works with boolean expression case", () => {
+    it('works with boolean expression case', () => {
       let splitExpression = Expression._.split({
-        isBlah: $('x').is('blah')
+        isBlah: $('x').is('blah'),
       });
 
       expect(splitExpression.maxBucketNumber()).to.equal(3);
     });
 
-    it("works in multi-split case", () => {
+    it('works in multi-split case', () => {
       let splitExpression = Expression._.split({
         timePart: $('time').timePart('HOUR_OF_DAY'),
-        isBlah: $('x').is('blah')
+        isBlah: $('x').is('blah'),
       });
 
       expect(splitExpression.maxBucketNumber()).to.equal(81);
     });
 
-    it("works in unknown", () => {
+    it('works in unknown', () => {
       let splitExpression = Expression._.split({
-        isBlah: $('x')
+        isBlah: $('x'),
       });
 
       expect(splitExpression.maxBucketNumber()).to.equal(Infinity);
     });
-
   });
-
 });

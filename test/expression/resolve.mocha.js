@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-const { expect } = require("chai");
+const { expect } = require('chai');
 
 let plywood = require('../plywood');
 let { Expression, Dataset, External, ExternalExpression, $, i$, ply, r } = plywood;
 
-describe("resolve", () => {
-  describe("errors if", () => {
-    it("went too deep", () => {
+describe('resolve', () => {
+  describe('errors if', () => {
+    it('went too deep', () => {
       let ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
           'subData',
           ply()
             .apply('x', '$^num * 3')
-            .apply('y', '$^^^foo * 10')
+            .apply('y', '$^^^foo * 10'),
         );
 
       expect(() => {
@@ -37,14 +37,14 @@ describe("resolve", () => {
       }).to.throw('went too deep during resolve on: $^^^foo');
     });
 
-    it("could not find something in context", () => {
+    it('could not find something in context', () => {
       let ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
           'subData',
           ply()
             .apply('x', '$^num * 3')
-            .apply('y', '$^^foobar * 10')
+            .apply('y', '$^^foobar * 10'),
         );
 
       expect(() => {
@@ -52,14 +52,14 @@ describe("resolve", () => {
       }).to.throw('could not resolve $^^foobar because is was not in the context');
     });
 
-    it("ended up with bad types", () => {
+    it('ended up with bad types', () => {
       let ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
           'subData',
           ply()
             .apply('x', '$^num * 3')
-            .apply('y', '$^^foo * 10')
+            .apply('y', '$^^foo * 10'),
         );
 
       expect(() => {
@@ -68,7 +68,7 @@ describe("resolve", () => {
     });
   });
 
-  describe("#resolved", () => {
+  describe('#resolved', () => {
     it('works with agg', () => {
       let ex = $('diamonds').sum('$price');
       expect(ex.resolved()).to.equal(true);
@@ -85,71 +85,75 @@ describe("resolve", () => {
     });
   });
 
-  describe("#resolve", () => {
-    it("works in a basic case", () => {
+  describe('#resolve', () => {
+    it('works in a basic case', () => {
       let ex = $('foo').add('$bar');
 
       let context = {
-        foo: 7
+        foo: 7,
       };
 
       ex = ex.resolve(context, 'leave');
       expect(ex.toJS()).to.deep.equal(
-        r(7).add('$bar').toJS()
+        r(7)
+          .add('$bar')
+          .toJS(),
       );
     });
 
-    it("works with null", () => {
+    it('works with null', () => {
       let ex = $('foo').add('$bar');
 
       let context = {
-        foo: null
+        foo: null,
       };
 
       ex = ex.resolve(context, 'leave');
       expect(ex.toJS()).to.deep.equal(
-        r(null).add('$bar').toJS()
+        r(null)
+          .add('$bar')
+          .toJS(),
       );
     });
 
-    it("works with null with is", () => {
+    it('works with null with is', () => {
       let ex = $('bar', 'STRING').is('$foo');
 
       let context = {
-        foo: null
+        foo: null,
       };
 
       ex = ex.resolve(context, 'leave');
       expect(ex.toJS()).to.deep.equal(
-        $('bar', 'STRING').is(null).toJS()
+        $('bar', 'STRING')
+          .is(null)
+          .toJS(),
       );
     });
 
-    it("works in a basic case (and simplifies)", () => {
+    it('works in a basic case (and simplifies)', () => {
       let ex = $('foo').add(3);
 
       let context = {
-        foo: 7
+        foo: 7,
       };
 
       ex = ex.resolve(context).simplify();
-      expect(ex.toJS()).to.deep.equal(
-        r(10).toJS()
-      );
+      expect(ex.toJS()).to.deep.equal(r(10).toJS());
     });
 
-    it("works in a nested case", () => {
+    it('works in a nested case', () => {
       let ex = ply()
         .apply('num', '$^foo + 1')
         .apply(
           'subData',
           ply()
             .apply('x', '$^num * 3')
-            .apply('y', '$^^foo * 10')
+            .apply('y', '$^^foo * 10'),
         );
 
       let context = {
-        foo: 7
+        foo: 7,
       };
 
       ex = ex.resolve(context);
@@ -160,60 +164,60 @@ describe("resolve", () => {
             'subData',
             ply()
               .apply('x', '$^num * 3')
-              .apply('y', '7 * 10')
+              .apply('y', '7 * 10'),
           )
-          .toJS()
+          .toJS(),
       );
 
       ex = ex.simplify();
       expect(ex.toJS()).to.deep.equal({
-        "op": "literal",
-        "type": "DATASET",
-        "value": {
-          "attributes": [
+        op: 'literal',
+        type: 'DATASET',
+        value: {
+          attributes: [
             {
-              "name": "num",
-              "type": "NUMBER"
+              name: 'num',
+              type: 'NUMBER',
             },
             {
-              "name": "subData",
-              "type": "DATASET"
-            }
+              name: 'subData',
+              type: 'DATASET',
+            },
           ],
-          "data": [
+          data: [
             {
-              "num": 8,
-              "subData": {
-                "attributes": [
+              num: 8,
+              subData: {
+                attributes: [
                   {
-                    "name": "x",
-                    "type": "NUMBER"
+                    name: 'x',
+                    type: 'NUMBER',
                   },
                   {
-                    "name": "y",
-                    "type": "NUMBER"
-                  }
+                    name: 'y',
+                    type: 'NUMBER',
+                  },
                 ],
-                "data": [
+                data: [
                   {
-                    "x": 24,
-                    "y": 70
-                  }
-                ]
-              }
-            }
-          ]
-        }
+                    x: 24,
+                    y: 70,
+                  },
+                ],
+              },
+            },
+          ],
+        },
       });
     });
 
-    it("works with dataset", () => {
+    it('works with dataset', () => {
       let data = [
         { cut: 'Good', price: 400 },
         { cut: 'Good', price: 300 },
         { cut: 'Great', price: 124 },
         { cut: 'Wow', price: 160 },
-        { cut: 'Wow', price: 100 }
+        { cut: 'Wow', price: 100 },
       ];
 
       let ex = ply()
@@ -223,7 +227,7 @@ describe("resolve", () => {
 
       let context = {
         foo: 7,
-        bar: 8
+        bar: 8,
       };
 
       ex = ex.resolve(context);
@@ -232,11 +236,11 @@ describe("resolve", () => {
           .apply('Data', Dataset.fromJS(data))
           .apply('FooPlusCount', '7 + $Data.count()')
           .apply('CountPlusBar', '$Data.count() + 8')
-          .toJS()
+          .toJS(),
       );
     });
 
-    it("works with sub-expressions", () => {
+    it('works with sub-expressions', () => {
       let external = External.fromJS({
         engine: 'druid',
         source: 'diamonds',
@@ -244,16 +248,17 @@ describe("resolve", () => {
           { name: '__time', type: 'TIME' },
           { name: 'color', type: 'STRING' },
           { name: 'cut', type: 'STRING' },
-          { name: 'carat', type: 'NUMBER', nativeType: 'STRING' }
-        ]
+          { name: 'carat', type: 'NUMBER', nativeType: 'STRING' },
+        ],
       });
 
       let datum = {
         Count: 5,
-        diamonds: external
+        diamonds: external,
       };
 
-      let ex = $("diamonds").split("$cut", 'Cut')
+      let ex = $('diamonds')
+        .split('$cut', 'Cut')
         .apply('Count', $('diamonds').count())
         .apply('PercentOfTotal', '$Count / $^Count');
 
@@ -261,50 +266,12 @@ describe("resolve", () => {
 
       let externalExpression = new ExternalExpression({ external });
       expect(ex.toJS()).to.deep.equal(
-        externalExpression.split("$cut", 'Cut', 'diamonds')
+        externalExpression
+          .split('$cut', 'Cut', 'diamonds')
           .apply('Count', $('diamonds').count())
           .apply('PercentOfTotal', '$Count / 5')
-          .toJS()
+          .toJS(),
       );
     });
   });
-
-  describe("sql resolve", () => {
-    let external = External.fromJS({
-      engine: 'druid',
-      source: 'diamonds',
-      attributes: [
-        { name: '__time', type: 'TIME' },
-        { name: 'color', type: 'STRING' },
-        { name: 'cut', type: 'STRING' },
-        { name: 'carat', type: 'NUMBER', nativeType: 'STRING' }
-      ]
-    });
-
-    let datum = {
-      Count: 5,
-      diamonds: external
-    };
-
-    it("finds the right column with inline resolve", () => {
-      let parse = Expression.parseSQL("CITYnAME = 'San Francisco'");
-      let resolveString = parse.expression.resolve({ cityName: "" });
-      expect(resolveString).to.not.deep.equal(null);
-
-      let parse2 = Expression.parseSQL("NOTACOLUMN = 'San Francisco'");
-
-      expect(() => {
-        parse2.expression.resolve({ cityName: "" });
-      }).to.throw('could not resolve i$NOTACOLUMN because is was not in the context');
-    });
-
-    it("does not allow for improperly cased table names", () => {
-      let parse = Expression.parseSQL("SELECT __time FROM dIaMoNds");
-      expect(() => {
-        parse.expression.resolve(datum)
-      }).to.throw('could not resolve $dIaMoNds because is was not in the context');
-    });
-
-  });
-
 });

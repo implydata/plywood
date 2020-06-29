@@ -67,7 +67,7 @@
     "radix": true,
     "semicolon": true,
     "switch-default": false,
-    "trailing-comma": [true, {
+    "trailing-comma": [false, {
       "singleline": "never",
       "multiline": "never"
     }],

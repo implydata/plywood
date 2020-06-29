@@ -31,11 +31,12 @@ export interface NumberRangeJS {
 }
 
 function finiteOrNull(n: number): number {
-  return (isNaN(n) || isFinite(n)) ? n : null;
+  return isNaN(n) || isFinite(n) ? n : null;
 }
 
 let check: Class<NumberRangeValue, NumberRangeJS>;
-export class NumberRange extends Range<number> implements Instance<NumberRangeValue, NumberRangeJS> {
+export class NumberRange extends Range<number>
+  implements Instance<NumberRangeValue, NumberRangeJS> {
   static type = 'NUMBER_RANGE';
 
   static isNumberRange(candidate: any): candidate is NumberRange {
@@ -47,7 +48,7 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
     return new NumberRange({
       start: start,
       end: start + size,
-      bounds: Range.DEFAULT_BOUNDS
+      bounds: Range.DEFAULT_BOUNDS,
     });
   }
 
@@ -56,15 +57,15 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
   }
 
   static fromJS(parameters: NumberRangeJS): NumberRange {
-    if (typeof parameters !== "object") {
-      throw new Error("unrecognizable numberRange");
+    if (typeof parameters !== 'object') {
+      throw new Error('unrecognizable numberRange');
     }
     let start = parameters.start;
     let end = parameters.end;
     return new NumberRange({
       start: start === null ? null : finiteOrNull(Number(start)),
       end: end === null ? null : finiteOrNull(Number(end)),
-      bounds: parameters.bounds
+      bounds: parameters.bounds,
     });
   }
 
@@ -79,14 +80,14 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
     return {
       start: this.start,
       end: this.end,
-      bounds: this.bounds
+      bounds: this.bounds,
     };
   }
 
   public toJS(): NumberRangeJS {
     let js: NumberRangeJS = {
       start: this.start,
-      end: this.end
+      end: this.end,
     };
     if (this.bounds !== Range.DEFAULT_BOUNDS) js.bounds = this.bounds;
     return js;
@@ -106,7 +107,7 @@ export class NumberRange extends Range<number> implements Instance<NumberRangeVa
     return new NumberRange({
       start: newStart,
       end: end ? end - start + newStart : end,
-      bounds
+      bounds,
     });
   }
 }

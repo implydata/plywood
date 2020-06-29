@@ -22,19 +22,27 @@ export class DruidDialect extends SQLDialect {
   static TIME_PART_TO_FUNCTION: Record<string, string> = {
     SECOND_OF_MINUTE: "TIME_EXTRACT($$,'SECOND',##)",
     SECOND_OF_HOUR: "(TIME_EXTRACT($$,'MINUTE',##)*60+TIME_EXTRACT($$,'SECOND',##))",
-    SECOND_OF_DAY: "((TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##))*60+TIME_EXTRACT($$,'SECOND',##))",
-    SECOND_OF_WEEK: "(((MOD(CAST((TIME_EXTRACT($$,'DOW',##)+6) AS int),7)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##))*60+TIME_EXTRACT($$,'SECOND',##))",
-    SECOND_OF_MONTH: "((((TIME_EXTRACT($$,'DAY',##)-1)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##))*60+TIME_EXTRACT($$,'SECOND',##))",
-    SECOND_OF_YEAR: "((((TIME_EXTRACT($$,'DOY',##)-1)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##))*60+TIME_EXTRACT($$,'SECOND',##))",
+    SECOND_OF_DAY:
+      "((TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##))*60+TIME_EXTRACT($$,'SECOND',##))",
+    SECOND_OF_WEEK:
+      "(((MOD(CAST((TIME_EXTRACT($$,'DOW',##)+6) AS int),7)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##))*60+TIME_EXTRACT($$,'SECOND',##))",
+    SECOND_OF_MONTH:
+      "((((TIME_EXTRACT($$,'DAY',##)-1)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##))*60+TIME_EXTRACT($$,'SECOND',##))",
+    SECOND_OF_YEAR:
+      "((((TIME_EXTRACT($$,'DOY',##)-1)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##))*60+TIME_EXTRACT($$,'SECOND',##))",
 
     MINUTE_OF_HOUR: "TIME_EXTRACT($$,'MINUTE',##)",
     MINUTE_OF_DAY: "TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##)",
-    MINUTE_OF_WEEK: "(MOD(CAST((TIME_EXTRACT($$,'DOW',##)+6) AS int),7)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##)",
-    MINUTE_OF_MONTH: "((TIME_EXTRACT($$,'DAY',##)-1)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##)",
-    MINUTE_OF_YEAR: "((TIME_EXTRACT($$,'DOY',##)-1)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##)",
+    MINUTE_OF_WEEK:
+      "(MOD(CAST((TIME_EXTRACT($$,'DOW',##)+6) AS int),7)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##)",
+    MINUTE_OF_MONTH:
+      "((TIME_EXTRACT($$,'DAY',##)-1)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##)",
+    MINUTE_OF_YEAR:
+      "((TIME_EXTRACT($$,'DOY',##)-1)*24)+TIME_EXTRACT($$,'HOUR',##)*60+TIME_EXTRACT($$,'MINUTE',##)",
 
     HOUR_OF_DAY: "TIME_EXTRACT($$,'HOUR',##)",
-    HOUR_OF_WEEK: "(MOD(CAST((TIME_EXTRACT($$,'DOW',##)+6) AS int),7)*24+TIME_EXTRACT($$,'HOUR',##))",
+    HOUR_OF_WEEK:
+      "(MOD(CAST((TIME_EXTRACT($$,'DOW',##)+6) AS int),7)*24+TIME_EXTRACT($$,'HOUR',##))",
     HOUR_OF_MONTH: "((TIME_EXTRACT($$,'DAY',##)-1)*24+TIME_EXTRACT($$,'HOUR',##))",
     HOUR_OF_YEAR: "((TIME_EXTRACT($$,'DOY',##)-1)*24+TIME_EXTRACT($$,'HOUR',##))",
 
@@ -46,20 +54,20 @@ export class DruidDialect extends SQLDialect {
     WEEK_OF_YEAR: "TIME_EXTRACT($$,'WEEK',##)",
 
     MONTH_OF_YEAR: "TIME_EXTRACT($$,'MONTH',##)",
-    YEAR: "TIME_EXTRACT($$,'YEAR',##)"
+    YEAR: "TIME_EXTRACT($$,'YEAR',##)",
   };
 
   static CAST_TO_FUNCTION: Record<string, Record<string, string>> = {
     TIME: {
-      NUMBER: 'MILLIS_TO_TIMESTAMP(CAST($$ AS BIGINT))'
+      NUMBER: 'MILLIS_TO_TIMESTAMP(CAST($$ AS BIGINT))',
     },
     NUMBER: {
-      TIME: "CAST($$ AS BIGINT)",
-      STRING: "CAST($$ AS FLOAT)"
+      TIME: 'CAST($$ AS BIGINT)',
+      STRING: 'CAST($$ AS FLOAT)',
     },
     STRING: {
-      NUMBER: "CAST($$ AS VARCHAR)"
-    }
+      NUMBER: 'CAST($$ AS VARCHAR)',
+    },
   };
 
   constructor() {
@@ -67,7 +75,8 @@ export class DruidDialect extends SQLDialect {
   }
 
   public dateToSQLDateString(date: Date): string {
-    return date.toISOString()
+    return date
+      .toISOString()
       .replace('T', ' ')
       .replace('Z', '')
       .replace(/\.000$/, '');
@@ -107,7 +116,8 @@ export class DruidDialect extends SQLDialect {
 
   public castExpression(inputType: PlyType, operand: string, cast: string): string {
     let castFunction = DruidDialect.CAST_TO_FUNCTION[cast][inputType];
-    if (!castFunction) throw new Error(`unsupported cast from ${inputType} to ${cast} in Druid dialect`);
+    if (!castFunction)
+      throw new Error(`unsupported cast from ${inputType} to ${cast} in Druid dialect`);
     return castFunction.replace(/\$\$/g, operand);
   }
 
@@ -116,7 +126,9 @@ export class DruidDialect extends SQLDialect {
   }
 
   public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
-    return `TIME_FLOOR(${this.operandAsTimestamp(operand)}, ${this.escapeLiteral(duration.toString())}, NULL, ${this.escapeLiteral(timezone.toString())})`;
+    return `TIME_FLOOR(${this.operandAsTimestamp(operand)}, ${this.escapeLiteral(
+      duration.toString(),
+    )}, NULL, ${this.escapeLiteral(timezone.toString())})`;
   }
 
   public timeBucketExpression(operand: string, duration: Duration, timezone: Timezone): string {
@@ -131,8 +143,15 @@ export class DruidDialect extends SQLDialect {
       .replace(/##/g, this.escapeLiteral(timezone.toString()));
   }
 
-  public timeShiftExpression(operand: string, duration: Duration, step: int, timezone: Timezone): string {
-    return `TIME_SHIFT(${this.operandAsTimestamp(operand)}, ${this.escapeLiteral(duration.toString())}, ${step}, ${this.escapeLiteral(timezone.toString())})`;
+  public timeShiftExpression(
+    operand: string,
+    duration: Duration,
+    step: int,
+    timezone: Timezone,
+  ): string {
+    return `TIME_SHIFT(${this.operandAsTimestamp(operand)}, ${this.escapeLiteral(
+      duration.toString(),
+    )}, ${step}, ${this.escapeLiteral(timezone.toString())})`;
   }
 
   public extractExpression(operand: string, regexp: string): string {
@@ -147,10 +166,17 @@ export class DruidDialect extends SQLDialect {
     return `POSITION(${substr} IN ${str}) - 1`;
   }
 
+  public quantileExpression(str: string, quantile: string): string {
+    return `APPROX_QUANTILE_DS(${str}, ${quantile})`;
+  }
+
   public logExpression(base: string, operand: string): string {
     if (base === String(Math.E)) return `LN(${operand})`;
     if (base === '10') return `LOG10(${operand})`;
     return `LN(${operand})/LN(${base})`;
   }
-}
 
+  public lookupExpression(base: string, lookup: string): string {
+    return `LOOKUP(${base}, ${this.escapeLiteral(lookup)})`;
+  }
+}

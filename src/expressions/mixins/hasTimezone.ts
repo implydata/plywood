@@ -28,7 +28,7 @@ export class HasTimezone {
   }
 
   public changeTimezone(timezone: Timezone): Expression {
-    if (timezone.equals(this.timezone)) return (this as any);
+    if (timezone.equals(this.timezone)) return this as any;
     let value = this.valueOf();
     value.timezone = timezone;
     return Expression.fromValue(value);
@@ -42,10 +42,11 @@ export class HasTimezone {
     if (!environment.timezone) environment = { timezone: Timezone.UTC };
 
     // Allow strings as well
-    if (typeof environment.timezone === 'string') environment = { timezone: Timezone.fromJS(environment.timezone as any) };
+    if (typeof environment.timezone === 'string')
+      environment = { timezone: Timezone.fromJS(environment.timezone as any) };
 
-    if (this.timezone || !environment.timezone) return (this as any);
-    return this.changeTimezone(environment.timezone).substitute((ex) => {
+    if (this.timezone || !environment.timezone) return this as any;
+    return this.changeTimezone(environment.timezone).substitute(ex => {
       if (ex.needsEnvironment()) {
         return ex.defineEnvironment(environment);
       }

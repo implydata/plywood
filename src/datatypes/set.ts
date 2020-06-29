@@ -45,9 +45,9 @@ function arrayFromJS(xs: Array<any>, setType: string): Array<any> {
 }
 
 let typeUpgrades: Record<string, string> = {
-  'NUMBER': 'NUMBER_RANGE',
-  'TIME': 'TIME_RANGE',
-  'STRING': 'STRING_RANGE'
+  NUMBER: 'NUMBER_RANGE',
+  TIME: 'TIME_RANGE',
+  STRING: 'STRING_RANGE',
 };
 
 let check: Class<SetValue, SetJS>;
@@ -70,10 +70,15 @@ export class Set implements Instance<SetValue, SetJS> {
       newElements[accumulator.toString()] = accumulator;
     }
     const newElementsKeys = Object.keys(newElements);
-    return newElementsKeys.length < elements.length ? newElementsKeys.map(k => newElements[k]) : elements;
+    return newElementsKeys.length < elements.length
+      ? newElementsKeys.map(k => newElements[k])
+      : elements;
   }
 
-  static intersectElements(elements1: Array<PlywoodRange>, elements2: Array<PlywoodRange>): Array<PlywoodRange> {
+  static intersectElements(
+    elements1: Array<PlywoodRange>,
+    elements2: Array<PlywoodRange>,
+  ): Array<PlywoodRange> {
     let newElements: Array<PlywoodRange> = [];
     for (let element1 of elements1) {
       for (let element2 of elements2) {
@@ -107,13 +112,19 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   static cartesianProductOf<T>(...args: T[][]): T[][] {
-    return args.reduce((a, b) => {
-      return [].concat.apply([], a.map((x) => {
-        return b.map((y) => {
-          return x.concat([y]);
-        });
-      }));
-    }, [[]]);
+    return args.reduce(
+      (a, b) => {
+        return [].concat.apply(
+          [],
+          a.map(x => {
+            return b.map(y => {
+              return x.concat([y]);
+            });
+          }),
+        );
+      },
+      [[]],
+    );
   }
 
   static crossBinary(as: any, bs: any, fn: (a: any, b: any) => any): any {
@@ -121,7 +132,7 @@ export class Set implements Instance<SetValue, SetJS> {
       const aElements = as instanceof Set ? as.elements : [as];
       const bElements = bs instanceof Set ? bs.elements : [bs];
       const cp = Set.cartesianProductOf(aElements, bElements);
-      return Set.fromJS(cp.map((v) => fn(v[0], v[1])));
+      return Set.fromJS(cp.map(v => fn(v[0], v[1])));
     } else {
       return fn(as, bs);
     }
@@ -132,7 +143,7 @@ export class Set implements Instance<SetValue, SetJS> {
       const aElements = as instanceof Set ? as.elements : [as];
       const bElements = bs instanceof Set ? bs.elements : [bs];
       const cp = Set.cartesianProductOf(aElements, bElements);
-      return cp.some((v) => fn(v[0], v[1]));
+      return cp.some(v => fn(v[0], v[1]));
     } else {
       return fn(as, bs);
     }
@@ -141,7 +152,7 @@ export class Set implements Instance<SetValue, SetJS> {
   static crossUnary(as: any, fn: (a: any) => any): any {
     if (as instanceof Set) {
       const aElements = as instanceof Set ? as.elements : [as];
-      return Set.fromJS(aElements.map((a) => fn(a)));
+      return Set.fromJS(aElements.map(a => fn(a)));
     } else {
       return fn(as);
     }
@@ -150,7 +161,7 @@ export class Set implements Instance<SetValue, SetJS> {
   static crossUnaryBoolean(as: any, fn: (a: any) => boolean): boolean {
     if (as instanceof Set) {
       const aElements = as instanceof Set ? as.elements : [as];
-      return aElements.some((a) => fn(a));
+      return aElements.some(a => fn(a));
     } else {
       return fn(as);
     }
@@ -206,8 +217,8 @@ export class Set implements Instance<SetValue, SetJS> {
     if (Array.isArray(parameters)) {
       parameters = { elements: parameters };
     }
-    if (typeof parameters !== "object") {
-      throw new Error("unrecognizable set");
+    if (typeof parameters !== 'object') {
+      throw new Error('unrecognizable set');
     }
     let setType = parameters.setType;
     let elements = parameters.elements;
@@ -217,7 +228,7 @@ export class Set implements Instance<SetValue, SetJS> {
     }
     return new Set({
       setType: setType,
-      elements: arrayFromJS(elements, setType)
+      elements: arrayFromJS(elements, setType),
     });
   }
 
@@ -258,14 +269,14 @@ export class Set implements Instance<SetValue, SetJS> {
   public valueOf(): SetValue {
     return {
       setType: this.setType,
-      elements: this.elements
+      elements: this.elements,
     };
   }
 
   public toJS(): SetJS {
     return {
       setType: this.setType,
-      elements: this.elements.map(valueToJS)
+      elements: this.elements.map(valueToJS),
     };
   }
 
@@ -276,24 +287,33 @@ export class Set implements Instance<SetValue, SetJS> {
   public toString(tz?: Timezone): string {
     const { setType } = this;
     let stringFn: (v: any) => string = null;
-    if (setType === "NULL") return "null";
+    if (setType === 'NULL') return 'null';
 
-    if (setType === "TIME_RANGE") {
-      stringFn = (e: any) => e ? e.toString(tz) : 'null';
-    } else if (setType === "TIME") {
-      stringFn = (e: any) => e ? Timezone.formatDateWithTimezone(e, tz) : 'null';
+    if (setType === 'TIME_RANGE') {
+      stringFn = (e: any) => (e ? e.toString(tz) : 'null');
+    } else if (setType === 'TIME') {
+      stringFn = (e: any) => (e ? Timezone.formatDateWithTimezone(e, tz) : 'null');
     } else {
       stringFn = String;
     }
 
-    return `${this.elements.map(stringFn).join(", ")}`;
+    return `${this.elements.map(stringFn).join(', ')}`;
   }
 
   public equals(other: Set | undefined): boolean {
-    return other instanceof Set &&
+    return (
+      other instanceof Set &&
       this.setType === other.setType &&
       this.elements.length === other.elements.length &&
-      this.elements.slice().sort().join('') === other.elements.slice().sort().join('');
+      this.elements
+        .slice()
+        .sort()
+        .join('') ===
+        other.elements
+          .slice()
+          .sort()
+          .join('')
+    );
   }
 
   public changeElements(elements: any[]): Set {
@@ -320,7 +340,9 @@ export class Set implements Instance<SetValue, SetJS> {
   }
 
   public unifyElements(): Set {
-    return Range.isRangeType(this.setType) ? this.changeElements(Set.unifyElements(this.elements)) : this;
+    return Range.isRangeType(this.setType)
+      ? this.changeElements(Set.unifyElements(this.elements))
+      : this;
   }
 
   public simplifyCover(): PlywoodValue {
@@ -337,17 +359,17 @@ export class Set implements Instance<SetValue, SetJS> {
     if (this.setType === 'NUMBER') {
       return Set.fromJS({
         setType: 'NUMBER_RANGE',
-        elements: this.elements.map(NumberRange.fromNumber)
+        elements: this.elements.map(NumberRange.fromNumber),
       });
     } else if (this.setType === 'TIME') {
       return Set.fromJS({
         setType: 'TIME_RANGE',
-        elements: this.elements.map(TimeRange.fromTime)
+        elements: this.elements.map(TimeRange.fromTime),
       });
     } else if (this.setType === 'STRING') {
       return Set.fromJS({
         setType: 'STRING_RANGE',
-        elements: this.elements.map(StringRange.fromString)
+        elements: this.elements.map(StringRange.fromString),
       });
     } else {
       return this;
@@ -385,7 +407,8 @@ export class Set implements Instance<SetValue, SetJS> {
   public union(other: Set): Set {
     if (this.empty()) return other;
     if (other.empty()) return this;
-    if (this.setType !== other.setType) throw new TypeError("can not union sets of different types");
+    if (this.setType !== other.setType)
+      throw new TypeError('can not union sets of different types');
     return this.changeElements(this.elements.concat(other.elements)).unifyElements();
   }
 
@@ -394,7 +417,7 @@ export class Set implements Instance<SetValue, SetJS> {
 
     let setType = this.setType;
     if (this.setType !== other.setType) {
-      throw new TypeError("can not intersect sets of different types");
+      throw new TypeError('can not intersect sets of different types');
     }
 
     let thisElements = this.elements;
@@ -417,7 +440,7 @@ export class Set implements Instance<SetValue, SetJS> {
     if (this.empty() || other.empty()) return false;
 
     if (this.setType !== other.setType) {
-      throw new TypeError("can determine overlap sets of different types");
+      throw new TypeError('can determine overlap sets of different types');
     }
 
     let thisElements = this.elements;
@@ -436,12 +459,12 @@ export class Set implements Instance<SetValue, SetJS> {
 
   public contains(value: any): boolean {
     if (value instanceof Set) {
-      return value.elements.every((element) => this.contains(element));
+      return value.elements.every(element => this.contains(element));
     }
 
     if (Range.isRangeType(this.setType)) {
       if (value instanceof Range && this.has(value)) return true; // Shortcut
-      return this.elements.some((element) => (element as PlywoodRange).contains(value));
+      return this.elements.some(element => (element as PlywoodRange).contains(value));
     } else {
       return this.has(value);
     }
@@ -456,7 +479,7 @@ export class Set implements Instance<SetValue, SetJS> {
     if (this.contains(value)) return this;
     return new Set({
       setType: setType,
-      elements: this.elements.concat([value])
+      elements: this.elements.concat([value]),
     });
   }
 
@@ -466,7 +489,7 @@ export class Set implements Instance<SetValue, SetJS> {
     let key = keyFn(value);
     return new Set({
       setType: this.setType, // There must be a set type since at least the value is there
-      elements: this.elements.filter(element => keyFn(element) !== key)
+      elements: this.elements.filter(element => keyFn(element) !== key),
     });
   }
 

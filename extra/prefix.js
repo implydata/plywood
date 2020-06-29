@@ -28,5 +28,12 @@ var moment = Chronoshift.moment;
 var isDate = Chronoshift.isDate;
 var parseISODate = Chronoshift.parseISODate;
 
-var dummyObject = {};
+var druidQueryToolkit = require('druid-query-toolkit');
+var parseSql = druidQueryToolkit.parseSql;
+var parseSqlExpression = druidQueryToolkit.parseSqlExpression;
+var SqlRef = druidQueryToolkit.SqlRef;
+var SqlExpression = druidQueryToolkit.SqlExpression;
+var SqlFunction = druidQueryToolkit.SqlFunction;
+var SqlCase = druidQueryToolkit.SqlCase;
 
+var dummyObject = {};
