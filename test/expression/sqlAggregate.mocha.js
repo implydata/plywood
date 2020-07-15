@@ -15,7 +15,7 @@
  */
 
 const { expect } = require('chai');
-const { parseSqlExpression } = require('druid-query-toolkit');
+const { SqlExpression } = require('druid-query-toolkit');
 
 let plywood = require('../plywood');
 let { SqlAggregateExpression } = plywood;
@@ -25,8 +25,8 @@ describe('SqlAggregateExpression', () => {
     expect(
       String(
         SqlAggregateExpression.substituteFilter(
-          parseSqlExpression(`SUM(t.revenue) / MIN(t.lol)`),
-          parseSqlExpression(`t.channel = 'en'`),
+          SqlExpression.parse(`SUM(t.revenue) / MIN(t.lol)`),
+          SqlExpression.parse(`t.channel = 'en'`),
         ),
       ),
     ).to.equal(

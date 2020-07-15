@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { parseSqlExpression, SqlRef, SqlExpression, SqlFunction, SqlCase } from 'druid-query-toolkit';
+import { SqlRef, SqlExpression, SqlFunction, SqlCase } from 'druid-query-toolkit';
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
@@ -53,7 +53,7 @@ export class SqlAggregateExpression extends ChainableExpression {
     this._checkOperandTypes('DATASET');
     this.type = 'NUMBER';
 
-    this.parsedSql = parseSqlExpression(this.sql);
+    this.parsedSql = SqlExpression.parse(this.sql);
   }
 
   public valueOf(): ExpressionValue {
@@ -82,7 +82,7 @@ export class SqlAggregateExpression extends ChainableExpression {
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     if (operandSQL.includes(' WHERE ')) {
-      const filterParse = parseSqlExpression(operandSQL.split(' WHERE ')[1]);
+      const filterParse = SqlExpression.parse(operandSQL.split(' WHERE ')[1]);
       return String(SqlAggregateExpression.substituteFilter(this.parsedSql, filterParse));
     } else {
       return `(${this.sql})`;

@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.1
+
+- Updated DruidQueryToolkit
+
 ## 0.22.0
 
 - Remove PlyQL

@@ -1,1 +1,1 @@
-Expression.expressionParser = require("./expressionParser")(exports, Chronoshift);
+Expression.expressionParser = require('./expressionParser')(exports, Chronoshift);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { parseSqlExpression, SqlExpression } from 'druid-query-toolkit';
+import { SqlExpression } from 'druid-query-toolkit';
 import { ComputeFn, Datum, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/index';
 import { Expression, ExpressionJS, ExpressionValue } from './baseExpression';
@@ -41,7 +41,7 @@ export class SqlRefExpression extends Expression {
     this.sql = sql;
 
     this.simple = true;
-    this.parsedSql = parseSqlExpression(this.sql);
+    this.parsedSql = SqlExpression.parse(this.sql);
   }
 
   public valueOf(): ExpressionValue {
