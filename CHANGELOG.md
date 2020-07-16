@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.2
+
+- Fix filtering for filtered averages in resplit queries for complex inner aggregations 
+
 ## 0.22.1
 
 - Updated DruidQueryToolkit

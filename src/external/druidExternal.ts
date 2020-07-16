@@ -101,6 +101,22 @@ function simpleJSONEqual(a: any, b: any): boolean {
   return JSON.stringify(a) === JSON.stringify(b); // ToDo: fill this in;
 }
 
+function getFilterSubExpression(expression: Expression): FilterExpression | undefined {
+  let filterSubExpression: FilterExpression | undefined;
+
+  expression.some((ex) => {
+    if (ex instanceof FilterExpression) {
+      if (!filterSubExpression) {
+        filterSubExpression = ex;
+      }
+      return true;
+    }
+    return null;
+  });
+
+  return filterSubExpression;
+}
+
 export interface GranularityInflater {
   granularity: Druid.Granularity;
   inflater: Inflater;
@@ -1091,11 +1107,8 @@ export class DruidExternal extends External {
               }) as ChainableExpression;
 
               // If there is a filter defined on the inner agg then we need to filter the outer aggregate to only the buckets that have a non-zero count with said filter.
-              if (
-                resplit.resplitApply.expression instanceof ChainableExpression &&
-                resplit.resplitApply.expression.operand instanceof FilterExpression
-              ) {
-                const filterExpression = resplit.resplitApply.expression.operand;
+              const filterExpression = getFilterSubExpression(resplit.resplitApply.expression);
+              if (filterExpression) {
                 const definedFilterName = newName + '_def';
                 innerApplies.push($('_').apply(definedFilterName, filterExpression.count()));
                 outerAttributes.push(
