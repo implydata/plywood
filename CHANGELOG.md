@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.3
+
+- Fix QuantileExpression in SQL
+
 ## 0.22.2
 
 - Fix filtering for filtered averages in resplit queries for complex inner aggregations 

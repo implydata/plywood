@@ -350,7 +350,7 @@ describe('DruidSQL Functional', function() {
             source: 'wikipedia_zzz',
             attributes: wikiAttributes,
             derivedAttributes: wikiDerivedAttributes,
-            withQuery: `SELECT * FROM wikipedia WHERE channel = 'en'`,
+            withQuery: `SELECT *, CONCAT("channel", '-lol') AS "channelLol" FROM wikipedia WHERE channel = 'en'`,
           },
           druidRequester,
         ),
@@ -359,7 +359,7 @@ describe('DruidSQL Functional', function() {
 
     it('works in simple aggregate case', () => {
       let ex = $('wikiWith')
-        .split(s$(`CONCAT(channel, '~')`), 'Channel')
+        .split(s$(`t.channelLol`), 'ChannelLol')
         .apply('Count', $('wikiWith').sqlAggregate(r(`SUM(t."count")`)))
         .apply('Fancy', $('wikiWith').sqlAggregate(r(`SQRT(SUM(t."added" * t."added"))`)))
         .sort('$Count', 'descending')
@@ -368,7 +368,7 @@ describe('DruidSQL Functional', function() {
       return basicExecutor(ex).then(result => {
         expect(result.toJS().data).to.deep.equal([
           {
-            Channel: 'en~',
+            ChannelLol: 'en-lol',
             Count: 114711,
             Fancy: 717274.3671253002,
           },
@@ -461,21 +461,21 @@ describe('DruidSQL Functional', function() {
             engine: 'druidsql',
             query: {
               query:
-                'SELECT\n"namespace" AS "Namespace",\nSUM("added") AS "Added"\nFROM "wikipedia" AS t\nWHERE ("channel"=\'en\')\nGROUP BY "namespace"\nORDER BY "Added" DESC\nLIMIT 2',
+                'SELECT\n"namespace" AS "Namespace",\nSUM("added") AS "Added"\nFROM "wikipedia" AS t\nWHERE ("channel"=\'en\')\nGROUP BY 1\nORDER BY "Added" DESC\nLIMIT 2',
             },
           },
           {
             engine: 'druidsql',
             query: {
               query:
-                'SELECT\nTIME_FLOOR("__time", \'PT1H\', NULL, \'Etc/UTC\') AS "Timestamp",\nSUM("added") AS "TotalAdded"\nFROM "wikipedia" AS t\nWHERE (("channel"=\'en\') AND ("namespace"=\'Main\'))\nGROUP BY TIME_FLOOR("__time", \'PT1H\', NULL, \'Etc/UTC\')\nORDER BY "TotalAdded" DESC\nLIMIT 3',
+                'SELECT\nTIME_FLOOR("__time", \'PT1H\', NULL, \'Etc/UTC\') AS "Timestamp",\nSUM("added") AS "TotalAdded"\nFROM "wikipedia" AS t\nWHERE (("channel"=\'en\') AND ("namespace"=\'Main\'))\nGROUP BY 1\nORDER BY "TotalAdded" DESC\nLIMIT 3',
             },
           },
           {
             engine: 'druidsql',
             query: {
               query:
-                'SELECT\nTIME_FLOOR("__time", \'PT1H\', NULL, \'Etc/UTC\') AS "Timestamp",\nSUM("added") AS "TotalAdded"\nFROM "wikipedia" AS t\nWHERE (("channel"=\'en\') AND ("namespace"=\'User talk\'))\nGROUP BY TIME_FLOOR("__time", \'PT1H\', NULL, \'Etc/UTC\')\nORDER BY "TotalAdded" DESC\nLIMIT 3',
+                'SELECT\nTIME_FLOOR("__time", \'PT1H\', NULL, \'Etc/UTC\') AS "Timestamp",\nSUM("added") AS "TotalAdded"\nFROM "wikipedia" AS t\nWHERE (("channel"=\'en\') AND ("namespace"=\'User talk\'))\nGROUP BY 1\nORDER BY "TotalAdded" DESC\nLIMIT 3',
             },
           },
         ]);
@@ -583,6 +583,93 @@ describe('DruidSQL Functional', function() {
               keys: ['Namespace'],
             },
             TotalAdded: 32553107,
+          },
+        ]);
+      });
+    });
+
+    it('works with all kinds of cool aggregates on totals level', () => {
+      let ex = ply()
+        .apply('NumPages', $('wiki').countDistinct('$page'))
+        .apply(
+          'NumEnPages',
+          $('wiki')
+            .filter($('channel').is('en'))
+            .countDistinct('$page'),
+        )
+        .apply('ChannelAdded', $('wiki').sum('$added'))
+        .apply(
+          'ChannelENAdded',
+          $('wiki')
+            .filter($('channel').is('en'))
+            .sum('$added'),
+        )
+        .apply(
+          'ChannelENishAdded',
+          $('wiki')
+            .filter($('channel').contains('en'))
+            .sum('$added'),
+        )
+        .apply('Count', $('wiki').sum('$count'))
+        .apply(
+          'CountSquareRoot',
+          $('wiki')
+            .sum('$count')
+            .power(0.5),
+        )
+        .apply(
+          'CountSquared',
+          $('wiki')
+            .sum('$count')
+            .power(2),
+        )
+        .apply(
+          'One',
+          $('wiki')
+            .sum('$count')
+            .power(0),
+        )
+        .apply(
+          'AddedByDeleted',
+          $('wiki')
+            .sum('$added')
+            .divide($('wiki').sum('$deleted')),
+        )
+        .apply('Delta95th', $('wiki').quantile('$delta_hist', 0.95))
+        .apply(
+          'Delta99thX2',
+          $('wiki')
+            .quantile('$delta_hist', 0.99)
+            .multiply(2),
+        );
+      // .apply(
+      //   'Delta98thEn',
+      //   $('wiki')
+      //     .filter($('channel').is('en'))
+      //     .quantile('$delta_hist', 0.98),
+      // )
+      // .apply(
+      //   'Delta98thDe',
+      //   $('wiki')
+      //     .filter($('channel').is('de'))
+      //     .quantile('$delta_hist', 0.98),
+      // );
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            AddedByDeleted: 24.909643797343193,
+            ChannelAdded: 97393743,
+            ChannelENAdded: 32553107,
+            ChannelENishAdded: 32553107,
+            Count: 392443,
+            CountSquareRoot: 626.4527117029664,
+            CountSquared: 154011508249,
+            NumEnPages: 63850,
+            NumPages: 279107,
+            One: 1,
+            Delta95th: 161.95516967773438,
+            Delta99thX2: 328.9096984863281,
           },
         ]);
       });

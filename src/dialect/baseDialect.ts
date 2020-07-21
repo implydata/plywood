@@ -184,7 +184,7 @@ export abstract class SQLDialect {
 
   public abstract indexOfExpression(str: string, substr: string): string;
 
-  public quantileExpression(str: string, substr: string): string {
+  public quantileExpression(str: string, qunatile: string): string {
     throw new Error('dialect does not implement quantile');
   }
 

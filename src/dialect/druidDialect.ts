@@ -167,7 +167,7 @@ export class DruidDialect extends SQLDialect {
   }
 
   public quantileExpression(str: string, quantile: string): string {
-    return `APPROX_QUANTILE_DS(${str}, ${quantile})`;
+    return `APPROX_QUANTILE(${str}, ${quantile})`;
   }
 
   public logExpression(base: string, operand: string): string {
