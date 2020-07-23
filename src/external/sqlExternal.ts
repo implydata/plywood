@@ -104,7 +104,7 @@ export abstract class SQLExternal extends External {
 
     let query = [];
     if (withQuery) {
-      query.push(`WITH __with__ AS (${withQuery})\n`);
+      query.push(`WITH __with__ AS (${withQuery})`);
     }
 
     query.push('SELECT');

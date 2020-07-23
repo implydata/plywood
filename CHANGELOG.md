@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.4
+
+- Fix small typo in with query
+
 ## 0.22.3
 
 - Fix QuantileExpression in SQL
