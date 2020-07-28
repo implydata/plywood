@@ -2484,7 +2484,7 @@ describe("Druid Functional", function() {
         });
     });
 
-    it("works with resplit agg on total with average", () => {
+    it("works with resplit agg on total with average 1", () => {
       let range = TimeRange.fromJS({ start: new Date('2015-09-12T12:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
       let filterEx = $('time').overlap(range);
 
@@ -2504,6 +2504,34 @@ describe("Druid Functional", function() {
             }
           ]);
         });
+    });
+
+    it('works with resplit agg on total with average 2', () => {
+      let range = TimeRange.fromJS({
+        start: new Date('2015-09-12T12:00:00Z'),
+        end: new Date('2015-09-13T00:00:00Z'),
+      });
+      let filterEx = $('time').overlap(range);
+
+      let ex = ply()
+        .apply('Count', $('wiki').sum('$count'))
+        .apply(
+          'AddedByHourlyCd',
+          $('wiki')
+            .filter(filterEx)
+            .split('$time.timeBucket(PT1H)')
+            .apply('C', '$wiki.sum($added) / $wiki.countDistinct($user)')
+            .average('$C'),
+        );
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            AddedByHourlyCd: 1260.6697346331532,
+            Count: 392443,
+          },
+        ]);
+      });
     });
 
     it("works with resplit agg on different dimension split", () => {

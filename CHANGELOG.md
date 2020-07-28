@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.21.9
+
+- Fix filtering for filtered averages in resplit queries for complex inner aggregations 
+
 ## 0.21.8
 
 - Fix measure re-splitter with filter
