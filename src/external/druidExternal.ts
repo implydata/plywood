@@ -1792,10 +1792,6 @@ export class DruidExternal extends External {
     // Make sure that the first value of appliesByTimeFilterValue is now
     if (filterV0.start < filterV1.start) appliesByTimeFilterValue.reverse();
 
-    //if (this.split.numSplits() !== 1) return null;
-    // const splitName = this.split.firstSplitName();
-    // const splitExpression = this.split.firstSplitExpression();
-
     // Find the time split (must be only one)
     const timeSplitNames = this.split.mapSplits((name , ex) => ex instanceof TimeBucketExpression ? name : undefined).filter(Boolean);
 
