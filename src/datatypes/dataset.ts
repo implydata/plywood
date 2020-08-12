@@ -26,6 +26,7 @@ import {
   LiteralExpression,
 } from '../expressions/index';
 import { External, TotalContainer } from '../external/baseExternal';
+import { deduplicateSort } from '../helper';
 import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from '../types';
 import { AttributeInfo, AttributeJSs, Attributes } from './attributeInfo';
 import { datumHasExternal, valueFromJS, valueToJS } from './common';
@@ -1025,16 +1026,28 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     return new Dataset(value);
   }
 
+  public sameKeys(other: Dataset): boolean {
+    return this.keys.join('|') === other.keys.join('|');
+  }
+
+  public getKeyValueForDatum(datum: Datum): string {
+    const { keys } = this;
+    if (!keys) throw new Error('join lhs must have a key (be a product of a split)');
+    return this.keys.map(k => {
+      let v: any = datum[k];
+      if (v.start) v = v.start;
+      if (v.toISOString) v = v.toISOString();
+      return v;
+    }).join('|');
+  }
+
   public getKeyLookup(): Record<string, Datum> {
     const { data, keys } = this;
-
-    let thisKey = keys[0]; // ToDo: temp fix
-    if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
 
     let mapping: Record<string, Datum> = Object.create(null);
     for (let i = 0; i < data.length; i++) {
       let datum = data[i];
-      mapping[String(datum[thisKey])] = datum;
+      mapping[this.getKeyValueForDatum(datum)] = datum;
     }
 
     return mapping;
@@ -1049,13 +1062,10 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     const { data, keys, attributes } = this;
     if (!data.length) return this;
 
-    let thisKey = keys[0]; // ToDo: temp fix
-    if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
-
     const otherLookup = other.getKeyLookup();
 
     let newData = data.map(datum => {
-      const otherDatum = otherLookup[String(datum[thisKey])];
+      const otherDatum = otherLookup[this.getKeyValueForDatum(datum)];
       if (!otherDatum) return datum;
       return joinDatums(datum, otherDatum);
     });
@@ -1067,46 +1077,31 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     });
   }
 
-  public fullJoin(other: Dataset, compare: (v1: any, v2: any) => number): Dataset {
+  public fullJoin(other: Dataset): Dataset {
     if (!other || !other.data.length) return this;
     const { data, keys, attributes } = this;
     if (!data.length) return other;
 
-    let thisKey = keys[0]; // ToDo: temp fix
-    if (!thisKey) throw new Error('join lhs must have a key (be a product of a split)');
-    if (thisKey !== other.keys[0]) throw new Error('this and other keys must match');
-
-    const otherData = other.data;
-    const dataLength = data.length;
-    const otherDataLength = otherData.length;
-    let newData: Datum[] = [];
-    let i = 0;
-    let j = 0;
-    while (i < dataLength || j < otherDataLength) {
-      if (i < dataLength && j < otherDataLength) {
-        const nextDatum = data[i];
-        const nextOtherDatum = otherData[j];
-        const cmp = compare(nextDatum[thisKey], nextOtherDatum[thisKey]);
-        if (cmp < 0) {
-          newData.push(nextDatum);
-          i++;
-        } else if (cmp > 0) {
-          newData.push(nextOtherDatum);
-          j++;
-        } else {
-          newData.push(joinDatums(nextDatum, nextOtherDatum));
-          i++;
-          j++;
-        }
-      } else if (i === dataLength) {
-        newData.push(otherData[j]);
-        j++;
-      } else {
-        // j === otherDataLength
-        newData.push(data[i]);
-        i++;
-      }
+    if (!this.sameKeys(other)) {
+      throw new Error('this and other keys must match');
     }
+
+    const myDatumLookup = this.getKeyLookup();
+    const otherDatumLookup = other.getKeyLookup();
+
+    const newData = deduplicateSort(Object.keys(myDatumLookup).concat(Object.keys(otherDatumLookup))).map(keyValue => {
+      const myDatum = myDatumLookup[keyValue];
+      const otherDatum = otherDatumLookup[keyValue];
+      if (myDatum) {
+        if (otherDatum) {
+          return joinDatums(myDatum, otherDatum);
+        } else {
+          return myDatum;
+        }
+      } else {
+        return otherDatum;
+      }
+    });
 
     return new Dataset({
       keys,
