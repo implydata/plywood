@@ -1035,8 +1035,8 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     if (!keys) throw new Error('join lhs must have a key (be a product of a split)');
     return this.keys.map(k => {
       let v: any = datum[k];
-      if (v.start) v = v.start;
-      if (v.toISOString) v = v.toISOString();
+      if (v && v.start) v = v.start;
+      if (v && v.toISOString) v = v.toISOString();
       return v;
     }).join('|');
   }
