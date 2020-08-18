@@ -1089,9 +1089,9 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     const myDatumLookup = this.getKeyLookup();
     const otherDatumLookup = other.getKeyLookup();
 
-    const newData = deduplicateSort(Object.keys(myDatumLookup).concat(Object.keys(otherDatumLookup))).map(keyValue => {
-      const myDatum = myDatumLookup[keyValue];
-      const otherDatum = otherDatumLookup[keyValue];
+    const newData = deduplicateSort(Object.keys(myDatumLookup).concat(Object.keys(otherDatumLookup))).map(key => {
+      const myDatum = myDatumLookup[key];
+      const otherDatum = otherDatumLookup[key];
       if (myDatum) {
         if (otherDatum) {
           return joinDatums(myDatum, otherDatum);
