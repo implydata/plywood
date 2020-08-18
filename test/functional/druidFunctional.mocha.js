@@ -3600,6 +3600,98 @@ describe("Druid Functional", function() {
         });
     });
 
+    it('can timeBucket on joined and overlapping column with multiple splits and limit', () => {
+      let prevRange = TimeRange.fromJS({
+        start: new Date('2015-09-12T00:00:00Z'),
+        end: new Date('2015-09-12T22:00:00Z'),
+      });
+      let mainRange = TimeRange.fromJS({
+        start: new Date('2015-09-12T02:00:00Z'),
+        end: new Date('2015-09-13T00:00:00Z'),
+      });
+      let ex = $('wiki')
+        .split({
+          TimeJoin: $('time')
+            .overlap(mainRange)
+            .then($('time'))
+            .fallback($('time').timeShift(Duration.fromJS('PT2H')))
+            .timeBucket('PT1H'),
+          isRobot: $('isRobot'),
+        })
+        .apply(
+          'CountPrev',
+          $('wiki')
+            .filter($('time').overlap(prevRange))
+            .sum('$count'),
+        )
+        .apply(
+          'CountMain',
+          $('wiki')
+            .filter($('time').overlap(mainRange))
+            .sum('$count'),
+        )
+        .limit(6);
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            CountMain: 5982,
+            CountPrev: 1557,
+            TimeJoin: {
+              end: new Date('2015-09-12T03:00:00.000Z'),
+              start: new Date('2015-09-12T02:00:00.000Z'),
+            },
+            isRobot: false,
+          },
+          {
+            CountMain: 5038,
+            CountPrev: 1124,
+            TimeJoin: {
+              end: new Date('2015-09-12T03:00:00.000Z'),
+              start: new Date('2015-09-12T02:00:00.000Z'),
+            },
+            isRobot: true,
+          },
+          {
+            CountMain: 5915,
+            CountPrev: 6566,
+            TimeJoin: {
+              end: new Date('2015-09-12T04:00:00.000Z'),
+              start: new Date('2015-09-12T03:00:00.000Z'),
+            },
+            isRobot: false,
+          },
+          {
+            CountMain: 2233,
+            CountPrev: 4876,
+            TimeJoin: {
+              end: new Date('2015-09-12T04:00:00.000Z'),
+              start: new Date('2015-09-12T03:00:00.000Z'),
+            },
+            isRobot: true,
+          },
+          {
+            CountMain: 6098,
+            CountPrev: 5982,
+            TimeJoin: {
+              end: new Date('2015-09-12T05:00:00.000Z'),
+              start: new Date('2015-09-12T04:00:00.000Z'),
+            },
+            isRobot: false,
+          },
+          {
+            CountMain: 2142,
+            CountPrev: 5038,
+            TimeJoin: {
+              end: new Date('2015-09-12T05:00:00.000Z'),
+              start: new Date('2015-09-12T04:00:00.000Z'),
+            },
+            isRobot: true,
+          },
+        ]);
+      });
+    });
+
     it("can timeBucket on joined and overlapping column with limit and sort", () => {
       let prevRange = TimeRange.fromJS({ start: new Date('2015-09-12T00:00:00Z'), end: new Date('2015-09-12T22:00:00Z')});
       let mainRange = TimeRange.fromJS({ start: new Date('2015-09-12T02:00:00Z'), end: new Date('2015-09-13T00:00:00Z')});
