@@ -1780,11 +1780,6 @@ export class DruidExternal extends External {
     if (this.mode !== 'split') return null;
     const { timeAttribute } = this;
 
-    // Must have a single split
-    if (this.split.numSplits() !== 1) return null;
-    const splitName = this.split.firstSplitName();
-    const splitExpression = this.split.firstSplitExpression();
-
     // Applies must decompose into 2 things
     const appliesByTimeFilterValue = this.groupAppliesByTimeFilterValue();
     if (!appliesByTimeFilterValue || appliesByTimeFilterValue.length !== 2) return null;
@@ -1797,16 +1792,22 @@ export class DruidExternal extends External {
     // Make sure that the first value of appliesByTimeFilterValue is now
     if (filterV0.start < filterV1.start) appliesByTimeFilterValue.reverse();
 
-    // Check for timeseries decomposition
-    if (splitExpression instanceof TimeBucketExpression) {
-      const fallbackExpression = splitExpression.operand;
+    // Find the time split (must be only one)
+    const timeSplitNames = this.split.mapSplits((name , ex) => ex instanceof TimeBucketExpression ? name : undefined).filter(Boolean);
+
+    // Check for timeseries/groupBy decomposition
+    if (timeSplitNames.length === 1) {
+      const timeSplitName = timeSplitNames[0];
+      const timeSplitExpression = this.split.splits[timeSplitName] as TimeBucketExpression;
+
+      const fallbackExpression = timeSplitExpression.operand;
       if (fallbackExpression instanceof FallbackExpression) {
         const timeShiftExpression = fallbackExpression.expression;
         if (timeShiftExpression instanceof TimeShiftExpression) {
           const timeRef = timeShiftExpression.operand;
           if (this.isTimeRef(timeRef)) {
-            const simpleSplit = this.split.changeSplits({
-              [splitName]: splitExpression.changeOperand(timeRef),
+            const simpleSplit = this.split.addSplits({
+              [timeSplitName]: timeSplitExpression.changeOperand(timeRef),
             });
 
             const external1Value = this.valueOf();
@@ -1839,8 +1840,8 @@ export class DruidExternal extends External {
       }
     }
 
-    // Check for topN decomposition (we already checked that there is only a single split)
-    if (appliesByTimeFilterValue[0].hasSort && this.limit && this.limit.value <= 1000) {
+    // Check for topN decomposition
+    if (this.split.numSplits() === 1 && appliesByTimeFilterValue[0].hasSort && this.limit && this.limit.value <= 1000) {
       const external1Value = this.valueOf();
       external1Value.filter = $(timeAttribute, 'TIME')
         .overlap(appliesByTimeFilterValue[0].filterValue)
@@ -1925,10 +1926,7 @@ export class DruidExternal extends External {
               );
             }
 
-            let joined = ds1.fullJoin(
-              ds2,
-              (a: TimeRange, b: TimeRange) => a.start.valueOf() - b.start.valueOf(),
-            );
+            let joined = ds1.fullJoin(ds2);
 
             // Apply sort and limit
             const mySort = this.sort;
