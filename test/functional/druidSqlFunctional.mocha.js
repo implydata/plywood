@@ -43,6 +43,10 @@ let druidRequester = druidRequesterFactory({
 //   requester: druidRequester,
 // });
 
+let context = {
+  priority: -23,
+};
+
 describe('DruidSQL Functional', function() {
   this.timeout(10000);
 
@@ -248,6 +252,7 @@ describe('DruidSQL Functional', function() {
             source: 'wikipedia',
             attributes: wikiAttributes,
             derivedAttributes: wikiDerivedAttributes,
+            context,
           },
           druidRequester,
         ),
@@ -350,6 +355,7 @@ describe('DruidSQL Functional', function() {
             source: 'wikipedia_zzz',
             attributes: wikiAttributes,
             derivedAttributes: wikiDerivedAttributes,
+            context,
             withQuery: `SELECT *, CONCAT("channel", '-lol') AS "channelLol" FROM wikipedia WHERE channel = 'en'`,
           },
           druidRequester,
@@ -386,6 +392,7 @@ describe('DruidSQL Functional', function() {
             source: 'wikipedia',
             attributes: wikiAttributes,
             derivedAttributes: wikiDerivedAttributes,
+            context,
           },
           druidRequester,
         ),
@@ -769,6 +776,7 @@ describe('DruidSQL Functional', function() {
         source: 'wikipedia',
         timeAttribute: 'time',
         allowEternity: true,
+        context,
         attributes: [
           { name: 'time', type: 'TIME' },
           { name: 'comment', type: 'STRING' },
@@ -787,6 +795,7 @@ describe('DruidSQL Functional', function() {
           {
             engine: 'druidsql',
             source: 'wikipedia',
+            context,
           },
           druidRequester,
         ),
@@ -798,6 +807,7 @@ describe('DruidSQL Functional', function() {
         {
           engine: 'druidsql',
           source: 'wikipedia',
+          context,
         },
         druidRequester,
       )

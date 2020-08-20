@@ -18,6 +18,7 @@ import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
 import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes';
 import { DruidDialect } from '../dialect';
+import { dictEqual, nonEmptyLookup } from '../helper';
 import { PlyType } from '../types';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
@@ -33,6 +34,7 @@ export class DruidSQLExternal extends SQLExternal {
 
   static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): DruidSQLExternal {
     let value: ExternalValue = SQLExternal.jsToValue(parameters, requester);
+    value.context = parameters.context;
     return new DruidSQLExternal(value);
   }
 
@@ -99,32 +101,58 @@ export class DruidSQLExternal extends SQLExternal {
     });
   }
 
+  public context: Record<string, any>;
+
   constructor(parameters: ExternalValue) {
     super(parameters, new DruidDialect());
     this._ensureEngine('druidsql');
+    this.context = parameters.context;
   }
+
+  public valueOf(): ExternalValue {
+    let value: ExternalValue = super.valueOf();
+    value.context = this.context;
+    return value;
+  }
+
+  public toJS(): ExternalJS {
+    let js: ExternalJS = super.toJS();
+    if (this.context) js.context = this.context;
+    return js;
+  }
+
+  public equals(other: DruidSQLExternal | undefined): boolean {
+    return (
+      super.equals(other) &&
+      dictEqual(this.context, other.context)
+    );
+  }
+
+  // -----------------
 
   protected getIntrospectAttributes(): Promise<Attributes> {
     // from http://druid.io/docs/0.10.0-rc1/querying/sql.html
     return toArray(
       this.requester({
-        query: {
-          query: `SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'druid' AND TABLE_NAME = ${this.dialect.escapeLiteral(
+        query: this.sqlToQuery(
+          `SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'druid' AND TABLE_NAME = ${this.dialect.escapeLiteral(
             this.source as string,
           )}`,
-        },
+        ),
       }),
     ).then(DruidSQLExternal.postProcessIntrospect);
   }
 
   protected sqlToQuery(sql: string): any {
-    return {
+    const payload: any = {
       query: sql,
-      // context: {
-      //   useCache: false,
-      //   populateCache: false
-      // }
     };
+
+    if (this.context) {
+      payload.context = this.context;
+    }
+
+    return payload;
   }
 
   protected capability(cap: string): boolean {

@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.22.6
+
+- DruidSQLExternal should forward the context
+
+## 0.22.5
+
+- Support multi key join
+
 ## 0.22.4
 
 - Fix small typo in with query
