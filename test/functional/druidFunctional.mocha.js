@@ -17,6 +17,7 @@
 
 const { expect } = require('chai');
 const { Duration } = require('chronoshift');
+const axios = require('axios');
 let { sane } = require('../utils');
 
 let { druidRequesterFactory } = require('plywood-druid-requester');

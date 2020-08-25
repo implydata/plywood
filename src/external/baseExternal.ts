@@ -311,7 +311,7 @@ export interface ExternalJS {
   // SQL
 
   withQuery?: string;
-  
+
   // Druid
 
   timeAttribute?: string;
