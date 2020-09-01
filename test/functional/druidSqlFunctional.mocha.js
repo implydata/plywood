@@ -460,6 +460,9 @@ describe('DruidSQL Functional', function() {
           {
             engine: 'druidsql',
             query: {
+              context: {
+                priority: -23,
+              },
               query:
                 'SELECT\nSUM("count") AS "Count",\nSUM("added") AS "TotalAdded"\nFROM "wikipedia" AS t\nWHERE ("channel"=\'en\')\nGROUP BY \'\'',
             },
@@ -467,6 +470,9 @@ describe('DruidSQL Functional', function() {
           {
             engine: 'druidsql',
             query: {
+              context: {
+                priority: -23,
+              },
               query:
                 'SELECT\n"namespace" AS "Namespace",\nSUM("added") AS "Added"\nFROM "wikipedia" AS t\nWHERE ("channel"=\'en\')\nGROUP BY 1\nORDER BY "Added" DESC\nLIMIT 2',
             },
@@ -474,6 +480,9 @@ describe('DruidSQL Functional', function() {
           {
             engine: 'druidsql',
             query: {
+              context: {
+                priority: -23,
+              },
               query:
                 'SELECT\nTIME_FLOOR("__time", \'PT1H\', NULL, \'Etc/UTC\') AS "Timestamp",\nSUM("added") AS "TotalAdded"\nFROM "wikipedia" AS t\nWHERE (("channel"=\'en\') AND ("namespace"=\'Main\'))\nGROUP BY 1\nORDER BY "TotalAdded" DESC\nLIMIT 3',
             },
@@ -481,6 +490,9 @@ describe('DruidSQL Functional', function() {
           {
             engine: 'druidsql',
             query: {
+              context: {
+                priority: -23,
+              },
               query:
                 'SELECT\nTIME_FLOOR("__time", \'PT1H\', NULL, \'Etc/UTC\') AS "Timestamp",\nSUM("added") AS "TotalAdded"\nFROM "wikipedia" AS t\nWHERE (("channel"=\'en\') AND ("namespace"=\'User talk\'))\nGROUP BY 1\nORDER BY "TotalAdded" DESC\nLIMIT 3',
             },

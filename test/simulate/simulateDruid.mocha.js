@@ -3482,6 +3482,25 @@ describe('simulate Druid', () => {
     });
   });
 
+  it('works contains filter (case insensitive with lookup)', () => {
+    let ex = ply()
+      .apply(
+        'diamonds',
+        $('diamonds').filter(
+          $('color')
+            .fallback(r('null'))
+            .contains(r('sup"yo'), 'ignoreCase'),
+        ),
+      )
+      .apply('Count', '$diamonds.count()');
+
+    let queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0].filter).to.deep.equal({
+      expression: "like(lower(nvl(\"color\",'null')),'%sup\\u0022yo%','~')",
+      type: 'expression',
+    });
+  });
+
   it('works contains filter (case insensitive)', () => {
     let ex = ply()
       .apply('diamonds', $('diamonds').filter($('color').contains(r('sup"yo'), 'ignoreCase')))
