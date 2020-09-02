@@ -814,20 +814,49 @@ describe('DruidSQL Functional', function() {
       },
     });
 
-    it('introspects', () => {
-      return External.fromJS(
+    it('introspects table', async () => {
+      const external = await External.fromJS(
         {
           engine: 'druidsql',
           source: 'wikipedia',
           context,
         },
         druidRequester,
-      )
-        .introspect()
-        .then(external => {
-          expect(external.version).to.equal(info.druidVersion);
-          expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
-        });
+      ).introspect();
+
+      expect(external.version).to.equal(info.druidVersion);
+      expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
+    });
+
+    it('introspects withQuery', async () => {
+      const external = await External.fromJS(
+        {
+          engine: 'druidsql',
+          source: 'wikipedia',
+          withQuery: 'SELECT page, user, count(*) as cnt FROM wikipedia GROUP BY 1, 2',
+          context,
+        },
+        druidRequester,
+      ).introspect();
+
+      expect(external.version).to.equal(info.druidVersion);
+      expect(external.toJS().attributes).to.deep.equal([
+        {
+          name: 'page',
+          nativeType: 'STRING',
+          type: 'NULL',
+        },
+        {
+          name: 'user',
+          nativeType: 'STRING',
+          type: 'NULL',
+        },
+        {
+          name: 'cnt',
+          nativeType: 'LONG',
+          type: 'NULL',
+        },
+      ]);
     });
 
     it.skip('works with introspection', () => {

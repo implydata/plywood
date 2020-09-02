@@ -33,5 +33,8 @@ var SqlRef = druidQueryToolkit.SqlRef;
 var SqlExpression = druidQueryToolkit.SqlExpression;
 var SqlFunction = druidQueryToolkit.SqlFunction;
 var SqlCase = druidQueryToolkit.SqlCase;
+var SqlQuery = druidQueryToolkit.SqlQuery;
+var Introspect = druidQueryToolkit.Introspect;
+var QueryResult = druidQueryToolkit.QueryResult;
 
 var dummyObject = {};

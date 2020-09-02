@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+import { Introspect, QueryResult, SqlQuery, ColumnInfo } from 'druid-query-toolkit';
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
 import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes';
 import { DruidDialect } from '../dialect';
-import { dictEqual, nonEmptyLookup } from '../helper';
+import { dictEqual } from '../helper';
 import { PlyType } from '../types';
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
@@ -38,13 +39,13 @@ export class DruidSQLExternal extends SQLExternal {
     return new DruidSQLExternal(value);
   }
 
-  static postProcessIntrospect(columns: DruidSQLDescribeRow[]): Attributes {
+  static postProcessIntrospect(columns: ColumnInfo[]): Attributes {
     // only support BIGINT, FLOAT, VARCHAR, TIMESTAMP, DATE, OTHER
     return columns
-      .map((column: DruidSQLDescribeRow) => {
-        let name = column.COLUMN_NAME;
+      .map((column: ColumnInfo) => {
+        let name = column.name;
         let type: PlyType;
-        let nativeType = column.DATA_TYPE;
+        let nativeType = column.type;
         switch (nativeType) {
           case 'TIMESTAMP':
           case 'DATE':
@@ -76,17 +77,16 @@ export class DruidSQLExternal extends SQLExternal {
       .filter(Boolean);
   }
 
-  static getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
-    return toArray(
+  static async getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
+    const sources = await toArray(
       requester({
         query: {
-          query: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'druid' AND TABLE_TYPE = 'TABLE'`,
+          query: Introspect.getTableIntrospectionQuery(),
         },
       }),
-    ).then(sources => {
-      if (!sources.length) return sources;
-      return sources.map((s: PseudoDatum) => s['TABLE_NAME']).sort();
-    });
+    );
+
+    return Introspect.decodeTableIntrospectionResult(QueryResult.fromRawResult(sources)).map(s => s.name).sort();
   }
 
   static getVersion(requester: PlywoodRequester<any>): Promise<string> {
@@ -130,17 +130,37 @@ export class DruidSQLExternal extends SQLExternal {
 
   // -----------------
 
-  protected getIntrospectAttributes(): Promise<Attributes> {
-    // from http://druid.io/docs/0.10.0-rc1/querying/sql.html
-    return toArray(
-      this.requester({
-        query: this.sqlToQuery(
-          `SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'druid' AND TABLE_NAME = ${this.dialect.escapeLiteral(
-            this.source as string,
-          )}`,
-        ),
-      }),
-    ).then(DruidSQLExternal.postProcessIntrospect);
+  protected async getIntrospectAttributes(): Promise<Attributes> {
+    const { source, withQuery } = this;
+
+    let introspectQuery: SqlQuery;
+    if (withQuery) {
+      let withQueryParsed: SqlQuery;
+      try {
+        withQueryParsed = SqlQuery.parse(withQuery);
+      } catch (e) {
+        throw new Error(`could not parse withQuery: ${e.message}`);
+      }
+      introspectQuery = Introspect.getQueryColumnIntrospectionQuery(withQueryParsed);
+    } else {
+      let table: string;
+      if (Array.isArray(source)) {
+        table = source[0];
+      } else {
+        table = source;
+      }
+      introspectQuery = Introspect.getTableColumnIntrospectionQuery(table);
+    }
+
+    const query = this.sqlToQuery(String(introspectQuery));
+
+    const result = await toArray(
+      this.requester({ query }),
+    );
+
+    const queryResult = QueryResult.fromRawResult(result).attachQuery(query, introspectQuery);
+
+    return DruidSQLExternal.postProcessIntrospect(Introspect.decodeColumnIntrospectionResult(queryResult));
   }
 
   protected sqlToQuery(sql: string): any {
