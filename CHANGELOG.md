@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.7
+
+- Added `withQuery` introspection
+
 ## 0.22.6
 
 - DruidSQLExternal should forward the context
