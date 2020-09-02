@@ -54,7 +54,7 @@
     "tslib": "^1.10.0"
   },
   "devDependencies": {
-    "axios": "0.18.0",
+    "axios": "0.18.1",
     "awesome-code-style": "^1.4.3",
     "chai": "4.2.0",
     "f-tool": "0.1.3",
