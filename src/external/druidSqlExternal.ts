@@ -53,12 +53,14 @@ export class DruidSQLExternal extends SQLExternal {
             break;
 
           case 'VARCHAR':
+          case 'STRING':
             type = 'STRING';
             break;
 
           case 'DOUBLE':
           case 'FLOAT':
           case 'BIGINT':
+          case 'LONG':
             type = 'NUMBER';
             break;
 
@@ -133,6 +135,7 @@ export class DruidSQLExternal extends SQLExternal {
   protected async getIntrospectAttributes(): Promise<Attributes> {
     const { source, withQuery } = this;
 
+    let sampleResult: QueryResult | undefined;
     let introspectQuery: SqlQuery;
     if (withQuery) {
       let withQueryParsed: SqlQuery;
@@ -142,6 +145,15 @@ export class DruidSQLExternal extends SQLExternal {
         throw new Error(`could not parse withQuery: ${e.message}`);
       }
       introspectQuery = Introspect.getQueryColumnIntrospectionQuery(withQueryParsed);
+
+      if (withQueryParsed.hasStarInSelect()) {
+        // Query for sample also
+        const sampleRawResult = await toArray(
+          this.requester({ query: this.sqlToQuery(String(Introspect.getQueryColumnSampleQuery(withQueryParsed))) }),
+        );
+
+        sampleResult = QueryResult.fromRawResult(sampleRawResult);
+      }
     } else {
       let table: string;
       if (Array.isArray(source)) {
@@ -160,7 +172,7 @@ export class DruidSQLExternal extends SQLExternal {
 
     const queryResult = QueryResult.fromRawResult(result).attachQuery(query, introspectQuery);
 
-    return DruidSQLExternal.postProcessIntrospect(Introspect.decodeColumnIntrospectionResult(queryResult));
+    return DruidSQLExternal.postProcessIntrospect(Introspect.decodeColumnIntrospectionResult(queryResult, sampleResult));
   }
 
   protected sqlToQuery(sql: string): any {

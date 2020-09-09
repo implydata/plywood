@@ -828,7 +828,7 @@ describe('DruidSQL Functional', function() {
       expect(external.toJS().attributes).to.deep.equal(wikiAttributes);
     });
 
-    it('introspects withQuery', async () => {
+    it('introspects withQuery (no star)', async () => {
       const external = await External.fromJS(
         {
           engine: 'druidsql',
@@ -844,17 +844,58 @@ describe('DruidSQL Functional', function() {
         {
           name: 'page',
           nativeType: 'STRING',
-          type: 'NULL',
+          type: 'STRING',
         },
         {
           name: 'user',
           nativeType: 'STRING',
-          type: 'NULL',
+          type: 'STRING',
         },
         {
           name: 'cnt',
           nativeType: 'LONG',
-          type: 'NULL',
+          type: 'NUMBER',
+        },
+      ]);
+    });
+
+    it('introspects withQuery (with star)', async () => {
+      const external = await External.fromJS(
+        {
+          engine: 'druidsql',
+          source: 'wikipedia',
+          withQuery: `SELECT page || 'lol' AS pageLol, added + 1, * FROM wikipedia`,
+          context,
+        },
+        druidRequester,
+      ).introspect();
+
+      expect(external.version).to.equal(info.druidVersion);
+      expect(external.toJS().attributes.slice(0, 5)).to.deep.equal([
+        {
+          name: 'pageLol',
+          nativeType: 'STRING',
+          type: 'STRING',
+        },
+        {
+          name: '__time',
+          nativeType: 'LONG',
+          type: 'NUMBER',
+        },
+        {
+          name: 'added',
+          nativeType: 'LONG',
+          type: 'NUMBER',
+        },
+        {
+          name: 'channel',
+          nativeType: 'STRING',
+          type: 'STRING',
+        },
+        {
+          name: 'cityName',
+          nativeType: 'STRING',
+          type: 'STRING',
         },
       ]);
     });

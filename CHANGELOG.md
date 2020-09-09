@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.8
+
+- Improved `withQuery` introspection, now works with `*`
+
 ## 0.22.7
 
 - Added `withQuery` introspection
