@@ -833,7 +833,7 @@ describe('DruidSQL Functional', function() {
         {
           engine: 'druidsql',
           source: 'wikipedia',
-          withQuery: 'SELECT page, user, count(*) as cnt FROM wikipedia GROUP BY 1, 2',
+          withQuery: `SELECT __time, page, "user" = 'vad' as is_vad, count(*) as cnt FROM wikipedia GROUP BY 1, 2, 3`,
           context,
         },
         druidRequester,
@@ -842,14 +842,19 @@ describe('DruidSQL Functional', function() {
       expect(external.version).to.equal(info.druidVersion);
       expect(external.toJS().attributes).to.deep.equal([
         {
+          name: '__time',
+          nativeType: 'TIMESTAMP',
+          type: 'TIME',
+        },
+        {
           name: 'page',
           nativeType: 'STRING',
           type: 'STRING',
         },
         {
-          name: 'user',
-          nativeType: 'STRING',
-          type: 'STRING',
+          name: 'is_vad',
+          nativeType: 'BOOLEAN',
+          type: 'BOOLEAN',
         },
         {
           name: 'cnt',
@@ -879,8 +884,8 @@ describe('DruidSQL Functional', function() {
         },
         {
           name: '__time',
-          nativeType: 'LONG',
-          type: 'NUMBER',
+          nativeType: 'TIMESTAMP',
+          type: 'TIME',
         },
         {
           name: 'added',

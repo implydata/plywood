@@ -64,6 +64,10 @@ export class DruidSQLExternal extends SQLExternal {
             type = 'NUMBER';
             break;
 
+          case 'BOOLEAN':
+            type = 'BOOLEAN';
+            break;
+
           default:
             // OTHER
             type = 'NULL';
@@ -146,14 +150,12 @@ export class DruidSQLExternal extends SQLExternal {
       }
       introspectQuery = Introspect.getQueryColumnIntrospectionQuery(withQueryParsed);
 
-      if (withQueryParsed.hasStarInSelect()) {
-        // Query for sample also
-        const sampleRawResult = await toArray(
-          this.requester({ query: this.sqlToQuery(String(Introspect.getQueryColumnSampleQuery(withQueryParsed))) }),
-        );
+      // Query for sample also
+      const sampleRawResult = await toArray(
+        this.requester({ query: this.sqlToQuery(String(Introspect.getQueryColumnSampleQuery(withQueryParsed))) }),
+      );
 
-        sampleResult = QueryResult.fromRawResult(sampleRawResult);
-      }
+      sampleResult = QueryResult.fromRawResult(sampleRawResult);
     } else {
       let table: string;
       if (Array.isArray(source)) {

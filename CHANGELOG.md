@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.9
+
+- Improved `withQuery` introspection better detects TIMESTAMP and BOOLEAN columns
+
 ## 0.22.8
 
 - Improved `withQuery` introspection, now works with `*`
