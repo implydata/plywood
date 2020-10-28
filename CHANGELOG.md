@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.10
+
+- Update druid-query-toolkit dep
+
 ## 0.22.9
 
 - Improved `withQuery` introspection better detects TIMESTAMP and BOOLEAN columns
