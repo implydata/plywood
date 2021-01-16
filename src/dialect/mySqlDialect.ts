@@ -95,8 +95,12 @@ export class MySQLDialect extends SQLDialect {
     return `CONCAT(${a},${b})`;
   }
 
-  public containsExpression(a: string, b: string): string {
-    return `LOCATE(${a},${b})>0`;
+  public containsExpression(a: string, b: string, insensitive: boolean): string {
+    if (insensitive) {
+      a = `LOWER(${a})`;
+      b = `LOWER(${b})`;
+    }
+    return `LOCATE(${b},${a})>0`;
   }
 
   public isNotDistinctFromExpression(a: string, b: string): string {

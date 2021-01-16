@@ -99,8 +99,8 @@ export class DruidDialect extends SQLDialect {
     return `(${a}||${b})`;
   }
 
-  public containsExpression(a: string, b: string): string {
-    return `POSITION(${a} IN ${b})>0`;
+  public containsExpression(a: string, b: string, insensitive: boolean): string {
+    return `${insensitive ? 'ICONTAINS_STRING' : 'CONTAINS_STRING'}(${a},${b})`;
   }
 
   public substrExpression(a: string, position: number, length: number): string {

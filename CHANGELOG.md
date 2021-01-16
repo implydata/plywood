@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.11
+
+- Use `CONTAINS_STRING` and `ICONTAINS_STRING` for DruidSQL dialect
+
 ## 0.22.10
 
 - Update druid-query-toolkit dep

@@ -94,8 +94,12 @@ export class PostgresDialect extends SQLDialect {
     return `(${a}||${b})`;
   }
 
-  public containsExpression(a: string, b: string): string {
-    return `POSITION(${a} IN ${b})>0`;
+  public containsExpression(a: string, b: string, insensitive: boolean): string {
+    if (insensitive) {
+      a = `LOWER(${a})`;
+      b = `LOWER(${b})`;
+    }
+    return `POSITION(${b} IN ${a})>0`;
   }
 
   public regexpExpression(expression: string, regexp: string): string {

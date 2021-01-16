@@ -117,11 +117,7 @@ export class ContainsExpression extends ChainableUnaryExpression {
     operandSQL: string,
     expressionSQL: string,
   ): string {
-    if (this.compare === ContainsExpression.IGNORE_CASE) {
-      expressionSQL = `LOWER(${expressionSQL})`;
-      operandSQL = `LOWER(${operandSQL})`;
-    }
-    return dialect.containsExpression(expressionSQL, operandSQL);
+    return dialect.containsExpression(operandSQL, expressionSQL,this.compare === ContainsExpression.IGNORE_CASE);
   }
 
   public changeCompare(compare: string): ContainsExpression {

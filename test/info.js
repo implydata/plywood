@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-exports.druidVersion = '0.18.0-iap4';
+exports.druidVersion = '0.20.0-iap4';
 exports.druidHost = `localhost:8082`;
 exports.druidContext = {
   timeout: 10000,

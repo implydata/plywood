@@ -108,7 +108,7 @@ export abstract class SQLDialect {
     throw new Error('must implement');
   }
 
-  public containsExpression(a: string, b: string): string {
+  public containsExpression(a: string, b: string, insensitive: boolean): string {
     throw new Error('must implement');
   }
 
