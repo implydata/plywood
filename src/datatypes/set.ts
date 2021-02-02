@@ -316,6 +316,13 @@ export class Set implements Instance<SetValue, SetJS> {
     );
   }
 
+  public changeSetType(setType: PlyType): Set {
+    if (this.setType === setType) return this;
+    let value = this.valueOf();
+    value.setType = setType;
+    return new Set(value);
+  }
+
   public changeElements(elements: any[]): Set {
     if (this.elements === elements) return this;
     let value = this.valueOf();
@@ -407,9 +414,15 @@ export class Set implements Instance<SetValue, SetJS> {
   public union(other: Set): Set {
     if (this.empty()) return other;
     if (other.empty()) return this;
-    if (this.setType !== other.setType)
-      throw new TypeError('can not union sets of different types');
-    return this.changeElements(this.elements.concat(other.elements)).unifyElements();
+    let ret: Set = this;
+    if (this.setType !== other.setType) {
+      if (this.setType === 'NULL') {
+        ret = ret.changeSetType(other.setType);
+      } else if (other.setType !== 'NULL') {
+        throw new TypeError('can not union sets of different types');
+      }
+    }
+    return ret.changeElements(ret.elements.concat(other.elements)).unifyElements();
   }
 
   public intersect(other: Set): Set {

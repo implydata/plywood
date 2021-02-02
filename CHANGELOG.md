@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.12
+
+- Union of sets should work if the types are different when one of them is `NULL`
+
 ## 0.22.11
 
 - Use `CONTAINS_STRING` and `ICONTAINS_STRING` for DruidSQL dialect

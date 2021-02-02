@@ -352,6 +352,28 @@ describe('Set', () => {
       });
     });
 
+    it('works with null rhs', () => {
+      expect(
+        Set.fromJS(['A', 'B'])
+          .union(Set.fromJS([null]))
+          .toJS(),
+      ).to.deep.equal({
+        setType: 'STRING',
+        elements: ['A', 'B', null],
+      });
+    });
+
+    it('works with null lhs', () => {
+      expect(
+        Set.fromJS([null])
+          .union(Set.fromJS(['B', 'C']))
+          .toJS(),
+      ).to.deep.equal({
+        setType: 'STRING',
+        elements: [null, 'B', 'C'],
+      });
+    });
+
     it('works with troll', () => {
       expect(
         Set.fromJS(['A', 'B'])
