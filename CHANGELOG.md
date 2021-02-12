@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.22.13
+
+- Overlap and In expressions should wrap their `OR` chains in parens
+
 ## 0.22.12
 
 - Union of sets should work if the types are different when one of them is `NULL`

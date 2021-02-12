@@ -27,6 +27,7 @@ let {
   ply,
   r,
   basicExecutorFactory,
+  Set,
   verboseRequesterFactory,
 } = plywood;
 
@@ -491,6 +492,37 @@ describe('Cross Functional', function() {
               $('__time')
                 .overlap(new Date('2015-09-12T01:00:00Z'), new Date('2015-09-12T02:30:00Z'))
                 .or('$channel == en'),
+            ),
+          )
+          .apply('TotalEdits', '$wiki.sum($count)')
+          .apply('TotalAdded', '$wiki.sum($added)'),
+      }),
+    );
+
+    it(
+      'works with primary time filter (multi range)',
+      equalityTest({
+        executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
+        expression: ply()
+          .apply(
+            'wiki',
+            $('wiki').filter(
+              $('__time')
+                .overlap(
+                  Set.fromJS({
+                    elements: [
+                      TimeRange.fromJS({
+                        start: new Date('2015-09-12T01:00:00Z'),
+                        end: new Date('2015-09-12T02:00:00Z'),
+                      }),
+                      TimeRange.fromJS({
+                        start: new Date('2015-09-12T04:00:00Z'),
+                        end: new Date('2015-09-12T05:00:00Z'),
+                      }),
+                    ],
+                  }),
+                )
+                .and('$channel == en'),
             ),
           )
           .apply('TotalEdits', '$wiki.sum($count)')
