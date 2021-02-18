@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.23.0
+
+- Bump minor that should have been done in 0.22.10
+
 ## 0.22.13
 
 - Overlap and In expressions should wrap their `OR` chains in parens
