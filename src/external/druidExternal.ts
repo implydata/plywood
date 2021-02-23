@@ -1857,6 +1857,10 @@ export class DruidExternal extends External {
       external2Value.applies = appliesByTimeFilterValue[1].unfilteredApplies;
       external2Value.sort = external2Value.sort.changeExpression($(external2Value.applies[0].name));
 
+      // ToDo: strictly speaking this is incorrect. This only works under the assumption that the havingFilter can be fully resolved using external1
+      // the correct thing to do would be to decompose the havingFilter into `havingOnExternal1 AND havingOnExternal2` and then to assign them accordingly.
+      delete external2Value.havingFilter;
+
       return {
         external1: new DruidExternal(external1Value),
         external2: new DruidExternal(external2Value),

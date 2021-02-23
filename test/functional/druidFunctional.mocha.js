@@ -3643,6 +3643,49 @@ describe('Druid Functional', function() {
       });
     });
 
+    it('can do compare column with having', () => {
+      let prevRange = TimeRange.fromJS({
+        start: new Date('2015-09-12T00:00:00Z'),
+        end: new Date('2015-09-12T12:00:00Z'),
+      });
+      let mainRange = TimeRange.fromJS({
+        start: new Date('2015-09-12T12:00:00Z'),
+        end: new Date('2015-09-13T00:00:00Z'),
+      });
+      let ex = $('wiki')
+        .split($('channel'), 'Channel')
+        .apply(
+          'CountPrev',
+          $('wiki')
+            .filter($('time').overlap(prevRange))
+            .sum('$count'),
+        )
+        .apply(
+          'CountMain',
+          $('wiki')
+            .filter($('time').overlap(mainRange))
+            .sum('$count'),
+        )
+        .sort($('CountMain'), 'descending')
+        .filter($('CountMain').greaterThan(48520))
+        .limit(5);
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            Channel: 'en',
+            CountMain: 68606,
+            CountPrev: 46105,
+          },
+          {
+            Channel: 'vi',
+            CountMain: 48521,
+            CountPrev: 50489,
+          },
+        ]);
+      });
+    });
+
     it('can timeBucket on joined column', () => {
       let prevRange = TimeRange.fromJS({
         start: new Date('2015-09-12T00:00:00Z'),

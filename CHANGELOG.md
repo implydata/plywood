@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.23.1
+
+- Quick fix for having filter decomposition for topN compares 
+
 ## 0.23.0
 
 - Bump minor that should have been done in 0.22.10
