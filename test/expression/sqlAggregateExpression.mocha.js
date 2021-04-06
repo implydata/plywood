@@ -15,9 +15,10 @@
  */
 
 const { expect } = require('chai');
+const { SqlExpression } = require('druid-query-toolkit');
 
 let plywood = require('../plywood');
-let { $, ply, r, Expression } = plywood;
+let { $, ply, r, Expression, SqlAggregateExpression } = plywood;
 
 describe('SqlAggregateExpression', () => {
   describe('errors', () => {
@@ -28,6 +29,41 @@ describe('SqlAggregateExpression', () => {
           sql: 'SUM(A',
         });
       }).to.throw('Expected');
+    });
+  });
+
+  describe('.substituteFilter', () => {
+    it('works with simple function', () => {
+      expect(
+        String(
+          SqlAggregateExpression.substituteFilter(
+            SqlExpression.parse(`SUM(t."lol")`),
+            SqlExpression.parse(`t."browser" = 'Chrome'`),
+          ),
+        ),
+      ).to.equal(`SUM(CASE WHEN t."browser" = 'Chrome' THEN t."lol" END)`);
+    });
+
+    it('works with COUNT(*) function', () => {
+      expect(
+        String(
+          SqlAggregateExpression.substituteFilter(
+            SqlExpression.parse(`COUNT(*)`),
+            SqlExpression.parse(`t."browser" = 'Chrome'`),
+          ),
+        ),
+      ).to.equal(`COUNT(*) FILTER (WHERE t."browser" = 'Chrome')`);
+    });
+
+    it('works with filtered COUNT(*) function', () => {
+      expect(
+        String(
+          SqlAggregateExpression.substituteFilter(
+            SqlExpression.parse(`COUNT(*) FILTER (WHERE t."os" = 'Windows')`),
+            SqlExpression.parse(`t."browser" = 'Chrome'`),
+          ),
+        ),
+      ).to.equal(`COUNT(*) FILTER (WHERE t."os" = 'Windows' AND t."browser" = 'Chrome')`);
     });
   });
 });

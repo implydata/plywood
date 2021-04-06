@@ -31,7 +31,8 @@ export class SqlAggregateExpression extends ChainableExpression {
         }
       }
       if (x instanceof SqlFunction && x.isCountStar()) {
-        return x.changeWhereExpression(condition);
+        const curFilter = x.getWhereExpression();
+        return x.changeWhereExpression(curFilter ? curFilter.and(condition) : condition);
       }
       return x;
     }) as SqlExpression;

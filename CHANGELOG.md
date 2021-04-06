@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.23.2
+
+- Fix how filter is applied on a `COUNT(*) FILTER (WHERE ...)` expression
+
 ## 0.23.1
 
 - Quick fix for having filter decomposition for topN compares 
