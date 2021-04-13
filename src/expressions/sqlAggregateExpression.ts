@@ -23,19 +23,40 @@ import { Aggregate } from './mixins/aggregate';
 export class SqlAggregateExpression extends ChainableExpression {
   static op = 'SqlAggregate';
 
+  static KNOWN_AGGREGATIONS = [
+    "COUNT",
+    "SUM",
+    "MIN",
+    "MAX",
+    "AVG",
+    "APPROX_COUNT_DISTINCT",
+    "APPROX_COUNT_DISTINCT_DS_HLL",
+    "APPROX_COUNT_DISTINCT_DS_THETA",
+    "DS_HLL",
+    "DS_THETA",
+    "APPROX_QUANTILE",
+    "APPROX_QUANTILE_DS",
+    "APPROX_QUANTILE_FIXED_BUCKETS",
+    "DS_QUANTILES_SKETCH",
+    "BLOOM_FILTER",
+    "TDIGEST_QUANTILE",
+    "TDIGEST_GENERATE_SKETCH",
+    "VAR_POP",
+    "VAR_SAMP",
+    "VARIANCE",
+    "STDDEV_POP",
+    "STDDEV_SAMP",
+    "STDDEV",
+    "EARLIEST",
+    "EARLIEST",
+    "LATEST",
+    "LATEST",
+    "ANY_VALUE",
+    "ANY_VALUE"
+  ];
+
   static substituteFilter(sqlExpression: SqlExpression, condition: SqlExpression): SqlExpression {
-    return sqlExpression.walk(x => {
-      if (x instanceof SqlRef) {
-        if (x.column && x.table === 't') {
-          return SqlCase.ifThenElse(condition, x);
-        }
-      }
-      if (x instanceof SqlFunction && x.isCountStar()) {
-        const curFilter = x.getWhereExpression();
-        return x.changeWhereExpression(curFilter ? curFilter.and(condition) : condition);
-      }
-      return x;
-    }) as SqlExpression;
+    return sqlExpression.addFilterToAggregations(condition, SqlAggregateExpression.KNOWN_AGGREGATIONS);
   }
 
   static fromJS(parameters: ExpressionJS): SqlAggregateExpression {

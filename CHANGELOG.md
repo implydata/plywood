@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.23.3
+
+- Use different filter aggregation
+
 ## 0.23.2
 
 - Fix how filter is applied on a `COUNT(*) FILTER (WHERE ...)` expression

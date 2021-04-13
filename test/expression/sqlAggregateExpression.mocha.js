@@ -41,7 +41,7 @@ describe('SqlAggregateExpression', () => {
             SqlExpression.parse(`t."browser" = 'Chrome'`),
           ),
         ),
-      ).to.equal(`SUM(CASE WHEN t."browser" = 'Chrome' THEN t."lol" END)`);
+      ).to.equal(`SUM(t."lol") FILTER (WHERE t."browser" = 'Chrome')`);
     });
 
     it('works with COUNT(*) function', () => {
@@ -64,6 +64,41 @@ describe('SqlAggregateExpression', () => {
           ),
         ),
       ).to.equal(`COUNT(*) FILTER (WHERE t."os" = 'Windows' AND t."browser" = 'Chrome')`);
+    });
+
+    it('works in more complex case', () => {
+      expect(
+        String(
+          SqlAggregateExpression.substituteFilter(
+            SqlExpression.parse(`SUM(t.revenue) / MIN(t.lol)`),
+            SqlExpression.parse(`t.channel = 'en'`),
+          ),
+        ),
+      ).to.equal(
+        `SUM(t.revenue) FILTER (WHERE t.channel = 'en') / MIN(t.lol) FILTER (WHERE t.channel = 'en')`,
+      );
+    });
+
+    it('works on unknown aggregates', () => {
+      expect(
+        String(
+          SqlAggregateExpression.substituteFilter(
+            SqlExpression.parse(`FOO(t.revenue) / BAR(t.lol)`),
+            SqlExpression.parse(`t.channel = 'en'`),
+          ),
+        ),
+      ).to.equal(
+        `FOO(t.revenue) FILTER (WHERE t.channel = 'en') / BAR(t.lol) FILTER (WHERE t.channel = 'en')`,
+      );
+    });
+
+    it('throws on un-aggregated column', () => {
+      expect(() => {
+        SqlAggregateExpression.substituteFilter(
+          SqlExpression.parse(`FOO(t.revenue) + t.lol`),
+          SqlExpression.parse(`t.channel = 'en'`),
+        );
+      }).to.throw(`column reference outside aggregation`);
     });
   });
 });
