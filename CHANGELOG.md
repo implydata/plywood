@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.23.4
+
+- Use `CAST(... AS TIMESTAMP)` instead of `TIME_PARSE(...)` to convert things to time
+
 ## 0.23.3
 
 - Use different filter aggregation

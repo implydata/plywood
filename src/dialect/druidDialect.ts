@@ -122,7 +122,7 @@ export class DruidDialect extends SQLDialect {
   }
 
   private operandAsTimestamp(operand: string): string {
-    return operand.includes('__time') ? operand : `TIME_PARSE(${operand})`;
+    return operand.includes('__time') ? operand : `CAST(${operand} AS TIMESTAMP)`;
   }
 
   public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {

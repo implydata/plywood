@@ -779,6 +779,33 @@ describe('DruidSQL Functional', function() {
         ]);
       });
     });
+
+    it('works with non __time time expression', () => {
+      let ex = $('wiki')
+        .split(s$('MILLIS_TO_TIMESTAMP(t.added)').timeBucket('PT1S', 'Etc/UTC'), 'addedAsTime')
+        .apply('Count', $('wiki').sum('$count'))
+        .sort('$Count', 'descending')
+        .limit(2);
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            Count: 373662,
+            addedAsTime: {
+              end: new Date('1970-01-01T00:00:01.000Z'),
+              start: new Date('1970-01-01T00:00:00.000Z'),
+            },
+          },
+          {
+            Count: 9744,
+            addedAsTime: {
+              end: new Date('1970-01-01T00:00:02.000Z'),
+              start: new Date('1970-01-01T00:00:01.000Z'),
+            },
+          },
+        ]);
+      });
+    });
   });
 
   describe('incorrect commentLength and comment', () => {
