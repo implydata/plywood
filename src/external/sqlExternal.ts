@@ -28,7 +28,14 @@ import {
   SplitExpression,
   TimeBucketExpression,
 } from '../expressions/index';
-import { External, ExternalJS, ExternalValue, Inflater, QueryAndPostTransform } from './baseExternal';
+import {
+  External,
+  ExternalJS,
+  ExternalValue,
+  Inflater,
+  IntrospectionDepth,
+  QueryAndPostTransform
+} from './baseExternal';
 import { PlywoodRequester } from 'plywood-base-api';
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
@@ -91,12 +98,7 @@ export abstract class SQLExternal extends External {
       return `FROM __with__ AS t`;
     }
 
-    const m = String(source).match(/^(\w+)\.(.+)$/);
-    if (m) {
-      return `FROM ${m[1]}.${dialect.escapeName(m[2])} AS t`;
-    } else {
-      return `FROM ${dialect.escapeName(source as string)} AS t`;
-    }
+    return `FROM ${dialect.escapeName(source as string)} AS t`;
   }
 
   public getQueryAndPostTransform(): QueryAndPostTransform<string> {
@@ -229,5 +231,5 @@ export abstract class SQLExternal extends External {
     };
   }
 
-  protected abstract getIntrospectAttributes(): Promise<Attributes>;
+  protected abstract getIntrospectAttributes(depth: IntrospectionDepth): Promise<Attributes>;
 }

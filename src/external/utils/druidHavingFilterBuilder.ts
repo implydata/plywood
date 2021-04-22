@@ -20,18 +20,15 @@ import { DruidFilterBuilder } from './druidFilterBuilder';
 import { CustomDruidTransforms } from './druidTypes';
 
 export interface DruidHavingFilterBuilderOptions {
-  version: string;
   attributes: AttributeInfo[];
   customTransforms: CustomDruidTransforms;
 }
 
 export class DruidHavingFilterBuilder {
-  public version: string;
   public attributes: AttributeInfo[];
   public customTransforms: CustomDruidTransforms;
 
   constructor(options: DruidHavingFilterBuilderOptions) {
-    this.version = options.version;
     this.attributes = options.attributes;
     this.customTransforms = options.customTransforms;
   }
@@ -40,7 +37,6 @@ export class DruidHavingFilterBuilder {
     return {
       type: 'filter',
       filter: new DruidFilterBuilder({
-        version: this.version,
         rawAttributes: this.attributes,
         timeAttribute: 'z',
         allowEternity: true,

@@ -42,7 +42,6 @@ import { External } from '../baseExternal';
 import { CustomDruidTransforms } from './druidTypes';
 
 export interface DruidExtractionFnBuilderOptions {
-  version: string;
   customTransforms: CustomDruidTransforms;
 }
 
@@ -121,15 +120,11 @@ export class DruidExtractionFnBuilder {
     return 'function(s){try{\n' + lines.filter(Boolean).join('\n') + '\n}catch(e){return null;}}';
   }
 
-  public version: string;
   public customTransforms: CustomDruidTransforms;
-
   public allowJavaScript: boolean;
 
   constructor(options: DruidExtractionFnBuilderOptions, allowJavaScript: boolean) {
-    this.version = options.version;
     this.customTransforms = options.customTransforms;
-
     this.allowJavaScript = allowJavaScript;
   }
 
@@ -500,10 +495,5 @@ export class DruidExtractionFnBuilder {
 
     if (ex.isOp('concat')) jsExtractionFn.injective = true;
     return DruidExtractionFnBuilder.composeFns(prefixFn, jsExtractionFn);
-  }
-
-  private versionBefore(neededVersion: string): boolean {
-    const { version } = this;
-    return version && External.versionLessThan(version, neededVersion);
   }
 }

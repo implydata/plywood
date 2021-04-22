@@ -96,12 +96,11 @@ describe('External', () => {
 
         {
           engine: 'druid',
-          version: '0.10.0',
+          version: '0.20.0',
           source: 'wiki',
           timeAttribute: 'time',
           allowEternity: true,
           allowSelectQueries: true,
-          introspectionStrategy: 'datasource-get',
           exactResultsOnly: true,
           context: {
             timeout: 10000,
@@ -110,7 +109,7 @@ describe('External', () => {
 
         {
           engine: 'druid',
-          version: '0.10.1',
+          version: '0.20.1',
           source: 'moon_child',
           timeAttribute: 'time',
           attributeOverrides: [
@@ -135,7 +134,7 @@ describe('External', () => {
 
         {
           engine: 'druid',
-          version: '0.10.0',
+          version: '0.20.0',
           rollup: true,
           source: 'moon_child',
           timeAttribute: 'time',
@@ -153,7 +152,7 @@ describe('External', () => {
 
         {
           engine: 'druid',
-          version: '0.11.0',
+          version: '0.21.0',
           source: 'wiki',
           timeAttribute: 'time',
           derivedAttributes: {
@@ -189,13 +188,13 @@ describe('External', () => {
       expect(
         External.fromJS({
           engine: 'druid',
-          version: '0.10.0',
+          version: '0.20.0',
           source: 'wiki',
           hasOwnProperty: 'troll',
         }).toJS(),
       ).to.deep.equal({
         engine: 'druid',
-        version: '0.10.0',
+        version: '0.20.0',
         source: 'wiki',
       });
     });
@@ -228,11 +227,11 @@ describe('External', () => {
       expect(() => {
         External.fromJS({
           engine: 'druid',
-          version: '0.9.2',
+          version: '0.13.0',
           source: 'wiki',
           timeAttribute: 'time',
         });
-      }).to.throw('only druid versions >= 0.10.0 are supported');
+      }).to.throw('only druid versions >= 0.14.0 are supported');
     });
   });
 
@@ -349,7 +348,7 @@ describe('External', () => {
       let external = External.fromJS(
         {
           engine: 'druid',
-          version: '0.10.0-yo',
+          version: '0.20.0-yo',
           source: 'moon_child',
           attributeOverrides: [{ name: 'unique_thing', nativeType: 'hyperUnique', type: 'NULL' }],
         },
@@ -374,7 +373,7 @@ describe('External', () => {
         .then(introspectedExternal1 => {
           expect(introspectedExternal1.toJS()).to.deep.equal({
             engine: 'druid',
-            version: '0.10.0-yo',
+            version: '0.20.0-yo',
             source: 'moon_child',
             attributeOverrides: [{ name: 'unique_thing', nativeType: 'hyperUnique', type: 'NULL' }],
             attributes: [
@@ -404,7 +403,7 @@ describe('External', () => {
         .then(introspectedExternal2 => {
           expect(introspectedExternal2.toJS()).to.deep.equal({
             engine: 'druid',
-            version: '0.10.0-yo',
+            version: '0.20.0-yo',
             source: 'moon_child',
             attributeOverrides: [{ name: 'unique_thing', nativeType: 'hyperUnique', type: 'NULL' }],
             attributes: [

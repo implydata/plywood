@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.24.0
+
+- Remove deprecated `introspectionStrategy` (always use segment metadata)
+- Do not allow `.` to be unescaped in SQL data source name
+- Limit min supported Druid version to 0.14.0  
+- Use `DOUBLE` instead of `FLOAT` when possible
+- DruidDialect now takes the native attribute into account when generating SQL for `countDistinct` and `quantile`
+
 ## 0.23.4
 
 - Use `CAST(... AS TIMESTAMP)` instead of `TIME_PARSE(...)` to convert things to time

@@ -40,21 +40,6 @@ let attributes = [
   { name: 'a+b', type: 'NUMBER', nativeType: 'STRING' }, // Added here because it is invalid JS without escaping
 ];
 
-let context = {
-  diamonds: External.fromJS({
-    engine: 'druidsql',
-    version: '0.13.0',
-    source: 'diamonds',
-    timeAttribute: 'time',
-    attributes,
-    allowSelectQueries: true,
-    filter: $('time').overlap({
-      start: new Date('2015-03-12T00:00:00Z'),
-      end: new Date('2015-03-19T00:00:00Z'),
-    }),
-  }),
-};
-
 describe('simulate DruidSql', () => {
   it('works in basic case', () => {
     let ex = ply()
@@ -75,7 +60,20 @@ describe('simulate DruidSql', () => {
           ),
       );
 
-    let queryPlan = ex.simulateQueryPlan(context);
+    let queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        filter: $('time').overlap({
+          start: new Date('2015-03-12T00:00:00Z'),
+          end: new Date('2015-03-19T00:00:00Z'),
+        }),
+      }),
+    });
     expect(queryPlan.length).to.equal(2);
     expect(queryPlan).to.deep.equal([
       [
@@ -88,6 +86,42 @@ describe('simulate DruidSql', () => {
         {
           query:
             'SELECT\n"cut" AS "Cut",\nCOUNT(*) AS "Count"\nFROM "diamonds" AS t\nWHERE (((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND "tags" IN (\'tagA\',\'tagB\')) AND ("tags"=\'some_tags\'))\nGROUP BY 1\nORDER BY "Count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
+
+  it('works with . in the datasource', () => {
+    let ex = ply()
+      .apply('diamonds', $('diamonds').filter('$tags.overlap(["tagA", "tagB"])'))
+      .apply(
+        'Tags',
+        $('diamonds')
+          .split('$tags', 'Tag')
+          .sort('$Tag', 'descending')
+          .limit(10),
+      );
+
+    let queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'dia.monds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        filter: $('time').overlap({
+          start: new Date('2015-03-12T00:00:00Z'),
+          end: new Date('2015-03-19T00:00:00Z'),
+        }),
+      }),
+    });
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND "tags" IN (\'tagA\',\'tagB\'))\nGROUP BY 1\nORDER BY "Tag" DESC\nLIMIT 10',
         },
       ],
     ]);

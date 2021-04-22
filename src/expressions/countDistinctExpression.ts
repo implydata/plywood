@@ -23,6 +23,7 @@ import {
   ExpressionValue,
 } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
+import { RefExpression } from './refExpression';
 
 export class CountDistinctExpression extends ChainableUnaryExpression implements Aggregate {
   static op = 'CountDistinct';
@@ -46,7 +47,11 @@ export class CountDistinctExpression extends ChainableUnaryExpression implements
     operandSQL: string,
     expressionSQL: string,
   ): string {
-    return `COUNT(DISTINCT ${dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL)})`;
+    const { expression } = this;
+    return dialect.countDistinctExpression(
+      dialect.aggregateFilterIfNeeded(operandSQL, expressionSQL),
+      expression instanceof RefExpression ? expression.name : undefined,
+    );
   }
 }
 

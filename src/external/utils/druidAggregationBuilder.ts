@@ -59,7 +59,6 @@ export interface AggregationsAndPostAggregations {
 }
 
 export interface DruidAggregationBuilderOptions {
-  version: string;
   rawAttributes: AttributeInfo[];
   timeAttribute: string;
   derivedAttributes: Record<string, Expression>;
@@ -99,7 +98,6 @@ export class DruidAggregationBuilder {
     }
   }
 
-  public version: string;
   public rawAttributes: AttributeInfo[];
   public timeAttribute: string;
   public derivedAttributes: Record<string, Expression>;
@@ -110,7 +108,6 @@ export class DruidAggregationBuilder {
   public allowEternity: boolean;
 
   constructor(options: DruidAggregationBuilderOptions) {
-    this.version = options.version;
     this.rawAttributes = options.rawAttributes;
     this.timeAttribute = options.timeAttribute;
     this.derivedAttributes = options.derivedAttributes;
@@ -354,6 +351,7 @@ export class DruidAggregationBuilder {
             name: forceFinalize ? tempName : name,
             type: 'HLLSketchMerge',
             fieldName: attributeName,
+            round: true,
           };
           if (forceFinalize) {
             postAggregations.push({
@@ -768,10 +766,5 @@ export class DruidAggregationBuilder {
 
   public getAttributesInfo(attributeName: string) {
     return NamedArray.get(this.rawAttributes, attributeName);
-  }
-
-  private versionBefore(neededVersion: string): boolean {
-    const { version } = this;
-    return version && External.versionLessThan(version, neededVersion);
   }
 }

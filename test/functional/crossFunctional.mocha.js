@@ -91,7 +91,7 @@ let attributes = [
   { name: 'delta', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
   { name: 'min_delta', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
   { name: 'max_delta', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
-  { name: 'deltaByTen', type: 'NUMBER', nativeType: 'FLOAT', unsplitable: true },
+  { name: 'deltaByTen', type: 'NUMBER', nativeType: 'DOUBLE', unsplitable: true },
   { name: 'added', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
   { name: 'deleted', type: 'NUMBER', nativeType: 'LONG', unsplitable: true },
 ];
@@ -129,7 +129,7 @@ let druidLegacyExecutor = basicExecutorFactory({
         }),
         attributes,
         derivedAttributes,
-        version: '0.10.0',
+        version: '0.20.0',
         allowSelectQueries: true,
         allowEternity: true,
       },

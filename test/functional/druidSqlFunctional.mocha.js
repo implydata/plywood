@@ -53,70 +53,96 @@ describe('DruidSQL Functional', function() {
   let wikiAttributes = [
     {
       name: '__time',
-      nativeType: 'TIMESTAMP',
+      nativeType: '__time',
+      range: {
+        bounds: '[]',
+        end: new Date('2015-09-12T23:59:00.000Z'),
+        start: new Date('2015-09-12T00:46:00.000Z'),
+      },
       type: 'TIME',
     },
     {
+      maker: {
+        expression: {
+          name: 'added',
+          op: 'ref',
+        },
+        op: 'sum',
+      },
       name: 'added',
-      nativeType: 'BIGINT',
+      nativeType: 'LONG',
       type: 'NUMBER',
+      unsplitable: true,
     },
     {
       name: 'channel',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'cityName',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'comment',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'commentLength',
-      nativeType: 'BIGINT',
+      nativeType: 'LONG',
       type: 'NUMBER',
     },
     {
       name: 'commentLengthStr',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
-    info.druidHasFullText
-      ? {
-          name: 'commentTerms',
-          nativeType: 'VARCHAR',
-          type: 'STRING',
-        }
-      : null,
     {
+      maker: {
+        op: 'count',
+      },
       name: 'count',
-      nativeType: 'BIGINT',
+      nativeType: 'LONG',
       type: 'NUMBER',
+      unsplitable: true,
     },
     {
       name: 'countryIsoCode',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'countryName',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
+      maker: {
+        expression: {
+          name: 'deleted',
+          op: 'ref',
+        },
+        op: 'sum',
+      },
       name: 'deleted',
-      nativeType: 'BIGINT',
+      nativeType: 'LONG',
       type: 'NUMBER',
+      unsplitable: true,
     },
     {
+      maker: {
+        expression: {
+          name: 'delta',
+          op: 'ref',
+        },
+        op: 'sum',
+      },
       name: 'delta',
-      nativeType: 'BIGINT',
+      nativeType: 'LONG',
       type: 'NUMBER',
+      unsplitable: true,
     },
     {
       name: 'deltaBucket100',
@@ -124,111 +150,156 @@ describe('DruidSQL Functional', function() {
       type: 'NUMBER',
     },
     {
+      maker: {
+        expression: {
+          name: 'deltaByTen',
+          op: 'ref',
+        },
+        op: 'sum',
+      },
       name: 'deltaByTen',
       nativeType: 'DOUBLE',
       type: 'NUMBER',
+      unsplitable: true,
     },
     {
       name: 'delta_hist',
-      nativeType: 'OTHER',
+      nativeType: 'approximateHistogram',
       type: 'NULL',
+      unsplitable: true,
+    },
+    {
+      name: 'delta_quantilesDoublesSketch',
+      nativeType: 'quantilesDoublesSketch',
+      type: 'NULL',
+      unsplitable: true,
+    },
+    {
+      name: 'geohash',
+      nativeType: 'STRING',
+      type: 'STRING',
     },
     {
       name: 'isAnonymous',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'isMinor',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'isNew',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'isRobot',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'isUnpatrolled',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
+      maker: {
+        expression: {
+          name: 'max_delta',
+          op: 'ref',
+        },
+        op: 'max',
+      },
       name: 'max_delta',
-      nativeType: 'BIGINT',
+      nativeType: 'LONG',
       type: 'NUMBER',
+      unsplitable: true,
     },
     {
       name: 'metroCode',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
+      maker: {
+        expression: {
+          name: 'min_delta',
+          op: 'ref',
+        },
+        op: 'min',
+      },
       name: 'min_delta',
-      nativeType: 'BIGINT',
+      nativeType: 'LONG',
       type: 'NUMBER',
+      unsplitable: true,
     },
     {
       name: 'namespace',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'page',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'page_unique',
-      nativeType: 'OTHER',
+      nativeType: 'hyperUnique',
       type: 'NULL',
+      unsplitable: true,
     },
     {
       name: 'regionIsoCode',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'regionName',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'sometimeLater',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'sometimeLaterMs',
-      nativeType: 'BIGINT',
+      nativeType: 'LONG',
       type: 'NUMBER',
     },
     {
       name: 'user',
-      nativeType: 'VARCHAR',
+      nativeType: 'STRING',
       type: 'STRING',
     },
     {
       name: 'userChars',
-      nativeType: 'VARCHAR',
-      type: 'STRING',
+      nativeType: 'STRING',
+      type: 'SET/STRING',
+    },
+    {
+      name: 'user_hll',
+      nativeType: 'HLLSketch',
+      type: 'NULL',
+      unsplitable: true,
     },
     {
       name: 'user_theta',
-      nativeType: 'OTHER',
+      nativeType: 'thetaSketch',
       type: 'NULL',
+      unsplitable: true,
     },
     {
       name: 'user_unique',
-      nativeType: 'OTHER',
+      nativeType: 'hyperUnique',
       type: 'NULL',
+      unsplitable: true,
     },
-  ].filter(Boolean);
+  ];
 
   let wikiDerivedAttributes = {
     pageInBrackets: "'[' ++ $page ++ ']'",
@@ -930,6 +1001,106 @@ describe('DruidSQL Functional', function() {
           type: 'STRING',
         },
       ]);
+    });
+
+    it('works with introspected uniques', () => {
+      let ex = ply()
+        .apply('UniqueIsRobot', $('wiki').countDistinct('$isRobot'))
+        .apply('UniqueUserChars', $('wiki').countDistinct('$userChars'))
+        .apply('UniquePages1', $('wiki').countDistinct('$page'))
+        .apply('UniquePages2', $('wiki').countDistinct('$page_unique'))
+        .apply('UniqueUsers1', $('wiki').countDistinct('$user'))
+        .apply('UniqueUsers2', $('wiki').countDistinct('$user_unique'))
+        .apply('UniqueUsers3', $('wiki').countDistinct('$user_theta'))
+        .apply('UniqueUsers4', $('wiki').countDistinct('$user_hll'))
+        .apply('Diff_Users_1_2', '$UniqueUsers1 - $UniqueUsers2')
+        .apply('Diff_Users_2_3', '$UniqueUsers2 - $UniqueUsers3')
+        .apply('Diff_Users_1_3', '$UniqueUsers1 - $UniqueUsers3')
+        .apply('Diff_Users_3_4', '$UniqueUsers3 - $UniqueUsers4');
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            Diff_Users_1_2: 1555,
+            Diff_Users_1_3: 1102,
+            Diff_Users_2_3: -452,
+            Diff_Users_3_4: -39,
+            UniqueIsRobot: 2,
+            UniquePages1: 279107,
+            UniquePages2: 281588,
+            UniqueUserChars: 1376,
+            UniqueUsers1: 39268,
+            UniqueUsers2: 37713,
+            UniqueUsers3: 38165,
+            UniqueUsers4: 38205,
+          },
+        ]);
+      });
+    });
+
+    it('works with quantiles (histogram)', () => {
+      let ex = ply()
+        .apply('deltaHist95', $('wiki').quantile($('delta_hist'), 0.95))
+        .apply('deltaHistMedian', $('wiki').quantile($('delta_hist'), 0.5))
+        .apply('deltaBucket95', $('wiki').quantile($('deltaBucket100'), 0.95))
+        .apply('deltaBucketMedian', $('wiki').quantile($('deltaBucket100'), 0.5))
+        .apply('commentLength95', $('wiki').quantile($('commentLength'), 0.95))
+        .apply('commentLengthMedian', $('wiki').quantile($('commentLength'), 0.5));
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            commentLength95: 145.46353149414062,
+            commentLengthMedian: 28.10873794555664,
+            deltaBucket95: -500,
+            deltaBucketMedian: -500,
+            deltaHist95: 161.95516967773438,
+            deltaHistMedian: 129.01910400390625,
+          },
+        ]);
+      });
+    });
+
+    it('works with quantiles (quantile doubles)', () => {
+      let ex = ply()
+        .apply('deltaQuantiles95', $('wiki').quantile($('delta_quantilesDoublesSketch'), 0.95))
+        .apply(
+          'deltaQuantilesMedian',
+          $('wiki').quantile($('delta_quantilesDoublesSketch'), 0.5, 'k=256'),
+        )
+        .apply('commentLength95', $('wiki').quantile($('commentLength'), 0.95, 'v=2'))
+        .apply('commentLengthMedian', $('wiki').quantile($('commentLength'), 0.5, 'v=2,k=256'))
+        .apply(
+          'DeltaDq98thEn',
+          $('wiki')
+            .filter($('channel').is('en'))
+            .quantile('$delta_quantilesDoublesSketch', 0.98),
+        )
+        .apply(
+          'DeltaDq98thDe',
+          $('wiki')
+            .filter($('channel').is('de'))
+            .quantile('$delta_quantilesDoublesSketch', 0.98),
+        );
+
+      return basicExecutor(ex).then(result => {
+        const datum = result.toJS().data[0];
+        expect(datum).to.have.keys(
+          'deltaQuantiles95',
+          'commentLength95',
+          'deltaQuantilesMedian',
+          'commentLengthMedian',
+          'DeltaDq98thEn',
+          'DeltaDq98thDe',
+        );
+
+        // These quantile doubles are non-deterministic - so just check against some bounds
+        const between = (k, min, max) => expect(min < datum[k] && datum[k] < max).to.equal(true);
+        between('deltaQuantiles95', 500, 2000);
+        between('commentLength95', 100, 200);
+        between('deltaQuantilesMedian', 8, 40);
+        between('commentLengthMedian', 15, 60);
+      });
     });
 
     it.skip('works with introspection', () => {

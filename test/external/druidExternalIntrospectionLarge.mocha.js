@@ -40,8 +40,8 @@ function promiseFnToStream(promiseRq) {
 }
 
 describe('DruidExternal Introspection Large', () => {
-  let requesterDruid_0_10_0 = promiseFnToStream(({ query }) => {
-    if (query.queryType === 'status') return Promise.resolve({ version: '0.10.0' });
+  let requesterDruid_0_21_0 = promiseFnToStream(({ query }) => {
+    if (query.queryType === 'status') return Promise.resolve({ version: '0.21.0' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -113,11 +113,11 @@ describe('DruidExternal Introspection Large', () => {
           { name: 'price', type: 'NUMBER', unsplitable: true },
         ],
       },
-      requesterDruid_0_10_0,
+      requesterDruid_0_21_0,
     );
 
     return wikiExternal.introspect().then(introspectedExternal => {
-      expect(introspectedExternal.version).to.equal('0.10.0');
+      expect(introspectedExternal.version).to.equal('0.21.0');
       expect(introspectedExternal.toJS().attributes.length).to.equal(40007);
     });
   });

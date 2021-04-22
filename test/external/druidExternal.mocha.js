@@ -55,7 +55,7 @@ let context = {
     },
     filter: timeFilter,
     allowSelectQueries: true,
-    version: '0.13.0',
+    version: '0.20.0',
     customAggregations: {
       crazy: {
         aggregations: [
@@ -1912,7 +1912,7 @@ describe('DruidExternal', () => {
           {
             dimension: 'v:Split',
             outputName: 'Split',
-            outputType: 'FLOAT',
+            outputType: 'DOUBLE',
             type: 'default',
           },
         ],
@@ -1923,7 +1923,7 @@ describe('DruidExternal', () => {
           {
             expression: 'abs("commentLength")',
             name: 'v:Split',
-            outputType: 'FLOAT',
+            outputType: 'DOUBLE',
             type: 'expression',
           },
         ],
@@ -1947,7 +1947,7 @@ describe('DruidExternal', () => {
           {
             dimension: 'v:Split',
             outputName: 'Split',
-            outputType: 'FLOAT',
+            outputType: 'DOUBLE',
             type: 'default',
           },
         ],
@@ -1958,7 +1958,7 @@ describe('DruidExternal', () => {
           {
             expression: 'pow("commentLength",2)',
             name: 'v:Split',
-            outputType: 'FLOAT',
+            outputType: 'DOUBLE',
             type: 'expression',
           },
         ],
@@ -2005,7 +2005,7 @@ describe('DruidExternal', () => {
           {
             dimension: 'v:Split',
             outputName: 'Split',
-            outputType: 'FLOAT',
+            outputType: 'DOUBLE',
             type: 'default',
           },
         ],
@@ -2016,7 +2016,7 @@ describe('DruidExternal', () => {
           {
             expression: 'floor(abs("commentLength") / 10) * 10',
             name: 'v:Split',
-            outputType: 'FLOAT',
+            outputType: 'DOUBLE',
             type: 'expression',
           },
         ],

@@ -120,8 +120,12 @@ export abstract class SQLDialect {
     return `COALESCE(${a}, ${b})`;
   }
 
-  public ifThenElseExpression(a: string, b: string, c: string | null = null): string {
-    const elsePart = c != null ? ` ELSE ${c}` : '';
+  public countDistinctExpression(a: string, parameterAttributeName: string | undefined): string {
+    return `COUNT(DISTINCT ${a})`;
+  }
+
+  public ifThenElseExpression(a: string, b: string, c?: string): string {
+    const elsePart = typeof c === 'string' ? ` ELSE ${c}` : '';
     return `CASE WHEN ${a} THEN ${b}${elsePart} END`;
   }
 
@@ -184,7 +188,7 @@ export abstract class SQLDialect {
 
   public abstract indexOfExpression(str: string, substr: string): string;
 
-  public quantileExpression(str: string, qunatile: string): string {
+  public quantileExpression(str: string, quantile: number, parameterAttributeName: string | undefined): string {
     throw new Error('dialect does not implement quantile');
   }
 

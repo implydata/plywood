@@ -80,7 +80,7 @@ let customAggregations = {
 
 let diamondsCompact = External.fromJS({
   engine: 'druid',
-  version: '0.13.0',
+  version: '0.20.0',
   source: 'diamonds-compact',
   timeAttribute: 'time',
   attributes: [
@@ -106,7 +106,7 @@ let diamondsCompact = External.fromJS({
 let context = {
   diamonds: External.fromJS({
     engine: 'druid',
-    version: '0.13.0',
+    version: '0.20.0',
     source: 'diamonds',
     timeAttribute: 'time',
     attributes,
@@ -120,7 +120,7 @@ let context = {
   }).addDelegate(diamondsCompact),
   'diamonds-alt:;<>': External.fromJS({
     engine: 'druid',
-    version: '0.13.0',
+    version: '0.20.0',
     source: 'diamonds-alt:;<>',
     timeAttribute: 'time',
     attributes,
@@ -812,7 +812,7 @@ describe('simulate Druid', () => {
         {
           dimension: 'color',
           outputName: 'Synesthesia',
-          outputType: 'FLOAT',
+          outputType: 'DOUBLE',
           type: 'default',
         },
       ],
@@ -1685,7 +1685,7 @@ describe('simulate Druid', () => {
         dimension: {
           dimension: 'carat',
           outputName: 'Carat',
-          outputType: 'FLOAT',
+          outputType: 'DOUBLE',
           type: 'default',
         },
         granularity: 'all',
@@ -1939,7 +1939,7 @@ describe('simulate Druid', () => {
         dimension: {
           dimension: 'height_bucket',
           outputName: 'HeightBucket',
-          outputType: 'FLOAT',
+          outputType: 'DOUBLE',
           type: 'default',
         },
         granularity: 'all',

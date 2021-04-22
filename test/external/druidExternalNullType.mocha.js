@@ -54,7 +54,7 @@ let context = {
     },
     filter: timeFilter,
     allowSelectQueries: true,
-    version: '0.13.0',
+    version: '0.20.0',
     customAggregations: {
       crazy: {
         accessType: 'getSomeCrazy',
@@ -1572,7 +1572,7 @@ describe('DruidExternal Null Type', () => {
           {
             dimension: 'v:Split',
             outputName: 'Split',
-            outputType: 'FLOAT',
+            outputType: 'DOUBLE',
             type: 'default',
           },
         ],
@@ -1583,7 +1583,7 @@ describe('DruidExternal Null Type', () => {
           {
             expression: 'pow("commentLength",2)',
             name: 'v:Split',
-            outputType: 'FLOAT',
+            outputType: 'DOUBLE',
             type: 'expression',
           },
         ],

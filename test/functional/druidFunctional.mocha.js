@@ -43,7 +43,7 @@ let druidRequester = druidRequesterFactory({
 });
 
 // druidRequester = verboseRequesterFactory({
-//   requester: druidRequester
+//   requester: druidRequester,
 // });
 
 describe('Druid Functional', function() {
@@ -1094,7 +1094,7 @@ describe('Druid Functional', function() {
             Diff_Users_1_2: 1555,
             Diff_Users_1_3: 1102.7885680156833,
             Diff_Users_2_3: -452.21143198431673,
-            Diff_Users_3_4: 145.2340991483652,
+            Diff_Users_3_4: -39.78856801568327,
             UniqueIsRobot: 2,
             UniquePages1: 279107,
             UniquePages2: 281588,
@@ -1102,7 +1102,7 @@ describe('Druid Functional', function() {
             UniqueUsers1: 39268,
             UniqueUsers2: 37713,
             UniqueUsers3: 38165.21143198432,
-            UniqueUsers4: 38019.97733283595,
+            UniqueUsers4: 38205,
           },
         ]);
       });

@@ -288,7 +288,6 @@ export interface ExternalValue {
   customTransforms?: CustomDruidTransforms;
   allowEternity?: boolean;
   allowSelectQueries?: boolean;
-  introspectionStrategy?: string;
   exactResultsOnly?: boolean;
   querySelection?: QuerySelection;
   context?: Record<string, any>;
@@ -319,7 +318,6 @@ export interface ExternalJS {
   customTransforms?: CustomDruidTransforms;
   allowEternity?: boolean;
   allowSelectQueries?: boolean;
-  introspectionStrategy?: string;
   exactResultsOnly?: boolean;
   querySelection?: QuerySelection;
   context?: Record<string, any>;

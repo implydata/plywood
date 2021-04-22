@@ -146,17 +146,8 @@ export interface DruidSplit {
 export class DruidExternal extends External {
   static engine = 'druid';
   static type = 'DATASET';
-  static DUMMY_NAME = '!DUMMY';
   static TIME_ATTRIBUTE = '__time';
 
-  static VALID_INTROSPECTION_STRATEGIES = [
-    'segment-metadata-fallback',
-    'segment-metadata-only',
-    'datasource-get',
-  ];
-  static DEFAULT_INTROSPECTION_STRATEGY = 'segment-metadata-fallback';
-
-  static SELECT_INIT_LIMIT = 50;
   static SELECT_MAX_LIMIT = 10000;
 
   static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): DruidExternal {
@@ -166,7 +157,6 @@ export class DruidExternal extends External {
     value.customTransforms = parameters.customTransforms || {};
     value.allowEternity = Boolean(parameters.allowEternity);
     value.allowSelectQueries = Boolean(parameters.allowSelectQueries);
-    value.introspectionStrategy = parameters.introspectionStrategy;
     value.exactResultsOnly = Boolean(parameters.exactResultsOnly);
     value.querySelection = parameters.querySelection;
     value.context = parameters.context;
@@ -236,31 +226,6 @@ export class DruidExternal extends External {
         }
       },
     });
-  }
-
-  static selectNextFactory(limit: number, descending: boolean): NextFn<Druid.Query> {
-    let resultsSoFar = 0;
-    return (prevQuery, prevResultLength, prevMeta: any) => {
-      if (prevResultLength === 0) return null; // Out of results: done!
-
-      let { pagingIdentifiers } = prevMeta;
-      if (prevResultLength < prevQuery.pagingSpec.threshold) return null; // Less results than asked for: done!
-
-      resultsSoFar += prevResultLength;
-      if (resultsSoFar >= limit) return null; // Got enough results overall: done!
-
-      pagingIdentifiers = DruidExternal.movePagingIdentifiers(
-        pagingIdentifiers,
-        descending ? -1 : 1,
-      );
-      prevQuery.pagingSpec.pagingIdentifiers = pagingIdentifiers;
-      prevQuery.pagingSpec.fromNext = false;
-      prevQuery.pagingSpec.threshold = Math.min(
-        limit - resultsSoFar,
-        DruidExternal.SELECT_MAX_LIMIT,
-      );
-      return prevQuery;
-    };
   }
 
   static generateMaker(aggregation: Druid.Aggregation): Expression {
@@ -405,33 +370,71 @@ export class DruidExternal extends External {
       }
     }
 
-    if (!foundTime)
+    if (!foundTime) {
       throw new Error(`no valid ${DruidExternal.TIME_ATTRIBUTE} in segmentMetadata response`);
+    }
+
     return attributes;
   }
 
-  static introspectPostProcessFactory(
+  static async introspectAttributesWithSegmentMetadata(
+    dataSource: Druid.DataSource,
+    requester: PlywoodRequester<any>,
     timeAttribute: string,
-    res: Druid.DatasourceIntrospectResult[],
-  ): Attributes {
-    const res0 = res[0];
-    if (!Array.isArray(res0.dimensions) || !Array.isArray(res0.metrics)) {
-      throw new InvalidResultError('malformed GET introspect response', res);
+    context: Record<string, any>,
+    depth: IntrospectionDepth,
+  ): Promise<Attributes> {
+    let analysisTypes: string[] = ['aggregators'];
+    if (depth === 'deep') {
+      analysisTypes.push('cardinality', 'minmax');
     }
 
-    let attributes: Attributes = [
-      new AttributeInfo({ name: timeAttribute, type: 'TIME', nativeType: '__time' }),
-    ];
-    res0.dimensions.forEach(dimension => {
-      if (dimension === timeAttribute) return; // Ignore dimensions that clash with the timeAttribute name
-      attributes.push(new AttributeInfo({ name: dimension, type: 'STRING', nativeType: 'STRING' }));
-    });
-    res0.metrics.forEach(metric => {
-      if (metric === timeAttribute) return; // Ignore metrics that clash with the timeAttribute name
-      attributes.push(
-        new AttributeInfo({ name: metric, type: 'NUMBER', nativeType: 'FLOAT', unsplitable: true }),
-      );
-    });
+    let query: Druid.Query = {
+      queryType: 'segmentMetadata',
+      dataSource,
+      merge: true,
+      analysisTypes,
+      lenientAggregatorMerge: true,
+    };
+
+    if (context) {
+      query.context = context;
+    }
+
+    const res = await toArray(requester({ query }));
+    let attributes = DruidExternal.segmentMetadataPostProcess(timeAttribute, res);
+
+    if (
+      depth !== 'shallow' &&
+      attributes.length &&
+      attributes[0].nativeType === '__time' &&
+      !attributes[0].range
+    ) {
+      try {
+        query = {
+          queryType: 'timeBoundary',
+          dataSource,
+        };
+
+        if (context) {
+          query.context = context;
+        }
+
+        const resTB = await toArray(requester({ query }));
+        const resTB0: any = resTB[0];
+
+        attributes[0] = attributes[0].changeRange(
+          TimeRange.fromJS({
+            start: resTB0.minTime,
+            end: resTB0.maxTime,
+            bounds: '[]',
+          }),
+        );
+      } catch (e) {
+        // Nothing to do, swallow this error
+      }
+    }
+
     return attributes;
   }
 
@@ -456,7 +459,6 @@ export class DruidExternal extends External {
   public customTransforms: CustomDruidTransforms;
   public allowEternity: boolean;
   public allowSelectQueries: boolean;
-  public introspectionStrategy: string;
   public exactResultsOnly: boolean;
   public querySelection: QuerySelection;
   public context: Record<string, any>;
@@ -464,20 +466,12 @@ export class DruidExternal extends External {
   constructor(parameters: ExternalValue) {
     super(parameters, dummyObject);
     this._ensureEngine('druid');
-    this._ensureMinVersion('0.10.0');
+    this._ensureMinVersion('0.14.0');
     this.timeAttribute = parameters.timeAttribute || DruidExternal.TIME_ATTRIBUTE;
     this.customAggregations = parameters.customAggregations;
     this.customTransforms = parameters.customTransforms;
     this.allowEternity = parameters.allowEternity;
     this.allowSelectQueries = parameters.allowSelectQueries;
-
-    let introspectionStrategy =
-      parameters.introspectionStrategy || DruidExternal.DEFAULT_INTROSPECTION_STRATEGY;
-    if (DruidExternal.VALID_INTROSPECTION_STRATEGIES.indexOf(introspectionStrategy) === -1) {
-      throw new Error(`invalid introspectionStrategy '${introspectionStrategy}'`);
-    }
-    this.introspectionStrategy = introspectionStrategy;
-
     this.exactResultsOnly = parameters.exactResultsOnly;
     this.querySelection = parameters.querySelection;
     this.context = parameters.context;
@@ -490,7 +484,6 @@ export class DruidExternal extends External {
     value.customTransforms = this.customTransforms;
     value.allowEternity = this.allowEternity;
     value.allowSelectQueries = this.allowSelectQueries;
-    value.introspectionStrategy = this.introspectionStrategy;
     value.exactResultsOnly = this.exactResultsOnly;
     value.querySelection = this.querySelection;
     value.context = this.context;
@@ -504,8 +497,6 @@ export class DruidExternal extends External {
     if (nonEmptyLookup(this.customTransforms)) js.customTransforms = this.customTransforms;
     if (this.allowEternity) js.allowEternity = true;
     if (this.allowSelectQueries) js.allowSelectQueries = true;
-    if (this.introspectionStrategy !== DruidExternal.DEFAULT_INTROSPECTION_STRATEGY)
-      js.introspectionStrategy = this.introspectionStrategy;
     if (this.exactResultsOnly) js.exactResultsOnly = true;
     if (this.querySelection) js.querySelection = this.querySelection;
     if (this.context) js.context = this.context;
@@ -520,7 +511,6 @@ export class DruidExternal extends External {
       simpleJSONEqual(this.customTransforms, other.customTransforms) &&
       this.allowEternity === other.allowEternity &&
       this.allowSelectQueries === other.allowSelectQueries &&
-      this.introspectionStrategy === other.introspectionStrategy &&
       this.exactResultsOnly === other.exactResultsOnly &&
       this.querySelection === other.querySelection &&
       dictEqual(this.context, other.context)
@@ -740,7 +730,7 @@ export class DruidExternal extends External {
     }
     if (expression.type === 'NUMBER') {
       dimension.outputType =
-        dimension.dimension === DruidExternal.TIME_ATTRIBUTE ? 'LONG' : 'FLOAT';
+        dimension.dimension === DruidExternal.TIME_ATTRIBUTE ? 'LONG' : 'DOUBLE';
     }
 
     if (
@@ -1274,86 +1264,6 @@ export class DruidExternal extends External {
         let derivedAttributes = this.derivedAttributes;
         let selectedAttributes = this.getSelectedAttributes();
 
-        if (this.versionBefore('0.11.0')) {
-          let selectDimensions: Druid.DimensionSpec[] = [];
-          let selectMetrics: string[] = [];
-          let inflaters: Inflater[] = [];
-
-          let timeAttribute = this.timeAttribute;
-          selectedAttributes.forEach(attribute => {
-            let { name, type, nativeType, unsplitable } = attribute;
-
-            if (name === timeAttribute) {
-              requesterContext.timestamp = name;
-            } else {
-              if (nativeType === 'STRING' || (!nativeType && !unsplitable)) {
-                let derivedAttribute = derivedAttributes[name];
-                if (derivedAttribute) {
-                  let dimensionInflater = this.expressionToDimensionInflater(
-                    derivedAttribute,
-                    name,
-                  );
-                  selectDimensions.push(dimensionInflater.dimension);
-                  if (dimensionInflater.inflater) inflaters.push(dimensionInflater.inflater);
-                  return; // No need to add default inflater
-                } else {
-                  selectDimensions.push(name);
-                }
-              } else {
-                selectMetrics.push(name);
-              }
-            }
-
-            switch (type) {
-              case 'BOOLEAN':
-                inflaters.push(External.booleanInflaterFactory(name));
-                break;
-
-              case 'NUMBER':
-                inflaters.push(External.numberInflaterFactory(name));
-                break;
-
-              case 'TIME':
-                inflaters.push(External.timeInflaterFactory(name));
-                break;
-
-              case 'SET/STRING':
-                inflaters.push(External.setStringInflaterFactory(name));
-                break;
-            }
-          });
-
-          // If dimensions or metrics are [] everything is returned, prevent this by asking for !DUMMY
-          if (!selectDimensions.length) selectDimensions.push(DruidExternal.DUMMY_NAME);
-          if (!selectMetrics.length) selectMetrics.push(DruidExternal.DUMMY_NAME);
-
-          let resultLimit = limit ? limit.value : Infinity;
-          druidQuery.queryType = 'select';
-          druidQuery.dimensions = selectDimensions;
-          druidQuery.metrics = selectMetrics;
-          druidQuery.pagingSpec = {
-            pagingIdentifiers: {},
-            threshold: Math.min(resultLimit, DruidExternal.SELECT_INIT_LIMIT),
-          };
-
-          let descending = sort && sort.direction === 'descending';
-          if (descending) {
-            druidQuery.descending = true;
-          }
-
-          return {
-            query: druidQuery,
-            context: requesterContext,
-            postTransform: External.postTransformFactory(
-              inflaters,
-              selectedAttributes.map(a => a.dropOriginInfo()),
-              null,
-              null,
-            ),
-            next: DruidExternal.selectNextFactory(resultLimit, descending),
-          };
-        }
-
         let virtualColumns: Druid.VirtualColumn[] = [];
         let columns: string[] = [];
         let inflaters: Inflater[] = [];
@@ -1615,97 +1525,8 @@ export class DruidExternal extends External {
     }
   }
 
-  protected async getIntrospectAttributesWithSegmentMetadata(
-    depth: IntrospectionDepth,
-  ): Promise<Attributes> {
-    let { requester, timeAttribute, context } = this;
-
-    let analysisTypes: string[] = ['aggregators'];
-    if (depth === 'deep') {
-      analysisTypes.push('cardinality', 'minmax');
-    }
-
-    let query: Druid.Query = {
-      queryType: 'segmentMetadata',
-      dataSource: this.getDruidDataSource(),
-      merge: true,
-      analysisTypes,
-      lenientAggregatorMerge: true,
-    };
-
-    if (context) {
-      query.context = context;
-    }
-
-    const res = await toArray(requester({ query }));
-    let attributes = DruidExternal.segmentMetadataPostProcess(timeAttribute, res);
-
-    if (
-      depth !== 'shallow' &&
-      attributes.length &&
-      attributes[0].nativeType === '__time' &&
-      !attributes[0].range
-    ) {
-      try {
-        query = {
-          queryType: 'timeBoundary',
-          dataSource: this.getDruidDataSource(),
-        };
-
-        if (context) {
-          query.context = context;
-        }
-
-        const resTB = await toArray(requester({ query }));
-        const resTB0: any = resTB[0];
-
-        attributes[0] = attributes[0].changeRange(
-          TimeRange.fromJS({
-            start: resTB0.minTime,
-            end: resTB0.maxTime,
-            bounds: '[]',
-          }),
-        );
-      } catch (e) {
-        // Nothing to do, swallow this error
-      }
-    }
-
-    return attributes;
-  }
-
-  protected async getIntrospectAttributesWithGet(): Promise<Attributes> {
-    let { requester, timeAttribute } = this;
-
-    const res = await toArray(
-      requester({
-        query: {
-          queryType: 'introspect',
-          dataSource: this.getDruidDataSource(),
-        },
-      }),
-    );
-
-    return DruidExternal.introspectPostProcessFactory(timeAttribute, res);
-  }
-
   protected getIntrospectAttributes(depth: IntrospectionDepth): Promise<Attributes> {
-    switch (this.introspectionStrategy) {
-      case 'segment-metadata-fallback':
-        return this.getIntrospectAttributesWithSegmentMetadata(depth).catch((err: Error) => {
-          if (err.message.indexOf("querySegmentSpec can't be null") === -1) throw err;
-          return this.getIntrospectAttributesWithGet();
-        });
-
-      case 'segment-metadata-only':
-        return this.getIntrospectAttributesWithSegmentMetadata(depth);
-
-      case 'datasource-get':
-        return this.getIntrospectAttributesWithGet();
-
-      default:
-        throw new Error('invalid introspectionStrategy');
-    }
+    return DruidExternal.introspectAttributesWithSegmentMetadata(this.getDruidDataSource(), this.requester, this.timeAttribute, this.context, depth);
   }
 
   private groupAppliesByTimeFilterValue():

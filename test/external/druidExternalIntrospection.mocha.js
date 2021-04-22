@@ -44,8 +44,8 @@ describe('DruidExternal Introspection', () => {
     return Promise.reject(new Error('Bad status code'));
   });
 
-  let requesterDruid_0_10_0 = promiseFnToStream(({ query }) => {
-    if (query.queryType === 'status') return Promise.resolve({ version: '0.10.0' });
+  let requesterDruid_0_21_0 = promiseFnToStream(({ query }) => {
+    if (query.queryType === 'status') return Promise.resolve({ version: '0.21.0' });
     expect(query.dataSource).to.equal('wikipedia');
 
     if (query.queryType === 'segmentMetadata') {
@@ -184,11 +184,6 @@ describe('DruidExternal Introspection', () => {
       }
 
       return Promise.resolve(merged);
-    } else if (query.queryType === 'introspect') {
-      return Promise.resolve({
-        dimensions: ['anonymous', 'language', 'namespace', 'newPage', 'page', 'time'],
-        metrics: ['added', 'count', 'delta_hist', 'user_unique'],
-      });
     } else if (query.queryType === 'timeBoundary') {
       return Promise.resolve({
         minTime: '2013-05-09T18:24:00.000Z',
@@ -197,19 +192,6 @@ describe('DruidExternal Introspection', () => {
     } else {
       throw new Error(`unsupported query ${query.queryType}`);
     }
-  });
-
-  it('errors on bad introspectionStrategy', () => {
-    expect(() => {
-      External.fromJS(
-        {
-          engine: 'druid',
-          source: 'wikipedia',
-          introspectionStrategy: 'crowd-source',
-        },
-        requesterFail,
-      );
-    }).to.throw("invalid introspectionStrategy 'crowd-source'");
   });
 
   it('does an introspect with general failure', () => {
@@ -238,11 +220,11 @@ describe('DruidExternal Introspection', () => {
         source: 'wikipedia',
         timeAttribute: 'time',
       },
-      requesterDruid_0_10_0,
+      requesterDruid_0_21_0,
     );
 
     return wikiExternal.introspect().then(introspectedExternal => {
-      expect(introspectedExternal.version).to.equal('0.10.0');
+      expect(introspectedExternal.version).to.equal('0.21.0');
       expect(introspectedExternal.toJS().attributes).to.deep.equal([
         {
           name: 'time',
@@ -319,78 +301,6 @@ describe('DruidExternal Introspection', () => {
           name: 'user_unique',
           nativeType: 'hyperUnique',
           type: 'NULL',
-          unsplitable: true,
-        },
-      ]);
-    });
-  });
-
-  it('respects the introspectionStrategy flag', () => {
-    let wikiExternal = External.fromJS(
-      {
-        engine: 'druid',
-        source: 'wikipedia',
-        introspectionStrategy: 'datasource-get',
-        timeAttribute: 'time',
-      },
-      requesterDruid_0_10_0,
-    );
-
-    return wikiExternal.introspect().then(introspectedExternal => {
-      expect(introspectedExternal.version).to.equal('0.10.0');
-      expect(introspectedExternal.toJS().attributes).to.deep.equal([
-        {
-          name: 'time',
-          nativeType: '__time',
-          type: 'TIME',
-        },
-        {
-          name: 'anonymous',
-          nativeType: 'STRING',
-          type: 'STRING',
-        },
-        {
-          name: 'language',
-          nativeType: 'STRING',
-          type: 'STRING',
-        },
-        {
-          name: 'namespace',
-          nativeType: 'STRING',
-          type: 'STRING',
-        },
-        {
-          name: 'newPage',
-          nativeType: 'STRING',
-          type: 'STRING',
-        },
-        {
-          name: 'page',
-          nativeType: 'STRING',
-          type: 'STRING',
-        },
-        {
-          name: 'added',
-          nativeType: 'FLOAT',
-          type: 'NUMBER',
-          unsplitable: true,
-        },
-        {
-          name: 'count',
-          nativeType: 'FLOAT',
-          type: 'NUMBER',
-          unsplitable: true,
-        },
-        {
-          name: 'delta_hist',
-          nativeType: 'FLOAT',
-          type: 'NUMBER',
-          unsplitable: true,
-        },
-        {
-          name: 'user_unique',
-          nativeType: 'FLOAT',
-          type: 'NUMBER',
           unsplitable: true,
         },
       ]);

@@ -51,7 +51,6 @@ export interface DruidFilterAndIntervals {
 }
 
 export interface DruidFilterBuilderOptions {
-  version: string;
   rawAttributes: AttributeInfo[];
   timeAttribute: string;
   allowEternity: boolean;
@@ -62,14 +61,12 @@ export class DruidFilterBuilder {
   static TIME_ATTRIBUTE = '__time';
   static TRUE_INTERVAL = '1000/3000';
 
-  public version: string;
   public rawAttributes: AttributeInfo[];
   public timeAttribute: string;
   public allowEternity: boolean;
   public customTransforms: CustomDruidTransforms;
 
   constructor(options: DruidFilterBuilderOptions) {
-    this.version = options.version;
     this.rawAttributes = options.rawAttributes;
     this.timeAttribute = options.timeAttribute;
     this.allowEternity = options.allowEternity;
@@ -478,11 +475,6 @@ export class DruidFilterBuilder {
     return attributeInfo.name === this.timeAttribute
       ? DruidFilterBuilder.TIME_ATTRIBUTE
       : attributeInfo.name;
-  }
-
-  private versionBefore(neededVersion: string): boolean {
-    const { version } = this;
-    return version && External.versionLessThan(version, neededVersion);
   }
 
   public getAttributesInfo(attributeName: string) {
