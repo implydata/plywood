@@ -66,13 +66,16 @@ export class DruidDialect extends SQLDialect {
   static CAST_TO_FUNCTION: Record<string, Record<string, string>> = {
     TIME: {
       NUMBER: 'MILLIS_TO_TIMESTAMP(CAST($$ AS BIGINT))',
+      _: 'CAST($$ AS DATE)',
     },
     NUMBER: {
       TIME: 'CAST($$ AS BIGINT)',
       STRING: 'CAST($$ AS DOUBLE)',
+      _: 'CAST($$ AS DOUBLE)',
     },
     STRING: {
       NUMBER: 'CAST($$ AS VARCHAR)',
+      _: 'CAST($$ AS VARCHAR)',
     },
   };
 
@@ -142,9 +145,12 @@ export class DruidDialect extends SQLDialect {
   }
 
   public castExpression(inputType: PlyType, operand: string, cast: string): string {
-    let castFunction = DruidDialect.CAST_TO_FUNCTION[cast][inputType];
-    if (!castFunction)
+    if (inputType === cast) return operand;
+    const castForInput = DruidDialect.CAST_TO_FUNCTION[cast];
+    let castFunction = castForInput[inputType || '_'] || castForInput['_'];
+    if (!castFunction) {
       throw new Error(`unsupported cast from ${inputType} to ${cast} in Druid dialect`);
+    }
     return castFunction.replace(/\$\$/g, operand);
   }
 

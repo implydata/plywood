@@ -877,6 +877,31 @@ describe('DruidSQL Functional', function() {
         ]);
       });
     });
+
+    it('works with cast', () => {
+      let ex = $('wiki')
+        .split(s$('commentLengthStr').cast('NUMBER'), 'CommentLength')
+        .apply('Count', $('wiki').sum('$count'))
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS().data).to.deep.equal([
+          {
+            CommentLength: 13,
+            Count: 42013,
+          },
+          {
+            CommentLength: 34,
+            Count: 24469,
+          },
+          {
+            CommentLength: 29,
+            Count: 22526,
+          },
+        ]);
+      });
+    });
   });
 
   describe('incorrect commentLength and comment', () => {
@@ -999,6 +1024,74 @@ describe('DruidSQL Functional', function() {
           name: 'cityName',
           nativeType: 'STRING',
           type: 'STRING',
+        },
+      ]);
+    });
+
+    it('introspects withQuery (with join)', async () => {
+      const external = await External.fromJS(
+        {
+          engine: 'druidsql',
+          source: 'wikipedia',
+          withQuery: sane`
+            SELECT
+              __time,
+              added,
+              channel,
+              lookup."channel-lookup".v AS "channelName",
+              "user",
+              user_hll,
+              user_theta,
+              user_unique
+            FROM wikipedia
+            LEFT JOIN lookup."channel-lookup" ON lookup."channel-lookup".k = wikipedia.channel
+          `,
+          context,
+        },
+        druidRequester,
+      ).introspect();
+
+      expect(external.version).to.equal(info.druidVersion);
+      expect(external.toJS().attributes).to.deep.equal([
+        {
+          name: '__time',
+          nativeType: 'TIMESTAMP',
+          type: 'TIME',
+        },
+        {
+          name: 'added',
+          nativeType: 'LONG',
+          type: 'NUMBER',
+        },
+        {
+          name: 'channel',
+          nativeType: 'STRING',
+          type: 'STRING',
+        },
+        {
+          name: 'channelName',
+          nativeType: 'STRING',
+          type: 'STRING',
+        },
+        {
+          name: 'user',
+          nativeType: 'STRING',
+          type: 'STRING',
+        },
+        {
+          name: 'user_hll',
+          nativeType: 'COMPLEX',
+          type: 'NULL',
+        },
+        {
+          name: 'user_theta',
+          nativeType: 'COMPLEX',
+          type: 'NULL',
+        },
+        {
+          name: 'user_unique',
+          nativeType: 'COMPLEX',
+          type: 'NULL',
         },
       ]);
     });

@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.24.1
+
+- Fix `.cast` when applied to `s$` expressions
+
 ## 0.24.0
 
 - Remove deprecated `introspectionStrategy` (always use segment metadata)
