@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.25.0
+
+- Bump dependency
+
 ## 0.24.1
 
 - Fix `.cast` when applied to `s$` expressions
