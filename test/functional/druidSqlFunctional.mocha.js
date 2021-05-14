@@ -535,7 +535,7 @@ describe('DruidSQL Functional', function() {
                 priority: -23,
               },
               query:
-                'SELECT\nSUM("count") AS "Count",\nSUM("added") AS "TotalAdded"\nFROM "wikipedia" AS t\nWHERE ("channel"=\'en\')\nGROUP BY \'\'',
+                'SELECT\nSUM("count") AS "Count",\nSUM("added") AS "TotalAdded"\nFROM "wikipedia" AS t\nWHERE ("channel"=\'en\')\nGROUP BY ()',
             },
           },
           {

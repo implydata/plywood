@@ -171,7 +171,7 @@ export abstract class SQLExternal extends External {
         break;
 
       case 'value':
-        query.push(this.toValueApply().getSQL(dialect), from, dialect.constantGroupBy());
+        query.push(this.toValueApply().getSQL(dialect), from, dialect.emptyGroupBy());
         postTransform = External.valuePostTransformFactory();
         break;
 
@@ -188,7 +188,7 @@ export abstract class SQLExternal extends External {
         query.push(
           applies.map(apply => apply.getSQL(dialect)).join(',\n'),
           from,
-          dialect.constantGroupBy(),
+          dialect.emptyGroupBy(),
         );
         break;
 

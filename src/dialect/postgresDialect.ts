@@ -81,7 +81,7 @@ export class PostgresDialect extends SQLDialect {
     super();
   }
 
-  public constantGroupBy(): string {
+  public emptyGroupBy(): string {
     return "GROUP BY ''=''";
   }
 

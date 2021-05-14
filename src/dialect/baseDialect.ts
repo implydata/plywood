@@ -36,7 +36,7 @@ export abstract class SQLDialect {
     return 'NULL';
   }
 
-  public constantGroupBy(): string {
+  public emptyGroupBy(): string {
     return "GROUP BY ''";
   }
 

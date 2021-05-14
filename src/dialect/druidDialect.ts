@@ -98,8 +98,8 @@ export class DruidDialect extends SQLDialect {
     return `(${numerator}*1.0/${denominator})`;
   }
 
-  public constantGroupBy(): string {
-    return "GROUP BY ''";
+  public emptyGroupBy(): string {
+    return "GROUP BY ()";
   }
 
   public timeToSQL(date: Date): string {
