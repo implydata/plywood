@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.25.2
+
+- Add `SqlAggregateExpression.registerKnownAggregation`, cleanup
+
 ## 0.25.1
 
 - Use `GROUP BY ()` instead of `GROUP BY ''`

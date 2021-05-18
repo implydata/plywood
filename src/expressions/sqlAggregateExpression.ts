@@ -49,9 +49,13 @@ export class SqlAggregateExpression extends ChainableExpression {
     "STDDEV",
     "EARLIEST",
     "LATEST",
-    "ANY_VALUE",
     "ANY_VALUE"
   ];
+
+  static registerKnownAggregation(aggregation: string): void {
+    if (SqlAggregateExpression.KNOWN_AGGREGATIONS.includes(aggregation)) return;
+    SqlAggregateExpression.KNOWN_AGGREGATIONS.push(aggregation);
+  }
 
   static substituteFilter(sqlExpression: SqlExpression, condition: SqlExpression): SqlExpression {
     return sqlExpression.addFilterToAggregations(condition, SqlAggregateExpression.KNOWN_AGGREGATIONS);
