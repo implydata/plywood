@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.25.3
+
+- Move some stuff to static
+
 ## 0.25.2
 
 - Add `SqlAggregateExpression.registerKnownAggregation`, cleanup

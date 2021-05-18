@@ -92,6 +92,12 @@ export class InvalidResultError extends ExtendableError {
   }
 }
 
+export interface ParsedResplitAgg {
+  resplitAgg: ChainableExpression;
+  resplitApply: ApplyExpression;
+  resplitSplit: SplitExpression;
+}
+
 function expressionNeedsNumericSort(ex: Expression): boolean {
   let type = ex.type;
   return type === 'NUMBER' || type === 'NUMBER_RANGE';
@@ -452,6 +458,44 @@ export class DruidExternal extends External {
       newPagingIdentifiers[key] = pagingIdentifiers[key] + increment;
     }
     return newPagingIdentifiers;
+  }
+
+  static parseResplitAgg(applyExpression: Expression): ParsedResplitAgg | null {
+    const resplitAgg = applyExpression;
+    if (!(resplitAgg instanceof ChainableExpression) || !resplitAgg.isAggregate()) return null;
+
+    const resplitApply = resplitAgg.operand;
+    if (!(resplitApply instanceof ApplyExpression)) return null;
+
+    const resplitSplit = resplitApply.operand;
+    if (!(resplitSplit instanceof SplitExpression)) return null;
+
+    const resplitRefOrFilter = resplitSplit.operand;
+    let resplitRef: Expression;
+    let effectiveResplitApply: ApplyExpression = resplitApply.changeOperand(Expression._);
+    if (resplitRefOrFilter instanceof FilterExpression) {
+      resplitRef = resplitRefOrFilter.operand;
+
+      const filterExpression = resplitRefOrFilter.expression;
+      effectiveResplitApply = effectiveResplitApply.changeExpression(
+        effectiveResplitApply.expression.substitute(ex => {
+          if (ex instanceof RefExpression && ex.type === 'DATASET') {
+            return ex.filter(filterExpression);
+          }
+          return null;
+        }),
+      );
+    } else {
+      resplitRef = resplitRefOrFilter;
+    }
+
+    if (!(resplitRef instanceof RefExpression)) return null;
+
+    return {
+      resplitAgg: resplitAgg.changeOperand(Expression._),
+      resplitApply: effectiveResplitApply,
+      resplitSplit: resplitSplit.changeOperand(Expression._),
+    };
   }
 
   public timeAttribute: string;
@@ -983,50 +1027,6 @@ export class DruidExternal extends External {
   }
 
   public nestedGroupByIfNeeded(): QueryAndPostTransform<Druid.Query> | null {
-    interface ParsedResplitAgg {
-      resplitAgg: ChainableExpression;
-      resplitApply: ApplyExpression;
-      resplitSplit: SplitExpression;
-    }
-
-    const parseResplitAgg = (applyExpression: Expression): ParsedResplitAgg | null => {
-      const resplitAgg = applyExpression;
-      if (!(resplitAgg instanceof ChainableExpression) || !resplitAgg.isAggregate()) return null;
-
-      const resplitApply = resplitAgg.operand;
-      if (!(resplitApply instanceof ApplyExpression)) return null;
-
-      const resplitSplit = resplitApply.operand;
-      if (!(resplitSplit instanceof SplitExpression)) return null;
-
-      const resplitRefOrFilter = resplitSplit.operand;
-      let resplitRef: Expression;
-      let effectiveResplitApply: ApplyExpression = resplitApply.changeOperand(Expression._);
-      if (resplitRefOrFilter instanceof FilterExpression) {
-        resplitRef = resplitRefOrFilter.operand;
-
-        const filterExpression = resplitRefOrFilter.expression;
-        effectiveResplitApply = effectiveResplitApply.changeExpression(
-          effectiveResplitApply.expression.substitute(ex => {
-            if (ex instanceof RefExpression && ex.type === 'DATASET') {
-              return ex.filter(filterExpression);
-            }
-            return null;
-          }),
-        );
-      } else {
-        resplitRef = resplitRefOrFilter;
-      }
-
-      if (!(resplitRef instanceof RefExpression)) return null;
-
-      return {
-        resplitAgg: resplitAgg.changeOperand(Expression._),
-        resplitApply: effectiveResplitApply,
-        resplitSplit: resplitSplit.changeOperand(Expression._),
-      };
-    };
-
     const divvyUpNestedSplitExpression = (
       splitExpression: Expression,
       intermediateName: string,
@@ -1069,7 +1069,7 @@ export class DruidExternal extends External {
       return apply.changeExpression(
         apply.expression.substitute(ex => {
           if (ex.isAggregate()) {
-            const resplit = parseResplitAgg(ex);
+            const resplit = DruidExternal.parseResplitAgg(ex);
             if (resplit) {
               if (globalResplitSplit) {
                 if (!globalResplitSplit.equals(resplit.resplitSplit))
