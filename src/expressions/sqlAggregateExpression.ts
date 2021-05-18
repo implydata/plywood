@@ -48,8 +48,6 @@ export class SqlAggregateExpression extends ChainableExpression {
     "STDDEV_SAMP",
     "STDDEV",
     "EARLIEST",
-    "EARLIEST",
-    "LATEST",
     "LATEST",
     "ANY_VALUE",
     "ANY_VALUE"
