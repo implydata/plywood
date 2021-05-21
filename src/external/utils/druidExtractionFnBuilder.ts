@@ -485,12 +485,7 @@ export class DruidExtractionFnBuilder {
     try {
       jsExtractionFn['function'] = ex.getJSFn('d');
     } catch (e) {
-      if (ex instanceof ChainableUnaryExpression) {
-        prefixFn = this.expressionToExtractionFnPure(ex.operand);
-        jsExtractionFn['function'] = ex.getAction().getJSFn('d');
-      } else {
-        throw e;
-      }
+      throw new Error('This expression is used in the wrong context');
     }
 
     if (ex.isOp('concat')) jsExtractionFn.injective = true;
