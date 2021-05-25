@@ -3837,21 +3837,6 @@ describe('simulate Druid', () => {
   });
 
   it('works with derived time columns as a filter', () => {
-    let ds = External.fromJS({
-      engine: 'druid',
-      source: 'diamonds',
-      timeAttribute: 'time',
-      attributes,
-      allowSelectQueries: true,
-      filter: $('time').overlap({
-        start: new Date('2015-03-12T00:00:00Z'),
-        end: new Date('2015-03-19T00:00:00Z'),
-      }),
-      context: {
-        priority: -1,
-        queryId: 'test',
-      },
-    });
     const date = new Date('2021-05-21');
     let ex = ply()
       .apply(

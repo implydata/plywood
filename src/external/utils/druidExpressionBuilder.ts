@@ -144,8 +144,9 @@ export class DruidExpressionBuilder {
             return String(Number(literalValue));
 
           case 'object':
-            if ( literalValue instanceof Date) return DruidExpressionBuilder.escapeLiteral(literalValue);
-            else return `no_such_type`;
+            if (literalValue instanceof Date) {
+              return DruidExpressionBuilder.escapeLiteral(literalValue);
+            } else return `no_such_type`;
 
           default:
             return `no_such_type`;
