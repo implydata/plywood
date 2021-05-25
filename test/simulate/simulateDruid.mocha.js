@@ -3836,7 +3836,7 @@ describe('simulate Druid', () => {
     });
   });
 
-  it('TEST TEST yaa', () => {
+  it('works with derived time columns as a filter', () => {
     let ds = External.fromJS({
       engine: 'druid',
       source: 'diamonds',
