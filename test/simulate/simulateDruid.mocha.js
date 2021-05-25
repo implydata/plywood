@@ -3836,6 +3836,27 @@ describe('simulate Druid', () => {
     });
   });
 
+  it('works with derived time columns as a filter', () => {
+    const date = new Date('2021-05-21');
+    let ex = ply()
+      .apply(
+        'diamonds',
+        $('diamonds').filter(
+          $('cut')
+            .cast('NUMBER')
+            .cast('TIME')
+            .is(r(date)),
+        ),
+      )
+      .apply('count', $('diamonds').count());
+    let queryPlan = ex.simulateQueryPlan(context);
+
+    expect(queryPlan[0][0].filter).to.deep.equal({
+      expression: `(cast(cast("cut",'DOUBLE'),'LONG')==${date.getTime()})`,
+      type: 'expression',
+    });
+  });
+
   it('works on query filters', () => {
     let ex = ply()
       .apply('avg', '$diamonds.average($carat)')
