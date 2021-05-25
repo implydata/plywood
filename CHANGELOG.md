@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.25.4
+
+- Handle dates in Druid expressions
+
 ## 0.25.3
 
 - Move some stuff to static
