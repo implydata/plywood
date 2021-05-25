@@ -143,6 +143,10 @@ export class DruidExpressionBuilder {
           case 'boolean':
             return String(Number(literalValue));
 
+          case 'object':
+            if ( literalValue instanceof Date) return DruidExpressionBuilder.escapeLiteral(literalValue);
+            else return `no_such_type`;
+
           default:
             return `no_such_type`;
         }
