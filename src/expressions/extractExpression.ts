@@ -62,10 +62,6 @@ export class ExtractExpression extends ChainableExpression {
     return Set.crossUnary(operandValue, a => (String(a).match(re) || [])[1] || null);
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    return `((''+${operandJS}).match(/${this.regexp}/) || [])[1] || null`;
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return dialect.extractExpression(operandSQL, this.regexp);
   }

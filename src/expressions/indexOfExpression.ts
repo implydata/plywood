@@ -41,16 +41,6 @@ export class IndexOfExpression extends ChainableUnaryExpression {
     return operandValue ? (operandValue as string).indexOf(expressionValue) : null;
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return Expression.jsNullSafetyBinary(
-      operandJS,
-      expressionJS,
-      (a, b) => `${a}.indexOf(${b})`,
-      operandJS[0] === '"',
-      expressionJS[0] === '"',
-    );
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

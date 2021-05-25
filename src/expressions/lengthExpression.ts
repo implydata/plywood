@@ -35,10 +35,6 @@ export class LengthExpression extends ChainableExpression {
     return operandValue ? (operandValue as string).length : null;
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    return Expression.jsNullSafetyUnary(operandJS, (input: string) => `${input}.length`);
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return dialect.lengthExpression(operandSQL);
   }

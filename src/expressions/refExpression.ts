@@ -88,13 +88,6 @@ export class RefExpression extends Expression {
     return hasOwnProp(POSSIBLE_TYPES, typeName);
   }
 
-  static toJavaScriptSafeName(variableName: string): string {
-    if (!RefExpression.SIMPLE_NAME_REGEXP.test(variableName)) {
-      variableName = variableName.replace(/\W/g, c => `$${c.charCodeAt(0)}`);
-    }
-    return '_' + variableName;
-  }
-
   static findProperty(obj: any, key: string): any {
     return hasOwnProp(obj, key) ? key : null;
   }
@@ -196,27 +189,6 @@ export class RefExpression extends Expression {
 
     let property = ignoreCase ? RefExpression.findPropertyCI(datum, name) : name;
     return property != null ? (datum[property] as any) : null;
-  }
-
-  public getJS(datumVar: string): string {
-    const { name, nest, ignoreCase } = this;
-    if (nest) throw new Error('can not call getJS on unresolved expression');
-    if (ignoreCase) throw new Error('can not express ignore case as js expression');
-
-    let expr: string;
-    if (datumVar) {
-      expr = datumVar.replace('[]', '[' + JSON.stringify(name) + ']');
-    } else {
-      expr = RefExpression.toJavaScriptSafeName(name);
-    }
-
-    switch (this.type) {
-      case 'NUMBER':
-        return `parseFloat(${expr})`;
-
-      default:
-        return expr;
-    }
   }
 
   public getSQL(dialect: SQLDialect, minimal = false): string {

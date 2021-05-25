@@ -673,7 +673,7 @@ export class DruidExternal extends External {
           type: 'extraction',
           dimension: DruidExternal.TIME_ATTRIBUTE,
           outputName: this.makeOutputName(label),
-          extractionFn: new DruidExtractionFnBuilder(this, true).expressionToExtractionFn(
+          extractionFn: new DruidExtractionFnBuilder(this).expressionToExtractionFn(
             expression,
           ),
         },
@@ -746,16 +746,9 @@ export class DruidExternal extends External {
 
     let extractionFn: Druid.ExtractionFn | null;
     try {
-      extractionFn = new DruidExtractionFnBuilder(this, false).expressionToExtractionFn(expression);
+      extractionFn = new DruidExtractionFnBuilder(this).expressionToExtractionFn(expression);
     } catch {
-      try {
-        return makeExpression();
-      } catch {
-        // Ok try with JS on
-        extractionFn = new DruidExtractionFnBuilder(this, true).expressionToExtractionFn(
-          expression,
-        );
-      }
+      return makeExpression();
     }
 
     let simpleInflater = External.getInteligentInflater(expression, label);

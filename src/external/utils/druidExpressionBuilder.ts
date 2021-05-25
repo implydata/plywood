@@ -74,6 +74,7 @@ export class DruidExpressionBuilder {
     DAY_OF_YEAR: 'DOY',
     WEEK_OF_YEAR: 'WEEK',
     MONTH_OF_YEAR: 'MONTH',
+    QUARTER: 'QUARTER',
     YEAR: 'YEAR',
   };
 

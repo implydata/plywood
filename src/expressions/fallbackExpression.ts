@@ -40,10 +40,6 @@ export class FallbackExpression extends ChainableUnaryExpression {
     return operandValue !== null ? operandValue : expressionValue;
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `((_=${operandJS}),(_!==null?_:${expressionJS}))`;
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

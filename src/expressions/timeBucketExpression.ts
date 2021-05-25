@@ -84,10 +84,6 @@ export class TimeBucketExpression extends ChainableExpression {
       : null;
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error('implement me');
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return dialect.timeBucketExpression(operandSQL, this.duration, this.getTimezone());
   }

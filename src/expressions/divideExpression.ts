@@ -42,10 +42,6 @@ export class DivideExpression extends ChainableUnaryExpression {
     return Set.crossBinary(operandValue, expressionValue, (a, b) => (b !== 0 ? a / b : null));
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `(_=${expressionJS},(_===0||isNaN(_)?null:${operandJS}/${expressionJS}))`;
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

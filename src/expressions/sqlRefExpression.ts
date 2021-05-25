@@ -74,10 +74,6 @@ export class SqlRefExpression extends Expression {
     throw new Error('can not calc on SQL');
   }
 
-  public getJS(datumVar: string): string {
-    throw new Error('can not call getJS on SQL');
-  }
-
   public getSQL(dialect: SQLDialect, minimal = false): string {
     return `(${this.sql})`;
   }

@@ -40,10 +40,6 @@ export class ThenExpression extends ChainableUnaryExpression {
     return operandValue ? expressionValue : null;
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `((_=${operandJS}),(_?${expressionJS}:null))`;
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

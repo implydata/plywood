@@ -36,10 +36,6 @@ export class AbsoluteExpression extends ChainableExpression {
     return Set.crossUnary(operandValue, a => Math.abs(a));
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    return `Math.abs(${operandJS})`;
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return `ABS(${operandSQL})`;
   }

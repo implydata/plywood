@@ -71,34 +71,6 @@ export class OverlapExpression extends ChainableUnaryExpression {
     });
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    const { expression } = this;
-    if (expression instanceof LiteralExpression) {
-      if (Range.isRangeType(expression.type)) {
-        let range: PlywoodRange = expression.value;
-        let r0 = range.start;
-        let r1 = range.end;
-        let bounds = range.bounds;
-
-        let cmpStrings: string[] = [];
-        if (r0 != null) {
-          cmpStrings.push(`${JSON.stringify(r0)}${bounds[0] === '(' ? '<' : '<='}_`);
-        }
-        if (r1 != null) {
-          cmpStrings.push(`_${bounds[1] === ')' ? '<' : '<='}${JSON.stringify(r1)}`);
-        }
-
-        return `((_=${operandJS}),${cmpStrings.join('&&')})`;
-      } else {
-        throw new Error(
-          `can not convert ${this} to JS function, unsupported type ${expression.type}`,
-        );
-      }
-    }
-
-    throw new Error(`can not convert ${this} to JS function`);
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

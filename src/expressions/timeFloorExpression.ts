@@ -84,10 +84,6 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
     return operandValue ? this.duration.floor(operandValue, this.getTimezone()) : null;
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error('implement me');
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return dialect.timeFloorExpression(operandSQL, this.duration, this.getTimezone());
   }

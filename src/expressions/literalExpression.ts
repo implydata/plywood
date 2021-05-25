@@ -94,10 +94,6 @@ export class LiteralExpression extends Expression {
     return this.value;
   }
 
-  public getJS(datumVar: string): string {
-    return JSON.stringify(this.value); // ToDo: what to do with higher objects?
-  }
-
   public getSQL(dialect: SQLDialect): string {
     let value = this.value;
     if (value === null) return dialect.nullConstant();

@@ -77,15 +77,6 @@ export class TransformCaseExpression extends ChainableExpression {
       : String(operandValue).toLocaleLowerCase();
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    const { transformType } = this;
-    return Expression.jsNullSafetyUnary(operandJS, (input: string) => {
-      return transformType === TransformCaseExpression.UPPER_CASE
-        ? `String(${input}).toLocaleUpperCase()`
-        : `String(${input}).toLocaleLowerCase()`;
-    });
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     const { transformType } = this;
     return transformType === TransformCaseExpression.UPPER_CASE

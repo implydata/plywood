@@ -80,10 +80,6 @@ export class InExpression extends ChainableUnaryExpression {
     return (<any>expressionValue).contains(operandValue);
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    throw new Error(`can not convert ${this} to JS function`);
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

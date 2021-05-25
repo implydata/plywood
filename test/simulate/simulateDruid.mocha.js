@@ -922,19 +922,12 @@ describe('simulate Druid', () => {
   });
 
   it('works with timePart (no limit)', () => {
-    let ex = ply()
-      .apply(
-        'HoursOfDay',
-        $('diamonds')
-          .split('$time.timePart(HOUR_OF_DAY)', 'HourOfDay')
-          .sort('$HourOfDay', 'ascending'),
-      )
-      .apply(
-        'SecondOfDay',
-        $('diamonds')
-          .split("$time.timePart(SECOND_OF_DAY, 'Etc/UTC')", 'HourOfDay')
-          .sort('$HourOfDay', 'ascending'),
-      );
+    let ex = ply().apply(
+      'HoursOfDay',
+      $('diamonds')
+        .split('$time.timePart(HOUR_OF_DAY)', 'HourOfDay')
+        .sort('$HourOfDay', 'ascending'),
+    );
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
@@ -961,35 +954,6 @@ describe('simulate Druid', () => {
         },
         queryType: 'topN',
         threshold: 1000,
-      },
-      {
-        dataSource: 'diamonds',
-        dimensions: [
-          {
-            dimension: '__time',
-            extractionFn: {
-              function:
-                'function(s){try{\nvar d = new org.joda.time.DateTime(s);\nd = d.getSecondOfDay();\nreturn d;\n}catch(e){return null;}}',
-              type: 'javascript',
-            },
-            outputName: 'HourOfDay',
-            outputType: 'LONG',
-            type: 'extraction',
-          },
-        ],
-        granularity: 'all',
-        intervals: '2015-03-12T00Z/2015-03-19T00Z',
-        limitSpec: {
-          columns: [
-            {
-              dimension: 'HourOfDay',
-              dimensionOrder: 'numeric',
-              direction: 'ascending',
-            },
-          ],
-          type: 'default',
-        },
-        queryType: 'groupBy',
       },
     ]);
   });
@@ -2014,44 +1978,6 @@ describe('simulate Druid', () => {
         dataSource: 'diamonds-compact',
         queryType: 'timeBoundary',
         bound: 'minTime',
-      },
-    ]);
-  });
-
-  it('makes a topN with a timePart dim extraction fn', () => {
-    let ex = $('diamonds')
-      .split($('time').timePart('SECOND_OF_DAY', 'Etc/UTC'), 'Time')
-      .apply('Count', $('diamonds').count())
-      .sort('$Count', 'descending')
-      .limit(10);
-
-    let queryPlan = ex.simulateQueryPlan(context);
-    expect(queryPlan.length).to.equal(1);
-    expect(queryPlan[0]).to.deep.equal([
-      {
-        aggregations: [
-          {
-            name: 'Count',
-            type: 'count',
-          },
-        ],
-        dataSource: 'diamonds',
-        dimension: {
-          dimension: '__time',
-          extractionFn: {
-            function:
-              'function(s){try{\nvar d = new org.joda.time.DateTime(s);\nd = d.getSecondOfDay();\nreturn d;\n}catch(e){return null;}}',
-            type: 'javascript',
-          },
-          outputName: 'Time',
-          outputType: 'LONG',
-          type: 'extraction',
-        },
-        granularity: 'all',
-        intervals: '2015-03-12T00Z/2015-03-19T00Z',
-        metric: 'Count',
-        queryType: 'topN',
-        threshold: 10,
       },
     ]);
   });

@@ -47,10 +47,6 @@ export class GreaterThanOrEqualExpression extends ChainableUnaryExpression {
     return Set.crossBinaryBoolean(operandValue, expressionValue, (a, b) => a >= b);
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `(${operandJS}>=${expressionJS})`;
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

@@ -51,17 +51,6 @@ export class IsExpression extends ChainableUnaryExpression {
     );
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    const { expression } = this;
-    if (expression instanceof LiteralExpression) {
-      if (Set.isSetType(expression.type)) {
-        let valueSet: Set = expression.value;
-        return `${JSON.stringify(valueSet.elements)}.indexOf(${operandJS})>-1`;
-      }
-    }
-    return `(${operandJS}===${expressionJS})`;
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

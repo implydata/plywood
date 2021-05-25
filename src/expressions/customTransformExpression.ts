@@ -72,10 +72,6 @@ export class CustomTransformExpression extends ChainableExpression {
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     throw new Error('Custom transform not supported in SQL');
   }
-
-  protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error("Custom transform can't yet be expressed as JS");
-  }
 }
 
 Expression.register(CustomTransformExpression);

@@ -67,11 +67,6 @@ export class SubstrExpression extends ChainableExpression {
     return Set.crossUnary(operandValue, a => a.substr(position, len));
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    const { position, len } = this;
-    return `((_=${operandJS}),_==null?null:(''+_).substr(${position},${len}))`;
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return dialect.substrExpression(operandSQL, this.position, this.len);
   }

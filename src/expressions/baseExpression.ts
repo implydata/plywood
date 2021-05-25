@@ -532,32 +532,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return Expression.fromJS(expressionJS);
   }
 
-  static jsNullSafetyUnary(inputJS: string, ifNotNull: (str: string) => string): string {
-    return `(_=${inputJS},(_==null?null:${ifNotNull('_')}))`;
-  }
-
-  static jsNullSafetyBinary(
-    lhs: string,
-    rhs: string,
-    combine: (lhs: string, rhs: string) => string,
-    lhsCantBeNull?: boolean,
-    rhsCantBeNull?: boolean,
-  ): string {
-    if (lhsCantBeNull) {
-      if (rhsCantBeNull) {
-        return `(${combine(lhs, rhs)})`;
-      } else {
-        return `(_=${rhs},(_==null)?null:(${combine(lhs, '_')}))`;
-      }
-    } else {
-      if (rhsCantBeNull) {
-        return `(_=${lhs},(_==null)?null:(${combine('_', rhs)}))`;
-      } else {
-        return `(_=${rhs},_2=${lhs},(_==null||_2==null)?null:(${combine('_', '_2')})`;
-      }
-    }
-  }
-
   static parseTuning(tuning: string | null): Record<string, string> {
     if (typeof tuning !== 'string') return {};
     const parts = tuning.split(',');
@@ -1049,20 +1023,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   }
 
   public abstract calc(datum: Datum): PlywoodValue;
-
-  public abstract getJS(datumVar: string): string;
-
-  public getJSFn(datumVar = 'd[]'): string {
-    const { type } = this;
-    let jsEx = this.getJS(datumVar);
-    let body: string;
-    if (type === 'NUMBER' || type === 'NUMBER_RANGE' || type === 'TIME') {
-      body = `_=${jsEx};return isNaN(_)?null:_`;
-    } else {
-      body = `return ${jsEx};`;
-    }
-    return `function(${datumVar.replace('[]', '')}){var _,_2;${body}}`;
-  }
 
   public abstract getSQL(dialect: SQLDialect): string;
 
@@ -2101,14 +2061,6 @@ export abstract class ChainableExpression extends Expression {
     return this._calcChainableHelper(this.operand.calc(datum));
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    throw runtimeAbstract();
-  }
-
-  public getJS(datumVar: string): string {
-    return this._getJSChainableHelper(this.operand.getJS(datumVar));
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     throw runtimeAbstract();
   }
@@ -2313,17 +2265,6 @@ export abstract class ChainableUnaryExpression extends ChainableExpression {
     return this._calcChainableUnaryHelper(
       this.operand.calc(datum),
       this.isNester() ? null : this.expression.calc(datum),
-    );
-  }
-
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    throw runtimeAbstract();
-  }
-
-  public getJS(datumVar: string): string {
-    return this._getJSChainableUnaryHelper(
-      this.operand.getJS(datumVar),
-      this.expression.getJS(datumVar),
     );
   }
 

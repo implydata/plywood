@@ -42,10 +42,6 @@ export class AddExpression extends ChainableUnaryExpression {
     return Set.crossBinary(operandValue, expressionValue, (a, b) => a + b);
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `(${operandJS}+${expressionJS})`;
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

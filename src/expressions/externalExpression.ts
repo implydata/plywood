@@ -71,10 +71,6 @@ export class ExternalExpression extends Expression {
     throw new Error('should not call calc on External');
   }
 
-  public getJS(datumVar: string): string {
-    throw new Error('should not call getJS on External');
-  }
-
   public getSQL(dialect: SQLDialect): string {
     throw new Error('should not call getSQL on External');
   }

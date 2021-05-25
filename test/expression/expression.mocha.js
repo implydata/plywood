@@ -390,13 +390,6 @@ describe('Expression', () => {
     });
   });
 
-  describe('#getJS', () => {
-    it('throws with case insensitive flag still set', () => {
-      let exp = Expression.parse('i$cUT');
-      expect(() => exp.getJS()).to.throw('can not express ignore case as js expression');
-    });
-  });
-
   describe('#decomposeAverage', () => {
     it('works in simple case', () => {
       let ex1 = $('data').average('$x');
@@ -502,17 +495,6 @@ describe('Expression', () => {
         .sum($x)
         .add('$data.sum($y)', '($data.sum($z) * 5).negate()', '6 * $data.count()');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
-    });
-  });
-
-  describe('RefExpression.toJavaScriptSafeName', () => {
-    it('works', () => {
-      expect(RefExpression.toJavaScriptSafeName('hello')).to.equal('_hello');
-      expect(RefExpression.toJavaScriptSafeName('try')).to.equal('_try');
-      expect(RefExpression.toJavaScriptSafeName('i-love-you')).to.equal('_i$45love$45you');
-      expect(RefExpression.toJavaScriptSafeName('ру́сский')).to.equal(
-        '_$1088$1091$769$1089$1089$1082$1080$1081',
-      );
     });
   });
 

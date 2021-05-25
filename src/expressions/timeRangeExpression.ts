@@ -103,10 +103,6 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     }
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error('implement me');
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     throw new Error('implement me');
   }

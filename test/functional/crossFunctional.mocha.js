@@ -1438,11 +1438,11 @@ describe('Cross Functional', function() {
     );
 
     it(
-      'works with TIME split (timePart(MINUTE_OF_DAY)) (sort on split)',
+      'works with TIME split (timePart(MINUTE_OF_HOUR)) (sort on split)',
       equalityTest({
         executorNames: ['druid', 'druidSql', 'mysql', 'postgres'],
         expression: $('wiki')
-          .split($('__time').timePart('MINUTE_OF_DAY'), 'TimePart')
+          .split($('__time').timePart('MINUTE_OF_HOUR'), 'TimePart')
           .apply('TotalEdits', '$wiki.sum($count)')
           .sort('$TimePart', 'ascending')
           .limit(200),
@@ -2220,18 +2220,6 @@ describe('Cross Functional', function() {
           .apply('PageLength', '$wiki.sum($page.length())')
           .sort('$PageLength', 'descending')
           .limit(10),
-      }),
-    );
-
-    it(
-      'works with set cardinality in apply',
-      equalityTest({
-        executorNames: ['druid', 'postgres'],
-        expression: $('wiki')
-          .split('$channel', 'Channel')
-          .apply('SIZE', '$wiki.max($userChars.cardinality())')
-          .sort('$Channel', 'descending')
-          .limit(5),
       }),
     );
 

@@ -111,19 +111,6 @@ export class CastExpression extends ChainableExpression {
     return operandValue ? castFn(operandValue) : null;
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    const { outputType } = this;
-    let inputType = this.operand.type;
-    if (outputType === inputType) return operandJS;
-
-    let castJS = CAST_TYPE_TO_JS[outputType];
-    if (!castJS) throw new Error(`unsupported cast type in getJS '${outputType}'`);
-
-    let js = castJS[inputType] || castJS['_'];
-    if (!js)
-      throw new Error(`unsupported combo in getJS of cast action: ${inputType} to ${outputType}`);
-    return js(operandJS);
-  }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return dialect.castExpression(this.operand.type, operandSQL, this.outputType);

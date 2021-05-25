@@ -64,10 +64,6 @@ export class LookupExpression extends ChainableExpression {
     throw new Error('can not express as JS');
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error('can not express as JS');
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return dialect.lookupExpression(operandSQL, this.lookupFn);
   }

@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.26.0
+
+- Remove support for issuing JS expressions to Druid. Deprecated since Druid 0.10.0.
+
 ## 0.25.4
 
 - Handle dates in Druid expressions

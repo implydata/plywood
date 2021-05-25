@@ -96,22 +96,6 @@ export class ContainsExpression extends ChainableUnaryExpression {
     return Set.crossBinaryBoolean(operandValue, expressionValue, fn);
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    let combine: (lhs: string, rhs: string) => string;
-    if (this.compare === ContainsExpression.NORMAL) {
-      combine = (lhs, rhs) => `(''+${lhs}).indexOf(${rhs})>-1`;
-    } else {
-      combine = (lhs, rhs) => `(''+${lhs}).toLowerCase().indexOf((''+${rhs}).toLowerCase())>-1`;
-    }
-    return Expression.jsNullSafetyBinary(
-      operandJS,
-      expressionJS,
-      combine,
-      operandJS[0] === '"',
-      expressionJS[0] === '"',
-    );
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

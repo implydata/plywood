@@ -245,17 +245,13 @@ export class DruidAggregationBuilder {
       let refName = aggregateExpression.name;
       let attributeInfo = this.getAttributesInfo(refName);
       if (attributeInfo.nativeType === 'STRING') {
-        try {
-          aggregation = {
-            name,
-            type: 'double' + opCap,
-            expression: new DruidExpressionBuilder(this).expressionToDruidExpression(
-              aggregateExpression.cast('NUMBER'),
-            ),
-          };
-        } catch {
-          aggregation = this.makeJavaScriptAggregation(name, expression);
-        }
+        aggregation = {
+          name,
+          type: 'double' + opCap,
+          expression: new DruidExpressionBuilder(this).expressionToDruidExpression(
+            aggregateExpression.cast('NUMBER'),
+          ),
+        };
       } else {
         aggregation = {
           name,
@@ -264,17 +260,13 @@ export class DruidAggregationBuilder {
         };
       }
     } else {
-      try {
-        aggregation = {
-          name,
-          type: 'double' + opCap,
-          expression: new DruidExpressionBuilder(this).expressionToDruidExpression(
-            aggregateExpression,
-          ),
-        };
-      } catch {
-        aggregation = this.makeJavaScriptAggregation(name, expression);
-      }
+      aggregation = {
+        name,
+        type: 'double' + opCap,
+        expression: new DruidExpressionBuilder(this).expressionToDruidExpression(
+          aggregateExpression,
+        ),
+      };
     }
 
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
@@ -390,7 +382,7 @@ export class DruidAggregationBuilder {
           if (cardinalityExpression instanceof RefExpression) return cardinalityExpression.name;
 
           if (!druidExtractionFnBuilder)
-            druidExtractionFnBuilder = new DruidExtractionFnBuilder(this, true);
+            druidExtractionFnBuilder = new DruidExtractionFnBuilder(this);
           return {
             type: 'extraction',
             dimension: cardinalityExpression.getFreeReferences()[0],
@@ -564,32 +556,6 @@ export class DruidAggregationBuilder {
     return this.filterAggregateIfNeeded(expression.operand, aggregation);
   }
 
-  private makeJavaScriptAggregation(name: string, aggregate: Expression): Druid.Aggregation {
-    if (aggregate instanceof ChainableUnaryExpression) {
-      let aggregateType = aggregate.op;
-      let aggregateExpression = aggregate.expression;
-
-      let aggregateFunction = DruidAggregationBuilder.AGGREGATE_TO_FUNCTION[aggregateType];
-      if (!aggregateFunction) throw new Error(`Can not convert ${aggregateType} to JS`);
-      let zero = DruidAggregationBuilder.AGGREGATE_TO_ZERO[aggregateType];
-      let fieldNames = aggregateExpression.getFreeReferences();
-      let simpleFieldNames = fieldNames.map(RefExpression.toJavaScriptSafeName);
-      return {
-        name,
-        type: 'javascript',
-        fieldNames: fieldNames,
-        fnAggregate: `function($$,${simpleFieldNames.join(',')}) { return ${aggregateFunction(
-          '$$',
-          aggregateExpression.getJS(null),
-        )}; }`,
-        fnCombine: `function(a,b) { return ${aggregateFunction('a', 'b')}; }`,
-        fnReset: `function() { return ${zero}; }`,
-      };
-    } else {
-      throw new Error(`Can not convert ${aggregate} to JS aggregate`);
-    }
-  }
-
   // ------------------------------
 
   private getAccessTypeForAggregation(aggregationType: string): string {
@@ -655,35 +621,6 @@ export class DruidAggregationBuilder {
       return {
         type: 'constant',
         value: ex.value,
-      };
-    } else if (
-      ex instanceof AbsoluteExpression ||
-      ex instanceof PowerExpression ||
-      ex instanceof FallbackExpression ||
-      ex instanceof CastExpression ||
-      ex instanceof IndexOfExpression ||
-      ex instanceof TransformCaseExpression
-    ) {
-      let fieldNameRefs = ex.getFreeReferences();
-      let fieldNames = fieldNameRefs.map(fieldNameRef => {
-        let accessType = this.getAccessType(aggregations, fieldNameRef);
-        if (accessType === 'fieldAccess') return fieldNameRef;
-        let fieldNameRefTemp = '!F_' + fieldNameRef;
-        postAggregations.push({
-          name: fieldNameRefTemp,
-          type: accessType,
-          fieldName: fieldNameRef,
-        });
-        return fieldNameRefTemp;
-      });
-
-      return {
-        name: 'dummy', // always need to have a dummy name
-        type: 'javascript',
-        fieldNames: fieldNames,
-        function: `function(${fieldNameRefs.map(
-          RefExpression.toJavaScriptSafeName,
-        )}) { return ${ex.getJS(null)}; }`,
       };
     } else if (ex instanceof AddExpression) {
       return {

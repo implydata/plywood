@@ -45,10 +45,6 @@ export class PowerExpression extends ChainableUnaryExpression {
     });
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `Math.pow(${operandJS},${expressionJS})`;
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

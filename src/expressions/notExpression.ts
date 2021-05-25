@@ -35,10 +35,6 @@ export class NotExpression extends ChainableExpression {
     return !operandValue;
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    return `!(${operandJS})`;
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return `NOT(${operandSQL})`;
   }

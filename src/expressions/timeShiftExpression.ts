@@ -85,10 +85,6 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
     return operandValue ? this.duration.shift(operandValue, this.getTimezone(), this.step) : null;
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error('implement me');
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return dialect.timeShiftExpression(operandSQL, this.duration, this.step, this.getTimezone());
   }

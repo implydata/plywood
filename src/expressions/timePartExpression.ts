@@ -149,10 +149,6 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     return parter(moment.tz(operandValue, this.getTimezone().toString()));
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    throw new Error('implement me');
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return dialect.timePartExpression(operandSQL, this.part, this.getTimezone());
   }

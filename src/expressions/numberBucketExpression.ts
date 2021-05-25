@@ -72,12 +72,6 @@ export class NumberBucketExpression extends ChainableExpression {
       : null;
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    return Expression.jsNullSafetyUnary(operandJS, n =>
-      continuousFloorExpression(n, 'Math.floor', this.size, this.offset),
-    );
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return continuousFloorExpression(operandSQL, 'FLOOR', this.size, this.offset);
   }

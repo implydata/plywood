@@ -45,10 +45,6 @@ export class LogExpression extends ChainableUnaryExpression {
     });
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `(Math.log(${operandJS})/Math.log(${expressionJS}))`;
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

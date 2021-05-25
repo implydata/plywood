@@ -62,10 +62,6 @@ export class OrExpression extends ChainableUnaryExpression {
     return operandValue || expressionValue;
   }
 
-  protected _getJSChainableUnaryHelper(operandJS: string, expressionJS: string): string {
-    return `(${operandJS}||${expressionJS})`;
-  }
-
   protected _getSQLChainableUnaryHelper(
     dialect: SQLDialect,
     operandSQL: string,

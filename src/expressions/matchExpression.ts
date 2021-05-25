@@ -90,10 +90,6 @@ export class MatchExpression extends ChainableExpression {
     return Set.crossUnaryBoolean(operandValue, a => re.test(a));
   }
 
-  protected _getJSChainableHelper(operandJS: string): string {
-    return `/${this.regexp}/.test(${operandJS})`;
-  }
-
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
     return dialect.regexpExpression(operandSQL, this.regexp);
   }
