@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.23.5
+
+- Handle date casts in time filters
+
 ## 0.23.4
 
 - Use `CAST(... AS TIMESTAMP)` instead of `TIME_PARSE(...)` to convert things to time
