@@ -110,7 +110,7 @@ function simpleJSONEqual(a: any, b: any): boolean {
 function getFilterSubExpression(expression: Expression): FilterExpression | undefined {
   let filterSubExpression: FilterExpression | undefined;
 
-  expression.some((ex) => {
+  expression.some(ex => {
     if (ex instanceof FilterExpression) {
       if (!filterSubExpression) {
         filterSubExpression = ex;
@@ -673,9 +673,7 @@ export class DruidExternal extends External {
           type: 'extraction',
           dimension: DruidExternal.TIME_ATTRIBUTE,
           outputName: this.makeOutputName(label),
-          extractionFn: new DruidExtractionFnBuilder(this).expressionToExtractionFn(
-            expression,
-          ),
+          extractionFn: new DruidExtractionFnBuilder(this).expressionToExtractionFn(expression),
         },
         inflater: null,
       };
@@ -1098,7 +1096,11 @@ export class DruidExternal extends External {
                   AttributeInfo.fromJS({ name: definedFilterName, type: 'NUMBER' }),
                 );
                 resplitAggWithUpdatedNames = resplitAggWithUpdatedNames.changeOperand(
-                  $('_').filter($(definedFilterName).greaterThan(r(0)).simplify()),
+                  $('_').filter(
+                    $(definedFilterName)
+                      .greaterThan(r(0))
+                      .simplify(),
+                  ),
                 );
               }
 
@@ -1519,7 +1521,13 @@ export class DruidExternal extends External {
   }
 
   protected getIntrospectAttributes(depth: IntrospectionDepth): Promise<Attributes> {
-    return DruidExternal.introspectAttributesWithSegmentMetadata(this.getDruidDataSource(), this.requester, this.timeAttribute, this.context, depth);
+    return DruidExternal.introspectAttributesWithSegmentMetadata(
+      this.getDruidDataSource(),
+      this.requester,
+      this.timeAttribute,
+      this.context,
+      depth,
+    );
   }
 
   private groupAppliesByTimeFilterValue():
@@ -1607,7 +1615,9 @@ export class DruidExternal extends External {
     if (filterV0.start < filterV1.start) appliesByTimeFilterValue.reverse();
 
     // Find the time split (must be only one)
-    const timeSplitNames = this.split.mapSplits((name , ex) => ex instanceof TimeBucketExpression ? name : undefined).filter(Boolean);
+    const timeSplitNames = this.split
+      .mapSplits((name, ex) => (ex instanceof TimeBucketExpression ? name : undefined))
+      .filter(Boolean);
 
     // Check for timeseries/groupBy decomposition
     if (timeSplitNames.length === 1) {
@@ -1655,7 +1665,12 @@ export class DruidExternal extends External {
     }
 
     // Check for topN decomposition
-    if (this.split.numSplits() === 1 && appliesByTimeFilterValue[0].hasSort && this.limit && this.limit.value <= 1000) {
+    if (
+      this.split.numSplits() === 1 &&
+      appliesByTimeFilterValue[0].hasSort &&
+      this.limit &&
+      this.limit.value <= 1000
+    ) {
       const external1Value = this.valueOf();
       external1Value.filter = $(timeAttribute, 'TIME')
         .overlap(appliesByTimeFilterValue[0].filterValue)
@@ -1686,83 +1701,6 @@ export class DruidExternal extends External {
   }
 
   protected queryBasicValueStream(rawQueries: any[] | null): ReadableStream {
-    const decomposed = this.getJoinDecompositionShortcut();
-    if (decomposed) {
-      const { waterfallFilterExpression } = decomposed;
-      if (waterfallFilterExpression) {
-        return External.valuePromiseToStream(
-          External.buildValueFromStream(
-            decomposed.external1.queryBasicValueStream(rawQueries),
-          ).then(pv1 => {
-            let ds1 = pv1 as Dataset;
-            const ds1Filter = Expression.or(
-              ds1.data.map(datum => waterfallFilterExpression.filterFromDatum(datum)),
-            );
-
-            // Add filter to second external
-            let ex2Value = decomposed.external2.valueOf();
-            ex2Value.filter = ex2Value.filter.and(ds1Filter);
-            let filteredExternal = new DruidExternal(ex2Value);
-
-            return External.buildValueFromStream(
-              filteredExternal.queryBasicValueStream(rawQueries),
-            ).then(pv2 => {
-              return ds1.leftJoin(pv2 as Dataset);
-            });
-          }),
-        );
-      } else {
-        let plywoodValue1Promise = External.buildValueFromStream(
-          decomposed.external1.queryBasicValueStream(rawQueries),
-        );
-        let plywoodValue2Promise = External.buildValueFromStream(
-          decomposed.external2.queryBasicValueStream(rawQueries),
-        );
-
-        return External.valuePromiseToStream(
-          Promise.all([plywoodValue1Promise, plywoodValue2Promise]).then(([pv1, pv2]) => {
-            let ds1 = pv1 as Dataset;
-            let ds2 = pv2 as Dataset;
-
-            const { timeShift } = decomposed;
-            if (timeShift && ds2.data.length) {
-              const timeLabel = ds2.keys[0];
-              const timeShiftDuration = timeShift.duration;
-              const timeShiftTimezone = timeShift.timezone;
-              ds2 = ds2.applyFn(
-                timeLabel,
-                (d: Datum) => {
-                  const tr = d[timeLabel] as TimeRange;
-                  const shiftedStart = timeShiftDuration.shift(tr.start, timeShiftTimezone, 1);
-                  return new TimeRange({
-                    start: shiftedStart,
-                    end: shiftedStart, // We do not actually care about the end since later we compare by start only
-                    bounds: '[]', // Make this range represent a single data point
-                  });
-                },
-                'TIME_RANGE',
-              );
-            }
-
-            let joined = ds1.fullJoin(ds2);
-
-            // Apply sort and limit
-            const mySort = this.sort;
-            if (mySort && !(this.sortOnLabel() && mySort.direction === 'ascending')) {
-              joined = joined.sort(mySort.expression, mySort.direction);
-            }
-
-            const myLimit = this.limit;
-            if (myLimit) {
-              joined = joined.limit(myLimit.value);
-            }
-
-            return joined;
-          }),
-        );
-      }
-    }
-
     return super.queryBasicValueStream(rawQueries);
   }
 }
