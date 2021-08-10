@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.23.6
+
+- Fix getJoinDecompositionShortcut to use leftJoin if timeShift is present
+
 ## 0.23.5
 
 - Handle date casts in time filters
