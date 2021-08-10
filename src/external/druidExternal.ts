@@ -1701,6 +1701,83 @@ export class DruidExternal extends External {
   }
 
   protected queryBasicValueStream(rawQueries: any[] | null): ReadableStream {
+    const decomposed = this.getJoinDecompositionShortcut();
+    if (decomposed) {
+      const { waterfallFilterExpression } = decomposed;
+      if (waterfallFilterExpression) {
+        return External.valuePromiseToStream(
+          External.buildValueFromStream(
+            decomposed.external1.queryBasicValueStream(rawQueries),
+          ).then(pv1 => {
+            let ds1 = pv1 as Dataset;
+            const ds1Filter = Expression.or(
+              ds1.data.map(datum => waterfallFilterExpression.filterFromDatum(datum)),
+            );
+
+            // Add filter to second external
+            let ex2Value = decomposed.external2.valueOf();
+            ex2Value.filter = ex2Value.filter.and(ds1Filter);
+            let filteredExternal = new DruidExternal(ex2Value);
+
+            return External.buildValueFromStream(
+              filteredExternal.queryBasicValueStream(rawQueries),
+            ).then(pv2 => {
+              return ds1.leftJoin(pv2 as Dataset);
+            });
+          }),
+        );
+      } else {
+        let plywoodValue1Promise = External.buildValueFromStream(
+          decomposed.external1.queryBasicValueStream(rawQueries),
+        );
+        let plywoodValue2Promise = External.buildValueFromStream(
+          decomposed.external2.queryBasicValueStream(rawQueries),
+        );
+
+        return External.valuePromiseToStream(
+          Promise.all([plywoodValue1Promise, plywoodValue2Promise]).then(([pv1, pv2]) => {
+            let ds1 = pv1 as Dataset;
+            let ds2 = pv2 as Dataset;
+
+            const { timeShift } = decomposed;
+            if (timeShift && ds2.data.length) {
+              const timeLabel = ds2.keys[0];
+              const timeShiftDuration = timeShift.duration;
+              const timeShiftTimezone = timeShift.timezone;
+              ds2 = ds2.applyFn(
+                timeLabel,
+                (d: Datum) => {
+                  const tr = d[timeLabel] as TimeRange;
+                  const shiftedStart = timeShiftDuration.shift(tr.start, timeShiftTimezone, 1);
+                  return new TimeRange({
+                    start: shiftedStart,
+                    end: shiftedStart, // We do not actually care about the end since later we compare by start only
+                    bounds: '[]', // Make this range represent a single data point
+                  });
+                },
+                'TIME_RANGE',
+              );
+            }
+
+            let joined = timeShift ? ds1.leftJoin(ds2) : ds1.fullJoin(ds2);
+
+            // Apply sort and limit
+            const mySort = this.sort;
+            if (mySort && !(this.sortOnLabel() && mySort.direction === 'ascending')) {
+              joined = joined.sort(mySort.expression, mySort.direction);
+            }
+
+            const myLimit = this.limit;
+            if (myLimit) {
+              joined = joined.limit(myLimit.value);
+            }
+
+            return joined;
+          }),
+        );
+      }
+    }
+
     return super.queryBasicValueStream(rawQueries);
   }
 }
