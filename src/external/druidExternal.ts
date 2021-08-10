@@ -1930,7 +1930,7 @@ export class DruidExternal extends External {
               );
             }
 
-            let joined = ds1.fullJoin(ds2);
+            let joined = timeShift ? ds1.leftJoin(ds2) : ds1.fullJoin(ds2);
 
             // Apply sort and limit
             const mySort = this.sort;
