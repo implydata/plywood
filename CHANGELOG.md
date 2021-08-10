@@ -1,5 +1,8 @@
 # Change Log
 
+## 0.26.1
+- Fix `getJoinDecompositionShortcut` to use leftJoin if `timeShift` is present
+
 ## 0.26.0
 
 - Remove support for issuing JS expressions to Druid. Deprecated since Druid 0.10.0.

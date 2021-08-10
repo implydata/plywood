@@ -110,7 +110,7 @@ function simpleJSONEqual(a: any, b: any): boolean {
 function getFilterSubExpression(expression: Expression): FilterExpression | undefined {
   let filterSubExpression: FilterExpression | undefined;
 
-  expression.some((ex) => {
+  expression.some(ex => {
     if (ex instanceof FilterExpression) {
       if (!filterSubExpression) {
         filterSubExpression = ex;
@@ -673,9 +673,7 @@ export class DruidExternal extends External {
           type: 'extraction',
           dimension: DruidExternal.TIME_ATTRIBUTE,
           outputName: this.makeOutputName(label),
-          extractionFn: new DruidExtractionFnBuilder(this).expressionToExtractionFn(
-            expression,
-          ),
+          extractionFn: new DruidExtractionFnBuilder(this).expressionToExtractionFn(expression),
         },
         inflater: null,
       };
@@ -1098,7 +1096,11 @@ export class DruidExternal extends External {
                   AttributeInfo.fromJS({ name: definedFilterName, type: 'NUMBER' }),
                 );
                 resplitAggWithUpdatedNames = resplitAggWithUpdatedNames.changeOperand(
-                  $('_').filter($(definedFilterName).greaterThan(r(0)).simplify()),
+                  $('_').filter(
+                    $(definedFilterName)
+                      .greaterThan(r(0))
+                      .simplify(),
+                  ),
                 );
               }
 
@@ -1519,7 +1521,13 @@ export class DruidExternal extends External {
   }
 
   protected getIntrospectAttributes(depth: IntrospectionDepth): Promise<Attributes> {
-    return DruidExternal.introspectAttributesWithSegmentMetadata(this.getDruidDataSource(), this.requester, this.timeAttribute, this.context, depth);
+    return DruidExternal.introspectAttributesWithSegmentMetadata(
+      this.getDruidDataSource(),
+      this.requester,
+      this.timeAttribute,
+      this.context,
+      depth,
+    );
   }
 
   private groupAppliesByTimeFilterValue():
@@ -1607,7 +1615,9 @@ export class DruidExternal extends External {
     if (filterV0.start < filterV1.start) appliesByTimeFilterValue.reverse();
 
     // Find the time split (must be only one)
-    const timeSplitNames = this.split.mapSplits((name , ex) => ex instanceof TimeBucketExpression ? name : undefined).filter(Boolean);
+    const timeSplitNames = this.split
+      .mapSplits((name, ex) => (ex instanceof TimeBucketExpression ? name : undefined))
+      .filter(Boolean);
 
     // Check for timeseries/groupBy decomposition
     if (timeSplitNames.length === 1) {
@@ -1655,7 +1665,12 @@ export class DruidExternal extends External {
     }
 
     // Check for topN decomposition
-    if (this.split.numSplits() === 1 && appliesByTimeFilterValue[0].hasSort && this.limit && this.limit.value <= 1000) {
+    if (
+      this.split.numSplits() === 1 &&
+      appliesByTimeFilterValue[0].hasSort &&
+      this.limit &&
+      this.limit.value <= 1000
+    ) {
       const external1Value = this.valueOf();
       external1Value.filter = $(timeAttribute, 'TIME')
         .overlap(appliesByTimeFilterValue[0].filterValue)
@@ -1744,7 +1759,7 @@ export class DruidExternal extends External {
               );
             }
 
-            let joined = ds1.fullJoin(ds2);
+            let joined = timeShift ? ds1.leftJoin(ds2) : ds1.fullJoin(ds2);
 
             // Apply sort and limit
             const mySort = this.sort;
