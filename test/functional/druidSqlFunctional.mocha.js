@@ -1333,6 +1333,108 @@ describe('DruidSQL Functional', function() {
           });
         });
       });
+
+      it('can timeBucket on joined column (overlap time, SQL)', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T06:00:00Z'),
+          end: new Date('2015-09-12T18:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T12:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split(
+            s$('t.__time')
+              .overlap(mainRange)
+              .then(s$('t.__time'))
+              .fallback(s$('t.__time').timeShift(Duration.fromJS('PT6H')))
+              .timeBucket('PT2H'),
+            'TimeJoin',
+          )
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter(s$('t.__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter(s$('t.__time').overlap(mainRange))
+              .sum('$count'),
+          );
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS()).to.deep.equal({
+            attributes: [
+              {
+                name: 'TimeJoin',
+                type: 'TIME_RANGE',
+              },
+              {
+                name: 'CountPrev',
+                type: 'NUMBER',
+              },
+              {
+                name: 'CountMain',
+                type: 'NUMBER',
+              },
+            ],
+            data: [
+              {
+                CountMain: 37816,
+                CountPrev: 43567,
+                TimeJoin: {
+                  end: new Date('2015-09-12T14:00:00.000Z'),
+                  start: new Date('2015-09-12T12:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 38388,
+                CountPrev: 33259,
+                TimeJoin: {
+                  end: new Date('2015-09-12T16:00:00.000Z'),
+                  start: new Date('2015-09-12T14:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 42589,
+                CountPrev: 34160,
+                TimeJoin: {
+                  end: new Date('2015-09-12T18:00:00.000Z'),
+                  start: new Date('2015-09-12T16:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 41828,
+                CountPrev: 37816,
+                TimeJoin: {
+                  end: new Date('2015-09-12T20:00:00.000Z'),
+                  start: new Date('2015-09-12T18:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 35977,
+                CountPrev: 38388,
+                TimeJoin: {
+                  end: new Date('2015-09-12T22:00:00.000Z'),
+                  start: new Date('2015-09-12T20:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 30720,
+                CountPrev: 42589,
+                TimeJoin: {
+                  end: new Date('2015-09-13T00:00:00.000Z'),
+                  start: new Date('2015-09-12T22:00:00.000Z'),
+                },
+              },
+            ],
+            keys: ['TimeJoin'],
+          });
+        });
+      });
     });
 
     it('works in simple case', () => {

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { Introspect, QueryResult, SqlQuery, ColumnInfo } from 'druid-query-toolkit';
+import { Introspect, QueryResult, SqlQuery, SqlRef, ColumnInfo } from 'druid-query-toolkit';
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
 import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes';
 import { DruidDialect } from '../dialect';
+import { Expression, SqlRefExpression } from '../expressions';
 import { dictEqual } from '../helper';
 import { PlyType } from '../types';
 import { External, ExternalJS, ExternalValue, IntrospectionDepth } from './baseExternal';
@@ -140,6 +141,18 @@ export class DruidSQLExternal extends SQLExternal {
 
   public getTimeAttribute(): string | undefined {
     return '__time';
+  }
+
+  public isTimeRef(ex: Expression): boolean {
+    if (ex instanceof SqlRefExpression) {
+      if (ex.parsedSql instanceof SqlRef) {
+        return ex.parsedSql.getColumn() === '__time';
+      } else {
+        return false;
+      }
+    } else {
+      return super.isTimeRef(ex);
+    }
   }
 
   protected async getIntrospectAttributes(depth: IntrospectionDepth): Promise<Attributes> {
