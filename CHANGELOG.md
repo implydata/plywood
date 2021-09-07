@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.26.4
+
+- Recycle timeRef in decomposition
+
 ## 0.26.3
 
 - Treat SQL `t.__time` as a time attribute

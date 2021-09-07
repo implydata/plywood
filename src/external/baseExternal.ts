@@ -1914,11 +1914,17 @@ export abstract class External {
   }
 
   private groupAppliesByTimeFilterValue():
-    | { filterValue: Set | TimeRange; unfilteredApplies: ApplyExpression[]; hasSort: boolean }[]
+    | {
+        filterValue: Set | TimeRange;
+        timeRef: Expression;
+        unfilteredApplies: ApplyExpression[];
+        hasSort: boolean;
+      }[]
     | null {
     const { applies, sort } = this;
     let groups: {
       filterValue: Set | TimeRange;
+      timeRef: Expression;
       unfilteredApplies: ApplyExpression[];
       hasSort: boolean;
     }[] = [];
@@ -1931,6 +1937,7 @@ export abstract class External {
       }
 
       let applyFilterValue: Set | TimeRange = null;
+      let timeRef: Expression = null;
       let badCondition = false;
       let newApply = apply.changeExpression(
         apply.expression
@@ -1941,9 +1948,11 @@ export abstract class External {
               ex.expression.getLiteralValue()
             ) {
               let myValue = ex.expression.getLiteralValue();
-              if (applyFilterValue && !(applyFilterValue as any).equals(myValue))
+              if (applyFilterValue && !(applyFilterValue as any).equals(myValue)) {
                 badCondition = true;
+              }
               applyFilterValue = myValue;
+              timeRef = ex.operand;
               return Expression.TRUE;
             }
             return null;
@@ -1963,6 +1972,7 @@ export abstract class External {
       } else {
         groups.push({
           filterValue: applyFilterValue,
+          timeRef,
           unfilteredApplies: [newApply],
           hasSort: mySort,
         });
@@ -2012,13 +2022,13 @@ export abstract class External {
         const timeShiftExpression = fallbackExpression.expression;
         if (timeShiftExpression instanceof TimeShiftExpression) {
           const timeRef = timeShiftExpression.operand;
-          if (timeAttribute && this.isTimeRef(timeRef)) {
+          if (this.isTimeRef(timeRef)) {
             const simpleSplit = this.split.addSplits({
               [timeSplitName]: timeSplitExpression.changeOperand(timeRef),
             });
 
             const external1Value = this.valueOf();
-            external1Value.filter = $(timeAttribute, 'TIME')
+            external1Value.filter = timeRef
               .overlap(appliesByTimeFilterValue[0].filterValue)
               .and(external1Value.filter)
               .simplify();
@@ -2028,7 +2038,7 @@ export abstract class External {
             external1Value.sort = null; // So we get a timeseries
 
             const external2Value = this.valueOf();
-            external2Value.filter = $(timeAttribute, 'TIME')
+            external2Value.filter = timeRef
               .overlap(appliesByTimeFilterValue[1].filterValue)
               .and(external2Value.filter)
               .simplify();
@@ -2055,14 +2065,14 @@ export abstract class External {
       this.limit.value <= 1000
     ) {
       const external1Value = this.valueOf();
-      external1Value.filter = $(timeAttribute, 'TIME')
+      external1Value.filter = appliesByTimeFilterValue[0].timeRef
         .overlap(appliesByTimeFilterValue[0].filterValue)
         .and(external1Value.filter)
         .simplify();
       external1Value.applies = appliesByTimeFilterValue[0].unfilteredApplies;
 
       const external2Value = this.valueOf();
-      external2Value.filter = $(timeAttribute, 'TIME')
+      external2Value.filter = appliesByTimeFilterValue[0].timeRef
         .overlap(appliesByTimeFilterValue[1].filterValue)
         .and(external2Value.filter)
         .simplify();
