@@ -92,7 +92,9 @@ export class DruidSQLExternal extends SQLExternal {
       }),
     );
 
-    return Introspect.decodeTableIntrospectionResult(QueryResult.fromRawResult(sources)).map(s => s.name).sort();
+    return Introspect.decodeTableIntrospectionResult(QueryResult.fromRawResult(sources))
+      .map(s => s.name)
+      .sort();
   }
 
   static getVersion(requester: PlywoodRequester<any>): Promise<string> {
@@ -110,7 +112,10 @@ export class DruidSQLExternal extends SQLExternal {
   public context: Record<string, any>;
 
   constructor(parameters: ExternalValue) {
-    super(parameters, new DruidDialect({ attributes: parameters.rawAttributes || parameters.attributes }));
+    super(
+      parameters,
+      new DruidDialect({ attributes: parameters.rawAttributes || parameters.attributes }),
+    );
     this._ensureEngine('druidsql');
     this.context = parameters.context;
   }
@@ -128,13 +133,14 @@ export class DruidSQLExternal extends SQLExternal {
   }
 
   public equals(other: DruidSQLExternal | undefined): boolean {
-    return (
-      super.equals(other) &&
-      dictEqual(this.context, other.context)
-    );
+    return super.equals(other) && dictEqual(this.context, other.context);
   }
 
   // -----------------
+
+  public getTimeAttribute(): string | undefined {
+    return '__time';
+  }
 
   protected async getIntrospectAttributes(depth: IntrospectionDepth): Promise<Attributes> {
     const { source, withQuery } = this;
@@ -150,20 +156,22 @@ export class DruidSQLExternal extends SQLExternal {
 
       // Query for sample also
       const sampleRawResult = await toArray(
-        this.requester({ query: this.sqlToQuery(String(Introspect.getQueryColumnSampleQuery(withQueryParsed))) }),
+        this.requester({
+          query: this.sqlToQuery(String(Introspect.getQueryColumnSampleQuery(withQueryParsed))),
+        }),
       );
 
       const sampleResult = QueryResult.fromRawResult(sampleRawResult);
 
       const query = this.sqlToQuery(String(introspectQuery));
 
-      const result = await toArray(
-        this.requester({ query }),
-      );
+      const result = await toArray(this.requester({ query }));
 
       const queryResult = QueryResult.fromRawResult(result).attachQuery(query, introspectQuery);
 
-      return DruidSQLExternal.postProcessIntrospect(Introspect.decodeColumnIntrospectionResult(queryResult, sampleResult));
+      return DruidSQLExternal.postProcessIntrospect(
+        Introspect.decodeColumnIntrospectionResult(queryResult, sampleResult),
+      );
     } else {
       let table: string;
       if (Array.isArray(source)) {
@@ -172,7 +180,13 @@ export class DruidSQLExternal extends SQLExternal {
         table = source;
       }
 
-      return DruidExternal.introspectAttributesWithSegmentMetadata(table, this.requester, '__time', this.context, depth);
+      return DruidExternal.introspectAttributesWithSegmentMetadata(
+        table,
+        this.requester,
+        '__time',
+        this.context,
+        depth,
+      );
     }
   }
 

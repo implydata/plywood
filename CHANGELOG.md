@@ -1,6 +1,11 @@
 # Change Log
 
+## 0.26.2
+
+- Move join decomposition into base external to make it accessible for the DruidSqlExternal
+
 ## 0.26.1
+
 - Fix `getJoinDecompositionShortcut` to use leftJoin if `timeShift` is present
 
 ## 0.26.0

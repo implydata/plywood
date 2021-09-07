@@ -15,6 +15,7 @@
  */
 
 const { expect } = require('chai');
+const { Duration } = require('chronoshift');
 let { sane } = require('../utils');
 
 let { druidRequesterFactory } = require('plywood-druid-requester');
@@ -468,6 +469,870 @@ describe('DruidSQL Functional', function() {
           druidRequester,
         ),
       },
+    });
+
+    describe('decomposition shortcuts', () => {
+      it('can do compare column', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T00:00:00Z'),
+          end: new Date('2015-09-12T12:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T12:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split($('channel'), 'Channel')
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter($('__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter($('__time').overlap(mainRange))
+              .sum('$count'),
+          )
+          .sort($('CountMain'), 'descending')
+          .limit(5);
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              Channel: 'en',
+              CountMain: 68606,
+              CountPrev: 46105,
+            },
+            {
+              Channel: 'vi',
+              CountMain: 48521,
+              CountPrev: 50489,
+            },
+            {
+              Channel: 'de',
+              CountMain: 15857,
+              CountPrev: 9246,
+            },
+            {
+              Channel: 'fr',
+              CountMain: 14779,
+              CountPrev: 6506,
+            },
+            {
+              Channel: 'uz',
+              CountMain: 10064,
+              CountPrev: 8,
+            },
+          ]);
+        });
+      });
+
+      it('can do compare column with having', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T00:00:00Z'),
+          end: new Date('2015-09-12T12:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T12:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split($('channel'), 'Channel')
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter($('__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter($('__time').overlap(mainRange))
+              .sum('$count'),
+          )
+          .sort($('CountMain'), 'descending')
+          .filter($('CountMain').greaterThan(48520))
+          .limit(5);
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              Channel: 'en',
+              CountMain: 68606,
+              CountPrev: 46105,
+            },
+            {
+              Channel: 'vi',
+              CountMain: 48521,
+              CountPrev: 50489,
+            },
+          ]);
+        });
+      });
+
+      it('can timeBucket on joined column', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T00:00:00Z'),
+          end: new Date('2015-09-12T12:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T12:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split(
+            $('__time')
+              .overlap(mainRange)
+              .then($('__time'))
+              .fallback($('__time').timeShift(Duration.fromJS('PT12H')))
+              .timeBucket('PT2H'),
+            'TimeJoin',
+          )
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter($('__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter($('__time').overlap(mainRange))
+              .sum('$count'),
+          );
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS()).to.deep.equal({
+            attributes: [
+              {
+                name: 'TimeJoin',
+                type: 'TIME_RANGE',
+              },
+              {
+                name: 'CountPrev',
+                type: 'NUMBER',
+              },
+              {
+                name: 'CountMain',
+                type: 'NUMBER',
+              },
+            ],
+            data: [
+              {
+                CountMain: 37816,
+                CountPrev: 14123,
+                TimeJoin: {
+                  end: new Date('2015-09-12T14:00:00.000Z'),
+                  start: new Date('2015-09-12T12:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 38388,
+                CountPrev: 19168,
+                TimeJoin: {
+                  end: new Date('2015-09-12T16:00:00.000Z'),
+                  start: new Date('2015-09-12T14:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 42589,
+                CountPrev: 20848,
+                TimeJoin: {
+                  end: new Date('2015-09-12T18:00:00.000Z'),
+                  start: new Date('2015-09-12T16:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 41828,
+                CountPrev: 43567,
+                TimeJoin: {
+                  end: new Date('2015-09-12T20:00:00.000Z'),
+                  start: new Date('2015-09-12T18:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 35977,
+                CountPrev: 33259,
+                TimeJoin: {
+                  end: new Date('2015-09-12T22:00:00.000Z'),
+                  start: new Date('2015-09-12T20:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 30720,
+                CountPrev: 34160,
+                TimeJoin: {
+                  end: new Date('2015-09-13T00:00:00.000Z'),
+                  start: new Date('2015-09-12T22:00:00.000Z'),
+                },
+              },
+            ],
+            keys: ['TimeJoin'],
+          });
+        });
+      });
+
+      it('can timeBucket on joined column with limit', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T00:00:00Z'),
+          end: new Date('2015-09-12T12:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T12:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split(
+            $('__time')
+              .overlap(mainRange)
+              .then($('__time'))
+              .fallback($('__time').timeShift(Duration.fromJS('PT12H')))
+              .timeBucket('PT2H'),
+            'TimeJoin',
+          )
+          .apply('CountAll', $('wiki').sum('$count'))
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter($('__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter($('__time').overlap(mainRange))
+              .sum('$count'),
+          )
+          .limit(3);
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              CountAll: 51939,
+              CountMain: 37816,
+              CountPrev: 14123,
+              TimeJoin: {
+                end: new Date('2015-09-12T14:00:00.000Z'),
+                start: new Date('2015-09-12T12:00:00.000Z'),
+              },
+            },
+            {
+              CountAll: 57556,
+              CountMain: 38388,
+              CountPrev: 19168,
+              TimeJoin: {
+                end: new Date('2015-09-12T16:00:00.000Z'),
+                start: new Date('2015-09-12T14:00:00.000Z'),
+              },
+            },
+            {
+              CountAll: 63437,
+              CountMain: 42589,
+              CountPrev: 20848,
+              TimeJoin: {
+                end: new Date('2015-09-12T18:00:00.000Z'),
+                start: new Date('2015-09-12T16:00:00.000Z'),
+              },
+            },
+          ]);
+        });
+      });
+
+      it('can timeBucket on joined and overlapping column with limit', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T00:00:00Z'),
+          end: new Date('2015-09-12T22:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T02:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split(
+            $('__time')
+              .overlap(mainRange)
+              .then($('__time'))
+              .fallback($('__time').timeShift(Duration.fromJS('PT2H')))
+              .timeBucket('PT1H'),
+            'TimeJoin',
+          )
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter($('__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter($('__time').overlap(mainRange))
+              .sum('$count'),
+          )
+          .limit(6);
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              CountMain: 11020,
+              CountPrev: 2681,
+              TimeJoin: {
+                end: new Date('2015-09-12T03:00:00.000Z'),
+                start: new Date('2015-09-12T02:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 8148,
+              CountPrev: 11442,
+              TimeJoin: {
+                end: new Date('2015-09-12T04:00:00.000Z'),
+                start: new Date('2015-09-12T03:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 8240,
+              CountPrev: 11020,
+              TimeJoin: {
+                end: new Date('2015-09-12T05:00:00.000Z'),
+                start: new Date('2015-09-12T04:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 12608,
+              CountPrev: 8148,
+              TimeJoin: {
+                end: new Date('2015-09-12T06:00:00.000Z'),
+                start: new Date('2015-09-12T05:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 21194,
+              CountPrev: 8240,
+              TimeJoin: {
+                end: new Date('2015-09-12T07:00:00.000Z'),
+                start: new Date('2015-09-12T06:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 22373,
+              CountPrev: 12608,
+              TimeJoin: {
+                end: new Date('2015-09-12T08:00:00.000Z'),
+                start: new Date('2015-09-12T07:00:00.000Z'),
+              },
+            },
+          ]);
+        });
+      });
+
+      it('can timeBucket on joined and overlapping column with multiple splits and limit', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T00:00:00Z'),
+          end: new Date('2015-09-12T22:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T02:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split({
+            TimeJoin: $('__time')
+              .overlap(mainRange)
+              .then($('__time'))
+              .fallback($('__time').timeShift(Duration.fromJS('PT2H')))
+              .timeBucket('PT1H'),
+            isRobot: $('isRobot').is(r('true')),
+          })
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter($('__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter($('__time').overlap(mainRange))
+              .sum('$count'),
+          )
+          .limit(6);
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              CountMain: 5982,
+              CountPrev: 1557,
+              TimeJoin: {
+                end: new Date('2015-09-12T03:00:00.000Z'),
+                start: new Date('2015-09-12T02:00:00.000Z'),
+              },
+              isRobot: false,
+            },
+            {
+              CountMain: 5038,
+              CountPrev: 1124,
+              TimeJoin: {
+                end: new Date('2015-09-12T03:00:00.000Z'),
+                start: new Date('2015-09-12T02:00:00.000Z'),
+              },
+              isRobot: true,
+            },
+            {
+              CountMain: 5915,
+              CountPrev: 6566,
+              TimeJoin: {
+                end: new Date('2015-09-12T04:00:00.000Z'),
+                start: new Date('2015-09-12T03:00:00.000Z'),
+              },
+              isRobot: false,
+            },
+            {
+              CountMain: 2233,
+              CountPrev: 4876,
+              TimeJoin: {
+                end: new Date('2015-09-12T04:00:00.000Z'),
+                start: new Date('2015-09-12T03:00:00.000Z'),
+              },
+              isRobot: true,
+            },
+            {
+              CountMain: 6098,
+              CountPrev: 5982,
+              TimeJoin: {
+                end: new Date('2015-09-12T05:00:00.000Z'),
+                start: new Date('2015-09-12T04:00:00.000Z'),
+              },
+              isRobot: false,
+            },
+            {
+              CountMain: 2142,
+              CountPrev: 5038,
+              TimeJoin: {
+                end: new Date('2015-09-12T05:00:00.000Z'),
+                start: new Date('2015-09-12T04:00:00.000Z'),
+              },
+              isRobot: true,
+            },
+          ]);
+        });
+      });
+
+      it('can timeBucket on joined and overlapping column with limit and sort', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T00:00:00Z'),
+          end: new Date('2015-09-12T22:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T02:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split(
+            $('__time')
+              .overlap(mainRange)
+              .then($('__time'))
+              .fallback($('__time').timeShift(Duration.fromJS('PT2H')))
+              .timeBucket('PT1H'),
+            'TimeJoin',
+          )
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter($('__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter($('__time').overlap(mainRange))
+              .sum('$count'),
+          )
+          .sort('$CountMain', 'descending')
+          .limit(6);
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              CountMain: 23001,
+              CountPrev: 19655,
+              TimeJoin: {
+                end: new Date('2015-09-12T18:00:00.000Z'),
+                start: new Date('2015-09-12T17:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 22373,
+              CountPrev: 12608,
+              TimeJoin: {
+                end: new Date('2015-09-12T08:00:00.000Z'),
+                start: new Date('2015-09-12T07:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 21699,
+              CountPrev: 19588,
+              TimeJoin: {
+                end: new Date('2015-09-12T19:00:00.000Z'),
+                start: new Date('2015-09-12T18:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 21194,
+              CountPrev: 8240,
+              TimeJoin: {
+                end: new Date('2015-09-12T07:00:00.000Z'),
+                start: new Date('2015-09-12T06:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 20725,
+              CountPrev: 16240,
+              TimeJoin: {
+                end: new Date('2015-09-12T14:00:00.000Z'),
+                start: new Date('2015-09-12T13:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 20129,
+              CountPrev: 23001,
+              TimeJoin: {
+                end: new Date('2015-09-12T20:00:00.000Z'),
+                start: new Date('2015-09-12T19:00:00.000Z'),
+              },
+            },
+          ]);
+        });
+      });
+
+      it('can timeBucket on joined column with sub-split', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T00:00:00Z'),
+          end: new Date('2015-09-12T12:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T12:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split(
+            $('__time')
+              .overlap(mainRange)
+              .then($('__time'))
+              .fallback($('__time').timeShift(Duration.fromJS('PT12H')))
+              .timeBucket('PT2H'),
+            'TimeJoin',
+          )
+          .apply('CountAll', $('wiki').sum('$count'))
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter($('__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter($('__time').overlap(mainRange))
+              .sum('$count'),
+          )
+          .limit(2)
+          .apply(
+            'Channels',
+            $('wiki')
+              .split('$channel', 'Channel')
+              .apply(
+                'CountPrev',
+                $('wiki')
+                  .filter($('__time').overlap(prevRange))
+                  .sum('$count'),
+              )
+              .apply(
+                'CountMain',
+                $('wiki')
+                  .filter($('__time').overlap(mainRange))
+                  .sum('$count'),
+              )
+              .sort('$CountMain', 'descending')
+              .limit(2),
+          );
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              Channels: {
+                attributes: [
+                  {
+                    name: 'Channel',
+                    type: 'STRING',
+                  },
+                  {
+                    name: 'CountPrev',
+                    type: 'NUMBER',
+                  },
+                  {
+                    name: 'CountMain',
+                    type: 'NUMBER',
+                  },
+                ],
+                data: [
+                  {
+                    Channel: 'en',
+                    CountMain: 10698,
+                    CountPrev: 5906,
+                  },
+                  {
+                    Channel: 'vi',
+                    CountMain: 7650,
+                    CountPrev: 3771,
+                  },
+                ],
+                keys: ['Channel'],
+              },
+              CountAll: 51939,
+              CountMain: 37816,
+              CountPrev: 14123,
+              TimeJoin: {
+                end: new Date('2015-09-12T14:00:00.000Z'),
+                start: new Date('2015-09-12T12:00:00.000Z'),
+              },
+            },
+            {
+              Channels: {
+                attributes: [
+                  {
+                    name: 'Channel',
+                    type: 'STRING',
+                  },
+                  {
+                    name: 'CountPrev',
+                    type: 'NUMBER',
+                  },
+                  {
+                    name: 'CountMain',
+                    type: 'NUMBER',
+                  },
+                ],
+                data: [
+                  {
+                    Channel: 'en',
+                    CountMain: 10844,
+                    CountPrev: 9439,
+                  },
+                  {
+                    Channel: 'vi',
+                    CountMain: 9258,
+                    CountPrev: 2969,
+                  },
+                ],
+                keys: ['Channel'],
+              },
+              CountAll: 57556,
+              CountMain: 38388,
+              CountPrev: 19168,
+              TimeJoin: {
+                end: new Date('2015-09-12T16:00:00.000Z'),
+                start: new Date('2015-09-12T14:00:00.000Z'),
+              },
+            },
+          ]);
+        });
+      });
+
+      it('can timeBucket on joined column (sort by delta)', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T00:00:00Z'),
+          end: new Date('2015-09-12T12:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T12:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split(
+            $('__time')
+              .overlap(mainRange)
+              .then($('__time'))
+              .fallback($('__time').timeShift(Duration.fromJS('PT12H')))
+              .timeBucket('PT2H'),
+            'TimeJoin',
+          )
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter($('__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter($('__time').overlap(mainRange))
+              .sum('$count'),
+          )
+          .apply('Delta', '$CountMain - $CountPrev')
+          .sort('$Delta', 'descending');
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS().data).to.deep.equal([
+            {
+              CountMain: 37816,
+              CountPrev: 14123,
+              Delta: 23693,
+              TimeJoin: {
+                end: new Date('2015-09-12T14:00:00.000Z'),
+                start: new Date('2015-09-12T12:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 42589,
+              CountPrev: 20848,
+              Delta: 21741,
+              TimeJoin: {
+                end: new Date('2015-09-12T18:00:00.000Z'),
+                start: new Date('2015-09-12T16:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 38388,
+              CountPrev: 19168,
+              Delta: 19220,
+              TimeJoin: {
+                end: new Date('2015-09-12T16:00:00.000Z'),
+                start: new Date('2015-09-12T14:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 35977,
+              CountPrev: 33259,
+              Delta: 2718,
+              TimeJoin: {
+                end: new Date('2015-09-12T22:00:00.000Z'),
+                start: new Date('2015-09-12T20:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 41828,
+              CountPrev: 43567,
+              Delta: -1739,
+              TimeJoin: {
+                end: new Date('2015-09-12T20:00:00.000Z'),
+                start: new Date('2015-09-12T18:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 30720,
+              CountPrev: 34160,
+              Delta: -3440,
+              TimeJoin: {
+                end: new Date('2015-09-13T00:00:00.000Z'),
+                start: new Date('2015-09-12T22:00:00.000Z'),
+              },
+            },
+          ]);
+        });
+      });
+
+      it('can timeBucket on joined column (overlap time)', () => {
+        let prevRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T06:00:00Z'),
+          end: new Date('2015-09-12T18:00:00Z'),
+        });
+        let mainRange = TimeRange.fromJS({
+          start: new Date('2015-09-12T12:00:00Z'),
+          end: new Date('2015-09-13T00:00:00Z'),
+        });
+        let ex = $('wiki')
+          .split(
+            $('__time')
+              .overlap(mainRange)
+              .then($('__time'))
+              .fallback($('__time').timeShift(Duration.fromJS('PT6H')))
+              .timeBucket('PT2H'),
+            'TimeJoin',
+          )
+          .apply(
+            'CountPrev',
+            $('wiki')
+              .filter($('__time').overlap(prevRange))
+              .sum('$count'),
+          )
+          .apply(
+            'CountMain',
+            $('wiki')
+              .filter($('__time').overlap(mainRange))
+              .sum('$count'),
+          );
+
+        return basicExecutor(ex).then(result => {
+          expect(result.toJS()).to.deep.equal({
+            attributes: [
+              {
+                name: 'TimeJoin',
+                type: 'TIME_RANGE',
+              },
+              {
+                name: 'CountPrev',
+                type: 'NUMBER',
+              },
+              {
+                name: 'CountMain',
+                type: 'NUMBER',
+              },
+            ],
+            data: [
+              {
+                CountMain: 37816,
+                CountPrev: 43567,
+                TimeJoin: {
+                  end: new Date('2015-09-12T14:00:00.000Z'),
+                  start: new Date('2015-09-12T12:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 38388,
+                CountPrev: 33259,
+                TimeJoin: {
+                  end: new Date('2015-09-12T16:00:00.000Z'),
+                  start: new Date('2015-09-12T14:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 42589,
+                CountPrev: 34160,
+                TimeJoin: {
+                  end: new Date('2015-09-12T18:00:00.000Z'),
+                  start: new Date('2015-09-12T16:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 41828,
+                CountPrev: 37816,
+                TimeJoin: {
+                  end: new Date('2015-09-12T20:00:00.000Z'),
+                  start: new Date('2015-09-12T18:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 35977,
+                CountPrev: 38388,
+                TimeJoin: {
+                  end: new Date('2015-09-12T22:00:00.000Z'),
+                  start: new Date('2015-09-12T20:00:00.000Z'),
+                },
+              },
+              {
+                CountMain: 30720,
+                CountPrev: 42589,
+                TimeJoin: {
+                  end: new Date('2015-09-13T00:00:00.000Z'),
+                  start: new Date('2015-09-12T22:00:00.000Z'),
+                },
+              },
+            ],
+            keys: ['TimeJoin'],
+          });
+        });
+      });
     });
 
     it('works in simple case', () => {
@@ -1024,6 +1889,46 @@ describe('DruidSQL Functional', function() {
           name: 'cityName',
           nativeType: 'STRING',
           type: 'STRING',
+        },
+      ]);
+    });
+
+    it('introspects withQuery (with group by, without __time)', async () => {
+      const external = await External.fromJS(
+        {
+          engine: 'druidsql',
+          source: 'wikipedia',
+          timeAttribute: '__time',
+          withQuery: sane`
+            SELECT
+            channel,
+               cityName,
+               COUNT(*) AS "Count"
+            FROM "wikipedia"
+            GROUP BY 1, 2
+            ORDER BY 2 DESC
+          `,
+          context,
+        },
+        druidRequester,
+      ).introspect();
+
+      expect(external.version).to.equal(info.druidVersion);
+      expect(external.toJS().attributes.slice(0, 5)).to.deep.equal([
+        {
+          name: 'channel',
+          nativeType: 'STRING',
+          type: 'STRING',
+        },
+        {
+          name: 'cityName',
+          nativeType: 'STRING',
+          type: 'STRING',
+        },
+        {
+          name: 'Count',
+          nativeType: 'LONG',
+          type: 'NUMBER',
         },
       ]);
     });
