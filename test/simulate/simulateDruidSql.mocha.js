@@ -18,7 +18,7 @@
 const { expect } = require('chai');
 
 let plywood = require('../plywood');
-let { Expression, External, Dataset, TimeRange, $, ply, r } = plywood;
+let { Expression, External, Dataset, TimeRange, $, ply, r, s$ } = plywood;
 
 let attributes = [
   { name: 'time', type: 'TIME' },
@@ -123,6 +123,43 @@ describe('simulate DruidSql', () => {
           query:
             'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND "tags" IN (\'tagA\',\'tagB\'))\nGROUP BY 1\nORDER BY "Tag" DESC\nLIMIT 10',
         },
+      ],
+    ]);
+  });
+
+  it('works with sqlRefExpression', () => {
+    let ex = ply()
+      .apply(
+        'Tags',
+        $('diamonds')
+          .split(s$('t.tags'), 'Tag')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10).select('Tag', 'count'),
+      );
+
+
+    let queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode:'raw',
+        filter: $('time').overlap({
+          start: new Date('2015-03-12T00:00:00Z'),
+          end: new Date('2015-03-19T00:00:00Z'),
+        }),
+      }),
+    });
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+
+            "query": "SELECT\n(t.tags) AS \"Tag\",\nCOUNT(*) AS \"count\"\nFROM \"diamonds\" AS t\nWHERE (TIMESTAMP '2015-03-12 00:00:00'<=\"time\" AND \"time\"<TIMESTAMP '2015-03-19 00:00:00')\nGROUP BY 1\nORDER BY \"count\" DESC\nLIMIT 10"        },
       ],
     ]);
   });

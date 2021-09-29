@@ -64,6 +64,7 @@ import {
   SelectExpression,
   SortExpression,
   SplitExpression,
+  SqlRefExpression,
   TimeBucketExpression,
   TimeFloorExpression,
   TimeShiftExpression,
@@ -236,6 +237,10 @@ function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
       }
 
     default:
+      if (ex instanceof SqlRefExpression) {
+        return null;
+      }
+
       throw new Error('unsupported simulation on: ' + valueType);
   }
 }

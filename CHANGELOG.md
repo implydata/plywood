@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.26.5
+
+- `sampleValue` in returns `null` for `sqlRefExpression`
+
 ## 0.26.4
 
 - Recycle timeRef in decomposition
