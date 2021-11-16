@@ -5,6 +5,7 @@
 # === WebStorm ===
 /.idea/workspace.xml
 /.idea/tasks.xml
+.idea/runConfigurations.xml
 
 # === Dev ===
 /coverage/
