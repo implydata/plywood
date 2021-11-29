@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.26.7
+
+- Version bump to pick up changes `0.26.5` changes 
+
 ## 0.26.6
 
 - `Updated druid-query-toolkit` from `0.11.0` to `0.13.2`
