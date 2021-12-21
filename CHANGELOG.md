@@ -2,7 +2,7 @@
 
 ## 0.26.7
 
-- Version bump to pick up version `0.26.5` changes 
+- Version bump to pick up version `0.26.5` changes
 
 ## 0.26.6
 

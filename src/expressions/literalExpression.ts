@@ -120,6 +120,7 @@ export class LiteralExpression extends Expression {
       case 'STRING_RANGE':
         return dialect.escapeLiteral(value.start);
 
+      case 'SET/NULL':
       case 'SET/STRING':
       case 'SET/NUMBER':
       case 'SET/NUMBER_RANGE':

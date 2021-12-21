@@ -58,6 +58,8 @@ export class IsExpression extends ChainableUnaryExpression {
   ): string {
     let expressionSet = this.expression.getLiteralValue();
     if (expressionSet instanceof Set) {
+      if (expressionSet.empty()) return 'FALSE';
+
       switch (this.expression.type) {
         case 'SET/STRING':
         case 'SET/NUMBER':
@@ -73,11 +75,13 @@ export class IsExpression extends ChainableUnaryExpression {
           return nullCheck ? `(${nullCheck} OR ${inCheck})` : inCheck;
 
         default:
-          return '(' +
+          return (
+            '(' +
             expressionSet.elements
               .map(e => dialect.isNotDistinctFromExpression(operandSQL, r(e).getSQL(dialect)))
               .join(' OR ') +
-            ')';
+            ')'
+          );
       }
     } else {
       return dialect.isNotDistinctFromExpression(operandSQL, expressionSQL);
@@ -97,9 +101,18 @@ export class IsExpression extends ChainableUnaryExpression {
     const literalValue = expression.getLiteralValue();
 
     if (literalValue != null) {
-      // X.is(Set({Y})) => X.is(Y)
-      if (Set.isSet(literalValue) && literalValue.elements.length === 1) {
-        return operand.is(r(literalValue.elements[0]));
+      if (Set.isSet(literalValue)) {
+        const setElements = literalValue.elements;
+
+        // X.is(Set({})) => false
+        if (setElements.length === 0) {
+          return LiteralExpression.FALSE;
+        }
+
+        // X.is(Set({Y})) => X.is(Y)
+        if (setElements.length === 1) {
+          return operand.is(r(setElements[0]));
+        }
       }
 
       // X.indexOf(Y).is(-1)
