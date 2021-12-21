@@ -199,16 +199,8 @@ export class DruidDialect extends SQLDialect {
     return `POSITION(${substr} IN ${str}) - 1`;
   }
 
-  public quantileExpression(str: string, quantile: number, parameterAttributeName: string | undefined): string {
-    const attribute = NamedArray.findByName(this.attributes || [], parameterAttributeName);
-    const nativeType = attribute ? attribute.nativeType : undefined;
-    switch (nativeType) {
-      case 'quantilesDoublesSketch':
-        return `APPROX_QUANTILE_DS(${str}, ${quantile})`;
-
-      default:
-        return `APPROX_QUANTILE(${str}, ${quantile})`;
-    }
+  public quantileExpression(str: string, quantile: number): string {
+    return `APPROX_QUANTILE(${str}, ${quantile})`;
   }
 
   public logExpression(base: string, operand: string): string {
