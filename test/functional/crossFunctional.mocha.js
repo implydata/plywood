@@ -2078,6 +2078,40 @@ describe('Cross Functional', function() {
           ),
       }),
     );
+
+    it(
+      'works with heatmap like query with an empty having',
+      equalityTest({
+        executorNames: ['druid', 'druidSql'],
+        expression: ply()
+          .apply(
+            'ys',
+            $('wiki')
+              .split('$__time.timeBucket(PT1H)', 'v')
+              .sort('$v', 'ascending')
+              .limit(3),
+          )
+          .apply(
+            'xs',
+            $('wiki')
+              .split('$channel', 'v')
+              .apply('count', '$wiki.count()')
+              .filter('$count > 1000000')
+              .sort('$count', 'descending')
+              .limit(3),
+          )
+          .apply('count', '$wiki.count()')
+          .apply(
+            'cells',
+            $('wiki')
+              .filter('$channel.overlap($xs.collect($v)).and($__time.overlap($ys.collect($v)))')
+              .split({ __time: '$__time.timeBucket(PT1H)', channel: '$channel' })
+              .apply('count', '$wiki.sum($count)')
+              .sort('$count', 'descending')
+              .limit(9),
+          ),
+      }),
+    );
   });
 
   describe('splits (sequential)', () => {
