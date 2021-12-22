@@ -131,7 +131,7 @@ export abstract class SQLDialect {
 
   public filterAggregatorExpression(aggregate: string, whereFilter: string): string {
     const whereIndex = whereFilter.indexOf('WHERE');
-    return `${aggregate} ${whereIndex !== -1 ? `FILTER (${whereFilter.substr(whereIndex)})` : ''}`;
+    return `${aggregate}${whereIndex !== -1 ? `FILTER (${whereFilter.substr(whereIndex)})` : ''}`;
 
   }
 
