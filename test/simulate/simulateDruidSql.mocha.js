@@ -128,16 +128,15 @@ describe('simulate DruidSql', () => {
   });
 
   it('works with sqlRefExpression', () => {
-    let ex = ply()
-      .apply(
-        'Tags',
-        $('diamonds')
-          .split(s$('t.tags'), 'Tag')
-          .apply('count', $('diamonds').count())
-          .sort('$count', 'descending')
-          .limit(10).select('Tag', 'count'),
-      );
-
+    let ex = ply().apply(
+      'Tags',
+      $('diamonds')
+        .split(s$('t.tags'), 'Tag')
+        .apply('count', $('diamonds').count())
+        .sort('$count', 'descending')
+        .limit(10)
+        .select('Tag', 'count'),
+    );
 
     let queryPlan = ex.simulateQueryPlan({
       diamonds: External.fromJS({
@@ -147,7 +146,7 @@ describe('simulate DruidSql', () => {
         timeAttribute: 'time',
         attributes,
         allowSelectQueries: true,
-        mode:'raw',
+        mode: 'raw',
         filter: $('time').overlap({
           start: new Date('2015-03-12T00:00:00Z'),
           end: new Date('2015-03-19T00:00:00Z'),
@@ -158,8 +157,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
-
-            "query": "SELECT\n(t.tags) AS \"Tag\",\nCOUNT(*) AS \"count\"\nFROM \"diamonds\" AS t\nWHERE (TIMESTAMP '2015-03-12 00:00:00'<=\"time\" AND \"time\"<TIMESTAMP '2015-03-19 00:00:00')\nGROUP BY 1\nORDER BY \"count\" DESC\nLIMIT 10"        },
+          query:
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE (TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
       ],
     ]);
   });

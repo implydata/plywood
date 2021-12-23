@@ -129,6 +129,12 @@ export abstract class SQLDialect {
     return `CASE WHEN ${a} THEN ${b}${elsePart} END`;
   }
 
+  public filterAggregatorExpression(aggregate: string, whereFilter: string): string {
+    const whereIndex = whereFilter.indexOf('WHERE');
+    return `${aggregate}${whereIndex !== -1 ? `FILTER (${whereFilter.substr(whereIndex)})` : ''}`;
+
+  }
+
   public isNotDistinctFromExpression(a: string, b: string): string {
     const nullConst = this.nullConstant();
     if (a === nullConst) return `${b} IS ${nullConst}`;
@@ -188,7 +194,7 @@ export abstract class SQLDialect {
 
   public abstract indexOfExpression(str: string, substr: string): string;
 
-  public quantileExpression(str: string, quantile: number, parameterAttributeName: string | undefined): string {
+  public quantileExpression(str: string, quantile: number): string {
     throw new Error('dialect does not implement quantile');
   }
 
