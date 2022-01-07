@@ -63,7 +63,7 @@ export class JoinExpression extends ChainableUnaryExpression {
     return typeContext;
   }
 
-  public pushIntoExternal(): ExternalExpression | null {
+  public pushIntoExternal(): Expression | null {
     return null;
   }
 

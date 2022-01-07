@@ -34,13 +34,13 @@ import {
   ExternalValue,
   Inflater,
   IntrospectionDepth,
-  QueryAndPostTransform
+  QueryAndPostTransform,
 } from './baseExternal';
 import { PlywoodRequester } from 'plywood-base-api';
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
   return split.mapSplits((label, splitExpression) => {
-    let simpleInflater = External.getInteligentInflater(splitExpression, label);
+    let simpleInflater = External.getIntelligentInflater(splitExpression, label);
     if (simpleInflater) return simpleInflater;
     return undefined;
   });

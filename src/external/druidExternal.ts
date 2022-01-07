@@ -622,7 +622,7 @@ export class DruidExternal extends External {
             period: duration.toString(),
             timeZone: timezone.toString(),
           },
-          inflater: External.getInteligentInflater(splitExpression, label),
+          inflater: External.getIntelligentInflater(splitExpression, label),
         };
       }
     }
@@ -689,7 +689,7 @@ export class DruidExternal extends External {
 
       const outputName = this.makeOutputName(label);
       const outputType = DruidExpressionBuilder.expressionTypeToOutputType(expression.type);
-      const inflater = External.getInteligentInflater(expression, label);
+      const inflater = External.getIntelligentInflater(expression, label);
 
       let dimensionSrcName = outputName;
       let virtualColumn: Druid.VirtualColumn = null;
@@ -749,7 +749,7 @@ export class DruidExternal extends External {
       return makeExpression();
     }
 
-    let simpleInflater = External.getInteligentInflater(expression, label);
+    let simpleInflater = External.getIntelligentInflater(expression, label);
 
     let dimension: Druid.DimensionSpecFull = {
       type: 'default',

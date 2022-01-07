@@ -490,7 +490,7 @@ export abstract class External {
 
   // ==== Inflaters
 
-  static getInteligentInflater(expression: Expression, label: string): Inflater {
+  static getIntelligentInflater(expression: Expression, label: string): Inflater {
     if (expression instanceof NumberBucketExpression) {
       return External.numberRangeInflaterFactory(label, expression.size);
     } else if (expression instanceof TimeBucketExpression) {

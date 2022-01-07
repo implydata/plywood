@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ComputeFn, Datum, PlywoodValue } from '../datatypes/index';
+import { ComputeFn, Dataset, Datum, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { External } from '../external/baseExternal';
 import { DatasetFullType } from '../types';
@@ -23,6 +23,7 @@ import {
   Expression,
   ExpressionJS,
   ExpressionValue,
+  r,
 } from './baseExpression';
 
 export class ExternalExpression extends Expression {
@@ -95,9 +96,21 @@ export class ExternalExpression extends Expression {
     return new ExternalExpression(value);
   }
 
-  public addExpression(expression: Expression): ExternalExpression {
+  public addExpression(expression: Expression): Expression {
     let newExternal = this.external.addExpression(expression);
     if (!newExternal) return null;
+
+    // If the filter is false, just evaluate to an empty dataset
+    if (newExternal.filter.equals(Expression.FALSE)) {
+      return r(
+        new Dataset({
+          attributes: newExternal.attributes,
+          keys: newExternal.split ? newExternal.split.keys : undefined,
+          data: [],
+        }),
+      );
+    }
+
     return new ExternalExpression({ external: newExternal });
   }
 
