@@ -1,8 +1,12 @@
 # Change Log
 
-## 0.26.8
+## 0.26.9
 
 - Simplify an external with a FALSE filter to an empty dataset without querying it
+
+## 0.26.8
+
+- quantileExpression uses filter where instead of case when
 
 ## 0.26.7
 

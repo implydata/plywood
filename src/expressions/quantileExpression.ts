@@ -79,7 +79,10 @@ export class QuantileExpression extends ChainableUnaryExpression implements Aggr
     operandSQL: string,
     expressionSQL: string,
   ): string {
-    return dialect.filterAggregatorExpression(dialect.quantileExpression(expressionSQL, this.value), operandSQL);
+    return dialect.filterAggregatorExpression(
+      dialect.quantileExpression(expressionSQL, this.value),
+      operandSQL,
+    );
   }
 }
 

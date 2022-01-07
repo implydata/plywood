@@ -99,7 +99,7 @@ export class DruidDialect extends SQLDialect {
   }
 
   public emptyGroupBy(): string {
-    return "GROUP BY ()";
+    return 'GROUP BY ()';
   }
 
   public timeToSQL(date: Date): string {

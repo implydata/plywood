@@ -132,7 +132,6 @@ export abstract class SQLDialect {
   public filterAggregatorExpression(aggregate: string, whereFilter: string): string {
     const whereIndex = whereFilter.indexOf('WHERE');
     return `${aggregate}${whereIndex !== -1 ? `FILTER (${whereFilter.substr(whereIndex)})` : ''}`;
-
   }
 
   public isNotDistinctFromExpression(a: string, b: string): string {
