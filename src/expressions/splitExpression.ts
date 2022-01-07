@@ -223,7 +223,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
     let simpleOperand = this.operand.simplify();
     let simpleSplits = this.mapSplitExpressions(ex => ex.simplify());
     let simpler: Expression = this.changeOperand(simpleOperand).changeSplits(simpleSplits);
-    if (simpler.fullyDefined()) return r(this.calc({}));
+    if (simpler.fullyDefined()) return r(simpler.calc({}));
 
     if (simpler instanceof ChainableExpression) {
       const pushedInExternal = simpler.pushIntoExternal();

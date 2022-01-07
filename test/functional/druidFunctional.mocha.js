@@ -4663,6 +4663,29 @@ describe('Druid Functional', function() {
       });
     });
 
+    it('works with FALSE filter', () => {
+      let ex = $('wiki')
+        .filter(Expression.FALSE)
+        .split({ isNew: '$isNew', isRobot: '$isRobot' })
+        .apply('TotalEdits', '$wiki.sum($count)')
+        .apply('TotalAdded', '$wiki.sum($added)')
+        .split('$isNew', 'isNew', 'data')
+        .apply('SumTotalEdits', '$data.sum($TotalEdits)');
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS()).to.deep.equal({
+          attributes: [
+            {
+              name: 'SumTotalEdits',
+              type: 'NUMBER',
+            },
+          ],
+          data: [],
+          keys: ['isNew'],
+        });
+      });
+    });
+
     it('works nested GROUP BYs', () => {
       let ex = $('wiki')
         .split({ isNew: '$isNew', isRobot: '$isRobot' })

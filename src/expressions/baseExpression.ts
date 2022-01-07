@@ -2069,7 +2069,7 @@ export abstract class ChainableExpression extends Expression {
     return this._getSQLChainableHelper(dialect, this.operand.getSQL(dialect));
   }
 
-  public pushIntoExternal(): ExternalExpression | null {
+  public pushIntoExternal(): Expression | null {
     const { operand } = this;
     if (operand instanceof ExternalExpression) {
       return operand.addExpression(this.getAction());
@@ -2340,7 +2340,7 @@ export abstract class ChainableUnaryExpression extends ChainableExpression {
     }
   }
 
-  public pushIntoExternal(): ExternalExpression | null {
+  public pushIntoExternal(): Expression | null {
     const { operand, expression } = this;
     if (operand instanceof ExternalExpression) {
       return operand.addExpression(this.getAction());
