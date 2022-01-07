@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.26.8
+
+- Simplify an external with a FALSE filter to an empty dataset without querying it
+
 ## 0.26.7
 
 - Version bump to pick up version `0.26.5` changes
