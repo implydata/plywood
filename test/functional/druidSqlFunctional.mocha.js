@@ -2150,10 +2150,10 @@ describe('DruidSQL Functional', function() {
       return basicExecutor(ex).then(result => {
         expect(result.toJS().data).to.deep.equal([
           {
-            commentLength95: 145.46353149414062,
-            commentLengthMedian: 28.10873794555664,
-            deltaBucket95: -500,
-            deltaBucketMedian: -500,
+            commentLength95: 146,
+            commentLengthMedian: 29,
+            deltaBucket95: 800,
+            deltaBucketMedian: 0,
             deltaHist95: 161.95516967773438,
             deltaHistMedian: 129.01910400390625,
           },

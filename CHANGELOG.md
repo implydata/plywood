@@ -3,6 +3,7 @@
 ## 0.26.9
 
 - Simplify an external with a FALSE filter to an empty dataset without querying it
+- Revert to use `APPROX_QUANTILE` for `approximateHistogram` native type
 
 ## 0.26.8
 

@@ -23,6 +23,7 @@ import {
   ExpressionValue,
 } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
+import { RefExpression } from './refExpression';
 
 export class QuantileExpression extends ChainableUnaryExpression implements Aggregate {
   static op = 'Quantile';
@@ -79,8 +80,13 @@ export class QuantileExpression extends ChainableUnaryExpression implements Aggr
     operandSQL: string,
     expressionSQL: string,
   ): string {
+    const { expression } = this;
     return dialect.filterAggregatorExpression(
-      dialect.quantileExpression(expressionSQL, this.value),
+      dialect.quantileExpression(
+        expressionSQL,
+        this.value,
+        expression instanceof RefExpression ? expression.name : undefined,
+      ),
       operandSQL,
     );
   }
