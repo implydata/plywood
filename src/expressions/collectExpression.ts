@@ -15,6 +15,7 @@
  */
 
 import { Dataset, PlywoodValue, Set } from '../datatypes/index';
+
 import {
   ChainableUnaryExpression,
   Expression,
@@ -45,7 +46,7 @@ export class CollectExpression extends ChainableUnaryExpression implements Aggre
     this.type = Set.wrapSetType(this.expression.type);
   }
 
-  protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
+  protected _calcChainableUnaryHelper(operandValue: any, _expressionValue: any): PlywoodValue {
     return operandValue ? (operandValue as Dataset).collect(this.expression) : null;
   }
 }

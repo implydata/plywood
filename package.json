@@ -25,42 +25,50 @@
     "package/",
     "typings/"
   ],
-  "prettier": {
-    "trailingComma": "all",
-    "tabWidth": 2,
-    "semi": true,
-    "singleQuote": true,
-    "printWidth": 100,
-    "endOfLine": "lf"
-  },
+  "prettier": "@awesome-code-style/prettier-config",
   "scripts": {
     "prepare": "tdi -q",
     "compile": "./compile",
     "pretest": "./compile",
     "test": "./travis-test",
-    "full-test": "./run-tests"
+    "full-test": "./run-tests",
+    "eslint": "eslint 'src/**/*.ts?(x)'",
+    "eslint-fix": "npm run eslint -- --fix --report-unused-disable-directives",
+    "eslint-changed-only": "git diff --diff-filter=ACMR --cached --name-only | grep -E \\.tsx\\?$ | xargs ./node_modules/.bin/eslint",
+    "eslint-fix-changed-only": "npm run eslint-changed-only -- --fix",
+    "prettify": "prettier --write 'src/**/*.{ts,tsx,scss}'",
+    "prettify-check": "prettier --check 'src/**/*.{ts,tsx,scss}'"
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "volta": {
-    "node": "10.24.1",
-    "npm": "6.14.12"
+    "node": "12.22.10"
   },
   "dependencies": {
     "chronoshift": "^0.9.4",
     "druid-query-toolkit": "^0.13.2",
     "druid.d.ts": "^0.12.1",
     "has-own-prop": "^1.0.1",
-    "immutable-class": "^0.9.4",
+    "immutable-class": "^0.11.0",
     "moment-timezone": "^0.5.26",
     "plywood-base-api": "^0.2.8",
     "readable-stream": "^3.0.3",
     "stream-to-array": "^2.3.0",
-    "tslib": "^1.10.0"
+    "tslib": "^2.3.1"
   },
   "devDependencies": {
+    "@awesome-code-style/eslint-config": "^4.0.0",
+    "@awesome-code-style/prettier-config": "^4.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.10.2",
+    "@typescript-eslint/parser": "^5.10.2",
     "axios": "0.18.0",
-    "awesome-code-style": "^1.4.3",
     "chai": "4.2.0",
+    "eslint": "^8.8.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-header": "^3.1.1",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "eslint-plugin-unicorn": "^40.1.0",
+    "eslint-plugin-unused-imports": "^2.0.0",
     "f-tool": "0.1.3",
     "immutable-class-tester": "0.7.2",
     "imonit": "0.2.0",
@@ -70,8 +78,9 @@
     "plywood-druid-requester": "2.6.5",
     "plywood-mysql-requester": "2.3.0",
     "plywood-postgres-requester": "1.4.0",
+    "prettier": "^2.5.1",
+    "stylelint": "^14.3.0",
     "tdi": "0.6.5",
-    "tslint": "5.18.0",
-    "typescript": "3.5.3"
+    "typescript": "^4.5.5"
   }
 }

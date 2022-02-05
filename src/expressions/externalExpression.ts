@@ -18,6 +18,7 @@ import { ComputeFn, Dataset, Datum, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { External } from '../external/baseExternal';
 import { DatasetFullType } from '../types';
+
 import {
   ChainableUnaryExpression,
   Expression,
@@ -29,7 +30,7 @@ import {
 export class ExternalExpression extends Expression {
   static op = 'external';
   static fromJS(parameters: ExpressionJS): ExternalExpression {
-    let value: ExpressionValue = {
+    const value: ExpressionValue = {
       op: parameters.op,
     };
     value.external = External.fromJS(parameters.external);
@@ -40,7 +41,7 @@ export class ExternalExpression extends Expression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    let external = parameters.external;
+    const external = parameters.external;
     if (!external) throw new Error('must have an external');
     this.external = external;
     this._ensureOp('external');
@@ -49,13 +50,13 @@ export class ExternalExpression extends Expression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.external = this.external;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.external = this.external.toJS();
     return js;
   }
@@ -68,11 +69,11 @@ export class ExternalExpression extends Expression {
     throw new Error('should not call getFn on External');
   }
 
-  public calc(datum: Datum): PlywoodValue {
+  public calc(_datum: Datum): PlywoodValue {
     throw new Error('should not call calc on External');
   }
 
-  public getSQL(dialect: SQLDialect): string {
+  public getSQL(_dialect: SQLDialect): string {
     throw new Error('should not call getSQL on External');
   }
 
@@ -83,7 +84,7 @@ export class ExternalExpression extends Expression {
   public updateTypeContext(typeContext: DatasetFullType): DatasetFullType {
     const { external } = this;
     if (external.mode !== 'value') {
-      let newTypeContext = this.external.getFullType();
+      const newTypeContext = this.external.getFullType();
       newTypeContext.parent = typeContext;
       return newTypeContext;
     }
@@ -91,13 +92,13 @@ export class ExternalExpression extends Expression {
   }
 
   public unsuppress(): ExternalExpression {
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.external = this.external.show();
     return new ExternalExpression(value);
   }
 
   public addExpression(expression: Expression): Expression {
-    let newExternal = this.external.addExpression(expression);
+    const newExternal = this.external.addExpression(expression);
     if (!newExternal) return null;
 
     // If the filter is false, just evaluate to an empty dataset
@@ -115,7 +116,7 @@ export class ExternalExpression extends Expression {
   }
 
   public prePush(expression: ChainableUnaryExpression): ExternalExpression {
-    let newExternal = this.external.prePush(expression);
+    const newExternal = this.external.prePush(expression);
     if (!newExternal) return null;
     return new ExternalExpression({ external: newExternal });
   }

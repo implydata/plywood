@@ -16,6 +16,7 @@
 
 import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import {
   ChainableUnaryExpression,
   Expression,
@@ -33,7 +34,7 @@ export class SortExpression extends ChainableUnaryExpression {
 
   static op = 'Sort';
   static fromJS(parameters: ExpressionJS): SortExpression {
-    let value = ChainableUnaryExpression.jsToValue(parameters);
+    const value = ChainableUnaryExpression.jsToValue(parameters);
     value.direction = parameters.direction;
     return new SortExpression(value);
   }
@@ -49,7 +50,7 @@ export class SortExpression extends ChainableUnaryExpression {
       throw new Error(`must be a reference expression: ${this.expression}`);
     }
 
-    let direction = parameters.direction || SortExpression.DEFAULT_DIRECTION;
+    const direction = parameters.direction || SortExpression.DEFAULT_DIRECTION;
     if (direction !== SortExpression.DESCENDING && direction !== SortExpression.ASCENDING) {
       throw new Error(
         `direction must be '${SortExpression.DESCENDING}' or '${SortExpression.ASCENDING}'`,
@@ -61,13 +62,13 @@ export class SortExpression extends ChainableUnaryExpression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.direction = this.direction;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.direction = this.direction;
     return js;
   }
@@ -80,7 +81,7 @@ export class SortExpression extends ChainableUnaryExpression {
     return [this.expression.toString(indent), this.direction];
   }
 
-  protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
+  protected _calcChainableUnaryHelper(operandValue: any, _expressionValue: any): PlywoodValue {
     return operandValue ? (operandValue as Dataset).sort(this.expression, this.direction) : null;
   }
 
@@ -89,12 +90,12 @@ export class SortExpression extends ChainableUnaryExpression {
     operandSQL: string,
     expressionSQL: string,
   ): string {
-    let dir = this.direction === SortExpression.DESCENDING ? 'DESC' : 'ASC';
+    const dir = this.direction === SortExpression.DESCENDING ? 'DESC' : 'ASC';
     return `ORDER BY ${expressionSQL} ${dir}`;
   }
 
   public refName(): string {
-    let expression = this.expression;
+    const expression = this.expression;
     return expression instanceof RefExpression ? expression.name : null;
   }
 
@@ -108,7 +109,7 @@ export class SortExpression extends ChainableUnaryExpression {
 
   public changeDirection(direction: Direction): SortExpression {
     if (this.direction === direction) return this;
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.direction = direction;
     return new SortExpression(value);
   }

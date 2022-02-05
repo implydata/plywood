@@ -16,10 +16,12 @@
 
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
+
 import { AttributeInfo, Attributes } from '../datatypes/attributeInfo';
 import { PseudoDatum } from '../datatypes/dataset';
 import { PostgresDialect } from '../dialect/postgresDialect';
 import { PlyType } from '../types';
+
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
 
@@ -34,14 +36,14 @@ export class PostgresExternal extends SQLExternal {
   static type = 'DATASET';
 
   static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): PostgresExternal {
-    let value: ExternalValue = External.jsToValue(parameters, requester);
+    const value: ExternalValue = External.jsToValue(parameters, requester);
     return new PostgresExternal(value);
   }
 
   static postProcessIntrospect(columns: PostgresSQLDescribeRow[]): Attributes {
     return columns
       .map((column: PostgresSQLDescribeRow) => {
-        let name = column.name;
+        const name = column.name;
         let type: PlyType;
         let nativeType = column.sqlType.toLowerCase();
         if (nativeType.indexOf('timestamp') !== -1) {
@@ -100,7 +102,7 @@ export class PostgresExternal extends SQLExternal {
   static getVersion(requester: PlywoodRequester<any>): Promise<string> {
     return toArray(requester({ query: 'SELECT version()' })).then(res => {
       if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
-      let key = Object.keys(res[0])[0];
+      const key = Object.keys(res[0])[0];
       if (!key) throw new Error('invalid version response (no key)');
       let versionString = res[0][key];
       let match: string[];

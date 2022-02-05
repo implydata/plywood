@@ -16,6 +16,7 @@
 
 import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import { AddExpression } from './addExpression';
 import {
   ChainableUnaryExpression,
@@ -42,7 +43,7 @@ export class SumExpression extends ChainableUnaryExpression implements Aggregate
     this.type = 'NUMBER';
   }
 
-  protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
+  protected _calcChainableUnaryHelper(operandValue: any, _expressionValue: any): PlywoodValue {
     return operandValue ? (operandValue as Dataset).sum(this.expression) : null;
   }
 
@@ -58,42 +59,27 @@ export class SumExpression extends ChainableUnaryExpression implements Aggregate
     const { operand, expression } = this;
 
     if (expression instanceof LiteralExpression) {
-      let value = expression.value;
-      return operand
-        .count()
-        .multiply(value)
-        .simplify();
+      const value = expression.value;
+      return operand.count().multiply(value).simplify();
     }
 
     // X.sum(lhs + rhs)
     if (expression instanceof AddExpression) {
       const { operand: lhs, expression: rhs } = expression;
-      return operand
-        .sum(lhs)
-        .distribute()
-        .add(operand.sum(rhs).distribute())
-        .simplify();
+      return operand.sum(lhs).distribute().add(operand.sum(rhs).distribute()).simplify();
     }
 
     // X.sum(lhs - rhs)
     if (expression instanceof SubtractExpression) {
       const { operand: lhs, expression: rhs } = expression;
-      return operand
-        .sum(lhs)
-        .distribute()
-        .subtract(operand.sum(rhs).distribute())
-        .simplify();
+      return operand.sum(lhs).distribute().subtract(operand.sum(rhs).distribute()).simplify();
     }
 
     // X.sum(lhs * rhs)
     if (expression instanceof MultiplyExpression) {
       const { operand: lhs, expression: rhs } = expression;
       if (rhs instanceof LiteralExpression) {
-        return operand
-          .sum(lhs)
-          .distribute()
-          .multiply(rhs)
-          .simplify();
+        return operand.sum(lhs).distribute().multiply(rhs).simplify();
       }
     }
 

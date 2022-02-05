@@ -16,6 +16,7 @@
 
 import { Dataset, PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import {
   ChainableUnaryExpression,
   Expression,
@@ -38,7 +39,7 @@ export class MaxExpression extends ChainableUnaryExpression implements Aggregate
     this.type = Set.unwrapSetType(this.expression.type);
   }
 
-  protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
+  protected _calcChainableUnaryHelper(operandValue: any, _expressionValue: any): PlywoodValue {
     return operandValue ? (operandValue as Dataset).max(this.expression) : null;
   }
 

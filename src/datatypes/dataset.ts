@@ -18,6 +18,7 @@
 import { isDate, Timezone } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
 import { Class, generalEqual, Instance, NamedArray, SimpleArray } from 'immutable-class';
+
 import {
   Direction,
   Expression,
@@ -27,7 +28,8 @@ import {
 } from '../expressions/index';
 import { External, TotalContainer } from '../external/baseExternal';
 import { deduplicateSort } from '../helper';
-import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from '../types';
+import { DatasetFullType, FullType, PlyType } from '../types';
+
 import { AttributeInfo, AttributeJSs, Attributes } from './attributeInfo';
 import { datumHasExternal, valueFromJS, valueToJS } from './common';
 import { NumberRange } from './numberRange';
@@ -35,13 +37,9 @@ import { Set } from './set';
 import { StringRange } from './stringRange';
 import { TimeRange } from './timeRange';
 
-export interface ComputeFn {
-  (d: Datum): any;
-}
+export type ComputeFn = (d: Datum) => any;
 
-export interface DirectionFn {
-  (a: any, b: any): number;
-}
+export type DirectionFn = (a: any, b: any) => number;
 
 export type PlywoodValue =
   | null
@@ -76,16 +74,14 @@ export interface DatasetExternalAlteration {
 
 export type DatasetExternalAlterations = DatasetExternalAlteration[];
 
-export interface AlterationFiller {
-  (external: External, terminal: boolean): any;
-}
+export type AlterationFiller = (external: External, terminal: boolean) => any;
 
 export function fillExpressionExternalAlteration(
   alteration: ExpressionExternalAlteration,
   filler: AlterationFiller,
 ): void {
-  for (let k in alteration) {
-    let thing = alteration[k];
+  for (const k in alteration) {
+    const thing = alteration[k];
     if (Array.isArray(thing)) {
       fillDatasetExternalAlterations(thing, filler);
     } else {
@@ -98,8 +94,8 @@ export function sizeOfExpressionExternalAlteration(
   alteration: ExpressionExternalAlteration,
 ): number {
   let count = 0;
-  for (let k in alteration) {
-    let thing = alteration[k];
+  for (const k in alteration) {
+    const thing = alteration[k];
     if (Array.isArray(thing)) {
       count += sizeOfDatasetExternalAlterations(thing);
     } else {
@@ -113,7 +109,7 @@ export function fillDatasetExternalAlterations(
   alterations: DatasetExternalAlterations,
   filler: AlterationFiller,
 ): void {
-  for (let alteration of alterations) {
+  for (const alteration of alterations) {
     if (alteration.external) {
       alteration.result = filler(alteration.external, alteration.terminal);
     } else if (alteration.datasetAlterations) {
@@ -128,7 +124,7 @@ export function fillDatasetExternalAlterations(
 
 export function sizeOfDatasetExternalAlterations(alterations: DatasetExternalAlterations): number {
   let count = 0;
-  for (let alteration of alterations) {
+  for (const alteration of alterations) {
     if (alteration.external) {
       count += 1;
     } else if (alteration.datasetAlterations) {
@@ -142,7 +138,7 @@ export function sizeOfDatasetExternalAlterations(alterations: DatasetExternalAlt
   return count;
 }
 
-let directionFns: Record<string, DirectionFn> = {
+const directionFns: Record<string, DirectionFn> = {
   ascending: (a: any, b: any): number => {
     if (a == null) {
       return b == null ? 0 : -1;
@@ -167,41 +163,39 @@ function removeLineBreaks(v: string): string {
   return v.replace(/(?:\r\n|\r|\n)/g, ' ');
 }
 
-let typeOrder: Record<string, number> = {
-  NULL: 0,
-  TIME: 1,
-  TIME_RANGE: 2,
+const typeOrder: Record<string, number> = {
+  'NULL': 0,
+  'TIME': 1,
+  'TIME_RANGE': 2,
   'SET/TIME': 3,
   'SET/TIME_RANGE': 4,
-  STRING: 5,
+  'STRING': 5,
   'SET/STRING': 6,
-  BOOLEAN: 7,
-  NUMBER: 8,
-  NUMBER_RANGE: 9,
+  'BOOLEAN': 7,
+  'NUMBER': 8,
+  'NUMBER_RANGE': 9,
   'SET/NUMBER': 10,
   'SET/NUMBER_RANGE': 11,
-  DATASET: 12,
+  'DATASET': 12,
 };
 
 export interface Formatter extends Record<string, Function | undefined> {
-  NULL?: (v: any) => string;
-  TIME?: (v: Date, tz: Timezone) => string;
-  TIME_RANGE?: (v: TimeRange, tz: Timezone) => string;
+  'NULL'?: (v: any) => string;
+  'TIME'?: (v: Date, tz: Timezone) => string;
+  'TIME_RANGE'?: (v: TimeRange, tz: Timezone) => string;
   'SET/TIME'?: (v: Set, tz: Timezone) => string;
   'SET/TIME_RANGE'?: (v: Set, tz: Timezone) => string;
-  STRING?: (v: string) => string;
+  'STRING'?: (v: string) => string;
   'SET/STRING'?: (v: Set) => string;
-  BOOLEAN?: (v: boolean) => string;
-  NUMBER?: (v: number) => string;
-  NUMBER_RANGE?: (v: NumberRange) => string;
+  'BOOLEAN'?: (v: boolean) => string;
+  'NUMBER'?: (v: number) => string;
+  'NUMBER_RANGE'?: (v: NumberRange) => string;
   'SET/NUMBER'?: (v: Set) => string;
   'SET/NUMBER_RANGE'?: (v: Set) => string;
-  DATASET?: (v: Dataset) => string;
+  'DATASET'?: (v: Dataset) => string;
 }
 
-export interface Finalizer {
-  (v: string): string;
-}
+export type Finalizer = (v: string) => string;
 
 export interface FlattenOptions {
   prefixColumns?: boolean;
@@ -261,18 +255,18 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
 }
 
 function joinDatums(datumA: Datum, datumB: Datum): Datum {
-  let newDatum: Datum = Object.create(null);
-  for (let k in datumB) {
+  const newDatum: Datum = Object.create(null);
+  for (const k in datumB) {
     newDatum[k] = datumB[k];
   }
-  for (let k in datumA) {
+  for (const k in datumA) {
     newDatum[k] = datumA[k];
   }
   return newDatum;
 }
 
 function copy(obj: Record<string, any>): Record<string, any> {
-  let newObj: Record<string, any> = {};
+  const newObj: Record<string, any> = {};
   let k: string;
   for (k in obj) {
     if (hasOwnProp(obj, k)) newObj[k] = obj[k];
@@ -295,24 +289,23 @@ export interface DatasetJSFull {
 
 export type DatasetJS = DatasetJSFull | Datum[];
 
-let check: Class<DatasetValue, DatasetJS>;
 export class Dataset implements Instance<DatasetValue, DatasetJS> {
   static type = 'DATASET';
 
   static DEFAULT_FORMATTER: Formatter = {
-    NULL: (v: any) => (isDate(v) ? v.toISOString() : '' + v),
-    TIME: (v: Date, tz: Timezone) => Timezone.formatDateWithTimezone(v, tz),
-    TIME_RANGE: (v: TimeRange, tz: Timezone) => v.toString(tz),
+    'NULL': (v: any) => (isDate(v) ? v.toISOString() : '' + v),
+    'TIME': (v: Date, tz: Timezone) => Timezone.formatDateWithTimezone(v, tz),
+    'TIME_RANGE': (v: TimeRange, tz: Timezone) => v.toString(tz),
     'SET/TIME': (v: Set, tz: Timezone) => v.toString(tz),
     'SET/TIME_RANGE': (v: Set, tz: Timezone) => v.toString(tz),
-    STRING: (v: string) => '' + v,
+    'STRING': (v: string) => '' + v,
     'SET/STRING': (v: Set) => '' + v,
-    BOOLEAN: (v: boolean) => '' + v,
-    NUMBER: (v: number) => '' + v,
-    NUMBER_RANGE: (v: NumberRange) => '' + v,
+    'BOOLEAN': (v: boolean) => '' + v,
+    'NUMBER': (v: number) => '' + v,
+    'NUMBER_RANGE': (v: NumberRange) => '' + v,
     'SET/NUMBER': (v: Set) => '' + v,
     'SET/NUMBER_RANGE': (v: Set) => '' + v,
-    DATASET: (v: Dataset) => 'DATASET',
+    'DATASET': (_v: Dataset) => 'DATASET',
   };
 
   static CSV_FINALIZER: Finalizer = (v: string) => {
@@ -322,9 +315,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   };
 
   static TSV_FINALIZER: Finalizer = (v: string) => {
-    return removeLineBreaks(v)
-      .replace(/\t/g, '')
-      .replace(/"/g, '""');
+    return removeLineBreaks(v).replace(/\t/g, '').replace(/"/g, '""');
   };
 
   static datumToLine(
@@ -340,7 +331,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
         const value = datum[c.name];
         const fmtrType = value != null ? c.type : 'NULL';
         const fmtr = formatter[fmtrType] || Dataset.DEFAULT_FORMATTER[fmtrType];
-        let formatted = String(fmtr(value, timezone));
+        const formatted = String(fmtr(value, timezone));
         return finalizer(formatted);
       })
       .join(separator);
@@ -353,8 +344,8 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   static datumFromJS(js: PseudoDatum, attributeLookup: Record<string, AttributeInfo> = {}): Datum {
     if (typeof js !== 'object') throw new TypeError('datum must be an object');
 
-    let datum: Datum = Object.create(null);
-    for (let k in js) {
+    const datum: Datum = Object.create(null);
+    for (const k in js) {
       if (!hasOwnProp(js, k)) continue;
       datum[k] = valueFromJS(
         js[k],
@@ -366,9 +357,9 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   static datumToJS(datum: Datum): PseudoDatum {
-    let js: PseudoDatum = {};
-    for (let k in datum) {
-      let v = datum[k];
+    const js: PseudoDatum = {};
+    for (const k in datum) {
+      const v = datum[k];
       if (v && (v as any).suppress) continue;
       js[k] = valueToJS(v);
     }
@@ -379,12 +370,12 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     if (!data.length) return [];
 
     let attributeNamesToIntrospect = Object.keys(data[0]);
-    let attributes: Attributes = [];
+    const attributes: Attributes = [];
 
-    for (let datum of data) {
-      let attributeNamesStillToIntrospect: string[] = [];
-      for (let attributeNameToIntrospect of attributeNamesToIntrospect) {
-        let attributeInfo = getAttributeInfo(
+    for (const datum of data) {
+      const attributeNamesStillToIntrospect: string[] = [];
+      for (const attributeNameToIntrospect of attributeNamesToIntrospect) {
+        const attributeInfo = getAttributeInfo(
           attributeNameToIntrospect,
           datum[attributeNameToIntrospect],
         );
@@ -400,12 +391,12 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     }
 
     // Assume all the remaining nulls are strings
-    for (let attributeName of attributeNamesToIntrospect) {
+    for (const attributeName of attributeNamesToIntrospect) {
       attributes.push(new AttributeInfo({ name: attributeName, type: 'STRING' }));
     }
 
     attributes.sort((a, b) => {
-      let typeDiff = typeOrder[a.type] - typeOrder[b.type];
+      const typeDiff = typeOrder[a.type] - typeOrder[b.type];
       if (typeDiff) return typeDiff;
       return a.name.localeCompare(b.name);
     });
@@ -415,7 +406,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
 
   static parseJSON(text: string): any[] {
     text = text.trim();
-    let firstChar = text[0];
+    const firstChar = text[0];
 
     if (firstChar[0] === '[') {
       try {
@@ -446,11 +437,11 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       throw new Error('must have data');
     }
 
-    let attributes: Attributes | undefined = undefined;
-    let attributeLookup: Record<string, AttributeInfo> = {};
+    let attributes: Attributes | undefined;
+    const attributeLookup: Record<string, AttributeInfo> = {};
     if (parameters.attributes) {
       attributes = AttributeInfo.fromJSs(parameters.attributes);
-      for (let attribute of attributes) attributeLookup[attribute.name] = attribute;
+      for (const attribute of attributes) attributeLookup[attribute.name] = attribute;
     }
 
     return new Dataset({
@@ -469,7 +460,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     if (parameters.suppress === true) this.suppress = true;
 
     this.keys = parameters.keys || [];
-    let data = parameters.data;
+    const data = parameters.data;
     if (!Array.isArray(data)) {
       throw new TypeError('must have a `data` array');
     }
@@ -482,7 +473,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public valueOf(): DatasetValue {
-    let value: DatasetValue = {
+    const value: DatasetValue = {
       keys: this.keys,
       attributes: this.attributes,
       data: this.data,
@@ -513,19 +504,19 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public hide(): Dataset {
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.suppress = true;
     return new Dataset(value);
   }
 
   public changeData(data: Datum[]): Dataset {
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.data = data;
     return new Dataset(value);
   }
 
   public basis(): boolean {
-    let data = this.data;
+    const data = this.data;
     return data.length === 1 && Object.keys(data[0]).length === 0;
   }
 
@@ -535,12 +526,12 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public getFullType(): DatasetFullType {
-    let { attributes } = this;
+    const { attributes } = this;
     if (!attributes) throw new Error('dataset has not been introspected');
 
-    let myDatasetType: Record<string, FullType> = {};
-    for (let attribute of attributes) {
-      let attrName = attribute.name;
+    const myDatasetType: Record<string, FullType> = {};
+    for (const attribute of attributes) {
+      const attrName = attribute.name;
       if (attribute.type === 'DATASET') {
         let v0: any; // ToDo: revisit, look beyond 0
         if (this.data.length && (v0 = this.data[0][attrName]) && v0 instanceof Dataset) {
@@ -553,7 +544,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
         }
       } else {
         myDatasetType[attrName] = {
-          type: <PlyTypeSimple>attribute.type,
+          type: attribute.type,
         };
       }
     }
@@ -566,22 +557,22 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
 
   // Actions
   public select(attrs: string[]): Dataset {
-    let attributes = this.attributes;
-    let newAttributes: Attributes = [];
-    let attrLookup: Record<string, boolean> = Object.create(null);
-    for (let attr of attrs) {
+    const attributes = this.attributes;
+    const newAttributes: Attributes = [];
+    const attrLookup: Record<string, boolean> = Object.create(null);
+    for (const attr of attrs) {
       attrLookup[attr] = true;
-      let existingAttribute = NamedArray.get(attributes, attr);
+      const existingAttribute = NamedArray.get(attributes, attr);
       if (existingAttribute) newAttributes.push(existingAttribute);
     }
 
-    let data = this.data;
-    let n = data.length;
-    let newData = new Array(n);
+    const data = this.data;
+    const n = data.length;
+    const newData = new Array(n);
     for (let i = 0; i < n; i++) {
-      let datum = data[i];
-      let newDatum = Object.create(null);
-      for (let key in datum) {
+      const datum = data[i];
+      const newDatum = Object.create(null);
+      for (const key in datum) {
         if (attrLookup[key]) {
           newDatum[key] = datum[key];
         }
@@ -589,7 +580,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       newData[i] = newDatum;
     }
 
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.attributes = newAttributes;
     value.data = newData;
     return new Dataset(value);
@@ -599,19 +590,20 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     if (typeof ex === 'function') {
       // ToDo: add better deprecation
       console.warn(`Dataset#apply now takes Expressions use Dataset.applyFn instead`);
+      // eslint-disable-next-line prefer-rest-params
       return this.applyFn(name, ex as any, arguments[2]);
     }
     return this.applyFn(name, ex.getFn(), ex.type);
   }
 
   public applyFn(name: string, exFn: ComputeFn, type: PlyType): Dataset {
-    let data = this.data;
-    let n = data.length;
-    let newData = new Array(n);
+    const data = this.data;
+    const n = data.length;
+    const newData = new Array(n);
     for (let i = 0; i < n; i++) {
-      let datum = data[i];
-      let newDatum = Object.create(null);
-      for (let key in datum) newDatum[key] = datum[key];
+      const datum = data[i];
+      const newDatum = Object.create(null);
+      for (const key in datum) newDatum[key] = datum[key];
       newDatum[name] = exFn(datum);
       newData[i] = newDatum;
     }
@@ -628,7 +620,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     // }
     // // End Hack
 
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.attributes = NamedArray.overrideByName(
       value.attributes,
       new AttributeInfo({ name, type }),
@@ -647,7 +639,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public filterFn(exFn: ComputeFn): Dataset {
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.data = value.data.filter(datum => exFn(datum));
     return new Dataset(value);
   }
@@ -662,8 +654,8 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public sortFn(exFn: ComputeFn, direction: Direction): Dataset {
-    let value = this.valueOf();
-    let directionFn = directionFns[direction];
+    const value = this.valueOf();
+    const directionFn = directionFns[direction];
     value.data = this.data.slice().sort((a, b) => {
       return directionFn(exFn(a), exFn(b));
     });
@@ -671,9 +663,9 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public limit(limit: number): Dataset {
-    let data = this.data;
+    const data = this.data;
     if (data.length <= limit) return this;
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.data = data.slice(0, limit);
     return new Dataset(value);
   }
@@ -693,9 +685,9 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public sumFn(exFn: ComputeFn): number {
-    let data = this.data;
+    const data = this.data;
     let sum = 0;
-    for (let datum of data) {
+    for (const datum of data) {
       sum += exFn(datum);
     }
     return sum;
@@ -711,7 +703,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public averageFn(exFn: ComputeFn): number {
-    let count = this.count();
+    const count = this.count();
     return count ? this.sumFn(exFn) / count : null;
   }
 
@@ -725,10 +717,10 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public minFn(exFn: ComputeFn): number {
-    let data = this.data;
+    const data = this.data;
     let min = Infinity;
-    for (let datum of data) {
-      let v = exFn(datum);
+    for (const datum of data) {
+      const v = exFn(datum);
       if (v < min) min = v;
     }
     return min;
@@ -744,10 +736,10 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public maxFn(exFn: ComputeFn): number {
-    let data = this.data;
+    const data = this.data;
     let max = -Infinity;
-    for (let datum of data) {
-      let v = exFn(datum);
+    for (const datum of data) {
+      const v = exFn(datum);
       if (max < v) max = v;
     }
     return max;
@@ -765,11 +757,11 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public countDistinctFn(exFn: ComputeFn): number {
-    let data = this.data;
-    let seen: Record<string, number> = Object.create(null);
+    const data = this.data;
+    const seen: Record<string, number> = Object.create(null);
     let count = 0;
-    for (let datum of data) {
-      let v = exFn(datum);
+    for (const datum of data) {
+      const v = exFn(datum);
       if (!seen[v]) {
         seen[v] = 1;
         ++count;
@@ -788,19 +780,19 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public quantileFn(exFn: ComputeFn, quantile: number): number {
-    let data = this.data;
-    let vs: number[] = [];
-    for (let datum of data) {
-      let v = exFn(datum);
+    const data = this.data;
+    const vs: number[] = [];
+    for (const datum of data) {
+      const v = exFn(datum);
       if (v != null) vs.push(v);
     }
 
     vs.sort((a: number, b: number) => a - b);
 
-    let n = vs.length;
+    const n = vs.length;
     if (quantile === 0) return vs[0];
     if (quantile === 1) return vs[n - 1];
-    let rank = n * quantile - 1;
+    const rank = n * quantile - 1;
 
     // Is the rank an integer?
     if (rank === Math.floor(rank)) {
@@ -824,9 +816,9 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public split(splits: Record<string, Expression>, datasetName: string): Dataset {
-    let splitFns: Record<string, ComputeFn> = {};
-    for (let k in splits) {
-      let ex = splits[k];
+    const splitFns: Record<string, ComputeFn> = {};
+    for (const k in splits) {
+      const ex = splits[k];
       if (typeof ex === 'function') {
         // ToDo: add better deprecation
         console.warn(`Dataset#collect now takes Expressions use Dataset.collectFn instead`);
@@ -838,23 +830,23 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public splitFn(splitFns: Record<string, ComputeFn>, datasetName: string): Dataset {
-    let { data, attributes } = this;
+    const { data, attributes } = this;
 
-    let keys = Object.keys(splitFns);
-    let numberOfKeys = keys.length;
-    let splitFnList = keys.map(k => splitFns[k]);
+    const keys = Object.keys(splitFns);
+    const numberOfKeys = keys.length;
+    const splitFnList = keys.map(k => splitFns[k]);
 
-    let splits: Record<string, Datum> = {};
-    let datumGroups: Record<string, Datum[]> = {};
-    let finalData: Datum[] = [];
-    let finalDataset: Datum[][] = [];
+    const splits: Record<string, Datum> = {};
+    const datumGroups: Record<string, Datum[]> = {};
+    const finalData: Datum[] = [];
+    const finalDataset: Datum[][] = [];
 
     function addDatum(datum: Datum, valueList: any): void {
-      let key = valueList.join(';_PLYw00d_;');
+      const key = valueList.join(';_PLYw00d_;');
       if (hasOwnProp(datumGroups, key)) {
         datumGroups[key].push(datum);
       } else {
-        let newDatum: Datum = Object.create(null);
+        const newDatum: Datum = Object.create(null);
         for (let i = 0; i < numberOfKeys; i++) {
           newDatum[keys[i]] = valueList[i];
         }
@@ -864,22 +856,22 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       }
     }
 
-    for (let datum of data) {
-      let valueList = splitFnList.map(splitFn => splitFn(datum));
+    for (const datum of data) {
+      const valueList = splitFnList.map(splitFn => splitFn(datum));
 
-      let setIndex: number[] = [];
-      let setElements: any[][] = [];
+      const setIndex: number[] = [];
+      const setElements: any[][] = [];
       for (let i = 0; i < valueList.length; i++) {
         if (Set.isSet(valueList[i])) {
           setIndex.push(i);
           setElements.push(valueList[i].elements);
         }
       }
-      let numSets = setIndex.length;
+      const numSets = setIndex.length;
 
       if (numSets) {
         const cp = Set.cartesianProductOf(...setElements);
-        for (let v of cp) {
+        for (const v of cp) {
           for (let j = 0; j < numSets; j++) {
             valueList[setIndex[j]] = v[j];
           }
@@ -905,20 +897,20 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public getReadyExternals(limit = Infinity): DatasetExternalAlterations {
-    let externalAlterations: DatasetExternalAlterations = [];
+    const externalAlterations: DatasetExternalAlterations = [];
     const { data, attributes } = this;
 
     for (let i = 0; i < data.length; i++) {
       if (limit <= 0) break;
 
-      let datum = data[i];
-      let normalExternalAlterations: DatasetExternalAlterations = [];
-      let valueExternalAlterations: DatasetExternalAlterations = [];
-      for (let attribute of attributes) {
-        let value = datum[attribute.name];
+      const datum = data[i];
+      const normalExternalAlterations: DatasetExternalAlterations = [];
+      const valueExternalAlterations: DatasetExternalAlterations = [];
+      for (const attribute of attributes) {
+        const value = datum[attribute.name];
         if (value instanceof Expression) {
-          let subExpressionAlterations = value.getReadyExternals(limit);
-          let size = sizeOfExpressionExternalAlteration(subExpressionAlterations);
+          const subExpressionAlterations = value.getReadyExternals(limit);
+          const size = sizeOfExpressionExternalAlteration(subExpressionAlterations);
           if (size) {
             limit -= size;
             normalExternalAlterations.push({
@@ -928,8 +920,8 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
             });
           }
         } else if (value instanceof Dataset) {
-          let subDatasetAlterations = value.getReadyExternals(limit);
-          let size = sizeOfDatasetExternalAlterations(subDatasetAlterations);
+          const subDatasetAlterations = value.getReadyExternals(limit);
+          const size = sizeOfDatasetExternalAlterations(subDatasetAlterations);
           if (size) {
             limit -= size;
             normalExternalAlterations.push({
@@ -940,7 +932,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
           }
         } else if (value instanceof External) {
           if (!value.suppress) {
-            let externalAlteration: DatasetExternalAlteration = {
+            const externalAlteration: DatasetExternalAlteration = {
               index: i,
               key: attribute.name,
               external: value,
@@ -978,16 +970,16 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public applyReadyExternals(alterations: DatasetExternalAlterations): Dataset {
-    let data = this.data;
-    for (let alteration of alterations) {
-      let datum = data[alteration.index];
-      let key = alteration.key;
+    const data = this.data;
+    for (const alteration of alterations) {
+      const datum = data[alteration.index];
+      const key = alteration.key;
 
       if (alteration.external) {
-        let result = alteration.result;
+        const result = alteration.result;
         if (result instanceof TotalContainer) {
-          let resultDatum = result.datum;
-          for (let k in resultDatum) {
+          const resultDatum = result.datum;
+          for (const k in resultDatum) {
             datum[k] = resultDatum[k];
           }
         } else {
@@ -996,7 +988,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       } else if (alteration.datasetAlterations) {
         datum[key] = (datum[key] as Dataset).applyReadyExternals(alteration.datasetAlterations);
       } else if (alteration.expressionAlterations) {
-        let exAlt = (datum[key] as Expression).applyReadyExternals(
+        const exAlt = (datum[key] as Expression).applyReadyExternals(
           alteration.expressionAlterations,
         );
         if (exAlt instanceof ExternalExpression) {
@@ -1011,17 +1003,17 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       }
     }
 
-    for (let datum of data) {
-      for (let key in datum) {
-        let v = datum[key];
+    for (const datum of data) {
+      for (const key in datum) {
+        const v = datum[key];
         if (v instanceof Expression) {
-          let simp = v.resolve(datum).simplify();
+          const simp = v.resolve(datum).simplify();
           datum[key] = simp instanceof ExternalExpression ? simp.external : simp;
         }
       }
     }
 
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.data = data;
     return new Dataset(value);
   }
@@ -1033,20 +1025,22 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   public getKeyValueForDatum(datum: Datum): string {
     const { keys } = this;
     if (!keys) throw new Error('join lhs must have a key (be a product of a split)');
-    return this.keys.map(k => {
-      let v: any = datum[k];
-      if (v && v.start) v = v.start;
-      if (v && v.toISOString) v = v.toISOString();
-      return v;
-    }).join('|');
+    return this.keys
+      .map(k => {
+        let v: any = datum[k];
+        if (v && v.start) v = v.start;
+        if (v && v.toISOString) v = v.toISOString();
+        return v;
+      })
+      .join('|');
   }
 
   public getKeyLookup(): Record<string, Datum> {
-    const { data, keys } = this;
+    const { data } = this;
 
-    let mapping: Record<string, Datum> = Object.create(null);
+    const mapping: Record<string, Datum> = Object.create(null);
     for (let i = 0; i < data.length; i++) {
-      let datum = data[i];
+      const datum = data[i];
       mapping[this.getKeyValueForDatum(datum)] = datum;
     }
 
@@ -1064,7 +1058,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
 
     const otherLookup = other.getKeyLookup();
 
-    let newData = data.map(datum => {
+    const newData = data.map(datum => {
       const otherDatum = otherLookup[this.getKeyValueForDatum(datum)];
       if (!otherDatum) return datum;
       return joinDatums(datum, otherDatum);
@@ -1089,7 +1083,9 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     const myDatumLookup = this.getKeyLookup();
     const otherDatumLookup = other.getKeyLookup();
 
-    const newData = deduplicateSort(Object.keys(myDatumLookup).concat(Object.keys(otherDatumLookup))).map(key => {
+    const newData = deduplicateSort(
+      Object.keys(myDatumLookup).concat(Object.keys(otherDatumLookup)),
+    ).map(key => {
       const myDatum = myDatumLookup[key];
       const otherDatum = otherDatumLookup[key];
       if (myDatum) {
@@ -1131,12 +1127,12 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   ): void {
     const { attributes, data, keys } = this;
 
-    let datasetAttributes: string[] = [];
-    for (let attribute of attributes) {
+    const datasetAttributes: string[] = [];
+    for (const attribute of attributes) {
       if (attribute.type === 'DATASET') {
         datasetAttributes.push(attribute.name);
       } else {
-        let flatName = (prefix || '') + attribute.name;
+        const flatName = (prefix || '') + attribute.name;
         if (!seenAttributes[flatName]) {
           const flatAttribute = new AttributeInfo({
             name: flatName,
@@ -1152,27 +1148,27 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       }
     }
 
-    for (let datum of data) {
-      let flatDatum: PseudoDatum = context ? copy(context) : {};
+    for (const datum of data) {
+      const flatDatum: PseudoDatum = context ? copy(context) : {};
       if (nestingName) flatDatum[nestingName] = nesting;
 
       let hasDataset = false;
-      for (let attribute of attributes) {
-        let v = datum[attribute.name];
+      for (const attribute of attributes) {
+        const v = datum[attribute.name];
         if (v instanceof Dataset) {
           hasDataset = true;
           continue;
         }
-        let flatName = (prefix || '') + attribute.name;
+        const flatName = (prefix || '') + attribute.name;
         flatDatum[flatName] = v;
       }
 
       if (hasDataset) {
         if (order === 'preorder') flatData.push(flatDatum);
-        for (let datasetAttribute of datasetAttributes) {
+        for (const datasetAttribute of datasetAttributes) {
           let nextPrefix: string = null;
           if (prefix !== null) nextPrefix = prefix + datasetAttribute + '.';
-          let dv = datum[datasetAttribute];
+          const dv = datum[datasetAttribute];
           if (dv instanceof Dataset) {
             dv._flattenHelper(
               nextPrefix,
@@ -1195,10 +1191,10 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public flatten(options: FlattenOptions = {}): Dataset {
-    let prefixColumns = options.prefixColumns;
-    let order = options.order; // preorder, inline [default], postorder
-    let nestingName = options.nestingName;
-    let columnOrdering = options.columnOrdering || 'as-seen';
+    const prefixColumns = options.prefixColumns;
+    const order = options.order; // preorder, inline [default], postorder
+    const nestingName = options.nestingName;
+    const columnOrdering = options.columnOrdering || 'as-seen';
     if ((options as any).parentName) {
       throw new Error(`parentName option is no longer supported`);
     }
@@ -1209,9 +1205,9 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       throw new Error(`columnOrdering must be one of 'as-seen' or 'keys-first'`);
     }
 
-    let primaryFlatAttributes: AttributeInfo[] = [];
-    let secondaryFlatAttributes: AttributeInfo[] = columnOrdering === 'keys-first' ? [] : null;
-    let flatData: Datum[] = [];
+    const primaryFlatAttributes: AttributeInfo[] = [];
+    const secondaryFlatAttributes: AttributeInfo[] = columnOrdering === 'keys-first' ? [] : null;
+    const flatData: Datum[] = [];
     this._flattenHelper(
       prefixColumns ? '' : null,
       order,
@@ -1230,7 +1226,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
   }
 
   public toTabular(tabulatorOptions: TabulatorOptions): string {
-    let formatter: Formatter = tabulatorOptions.formatter || {};
+    const formatter: Formatter = tabulatorOptions.formatter || {};
     const timezone = tabulatorOptions.timezone || Timezone.UTC;
     const finalizer = tabulatorOptions.finalizer || String;
     const separator = tabulatorOptions.separator || ',';
@@ -1242,7 +1238,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       attributes = attributes.filter(tabulatorOptions.attributeFilter);
     }
 
-    let lines: string[] = [];
+    const lines: string[] = [];
     lines.push(attributes.map(c => finalizer(attributeTitle(c))).join(separator));
 
     for (let i = 0; i < data.length; i++) {
@@ -1251,7 +1247,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
       );
     }
 
-    let lineBreak = tabulatorOptions.lineBreak || '\n';
+    const lineBreak = tabulatorOptions.lineBreak || '\n';
     return (
       lines.join(lineBreak) +
       (tabulatorOptions.finalLineBreak === 'include' && lines.length > 0 ? lineBreak : '')
@@ -1280,9 +1276,9 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     const { data, attributes } = this;
     let c = data.length;
 
-    for (let datum of data) {
-      for (let attribute of attributes) {
-        let v = datum[attribute.name];
+    for (const datum of data) {
+      for (const attribute of attributes) {
+        const v = datum[attribute.name];
         if (v instanceof Dataset) {
           c += v.rows();
         }
@@ -1297,18 +1293,18 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     if (mySize < n) return this;
     const { data, attributes } = this;
 
-    let newData: Datum[] = [];
-    for (let datum of data) {
+    const newData: Datum[] = [];
+    for (const datum of data) {
       if (n <= 0) break;
       n--; // Account for self
 
-      let newDatum: Datum = {};
+      const newDatum: Datum = {};
       let newDatumRows = 0;
-      for (let attribute of attributes) {
+      for (const attribute of attributes) {
         const attributeName = attribute.name;
-        let v = datum[attributeName];
+        const v = datum[attributeName];
         if (v instanceof Dataset) {
-          let vTrim = v.depthFirstTrimTo(n);
+          const vTrim = v.depthFirstTrimTo(n);
           newDatum[attributeName] = vTrim;
           newDatumRows += vTrim.rows();
         } else if (typeof v !== 'undefined') {
@@ -1323,4 +1319,6 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     return this.changeData(newData);
   }
 }
-check = Dataset;
+
+// eslint-disable-next-line unused-imports/no-unused-vars
+const check: Class<DatasetValue, DatasetJS> = Dataset;

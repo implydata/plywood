@@ -28,10 +28,10 @@ export interface RetryRequesterParameters<T> {
 export function retryRequesterFactory<T>(
   parameters: RetryRequesterParameters<T>,
 ): PlywoodRequester<T> {
-  let requester = parameters.requester;
-  let delay = parameters.delay || 500;
-  let retry = parameters.retry || 3;
-  let retryOnTimeout = Boolean(parameters.retryOnTimeout);
+  const requester = parameters.requester;
+  const delay = parameters.delay || 500;
+  const retry = parameters.retry || 3;
+  const retryOnTimeout = Boolean(parameters.retryOnTimeout);
 
   if (typeof delay !== 'number') throw new TypeError('delay should be a number');
   if (typeof retry !== 'number') throw new TypeError('retry should be a number');
@@ -45,7 +45,7 @@ export function retryRequesterFactory<T>(
       tries++;
       let seenData = false;
       let errored = false;
-      let rs = requester(request);
+      const rs = requester(request);
       rs.on('error', (e: Error) => {
         errored = true;
         if (seenData || tries > retry || (e.message === 'timeout' && !retryOnTimeout)) {
@@ -60,7 +60,7 @@ export function retryRequesterFactory<T>(
       rs.on('meta', (m: any) => {
         output.emit('meta', m);
       });
-      rs.on('data', (d: any) => {
+      rs.on('data', (_d: any) => {
         seenData = true;
       });
       rs.on('end', () => {

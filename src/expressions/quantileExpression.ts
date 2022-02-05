@@ -16,6 +16,7 @@
 
 import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect';
+
 import {
   ChainableUnaryExpression,
   Expression,
@@ -28,7 +29,7 @@ import { RefExpression } from './refExpression';
 export class QuantileExpression extends ChainableUnaryExpression implements Aggregate {
   static op = 'Quantile';
   static fromJS(parameters: ExpressionJS): QuantileExpression {
-    let value = ChainableUnaryExpression.jsToValue(parameters);
+    const value = ChainableUnaryExpression.jsToValue(parameters);
     value.value = parameters.value || (parameters as any).quantile;
     value.tuning = parameters.tuning;
     return new QuantileExpression(value);
@@ -48,14 +49,14 @@ export class QuantileExpression extends ChainableUnaryExpression implements Aggr
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.value = this.value;
     value.tuning = this.tuning;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.value = this.value;
     if (this.tuning) js.tuning = this.tuning;
     return js;
@@ -66,12 +67,12 @@ export class QuantileExpression extends ChainableUnaryExpression implements Aggr
   }
 
   protected _toStringParameters(indent?: int): string[] {
-    let params = [this.expression.toString(indent), String(this.value)];
+    const params = [this.expression.toString(indent), String(this.value)];
     if (this.tuning) params.push(Expression.safeString(this.tuning));
     return params;
   }
 
-  protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
+  protected _calcChainableUnaryHelper(operandValue: any, _expressionValue: any): PlywoodValue {
     return operandValue ? (operandValue as Dataset).quantile(this.expression, this.value) : null;
   }
 

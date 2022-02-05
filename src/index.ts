@@ -16,11 +16,11 @@
 
 /// <reference path="../typings/public.d.ts" />
 
-export * from './version';
-export * from './types';
-export * from './helper/index';
-export * from './dialect/index';
 export * from './datatypes/index';
-export * from './external/index';
-export * from './expressions/index';
+export * from './dialect/index';
 export * from './executor/index';
+export * from './expressions/index';
+export * from './external/index';
+export * from './helper/index';
+export * from './types';
+export * from './version';

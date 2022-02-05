@@ -16,6 +16,7 @@
  */
 
 import { Timezone } from 'chronoshift';
+
 import { PlyType } from '../types';
 
 const BOUNDS_REG_EXP = /^[\[(][\])]$/;
@@ -47,7 +48,7 @@ export abstract class Range<T> {
   static classMap: Record<string, typeof Range> = {};
 
   static register(ctr: any): void {
-    let rangeType = (<any>ctr).type.replace('_RANGE', '').toLowerCase();
+    const rangeType = ctr.type.replace('_RANGE', '').toLowerCase();
     Range.classMap[rangeType] = ctr;
   }
 
@@ -107,7 +108,7 @@ export abstract class Range<T> {
     return a === b;
   }
 
-  protected _endpointToString(a: T, tz?: Timezone): string {
+  protected _endpointToString(a: T, _tz?: Timezone): string {
     return String(a);
   }
 
@@ -129,7 +130,7 @@ export abstract class Range<T> {
   }
 
   public toString(tz?: Timezone): string {
-    let bounds = this.bounds;
+    const bounds = this.bounds;
     return (
       '[' +
       (bounds[0] === '(' ? '~' : '') +
@@ -165,9 +166,9 @@ export abstract class Range<T> {
 
   public contains(val: T | Range<T>): boolean {
     if (val instanceof Range) {
-      let valStart = val.start;
-      let valEnd = val.end;
-      let valBound = val.bounds;
+      const valStart = val.start;
+      const valEnd = val.end;
+      const valBound = val.bounds;
       if (valBound[0] === '[') {
         if (!this.containsValue(valStart)) return false;
       } else {
@@ -194,9 +195,9 @@ export abstract class Range<T> {
     val = (val as any).valueOf(); // Turn a Date into a number
     if (!this.validMemberType(val)) return false;
 
-    let start = this.start;
-    let end = this.end;
-    let bounds = this.bounds;
+    const start = this.start;
+    const end = this.end;
+    const bounds = this.bounds;
 
     if (bounds[0] === '[') {
       if (val < start) return false;
@@ -265,10 +266,10 @@ export abstract class Range<T> {
    * @param other The range to extend with
    */
   public extend(other: Range<T>): Range<T> {
-    let thisStart = this.start;
-    let thisEnd = this.end;
-    let otherStart = other.start;
-    let otherEnd = other.end;
+    const thisStart = this.start;
+    const thisEnd = this.end;
+    const otherStart = other.start;
+    const otherEnd = other.end;
 
     let start: T | null;
     let startBound: string;
@@ -308,10 +309,10 @@ export abstract class Range<T> {
   public intersect(other: Range<T>): Range<T> | null {
     if (!this.mergeable(other)) return null;
 
-    let thisStart = this.start;
-    let thisEnd = this.end;
-    let otherStart = other.start;
-    let otherEnd = other.end;
+    const thisStart = this.start;
+    const thisEnd = this.end;
+    const otherStart = other.start;
+    const otherEnd = other.end;
 
     let start: T;
     let startBound: string;

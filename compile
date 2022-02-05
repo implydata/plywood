@@ -7,6 +7,8 @@ mkdir -p build
 
 node_modules/.bin/tdi -q # not everyone has the latest npm
 
+npm run eslint
+
 echo "Compiling PEG.js"
 ./compile-pegjs
 

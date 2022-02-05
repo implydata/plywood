@@ -15,16 +15,18 @@
  */
 
 import * as hasOwnProp from 'has-own-prop';
+
 import { PlywoodValue } from '../datatypes/index';
 import { NumberRange } from '../datatypes/numberRange';
 import { SQLDialect } from '../dialect/baseDialect';
 import { continuousFloorExpression } from '../helper/utils';
+
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class NumberBucketExpression extends ChainableExpression {
   static op = 'NumberBucket';
   static fromJS(parameters: ExpressionJS): NumberBucketExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.size = parameters.size;
     value.offset = hasOwnProp(parameters, 'offset') ? parameters.offset : 0;
     return new NumberBucketExpression(value);
@@ -43,14 +45,14 @@ export class NumberBucketExpression extends ChainableExpression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.size = this.size;
     value.offset = this.offset;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.size = this.size;
     if (this.offset) js.offset = this.offset;
     return js;
@@ -60,8 +62,8 @@ export class NumberBucketExpression extends ChainableExpression {
     return super.equals(other) && this.size === other.size && this.offset === other.offset;
   }
 
-  protected _toStringParameters(indent?: int): string[] {
-    let params: string[] = [String(this.size)];
+  protected _toStringParameters(_indent?: int): string[] {
+    const params: string[] = [String(this.size)];
     if (this.offset) params.push(String(this.offset));
     return params;
   }

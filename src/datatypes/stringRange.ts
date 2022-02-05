@@ -15,6 +15,7 @@
  */
 
 import { Class, Instance } from 'immutable-class';
+
 import { Range } from './range';
 
 export interface StringRangeValue {
@@ -29,9 +30,10 @@ export interface StringRangeJS {
   bounds?: string;
 }
 
-let check: Class<StringRangeValue, StringRangeJS>;
-export class StringRange extends Range<string>
-  implements Instance<StringRangeValue, StringRangeJS> {
+export class StringRange
+  extends Range<string>
+  implements Instance<StringRangeValue, StringRangeJS>
+{
   static type = 'STRING_RANGE';
 
   static isStringRange(candidate: any): candidate is StringRange {
@@ -46,9 +48,9 @@ export class StringRange extends Range<string>
     if (typeof parameters !== 'object') {
       throw new Error('unrecognizable StringRange');
     }
-    let start = parameters.start;
-    let end = parameters.end;
-    let bounds = parameters.bounds;
+    const start = parameters.start;
+    const end = parameters.end;
+    const bounds = parameters.bounds;
 
     return new StringRange({
       start,
@@ -58,7 +60,7 @@ export class StringRange extends Range<string>
   }
 
   constructor(parameters: StringRangeValue) {
-    let { start, end } = parameters;
+    const { start, end } = parameters;
     if (typeof start !== 'string' && start !== null)
       throw new TypeError('`start` must be a string');
     if (typeof end !== 'string' && end !== null) throw new TypeError('`end` must be a string');
@@ -74,7 +76,7 @@ export class StringRange extends Range<string>
   }
 
   public toJS(): StringRangeJS {
-    let js: StringRangeJS = {
+    const js: StringRangeJS = {
       start: this.start,
       end: this.end,
     };
@@ -98,5 +100,7 @@ export class StringRange extends Range<string>
     return typeof val === 'string';
   }
 }
-check = StringRange;
+
+// eslint-disable-next-line unused-imports/no-unused-vars
+const check: Class<StringRangeValue, StringRangeJS> = StringRange;
 Range.register(StringRange);

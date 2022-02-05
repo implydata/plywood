@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
+import { PlywoodRequester } from 'plywood-base-api';
 import { Transform } from 'readable-stream';
+
 import { Attributes } from '../datatypes/attributeInfo';
 import { SQLDialect } from '../dialect/baseDialect';
 import {
   ApplyExpression,
   Expression,
   FilterExpression,
-  LimitExpression,
-  NumberBucketExpression,
   SortExpression,
   SplitExpression,
-  TimeBucketExpression,
 } from '../expressions/index';
+
 import {
   External,
   ExternalJS,
@@ -36,11 +36,10 @@ import {
   IntrospectionDepth,
   QueryAndPostTransform,
 } from './baseExternal';
-import { PlywoodRequester } from 'plywood-base-api';
 
 function getSplitInflaters(split: SplitExpression): Inflater[] {
   return split.mapSplits((label, splitExpression) => {
-    let simpleInflater = External.getIntelligentInflater(splitExpression, label);
+    const simpleInflater = External.getIntelligentInflater(splitExpression, label);
     if (simpleInflater) return simpleInflater;
     return undefined;
   });
@@ -50,7 +49,7 @@ export abstract class SQLExternal extends External {
   static type = 'DATASET';
 
   static jsToValue(parameters: ExternalJS, requester: PlywoodRequester<any>): ExternalValue {
-    let value: ExternalValue = External.jsToValue(parameters, requester);
+    const value: ExternalValue = External.jsToValue(parameters, requester);
     value.withQuery = parameters.withQuery;
     return value;
   }
@@ -66,18 +65,18 @@ export abstract class SQLExternal extends External {
   }
 
   public valueOf(): ExternalValue {
-    let value: ExternalValue = super.valueOf();
+    const value: ExternalValue = super.valueOf();
     value.withQuery = this.withQuery;
     return value;
   }
 
   // -----------------
 
-  public canHandleFilter(filter: FilterExpression): boolean {
+  public canHandleFilter(_filter: FilterExpression): boolean {
     return true;
   }
 
-  public canHandleSort(sort: SortExpression): boolean {
+  public canHandleSort(_sort: SortExpression): boolean {
     return true;
   }
 
@@ -104,7 +103,7 @@ export abstract class SQLExternal extends External {
   public getQueryAndPostTransform(): QueryAndPostTransform<string> {
     const { mode, applies, sort, limit, derivedAttributes, dialect, withQuery } = this;
 
-    let query = [];
+    const query = [];
     if (withQuery) {
       query.push(`WITH __with__ AS (${withQuery})`);
     }
@@ -116,11 +115,11 @@ export abstract class SQLExternal extends External {
     let keys: string[] = null;
     let zeroTotalApplies: ApplyExpression[] = null;
 
-    //dialect.setTable(null);
+    // dialect.setTable(null);
     let from = this.getFrom();
-    //dialect.setTable(source as string);
+    // dialect.setTable(source as string);
 
-    let filter = this.getQueryFilter();
+    const filter = this.getQueryFilter();
     if (!filter.equals(Expression.TRUE)) {
       from += '\nWHERE ' + filter.getSQL(dialect);
     }
@@ -132,7 +131,7 @@ export abstract class SQLExternal extends External {
 
         inflaters = selectedAttributes
           .map(attribute => {
-            let { name, type } = attribute;
+            const { name, type } = attribute;
             switch (type) {
               case 'BOOLEAN':
                 return External.booleanInflaterFactory(name);
@@ -152,7 +151,7 @@ export abstract class SQLExternal extends External {
         query.push(
           selectedAttributes
             .map(a => {
-              let name = a.name;
+              const name = a.name;
               if (derivedAttributes[name]) {
                 return Expression._.apply(name, derivedAttributes[name]).getSQL(dialect);
               } else {
@@ -179,7 +178,7 @@ export abstract class SQLExternal extends External {
         zeroTotalApplies = applies;
         inflaters = applies
           .map(apply => {
-            let { name, expression } = apply;
+            const { name, expression } = apply;
             return External.getSimpleInflater(expression.type, name);
           })
           .filter(Boolean);
@@ -192,8 +191,8 @@ export abstract class SQLExternal extends External {
         );
         break;
 
-      case 'split':
-        let split = this.getQuerySplit();
+      case 'split': {
+        const split = this.getQuerySplit();
         keys = split.mapSplits(name => name);
         query.push(
           split
@@ -218,6 +217,7 @@ export abstract class SQLExternal extends External {
         }
         inflaters = getSplitInflaters(split);
         break;
+      }
 
       default:
         throw new Error(`can not get query for mode: ${mode}`);

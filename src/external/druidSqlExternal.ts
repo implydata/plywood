@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-import { Introspect, QueryResult, SqlQuery, SqlRef, ColumnInfo } from 'druid-query-toolkit';
+import { ColumnInfo, Introspect, QueryResult, SqlQuery, SqlRef } from 'druid-query-toolkit';
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
-import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes';
+
+import { AttributeInfo, Attributes } from '../datatypes';
 import { DruidDialect } from '../dialect';
 import { Expression, SqlRefExpression } from '../expressions';
 import { dictEqual } from '../helper';
 import { PlyType } from '../types';
+
 import { External, ExternalJS, ExternalValue, IntrospectionDepth } from './baseExternal';
 import { DruidExternal } from './druidExternal';
 import { SQLExternal } from './sqlExternal';
@@ -36,7 +38,7 @@ export class DruidSQLExternal extends SQLExternal {
   static type = 'DATASET';
 
   static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): DruidSQLExternal {
-    let value: ExternalValue = SQLExternal.jsToValue(parameters, requester);
+    const value: ExternalValue = SQLExternal.jsToValue(parameters, requester);
     value.context = parameters.context;
     return new DruidSQLExternal(value);
   }
@@ -44,9 +46,9 @@ export class DruidSQLExternal extends SQLExternal {
   static postProcessIntrospect(columns: ColumnInfo[]): Attributes {
     return columns
       .map((column: ColumnInfo) => {
-        let name = column.name;
+        const name = column.name;
         let type: PlyType;
-        let nativeType = column.type;
+        const nativeType = column.type;
         switch (nativeType) {
           case 'TIMESTAMP':
           case 'DATE':
@@ -122,13 +124,13 @@ export class DruidSQLExternal extends SQLExternal {
   }
 
   public valueOf(): ExternalValue {
-    let value: ExternalValue = super.valueOf();
+    const value: ExternalValue = super.valueOf();
     value.context = this.context;
     return value;
   }
 
   public toJS(): ExternalJS {
-    let js: ExternalJS = super.toJS();
+    const js: ExternalJS = super.toJS();
     if (this.context) js.context = this.context;
     return js;
   }

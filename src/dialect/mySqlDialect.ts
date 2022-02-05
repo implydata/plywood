@@ -16,7 +16,9 @@
  */
 
 import { Duration, Timezone } from 'chronoshift';
+
 import { PlyType } from '../types';
+
 import { SQLDialect } from './baseDialect';
 
 export class MySQLDialect extends SQLDialect {
@@ -52,7 +54,7 @@ export class MySQLDialect extends SQLDialect {
     DAY_OF_MONTH: 'DAYOFMONTH($$)',
     DAY_OF_YEAR: 'DAYOFYEAR($$)',
 
-    //WEEK_OF_MONTH: ???
+    // WEEK_OF_MONTH: ???
     WEEK_OF_YEAR: 'WEEK($$)', // ToDo: look into mode (https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_week)
 
     MONTH_OF_YEAR: 'MONTH($$)',
@@ -108,7 +110,7 @@ export class MySQLDialect extends SQLDialect {
   }
 
   public castExpression(inputType: PlyType, operand: string, cast: string): string {
-    let castFunction = MySQLDialect.CAST_TO_FUNCTION[cast][inputType];
+    const castFunction = MySQLDialect.CAST_TO_FUNCTION[cast][inputType];
     if (!castFunction)
       throw new Error(`unsupported cast from ${inputType} to ${cast} in MySQL dialect`);
     return castFunction.replace(/\$\$/g, operand);
@@ -125,7 +127,7 @@ export class MySQLDialect extends SQLDialect {
   }
 
   public timeFloorExpression(operand: string, duration: Duration, timezone: Timezone): string {
-    let bucketFormat = MySQLDialect.TIME_BUCKETING[duration.toString()];
+    const bucketFormat = MySQLDialect.TIME_BUCKETING[duration.toString()];
     if (!bucketFormat) throw new Error(`unsupported duration '${duration}'`);
     return this.walltimeToUTC(
       `DATE_FORMAT(${this.utcToWalltime(operand, timezone)},'${bucketFormat}')`,
@@ -138,7 +140,7 @@ export class MySQLDialect extends SQLDialect {
   }
 
   public timePartExpression(operand: string, part: string, timezone: Timezone): string {
-    let timePartFunction = MySQLDialect.TIME_PART_TO_FUNCTION[part];
+    const timePartFunction = MySQLDialect.TIME_PART_TO_FUNCTION[part];
     if (!timePartFunction) throw new Error(`unsupported part ${part} in MySQL dialect`);
     return timePartFunction.replace(/\$\$/g, this.utcToWalltime(operand, timezone));
   }
@@ -147,22 +149,22 @@ export class MySQLDialect extends SQLDialect {
     operand: string,
     duration: Duration,
     step: int,
-    timezone: Timezone,
+    _timezone: Timezone,
   ): string {
     if (step === 0) return operand;
 
     // https://dev.mysql.com/doc/refman/5.5/en/date-and-time-functions.html#function_date-add
-    let sqlFn = step > 0 ? 'DATE_ADD(' : 'DATE_SUB(';
-    let spans = duration.multiply(Math.abs(step)).valueOf();
+    const sqlFn = step > 0 ? 'DATE_ADD(' : 'DATE_SUB(';
+    const spans = duration.multiply(Math.abs(step)).valueOf();
     if (spans.week) {
       return sqlFn + operand + ', INTERVAL ' + String(spans.week) + ' WEEK)';
     }
     if (spans.year || spans.month) {
-      let expr = String(spans.year || 0) + '-' + String(spans.month || 0);
+      const expr = String(spans.year || 0) + '-' + String(spans.month || 0);
       operand = sqlFn + operand + ", INTERVAL '" + expr + "' YEAR_MONTH)";
     }
     if (spans.day || spans.hour || spans.minute || spans.second) {
-      let expr =
+      const expr =
         String(spans.day || 0) +
         ' ' +
         [spans.hour || 0, spans.minute || 0, spans.second || 0].join(':');
@@ -171,7 +173,7 @@ export class MySQLDialect extends SQLDialect {
     return operand;
   }
 
-  public extractExpression(operand: string, regexp: string): string {
+  public extractExpression(_operand: string, _regexp: string): string {
     throw new Error(
       'MySQL must implement extractExpression (https://github.com/mysqludf/lib_mysqludf_preg)',
     );

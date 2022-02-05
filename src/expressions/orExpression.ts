@@ -16,6 +16,7 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import {
   ChainableUnaryExpression,
   Expression,
@@ -44,7 +45,7 @@ export class OrExpression extends ChainableUnaryExpression {
 
     if (!lhs1.equals(lhs2) || !rhs1.isOp('literal') || !rhs2.isOp('literal')) return null;
 
-    let union = Set.unionCover(rhs1.getLiteralValue(), rhs2.getLiteralValue());
+    const union = Set.unionCover(rhs1.getLiteralValue(), rhs2.getLiteralValue());
     if (union === null) return null;
 
     return lhs1.overlap(r(union)).simplify();
@@ -84,17 +85,17 @@ export class OrExpression extends ChainableUnaryExpression {
     if (expression.equals(Expression.FALSE)) return operand;
 
     if (operand instanceof OrExpression) {
-      let orExpressions = operand.getExpressionList();
+      const orExpressions = operand.getExpressionList();
       for (let i = 0; i < orExpressions.length; i++) {
-        let orExpression = orExpressions[i];
-        let mergedExpression = OrExpression.merge(orExpression, expression);
+        const orExpression = orExpressions[i];
+        const mergedExpression = OrExpression.merge(orExpression, expression);
         if (mergedExpression) {
           orExpressions[i] = mergedExpression;
           return Expression.or(orExpressions).simplify();
         }
       }
     } else {
-      let mergedExpression = OrExpression.merge(operand, expression);
+      const mergedExpression = OrExpression.merge(operand, expression);
       if (mergedExpression) return mergedExpression;
     }
 

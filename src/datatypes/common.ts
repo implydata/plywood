@@ -17,9 +17,11 @@
 
 import { isDate } from 'chronoshift';
 import * as hasOwnProp from 'has-own-prop';
+
 import { Expression } from '../expressions/baseExpression';
 import { External } from '../external/baseExternal';
-import { DatasetFullType, FullType, PlyType, PlyTypeSimple } from '../types';
+import { DatasetFullType, FullType, PlyType } from '../types';
+
 import { Dataset, Datum } from './dataset';
 import { NumberRange } from './numberRange';
 import { Set } from './set';
@@ -27,7 +29,7 @@ import { StringRange } from './stringRange';
 import { TimeRange } from './timeRange';
 
 export function getValueType(value: any): PlyType {
-  let typeofValue = typeof value;
+  const typeofValue = typeof value;
   if (typeofValue === 'object') {
     if (value === null) {
       return 'NULL';
@@ -59,13 +61,13 @@ export function getValueType(value: any): PlyType {
 }
 
 export function getFullType(value: any): FullType {
-  let myType = getValueType(value);
-  return myType === 'DATASET' ? (<Dataset>value).getFullType() : { type: <PlyTypeSimple>myType };
+  const myType = getValueType(value);
+  return myType === 'DATASET' ? (<Dataset>value).getFullType() : { type: myType };
 }
 
 export function getFullTypeFromDatum(datum: Datum): DatasetFullType {
-  let datasetType: Record<string, FullType> = {};
-  for (let k in datum) {
+  const datasetType: Record<string, FullType> = {};
+  for (const k in datum) {
     if (!hasOwnProp(datum, k)) continue;
     datasetType[k] = getFullType(datum[k]);
   }
@@ -106,10 +108,11 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
     const typeofV = typeof v;
     if (typeofV === 'object') {
       switch (typeOverride || v.type) {
-        case 'NUMBER':
-          let n = Number(v.value);
+        case 'NUMBER': {
+          const n = Number(v.value);
           if (isNaN(n)) throw new Error(`bad number value '${v.value}'`);
           return n;
+        }
 
         case 'NUMBER_RANGE':
           return NumberRange.fromJS(v);
@@ -157,7 +160,7 @@ export function valueToJS(v: any): any {
   if (v == null) {
     return null;
   } else {
-    let typeofV = typeof v;
+    const typeofV = typeof v;
     if (typeofV === 'object') {
       if (v.toISOString) {
         return v;
@@ -176,8 +179,8 @@ export function valueToJS(v: any): any {
 // External functionality
 
 export function datumHasExternal(datum: Datum): boolean {
-  for (let name in datum) {
-    let value = datum[name];
+  for (const name in datum) {
+    const value = datum[name];
     if (value instanceof External) return true;
     if (value instanceof Dataset && value.hasExternal()) return true;
   }
@@ -185,10 +188,10 @@ export function datumHasExternal(datum: Datum): boolean {
 }
 
 export function introspectDatum(datum: Datum): Promise<Datum> {
-  let promises: Promise<void>[] = [];
-  let newDatum: Datum = Object.create(null);
+  const promises: Promise<void>[] = [];
+  const newDatum: Datum = Object.create(null);
   Object.keys(datum).forEach(name => {
-    let v = datum[name];
+    const v = datum[name];
     if (v instanceof External && v.needsIntrospect()) {
       promises.push(
         v.introspect().then((introspectedExternal: External) => {
@@ -205,7 +208,7 @@ export function introspectDatum(datum: Datum): Promise<Datum> {
 
 export function failIfIntrospectNeededInDatum(datum: Datum): void {
   Object.keys(datum).forEach(name => {
-    let v = datum[name];
+    const v = datum[name];
     if (v instanceof External && v.needsIntrospect()) {
       throw new Error('Can not have un-introspected external');
     }

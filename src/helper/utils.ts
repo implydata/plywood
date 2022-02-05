@@ -32,17 +32,17 @@ export function indentBy(str: string, indent: int): string {
 export function dictEqual(dictA: Record<string, any>, dictB: Record<string, any>): boolean {
   if (dictA === dictB) return true;
   if (!dictA !== !dictB) return false;
-  let keys = Object.keys(dictA);
+  const keys = Object.keys(dictA);
   if (keys.length !== Object.keys(dictB).length) return false;
-  for (let key of keys) {
+  for (const key of keys) {
     if (dictA[key] !== dictB[key]) return false;
   }
   return true;
 }
 
 export function shallowCopy<T>(thing: T): T {
-  let newThing: any = {};
-  for (let k in thing) {
+  const newThing: any = {};
+  for (const k in thing) {
     if (hasOwnProp(thing, k)) newThing[k] = (thing as any)[k];
   }
   return newThing;
@@ -50,9 +50,9 @@ export function shallowCopy<T>(thing: T): T {
 
 export function deduplicateSort(a: string[]): string[] {
   a = a.sort();
-  let newA: string[] = [];
+  const newA: string[] = [];
   let last: string = null;
-  for (let v of a) {
+  for (const v of a) {
     if (v !== last) newA.push(v);
     last = v;
   }
@@ -60,15 +60,15 @@ export function deduplicateSort(a: string[]): string[] {
 }
 
 export function mapLookup<T, U>(thing: Record<string, T>, fn: (x: T) => U): Record<string, U> {
-  let newThing: Record<string, U> = Object.create(null);
-  for (let k in thing) {
+  const newThing: Record<string, U> = Object.create(null);
+  for (const k in thing) {
     if (hasOwnProp(thing, k)) newThing[k] = fn(thing[k]);
   }
   return newThing;
 }
 
 export function emptyLookup(lookup: Record<string, any>): boolean {
-  for (let k in lookup) {
+  for (const k in lookup) {
     if (hasOwnProp(lookup, k)) return false;
   }
   return true;
@@ -84,26 +84,26 @@ export function clip(x: number): number {
 }
 
 export function safeAdd(num: number, delta: number): number {
-  let stringDelta = String(delta);
-  let dotIndex = stringDelta.indexOf('.');
+  const stringDelta = String(delta);
+  const dotIndex = stringDelta.indexOf('.');
   if (dotIndex === -1 || stringDelta.length === 18) {
     return num + delta;
   } else {
-    let scale = Math.pow(10, stringDelta.length - dotIndex - 1);
+    const scale = Math.pow(10, stringDelta.length - dotIndex - 1);
     return (num * scale + delta * scale) / scale;
   }
 }
 
 export function safeRange(num: number, delta: number): { start: number; end: number } {
-  let stringDelta = String(delta);
-  let dotIndex = stringDelta.indexOf('.');
+  const stringDelta = String(delta);
+  const dotIndex = stringDelta.indexOf('.');
   if (dotIndex === -1 || stringDelta.length === 18) {
     return {
       start: num,
       end: num + delta,
     };
   } else {
-    let scale = Math.pow(10, stringDelta.length - dotIndex - 1);
+    const scale = Math.pow(10, stringDelta.length - dotIndex - 1);
     num = clip(num * scale) / scale;
     return {
       start: num,

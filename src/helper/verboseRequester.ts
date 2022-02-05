@@ -48,13 +48,13 @@ export function verboseRequesterFactory<T>(
     parameters.onQuery = (parameters as any).preQuery;
   }
 
-  let printLine =
+  const printLine =
     parameters.printLine ||
     ((line: string): void => {
       console['log'](line);
     });
 
-  let onQuery =
+  const onQuery =
     parameters.onQuery ||
     ((param: CallbackParameters): void => {
       printLine('vvvvvvvvvvvvvvvvvvvvvvvvvv');
@@ -64,7 +64,7 @@ export function verboseRequesterFactory<T>(
       printLine('^^^^^^^^^^^^^^^^^^^^^^^^^^');
     });
 
-  let onSuccess =
+  const onSuccess =
     parameters.onSuccess ||
     ((param: CallbackParameters): void => {
       printLine('vvvvvvvvvvvvvvvvvvvvvvvvvv');
@@ -75,7 +75,7 @@ export function verboseRequesterFactory<T>(
       printLine('^^^^^^^^^^^^^^^^^^^^^^^^^^');
     });
 
-  let onError =
+  const onError =
     parameters.onError ||
     ((param: CallbackParameters): void => {
       printLine('vvvvvvvvvvvvvvvvvvvvvvvvvv');
@@ -88,7 +88,7 @@ export function verboseRequesterFactory<T>(
   let curQueryNumber: int = 0;
   return (request: DatabaseRequest<any>) => {
     curQueryNumber++;
-    let myQueryNumber = curQueryNumber;
+    const myQueryNumber = curQueryNumber;
     onQuery({
       name: myName,
       queryNumber: myQueryNumber,
@@ -96,8 +96,8 @@ export function verboseRequesterFactory<T>(
       context: request.context,
     });
 
-    let startTime = Date.now();
-    let stream = requester(request);
+    const startTime = Date.now();
+    const stream = requester(request);
 
     let errorSeen = false;
     stream.on('error', (error: Error) => {
@@ -112,7 +112,7 @@ export function verboseRequesterFactory<T>(
       });
     });
 
-    let data: any[] = [];
+    const data: any[] = [];
     stream.on('data', (datum: any) => {
       data.push(JSON.parse(JSON.stringify(datum)));
     });

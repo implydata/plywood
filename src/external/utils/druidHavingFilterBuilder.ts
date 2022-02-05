@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { AttributeInfo, NumberRange } from '../../datatypes/index';
+import { AttributeInfo } from '../../datatypes/index';
 import { Expression } from '../../expressions';
+
 import { DruidFilterBuilder } from './druidFilterBuilder';
 import { CustomDruidTransforms } from './druidTypes';
 

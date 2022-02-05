@@ -15,14 +15,16 @@
  */
 
 import { SqlExpression } from 'druid-query-toolkit';
+
 import { ComputeFn, Datum, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/index';
+
 import { Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class SqlRefExpression extends Expression {
   static op = 'SqlRef';
   static fromJS(parameters: ExpressionJS): SqlRefExpression {
-    let value: ExpressionValue = Expression.jsToValue(parameters);
+    const value: ExpressionValue = Expression.jsToValue(parameters);
     value.sql = parameters.sql;
     return new SqlRefExpression(value);
   }
@@ -34,7 +36,7 @@ export class SqlRefExpression extends Expression {
     super(parameters, dummyObject);
     this._ensureOp('sqlRef');
 
-    let sql = parameters.sql;
+    const sql = parameters.sql;
     if (typeof sql !== 'string' || sql.length === 0) {
       throw new TypeError('must have a nonempty `sql`');
     }
@@ -45,13 +47,13 @@ export class SqlRefExpression extends Expression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.sql = this.sql;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.sql = this.sql;
     return js;
   }
@@ -61,7 +63,7 @@ export class SqlRefExpression extends Expression {
   }
 
   public changeSql(sql: string): SqlRefExpression {
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.sql = sql;
     return new SqlRefExpression(value);
   }
@@ -70,19 +72,16 @@ export class SqlRefExpression extends Expression {
     throw new Error('can not getFn on SQL');
   }
 
-  public calc(datum: Datum): PlywoodValue {
+  public calc(_datum: Datum): PlywoodValue {
     throw new Error('can not calc on SQL');
   }
 
-  public getSQL(dialect: SQLDialect, minimal = false): string {
+  public getSQL(dialect: SQLDialect, _minimal = false): string {
     return `(${this.sql})`;
   }
 
   public equals(other: SqlRefExpression | undefined): boolean {
-    return (
-      super.equals(other) &&
-      this.sql === other.sql
-    );
+    return super.equals(other) && this.sql === other.sql;
   }
 }
 

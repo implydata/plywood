@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { Transform } from 'readable-stream';
 import { AttributeInfo } from './attributeInfo';
 import { Dataset, Datum, PlywoodValue } from './dataset';
 
@@ -39,9 +38,7 @@ export interface PlyBit {
   within?: PlyBit;
 }
 
-export interface PlywoodValueIterator {
-  (): PlyBit | null;
-}
+export type PlywoodValueIterator = () => PlyBit | null;
 
 interface KeyPlywoodValueIterator {
   attribute: string;
@@ -67,11 +64,11 @@ export function datasetIteratorFactory(dataset: Dataset): PlywoodValueIterator {
   function nextSelfRow() {
     curRowIndex++;
     cutRowDatasets = [];
-    let row = dataset.data[curRowIndex];
+    const row = dataset.data[curRowIndex];
     if (row) {
       curRow = {};
-      for (let k in row) {
-        let v = row[k];
+      for (const k in row) {
+        const v = row[k];
         if (v instanceof Dataset) {
           cutRowDatasets.push({
             attribute: k,
@@ -90,7 +87,7 @@ export function datasetIteratorFactory(dataset: Dataset): PlywoodValueIterator {
     if (curRowIndex === -2) {
       // Initial run
       curRowIndex++;
-      let initEvent: PlyBit = {
+      const initEvent: PlyBit = {
         type: 'init',
         attributes: dataset.attributes,
       };
@@ -132,7 +129,7 @@ export class PlywoodValueBuilder {
 
   private _finalizeLastWithin() {
     if (!this._curValueBuilder) return;
-    let lastDatum = this._data[this._data.length - 1];
+    const lastDatum = this._data[this._data.length - 1];
     if (!lastDatum) throw new Error('unexpected within');
     lastDatum[this._curAttribute] = this._curValueBuilder.getValue();
     this._curAttribute = null;
@@ -179,7 +176,7 @@ export class PlywoodValueBuilder {
     const { _data } = this;
     if (_data) {
       if (this._curValueBuilder) {
-        let lastDatum = _data[_data.length - 1];
+        const lastDatum = _data[_data.length - 1];
         if (!lastDatum) throw new Error('unexpected within');
         lastDatum[this._curAttribute] = this._curValueBuilder.getValue();
       }

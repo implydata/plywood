@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-const REGEXP_SPECIAL = '\\^$.|?*+()[{';
-
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
+
+const REGEXP_SPECIAL = '\\^$.|?*+()[{';
 
 export class MatchExpression extends ChainableExpression {
   static likeToRegExp(like: string, escapeChar = '\\'): string {
-    let regExp: string[] = ['^'];
+    const regExp: string[] = ['^'];
     for (let i = 0; i < like.length; i++) {
       let char = like[i];
       if (char === escapeChar) {
-        let nextChar = like[i + 1];
+        const nextChar = like[i + 1];
         if (!nextChar) throw new Error(`invalid LIKE string '${like}'`);
         char = nextChar;
         i++;
@@ -49,7 +50,7 @@ export class MatchExpression extends ChainableExpression {
 
   static op = 'Match';
   static fromJS(parameters: ExpressionJS): MatchExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.regexp = parameters.regexp;
     return new MatchExpression(value);
   }
@@ -65,13 +66,13 @@ export class MatchExpression extends ChainableExpression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.regexp = this.regexp;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.regexp = this.regexp;
     return js;
   }
@@ -80,12 +81,12 @@ export class MatchExpression extends ChainableExpression {
     return super.equals(other) && this.regexp === other.regexp;
   }
 
-  protected _toStringParameters(indent?: int): string[] {
+  protected _toStringParameters(_indent?: int): string[] {
     return [this.regexp];
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
-    let re = new RegExp(this.regexp);
+    const re = new RegExp(this.regexp);
     if (operandValue == null) return null;
     return Set.crossUnaryBoolean(operandValue, a => re.test(a));
   }

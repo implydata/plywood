@@ -15,49 +15,47 @@
  */
 
 import { NamedArray } from 'immutable-class';
+
 import { AttributeInfo, NumberRange, Set, StringRange } from '../../datatypes';
 import { TimeRange } from '../../datatypes/index';
 import {
-  $,
+  AbsoluteExpression,
+  AddExpression,
+  AndExpression,
   CastExpression,
   ChainableExpression,
   ChainableUnaryExpression,
   ConcatExpression,
+  ContainsExpression,
+  DivideExpression,
   Expression,
-  IsExpression,
   ExtractExpression,
   FallbackExpression,
+  IndexOfExpression,
+  IsExpression,
   LengthExpression,
   LiteralExpression,
+  LogExpression,
   LookupExpression,
+  MatchExpression,
+  MultiplyExpression,
+  NotExpression,
   NumberBucketExpression,
+  OrExpression,
   OverlapExpression,
-  ContainsExpression,
-  r,
+  PowerExpression,
   RefExpression,
   SubstrExpression,
+  SubtractExpression,
+  ThenExpression,
   TimeBucketExpression,
   TimeFloorExpression,
   TimePartExpression,
-  TransformCaseExpression,
-  MultiplyExpression,
-  MatchExpression,
-  AddExpression,
-  SubtractExpression,
-  DivideExpression,
   TimeShiftExpression,
-  PowerExpression,
-  LogExpression,
-  AbsoluteExpression,
-  AndExpression,
-  OrExpression,
-  NotExpression,
-  ThenExpression,
-  IndexOfExpression,
+  TransformCaseExpression,
 } from '../../expressions';
 import { continuousFloorExpression } from '../../helper';
 import { PlyType } from '../../types';
-import { External } from '../baseExternal';
 
 export interface DruidExpressionBuilderOptions {
   rawAttributes: AttributeInfo[];
@@ -294,12 +292,12 @@ export class DruidExpressionBuilder {
             return `(${ex1}==${ex2})`;
           }
         } else if (expression instanceof OverlapExpression) {
-          let myExpressionType = myExpression.type;
+          const myExpressionType = myExpression.type;
           switch (myExpressionType) {
             case 'NUMBER_RANGE':
             case 'TIME_RANGE':
               if (myExpression instanceof LiteralExpression) {
-                let range: NumberRange | TimeRange = myExpression.value;
+                const range: NumberRange | TimeRange = myExpression.value;
                 return this.overlapExpression(
                   ex1,
                   DruidExpressionBuilder.escapeLiteral(range.start),
@@ -311,7 +309,7 @@ export class DruidExpressionBuilder {
 
             case 'STRING_RANGE':
               if (myExpression instanceof LiteralExpression) {
-                let stringRange: StringRange = myExpression.value;
+                const stringRange: StringRange = myExpression.value;
                 return this.overlapExpression(
                   ex1,
                   DruidExpressionBuilder.escapeLiteral(stringRange.start),
@@ -324,7 +322,7 @@ export class DruidExpressionBuilder {
             case 'SET/NUMBER_RANGE':
             case 'SET/TIME_RANGE':
               if (myExpression instanceof LiteralExpression) {
-                let setOfRange: Set = myExpression.value;
+                const setOfRange: Set = myExpression.value;
                 return setOfRange.elements
                   .map((range: NumberRange | TimeRange) => {
                     return this.overlapExpression(

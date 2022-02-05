@@ -18,12 +18,12 @@
 import * as Druid from 'druid.d.ts';
 import * as hasOwnProp from 'has-own-prop';
 import { PlywoodRequester } from 'plywood-base-api';
-import { Transform, ReadableStream } from 'readable-stream';
+import { Transform } from 'readable-stream';
 import * as toArray from 'stream-to-array';
+
 import {
   AttributeInfo,
   Attributes,
-  Dataset,
   Datum,
   PlywoodRange,
   Range,
@@ -32,7 +32,6 @@ import {
 } from '../datatypes/index';
 import {
   $,
-  r,
   ApplyExpression,
   CardinalityExpression,
   ChainableExpression,
@@ -41,17 +40,15 @@ import {
   CountExpression,
   CustomAggregateExpression,
   Expression,
-  ExtractExpression,
   FallbackExpression,
   FilterExpression,
   InExpression,
   IsExpression,
-  LiteralExpression,
   MatchExpression,
   MaxExpression,
   MinExpression,
   NumberBucketExpression,
-  OverlapExpression,
+  r,
   RefExpression,
   SortExpression,
   SplitExpression,
@@ -59,19 +56,17 @@ import {
   TimeBucketExpression,
   TimeFloorExpression,
   TimePartExpression,
-  TimeShiftExpression,
 } from '../expressions/index';
-import { ReadableError } from '../helper/streamBasics';
 import { dictEqual, ExtendableError, nonEmptyLookup, shallowCopy } from '../helper/utils';
+
 import {
   External,
   ExternalJS,
   ExternalValue,
   Inflater,
   IntrospectionDepth,
-  NextFn,
-  QuerySelection,
   QueryAndPostTransform,
+  QuerySelection,
 } from './baseExternal';
 import {
   AggregationsAndPostAggregations,
@@ -99,7 +94,7 @@ export interface ParsedResplitAgg {
 }
 
 function expressionNeedsNumericSort(ex: Expression): boolean {
-  let type = ex.type;
+  const type = ex.type;
   return type === 'NUMBER' || type === 'NUMBER_RANGE';
 }
 
@@ -157,7 +152,7 @@ export class DruidExternal extends External {
   static SELECT_MAX_LIMIT = 10000;
 
   static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): DruidExternal {
-    let value: ExternalValue = External.jsToValue(parameters, requester);
+    const value: ExternalValue = External.jsToValue(parameters, requester);
     value.timeAttribute = parameters.timeAttribute;
     value.customAggregations = parameters.customAggregations || {};
     value.customTransforms = parameters.customTransforms || {};
@@ -206,9 +201,9 @@ export class DruidExternal extends External {
       objectMode: true,
       transform: (d: Datum, encoding, callback) => {
         if (applies) {
-          let datum: Datum = {};
-          for (let apply of applies) {
-            let name = apply.name;
+          const datum: Datum = {};
+          for (const apply of applies) {
+            const name = apply.name;
             if (typeof d === 'string') {
               datum[name] = new Date(d);
             } else {
@@ -244,12 +239,12 @@ export class DruidExternal extends External {
     }
 
     if (!fieldName) {
-      let { fieldNames } = aggregation;
+      const { fieldNames } = aggregation;
       if (!Array.isArray(fieldNames) || fieldNames.length !== 1) return null;
       fieldName = fieldNames[0];
     }
 
-    let expression = $(fieldName);
+    const expression = $(fieldName);
     switch (type) {
       case 'count':
         return Expression._.count();
@@ -258,10 +253,11 @@ export class DruidExternal extends External {
       case 'longSum':
         return Expression._.sum(expression);
 
-      case 'javascript':
+      case 'javascript': {
         const { fnAggregate, fnCombine } = aggregation;
         if (fnAggregate !== fnCombine || fnCombine.indexOf('+') === -1) return null;
         return Expression._.sum(expression);
+      }
 
       case 'doubleMin':
       case 'longMin':
@@ -290,17 +286,17 @@ export class DruidExternal extends External {
     timeAttribute: string,
     res: Druid.SegmentMetadataResults,
   ): Attributes {
-    let res0 = res[0];
+    const res0 = res[0];
     if (!res0 || !res0.columns)
       throw new InvalidResultError('malformed segmentMetadata response', res);
-    let columns = res0.columns;
-    let aggregators = res0.aggregators || {};
+    const columns = res0.columns;
+    const aggregators = res0.aggregators || {};
 
     let foundTime = false;
-    let attributes: Attributes = [];
-    for (let name in columns) {
+    const attributes: Attributes = [];
+    for (const name in columns) {
       if (!hasOwnProp(columns, name)) continue;
-      let columnData = columns[name];
+      const columnData = columns[name];
 
       // Error conditions
       if (columnData.errorMessage || columnData.size < 0) continue;
@@ -390,7 +386,7 @@ export class DruidExternal extends External {
     context: Record<string, any>,
     depth: IntrospectionDepth,
   ): Promise<Attributes> {
-    let analysisTypes: string[] = ['aggregators'];
+    const analysisTypes: string[] = ['aggregators'];
     if (depth === 'deep') {
       analysisTypes.push('cardinality', 'minmax');
     }
@@ -408,7 +404,7 @@ export class DruidExternal extends External {
     }
 
     const res = await toArray(requester({ query }));
-    let attributes = DruidExternal.segmentMetadataPostProcess(timeAttribute, res);
+    const attributes = DruidExternal.segmentMetadataPostProcess(timeAttribute, res);
 
     if (
       depth !== 'shallow' &&
@@ -452,8 +448,8 @@ export class DruidExternal extends External {
     pagingIdentifiers: Druid.PagingIdentifiers,
     increment: number,
   ): Druid.PagingIdentifiers {
-    let newPagingIdentifiers: Druid.PagingIdentifiers = {};
-    for (let key in pagingIdentifiers) {
+    const newPagingIdentifiers: Druid.PagingIdentifiers = {};
+    for (const key in pagingIdentifiers) {
       if (!hasOwnProp(pagingIdentifiers, key)) continue;
       newPagingIdentifiers[key] = pagingIdentifiers[key] + increment;
     }
@@ -522,7 +518,7 @@ export class DruidExternal extends External {
   }
 
   public valueOf(): ExternalValue {
-    let value: ExternalValue = super.valueOf();
+    const value: ExternalValue = super.valueOf();
     value.timeAttribute = this.timeAttribute;
     value.customAggregations = this.customAggregations;
     value.customTransforms = this.customTransforms;
@@ -535,7 +531,7 @@ export class DruidExternal extends External {
   }
 
   public toJS(): ExternalJS {
-    let js: ExternalJS = super.toJS();
+    const js: ExternalJS = super.toJS();
     if (this.timeAttribute !== DruidExternal.TIME_ATTRIBUTE) js.timeAttribute = this.timeAttribute;
     if (nonEmptyLookup(this.customAggregations)) js.customAggregations = this.customAggregations;
     if (nonEmptyLookup(this.customTransforms)) js.customTransforms = this.customTransforms;
@@ -583,14 +579,14 @@ export class DruidExternal extends External {
   }
 
   public getDruidDataSource(): Druid.DataSource {
-    let source = this.source;
+    const source = this.source;
     if (Array.isArray(source)) {
       return {
         type: 'union',
-        dataSources: <string[]>source,
+        dataSources: source,
       };
     } else {
-      return <string>source;
+      return source;
     }
   }
 
@@ -647,9 +643,9 @@ export class DruidExternal extends External {
     const { sort } = this;
     if (!sort) return true;
 
-    let refExpression = sort.expression;
+    const refExpression = sort.expression;
     if (refExpression instanceof RefExpression) {
-      let sortRefName = refExpression.name;
+      const sortRefName = refExpression.name;
       const sortApply = this.applies.find(apply => apply.name === sortRefName);
       if (sortApply) {
         // not compatible if there is a filter on time somewhere
@@ -666,7 +662,7 @@ export class DruidExternal extends External {
   }
 
   public expressionToDimensionInflater(expression: Expression, label: string): DimensionInflater {
-    let freeReferences = expression.getFreeReferences();
+    const freeReferences = expression.getFreeReferences();
     if (freeReferences.length === 0) {
       return {
         dimension: {
@@ -680,7 +676,7 @@ export class DruidExternal extends External {
     }
 
     const makeExpression: () => DimensionInflater = () => {
-      let druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(
+      const druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(
         expression,
       );
       if (druidExpression === null) {
@@ -733,9 +729,9 @@ export class DruidExternal extends External {
       return makeExpression();
     }
 
-    let referenceName = freeReferences[0];
+    const referenceName = freeReferences[0];
 
-    let attributeInfo = this.getAttributesInfo(referenceName);
+    const attributeInfo = this.getAttributesInfo(referenceName);
     if (attributeInfo.unsplitable) {
       throw new Error(
         `can not convert ${expression} to split because it references an un-splitable metric '${referenceName}' which is most likely rolled up.`,
@@ -749,9 +745,9 @@ export class DruidExternal extends External {
       return makeExpression();
     }
 
-    let simpleInflater = External.getIntelligentInflater(expression, label);
+    const simpleInflater = External.getIntelligentInflater(expression, label);
 
-    let dimension: Druid.DimensionSpecFull = {
+    const dimension: Druid.DimensionSpecFull = {
       type: 'default',
       dimension:
         attributeInfo.name === this.timeAttribute
@@ -787,7 +783,7 @@ export class DruidExternal extends External {
       };
     }
 
-    let effectiveType = Set.unwrapSetType(expression.type);
+    const effectiveType = Set.unwrapSetType(expression.type);
     if (simpleInflater || effectiveType === 'STRING' || effectiveType === 'NULL') {
       return {
         dimension,
@@ -803,7 +799,7 @@ export class DruidExternal extends External {
     label: string,
     havingFilter: Expression,
   ): DimensionInflaterHaving {
-    let dimensionInflater: DimensionInflaterHaving = this.expressionToDimensionInflater(
+    const dimensionInflater: DimensionInflaterHaving = this.expressionToDimensionInflater(
       expression,
       label,
     );
@@ -812,8 +808,8 @@ export class DruidExternal extends External {
 
     const { extract, rest } = havingFilter.extractFromAnd(hf => {
       if (hf instanceof ChainableExpression) {
-        let hfOp = hf.op;
-        let hfOperand = hf.operand;
+        const hfOp = hf.op;
+        const hfOperand = hf.operand;
         if (hfOperand instanceof RefExpression && hfOperand.name === label) {
           if (hfOp === 'match') return true;
           if (hfOp === 'is') return (hf as ChainableUnaryExpression).expression.isOp('literal');
@@ -862,14 +858,14 @@ export class DruidExternal extends External {
 
   public splitToDruid(split: SplitExpression): DruidSplit {
     let leftoverHavingFilter = this.havingFilter;
-    let selectedAttributes = this.getSelectedAttributes();
+    const selectedAttributes = this.getSelectedAttributes();
 
     if (this.getQuerySelection() === 'group-by-only' || split.isMultiSplit()) {
-      let timestampLabel: string = null;
-      let granularity: Druid.Granularity = null;
-      let virtualColumns: Druid.VirtualColumn[] = [];
-      let dimensions: Druid.DimensionSpec[] = [];
-      let inflaters: Inflater[] = [];
+      const timestampLabel: string = null;
+      const granularity: Druid.Granularity = null;
+      const virtualColumns: Druid.VirtualColumn[] = [];
+      const dimensions: Druid.DimensionSpec[] = [];
+      const inflaters: Inflater[] = [];
       split.mapSplits((name, expression) => {
         // if (!granularity && !this.limit && !this.sort) {
         //   // We have to add !this.limit && !this.sort because of a bug in groupBy sorting
@@ -883,12 +879,8 @@ export class DruidExternal extends External {
         //   }
         // }
 
-        let {
-          virtualColumn,
-          dimension,
-          inflater,
-          having,
-        } = this.expressionToDimensionInflaterHaving(expression, name, leftoverHavingFilter);
+        const { virtualColumn, dimension, inflater, having } =
+          this.expressionToDimensionInflaterHaving(expression, name, leftoverHavingFilter);
         leftoverHavingFilter = having;
         if (virtualColumn) virtualColumns.push(virtualColumn);
         dimensions.push(dimension);
@@ -912,8 +904,8 @@ export class DruidExternal extends External {
       };
     }
 
-    let splitExpression = split.firstSplitExpression();
-    let label = split.firstSplitName();
+    const splitExpression = split.firstSplitExpression();
+    const label = split.firstSplitName();
 
     // Can it be a time series?
     if (
@@ -921,7 +913,7 @@ export class DruidExternal extends External {
       DruidExternal.isTimestampCompatibleSort(this.sort, label) &&
       leftoverHavingFilter.equals(Expression.TRUE)
     ) {
-      let granularityInflater = this.splitExpressionToGranularityInflater(splitExpression, label);
+      const granularityInflater = this.splitExpressionToGranularityInflater(splitExpression, label);
       if (granularityInflater) {
         return {
           queryType: 'timeseries',
@@ -938,14 +930,14 @@ export class DruidExternal extends External {
       }
     }
 
-    let dimensionInflater = this.expressionToDimensionInflaterHaving(
+    const dimensionInflater = this.expressionToDimensionInflaterHaving(
       splitExpression,
       label,
       leftoverHavingFilter,
     );
     leftoverHavingFilter = dimensionInflater.having;
 
-    let inflaters = [dimensionInflater.inflater].filter(Boolean);
+    const inflaters = [dimensionInflater.inflater].filter(Boolean);
     if (
       leftoverHavingFilter.equals(Expression.TRUE) && // There is no leftover having filter
       (this.limit || split.maxBucketNumber() < 1000) && // There is a limit (or the split range is limited)
@@ -985,7 +977,7 @@ export class DruidExternal extends External {
 
   public getTimeBoundaryQueryAndPostTransform(): QueryAndPostTransform<Druid.Query> {
     const { mode, context } = this;
-    let druidQuery: Druid.Query = {
+    const druidQuery: Druid.Query = {
       queryType: 'timeBoundary',
       dataSource: this.getDruidDataSource(),
     };
@@ -998,7 +990,7 @@ export class DruidExternal extends External {
     if (mode === 'total') {
       applies = this.applies;
       if (applies.length === 1) {
-        let loneApplyExpression = applies[0].expression;
+        const loneApplyExpression = applies[0].expression;
         // Max time only
         druidQuery.bound = (loneApplyExpression as ChainableUnaryExpression).op + 'Time';
         // druidQuery.queryType = "dataSourceMetadata";
@@ -1096,11 +1088,7 @@ export class DruidExternal extends External {
                   AttributeInfo.fromJS({ name: definedFilterName, type: 'NUMBER' }),
                 );
                 resplitAggWithUpdatedNames = resplitAggWithUpdatedNames.changeOperand(
-                  $('_').filter(
-                    $(definedFilterName)
-                      .greaterThan(r(0))
-                      .simplify(),
-                  ),
+                  $('_').filter($(definedFilterName).greaterThan(r(0)).simplify()),
                 );
               }
 
@@ -1199,7 +1187,7 @@ export class DruidExternal extends External {
     const outerExternal = new DruidExternal(outerValue);
 
     // Put it together
-    let outerQueryAndPostTransform = outerExternal.getQueryAndPostTransform();
+    const outerQueryAndPostTransform = outerExternal.getQueryAndPostTransform();
     outerQueryAndPostTransform.query.dataSource = {
       type: 'query',
       query: innerQuery,
@@ -1223,14 +1211,14 @@ export class DruidExternal extends External {
       }
     }
 
-    let druidQuery: Druid.Query = {
+    const druidQuery: Druid.Query = {
       queryType: 'timeseries',
       dataSource: this.getDruidDataSource(),
       intervals: null,
       granularity: 'all',
     };
 
-    let requesterContext: any = {
+    const requesterContext: any = {
       timestamp: null,
       ignorePrefix: '!',
       dummyPrefix: '***',
@@ -1241,7 +1229,7 @@ export class DruidExternal extends External {
     }
 
     // Filter
-    let filterAndIntervals = new DruidFilterBuilder(this).filterToDruid(this.getQueryFilter());
+    const filterAndIntervals = new DruidFilterBuilder(this).filterToDruid(this.getQueryFilter());
     druidQuery.intervals = filterAndIntervals.intervals;
     if (filterAndIntervals.filter) {
       druidQuery.filter = filterAndIntervals.filter;
@@ -1249,22 +1237,22 @@ export class DruidExternal extends External {
 
     let aggregationsAndPostAggregations: AggregationsAndPostAggregations;
     switch (mode) {
-      case 'raw':
+      case 'raw': {
         if (!this.allowSelectQueries) {
           throw new Error(
             "to issue 'scan' or 'select' queries allowSelectQueries flag must be set",
           );
         }
 
-        let derivedAttributes = this.derivedAttributes;
-        let selectedAttributes = this.getSelectedAttributes();
+        const derivedAttributes = this.derivedAttributes;
+        const selectedAttributes = this.getSelectedAttributes();
 
-        let virtualColumns: Druid.VirtualColumn[] = [];
-        let columns: string[] = [];
-        let inflaters: Inflater[] = [];
+        const virtualColumns: Druid.VirtualColumn[] = [];
+        const columns: string[] = [];
+        const inflaters: Inflater[] = [];
 
         selectedAttributes.forEach(attribute => {
-          let { name, type, nativeType, unsplitable } = attribute;
+          const { name, type, nativeType } = attribute;
 
           if (nativeType === '__time' && name !== '__time') {
             virtualColumns.push({
@@ -1274,9 +1262,9 @@ export class DruidExternal extends External {
               outputType: 'STRING',
             });
           } else {
-            let derivedAttribute = derivedAttributes[name];
+            const derivedAttribute = derivedAttributes[name];
             if (derivedAttribute) {
-              let druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(
+              const druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(
                 derivedAttribute,
               );
               if (druidExpression === null) {
@@ -1293,6 +1281,7 @@ export class DruidExternal extends External {
           }
           columns.push(name);
 
+          // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
           switch (type) {
             case 'BOOLEAN':
               inflaters.push(External.booleanInflaterFactory(name));
@@ -1340,8 +1329,9 @@ export class DruidExternal extends External {
             null,
           ),
         };
+      }
 
-      case 'value':
+      case 'value': {
         const nestedGroupByValue = this.nestedGroupByIfNeeded();
         if (nestedGroupByValue) return nestedGroupByValue;
 
@@ -1365,8 +1355,9 @@ export class DruidExternal extends External {
           context: requesterContext,
           postTransform: External.valuePostTransformFactory(),
         };
+      }
 
-      case 'total':
+      case 'total': {
         const nestedGroupByTotal = this.nestedGroupByIfNeeded();
         if (nestedGroupByTotal) return nestedGroupByTotal;
 
@@ -1395,24 +1386,25 @@ export class DruidExternal extends External {
             applies,
           ),
         };
+      }
 
-      case 'split':
+      case 'split': {
         const nestedGroupBy = this.nestedGroupByIfNeeded();
         if (nestedGroupBy) return nestedGroupBy;
 
         // Split
-        let split = this.getQuerySplit();
-        let splitSpec = this.splitToDruid(split);
+        const split = this.getQuerySplit();
+        const splitSpec = this.splitToDruid(split);
         druidQuery.queryType = splitSpec.queryType;
         druidQuery.granularity = splitSpec.granularity;
         if (splitSpec.virtualColumns && splitSpec.virtualColumns.length)
           druidQuery.virtualColumns = splitSpec.virtualColumns;
         if (splitSpec.dimension) druidQuery.dimension = splitSpec.dimension;
         if (splitSpec.dimensions) druidQuery.dimensions = splitSpec.dimensions;
-        let leftoverHavingFilter = splitSpec.leftoverHavingFilter;
-        let timestampLabel = splitSpec.timestampLabel;
+        const leftoverHavingFilter = splitSpec.leftoverHavingFilter;
+        const timestampLabel = splitSpec.timestampLabel;
         requesterContext.timestamp = timestampLabel;
-        let postTransform = splitSpec.postTransform;
+        const postTransform = splitSpec.postTransform;
 
         // Apply
         aggregationsAndPostAggregations = new DruidAggregationBuilder(
@@ -1447,7 +1439,7 @@ export class DruidExternal extends External {
             }
             break;
 
-          case 'topN':
+          case 'topN': {
             let metric: Druid.TopNMetricSpec;
             if (sort) {
               let inverted: boolean;
@@ -1472,11 +1464,12 @@ export class DruidExternal extends External {
             druidQuery.metric = metric;
             druidQuery.threshold = limit ? limit.value : 1000;
             break;
+          }
 
-          case 'groupBy':
+          case 'groupBy': {
             let orderByColumn: Druid.OrderByColumnSpecFull = null;
             if (sort) {
-              let col = sort.refName();
+              const col = sort.refName();
               orderByColumn = {
                 dimension: this.makeOutputName(col),
                 direction: sort.direction,
@@ -1507,6 +1500,7 @@ export class DruidExternal extends External {
               );
             }
             break;
+          }
         }
 
         return {
@@ -1514,6 +1508,7 @@ export class DruidExternal extends External {
           context: requesterContext,
           postTransform: postTransform,
         };
+      }
 
       default:
         throw new Error(`can not get query for: ${this.mode}`);

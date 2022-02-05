@@ -16,8 +16,10 @@
 
 import { Duration, Timezone } from 'chronoshift';
 import { NamedArray } from 'immutable-class';
+
 import { Attributes } from '../datatypes';
 import { PlyType } from '../types';
+
 import { SQLDialect } from './baseDialect';
 
 export interface DruidDialectOptions {
@@ -56,7 +58,7 @@ export class DruidDialect extends SQLDialect {
     DAY_OF_MONTH: "TIME_EXTRACT($$,'DAY',##)",
     DAY_OF_YEAR: "TIME_EXTRACT($$,'DOY',##)",
 
-    //WEEK_OF_MONTH: ???,
+    // WEEK_OF_MONTH: ???,
     WEEK_OF_YEAR: "TIME_EXTRACT($$,'WEEK',##)",
 
     MONTH_OF_YEAR: "TIME_EXTRACT($$,'MONTH',##)",
@@ -79,7 +81,7 @@ export class DruidDialect extends SQLDialect {
     },
   };
 
-  private attributes?: Attributes;
+  private readonly attributes?: Attributes;
 
   constructor(options: DruidDialectOptions = {}) {
     super();
@@ -147,7 +149,7 @@ export class DruidDialect extends SQLDialect {
   public castExpression(inputType: PlyType, operand: string, cast: string): string {
     if (inputType === cast) return operand;
     const castForInput = DruidDialect.CAST_TO_FUNCTION[cast];
-    let castFunction = castForInput[inputType || '_'] || castForInput['_'];
+    const castFunction = castForInput[inputType || '_'] || castForInput['_'];
     if (!castFunction) {
       throw new Error(`unsupported cast from ${inputType} to ${cast} in Druid dialect`);
     }
@@ -169,7 +171,7 @@ export class DruidDialect extends SQLDialect {
   }
 
   public timePartExpression(operand: string, part: string, timezone: Timezone): string {
-    let timePartFunction = DruidDialect.TIME_PART_TO_FUNCTION[part];
+    const timePartFunction = DruidDialect.TIME_PART_TO_FUNCTION[part];
     if (!timePartFunction) throw new Error(`unsupported part ${part} in Druid dialect`);
     return timePartFunction
       .replace(/\$\$/g, this.operandAsTimestamp(operand))

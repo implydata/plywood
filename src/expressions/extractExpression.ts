@@ -16,12 +16,13 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class ExtractExpression extends ChainableExpression {
   static op = 'Extract';
   static fromJS(parameters: ExpressionJS): ExtractExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.regexp = parameters.regexp;
     return new ExtractExpression(value);
   }
@@ -37,13 +38,13 @@ export class ExtractExpression extends ChainableExpression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.regexp = this.regexp;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.regexp = this.regexp;
     return js;
   }
@@ -52,13 +53,13 @@ export class ExtractExpression extends ChainableExpression {
     return super.equals(other) && this.regexp === other.regexp;
   }
 
-  protected _toStringParameters(indent?: int): string[] {
+  protected _toStringParameters(_indent?: int): string[] {
     return [this.regexp];
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
     if (!operandValue) return null;
-    let re = new RegExp(this.regexp);
+    const re = new RegExp(this.regexp);
     return Set.crossUnary(operandValue, a => (String(a).match(re) || [])[1] || null);
   }
 

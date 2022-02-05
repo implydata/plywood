@@ -16,10 +16,12 @@
 
 import { Duration, Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
+
 import { PlywoodValue } from '../datatypes/index';
 import { TimeRange } from '../datatypes/timeRange';
 import { SQLDialect } from '../dialect/baseDialect';
 import { pluralIfNeeded } from '../helper/utils';
+
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 import { HasTimezone } from './mixins/hasTimezone';
 
@@ -28,7 +30,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
 
   static op = 'TimeRange';
   static fromJS(parameters: ExpressionJS): TimeRangeExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
     value.step = parameters.step;
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
@@ -53,7 +55,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.duration = this.duration;
     value.step = this.step;
     if (this.timezone) value.timezone = this.timezone;
@@ -61,7 +63,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.duration = this.duration.toJS();
     js.step = this.step;
     if (this.timezone) js.timezone = this.timezone.toJS();
@@ -77,8 +79,8 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     );
   }
 
-  protected _toStringParameters(indent?: int): string[] {
-    let ret = [this.duration.toString(), this.step.toString()];
+  protected _toStringParameters(_indent?: int): string[] {
+    const ret = [this.duration.toString(), this.step.toString()];
     if (this.timezone) ret.push(Expression.safeString(this.timezone.toString()));
     return ret;
   }
@@ -90,12 +92,12 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
-    let duration = this.duration;
-    let step = this.step;
-    let timezone = this.getTimezone();
+    const duration = this.duration;
+    const step = this.step;
+    const timezone = this.getTimezone();
 
     if (operandValue === null) return null;
-    let other = duration.shift(operandValue, timezone, step);
+    const other = duration.shift(operandValue, timezone, step);
     if (step > 0) {
       return new TimeRange({ start: operandValue, end: other });
     } else {
@@ -103,7 +105,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     }
   }
 
-  protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
+  protected _getSQLChainableHelper(_dialect: SQLDialect, _operandSQL: string): string {
     throw new Error('implement me');
   }
 

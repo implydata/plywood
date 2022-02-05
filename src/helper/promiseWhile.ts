@@ -15,7 +15,7 @@
  */
 
 export function promiseWhile(condition: () => boolean, action: () => Promise<any>): Promise<any> {
-  let loop = (): Promise<any> => {
+  const loop = (): Promise<any> => {
     if (!condition()) return Promise.resolve(null);
     return Promise.resolve(action()).then(loop);
   };

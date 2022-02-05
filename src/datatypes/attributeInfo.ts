@@ -17,9 +17,11 @@
 
 import * as hasOwnProp from 'has-own-prop';
 import { Class, immutableEqual, Instance, NamedArray } from 'immutable-class';
+
 import { Expression, ExpressionJS, RefExpression } from '../expressions';
 import { FullType, PlyType } from '../types';
-import { Range, PlywoodRange, PlywoodRangeJS } from './range';
+
+import { PlywoodRange, PlywoodRangeJS, Range } from './range';
 
 export type Attributes = AttributeInfo[];
 export type AttributeJSs = AttributeInfoJS[];
@@ -46,7 +48,6 @@ export interface AttributeInfoJS {
   termsDelegate?: string;
 }
 
-let check: Class<AttributeInfoValue, AttributeInfoJS>;
 export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfoJS> {
   static isAttributeInfo(candidate: any): candidate is AttributeInfo {
     return candidate instanceof AttributeInfo;
@@ -63,7 +64,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
       throw new Error('unrecognizable attributeMeta');
     }
 
-    let value: AttributeInfoValue = {
+    const value: AttributeInfoValue = {
       name: parameters.name,
     };
     if (parameters.type) value.type = parameters.type;
@@ -76,7 +77,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
     value.nativeType = nativeType;
     if (parameters.unsplitable) value.unsplitable = true;
 
-    let maker = parameters.maker || (parameters as any).makerAction;
+    const maker = parameters.maker || (parameters as any).makerAction;
     if (maker) value.maker = Expression.fromJS(maker);
     if (parameters.cardinality) value.cardinality = parameters.cardinality;
     if (parameters.range) value.range = Range.fromJS(parameters.range);
@@ -125,7 +126,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public toString(): string {
-    let nativeType = this.nativeType ? `[${this.nativeType}]` : '';
+    const nativeType = this.nativeType ? `[${this.nativeType}]` : '';
     return `${this.name}::${this.type}${nativeType}`;
   }
 
@@ -143,7 +144,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public toJS(): AttributeInfoJS {
-    let js: AttributeInfoJS = {
+    const js: AttributeInfoJS = {
       name: this.name,
       type: this.type,
     };
@@ -175,7 +176,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public dropOriginInfo(): AttributeInfo {
-    let value = this.valueOf();
+    const value = this.valueOf();
     delete value.maker;
     delete value.nativeType;
     value.unsplitable = false;
@@ -193,7 +194,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public change(propertyName: string, newValue: any): AttributeInfo {
-    let v = this.valueOf();
+    const v = this.valueOf();
 
     if (!hasOwnProp(v, propertyName)) {
       throw new Error(`Unknown property: ${propertyName}`);
@@ -208,7 +209,7 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public changeType(type: PlyType): AttributeInfo {
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.type = type;
     return new AttributeInfo(value);
   }
@@ -218,15 +219,17 @@ export class AttributeInfo implements Instance<AttributeInfoValue, AttributeInfo
   }
 
   public changeUnsplitable(unsplitable: boolean): AttributeInfo {
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.unsplitable = unsplitable;
     return new AttributeInfo(value);
   }
 
   public changeRange(range: PlywoodRange): AttributeInfo {
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.range = range;
     return new AttributeInfo(value);
   }
 }
-check = AttributeInfo;
+
+// eslint-disable-next-line unused-imports/no-unused-vars
+const check: Class<AttributeInfoValue, AttributeInfoJS> = AttributeInfo;
