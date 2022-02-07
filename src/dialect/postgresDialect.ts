@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Duration, Timezone } from 'chronoshift';
+import type { Duration, Timezone } from 'chronoshift';
 
 import { PlyType } from '../types';
 

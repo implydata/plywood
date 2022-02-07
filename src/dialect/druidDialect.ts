@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Duration, Timezone } from 'chronoshift';
+import type { Duration, Timezone } from 'chronoshift';
 import { NamedArray } from 'immutable-class';
 
 import { Attributes } from '../datatypes';
