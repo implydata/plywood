@@ -1,9 +1,5 @@
 # Change Log
 
-## 0.26.10
-
-- `Updated druid-query-toolkit` from `0.13.2` to `0.14.10`
-
 ## 0.26.9
 
 - Simplify an external with a FALSE filter to an empty dataset without querying it
