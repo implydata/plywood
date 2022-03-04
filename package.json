@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "chronoshift": "^0.9.4",
-    "druid-query-toolkit": "^0.13.2",
+    "druid-query-toolkit": "^0.14.10",
     "druid.d.ts": "^0.12.1",
     "has-own-prop": "^1.0.1",
     "immutable-class": "^0.9.4",
