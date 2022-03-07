@@ -18,16 +18,14 @@
 import { Datum, PlywoodValue } from '../datatypes/index';
 import { ComputeOptions, Expression } from '../expressions/baseExpression';
 
-export interface Executor {
-  (ex: Expression, opt?: ComputeOptions): Promise<PlywoodValue>;
-}
+export type Executor = (ex: Expression, opt?: ComputeOptions) => Promise<PlywoodValue>;
 
 export interface BasicExecutorParameters {
   datasets: Datum;
 }
 
 export function basicExecutorFactory(parameters: BasicExecutorParameters): Executor {
-  let datasets = parameters.datasets;
+  const datasets = parameters.datasets;
   return (ex: Expression, opt: ComputeOptions = {}) => {
     return ex.compute(datasets, opt);
   };

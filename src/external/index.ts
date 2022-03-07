@@ -15,8 +15,8 @@
  */
 
 export * from './baseExternal';
-export * from './sqlExternal';
+export * from './druidExternal';
 export * from './mySqlExternal';
 export * from './postgresExternal';
+export * from './sqlExternal';
 export * from './utils/druidTypes';
-export * from './druidExternal';

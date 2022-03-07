@@ -16,8 +16,10 @@
 
 import { Duration, Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
+
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 import { HasTimezone } from './mixins/hasTimezone';
 
@@ -26,7 +28,7 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
 
   static op = 'TimeShift';
   static fromJS(parameters: ExpressionJS): TimeShiftExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
     value.step = parameters.step;
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
@@ -51,7 +53,7 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.duration = this.duration;
     value.step = this.step;
     if (this.timezone) value.timezone = this.timezone;
@@ -59,7 +61,7 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.duration = this.duration.toJS();
     js.step = this.step;
     if (this.timezone) js.timezone = this.timezone.toJS();
@@ -75,8 +77,8 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
     );
   }
 
-  protected _toStringParameters(indent?: int): string[] {
-    let ret = [this.duration.toString(), this.step.toString()];
+  protected _toStringParameters(_indent?: int): string[] {
+    const ret = [this.duration.toString(), this.step.toString()];
     if (this.timezone) ret.push(Expression.safeString(this.timezone.toString()));
     return ret;
   }
@@ -91,7 +93,7 @@ export class TimeShiftExpression extends ChainableExpression implements HasTimez
 
   protected changeStep(step: int): Expression {
     if (this.step === step) return this;
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.step = step;
     return new TimeShiftExpression(value);
   }

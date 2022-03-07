@@ -16,6 +16,7 @@
 
 import { Dataset, Datum, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 
@@ -33,7 +34,7 @@ export class CountExpression extends ChainableExpression implements Aggregate {
   }
 
   public calc(datum: Datum): PlywoodValue {
-    let inV = this.operand.calc(datum);
+    const inV = this.operand.calc(datum);
     return inV ? (inV as Dataset).count() : 0;
   }
 

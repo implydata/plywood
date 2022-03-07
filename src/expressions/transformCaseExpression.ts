@@ -16,6 +16,7 @@
 
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import {
   CaseType,
   ChainableExpression,
@@ -30,7 +31,7 @@ export class TransformCaseExpression extends ChainableExpression {
 
   static op = 'TransformCase';
   static fromJS(parameters: ExpressionJS): TransformCaseExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.transformType = parameters.transformType;
     return new TransformCaseExpression(value);
   }
@@ -39,7 +40,7 @@ export class TransformCaseExpression extends ChainableExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    let transformType = parameters.transformType;
+    const transformType = parameters.transformType;
     if (
       transformType !== TransformCaseExpression.UPPER_CASE &&
       transformType !== TransformCaseExpression.LOWER_CASE
@@ -55,13 +56,13 @@ export class TransformCaseExpression extends ChainableExpression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.transformType = this.transformType;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.transformType = this.transformType;
     return js;
   }

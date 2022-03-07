@@ -17,13 +17,14 @@
 import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { DatasetFullType } from '../types';
+
 import { ApplyExpression } from './applyExpression';
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class SelectExpression extends ChainableExpression {
   static op = 'Select';
   static fromJS(parameters: ExpressionJS): SelectExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.attributes = parameters.attributes;
     return new SelectExpression(value);
   }
@@ -39,13 +40,13 @@ export class SelectExpression extends ChainableExpression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.attributes = this.attributes;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.attributes = this.attributes;
     return js;
   }
@@ -54,16 +55,16 @@ export class SelectExpression extends ChainableExpression {
     return super.equals(other) && String(this.attributes) === String(other.attributes);
   }
 
-  protected _toStringParameters(indent?: int): string[] {
+  protected _toStringParameters(_indent?: int): string[] {
     return this.attributes;
   }
 
   public updateTypeContext(typeContext: DatasetFullType): DatasetFullType {
     const { attributes } = this;
     const { datasetType, parent } = typeContext;
-    let newDatasetType = Object.create(null);
-    for (let attr of attributes) {
-      let attrType = datasetType[attr];
+    const newDatasetType = Object.create(null);
+    for (const attr of attributes) {
+      const attrType = datasetType[attr];
       if (!attrType) throw new Error(`unknown attribute '${attr}' in select`);
       newDatasetType[attr] = attrType;
     }
@@ -78,7 +79,7 @@ export class SelectExpression extends ChainableExpression {
     return operandValue ? (operandValue as Dataset).select(this.attributes) : null;
   }
 
-  protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
+  protected _getSQLChainableHelper(_dialect: SQLDialect, _operandSQL: string): string {
     throw new Error('can not be expressed as SQL directly');
   }
 

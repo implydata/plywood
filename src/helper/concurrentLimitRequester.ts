@@ -17,6 +17,7 @@
 
 import { DatabaseRequest, PlywoodRequester } from 'plywood-base-api';
 import { PassThrough } from 'readable-stream';
+
 import { pipeWithError } from './utils';
 
 export interface ConcurrentLimitRequesterParameters<T> {
@@ -32,19 +33,19 @@ interface QueueItem<T> {
 export function concurrentLimitRequesterFactory<T>(
   parameters: ConcurrentLimitRequesterParameters<T>,
 ): PlywoodRequester<T> {
-  let requester = parameters.requester;
-  let concurrentLimit = parameters.concurrentLimit || 5;
+  const requester = parameters.requester;
+  const concurrentLimit = parameters.concurrentLimit || 5;
 
   if (typeof concurrentLimit !== 'number')
     throw new TypeError('concurrentLimit should be a number');
 
-  let requestQueue: QueueItem<T>[] = [];
+  const requestQueue: QueueItem<T>[] = [];
   let outstandingRequests: int = 0;
 
   function requestFinished(): void {
     outstandingRequests--;
     if (!(requestQueue.length && outstandingRequests < concurrentLimit)) return;
-    let queueItem = requestQueue.shift();
+    const queueItem = requestQueue.shift();
     outstandingRequests++;
 
     const stream = requester(queueItem.request);

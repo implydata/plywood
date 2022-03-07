@@ -16,12 +16,13 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
 export class SubstrExpression extends ChainableExpression {
   static op = 'Substr';
   static fromJS(parameters: ExpressionJS): SubstrExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.position = parameters.position;
     value.len = parameters.len || (parameters as any).length;
     return new SubstrExpression(value);
@@ -40,14 +41,14 @@ export class SubstrExpression extends ChainableExpression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.position = this.position;
     value.len = this.len;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.position = this.position;
     js.len = this.len;
     return js;
@@ -57,7 +58,7 @@ export class SubstrExpression extends ChainableExpression {
     return super.equals(other) && this.position === other.position && this.len === other.len;
   }
 
-  protected _toStringParameters(indent?: int): string[] {
+  protected _toStringParameters(_indent?: int): string[] {
     return [String(this.position), String(this.len)];
   }
 

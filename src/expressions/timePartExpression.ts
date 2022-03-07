@@ -17,15 +17,17 @@
 import { Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
 import * as moment from 'moment-timezone';
+
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 import { HasTimezone } from './mixins/hasTimezone';
 
 export class TimePartExpression extends ChainableExpression implements HasTimezone {
   static op = 'TimePart';
   static fromJS(parameters: ExpressionJS): TimePartExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.part = parameters.part;
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
     return new TimePartExpression(value);
@@ -113,14 +115,14 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.part = this.part;
     if (this.timezone) value.timezone = this.timezone;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.part = this.part;
     if (this.timezone) js.timezone = this.timezone.toJS();
     return js;
@@ -134,15 +136,15 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
     );
   }
 
-  protected _toStringParameters(indent?: int): string[] {
-    let ret = [this.part];
+  protected _toStringParameters(_indent?: int): string[] {
+    const ret = [this.part];
     if (this.timezone) ret.push(Expression.safeString(this.timezone.toString()));
     return ret;
   }
 
   protected _calcChainableHelper(operandValue: any): PlywoodValue {
     const { part } = this;
-    let parter = TimePartExpression.PART_TO_FUNCTION[part];
+    const parter = TimePartExpression.PART_TO_FUNCTION[part];
     if (!parter) throw new Error(`unsupported part '${part}'`);
 
     if (!operandValue) return null;
@@ -154,7 +156,7 @@ export class TimePartExpression extends ChainableExpression implements HasTimezo
   }
 
   public maxPossibleSplitValues(): number {
-    let maxValue = TimePartExpression.PART_TO_MAX_VALUES[this.part];
+    const maxValue = TimePartExpression.PART_TO_MAX_VALUES[this.part];
     if (!maxValue) return Infinity;
     return maxValue + 1; // +1 for null
   }

@@ -18,36 +18,29 @@ import * as hasOwnProp from 'has-own-prop';
 import { NamedArray } from 'immutable-class';
 
 import { AttributeInfo } from '../../datatypes/index';
-
 import {
   $,
-  AbsoluteExpression,
   AddExpression,
   ApplyExpression,
   CastExpression,
-  ChainableUnaryExpression,
   ConcatExpression,
   CountDistinctExpression,
   CountExpression,
   CustomAggregateExpression,
   DivideExpression,
   Expression,
-  FallbackExpression,
   FilterExpression,
-  IndexOfExpression,
   LiteralExpression,
   MaxExpression,
   MinExpression,
   MultiplyExpression,
-  PowerExpression,
   QuantileExpression,
   RefExpression,
   SubtractExpression,
   SumExpression,
-  TransformCaseExpression,
 } from '../../expressions';
-
 import { External } from '../baseExternal';
+
 import { DruidExpressionBuilder } from './druidExpressionBuilder';
 import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
 import { DruidFilterBuilder } from './druidFilterBuilder';
@@ -121,7 +114,7 @@ export class DruidAggregationBuilder {
   public makeAggregationsAndPostAggregations(
     applies: ApplyExpression[],
   ): AggregationsAndPostAggregations {
-    let { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(
+    const { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies(
       applies.map(apply => {
         let expression = apply.expression;
         expression = this.switchToRollupCount(
@@ -131,14 +124,14 @@ export class DruidAggregationBuilder {
       }),
     );
 
-    let aggregations: Druid.Aggregation[] = [];
-    let postAggregations: Druid.PostAggregation[] = [];
+    const aggregations: Druid.Aggregation[] = [];
+    const postAggregations: Druid.PostAggregation[] = [];
 
-    for (let aggregateApply of aggregateApplies) {
+    for (const aggregateApply of aggregateApplies) {
       this.applyToAggregation(aggregateApply, aggregations, postAggregations);
     }
 
-    for (let postAggregateApply of postAggregateApplies) {
+    for (const postAggregateApply of postAggregateApplies) {
       this.applyToPostAggregation(postAggregateApply, aggregations, postAggregations);
     }
 
@@ -162,7 +155,7 @@ export class DruidAggregationBuilder {
     aggregations: Druid.Aggregation[],
     postAggregations: Druid.PostAggregation[],
   ): void {
-    let postAgg = this.expressionToPostAggregation(
+    const postAgg = this.expressionToPostAggregation(
       apply.expression,
       aggregations,
       postAggregations,
@@ -240,10 +233,10 @@ export class DruidAggregationBuilder {
 
     let aggregation: Druid.Aggregation;
 
-    let aggregateExpression = expression.expression;
+    const aggregateExpression = expression.expression;
     if (aggregateExpression instanceof RefExpression) {
-      let refName = aggregateExpression.name;
-      let attributeInfo = this.getAttributesInfo(refName);
+      const refName = aggregateExpression.name;
+      const attributeInfo = this.getAttributesInfo(refName);
       if (attributeInfo.nativeType === 'STRING') {
         aggregation = {
           name,
@@ -297,12 +290,12 @@ export class DruidAggregationBuilder {
     }
 
     let aggregation: Druid.Aggregation;
-    let attribute = expression.expression;
+    const attribute = expression.expression;
     const forceFinalize: boolean = expression.getOptions().forceFinalize;
     if (attribute instanceof RefExpression) {
-      let attributeName = attribute.name;
+      const attributeName = attribute.name;
 
-      let attributeInfo = this.getAttributesInfo(attributeName);
+      const attributeInfo = this.getAttributesInfo(attributeName);
       let tempName: string;
       switch (attributeInfo.nativeType) {
         case 'hyperUnique':
@@ -372,7 +365,7 @@ export class DruidAggregationBuilder {
           break;
       }
     } else {
-      let cardinalityExpressions = this.getCardinalityExpressions(attribute);
+      const cardinalityExpressions = this.getCardinalityExpressions(attribute);
 
       let druidExtractionFnBuilder: DruidExtractionFnBuilder;
       aggregation = {
@@ -404,17 +397,18 @@ export class DruidAggregationBuilder {
     aggregations: Druid.Aggregation[],
     postAggregations: Druid.PostAggregation[],
   ): void {
-    let customAggregationName = expression.custom;
-    let customAggregation = this.customAggregations[customAggregationName];
+    const customAggregationName = expression.custom;
+    const customAggregation = this.customAggregations[customAggregationName];
     if (!customAggregation) throw new Error(`could not find '${customAggregationName}'`);
 
-    let nonce = String(Math.random()).substr(2);
+    const nonce = String(Math.random()).substr(2);
 
-    let aggregationObjs = (Array.isArray(customAggregation.aggregations)
-      ? customAggregation.aggregations
-      : customAggregation.aggregation
-      ? [customAggregation.aggregation]
-      : []
+    let aggregationObjs = (
+      Array.isArray(customAggregation.aggregations)
+        ? customAggregation.aggregations
+        : customAggregation.aggregation
+        ? [customAggregation.aggregation]
+        : []
     ).map(a => {
       try {
         return JSON.parse(JSON.stringify(a).replace(/\{\{random\}\}/g, nonce));
@@ -456,7 +450,7 @@ export class DruidAggregationBuilder {
       throw new Error('approximate query not allowed');
     }
 
-    let attribute = expression.expression;
+    const attribute = expression.expression;
     let attributeName: string;
     if (attribute instanceof RefExpression) {
       attributeName = attribute.name;
@@ -466,7 +460,7 @@ export class DruidAggregationBuilder {
 
     const tuning = Expression.parseTuning(expression.tuning);
     const addTuningsToAggregation = (aggregation: Druid.Aggregation, tuningKeys: string[]) => {
-      for (let k of tuningKeys) {
+      for (const k of tuningKeys) {
         if (!isNaN(tuning[k] as any)) {
           (aggregation as any)[k] = Number(tuning[k]);
         }
@@ -562,10 +556,10 @@ export class DruidAggregationBuilder {
     if (aggregationType === 'hyperUnique' || aggregationType === 'cardinality')
       return 'hyperUniqueCardinality';
 
-    let customAggregations = this.customAggregations;
-    for (let customName in customAggregations) {
+    const customAggregations = this.customAggregations;
+    for (const customName in customAggregations) {
       if (!hasOwnProp(customAggregations, customName)) continue;
-      let customAggregation = customAggregations[customName];
+      const customAggregation = customAggregations[customName];
       if (
         (customAggregation.aggregation && customAggregation.aggregation.type === aggregationType) ||
         (Array.isArray(customAggregation.aggregations) &&
@@ -578,7 +572,7 @@ export class DruidAggregationBuilder {
   }
 
   private getAccessType(aggregations: Druid.Aggregation[], aggregationName: string): string {
-    for (let aggregation of aggregations) {
+    for (const aggregation of aggregations) {
       if (aggregation.name === aggregationName) {
         let aggregationType = aggregation.type;
         if (aggregationType === 'filtered') aggregationType = aggregation.aggregator.type;
@@ -611,7 +605,7 @@ export class DruidAggregationBuilder {
     postAggregations: Druid.PostAggregation[],
   ): Druid.PostAggregation {
     if (ex instanceof RefExpression) {
-      let refName = ex.name;
+      const refName = ex.name;
       return {
         type: this.getAccessType(aggregations, refName),
         fieldName: refName,
@@ -674,8 +668,8 @@ export class DruidAggregationBuilder {
 
   private getRollupCountName(): string {
     const { rawAttributes } = this;
-    for (let attribute of rawAttributes) {
-      let maker = attribute.maker;
+    for (const attribute of rawAttributes) {
+      const maker = attribute.maker;
       if (maker && maker.op === 'count') return attribute.name;
     }
     throw new Error(`could not find rollup count`);

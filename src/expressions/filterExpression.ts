@@ -16,6 +16,7 @@
 
 import { Dataset, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import { ApplyExpression } from './applyExpression';
 import {
   ChainableUnaryExpression,
@@ -23,7 +24,6 @@ import {
   ExpressionJS,
   ExpressionValue,
 } from './baseExpression';
-import { LiteralExpression } from './literalExpression';
 import { RefExpression } from './refExpression';
 import { SortExpression } from './sortExpression';
 import { SplitExpression } from './splitExpression';
@@ -31,7 +31,7 @@ import { SplitExpression } from './splitExpression';
 export class FilterExpression extends ChainableUnaryExpression {
   static op = 'Filter';
   static fromJS(parameters: ExpressionJS): FilterExpression {
-    let value = ChainableUnaryExpression.jsToValue(parameters);
+    const value = ChainableUnaryExpression.jsToValue(parameters);
     return new FilterExpression(value);
   }
 
@@ -42,7 +42,7 @@ export class FilterExpression extends ChainableUnaryExpression {
     this.type = 'DATASET';
   }
 
-  protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
+  protected _calcChainableUnaryHelper(operandValue: any, _expressionValue: any): PlywoodValue {
     return operandValue ? (operandValue as Dataset).filter(this.expression) : null;
   }
 

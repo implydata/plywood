@@ -15,6 +15,7 @@
  */
 
 import { Timezone } from 'chronoshift';
+
 import { Environment } from '../../types';
 import { Expression, ExpressionValue } from '../baseExpression';
 
@@ -29,7 +30,7 @@ export class HasTimezone {
 
   public changeTimezone(timezone: Timezone): Expression {
     if (timezone.equals(this.timezone)) return this as any;
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.timezone = timezone;
     return Expression.fromValue(value);
   }

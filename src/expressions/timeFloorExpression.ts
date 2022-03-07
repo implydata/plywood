@@ -16,8 +16,10 @@
 
 import { Duration, Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
+
 import { PlywoodValue, Set, TimeRange } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 import { HasTimezone } from './mixins/hasTimezone';
 import { OverlapExpression } from './overlapExpression';
@@ -26,7 +28,7 @@ import { TimeBucketExpression } from './timeBucketExpression';
 export class TimeFloorExpression extends ChainableExpression implements HasTimezone {
   static op = 'TimeFloor';
   static fromJS(parameters: ExpressionJS): TimeFloorExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
     return new TimeFloorExpression(value);
@@ -37,7 +39,7 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    let duration = parameters.duration;
+    const duration = parameters.duration;
     this.duration = duration;
     this.timezone = parameters.timezone;
     this._ensureOp('timeFloor');
@@ -53,14 +55,14 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.duration = this.duration;
     if (this.timezone) value.timezone = this.timezone;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.duration = this.duration.toJS();
     if (this.timezone) js.timezone = this.timezone.toJS();
     return js;
@@ -74,8 +76,8 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
     );
   }
 
-  protected _toStringParameters(indent?: int): string[] {
-    let ret = [this.duration.toString()];
+  protected _toStringParameters(_indent?: int): string[] {
+    const ret = [this.duration.toString()];
     if (this.timezone) ret.push(Expression.safeString(this.timezone.toString()));
     return ret;
   }
@@ -97,7 +99,7 @@ export class TimeFloorExpression extends ChainableExpression implements HasTimez
     }
 
     if (ex instanceof OverlapExpression) {
-      let literal = ex.expression.getLiteralValue();
+      const literal = ex.expression.getLiteralValue();
       if (literal instanceof TimeRange) {
         return literal.isAligned(duration, timezone);
       } else if (literal instanceof Set) {

@@ -16,6 +16,7 @@
 
 import { PlywoodValue, Range, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import {
   ChainableUnaryExpression,
   Expression,
@@ -45,8 +46,8 @@ export class InExpression extends ChainableUnaryExpression {
     super(parameters, dummyObject);
     this._ensureOp('in');
 
-    let operandType = this.operand.type;
-    let expression = this.expression;
+    const operandType = this.operand.type;
+    const expression = this.expression;
     if (operandType) {
       if (
         !(
@@ -56,8 +57,9 @@ export class InExpression extends ChainableUnaryExpression {
         )
       ) {
         throw new TypeError(
-          `in expression ${this} has a bad type combination ${operandType} IN ${expression.type ||
-            '*'}`,
+          `in expression ${this} has a bad type combination ${operandType} IN ${
+            expression.type || '*'
+          }`,
         );
       }
     } else {
@@ -77,13 +79,13 @@ export class InExpression extends ChainableUnaryExpression {
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
     if (!expressionValue) return null;
-    return (<any>expressionValue).contains(operandValue);
+    return expressionValue.contains(operandValue);
   }
 
   protected _getSQLChainableUnaryHelper(
-    dialect: SQLDialect,
-    operandSQL: string,
-    expressionSQL: string,
+    _dialect: SQLDialect,
+    _operandSQL: string,
+    _expressionSQL: string,
   ): string {
     throw new Error(`can not convert action to SQL ${this}`);
   }

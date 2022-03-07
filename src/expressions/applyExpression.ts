@@ -18,6 +18,7 @@ import { Dataset, Datum, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 import { indentBy } from '../helper/utils';
 import { DatasetFullType } from '../types';
+
 import {
   ChainableUnaryExpression,
   Expression,
@@ -32,7 +33,7 @@ import { RefExpression } from './refExpression';
 export class ApplyExpression extends ChainableUnaryExpression {
   static op = 'Apply';
   static fromJS(parameters: ExpressionJS): ApplyExpression {
-    let value = ChainableUnaryExpression.jsToValue(parameters);
+    const value = ChainableUnaryExpression.jsToValue(parameters);
     value.name = parameters.name;
     return new ApplyExpression(value);
   }
@@ -48,13 +49,13 @@ export class ApplyExpression extends ChainableUnaryExpression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.name = this.name;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.name = this.name;
     return js;
   }
@@ -83,7 +84,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
     } else {
       param = this._toStringParameters(indent).join(',');
     }
-    let actionStr = indentBy(`  .apply(${param})`, indent);
+    const actionStr = indentBy(`  .apply(${param})`, indent);
     return `${this.operand.toString(indent)}\n${actionStr}`;
   }
 
@@ -92,12 +93,12 @@ export class ApplyExpression extends ChainableUnaryExpression {
   }
 
   public changeName(name: string): ApplyExpression {
-    let value = this.valueOf();
+    const value = this.valueOf();
     value.name = name;
     return new ApplyExpression(value);
   }
 
-  protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
+  protected _calcChainableUnaryHelper(operandValue: any, _expressionValue: any): PlywoodValue {
     if (!operandValue) return null;
     const { name, expression } = this;
     return (operandValue as Dataset).apply(name, expression);
@@ -142,8 +143,8 @@ export class ApplyExpression extends ChainableUnaryExpression {
     if (dataset instanceof Dataset && expression.resolved()) {
       // Omg mega hack:
       // Ensure that non of the free references in this expression are to be resolved with chain expressions
-      let freeReferences = expression.getFreeReferences();
-      let datum = dataset.data[0];
+      const freeReferences = expression.getFreeReferences();
+      const datum = dataset.data[0];
       if (
         datum &&
         freeReferences.some(freeReference => datum[freeReference] instanceof Expression)
@@ -154,7 +155,7 @@ export class ApplyExpression extends ChainableUnaryExpression {
       dataset = dataset.applyFn(
         name,
         (d: Datum): any => {
-          let simp = expression.resolve(d, 'null').simplify();
+          const simp = expression.resolve(d, 'null').simplify();
           if (simp instanceof ExternalExpression) return simp.external;
           if (simp instanceof LiteralExpression) return simp.value;
           return simp;

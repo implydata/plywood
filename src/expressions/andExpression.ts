@@ -16,6 +16,7 @@
 
 import { PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import {
   ChainableUnaryExpression,
   Expression,
@@ -52,7 +53,7 @@ export class AndExpression extends ChainableUnaryExpression {
     )
       return null;
 
-    let intersect = Set.intersectCover(rhs1.getLiteralValue(), rhs2.getLiteralValue());
+    const intersect = Set.intersectCover(rhs1.getLiteralValue(), rhs2.getLiteralValue());
     if (intersect === null) return null;
 
     return lhs1.overlap(r(intersect)).simplify();
@@ -93,17 +94,17 @@ export class AndExpression extends ChainableUnaryExpression {
     if (expression.equals(Expression.TRUE)) return operand;
 
     if (operand instanceof AndExpression) {
-      let andExpressions = operand.getExpressionList();
+      const andExpressions = operand.getExpressionList();
       for (let i = 0; i < andExpressions.length; i++) {
-        let andExpression = andExpressions[i];
-        let mergedExpression = AndExpression.merge(andExpression, expression);
+        const andExpression = andExpressions[i];
+        const mergedExpression = AndExpression.merge(andExpression, expression);
         if (mergedExpression) {
           andExpressions[i] = mergedExpression;
           return Expression.and(andExpressions).simplify();
         }
       }
     } else {
-      let mergedExpression = AndExpression.merge(operand, expression);
+      const mergedExpression = AndExpression.merge(operand, expression);
       if (mergedExpression) return mergedExpression;
     }
 
@@ -115,9 +116,9 @@ export class AndExpression extends ChainableUnaryExpression {
 
     const andExpressions = this.getExpressionList();
 
-    let includedExpressions: Expression[] = [];
-    let excludedExpressions: Expression[] = [];
-    for (let ex of andExpressions) {
+    const includedExpressions: Expression[] = [];
+    const excludedExpressions: Expression[] = [];
+    for (const ex of andExpressions) {
       if (matchFn(ex)) {
         includedExpressions.push(ex);
       } else {

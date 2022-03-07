@@ -25,9 +25,7 @@ import {
   Set,
   TimeRange,
 } from '../../datatypes/index';
-
 import {
-  r,
   AndExpression,
   ContainsExpression,
   Expression,
@@ -37,10 +35,10 @@ import {
   NotExpression,
   OrExpression,
   OverlapExpression,
+  r,
   RefExpression,
 } from '../../expressions';
 
-import { External } from '../baseExternal';
 import { DruidExpressionBuilder } from './druidExpressionBuilder';
 import { DruidExtractionFnBuilder } from './druidExtractionFnBuilder';
 import { CustomDruidTransforms } from './druidTypes';
@@ -166,7 +164,7 @@ export class DruidFilterBuilder {
     } else if (filter instanceof OverlapExpression) {
       const { operand: lhs, expression: rhs } = filter;
       if (rhs instanceof LiteralExpression) {
-        let rhsType = rhs.type;
+        const rhsType = rhs.type;
         if (rhsType === 'SET/STRING' || rhsType === 'SET/NUMBER' || rhsType === 'SET/NULL') {
           return this.makeInFilter(lhs, rhs.value);
         } else if (Set.unwrapSetType(rhsType) === 'TIME_RANGE' && this.isTimeRef(lhs)) {
@@ -226,7 +224,7 @@ export class DruidFilterBuilder {
 
   // Makes a filter of (ex = value) or (value in ex) which are the same in Druid
   private makeSelectorFilter(ex: Expression, value: any): Druid.Filter {
-    let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+    const attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     if (!attributeInfo) {
       return this.makeExpressionFilter(ex.is(r(value)));
     }
@@ -247,7 +245,7 @@ export class DruidFilterBuilder {
     // Kill range
     if (value instanceof Range) value = value.start;
 
-    let druidFilter: Druid.Filter = {
+    const druidFilter: Druid.Filter = {
       type: 'selector',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
       value,
@@ -257,11 +255,11 @@ export class DruidFilterBuilder {
   }
 
   private makeInFilter(ex: Expression, valueSet: Set): Druid.Filter {
-    let elements = valueSet.elements;
+    const elements = valueSet.elements;
 
-    let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+    const attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     if (!attributeInfo) {
-      let fields = elements.map((value: string) => {
+      const fields = elements.map((value: string) => {
         return this.makeSelectorFilter(ex, value);
       });
 
@@ -275,7 +273,7 @@ export class DruidFilterBuilder {
       return this.makeExpressionFilter(ex.is(r(valueSet)));
     }
 
-    let inFilter: Druid.Filter = {
+    const inFilter: Druid.Filter = {
       type: 'in',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
       values: elements,
@@ -285,11 +283,11 @@ export class DruidFilterBuilder {
   }
 
   private makeBoundFilter(ex: Expression, range: PlywoodRange): Druid.Filter {
-    let r0 = range.start;
-    let r1 = range.end;
-    let bounds = range.bounds;
+    const r0 = range.start;
+    const r1 = range.end;
+    const bounds = range.bounds;
 
-    let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+    const attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     if (!attributeInfo) {
       return this.makeExpressionFilter(ex.overlap(range));
     }
@@ -301,7 +299,7 @@ export class DruidFilterBuilder {
       return this.makeExpressionFilter(ex.overlap(range));
     }
 
-    let boundFilter: Druid.Filter = {
+    const boundFilter: Druid.Filter = {
       type: 'bound',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
     };
@@ -332,7 +330,7 @@ export class DruidFilterBuilder {
   }
 
   private makeIntervalFilter(ex: Expression, range: TimeRange | Set): Druid.Filter {
-    let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+    const attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     if (!attributeInfo) {
       return this.makeExpressionFilter(ex.overlap(range));
     }
@@ -345,7 +343,7 @@ export class DruidFilterBuilder {
     }
 
     const interval = this.valueToIntervals(range);
-    let intervalFilter: Druid.Filter = {
+    const intervalFilter: Druid.Filter = {
       type: 'interval',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
       intervals: Array.isArray(interval) ? interval : [interval],
@@ -355,7 +353,7 @@ export class DruidFilterBuilder {
   }
 
   private makeRegexFilter(ex: Expression, regex: string): Druid.Filter {
-    let attributeInfo = this.getSingleReferenceAttributeInfo(ex);
+    const attributeInfo = this.getSingleReferenceAttributeInfo(ex);
     if (!attributeInfo) {
       return this.makeExpressionFilter(ex.match(regex));
     }
@@ -367,7 +365,7 @@ export class DruidFilterBuilder {
       return this.makeExpressionFilter(ex.match(regex));
     }
 
-    let regexFilter: Druid.Filter = {
+    const regexFilter: Druid.Filter = {
       type: 'regex',
       dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
       pattern: regex,
@@ -378,7 +376,7 @@ export class DruidFilterBuilder {
 
   private makeContainsFilter(lhs: Expression, rhs: Expression, compare: string): Druid.Filter {
     if (rhs instanceof LiteralExpression) {
-      let attributeInfo = this.getSingleReferenceAttributeInfo(lhs);
+      const attributeInfo = this.getSingleReferenceAttributeInfo(lhs);
       if (!attributeInfo) {
         return this.makeExpressionFilter(lhs.contains(rhs, compare));
       }
@@ -401,7 +399,7 @@ export class DruidFilterBuilder {
         return this.makeExpressionFilter(lhs.contains(rhs, compare));
       }
 
-      let searchFilter: Druid.Filter = {
+      const searchFilter: Druid.Filter = {
         type: 'search',
         dimension: this.getDimensionNameForAttributeInfo(attributeInfo),
         query: {
@@ -418,7 +416,7 @@ export class DruidFilterBuilder {
   }
 
   private makeExpressionFilter(filter: Expression) {
-    let druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(filter);
+    const druidExpression = new DruidExpressionBuilder(this).expressionToDruidExpression(filter);
     if (druidExpression === null) {
       throw new Error(`could not convert ${filter} to Druid expression for filter`);
     }
@@ -430,9 +428,9 @@ export class DruidFilterBuilder {
   }
 
   private getSingleReferenceAttributeInfo(ex: Expression): AttributeInfo | null {
-    let freeReferences = ex.getFreeReferences();
+    const freeReferences = ex.getFreeReferences();
     if (freeReferences.length !== 1) return null;
-    let referenceName = freeReferences[0];
+    const referenceName = freeReferences[0];
     return this.getAttributesInfo(referenceName);
   }
 

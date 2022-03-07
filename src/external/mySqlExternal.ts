@@ -17,9 +17,11 @@
 
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
+
 import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes/index';
 import { MySQLDialect } from '../dialect/mySqlDialect';
 import { PlyType } from '../types';
+
 import { External, ExternalJS, ExternalValue } from './baseExternal';
 import { SQLExternal } from './sqlExternal';
 
@@ -33,16 +35,16 @@ export class MySQLExternal extends SQLExternal {
   static type = 'DATASET';
 
   static fromJS(parameters: ExternalJS, requester: PlywoodRequester<any>): MySQLExternal {
-    let value: ExternalValue = External.jsToValue(parameters, requester);
+    const value: ExternalValue = External.jsToValue(parameters, requester);
     return new MySQLExternal(value);
   }
 
   static postProcessIntrospect(columns: MySQLDescribeRow[]): Attributes {
     return columns
       .map((column: MySQLDescribeRow) => {
-        let name = column.Field;
+        const name = column.Field;
         let type: PlyType;
-        let nativeType = column.Type.toLowerCase();
+        const nativeType = column.Type.toLowerCase();
         if (nativeType === 'datetime' || nativeType === 'timestamp') {
           type = 'TIME';
         } else if (nativeType.indexOf('varchar(') === 0 || nativeType.indexOf('blob') === 0) {
@@ -73,7 +75,7 @@ export class MySQLExternal extends SQLExternal {
     return toArray(requester({ query: 'SHOW TABLES' })).then(sources => {
       if (!Array.isArray(sources)) throw new Error('invalid sources response');
       if (!sources.length) return sources;
-      let key = Object.keys(sources[0])[0];
+      const key = Object.keys(sources[0])[0];
       if (!key) throw new Error('invalid sources response (no key)');
       return sources.map((s: PseudoDatum) => s[key]).sort();
     });
@@ -82,7 +84,7 @@ export class MySQLExternal extends SQLExternal {
   static getVersion(requester: PlywoodRequester<any>): Promise<string> {
     return toArray(requester({ query: 'SELECT @@version' })).then(res => {
       if (!Array.isArray(res) || res.length !== 1) throw new Error('invalid version response');
-      let key = Object.keys(res[0])[0];
+      const key = Object.keys(res[0])[0];
       if (!key) throw new Error('invalid version response (no key)');
       return res[0][key];
     });

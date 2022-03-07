@@ -1,0 +1,18 @@
+{
+  "extends": "@awesome-code-style",
+  "parserOptions": {
+    "project": "tsconfig.json"
+  },
+  "rules": {
+    "header/header": [2, "block", { "pattern": "Copyright [0-9-]+ Imply Data, Inc\\." }, 2],
+    "@typescript-eslint/ban-types": [0],
+    "@typescript-eslint/consistent-type-assertions": [0],
+    "@typescript-eslint/no-unnecessary-boolean-literal-compare": [0],
+    "@typescript-eslint/prefer-includes": [0],
+    "@typescript-eslint/prefer-string-starts-ends-with": [0],
+    "@typescript-eslint/triple-slash-reference": [0],
+    "unicorn/filename-case": [0],
+    "max-classes-per-file": [0],
+    "no-useless-escape": [0]
+  }
+}

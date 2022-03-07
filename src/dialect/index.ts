@@ -15,6 +15,6 @@
  */
 
 export * from './baseDialect';
+export * from './druidDialect';
 export * from './mySqlDialect';
 export * from './postgresDialect';
-export * from './druidDialect';

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-export * from './range';
 export * from './attributeInfo';
 export * from './common';
 export * from './dataset';
-export * from './set';
 export * from './numberRange';
-export * from './timeRange';
+export * from './range';
+export * from './set';
 export * from './stringRange';
+export * from './timeRange';
 export * from './valueStream';

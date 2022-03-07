@@ -16,6 +16,7 @@
  */
 
 import { Class, Instance } from 'immutable-class';
+
 import { Range } from './range';
 
 export interface NumberRangeValue {
@@ -34,9 +35,10 @@ function finiteOrNull(n: number): number {
   return isNaN(n) || isFinite(n) ? n : null;
 }
 
-let check: Class<NumberRangeValue, NumberRangeJS>;
-export class NumberRange extends Range<number>
-  implements Instance<NumberRangeValue, NumberRangeJS> {
+export class NumberRange
+  extends Range<number>
+  implements Instance<NumberRangeValue, NumberRangeJS>
+{
   static type = 'NUMBER_RANGE';
 
   static isNumberRange(candidate: any): candidate is NumberRange {
@@ -44,7 +46,7 @@ export class NumberRange extends Range<number>
   }
 
   static numberBucket(num: number, size: number, offset: number): NumberRange {
-    let start = Math.floor((num - offset) / size) * size + offset;
+    const start = Math.floor((num - offset) / size) * size + offset;
     return new NumberRange({
       start: start,
       end: start + size,
@@ -60,8 +62,8 @@ export class NumberRange extends Range<number>
     if (typeof parameters !== 'object') {
       throw new Error('unrecognizable numberRange');
     }
-    let start = parameters.start;
-    let end = parameters.end;
+    const start = parameters.start;
+    const end = parameters.end;
     return new NumberRange({
       start: start === null ? null : finiteOrNull(Number(start)),
       end: end === null ? null : finiteOrNull(Number(end)),
@@ -85,7 +87,7 @@ export class NumberRange extends Range<number>
   }
 
   public toJS(): NumberRangeJS {
-    let js: NumberRangeJS = {
+    const js: NumberRangeJS = {
       start: this.start,
       end: this.end,
     };
@@ -111,5 +113,7 @@ export class NumberRange extends Range<number>
     });
   }
 }
-check = NumberRange;
+
+// eslint-disable-next-line unused-imports/no-unused-vars
+const check: Class<NumberRangeValue, NumberRangeJS> = NumberRange;
 Range.register(NumberRange);

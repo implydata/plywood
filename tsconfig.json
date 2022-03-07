@@ -3,6 +3,7 @@
     "noImplicitAny": true,
     "noEmitOnError": true,
     "declaration": true,
+    "declarationMap": true,
     "removeComments": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -16,8 +17,5 @@
     "outDir": "build",
     "moduleResolution": "node"
   },
-  "include": [
-    "typings/private.d.ts",
-    "src/**/*.ts"
-  ]
+  "include": ["typings/private.d.ts", "src"]
 }

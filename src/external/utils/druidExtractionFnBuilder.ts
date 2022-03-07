@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import { TimeRange } from '../../datatypes/index';
 import {
-  $,
   CastExpression,
-  ChainableUnaryExpression,
   ConcatExpression,
   CustomTransformExpression,
   Expression,
@@ -38,7 +35,6 @@ import {
   TransformCaseExpression,
 } from '../../expressions';
 
-import { External } from '../baseExternal';
 import { CustomDruidTransforms } from './druidTypes';
 
 export interface DruidExtractionFnBuilderOptions {
@@ -93,7 +89,7 @@ export class DruidExtractionFnBuilder {
   }
 
   public expressionToExtractionFn(expression: Expression): Druid.ExtractionFn | null {
-    let freeReferences = expression.getFreeReferences();
+    const freeReferences = expression.getFreeReferences();
     if (freeReferences.length > 1) {
       throw new Error(
         `must have at most 1 reference (has ${freeReferences.length}): ${expression}`,
@@ -159,8 +155,8 @@ export class DruidExtractionFnBuilder {
           map: {
             '0': 'false',
             '1': 'true',
-            false: 'false',
-            true: 'true',
+            'false': 'false',
+            'true': 'true',
           },
         },
       };
@@ -171,7 +167,7 @@ export class DruidExtractionFnBuilder {
 
   private concatToExtractionFn(expression: ConcatExpression): Druid.ExtractionFn | null {
     let innerExpression: Expression | null = null;
-    let format = expression
+    const format = expression
       .getExpressionList()
       .map(ex => {
         if (ex instanceof LiteralExpression) {
@@ -200,7 +196,7 @@ export class DruidExtractionFnBuilder {
     const { operand, duration } = expression;
     const timezone = expression.getTimezone();
 
-    let myExtractionFn: Druid.ExtractionFn = {
+    const myExtractionFn: Druid.ExtractionFn = {
       type: 'timeFormat',
       granularity: {
         type: 'period',
@@ -222,7 +218,7 @@ export class DruidExtractionFnBuilder {
     const timezone = expression.getTimezone();
 
     let myExtractionFn: Druid.ExtractionFn;
-    let format = DruidExtractionFnBuilder.TIME_PART_TO_FORMAT[part];
+    const format = DruidExtractionFnBuilder.TIME_PART_TO_FORMAT[part];
     if (format) {
       myExtractionFn = {
         type: 'timeFormat',
@@ -245,7 +241,7 @@ export class DruidExtractionFnBuilder {
   ): Druid.ExtractionFn | null {
     const { operand, size, offset } = expression;
 
-    let bucketExtractionFn: Druid.ExtractionFn = { type: 'bucket' };
+    const bucketExtractionFn: Druid.ExtractionFn = { type: 'bucket' };
     if (size !== 1) bucketExtractionFn.size = size;
     if (offset !== 0) bucketExtractionFn.offset = offset;
     return DruidExtractionFnBuilder.composeFns(
@@ -268,7 +264,7 @@ export class DruidExtractionFnBuilder {
   ): Druid.ExtractionFn | null {
     const { operand, transformType } = expression;
 
-    let type = DruidExtractionFnBuilder.CASE_TO_DRUID[transformType];
+    const type = DruidExtractionFnBuilder.CASE_TO_DRUID[transformType];
     if (!type) throw new Error(`unsupported case transformation '${type}'`);
 
     return DruidExtractionFnBuilder.composeFns(this.expressionToExtractionFn(operand), {
@@ -297,7 +293,7 @@ export class DruidExtractionFnBuilder {
   private lookupToExtractionFn(expression: LookupExpression): Druid.ExtractionFn | null {
     const { operand, lookupFn } = expression;
 
-    let lookupExtractionFn: Druid.ExtractionFn = {
+    const lookupExtractionFn: Druid.ExtractionFn = {
       type: 'registeredLookup',
       lookup: lookupFn,
     };
@@ -312,8 +308,8 @@ export class DruidExtractionFnBuilder {
     const { operand, expression: fallback } = expression;
 
     if (operand instanceof ExtractExpression) {
-      let extractExtractionFn = this.extractToExtractionFn(operand);
-      let extractExtractionFnLast = DruidExtractionFnBuilder.getLastFn(extractExtractionFn);
+      const extractExtractionFn = this.extractToExtractionFn(operand);
+      const extractExtractionFnLast = DruidExtractionFnBuilder.getLastFn(extractExtractionFn);
 
       if (fallback.isOp('ref')) {
         // the ref has to be the same as the argument because we can't refer to other dimensions
@@ -327,8 +323,8 @@ export class DruidExtractionFnBuilder {
 
       return extractExtractionFn;
     } else if (operand instanceof LookupExpression) {
-      let lookupExtractionFn = this.lookupToExtractionFn(operand);
-      let lookupExtractionFnLast = DruidExtractionFnBuilder.getLastFn(lookupExtractionFn);
+      const lookupExtractionFn = this.lookupToExtractionFn(operand);
+      const lookupExtractionFnLast = DruidExtractionFnBuilder.getLastFn(lookupExtractionFn);
 
       if (fallback.isOp('ref')) {
         // the ref has to be the same as the argument because we can't refer to other dimensions
@@ -354,9 +350,9 @@ export class DruidExtractionFnBuilder {
     customTransform: CustomTransformExpression,
   ): Druid.ExtractionFn {
     const { operand, custom } = customTransform;
-    let customExtractionFn = this.customTransforms[custom];
+    const customExtractionFn = this.customTransforms[custom];
     if (!customExtractionFn) throw new Error(`could not find extraction function: '${custom}'`);
-    let extractionFn = customExtractionFn.extractionFn;
+    const extractionFn = customExtractionFn.extractionFn;
 
     if (typeof extractionFn.type !== 'string')
       throw new Error(`must have type in custom extraction fn '${custom}'`);
@@ -382,8 +378,8 @@ export class DruidExtractionFnBuilder {
   }
 
   private overlapToExtractionFn(expression: OverlapExpression): Druid.ExtractionFn {
-    let freeReferences = expression.operand.getFreeReferences();
-    let rhsType = expression.expression.type;
+    const freeReferences = expression.operand.getFreeReferences();
+    const rhsType = expression.expression.type;
     if (
       freeReferences[0] === '__time' && // hack
       expression.expression instanceof LiteralExpression &&

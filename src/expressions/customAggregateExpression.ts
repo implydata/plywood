@@ -16,13 +16,14 @@
 
 import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
 
 export class CustomAggregateExpression extends ChainableExpression {
   static op = 'CustomAggregate';
   static fromJS(parameters: ExpressionJS): CustomAggregateExpression {
-    let value = ChainableExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
     value.custom = parameters.custom;
     return new CustomAggregateExpression(value);
   }
@@ -38,13 +39,13 @@ export class CustomAggregateExpression extends ChainableExpression {
   }
 
   public valueOf(): ExpressionValue {
-    let value = super.valueOf();
+    const value = super.valueOf();
     value.custom = this.custom;
     return value;
   }
 
   public toJS(): ExpressionJS {
-    let js = super.toJS();
+    const js = super.toJS();
     js.custom = this.custom;
     return js;
   }
@@ -53,15 +54,15 @@ export class CustomAggregateExpression extends ChainableExpression {
     return super.equals(other) && this.custom === other.custom;
   }
 
-  protected _toStringParameters(indent?: int): string[] {
+  protected _toStringParameters(_indent?: int): string[] {
     return [this.custom]; // ToDo: escape this
   }
 
-  protected _calcChainableHelper(operandValue: any): PlywoodValue {
+  protected _calcChainableHelper(_operandValue: any): PlywoodValue {
     throw new Error('can not compute on custom action');
   }
 
-  protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
+  protected _getSQLChainableHelper(_dialect: SQLDialect, _operandSQL: string): string {
     throw new Error('custom action not implemented');
   }
 }
