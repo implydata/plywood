@@ -42,7 +42,7 @@ let postgresRequester = postgresRequesterFactory({
 //  requester: postgresRequester
 // });
 
-describe('Postgres Functional', function() {
+describe('Postgres Functional', function () {
   this.timeout(10000);
 
   let wikiAttributes = [

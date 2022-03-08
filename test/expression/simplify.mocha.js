@@ -65,18 +65,13 @@ let diamonds = External.fromJS({
 describe('Simplify', () => {
   describe('literals', () => {
     it('simplifies to number', () => {
-      let ex1 = r(5)
-        .add(1)
-        .subtract(4);
+      let ex1 = r(5).add(1).subtract(4);
       let ex2 = r(2);
       simplifiesTo(ex1, ex2);
     });
 
     it('simplifies literal prefix', () => {
-      let ex1 = r(5)
-        .add(1)
-        .subtract(4)
-        .multiply('$x');
+      let ex1 = r(5).add(1).subtract(4).multiply('$x');
       let ex2 = $('x').multiply(2);
       simplifiesTo(ex1, ex2);
     });
@@ -88,9 +83,7 @@ describe('Simplify', () => {
     });
 
     it('simplifies double cast', () => {
-      let ex1 = $('time', 'TIME')
-        .cast('TIME')
-        .cast('TIME');
+      let ex1 = $('time', 'TIME').cast('TIME').cast('TIME');
       let ex2 = $('time', 'TIME');
       simplifiesTo(ex1, ex2);
     });
@@ -102,25 +95,19 @@ describe('Simplify', () => {
     });
 
     it('str.indexOf(substr) > -1 should simplify to CONTAINS(str, substr)', () => {
-      let ex1 = $('page')
-        .indexOf('sdf')
-        .greaterThan(-1);
+      let ex1 = $('page').indexOf('sdf').greaterThan(-1);
       let ex2 = $('page').contains('sdf');
       simplifiesTo(ex1, ex2);
     });
 
     it('str.indexOf(substr) >= 0 should simplify to CONTAINS(str, substr)', () => {
-      let ex1 = $('page')
-        .indexOf('sdf')
-        .greaterThanOrEqual(0);
+      let ex1 = $('page').indexOf('sdf').greaterThanOrEqual(0);
       let ex2 = $('page').contains('sdf');
       simplifiesTo(ex1, ex2);
     });
 
     it('str.indexOf(substr) < 1 should not simplify to contains', () => {
-      let ex1 = $('page')
-        .indexOf('sdf')
-        .lessThan(1);
+      let ex1 = $('page').indexOf('sdf').lessThan(1);
       let ex2 = $('page')
         .indexOf('sdf')
         .overlap(new NumberRange({ start: null, end: 1, bounds: '()' }));
@@ -128,20 +115,14 @@ describe('Simplify', () => {
     });
 
     it('str.indexOf(substr) != -1 should simplify to CONTAINS(str, substr)', () => {
-      let ex1 = $('page')
-        .indexOf('sdf')
-        .isnt(-1);
+      let ex1 = $('page').indexOf('sdf').isnt(-1);
       let ex2 = $('page').contains('sdf');
       simplifiesTo(ex1, ex2);
     });
 
     it('str.indexOf(substr) == -1 should simplify to str.contains(substr).not()', () => {
-      let ex1 = $('page')
-        .indexOf('sdf')
-        .is(-1);
-      let ex2 = $('page')
-        .contains('sdf')
-        .not();
+      let ex1 = $('page').indexOf('sdf').is(-1);
+      let ex2 = $('page').contains('sdf').not();
       simplifiesTo(ex1, ex2);
     });
 
@@ -156,9 +137,7 @@ describe('Simplify', () => {
     });
 
     it('transform case is idempotent', () => {
-      let ex1 = $('page')
-        .transformCase('lowerCase')
-        .transformCase('lowerCase');
+      let ex1 = $('page').transformCase('lowerCase').transformCase('lowerCase');
       let ex2 = $('page').transformCase('lowerCase');
       simplifiesTo(ex1, ex2);
     });
@@ -218,9 +197,7 @@ describe('Simplify', () => {
 
     it('handles associativity', () => {
       let ex1 = $('a').add($('b').add('$c'));
-      let ex2 = $('a')
-        .add('$b')
-        .add('$c');
+      let ex2 = $('a').add('$b').add('$c');
       simplifiesTo(ex1, ex2);
     });
   });
@@ -273,22 +250,13 @@ describe('Simplify', () => {
 
   describe.skip('negate', () => {
     it('collapses double', () => {
-      let ex1 = $('x')
-        .negate()
-        .negate();
+      let ex1 = $('x').negate().negate();
       let ex2 = $('x');
       simplifiesTo(ex1, ex2);
     });
 
     it('collapses long chain', () => {
-      let ex1 = $('x')
-        .negate()
-        .negate()
-        .negate()
-        .negate()
-        .negate()
-        .negate()
-        .negate();
+      let ex1 = $('x').negate().negate().negate().negate().negate().negate().negate();
       let ex2 = $('x').negate();
       simplifiesTo(ex1, ex2);
     });
@@ -344,9 +312,7 @@ describe('Simplify', () => {
     });
 
     it.skip('works with trailing literals', () => {
-      let ex1 = $('x')
-        .multiply(3)
-        .multiply(3);
+      let ex1 = $('x').multiply(3).multiply(3);
       let ex2 = $('x').multiply(9);
       simplifiesTo(ex1, ex2);
     });
@@ -416,64 +382,42 @@ describe('Simplify', () => {
     });
 
     it('works with different filters', () => {
-      let ex1 = $('flight', 'NUMBER')
-        .is(5)
-        .and($('flight', 'NUMBER').is(7));
+      let ex1 = $('flight', 'NUMBER').is(5).and($('flight', 'NUMBER').is(7));
       let ex2 = r(false);
       simplifiesTo(ex1, ex2);
     });
 
     it('works with different filters across filter', () => {
-      let ex1 = $('flight', 'NUMBER')
-        .is(5)
-        .and($('lol').is(3))
-        .and($('flight', 'NUMBER').is(7));
+      let ex1 = $('flight', 'NUMBER').is(5).and($('lol').is(3)).and($('flight', 'NUMBER').is(7));
       let ex2 = r(false);
       simplifiesTo(ex1, ex2);
     });
 
     it('works with same filters', () => {
-      let ex1 = $('flight', 'NUMBER')
-        .is(5)
-        .and($('flight', 'NUMBER').is(5));
+      let ex1 = $('flight', 'NUMBER').is(5).and($('flight', 'NUMBER').is(5));
       let ex2 = $('flight', 'NUMBER').is(5);
       simplifiesTo(ex1, ex2);
     });
 
     it('works with same filters across filter', () => {
-      let ex1 = $('flight', 'NUMBER')
-        .is(5)
-        .and($('lol').is(3))
-        .and($('flight', 'NUMBER').is(5));
-      let ex2 = $('flight', 'NUMBER')
-        .is(5)
-        .and($('lol').is(3));
+      let ex1 = $('flight', 'NUMBER').is(5).and($('lol').is(3)).and($('flight', 'NUMBER').is(5));
+      let ex2 = $('flight', 'NUMBER').is(5).and($('lol').is(3));
       simplifiesTo(ex1, ex2);
     });
 
     it('leaves types filters 1', () => {
-      let ex1 = $('flight')
-        .is(5)
-        .and($('x').is(1))
-        .and($('flight').is(7));
+      let ex1 = $('flight').is(5).and($('x').is(1)).and($('flight').is(7));
       leavesAlone(ex1);
     });
 
     it('leaves NULL types', () => {
-      let ex1 = $('uc', 'NULL')
-        .is('A')
-        .and($('uc', 'NULL').is('B'));
+      let ex1 = $('uc', 'NULL').is('A').and($('uc', 'NULL').is('B'));
       leavesAlone(ex1);
     });
 
     it('re-arranges filters 2', () => {
-      let ex1 = $('flight')
-        .is(5)
-        .and($('x').is(1))
-        .and($('flight').is(5));
-      let ex2 = $('flight')
-        .is(5)
-        .and($('x').is(1));
+      let ex1 = $('flight').is(5).and($('x').is(1)).and($('flight').is(5));
+      let ex2 = $('flight').is(5).and($('x').is(1));
       simplifiesTo(ex1, ex2);
     });
 
@@ -549,26 +493,18 @@ describe('Simplify', () => {
       });
       let ex1 = $('time', 'TIME')
         .overlap(largeInterval)
-        .and(
-          $('time', 'TIME')
-            .timeBucket('P1D', 'Etc/UTC')
-            .is(smallInterval),
-        );
+        .and($('time', 'TIME').timeBucket('P1D', 'Etc/UTC').is(smallInterval));
       let ex2 = $('time', 'TIME').overlap(smallInterval);
       simplifiesTo(ex1, ex2);
     });
 
     it('works with match', () => {
-      let ex1 = $('cityName')
-        .match('San')
-        .and($('cityName').match('Hello'));
+      let ex1 = $('cityName').match('San').and($('cityName').match('Hello'));
       simplifiesTo(ex1, ex1);
     });
 
     it('works with same expression', () => {
-      let ex1 = $('cityName')
-        .match('San')
-        .and($('cityName').match('San'));
+      let ex1 = $('cityName').match('San').and($('cityName').match('San'));
       let ex2 = $('cityName').match('San');
       simplifiesTo(ex1, ex2);
     });
@@ -624,17 +560,13 @@ describe('Simplify', () => {
     });
 
     it('works with different filters', () => {
-      let ex1 = $('flight')
-        .is(5)
-        .or($('flight').is(7));
+      let ex1 = $('flight').is(5).or($('flight').is(7));
       let ex2 = $('flight').is([5, 7]);
       simplifiesTo(ex1, ex2);
     });
 
     it('works with same filters', () => {
-      let ex1 = $('flight')
-        .is(5)
-        .or($('flight').is(5));
+      let ex1 = $('flight').is(5).or($('flight').is(5));
       let ex2 = $('flight').is(5);
       simplifiesTo(ex1, ex2);
     });
@@ -648,38 +580,24 @@ describe('Simplify', () => {
     });
 
     it('re-arranges filters 1', () => {
-      let ex1 = $('flight')
-        .is(5)
-        .or($('x').is(1))
-        .or($('flight').is(7));
-      let ex2 = $('flight')
-        .is([5, 7])
-        .or($('x').is(1));
+      let ex1 = $('flight').is(5).or($('x').is(1)).or($('flight').is(7));
+      let ex2 = $('flight').is([5, 7]).or($('x').is(1));
       simplifiesTo(ex1, ex2);
     });
 
     it('re-arranges filters 2', () => {
-      let ex1 = $('flight')
-        .is(5)
-        .or($('x').is(1))
-        .or($('flight').is(5));
-      let ex2 = $('flight')
-        .is(5)
-        .or($('x').is(1));
+      let ex1 = $('flight').is(5).or($('x').is(1)).or($('flight').is(5));
+      let ex2 = $('flight').is(5).or($('x').is(1));
       simplifiesTo(ex1, ex2);
     });
 
     it('works with match', () => {
-      let ex1 = $('cityName')
-        .match('San')
-        .or($('cityName').match('Hello'));
+      let ex1 = $('cityName').match('San').or($('cityName').match('Hello'));
       simplifiesTo(ex1, ex1);
     });
 
     it('works with same expression', () => {
-      let ex1 = $('cityName')
-        .match('San')
-        .or($('cityName').match('San'));
+      let ex1 = $('cityName').match('San').or($('cityName').match('San'));
       let ex2 = $('cityName').match('San');
       simplifiesTo(ex1, ex2);
     });
@@ -693,22 +611,13 @@ describe('Simplify', () => {
     });
 
     it('collapses double', () => {
-      let ex1 = $('x')
-        .not()
-        .not();
+      let ex1 = $('x').not().not();
       let ex2 = $('x');
       simplifiesTo(ex1, ex2);
     });
 
     it('collapses long chain', () => {
-      let ex1 = $('x')
-        .not()
-        .not()
-        .not()
-        .not()
-        .not()
-        .not()
-        .not();
+      let ex1 = $('x').not().not().not().not().not().not().not();
       let ex2 = $('x').not();
       simplifiesTo(ex1, ex2);
     });
@@ -757,9 +666,7 @@ describe('Simplify', () => {
 
     it('swaps yoda literal (with complex)', () => {
       let ex1 = r('Dhello').is($('color').concat(r('hello')));
-      let ex2 = $('color')
-        .concat(r('hello'))
-        .is(r('Dhello'));
+      let ex2 = $('color').concat(r('hello')).is(r('Dhello'));
       simplifiesTo(ex1, ex2);
     });
 
@@ -768,9 +675,7 @@ describe('Simplify', () => {
         start: new Date('2016-01-02Z'),
         end: new Date('2016-01-03Z'),
       });
-      let ex1 = $('time')
-        .timeBucket('P1D', 'Etc/UTC')
-        .is(interval);
+      let ex1 = $('time').timeBucket('P1D', 'Etc/UTC').is(interval);
       let ex2 = $('time').overlap(interval);
       simplifiesTo(ex1, ex2);
     });
@@ -780,9 +685,7 @@ describe('Simplify', () => {
         start: new Date('2016-01-02Z'),
         end: new Date('2016-01-03Z'),
       });
-      let ex = $('time')
-        .timeBucket('P1D')
-        .is(interval);
+      let ex = $('time').timeBucket('P1D').is(interval);
       expect(ex.simplify().toJS()).to.deep.equal(ex.toJS());
     });
 
@@ -791,9 +694,7 @@ describe('Simplify', () => {
         start: null,
         end: new Date('2016-01-03Z'),
       });
-      let ex1 = $('time')
-        .timeBucket('P1D', 'Etc/UTC')
-        .is(interval);
+      let ex1 = $('time').timeBucket('P1D', 'Etc/UTC').is(interval);
       let ex2 = Expression.FALSE;
       simplifiesTo(ex1, ex2);
     });
@@ -803,9 +704,7 @@ describe('Simplify', () => {
         start: new Date('2016-01-02Z'),
         end: new Date('2016-01-04Z'),
       });
-      let ex1 = $('time')
-        .timeBucket('P1D', 'Etc/UTC')
-        .is(interval);
+      let ex1 = $('time').timeBucket('P1D', 'Etc/UTC').is(interval);
       let ex2 = Expression.FALSE;
       simplifiesTo(ex1, ex2);
     });
@@ -815,9 +714,7 @@ describe('Simplify', () => {
         start: 1,
         end: 6,
       });
-      let ex1 = $('num')
-        .numberBucket(5, 1)
-        .is(interval);
+      let ex1 = $('num').numberBucket(5, 1).is(interval);
       let ex2 = $('num').overlap(interval);
       simplifiesTo(ex1, ex2);
     });
@@ -827,9 +724,7 @@ describe('Simplify', () => {
         start: 0,
         end: 5,
       });
-      let ex1 = $('num')
-        .numberBucket(5, 0)
-        .is(interval);
+      let ex1 = $('num').numberBucket(5, 0).is(interval);
       let ex2 = $('num').overlap(interval);
       simplifiesTo(ex1, ex2);
     });
@@ -839,9 +734,7 @@ describe('Simplify', () => {
         start: null,
         end: 6,
       });
-      let ex1 = $('time')
-        .numberBucket(5, 1)
-        .is(interval);
+      let ex1 = $('time').numberBucket(5, 1).is(interval);
       let ex2 = Expression.FALSE;
       simplifiesTo(ex1, ex2);
     });
@@ -851,44 +744,31 @@ describe('Simplify', () => {
         start: 2,
         end: 7,
       });
-      let ex1 = $('time')
-        .numberBucket(5, 1)
-        .is(interval);
+      let ex1 = $('time').numberBucket(5, 1).is(interval);
       let ex2 = Expression.FALSE;
       simplifiesTo(ex1, ex2);
     });
 
     it('leaves possible fallback', () => {
-      let ex1 = $('color')
-        .fallback('D')
-        .is('D');
-      let ex2 = $('color')
-        .fallback('D')
-        .is('D');
+      let ex1 = $('color').fallback('D').is('D');
+      let ex2 = $('color').fallback('D').is('D');
       simplifiesTo(ex1, ex2);
     });
 
     it('kills .then() 1', () => {
-      let ex1 = $('color')
-        .then('T')
-        .is('T');
+      let ex1 = $('color').then('T').is('T');
       let ex2 = $('color').is(true);
       simplifiesTo(ex1, ex2);
     });
 
     it('kills .then() 2', () => {
-      let ex1 = $('color')
-        .then('T')
-        .is('F');
+      let ex1 = $('color').then('T').is('F');
       let ex2 = $('color').isnt(true);
       simplifiesTo(ex1, ex2);
     });
 
     it('leaves with lookup', () => {
-      let ex = $('channel')
-        .lookup('channel-lookup')
-        .fallback(r('LOL'))
-        .is(['English', 'LOL']);
+      let ex = $('channel').lookup('channel-lookup').fallback(r('LOL')).is(['English', 'LOL']);
       leavesAlone(ex);
     });
   });
@@ -982,17 +862,13 @@ describe('Simplify', () => {
 
   describe('contains', () => {
     it('works with transformCase Upper', () => {
-      let ex1 = $('x')
-        .transformCase('upperCase')
-        .contains($('y').transformCase('upperCase'));
+      let ex1 = $('x').transformCase('upperCase').contains($('y').transformCase('upperCase'));
       let ex2 = $('x').contains($('y'), 'ignoreCase');
       simplifiesTo(ex1, ex2);
     });
 
     it('works with transformCase Lower', () => {
-      let ex1 = $('x')
-        .transformCase('lowerCase')
-        .contains($('y').transformCase('lowerCase'));
+      let ex1 = $('x').transformCase('lowerCase').contains($('y').transformCase('lowerCase'));
       let ex2 = $('x').contains($('y'), 'ignoreCase');
       simplifiesTo(ex1, ex2);
     });
@@ -1017,9 +893,7 @@ describe('Simplify', () => {
     });
 
     it('wipes out itself', () => {
-      let ex1 = $('x')
-        .timeFloor('P1D', 'Etc/UTC')
-        .timeFloor('P1D', 'Etc/UTC');
+      let ex1 = $('x').timeFloor('P1D', 'Etc/UTC').timeFloor('P1D', 'Etc/UTC');
       let ex2 = $('x').timeFloor('P1D', 'Etc/UTC');
       simplifiesTo(ex1, ex2);
     });
@@ -1039,9 +913,7 @@ describe('Simplify', () => {
     });
 
     it('combines with itself', () => {
-      let ex1 = $('x')
-        .timeShift('P1D', 10, 'Etc/UTC')
-        .timeShift('P1D', -7, 'Etc/UTC');
+      let ex1 = $('x').timeShift('P1D', 10, 'Etc/UTC').timeShift('P1D', -7, 'Etc/UTC');
       let ex2 = $('x').timeShift('P1D', 3, 'Etc/UTC');
       simplifiesTo(ex1, ex2);
     });
@@ -1083,9 +955,7 @@ describe('Simplify', () => {
     });
 
     it('consecutive filters fold together', () => {
-      let ex1 = ply()
-        .filter('$^x == 1')
-        .filter('$^y == 2');
+      let ex1 = ply().filter('$^x == 1').filter('$^y == 2');
 
       let ex2 = ply().filter('$^x == 1 and $^y == 2');
 
@@ -1125,9 +995,7 @@ describe('Simplify', () => {
     });
 
     it('can move past a linear split', () => {
-      let ex1 = $('wiki')
-        .split('$page:STRING', 'Page')
-        .filter('$Page.contains("hello world")');
+      let ex1 = $('wiki').split('$page:STRING', 'Page').filter('$Page.contains("hello world")');
 
       let ex2 = $('wiki')
         .filter('$page:STRING.contains("hello world")')
@@ -1173,13 +1041,9 @@ describe('Simplify', () => {
     });
 
     it('can move past a sort', () => {
-      let ex1 = $('d')
-        .sort('$deleted', 'ascending')
-        .filter('$^AddedByDeleted == 1');
+      let ex1 = $('d').sort('$deleted', 'ascending').filter('$^AddedByDeleted == 1');
 
-      let ex2 = $('d')
-        .filter('$^AddedByDeleted == 1')
-        .sort('$deleted', 'ascending');
+      let ex2 = $('d').filter('$^AddedByDeleted == 1').sort('$deleted', 'ascending');
 
       simplifiesTo(ex1, ex2);
     });
@@ -1271,25 +1135,17 @@ describe('Simplify', () => {
     });
 
     it('sorts applies does not mess with sort if all are simple 1', () => {
-      let ex1 = ply()
-        .apply('Count', '$^wiki.count()')
-        .apply('Deleted', '$^wiki.sum($deleted)');
+      let ex1 = ply().apply('Count', '$^wiki.count()').apply('Deleted', '$^wiki.sum($deleted)');
 
-      let ex2 = ply()
-        .apply('Count', '$^wiki.count()')
-        .apply('Deleted', '$^wiki.sum($deleted)');
+      let ex2 = ply().apply('Count', '$^wiki.count()').apply('Deleted', '$^wiki.sum($deleted)');
 
       simplifiesTo(ex1, ex2);
     });
 
     it('sorts applies does not mess with sort if all are simple 2', () => {
-      let ex1 = ply()
-        .apply('Deleted', '$^wiki.sum($deleted)')
-        .apply('Count', '$^wiki.count()');
+      let ex1 = ply().apply('Deleted', '$^wiki.sum($deleted)').apply('Count', '$^wiki.count()');
 
-      let ex2 = ply()
-        .apply('Deleted', '$^wiki.sum($deleted)')
-        .apply('Count', '$^wiki.count()');
+      let ex2 = ply().apply('Deleted', '$^wiki.sum($deleted)').apply('Count', '$^wiki.count()');
 
       simplifiesTo(ex1, ex2);
     });
@@ -1372,23 +1228,13 @@ describe('Simplify', () => {
         .apply('diamonds', diamondEx)
         .apply('Total', '$diamonds.count()')
         .apply('TotalX2', '$Total * 2')
-        .apply(
-          'SomeSplit',
-          $('diamonds')
-            .split('$cut:STRING', 'Cut')
-            .limit(10),
-        )
+        .apply('SomeSplit', $('diamonds').split('$cut:STRING', 'Cut').limit(10))
         .apply(
           'SomeNestedSplit',
           $('diamonds')
             .split('$color:STRING', 'Color')
             .limit(10)
-            .apply(
-              'SubSplit',
-              $('diamonds')
-                .split('$cut:STRING', 'SubCut')
-                .limit(5),
-            ),
+            .apply('SubSplit', $('diamonds').split('$cut:STRING', 'SubCut').limit(5)),
         );
 
       let ex2 = ex1.simplify();
@@ -1405,9 +1251,7 @@ describe('Simplify', () => {
 
   describe('sort', () => {
     it('consecutive identical sorts fold together', () => {
-      let ex1 = $('main')
-        .sort('$x', 'descending')
-        .sort('$x', 'ascending');
+      let ex1 = $('main').sort('$x', 'descending').sort('$x', 'ascending');
 
       let ex2 = $('main').sort('$x', 'ascending');
 
@@ -1423,9 +1267,7 @@ describe('Simplify', () => {
 
   describe('limit', () => {
     it('consecutive limits fold together', () => {
-      let ex1 = $('main')
-        .limit(10)
-        .limit(20);
+      let ex1 = $('main').limit(10).limit(20);
 
       let ex2 = $('main').limit(10);
 
@@ -1465,9 +1307,7 @@ describe('Simplify', () => {
 
   describe('select', () => {
     it('consecutive selects fold together', () => {
-      let ex1 = $('main')
-        .select('a', 'b')
-        .select('a', 'c');
+      let ex1 = $('main').select('a', 'b').select('a', 'c');
 
       let ex2 = $('main').select('a');
 

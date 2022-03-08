@@ -23,7 +23,7 @@ const { StreamConcat } = require('../../build/plywood');
 function emits(arr) {
   let out = new Readable({
     objectMode: true,
-    read: function() {
+    read: function () {
       if (!out.index) out.index = 0;
       out.push(arr[out.index++] || null);
     },
@@ -34,7 +34,7 @@ function emits(arr) {
 function emitsError(message) {
   let out = new Readable({
     objectMode: true,
-    read: function() {
+    read: function () {
       out.emit('error', new Error(message));
     },
   });

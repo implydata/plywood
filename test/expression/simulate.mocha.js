@@ -56,23 +56,13 @@ describe('simulate', () => {
     let ex = ply()
       .apply('Total', '$diamonds.count()')
       .apply('TotalX2', '$Total * 2')
-      .apply(
-        'SomeSplit',
-        $('diamonds')
-          .split('$cut:STRING', 'Cut')
-          .limit(10),
-      )
+      .apply('SomeSplit', $('diamonds').split('$cut:STRING', 'Cut').limit(10))
       .apply(
         'SomeNestedSplit',
         $('diamonds')
           .split('$color:STRING', 'Color')
           .limit(10)
-          .apply(
-            'SubSplit',
-            $('diamonds')
-              .split('$cut:STRING', 'SubCut')
-              .limit(5),
-          ),
+          .apply('SubSplit', $('diamonds').split('$cut:STRING', 'SubCut').limit(5)),
       );
 
     expect(ex.simulate({ diamonds: diamonds }).toJS().data).to.deep.equal([

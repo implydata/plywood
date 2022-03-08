@@ -100,9 +100,7 @@ describe('DruidExternal Rollup', () => {
   };
 
   it('works in basic case', () => {
-    let ex = ply()
-      .apply('Count', '$wiki.count()')
-      .apply('AvgAdded', '$wiki.average($added)');
+    let ex = ply().apply('Count', '$wiki.count()').apply('AvgAdded', '$wiki.average($added)');
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);

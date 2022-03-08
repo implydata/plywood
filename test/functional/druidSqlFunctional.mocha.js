@@ -48,7 +48,7 @@ let context = {
   priority: -23,
 };
 
-describe('DruidSQL Functional', function() {
+describe('DruidSQL Functional', function () {
   this.timeout(10000);
 
   let wikiAttributes = [
@@ -373,15 +373,11 @@ describe('DruidSQL Functional', function() {
         .split($('channel'), 'Channel')
         .apply(
           'CountPrev',
-          $('wiki')
-            .filter($('__time').overlap(prevRange))
-            .sqlAggregate(r(`SUM(t."count")`)),
+          $('wiki').filter($('__time').overlap(prevRange)).sqlAggregate(r(`SUM(t."count")`)),
         )
         .apply(
           'CountMain',
-          $('wiki')
-            .filter($('__time').overlap(mainRange))
-            .sqlAggregate(r(`SUM(t."count")`)),
+          $('wiki').filter($('__time').overlap(mainRange)).sqlAggregate(r(`SUM(t."count")`)),
         )
         .sort($('CountMain'), 'descending')
         .limit(5);
@@ -483,18 +479,8 @@ describe('DruidSQL Functional', function() {
         });
         let ex = $('wiki')
           .split($('channel'), 'Channel')
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter($('__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter($('__time').overlap(mainRange))
-              .sum('$count'),
-          )
+          .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
           .sort($('CountMain'), 'descending')
           .limit(5);
 
@@ -540,18 +526,8 @@ describe('DruidSQL Functional', function() {
         });
         let ex = $('wiki')
           .split($('channel'), 'Channel')
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter($('__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter($('__time').overlap(mainRange))
-              .sum('$count'),
-          )
+          .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
           .sort($('CountMain'), 'descending')
           .filter($('CountMain').greaterThan(48520))
           .limit(5);
@@ -590,18 +566,8 @@ describe('DruidSQL Functional', function() {
               .timeBucket('PT2H'),
             'TimeJoin',
           )
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter($('__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter($('__time').overlap(mainRange))
-              .sum('$count'),
-          );
+          .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'));
 
         return basicExecutor(ex).then(result => {
           expect(result.toJS()).to.deep.equal({
@@ -693,18 +659,8 @@ describe('DruidSQL Functional', function() {
             'TimeJoin',
           )
           .apply('CountAll', $('wiki').sum('$count'))
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter($('__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter($('__time').overlap(mainRange))
-              .sum('$count'),
-          )
+          .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
           .limit(3);
 
         return basicExecutor(ex).then(result => {
@@ -758,18 +714,8 @@ describe('DruidSQL Functional', function() {
               .timeBucket('PT1H'),
             'TimeJoin',
           )
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter($('__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter($('__time').overlap(mainRange))
-              .sum('$count'),
-          )
+          .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
           .limit(6);
 
         return basicExecutor(ex).then(result => {
@@ -844,18 +790,8 @@ describe('DruidSQL Functional', function() {
               .timeBucket('PT1H'),
             isRobot: $('isRobot').is(r('true')),
           })
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter($('__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter($('__time').overlap(mainRange))
-              .sum('$count'),
-          )
+          .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
           .limit(6);
 
         return basicExecutor(ex).then(result => {
@@ -936,18 +872,8 @@ describe('DruidSQL Functional', function() {
               .timeBucket('PT1H'),
             'TimeJoin',
           )
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter($('__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter($('__time').overlap(mainRange))
-              .sum('$count'),
-          )
+          .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
           .sort('$CountMain', 'descending')
           .limit(6);
 
@@ -1024,35 +950,15 @@ describe('DruidSQL Functional', function() {
             'TimeJoin',
           )
           .apply('CountAll', $('wiki').sum('$count'))
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter($('__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter($('__time').overlap(mainRange))
-              .sum('$count'),
-          )
+          .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
           .limit(2)
           .apply(
             'Channels',
             $('wiki')
               .split('$channel', 'Channel')
-              .apply(
-                'CountPrev',
-                $('wiki')
-                  .filter($('__time').overlap(prevRange))
-                  .sum('$count'),
-              )
-              .apply(
-                'CountMain',
-                $('wiki')
-                  .filter($('__time').overlap(mainRange))
-                  .sum('$count'),
-              )
+              .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+              .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
               .sort('$CountMain', 'descending')
               .limit(2),
           );
@@ -1157,18 +1063,8 @@ describe('DruidSQL Functional', function() {
               .timeBucket('PT2H'),
             'TimeJoin',
           )
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter($('__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter($('__time').overlap(mainRange))
-              .sum('$count'),
-          )
+          .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
           .apply('Delta', '$CountMain - $CountPrev')
           .sort('$Delta', 'descending');
 
@@ -1250,18 +1146,8 @@ describe('DruidSQL Functional', function() {
               .timeBucket('PT2H'),
             'TimeJoin',
           )
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter($('__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter($('__time').overlap(mainRange))
-              .sum('$count'),
-          );
+          .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'));
 
         return basicExecutor(ex).then(result => {
           expect(result.toJS()).to.deep.equal({
@@ -1352,18 +1238,8 @@ describe('DruidSQL Functional', function() {
               .timeBucket('PT2H'),
             'TimeJoin',
           )
-          .apply(
-            'CountPrev',
-            $('wiki')
-              .filter(s$('t.__time').overlap(prevRange))
-              .sum('$count'),
-          )
-          .apply(
-            'CountMain',
-            $('wiki')
-              .filter(s$('t.__time').overlap(mainRange))
-              .sum('$count'),
-          );
+          .apply('CountPrev', $('wiki').filter(s$('t.__time').overlap(prevRange)).sum('$count'))
+          .apply('CountMain', $('wiki').filter(s$('t.__time').overlap(mainRange)).sum('$count'));
 
         return basicExecutor(ex).then(result => {
           expect(result.toJS()).to.deep.equal({
@@ -1648,57 +1524,17 @@ describe('DruidSQL Functional', function() {
     it('works with all kinds of cool aggregates on totals level', () => {
       let ex = ply()
         .apply('NumPages', $('wiki').countDistinct('$page'))
-        .apply(
-          'NumEnPages',
-          $('wiki')
-            .filter($('channel').is('en'))
-            .countDistinct('$page'),
-        )
+        .apply('NumEnPages', $('wiki').filter($('channel').is('en')).countDistinct('$page'))
         .apply('ChannelAdded', $('wiki').sum('$added'))
-        .apply(
-          'ChannelENAdded',
-          $('wiki')
-            .filter($('channel').is('en'))
-            .sum('$added'),
-        )
-        .apply(
-          'ChannelENishAdded',
-          $('wiki')
-            .filter($('channel').contains('en'))
-            .sum('$added'),
-        )
+        .apply('ChannelENAdded', $('wiki').filter($('channel').is('en')).sum('$added'))
+        .apply('ChannelENishAdded', $('wiki').filter($('channel').contains('en')).sum('$added'))
         .apply('Count', $('wiki').sum('$count'))
-        .apply(
-          'CountSquareRoot',
-          $('wiki')
-            .sum('$count')
-            .power(0.5),
-        )
-        .apply(
-          'CountSquared',
-          $('wiki')
-            .sum('$count')
-            .power(2),
-        )
-        .apply(
-          'One',
-          $('wiki')
-            .sum('$count')
-            .power(0),
-        )
-        .apply(
-          'AddedByDeleted',
-          $('wiki')
-            .sum('$added')
-            .divide($('wiki').sum('$deleted')),
-        )
+        .apply('CountSquareRoot', $('wiki').sum('$count').power(0.5))
+        .apply('CountSquared', $('wiki').sum('$count').power(2))
+        .apply('One', $('wiki').sum('$count').power(0))
+        .apply('AddedByDeleted', $('wiki').sum('$added').divide($('wiki').sum('$deleted')))
         .apply('Delta95th', $('wiki').quantile('$delta_hist', 0.95))
-        .apply(
-          'Delta99thX2',
-          $('wiki')
-            .quantile('$delta_hist', 0.99)
-            .multiply(2),
-        );
+        .apply('Delta99thX2', $('wiki').quantile('$delta_hist', 0.99).multiply(2));
       // .apply(
       //   'Delta98thEn',
       //   $('wiki')
@@ -2172,15 +2008,11 @@ describe('DruidSQL Functional', function() {
         .apply('commentLengthMedian', $('wiki').quantile($('commentLength'), 0.5, 'v=2,k=256'))
         .apply(
           'DeltaDq98thEn',
-          $('wiki')
-            .filter($('channel').is('en'))
-            .quantile('$delta_quantilesDoublesSketch', 0.98),
+          $('wiki').filter($('channel').is('en')).quantile('$delta_quantilesDoublesSketch', 0.98),
         )
         .apply(
           'DeltaDq98thDe',
-          $('wiki')
-            .filter($('channel').is('de'))
-            .quantile('$delta_quantilesDoublesSketch', 0.98),
+          $('wiki').filter($('channel').is('de')).quantile('$delta_quantilesDoublesSketch', 0.98),
         );
 
       return basicExecutor(ex).then(result => {

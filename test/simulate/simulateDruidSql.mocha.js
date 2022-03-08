@@ -94,13 +94,7 @@ describe('simulate DruidSql', () => {
   it('works with . in the datasource', () => {
     let ex = ply()
       .apply('diamonds', $('diamonds').filter('$tags.overlap(["tagA", "tagB"])'))
-      .apply(
-        'Tags',
-        $('diamonds')
-          .split('$tags', 'Tag')
-          .sort('$Tag', 'descending')
-          .limit(10),
-      );
+      .apply('Tags', $('diamonds').split('$tags', 'Tag').sort('$Tag', 'descending').limit(10));
 
     let queryPlan = ex.simulateQueryPlan({
       diamonds: External.fromJS({

@@ -34,12 +34,7 @@ describe('free references', () => {
     it('works when there are no free references', () => {
       let ex = ply()
         .apply('num', 5)
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$num + 1')
-            .apply('y', '$x * 2'),
-        );
+        .apply('subData', ply().apply('x', '$num + 1').apply('y', '$x * 2'));
 
       ex = ex.referenceCheck({});
       expect(ex.getFreeReferences()).to.deep.equal([]);
@@ -56,10 +51,7 @@ describe('free references', () => {
         .apply('num', 5)
         .apply(
           'subData',
-          ply()
-            .apply('x', '$num + 1')
-            .apply('y', '$x * 2')
-            .apply('z', '$diamonds.sum($price)'),
+          ply().apply('x', '$num + 1').apply('y', '$x * 2').apply('z', '$diamonds.sum($price)'),
         );
 
       ex = ex.referenceCheck(context);

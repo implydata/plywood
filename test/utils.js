@@ -129,7 +129,7 @@ exports.makeEqualityTest = executorMap => {
 };
 
 // To be used as a tag
-exports.sane = function() {
+exports.sane = function () {
   let str = String.raw.apply(String, arguments);
 
   let match = str.match(/^\n( *)/m);
@@ -148,10 +148,10 @@ exports.sane = function() {
     .replace(/\\\\/g, '\\'); // Fix \\ that should be \
 };
 
-exports.grabConsoleWarn = function(fn) {
+exports.grabConsoleWarn = function (fn) {
   let originalConsoleWarn = console.warn;
   let text = null;
-  console.warn = function(str) {
+  console.warn = function (str) {
     text = (text || '') + str + '\n';
   };
   fn();

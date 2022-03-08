@@ -51,12 +51,7 @@ describe('reference check', () => {
     it('fails to resolve a variable that does not exist', () => {
       let ex = ply()
         .apply('num', 5)
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$num + 1')
-            .apply('y', '$foo * 2'),
-        );
+        .apply('subData', ply().apply('x', '$num + 1').apply('y', '$foo * 2'));
 
       expect(() => {
         ex.referenceCheck({});
@@ -66,12 +61,7 @@ describe('reference check', () => {
     it('fails to resolve a variable that does not exist (in scope)', () => {
       let ex = ply()
         .apply('num', 5)
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$num + 1')
-            .apply('y', '$^x * 2'),
-        );
+        .apply('subData', ply().apply('x', '$num + 1').apply('y', '$^x * 2'));
 
       expect(() => {
         ex.referenceCheck({});
@@ -79,9 +69,7 @@ describe('reference check', () => {
     });
 
     it('fails to resolve a select of a non existent attribute', () => {
-      let ex = ply()
-        .apply('num', 5)
-        .select('num', 'lol');
+      let ex = ply().apply('num', 5).select('num', 'lol');
 
       expect(() => {
         ex.referenceCheck({});
@@ -93,11 +81,7 @@ describe('reference check', () => {
         .apply('num', 5)
         .apply(
           'subData',
-          ply()
-            .apply('x', '$num + 1')
-            .apply('z', '$num + 1')
-            .select('z')
-            .apply('y', '$x * 2'),
+          ply().apply('x', '$num + 1').apply('z', '$num + 1').select('z').apply('y', '$x * 2'),
         );
 
       expect(() => {
@@ -108,12 +92,7 @@ describe('reference check', () => {
     it('fails to when a variable goes too deep', () => {
       let ex = ply()
         .apply('num', 5)
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$num + 1')
-            .apply('y', '$^^^x * 2'),
-        );
+        .apply('subData', ply().apply('x', '$num + 1').apply('y', '$^^^x * 2'));
 
       expect(() => {
         ex.referenceCheck({ x: 5 });
@@ -121,9 +100,7 @@ describe('reference check', () => {
     });
 
     it('fails when discovering that the types mismatch', () => {
-      let ex = ply()
-        .apply('str', 'Hello')
-        .apply('subData', ply().apply('x', '$str + 1'));
+      let ex = ply().apply('str', 'Hello').apply('subData', ply().apply('x', '$str + 1'));
 
       expect(() => {
         ex.referenceCheck({ str: 'Hello World' });
@@ -133,12 +110,7 @@ describe('reference check', () => {
     it('fails when discovering that the types mismatch via split', () => {
       let ex = ply()
         .apply('diamonds', $('diamonds').filter($('color').is('D')))
-        .apply(
-          'Cuts',
-          $('diamonds')
-            .split('$cut', 'Cut')
-            .apply('TotalPrice', '$Cut * 10'),
-        );
+        .apply('Cuts', $('diamonds').split('$cut', 'Cut').apply('TotalPrice', '$Cut * 10'));
 
       expect(() => {
         ex.referenceCheck(context);
@@ -190,21 +162,11 @@ describe('reference check', () => {
     it('works in a basic case', () => {
       let ex1 = ply()
         .apply('num', 5)
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$num + 1')
-            .apply('y', '$x + 2'),
-        );
+        .apply('subData', ply().apply('x', '$num + 1').apply('y', '$x + 2'));
 
       let ex2 = ply()
         .apply('num', 5)
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$^num:NUMBER + 1')
-            .apply('y', '$x:NUMBER + 2'),
-        );
+        .apply('subData', ply().apply('x', '$^num:NUMBER + 1').apply('y', '$x:NUMBER + 2'));
 
       expect(ex1.referenceCheck(context).toJS()).to.deep.equal(ex2.toJS());
     });
@@ -218,10 +180,7 @@ describe('reference check', () => {
     });
 
     it('works with function', () => {
-      let ex1 = ply()
-        .apply('s1', 'hello')
-        .apply('s2', '$s1.substr(0, 1)')
-        .apply('s3', '$s2');
+      let ex1 = ply().apply('s1', 'hello').apply('s2', '$s1.substr(0, 1)').apply('s3', '$s2');
 
       let ex2 = ply()
         .apply('s1', 'hello')
@@ -344,9 +303,7 @@ describe('reference check', () => {
     });
 
     it('works with dynamic derived attribute', () => {
-      let ex1 = $('wiki')
-        .apply('page3', '$page.substr(0, 3)')
-        .filter('$page3 == wik');
+      let ex1 = $('wiki').apply('page3', '$page.substr(0, 3)').filter('$page3 == wik');
 
       let ex2 = $('wiki', 'DATASET')
         .apply('page3', '$page:STRING.substr(0, 3)')
@@ -430,14 +387,7 @@ describe('reference check', () => {
     it('works with join', () => {
       let ex1 = ply()
         .apply('Data1', $('diamonds').filter($('price').overlap(105, 305)))
-        .apply(
-          'Data2',
-          $('diamonds').filter(
-            $('price')
-              .overlap(105, 305)
-              .not(),
-          ),
-        )
+        .apply('Data2', $('diamonds').filter($('price').overlap(105, 305).not()))
         .apply(
           'Cuts',
           $('Data1')
@@ -451,11 +401,7 @@ describe('reference check', () => {
         .apply('Data1', $('diamonds', 1, 'DATASET').filter($('price', 'NUMBER').overlap(105, 305)))
         .apply(
           'Data2',
-          $('diamonds', 1, 'DATASET').filter(
-            $('price', 'NUMBER')
-              .overlap(105, 305)
-              .not(),
-          ),
+          $('diamonds', 1, 'DATASET').filter($('price', 'NUMBER').overlap(105, 305).not()),
         )
         .apply(
           'Cuts',

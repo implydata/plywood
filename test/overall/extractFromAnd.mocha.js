@@ -28,7 +28,7 @@ let toJS = extractAndRest => {
 };
 
 function freeReferenceExtractor(refName) {
-  return function(ex) {
+  return function (ex) {
     let freeRefs = ex.getFreeReferences();
     return freeRefs.length === 1 && freeRefs[0] === refName;
   };
@@ -80,9 +80,7 @@ describe('extractFromAnd', () => {
   });
 
   it('works on a small AND expression', () => {
-    let ex = $('venue')
-      .is('Google')
-      .and($('country').is('USA'));
+    let ex = $('venue').is('Google').and($('country').is('USA'));
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('country')))).to.deep.equal(
       toJS({
@@ -93,50 +91,29 @@ describe('extractFromAnd', () => {
   });
 
   it('works on an AND expression', () => {
-    let ex = $('venue')
-      .is('Google')
-      .and($('country').is('USA'), $('state').is('California'));
+    let ex = $('venue').is('Google').and($('country').is('USA'), $('state').is('California'));
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('country')))).to.deep.equal(
       toJS({
         extract: $('country').is('USA'),
-        rest: $('venue')
-          .is('Google')
-          .and($('state').is('California')),
+        rest: $('venue').is('Google').and($('state').is('California')),
       }),
     );
   });
 
   it('extracts a NOT expression', () => {
-    let ex = $('venue')
-      .is('Google')
-      .and(
-        $('country')
-          .is('USA')
-          .not(),
-        $('state').is('California'),
-      );
+    let ex = $('venue').is('Google').and($('country').is('USA').not(), $('state').is('California'));
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('country')))).to.deep.equal(
       toJS({
-        extract: $('country')
-          .is('USA')
-          .not(),
-        rest: $('venue')
-          .is('Google')
-          .and($('state').is('California')),
+        extract: $('country').is('USA').not(),
+        rest: $('venue').is('Google').and($('state').is('California')),
       }),
     );
   });
 
   it('works on mixed OR filter (all in)', () => {
-    let ex = $('venue')
-      .is('Apple')
-      .or(
-        $('venue')
-          .is('Google')
-          .not(),
-      );
+    let ex = $('venue').is('Apple').or($('venue').is('Google').not());
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('venue')))).to.deep.equal(
       toJS({
@@ -147,9 +124,7 @@ describe('extractFromAnd', () => {
   });
 
   it('works on mixed OR filter (all out)', () => {
-    let ex = $('venue')
-      .is('Google')
-      .or($('country').is('USA'), $('state').is('California'));
+    let ex = $('venue').is('Google').or($('country').is('USA'), $('state').is('California'));
 
     expect(toJS(ex.extractFromAnd(freeReferenceExtractor('model')))).to.deep.equal(
       toJS({

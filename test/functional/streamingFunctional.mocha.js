@@ -43,7 +43,7 @@ let druidRequester = druidRequesterFactory({
 //   requester: druidRequester
 // });
 
-describe('Streaming Functional', function() {
+describe('Streaming Functional', function () {
   this.timeout(10000);
 
   let wikiAttributes = [

@@ -35,15 +35,13 @@ wikiDayData.forEach((d, i) => {
   d['sometimeLater'] = new Date(d['sometimeLater']);
 });
 
-describe('compute native nontrivial data', function() {
+describe('compute native nontrivial data', function () {
   this.timeout(20000);
 
   let ds = Dataset.fromJS(wikiDayData).hide();
 
   it('works in simple agg case', () => {
-    let ex = ply()
-      .apply('Count', '$data.count()')
-      .apply('SumAdded', '$data.sum($added)');
+    let ex = ply().apply('Count', '$data.count()').apply('SumAdded', '$data.sum($added)');
 
     return ex.compute({ data: ds }).then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -56,9 +54,7 @@ describe('compute native nontrivial data', function() {
   });
 
   it('works in with a filter == null', () => {
-    let ex = $('data')
-      .filter('$countryName == null')
-      .count();
+    let ex = $('data').filter('$countryName == null').count();
 
     return ex.compute({ data: ds }).then(v => {
       expect(v).to.equal(35445);

@@ -24,18 +24,18 @@ describe('Promise While', () => {
     let i = 0;
 
     return promiseWhile(
-      function() {
+      function () {
         return i < 3;
       },
-      function() {
-        return new Promise(function(resolve) {
-          setTimeout(function() {
+      function () {
+        return new Promise(function (resolve) {
+          setTimeout(function () {
             res.push('aye' + i);
             resolve(i++);
           }, 10);
         });
       },
-    ).then(function() {
+    ).then(function () {
       expect(res).to.deep.equal(['aye0', 'aye1', 'aye2']);
     });
   });
@@ -44,17 +44,17 @@ describe('Promise While', () => {
     function TestError() {}
 
     promiseWhile(
-      function() {
+      function () {
         return true;
       },
-      function() {
+      function () {
         return Promise.reject(new TestError('test'));
       },
     )
       .then(() => {
         throw new Error('did not error');
       })
-      .catch(function(err) {
+      .catch(function (err) {
         expect(err).be.instanceof(TestError);
       });
   });
@@ -63,17 +63,17 @@ describe('Promise While', () => {
     function TestError() {}
 
     promiseWhile(
-      function() {
+      function () {
         throw new TestError('test');
       },
-      function() {
+      function () {
         return Promise.resolve();
       },
     )
       .then(() => {
         throw new Error('did not error');
       })
-      .catch(function(err) {
+      .catch(function (err) {
         expect(err).be.instanceof(TestError);
       });
   });
@@ -82,17 +82,17 @@ describe('Promise While', () => {
     function TestError() {}
 
     promiseWhile(
-      function() {
+      function () {
         return true;
       },
-      function() {
+      function () {
         throw new TestError('test');
       },
     )
       .then(() => {
         throw new Error('did not error');
       })
-      .catch(function(err) {
+      .catch(function (err) {
         expect(err).be.instanceof(TestError);
       });
   });

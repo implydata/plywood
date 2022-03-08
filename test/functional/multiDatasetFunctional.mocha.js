@@ -103,7 +103,7 @@ let mixedExecutor = basicExecutorFactory({
   },
 });
 
-describe('Multi Dataset Functional', function() {
+describe('Multi Dataset Functional', function () {
   this.timeout(10000);
 
   // ToDo: make this work

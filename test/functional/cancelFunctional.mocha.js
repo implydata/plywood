@@ -25,7 +25,7 @@ let { External, TimeRange, $, ply, basicExecutorFactory } = plywood;
 
 let info = require('../info');
 
-describe('Cancel Functional', function() {
+describe('Cancel Functional', function () {
   it('works', async () => {
     let cancelFn;
     let cancelToken = new axios.CancelToken(cFn => {

@@ -393,30 +393,22 @@ describe('Expression', () => {
   describe('#decomposeAverage', () => {
     it('works in simple case', () => {
       let ex1 = $('data').average('$x');
-      let ex2 = $('data')
-        .sum('$x')
-        .divide($('data').count());
+      let ex2 = $('data').sum('$x').divide($('data').count());
       expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in more nested case', () => {
       let ex1 = $('w').add($('data').average('$x'), $('data').average('$y + $z'));
       let ex2 = $('w').add(
-        $('data')
-          .sum('$x')
-          .divide($('data').count()),
-        $('data')
-          .sum('$y + $z')
-          .divide($('data').count()),
+        $('data').sum('$x').divide($('data').count()),
+        $('data').sum('$y + $z').divide($('data').count()),
       );
       expect(ex1.decomposeAverage().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in custom count case', () => {
       let ex1 = $('data').average('$x');
-      let ex2 = $('data')
-        .sum('$x')
-        .divide($('data').sum('$count'));
+      let ex2 = $('data').sum('$x').divide($('data').sum('$count'));
       expect(ex1.decomposeAverage($('count')).toJS()).to.deep.equal(ex2.toJS());
     });
   });
@@ -424,25 +416,19 @@ describe('Expression', () => {
   describe('#distribute', () => {
     it('works in simple - case', () => {
       let ex1 = $('data').sum('-$x');
-      let ex2 = $('data')
-        .sum('$x')
-        .negate();
+      let ex2 = $('data').sum('$x').negate();
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in simple + case', () => {
       let ex1 = $('data').sum('$x + $y');
-      let ex2 = $('data')
-        .sum('$x')
-        .add('$data.sum($y)');
+      let ex2 = $('data').sum('$x').add('$data.sum($y)');
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('turns sum in count 1', () => {
       let ex1 = $('data').sum('6');
-      let ex2 = $('data')
-        .count()
-        .multiply(6);
+      let ex2 = $('data').count().multiply(6);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
@@ -454,38 +440,25 @@ describe('Expression', () => {
 
     it('works in constant * case', () => {
       let ex1 = $('data').sum('$x * 6');
-      let ex2 = $('data')
-        .sum('$x')
-        .multiply(6);
+      let ex2 = $('data').sum('$x').multiply(6);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in post agg case 1', () => {
-      let ex1 = $('data')
-        .sum('$x * 6')
-        .multiply(3);
-      let ex2 = $('data')
-        .sum('$x')
-        .multiply(18);
+      let ex1 = $('data').sum('$x * 6').multiply(3);
+      let ex2 = $('data').sum('$x').multiply(18);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it('works in post agg case 2', () => {
-      let ex1 = $('data')
-        .sum('$x * 6')
-        .add(3);
-      let ex2 = $('data')
-        .sum('$x')
-        .multiply(6)
-        .add(3);
+      let ex1 = $('data').sum('$x * 6').add(3);
+      let ex2 = $('data').sum('$x').multiply(6).add(3);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
     it.skip('works in constant * case (multiple operands)', () => {
       let ex1 = $('data').sum('$x * 6 * $y');
-      let ex2 = $('data')
-        .sum('$x * $y')
-        .multiply(6);
+      let ex2 = $('data').sum('$x * $y').multiply(6);
       expect(ex1.distribute().toJS()).to.deep.equal(ex2.toJS());
     });
 
@@ -536,9 +509,7 @@ describe('Expression', () => {
     });
 
     it('works in nested case', () => {
-      let ex = $('x')
-        .timeShift('P1D', 1)
-        .timeRange('P1D');
+      let ex = $('x').timeShift('P1D', 1).timeRange('P1D');
 
       expect(ex.defineEnvironment({ timezone }).toJS()).to.deep.equal({
         duration: 'P1D',
@@ -660,12 +631,7 @@ describe('Expression', () => {
       };
 
       let ex2 = ply()
-        .apply(
-          'Diamonds',
-          ply()
-            .filter("$color == 'D'")
-            .apply('priceOver2', '$price/2'),
-        )
+        .apply('Diamonds', ply().filter("$color == 'D'").apply('priceOver2', '$price/2'))
         .apply('Count', $('Diamonds').count())
         .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
 
