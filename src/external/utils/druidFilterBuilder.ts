@@ -444,7 +444,7 @@ export class DruidFilterBuilder {
     return NamedArray.get(this.rawAttributes, attributeName);
   }
 
-  public isTimeRef(ex: Expression): boolean {
+  public isTimeRef(ex: Expression): ex is RefExpression {
     return ex instanceof RefExpression && ex.name === this.timeAttribute;
   }
 }

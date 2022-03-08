@@ -182,6 +182,16 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
       bounds,
     });
   }
+
+  public shift(duration: Duration, timezone: Timezone, step?: number): TimeRange {
+    const { start, end, bounds } = this;
+    if (!start) return this;
+    return new TimeRange({
+      start: start ? duration.shift(start, timezone, step) : null,
+      end: end ? duration.shift(end, timezone, step) : null,
+      bounds,
+    });
+  }
 }
 
 // eslint-disable-next-line unused-imports/no-unused-vars
