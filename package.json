@@ -36,8 +36,8 @@
     "eslint-fix": "npm run eslint -- --fix --report-unused-disable-directives",
     "eslint-changed-only": "git diff --diff-filter=ACMR --cached --name-only | grep -E \\.tsx\\?$ | xargs ./node_modules/.bin/eslint",
     "eslint-fix-changed-only": "npm run eslint-changed-only -- --fix",
-    "prettify": "prettier --write 'src/**/*.ts'",
-    "prettify-check": "prettier --check 'src/**/*.ts'"
+    "prettify": "prettier --write '{src,test}/**/*.{ts,js}'",
+    "prettify-check": "prettier --check '{src,test}/**/*.{ts,js}'"
   },
   "tonicExampleFilename": "docs/examples/tonic.js",
   "volta": {

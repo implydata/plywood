@@ -107,12 +107,7 @@ describe('composition', () => {
 
   it('works in semi-realistic case', () => {
     let ex = ply()
-      .apply(
-        'Diamonds',
-        ply()
-          .filter($('color').is('D'))
-          .apply('priceOver2', $('price').divide(2)),
-      )
+      .apply('Diamonds', ply().filter($('color').is('D')).apply('priceOver2', $('price').divide(2)))
       .apply('Count', $('Diamonds').count())
       .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
 
@@ -195,12 +190,7 @@ describe('composition', () => {
 
   it('works in semi-realistic case (using parser)', () => {
     let ex = ply()
-      .apply(
-        'Diamonds',
-        ply()
-          .filter("$color == 'D'")
-          .apply('priceOver2', '$price/2'),
-      )
+      .apply('Diamonds', ply().filter("$color == 'D'").apply('priceOver2', '$price/2'))
       .apply('Count', $('Diamonds').count())
       .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
 

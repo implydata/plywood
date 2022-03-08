@@ -25,12 +25,7 @@ describe('resolve', () => {
     it('went too deep', () => {
       let ex = ply()
         .apply('num', '$^foo + 1')
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$^num * 3')
-            .apply('y', '$^^^foo * 10'),
-        );
+        .apply('subData', ply().apply('x', '$^num * 3').apply('y', '$^^^foo * 10'));
 
       expect(() => {
         ex.resolve({ foo: 7 });
@@ -40,12 +35,7 @@ describe('resolve', () => {
     it('could not find something in context', () => {
       let ex = ply()
         .apply('num', '$^foo + 1')
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$^num * 3')
-            .apply('y', '$^^foobar * 10'),
-        );
+        .apply('subData', ply().apply('x', '$^num * 3').apply('y', '$^^foobar * 10'));
 
       expect(() => {
         ex.resolve({ foo: 7 });
@@ -55,12 +45,7 @@ describe('resolve', () => {
     it('ended up with bad types', () => {
       let ex = ply()
         .apply('num', '$^foo + 1')
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$^num * 3')
-            .apply('y', '$^^foo * 10'),
-        );
+        .apply('subData', ply().apply('x', '$^num * 3').apply('y', '$^^foo * 10'));
 
       expect(() => {
         ex.resolve({ foo: 'bar' });
@@ -94,11 +79,7 @@ describe('resolve', () => {
       };
 
       ex = ex.resolve(context, 'leave');
-      expect(ex.toJS()).to.deep.equal(
-        r(7)
-          .add('$bar')
-          .toJS(),
-      );
+      expect(ex.toJS()).to.deep.equal(r(7).add('$bar').toJS());
     });
 
     it('works with null', () => {
@@ -109,11 +90,7 @@ describe('resolve', () => {
       };
 
       ex = ex.resolve(context, 'leave');
-      expect(ex.toJS()).to.deep.equal(
-        r(null)
-          .add('$bar')
-          .toJS(),
-      );
+      expect(ex.toJS()).to.deep.equal(r(null).add('$bar').toJS());
     });
 
     it('works with null with is', () => {
@@ -124,11 +101,7 @@ describe('resolve', () => {
       };
 
       ex = ex.resolve(context, 'leave');
-      expect(ex.toJS()).to.deep.equal(
-        $('bar', 'STRING')
-          .is(null)
-          .toJS(),
-      );
+      expect(ex.toJS()).to.deep.equal($('bar', 'STRING').is(null).toJS());
     });
 
     it('works in a basic case (and simplifies)', () => {
@@ -145,12 +118,7 @@ describe('resolve', () => {
     it('works in a nested case', () => {
       let ex = ply()
         .apply('num', '$^foo + 1')
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$^num * 3')
-            .apply('y', '$^^foo * 10'),
-        );
+        .apply('subData', ply().apply('x', '$^num * 3').apply('y', '$^^foo * 10'));
 
       let context = {
         foo: 7,
@@ -160,12 +128,7 @@ describe('resolve', () => {
       expect(ex.toJS()).to.deep.equal(
         ply()
           .apply('num', '7 + 1')
-          .apply(
-            'subData',
-            ply()
-              .apply('x', '$^num * 3')
-              .apply('y', '7 * 10'),
-          )
+          .apply('subData', ply().apply('x', '$^num * 3').apply('y', '7 * 10'))
           .toJS(),
       );
 

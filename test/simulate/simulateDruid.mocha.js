@@ -104,7 +104,7 @@ let diamondsCompact = External.fromJS({
 });
 
 let context = {
-  diamonds: External.fromJS({
+  'diamonds': External.fromJS({
     engine: 'druid',
     version: '0.20.0',
     source: 'diamonds',
@@ -245,12 +245,7 @@ describe('simulate Druid', () => {
       .apply('Crazy', '$diamonds.sum($price) - $diamonds.sum($tax) + 10 - $diamonds.sum($carat)')
       .apply('PriceAndTax', '$diamonds.sum($price) * $diamonds.sum($tax)')
       .apply('SixtySix', 66)
-      .apply(
-        'PriceGoodCut',
-        $('diamonds')
-          .filter($('cut').is('good'))
-          .sum('$price'),
-      )
+      .apply('PriceGoodCut', $('diamonds').filter($('cut').is('good')).sum('$price'))
       .apply('AvgPrice', '$diamonds.average($price)')
       .apply(
         'Cuts',
@@ -771,11 +766,7 @@ describe('simulate Druid', () => {
   });
 
   it('works on cast number to string in filter', () => {
-    let ex = $('diamonds').filter(
-      $('height_bucket')
-        .cast('STRING')
-        .is(r('15')),
-    );
+    let ex = $('diamonds').filter($('height_bucket').cast('STRING').is(r('15')));
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan[0][0].filter).to.deep.equal({
@@ -787,11 +778,7 @@ describe('simulate Druid', () => {
 
   it('works on cast string to number in filter', () => {
     let ex = $('diamonds').filter(
-      $('height_bucket')
-        .absolute()
-        .cast('STRING')
-        .cast('NUMBER')
-        .is(r(555)),
+      $('height_bucket').absolute().cast('STRING').cast('NUMBER').is(r(555)),
     );
 
     let queryPlan = ex.simulateQueryPlan(context);
@@ -1438,10 +1425,7 @@ describe('simulate Druid', () => {
   });
 
   it('works with multi-value, multi-dim dimension with in clause', () => {
-    let ex = $('diamonds')
-      .split('$pugs', 'Pug')
-      .filter('$Pug == "a" or $Pug == "b"')
-      .limit(10);
+    let ex = $('diamonds').split('$pugs', 'Pug').filter('$Pug == "a" or $Pug == "b"').limit(10);
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
@@ -1528,9 +1512,7 @@ describe('simulate Druid', () => {
   });
 
   it('works with transform case', () => {
-    let ex = $('diamonds')
-      .split("$cut.transformCase('upperCase')", 'Cut')
-      .limit(10);
+    let ex = $('diamonds').split("$cut.transformCase('upperCase')", 'Cut').limit(10);
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
@@ -1559,11 +1541,7 @@ describe('simulate Druid', () => {
 
   it('works with custom transform in filter and split', () => {
     let ex = $('diamonds')
-      .filter(
-        $('cut')
-          .customTransform('sliceLastChar')
-          .is('z'),
-      )
+      .filter($('cut').customTransform('sliceLastChar').is('z'))
       .split($('cut').customTransform('sliceLastChar'), 'lastChar')
       .limit(10);
 
@@ -1635,10 +1613,7 @@ describe('simulate Druid', () => {
   it('works with numeric split', () => {
     let ex = ply().apply(
       'CaratSplit',
-      $('diamonds')
-        .split('$carat', 'Carat')
-        .sort('$Carat', 'descending')
-        .limit(10),
+      $('diamonds').split('$carat', 'Carat').sort('$Carat', 'descending').limit(10),
     );
 
     let queryPlan = ex.simulateQueryPlan(context);
@@ -1775,8 +1750,8 @@ describe('simulate Druid', () => {
           extractionFn: {
             lookup: {
               map: {
-                '0': 'false',
-                '1': 'true',
+                0: 'false',
+                1: 'true',
                 false: 'false',
                 true: 'true',
               },
@@ -2009,30 +1984,10 @@ describe('simulate Druid', () => {
       $('diamonds')
         .split($('time').timeBucket('PT1H', 'Etc/UTC'), 'TimeSegment')
         .apply('Total', $('diamonds').sum('$price'))
-        .apply(
-          'GoodPrice',
-          $('diamonds')
-            .filter($('cut').is('Good'))
-            .sum('$price'),
-        )
-        .apply(
-          'GoodPrice2',
-          $('diamonds')
-            .filter($('cut').is('Good'))
-            .sum('$price.power(2)'),
-        )
-        .apply(
-          'GoodishPrice',
-          $('diamonds')
-            .filter($('cut').contains('Good'))
-            .sum('$price'),
-        )
-        .apply(
-          'NotBadColors',
-          $('diamonds')
-            .filter($('cut').isnt('Bad'))
-            .countDistinct('$color'),
-        ),
+        .apply('GoodPrice', $('diamonds').filter($('cut').is('Good')).sum('$price'))
+        .apply('GoodPrice2', $('diamonds').filter($('cut').is('Good')).sum('$price.power(2)'))
+        .apply('GoodishPrice', $('diamonds').filter($('cut').contains('Good')).sum('$price'))
+        .apply('NotBadColors', $('diamonds').filter($('cut').isnt('Bad')).countDistinct('$color')),
     );
 
     let queryPlan = ex.simulateQueryPlan(context);
@@ -2145,12 +2100,7 @@ describe('simulate Druid', () => {
       $('diamonds')
         .split($('time').timeBucket('PT1H', 'Etc/UTC'), 'TimeSegment')
         .apply('Total', $('diamonds').sum('$price'))
-        .apply(
-          'GoodPrice',
-          $('diamonds')
-            .filter($('cut').is('Good'))
-            .sum(1),
-        ),
+        .apply('GoodPrice', $('diamonds').filter($('cut').is('Good')).sum(1)),
     );
 
     let queryPlan = ex.simulateQueryPlan(context);
@@ -2435,12 +2385,7 @@ describe('simulate Druid', () => {
     let ex = $('diamonds')
       .split('$color', 'Color')
       .apply('TotalPrice', $('diamonds').sum('$price'))
-      .apply(
-        'RedPrice',
-        $('diamonds')
-          .filter('$color == "Red"')
-          .sum('$price'),
-      )
+      .apply('RedPrice', $('diamonds').filter('$color == "Red"').sum('$price'))
       .apply(
         'Quantile',
         $('diamonds')
@@ -2834,10 +2779,7 @@ describe('simulate Druid', () => {
     let ex = ply()
       .apply(
         'topN',
-        $('diamonds')
-          .split('$color', 'Color')
-          .apply('Count', $('diamonds').count())
-          .limit(10),
+        $('diamonds').split('$color', 'Color').apply('Count', $('diamonds').count()).limit(10),
       )
       .apply(
         'timeseries',
@@ -3104,10 +3046,7 @@ describe('simulate Druid', () => {
         '$diamonds.countDistinct($color.lookup(color_lookup) ++ lol ++ $cut.lookup(cut_lookup))',
       );
 
-    ex = ex
-      .referenceCheck(context)
-      .resolve(context)
-      .simplify();
+    ex = ex.referenceCheck(context).resolve(context).simplify();
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
@@ -3190,10 +3129,7 @@ describe('simulate Druid', () => {
       .apply('P95Vendors', '$diamonds.filter($color == E).quantile($vendor_id, 0.95)')
       .apply('Crazy', '$diamonds.filter($color == F).customAggregate(crazy)');
 
-    ex = ex
-      .referenceCheck(context)
-      .resolve(context)
-      .simplify();
+    ex = ex.referenceCheck(context).resolve(context).simplify();
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
@@ -3290,10 +3226,7 @@ describe('simulate Druid', () => {
   it('makes a query with countDistinct (cross prod)', () => {
     let ex = ply().apply('NumColorCuts', '$diamonds.countDistinct($color ++ "lol" ++ $cut)');
 
-    ex = ex
-      .referenceCheck(context)
-      .resolve(context)
-      .simplify();
+    ex = ex.referenceCheck(context).resolve(context).simplify();
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
@@ -3412,11 +3345,7 @@ describe('simulate Druid', () => {
     let ex = ply()
       .apply(
         'diamonds',
-        $('diamonds').filter(
-          $('color')
-            .fallback(r('null'))
-            .contains(r('sup"yo'), 'ignoreCase'),
-        ),
+        $('diamonds').filter($('color').fallback(r('null')).contains(r('sup"yo'), 'ignoreCase')),
       )
       .apply('Count', '$diamonds.count()');
 
@@ -3445,9 +3374,7 @@ describe('simulate Druid', () => {
   });
 
   it('works with SELECT query', () => {
-    let ex = $('diamonds')
-      .filter('$color == "D"')
-      .limit(10);
+    let ex = $('diamonds').filter('$color == "D"').limit(10);
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
@@ -3765,15 +3692,7 @@ describe('simulate Druid', () => {
   it('works with derived time columns as a filter', () => {
     const date = new Date('2021-05-21');
     let ex = ply()
-      .apply(
-        'diamonds',
-        $('diamonds').filter(
-          $('cut')
-            .cast('NUMBER')
-            .cast('TIME')
-            .is(r(date)),
-        ),
-      )
+      .apply('diamonds', $('diamonds').filter($('cut').cast('NUMBER').cast('TIME').is(r(date))))
       .apply('count', $('diamonds').count());
     let queryPlan = ex.simulateQueryPlan(context);
 

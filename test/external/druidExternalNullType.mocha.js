@@ -102,10 +102,7 @@ describe('DruidExternal Null Type', () => {
         .apply('maximumTime', '$wiki.max($time)')
         .apply('minimumTime', '$wiki.min($time)');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
       let druidExternal = ex.value.getReadyExternals()[0].external;
@@ -117,14 +114,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('should properly process a simple value query', () => {
-      let ex = $('wiki')
-        .filter($('language').is('en'))
-        .sum('$added');
+      let ex = $('wiki').filter($('language').is('en')).sum('$added');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -155,10 +147,7 @@ describe('DruidExternal Null Type', () => {
         .sum('$added')
         .add($('wiki').sum('$deleted'));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -203,17 +192,12 @@ describe('DruidExternal Null Type', () => {
       let ex = ply()
         .apply(
           'wiki',
-          $('wiki', 1)
-            .apply('addedTwice', '$added * 2')
-            .filter($('language').is('en')),
+          $('wiki', 1).apply('addedTwice', '$added * 2').filter($('language').is('en')),
         )
         .apply('Count', '$wiki.count()')
         .apply('TotalAdded', '$wiki.sum($added)');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
       let druidExternal = ex.value.getReadyExternals()[0].external;
@@ -247,10 +231,7 @@ describe('DruidExternal Null Type', () => {
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply('TotalAddedX2', '$TotalAdded * 2');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
       let druidExternal = ex.value.getReadyExternals()[0].external;
@@ -286,10 +267,7 @@ describe('DruidExternal Null Type', () => {
         .sort('$Count', 'descending')
         .limit(5);
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -327,10 +305,7 @@ describe('DruidExternal Null Type', () => {
         .sort('$CrazyStupid', 'descending')
         .limit(5);
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -380,10 +355,7 @@ describe('DruidExternal Null Type', () => {
         .apply('SumAbs', '$wiki.sum($added.absolute())')
         .apply('SumComplex', '$wiki.sum($added.power(2) * $deleted / $added.absolute())');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
       let druidExternal = ex.value.getReadyExternals()[0].external;
@@ -411,10 +383,7 @@ describe('DruidExternal Null Type', () => {
         .sort('$FilteredSumDeleted', 'descending')
         .limit(5);
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -477,10 +446,7 @@ describe('DruidExternal Null Type', () => {
         .sort('$Abs', 'descending')
         .limit(5);
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -533,10 +499,7 @@ describe('DruidExternal Null Type', () => {
         .sort('$Count', 'descending')
         .limit(5);
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -587,14 +550,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('works in simple cases with string comparisons', () => {
-      let ex = $('wiki')
-        .filter("$page < 'moon'", 'Page')
-        .limit(5);
+      let ex = $('wiki').filter("$page < 'moon'", 'Page').limit(5);
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -612,10 +570,7 @@ describe('DruidExternal Null Type', () => {
         '($wiki.countDistinct($page) - 279893).absolute() < 10',
       );
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       console.log('ex.toString()', ex.toString());
 
@@ -629,10 +584,7 @@ describe('DruidExternal Null Type', () => {
     it('works with ref filter', () => {
       let ex = $('wiki').filter($('isRobot'));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -646,10 +598,7 @@ describe('DruidExternal Null Type', () => {
     it('works with ref.not() filter', () => {
       let ex = $('wiki').filter($('isRobot').not());
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -666,10 +615,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .in(1 thing)', () => {
       let ex = $('wiki').filter($('language').in(['en']));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -683,10 +629,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .in(3 things)', () => {
       let ex = $('wiki').filter($('language').in(['en', 'es', 'fr']));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -700,10 +643,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .in([null])', () => {
       let ex = $('wiki').filter($('language').in([null]));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -715,16 +655,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('works with .lookup().in(3 things)', () => {
-      let ex = $('wiki').filter(
-        $('language')
-          .lookup('language_lookup')
-          .in(['en', 'es', 'fr']),
-      );
+      let ex = $('wiki').filter($('language').lookup('language_lookup').in(['en', 'es', 'fr']));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -742,10 +675,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .overlap([null])', () => {
       let ex = $('wiki').filter($('language').overlap([null]));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -757,16 +687,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('works with .lookup().overlap(blah, null) (on SET/STRING)', () => {
-      let ex = $('wiki').filter(
-        $('tags')
-          .lookup('tag_lookup')
-          .overlap(['Good', null]),
-      );
+      let ex = $('wiki').filter($('tags').lookup('tag_lookup').overlap(['Good', null]));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -782,16 +705,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('works with .extract().overlap(blah, null) (on SET/STRING)', () => {
-      let ex = $('wiki').filter(
-        $('tags')
-          .extract('[0-9]+')
-          .overlap(['Good', null]),
-      );
+      let ex = $('wiki').filter($('tags').extract('[0-9]+').overlap(['Good', null]));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -808,16 +724,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('works with .substr().overlap(blah, null) (on SET/STRING)', () => {
-      let ex = $('wiki').filter(
-        $('tags')
-          .substr(1, 3)
-          .overlap(['Good', null]),
-      );
+      let ex = $('wiki').filter($('tags').substr(1, 3).overlap(['Good', null]));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -836,10 +745,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .overlap(NUMBER_RANGE)', () => {
       let ex = $('wiki').filter($('commentLength').overlap(10, 30));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -856,10 +762,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .in(SET/NUMBER)', () => {
       let ex = $('wiki').filter($('commentLength').in([10, 30]));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -873,10 +776,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .contains()', () => {
       let ex = $('wiki').filter($('language').contains('en', 'ignoreCase'));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -894,10 +794,7 @@ describe('DruidExternal Null Type', () => {
     it('works with SET/STRING.contains()', () => {
       let ex = $('wiki').filter($('tags').contains('good', 'ignoreCase'));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -914,15 +811,10 @@ describe('DruidExternal Null Type', () => {
 
     it('works with .lookup().contains()', () => {
       let ex = $('wiki').filter(
-        $('language')
-          .lookup('language_lookup')
-          .contains('eN', 'ignoreCase'),
+        $('language').lookup('language_lookup').contains('eN', 'ignoreCase'),
       );
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -943,16 +835,10 @@ describe('DruidExternal Null Type', () => {
 
     it('works with .lookup().contains().not()', () => {
       let ex = $('wiki').filter(
-        $('language')
-          .lookup('language_lookup')
-          .contains('eN', 'ignoreCase')
-          .not(),
+        $('language').lookup('language_lookup').contains('eN', 'ignoreCase').not(),
       );
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -977,10 +863,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .concat().concat().contains()', () => {
       let ex = $('wiki').filter("('[' ++ $language ++ ']').contains('eN', 'ignoreCase')");
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -1003,10 +886,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .match()', () => {
       let ex = $('wiki').filter($('language').match('en+'));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -1020,10 +900,7 @@ describe('DruidExternal Null Type', () => {
     it('works with SET/STRING.match()', () => {
       let ex = $('wiki').filter($('tags').match('goo+d'));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -1035,16 +912,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('works with .timePart().in()', () => {
-      let ex = $('wiki').filter(
-        $('time')
-          .timePart('HOUR_OF_DAY')
-          .is([3, 5]),
-      );
+      let ex = $('wiki').filter($('time').timePart('HOUR_OF_DAY').is([3, 5]));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -1064,10 +934,7 @@ describe('DruidExternal Null Type', () => {
     it('works with derived .in()', () => {
       let ex = $('wiki').filter('$pageInBrackets == "[wiki]"');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -1084,14 +951,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('works with dynamic derived .in()', () => {
-      let ex = $('wiki')
-        .apply('page3', '$page.substr(0, 3)')
-        .filter('$page3 == wik');
+      let ex = $('wiki').apply('page3', '$page.substr(0, 3)').filter('$page3 == wik');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let druidExternal = ex.external;
@@ -1112,10 +974,7 @@ describe('DruidExternal Null Type', () => {
     it('works with default', () => {
       let ex = $('wiki').split('$page', 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1130,10 +989,7 @@ describe('DruidExternal Null Type', () => {
     it('works with simple STRING', () => {
       let ex = $('wiki').split('$page', 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1146,14 +1002,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('works with dynamic derived column STRING', () => {
-      let ex = $('wiki')
-        .apply('page3', '$page.substr(0, 3)')
-        .split('$page3', 'Split');
+      let ex = $('wiki').apply('page3', '$page.substr(0, 3)').split('$page3', 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1173,10 +1024,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .concat()', () => {
       let ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1196,10 +1044,7 @@ describe('DruidExternal Null Type', () => {
     it('works with SET/STRING.concat()', () => {
       let ex = $('wiki').split('"[%]" ++ $page ++ "[%]"', 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1219,10 +1064,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .substr()', () => {
       let ex = $('wiki').split('$page.substr(3, 5)', 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1242,10 +1084,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .substr().extract()', () => {
       let ex = $('wiki').split('$page.substr(3, 5).extract("\\d+")', 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1275,10 +1114,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .extract() (no fallback)', () => {
       let ex = $('wiki').split($('page').extract('^Cat(.+)$'), 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1296,17 +1132,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('works with .extract() with custom .fallback()', () => {
-      let ex = $('wiki').split(
-        $('page')
-          .extract('^Cat(.+)$')
-          .fallback('noMatch'),
-        'Split',
-      );
+      let ex = $('wiki').split($('page').extract('^Cat(.+)$').fallback('noMatch'), 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1325,17 +1153,9 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('works with .extract() with self .fallback()', () => {
-      let ex = $('wiki').split(
-        $('page')
-          .extract('^Cat(.+)$')
-          .fallback('$page'),
-        'Split',
-      );
+      let ex = $('wiki').split($('page').extract('^Cat(.+)$').fallback('$page'), 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1354,10 +1174,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .lookup() (no fallback)', () => {
       let ex = $('wiki').split($('page').lookup('wikipedia-page-lookup'), 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1375,16 +1192,11 @@ describe('DruidExternal Null Type', () => {
 
     it('works with .lookup() with custom .fallback()', () => {
       let ex = $('wiki').split(
-        $('page')
-          .lookup('wikipedia-page-lookup')
-          .fallback('missing'),
+        $('page').lookup('wikipedia-page-lookup').fallback('missing'),
         'Split',
       );
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1403,16 +1215,11 @@ describe('DruidExternal Null Type', () => {
 
     it('works with .lookup() with self .fallback()', () => {
       let ex = $('wiki').split(
-        $('page')
-          .lookup('wikipedia-page-lookup')
-          .fallback('$page'),
+        $('page').lookup('wikipedia-page-lookup').fallback('$page'),
         'Split',
       );
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1431,17 +1238,11 @@ describe('DruidExternal Null Type', () => {
 
     it('works with .lookup().fallback().extract()', () => {
       let ex = $('wiki').split(
-        $('page')
-          .lookup('wikipedia-page-lookup')
-          .fallback('$page')
-          .extract('\\d+'),
+        $('page').lookup('wikipedia-page-lookup').fallback('$page').extract('\\d+'),
         'Split',
       );
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1470,17 +1271,11 @@ describe('DruidExternal Null Type', () => {
 
     it('works with .lookup().fallback().contains()', () => {
       let ex = $('wiki').split(
-        $('page')
-          .lookup('wikipedia-page-lookup')
-          .fallback('$page')
-          .contains('lol'),
+        $('page').lookup('wikipedia-page-lookup').fallback('$page').contains('lol'),
         'Split',
       );
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1504,10 +1299,7 @@ describe('DruidExternal Null Type', () => {
     it('works with SET/STRING.lookup()', () => {
       let ex = $('wiki').split($('tags').lookup('tag-lookup'), 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1525,16 +1317,11 @@ describe('DruidExternal Null Type', () => {
 
     it('works with SET/STRING.lookup().contains()', () => {
       let ex = $('wiki').split(
-        $('tags')
-          .lookup('tag-lookup')
-          .contains('lol', 'ignoreCase'),
+        $('tags').lookup('tag-lookup').contains('lol', 'ignoreCase'),
         'Split',
       );
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1558,10 +1345,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .power()', () => {
       let ex = $('wiki').split('$commentLength.power(2)', 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1593,10 +1377,7 @@ describe('DruidExternal Null Type', () => {
     it('works with .numberBucket()', () => {
       let ex = $('wiki').split('$commentLength.numberBucket(10, 1)', 'Split');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1619,10 +1400,7 @@ describe('DruidExternal Null Type', () => {
         Split2: '$sometimeLater.timeBucket(P1D)',
       });
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1667,10 +1445,7 @@ describe('DruidExternal Null Type', () => {
         Split2: "$sometimeLater.timePart(DAY_OF_WEEK, 'Etc/UTC')",
       });
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1692,10 +1467,7 @@ describe('DruidExternal Null Type', () => {
     it('works with derived attr split', () => {
       let ex = $('wiki').split('$page3', 'P3');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1714,16 +1486,11 @@ describe('DruidExternal Null Type', () => {
 
     it('works with custom transform split with time format extraction fn', () => {
       let ex = $('wiki').split(
-        $('time')
-          .customTransform('makeFrenchCanadian')
-          .cast('STRING'),
+        $('time').customTransform('makeFrenchCanadian').cast('STRING'),
         'FrenchCanadian',
       );
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1752,10 +1519,7 @@ describe('DruidExternal Null Type', () => {
     it('works with custom transform split with javascript extraction fn', () => {
       let ex = $('wiki').split($('time').customTransform('makeExcited'), 'Excited');
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
       let query = ex.external.getQueryAndPostTransform().query;
@@ -1784,17 +1548,9 @@ describe('DruidExternal Null Type', () => {
     it('works with ref filtered agg', () => {
       let ex = ply()
         .apply('Count', $('wiki').sum('$count'))
-        .apply(
-          'Test',
-          $('wiki')
-            .filter('$isRobot')
-            .sum('$count'),
-        );
+        .apply('Test', $('wiki').filter('$isRobot').sum('$count'));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
       let druidExternal = ex.value.getReadyExternals()[0].external;
@@ -1820,17 +1576,9 @@ describe('DruidExternal Null Type', () => {
     it('works with quantile agg', () => {
       let ex = ply()
         .apply('P95', $('wiki').quantile('$delta_hist', 0.95))
-        .apply(
-          'P99by2',
-          $('wiki')
-            .quantile('$delta_hist', 0.99)
-            .divide(2),
-        );
+        .apply('P99by2', $('wiki').quantile('$delta_hist', 0.99).divide(2));
 
-      ex = ex
-        .referenceCheck(context)
-        .resolve(context)
-        .simplify();
+      ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
       let druidExternal = ex.value.getReadyExternals()[0].external;

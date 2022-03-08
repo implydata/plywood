@@ -68,12 +68,7 @@ describe('simulate MySQL', () => {
                 'Carats',
                 $('diamonds')
                   .split($('carat').numberBucket(0.25), 'Carat')
-                  .apply(
-                    'Count',
-                    $('diamonds')
-                      .count()
-                      .fallback(0),
-                  )
+                  .apply('Count', $('diamonds').count().fallback(0))
                   .sort('$Count', 'descending')
                   .limit(3),
               ),
@@ -244,10 +239,7 @@ describe('simulate MySQL', () => {
   });
 
   it('works with SELECT query', () => {
-    let ex = $('diamonds')
-      .filter('$color == "D"')
-      .sort('$cut', 'descending')
-      .limit(10);
+    let ex = $('diamonds').filter('$color == "D"').sort('$cut', 'descending').limit(10);
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);
@@ -265,9 +257,7 @@ describe('simulate MySQL', () => {
   });
 
   it('works with value query', () => {
-    let ex = $('diamonds')
-      .filter('$color == "D"')
-      .sum('$price');
+    let ex = $('diamonds').filter('$color == "D"').sum('$price');
 
     let queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan).to.have.length(1);

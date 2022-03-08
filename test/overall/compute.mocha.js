@@ -34,9 +34,7 @@ describe('compute native', () => {
   ];
 
   it('works in uber-basic case', () => {
-    let ex = ply()
-      .apply('five', 5)
-      .apply('nine', 9);
+    let ex = ply().apply('five', 5).apply('nine', 9);
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -273,12 +271,7 @@ describe('compute native', () => {
   it('works with power and absolute', () => {
     let ex = ply()
       .apply('number', 256)
-      .apply(
-        'four',
-        $('number')
-          .power(0.5)
-          .power(0.5),
-      )
+      .apply('four', $('number').power(0.5).power(0.5))
       .apply('one', $('four').power(0))
       .apply('reciprocal', $('four').power(-1))
       .apply('negative', -4)
@@ -452,12 +445,7 @@ describe('compute native', () => {
       .apply('Two', 2)
       .apply('EmptyData', ply(ds).filter('false'))
       .apply('SumPrice', '$EmptyData.sum($price)')
-      .apply(
-        'AvgPrice1',
-        $('EmptyData')
-          .average($('price'))
-          .fallback(2),
-      )
+      .apply('AvgPrice1', $('EmptyData').average($('price')).fallback(2))
       .apply('AvgPrice2', '$EmptyData.sum($price) / $EmptyData.count()');
 
     return ex.compute().then(v => {
@@ -475,9 +463,7 @@ describe('compute native', () => {
   it('does cartesian concat', () => {
     let ds = Dataset.fromJS(data).hide();
 
-    let ex = ply(ds)
-      .apply('concat', '$tags ++ $cut')
-      .select('tags', 'cut', 'concat');
+    let ex = ply(ds).apply('concat', '$tags ++ $cut').select('tags', 'cut', 'concat');
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -866,13 +852,7 @@ describe('compute native', () => {
     ]);
 
     let ex = ply(ds)
-      .split(
-        i$('time')
-          .timeFloor('P3M')
-          .timePart('SECOND_OF_YEAR'),
-        'soy',
-        'data',
-      )
+      .split(i$('time').timeFloor('P3M').timePart('SECOND_OF_YEAR'), 'soy', 'data')
       .select('soy');
 
     return ex.compute().then(v => {
@@ -896,9 +876,7 @@ describe('compute native', () => {
   it('works with filter, select', () => {
     let ds = Dataset.fromJS(data);
 
-    let ex = $('ds')
-      .filter('$price > 200')
-      .select('cut');
+    let ex = $('ds').filter('$price > 200').select('cut');
 
     return ex.compute({ ds }).then(v => {
       expect(v.toJS()).to.deep.equal({
@@ -923,9 +901,7 @@ describe('compute native', () => {
   it('works with select, limit', () => {
     let ds = Dataset.fromJS(data);
 
-    let ex = $('ds')
-      .select('cut')
-      .limit(3);
+    let ex = $('ds').select('cut').limit(3);
 
     return ex.compute({ ds }).then(v => {
       expect(v.toJS()).to.deep.equal({
@@ -1000,31 +976,16 @@ describe('compute native', () => {
       .apply('cutInGoodGreat', $('cut').in(['Good', 'Great']))
       .apply('cutIsGoodGreat', $('cut').is(['Good', 'Great']))
       .apply('cutIsNull', $('cut').is([null]))
-      .apply(
-        'cutThenFallback',
-        $('cut')
-          .is('Good')
-          .then('Noice')
-          .fallback('Boo'),
-      )
+      .apply('cutThenFallback', $('cut').is('Good').then('Noice').fallback('Boo'))
       .apply(
         'cutThenFallbackX2',
         $('cut')
           .is('Good')
           .then('Nice')
-          .fallback(
-            $('cut')
-              .is('Great')
-              .then('Amaze'),
-          )
+          .fallback($('cut').is('Great').then('Amaze'))
           .fallback('Neither'),
       )
-      .apply(
-        'cutIsGoodIsFalse',
-        $('cut')
-          .is('Good')
-          .is([false]),
-      )
+      .apply('cutIsGoodIsFalse', $('cut').is('Good').is([false]))
       .apply('timeFloorDay', $('time').timeFloor('P1D'))
       .apply('timeShiftDay2', $('time').timeShift('P1D', 2))
       .apply('timeRangeHours', $('time').timeRange('PT2H', -1))
@@ -1383,9 +1344,7 @@ describe('compute native', () => {
   it('works with simple split', () => {
     let ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
-      .apply('Data', ply(ds))
-      .apply('Cuts', $('Data').split('$cut', 'Cut'));
+    let ex = ply().apply('Data', ply(ds)).apply('Cuts', $('Data').split('$cut', 'Cut'));
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -1814,9 +1773,7 @@ describe('compute native', () => {
   it('works with context', () => {
     let ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
-      .apply('Data', ply(ds))
-      .apply('CountPlusX', '$Data.count() + $x');
+    let ex = ply().apply('Data', ply(ds)).apply('CountPlusX', '$Data.count() + $x');
 
     return ex.compute({ x: 13 }).then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -2072,10 +2029,7 @@ describe('compute native', () => {
     it('sorts on number ranges', () => {
       let ds = Dataset.fromJS(data);
 
-      let ex = ply(ds)
-        .apply('nr', '$n.numberBucket(1)')
-        .select('nr')
-        .sort('$nr');
+      let ex = ply(ds).apply('nr', '$n.numberBucket(1)').select('nr').sort('$nr');
 
       return ex.compute().then(v => {
         expect(v.toJS().data).to.deep.equal([
@@ -2253,14 +2207,7 @@ describe('compute native', () => {
 
       let ex = ply()
         .apply('Data1', ply(ds).filter($('price').overlap(105, 305)))
-        .apply(
-          'Data2',
-          ply(ds).filter(
-            $('price')
-              .overlap(105, 305)
-              .not(),
-          ),
-        )
+        .apply('Data2', ply(ds).filter($('price').overlap(105, 305).not()))
         .apply('Count1', '$Data1.count()')
         .apply('Count2', '$Data2.count()')
         .apply(

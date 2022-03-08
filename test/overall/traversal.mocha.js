@@ -49,22 +49,12 @@ describe('traversal', () => {
         ply()
           .apply('x', '$num +  16011002')
           .apply('y', '$foo * 19010002')
-          .apply(
-            'z',
-            ply()
-              .sum(23010003)
-              .add(24009002),
-          )
+          .apply('z', ply().sum(23010003).add(24009002))
           .apply('w', ply().sum('$a + 30010003 + $b'))
           .split('$x', 'X', 'data')
           .apply('x', '$num + 35006002')
           .apply('y', '$data:DATASET.sum(39006003) + 40005002')
-          .apply(
-            'z',
-            ply()
-              .sum(44005003)
-              .add(45004002),
-          )
+          .apply('z', ply().sum(44005003).add(45004002))
           .apply('w', '47003002 + $data:DATASET.sum(50004003)'),
       );
 

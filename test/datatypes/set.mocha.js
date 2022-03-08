@@ -252,11 +252,7 @@ describe('Set', () => {
 
   describe('#add', () => {
     it('works correctly', () => {
-      expect(
-        Set.fromJS(['A', 'B'])
-          .add('C')
-          .toJS(),
-      ).to.deep.equal({
+      expect(Set.fromJS(['A', 'B']).add('C').toJS()).to.deep.equal({
         setType: 'STRING',
         elements: ['A', 'B', 'C'],
       });
@@ -270,11 +266,7 @@ describe('Set', () => {
     });
 
     it('works with null', () => {
-      expect(
-        Set.fromJS(['A'])
-          .add(null)
-          .toJS(),
-      ).to.deep.equal({
+      expect(Set.fromJS(['A']).add(null).toJS()).to.deep.equal({
         setType: 'STRING',
         elements: ['A', null],
       });
@@ -283,11 +275,7 @@ describe('Set', () => {
 
   describe('#remove', () => {
     it('works correctly', () => {
-      expect(
-        Set.fromJS(['A', 'B'])
-          .remove('B')
-          .toJS(),
-      ).to.deep.equal({
+      expect(Set.fromJS(['A', 'B']).remove('B').toJS()).to.deep.equal({
         setType: 'STRING',
         elements: ['A'],
       });
@@ -298,11 +286,7 @@ describe('Set', () => {
     });
 
     it('works with null', () => {
-      expect(
-        Set.fromJS(['A', null])
-          .remove(null)
-          .toJS(),
-      ).to.deep.equal({
+      expect(Set.fromJS(['A', null]).remove(null).toJS()).to.deep.equal({
         setType: 'STRING',
         elements: ['A'],
       });
@@ -311,11 +295,7 @@ describe('Set', () => {
 
   describe('#toggle', () => {
     it('works correctly', () => {
-      expect(
-        Set.fromJS(['A', 'B'])
-          .toggle('B')
-          .toJS(),
-      ).to.deep.equal({
+      expect(Set.fromJS(['A', 'B']).toggle('B').toJS()).to.deep.equal({
         setType: 'STRING',
         elements: ['A'],
       });
@@ -329,11 +309,7 @@ describe('Set', () => {
     });
 
     it('works with null', () => {
-      expect(
-        Set.fromJS(['A', null])
-          .toggle(null)
-          .toJS(),
-      ).to.deep.equal({
+      expect(Set.fromJS(['A', null]).toggle(null).toJS()).to.deep.equal({
         setType: 'STRING',
         elements: ['A'],
       });
@@ -427,11 +403,7 @@ describe('Set', () => {
     });
 
     it('works with empty set as rhs', () => {
-      expect(
-        Set.fromJS(['A', 'B'])
-          .union(Set.EMPTY)
-          .toJS(),
-      ).to.deep.equal({
+      expect(Set.fromJS(['A', 'B']).union(Set.EMPTY).toJS()).to.deep.equal({
         setType: 'STRING',
         elements: ['A', 'B'],
       });

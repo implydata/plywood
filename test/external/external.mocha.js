@@ -156,9 +156,7 @@ describe('External', () => {
           source: 'wiki',
           timeAttribute: 'time',
           derivedAttributes: {
-            city3: $('city')
-              .substr(0, 3)
-              .toJS(),
+            city3: $('city').substr(0, 3).toJS(),
           },
         },
       ],
@@ -858,13 +856,7 @@ describe('External', () => {
         $('time').timeFloor('PT2H', 'Etc/UTC'),
         $('time').timeFloor('P1D', 'Etc/UTC'),
         $('time').timeBucket('P1D', 'Etc/UTC'),
-        $('language')
-          .is('en')
-          .and(
-            $('time')
-              .timeFloor('PT1H', 'Etc/UTC')
-              .is('$blah'),
-          ),
+        $('language').is('en').and($('time').timeFloor('PT1H', 'Etc/UTC').is('$blah')),
         $('time').overlap(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:00Z')),
       ];
 
@@ -879,13 +871,7 @@ describe('External', () => {
         $('time').timeFloor('PT1H'),
         $('time').timeFloor('PT1M', 'Etc/UTC'),
         $('time').timeFloor('PT1S', 'Etc/UTC'),
-        $('language')
-          .is('en')
-          .and(
-            $('time')
-              .timeFloor('PT1M', 'Etc/UTC')
-              .is('$blah'),
-          ),
+        $('language').is('en').and($('time').timeFloor('PT1M', 'Etc/UTC').is('$blah')),
         $('time').overlap(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:01Z')),
       ];
 
@@ -900,20 +886,14 @@ describe('External', () => {
       it('works in basic raw mode', () => {
         let ex = $('wiki');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('external');
       });
 
       it('works with a simple select', () => {
         let ex = $('wiki').select('time', 'language', 'added');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
 
@@ -921,14 +901,9 @@ describe('External', () => {
       });
 
       it('works with a derived attribute and a filter', () => {
-        let ex = $('wiki')
-          .apply('addedTwice', '$added * 2')
-          .filter($('language').is('en'));
+        let ex = $('wiki').apply('addedTwice', '$added * 2').filter($('language').is('en'));
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
 
@@ -944,14 +919,9 @@ describe('External', () => {
       });
 
       it('works with a sort and a limit', () => {
-        let ex = $('wiki')
-          .sort('$time')
-          .limit(10);
+        let ex = $('wiki').sort('$time').limit(10);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
 
@@ -960,15 +930,9 @@ describe('External', () => {
       });
 
       it('works with a sort and a limit where there is also an aggregate', () => {
-        let ex = $('wiki')
-          .sort('$time')
-          .limit(10)
-          .count();
+        let ex = $('wiki').sort('$time').limit(10).count();
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('count');
         let externalDataset = ex.operand.external;
 
@@ -981,10 +945,7 @@ describe('External', () => {
       it('works with a basic aggregate', () => {
         let ex = $('wiki').sum('$added');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1001,14 +962,9 @@ describe('External', () => {
       });
 
       it('works with a filter and aggregate', () => {
-        let ex = $('wiki')
-          .filter('$page == USA')
-          .sum('$added');
+        let ex = $('wiki').filter('$page == USA').sum('$added');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1023,15 +979,9 @@ describe('External', () => {
       });
 
       it('works with aggregate that has a simple post process', () => {
-        let ex = $('wiki')
-          .filter('$page == USA')
-          .sum('$added')
-          .multiply(2);
+        let ex = $('wiki').filter('$page == USA').sum('$added').multiply(2);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1046,15 +996,9 @@ describe('External', () => {
       });
 
       it('works with aggregate that has an expressionless post process', () => {
-        let ex = $('wiki')
-          .filter('$page == USA')
-          .sum('$added')
-          .absolute();
+        let ex = $('wiki').filter('$page == USA').sum('$added').absolute();
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1065,15 +1009,9 @@ describe('External', () => {
       });
 
       it('works with aggregate that has a complex post process', () => {
-        let ex = $('wiki')
-          .filter('$page == USA')
-          .sum('$added')
-          .add($('wiki').sum('$deleted'));
+        let ex = $('wiki').filter('$page == USA').sum('$added').add($('wiki').sum('$deleted'));
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1088,16 +1026,9 @@ describe('External', () => {
       });
 
       it('works with aggregate that has a LHS post process', () => {
-        let ex = r(5).subtract(
-          $('wiki')
-            .filter('$page == USA')
-            .sum('$added'),
-        );
+        let ex = r(5).subtract($('wiki').filter('$page == USA').sum('$added'));
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1112,17 +1043,9 @@ describe('External', () => {
       });
 
       it('works with aggregate that has LHS and RHS post process', () => {
-        let ex = r(5).subtract(
-          $('wiki')
-            .filter('$page == USA')
-            .sum('$added'),
-          $('wiki').count(),
-        );
+        let ex = r(5).subtract($('wiki').filter('$page == USA').sum('$added'), $('wiki').count());
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1141,10 +1064,7 @@ describe('External', () => {
       it('works with a single apply', () => {
         let ex = ply().apply('TotalAdded', '$wiki.sum($added)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
         let externalDataset = ex.value.getReadyExternals()[0].external;
@@ -1160,14 +1080,9 @@ describe('External', () => {
       });
 
       it('works with a multiple applies', () => {
-        let ex = ply()
-          .apply('Count', '$wiki.count()')
-          .apply('TotalAdded', '$wiki.sum($added)');
+        let ex = ply().apply('Count', '$wiki.count()').apply('TotalAdded', '$wiki.sum($added)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
         let externalDataset = ex.value.getReadyExternals()[0].external;
@@ -1189,10 +1104,7 @@ describe('External', () => {
           .apply('TotalAdded', '$wiki.sum($added)')
           .apply('CountPlusAdded', '$Count + $TotalAdded');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
         let externalDataset = ex.value.getReadyExternals()[0].external;
@@ -1216,10 +1128,7 @@ describe('External', () => {
           .apply('TotalUSA', '$wiki.filter($page == USA).sum($added)')
           .apply('TotalUK', '$wiki.filter($page == UK).sum($added)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
         let externalDataset = ex.value.getReadyExternals()[0].external;
@@ -1258,10 +1167,7 @@ describe('External', () => {
           .apply('TotalUK', '$wiki.filter($page == UK).sum($added)')
           .apply('TotalIndia', '$wiki.filter($page == India).sum($added)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
         let externalDataset = ex.value.getReadyExternals()[0].external;
@@ -1290,10 +1196,7 @@ describe('External', () => {
           .apply('TotalAdded', '$wiki.sum($added)')
           .apply('TotalUSA', '$wiki.filter($page == USA).sum($added)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
         let externalDataset = ex.value.getReadyExternals()[0].external;
@@ -1326,10 +1229,7 @@ describe('External', () => {
           .apply('TotalUsAdded', '$wiki_alt.sum($added)')
           .apply('OrigMinAdded', '$^wiki.min($added)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
         let externalDataset = ex.value.getReadyExternals()[0].external;
@@ -1375,10 +1275,7 @@ describe('External', () => {
         //.apply('CountX3Plus5', '$CountX3 + 5');
         //.apply('MinSum', '$wiki.split($user, Blah).apply(Added, $wiki.sum($added)).min($Added)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
         expect(ex.value.data[0]['Five']).to.equal(5);
@@ -1418,10 +1315,7 @@ describe('External', () => {
           .sort('$Count', 'descending')
           .limit(5);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1451,10 +1345,7 @@ describe('External', () => {
           .apply('Added', '$wiki.sum($added)')
           .limit(9);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1476,10 +1367,7 @@ describe('External', () => {
           .apply('Added', '$wiki.sum($added)')
           .limit(5);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1500,10 +1388,7 @@ describe('External', () => {
           .sort('$Count', 'descending')
           .limit(5);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1535,10 +1420,7 @@ describe('External', () => {
           .sort('$Count', 'descending')
           .limit(5);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
         let externalDataset = ex.external;
@@ -1572,10 +1454,7 @@ describe('External', () => {
           .sort('$Count', 'descending')
           .limit(5);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         console.log('ex', ex.external.applies);
 
@@ -1596,12 +1475,7 @@ describe('External', () => {
     describe('complex cases (multi mode)', () => {
       it('works with a total and a split', () => {
         let ex = ply()
-          .apply(
-            'wiki',
-            $('wiki')
-              .apply('addedTwice', '$added * 2')
-              .filter($('language').is('en')),
-          )
+          .apply('wiki', $('wiki').apply('addedTwice', '$added * 2').filter($('language').is('en')))
           .apply('Count', '$wiki.count()')
           .apply('TotalAdded', '$wiki.sum($added)')
           .apply(
@@ -1614,10 +1488,7 @@ describe('External', () => {
               .limit(5),
           );
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(2);
@@ -1651,10 +1522,7 @@ describe('External', () => {
               .limit(5),
           );
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(1);
@@ -1676,10 +1544,7 @@ describe('External', () => {
               .limit(5),
           );
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(1);
@@ -1699,10 +1564,7 @@ describe('External', () => {
               .apply('PercentOfTotal', '$Count / $^Count'),
           );
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(1);
@@ -1715,9 +1577,7 @@ describe('External', () => {
         let ex = ply()
           .apply(
             'wiki',
-            $('wiki', 1)
-              .apply('addedTwice', '$added * 2')
-              .filter($('language').is('en')),
+            $('wiki', 1).apply('addedTwice', '$added * 2').filter($('language').is('en')),
           )
           .apply('Count', '$wiki.count()')
           .apply(
@@ -1731,10 +1591,7 @@ describe('External', () => {
           )
           .apply('TotalAdded', '$wiki.sum($added)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(2);
@@ -1771,10 +1628,7 @@ describe('External', () => {
           .apply('Added', '$wiki.sum($added)')
           .limit(5);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let readyExternals = ex.getReadyExternals();
         expect(Object.keys(readyExternals)).to.deep.equal(['1']);
@@ -1796,10 +1650,7 @@ describe('External', () => {
           .apply('Count', '$wiki.count()')
           .apply('CountCmp', '$wikiCmp.count()');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('chain');
         expect(ex.operand.op).to.equal('join');
@@ -1848,10 +1699,7 @@ describe('External', () => {
           .apply('MinCount', '$Pages.min($Count)')
           .apply('MaxAdded', '$Pages.max($Added)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(1);
@@ -1867,10 +1715,7 @@ describe('External', () => {
           .split('$user', 'user', 'data')
           .apply('SumTotalEdits', '$data.sum($TotalAdded)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let readyExternals = ex.getReadyExternals();
         expect(Object.keys(readyExternals)).to.deep.equal(['2']);
@@ -1880,14 +1725,9 @@ describe('External', () => {
 
     describe('attribute order is respected in raw mode', () => {
       it('pure select: get selected attributes respects order', () => {
-        let ex = $('wiki')
-          .select('page', 'language', 'user')
-          .limit(5);
+        let ex = $('wiki').select('page', 'language', 'user').limit(5);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let external = ex.external;
         expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([
@@ -1898,14 +1738,9 @@ describe('External', () => {
       });
 
       it('pure select: dimension order reflects select order', () => {
-        let ex = $('wiki')
-          .select('page', 'language', 'user')
-          .limit(5);
+        let ex = $('wiki').select('page', 'language', 'user').limit(5);
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
         let external = ex.external;
         expect(external.getQueryAndPostTransform().query.columns).to.deep.equal([
           'page',
@@ -1922,10 +1757,7 @@ describe('External', () => {
           .apply('Count', '$wiki.count()')
           .apply('Added', '$wiki.sum($added)');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let external = ex.external;
         expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([
@@ -1942,10 +1774,7 @@ describe('External', () => {
           .apply('Added', '$wiki.sum($added)')
           .select('Count', 'Page', 'Added');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let external = ex.external;
         expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([
@@ -1962,10 +1791,7 @@ describe('External', () => {
           .apply('Added', '$wiki.sum($added)')
           .select('Count', 'Page');
 
-        ex = ex
-          .referenceCheck(context)
-          .resolve(context)
-          .simplify();
+        ex = ex.referenceCheck(context).resolve(context).simplify();
 
         let external = ex.external;
         expect(external.getQueryAndPostTransform().query.aggregations).to.deep.equal([

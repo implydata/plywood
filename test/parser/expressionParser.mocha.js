@@ -107,12 +107,7 @@ describe('expression parser', () => {
       let ex2 = ply()
         .apply('is1', $('color').is('Red'))
         .apply('is2', $('country').is('USA'))
-        .apply(
-          'isnt1',
-          $('color')
-            .is('Red')
-            .not(),
-        )
+        .apply('isnt1', $('color').is('Red').not())
         .apply('isnt2', $('country').isnt('USA'))
         .apply('less_than_number', $('price').lessThan(5))
         .apply('less_than_time', $('time').lessThan("'2015-03-03Z'"))
@@ -124,19 +119,9 @@ describe('expression parser', () => {
         .apply('sub_typed_z', { op: 'ref', name: 'z', type: 'SET/STRING' })
         .apply('or', $('a').or($('b'), $('c')))
         .apply('and', $('a').and($('b'), $('c')))
-        .apply(
-          'addition1',
-          $('x')
-            .add(10)
-            .subtract($('y')),
-        )
+        .apply('addition1', $('x').add(10).subtract($('y')))
         .apply('addition2', $('x').add(1))
-        .apply(
-          'multiplication1',
-          $('x')
-            .multiply(10)
-            .divide($('y')),
-        )
+        .apply('multiplication1', $('x').multiply(10).divide($('y')))
         .apply('multiplication2', $('x').multiply($('y')))
         .apply('negate1', $('x').negate())
         .apply('negate2', $('x').negate())
@@ -167,18 +152,8 @@ describe('expression parser', () => {
         .apply('extract', $('x').extract('_([^_]+)_'))
         .apply('lookup', $('x').lookup('some_lookup'))
         .apply('another_lookup', $('x').lookup('another_lookup'))
-        .apply(
-          'extract_fallback',
-          $('x')
-            .extract('_([^_]+)_')
-            .fallback('none'),
-        )
-        .apply(
-          'lookup_fallback',
-          $('x')
-            .lookup('some_lookup')
-            .fallback('none'),
-        )
+        .apply('extract_fallback', $('x').extract('_([^_]+)_').fallback('none'))
+        .apply('lookup_fallback', $('x').lookup('some_lookup').fallback('none'))
         .apply('agg_count', $('data').count())
         .apply('agg_sum', $('data').sum($('price')))
         .apply('agg_average', $('data').average($('price')))
@@ -190,12 +165,7 @@ describe('expression parser', () => {
         .apply('agg_custom', $('data').customAggregate('blah'))
         .apply('agg_customAggregate', $('data').customAggregate('blah'))
         .apply('agg_split', $('data').split($('carat'), 'Carat'))
-        .apply(
-          'agg_filter_count',
-          $('data')
-            .filter($('country').is('USA'))
-            .count(),
-        )
+        .apply('agg_filter_count', $('data').filter($('country').is('USA')).count())
         .apply('time_bucket', $('time').timeBucket('P1D'))
         .apply('time_bucket_timezone', $('time').timeBucket('P1D', 'America/Los_Angeles'))
         .apply('time_floor', $('time').timeFloor('P1D'))
@@ -305,12 +275,7 @@ describe('expression parser', () => {
 
       let ex2 = ply()
         .apply('num', 5)
-        .apply(
-          'subData',
-          ply()
-            .apply('x', '$num + 1')
-            .apply('y', '$foo * 2'),
-        );
+        .apply('subData', ply().apply('x', '$num + 1').apply('y', '$foo * 2'));
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });

@@ -39,14 +39,7 @@ describe('stringification', () => {
             'Carats',
             $('diamonds')
               .split($('carat').numberBucket(0.25), 'Carat')
-              .apply(
-                'diamonds',
-                $('diamonds').filter(
-                  $('carat')
-                    .numberBucket(0.25)
-                    .is('$^Carat'),
-                ),
-              )
+              .apply('diamonds', $('diamonds').filter($('carat').numberBucket(0.25).is('$^Carat')))
               .apply('Count', $('diamonds').count())
               .apply('Price :-)', $('diamonds').sum('$price'))
               .sort('$Count', 'descending')

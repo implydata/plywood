@@ -65,30 +65,20 @@ describe('evaluate step', () => {
       .apply('diamonds', diamondEx)
       .apply('Total', '$diamonds.count()')
       .apply('TotalX2', '$Total * 2')
-      .apply(
-        'SomeSplit',
-        $('diamonds')
-          .split('$cut:STRING', 'Cut')
-          .limit(10),
-      )
+      .apply('SomeSplit', $('diamonds').split('$cut:STRING', 'Cut').limit(10))
       .apply(
         'SomeNestedSplit',
         $('diamonds')
           .split('$color:STRING', 'Color')
           .limit(10)
-          .apply(
-            'SubSplit',
-            $('diamonds')
-              .split('$cut:STRING', 'SubCut')
-              .limit(5),
-          ),
+          .apply('SubSplit', $('diamonds').split('$cut:STRING', 'SubCut').limit(5)),
       );
 
     let ex2 = ex1.simplify();
 
     let readyExternals = ex2.getReadyExternals();
     expect(JSON.parse(JSON.stringify(readyExternals, stringExternals))).to.deep.equal({
-      '0': [
+      0: [
         {
           external: 'External',
           index: 0,
@@ -102,7 +92,7 @@ describe('evaluate step', () => {
         },
         {
           expressionAlterations: {
-            '1': {
+            1: {
               external: 'External',
             },
           },
@@ -114,7 +104,7 @@ describe('evaluate step', () => {
 
     fillExpressionExternalAlteration(readyExternals, external => `Ex(${external.mode})`);
     expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E1').to.deep.equal({
-      '0': [
+      0: [
         {
           external: 'External',
           index: 0,
@@ -130,7 +120,7 @@ describe('evaluate step', () => {
         },
         {
           expressionAlterations: {
-            '1': {
+            1: {
               external: 'External',
               result: 'Ex(split)',
             },
@@ -143,7 +133,7 @@ describe('evaluate step', () => {
 
     fillExpressionExternalAlteration(readyExternals, external => external.simulateValue(false, []));
     expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E2').to.deep.equal({
-      '0': [
+      0: [
         {
           external: 'External',
           index: 0,
@@ -181,7 +171,7 @@ describe('evaluate step', () => {
         },
         {
           expressionAlterations: {
-            '1': {
+            1: {
               external: 'External',
               result: {
                 attributes: [
@@ -290,7 +280,7 @@ describe('evaluate step', () => {
 
     readyExternals = ex3.getReadyExternals();
     expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E4').to.deep.equal({
-      '0': [
+      0: [
         {
           datasetAlterations: [
             {
@@ -308,7 +298,7 @@ describe('evaluate step', () => {
 
     fillExpressionExternalAlteration(readyExternals, external => external.simulateValue(false, []));
     expect(JSON.parse(JSON.stringify(readyExternals, stringExternals)), 'E5').to.deep.equal({
-      '0': [
+      0: [
         {
           datasetAlterations: [
             {
