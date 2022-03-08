@@ -20,7 +20,7 @@ import * as toArray from 'stream-to-array';
 
 import { AttributeInfo, Attributes } from '../datatypes';
 import { DruidDialect } from '../dialect';
-import { Expression, SqlRefExpression } from '../expressions';
+import { Expression, RefExpression, SqlRefExpression } from '../expressions';
 import { dictEqual } from '../helper';
 import { PlyType } from '../types';
 
@@ -145,7 +145,7 @@ export class DruidSQLExternal extends SQLExternal {
     return '__time';
   }
 
-  public isTimeRef(ex: Expression): boolean {
+  public isTimeRef(ex: Expression): ex is RefExpression {
     if (ex instanceof SqlRefExpression) {
       if (ex.parsedSql instanceof SqlRef) {
         return ex.parsedSql.getColumn() === '__time';

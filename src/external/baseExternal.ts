@@ -54,11 +54,13 @@ import {
   LiteralExpression,
   NumberBucketExpression,
   OverlapExpression,
+  r,
   RefExpression,
   SelectExpression,
   SortExpression,
   SplitExpression,
   SqlRefExpression,
+  ThenExpression,
   TimeBucketExpression,
   TimeFloorExpression,
   TimeShiftExpression,
@@ -102,6 +104,13 @@ export type IntrospectionDepth = 'deep' | 'default' | 'shallow';
 export interface IntrospectOptions {
   depth?: IntrospectionDepth;
   deep?: boolean; // legacy proxy for depth: "deep"
+}
+
+// Check to see if an expression is of the form timeRef.overlap(mainRange).then(timeRef).fallback(timeRef.timeShift(some_duration))
+interface HybridTimeBreakdown {
+  timeRef: RefExpression;
+  mainRangeLiteral: LiteralExpression;
+  timeShift: TimeShiftExpression;
 }
 
 export type QueryMode = 'raw' | 'value' | 'total' | 'split';
@@ -253,6 +262,12 @@ function findApplyByExpression(
   return null;
 }
 
+export interface SpecialApplyTransform {
+  mainRangeLiteral: LiteralExpression;
+  curTimeRange: TimeRange;
+  prevTimeRange: TimeRange;
+}
+
 export interface ExternalValue {
   engine?: string;
   version?: string;
@@ -275,6 +290,7 @@ export interface ExternalValue {
   sort?: SortExpression;
   limit?: LimitExpression;
   havingFilter?: Expression;
+  specialApplyTransform?: SpecialApplyTransform;
 
   // SQL
 
@@ -905,6 +921,7 @@ export abstract class External {
   public sort: SortExpression;
   public limit: LimitExpression;
   public havingFilter: Expression;
+  public specialApplyTransform: SpecialApplyTransform;
 
   constructor(parameters: ExternalValue, dummy: any = null) {
     if (dummy !== dummyObject) {
@@ -939,6 +956,7 @@ export abstract class External {
 
     this.mode = parameters.mode || 'raw';
     this.filter = parameters.filter || Expression.TRUE;
+    this.specialApplyTransform = parameters.specialApplyTransform;
 
     if (this.rawAttributes.length) {
       this.derivedAttributes = External.typeCheckDerivedAttributes(
@@ -1038,6 +1056,9 @@ export abstract class External {
     }
     if (this.havingFilter) {
       value.havingFilter = this.havingFilter;
+    }
+    if (this.specialApplyTransform) {
+      value.specialApplyTransform = this.specialApplyTransform;
     }
     return value;
   }
@@ -1185,6 +1206,12 @@ export abstract class External {
     });
   }
 
+  public changeSpecialApplyTransform(specialApplyTransform: SpecialApplyTransform): External {
+    const value = this.valueOf();
+    value.specialApplyTransform = specialApplyTransform;
+    return External.fromValue(value);
+  }
+
   // -----------------
 
   public abstract canHandleFilter(filter: FilterExpression): boolean;
@@ -1230,6 +1257,7 @@ export abstract class External {
     value.split = null;
     value.sort = null;
     value.limit = null;
+    value.specialApplyTransform = null;
 
     value.delegates = nullMap(value.delegates, e => e.getRaw());
     return External.fromValue(value);
@@ -1267,6 +1295,87 @@ export abstract class External {
     }
 
     return totalExternal;
+  }
+
+  // Check to see if an expression is of the form timeRef.overlap(mainRange).then(timeRef).fallback(timeRef.timeShift(some_duration)).timeBucket(some_duration)
+  private getHybridTimeExpressionDecomposition(
+    possibleHybrid: Expression,
+  ): HybridTimeBreakdown | undefined {
+    if (possibleHybrid instanceof FallbackExpression) {
+      const thenExpression = possibleHybrid.operand;
+      const timeShiftExpression = possibleHybrid.expression;
+      if (
+        thenExpression instanceof ThenExpression &&
+        timeShiftExpression instanceof TimeShiftExpression
+      ) {
+        const mainOverlap = thenExpression.operand;
+        const timeRef = timeShiftExpression.operand;
+        if (mainOverlap instanceof OverlapExpression && this.isTimeRef(timeRef)) {
+          const mainOverlapLiteral = mainOverlap.expression;
+          if (mainOverlapLiteral instanceof LiteralExpression) {
+            return {
+              timeRef,
+              mainRangeLiteral: mainOverlapLiteral,
+              timeShift: timeShiftExpression,
+            };
+          }
+        }
+      }
+    }
+    return undefined;
+  }
+
+  private _addFilterForNext(ex: Expression): External {
+    // If we have a filter on hybrid time expression like:
+    // timeRef.overlap(mainRange).then(timeRef).fallback(timeRef.timeShift(some_duration)) .overlap(time_range)
+    // do special logic to add the filter correctly
+    let hybridTimeBreakdown: HybridTimeBreakdown | undefined;
+    let curTimeRange: TimeRange | undefined;
+    const extractAndRest = ex.extractFromAnd(possibleHybrid => {
+      if (possibleHybrid instanceof OverlapExpression) {
+        const { operand, expression } = possibleHybrid;
+
+        const possibleHybridTimeBreakdown = this.getHybridTimeExpressionDecomposition(operand);
+
+        if (possibleHybridTimeBreakdown && expression instanceof LiteralExpression) {
+          const literalValue = expression.getLiteralValue();
+          if (literalValue instanceof TimeRange) {
+            hybridTimeBreakdown = possibleHybridTimeBreakdown;
+            curTimeRange = literalValue;
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+
+    if (hybridTimeBreakdown) {
+      const { timeRef, timeShift, mainRangeLiteral } = hybridTimeBreakdown;
+
+      // Transform filter
+      const prevTimeRange = curTimeRange.shift(
+        timeShift.duration,
+        timeShift.getTimezone() || Timezone.UTC,
+        -timeShift.step, // reverse the shift
+      );
+
+      const newTimeFilter = timeRef.overlap(
+        new Set({
+          setType: 'TIME_RANGE',
+          elements: [curTimeRange, prevTimeRange],
+        }),
+      );
+
+      return this._addFilterExpression(
+        Expression._.filter(Expression.and([newTimeFilter, extractAndRest.rest])),
+      ).changeSpecialApplyTransform({
+        mainRangeLiteral, // Transform apply filters
+        curTimeRange,
+        prevTimeRange,
+      });
+    }
+
+    return this._addFilterExpression(Expression._.filter(ex));
   }
 
   public addExpression(ex: Expression): External {
@@ -1382,6 +1491,26 @@ export abstract class External {
       value = this.valueOf();
       value.derivedAttributes = immutableAdd(value.derivedAttributes, apply.name, apply.expression);
     } else {
+      if (this.specialApplyTransform) {
+        const { mainRangeLiteral, curTimeRange, prevTimeRange } = this.specialApplyTransform;
+        apply = apply.changeExpression(
+          apply.expression
+            .substitute(ex => {
+              if (
+                ex instanceof OverlapExpression &&
+                this.isTimeRef(ex.operand) &&
+                ex.expression instanceof LiteralExpression
+              ) {
+                return ex.changeExpression(
+                  r(mainRangeLiteral.equals(ex.expression) ? curTimeRange : prevTimeRange),
+                );
+              }
+              return null;
+            })
+            .simplify(),
+        );
+      }
+
       // Can not redefine index for now.
       if (this.split && this.split.hasKey(apply.name)) return null;
 
@@ -1595,9 +1724,7 @@ export abstract class External {
   public addNextExternalToDatum(datum: Datum): void {
     const { mode, dataName, split } = this;
     if (mode !== 'split') throw new Error('must be in split mode to addNextExternalToDatum');
-    datum[dataName] = this.getRaw()._addFilterExpression(
-      Expression._.filter(split.filterFromDatum(datum)),
-    );
+    datum[dataName] = this.getRaw()._addFilterForNext(split.filterFromDatum(datum));
   }
 
   public getDelegate(): External {
@@ -1904,7 +2031,7 @@ export abstract class External {
     return undefined;
   }
 
-  public isTimeRef(ex: Expression): boolean {
+  public isTimeRef(ex: Expression): ex is RefExpression {
     return ex instanceof RefExpression && ex.name === this.getTimeAttribute();
   }
 
@@ -2011,42 +2138,43 @@ export abstract class External {
       const timeSplitName = timeSplitNames[0];
       const timeSplitExpression = this.split.splits[timeSplitName] as TimeBucketExpression;
 
-      const fallbackExpression = timeSplitExpression.operand;
-      if (fallbackExpression instanceof FallbackExpression) {
-        const timeShiftExpression = fallbackExpression.expression;
-        if (timeShiftExpression instanceof TimeShiftExpression) {
-          const timeRef = timeShiftExpression.operand;
-          if (this.isTimeRef(timeRef)) {
-            const simpleSplit = this.split.addSplits({
-              [timeSplitName]: timeSplitExpression.changeOperand(timeRef),
-            });
+      if (timeSplitExpression instanceof TimeBucketExpression) {
+        const hybridTimeDecomposition = this.getHybridTimeExpressionDecomposition(
+          timeSplitExpression.operand,
+        );
 
-            const external1Value = this.valueOf();
-            external1Value.filter = timeRef
-              .overlap(appliesByTimeFilterValue[0].filterValue)
-              .and(external1Value.filter)
-              .simplify();
-            external1Value.split = simpleSplit;
-            external1Value.applies = appliesByTimeFilterValue[0].unfilteredApplies;
-            external1Value.limit = null; // Remove limit and sort
-            external1Value.sort = null; // So we get a timeseries
+        if (hybridTimeDecomposition) {
+          const { timeRef, timeShift } = hybridTimeDecomposition;
 
-            const external2Value = this.valueOf();
-            external2Value.filter = timeRef
-              .overlap(appliesByTimeFilterValue[1].filterValue)
-              .and(external2Value.filter)
-              .simplify();
-            external2Value.split = simpleSplit;
-            external2Value.applies = appliesByTimeFilterValue[1].unfilteredApplies;
-            external2Value.limit = null;
-            external2Value.sort = null;
+          const simpleSplit = this.split.addSplits({
+            [timeSplitName]: timeSplitExpression.changeOperand(timeRef),
+          });
 
-            return {
-              external1: External.fromValue(external1Value),
-              external2: External.fromValue(external2Value),
-              timeShift: timeShiftExpression.changeOperand(Expression._),
-            };
-          }
+          const external1Value = this.valueOf();
+          external1Value.filter = timeRef
+            .overlap(appliesByTimeFilterValue[0].filterValue)
+            .and(external1Value.filter)
+            .simplify();
+          external1Value.split = simpleSplit;
+          external1Value.applies = appliesByTimeFilterValue[0].unfilteredApplies;
+          external1Value.limit = null; // Remove limit and sort
+          external1Value.sort = null; // So we get a timeseries
+
+          const external2Value = this.valueOf();
+          external2Value.filter = timeRef
+            .overlap(appliesByTimeFilterValue[1].filterValue)
+            .and(external2Value.filter)
+            .simplify();
+          external2Value.split = simpleSplit;
+          external2Value.applies = appliesByTimeFilterValue[1].unfilteredApplies;
+          external2Value.limit = null;
+          external2Value.sort = null;
+
+          return {
+            external1: External.fromValue(external1Value),
+            external2: External.fromValue(external2Value),
+            timeShift: timeShift.changeOperand(Expression._),
+          };
         }
       }
     }

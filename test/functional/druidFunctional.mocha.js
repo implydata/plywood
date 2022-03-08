@@ -17,8 +17,7 @@
 
 const { expect } = require('chai');
 const { Duration } = require('chronoshift');
-const axios = require('axios');
-let { sane } = require('../utils');
+const { sane } = require('../utils');
 
 let { druidRequesterFactory } = require('plywood-druid-requester');
 
@@ -3543,6 +3542,284 @@ describe('Druid Functional', function () {
             {
               CountMain: 30720,
               CountPrev: 34160,
+              TimeJoin: {
+                end: new Date('2015-09-13T00:00:00.000Z'),
+                start: new Date('2015-09-12T22:00:00.000Z'),
+              },
+            },
+          ],
+          keys: ['TimeJoin'],
+        });
+      });
+    });
+
+    it('can timeBucket on joined column with overlap', () => {
+      let prevRange = TimeRange.fromJS({
+        start: new Date('2015-09-12T06:00:00Z'),
+        end: new Date('2015-09-12T18:00:00Z'),
+      });
+      let mainRange = TimeRange.fromJS({
+        start: new Date('2015-09-12T12:00:00Z'),
+        end: new Date('2015-09-13T00:00:00Z'),
+      });
+      let ex = $('wiki')
+        .split(
+          $('time')
+            .overlap(mainRange)
+            .then($('time'))
+            .fallback($('time').timeShift(Duration.fromJS('PT6H')))
+            .timeBucket('PT2H'),
+          'TimeJoin',
+        )
+        .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
+        .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'))
+        .apply(
+          'RobotSplit',
+          $('wiki')
+            .split($('isRobot'), 'IsRobot')
+            .apply('CountPrev', $('wiki').filter($('time').overlap(prevRange)).sum('$count'))
+            .apply('CountMain', $('wiki').filter($('time').overlap(mainRange)).sum('$count'))
+            .limit(20),
+        );
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS()).to.deep.equal({
+          attributes: [
+            {
+              name: 'TimeJoin',
+              type: 'TIME_RANGE',
+            },
+            {
+              name: 'CountPrev',
+              type: 'NUMBER',
+            },
+            {
+              name: 'CountMain',
+              type: 'NUMBER',
+            },
+            {
+              name: 'RobotSplit',
+              type: 'DATASET',
+            },
+          ],
+          data: [
+            {
+              CountMain: 37816,
+              CountPrev: 43567,
+              RobotSplit: {
+                attributes: [
+                  {
+                    name: 'IsRobot',
+                    type: 'BOOLEAN',
+                  },
+                  {
+                    name: 'CountPrev',
+                    type: 'NUMBER',
+                  },
+                  {
+                    name: 'CountMain',
+                    type: 'NUMBER',
+                  },
+                ],
+                data: [
+                  {
+                    CountMain: 24865,
+                    CountPrev: 14647,
+                    IsRobot: false,
+                  },
+                  {
+                    CountMain: 12951,
+                    CountPrev: 28920,
+                    IsRobot: true,
+                  },
+                ],
+                keys: ['IsRobot'],
+              },
+              TimeJoin: {
+                end: new Date('2015-09-12T14:00:00.000Z'),
+                start: new Date('2015-09-12T12:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 38388,
+              CountPrev: 33259,
+              RobotSplit: {
+                attributes: [
+                  {
+                    name: 'IsRobot',
+                    type: 'BOOLEAN',
+                  },
+                  {
+                    name: 'CountPrev',
+                    type: 'NUMBER',
+                  },
+                  {
+                    name: 'CountMain',
+                    type: 'NUMBER',
+                  },
+                ],
+                data: [
+                  {
+                    CountMain: 26042,
+                    CountPrev: 20183,
+                    IsRobot: false,
+                  },
+                  {
+                    CountMain: 12346,
+                    CountPrev: 13076,
+                    IsRobot: true,
+                  },
+                ],
+                keys: ['IsRobot'],
+              },
+              TimeJoin: {
+                end: new Date('2015-09-12T16:00:00.000Z'),
+                start: new Date('2015-09-12T14:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 42589,
+              CountPrev: 34160,
+              RobotSplit: {
+                attributes: [
+                  {
+                    name: 'IsRobot',
+                    type: 'BOOLEAN',
+                  },
+                  {
+                    name: 'CountPrev',
+                    type: 'NUMBER',
+                  },
+                  {
+                    name: 'CountMain',
+                    type: 'NUMBER',
+                  },
+                ],
+                data: [
+                  {
+                    CountMain: 27370,
+                    CountPrev: 21496,
+                    IsRobot: false,
+                  },
+                  {
+                    CountMain: 15219,
+                    CountPrev: 12664,
+                    IsRobot: true,
+                  },
+                ],
+                keys: ['IsRobot'],
+              },
+              TimeJoin: {
+                end: new Date('2015-09-12T18:00:00.000Z'),
+                start: new Date('2015-09-12T16:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 41828,
+              CountPrev: 37816,
+              RobotSplit: {
+                attributes: [
+                  {
+                    name: 'IsRobot',
+                    type: 'BOOLEAN',
+                  },
+                  {
+                    name: 'CountPrev',
+                    type: 'NUMBER',
+                  },
+                  {
+                    name: 'CountMain',
+                    type: 'NUMBER',
+                  },
+                ],
+                data: [
+                  {
+                    CountMain: 27430,
+                    CountPrev: 24865,
+                    IsRobot: false,
+                  },
+                  {
+                    CountMain: 14398,
+                    CountPrev: 12951,
+                    IsRobot: true,
+                  },
+                ],
+                keys: ['IsRobot'],
+              },
+              TimeJoin: {
+                end: new Date('2015-09-12T20:00:00.000Z'),
+                start: new Date('2015-09-12T18:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 35977,
+              CountPrev: 38388,
+              RobotSplit: {
+                attributes: [
+                  {
+                    name: 'IsRobot',
+                    type: 'BOOLEAN',
+                  },
+                  {
+                    name: 'CountPrev',
+                    type: 'NUMBER',
+                  },
+                  {
+                    name: 'CountMain',
+                    type: 'NUMBER',
+                  },
+                ],
+                data: [
+                  {
+                    CountMain: 23920,
+                    CountPrev: 26042,
+                    IsRobot: false,
+                  },
+                  {
+                    CountMain: 12057,
+                    CountPrev: 12346,
+                    IsRobot: true,
+                  },
+                ],
+                keys: ['IsRobot'],
+              },
+              TimeJoin: {
+                end: new Date('2015-09-12T22:00:00.000Z'),
+                start: new Date('2015-09-12T20:00:00.000Z'),
+              },
+            },
+            {
+              CountMain: 30720,
+              CountPrev: 42589,
+              RobotSplit: {
+                attributes: [
+                  {
+                    name: 'IsRobot',
+                    type: 'BOOLEAN',
+                  },
+                  {
+                    name: 'CountPrev',
+                    type: 'NUMBER',
+                  },
+                  {
+                    name: 'CountMain',
+                    type: 'NUMBER',
+                  },
+                ],
+                data: [
+                  {
+                    CountMain: 19328,
+                    CountPrev: 27370,
+                    IsRobot: false,
+                  },
+                  {
+                    CountMain: 11392,
+                    CountPrev: 15219,
+                    IsRobot: true,
+                  },
+                ],
+                keys: ['IsRobot'],
+              },
               TimeJoin: {
                 end: new Date('2015-09-13T00:00:00.000Z'),
                 start: new Date('2015-09-12T22:00:00.000Z'),
