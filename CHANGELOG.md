@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.27.1
+
+- Improve hybrid time filters for time compares
+
+## 0.27.0
+
+- Bump dependencies, reformat code
+
 ## 0.26.9
 
 - Simplify an external with a FALSE filter to an empty dataset without querying it
