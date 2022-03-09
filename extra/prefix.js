@@ -1,6 +1,6 @@
 'use strict';
 
-var tslib_1 = require('tslib');
+var { __extends } = require('tslib');
 
 var hasOwnProp = require('has-own-prop');
 var toArray = require('stream-to-array');
