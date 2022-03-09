@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.27.2
+
+- Revert immutable-class and chronoshift dependency bumps
+
 ## 0.27.1
 
 - Improve hybrid time filters for time compares
