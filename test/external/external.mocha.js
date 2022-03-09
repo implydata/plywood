@@ -15,15 +15,16 @@
  */
 
 const { expect } = require('chai');
-let { sane, grabConsoleWarn } = require('../utils');
+const { sane, grabConsoleWarn } = require('../utils');
 
-let { testImmutableClass } = require('immutable-class-tester');
+const { testImmutableClass } = require('immutable-class-tester');
 
 const { Duration, Timezone } = require('chronoshift');
-let plywood = require('../plywood');
-let { Expression, Dataset, External, TimeRange, AttributeInfo, $, ply, r } = plywood;
+const plywood = require('../plywood');
 
-let wikiDataset = External.fromJS({
+const { Expression, Dataset, External, TimeRange, AttributeInfo, $, ply, r } = plywood;
+
+const wikiDataset = External.fromJS({
   engine: 'druid',
   source: 'wikipedia',
   timeAttribute: 'time',
@@ -43,7 +44,7 @@ let wikiDataset = External.fromJS({
   },
 });
 
-let context = {
+const context = {
   wiki: wikiDataset.addExpression(
     Expression._.filter(
       $('time').overlap(
@@ -115,7 +116,7 @@ describe('External', () => {
           attributeOverrides: [
             { name: 'color', type: 'STRING' },
             { name: 'cut', type: 'STRING' },
-            { name: 'unique', type: 'STRING', type: 'NULL', nativeType: 'hyperUnique' },
+            { name: 'unique', type: 'NULL', nativeType: 'hyperUnique' },
           ],
           customAggregations: {
             test: {
@@ -168,13 +169,13 @@ describe('External', () => {
 
   describe.skip('#timeRangeInflaterFactory(label, duration, timezone)', () => {
     it('works for daylight savings', () => {
-      let duration = Duration.fromJS('PT1H');
-      let tz = Timezone.fromJS('America/Los_Angeles');
-      let inf = External.timeRangeInflaterFactory('__time', duration, tz);
-      let d = { __time: '2018-03-11T09:00:00.000Z' };
+      const duration = Duration.fromJS('PT1H');
+      const tz = Timezone.fromJS('America/Los_Angeles');
+      const inf = External.timeRangeInflaterFactory('__time', duration, tz);
+      const d = { __time: '2018-03-11T09:00:00.000Z' };
       inf(d);
 
-      let s = duration.shift(new Date('2018-03-11T09:00:00.000Z'), tz);
+      const s = duration.shift(new Date('2018-03-11T09:00:00.000Z'), tz);
       console.log('s', s);
 
       expect(d.__time.toJS()).to.deep.equal({});
@@ -237,8 +238,8 @@ describe('External', () => {
     it('requester in JS', () => {
       expect(
         grabConsoleWarn(() => {
-          let requester = () => null;
-          let external = External.fromJS({
+          const requester = () => null;
+          const external = External.fromJS({
             engine: 'druid',
             source: 'wiki',
             requester,
@@ -342,8 +343,8 @@ describe('External', () => {
 
   describe('#introspect', () => {
     it('does two introspects', () => {
-      let dummyRequester = () => null;
-      let external = External.fromJS(
+      const dummyRequester = () => null;
+      const external = External.fromJS(
         {
           engine: 'druid',
           version: '0.20.0-yo',
@@ -444,7 +445,7 @@ describe('External', () => {
   });
 
   describe('.normalizeAndAddApply', () => {
-    let attributesAndApplies = {
+    const attributesAndApplies = {
       attributes: AttributeInfo.fromJSs([
         { name: 'Count', type: 'NUMBER' },
         { name: 'Added', type: 'NUMBER' },
@@ -458,8 +459,8 @@ describe('External', () => {
     };
 
     it('works in noop case', () => {
-      let nextApply = Expression._.apply('Deleted', '$D.sum($deleted)');
-      let added = External.normalizeAndAddApply(attributesAndApplies, nextApply);
+      const nextApply = Expression._.apply('Deleted', '$D.sum($deleted)');
+      const added = External.normalizeAndAddApply(attributesAndApplies, nextApply);
 
       expect(added.attributes).to.have.length(4);
       expect(added.applies).to.have.length(4);
@@ -467,8 +468,8 @@ describe('External', () => {
     });
 
     it('works in simple case', () => {
-      let nextApply = Expression._.apply('AddedMinusDeleted', '$Added - $D.sum($deleted)');
-      let added = External.normalizeAndAddApply(attributesAndApplies, nextApply);
+      const nextApply = Expression._.apply('AddedMinusDeleted', '$Added - $D.sum($deleted)');
+      const added = External.normalizeAndAddApply(attributesAndApplies, nextApply);
 
       expect(added.attributes.join('\n')).to.equal(sane`
         Count::NUMBER
@@ -486,8 +487,8 @@ describe('External', () => {
     });
 
     it('works in redefine case', () => {
-      let nextApply = Expression._.apply('Volatile', '$Added - $D.sum($deleted)');
-      let added = External.normalizeAndAddApply(attributesAndApplies, nextApply);
+      const nextApply = Expression._.apply('Volatile', '$Added - $D.sum($deleted)');
+      const added = External.normalizeAndAddApply(attributesAndApplies, nextApply);
 
       expect(added.attributes.join('\n')).to.equal(sane`
         Count::NUMBER
@@ -505,7 +506,7 @@ describe('External', () => {
 
   describe('.segregationAggregateApplies', () => {
     it('breaks up correctly in simple case', () => {
-      let { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
+      const { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
         Expression._.apply('Count', '$D.count()'),
         Expression._.apply('Added', '$D.sum($added)'),
         Expression._.apply('Volatile', '$D.max($added) - $D.min($deleted)'),
@@ -524,7 +525,7 @@ describe('External', () => {
     });
 
     it('breaks up correctly in case of duplicate name', () => {
-      let { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
+      const { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
         Expression._.apply('Count', '$D.count()'),
         Expression._.apply('Added', '$D.sum($added)'),
         Expression._.apply('Volatile', '$D.sum($added) - $D.sum($deleted)'),
@@ -542,7 +543,7 @@ describe('External', () => {
     });
 
     it('breaks up correctly in case of variable reference', () => {
-      let { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
+      const { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
         Expression._.apply('Count', '$D.count()'),
         Expression._.apply('Added', '$D.sum($added)'),
         Expression._.apply('Volatile', '$Added - $D.sum($deleted)'),
@@ -560,7 +561,7 @@ describe('External', () => {
     });
 
     it('breaks up correctly in complex case', () => {
-      let { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
+      const { aggregateApplies, postAggregateApplies } = External.segregationAggregateApplies([
         Expression._.apply('AddedByDeleted', '$D.sum($added) / $D.sum($deleted)'),
         Expression._.apply('DeletedByInserted', '$D.sum($deleted) / $D.sum($inserted)'),
         Expression._.apply('Deleted', '$D.sum($deleted)'),
@@ -719,7 +720,7 @@ describe('External', () => {
   });
 
   describe('#hasAttribute', () => {
-    let rawExternal = External.fromJS({
+    const rawExternal = External.fromJS({
       engine: 'druid',
       source: 'moon_child',
       timeAttribute: 'time',
@@ -741,7 +742,7 @@ describe('External', () => {
   });
 
   describe('#addExpression / #getRaw', () => {
-    let rawExternal = External.fromJS({
+    const rawExternal = External.fromJS({
       engine: 'druid',
       source: 'moon_child',
       timeAttribute: 'time',
@@ -752,11 +753,11 @@ describe('External', () => {
     });
 
     it('runs through a life cycle', () => {
-      let filteredRawExternal = rawExternal.addExpression(
+      const filteredRawExternal = rawExternal.addExpression(
         Expression._.filter($('page').contains('lol')),
       );
 
-      let filteredValueExternal = filteredRawExternal.addExpression(
+      const filteredValueExternal = filteredRawExternal.addExpression(
         Expression._.sum('$added:NUMBER'),
       );
 
@@ -765,10 +766,10 @@ describe('External', () => {
         '$__SEGMENT__:DATASET.sum($added:NUMBER)',
       );
 
-      let filteredRawExternal2 = filteredValueExternal.getRaw();
+      const filteredRawExternal2 = filteredValueExternal.getRaw();
       expect(filteredRawExternal2.equals(filteredRawExternal)).to.equal(true);
 
-      let rawExternal2 = filteredValueExternal.getBase();
+      const rawExternal2 = filteredValueExternal.getBase();
       expect(rawExternal2.equals(rawExternal)).to.equal(true);
     });
 
@@ -782,7 +783,7 @@ describe('External', () => {
     });
 
     it('it checks that expressions are internally defined (filter split)', () => {
-      let splitExternal = rawExternal.addExpression(
+      const splitExternal = rawExternal.addExpression(
         Expression._.split('$page:STRING', 'Page', 'blah'),
       );
       expect(
@@ -812,7 +813,7 @@ describe('External', () => {
     });
 
     it('it checks that expressions are internally defined (apply on split)', () => {
-      let splitExternal = rawExternal.addExpression(
+      const splitExternal = rawExternal.addExpression(
         Expression._.split('$page:STRING', 'Page', 'blah'),
       );
       expect(
@@ -829,13 +830,13 @@ describe('External', () => {
     });
 
     it('it checks that expressions are internally defined (select)', () => {
-      //expect(rawExternal.addExpression(Expression._.select('user'))).to.equal(null);
+      // expect(rawExternal.addExpression(Expression._.select('user'))).to.equal(null);
       expect(rawExternal.addExpression(Expression._.select('page'))).to.not.equal(null);
     });
   });
 
   describe('#bucketsConcealed', () => {
-    let bucketedExternal = External.fromJS({
+    const bucketedExternal = External.fromJS({
       engine: 'druid',
       source: 'wikipedia',
       timeAttribute: 'time',
@@ -851,7 +852,7 @@ describe('External', () => {
     });
 
     it('accepts', () => {
-      let exs = [
+      const exs = [
         $('time').timeFloor('PT1H', 'Etc/UTC'),
         $('time').timeFloor('PT2H', 'Etc/UTC'),
         $('time').timeFloor('P1D', 'Etc/UTC'),
@@ -860,13 +861,13 @@ describe('External', () => {
         $('time').overlap(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:00Z')),
       ];
 
-      for (let ex of exs) {
+      for (const ex of exs) {
         expect(bucketedExternal.bucketsConcealed(ex), ex.toString()).to.equal(true);
       }
     });
 
     it('rejects', () => {
-      let exs = [
+      const exs = [
         $('time'),
         $('time').timeFloor('PT1H'),
         $('time').timeFloor('PT1M', 'Etc/UTC'),
@@ -875,7 +876,7 @@ describe('External', () => {
         $('time').overlap(new Date('2016-09-01T01:00:00Z'), new Date('2016-09-02T01:00:01Z')),
       ];
 
-      for (let ex of exs) {
+      for (const ex of exs) {
         expect(bucketedExternal.bucketsConcealed(ex), ex.toString()).to.equal(false);
       }
     });
@@ -895,7 +896,7 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.select.attributes).to.deep.equal(['time', 'language', 'added']);
       });
@@ -905,7 +906,7 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.derivedAttributes).to.have.all.keys([
           'addedTwice',
@@ -923,7 +924,7 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.sort.toString()).to.equal('$_.sort($time:TIME,ascending)');
         expect(externalDataset.limit.toString()).to.equal('$_.limit(10)');
@@ -934,7 +935,7 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
         expect(ex.op).to.equal('count');
-        let externalDataset = ex.operand.external;
+        const externalDataset = ex.operand.external;
 
         expect(externalDataset.sort.toString()).to.equal('$_.sort($time:TIME,ascending)');
         expect(externalDataset.limit.toString()).to.equal('$_.limit(10)');
@@ -948,7 +949,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
@@ -967,7 +968,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
@@ -984,7 +985,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
@@ -1001,7 +1002,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.valueExpression.toString()).to.equal(sane`
           $__SEGMENT__:DATASET.sum($added:NUMBER).absolute()
@@ -1014,7 +1015,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
@@ -1031,7 +1032,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($page:STRING.is("USA"))
@@ -1048,7 +1049,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
@@ -1067,7 +1068,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        let externalDataset = ex.value.getReadyExternals()[0].external;
+        const externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.mode).to.equal('value');
         expect(externalDataset.filter.toString()).to.equal(sane`
@@ -1085,7 +1086,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        let externalDataset = ex.value.getReadyExternals()[0].external;
+        const externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.mode).to.equal('total');
         expect(externalDataset.filter.toString()).to.equal(sane`
@@ -1107,7 +1108,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        let externalDataset = ex.value.getReadyExternals()[0].external;
+        const externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.mode).to.equal('total');
         expect(externalDataset.filter.toString()).to.equal(sane`
@@ -1131,7 +1132,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        let externalDataset = ex.value.getReadyExternals()[0].external;
+        const externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
@@ -1170,7 +1171,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        let externalDataset = ex.value.getReadyExternals()[0].external;
+        const externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z])
@@ -1199,7 +1200,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        let externalDataset = ex.value.getReadyExternals()[0].external;
+        const externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.filter.toString()).to.equal(sane`
           $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
@@ -1232,7 +1233,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('literal');
-        let externalDataset = ex.value.getReadyExternals()[0].external;
+        const externalDataset = ex.value.getReadyExternals()[0].external;
 
         expect(externalDataset.derivedAttributes).to.have.all.keys([
           'addedTwice',
@@ -1272,8 +1273,8 @@ describe('External', () => {
             'AddedUsPlusDeleted',
             '$wiki.filter($page == USA).sum($added) + $wiki.sum($deleted)',
           );
-        //.apply('CountX3Plus5', '$CountX3 + 5');
-        //.apply('MinSum', '$wiki.split($user, Blah).apply(Added, $wiki.sum($added)).min($Added)');
+        // .apply('CountX3Plus5', '$CountX3 + 5');
+        // .apply('MinSum', '$wiki.split($user, Blah).apply(Added, $wiki.sum($added)).min($Added)');
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
@@ -1281,10 +1282,10 @@ describe('External', () => {
         expect(ex.value.data[0]['Five']).to.equal(5);
         expect(ex.value.data[0]['Six']).to.equal(6);
 
-        let readyExternals = ex.value.getReadyExternals();
+        const readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(1);
 
-        let external0 = readyExternals[0].external;
+        const external0 = readyExternals[0].external;
 
         expect(external0.filter.toString()).to.equal(sane`
           $time:TIME.overlap([2013-02-26T00:00:00Z,2013-02-27T00:00:00Z]).and($language:STRING.is("en"))
@@ -1295,13 +1296,13 @@ describe('External', () => {
           $_.apply(AddedPlusDeleted,$__SEGMENT__:DATASET.sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
           $_.apply(AddedUsPlusDeleted,$__SEGMENT__:DATASET.filter($page:STRING.is("USA")).sum($added:NUMBER).add($__SEGMENT__:DATASET.sum($deleted:NUMBER)))
         `);
-        //apply(CountX3Plus5,$__SEGMENT__:DATASET.count().multiply(3).add(5))
+        // apply(CountX3Plus5,$__SEGMENT__:DATASET.count().multiply(3).add(5))
 
         expect(external0.toJS().attributes).to.deep.equal([
           { name: 'CountX3', type: 'NUMBER' },
           { name: 'AddedPlusDeleted', type: 'NUMBER' },
           { name: 'AddedUsPlusDeleted', type: 'NUMBER' },
-          //{ name: "CountX3Plus5", "type": "NUMBER" }
+          // { name: "CountX3Plus5", "type": "NUMBER" }
         ]);
       });
     });
@@ -1318,7 +1319,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
         expect(externalDataset.applies).to.have.length(2);
         expect(externalDataset.limit.value).to.equal(5);
         expect(externalDataset.toJS().attributes).to.deep.equal([
@@ -1348,7 +1349,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
         expect(externalDataset.applies).to.have.length(2);
         expect(externalDataset.limit.value).to.equal(5);
         expect(externalDataset.toJS().attributes).to.deep.equal([
@@ -1370,7 +1371,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
         expect(externalDataset.applies).to.have.length(2);
         expect(externalDataset.limit.value).to.equal(5);
         expect(externalDataset.toJS().attributes).to.deep.equal([
@@ -1391,7 +1392,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
         expect(externalDataset.applies).to.have.length(2);
         expect(externalDataset.toJS().attributes).to.deep.equal([
           { name: 'Timestamp', type: 'TIME_RANGE' },
@@ -1423,7 +1424,7 @@ describe('External', () => {
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
         expect(ex.op).to.equal('external');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.filter.toJS()).to.deep.equal(
           context.wiki.filter.and($('language', 'STRING').is('en')).toJS(),
@@ -1459,7 +1460,7 @@ describe('External', () => {
         console.log('ex', ex.external.applies);
 
         expect(ex.op).to.equal('apply');
-        let externalDataset = ex.external;
+        const externalDataset = ex.external;
 
         expect(externalDataset.filter.toJS()).to.deep.equal(
           context.wiki.filter.and($('language', 'STRING').is('en')).toJS(),
@@ -1490,17 +1491,17 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let readyExternals = ex.value.getReadyExternals();
+        const readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(2);
 
-        let externalDataset0 = readyExternals[0].external;
+        const externalDataset0 = readyExternals[0].external;
         expect(externalDataset0.applies).to.have.length(2);
         expect(externalDataset0.toJS().attributes).to.deep.equal([
           { name: 'Count', type: 'NUMBER' },
           { name: 'TotalAdded', type: 'NUMBER' },
         ]);
 
-        let externalDataset1 = readyExternals[1].external;
+        const externalDataset1 = readyExternals[1].external;
         expect(externalDataset1.applies).to.have.length(2);
         expect(externalDataset1.toJS().attributes).to.deep.equal([
           { name: 'Page', type: 'STRING' },
@@ -1524,10 +1525,10 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let readyExternals = ex.value.getReadyExternals();
+        const readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(1);
 
-        let externalDataset = readyExternals[0].external;
+        const externalDataset = readyExternals[0].external;
         expect(externalDataset.mode).to.equal('split');
       });
 
@@ -1546,10 +1547,10 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let readyExternals = ex.value.getReadyExternals();
+        const readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(1);
 
-        let externalDataset = readyExternals[0].external;
+        const externalDataset = readyExternals[0].external;
         expect(externalDataset.mode).to.equal('value');
       });
 
@@ -1566,10 +1567,10 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let readyExternals = ex.value.getReadyExternals();
+        const readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(1);
 
-        let externalDataset = readyExternals[0].external;
+        const externalDataset = readyExternals[0].external;
         expect(externalDataset.mode).to.equal('value');
       });
 
@@ -1593,17 +1594,17 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let readyExternals = ex.value.getReadyExternals();
+        const readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(2);
 
-        let externalDataset0 = readyExternals[0].external;
+        const externalDataset0 = readyExternals[0].external;
         expect(externalDataset0.mode).to.equal('total');
         expect(externalDataset0.toJS().attributes).to.deep.equal([
           { name: 'Count', type: 'NUMBER' },
           { name: 'TotalAdded', type: 'NUMBER' },
         ]);
 
-        let externalDataset1 = readyExternals[1].external;
+        const externalDataset1 = readyExternals[1].external;
         expect(externalDataset1.mode).to.equal('split');
         expect(externalDataset1.toJS().attributes).to.deep.equal([
           { name: 'Page', type: 'STRING' },
@@ -1630,10 +1631,10 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let readyExternals = ex.getReadyExternals();
+        const readyExternals = ex.getReadyExternals();
         expect(Object.keys(readyExternals)).to.deep.equal(['1']);
 
-        let externalDataset = readyExternals['1'].external;
+        const externalDataset = readyExternals['1'].external;
         expect(externalDataset.applies).to.have.length(2);
         expect(externalDataset.limit.value).to.equal(5);
         expect(externalDataset.toJS().attributes).to.deep.equal([
@@ -1655,7 +1656,7 @@ describe('External', () => {
         expect(ex.op).to.equal('chain');
         expect(ex.operand.op).to.equal('join');
 
-        let externalDatasetMain = ex.operand.lhs.value;
+        const externalDatasetMain = ex.operand.lhs.value;
         expect(externalDatasetMain.applies).to.have.length(2);
         expect(externalDatasetMain.toJS().attributes).to.deep.equal([
           { name: 'Count', type: 'NUMBER' },
@@ -1663,7 +1664,7 @@ describe('External', () => {
           { name: '_br_0', type: 'NUMBER' },
         ]);
 
-        let externalDatasetCmp = ex.operand.rhs.value;
+        const externalDatasetCmp = ex.operand.rhs.value;
         expect(externalDatasetCmp.applies).to.have.length(1);
         expect(externalDatasetCmp.toJS().attributes).to.deep.equal([
           { name: 'Page', type: 'STRING' },
@@ -1674,7 +1675,7 @@ describe('External', () => {
       });
 
       it.skip('a join of two splits sort on delta', () => {
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split('$page', 'Page')
           .join($('wikiCmp').split('$page', 'Page'))
           .apply('Count', '$wiki.count()')
@@ -1701,10 +1702,10 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let readyExternals = ex.value.getReadyExternals();
+        const readyExternals = ex.value.getReadyExternals();
         expect(readyExternals.length).to.equal(1);
 
-        let externalDataset = readyExternals[0].external;
+        const externalDataset = readyExternals[0].external;
         expect(externalDataset.mode).to.equal('split');
       });
 
@@ -1717,7 +1718,7 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let readyExternals = ex.getReadyExternals();
+        const readyExternals = ex.getReadyExternals();
         expect(Object.keys(readyExternals)).to.deep.equal(['2']);
         expect(readyExternals['2'].external.mode).to.deep.equal('split');
       });
@@ -1729,7 +1730,7 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let external = ex.external;
+        const external = ex.external;
         expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([
           'page',
           'language',
@@ -1741,7 +1742,7 @@ describe('External', () => {
         let ex = $('wiki').select('page', 'language', 'user').limit(5);
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
-        let external = ex.external;
+        const external = ex.external;
         expect(external.getQueryAndPostTransform().query.columns).to.deep.equal([
           'page',
           'language',
@@ -1759,7 +1760,7 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let external = ex.external;
+        const external = ex.external;
         expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([
           'Page',
           'Count',
@@ -1776,7 +1777,7 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let external = ex.external;
+        const external = ex.external;
         expect(external.getSelectedAttributes().map(a => a.name)).to.deep.equal([
           'Count',
           'Page',
@@ -1793,7 +1794,7 @@ describe('External', () => {
 
         ex = ex.referenceCheck(context).resolve(context).simplify();
 
-        let external = ex.external;
+        const external = ex.external;
         expect(external.getQueryAndPostTransform().query.aggregations).to.deep.equal([
           {
             name: 'Count',

@@ -16,10 +16,11 @@
 
 const { expect } = require('chai');
 
-let { testImmutableClass } = require('immutable-class-tester');
+const { testImmutableClass } = require('immutable-class-tester');
 
-let plywood = require('../plywood');
-let { StringRange, $, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { StringRange, $, ply, r } = plywood;
 
 describe('StringRange', () => {
   it('is immutable class', () => {

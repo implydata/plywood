@@ -17,8 +17,9 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { $, ply, r, Expression } = plywood;
+const plywood = require('../plywood');
+
+const { $, ply, r, Expression } = plywood;
 
 describe('composition', () => {
   describe('errors', () => {
@@ -36,7 +37,7 @@ describe('composition', () => {
   });
 
   it('works in blank case', () => {
-    let ex = ply();
+    const ex = ply();
     expect(ex.toJS()).to.deep.equal({
       op: 'literal',
       type: 'DATASET',
@@ -48,7 +49,7 @@ describe('composition', () => {
   });
 
   it('works in ref case', () => {
-    let ex = $('diamonds');
+    const ex = $('diamonds');
     expect(ex.toJS()).to.deep.equal({
       op: 'ref',
       name: 'diamonds',
@@ -56,7 +57,7 @@ describe('composition', () => {
   });
 
   it('works in timeShift case', () => {
-    let ex = Expression._.timeShift('P1D');
+    const ex = Expression._.timeShift('P1D');
     expect(ex.toJS()).to.deep.equal({
       op: 'timeShift',
       duration: 'P1D',
@@ -65,7 +66,7 @@ describe('composition', () => {
   });
 
   it('works in single split case', () => {
-    let ex = $('data').split('$page', 'Page', 'd');
+    const ex = $('data').split('$page', 'Page', 'd');
 
     expect(ex.toJS()).to.deep.equal({
       dataName: 'd',
@@ -83,7 +84,7 @@ describe('composition', () => {
   });
 
   it('works in multi split case', () => {
-    let ex = $('data').split({ Page: '$page', User: '$page' }, 'd');
+    const ex = $('data').split({ Page: '$page', User: '$page' }, 'd');
 
     expect(ex.toJS()).to.deep.equal({
       dataName: 'd',
@@ -106,7 +107,7 @@ describe('composition', () => {
   });
 
   it('works in semi-realistic case', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('Diamonds', ply().filter($('color').is('D')).apply('priceOver2', $('price').divide(2)))
       .apply('Count', $('Diamonds').count())
       .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));
@@ -189,7 +190,7 @@ describe('composition', () => {
   });
 
   it('works in semi-realistic case (using parser)', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('Diamonds', ply().filter("$color == 'D'").apply('priceOver2', '$price/2'))
       .apply('Count', $('Diamonds').count())
       .apply('TotalPrice', $('Diamonds').sum('$priceOver2'));

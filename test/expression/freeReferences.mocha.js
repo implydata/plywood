@@ -17,17 +17,18 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { Expression, Action, Dataset, $, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { Expression, Action, Dataset, $, ply, r } = plywood;
 
 describe('free references', () => {
-  let context = {
+  const context = {
     diamonds: Dataset.fromJS([{ color: 'A', cut: 'great', carat: 1.1, price: 300 }]),
   };
 
   describe('works as expected', () => {
     it('works with basics', () => {
-      let ex = $('x').add('$^y');
+      const ex = $('x').add('$^y');
       expect(ex.getFreeReferences()).to.deep.equal(['^y', 'x']);
     });
 
@@ -41,7 +42,7 @@ describe('free references', () => {
     });
 
     it('works in a basic case', () => {
-      let ex = Expression.parse('$x + $y * $z + $data.sum($revenue)');
+      const ex = Expression.parse('$x + $y * $z + $data.sum($revenue)');
 
       expect(ex.getFreeReferences()).to.deep.equal(['data', 'x', 'y', 'z']);
     });

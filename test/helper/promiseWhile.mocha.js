@@ -16,11 +16,11 @@
 
 const { expect } = require('chai');
 
-let { promiseWhile } = require('../../build/plywood');
+const { promiseWhile } = require('../../build/plywood');
 
 describe('Promise While', () => {
   it('should loop three times asynchronously', () => {
-    let res = [];
+    const res = [];
     let i = 0;
 
     return promiseWhile(

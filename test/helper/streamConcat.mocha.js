@@ -21,7 +21,7 @@ const toArray = require('stream-to-array');
 const { StreamConcat } = require('../../build/plywood');
 
 function emits(arr) {
-  let out = new Readable({
+  const out = new Readable({
     objectMode: true,
     read: function () {
       if (!out.index) out.index = 0;
@@ -32,7 +32,7 @@ function emits(arr) {
 }
 
 function emitsError(message) {
-  let out = new Readable({
+  const out = new Readable({
     objectMode: true,
     read: function () {
       out.emit('error', new Error(message));
@@ -44,7 +44,7 @@ function emitsError(message) {
 function makeIter(arr) {
   let index = 0;
   return () => {
-    let v = arr[index];
+    const v = arr[index];
     index++;
     return v;
   };

@@ -17,11 +17,12 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { Expression, External, $, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { Expression, External, $, ply, r } = plywood;
 
 describe.skip('breakdown', () => {
-  let context = {
+  const context = {
     x: 1,
     y: 2,
     diamonds: External.fromJS({
@@ -75,7 +76,7 @@ describe.skip('breakdown', () => {
 
     ex = ex.referenceCheck(context);
 
-    let breakdown = ex.breakdownByDataset();
+    const breakdown = ex.breakdownByDataset();
     expect(breakdown.singleDatasetActions.join(' | ')).to.equal(
       '.apply(b0, $diamonds:DATASET.count()) | .apply(b1, $diamonds2:DATASET.count()) | .apply(b2, $diamonds:DATASET.sum($carat:NUMBER))',
     );
@@ -86,7 +87,7 @@ describe.skip('breakdown', () => {
     let ex = Expression.parse('$diamonds.count() * $diamonds2.sum($carat) + $diamonds.count()');
 
     ex = ex.referenceCheck(context);
-    let breakdown = ex.breakdownByDataset();
+    const breakdown = ex.breakdownByDataset();
     expect(breakdown.singleDatasetActions.join(' | ')).to.equal(
       '.apply(b0, $diamonds:DATASET.count()) | .apply(b1, $diamonds2:DATASET.sum($carat:NUMBER))',
     );

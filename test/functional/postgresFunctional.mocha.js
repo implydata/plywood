@@ -16,10 +16,11 @@
 
 const { expect } = require('chai');
 
-let { postgresRequesterFactory } = require('plywood-postgres-requester');
+const { postgresRequesterFactory } = require('plywood-postgres-requester');
 
-let plywood = require('../plywood');
-let {
+const plywood = require('../plywood');
+
+const {
   External,
   PostgresExternal,
   TimeRange,
@@ -29,9 +30,9 @@ let {
   verboseRequesterFactory,
 } = plywood;
 
-let info = require('../info');
+const info = require('../info');
 
-let postgresRequester = postgresRequesterFactory({
+const postgresRequester = postgresRequesterFactory({
   host: info.postgresHost,
   database: info.postgresDatabase,
   user: info.postgresUser,
@@ -45,7 +46,7 @@ let postgresRequester = postgresRequesterFactory({
 describe('Postgres Functional', function () {
   this.timeout(10000);
 
-  let wikiAttributes = [
+  const wikiAttributes = [
     {
       name: '__time',
       nativeType: 'timestamp without time zone',
@@ -198,7 +199,7 @@ describe('Postgres Functional', function () {
     },
   ];
 
-  let wikiDerivedAttributes = {
+  const wikiDerivedAttributes = {
     pageInBrackets: "'[' ++ $page ++ ']'",
   };
 
@@ -211,7 +212,7 @@ describe('Postgres Functional', function () {
   });
 
   describe('defined attributes in datasource', () => {
-    let basicExecutor = basicExecutorFactory({
+    const basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS(
           {
@@ -226,7 +227,7 @@ describe('Postgres Functional', function () {
     });
 
     it('works in advanced case', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('wiki', $('wiki').filter($('channel').is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -365,7 +366,7 @@ describe('Postgres Functional', function () {
     });
 
     it('works with boolean GROUP BYs', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split($('channel').is('en'), 'ChannelIsEn')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending');
@@ -385,7 +386,7 @@ describe('Postgres Functional', function () {
     });
 
     it('filters on set/string select', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .filter('$userChars.cardinality() > 5')
         .filter($('channel').is('war'))
         .select('userChars', 'commentLength')
@@ -420,7 +421,7 @@ describe('Postgres Functional', function () {
     });
 
     it('works string range', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .filter($('cityName').greaterThan('Eagleton'))
         .split('$cityName', 'CityName')
         .sort('$CityName', 'descending')
@@ -464,7 +465,7 @@ describe('Postgres Functional', function () {
   });
 
   describe('incorrect commentLength and comment', () => {
-    let wikiUserCharAsNumber = External.fromJS(
+    const wikiUserCharAsNumber = External.fromJS(
       {
         engine: 'postgres',
         source: 'wikipedia',
@@ -482,7 +483,7 @@ describe('Postgres Functional', function () {
   });
 
   describe('introspection', () => {
-    let basicExecutor = basicExecutorFactory({
+    const basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS(
           {
@@ -510,7 +511,7 @@ describe('Postgres Functional', function () {
     });
 
     it('works with introspection', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('wiki', $('wiki').filter($('channel').is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply(

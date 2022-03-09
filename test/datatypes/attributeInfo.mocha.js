@@ -17,10 +17,11 @@
 
 const { expect } = require('chai');
 
-let { testImmutableClass } = require('immutable-class-tester');
+const { testImmutableClass } = require('immutable-class-tester');
 
-let plywood = require('../plywood');
-let { AttributeInfo, $, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { AttributeInfo, $, ply, r } = plywood;
 
 describe('AttributeInfo', () => {
   it('is immutable class', () => {

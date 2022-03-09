@@ -20,10 +20,10 @@ const { expect } = require('chai');
 const { PassThrough } = require('readable-stream');
 const toArray = require('stream-to-array');
 
-let { verboseRequesterFactory } = require('../../build/plywood');
+const { verboseRequesterFactory } = require('../../build/plywood');
 
 describe('Verbose requester', () => {
-  let requester = request => {
+  const requester = request => {
     const stream = new PassThrough({ objectMode: true });
     setTimeout(() => {
       if (/^fail/.test(request.query)) {
@@ -40,8 +40,8 @@ describe('Verbose requester', () => {
   };
 
   it('works on success', () => {
-    let lines = [];
-    let verboseRequester = verboseRequesterFactory({
+    const lines = [];
+    const verboseRequester = verboseRequesterFactory({
       name: 'rq1',
       requester: requester,
       printLine(line) {
@@ -69,8 +69,8 @@ Requester rq1 got result from query 1: (in Xms)
   });
 
   it('works on failure', () => {
-    let lines = [];
-    let verboseRequester = verboseRequesterFactory({
+    const lines = [];
+    const verboseRequester = verboseRequesterFactory({
       name: 'rq2',
       requester: requester,
       printLine(line) {

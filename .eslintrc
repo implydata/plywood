@@ -1,7 +1,7 @@
 {
   "extends": "@awesome-code-style",
   "parserOptions": {
-    "project": "tsconfig.json"
+    "project": "tsconfig.lint.json"
   },
   "rules": {
     "header/header": [2, "block", { "pattern": "Copyright [0-9-]+ Imply Data, Inc\\." }, 2],
@@ -14,5 +14,18 @@
     "unicorn/filename-case": [0],
     "max-classes-per-file": [0],
     "no-useless-escape": [0]
-  }
+  },
+  "overrides": [
+    {
+      "files": "test/**/*.js",
+      "env": {
+        "node": true,
+        "jest": true
+      },
+      "rules": {
+        "@typescript-eslint/no-var-requires": [0],
+        "unused-imports/no-unused-vars": [0]
+      }
+    }
+  ]
 }

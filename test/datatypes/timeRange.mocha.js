@@ -17,11 +17,12 @@
 
 const { expect } = require('chai');
 
-let { testImmutableClass } = require('immutable-class-tester');
+const { testImmutableClass } = require('immutable-class-tester');
 
-let { Timezone } = require('chronoshift');
-let plywood = require('../plywood');
-let { TimeRange, $, ply, r } = plywood;
+const { Timezone } = require('chronoshift');
+const plywood = require('../plywood');
+
+const { TimeRange, $, ply, r } = plywood;
 
 describe('TimeRange', () => {
   it('is immutable class', () => {
@@ -97,7 +98,7 @@ describe('TimeRange', () => {
 
   describe('upgrades', () => {
     it('upgrades from a string', () => {
-      let timeRange = TimeRange.fromJS({
+      const timeRange = TimeRange.fromJS({
         start: '2015-01-26T04:54:10Z',
         end: '2015-01-26T05:00:00Z',
       });
@@ -185,7 +186,7 @@ describe('TimeRange', () => {
 
   describe('#toInterval', () => {
     it('works in general', () => {
-      let timeRange = TimeRange.fromJS({
+      const timeRange = TimeRange.fromJS({
         start: '2015-01-26T04:54:10Z',
         end: '2015-01-26T05:00:00Z',
       });
@@ -217,7 +218,7 @@ describe('TimeRange', () => {
 
   describe('#rebaseOnStart', () => {
     it('works in general', () => {
-      let timeRange = TimeRange.fromJS({
+      const timeRange = TimeRange.fromJS({
         start: '2015-01-26T04:54:10Z',
         end: '2015-01-26T05:00:00Z',
       });

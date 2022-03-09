@@ -17,8 +17,9 @@
 const { expect } = require('chai');
 const { PassThrough } = require('readable-stream');
 
-let plywood = require('../plywood');
-let { Expression, External, TimeRange, $, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { Expression, External, TimeRange, $, ply, r } = plywood;
 
 function promiseFnToStream(promiseRq) {
   return rq => {
@@ -40,11 +41,11 @@ function promiseFnToStream(promiseRq) {
 }
 
 describe('DruidExternal Introspection', () => {
-  let requesterFail = promiseFnToStream(({ query }) => {
+  const requesterFail = promiseFnToStream(({ query }) => {
     return Promise.reject(new Error('Bad status code'));
   });
 
-  let requesterDruid_0_21_0 = promiseFnToStream(({ query }) => {
+  const requesterDruid_0_21_0 = promiseFnToStream(({ query }) => {
     if (query.queryType === 'status') return Promise.resolve({ version: '0.21.0' });
     expect(query.dataSource).to.equal('wikipedia');
 
@@ -53,7 +54,7 @@ describe('DruidExternal Introspection', () => {
       expect(query.analysisTypes).to.be.an('array');
       expect(query.lenientAggregatorMerge).to.equal(true);
 
-      let merged = {
+      const merged = {
         id: 'merged',
         intervals: null,
         size: 0,
@@ -195,7 +196,7 @@ describe('DruidExternal Introspection', () => {
   });
 
   it('does an introspect with general failure', () => {
-    let wikiExternal = External.fromJS(
+    const wikiExternal = External.fromJS(
       {
         engine: 'druid',
         source: 'wikipedia',
@@ -214,7 +215,7 @@ describe('DruidExternal Introspection', () => {
   });
 
   it('does an introspect with segmentMetadata (with aggregators)', () => {
-    let wikiExternal = External.fromJS(
+    const wikiExternal = External.fromJS(
       {
         engine: 'druid',
         source: 'wikipedia',

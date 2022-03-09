@@ -16,8 +16,9 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { $, Expression } = plywood;
+const plywood = require('../plywood');
+
+const { $, Expression } = plywood;
 
 describe('CustomAggregateExpression', () => {
   it('back compat using Expression from JS', () => {

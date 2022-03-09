@@ -17,29 +17,37 @@
 
 const { expect } = require('chai');
 
-let { mySqlRequesterFactory } = require('plywood-mysql-requester');
+const { mySqlRequesterFactory } = require('plywood-mysql-requester');
 
-let plywood = require('../plywood');
-let { External, MySQLExternal, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } =
-  plywood;
+const plywood = require('../plywood');
 
-let info = require('../info');
+const {
+  External,
+  MySQLExternal,
+  TimeRange,
+  $,
+  ply,
+  basicExecutorFactory,
+  verboseRequesterFactory,
+} = plywood;
 
-let mySqlRequester = mySqlRequesterFactory({
+const info = require('../info');
+
+const mySqlRequester = mySqlRequesterFactory({
   host: info.mySqlHost,
   database: info.mySqlDatabase,
   user: info.mySqlUser,
   password: info.mySqlPassword,
 });
 
-//mySqlRequester = verboseRequesterFactory({
+// mySqlRequester = verboseRequesterFactory({
 //  requester: mySqlRequester
-//});
+// });
 
 describe('MySQL Functional', function () {
   this.timeout(10000);
 
-  let wikiAttributes = [
+  const wikiAttributes = [
     {
       name: '__time',
       nativeType: 'datetime',
@@ -182,7 +190,7 @@ describe('MySQL Functional', function () {
     },
   ];
 
-  let wikiDerivedAttributes = {
+  const wikiDerivedAttributes = {
     pageInBrackets: "'[' ++ $page ++ ']'",
   };
 
@@ -196,7 +204,7 @@ describe('MySQL Functional', function () {
   });
 
   describe('defined attributes in datasource', () => {
-    let basicExecutor = basicExecutorFactory({
+    const basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS(
           {
@@ -211,7 +219,7 @@ describe('MySQL Functional', function () {
     });
 
     it('works in advanced case', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('wiki', $('wiki').filter($('channel').is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -378,7 +386,7 @@ describe('MySQL Functional', function () {
     });
 
     it('works with boolean GROUP BYs', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split($('channel').is('en'), 'ChannelIsEn')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending');
@@ -411,7 +419,7 @@ describe('MySQL Functional', function () {
     });
 
     it('works with multi-dimensional GROUP BYs', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .filter($('channel').isnt('en'))
         .split({
           Channel: '$channel',
@@ -477,7 +485,7 @@ describe('MySQL Functional', function () {
     });
 
     it("fallback doesn't happen if not null", () => {
-      let ex = ply().apply('added', $('wiki').sum($('added')).fallback(2));
+      const ex = ply().apply('added', $('wiki').sum($('added')).fallback(2));
 
       return basicExecutor(ex).then(result => {
         expect(result.toJS().data).to.deep.equal([
@@ -489,7 +497,7 @@ describe('MySQL Functional', function () {
     });
 
     it('works with simple raw mode', () => {
-      let ex = $('wiki').filter('$cityName == "El Paso"').select('regionName', 'added', 'page');
+      const ex = $('wiki').filter('$cityName == "El Paso"').select('regionName', 'added', 'page');
 
       return basicExecutor(ex).then(result => {
         expect(result.toJS()).to.deep.equal({
@@ -524,7 +532,7 @@ describe('MySQL Functional', function () {
     });
 
     it('works with complex raw mode', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .filter('$cityName == "El Paso"')
         .apply('regionNameLOL', '$regionName.concat(LOL)')
         .apply('addedPlusOne', '$added + 1')
@@ -563,7 +571,7 @@ describe('MySQL Functional', function () {
     });
 
     it('fallback happens if null', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('wiki', $('wiki').filter($('page').is('Rallicula')))
         .apply('MetroCode', $('wiki').sum($('metroCode')).fallback(0));
 
@@ -577,7 +585,7 @@ describe('MySQL Functional', function () {
     });
 
     it('power of and abs', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('wiki', $('wiki').filter($('page').is('Kosowo')))
         .apply('Delta', $('wiki').min($('delta')))
         .apply('AbsDelta', $('wiki').min($('delta')).absolute())
@@ -595,7 +603,7 @@ describe('MySQL Functional', function () {
     });
 
     it('works string range (two bounds)', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .filter($('cityName').greaterThan('Kab').and($('cityName').lessThan('Kar')))
         .split('$cityName', 'City')
         .limit(5);
@@ -622,7 +630,7 @@ describe('MySQL Functional', function () {
     });
 
     it('works string range (1 bound)', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .filter($('cityName').lessThan('P'))
         .filter('$comment < "zebra"')
         .split('$cityName', 'City')
@@ -651,7 +659,7 @@ describe('MySQL Functional', function () {
   });
 
   describe('incorrect page', () => {
-    let wikiUserCharAsNumber = External.fromJS(
+    const wikiUserCharAsNumber = External.fromJS(
       {
         engine: 'mysql',
         source: 'wikipedia',
@@ -669,7 +677,7 @@ describe('MySQL Functional', function () {
 
     // Todo: invalid number casts return 0 in mysql. Also, something is happening when page is defined as a number that results in numbers being passed into the cast to date
     it('works with bad casts', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split({ numberCast: '$comment.cast("NUMBER")', dateCast: '$page.cast("TIME")' })
         .apply('Count', '$wiki.sum($count)')
         .sort('$Count', 'descending')
@@ -698,7 +706,7 @@ describe('MySQL Functional', function () {
   });
 
   describe('introspection', () => {
-    let basicExecutor = basicExecutorFactory({
+    const basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS(
           {
@@ -726,7 +734,7 @@ describe('MySQL Functional', function () {
     });
 
     it('works with introspection', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('wiki', $('wiki').filter($('channel').is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply(

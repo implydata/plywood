@@ -17,8 +17,9 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { $, ply, r, MatchExpression, Set } = plywood;
+const plywood = require('../plywood');
+
+const { $, ply, r, MatchExpression, Set } = plywood;
 
 describe('MatchExpression', () => {
   it('.likeToRegExp', () => {
@@ -28,7 +29,7 @@ describe('MatchExpression', () => {
   });
 
   it('matches on set (no comma)', () => {
-    let ex = r(Set.fromJS(['a', 'b'])).match(',');
+    const ex = r(Set.fromJS(['a', 'b'])).match(',');
 
     return ex.compute().then(v => {
       expect(v).to.deep.equal(false);

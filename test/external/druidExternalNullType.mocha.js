@@ -17,19 +17,20 @@
 const { expect } = require('chai');
 const { PassThrough } = require('readable-stream');
 
-let { sane } = require('../utils');
+const { sane } = require('../utils');
 
-let plywood = require('../plywood');
-let { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
+const plywood = require('../plywood');
 
-let timeFilter = $('time').overlap(
+const { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
+
+const timeFilter = $('time').overlap(
   TimeRange.fromJS({
     start: new Date('2013-02-26T00:00:00Z'),
     end: new Date('2013-02-27T00:00:00Z'),
   }),
 );
 
-let context = {
+const context = {
   wiki: External.fromJS({
     engine: 'druid',
     source: 'wikipedia',
@@ -105,7 +106,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      let druidExternal = ex.value.getReadyExternals()[0].external;
+      const druidExternal = ex.value.getReadyExternals()[0].external;
 
       expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
         dataSource: 'wikipedia',
@@ -119,7 +120,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
 
       expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
         aggregations: [
@@ -150,7 +151,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
 
       expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
         aggregations: [
@@ -200,7 +201,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      let druidExternal = ex.value.getReadyExternals()[0].external;
+      const druidExternal = ex.value.getReadyExternals()[0].external;
 
       expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
         aggregations: [
@@ -234,9 +235,9 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      let druidExternal = ex.value.getReadyExternals()[0].external;
+      const druidExternal = ex.value.getReadyExternals()[0].external;
 
-      let queryAndPostTransform = druidExternal.getQueryAndPostTransform();
+      const queryAndPostTransform = druidExternal.getQueryAndPostTransform();
       expect(queryAndPostTransform.query).to.deep.equal({
         aggregations: [
           {
@@ -270,7 +271,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
         aggregations: [
           {
@@ -308,7 +309,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
         aggregations: [
           {
@@ -358,7 +359,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      let druidExternal = ex.value.getReadyExternals()[0].external;
+      const druidExternal = ex.value.getReadyExternals()[0].external;
 
       expect(druidExternal.getQueryAndPostTransform().query.aggregations).to.deep.equal([
         {
@@ -386,7 +387,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
 
       expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
         aggregations: [
@@ -449,7 +450,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
         aggregations: [
           {
@@ -502,7 +503,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({
         aggregations: [
           {
@@ -555,7 +556,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'page',
         type: 'bound',
@@ -575,7 +576,7 @@ describe('DruidExternal Null Type', () => {
       console.log('ex.toString()', ex.toString());
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query).to.deep.equal({});
     });
   });
@@ -587,7 +588,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'isRobot',
         type: 'selector',
@@ -601,7 +602,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         field: {
           dimension: 'isRobot',
@@ -618,7 +619,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'language',
         type: 'selector',
@@ -632,7 +633,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'language',
         type: 'in',
@@ -646,7 +647,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'language',
         type: 'selector',
@@ -660,7 +661,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'language',
         extractionFn: {
@@ -678,7 +679,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'language',
         type: 'selector',
@@ -692,7 +693,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'tags',
         extractionFn: {
@@ -710,7 +711,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'tags',
         extractionFn: {
@@ -729,7 +730,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'tags',
         extractionFn: {
@@ -748,7 +749,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         ordering: 'numeric',
         dimension: 'commentLength',
@@ -765,7 +766,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'commentLength',
         type: 'in',
@@ -779,7 +780,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'language',
         query: {
@@ -797,7 +798,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'tags',
         query: {
@@ -817,7 +818,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'language',
         extractionFn: {
@@ -841,7 +842,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         field: {
           dimension: 'language',
@@ -866,7 +867,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'language',
         extractionFn: {
@@ -889,7 +890,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'language',
         pattern: 'en+',
@@ -903,7 +904,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'tags',
         pattern: 'goo+d',
@@ -917,7 +918,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: '__time',
         extractionFn: {
@@ -937,7 +938,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'page',
         extractionFn: {
@@ -956,7 +957,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let druidExternal = ex.external;
+      const druidExternal = ex.external;
       expect(druidExternal.getQueryAndPostTransform().query.filter).to.deep.equal({
         dimension: 'page',
         extractionFn: {
@@ -977,7 +978,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -992,7 +993,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1007,7 +1008,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1027,7 +1028,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1047,7 +1048,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1067,7 +1068,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1087,7 +1088,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1117,7 +1118,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1137,7 +1138,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1158,7 +1159,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1177,7 +1178,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1199,7 +1200,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1222,7 +1223,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1245,7 +1246,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1278,7 +1279,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('topN');
       expect(query.virtualColumns).to.deep.equal([
         {
@@ -1302,7 +1303,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'tags',
@@ -1324,7 +1325,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('topN');
       expect(query.virtualColumns).to.deep.equal([
         {
@@ -1348,7 +1349,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
         dataSource: 'wikipedia',
@@ -1380,7 +1381,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'commentLength',
@@ -1403,7 +1404,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions).to.deep.equal([
         {
@@ -1448,7 +1449,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: '__time',
@@ -1470,7 +1471,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query.dimensions[0]).to.deep.equal({
         dimension: 'page',
@@ -1493,7 +1494,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
         dataSource: 'wikipedia',
@@ -1522,7 +1523,7 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('external');
-      let query = ex.external.getQueryAndPostTransform().query;
+      const query = ex.external.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('groupBy');
       expect(query).to.deep.equal({
         dataSource: 'wikipedia',
@@ -1553,9 +1554,9 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      let druidExternal = ex.value.getReadyExternals()[0].external;
+      const druidExternal = ex.value.getReadyExternals()[0].external;
 
-      let query = druidExternal.getQueryAndPostTransform().query;
+      const query = druidExternal.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('timeseries');
       expect(query.aggregations[1]).to.deep.equal({
         aggregator: {
@@ -1581,9 +1582,9 @@ describe('DruidExternal Null Type', () => {
       ex = ex.referenceCheck(context).resolve(context).simplify();
 
       expect(ex.op).to.equal('literal');
-      let druidExternal = ex.value.getReadyExternals()[0].external;
+      const druidExternal = ex.value.getReadyExternals()[0].external;
 
-      let query = druidExternal.getQueryAndPostTransform().query;
+      const query = druidExternal.getQueryAndPostTransform().query;
       expect(query.queryType).to.equal('timeseries');
       expect(query.aggregations).to.deep.equal([
         {
@@ -1621,7 +1622,7 @@ describe('DruidExternal Null Type', () => {
   });
 
   describe('should work when getting back no data', () => {
-    let emptyExternal = External.fromJS(
+    const emptyExternal = External.fromJS(
       {
         engine: 'druid',
         source: 'wikipedia',
@@ -1645,7 +1646,7 @@ describe('DruidExternal Null Type', () => {
     );
 
     it('should return null correctly on a totals query', () => {
-      let ex = ply().apply('Count', '$wiki.count()');
+      const ex = ply().apply('Count', '$wiki.count()');
 
       return ex.compute({ wiki: emptyExternal }).then(result => {
         expect(result.toJS().data).to.deep.equal([{ Count: 0 }]);
@@ -1653,7 +1654,7 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('should return null correctly on a timeseries query', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');
@@ -1664,7 +1665,7 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('should return null correctly on a topN query', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split('$page', 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -1677,7 +1678,7 @@ describe('DruidExternal Null Type', () => {
     });
 
     it('should return null correctly on a select query', () => {
-      let ex = $('wiki');
+      const ex = $('wiki');
 
       return ex.compute({ wiki: emptyExternal }).then(result => {
         expect(AttributeInfo.toJSs(result.attributes)).to.deep.equal([

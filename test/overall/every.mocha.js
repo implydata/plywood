@@ -17,12 +17,13 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { Expression, $, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { Expression, $, ply, r } = plywood;
 
 describe('every', () => {
   it('has sequential indexes', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('num', 5)
       .apply(
         'subData',
@@ -33,18 +34,18 @@ describe('every', () => {
           .apply('w', ply().sum('$a + 4 + $b')),
       );
 
-    let indexes = [];
-    let everyFn = (ex, index) => {
+    const indexes = [];
+    const everyFn = (ex, index) => {
       indexes.push(index);
       return null;
     };
 
-    let expressionCount = ex.expressionCount();
+    const expressionCount = ex.expressionCount();
     ex.every(everyFn);
     expect(expressionCount).to.equal(27);
     expect(indexes).to.deep.equal(
       (() => {
-        let result = [];
+        const result = [];
         let i = 0;
         while (i < expressionCount) {
           result.push(i++);

@@ -16,34 +16,35 @@
 
 const { expect } = require('chai');
 
-let { druidRequesterFactory } = require('plywood-druid-requester');
-let { mySqlRequesterFactory } = require('plywood-mysql-requester');
+const { druidRequesterFactory } = require('plywood-druid-requester');
+const { mySqlRequesterFactory } = require('plywood-mysql-requester');
 
-let plywood = require('../plywood');
-let { External, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
+const plywood = require('../plywood');
 
-let utils = require('../utils');
-let info = require('../info');
+const { External, TimeRange, $, ply, basicExecutorFactory, verboseRequesterFactory } = plywood;
 
-let druidRequester = druidRequesterFactory({
+const utils = require('../utils');
+const info = require('../info');
+
+const druidRequester = druidRequesterFactory({
   host: info.druidHost,
 });
 
-let mySqlRequester = mySqlRequesterFactory({
+const mySqlRequester = mySqlRequesterFactory({
   host: info.mySqlHost,
   database: info.mySqlDatabase,
   user: info.mySqlUser,
   password: info.mySqlPassword,
 });
 
-//druidRequester = verboseRequesterFactory({
+// druidRequester = verboseRequesterFactory({
 //  requester: druidRequester
-//});
-//mySqlRequester = verboseRequesterFactory({
+// });
+// mySqlRequester = verboseRequesterFactory({
 //  requester: mySqlRequester
-//});
+// });
 
-let attributes = [
+const attributes = [
   { name: 'time', type: 'TIME' },
   { name: 'sometimeLater', type: 'TIME' },
   { name: 'channel', type: 'STRING' },
@@ -63,7 +64,7 @@ let attributes = [
   { name: 'regionIsoCode', type: 'STRING' },
   { name: 'regionName', type: 'STRING' },
   { name: 'user', type: 'STRING' },
-  //{ name: "userChars", type: 'SET/STRING' },
+  // { name: "userChars", type: 'SET/STRING' },
   { name: 'count', type: 'NUMBER' },
   { name: 'delta', type: 'NUMBER' },
   { name: 'min_delta', type: 'NUMBER' },
@@ -73,7 +74,7 @@ let attributes = [
   { name: 'deleted', type: 'NUMBER' },
 ];
 
-let mixedExecutor = basicExecutorFactory({
+const mixedExecutor = basicExecutorFactory({
   datasets: {
     wiki_druid: External.fromJS(
       {
@@ -108,7 +109,7 @@ describe('Multi Dataset Functional', function () {
 
   // ToDo: make this work
   it.skip('works in basic case', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('wiki_druid', $('wiki_druid').filter($('channel').is('en')))
       .apply('TotalAddedDruid', '$wiki_druid.sum($added)')
       .apply('wiki_mysql', $('wiki_mysql').filter($('channel').is('en')))
@@ -120,7 +121,7 @@ describe('Multi Dataset Functional', function () {
   });
 
   it('mixed split case', () => {
-    let ex = $('wiki_mysql')
+    const ex = $('wiki_mysql')
       .split('$channel', 'Channel')
       .apply('TotalAddedMySQL', '$wiki_mysql.sum($added)')
       .sort('$TotalAddedMySQL', 'descending')
