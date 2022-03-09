@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.27.3
+
+- Fix rollup script
+
 ## 0.27.2
 
 - Revert immutable-class and chronoshift dependency bumps
