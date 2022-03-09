@@ -17,12 +17,13 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { Expression, Dataset, $, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { Expression, Dataset, $, ply, r } = plywood;
 
 describe('traversal', () => {
-  let subs = (ex, index, depth, nestDiff) => {
-    let repNum = index * 1e6 + depth * 1e3 + nestDiff;
+  const subs = (ex, index, depth, nestDiff) => {
+    const repNum = index * 1e6 + depth * 1e3 + nestDiff;
     if (ex.op === 'literal' && ex.type === 'NUMBER') {
       expect(ex.value).to.equal(repNum);
     }
@@ -30,7 +31,7 @@ describe('traversal', () => {
   };
 
   describe('total basics', () => {
-    let ex = $('x').add(2001000);
+    const ex = $('x').add(2001000);
 
     it('on substitute', () => {
       ex.substitute(subs);
@@ -42,7 +43,7 @@ describe('traversal', () => {
   });
 
   describe('has the right parameters', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('num', 3002001)
       .apply(
         'subData',
@@ -68,7 +69,7 @@ describe('traversal', () => {
   });
 
   describe('has the right parameters with dataset', () => {
-    let data = [
+    const data = [
       { cut: 'Good', price: 400 },
       { cut: 'Good', price: 300 },
       { cut: 'Great', price: 124 },
@@ -76,7 +77,7 @@ describe('traversal', () => {
       { cut: 'Wow', price: 100 },
     ];
 
-    let ex = ply()
+    const ex = ply()
       .apply('Data', Dataset.fromJS(data))
       .apply('FooPlusCount', '6003001 + $Data.count()')
       .apply('CountPlusBar', '$Data.count() + 12002001');

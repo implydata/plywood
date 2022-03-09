@@ -16,14 +16,15 @@
 
 const { expect } = require('chai');
 const { PassThrough } = require('readable-stream');
-let { sane } = require('../utils');
+const { sane } = require('../utils');
 
-let plywood = require('../plywood');
-let { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
+const plywood = require('../plywood');
+
+const { External, TimeRange, $, ply, r, AttributeInfo } = plywood;
 
 describe('MySQLExternal', () => {
   describe('should work when getting back no data', () => {
-    let emptyExternal = External.fromJS(
+    const emptyExternal = External.fromJS(
       {
         engine: 'mysql',
         source: 'wikipedia',
@@ -44,7 +45,7 @@ describe('MySQLExternal', () => {
     );
 
     it('should return null correctly on a totals query', () => {
-      let ex = ply().apply('Count', '$wiki.count()');
+      const ex = ply().apply('Count', '$wiki.count()');
 
       return ex.compute({ wiki: emptyExternal }).then(result => {
         expect(result.toJS().data).to.deep.equal([{ Count: 0 }]);
@@ -52,7 +53,7 @@ describe('MySQLExternal', () => {
     });
 
     it('should return null correctly on a timeseries query', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split("$time.timeBucket(P1D, 'Etc/UTC')", 'Time')
         .apply('Count', '$wiki.count()')
         .sort('$Time', 'ascending');
@@ -63,7 +64,7 @@ describe('MySQLExternal', () => {
     });
 
     it('should return null correctly on a topN query', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split('$page', 'Page')
         .apply('Count', '$wiki.count()')
         .apply('Added', '$wiki.sum($added)')
@@ -76,7 +77,7 @@ describe('MySQLExternal', () => {
     });
 
     it('should return null correctly on a select query', () => {
-      let ex = $('wiki');
+      const ex = $('wiki');
 
       return ex.compute({ wiki: emptyExternal }).then(result => {
         expect(AttributeInfo.toJSs(result.attributes)).to.deep.equal([

@@ -16,29 +16,30 @@
 
 const { expect } = require('chai');
 const axios = require('axios');
-let { sane } = require('../utils');
+const { sane } = require('../utils');
 
-let { druidRequesterFactory } = require('plywood-druid-requester');
+const { druidRequesterFactory } = require('plywood-druid-requester');
 
-let plywood = require('../plywood');
-let { External, TimeRange, $, ply, basicExecutorFactory } = plywood;
+const plywood = require('../plywood');
 
-let info = require('../info');
+const { External, TimeRange, $, ply, basicExecutorFactory } = plywood;
+
+const info = require('../info');
 
 describe('Cancel Functional', function () {
   it('works', async () => {
     let cancelFn;
-    let cancelToken = new axios.CancelToken(cFn => {
+    const cancelToken = new axios.CancelToken(cFn => {
       cancelFn = cFn;
     });
     cancelFn('Test cancel.');
 
-    let druidRequester = druidRequesterFactory({
+    const druidRequester = druidRequesterFactory({
       host: info.druidHost,
       cancelToken,
     });
 
-    let wikiExternal = External.fromJS(
+    const wikiExternal = External.fromJS(
       {
         engine: 'druid',
         source: 'wikipedia',
@@ -53,13 +54,13 @@ describe('Cancel Functional', function () {
       druidRequester,
     );
 
-    let basicExecutor = basicExecutorFactory({
+    const basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: wikiExternal,
       },
     });
 
-    let ex = ply()
+    const ex = ply()
       .apply('wiki', $('wiki').filter($('channel').is('en')))
       .apply(
         'Cities',

@@ -16,12 +16,13 @@
 
 const { expect } = require('chai');
 const { Duration } = require('chronoshift');
-let { sane } = require('../utils');
+const { sane } = require('../utils');
 
-let { druidRequesterFactory } = require('plywood-druid-requester');
+const { druidRequesterFactory } = require('plywood-druid-requester');
 
-let plywood = require('../plywood');
-let {
+const plywood = require('../plywood');
+
+const {
   External,
   DruidSQLExternal,
   TimeRange,
@@ -34,9 +35,9 @@ let {
   Expression,
 } = plywood;
 
-let info = require('../info');
+const info = require('../info');
 
-let druidRequester = druidRequesterFactory({
+const druidRequester = druidRequesterFactory({
   host: info.druidHost,
 });
 
@@ -44,14 +45,14 @@ let druidRequester = druidRequesterFactory({
 //   requester: druidRequester,
 // });
 
-let context = {
+const context = {
   priority: -23,
 };
 
 describe('DruidSQL Functional', function () {
   this.timeout(10000);
 
-  let wikiAttributes = [
+  const wikiAttributes = [
     {
       name: '__time',
       nativeType: '__time',
@@ -302,7 +303,7 @@ describe('DruidSQL Functional', function () {
     },
   ];
 
-  let wikiDerivedAttributes = {
+  const wikiDerivedAttributes = {
     pageInBrackets: "'[' ++ $page ++ ']'",
   };
 
@@ -316,7 +317,7 @@ describe('DruidSQL Functional', function () {
   });
 
   describe('custom SQL', () => {
-    let basicExecutor = basicExecutorFactory({
+    const basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS(
           {
@@ -332,7 +333,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works in simple aggregate case', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split(s$(`CONCAT(channel, '~')`), 'Channel')
         .apply('Count', $('wiki').sqlAggregate(r(`SUM(t."count")`)))
         .apply('Fancy', $('wiki').sqlAggregate(r(`SQRT(SUM(t."added" * t."added"))`)))
@@ -361,15 +362,15 @@ describe('DruidSQL Functional', function () {
     });
 
     it('can do compare column', () => {
-      let prevRange = TimeRange.fromJS({
+      const prevRange = TimeRange.fromJS({
         start: new Date('2015-09-12T00:00:00Z'),
         end: new Date('2015-09-12T12:00:00Z'),
       });
-      let mainRange = TimeRange.fromJS({
+      const mainRange = TimeRange.fromJS({
         start: new Date('2015-09-12T12:00:00Z'),
         end: new Date('2015-09-13T00:00:00Z'),
       });
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split($('channel'), 'Channel')
         .apply(
           'CountPrev',
@@ -415,7 +416,7 @@ describe('DruidSQL Functional', function () {
   });
 
   describe('custom SQL with WITH', () => {
-    let basicExecutor = basicExecutorFactory({
+    const basicExecutor = basicExecutorFactory({
       datasets: {
         wikiWith: External.fromJS(
           {
@@ -432,7 +433,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works in simple aggregate case', () => {
-      let ex = $('wikiWith')
+      const ex = $('wikiWith')
         .split(s$(`t.channelLol`), 'ChannelLol')
         .apply('Count', $('wikiWith').sqlAggregate(r(`SUM(t."count")`)))
         .apply('Fancy', $('wikiWith').sqlAggregate(r(`SQRT(SUM(t."added" * t."added"))`)))
@@ -452,7 +453,7 @@ describe('DruidSQL Functional', function () {
   });
 
   describe('defined attributes in datasource', () => {
-    let basicExecutor = basicExecutorFactory({
+    const basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS(
           {
@@ -469,15 +470,15 @@ describe('DruidSQL Functional', function () {
 
     describe('decomposition shortcuts', () => {
       it('can do compare column', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T00:00:00Z'),
           end: new Date('2015-09-12T12:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T12:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split($('channel'), 'Channel')
           .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
           .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
@@ -516,15 +517,15 @@ describe('DruidSQL Functional', function () {
       });
 
       it('can do compare column with having', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T00:00:00Z'),
           end: new Date('2015-09-12T12:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T12:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split($('channel'), 'Channel')
           .apply('CountPrev', $('wiki').filter($('__time').overlap(prevRange)).sum('$count'))
           .apply('CountMain', $('wiki').filter($('__time').overlap(mainRange)).sum('$count'))
@@ -549,15 +550,15 @@ describe('DruidSQL Functional', function () {
       });
 
       it('can timeBucket on joined column', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T00:00:00Z'),
           end: new Date('2015-09-12T12:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T12:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split(
             $('__time')
               .overlap(mainRange)
@@ -641,15 +642,15 @@ describe('DruidSQL Functional', function () {
       });
 
       it('can timeBucket on joined column with limit', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T00:00:00Z'),
           end: new Date('2015-09-12T12:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T12:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split(
             $('__time')
               .overlap(mainRange)
@@ -697,15 +698,15 @@ describe('DruidSQL Functional', function () {
       });
 
       it('can timeBucket on joined and overlapping column with limit', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T00:00:00Z'),
           end: new Date('2015-09-12T22:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T02:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split(
             $('__time')
               .overlap(mainRange)
@@ -773,15 +774,15 @@ describe('DruidSQL Functional', function () {
       });
 
       it('can timeBucket on joined and overlapping column with multiple splits and limit', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T00:00:00Z'),
           end: new Date('2015-09-12T22:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T02:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split({
             TimeJoin: $('__time')
               .overlap(mainRange)
@@ -855,15 +856,15 @@ describe('DruidSQL Functional', function () {
       });
 
       it('can timeBucket on joined and overlapping column with limit and sort', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T00:00:00Z'),
           end: new Date('2015-09-12T22:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T02:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split(
             $('__time')
               .overlap(mainRange)
@@ -932,15 +933,15 @@ describe('DruidSQL Functional', function () {
       });
 
       it('can timeBucket on joined column with sub-split', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T00:00:00Z'),
           end: new Date('2015-09-12T12:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T12:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split(
             $('__time')
               .overlap(mainRange)
@@ -1046,15 +1047,15 @@ describe('DruidSQL Functional', function () {
       });
 
       it('can timeBucket on joined column (sort by delta)', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T00:00:00Z'),
           end: new Date('2015-09-12T12:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T12:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split(
             $('__time')
               .overlap(mainRange)
@@ -1129,15 +1130,15 @@ describe('DruidSQL Functional', function () {
       });
 
       it('can timeBucket on joined column (overlap time)', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T06:00:00Z'),
           end: new Date('2015-09-12T18:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T12:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split(
             $('__time')
               .overlap(mainRange)
@@ -1221,15 +1222,15 @@ describe('DruidSQL Functional', function () {
       });
 
       it('can timeBucket on joined column (overlap time, SQL)', () => {
-        let prevRange = TimeRange.fromJS({
+        const prevRange = TimeRange.fromJS({
           start: new Date('2015-09-12T06:00:00Z'),
           end: new Date('2015-09-12T18:00:00Z'),
         });
-        let mainRange = TimeRange.fromJS({
+        const mainRange = TimeRange.fromJS({
           start: new Date('2015-09-12T12:00:00Z'),
           end: new Date('2015-09-13T00:00:00Z'),
         });
-        let ex = $('wiki')
+        const ex = $('wiki')
           .split(
             s$('t.__time')
               .overlap(mainRange)
@@ -1314,7 +1315,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works in simple case', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split('$channel', 'Channel')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending')
@@ -1339,7 +1340,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works in advanced case', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('wiki', $('wiki').filter($('channel').is('en')))
         .apply('Count', '$wiki.sum($count)')
         .apply('TotalAdded', '$wiki.sum($added)')
@@ -1368,7 +1369,7 @@ describe('DruidSQL Functional', function () {
       //     .limit(3)
       // );
 
-      let rawQueries = [];
+      const rawQueries = [];
       return basicExecutor(ex, { rawQueries }).then(result => {
         expect(rawQueries).to.deep.equal([
           {
@@ -1522,7 +1523,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works with all kinds of cool aggregates on totals level', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('NumPages', $('wiki').countDistinct('$page'))
         .apply('NumEnPages', $('wiki').filter($('channel').is('en')).countDistinct('$page'))
         .apply('ChannelAdded', $('wiki').sum('$added'))
@@ -1569,7 +1570,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it.skip('works with boolean GROUP BYs', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split($('channel').is('en'), 'ChannelIsEn')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending');
@@ -1589,7 +1590,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works string range', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .filter($('cityName').greaterThan('Eagleton'))
         .split('$cityName', 'CityName')
         .sort('$CityName', 'descending')
@@ -1632,7 +1633,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works with fancy lookup filter', () => {
-      let ex = ply()
+      const ex = ply()
         .apply(
           'wiki',
           $('wiki').filter(
@@ -1655,7 +1656,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works with non __time time expression', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split(s$('MILLIS_TO_TIMESTAMP(t.added)').timeBucket('PT1S', 'Etc/UTC'), 'addedAsTime')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending')
@@ -1682,7 +1683,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works with cast', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split(s$('commentLengthStr').cast('NUMBER'), 'CommentLength')
         .apply('Count', $('wiki').sum('$count'))
         .sort('$Count', 'descending')
@@ -1708,7 +1709,7 @@ describe('DruidSQL Functional', function () {
   });
 
   describe('incorrect commentLength and comment', () => {
-    let wikiUserCharAsNumber = External.fromJS(
+    const wikiUserCharAsNumber = External.fromJS(
       {
         engine: 'druidsql',
         source: 'wikipedia',
@@ -1727,7 +1728,7 @@ describe('DruidSQL Functional', function () {
   });
 
   describe('introspection', () => {
-    let basicExecutor = basicExecutorFactory({
+    const basicExecutor = basicExecutorFactory({
       datasets: {
         wiki: External.fromJS(
           {
@@ -1940,7 +1941,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works with introspected uniques', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('UniqueIsRobot', $('wiki').countDistinct('$isRobot'))
         .apply('UniqueUserChars', $('wiki').countDistinct('$userChars'))
         .apply('UniquePages1', $('wiki').countDistinct('$page'))
@@ -1975,7 +1976,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works with quantiles (histogram)', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('deltaHist95', $('wiki').quantile($('delta_hist'), 0.95))
         .apply('deltaHistMedian', $('wiki').quantile($('delta_hist'), 0.5))
         .apply('deltaBucket95', $('wiki').quantile($('deltaBucket100'), 0.95))
@@ -1998,7 +1999,7 @@ describe('DruidSQL Functional', function () {
     });
 
     it('works with quantiles (quantile doubles)', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('deltaQuantiles95', $('wiki').quantile($('delta_quantilesDoublesSketch'), 0.95))
         .apply(
           'deltaQuantilesMedian',
@@ -2037,7 +2038,7 @@ describe('DruidSQL Functional', function () {
 
     it.skip('works with introspection', () => {
       // ToDo: needs null check correction
-      let ex = ply()
+      const ex = ply()
         .apply('wiki', $('wiki').filter($('channel').is('en')))
         .apply('TotalAdded', '$wiki.sum($added)')
         .apply(

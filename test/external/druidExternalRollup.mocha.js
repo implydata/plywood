@@ -16,11 +16,12 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { Expression, External, TimeRange, $, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { Expression, External, TimeRange, $, ply, r } = plywood;
 
 describe('DruidExternal Rollup', () => {
-  let context = {
+  const context = {
     wiki: External.fromJS({
       engine: 'druid',
       version: '0.20.0',
@@ -100,9 +101,9 @@ describe('DruidExternal Rollup', () => {
   };
 
   it('works in basic case', () => {
-    let ex = ply().apply('Count', '$wiki.count()').apply('AvgAdded', '$wiki.average($added)');
+    const ex = ply().apply('Count', '$wiki.count()').apply('AvgAdded', '$wiki.average($added)');
 
-    let queryPlan = ex.simulateQueryPlan(context);
+    const queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
       {
@@ -134,11 +135,11 @@ describe('DruidExternal Rollup', () => {
   });
 
   it('works in filtered average case', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('AvgEnAdded', '$wiki.filter($channel == "en").average($added)')
       .apply('AvgHeDeleted', '$wiki.filter($channel == "he").average($deleted)');
 
-    let queryPlan = ex.simulateQueryPlan(context);
+    const queryPlan = ex.simulateQueryPlan(context);
     expect(queryPlan.length).to.equal(1);
     expect(queryPlan[0]).to.deep.equal([
       {

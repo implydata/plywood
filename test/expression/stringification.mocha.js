@@ -16,14 +16,15 @@
  */
 
 const { expect } = require('chai');
-let { sane } = require('../utils');
+const { sane } = require('../utils');
 
-let plywood = require('../plywood');
-let { Expression, Dataset, $, i$, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { Expression, Dataset, $, i$, ply, r } = plywood;
 
 describe('stringification', () => {
   it('works in advanced case', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('diamonds', $('diamonds').filter($('color').is('D')))
       .apply('Count', $('diamonds').count())
       .apply('TotalPrice', $('diamonds').sum('$price'))
@@ -78,66 +79,66 @@ describe('stringification', () => {
   });
 
   it('works with fancy ref', () => {
-    let ex = $('!T_0');
+    const ex = $('!T_0');
     expect(ex.toString()).to.equal('${!T_0}');
   });
 
   it('works with case insensitive refs', () => {
-    let ex = i$('x').substr(1, 5);
+    const ex = i$('x').substr(1, 5);
     expect(ex.toString(2)).to.equal('i$x.substr(1,5)');
   });
 
   it('works with lookup', () => {
-    let ex = $('diamonds').split("$cut.lookup('hello_lookup')", 'CutLookup');
+    const ex = $('diamonds').split("$cut.lookup('hello_lookup')", 'CutLookup');
     expect(ex.toString(2)).to.equal(
       '$diamonds.split($cut.lookup(hello_lookup),CutLookup,diamonds)',
     );
   });
 
   it('works with lookup with fancy name 1', () => {
-    let ex = $('diamonds').split("$cut.lookup('99hello')", 'CutLookup');
+    const ex = $('diamonds').split("$cut.lookup('99hello')", 'CutLookup');
     expect(ex.toString(2)).to.equal(`$diamonds.split($cut.lookup("99hello"),CutLookup,diamonds)`);
   });
 
   it('works with lookup with fancy name 2', () => {
-    let ex = $('diamonds').split("$cut.lookup('hello=lookup')", 'CutLookup');
+    const ex = $('diamonds').split("$cut.lookup('hello=lookup')", 'CutLookup');
     expect(ex.toString(2)).to.equal(
       `$diamonds.split($cut.lookup("hello=lookup"),CutLookup,diamonds)`,
     );
   });
 
   it('works with timePart', () => {
-    let ex = $('time').timePart('DAY_OF_WEEK');
+    const ex = $('time').timePart('DAY_OF_WEEK');
     expect(ex.toString(2)).to.equal('$time.timePart(DAY_OF_WEEK)');
   });
 
   it('works with timeShift', () => {
-    let ex = $('time').timeShift('P1D', 2);
+    const ex = $('time').timeShift('P1D', 2);
     expect(ex.toString(2)).to.equal('$time.timeShift(P1D,2)');
   });
 
   it('works with timeShift with timezone', () => {
-    let ex = $('time').timeShift('P1D', 2, 'Etc/UTC');
+    const ex = $('time').timeShift('P1D', 2, 'Etc/UTC');
     expect(ex.toString(2)).to.equal(`$time.timeShift(P1D,2,"Etc/UTC")`);
   });
 
   it('works with timeRange', () => {
-    let ex = $('time').timeRange('P1D', 2);
+    const ex = $('time').timeRange('P1D', 2);
     expect(ex.toString(2)).to.equal('$time.timeRange(P1D,2)');
   });
 
   it('works with customAggregate', () => {
-    let ex = $('x').customAggregate('lol');
+    const ex = $('x').customAggregate('lol');
     expect(ex.toString(2)).to.equal('$x.customAggregate(lol)');
   });
 
   it('works with substr', () => {
-    let ex = $('x').substr(1, 5);
+    const ex = $('x').substr(1, 5);
     expect(ex.toString(2)).to.equal('$x.substr(1,5)');
   });
 
   it('works with quantile with resolution', () => {
-    let ex = $('x').quantile('$hist', 0.98, 'resolution=2000');
+    const ex = $('x').quantile('$hist', 0.98, 'resolution=2000');
     expect(ex.toString(2)).to.equal(`$x.quantile($hist,0.98,"resolution=2000")`);
   });
 });

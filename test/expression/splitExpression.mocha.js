@@ -16,13 +16,14 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { $, ply, r, Expression } = plywood;
+const plywood = require('../plywood');
+
+const { $, ply, r, Expression } = plywood;
 
 describe('SplitExpression', () => {
   describe('#maxBucketNumber', () => {
     it('works with boolean ref case', () => {
-      let splitExpression = Expression._.split({
+      const splitExpression = Expression._.split({
         bool: $('bool', 'BOOLEAN'),
       });
 
@@ -30,7 +31,7 @@ describe('SplitExpression', () => {
     });
 
     it('works with boolean expression case', () => {
-      let splitExpression = Expression._.split({
+      const splitExpression = Expression._.split({
         isBlah: $('x').is('blah'),
       });
 
@@ -38,7 +39,7 @@ describe('SplitExpression', () => {
     });
 
     it('works in multi-split case', () => {
-      let splitExpression = Expression._.split({
+      const splitExpression = Expression._.split({
         timePart: $('time').timePart('HOUR_OF_DAY'),
         isBlah: $('x').is('blah'),
       });
@@ -47,7 +48,7 @@ describe('SplitExpression', () => {
     });
 
     it('works in unknown', () => {
-      let splitExpression = Expression._.split({
+      const splitExpression = Expression._.split({
         isBlah: $('x'),
       });
 

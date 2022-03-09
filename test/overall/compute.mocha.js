@@ -16,10 +16,10 @@
  */
 
 const { expect } = require('chai');
-let { Dataset, $, i$, ply, r, AttributeInfo, Set } = require('../plywood');
+const { Dataset, $, i$, ply, r, AttributeInfo, Set } = require('../plywood');
 
 describe('compute native', () => {
-  let data = [
+  const data = [
     { cut: 'Good', price: 400, time: new Date('2015-10-01T09:20:30Z'), tags: ['super', 'cool'] },
     { cut: 'Good', price: 300, time: new Date('2015-10-02T08:20:30Z'), tags: ['super'] },
     { cut: 'Great', price: 124, time: null, tags: ['cool'] },
@@ -34,7 +34,7 @@ describe('compute native', () => {
   ];
 
   it('works in uber-basic case', () => {
-    let ex = ply().apply('five', 5).apply('nine', 9);
+    const ex = ply().apply('five', 5).apply('nine', 9);
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -47,7 +47,7 @@ describe('compute native', () => {
   });
 
   it('works in nested case', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('TotalPrice', '$data.sum($price)')
       .apply(
         'ByCut',
@@ -230,7 +230,7 @@ describe('compute native', () => {
   });
 
   it('gets length of string', () => {
-    let ex = ply().apply('length', r('hey').length());
+    const ex = ply().apply('length', r('hey').length());
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -242,7 +242,7 @@ describe('compute native', () => {
   });
 
   it('gets location of substring', () => {
-    let ex = ply().apply('location', r('hey').indexOf('e'));
+    const ex = ply().apply('location', r('hey').indexOf('e'));
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -254,7 +254,7 @@ describe('compute native', () => {
   });
 
   it('transforms case of a string', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('upper', r('hey').transformCase('upperCase'))
       .apply('lower', r('HEY').transformCase('lowerCase'));
 
@@ -269,7 +269,7 @@ describe('compute native', () => {
   });
 
   it('works with power and absolute', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('number', 256)
       .apply('four', $('number').power(0.5).power(0.5))
       .apply('one', $('four').power(0))
@@ -296,7 +296,7 @@ describe('compute native', () => {
   });
 
   it('performs power on set', () => {
-    let ex = r(Set.fromJS([2, -2, 7])).power(Set.fromJS([2, 3]));
+    const ex = r(Set.fromJS([2, -2, 7])).power(Set.fromJS([2, 3]));
 
     return ex.compute().then(v => {
       expect(v.toJS()).to.deep.equal({
@@ -307,7 +307,7 @@ describe('compute native', () => {
   });
 
   it('performs absolute on set', () => {
-    let ex = r(Set.fromJS([2, -2, 7])).absolute();
+    const ex = r(Set.fromJS([2, -2, 7])).absolute();
 
     return ex.compute().then(v => {
       expect(v.toJS()).to.deep.equal({
@@ -318,7 +318,7 @@ describe('compute native', () => {
   });
 
   it('performs lessThan on set 1', () => {
-    let ex = r(Set.fromJS([2, -2, 7])).lessThan(10);
+    const ex = r(Set.fromJS([2, -2, 7])).lessThan(10);
 
     return ex.compute().then(v => {
       expect(v).to.deep.equal(true);
@@ -326,7 +326,7 @@ describe('compute native', () => {
   });
 
   it('performs lessThan on set 2', () => {
-    let ex = r(Set.fromJS([2, -2, 7])).lessThan(Set.fromJS([-10, -20]));
+    const ex = r(Set.fromJS([2, -2, 7])).lessThan(Set.fromJS([-10, -20]));
 
     return ex.compute().then(v => {
       expect(v).to.deep.equal(false);
@@ -334,7 +334,7 @@ describe('compute native', () => {
   });
 
   it('works with single IS', () => {
-    let ex = r('LOL').is(r('MOON'));
+    const ex = r('LOL').is(r('MOON'));
 
     return ex.compute().then(v => {
       expect(v).to.deep.equal(false);
@@ -342,7 +342,7 @@ describe('compute native', () => {
   });
 
   it('works with many ISes', () => {
-    let ex = r('LOL')
+    const ex = r('LOL')
       .is(r('MOON'))
       .is(Set.fromJS([false]));
 
@@ -355,7 +355,7 @@ describe('compute native', () => {
     // 1442016000000 -> 09/12/2015 00:00:00
     // 1442059199000 -> 09/12/2015 11:59:59
 
-    let ex = ply()
+    const ex = ply()
       .apply('time', new Date('2015-09-12T09:20:30Z'))
       .apply(
         'between',
@@ -376,7 +376,7 @@ describe('compute native', () => {
 
   it('casts from time to number', () => {
     // 1442049630000 -> 09/12/2015 02:20:30
-    let ex = ply()
+    const ex = ply()
       .apply('unixTimestamp', r(1442049630000))
       .apply(
         'between',
@@ -396,7 +396,7 @@ describe('compute native', () => {
   });
 
   it('casts from number to string', () => {
-    let ex = ply().apply('stringifiedNumber', r(22345243).cast('STRING'));
+    const ex = ply().apply('stringifiedNumber', r(22345243).cast('STRING'));
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -408,7 +408,7 @@ describe('compute native', () => {
   });
 
   it('casts from string to number', () => {
-    let ex = ply().apply('numberfiedString', r('22345243').cast('NUMBER'));
+    const ex = ply().apply('numberfiedString', r('22345243').cast('NUMBER'));
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -420,7 +420,7 @@ describe('compute native', () => {
   });
 
   it('casts from boolean to boolean', () => {
-    let ex = ply().apply('stillBoolean', r(true).cast('BOOLEAN'));
+    const ex = ply().apply('stillBoolean', r(true).cast('BOOLEAN'));
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -432,16 +432,16 @@ describe('compute native', () => {
   });
 
   it("doesn't fallback if not null", () => {
-    let ex = $('x').fallback(5);
+    const ex = $('x').fallback(5);
     return ex.compute({ x: 2 }).then(v => {
       expect(v).to.deep.equal(2);
     });
   });
 
   it('fallback works with datasets', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Two', 2)
       .apply('EmptyData', ply(ds).filter('false'))
       .apply('SumPrice', '$EmptyData.sum($price)')
@@ -461,9 +461,9 @@ describe('compute native', () => {
   });
 
   it('does cartesian concat', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply(ds).apply('concat', '$tags ++ $cut').select('tags', 'cut', 'concat');
+    const ex = ply(ds).apply('concat', '$tags ++ $cut').select('tags', 'cut', 'concat');
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -529,7 +529,7 @@ describe('compute native', () => {
   });
 
   it('gets cardinality of set', () => {
-    let data = [
+    const data = [
       {
         id: 1,
         prices: [400, 200, 3],
@@ -563,9 +563,9 @@ describe('compute native', () => {
       },
     ];
 
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Data', ply(ds))
       .apply(
         'SetSize',
@@ -638,13 +638,13 @@ describe('compute native', () => {
   });
 
   it('works in existing dataset case', () => {
-    let ds = Dataset.fromJS([
+    const ds = Dataset.fromJS([
       { cut: 'Good', price: 400 },
       { cut: 'Great', price: 124 },
       { cut: 'Wow', price: 160 },
     ]);
 
-    let ex = ply(ds).apply('priceX2', $('price').multiply(2));
+    const ex = ply(ds).apply('priceX2', $('price').multiply(2));
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -656,13 +656,13 @@ describe('compute native', () => {
   });
 
   it('will upgrade time for time data', () => {
-    let ds = Dataset.fromJS([
+    const ds = Dataset.fromJS([
       { cut: 'Good', time: new Date('2015-01-03T00:00:00Z') },
       { cut: 'Great', time: new Date('2014-01-04T00:00:00Z') },
       { cut: 'Wow', time: new Date('2015-01-05T00:00:00Z') },
     ]);
 
-    let ex = ply(ds)
+    const ex = ply(ds)
       .apply('laterThanJan01', $('time').greaterThan(`'2015-01-01T00:00:00.000'`))
       .apply('laterThanOrEqualJan01', $('time').greaterThanOrEqual(`'2015-01-01T00:00:00.000'`))
       .apply('earlierThanJan04', $('time').lessThan(`'2015-01-04T00:00:00.000'`))
@@ -699,13 +699,13 @@ describe('compute native', () => {
   });
 
   it('will not upgrade string for string data that can be parsed into time', () => {
-    let ds = Dataset.fromJS([
+    const ds = Dataset.fromJS([
       { cut: 'Good', time: '2015-01-03T00:00:00Z' },
       { cut: 'Great', time: '2014-01-04T00:00:00Z' },
       { cut: 'Wow', time: '2015-01-05T00:00:00Z' },
     ]);
 
-    let ex = ply(ds)
+    const ex = ply(ds)
       .apply('laterThanJan01', $('time').greaterThan(`'2015-01-03T00:00:00Z'`))
       .apply('laterThanOrEqualJan01', $('time').greaterThanOrEqual(`'2015-01-03T00:00:00Z'`))
       .apply('earlierThanJan04', $('time').lessThan(`'2015-01-03T00:00:00Z'`))
@@ -742,13 +742,13 @@ describe('compute native', () => {
   });
 
   it('left side', () => {
-    let ds = Dataset.fromJS([
+    const ds = Dataset.fromJS([
       { cut: 'Good', time: new Date('2015-01-03T00:00:00Z') },
       { cut: 'Great', time: new Date('2014-01-04T00:00:00Z') },
       { cut: 'Wow', time: new Date('2015-01-05T00:00:00Z') },
     ]);
 
-    let ex = ply(ds).apply('Added_NullCities', `'2015-01-01T00:00:00.000' <= $time`);
+    const ex = ply(ds).apply('Added_NullCities', `'2015-01-01T00:00:00.000' <= $time`);
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -772,13 +772,13 @@ describe('compute native', () => {
   });
 
   it('case insensitivity is respected', () => {
-    let ds = Dataset.fromJS([
+    const ds = Dataset.fromJS([
       { cut: 'Good', time: new Date('2015-01-03T00:00:00Z') },
       { cut: 'Great', time: new Date('2014-01-04T00:00:00Z') },
       { cut: 'Wow', time: new Date('2015-01-05T00:00:00Z') },
     ]);
 
-    let ex = ply(ds).apply('LessThanM', `'M' <= i$cUt`);
+    const ex = ply(ds).apply('LessThanM', `'M' <= i$cUt`);
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -802,14 +802,14 @@ describe('compute native', () => {
   });
 
   it('computes quarters', () => {
-    let ds = Dataset.fromJS([
+    const ds = Dataset.fromJS([
       { cut: 'Good', time: new Date('2015-03-31T19:00:00Z') },
       { cut: 'Great', time: new Date('2015-06-30T19:00:00Z') },
       { cut: 'Wow', time: new Date('2015-09-05T00:00:00Z') },
       { cut: 'Wow', time: new Date('2015-12-05T00:00:00Z') },
     ]);
 
-    let ex = ply(ds)
+    const ex = ply(ds)
       .apply('Quarter', '$time.timePart("QUARTER")')
       .apply('QuarterAsia', '$time.timePart("QUARTER", "Asia/Kathmandu")');
 
@@ -844,14 +844,14 @@ describe('compute native', () => {
   });
 
   it('computes fancy quarters', () => {
-    let ds = Dataset.fromJS([
+    const ds = Dataset.fromJS([
       { cut: 'Good', time: new Date('2015-03-31T19:00:00Z') },
       { cut: 'Great', time: new Date('2015-06-30T19:00:00Z') },
       { cut: 'Wow', time: new Date('2015-09-05T00:00:00Z') },
       { cut: 'Wow', time: new Date('2015-12-05T00:00:00Z') },
     ]);
 
-    let ex = ply(ds)
+    const ex = ply(ds)
       .split(i$('time').timeFloor('P3M').timePart('SECOND_OF_YEAR'), 'soy', 'data')
       .select('soy');
 
@@ -874,9 +874,9 @@ describe('compute native', () => {
   });
 
   it('works with filter, select', () => {
-    let ds = Dataset.fromJS(data);
+    const ds = Dataset.fromJS(data);
 
-    let ex = $('ds').filter('$price > 200').select('cut');
+    const ex = $('ds').filter('$price > 200').select('cut');
 
     return ex.compute({ ds }).then(v => {
       expect(v.toJS()).to.deep.equal({
@@ -899,9 +899,9 @@ describe('compute native', () => {
   });
 
   it('works with select, limit', () => {
-    let ds = Dataset.fromJS(data);
+    const ds = Dataset.fromJS(data);
 
-    let ex = $('ds').select('cut').limit(3);
+    const ex = $('ds').select('cut').limit(3);
 
     return ex.compute({ ds }).then(v => {
       expect(v.toJS()).to.deep.equal({
@@ -927,9 +927,9 @@ describe('compute native', () => {
   });
 
   it('works with pure filter', () => {
-    let ds = Dataset.fromJS(data);
+    const ds = Dataset.fromJS(data);
 
-    let ex = ply(ds).filter('$cut == Great');
+    const ex = ply(ds).filter('$cut == Great');
 
     return ex.compute().then(v => {
       expect(AttributeInfo.toJSs(v.attributes)).to.deep.equal([
@@ -951,9 +951,9 @@ describe('compute native', () => {
   });
 
   it('works with pure empty filter', () => {
-    let ds = Dataset.fromJS(data);
+    const ds = Dataset.fromJS(data);
 
-    let ex = ply(ds).filter('$cut == Best');
+    const ex = ply(ds).filter('$cut == Best');
 
     return ex.compute().then(v => {
       expect(AttributeInfo.toJSs(v.attributes)).to.deep.equal([
@@ -968,9 +968,9 @@ describe('compute native', () => {
   });
 
   it('works with various applies', () => {
-    let ds = Dataset.fromJS(data);
+    const ds = Dataset.fromJS(data);
 
-    let ex = ply(ds)
+    const ex = ply(ds)
       .apply('cutConcat', '"[" ++ $cut ++ "]"')
       .apply('cutMatch', $('cut').match('^G.+'))
       .apply('cutInGoodGreat', $('cut').in(['Good', 'Great']))
@@ -1143,7 +1143,7 @@ describe('compute native', () => {
   });
 
   it('works with collect applies', () => {
-    let ds = Dataset.fromJS([
+    const ds = Dataset.fromJS([
       { cut: 'Good', color: 'A', num: 1 },
       { cut: 'Good', color: 'A', num: 2 },
       { cut: 'Good', color: 'B', num: 1 },
@@ -1154,7 +1154,7 @@ describe('compute native', () => {
       { cut: 'Amaze', color: null, num: null },
     ]);
 
-    let ex = ply(ds)
+    const ex = ply(ds)
       .split('$cut', 'Cut', 'data')
       .apply('colors', '$data.collect($color)')
       .apply('nums', '$data.collect($num)')
@@ -1241,7 +1241,7 @@ describe('compute native', () => {
 
   it('works with quantiles', () => {
     // Test data comes from: https://en.wikipedia.org/wiki/Quantile (order changed to not be sorted)
-    let quantileData = [
+    const quantileData = [
       { vOdd: 20, vEven: 20 },
       { vOdd: 6, vEven: 6 },
       { vOdd: 7, vEven: 7 },
@@ -1255,7 +1255,7 @@ describe('compute native', () => {
       { vOdd: 3, vEven: 3 },
     ];
 
-    let ex = ply()
+    const ex = ply()
       .apply('d', Dataset.fromJS(quantileData).hide())
       .apply('quantileEven0.00', '$d.quantile($vEven, 0.00)')
       .apply('quantileEven0.25', '$d.quantile($vEven, 0.25)')
@@ -1287,9 +1287,9 @@ describe('compute native', () => {
   });
 
   it('works with a basic select', () => {
-    let ds = Dataset.fromJS(data);
+    const ds = Dataset.fromJS(data);
 
-    let ex = ply(ds).select('price', 'cut');
+    const ex = ply(ds).select('price', 'cut');
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -1304,9 +1304,9 @@ describe('compute native', () => {
   });
 
   it('works with a transformed select', () => {
-    let ds = Dataset.fromJS(data);
+    const ds = Dataset.fromJS(data);
 
-    let ex = ply(ds)
+    const ex = ply(ds)
       .apply('[cut]', '"[" ++ $cut ++ "]"')
       .apply('price+1', '$price + 1')
       .select('[cut]', 'price+1');
@@ -1342,9 +1342,9 @@ describe('compute native', () => {
   });
 
   it('works with simple split', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply().apply('Data', ply(ds)).apply('Cuts', $('Data').split('$cut', 'Cut'));
+    const ex = ply().apply('Data', ply(ds)).apply('Cuts', $('Data').split('$cut', 'Cut'));
 
     return ex.compute().then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -1382,9 +1382,9 @@ describe('compute native', () => {
   });
 
   it('works with set split', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Data', ply(ds))
       .apply(
         'Tags',
@@ -1450,9 +1450,9 @@ describe('compute native', () => {
   });
 
   it('works with double set split', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply(ds)
+    const ex = ply(ds)
       .split({ Tag: '$tags', TagCut: '$tags ++ $cut' }, 'Data')
       .apply('Count', '$Data.count()')
       .sort('$Count', 'descending');
@@ -1535,9 +1535,9 @@ describe('compute native', () => {
   });
 
   it('works with singleton dataset', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Two', 2)
       .apply('EmptyData', ply(ds).filter('false'))
       .apply('SumPrice', '$EmptyData.sum($price)')
@@ -1557,9 +1557,9 @@ describe('compute native', () => {
   });
 
   it('works with simple split followed by some simple applies', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Two', 2)
       .apply('Data', ply(ds))
       .apply(
@@ -1641,9 +1641,9 @@ describe('compute native', () => {
   });
 
   it('works with timePart split (non-UTC timezone)', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Data', ply(ds))
       .apply('Count', '$Data.count()')
       .apply(
@@ -1706,9 +1706,9 @@ describe('compute native', () => {
   });
 
   it('works with timePart split (other timezone)', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Data', ply(ds))
       .apply('Count', '$Data.count()')
       .apply(
@@ -1771,9 +1771,9 @@ describe('compute native', () => {
   });
 
   it('works with context', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply().apply('Data', ply(ds)).apply('CountPlusX', '$Data.count() + $x');
+    const ex = ply().apply('Data', ply(ds)).apply('CountPlusX', '$Data.count() + $x');
 
     return ex.compute({ x: 13 }).then(v => {
       expect(v.toJS().data).to.deep.equal([
@@ -1785,9 +1785,9 @@ describe('compute native', () => {
   });
 
   it('works with context and split', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Data', ply(ds))
       .apply(
         'Cuts',
@@ -1885,9 +1885,9 @@ describe('compute native', () => {
   });
 
   it('works with simple split and sub apply', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Data', ply(ds))
       .apply(
         'Cuts',
@@ -1949,9 +1949,9 @@ describe('compute native', () => {
   });
 
   it('works with simple split and sub apply + sort + limit', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Data', ply(ds))
       .apply(
         'Cuts',
@@ -1998,9 +1998,9 @@ describe('compute native', () => {
   });
 
   it('works with simple filter', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
 
-    let ex = ply()
+    const ex = ply()
       .apply('Data', ply(ds).filter($('price').overlap(105, 305)))
       .apply('Count', '$Data.count()');
 
@@ -2014,12 +2014,12 @@ describe('compute native', () => {
   });
 
   describe('sort test', () => {
-    let data = [{ n: 1 }, { n: 2 }, { n: 10 }, { n: 20 }];
+    const data = [{ n: 1 }, { n: 2 }, { n: 10 }, { n: 20 }];
 
     it('sorts on numbers', () => {
-      let ds = Dataset.fromJS(data);
+      const ds = Dataset.fromJS(data);
 
-      let ex = ply(ds).sort('$n');
+      const ex = ply(ds).sort('$n');
 
       return ex.compute().then(v => {
         expect(v.toJS().data).to.deep.equal([{ n: 1 }, { n: 2 }, { n: 10 }, { n: 20 }]);
@@ -2027,9 +2027,9 @@ describe('compute native', () => {
     });
 
     it('sorts on number ranges', () => {
-      let ds = Dataset.fromJS(data);
+      const ds = Dataset.fromJS(data);
 
-      let ex = ply(ds).apply('nr', '$n.numberBucket(1)').select('nr').sort('$nr');
+      const ex = ply(ds).apply('nr', '$n.numberBucket(1)').select('nr').sort('$nr');
 
       return ex.compute().then(v => {
         expect(v.toJS().data).to.deep.equal([
@@ -2063,11 +2063,11 @@ describe('compute native', () => {
   });
 
   describe('it works with re-selects', () => {
-    let ds = Dataset.fromJS(data).hide();
+    const ds = Dataset.fromJS(data).hide();
     let midData = null;
 
     it('works with simple group/label and subData filter with applies', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('Data', ply(ds))
         .apply('Count', '$Data.count()')
         .apply('Price', '$Data.sum($price)')
@@ -2134,7 +2134,7 @@ describe('compute native', () => {
     });
 
     it('re-selects', () => {
-      let ex = ply(midData)
+      const ex = ply(midData)
         .apply('CountOver2', '$Count / 2')
         .apply('Cuts', $('Cuts').apply('AvgPrice', '$Data.sum($price) / $Data.count()'));
 
@@ -2203,9 +2203,9 @@ describe('compute native', () => {
 
   describe('joins', () => {
     it('does a join on split', () => {
-      let ds = Dataset.fromJS(data).hide();
+      const ds = Dataset.fromJS(data).hide();
 
-      let ex = ply()
+      const ex = ply()
         .apply('Data1', ply(ds).filter($('price').overlap(105, 305)))
         .apply('Data2', ply(ds).filter($('price').overlap(105, 305).not()))
         .apply('Count1', '$Data1.count()')

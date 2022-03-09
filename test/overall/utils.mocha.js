@@ -17,7 +17,7 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
+const plywood = require('../plywood');
 
 describe('utils', () => {
   describe('safeAdd', () => {

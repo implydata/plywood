@@ -16,8 +16,9 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { $, ply, r, Expression } = plywood;
+const plywood = require('../plywood');
+
+const { $, ply, r, Expression } = plywood;
 
 describe('TimeFloorExpression', () => {
   describe('errors', () => {
@@ -33,7 +34,7 @@ describe('TimeFloorExpression', () => {
   });
 
   describe('#alignsWith', () => {
-    let hourFloorUTC = Expression.fromJS({
+    const hourFloorUTC = Expression.fromJS({
       op: 'timeFloor',
       operand: { op: 'ref', name: '_' },
       duration: 'PT1H',
@@ -41,7 +42,7 @@ describe('TimeFloorExpression', () => {
     });
 
     it('works with higher floor (PT2H)', () => {
-      let ex = Expression.fromJS({
+      const ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'PT2H',
@@ -52,7 +53,7 @@ describe('TimeFloorExpression', () => {
     });
 
     it('works with higher floor (P1D)', () => {
-      let ex = Expression.fromJS({
+      const ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'P1D',
@@ -63,7 +64,7 @@ describe('TimeFloorExpression', () => {
     });
 
     it('works fails on different timezone', () => {
-      let ex = Expression.fromJS({
+      const ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'PT2H',
@@ -74,7 +75,7 @@ describe('TimeFloorExpression', () => {
     });
 
     it('works fails on lower duration', () => {
-      let ex = Expression.fromJS({
+      const ex = Expression.fromJS({
         op: 'timeFloor',
         operand: { op: 'ref', name: '_' },
         duration: 'PT30M',
@@ -85,7 +86,7 @@ describe('TimeFloorExpression', () => {
     });
 
     it('works with OVERLAP range', () => {
-      let ex = Expression.fromJS({
+      const ex = Expression.fromJS({
         op: 'overlap',
         operand: { op: 'ref', name: '_' },
         expression: {
@@ -102,7 +103,7 @@ describe('TimeFloorExpression', () => {
     });
 
     it('works fails OVERLAP range (bad)', () => {
-      let ex = Expression.fromJS({
+      const ex = Expression.fromJS({
         op: 'overlap',
         operand: { op: 'ref', name: '_' },
         expression: {
@@ -119,7 +120,7 @@ describe('TimeFloorExpression', () => {
     });
 
     it('works with OVERLAP set', () => {
-      let ex = Expression.fromJS({
+      const ex = Expression.fromJS({
         op: 'overlap',
         operand: { op: 'ref', name: '_' },
         expression: {
@@ -139,7 +140,7 @@ describe('TimeFloorExpression', () => {
     });
 
     it('works fails OVERLAP set (bad)', () => {
-      let ex = Expression.fromJS({
+      const ex = Expression.fromJS({
         op: 'overlap',
         operand: { op: 'ref', name: '_' },
         expression: {

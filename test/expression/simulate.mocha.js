@@ -17,8 +17,9 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let {
+const plywood = require('../plywood');
+
+const {
   Expression,
   $,
   r,
@@ -30,7 +31,7 @@ let {
   fillExpressionExternalAlteration,
 } = plywood;
 
-let diamonds = External.fromJS({
+const diamonds = External.fromJS({
   engine: 'druid',
   source: 'diamonds',
   timeAttribute: 'time',
@@ -53,7 +54,7 @@ let diamonds = External.fromJS({
 
 describe('simulate', () => {
   it('works in basic case', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('Total', '$diamonds.count()')
       .apply('TotalX2', '$Total * 2')
       .apply('SomeSplit', $('diamonds').split('$cut:STRING', 'Cut').limit(10))

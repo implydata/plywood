@@ -20,10 +20,10 @@ const { expect } = require('chai');
 const { PassThrough } = require('readable-stream');
 const toArray = require('stream-to-array');
 
-let { retryRequesterFactory } = require('../../build/plywood');
+const { retryRequesterFactory } = require('../../build/plywood');
 
 describe('Retry Requester', () => {
-  let makeRequester = (failNumber, isTimeout) => {
+  const makeRequester = (failNumber, isTimeout) => {
     return request => {
       const stream = new PassThrough({ objectMode: true });
       setTimeout(() => {
@@ -43,7 +43,7 @@ describe('Retry Requester', () => {
     };
   };
 
-  let noSuchDataSourceRequester = request => {
+  const noSuchDataSourceRequester = request => {
     const stream = new PassThrough({ objectMode: true });
     setTimeout(() => {
       stream.emit('error', new Error('No such datasource'));
@@ -53,7 +53,7 @@ describe('Retry Requester', () => {
   };
 
   it('no retry needed (no fail)', () => {
-    let retryRequester = retryRequesterFactory({
+    const retryRequester = retryRequesterFactory({
       requester: makeRequester(0),
       delay: 20,
       retry: 2,
@@ -65,7 +65,7 @@ describe('Retry Requester', () => {
   });
 
   it('one fail', () => {
-    let retryRequester = retryRequesterFactory({
+    const retryRequester = retryRequesterFactory({
       requester: makeRequester(1),
       delay: 20,
       retry: 2,
@@ -77,7 +77,7 @@ describe('Retry Requester', () => {
   });
 
   it('two fails', () => {
-    let retryRequester = retryRequesterFactory({
+    const retryRequester = retryRequesterFactory({
       requester: makeRequester(2),
       delay: 20,
       retry: 2,
@@ -89,7 +89,7 @@ describe('Retry Requester', () => {
   });
 
   it('two fails forwards meta', () => {
-    let retryRequester = retryRequesterFactory({
+    const retryRequester = retryRequesterFactory({
       requester: makeRequester(2),
       delay: 20,
       retry: 2,
@@ -110,7 +110,7 @@ describe('Retry Requester', () => {
   });
 
   it('three fails', () => {
-    let retryRequester = retryRequesterFactory({
+    const retryRequester = retryRequesterFactory({
       requester: makeRequester(3),
       delay: 20,
       retry: 2,
@@ -126,7 +126,7 @@ describe('Retry Requester', () => {
   });
 
   it('timeout', () => {
-    let retryRequester = retryRequesterFactory({
+    const retryRequester = retryRequesterFactory({
       requester: makeRequester(1, true),
       delay: 20,
       retry: 2,
@@ -142,7 +142,7 @@ describe('Retry Requester', () => {
   });
 
   it('works with no such datasource', () => {
-    let retryRequester = retryRequesterFactory({
+    const retryRequester = retryRequesterFactory({
       requester: noSuchDataSourceRequester,
       delay: 20,
       retry: 2,

@@ -17,13 +17,14 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { Expression, Dataset, External, ExternalExpression, $, i$, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { Expression, Dataset, External, ExternalExpression, $, i$, ply, r } = plywood;
 
 describe('resolve', () => {
   describe('errors if', () => {
     it('went too deep', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('num', '$^foo + 1')
         .apply('subData', ply().apply('x', '$^num * 3').apply('y', '$^^^foo * 10'));
 
@@ -33,7 +34,7 @@ describe('resolve', () => {
     });
 
     it('could not find something in context', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('num', '$^foo + 1')
         .apply('subData', ply().apply('x', '$^num * 3').apply('y', '$^^foobar * 10'));
 
@@ -43,7 +44,7 @@ describe('resolve', () => {
     });
 
     it('ended up with bad types', () => {
-      let ex = ply()
+      const ex = ply()
         .apply('num', '$^foo + 1')
         .apply('subData', ply().apply('x', '$^num * 3').apply('y', '$^^foo * 10'));
 
@@ -55,17 +56,17 @@ describe('resolve', () => {
 
   describe('#resolved', () => {
     it('works with agg', () => {
-      let ex = $('diamonds').sum('$price');
+      const ex = $('diamonds').sum('$price');
       expect(ex.resolved()).to.equal(true);
     });
 
     it('works with add and var', () => {
-      let ex = $('TotalPrice').add($('diamonds').sum('$price'));
+      const ex = $('TotalPrice').add($('diamonds').sum('$price'));
       expect(ex.resolved()).to.equal(true);
     });
 
     it('works with add and ^var', () => {
-      let ex = $('TotalPrice', 1).add($('diamonds').sum('$price'));
+      const ex = $('TotalPrice', 1).add($('diamonds').sum('$price'));
       expect(ex.resolved()).to.equal(false);
     });
   });
@@ -74,7 +75,7 @@ describe('resolve', () => {
     it('works in a basic case', () => {
       let ex = $('foo').add('$bar');
 
-      let context = {
+      const context = {
         foo: 7,
       };
 
@@ -85,7 +86,7 @@ describe('resolve', () => {
     it('works with null', () => {
       let ex = $('foo').add('$bar');
 
-      let context = {
+      const context = {
         foo: null,
       };
 
@@ -96,7 +97,7 @@ describe('resolve', () => {
     it('works with null with is', () => {
       let ex = $('bar', 'STRING').is('$foo');
 
-      let context = {
+      const context = {
         foo: null,
       };
 
@@ -107,7 +108,7 @@ describe('resolve', () => {
     it('works in a basic case (and simplifies)', () => {
       let ex = $('foo').add(3);
 
-      let context = {
+      const context = {
         foo: 7,
       };
 
@@ -120,7 +121,7 @@ describe('resolve', () => {
         .apply('num', '$^foo + 1')
         .apply('subData', ply().apply('x', '$^num * 3').apply('y', '$^^foo * 10'));
 
-      let context = {
+      const context = {
         foo: 7,
       };
 
@@ -175,7 +176,7 @@ describe('resolve', () => {
     });
 
     it('works with dataset', () => {
-      let data = [
+      const data = [
         { cut: 'Good', price: 400 },
         { cut: 'Good', price: 300 },
         { cut: 'Great', price: 124 },
@@ -188,7 +189,7 @@ describe('resolve', () => {
         .apply('FooPlusCount', '$^foo + $Data.count()')
         .apply('CountPlusBar', '$Data.count() + $^bar');
 
-      let context = {
+      const context = {
         foo: 7,
         bar: 8,
       };
@@ -204,7 +205,7 @@ describe('resolve', () => {
     });
 
     it('works with sub-expressions', () => {
-      let external = External.fromJS({
+      const external = External.fromJS({
         engine: 'druid',
         source: 'diamonds',
         attributes: [
@@ -215,7 +216,7 @@ describe('resolve', () => {
         ],
       });
 
-      let datum = {
+      const datum = {
         Count: 5,
         diamonds: external,
       };
@@ -227,7 +228,7 @@ describe('resolve', () => {
 
       ex = ex.resolve(datum);
 
-      let externalExpression = new ExternalExpression({ external });
+      const externalExpression = new ExternalExpression({ external });
       expect(ex.toJS()).to.deep.equal(
         externalExpression
           .split('$cut', 'Cut', 'diamonds')

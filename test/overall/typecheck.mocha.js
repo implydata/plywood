@@ -17,8 +17,9 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { Expression, $, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { Expression, $, ply, r } = plywood;
 
 describe('typecheck', () => {
   it('should throw silly ref type', () => {

@@ -17,10 +17,11 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { Expression, External, Dataset, TimeRange, $, ply, r, s$ } = plywood;
+const plywood = require('../plywood');
 
-let attributes = [
+const { Expression, External, Dataset, TimeRange, $, ply, r, s$ } = plywood;
+
+const attributes = [
   { name: 'time', type: 'TIME' },
   { name: 'some_other_time', type: 'TIME' },
   { name: 'some_other_time_long', type: 'TIME', nativeType: 'LONG' },
@@ -42,7 +43,7 @@ let attributes = [
 
 describe('simulate DruidSql', () => {
   it('works in basic case', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('diamonds', $('diamonds').filter('$tags.overlap(["tagA", "tagB"])'))
       .apply(
         'Tags',
@@ -60,7 +61,7 @@ describe('simulate DruidSql', () => {
           ),
       );
 
-    let queryPlan = ex.simulateQueryPlan({
+    const queryPlan = ex.simulateQueryPlan({
       diamonds: External.fromJS({
         engine: 'druidsql',
         version: '0.20.0',
@@ -92,11 +93,11 @@ describe('simulate DruidSql', () => {
   });
 
   it('works with . in the datasource', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('diamonds', $('diamonds').filter('$tags.overlap(["tagA", "tagB"])'))
       .apply('Tags', $('diamonds').split('$tags', 'Tag').sort('$Tag', 'descending').limit(10));
 
-    let queryPlan = ex.simulateQueryPlan({
+    const queryPlan = ex.simulateQueryPlan({
       diamonds: External.fromJS({
         engine: 'druidsql',
         version: '0.20.0',
@@ -122,7 +123,7 @@ describe('simulate DruidSql', () => {
   });
 
   it('works with sqlRefExpression', () => {
-    let ex = ply().apply(
+    const ex = ply().apply(
       'Tags',
       $('diamonds')
         .split(s$('t.tags'), 'Tag')
@@ -132,7 +133,7 @@ describe('simulate DruidSql', () => {
         .select('Tag', 'count'),
     );
 
-    let queryPlan = ex.simulateQueryPlan({
+    const queryPlan = ex.simulateQueryPlan({
       diamonds: External.fromJS({
         engine: 'druidsql',
         version: '0.20.0',

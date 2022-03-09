@@ -21,13 +21,13 @@ const { PassThrough } = require('readable-stream');
 
 const toArray = require('stream-to-array');
 
-let { concurrentLimitRequesterFactory } = require('../../build/plywood');
+const { concurrentLimitRequesterFactory } = require('../../build/plywood');
 
 describe('Concurrent Limit Requester', () => {
-  let makeRequester = () => {
-    let streams = {};
+  const makeRequester = () => {
+    const streams = {};
 
-    let requester = request => {
+    const requester = request => {
       return (streams[request.query] = new PassThrough({ objectMode: true }));
     };
 
@@ -50,13 +50,13 @@ describe('Concurrent Limit Requester', () => {
   };
 
   it('basic works', () => {
-    let requester = makeRequester();
-    let concurrentLimitRequester = concurrentLimitRequesterFactory({
+    const requester = makeRequester();
+    const concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,
       concurrentLimit: 2,
     });
 
-    let p = toArray(concurrentLimitRequester({ query: 'a' })).then(res => {
+    const p = toArray(concurrentLimitRequester({ query: 'a' })).then(res => {
       expect(res).to.deep.equal([1, 2, 3]);
     });
 
@@ -65,20 +65,20 @@ describe('Concurrent Limit Requester', () => {
   });
 
   it('limit works when ok', () => {
-    let requester = makeRequester();
-    let concurrentLimitRequester = concurrentLimitRequesterFactory({
+    const requester = makeRequester();
+    const concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,
       concurrentLimit: 2,
     });
 
     let nextQuery = 'a';
-    let ra = toArray(concurrentLimitRequester({ query: 'a' })).then(res => {
+    const ra = toArray(concurrentLimitRequester({ query: 'a' })).then(res => {
       expect(res).to.deep.equal([1, 2, 3]);
       expect(nextQuery).to.equal('a');
       nextQuery = 'b';
     });
 
-    let rb = toArray(concurrentLimitRequester({ query: 'b' })).then(res => {
+    const rb = toArray(concurrentLimitRequester({ query: 'b' })).then(res => {
       expect(res).to.deep.equal([1, 2, 3]);
       expect(nextQuery).to.equal('b');
       nextQuery = 'c';
@@ -86,7 +86,7 @@ describe('Concurrent Limit Requester', () => {
       requester.resolve('c');
     });
 
-    let rc = toArray(concurrentLimitRequester({ query: 'c' })).then(res => {
+    const rc = toArray(concurrentLimitRequester({ query: 'c' })).then(res => {
       expect(res).to.deep.equal([1, 2, 3]);
       expect(nextQuery).to.equal('c');
     });
@@ -100,20 +100,20 @@ describe('Concurrent Limit Requester', () => {
   });
 
   it('limit works when error', () => {
-    let requester = makeRequester();
-    let concurrentLimitRequester = concurrentLimitRequesterFactory({
+    const requester = makeRequester();
+    const concurrentLimitRequester = concurrentLimitRequesterFactory({
       requester,
       concurrentLimit: 2,
     });
 
     let nextQuery = 'a';
-    let ra = toArray(concurrentLimitRequester({ query: 'a' })).catch(e => {
+    const ra = toArray(concurrentLimitRequester({ query: 'a' })).catch(e => {
       expect(e.message).to.equal('fail');
       expect(nextQuery).to.equal('a');
       nextQuery = 'b';
     });
 
-    let rb = toArray(concurrentLimitRequester({ query: 'b' })).catch(e => {
+    const rb = toArray(concurrentLimitRequester({ query: 'b' })).catch(e => {
       expect(e.message).to.equal('fail');
       expect(nextQuery).to.equal('b');
       nextQuery = 'c';
@@ -121,7 +121,7 @@ describe('Concurrent Limit Requester', () => {
       requester.resolve('c');
     });
 
-    let rc = toArray(concurrentLimitRequester({ query: 'c' })).then(res => {
+    const rc = toArray(concurrentLimitRequester({ query: 'c' })).then(res => {
       expect(res).to.deep.equal([1, 2, 3]);
       expect(nextQuery).to.equal('c');
     });

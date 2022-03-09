@@ -19,6 +19,7 @@ const { Timezone } = require('chronoshift');
 
 const { sane } = require('../utils');
 const plywood = require('../plywood');
+
 const { Dataset, AttributeInfo, $, Set, r, iteratorFactory, PlywoodValueBuilder } = plywood;
 
 function toJSON(obj) {
@@ -28,9 +29,9 @@ function toJSON(obj) {
 describe('ValueStream', () => {
   describe('iteratorFactory', () => {
     it('works for simple value', () => {
-      let dsi = iteratorFactory(5);
+      const dsi = iteratorFactory(5);
 
-      let bits = [];
+      const bits = [];
       let bit;
       while ((bit = dsi())) {
         bits.push(bit);
@@ -45,7 +46,7 @@ describe('ValueStream', () => {
     });
 
     it('works for Dataset', () => {
-      let ds = Dataset.fromJS([
+      const ds = Dataset.fromJS([
         {
           time: new Date('2015-09-12T00:46:58.771Z'),
           channel: '#en.wikipedia',
@@ -68,9 +69,9 @@ describe('ValueStream', () => {
         },
       ]);
 
-      let dsi = iteratorFactory(ds);
+      const dsi = iteratorFactory(ds);
 
-      let bits = [];
+      const bits = [];
       let bit;
       while ((bit = dsi())) {
         bits.push(bit);
@@ -202,7 +203,7 @@ describe('ValueStream', () => {
     });
 
     it('works for Dataset with keys', () => {
-      let ds = Dataset.fromJS({
+      const ds = Dataset.fromJS({
         keys: ['channel'],
         data: [
           {
@@ -216,9 +217,9 @@ describe('ValueStream', () => {
         ],
       });
 
-      let dsi = iteratorFactory(ds);
+      const dsi = iteratorFactory(ds);
 
-      let bits = [];
+      const bits = [];
       let bit;
       while ((bit = dsi())) {
         bits.push(bit);
@@ -259,30 +260,30 @@ describe('ValueStream', () => {
 
   describe('PlywoodValueBuilder', () => {
     it('works in base case', () => {
-      let pvb = new PlywoodValueBuilder();
+      const pvb = new PlywoodValueBuilder();
       expect(pvb.getValue()).to.deep.equal(null);
     });
 
     it('works in null case', () => {
-      let pvb = new PlywoodValueBuilder();
+      const pvb = new PlywoodValueBuilder();
       pvb.processBit({ type: 'value', value: null });
       expect(pvb.getValue()).to.equal(null);
     });
 
     it('works in false case', () => {
-      let pvb = new PlywoodValueBuilder();
+      const pvb = new PlywoodValueBuilder();
       pvb.processBit({ type: 'value', value: false });
       expect(pvb.getValue()).to.equal(false);
     });
 
     it('works in zero case', () => {
-      let pvb = new PlywoodValueBuilder();
+      const pvb = new PlywoodValueBuilder();
       pvb.processBit({ type: 'value', value: 0 });
       expect(pvb.getValue()).to.equal(0);
     });
 
     it('works in value case', () => {
-      let pvb = new PlywoodValueBuilder();
+      const pvb = new PlywoodValueBuilder();
       pvb.processBit({ type: 'value', value: 5 });
       expect(pvb.getValue()).to.equal(5);
     });
@@ -322,8 +323,8 @@ describe('ValueStream', () => {
         },
       ];
 
-      let pvb = new PlywoodValueBuilder();
-      for (let bit of bits) pvb.processBit(bit);
+      const pvb = new PlywoodValueBuilder();
+      for (const bit of bits) pvb.processBit(bit);
 
       expect(pvb.getValue().toJS().data).to.deep.equal([
         {
@@ -436,8 +437,8 @@ describe('ValueStream', () => {
         },
       ];
 
-      let pvb = new PlywoodValueBuilder();
-      for (let bit of bits) pvb.processBit(bit);
+      const pvb = new PlywoodValueBuilder();
+      for (const bit of bits) pvb.processBit(bit);
 
       expect(pvb.getValue().toJS()).to.deep.equal({
         attributes: [
@@ -499,10 +500,10 @@ describe('ValueStream', () => {
 
   describe('iteratorFactory => PlywoodValueBuilder', () => {
     it('in empty Dataset case', () => {
-      let ds = Dataset.fromJS([]);
+      const ds = Dataset.fromJS([]);
 
-      let dsi = iteratorFactory(ds);
-      let pvb = new PlywoodValueBuilder();
+      const dsi = iteratorFactory(ds);
+      const pvb = new PlywoodValueBuilder();
 
       let bit;
       while ((bit = dsi())) {
@@ -513,7 +514,7 @@ describe('ValueStream', () => {
     });
 
     it('in flat Dataset case', () => {
-      let ds = Dataset.fromJS({
+      const ds = Dataset.fromJS({
         keys: ['cityName'],
         data: [
           {
@@ -543,8 +544,8 @@ describe('ValueStream', () => {
         ],
       });
 
-      let dsi = iteratorFactory(ds);
-      let pvb = new PlywoodValueBuilder();
+      const dsi = iteratorFactory(ds);
+      const pvb = new PlywoodValueBuilder();
 
       let bit;
       while ((bit = dsi())) {
@@ -555,7 +556,7 @@ describe('ValueStream', () => {
     });
 
     it('in nested Dataset case', () => {
-      let ds = Dataset.fromJS([
+      const ds = Dataset.fromJS([
         {
           time: new Date('2015-09-12T00:46:58.771Z'),
           channel: '#en.wikipedia',
@@ -578,8 +579,8 @@ describe('ValueStream', () => {
         },
       ]);
 
-      let dsi = iteratorFactory(ds);
-      let pvb = new PlywoodValueBuilder();
+      const dsi = iteratorFactory(ds);
+      const pvb = new PlywoodValueBuilder();
 
       let bit;
       while ((bit = dsi())) {

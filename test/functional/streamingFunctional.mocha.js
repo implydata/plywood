@@ -16,12 +16,13 @@
 
 const { expect } = require('chai');
 const toArray = require('stream-to-array');
-let { sane } = require('../utils');
+const { sane } = require('../utils');
 
-let { druidRequesterFactory } = require('plywood-druid-requester');
+const { druidRequesterFactory } = require('plywood-druid-requester');
 
-let plywood = require('../plywood');
-let {
+const plywood = require('../plywood');
+
+const {
   External,
   DruidExternal,
   TimeRange,
@@ -33,9 +34,9 @@ let {
   Expression,
 } = plywood;
 
-let info = require('../info');
+const info = require('../info');
 
-let druidRequester = druidRequesterFactory({
+const druidRequester = druidRequesterFactory({
   host: info.druidHost,
 });
 
@@ -46,7 +47,7 @@ let druidRequester = druidRequesterFactory({
 describe('Streaming Functional', function () {
   this.timeout(10000);
 
-  let wikiAttributes = [
+  const wikiAttributes = [
     { name: 'time', type: 'TIME' },
     {
       name: 'added',
@@ -113,7 +114,7 @@ describe('Streaming Functional', function () {
   ];
 
   describe('defined attributes in datasource', () => {
-    let wiki = External.fromJS(
+    const wiki = External.fromJS(
       {
         engine: 'druid',
         source: 'wikipedia',
@@ -133,7 +134,7 @@ describe('Streaming Functional', function () {
     );
 
     it('works on can not resolve', testComplete => {
-      let ex = $('wiki').split({ isNew: '$isNew', isRobotz: '$isRobotz' });
+      const ex = $('wiki').split({ isNew: '$isNew', isRobotz: '$isRobotz' });
 
       ex.computeStream({ wiki }).on('error', e => {
         expect(e.message).to.deep.equal('could not resolve $isRobotz');
@@ -142,7 +143,7 @@ describe('Streaming Functional', function () {
     });
 
     it('aggregate and splits plus select work with ordering last split first', () => {
-      let ex = $('wiki')
+      const ex = $('wiki')
         .split({ isNew: '$isNew', isRobot: '$isRobot' })
         .apply('Count', $('wiki').sum('$count'))
         .limit(3);

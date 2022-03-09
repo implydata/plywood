@@ -17,12 +17,12 @@
 
 const { expect } = require('chai');
 
-let { Expression, toJS } = require('../build/plywood');
+const { Expression, toJS } = require('../build/plywood');
 
-let hasOwnProperty = Object.prototype.hasOwnProperty;
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 
-let uniformizeDoubles = v => {
-  let t = typeof v;
+const uniformizeDoubles = v => {
+  const t = typeof v;
   if (t === 'number') {
     if (v !== Math.floor(v)) {
       return Number(v.toPrecision(4));
@@ -39,11 +39,11 @@ let uniformizeDoubles = v => {
       return v;
     } else {
       let needNew = false;
-      let newV = {};
-      for (let k in v) {
+      const newV = {};
+      for (const k in v) {
         if (!hasOwnProperty.call(v, k)) continue;
-        let oldValue = v[k];
-        let newValue = uniformizeDoubles(oldValue);
+        const oldValue = v[k];
+        const newValue = uniformizeDoubles(oldValue);
         newV[k] = newValue;
         if (newValue !== oldValue) needNew = true;
       }
@@ -58,7 +58,7 @@ exports.wrapVerbose = (requester, name) => {
   return request => {
     console.log(`Requesting ${name}:`);
     console.log('', JSON.stringify(request.query, null, 2));
-    let startTime = Date.now();
+    const startTime = Date.now();
     return requester(request).then(
       result => {
         console.log(`GOT RESULT FROM ${name} (took ${Date.now() - startTime}ms)`);
@@ -82,8 +82,8 @@ exports.makeEqualityTest = executorMap => {
       expression = Expression.parse(expression);
     }
 
-    let executors = executorNames.map(executorName => {
-      let executor = executorMap[executorName];
+    const executors = executorNames.map(executorName => {
+      const executor = executorMap[executorName];
       if (!executor) throw new Error(`no such executor ${executorName}`);
       return executor;
     });
@@ -130,11 +130,11 @@ exports.makeEqualityTest = executorMap => {
 
 // To be used as a tag
 exports.sane = function () {
-  let str = String.raw.apply(String, arguments);
+  const str = String.raw.apply(String, arguments);
 
-  let match = str.match(/^\n( *)/m);
+  const match = str.match(/^\n( *)/m);
   if (!match) throw new Error('sane string must start with a \\n is:' + str);
-  let spaces = match[1].length;
+  const spaces = match[1].length;
 
   let lines = str.split('\n');
   lines.shift(); // Remove the first empty lines
@@ -149,7 +149,7 @@ exports.sane = function () {
 };
 
 exports.grabConsoleWarn = function (fn) {
-  let originalConsoleWarn = console.warn;
+  const originalConsoleWarn = console.warn;
   let text = null;
   console.warn = function (str) {
     text = (text || '') + str + '\n';

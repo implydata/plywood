@@ -17,14 +17,15 @@
 
 const { expect } = require('chai');
 
-let plywood = require('../plywood');
-let { $, ply, r } = plywood;
+const plywood = require('../plywood');
+
+const { $, ply, r } = plywood;
 
 describe('substitute', () => {
   it('should substitute on IS', () => {
-    let ex1 = r(5).is('$hello');
+    const ex1 = r(5).is('$hello');
 
-    let subs = ex => {
+    const subs = ex => {
       if (ex.op === 'literal' && ex.type === 'NUMBER') {
         return r(ex.value + 10);
       } else {
@@ -32,13 +33,13 @@ describe('substitute', () => {
       }
     };
 
-    let ex2 = r(15).is('$hello');
+    const ex2 = r(15).is('$hello');
 
     expect(ex1.substitute(subs).toJS()).to.deep.equal(ex2.toJS());
   });
 
   it('should substitute on complex expression', () => {
-    let ex1 = ply()
+    const ex1 = ply()
       .apply('num', 5)
       .apply(
         'subData',
@@ -49,7 +50,7 @@ describe('substitute', () => {
           .apply('w', ply().sum('$a + 4 + $b')),
       );
 
-    let subs = ex => {
+    const subs = ex => {
       if (ex.op === 'literal' && ex.type === 'NUMBER') {
         return r(ex.value + 10);
       } else {
@@ -57,7 +58,7 @@ describe('substitute', () => {
       }
     };
 
-    let ex2 = ply()
+    const ex2 = ply()
       .apply('num', 15)
       .apply(
         'subData',
@@ -72,7 +73,7 @@ describe('substitute', () => {
   });
 
   it('has sequential indexes', () => {
-    let ex = ply()
+    const ex = ply()
       .apply('num', 5)
       .apply(
         'subData',
@@ -83,17 +84,17 @@ describe('substitute', () => {
           .apply('w', ply().sum('$a + 4 + $b')),
       );
 
-    let indexes = [];
-    let subs = (ex, index) => {
+    const indexes = [];
+    const subs = (ex, index) => {
       indexes.push(index);
       return null;
     };
 
-    let expressionCount = ex.expressionCount();
+    const expressionCount = ex.expressionCount();
     ex.substitute(subs);
     expect(expressionCount).to.equal(27);
 
-    let range = [];
+    const range = [];
     for (let i = 0; i < expressionCount; i++) range.push(i);
 
     expect(indexes).to.deep.equal(range);
