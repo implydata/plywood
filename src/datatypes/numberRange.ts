@@ -105,10 +105,10 @@ export class NumberRange
 
   public rebaseOnStart(newStart: number): NumberRange {
     const { start, end, bounds } = this;
-    if (!start) return this;
+    if (start == null) return this;
     return new NumberRange({
       start: newStart,
-      end: end ? end - start + newStart : end,
+      end: end != null ? end - start + newStart : end,
       bounds,
     });
   }
