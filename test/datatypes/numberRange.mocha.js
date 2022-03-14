@@ -278,4 +278,20 @@ describe('NumberRange', () => {
       ).to.deep.equal(null);
     });
   });
+
+  describe('#rebaseOnStart()', () => {
+    it('works correctly on range starting at 0', () => {
+      expect(NumberRange.fromJS({ start: 0, end: 2 }).rebaseOnStart(5).toJS()).to.deep.equal({
+        start: 5,
+        end: 7,
+      });
+    });
+
+    it('works correctly on range ending on 0', () => {
+      expect(NumberRange.fromJS({ start: -2, end: 0 }).rebaseOnStart(5).toJS()).to.deep.equal({
+        start: 5,
+        end: 7,
+      });
+    });
+  });
 });
