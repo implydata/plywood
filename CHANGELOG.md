@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.27.4
+
+- Fix bug in `rebaseOnStart` when the range starts or ends on 0
+
 ## 0.27.3
 
 - Fix rollup script
