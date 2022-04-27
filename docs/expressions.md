@@ -290,10 +290,10 @@ ex.compute({ x: 7 }).then(console.log); // => true
 Checks whether the operand and the provided set overlap.
 
 ```javascript
-var ex = $('xs').in([5, 8]);
+var ex = $('xs').overlap([5, 8]);
 ex.compute({ xs: Set.fromJS([6, 10]) }).then(console.log); // => false
 
-var ex = $('strs').in(['hello', 'world']);
+var ex = $('strs').overlap(['hello', 'world']);
 ex.compute({ strs: Set.fromJS(['hello', 'moon']) }).then(console.log); // => true
 ```
 
