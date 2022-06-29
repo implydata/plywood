@@ -105,6 +105,10 @@ export class MySQLDialect extends SQLDialect {
     return `LOCATE(${b},${a})>0`;
   }
 
+  public mvContainsExpression(_a: string, _b: string): string {
+    throw new Error('not implemented');
+  }
+
   public isNotDistinctFromExpression(a: string, b: string): string {
     return `(${a}<=>${b})`;
   }

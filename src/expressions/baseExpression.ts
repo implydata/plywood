@@ -83,6 +83,7 @@ import { MatchExpression } from './matchExpression';
 import { MaxExpression } from './maxExpression';
 import { MinExpression } from './minExpression';
 import { MultiplyExpression } from './multiplyExpression';
+import { MvContainsExpression } from './mvContainsExpression';
 import { NotExpression } from './notExpression';
 import { NumberBucketExpression } from './numberBucketExpression';
 import { OrExpression } from './orExpression';
@@ -1212,6 +1213,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     if (compare) compare = getString(compare);
     return new ContainsExpression({ operand: this, expression: ex, compare });
+  }
+
+  public mvContains(ex: any) {
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
+    return new MvContainsExpression({ operand: this, expression: ex });
   }
 
   public match(re: string) {

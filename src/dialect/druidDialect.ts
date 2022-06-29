@@ -117,6 +117,10 @@ export class DruidDialect extends SQLDialect {
     return `${insensitive ? 'ICONTAINS_STRING' : 'CONTAINS_STRING'}(${a},${b})`;
   }
 
+  public mvContainsExpression(a: string, b: string): string {
+    return `MV_CONTAINS(${a},${b})`;
+  }
+
   public substrExpression(a: string, position: number, length: number): string {
     return `SUBSTRING(${a},${position + 1},${length})`;
   }
