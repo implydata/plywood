@@ -60,8 +60,7 @@ export class MvContainsExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    const fn: (a: any, b: any) => boolean = (a: any, b: any) =>
-      String(a).toLowerCase().indexOf(String(b).toLowerCase()) > -1;
+    const fn: (a: any, b: any) => boolean = (a: any, b: any) => a === b;
     return Set.crossBinaryBoolean(operandValue, expressionValue, fn);
   }
 
