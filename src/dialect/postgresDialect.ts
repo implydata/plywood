@@ -92,6 +92,10 @@ export class PostgresDialect extends SQLDialect {
     return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
   }
 
+  public stringSetToSQL(_values: string[]): string {
+    throw new Error('not implemented');
+  }
+
   public concatExpression(a: string, b: string): string {
     return `(${a}||${b})`;
   }

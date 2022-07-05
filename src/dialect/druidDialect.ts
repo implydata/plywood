@@ -109,6 +109,10 @@ export class DruidDialect extends SQLDialect {
     return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
   }
 
+  public stringSetToSQL(values: string[]): string {
+    return `Array[${values.join(',')}]`;
+  }
+
   public concatExpression(a: string, b: string): string {
     return `(${a}||${b})`;
   }

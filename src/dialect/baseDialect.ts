@@ -94,6 +94,8 @@ export abstract class SQLDialect {
 
   public abstract timeToSQL(date: Date): string;
 
+  public abstract stringSetToSQL(value: string[]): string;
+
   public aggregateFilterIfNeeded(
     inputSQL: string,
     expressionSQL: string,

@@ -122,8 +122,10 @@ export class LiteralExpression extends Expression {
       case 'STRING_RANGE':
         return dialect.escapeLiteral(value.start);
 
-      case 'SET/NULL':
       case 'SET/STRING':
+        return dialect.stringSetToSQL(value.elements.map((v: string) => dialect.escapeLiteral(v)));
+
+      case 'SET/NULL':
       case 'SET/NUMBER':
       case 'SET/NUMBER_RANGE':
       case 'SET/TIME_RANGE':
