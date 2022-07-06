@@ -119,6 +119,10 @@ export abstract class SQLDialect {
     throw new Error('must implement');
   }
 
+  public mvOverlapExpression(_a: string, _b: string): string {
+    throw new Error('must implement');
+  }
+
   public substrExpression(a: string, position: number, length: number): string {
     return `SUBSTR(${a},${position + 1},${length})`;
   }

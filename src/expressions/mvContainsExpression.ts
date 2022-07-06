@@ -33,8 +33,8 @@ export class MvContainsExpression extends ChainableUnaryExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._checkOperandTypes('STRING');
-    this._checkExpressionTypes('STRING');
+    this._checkOperandTypes('SET/STRING');
+    this._checkExpressionTypes('STRING', 'SET/STRING');
 
     this._ensureOp('mvContains');
 
@@ -60,8 +60,7 @@ export class MvContainsExpression extends ChainableUnaryExpression {
   }
 
   protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    const fn: (a: any, b: any) => boolean = (a: any, b: any) => a === b;
-    return Set.crossBinaryBoolean(operandValue, expressionValue, fn);
+    return operandValue.contains(expressionValue);
   }
 
   protected _getSQLChainableUnaryHelper(
