@@ -39,6 +39,8 @@ import {
   LookupExpression,
   MatchExpression,
   MultiplyExpression,
+  MvContainsExpression,
+  MvOverlapExpression,
   NotExpression,
   NumberBucketExpression,
   OrExpression,
@@ -184,7 +186,6 @@ export class DruidExpressionBuilder {
         return `(regexp_extract(${ex1},${DruidExpressionBuilder.escapeLiteral(
           expression.regexp,
         )})!='')`;
-        // TODO: maybe add MvContainsExpression here?
       } else if (expression instanceof ContainsExpression) {
         const needle = expression.expression;
         if (needle instanceof LiteralExpression) {
@@ -342,6 +343,10 @@ export class DruidExpressionBuilder {
           }
         } else if (expression instanceof IndexOfExpression) {
           return `strpos(${ex1},${ex2})`;
+        } else if (expression instanceof MvContainsExpression) {
+          return `mv_contains(${ex1}, ${ex2})`;
+        } else if (expression instanceof MvOverlapExpression) {
+          return `mv_overlap(${ex1}, ${ex2})`;
         }
       }
     }
