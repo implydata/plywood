@@ -84,6 +84,7 @@ import { MaxExpression } from './maxExpression';
 import { MinExpression } from './minExpression';
 import { MultiplyExpression } from './multiplyExpression';
 import { MvContainsExpression } from './mvContainsExpression';
+import { MvOverlapExpression } from './mvOverlapExpression';
 import { NotExpression } from './notExpression';
 import { NumberBucketExpression } from './numberBucketExpression';
 import { OrExpression } from './orExpression';
@@ -1218,6 +1219,11 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public mvContains(ex: any) {
     if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new MvContainsExpression({ operand: this, expression: ex });
+  }
+
+  public mvOverlap(ex: any) {
+    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
+    return new MvOverlapExpression({ operand: this, expression: ex });
   }
 
   public match(re: string) {

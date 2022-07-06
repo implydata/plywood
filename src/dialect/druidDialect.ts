@@ -125,6 +125,10 @@ export class DruidDialect extends SQLDialect {
     return `MV_CONTAINS(${a},${b})`;
   }
 
+  public mvOverlapExpression(a: string, b: string): string {
+    return `MV_OVERLAP(${a},${b})`;
+  }
+
   public substrExpression(a: string, position: number, length: number): string {
     return `SUBSTRING(${a},${position + 1},${length})`;
   }
