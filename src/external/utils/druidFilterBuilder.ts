@@ -32,8 +32,6 @@ import {
   IsExpression,
   LiteralExpression,
   MatchExpression,
-  MvContainsExpression,
-  MvOverlapExpression,
   NotExpression,
   OrExpression,
   OverlapExpression,
@@ -196,13 +194,10 @@ export class DruidFilterBuilder {
       }
     } else if (filter instanceof MatchExpression) {
       return this.makeRegexFilter(filter.operand, filter.regexp);
+      // TODO: maybe add MvContainsExpression here?
     } else if (filter instanceof ContainsExpression) {
       const { operand: lhs, expression: rhs, compare } = filter;
       return this.makeContainsFilter(lhs, rhs, compare);
-    } else if (filter instanceof MvContainsExpression) {
-      return this.makeExpressionFilter(filter.operand.mvContains(filter.expression));
-    } else if (filter instanceof MvOverlapExpression) {
-      return this.makeExpressionFilter(filter.operand.mvOverlap(filter.expression));
     }
 
     throw new Error(`could not convert filter ${filter} to Druid filter`);
