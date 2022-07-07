@@ -194,7 +194,6 @@ export class DruidFilterBuilder {
       }
     } else if (filter instanceof MatchExpression) {
       return this.makeRegexFilter(filter.operand, filter.regexp);
-      // TODO: maybe add MvContainsExpression here?
     } else if (filter instanceof ContainsExpression) {
       const { operand: lhs, expression: rhs, compare } = filter;
       return this.makeContainsFilter(lhs, rhs, compare);

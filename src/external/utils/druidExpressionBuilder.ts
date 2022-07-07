@@ -184,7 +184,6 @@ export class DruidExpressionBuilder {
         return `(regexp_extract(${ex1},${DruidExpressionBuilder.escapeLiteral(
           expression.regexp,
         )})!='')`;
-        // TODO: maybe add MvContainsExpression here?
       } else if (expression instanceof ContainsExpression) {
         const needle = expression.expression;
         if (needle instanceof LiteralExpression) {
