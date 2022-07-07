@@ -109,8 +109,9 @@ export class DruidDialect extends SQLDialect {
     return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
   }
 
-  public stringSetToSQL(value: Set): string {
-    const arr = value.elements.map((v: string) => this.escapeLiteral(v));
+  public stringSetToSQL(valueOrElements: Set | string[]): string {
+    const elements = Array.isArray(valueOrElements) ? valueOrElements : valueOrElements.elements;
+    const arr = elements.map((v: string) => this.escapeLiteral(v));
     return `ARRAY[${arr.join(',')}]`;
   }
 
