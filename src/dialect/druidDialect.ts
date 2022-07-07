@@ -127,6 +127,10 @@ export class DruidDialect extends SQLDialect {
     return `MV_CONTAINS(${a},${b})`;
   }
 
+  public mvFilterOnlyExpression(a: string, b: string[]): string {
+    return `MV_FILTER_ONLY(${a},${this.stringSetToSQL(b)})`;
+  }
+
   public mvOverlapExpression(a: string, b: string): string {
     return `MV_OVERLAP(${a},${b})`;
   }

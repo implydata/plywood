@@ -122,6 +122,10 @@ export abstract class SQLDialect {
     throw new Error('must implement');
   }
 
+  public mvFilterOnlyExpression(_a: string, _b: string[]): string {
+    throw new Error('must implement');
+  }
+
   public mvOverlapExpression(_a: string, _b: string): string {
     throw new Error('must implement');
   }

@@ -71,6 +71,7 @@ cat \
   build/expressions/minExpression.js \
   build/expressions/multiplyExpression.js \
   build/expressions/mvContainsExpression.js \
+  build/expressions/mvFilterOnlyExpression.js \
   build/expressions/mvOverlapExpression.js \
   build/expressions/notExpression.js \
   build/expressions/numberBucketExpression.js \
