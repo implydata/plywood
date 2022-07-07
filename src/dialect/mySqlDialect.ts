@@ -17,7 +17,6 @@
 
 import type { Duration, Timezone } from 'chronoshift';
 
-import { Set } from '../datatypes';
 import { PlyType } from '../types';
 
 import { SQLDialect } from './baseDialect';
@@ -92,10 +91,6 @@ export class MySQLDialect extends SQLDialect {
   public timeToSQL(date: Date): string {
     if (!date) return this.nullConstant();
     return `TIMESTAMP('${this.dateToSQLDateString(date)}')`;
-  }
-
-  public stringSetToSQL(_values: Set): string {
-    throw new Error('not implemented');
   }
 
   public concatExpression(a: string, b: string): string {

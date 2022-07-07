@@ -95,7 +95,9 @@ export abstract class SQLDialect {
 
   public abstract timeToSQL(date: Date): string;
 
-  public abstract stringSetToSQL(value: Set): string;
+  public stringSetToSQL(_value: Set): string {
+    return '<DUMMY>';
+  }
 
   public aggregateFilterIfNeeded(
     inputSQL: string,
