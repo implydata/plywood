@@ -123,7 +123,7 @@ export class LiteralExpression extends Expression {
         return dialect.escapeLiteral(value.start);
 
       case 'SET/STRING':
-        return dialect.stringSetToSQL(value.elements.map((v: string) => dialect.escapeLiteral(v)));
+        return dialect.stringSetToSQL(value);
 
       case 'SET/NULL':
       case 'SET/NUMBER':

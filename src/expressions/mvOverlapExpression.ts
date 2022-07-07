@@ -33,8 +33,8 @@ export class MvOverlapExpression extends ChainableUnaryExpression {
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._checkOperandTypes('SET/STRING');
-    this._checkExpressionTypes('STRING', 'SET/STRING');
+    this._checkOperandTypes('STRING');
+    this._checkExpressionTypes('STRING');
 
     this._ensureOp('mvOverlap');
 

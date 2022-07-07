@@ -17,6 +17,7 @@
 
 import type { Duration, Timezone } from 'chronoshift';
 
+import { Set } from '../datatypes';
 import { PlyType, PlyTypeSimple } from '../types';
 
 export abstract class SQLDialect {
@@ -94,7 +95,7 @@ export abstract class SQLDialect {
 
   public abstract timeToSQL(date: Date): string;
 
-  public abstract stringSetToSQL(value: string[]): string;
+  public abstract stringSetToSQL(value: Set): string;
 
   public aggregateFilterIfNeeded(
     inputSQL: string,

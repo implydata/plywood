@@ -252,6 +252,23 @@ describe('Expression', () => {
 
         { op: 'sqlAggregate', sql: 'SUM(t.A)' },
         { op: 'sqlAggregate', sql: 'SUM(t.B)' },
+
+        {
+          op: 'mvContains',
+          expression: {
+            op: 'literal',
+            value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] },
+            type: 'SET',
+          },
+        },
+        {
+          op: 'mvOverlap',
+          expression: {
+            op: 'literal',
+            value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] },
+            type: 'SET',
+          },
+        },
       ],
       {
         newThrows: true,

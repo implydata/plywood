@@ -158,4 +158,76 @@ describe('simulate DruidSql', () => {
       ],
     ]);
   });
+
+  it('works with mvOverlapExpression', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds').filter('$tags.mvOverlap(["tagA", "tagB"])'))
+      .apply(
+        'Tags',
+        $('diamonds')
+          .split(s$('t.tags'), 'Tag')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('Tag', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE MV_OVERLAP("tags",ARRAY[\'tagA\',\'tagB\'])\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
+
+  it('works with mvContainsExpression', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds').filter('$tags.mvContains(["tagA", "tagB"])'))
+      .apply(
+        'Tags',
+        $('diamonds')
+          .split(s$('t.tags'), 'Tag')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('Tag', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE MV_CONTAINS("tags",ARRAY[\'tagA\',\'tagB\'])\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
 });

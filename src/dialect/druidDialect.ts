@@ -17,7 +17,7 @@
 import type { Duration, Timezone } from 'chronoshift';
 import { NamedArray } from 'immutable-class';
 
-import { Attributes } from '../datatypes';
+import { Attributes, Set } from '../datatypes';
 import { PlyType } from '../types';
 
 import { SQLDialect } from './baseDialect';
@@ -109,8 +109,9 @@ export class DruidDialect extends SQLDialect {
     return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
   }
 
-  public stringSetToSQL(values: string[]): string {
-    return `Array[${values.join(',')}]`;
+  public stringSetToSQL(value: Set): string {
+    const arr = value.elements.map((v: string) => this.escapeLiteral(v));
+    return `ARRAY[${arr.join(',')}]`;
   }
 
   public concatExpression(a: string, b: string): string {
