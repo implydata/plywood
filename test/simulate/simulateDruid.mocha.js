@@ -1511,6 +1511,72 @@ describe('simulate Druid', () => {
     });
   });
 
+  it('works with multi-value string dimension having mvOverlap filter expression', () => {
+    const ex = $('diamonds')
+      .filter('$tags.mvOverlap(["tagA", "tagB"])')
+      .split({ Tag: '$tags' })
+      .apply('Count', '$diamonds.count()');
+
+    const queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
+      aggregations: [
+        {
+          name: 'Count',
+          type: 'count',
+        },
+      ],
+      dataSource: 'diamonds',
+      dimensions: [
+        {
+          dimension: 'tags',
+          outputName: 'Tag',
+          type: 'default',
+        },
+      ],
+      filter: {
+        expression: "array_overlap(\"tags\", ['tagA','tagB'])",
+        type: 'expression',
+      },
+      granularity: 'all',
+      intervals: '2015-03-12T00Z/2015-03-19T00Z',
+      queryType: 'groupBy',
+    });
+  });
+
+  it('works with multi-value string dimension having mvContains filter expression', () => {
+    const ex = $('diamonds')
+      .filter('$tags.mvContains(["tagA", "tagB"])')
+      .split({ Tag: '$tags' })
+      .apply('Count', '$diamonds.count()');
+
+    const queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
+      aggregations: [
+        {
+          name: 'Count',
+          type: 'count',
+        },
+      ],
+      dataSource: 'diamonds',
+      dimensions: [
+        {
+          dimension: 'tags',
+          outputName: 'Tag',
+          type: 'default',
+        },
+      ],
+      filter: {
+        expression: "array_contains(\"tags\", ['tagA','tagB'])",
+        type: 'expression',
+      },
+      granularity: 'all',
+      intervals: '2015-03-12T00Z/2015-03-19T00Z',
+      queryType: 'groupBy',
+    });
+  });
+
   it('works with transform case', () => {
     const ex = $('diamonds').split("$cut.transformCase('upperCase')", 'Cut').limit(10);
 

@@ -147,6 +147,10 @@ export class DruidExpressionBuilder {
           case 'object':
             if (literalValue instanceof Date) {
               return DruidExpressionBuilder.escapeLiteral(literalValue);
+            } else if (literalValue instanceof Set && literalValue.setType === 'STRING') {
+              return `[${literalValue.elements
+                .map(DruidExpressionBuilder.escapeLiteral)
+                .join(',')}]`;
             } else return `no_such_type`;
 
           default:
@@ -344,9 +348,9 @@ export class DruidExpressionBuilder {
         } else if (expression instanceof IndexOfExpression) {
           return `strpos(${ex1},${ex2})`;
         } else if (expression instanceof MvContainsExpression) {
-          return `mv_contains(${ex1}, ${ex2})`;
+          return `array_contains(${ex1}, ${ex2})`;
         } else if (expression instanceof MvOverlapExpression) {
-          return `mv_overlap(${ex1}, ${ex2})`;
+          return `array_overlap(${ex1}, ${ex2})`;
         }
       }
     }
