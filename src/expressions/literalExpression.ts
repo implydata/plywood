@@ -21,6 +21,7 @@ import { isImmutableClass } from 'immutable-class';
 
 import { getValueType, valueFromJS } from '../datatypes/common';
 import { ComputeFn, Dataset, Datum, PlywoodValue, Set, TimeRange } from '../datatypes/index';
+import { DruidDialect } from '../dialect';
 import { SQLDialect } from '../dialect/baseDialect';
 import { DatasetFullType, PlyType } from '../types';
 
@@ -123,8 +124,9 @@ export class LiteralExpression extends Expression {
         return dialect.escapeLiteral(value.start);
 
       case 'SET/STRING':
-        return dialect.stringSetToSQL(value);
-
+        if (dialect instanceof DruidDialect) {
+          return dialect.stringSetToSQL(value);
+        }
       case 'SET/NULL':
       case 'SET/NUMBER':
       case 'SET/NUMBER_RANGE':
