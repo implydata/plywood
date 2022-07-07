@@ -104,10 +104,6 @@ export class PostgresDialect extends SQLDialect {
     return `POSITION(${b} IN ${a})>0`;
   }
 
-  public mvContainsExpression(_a: string, _b: string): string {
-    throw new Error('not implemented');
-  }
-
   public regexpExpression(expression: string, regexp: string): string {
     return `(${expression} ~ '${regexp}')`; // ToDo: escape this.regexp
   }
