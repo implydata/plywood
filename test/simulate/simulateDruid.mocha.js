@@ -1513,7 +1513,7 @@ describe('simulate Druid', () => {
 
   it('works with multi-value string dimension having mvOverlap filter expression', () => {
     const ex = $('diamonds')
-      .filter('$tags.mvOverlap(["tagA", "tagB"])')
+      .filter($('tags').mvOverlap(['tagA', 'tagB']))
       .split({ Tag: '$tags' })
       .apply('Count', '$diamonds.count()');
 
@@ -1546,7 +1546,7 @@ describe('simulate Druid', () => {
 
   it('works with multi-value string dimension having mvContains filter expression', () => {
     const ex = $('diamonds')
-      .filter('$tags.mvContains(["tagA", "tagB"])')
+      .filter($('tags').mvContains(['tagA', 'tagB']))
       .split({ Tag: '$tags' })
       .apply('Count', '$diamonds.count()');
 

@@ -200,9 +200,9 @@ export class DruidFilterBuilder {
       const { operand: lhs, expression: rhs, compare } = filter;
       return this.makeContainsFilter(lhs, rhs, compare);
     } else if (filter instanceof MvContainsExpression) {
-      return this.makeExpressionFilter(filter.operand.mvContains(filter.expression));
+      return this.makeExpressionFilter(filter.operand.mvContains(filter.mvArray));
     } else if (filter instanceof MvOverlapExpression) {
-      return this.makeExpressionFilter(filter.operand.mvOverlap(filter.expression));
+      return this.makeExpressionFilter(filter.operand.mvOverlap(filter.mvArray));
     }
 
     throw new Error(`could not convert filter ${filter} to Druid filter`);

@@ -17,7 +17,7 @@
 import type { Duration, Timezone } from 'chronoshift';
 import { NamedArray } from 'immutable-class';
 
-import { Attributes, Set } from '../datatypes';
+import { Attributes } from '../datatypes';
 import { PlyType } from '../types';
 
 import { SQLDialect } from './baseDialect';
@@ -109,9 +109,8 @@ export class DruidDialect extends SQLDialect {
     return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
   }
 
-  public stringSetToSQL(valueOrElements: Set | string[]): string {
-    const elements = Array.isArray(valueOrElements) ? valueOrElements : valueOrElements.elements;
-    const arr = elements.map((v: string) => this.escapeLiteral(v));
+  public stringArrayToSQL(value: string[]): string {
+    const arr = value.map((v: string) => this.escapeLiteral(v));
     return `ARRAY[${arr.join(',')}]`;
   }
 
@@ -123,16 +122,16 @@ export class DruidDialect extends SQLDialect {
     return `${insensitive ? 'ICONTAINS_STRING' : 'CONTAINS_STRING'}(${a},${b})`;
   }
 
-  public mvContainsExpression(a: string, b: string): string {
-    return `MV_CONTAINS(${a},${b})`;
+  public mvContainsExpression(a: string, b: string[]): string {
+    return `MV_CONTAINS(${a}, ${this.stringArrayToSQL(b)})`;
   }
 
   public mvFilterOnlyExpression(a: string, b: string[]): string {
-    return `MV_FILTER_ONLY(${a},${this.stringSetToSQL(b)})`;
+    return `MV_FILTER_ONLY(${a}, ${this.stringArrayToSQL(b)})`;
   }
 
-  public mvOverlapExpression(a: string, b: string): string {
-    return `MV_OVERLAP(${a},${b})`;
+  public mvOverlapExpression(a: string, b: string[]): string {
+    return `MV_OVERLAP(${a}, ${this.stringArrayToSQL(b)})`;
   }
 
   public substrExpression(a: string, position: number, length: number): string {

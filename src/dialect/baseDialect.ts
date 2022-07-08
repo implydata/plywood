@@ -17,7 +17,6 @@
 
 import type { Duration, Timezone } from 'chronoshift';
 
-import { Set } from '../datatypes';
 import { PlyType, PlyTypeSimple } from '../types';
 
 export abstract class SQLDialect {
@@ -95,9 +94,7 @@ export abstract class SQLDialect {
 
   public abstract timeToSQL(date: Date): string;
 
-  public stringSetToSQL(_value: Set): string {
-    return '<DUMMY>';
-  }
+  public abstract stringArrayToSQL(value: string[]): string;
 
   public aggregateFilterIfNeeded(
     inputSQL: string,
@@ -118,7 +115,7 @@ export abstract class SQLDialect {
     throw new Error('must implement');
   }
 
-  public mvContainsExpression(_a: string, _b: string): string {
+  public mvContainsExpression(_a: string, _b: string[]): string {
     throw new Error('must implement');
   }
 
@@ -126,7 +123,7 @@ export abstract class SQLDialect {
     throw new Error('must implement');
   }
 
-  public mvOverlapExpression(_a: string, _b: string): string {
+  public mvOverlapExpression(_a: string, _b: string[]): string {
     throw new Error('must implement');
   }
 

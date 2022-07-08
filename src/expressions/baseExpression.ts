@@ -1219,18 +1219,16 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return new ContainsExpression({ operand: this, expression: ex, compare });
   }
 
-  public mvContains(ex: any) {
-    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
-    return new MvContainsExpression({ operand: this, expression: ex });
+  public mvContains(mvArray: string[]) {
+    return new MvContainsExpression({ operand: this, mvArray });
   }
 
   public mvFilterOnly(mvArray: string[]) {
     return new MvFilterOnlyExpression({ operand: this, mvArray });
   }
 
-  public mvOverlap(ex: any) {
-    if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
-    return new MvOverlapExpression({ operand: this, expression: ex });
+  public mvOverlap(mvArray: string[]) {
+    return new MvOverlapExpression({ operand: this, mvArray });
   }
 
   public match(re: string) {

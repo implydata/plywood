@@ -255,19 +255,15 @@ describe('Expression', () => {
 
         {
           op: 'mvContains',
-          expression: {
-            op: 'literal',
-            value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] },
-            type: 'SET',
-          },
+          mvArray: ['BMW', 'Honda', 'Suzuki'],
+        },
+        {
+          op: 'mvFilterOnly',
+          mvArray: ['BMW', 'Honda', 'Suzuki'],
         },
         {
           op: 'mvOverlap',
-          expression: {
-            op: 'literal',
-            value: { setType: 'STRING', elements: ['BMW', 'Honda', 'Suzuki'] },
-            type: 'SET',
-          },
+          mvArray: ['BMW', 'Honda', 'Suzuki'],
         },
       ],
       {

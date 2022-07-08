@@ -14,61 +14,52 @@
  * limitations under the License.
  */
 
-import { PlywoodValue } from '../datatypes/index';
+import { generalArraysEqual } from 'immutable-class';
+
 import { SQLDialect } from '../dialect/baseDialect';
 
-import {
-  ChainableUnaryExpression,
-  Expression,
-  ExpressionJS,
-  ExpressionValue,
-} from './baseExpression';
+import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
-export class MvContainsExpression extends ChainableUnaryExpression {
+export class MvContainsExpression extends ChainableExpression {
   static op = 'MvContains';
   static fromJS(parameters: ExpressionJS): MvContainsExpression {
-    const value = ChainableUnaryExpression.jsToValue(parameters);
+    const value = ChainableExpression.jsToValue(parameters);
+    value.mvArray = parameters.mvArray;
     return new MvContainsExpression(value);
   }
 
+  public mvArray: string[];
+
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._checkOperandTypes('STRING');
-    this._checkExpressionTypes('STRING');
-
     this._ensureOp('mvContains');
-
+    this._checkOperandTypes('STRING');
+    this.mvArray = parameters.mvArray;
     this.type = 'BOOLEAN';
   }
 
   public valueOf(): ExpressionValue {
     const value = super.valueOf();
+    value.mvArray = this.mvArray;
     return value;
   }
 
   public toJS(): ExpressionJS {
     const js = super.toJS();
+    js.mvArray = this.mvArray;
     return js;
   }
 
   public equals(other: MvContainsExpression | undefined): boolean {
-    return super.equals(other);
+    return super.equals(other) && generalArraysEqual(this.mvArray, other.mvArray);
   }
 
-  protected _toStringParameters(indent?: int): string[] {
-    return [this.expression.toString(indent)];
+  protected _toStringParameters(_indent?: int): string[] {
+    return this.mvArray;
   }
 
-  protected _calcChainableUnaryHelper(operandValue: any, expressionValue: any): PlywoodValue {
-    return operandValue.contains(expressionValue);
-  }
-
-  protected _getSQLChainableUnaryHelper(
-    dialect: SQLDialect,
-    operandSQL: string,
-    expressionSQL: string,
-  ): string {
-    return dialect.mvContainsExpression(operandSQL, expressionSQL);
+  protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
+    return dialect.mvContainsExpression(operandSQL, this.mvArray);
   }
 }
 

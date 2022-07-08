@@ -161,10 +161,11 @@ describe('simulate DruidSql', () => {
 
   it('works with mvOverlapExpression', () => {
     const ex = ply()
-      .apply('diamonds', $('diamonds').filter('$tags.mvOverlap(["tagA", "tagB"])'))
+      .apply('diamonds', $('diamonds'))
       .apply(
         'Tags',
         $('diamonds')
+          .filter($('tags').mvOverlap(['tagA', 'tagB']))
           .split(s$('t.tags'), 'Tag')
           .apply('count', $('diamonds').count())
           .sort('$count', 'descending')
@@ -189,7 +190,7 @@ describe('simulate DruidSql', () => {
       [
         {
           query:
-            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE MV_OVERLAP("tags",ARRAY[\'tagA\',\'tagB\'])\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE MV_OVERLAP("tags", ARRAY[\'tagA\',\'tagB\'])\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
@@ -197,7 +198,7 @@ describe('simulate DruidSql', () => {
 
   it('works with mvContainsExpression', () => {
     const ex = ply()
-      .apply('diamonds', $('diamonds').filter('$tags.mvContains(["tagA", "tagB"])'))
+      .apply('diamonds', $('diamonds').filter($('tags').mvContains(['tagA', 'tagB'])))
       .apply(
         'Tags',
         $('diamonds')
@@ -225,7 +226,7 @@ describe('simulate DruidSql', () => {
       [
         {
           query:
-            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE MV_CONTAINS("tags",ARRAY[\'tagA\',\'tagB\'])\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE MV_CONTAINS("tags", ARRAY[\'tagA\',\'tagB\'])\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
@@ -233,10 +234,11 @@ describe('simulate DruidSql', () => {
 
   it('works with mvFilterOnly and mvOverlap', () => {
     const ex = ply()
-      .apply('diamonds', $('diamonds').filter('$tags.mvOverlap(["tagA", "tagB", "tagC"])'))
+      .apply('diamonds', $('diamonds'))
       .apply(
         'Tags',
         $('diamonds')
+          .filter($('tags').mvOverlap(['tagA', 'tagB', 'tagC']))
           .split($('tags').mvFilterOnly(['tagA', 'tagB']), 'Tag')
           .sort('$Tag', 'descending'),
       );
@@ -260,7 +262,7 @@ describe('simulate DruidSql', () => {
       [
         {
           query:
-            'SELECT\nMV_FILTER_ONLY("tags",ARRAY[\'tagA\',\'tagB\']) AS "Tag"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND MV_OVERLAP("tags",ARRAY[\'tagA\',\'tagB\',\'tagC\']))\nGROUP BY 1\nORDER BY "Tag" DESC',
+            'SELECT\nMV_FILTER_ONLY("tags", ARRAY[\'tagA\',\'tagB\']) AS "Tag"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND MV_OVERLAP("tags", ARRAY[\'tagA\',\'tagB\',\'tagC\']))\nGROUP BY 1\nORDER BY "Tag" DESC',
         },
       ],
     ]);
