@@ -12,6 +12,7 @@ var Transform = readableStream.Transform;
 var PassThrough = readableStream.PassThrough;
 
 var immutableClass = require('immutable-class');
+var generalArraysEqual = immutableClass.generalArraysEqual;
 var generalEqual = immutableClass.generalEqual;
 var generalLookupsEqual = immutableClass.generalLookupsEqual;
 var isImmutableClass = immutableClass.isImmutableClass;
