@@ -109,8 +109,9 @@ export class DruidDialect extends SQLDialect {
     return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
   }
 
-  public stringSetToSQL(value: Set): string {
-    const arr = value.elements.map((v: string) => this.escapeLiteral(v));
+  public stringSetToSQL(valueOrElements: Set | string[]): string {
+    const elements = Array.isArray(valueOrElements) ? valueOrElements : valueOrElements.elements;
+    const arr = elements.map((v: string) => this.escapeLiteral(v));
     return `ARRAY[${arr.join(',')}]`;
   }
 
@@ -124,6 +125,10 @@ export class DruidDialect extends SQLDialect {
 
   public mvContainsExpression(a: string, b: string): string {
     return `MV_CONTAINS(${a},${b})`;
+  }
+
+  public mvFilterOnlyExpression(a: string, b: string[]): string {
+    return `MV_FILTER_ONLY(${a},${this.stringSetToSQL(b)})`;
   }
 
   public mvOverlapExpression(a: string, b: string): string {

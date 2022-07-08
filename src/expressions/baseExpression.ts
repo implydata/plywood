@@ -84,6 +84,7 @@ import { MaxExpression } from './maxExpression';
 import { MinExpression } from './minExpression';
 import { MultiplyExpression } from './multiplyExpression';
 import { MvContainsExpression } from './mvContainsExpression';
+import { MvFilterOnlyExpression } from './mvFilterOnlyExpression';
 import { MvOverlapExpression } from './mvOverlapExpression';
 import { NotExpression } from './notExpression';
 import { NumberBucketExpression } from './numberBucketExpression';
@@ -243,6 +244,7 @@ export interface ExpressionValue {
   outputType?: PlyTypeSimple;
   tuning?: string;
   sql?: string;
+  mvArray?: string[];
 }
 
 export interface ExpressionJS {
@@ -279,6 +281,7 @@ export interface ExpressionJS {
   outputType?: PlyTypeSimple;
   tuning?: string;
   sql?: string;
+  mvArray?: string[];
 }
 
 export interface ExtractAndRest {
@@ -1219,6 +1222,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public mvContains(ex: any) {
     if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     return new MvContainsExpression({ operand: this, expression: ex });
+  }
+
+  public mvFilterOnly(mvArray: string[]) {
+    return new MvFilterOnlyExpression({ operand: this, mvArray });
   }
 
   public mvOverlap(ex: any) {

@@ -230,4 +230,39 @@ describe('simulate DruidSql', () => {
       ],
     ]);
   });
+
+  it('works with mvFilterOnly and mvOverlap', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds').filter('$tags.mvOverlap(["tagA", "tagB", "tagC"])'))
+      .apply(
+        'Tags',
+        $('diamonds')
+          .split($('tags').mvFilterOnly(['tagA', 'tagB']), 'Tag')
+          .sort('$Tag', 'descending'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        filter: $('time').overlap({
+          start: new Date('2015-03-12T00:00:00Z'),
+          end: new Date('2015-03-19T00:00:00Z'),
+        }),
+      }),
+    });
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\nMV_FILTER_ONLY("tags",ARRAY[\'tagA\',\'tagB\']) AS "Tag"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND MV_OVERLAP("tags",ARRAY[\'tagA\',\'tagB\',\'tagC\']))\nGROUP BY 1\nORDER BY "Tag" DESC',
+        },
+      ],
+    ]);
+  });
 });
