@@ -51,6 +51,8 @@ export * from './matchExpression';
 export * from './maxExpression';
 export * from './minExpression';
 export * from './multiplyExpression';
+export * from './mvContainsExpression';
+export * from './mvOverlapExpression';
 export * from './notExpression';
 export * from './numberBucketExpression';
 export * from './orExpression';

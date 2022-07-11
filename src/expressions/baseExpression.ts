@@ -83,6 +83,9 @@ import { MatchExpression } from './matchExpression';
 import { MaxExpression } from './maxExpression';
 import { MinExpression } from './minExpression';
 import { MultiplyExpression } from './multiplyExpression';
+import { MvContainsExpression } from './mvContainsExpression';
+import { MvFilterOnlyExpression } from './mvFilterOnlyExpression';
+import { MvOverlapExpression } from './mvOverlapExpression';
 import { NotExpression } from './notExpression';
 import { NumberBucketExpression } from './numberBucketExpression';
 import { OrExpression } from './orExpression';
@@ -241,6 +244,7 @@ export interface ExpressionValue {
   outputType?: PlyTypeSimple;
   tuning?: string;
   sql?: string;
+  mvArray?: string[];
 }
 
 export interface ExpressionJS {
@@ -277,6 +281,7 @@ export interface ExpressionJS {
   outputType?: PlyTypeSimple;
   tuning?: string;
   sql?: string;
+  mvArray?: string[];
 }
 
 export interface ExtractAndRest {
@@ -1212,6 +1217,18 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     if (!(ex instanceof Expression)) ex = Expression.fromJSLoose(ex);
     if (compare) compare = getString(compare);
     return new ContainsExpression({ operand: this, expression: ex, compare });
+  }
+
+  public mvContains(mvArray: string[]) {
+    return new MvContainsExpression({ operand: this, mvArray });
+  }
+
+  public mvFilterOnly(mvArray: string[]) {
+    return new MvFilterOnlyExpression({ operand: this, mvArray });
+  }
+
+  public mvOverlap(mvArray: string[]) {
+    return new MvOverlapExpression({ operand: this, mvArray });
   }
 
   public match(re: string) {

@@ -39,6 +39,8 @@ import {
   LookupExpression,
   MatchExpression,
   MultiplyExpression,
+  MvContainsExpression,
+  MvOverlapExpression,
   NotExpression,
   NumberBucketExpression,
   OrExpression,
@@ -232,6 +234,14 @@ export class DruidExpressionBuilder {
         } else {
           return `lower(${ex1})`;
         }
+      } else if (expression instanceof MvContainsExpression) {
+        return `array_contains(${ex1}, [${expression.mvArray
+          .map(DruidExpressionBuilder.escapeLiteral)
+          .join(',')}])`;
+      } else if (expression instanceof MvOverlapExpression) {
+        return `array_overlap(${ex1}, [${expression.mvArray
+          .map(DruidExpressionBuilder.escapeLiteral)
+          .join(',')}])`;
       } else if (expression instanceof ChainableUnaryExpression) {
         const myExpression = expression.expression;
 

@@ -109,12 +109,29 @@ export class DruidDialect extends SQLDialect {
     return `TIMESTAMP '${this.dateToSQLDateString(date)}'`;
   }
 
+  public stringArrayToSQL(value: string[]): string {
+    const arr = value.map((v: string) => this.escapeLiteral(v));
+    return `ARRAY[${arr.join(',')}]`;
+  }
+
   public concatExpression(a: string, b: string): string {
     return `(${a}||${b})`;
   }
 
   public containsExpression(a: string, b: string, insensitive: boolean): string {
     return `${insensitive ? 'ICONTAINS_STRING' : 'CONTAINS_STRING'}(${a},${b})`;
+  }
+
+  public mvContainsExpression(a: string, b: string[]): string {
+    return `MV_CONTAINS(${a}, ${this.stringArrayToSQL(b)})`;
+  }
+
+  public mvFilterOnlyExpression(a: string, b: string[]): string {
+    return `MV_FILTER_ONLY(${a}, ${this.stringArrayToSQL(b)})`;
+  }
+
+  public mvOverlapExpression(a: string, b: string[]): string {
+    return `MV_OVERLAP(${a}, ${this.stringArrayToSQL(b)})`;
   }
 
   public substrExpression(a: string, position: number, length: number): string {

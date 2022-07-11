@@ -252,6 +252,19 @@ describe('Expression', () => {
 
         { op: 'sqlAggregate', sql: 'SUM(t.A)' },
         { op: 'sqlAggregate', sql: 'SUM(t.B)' },
+
+        {
+          op: 'mvContains',
+          mvArray: ['BMW', 'Honda', 'Suzuki'],
+        },
+        {
+          op: 'mvFilterOnly',
+          mvArray: ['BMW', 'Honda', 'Suzuki'],
+        },
+        {
+          op: 'mvOverlap',
+          mvArray: ['BMW', 'Honda', 'Suzuki'],
+        },
       ],
       {
         newThrows: true,

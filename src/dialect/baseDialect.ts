@@ -94,6 +94,8 @@ export abstract class SQLDialect {
 
   public abstract timeToSQL(date: Date): string;
 
+  public abstract stringArrayToSQL(value: string[]): string;
+
   public aggregateFilterIfNeeded(
     inputSQL: string,
     expressionSQL: string,
@@ -110,6 +112,18 @@ export abstract class SQLDialect {
   }
 
   public containsExpression(_a: string, _b: string, _insensitive: boolean): string {
+    throw new Error('must implement');
+  }
+
+  public mvContainsExpression(_a: string, _b: string[]): string {
+    throw new Error('must implement');
+  }
+
+  public mvFilterOnlyExpression(_a: string, _b: string[]): string {
+    throw new Error('must implement');
+  }
+
+  public mvOverlapExpression(_a: string, _b: string[]): string {
     throw new Error('must implement');
   }
 

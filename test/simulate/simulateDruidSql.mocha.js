@@ -158,4 +158,113 @@ describe('simulate DruidSql', () => {
       ],
     ]);
   });
+
+  it('works with mvOverlapExpression', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds'))
+      .apply(
+        'Tags',
+        $('diamonds')
+          .filter($('tags').mvOverlap(['tagA', 'tagB']))
+          .split(s$('t.tags'), 'Tag')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('Tag', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE MV_OVERLAP("tags", ARRAY[\'tagA\',\'tagB\'])\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
+
+  it('works with mvContainsExpression', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds').filter($('tags').mvContains(['tagA', 'tagB'])))
+      .apply(
+        'Tags',
+        $('diamonds')
+          .split(s$('t.tags'), 'Tag')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('Tag', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE MV_CONTAINS("tags", ARRAY[\'tagA\',\'tagB\'])\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
+
+  it('works with mvFilterOnly and mvOverlap', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds'))
+      .apply(
+        'Tags',
+        $('diamonds')
+          .filter($('tags').mvOverlap(['tagA', 'tagB', 'tagC']))
+          .split($('tags').mvFilterOnly(['tagA', 'tagB']), 'Tag')
+          .sort('$Tag', 'descending'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        filter: $('time').overlap({
+          start: new Date('2015-03-12T00:00:00Z'),
+          end: new Date('2015-03-19T00:00:00Z'),
+        }),
+      }),
+    });
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\nMV_FILTER_ONLY("tags", ARRAY[\'tagA\',\'tagB\']) AS "Tag"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND MV_OVERLAP("tags", ARRAY[\'tagA\',\'tagB\',\'tagC\']))\nGROUP BY 1\nORDER BY "Tag" DESC',
+        },
+      ],
+    ]);
+  });
 });

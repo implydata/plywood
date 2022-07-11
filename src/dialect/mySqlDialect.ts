@@ -93,6 +93,10 @@ export class MySQLDialect extends SQLDialect {
     return `TIMESTAMP('${this.dateToSQLDateString(date)}')`;
   }
 
+  public stringArrayToSQL(_value: string[]): string {
+    throw new Error('must implement');
+  }
+
   public concatExpression(a: string, b: string): string {
     return `CONCAT(${a},${b})`;
   }
