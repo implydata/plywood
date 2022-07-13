@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.28.2
+
+- Regex and contains expressions now cast their operand to VAR_CHAR
+
 ## 0.27.4
 
 - Fix bug in `rebaseOnStart` when the range starts or ends on 0
