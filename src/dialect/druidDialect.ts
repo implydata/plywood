@@ -114,7 +114,7 @@ export class DruidDialect extends SQLDialect {
   }
 
   public containsExpression(a: string, b: string, insensitive: boolean): string {
-    return `${insensitive ? 'ICONTAINS_STRING' : 'CONTAINS_STRING'}(${a},${b})`;
+    return `${insensitive ? 'ICONTAINS_STRING' : 'CONTAINS_STRING'}(CAST(${a} AS VARCHAR),${b})`;
   }
 
   public substrExpression(a: string, position: number, length: number): string {
@@ -190,11 +190,11 @@ export class DruidDialect extends SQLDialect {
   }
 
   public extractExpression(operand: string, regexp: string): string {
-    return `REGEXP_EXTRACT(${operand}, ${this.escapeLiteral(regexp)}, 1)`;
+    return `REGEXP_EXTRACT(CAST(${operand} AS VARCHAR), ${this.escapeLiteral(regexp)}, 1)`;
   }
 
   public regexpExpression(expression: string, regexp: string): string {
-    return `REGEXP_LIKE(${expression}, ${this.escapeLiteral(regexp)})`;
+    return `REGEXP_LIKE(CAST(${expression} AS VARCHAR), ${this.escapeLiteral(regexp)})`;
   }
 
   public indexOfExpression(str: string, substr: string): string {
