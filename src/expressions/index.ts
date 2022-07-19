@@ -38,6 +38,7 @@ export * from './greaterThanExpression';
 export * from './greaterThanOrEqualExpression';
 export * from './indexOfExpression';
 export * from './inExpression';
+export * from './ipSearchExpression';
 export * from './isExpression';
 export * from './joinExpression';
 export * from './lengthExpression';

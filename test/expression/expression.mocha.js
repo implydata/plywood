@@ -265,6 +265,10 @@ describe('Expression', () => {
           op: 'mvOverlap',
           mvArray: ['BMW', 'Honda', 'Suzuki'],
         },
+        {
+          op: 'ipSearch',
+          value: '192.0.0.0',
+        },
       ],
       {
         newThrows: true,

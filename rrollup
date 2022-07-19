@@ -57,6 +57,7 @@ cat \
   build/expressions/greaterThanExpression.js \
   build/expressions/greaterThanOrEqualExpression.js \
   build/expressions/inExpression.js \
+  build/expressions/ipSearchExpression.js \
   build/expressions/isExpression.js \
   build/expressions/joinExpression.js \
   build/expressions/lengthExpression.js \

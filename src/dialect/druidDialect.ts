@@ -114,6 +114,10 @@ export class DruidDialect extends SQLDialect {
     return `ARRAY[${arr.join(',')}]`;
   }
 
+  public ipParse(value: string): string {
+    return `IP_PARSE${value}`;
+  }
+
   public concatExpression(a: string, b: string): string {
     return `(${a}||${b})`;
   }
@@ -242,5 +246,9 @@ export class DruidDialect extends SQLDialect {
 
   public lookupExpression(base: string, lookup: string): string {
     return `LOOKUP(${base}, ${this.escapeLiteral(lookup)})`;
+  }
+
+  public ipSearchExpression(columnName: string, searchString: string): string {
+    return `IP_SEARCH(${this.ipParse(columnName)}, ${this.escapeLiteral(searchString)})`;
   }
 }

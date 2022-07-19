@@ -70,6 +70,7 @@ import { GreaterThanExpression } from './greaterThanExpression';
 import { GreaterThanOrEqualExpression } from './greaterThanOrEqualExpression';
 import { IndexOfExpression } from './indexOfExpression';
 import { InExpression } from './inExpression';
+import { IpSearchExpression } from './ipSearchExpression';
 import { IsExpression } from './isExpression';
 import { JoinExpression } from './joinExpression';
 import { LengthExpression } from './lengthExpression';
@@ -245,6 +246,7 @@ export interface ExpressionValue {
   tuning?: string;
   sql?: string;
   mvArray?: string[];
+  ipSearchString?: string;
 }
 
 export interface ExpressionJS {
@@ -282,6 +284,7 @@ export interface ExpressionJS {
   tuning?: string;
   sql?: string;
   mvArray?: string[];
+  ipSearchString?: string;
 }
 
 export interface ExtractAndRest {
@@ -1291,6 +1294,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public or(...exs: any[]) {
     return this._mkChain<OrExpression>(OrExpression, exs);
+  }
+
+  public ipSearch(searchString: string) {
+    return new IpSearchExpression({ operand: this, ipSearchString: searchString });
   }
 
   // String manipulation
