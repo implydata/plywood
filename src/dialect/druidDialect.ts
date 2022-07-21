@@ -251,4 +251,8 @@ export class DruidDialect extends SQLDialect {
   public ipSearchExpression(columnName: string, searchString: string): string {
     return `IP_SEARCH(${this.ipParse(columnName)}, ${this.escapeLiteral(searchString)})`;
   }
+
+  public ipStringifyExpression(operand: string): string {
+    return `IP_STRINGIFY(${operand})`;
+  }
 }

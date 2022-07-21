@@ -18,43 +18,33 @@ import { SQLDialect } from '../dialect';
 
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
-export class IpSearchExpression extends ChainableExpression {
-  static op = 'IpSearch';
-  static fromJS(parameters: ExpressionJS): IpSearchExpression {
+export class IpStringifyExpression extends ChainableExpression {
+  static op = 'IpStringify';
+  static fromJS(parameters: ExpressionJS): IpStringifyExpression {
     const value = ChainableExpression.jsToValue(parameters);
-    value.ipSearchString = parameters.ipSearchString;
-    return new IpSearchExpression(value);
+    return new IpStringifyExpression(value);
   }
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
-    this._ensureOp('ipSearch');
+    this._ensureOp('ipStringify');
     this._checkOperandTypes('STRING');
-    this.ipSearchString = parameters.ipSearchString;
-    this.type = 'BOOLEAN';
+    this.type = 'STRING';
   }
-
-  public ipSearchString: string;
 
   public valueOf(): ExpressionValue {
     const value = super.valueOf();
-    value.ipSearchString = this.ipSearchString;
     return value;
-  }
-
-  public equals(other: IpSearchExpression | undefined): boolean {
-    return super.equals(other) && this.ipSearchString === other.ipSearchString;
   }
 
   public toJS(): ExpressionJS {
     const js = super.toJS();
-    js.ipSearchString = this.ipSearchString;
     return js;
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return dialect.ipSearchExpression(operandSQL, this.ipSearchString);
+    return dialect.ipStringifyExpression(operandSQL);
   }
 }
 
-Expression.register(IpSearchExpression);
+Expression.register(IpStringifyExpression);

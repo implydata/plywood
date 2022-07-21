@@ -39,6 +39,7 @@ export * from './greaterThanOrEqualExpression';
 export * from './indexOfExpression';
 export * from './inExpression';
 export * from './ipSearchExpression';
+export * from './ipStringifyExpression';
 export * from './isExpression';
 export * from './joinExpression';
 export * from './lengthExpression';

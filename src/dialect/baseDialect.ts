@@ -228,4 +228,8 @@ export abstract class SQLDialect {
   public ipSearchExpression(_colName: string, _searchString: string): string {
     throw new Error('must implement');
   }
+
+  public ipStringifyExpression(_operand: string): string {
+    throw new Error('must implement');
+  }
 }

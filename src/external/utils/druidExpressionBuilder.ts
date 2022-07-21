@@ -33,6 +33,7 @@ import {
   FallbackExpression,
   IndexOfExpression,
   IpSearchExpression,
+  IpStringifyExpression,
   IsExpression,
   LengthExpression,
   LiteralExpression,
@@ -247,6 +248,8 @@ export class DruidExpressionBuilder {
         return `ip_search(IP_PARSE(${ex1}), ${DruidExpressionBuilder.escapeLiteral(
           expression.ipSearchString,
         )})`;
+      } else if (expression instanceof IpStringifyExpression) {
+        return `ip_stringify(${ex1})`;
       } else if (expression instanceof ChainableUnaryExpression) {
         const myExpression = expression.expression;
 

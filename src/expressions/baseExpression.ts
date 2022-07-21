@@ -71,6 +71,7 @@ import { GreaterThanOrEqualExpression } from './greaterThanOrEqualExpression';
 import { IndexOfExpression } from './indexOfExpression';
 import { InExpression } from './inExpression';
 import { IpSearchExpression } from './ipSearchExpression';
+import { IpStringifyExpression } from './ipStringifyExpression';
 import { IsExpression } from './isExpression';
 import { JoinExpression } from './joinExpression';
 import { LengthExpression } from './lengthExpression';
@@ -1298,6 +1299,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public ipSearch(searchString: string) {
     return new IpSearchExpression({ operand: this, ipSearchString: searchString });
+  }
+
+  public ipStringify() {
+    return new IpStringifyExpression({ operand: this });
   }
 
   // String manipulation
