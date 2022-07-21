@@ -70,6 +70,7 @@ import { GreaterThanExpression } from './greaterThanExpression';
 import { GreaterThanOrEqualExpression } from './greaterThanOrEqualExpression';
 import { IndexOfExpression } from './indexOfExpression';
 import { InExpression } from './inExpression';
+import { IpMatchExpression } from './ipMatchExpression';
 import { IpSearchExpression } from './ipSearchExpression';
 import { IpStringifyExpression } from './ipStringifyExpression';
 import { IsExpression } from './isExpression';
@@ -1295,6 +1296,10 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public or(...exs: any[]) {
     return this._mkChain<OrExpression>(OrExpression, exs);
+  }
+
+  public ipMatch(searchString: string) {
+    return new IpMatchExpression({ operand: this, ipSearchString: searchString });
   }
 
   public ipSearch(searchString: string) {

@@ -248,6 +248,10 @@ export class DruidDialect extends SQLDialect {
     return `LOOKUP(${base}, ${this.escapeLiteral(lookup)})`;
   }
 
+  public ipMatchExpression(columnName: string, searchString: string): string {
+    return `IP_MATCH(${this.ipParse(columnName)}, ${this.escapeLiteral(searchString)})`;
+  }
+
   public ipSearchExpression(columnName: string, searchString: string): string {
     return `IP_SEARCH(${this.ipParse(columnName)}, ${this.escapeLiteral(searchString)})`;
   }
