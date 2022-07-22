@@ -32,6 +32,7 @@ import {
   ExtractExpression,
   FallbackExpression,
   IndexOfExpression,
+  IpMatchExpression,
   IpSearchExpression,
   IpStringifyExpression,
   IsExpression,
@@ -244,8 +245,12 @@ export class DruidExpressionBuilder {
         return `array_overlap(${ex1}, [${expression.mvArray
           .map(DruidExpressionBuilder.escapeLiteral)
           .join(',')}])`;
+      } else if (expression instanceof IpMatchExpression) {
+        return `ip_match(${ex1}, ${DruidExpressionBuilder.escapeLiteral(
+          expression.ipSearchString,
+        )})`;
       } else if (expression instanceof IpSearchExpression) {
-        return `ip_search(IP_PARSE(${ex1}), ${DruidExpressionBuilder.escapeLiteral(
+        return `ip_search(${ex1}, ${DruidExpressionBuilder.escapeLiteral(
           expression.ipSearchString,
         )})`;
       } else if (expression instanceof IpStringifyExpression) {
