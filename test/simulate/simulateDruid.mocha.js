@@ -36,6 +36,7 @@ const attributes = [
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
   { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true },
+  { name: 'ip_address', type: 'STRING' },
 
   { name: 'try', type: 'NUMBER', nativeType: 'STRING' }, // Added here because 'try' is a JS keyword
   { name: 'a+b', type: 'NUMBER', nativeType: 'STRING' }, // Added here because it is invalid JS without escaping
@@ -3461,6 +3462,7 @@ describe('simulate Druid', () => {
           'price',
           'tax',
           'vendor_id',
+          'ip_address',
           'try',
           'a+b',
         ],
@@ -3896,6 +3898,72 @@ describe('simulate Druid', () => {
       dimension: 'carat',
       lower: -10,
       type: 'bound',
+    });
+  });
+
+  it('works with ip address string dimension having ip_search filter expression', () => {
+    const ex = $('diamonds')
+      .filter($('ip_address').ipSearch('192.0.2.0'))
+      .split({ Ip_address: '$ip_address' })
+      .apply('Count', '$diamonds.count()');
+
+    const queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
+      aggregations: [
+        {
+          name: 'Count',
+          type: 'count',
+        },
+      ],
+      dataSource: 'diamonds',
+      dimensions: [
+        {
+          dimension: 'ip_address',
+          outputName: 'Ip_address',
+          type: 'default',
+        },
+      ],
+      filter: {
+        type: 'expression',
+        expression: 'ip_search("ip_address", \'192.0.2.0\')',
+      },
+      granularity: 'all',
+      intervals: '2015-03-12T00Z/2015-03-19T00Z',
+      queryType: 'groupBy',
+    });
+  });
+
+  it('works with ip address string dimension having ip_match filter expression', () => {
+    const ex = $('diamonds')
+      .filter($('ip_address').ipMatch('192.0.2.0'))
+      .split({ Ip_address: '$ip_address' })
+      .apply('Count', '$diamonds.count()');
+
+    const queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
+      aggregations: [
+        {
+          name: 'Count',
+          type: 'count',
+        },
+      ],
+      dataSource: 'diamonds',
+      dimensions: [
+        {
+          dimension: 'ip_address',
+          outputName: 'Ip_address',
+          type: 'default',
+        },
+      ],
+      filter: {
+        type: 'expression',
+        expression: 'ip_match("ip_address", \'192.0.2.0\')',
+      },
+      granularity: 'all',
+      intervals: '2015-03-12T00Z/2015-03-19T00Z',
+      queryType: 'groupBy',
     });
   });
 });

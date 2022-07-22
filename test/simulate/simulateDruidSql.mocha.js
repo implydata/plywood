@@ -36,6 +36,7 @@ const attributes = [
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
   { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true },
+  { name: 'ip_address', type: 'STRING' },
 
   { name: 'try', type: 'NUMBER', nativeType: 'STRING' }, // Added here because 'try' is a JS keyword
   { name: 'a+b', type: 'NUMBER', nativeType: 'STRING' }, // Added here because it is invalid JS without escaping
@@ -323,6 +324,80 @@ describe('simulate DruidSql', () => {
         {
           query:
             'SELECT\nMV_FILTER_ONLY("tags", ARRAY[\'tagA\',\'tagB\']) AS "Tag"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND MV_OVERLAP("tags", ARRAY[\'tagA\',\'tagB\',\'tagC\']))\nGROUP BY 1\nORDER BY "Tag" DESC',
+        },
+      ],
+    ]);
+  });
+
+  it('works with ipSearchExpression', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds'))
+      .apply(
+        'Ip_address',
+        $('diamonds')
+          .filter($('ip_address').ipSearch('192.0'))
+          .split(s$('t.ip_address'), 'Ip_address')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('Ip_address', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(IP_PARSE"ip_address", \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
+
+  it('works with ipMatchExpression', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds'))
+      .apply(
+        'Ip_address',
+        $('diamonds')
+          .filter($('ip_address').ipMatch('192.0'))
+          .split(s$('t.ip_address'), 'Ip_address')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('Ip_address', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(IP_PARSE"ip_address", \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
