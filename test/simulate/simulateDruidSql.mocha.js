@@ -329,7 +329,7 @@ describe('simulate DruidSql', () => {
     ]);
   });
 
-  it('works with ipSearchExpression', () => {
+  it('works with ipSearchExpression on ip address', () => {
     const ex = ply()
       .apply('diamonds', $('diamonds'))
       .apply(
@@ -361,6 +361,43 @@ describe('simulate DruidSql', () => {
         {
           query:
             'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(IP_PARSE"ip_address", \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
+
+  it('works with ipSearchExpression on ip prefix', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds'))
+      .apply(
+        'Ip_address',
+        $('diamonds')
+          .filter($('ip_address').ipSearch('192.0', 'ipPrefix'))
+          .split(s$('t.ip_address'), 'Ip_address')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('Ip_address', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(\'192.0\', IP_PREFIX_PARSE"ip_address")\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);

@@ -3934,6 +3934,39 @@ describe('simulate Druid', () => {
     });
   });
 
+  it('works with ip prefix string dimension having ip_search filter expression', () => {
+    const ex = $('diamonds')
+      .filter($('ip_address').ipSearch('192.0.2.0', 'ipPrefix'))
+      .split({ Ip_address: '$ip_address' })
+      .apply('Count', '$diamonds.count()');
+
+    const queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0]).to.deep.equal({
+      aggregations: [
+        {
+          name: 'Count',
+          type: 'count',
+        },
+      ],
+      dataSource: 'diamonds',
+      dimensions: [
+        {
+          dimension: 'ip_address',
+          outputName: 'Ip_address',
+          type: 'default',
+        },
+      ],
+      filter: {
+        type: 'expression',
+        expression: 'ip_search(\'192.0.2.0\', "ip_address")',
+      },
+      granularity: 'all',
+      intervals: '2015-03-12T00Z/2015-03-19T00Z',
+      queryType: 'groupBy',
+    });
+  });
+
   it('works with ip address string dimension having ip_match filter expression', () => {
     const ex = $('diamonds')
       .filter($('ip_address').ipMatch('192.0.2.0'))
