@@ -249,6 +249,7 @@ export interface ExpressionValue {
   sql?: string;
   mvArray?: string[];
   ipSearchString?: string;
+  ipSearchType?: string;
 }
 
 export interface ExpressionJS {
@@ -287,6 +288,7 @@ export interface ExpressionJS {
   sql?: string;
   mvArray?: string[];
   ipSearchString?: string;
+  ipSearchType?: string;
 }
 
 export interface ExtractAndRest {
@@ -1302,8 +1304,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return new IpMatchExpression({ operand: this, ipSearchString: searchString });
   }
 
-  public ipSearch(searchString: string) {
-    return new IpSearchExpression({ operand: this, ipSearchString: searchString });
+  public ipSearch(searchString: string, ipSearchType: string) {
+    return new IpSearchExpression({
+      operand: this,
+      ipSearchString: searchString,
+      ipSearchType: ipSearchType,
+    });
   }
 
   public ipStringify() {

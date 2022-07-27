@@ -118,6 +118,10 @@ export class DruidDialect extends SQLDialect {
     return `IP_PARSE${value}`;
   }
 
+  public ipPrefixParse(value: string): string {
+    return `IP_PREFIX_PARSE${value}`;
+  }
+
   public concatExpression(a: string, b: string): string {
     return `(${a}||${b})`;
   }
@@ -252,8 +256,14 @@ export class DruidDialect extends SQLDialect {
     return `IP_MATCH(${this.ipParse(columnName)}, ${this.escapeLiteral(searchString)})`;
   }
 
-  public ipSearchExpression(columnName: string, searchString: string): string {
-    return `IP_SEARCH(${this.ipParse(columnName)}, ${this.escapeLiteral(searchString)})`;
+  public ipSearchExpression(
+    columnName: string,
+    searchString: string,
+    ipSearchType: string,
+  ): string {
+    return ipSearchType === 'ipPrefix'
+      ? `IP_SEARCH(${this.escapeLiteral(searchString)}, ${this.ipPrefixParse(columnName)})`
+      : `IP_SEARCH(${this.ipParse(columnName)}, ${this.escapeLiteral(searchString)})`;
   }
 
   public ipStringifyExpression(operand: string): string {

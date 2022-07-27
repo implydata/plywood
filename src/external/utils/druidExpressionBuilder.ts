@@ -250,9 +250,9 @@ export class DruidExpressionBuilder {
           expression.ipSearchString,
         )})`;
       } else if (expression instanceof IpSearchExpression) {
-        return `ip_search(${ex1}, ${DruidExpressionBuilder.escapeLiteral(
-          expression.ipSearchString,
-        )})`;
+        return expression.ipSearchType === 'ipPrefix'
+          ? `ip_search(${DruidExpressionBuilder.escapeLiteral(expression.ipSearchString)}, ${ex1})`
+          : `ip_search(${ex1}, ${DruidExpressionBuilder.escapeLiteral(expression.ipSearchString)})`;
       } else if (expression instanceof IpStringifyExpression) {
         return `ip_stringify(${ex1})`;
       } else if (expression instanceof ChainableUnaryExpression) {
