@@ -1300,8 +1300,12 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
     return this._mkChain<OrExpression>(OrExpression, exs);
   }
 
-  public ipMatch(searchString: string) {
-    return new IpMatchExpression({ operand: this, ipSearchString: searchString });
+  public ipMatch(searchString: string, ipSearchType: string) {
+    return new IpMatchExpression({
+      operand: this,
+      ipSearchString: searchString,
+      ipSearchType: ipSearchType,
+    });
   }
 
   public ipSearch(searchString: string, ipSearchType: string) {

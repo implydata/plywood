@@ -37,6 +37,7 @@ const attributes = [
   { name: 'tax', type: 'NUMBER', unsplitable: true },
   { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true },
   { name: 'ip_address', type: 'STRING' },
+  { name: 'ip_prefix', type: 'STRING' },
 
   { name: 'try', type: 'NUMBER', nativeType: 'STRING' }, // Added here because 'try' is a JS keyword
   { name: 'a+b', type: 'NUMBER', nativeType: 'STRING' }, // Added here because it is invalid JS without escaping
@@ -370,14 +371,14 @@ describe('simulate DruidSql', () => {
     const ex = ply()
       .apply('diamonds', $('diamonds'))
       .apply(
-        'Ip_address',
+        'Ip_prefix',
         $('diamonds')
-          .filter($('ip_address').ipSearch('192.0', 'ipPrefix'))
-          .split(s$('t.ip_address'), 'Ip_address')
+          .filter($('ip_prefix').ipSearch('192.0', 'ipPrefix'))
+          .split(s$('t.ip_prefix'), 'Ip_prefix')
           .apply('count', $('diamonds').count())
           .sort('$count', 'descending')
           .limit(10)
-          .select('Ip_address', 'count'),
+          .select('Ip_prefix', 'count'),
       );
 
     const queryPlan = ex.simulateQueryPlan({
@@ -397,13 +398,13 @@ describe('simulate DruidSql', () => {
       [
         {
           query:
-            'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(\'192.0\', IP_PREFIX_PARSE"ip_address")\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\n(t.ip_prefix) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(\'192.0\', IP_PREFIX_PARSE"ip_prefix")\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
   });
 
-  it('works with ipMatchExpression', () => {
+  it('works with ipMatchExpression on ip address', () => {
     const ex = ply()
       .apply('diamonds', $('diamonds'))
       .apply(
@@ -435,6 +436,43 @@ describe('simulate DruidSql', () => {
         {
           query:
             'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(IP_PARSE"ip_address", \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
+
+  it('works with ipMatchExpression on ip prefix', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds'))
+      .apply(
+        'Ip_prefix',
+        $('diamonds')
+          .filter($('ip_prefix').ipMatch('192.0.1.0/16', 'ipPrefix'))
+          .split(s$('t.ip_prefix'), 'Ip_prefix')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('Ip_prefix', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          query:
+            'SELECT\n(t.ip_prefix) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(\'192.0.1.0/16\', IP_PREFIX_PARSE"ip_prefix")\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
