@@ -361,7 +361,7 @@ describe('simulate DruidSql', () => {
       [
         {
           query:
-            'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(IP_PARSE"ip_address", \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(IP_PARSE("ip_address"), \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
@@ -398,7 +398,7 @@ describe('simulate DruidSql', () => {
       [
         {
           query:
-            'SELECT\n(t.ip_prefix) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(\'192.0\', IP_PREFIX_PARSE"ip_prefix")\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\n(t.ip_prefix) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(\'192.0\', IP_PREFIX_PARSE("ip_prefix"))\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
@@ -435,7 +435,7 @@ describe('simulate DruidSql', () => {
       [
         {
           query:
-            'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(IP_PARSE"ip_address", \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(IP_PARSE("ip_address"), \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
@@ -472,7 +472,7 @@ describe('simulate DruidSql', () => {
       [
         {
           query:
-            'SELECT\n(t.ip_prefix) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(\'192.0.1.0/16\', IP_PREFIX_PARSE"ip_prefix")\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\n(t.ip_prefix) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(\'192.0.1.0/16\', IP_PREFIX_PARSE("ip_prefix"))\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);

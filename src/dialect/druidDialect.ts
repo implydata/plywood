@@ -115,11 +115,11 @@ export class DruidDialect extends SQLDialect {
   }
 
   public ipParse(value: string): string {
-    return `IP_PARSE${value}`;
+    return `IP_PARSE(${value})`;
   }
 
   public ipPrefixParse(value: string): string {
-    return `IP_PREFIX_PARSE${value}`;
+    return `IP_PREFIX_PARSE(${value})`;
   }
 
   public concatExpression(a: string, b: string): string {
