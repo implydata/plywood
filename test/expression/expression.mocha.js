@@ -267,7 +267,13 @@ describe('Expression', () => {
         },
         {
           op: 'ipSearch',
-          value: '192.0.0.0',
+          ipSearchString: '192.0.0.0',
+          ipSearchType: 'ip',
+        },
+        {
+          op: 'ipMatch',
+          ipSearchString: '192.0.0.0',
+          ipSearchType: 'ip',
         },
       ],
       {
