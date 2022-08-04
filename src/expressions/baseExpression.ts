@@ -70,6 +70,9 @@ import { GreaterThanExpression } from './greaterThanExpression';
 import { GreaterThanOrEqualExpression } from './greaterThanOrEqualExpression';
 import { IndexOfExpression } from './indexOfExpression';
 import { InExpression } from './inExpression';
+import { IpMatchExpression } from './ipMatchExpression';
+import { IpSearchExpression } from './ipSearchExpression';
+import { IpStringifyExpression } from './ipStringifyExpression';
 import { IsExpression } from './isExpression';
 import { JoinExpression } from './joinExpression';
 import { LengthExpression } from './lengthExpression';
@@ -245,6 +248,8 @@ export interface ExpressionValue {
   tuning?: string;
   sql?: string;
   mvArray?: string[];
+  ipSearchString?: string;
+  ipSearchType?: string;
 }
 
 export interface ExpressionJS {
@@ -282,6 +287,8 @@ export interface ExpressionJS {
   tuning?: string;
   sql?: string;
   mvArray?: string[];
+  ipSearchString?: string;
+  ipSearchType?: string;
 }
 
 export interface ExtractAndRest {
@@ -1291,6 +1298,26 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   public or(...exs: any[]) {
     return this._mkChain<OrExpression>(OrExpression, exs);
+  }
+
+  public ipMatch(searchString: string, ipSearchType: string) {
+    return new IpMatchExpression({
+      operand: this,
+      ipSearchString: searchString,
+      ipSearchType: ipSearchType,
+    });
+  }
+
+  public ipSearch(searchString: string, ipSearchType: string) {
+    return new IpSearchExpression({
+      operand: this,
+      ipSearchString: searchString,
+      ipSearchType: ipSearchType,
+    });
+  }
+
+  public ipStringify() {
+    return new IpStringifyExpression({ operand: this });
   }
 
   // String manipulation

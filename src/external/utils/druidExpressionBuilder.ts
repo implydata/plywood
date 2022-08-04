@@ -32,6 +32,9 @@ import {
   ExtractExpression,
   FallbackExpression,
   IndexOfExpression,
+  IpMatchExpression,
+  IpSearchExpression,
+  IpStringifyExpression,
   IsExpression,
   LengthExpression,
   LiteralExpression,
@@ -242,6 +245,16 @@ export class DruidExpressionBuilder {
         return `array_overlap(${ex1}, [${expression.mvArray
           .map(DruidExpressionBuilder.escapeLiteral)
           .join(',')}])`;
+      } else if (expression instanceof IpMatchExpression) {
+        return expression.ipSearchType === 'ipPrefix'
+          ? `ip_match(${DruidExpressionBuilder.escapeLiteral(expression.ipSearchString)}, ${ex1})`
+          : `ip_match(${ex1}, ${DruidExpressionBuilder.escapeLiteral(expression.ipSearchString)})`;
+      } else if (expression instanceof IpSearchExpression) {
+        return expression.ipSearchType === 'ipPrefix'
+          ? `ip_search(${DruidExpressionBuilder.escapeLiteral(expression.ipSearchString)}, ${ex1})`
+          : `ip_search(${ex1}, ${DruidExpressionBuilder.escapeLiteral(expression.ipSearchString)})`;
+      } else if (expression instanceof IpStringifyExpression) {
+        return `ip_stringify(${ex1})`;
       } else if (expression instanceof ChainableUnaryExpression) {
         const myExpression = expression.expression;
 

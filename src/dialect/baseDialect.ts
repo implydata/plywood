@@ -224,4 +224,24 @@ export abstract class SQLDialect {
   public lookupExpression(_base: string, _lookup: string): string {
     throw new Error('can not express a lookup as a function');
   }
+
+  public ipMatchExpression(
+    _colName: string,
+    _searchString: string,
+    _ipSearchType?: string,
+  ): string {
+    throw new Error('must implement');
+  }
+
+  public ipSearchExpression(
+    _colName: string,
+    _searchString: string,
+    _ipSearchType?: string,
+  ): string {
+    throw new Error('must implement');
+  }
+
+  public ipStringifyExpression(_operand: string): string {
+    throw new Error('must implement');
+  }
 }

@@ -29,6 +29,9 @@ import {
   AndExpression,
   ContainsExpression,
   Expression,
+  IpMatchExpression,
+  IpSearchExpression,
+  IpStringifyExpression,
   IsExpression,
   LiteralExpression,
   MatchExpression,
@@ -203,6 +206,16 @@ export class DruidFilterBuilder {
       return this.makeExpressionFilter(filter.operand.mvContains(filter.mvArray));
     } else if (filter instanceof MvOverlapExpression) {
       return this.makeExpressionFilter(filter.operand.mvOverlap(filter.mvArray));
+    } else if (filter instanceof IpMatchExpression) {
+      return this.makeExpressionFilter(
+        filter.operand.ipMatch(filter.ipSearchString, filter.ipSearchType),
+      );
+    } else if (filter instanceof IpSearchExpression) {
+      return this.makeExpressionFilter(
+        filter.operand.ipSearch(filter.ipSearchString, filter.ipSearchType),
+      );
+    } else if (filter instanceof IpStringifyExpression) {
+      return this.makeExpressionFilter(filter.operand.ipStringify());
     }
 
     throw new Error(`could not convert filter ${filter} to Druid filter`);
