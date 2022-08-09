@@ -210,7 +210,7 @@ export class DruidSQLExternal extends SQLExternal {
       query: sql,
     };
 
-    payload.context = { ...( this.context|| {}), sqlTimeZone:'Etc/UTC' }
+    payload.context = { ...(this.context || {}), sqlTimeZone: 'Etc/UTC' };
 
     return payload;
   }

@@ -67,6 +67,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n"tags" AS "Tag"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND CONTAINS_STRING(CAST("tags" AS VARCHAR),\'ta\'))\nGROUP BY 1\nORDER BY "Tag" DESC\nLIMIT 10',
         },
@@ -97,6 +100,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n"tags" AS "Tag"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND REGEXP_LIKE(CAST("tags" AS VARCHAR), \'^ta.*\'))\nGROUP BY 1\nORDER BY "Tag" DESC\nLIMIT 10',
         },
@@ -141,12 +147,18 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n"tags" AS "Tag"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND "tags" IN (\'tagA\',\'tagB\'))\nGROUP BY 1\nORDER BY "Tag" DESC\nLIMIT 10',
         },
       ],
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n"cut" AS "Cut",\nCOUNT(*) AS "Count"\nFROM "diamonds" AS t\nWHERE (((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND "tags" IN (\'tagA\',\'tagB\')) AND ("tags"=\'some_tags\'))\nGROUP BY 1\nORDER BY "Count" DESC\nLIMIT 10',
         },
@@ -177,6 +189,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND "tags" IN (\'tagA\',\'tagB\'))\nGROUP BY 1\nORDER BY "Tag" DESC\nLIMIT 10',
         },
@@ -214,6 +229,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE (TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
@@ -251,6 +269,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE MV_OVERLAP("tags", ARRAY[\'tagA\',\'tagB\'])\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
@@ -287,6 +308,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE MV_CONTAINS("tags", ARRAY[\'tagA\',\'tagB\'])\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
@@ -323,6 +347,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\nMV_FILTER_ONLY("tags", ARRAY[\'tagA\',\'tagB\']) AS "Tag"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND MV_OVERLAP("tags", ARRAY[\'tagA\',\'tagB\',\'tagC\']))\nGROUP BY 1\nORDER BY "Tag" DESC',
         },
@@ -360,6 +387,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(IP_PARSE("ip_address"), \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
@@ -397,6 +427,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n(t.ip_prefix) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(\'192.0\', IP_PREFIX_PARSE("ip_prefix"))\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
@@ -434,6 +467,10 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
+
           query:
             'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(IP_PARSE("ip_address"), \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
@@ -471,6 +508,9 @@ describe('simulate DruidSql', () => {
     expect(queryPlan).to.deep.equal([
       [
         {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
           query:
             'SELECT\n(t.ip_prefix) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(\'192.0.1.0/16\', IP_PREFIX_PARSE("ip_prefix"))\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
