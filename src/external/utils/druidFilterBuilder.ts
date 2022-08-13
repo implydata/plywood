@@ -203,7 +203,9 @@ export class DruidFilterBuilder {
       const { operand: lhs, expression: rhs, compare } = filter;
       return this.makeContainsFilter(lhs, rhs, compare);
     } else if (filter instanceof MvContainsExpression) {
-      return this.makeExpressionFilter(filter.operand.mvContains(filter.mvArray));
+      return filter.mvArray.some(v => v === null)
+        ? this.makeInFilter(filter, Set.fromJS(filter.mvArray))
+        : this.makeExpressionFilter(filter.operand.mvContains(filter.mvArray));
     } else if (filter instanceof MvOverlapExpression) {
       return filter.mvArray.some(v => v === null)
         ? this.makeInFilter(filter, Set.fromJS(filter.mvArray))
