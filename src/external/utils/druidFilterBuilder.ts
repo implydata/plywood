@@ -205,7 +205,9 @@ export class DruidFilterBuilder {
     } else if (filter instanceof MvContainsExpression) {
       return this.makeExpressionFilter(filter.operand.mvContains(filter.mvArray));
     } else if (filter instanceof MvOverlapExpression) {
-      return this.makeExpressionFilter(filter.operand.mvOverlap(filter.mvArray));
+      return filter.mvArray.some(v => v === null)
+        ? this.makeInFilter(filter, Set.fromJS(filter.mvArray))
+        : this.makeExpressionFilter(filter.operand.mvOverlap(filter.mvArray));
     } else if (filter instanceof IpMatchExpression) {
       return this.makeExpressionFilter(
         filter.operand.ipMatch(filter.ipSearchString, filter.ipSearchType),
