@@ -1515,7 +1515,7 @@ describe('simulate Druid', () => {
 
   it('works with multi-value string dimension having mvOverlap filter expression', () => {
     const ex = $('diamonds')
-      .filter($('tags').mvOverlap(['tagA', 'tagB']))
+      .filter($('tags').mvOverlap([ 'tagA', 'tagB', null]))
       .split({ Tag: '$tags' })
       .apply('Count', '$diamonds.count()');
 
@@ -1537,8 +1537,9 @@ describe('simulate Druid', () => {
         },
       ],
       filter: {
-        expression: "array_overlap(\"tags\", ['tagA','tagB'])",
-        type: 'expression',
+        dimension: 'tags',
+        type: 'in',
+        values: ['tagA', 'tagB', null],
       },
       granularity: 'all',
       intervals: '2015-03-12T00Z/2015-03-19T00Z',
@@ -1548,7 +1549,7 @@ describe('simulate Druid', () => {
 
   it('works with multi-value string dimension having mvContains filter expression', () => {
     const ex = $('diamonds')
-      .filter($('tags').mvContains(['tagA', 'tagB']))
+      .filter($('tags').mvContains(['tagA', 'tagB', null]))
       .split({ Tag: '$tags' })
       .apply('Count', '$diamonds.count()');
 
@@ -1570,8 +1571,24 @@ describe('simulate Druid', () => {
         },
       ],
       filter: {
-        expression: "array_contains(\"tags\", ['tagA','tagB'])",
-        type: 'expression',
+        fields: [
+          {
+            dimension: 'tags',
+            type: 'selector',
+            value: 'tagA',
+          },
+          {
+            dimension: 'tags',
+            type: 'selector',
+            value: 'tagB',
+          },
+          {
+            dimension: 'tags',
+            type: 'selector',
+            value: null,
+          },
+        ],
+        type: 'and',
       },
       granularity: 'all',
       intervals: '2015-03-12T00Z/2015-03-19T00Z',
