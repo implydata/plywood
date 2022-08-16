@@ -1515,7 +1515,7 @@ describe('simulate Druid', () => {
 
   it('works with multi-value string dimension having mvOverlap filter expression', () => {
     const ex = $('diamonds')
-      .filter($('tags').mvOverlap([ 'tagA', 'tagB', null]))
+      .filter($('tags').mvOverlap(['tagA', 'tagB', null]))
       .split({ Tag: '$tags' })
       .apply('Count', '$diamonds.count()');
 
