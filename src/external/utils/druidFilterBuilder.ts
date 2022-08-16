@@ -203,13 +203,13 @@ export class DruidFilterBuilder {
       const { operand: lhs, expression: rhs, compare } = filter;
       return this.makeContainsFilter(lhs, rhs, compare);
     } else if (filter instanceof MvContainsExpression) {
-      return filter.mvArray.some(v => v === null)
-        ? this.makeInFilter(filter, Set.fromJS(filter.mvArray))
-        : this.makeExpressionFilter(filter.operand.mvContains(filter.mvArray));
+      const { operand, mvArray } = filter;
+      return {
+        type: 'and',
+        fields: mvArray.map(elem => this.makeSelectorFilter(operand, elem)),
+      };
     } else if (filter instanceof MvOverlapExpression) {
-      return filter.mvArray.some(v => v === null)
-        ? this.makeInFilter(filter, Set.fromJS(filter.mvArray))
-        : this.makeExpressionFilter(filter.operand.mvOverlap(filter.mvArray));
+      return this.makeInFilter(filter.operand, Set.fromJS(filter.mvArray));
     } else if (filter instanceof IpMatchExpression) {
       return this.makeExpressionFilter(
         filter.operand.ipMatch(filter.ipSearchString, filter.ipSearchType),
