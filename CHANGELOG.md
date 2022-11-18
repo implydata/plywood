@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.29.0
+
+- Bump node to 14 and druid-query-toolkit dep to 0.17
+
 ## 0.28.2
 
 - Regex and contains expressions now cast their operand to VAR_CHAR
