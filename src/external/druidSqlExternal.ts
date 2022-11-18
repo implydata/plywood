@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ColumnInfo, Introspect, QueryResult, SqlQuery, SqlRef } from 'druid-query-toolkit';
+import { ColumnInfo, Introspect, QueryResult, SqlColumn, SqlQuery } from 'druid-query-toolkit';
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
 
@@ -147,8 +147,8 @@ export class DruidSQLExternal extends SQLExternal {
 
   public isTimeRef(ex: Expression): ex is RefExpression {
     if (ex instanceof SqlRefExpression) {
-      if (ex.parsedSql instanceof SqlRef) {
-        return ex.parsedSql.getColumn() === '__time';
+      if (ex.parsedSql instanceof SqlColumn) {
+        return ex.parsedSql.getName() === '__time';
       } else {
         return false;
       }
