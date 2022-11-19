@@ -30,7 +30,7 @@ var isDate = Chronoshift.isDate;
 var parseISODate = Chronoshift.parseISODate;
 
 var druidQueryToolkit = require('druid-query-toolkit');
-var SqlRef = druidQueryToolkit.SqlRef;
+var SqlColumn = druidQueryToolkit.SqlColumn;
 var SqlExpression = druidQueryToolkit.SqlExpression;
 var SqlFunction = druidQueryToolkit.SqlFunction;
 var SqlCase = druidQueryToolkit.SqlCase;

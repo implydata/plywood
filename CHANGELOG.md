@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.29.0
+## 0.29.1
 
 - Bump node to 14 and druid-query-toolkit dep to 0.17
 
