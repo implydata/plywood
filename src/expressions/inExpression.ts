@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { PlywoodValue, Range, Set } from '../datatypes/index';
+import { NumberRange, PlywoodValue, Range, Set, StringRange, TimeRange } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 
 import {
@@ -23,6 +23,7 @@ import {
   ExpressionJS,
   ExpressionValue,
 } from './baseExpression';
+import { LiteralExpression } from './literalExpression';
 import { OverlapExpression } from './overlapExpression';
 
 export class InExpression extends ChainableUnaryExpression {
@@ -83,11 +84,80 @@ export class InExpression extends ChainableUnaryExpression {
   }
 
   protected _getSQLChainableUnaryHelper(
-    _dialect: SQLDialect,
-    _operandSQL: string,
+    dialect: SQLDialect,
+    operandSQL: string,
     _expressionSQL: string,
   ): string {
-    throw new Error(`can not convert action to SQL ${this}`);
+    const expression = this.expression;
+    const expressionType = expression.type;
+    switch (expressionType) {
+      case 'NUMBER_RANGE':
+      case 'TIME_RANGE':
+        if (expression instanceof LiteralExpression) {
+          const range: NumberRange | TimeRange = expression.value;
+          return dialect.inExpression(
+            operandSQL,
+            dialect.numberOrTimeToSQL(range.start),
+            dialect.numberOrTimeToSQL(range.end),
+            range.bounds,
+          );
+        }
+        throw new Error(`can not convert action to SQL ${this}`);
+
+      case 'STRING_RANGE':
+        if (expression instanceof LiteralExpression) {
+          const stringRange: StringRange = expression.value;
+          return dialect.inExpression(
+            operandSQL,
+            dialect.escapeLiteral(stringRange.start),
+            dialect.escapeLiteral(stringRange.end),
+            stringRange.bounds,
+          );
+        }
+        throw new Error(`can not convert action to SQL ${this}`);
+
+      case 'SET/NUMBER_RANGE':
+      case 'SET/TIME_RANGE':
+        if (expression instanceof LiteralExpression) {
+          const setOfRange: Set = expression.value;
+          return (
+            '(' +
+            setOfRange.elements
+              .map((range: NumberRange | TimeRange) => {
+                return dialect.inExpression(
+                  operandSQL,
+                  dialect.numberOrTimeToSQL(range.start),
+                  dialect.numberOrTimeToSQL(range.end),
+                  range.bounds,
+                );
+              })
+              .join(' OR ') +
+            ')'
+          );
+        }
+        throw new Error(`can not convert action to SQL ${this}`);
+      case 'SET/STRING':
+        if (expression instanceof LiteralExpression) {
+          const setOfRange: Set = expression.value;
+          return (
+            '(' +
+            setOfRange.elements
+              .map((element: string) => {
+                return dialect.inExpression(
+                  operandSQL,
+                  dialect.escapeLiteral(element),
+                  dialect.escapeLiteral(element),
+                  '[]',
+                );
+              })
+              .join(' OR ') +
+            ')'
+          );
+        }
+        throw new Error(`can not convert action to SQL ${this}`);
+      default:
+        throw new Error(`can not convert action to SQL ${this}`);
+    }
   }
 
   public specialSimplify(): Expression {
