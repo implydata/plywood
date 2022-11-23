@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { NumberRange, PlywoodValue, Range, Set, StringRange, TimeRange } from '../datatypes/index';
+import { PlywoodValue, Range, Set, StringRange } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 
 import {
@@ -91,19 +91,6 @@ export class InExpression extends ChainableUnaryExpression {
     const expression = this.expression;
     const expressionType = expression.type;
     switch (expressionType) {
-      case 'NUMBER_RANGE':
-      case 'TIME_RANGE':
-        if (expression instanceof LiteralExpression) {
-          const range: NumberRange | TimeRange = expression.value;
-          return dialect.inExpression(
-            operandSQL,
-            dialect.numberOrTimeToSQL(range.start),
-            dialect.numberOrTimeToSQL(range.end),
-            range.bounds,
-          );
-        }
-        throw new Error(`can not convert action to SQL ${this}`);
-
       case 'STRING_RANGE':
         if (expression instanceof LiteralExpression) {
           const stringRange: StringRange = expression.value;
@@ -116,26 +103,6 @@ export class InExpression extends ChainableUnaryExpression {
         }
         throw new Error(`can not convert action to SQL ${this}`);
 
-      case 'SET/NUMBER_RANGE':
-      case 'SET/TIME_RANGE':
-        if (expression instanceof LiteralExpression) {
-          const setOfRange: Set = expression.value;
-          return (
-            '(' +
-            setOfRange.elements
-              .map((range: NumberRange | TimeRange) => {
-                return dialect.inExpression(
-                  operandSQL,
-                  dialect.numberOrTimeToSQL(range.start),
-                  dialect.numberOrTimeToSQL(range.end),
-                  range.bounds,
-                );
-              })
-              .join(' OR ') +
-            ')'
-          );
-        }
-        throw new Error(`can not convert action to SQL ${this}`);
       case 'SET/STRING':
         if (expression instanceof LiteralExpression) {
           const setOfRange: Set = expression.value;
