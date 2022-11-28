@@ -28,10 +28,19 @@ class TestingDialect extends SQLDialect {
 }
 
 describe('InExpression', () => {
-    it('_getSQLChainableUnaryHelper', () => {
-      const inExpression = Expression._.in(['thing', 'otherThing']);
+  describe('_getSQLChainableUnaryHelper', () => {
+    it('works with more than one column', () => {
+      const inExpression = Expression._.in(['thing', 'otherThing', 'otherOtherThing']);
       const dialect = new TestingDialect()
 
-      expect(inExpression._getSQLChainableUnaryHelper(dialect, 'column')).to.equal("(column='thing' OR column='otherThing')");
+      expect(inExpression._getSQLChainableUnaryHelper(dialect, 't."column"')).to.equal(`(t."column"='thing' OR t."column"='otherThing' OR t."column"='otherOtherThing')`);
     });
+
+    it('works with single column', () => {
+      const inExpression = Expression._.in(['thing']);
+      const dialect = new TestingDialect()
+
+      expect(inExpression._getSQLChainableUnaryHelper(dialect, 't."column"')).to.equal(`(t."column"='thing')`);
+    });
+  })
 });
