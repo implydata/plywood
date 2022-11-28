@@ -318,6 +318,84 @@ describe('simulate DruidSql', () => {
     ]);
   });
 
+  it('works with inExpression with single value', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds').filter($('color').in(['blue'])))
+      .apply(
+        'Tags',
+        $('diamonds')
+          .split(s$('t.tags'), 'Tag')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('Tag', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
+          query:
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE ("color"=\'blue\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
+
+  it('works with inExpression with multiple values', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds').filter($('color').in(['red', 'green', 'blue'])))
+      .apply(
+        'Tags',
+        $('diamonds')
+          .split(s$('t.tags'), 'Tag')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('Tag', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
+          query:
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE "color" IN (\'red\',\'green\',\'blue\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
+
   it('works with mvFilterOnly and mvOverlap', () => {
     const ex = ply()
       .apply('diamonds', $('diamonds'))
