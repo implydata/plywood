@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.29.2
+
+- Add support for converting inExpression to SQL 
+
 ## 0.29.1
 
 - Bump node to 14 and druid-query-toolkit dep to 0.17
