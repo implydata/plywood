@@ -42,6 +42,13 @@ function dateString(date: Date): string {
   return date.toISOString();
 }
 
+function stringKeyFn(value: any): string {
+  if (value == null) {
+    return '__NULL_KEY_HASH_INTERNAL_USE_ONLY__';
+  }
+  return String(value);
+}
+
 function arrayFromJS(xs: Array<any>, setType: string): Array<any> {
   return xs.map(x => valueFromJS(x, setType));
 }
@@ -244,7 +251,7 @@ export class Set implements Instance<SetValue, SetJS> {
   constructor(parameters: SetValue) {
     const setType = parameters.setType;
     this.setType = setType;
-    const keyFn = setType === 'TIME' ? dateString : String;
+    const keyFn = setType === 'TIME' ? dateString : stringKeyFn;
     this.keyFn = keyFn;
 
     let elements = parameters.elements;

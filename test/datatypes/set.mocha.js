@@ -670,4 +670,15 @@ describe('Set', () => {
       ).to.equal(true);
     });
   });
+
+  describe('#constructor', () => {
+    it('initiates correctly when null and null string are both in elements', () => {
+      const set = Set.fromJS({
+        setType: 'STRING',
+        elements: [null, 'null', 'other'],
+      });
+      expect(set.has(null)).to.equal(true);
+      expect(set.has('null')).to.equal(true);
+    });
+  });
 });
