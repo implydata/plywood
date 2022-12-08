@@ -672,7 +672,7 @@ describe('Set', () => {
   });
 
   describe('#constructor', () => {
-    it('initiates correctly when null and null string are both in elements', () => {
+    it('initializes correctly when null and null string are both in elements', () => {
       const set = Set.fromJS({
         setType: 'STRING',
         elements: [null, 'null', 'other'],
@@ -690,7 +690,7 @@ describe('Set', () => {
       expect(set.has('null')).to.equal(true).to.equal(true);
     });
 
-    it('initiates correctly when falsy and duplicate values are in elements', () => {
+    it('initializes correctly when falsy and duplicate values are in elements', () => {
       const set = Set.fromJS({
         setType: 'NUMBER',
         elements: [null, null, 0, 0],
