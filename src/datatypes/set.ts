@@ -43,7 +43,7 @@ function dateString(date: Date): string {
 }
 
 function stringKeyFn(value: any): string {
-  if (value == null) {
+  if (value === null) {
     return '__NULL_KEY_HASH_INTERNAL_USE_ONLY__';
   }
   return String(value);
