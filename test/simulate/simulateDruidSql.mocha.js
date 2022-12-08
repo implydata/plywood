@@ -229,6 +229,36 @@ describe('simulate DruidSql', () => {
     ]);
   });
 
+  it('works with duplicate falsy values in a filter expression', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds').filter('$tags.overlap(["tagA", "tagB", null, "null"])'))
+      .apply('Tags', $('diamonds').split('$tags', 'Tag'));
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'dia.monds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        filter: $('pugs').overlap(['pugA', 'pugB', null, null, '', '']).not(),
+      }),
+    });
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
+          query:
+            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE (NOT((("pugs" IS NULL) OR "pugs" IN (\'pugA\',\'pugB\',\'null\', \'\'))) AND (("tags" IS NULL) OR "tags" IN (\'tagA\',\'tagB\',\'null\')))\nGROUP BY 1',
+        },
+      ],
+    ]);
+  });
+
   it('works with sqlRefExpression', () => {
     const ex = ply().apply(
       'Tags',
