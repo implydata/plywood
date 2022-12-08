@@ -260,7 +260,7 @@ export class Set implements Instance<SetValue, SetJS> {
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
       const key = keyFn(element);
-      if (hash[key]) {
+      if (hasOwnProp(hash, key)) {
         if (!newElements) newElements = elements.slice(0, i);
       } else {
         hash[key] = element;

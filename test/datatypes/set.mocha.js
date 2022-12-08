@@ -689,5 +689,18 @@ describe('Set', () => {
       expect(set.remove(null).size()).to.equal(set.size() - 1);
       expect(set.has('null')).to.equal(true).to.equal(true);
     });
+
+    it('initiates correctly when falsy and duplicate values are in elements', () => {
+      const set = Set.fromJS({
+        setType: 'NUMBER',
+        elements: [null, null, 0, 0],
+      });
+
+      expect(set.has(null)).to.equal(true);
+      expect(set.has(0)).to.equal(true);
+
+      // ensure it does not add falsy value twice
+      expect(set.size()).to.equal(2);
+    });
   });
 });
