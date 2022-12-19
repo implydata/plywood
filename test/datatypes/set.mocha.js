@@ -670,4 +670,37 @@ describe('Set', () => {
       ).to.equal(true);
     });
   });
+
+  describe('#constructor', () => {
+    it('initializes correctly when null and null string are both in elements', () => {
+      const set = Set.fromJS({
+        setType: 'STRING',
+        elements: [null, 'null', 'other'],
+      });
+
+      expect(set.has(null)).to.equal(true);
+      /*
+        If null is hashed correctly by the keyFn, then 'null' should be in the set too.
+        What we really test here is expecting generalEqual(hash[keyFn('null')], 'null') = true
+      **/
+      expect(set.has('null')).to.equal(true);
+
+      // If null is hashed correcly by the keyFn, then only null should be removed.
+      expect(set.remove(null).size()).to.equal(set.size() - 1);
+      expect(set.has('null')).to.equal(true).to.equal(true);
+    });
+
+    it('initializes correctly when falsy and duplicate values are in elements', () => {
+      const set = Set.fromJS({
+        setType: 'NUMBER',
+        elements: [null, null, 0, 0],
+      });
+
+      expect(set.has(null)).to.equal(true);
+      expect(set.has(0)).to.equal(true);
+
+      // ensure it does not add falsy value twice
+      expect(set.size()).to.equal(2);
+    });
+  });
 });
