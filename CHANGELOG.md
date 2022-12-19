@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.29.3
+
+- Fix Plywood Set constructor function does not handle null/"null" and falsy values properly
+
 ## 0.29.2
 
 - Add support for converting inExpression to SQL 
