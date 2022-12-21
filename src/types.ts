@@ -20,6 +20,7 @@ export type PlyTypeSingleValue = 'NULL' | 'BOOLEAN' | 'NUMBER' | 'TIME' | 'STRIN
 export type PlyTypeSimple =
   | PlyTypeSingleValue
   | 'NUMBER_RANGE'
+  | 'IP'
   | 'TIME_RANGE'
   | 'STRING_RANGE'
   | 'SET'
@@ -30,6 +31,7 @@ export type PlyTypeSimple =
   | 'SET/STRING'
   | 'SET/NUMBER_RANGE'
   | 'SET/TIME_RANGE'
+  | 'SET/IP'
   | 'SET/STRING_RANGE';
 
 export type PlyType = PlyTypeSimple | 'DATASET';

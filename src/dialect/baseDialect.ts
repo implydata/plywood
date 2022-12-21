@@ -17,6 +17,7 @@
 
 import type { Duration, Timezone } from 'chronoshift';
 
+import { Ip } from '../datatypes/ip';
 import { PlyType, PlyTypeSimple } from '../types';
 
 export abstract class SQLDialect {
@@ -63,6 +64,10 @@ export abstract class SQLDialect {
 
   public booleanToSQL(bool: boolean): string {
     return ('' + bool).toUpperCase();
+  }
+
+  public ipToSQL(ip: Ip): string {
+    return ip.toString();
   }
 
   public floatDivision(numerator: string, denominator: string): string {

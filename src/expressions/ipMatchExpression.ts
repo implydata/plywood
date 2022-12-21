@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Ip } from '../datatypes/ip';
 import { SQLDialect } from '../dialect';
 
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
@@ -30,13 +31,13 @@ export class IpMatchExpression extends ChainableExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp('ipMatch');
-    this._checkOperandTypes('STRING');
+    this._checkOperandTypes('IP');
     this.ipSearchString = parameters.ipSearchString;
     this.ipSearchType = parameters.ipSearchType;
     this.type = 'BOOLEAN';
   }
 
-  public ipSearchString: string;
+  public ipSearchString: Ip;
   public ipSearchType = 'ip';
 
   public valueOf(): ExpressionValue {
@@ -62,7 +63,7 @@ export class IpMatchExpression extends ChainableExpression {
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return dialect.ipMatchExpression(operandSQL, this.ipSearchString, this.ipSearchType);
+    return dialect.ipMatchExpression(operandSQL, this.ipSearchString.toString(), this.ipSearchType);
   }
 }
 

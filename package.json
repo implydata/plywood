@@ -57,6 +57,7 @@
     "tslib": "^2.3.1"
   },
   "devDependencies": {
+    "@types/node": "^18.11.11",
     "@awesome-code-style/eslint-config": "^4.0.0",
     "@awesome-code-style/prettier-config": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^5.10.2",

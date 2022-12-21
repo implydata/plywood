@@ -40,6 +40,7 @@ import {
   StringRange,
   TimeRange,
 } from '../datatypes/index';
+import { Ip } from '../datatypes/ip';
 import { iteratorFactory, PlyBit } from '../datatypes/valueStream';
 import { SQLDialect } from '../dialect/baseDialect';
 import { External, ExternalJS } from '../external/baseExternal';
@@ -248,7 +249,7 @@ export interface ExpressionValue {
   tuning?: string;
   sql?: string;
   mvArray?: string[];
-  ipSearchString?: string;
+  ipSearchString?: Ip;
   ipSearchType?: string;
 }
 
@@ -287,7 +288,7 @@ export interface ExpressionJS {
   tuning?: string;
   sql?: string;
   mvArray?: string[];
-  ipSearchString?: string;
+  ipSearchString?: Ip;
   ipSearchType?: string;
 }
 
@@ -686,6 +687,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   constructor(parameters: ExpressionValue, dummy: any = null) {
     this.op = parameters.op;
+    this.type = parameters.type;
     if (dummy !== dummyObject) {
       throw new TypeError('can not call `new Expression` directly use Expression.fromJS instead');
     }
@@ -714,7 +716,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Serializes the expression into a simple JS object that can be passed to JSON.serialize
    */
   public toJS(): ExpressionJS {
-    const js: ExpressionJS = { op: this.op };
+    const js: ExpressionJS = { op: this.op, type: this.type };
     if (this.options) js.options = this.options;
     return js;
   }
@@ -1303,7 +1305,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public ipMatch(searchString: string, ipSearchType: string) {
     return new IpMatchExpression({
       operand: this,
-      ipSearchString: searchString,
+      ipSearchString: Ip.fromString(searchString),
       ipSearchType: ipSearchType,
     });
   }
@@ -1311,7 +1313,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public ipSearch(searchString: string, ipSearchType: string) {
     return new IpSearchExpression({
       operand: this,
-      ipSearchString: searchString,
+      ipSearchString: Ip.fromString(searchString),
       ipSearchType: ipSearchType,
     });
   }

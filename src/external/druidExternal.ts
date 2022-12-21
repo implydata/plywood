@@ -332,6 +332,19 @@ export class DruidExternal extends External {
             );
             break;
 
+          case 'ipAddress':
+          case 'ipPrefix':
+            attributes.push(
+              new AttributeInfo({
+                name,
+                type: columnData.hasMultipleValues ? 'SET/IP' : 'IP',
+                nativeType,
+                cardinality: columnData.cardinality,
+                range: DruidExternal.columnMetadataToRange(columnData),
+              }),
+            );
+            break;
+
           case 'STRING':
             attributes.push(
               new AttributeInfo({

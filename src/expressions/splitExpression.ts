@@ -199,9 +199,15 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
   }
 
   public getSelectSQL(dialect: SQLDialect): string[] {
-    return this.mapSplits(
-      (name, expression) => `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`,
-    );
+    return this.mapSplits((name, expression) => {
+      if (['IP', 'SET/IP'].includes(expression.type)) {
+        return `${dialect.ipStringifyExpression(
+          expression.getSQL(dialect),
+        )} AS ${dialect.escapeName(name)}`;
+      } else {
+        return `${expression.getSQL(dialect)} AS ${dialect.escapeName(name)}`;
+      }
+    });
   }
 
   public getGroupBySQL(dialect: SQLDialect): string[] {

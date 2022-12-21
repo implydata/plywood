@@ -35,6 +35,7 @@ import {
   PlywoodValue,
   PlywoodValueBuilder,
 } from '../datatypes/index';
+import { Ip } from '../datatypes/ip';
 import { Set } from '../datatypes/set';
 import { StringRange } from '../datatypes/stringRange';
 import { TimeRange } from '../datatypes/timeRange';
@@ -519,6 +520,8 @@ export abstract class External {
         return External.stringInflaterFactory(label);
       case 'TIME':
         return External.timeInflaterFactory(label);
+      case 'IP':
+        return External.ipInflaterFactory(label);
       default:
         return null;
     }
@@ -619,6 +622,18 @@ export abstract class External {
       }
 
       d[label] = makeDate(v);
+    };
+  }
+
+  static ipInflaterFactory(label: string): Inflater {
+    return (d: any) => {
+      const v = d[label];
+      if ('' + v === 'null' || typeof v === 'undefined') {
+        d[label] = null;
+        return;
+      }
+
+      d[label] = Ip.fromString(v);
     };
   }
 

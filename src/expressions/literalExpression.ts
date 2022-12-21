@@ -104,6 +104,9 @@ export class LiteralExpression extends Expression {
       case 'STRING':
         return dialect.escapeLiteral(value);
 
+      case 'IP':
+        return dialect.ipToSQL(value);
+
       case 'BOOLEAN':
         return dialect.booleanToSQL(value);
 
@@ -122,6 +125,7 @@ export class LiteralExpression extends Expression {
       case 'STRING_RANGE':
         return dialect.escapeLiteral(value.start);
 
+      case 'SET/IP':
       case 'SET/STRING':
       case 'SET/NULL':
       case 'SET/NUMBER':

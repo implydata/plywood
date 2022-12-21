@@ -247,12 +247,12 @@ export class DruidExpressionBuilder {
           .join(',')}])`;
       } else if (expression instanceof IpMatchExpression) {
         return expression.ipSearchType === 'ipPrefix'
-          ? `ip_match(${DruidExpressionBuilder.escapeLiteral(expression.ipSearchString)}, ${ex1})`
-          : `ip_match(${ex1}, ${DruidExpressionBuilder.escapeLiteral(expression.ipSearchString)})`;
+          ? `ip_match(${expression.ipSearchString.toString()}, ${ex1})`
+          : `ip_match(${ex1}, ${expression.ipSearchString.toString()})`;
       } else if (expression instanceof IpSearchExpression) {
         return expression.ipSearchType === 'ipPrefix'
-          ? `ip_search(${DruidExpressionBuilder.escapeLiteral(expression.ipSearchString)}, ${ex1})`
-          : `ip_search(${ex1}, ${DruidExpressionBuilder.escapeLiteral(expression.ipSearchString)})`;
+          ? `ip_search(${expression.ipSearchString.toString()}, ${ex1})`
+          : `ip_search(${ex1}, ${expression.ipSearchString.toString()})`;
       } else if (expression instanceof IpStringifyExpression) {
         return `ip_stringify(${ex1})`;
       } else if (expression instanceof ChainableUnaryExpression) {
