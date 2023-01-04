@@ -267,12 +267,12 @@ describe('Expression', () => {
         },
         {
           op: 'ipSearch',
-          ipSearchString: '192.0.0.0',
+          ipToSearch: '192.0.0.0',
           ipSearchType: 'ip',
         },
         {
           op: 'ipMatch',
-          ipSearchString: '192.0.0.0',
+          ipToSearch: '192.0.0.0',
           ipSearchType: 'ip',
         },
       ],

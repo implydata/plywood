@@ -16,11 +16,9 @@
  */
 
 import { Class, Instance } from 'immutable-class';
-import { Address4, Address6 } from 'ip-address';
+import * as isIp from 'is-ip';
 
 import { PlyType } from '../types';
-// TODO: Goes in plywood.js after compile. have to figure out why this disappears after compile
-// const { Address4, Address6 } = require('ip-address');
 
 export interface IpValue {
   ip: string;
@@ -40,7 +38,7 @@ export class Ip implements Instance<IpValue, IpJS> {
       candidate = candidate.split('/')[0];
     }
 
-    return Address4.isValid(candidate) || Address6.isValid(candidate);
+    return isIp(candidate);
   }
 
   static fromString(ipString: string): Ip {
