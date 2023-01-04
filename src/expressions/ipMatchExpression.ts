@@ -23,7 +23,7 @@ export class IpMatchExpression extends ChainableExpression {
   static op = 'ipMatch';
   static fromJS(parameters: ExpressionJS): IpMatchExpression {
     const value = ChainableExpression.jsToValue(parameters);
-    value.ipSearchString = parameters.ipSearchString;
+    value.ipToSearch = parameters.ipToSearch;
     value.ipSearchType = parameters.ipSearchType;
     return new IpMatchExpression(value);
   }
@@ -32,17 +32,17 @@ export class IpMatchExpression extends ChainableExpression {
     super(parameters, dummyObject);
     this._ensureOp('ipMatch');
     this._checkOperandTypes('IP');
-    this.ipSearchString = parameters.ipSearchString;
+    this.ipToSearch = parameters.ipToSearch;
     this.ipSearchType = parameters.ipSearchType;
     this.type = 'BOOLEAN';
   }
 
-  public ipSearchString: Ip;
+  public ipToSearch: Ip;
   public ipSearchType = 'ip';
 
   public valueOf(): ExpressionValue {
     const value = super.valueOf();
-    value.ipSearchString = this.ipSearchString;
+    value.ipToSearch = this.ipToSearch;
     value.ipSearchType = this.ipSearchType;
     return value;
   }
@@ -50,20 +50,20 @@ export class IpMatchExpression extends ChainableExpression {
   public equals(other: IpMatchExpression | undefined): boolean {
     return (
       super.equals(other) &&
-      this.ipSearchString === other.ipSearchString &&
+      this.ipToSearch === other.ipToSearch &&
       this.ipSearchType === other.ipSearchType
     );
   }
 
   public toJS(): ExpressionJS {
     const js = super.toJS();
-    js.ipSearchString = this.ipSearchString;
+    js.ipToSearch = this.ipToSearch;
     js.ipSearchType = this.ipSearchType;
     return js;
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return dialect.ipMatchExpression(operandSQL, this.ipSearchString.toString(), this.ipSearchType);
+    return dialect.ipMatchExpression(operandSQL, this.ipToSearch.toString(), this.ipSearchType);
   }
 }
 

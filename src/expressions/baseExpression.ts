@@ -249,7 +249,7 @@ export interface ExpressionValue {
   tuning?: string;
   sql?: string;
   mvArray?: string[];
-  ipSearchString?: Ip;
+  ipToSearch?: Ip;
   ipSearchType?: string;
 }
 
@@ -288,7 +288,7 @@ export interface ExpressionJS {
   tuning?: string;
   sql?: string;
   mvArray?: string[];
-  ipSearchString?: Ip;
+  ipToSearch?: Ip;
   ipSearchType?: string;
 }
 
@@ -1304,7 +1304,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public ipMatch(searchString: string, ipSearchType: string) {
     return new IpMatchExpression({
       operand: this,
-      ipSearchString: Ip.fromString(searchString),
+      ipToSearch: Ip.fromString(searchString),
       ipSearchType: ipSearchType,
     });
   }
@@ -1312,7 +1312,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public ipSearch(searchString: string, ipSearchType: string) {
     return new IpSearchExpression({
       operand: this,
-      ipSearchString: Ip.fromString(searchString),
+      ipToSearch: Ip.fromString(searchString),
       ipSearchType: ipSearchType,
     });
   }

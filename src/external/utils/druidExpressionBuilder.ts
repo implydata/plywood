@@ -248,18 +248,18 @@ export class DruidExpressionBuilder {
       } else if (expression instanceof IpMatchExpression) {
         return expression.ipSearchType === 'ipPrefix'
           ? `ip_match(${DruidExpressionBuilder.escapeLiteral(
-              expression.ipSearchString.toString(),
+              expression.ipToSearch.toString(),
             )}, ${ex1})`
           : `ip_match(${ex1}, ${DruidExpressionBuilder.escapeLiteral(
-              expression.ipSearchString.toString(),
+              expression.ipToSearch.toString(),
             )})`;
       } else if (expression instanceof IpSearchExpression) {
         return expression.ipSearchType === 'ipPrefix'
           ? `ip_search(${DruidExpressionBuilder.escapeLiteral(
-              expression.ipSearchString.toString(),
+              expression.ipToSearch.toString(),
             )}, ${ex1})`
           : `ip_search(${ex1}, ${DruidExpressionBuilder.escapeLiteral(
-              expression.ipSearchString.toString(),
+              expression.ipToSearch.toString(),
             )})`;
       } else if (expression instanceof IpStringifyExpression) {
         return `ip_stringify(${ex1})`;
