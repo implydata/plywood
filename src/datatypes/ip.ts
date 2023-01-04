@@ -16,15 +16,18 @@
  */
 
 import { Class, Instance } from 'immutable-class';
-import { isIP } from 'node:net';
+import { Address4, Address6 } from 'ip-address';
+
+import { PlyType } from '../types';
 // TODO: Goes in plywood.js after compile. have to figure out why this disappears after compile
-// const { isIP } = require('net');
+// const { Address4, Address6 } = require('ip-address');
 
 export interface IpValue {
   ip: string;
 }
 
 export interface IpJS {
+  type: PlyType;
   ip: string;
 }
 
@@ -33,7 +36,11 @@ export class Ip implements Instance<IpValue, IpJS> {
   private readonly ip: string;
 
   static isIp(candidate: any): candidate is Ip {
-    return isIP(candidate) !== 0;
+    if (candidate.includes('/')) {
+      candidate = candidate.split('/')[0];
+    }
+
+    return Address4.isValid(candidate) || Address6.isValid(candidate);
   }
 
   static fromString(ipString: string): Ip {
@@ -59,18 +66,20 @@ export class Ip implements Instance<IpValue, IpJS> {
     return this.toJS();
   }
 
-  public equals(other: Instance<IpValue, IpJS>): boolean {
-    throw new Error('Method not implemented.');
+  public equals(other: Ip | undefined): boolean {
+    return other instanceof Ip && other.ip === this.ip;
   }
 
   public valueOf(): IpJS {
     return {
+      type: Ip.type as PlyType,
       ip: this.ip,
     };
   }
 
   public toJS(): IpJS {
     const js: IpJS = {
+      type: Ip.type as PlyType,
       ip: this.ip,
     };
 

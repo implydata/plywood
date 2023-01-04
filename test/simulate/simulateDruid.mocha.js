@@ -36,8 +36,8 @@ const attributes = [
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
   { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true },
-  { name: 'ip_address', type: 'STRING' },
-  { name: 'ip_prefix', type: 'STRING' },
+  { name: 'ip_address', type: 'IP' },
+  { name: 'ip_prefix', type: 'IP' },
 
   { name: 'try', type: 'NUMBER', nativeType: 'STRING' }, // Added here because 'try' is a JS keyword
   { name: 'a+b', type: 'NUMBER', nativeType: 'STRING' }, // Added here because it is invalid JS without escaping

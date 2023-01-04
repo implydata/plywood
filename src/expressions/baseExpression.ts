@@ -687,7 +687,6 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
 
   constructor(parameters: ExpressionValue, dummy: any = null) {
     this.op = parameters.op;
-    this.type = parameters.type;
     if (dummy !== dummyObject) {
       throw new TypeError('can not call `new Expression` directly use Expression.fromJS instead');
     }
@@ -716,7 +715,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
    * Serializes the expression into a simple JS object that can be passed to JSON.serialize
    */
   public toJS(): ExpressionJS {
-    const js: ExpressionJS = { op: this.op, type: this.type };
+    const js: ExpressionJS = { op: this.op };
     if (this.options) js.options = this.options;
     return js;
   }

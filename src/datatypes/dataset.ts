@@ -304,7 +304,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     'SET/TIME_RANGE': (v: Set, tz: Timezone) => v.toString(tz),
     'STRING': (v: string) => '' + v,
     'SET/STRING': (v: Set) => '' + v,
-    'IP': (v: string) => '' + v,
+    'IP': (v: Ip) => '' + v.toString(),
     'BOOLEAN': (v: boolean) => '' + v,
     'NUMBER': (v: number) => '' + v,
     'NUMBER_RANGE': (v: NumberRange) => '' + v,

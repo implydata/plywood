@@ -216,6 +216,9 @@ function getSampleValue(valueType: string, ex: Expression): PlywoodValue {
         });
       }
 
+    case 'IP':
+      return Ip.fromString('127.0.0.1');
+
     case 'STRING':
       if (ex instanceof RefExpression) {
         return 'some_' + ex.name;
