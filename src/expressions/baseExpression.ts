@@ -390,10 +390,10 @@ export function i$(name: string, nest?: number, type?: PlyType): RefExpression {
   });
 }
 
-export function s$(sql: string): SqlRefExpression {
+export function s$(sql: string, type?: PlyType): SqlRefExpression {
   if (typeof sql !== 'string') throw new TypeError('s$() argument must be a string');
 
-  return new SqlRefExpression({ sql });
+  return new SqlRefExpression({ sql, type });
 }
 
 export function r(value: any): LiteralExpression {

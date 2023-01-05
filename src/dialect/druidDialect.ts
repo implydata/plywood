@@ -267,7 +267,7 @@ export class DruidDialect extends SQLDialect {
     // TODO: remove toString hack
     return ipSearchType === 'ipPrefix'
       ? `IP_SEARCH(${this.escapeLiteral(searchString.toString())}, ${columnName})`
-      : `IP_SEARCH(${this.ipParse(columnName)}, ${this.escapeLiteral(searchString.toString())})`;
+      : `IP_SEARCH(${columnName}, ${this.escapeLiteral(searchString.toString())})`;
   }
 
   public ipStringifyExpression(operand: string): string {

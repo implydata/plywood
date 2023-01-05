@@ -41,6 +41,7 @@ export class SqlRefExpression extends Expression {
       throw new TypeError('must have a nonempty `sql`');
     }
     this.sql = sql;
+    this.type = parameters.type;
 
     this.simple = true;
     this.parsedSql = SqlExpression.parse(this.sql);

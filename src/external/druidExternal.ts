@@ -1308,6 +1308,10 @@ export class DruidExternal extends External {
               inflaters.push(External.timeInflaterFactory(name));
               break;
 
+            case 'IP':
+              inflaters.push(External.ipInflaterFactory(name));
+              break;
+
             case 'SET/STRING':
               inflaters.push(External.setStringInflaterFactory(name));
               break;
