@@ -32,7 +32,7 @@ export class IpMatchExpression extends ChainableExpression {
     super(parameters, dummyObject);
     this._ensureOp('ipMatch');
     this._checkOperandTypes('IP');
-    this.ipToSearch = parameters.ipToSearch;
+    this.ipToSearch = Ip.fromString(parameters.ipToSearch.ip);
     this.ipSearchType = parameters.ipSearchType;
     this.type = 'BOOLEAN';
   }
@@ -42,7 +42,7 @@ export class IpMatchExpression extends ChainableExpression {
 
   public valueOf(): ExpressionValue {
     const value = super.valueOf();
-    value.ipToSearch = this.ipToSearch;
+    value.ipToSearch = Ip.fromString(this.ipToSearch.ip);
     value.ipSearchType = this.ipSearchType;
     return value;
   }

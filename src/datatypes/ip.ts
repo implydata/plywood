@@ -30,7 +30,7 @@ export interface IpJS {
 
 export class Ip implements Instance<IpValue, IpJS> {
   static type = 'IP';
-  private readonly ip: string;
+  readonly ip: string;
 
   static isIp(candidate: any): candidate is Ip {
     if (String(candidate).includes('/')) {
