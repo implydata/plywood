@@ -56,11 +56,12 @@ export class SqlRefExpression extends Expression {
   public toJS(): ExpressionJS {
     const js = super.toJS();
     js.sql = this.sql;
+    js.type = this.type;
     return js;
   }
 
   public toString(): string {
-    return `s$\{${this.sql}}`;
+    return `s$\{${this.sql}, ${this.type}`;
   }
 
   public changeSql(sql: string): SqlRefExpression {
