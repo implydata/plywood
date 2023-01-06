@@ -38,6 +38,4 @@ var SqlQuery = druidQueryToolkit.SqlQuery;
 var Introspect = druidQueryToolkit.Introspect;
 var QueryResult = druidQueryToolkit.QueryResult;
 
-var isIp = require('is-ip');
-
 var dummyObject = {};

@@ -50,7 +50,6 @@
     "druid.d.ts": "^0.12.1",
     "has-own-prop": "^1.0.1",
     "immutable-class": "^0.11.1",
-    "is-ip": "3.1.0",
     "moment-timezone": "^0.5.26",
     "plywood-base-api": "^0.2.8",
     "readable-stream": "^3.0.3",

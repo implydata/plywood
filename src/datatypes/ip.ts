@@ -16,7 +16,6 @@
  */
 
 import { Class, Instance } from 'immutable-class';
-import * as isIp from 'is-ip';
 
 import { PlyType } from '../types';
 
@@ -34,11 +33,16 @@ export class Ip implements Instance<IpValue, IpJS> {
   private readonly ip: string;
 
   static isIp(candidate: any): candidate is Ip {
-    if (candidate.includes('/')) {
+    if (String(candidate).includes('/')) {
       candidate = candidate.split('/')[0];
     }
 
-    return isIp(candidate);
+    return (
+      // IPv4
+      /^(\d+)\.(\d+?)\.(\d+?)\.(\d+?)$/.test(candidate) ||
+      // IPv6
+      /^([\da-zA-Z]+):([\da-zA-Z]+):([\da-zA-Z]+):([\da-zA-Z]+):*$/.test(candidate)
+    );
   }
 
   static fromString(ipString: string): Ip {

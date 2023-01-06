@@ -71,6 +71,14 @@ describe('Ip', () => {
     it('should work for ipv4 range', function () {
       expect(Ip.isIp('192.0.1.2/32')).equals(true);
     });
+
+    it('should not work for any ol string', function () {
+      expect(Ip.isIp('hello')).equals(false);
+    });
+
+    it('should not work for any ol number', function () {
+      expect(Ip.isIp(45)).equals(false);
+    });
   });
 
   describe('equals', () => {
