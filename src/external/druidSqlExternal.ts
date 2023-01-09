@@ -55,6 +55,11 @@ export class DruidSQLExternal extends SQLExternal {
             type = 'TIME';
             break;
 
+          case 'ipAddress':
+          case 'ipPrefix':
+            type = 'IP';
+            break;
+
           case 'VARCHAR':
           case 'STRING':
             type = 'STRING';

@@ -32,6 +32,7 @@ import { DatasetFullType, FullType, PlyType } from '../types';
 
 import { AttributeInfo, AttributeJSs, Attributes } from './attributeInfo';
 import { datumHasExternal, valueFromJS, valueToJS } from './common';
+import { Ip } from './ip';
 import { NumberRange } from './numberRange';
 import { Set } from './set';
 import { StringRange } from './stringRange';
@@ -52,7 +53,8 @@ export type PlywoodValue =
   | StringRange
   | Set
   | Dataset
-  | External;
+  | External
+  | Ip;
 
 export interface PseudoDatum {
   [attribute: string]: any;
@@ -239,6 +241,8 @@ function getAttributeInfo(name: string, attributeValue: any): AttributeInfo {
     return new AttributeInfo({ name, type: 'NUMBER' });
   } else if (isString(attributeValue)) {
     return new AttributeInfo({ name, type: 'STRING' });
+  } else if (attributeValue instanceof Ip) {
+    return new AttributeInfo({ name, type: 'IP' });
   } else if (attributeValue instanceof NumberRange) {
     return new AttributeInfo({ name, type: 'NUMBER_RANGE' });
   } else if (attributeValue instanceof StringRange) {
@@ -300,6 +304,7 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
     'SET/TIME_RANGE': (v: Set, tz: Timezone) => v.toString(tz),
     'STRING': (v: string) => '' + v,
     'SET/STRING': (v: Set) => '' + v,
+    'IP': (v: Ip) => '' + v.toString(),
     'BOOLEAN': (v: boolean) => '' + v,
     'NUMBER': (v: number) => '' + v,
     'NUMBER_RANGE': (v: NumberRange) => '' + v,

@@ -139,6 +139,9 @@ export abstract class SQLExternal extends External {
               case 'TIME':
                 return External.timeInflaterFactory(name);
 
+              case 'IP':
+                return External.ipInflaterFactory(name);
+
               case 'SET/STRING':
                 return External.setStringInflaterFactory(name);
 

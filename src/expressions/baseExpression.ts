@@ -40,6 +40,7 @@ import {
   StringRange,
   TimeRange,
 } from '../datatypes/index';
+import { Ip } from '../datatypes/ip';
 import { iteratorFactory, PlyBit } from '../datatypes/valueStream';
 import { SQLDialect } from '../dialect/baseDialect';
 import { External, ExternalJS } from '../external/baseExternal';
@@ -248,7 +249,7 @@ export interface ExpressionValue {
   tuning?: string;
   sql?: string;
   mvArray?: string[];
-  ipSearchString?: string;
+  ipToSearch?: Ip;
   ipSearchType?: string;
 }
 
@@ -287,7 +288,7 @@ export interface ExpressionJS {
   tuning?: string;
   sql?: string;
   mvArray?: string[];
-  ipSearchString?: string;
+  ipToSearch?: Ip;
   ipSearchType?: string;
 }
 
@@ -389,10 +390,10 @@ export function i$(name: string, nest?: number, type?: PlyType): RefExpression {
   });
 }
 
-export function s$(sql: string): SqlRefExpression {
+export function s$(sql: string, type?: PlyType): SqlRefExpression {
   if (typeof sql !== 'string') throw new TypeError('s$() argument must be a string');
 
-  return new SqlRefExpression({ sql });
+  return new SqlRefExpression({ sql, type });
 }
 
 export function r(value: any): LiteralExpression {
@@ -1303,7 +1304,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public ipMatch(searchString: string, ipSearchType: string) {
     return new IpMatchExpression({
       operand: this,
-      ipSearchString: searchString,
+      ipToSearch: Ip.fromString(searchString),
       ipSearchType: ipSearchType,
     });
   }
@@ -1311,7 +1312,7 @@ export abstract class Expression implements Instance<ExpressionValue, Expression
   public ipSearch(searchString: string, ipSearchType: string) {
     return new IpSearchExpression({
       operand: this,
-      ipSearchString: searchString,
+      ipToSearch: Ip.fromString(searchString),
       ipSearchType: ipSearchType,
     });
   }

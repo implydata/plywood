@@ -36,8 +36,8 @@ const attributes = [
   { name: 'price', type: 'NUMBER', unsplitable: true },
   { name: 'tax', type: 'NUMBER', unsplitable: true },
   { name: 'vendor_id', type: 'NULL', nativeType: 'hyperUnique', unsplitable: true },
-  { name: 'ip_address', type: 'STRING' },
-  { name: 'ip_prefix', type: 'STRING' },
+  { name: 'ip_address', type: 'IP' },
+  { name: 'ip_prefix', type: 'IP' },
 
   { name: 'try', type: 'NUMBER', nativeType: 'STRING' }, // Added here because 'try' is a JS keyword
   { name: 'a+b', type: 'NUMBER', nativeType: 'STRING' }, // Added here because it is invalid JS without escaping
@@ -505,7 +505,7 @@ describe('simulate DruidSql', () => {
         'Ip_address',
         $('diamonds')
           .filter($('ip_address').ipSearch('192.0'))
-          .split(s$('t.ip_address'), 'Ip_address')
+          .split(s$('t.ip_address', 'IP'), 'Ip_address')
           .apply('count', $('diamonds').count())
           .sort('$count', 'descending')
           .limit(10)
@@ -532,7 +532,7 @@ describe('simulate DruidSql', () => {
             sqlTimeZone: 'Etc/UTC',
           },
           query:
-            'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(IP_PARSE("ip_address"), \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\nIP_STRINGIFY((t.ip_address)) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH("ip_address", \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
@@ -545,7 +545,7 @@ describe('simulate DruidSql', () => {
         'Ip_prefix',
         $('diamonds')
           .filter($('ip_prefix').ipSearch('192.0', 'ipPrefix'))
-          .split(s$('t.ip_prefix'), 'Ip_prefix')
+          .split(s$('t.ip_prefix', 'IP'), 'Ip_prefix')
           .apply('count', $('diamonds').count())
           .sort('$count', 'descending')
           .limit(10)
@@ -572,7 +572,7 @@ describe('simulate DruidSql', () => {
             sqlTimeZone: 'Etc/UTC',
           },
           query:
-            'SELECT\n(t.ip_prefix) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(\'192.0\', IP_PREFIX_PARSE("ip_prefix"))\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\nIP_STRINGIFY((t.ip_prefix)) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_SEARCH(\'192.0\', "ip_prefix")\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
@@ -585,7 +585,7 @@ describe('simulate DruidSql', () => {
         'Ip_address',
         $('diamonds')
           .filter($('ip_address').ipMatch('192.0'))
-          .split(s$('t.ip_address'), 'Ip_address')
+          .split(s$('t.ip_address', 'IP'), 'Ip_address')
           .apply('count', $('diamonds').count())
           .sort('$count', 'descending')
           .limit(10)
@@ -613,7 +613,7 @@ describe('simulate DruidSql', () => {
           },
 
           query:
-            'SELECT\n(t.ip_address) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(IP_PARSE("ip_address"), \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\nIP_STRINGIFY((t.ip_address)) AS "Ip_address",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH("ip_address", \'192.0\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
@@ -626,7 +626,7 @@ describe('simulate DruidSql', () => {
         'Ip_prefix',
         $('diamonds')
           .filter($('ip_prefix').ipMatch('192.0.1.0/16', 'ipPrefix'))
-          .split(s$('t.ip_prefix'), 'Ip_prefix')
+          .split(s$('t.ip_prefix', 'IP'), 'Ip_prefix')
           .apply('count', $('diamonds').count())
           .sort('$count', 'descending')
           .limit(10)
@@ -653,7 +653,7 @@ describe('simulate DruidSql', () => {
             sqlTimeZone: 'Etc/UTC',
           },
           query:
-            'SELECT\n(t.ip_prefix) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(\'192.0.1.0/16\', IP_PREFIX_PARSE("ip_prefix"))\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\nIP_STRINGIFY((t.ip_prefix)) AS "Ip_prefix",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE IP_MATCH(\'192.0.1.0/16\', "ip_prefix")\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);

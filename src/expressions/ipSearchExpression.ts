@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Ip } from '../datatypes/ip';
 import { SQLDialect } from '../dialect';
 
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
@@ -22,7 +23,7 @@ export class IpSearchExpression extends ChainableExpression {
   static op = 'IpSearch';
   static fromJS(parameters: ExpressionJS): IpSearchExpression {
     const value = ChainableExpression.jsToValue(parameters);
-    value.ipSearchString = parameters.ipSearchString;
+    value.ipToSearch = parameters.ipToSearch;
     value.ipSearchType = parameters.ipSearchType;
     return new IpSearchExpression(value);
   }
@@ -30,18 +31,18 @@ export class IpSearchExpression extends ChainableExpression {
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this._ensureOp('ipSearch');
-    this._checkOperandTypes('STRING');
-    this.ipSearchString = parameters.ipSearchString;
+    this._checkOperandTypes('IP');
+    this.ipToSearch = Ip.fromString(parameters.ipToSearch.ip);
     this.ipSearchType = parameters.ipSearchType;
     this.type = 'BOOLEAN';
   }
 
-  public ipSearchString: string;
+  public ipToSearch: Ip;
   public ipSearchType = 'ip';
 
   public valueOf(): ExpressionValue {
     const value = super.valueOf();
-    value.ipSearchString = this.ipSearchString;
+    value.ipToSearch = Ip.fromString(this.ipToSearch.ip);
     value.ipSearchType = this.ipSearchType;
     return value;
   }
@@ -49,20 +50,20 @@ export class IpSearchExpression extends ChainableExpression {
   public equals(other: IpSearchExpression | undefined): boolean {
     return (
       super.equals(other) &&
-      this.ipSearchString === other.ipSearchString &&
+      this.ipToSearch?.ip === other.ipToSearch?.ip &&
       this.ipSearchType === other.ipSearchType
     );
   }
 
   public toJS(): ExpressionJS {
     const js = super.toJS();
-    js.ipSearchString = this.ipSearchString;
+    js.ipToSearch = this.ipToSearch;
     js.ipSearchType = this.ipSearchType;
     return js;
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return dialect.ipSearchExpression(operandSQL, this.ipSearchString, this.ipSearchType);
+    return dialect.ipSearchExpression(operandSQL, this.ipToSearch.toString(), this.ipSearchType);
   }
 }
 

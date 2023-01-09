@@ -59,8 +59,8 @@ describe('Expression', () => {
         { op: 'ref', name: 'a thing', ignoreCase: true, options: { hello: 'world' } },
         { op: 'ref', name: 'a thing', ignoreCase: true, options: { hello: 'druid' } },
 
-        { op: 'sqlRef', sql: `A` },
-        { op: 'sqlRef', sql: `Substr(A, 1, 2)` },
+        { op: 'sqlRef', sql: `A`, type: undefined },
+        { op: 'sqlRef', sql: `Substr(A, 1, 2)`, type: 'IP' },
 
         {
           op: 'add',
@@ -267,12 +267,12 @@ describe('Expression', () => {
         },
         {
           op: 'ipSearch',
-          ipSearchString: '192.0.0.0',
+          ipToSearch: { ip: '192.0.0.0' },
           ipSearchType: 'ip',
         },
         {
           op: 'ipMatch',
-          ipSearchString: '192.0.0.0',
+          ipToSearch: { ip: '192.0.0.0' },
           ipSearchType: 'ip',
         },
       ],

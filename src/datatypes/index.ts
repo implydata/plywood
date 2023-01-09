@@ -17,6 +17,7 @@
 export * from './attributeInfo';
 export * from './common';
 export * from './dataset';
+export * from './ip';
 export * from './numberRange';
 export * from './range';
 export * from './set';

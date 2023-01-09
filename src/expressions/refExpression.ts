@@ -31,6 +31,7 @@ export const POSSIBLE_TYPES: Record<string, number> = {
   'NUMBER': 1,
   'TIME': 1,
   'STRING': 1,
+  'IP': 1,
   'NUMBER_RANGE': 1,
   'TIME_RANGE': 1,
   'SET': 1,
@@ -41,6 +42,7 @@ export const POSSIBLE_TYPES: Record<string, number> = {
   'SET/STRING': 1,
   'SET/NUMBER_RANGE': 1,
   'SET/TIME_RANGE': 1,
+  'SET/IP': 1,
   'DATASET': 1,
 };
 

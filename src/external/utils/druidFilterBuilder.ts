@@ -212,11 +212,11 @@ export class DruidFilterBuilder {
       return this.makeInFilter(filter.operand, Set.fromJS(filter.mvArray));
     } else if (filter instanceof IpMatchExpression) {
       return this.makeExpressionFilter(
-        filter.operand.ipMatch(filter.ipSearchString, filter.ipSearchType),
+        filter.operand.ipMatch(filter.ipToSearch.toString(), filter.ipSearchType),
       );
     } else if (filter instanceof IpSearchExpression) {
       return this.makeExpressionFilter(
-        filter.operand.ipSearch(filter.ipSearchString, filter.ipSearchType),
+        filter.operand.ipSearch(filter.ipToSearch.toString(), filter.ipSearchType),
       );
     } else if (filter instanceof IpStringifyExpression) {
       return this.makeExpressionFilter(filter.operand.ipStringify());

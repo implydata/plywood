@@ -23,6 +23,7 @@ import { External } from '../external/baseExternal';
 import { DatasetFullType, FullType, PlyType } from '../types';
 
 import { Dataset, Datum } from './dataset';
+import { Ip } from './ip';
 import { NumberRange } from './numberRange';
 import { Set } from './set';
 import { StringRange } from './stringRange';
@@ -35,6 +36,8 @@ export function getValueType(value: any): PlyType {
       return 'NULL';
     } else if (isDate(value)) {
       return 'TIME';
+    } else if (hasOwnProp(value, 'ip') && Ip.isIp(value.ip)) {
+      return 'IP';
     } else if (hasOwnProp(value, 'start') && hasOwnProp(value, 'end')) {
       if (isDate(value.start) || isDate(value.end)) return 'TIME_RANGE';
       if (typeof value.start === 'number' || typeof value.end === 'number') return 'NUMBER_RANGE';
@@ -119,6 +122,9 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
 
         case 'STRING_RANGE':
           return StringRange.fromJS(v);
+
+        case 'IP':
+          return Ip.fromJS(v);
 
         case 'TIME':
           return timeFromJS(v);
