@@ -50,7 +50,7 @@ export class IpMatchExpression extends ChainableExpression {
   public equals(other: IpMatchExpression | undefined): boolean {
     return (
       super.equals(other) &&
-      this.ipToSearch === other.ipToSearch &&
+      this.ipToSearch?.ip === other.ipToSearch?.ip &&
       this.ipSearchType === other.ipSearchType
     );
   }
