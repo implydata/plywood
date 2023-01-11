@@ -61,7 +61,7 @@ export class SqlRefExpression extends Expression {
   }
 
   public toString(): string {
-    return `s$\{${this.sql}, ${this.type}`;
+    return `s$\{${this.sql}, ${this.type}\}`;
   }
 
   public changeSql(sql: string): SqlRefExpression {
