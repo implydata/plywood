@@ -188,11 +188,17 @@ RefExpression
     { return RefExpression.parse(name); }
 
 SqlRefExpression
-  = "s$" sql:SqlBody
-    { return new SqlRefExpression({ sql: sql }); }
+  = "s$" sqlRef:SqlRefObject
+    { return new SqlRefExpression(sqlRef); }
 
-SqlBody
-  = "{" sql:$([^}]+) "}" { return sql; }
+SqlRefObject
+  = "{" sql:$([^}]+) "}" type:(":" TypeName)? {
+    if (type) {
+      return { sql: sql, type: type[1] }
+    }
+
+    return { sql: sql }
+  }
 
 LiteralExpression
   = value:(NullToken / FalseToken / TrueToken) { return r(value); }
