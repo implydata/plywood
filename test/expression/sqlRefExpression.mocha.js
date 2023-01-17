@@ -29,7 +29,7 @@ describe('SqlRefExpression', () => {
       type: 'IP',
     });
 
-    expect(sqlRefExpression.toString()).to.equal('s${t."ip", IP}');
+    expect(sqlRefExpression.toString()).to.equal('s${t."ip"}:IP');
   });
 
   it('.toString should work without type', () => {
@@ -38,6 +38,6 @@ describe('SqlRefExpression', () => {
       sql: `t.\"ip\"`,
     });
 
-    expect(sqlRefExpression.toString()).to.equal('s${t."ip", undefined}');
+    expect(sqlRefExpression.toString()).to.equal('s${t."ip"}');
   });
 });

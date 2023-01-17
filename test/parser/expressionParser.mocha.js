@@ -237,6 +237,13 @@ describe('expression parser', () => {
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
 
+    it('should work with SQL with type', () => {
+      const ex1 = Expression.parse('s${SUBSTR(A, 1, 2)}:IP');
+      const ex2 = s$(`SUBSTR(A, 1, 2)`, 'IP');
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS());
+    });
+
     it('should handle --', () => {
       const ex1 = Expression.parse('$x--3');
       const ex2 = $('x').subtract(-3);
@@ -254,6 +261,13 @@ describe('expression parser', () => {
     it('should work with lots of keywords 2', () => {
       const ex1 = Expression.parse('true and $y and true and $z');
       const ex2 = r(true).and($('y'), r(true), $('z'));
+
+      expect(ex1.toJS()).to.deep.equal(ex2.toJS());
+    });
+
+    it('should work with type', () => {
+      const ex1 = Expression.parse('${ipThing}:IP');
+      const ex2 = $(`ipThing`, 'IP');
 
       expect(ex1.toJS()).to.deep.equal(ex2.toJS());
     });
