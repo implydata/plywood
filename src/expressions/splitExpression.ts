@@ -34,6 +34,7 @@ import {
   SubstitutionFn,
 } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
+import { SqlRefExpression } from './sqlRefExpression';
 
 export class SplitExpression extends ChainableExpression implements Aggregate {
   static op = 'Split';
@@ -200,7 +201,11 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
 
   public getSelectSQL(dialect: SQLDialect): string[] {
     return this.mapSplits((name, expression) => {
-      if (['IP', 'SET/IP'].includes(expression.type)) {
+      if (
+        expression instanceof SqlRefExpression &&
+        ['IP', 'SET/IP'].includes(expression.type) &&
+        !(expression.sql.includes('IP_SEARCH') || expression.sql.includes('IP_MATCH'))
+      ) {
         return `${dialect.ipStringifyExpression(
           expression.getSQL(dialect),
         )} AS ${dialect.escapeName(name)}`;
