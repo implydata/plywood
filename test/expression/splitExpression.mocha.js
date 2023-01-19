@@ -61,21 +61,21 @@ describe('SplitExpression', () => {
   describe('getSelectSql', () => {
     it('should not add IP_STRINGIFY to IP_MATCH expression', () => {
       const splitExpression = Expression._.split({
-        ip: s$(`IP_MATCH('192', IP_PARSE(IP_STRINGIFY("t"."net_dst")))`, 'IP'),
+        ip: s$(`IP_MATCH('192', "t"."net_dst")`, 'IP'),
       });
 
       expect(splitExpression.getSelectSQL(dialect)[0]).to.equal(
-        `(IP_MATCH('192', IP_PARSE(IP_STRINGIFY("t"."net_dst")))) AS "ip"`,
+        `(IP_MATCH('192', "t"."net_dst")) AS "ip"`,
       );
     });
 
     it('should not add IP_STRINGIFY to IP_SEARCH expression', () => {
       const splitExpression = Expression._.split({
-        ip: s$(`IP_SEARCH('192', IP_PREFIX_PARSE(IP_STRINGIFY("t"."net_dst")))`, 'IP'),
+        ip: s$(`IP_SEARCH('192', "t"."net_dst")`, 'IP'),
       });
 
       expect(splitExpression.getSelectSQL(dialect)[0]).to.equal(
-        `(IP_SEARCH('192', IP_PREFIX_PARSE(IP_STRINGIFY("t"."net_dst")))) AS "ip"`,
+        `(IP_SEARCH('192', "t"."net_dst")) AS "ip"`,
       );
     });
 
