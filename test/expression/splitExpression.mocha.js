@@ -88,5 +88,25 @@ describe('SplitExpression', () => {
         `IP_STRINGIFY(("t"."net_dst")) AS "ip"`,
       );
     });
+
+    it('should add IP_STRINGIFY to ip expression if the column name is ip_match', () => {
+      const splitExpression = Expression._.split({
+        ip: s$(`"t"."ip_match"`, 'IP'),
+      });
+
+      expect(splitExpression.getSelectSQL(dialect)[0]).to.equal(
+        `IP_STRINGIFY(("t"."ip_match")) AS "ip"`,
+      );
+    });
+
+    it('should add IP_STRINGIFY to ip expression if the column name is ip_search', () => {
+      const splitExpression = Expression._.split({
+        ip: s$(`"t"."ip_search"`, 'IP'),
+      });
+
+      expect(splitExpression.getSelectSQL(dialect)[0]).to.equal(
+        `IP_STRINGIFY(("t"."ip_search")) AS "ip"`,
+      );
+    });
   });
 });
