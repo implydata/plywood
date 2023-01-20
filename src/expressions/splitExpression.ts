@@ -204,7 +204,6 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
       if (
         expression instanceof SqlRefExpression &&
         ['IP', 'SET/IP'].includes(expression.type) &&
-        // Should not add IP_STRINGIFY around
         !expression.sql.match(/ip_search\(|ip_match\(/gi)?.length
       ) {
         return `${dialect.ipStringifyExpression(
