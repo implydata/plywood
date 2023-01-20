@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
-export * from './concurrentLimitRequester';
-export * from './containsSqlFunction';
-export * from './promiseWhile';
-export * from './retryRequester';
-export * from './utils';
-export * from './verboseRequester';
+import { SqlFunction } from 'druid-query-toolkit';
+
+import { SqlRefExpression } from '../expressions';
+
+export function containsSqlFunction(
+  expression: SqlRefExpression,
+  functionNames: string[],
+): boolean {
+  const lowerCaseFunctionNames = functionNames.map(functionName => functionName.toLowerCase());
+
+  return (
+    expression.parsedSql.type === 'function' &&
+    lowerCaseFunctionNames.includes(
+      (expression.parsedSql as SqlFunction).functionName.toLowerCase(),
+    )
+  );
+}
