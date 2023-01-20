@@ -19,6 +19,7 @@ import { immutableLookupsEqual } from 'immutable-class';
 
 import { Dataset, Datum, PlywoodValue, Set } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
+import { containsSqlFunction } from '../helper';
 import { DatasetFullType, FullType } from '../types';
 
 import {
@@ -34,6 +35,7 @@ import {
   SubstitutionFn,
 } from './baseExpression';
 import { Aggregate } from './mixins/aggregate';
+import { SqlRefExpression } from './sqlRefExpression';
 
 export class SplitExpression extends ChainableExpression implements Aggregate {
   static op = 'Split';
@@ -200,7 +202,11 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
 
   public getSelectSQL(dialect: SQLDialect): string[] {
     return this.mapSplits((name, expression) => {
-      if (['IP', 'SET/IP'].includes(expression.type)) {
+      if (
+        expression instanceof SqlRefExpression &&
+        ['IP', 'SET/IP'].includes(expression.type) &&
+        !containsSqlFunction(expression, ['ip_search', 'ip_match'])
+      ) {
         return `${dialect.ipStringifyExpression(
           expression.getSQL(dialect),
         )} AS ${dialect.escapeName(name)}`;

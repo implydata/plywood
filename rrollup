@@ -11,6 +11,7 @@ cat \
   build/helper/verboseRequester.js \
   build/helper/retryRequester.js \
   build/helper/concurrentLimitRequester.js \
+  build/helper/containsSqlFunction.js \
   build/helper/promiseWhile.js \
   build/helper/streamBasics.js \
   build/helper/streamConcat.js \
