@@ -39,6 +39,6 @@ describe('containsSqlFunction', () => {
   it('should be case insensitive', () => {
     expect(
       containsSqlFunction(s$(`ip_search('192', "t"."net_dst")`, 'IP'), ['IP_SEARCH']),
-    ).to.equal(false);
+    ).to.equal(true);
   });
 });
