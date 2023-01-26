@@ -21,29 +21,28 @@ const plywood = require('../plywood');
 
 const { Expression } = plywood;
 
-describe('MvOverlapExpression', () => {
+describe('MvContainsExpression', () => {
   describe('_calcChainableHelper', () => {
     it('works with single string', () => {
-      const mvOverlapExpression = Expression._.mvOverlap([
+      const mvContainsExpression = Expression._.mvContains([
         'thing',
         'otherThing',
         'otherOtherThing',
       ]);
 
-      expect(mvOverlapExpression._calcChainableHelper('thing')).to.equal(true);
-      expect(mvOverlapExpression._calcChainableHelper('not a thing')).to.equal(false);
+      expect(mvContainsExpression._calcChainableHelper('thing')).to.equal(true);
+      expect(mvContainsExpression._calcChainableHelper('not a thing')).to.equal(false);
     });
 
     it('works with array of strings', () => {
-      const mvOverlapExpression = Expression._.mvOverlap([
+      const mvContainsExpression = Expression._.mvContains([
         'thing',
         'otherThing',
         'otherOtherThing',
       ]);
 
-      expect(mvOverlapExpression._calcChainableHelper(['thing', 'otherThing'])).to.equal(true);
-      expect(mvOverlapExpression._calcChainableHelper(['not a thing'])).to.equal(false);
-      expect(mvOverlapExpression._calcChainableHelper(['thing', 'not a thing'])).to.equal(true);
+      expect(mvContainsExpression._calcChainableHelper(['thing', 'otherThing'])).to.equal(true);
+      expect(mvContainsExpression._calcChainableHelper(['thing', 'not a thing'])).to.equal(false);
     });
   });
 });

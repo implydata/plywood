@@ -66,7 +66,7 @@ export class MvContainsExpression extends ChainableExpression {
         : Array.isArray(operandValue)
         ? [...operandValue]
         : [];
-    return this.mvArray.some(element => operandArray.includes(element));
+    return operandArray.every(element => this.mvArray.includes(element));
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {

@@ -66,7 +66,7 @@ export class MvOverlapExpression extends ChainableExpression {
         : Array.isArray(operandValue)
         ? [...operandValue]
         : null;
-    return operandArray !== null && operandArray.every(element => this.mvArray.includes(element));
+    return operandArray !== null && operandArray.some(element => this.mvArray.includes(element));
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
