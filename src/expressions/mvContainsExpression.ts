@@ -64,7 +64,7 @@ export class MvContainsExpression extends ChainableExpression {
       typeof operandValue === 'string'
         ? [operandValue]
         : Array.isArray(operandValue)
-        ? [...operandValue]
+        ? operandValue
         : [];
     return operandArray.every(element => this.mvArray.includes(element));
   }

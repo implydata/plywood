@@ -64,7 +64,7 @@ export class MvOverlapExpression extends ChainableExpression {
       typeof operandValue === 'string'
         ? [operandValue]
         : Array.isArray(operandValue)
-        ? [...operandValue]
+        ? operandValue
         : null;
     return operandArray !== null && operandArray.some(element => this.mvArray.includes(element));
   }
