@@ -16,6 +16,7 @@
 
 import { generalArraysEqual } from 'immutable-class';
 
+import { PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/baseDialect';
 
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
@@ -56,6 +57,16 @@ export class MvContainsExpression extends ChainableExpression {
 
   protected _toStringParameters(_indent?: int): string[] {
     return this.mvArray;
+  }
+
+  protected _calcChainableHelper(operandValue: any): PlywoodValue {
+    const operandArray =
+      typeof operandValue === 'string'
+        ? [operandValue]
+        : Array.isArray(operandValue)
+        ? operandValue
+        : [];
+    return operandArray.every(element => this.mvArray.includes(element));
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
