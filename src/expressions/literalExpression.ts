@@ -131,6 +131,7 @@ export class LiteralExpression extends Expression {
       case 'SET/NUMBER':
       case 'SET/NUMBER_RANGE':
       case 'SET/TIME_RANGE':
+      case 'SET/BOOLEAN':
         return '<DUMMY>';
 
       default:

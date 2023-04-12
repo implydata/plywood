@@ -302,6 +302,48 @@ describe('simulate DruidSql', () => {
     ]);
   });
 
+  it('works with overlap SET/BOOLEAN', () => {
+    const ex = ply().apply(
+      'Tags',
+      $('diamonds')
+        .filter(s$('t.isNice').overlap([true, false]))
+        .split(s$('t.tags'), 'Tag')
+        .apply('count', $('diamonds').count())
+        .sort('$count', 'descending')
+        .limit(10)
+        .select('Tag', 'count'),
+    );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+        filter: $('time').overlap({
+          start: new Date('2015-03-12T00:00:00Z'),
+          end: new Date('2015-03-19T00:00:00Z'),
+        }),
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
+          query:
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND (((t.isNice)=TRUE) OR ((t.isNice)=FALSE)))\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+        },
+      ],
+    ]);
+  });
+
   it('works with mvOverlapExpression', () => {
     const ex = ply()
       .apply('diamonds', $('diamonds'))
