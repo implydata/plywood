@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.30.6
+
+- Make casting more robust
+
 ## 0.30.5
 
 - Fix .overlap(SET/BOOLEAN)
