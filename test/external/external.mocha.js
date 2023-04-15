@@ -639,6 +639,7 @@ describe('External', () => {
 
     describe('with BOOLEAN plytype', () => {
       const inflater = External.getSimpleInflater('BOOLEAN', label);
+
       it('and a true value', () => {
         expectValueToInflate(inflater, true);
       });
@@ -675,8 +676,8 @@ describe('External', () => {
         expectValueToInflate(inflater, '1', true);
       });
 
-      it('and an unrecognized invalid value', () => {
-        expect(() => inflater({ [label]: 'not a boolean' })).to.throw();
+      it('and an unrecognized value', () => {
+        expectValueToInflate(inflater, 'not a boolean', false);
       });
     });
 

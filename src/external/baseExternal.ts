@@ -543,14 +543,14 @@ export abstract class External {
           d[label] = null;
           break;
 
-        case '0':
-        case 'false':
-          d[label] = false;
+        case '1':
+        case 'true':
+          d[label] = true;
           break;
 
         default:
-          // '1', 'true', everything else
-          d[label] = true;
+          // '0', 'false', everything else
+          d[label] = false;
           break;
       }
     };

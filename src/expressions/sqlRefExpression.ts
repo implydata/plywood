@@ -83,10 +83,13 @@ export class SqlRefExpression extends Expression {
 
   public getSQL(dialect: SQLDialect, _minimal = false): string {
     if (this.type) {
-      return dialect.castExpression('NULL', this.sql, this.type as PlyTypeSimple);
-    } else {
-      return `(${this.sql})`;
+      try {
+        return dialect.castExpression(undefined, this.sql, this.type as PlyTypeSimple);
+      } catch {
+        // Ignore error and fall though to just return the sql
+      }
     }
+    return `(${this.sql})`;
   }
 
   public equals(other: SqlRefExpression | undefined): boolean {
