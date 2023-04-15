@@ -65,6 +65,7 @@ export class DruidDialect extends SQLDialect {
     YEAR: "TIME_EXTRACT($$,'YEAR',##)",
   };
 
+  // Recorded as TO: FROM: FN
   static CAST_TO_FUNCTION: Record<string, Record<string, string>> = {
     TIME: {
       NUMBER: 'MILLIS_TO_TIMESTAMP(CAST($$ AS BIGINT))',
@@ -78,6 +79,11 @@ export class DruidDialect extends SQLDialect {
     STRING: {
       NUMBER: 'CAST($$ AS VARCHAR)',
       _: 'CAST($$ AS VARCHAR)',
+    },
+    BOOLEAN: {
+      NUMBER: '($$ = 1)',
+      STRING: `($$ = 'true')`,
+      _: `(CAST($$ AS VARCHAR) IN ('1','true'))`,
     },
   };
 

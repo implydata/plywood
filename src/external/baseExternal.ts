@@ -548,13 +548,10 @@ export abstract class External {
           d[label] = false;
           break;
 
-        case '1':
-        case 'true':
+        default:
+          // '1', 'true', everything else
           d[label] = true;
           break;
-
-        default:
-          throw new Error('got strange result from boolean: ' + v);
       }
     };
   }

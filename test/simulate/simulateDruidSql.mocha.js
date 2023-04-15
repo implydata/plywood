@@ -429,7 +429,7 @@ describe('simulate DruidSql', () => {
       .apply(
         'Tags',
         $('diamonds')
-          .split(s$('t.tags'), 'Tag')
+          .split(s$('t.tags', 'NUMBER'), 'Tag')
           .apply('count', $('diamonds').count())
           .sort('$count', 'descending')
           .limit(10)
@@ -456,7 +456,7 @@ describe('simulate DruidSql', () => {
             sqlTimeZone: 'Etc/UTC',
           },
           query:
-            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE ("color"=\'blue\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\nCAST(t.tags AS DOUBLE) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE ("color"=\'blue\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);

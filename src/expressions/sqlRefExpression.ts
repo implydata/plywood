@@ -18,6 +18,7 @@ import { SqlExpression } from 'druid-query-toolkit';
 
 import { ComputeFn, Datum, PlywoodValue } from '../datatypes/index';
 import { SQLDialect } from '../dialect/index';
+import { PlyTypeSimple } from '../types';
 
 import { Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
@@ -81,7 +82,11 @@ export class SqlRefExpression extends Expression {
   }
 
   public getSQL(dialect: SQLDialect, _minimal = false): string {
-    return `(${this.sql})`;
+    if (this.type) {
+      return dialect.castExpression('NULL', this.sql, this.type as PlyTypeSimple);
+    } else {
+      return `(${this.sql})`;
+    }
   }
 
   public equals(other: SqlRefExpression | undefined): boolean {
