@@ -69,7 +69,7 @@ export class DruidDialect extends SQLDialect {
   static CAST_TO_FUNCTION: Record<string, Record<string, string>> = {
     TIME: {
       NUMBER: 'MILLIS_TO_TIMESTAMP(CAST($$ AS BIGINT))',
-      _: 'CAST($$ AS DATE)',
+      _: 'CAST($$ AS TIMESTAMP)',
     },
     NUMBER: {
       TIME: 'CAST($$ AS BIGINT)',

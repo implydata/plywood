@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.30.7
+
+- Fix cast target
+
 ## 0.30.6
 
 - Make casting more robust
