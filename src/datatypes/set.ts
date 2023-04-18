@@ -75,7 +75,9 @@ export class Set implements Instance<SetValue, SetJS> {
           delete newElements[newElementsKey];
         }
       }
-      newElements[accumulator.toString()] = accumulator;
+      if (accumulator) {
+        newElements[accumulator.toString()] = accumulator;
+      }
     }
     const newElementsKeys = Object.keys(newElements);
     return newElementsKeys.length < elements.length
