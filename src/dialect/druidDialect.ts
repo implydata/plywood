@@ -177,13 +177,18 @@ export class DruidDialect extends SQLDialect {
     return `(${a}=${b})`;
   }
 
-  public castExpression(inputType: PlyType | undefined, operand: string, cast: string): string {
-    if (inputType === cast) return operand;
-    const castForInput = DruidDialect.CAST_TO_FUNCTION[cast];
+  public castExpression(
+    inputType: PlyType | undefined,
+    operand: string,
+    targetType: string,
+  ): string {
+    if (targetType === 'SET/STRING') targetType = 'STRING'; // In Druid actually everything is a STRING
+    if (inputType === targetType) return operand;
+    const castForInput = DruidDialect.CAST_TO_FUNCTION[targetType];
     const castFunction = castForInput[inputType || '_'] || castForInput['_'];
     if (!castFunction) {
       throw new Error(
-        `unsupported cast from ${inputType || 'unknown'} to ${cast} in Druid dialect`,
+        `unsupported cast from ${inputType || 'unknown'} to ${targetType} in Druid dialect`,
       );
     }
     return castFunction.replace(/\$\$/g, operand);

@@ -113,10 +113,11 @@ export class MySQLDialect extends SQLDialect {
     return `(${a}<=>${b})`;
   }
 
-  public castExpression(inputType: PlyType, operand: string, cast: string): string {
-    const castFunction = MySQLDialect.CAST_TO_FUNCTION[cast][inputType];
-    if (!castFunction)
-      throw new Error(`unsupported cast from ${inputType} to ${cast} in MySQL dialect`);
+  public castExpression(inputType: PlyType, operand: string, targetType: string): string {
+    const castFunction = MySQLDialect.CAST_TO_FUNCTION[targetType][inputType];
+    if (!castFunction) {
+      throw new Error(`unsupported cast from ${inputType} to ${targetType} in MySQL dialect`);
+    }
     return castFunction.replace(/\$\$/g, operand);
   }
 

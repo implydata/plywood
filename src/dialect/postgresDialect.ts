@@ -112,10 +112,11 @@ export class PostgresDialect extends SQLDialect {
     return `(${expression} ~ '${regexp}')`; // ToDo: escape this.regexp
   }
 
-  public castExpression(inputType: PlyType, operand: string, cast: string): string {
-    const castFunction = PostgresDialect.CAST_TO_FUNCTION[cast][inputType];
-    if (!castFunction)
-      throw new Error(`unsupported cast from ${inputType} to ${cast} in Postgres dialect`);
+  public castExpression(inputType: PlyType, operand: string, targetType: string): string {
+    const castFunction = PostgresDialect.CAST_TO_FUNCTION[targetType][inputType];
+    if (!castFunction) {
+      throw new Error(`unsupported cast from ${inputType} to ${targetType} in Postgres dialect`);
+    }
     return castFunction.replace(/\$\$/g, operand);
   }
 

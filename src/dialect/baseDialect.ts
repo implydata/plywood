@@ -182,7 +182,11 @@ export abstract class SQLDialect {
     }
   }
 
-  public abstract castExpression(inputType: PlyType, operand: string, cast: PlyTypeSimple): string;
+  public abstract castExpression(
+    inputType: PlyType,
+    operand: string,
+    targetType: PlyTypeSimple,
+  ): string;
 
   public lengthExpression(a: string): string {
     return `CHAR_LENGTH(${a})`;
