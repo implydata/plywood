@@ -72,9 +72,8 @@ export class DruidDialect extends SQLDialect {
       _: 'CAST($$ AS TIMESTAMP)',
     },
     NUMBER: {
-      TIME: 'CAST($$ AS BIGINT)',
-      STRING: 'CAST($$ AS DOUBLE)',
-      _: 'CAST($$ AS DOUBLE)',
+      TIME: 'NVL(CAST($$ AS BIGINT), 0)',
+      _: 'NVL(CAST($$ AS DOUBLE), 0)',
     },
     STRING: {
       NUMBER: 'CAST($$ AS VARCHAR)',
