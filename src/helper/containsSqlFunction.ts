@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { SqlFunction } from 'druid-query-toolkit';
+import { SqlFunction } from '@druid-toolkit/query';
 
 import { SqlRefExpression } from '../expressions';
 
@@ -27,7 +27,7 @@ export function containsSqlFunction(
   return (
     expression.parsedSql.type === 'function' &&
     lowerCaseFunctionNames.includes(
-      (expression.parsedSql as SqlFunction).functionName.toLowerCase(),
+      (expression.parsedSql as SqlFunction).getEffectiveFunctionName().toLowerCase(),
     )
   );
 }
