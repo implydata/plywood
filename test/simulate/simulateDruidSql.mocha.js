@@ -456,7 +456,7 @@ describe('simulate DruidSql', () => {
             sqlTimeZone: 'Etc/UTC',
           },
           query:
-            'SELECT\nNVL(CAST(t.tags AS DOUBLE), 0) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE ("color"=\'blue\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\nCAST(t.tags AS DOUBLE) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE ("color"=\'blue\')\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
