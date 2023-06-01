@@ -27,7 +27,7 @@ export function containsSqlFunction(
   return (
     expression.parsedSql.type === 'function' &&
     lowerCaseFunctionNames.includes(
-      (expression.parsedSql as SqlFunction).functionName.toString().toLowerCase(),
+      (expression.parsedSql as SqlFunction).getEffectiveFunctionName().toLowerCase(),
     )
   );
 }
