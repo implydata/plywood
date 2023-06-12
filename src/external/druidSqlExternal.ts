@@ -177,16 +177,16 @@ export class DruidSQLExternal extends SQLExternal {
       queryPayload.context = this.context;
 
       // Query for sample also
-      const queryResult = await toArray(
+      const rawResult = await toArray(
         this.requester({
           query: queryPayload,
         }),
       );
 
-      const limit0Result = QueryResult.fromRawResult(queryResult);
+      const queryResult = QueryResult.fromRawResult(rawResult);
 
       return DruidSQLExternal.postProcessIntrospect(
-        Introspect.decodeLimit0QueryColumnIntrospectionResult(limit0Result),
+        Introspect.decodeLimit0QueryColumnIntrospectionResult(queryResult),
       );
     } else {
       let table: string;
