@@ -172,25 +172,21 @@ export class DruidSQLExternal extends SQLExternal {
       } catch (e) {
         throw new Error(`could not parse withQuery: ${e.message}`);
       }
-      const introspectQuery = Introspect.getQueryColumnIntrospectionQuery(withQueryParsed);
+
+      const queryPayload = Introspect.getLimit0QueryColumnIntrospectionQuery(withQueryParsed);
+      queryPayload.context = this.context;
 
       // Query for sample also
-      const sampleRawResult = await toArray(
+      const queryResult = await toArray(
         this.requester({
-          query: this.sqlToQuery(String(Introspect.getQueryColumnSampleQuery(withQueryParsed))),
+          query: queryPayload,
         }),
       );
 
-      const sampleResult = QueryResult.fromRawResult(sampleRawResult);
-
-      const query = this.sqlToQuery(String(introspectQuery));
-
-      const result = await toArray(this.requester({ query }));
-
-      const queryResult = QueryResult.fromRawResult(result).attachQuery(query, introspectQuery);
+      const limit0Result = QueryResult.fromRawResult(queryResult);
 
       return DruidSQLExternal.postProcessIntrospect(
-        Introspect.decodeColumnIntrospectionResult(queryResult, sampleResult),
+        Introspect.decodeLimit0QueryColumnIntrospectionResult(limit0Result),
       );
     } else {
       let table: string;
