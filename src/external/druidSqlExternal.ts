@@ -173,7 +173,7 @@ export class DruidSQLExternal extends SQLExternal {
         throw new Error(`could not parse withQuery: ${e.message}`);
       }
 
-      const queryPayload = Introspect.getLimit0QueryColumnIntrospectionQuery(withQueryParsed);
+      const queryPayload = Introspect.Limit0QueryColumnIntrospectionPayload(withQueryParsed);
       queryPayload.context = this.context;
 
       // Query for sample also
@@ -183,7 +183,13 @@ export class DruidSQLExternal extends SQLExternal {
         }),
       );
 
-      const queryResult = QueryResult.fromRawResult(rawResult);
+      const queryResult = QueryResult.fromRawResult(
+        rawResult,
+        true,
+        queryPayload.header,
+        queryPayload.typesHeader,
+        queryPayload.sqlTypesHeader,
+      );
 
       return DruidSQLExternal.postProcessIntrospect(
         Introspect.decodeLimit0QueryColumnIntrospectionResult(queryResult),
