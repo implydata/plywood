@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Dataset, PlywoodValue, Set } from '../datatypes/index';
+import { Dataset, PlywoodValue, Set } from '../datatypes';
 
 import {
   ChainableUnaryExpression,

@@ -18,7 +18,7 @@ import { Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
 import * as moment from 'moment-timezone';
 
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue } from '../datatypes';
 import { SQLDialect } from '../dialect/baseDialect';
 
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';

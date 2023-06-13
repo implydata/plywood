@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { AttributeInfo } from '../../datatypes/index';
+import { AttributeInfo } from '../../datatypes';
 import { Expression } from '../../expressions';
 
 import { DruidFilterBuilder } from './druidFilterBuilder';

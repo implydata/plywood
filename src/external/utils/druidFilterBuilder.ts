@@ -17,14 +17,7 @@
 import { isDate } from 'chronoshift';
 import { NamedArray } from 'immutable-class';
 
-import {
-  AttributeInfo,
-  NumberRange,
-  PlywoodRange,
-  Range,
-  Set,
-  TimeRange,
-} from '../../datatypes/index';
+import { AttributeInfo, NumberRange, PlywoodRange, Range, Set, TimeRange } from '../../datatypes';
 import {
   AndExpression,
   ContainsExpression,

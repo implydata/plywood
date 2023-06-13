@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { NumberRange, PlywoodValue, Range, Set, StringRange, TimeRange } from '../datatypes/index';
+import { NumberRange, PlywoodValue, Range, Set, StringRange, TimeRange } from '../datatypes';
 import { SQLDialect } from '../dialect/baseDialect';
 
 import {
