@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { PlywoodValue, Set } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes';
 import { Range } from '../datatypes/range';
 import { SQLDialect } from '../dialect/baseDialect';
 

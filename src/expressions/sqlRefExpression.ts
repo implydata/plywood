@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { SqlExpression } from 'druid-query-toolkit';
+import { SqlExpression, SqlFunction } from 'druid-query-toolkit';
 
-import { ComputeFn, Datum, PlywoodValue } from '../datatypes/index';
-import { SQLDialect } from '../dialect/index';
+import { ComputeFn, Datum, PlywoodValue } from '../datatypes';
+import { SQLDialect } from '../dialect';
 import { PlyTypeSimple } from '../types';
 
 import { Expression, ExpressionJS, ExpressionValue } from './baseExpression';
@@ -94,6 +94,16 @@ export class SqlRefExpression extends Expression {
 
   public equals(other: SqlRefExpression | undefined): boolean {
     return super.equals(other) && this.sql === other.sql;
+  }
+
+  public isSqlFunction(...functionNames: string[]): boolean {
+    const upperCaseFunctionNames = functionNames.map(functionName => functionName.toUpperCase());
+    const { parsedSql } = this;
+
+    return (
+      parsedSql instanceof SqlFunction &&
+      upperCaseFunctionNames.includes(parsedSql.getEffectiveFunctionName())
+    );
   }
 }
 
