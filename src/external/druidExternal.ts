@@ -29,7 +29,7 @@ import {
   Range,
   Set,
   TimeRange,
-} from '../datatypes/index';
+} from '../datatypes';
 import {
   $,
   ApplyExpression,
@@ -56,7 +56,7 @@ import {
   TimeBucketExpression,
   TimeFloorExpression,
   TimePartExpression,
-} from '../expressions/index';
+} from '../expressions';
 import { dictEqual, ExtendableError, nonEmptyLookup, shallowCopy } from '../helper/utils';
 
 import {

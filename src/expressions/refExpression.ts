@@ -18,9 +18,9 @@
 import * as hasOwnProp from 'has-own-prop';
 import { SimpleArray } from 'immutable-class';
 
-import { ComputeFn, Datum, PlywoodValue } from '../datatypes/index';
-import { SQLDialect } from '../dialect/index';
-import { repeat } from '../helper/index';
+import { ComputeFn, Datum, PlywoodValue } from '../datatypes';
+import { SQLDialect } from '../dialect';
+import { repeat } from '../helper';
 import { DatasetFullType, PlyType } from '../types';
 
 import { Expression, ExpressionJS, ExpressionValue } from './baseExpression';

@@ -18,7 +18,7 @@
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
 
-import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes/index';
+import { AttributeInfo, Attributes, PseudoDatum } from '../datatypes';
 import { MySQLDialect } from '../dialect/mySqlDialect';
 import { PlyType } from '../types';
 

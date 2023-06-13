@@ -15,7 +15,6 @@
  */
 
 export * from './concurrentLimitRequester';
-export * from './containsSqlFunction';
 export * from './promiseWhile';
 export * from './retryRequester';
 export * from './utils';

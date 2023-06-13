@@ -16,8 +16,7 @@
 
 import { NamedArray } from 'immutable-class';
 
-import { AttributeInfo, NumberRange, Set, StringRange } from '../../datatypes';
-import { TimeRange } from '../../datatypes/index';
+import { AttributeInfo, NumberRange, Set, StringRange, TimeRange } from '../../datatypes';
 import {
   AbsoluteExpression,
   AddExpression,

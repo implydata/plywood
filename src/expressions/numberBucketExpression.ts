@@ -16,7 +16,7 @@
 
 import * as hasOwnProp from 'has-own-prop';
 
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue } from '../datatypes';
 import { NumberRange } from '../datatypes/numberRange';
 import { SQLDialect } from '../dialect/baseDialect';
 import { continuousFloorExpression } from '../helper/utils';

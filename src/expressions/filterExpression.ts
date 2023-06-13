@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Dataset, PlywoodValue } from '../datatypes/index';
+import { Dataset, PlywoodValue } from '../datatypes';
 import { SQLDialect } from '../dialect/baseDialect';
 
 import { ApplyExpression } from './applyExpression';

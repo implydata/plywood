@@ -34,13 +34,12 @@ import {
   NumberRange,
   PlywoodValue,
   PlywoodValueBuilder,
-} from '../datatypes/index';
+} from '../datatypes';
 import { Ip } from '../datatypes/ip';
 import { Set } from '../datatypes/set';
 import { StringRange } from '../datatypes/stringRange';
 import { TimeRange } from '../datatypes/timeRange';
 import { iteratorFactory, PlyBit } from '../datatypes/valueStream';
-import { ExpressionJS } from '../expressions/baseExpression';
 import {
   $,
   AndExpression,
@@ -65,7 +64,8 @@ import {
   TimeBucketExpression,
   TimeFloorExpression,
   TimeShiftExpression,
-} from '../expressions/index';
+} from '../expressions';
+import { ExpressionJS } from '../expressions/baseExpression';
 import { ReadableError } from '../helper/streamBasics';
 import { StreamConcat } from '../helper/streamConcat';
 import { nonEmptyLookup, pipeWithError, safeRange } from '../helper/utils';
