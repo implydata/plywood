@@ -17,9 +17,8 @@
 import * as hasOwnProp from 'has-own-prop';
 import { immutableLookupsEqual } from 'immutable-class';
 
-import { Dataset, Datum, PlywoodValue, Set } from '../datatypes/index';
+import { Dataset, Datum, PlywoodValue, Set } from '../datatypes';
 import { SQLDialect } from '../dialect/baseDialect';
-import { containsSqlFunction } from '../helper';
 import { DatasetFullType, FullType } from '../types';
 
 import {
@@ -205,7 +204,7 @@ export class SplitExpression extends ChainableExpression implements Aggregate {
       if (
         expression instanceof SqlRefExpression &&
         ['IP', 'SET/IP'].includes(expression.type) &&
-        !containsSqlFunction(expression, ['ip_search', 'ip_match'])
+        !expression.isSqlFunction('IP_SEARCH', 'IP_MATCH')
       ) {
         return `${dialect.ipStringifyExpression(
           expression.getSQL(dialect),

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { PlywoodValue, Set } from '../datatypes/index';
+import { PlywoodValue, Set } from '../datatypes';
 import { SQLDialect } from '../dialect/baseDialect';
 
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';

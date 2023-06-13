@@ -25,7 +25,7 @@ import {
   ExpressionExternalAlteration,
   ExternalExpression,
   LiteralExpression,
-} from '../expressions/index';
+} from '../expressions';
 import { External, TotalContainer } from '../external/baseExternal';
 import { deduplicateSort } from '../helper';
 import { DatasetFullType, FullType, PlyType } from '../types';

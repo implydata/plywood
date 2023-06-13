@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ColumnInfo, Introspect, QueryResult, SqlColumn, SqlQuery } from 'druid-query-toolkit';
+import { Column, Introspect, QueryResult, SqlColumn, SqlQuery } from 'druid-query-toolkit';
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
 
@@ -43,52 +43,54 @@ export class DruidSQLExternal extends SQLExternal {
     return new DruidSQLExternal(value);
   }
 
-  static postProcessIntrospect(columns: ColumnInfo[]): Attributes {
-    return columns
-      .map((column: ColumnInfo) => {
-        const name = column.name;
-        let type: PlyType;
-        const nativeType = column.type;
-        switch (nativeType) {
-          case 'TIMESTAMP':
-          case 'DATE':
-            type = 'TIME';
-            break;
+  static postProcessIntrospect(columns: Column[]): Attributes {
+    return columns.map(column => {
+      const name = column.name;
+      const effectiveType =
+        column.sqlType === 'TIMESTAMP' || column.sqlType === 'BOOLEAN'
+          ? column.sqlType
+          : column.nativeType;
 
-          case 'ipAddress':
-          case 'ipPrefix':
-            type = 'IP';
-            break;
+      let type: PlyType;
+      switch (String(effectiveType).toUpperCase()) {
+        case 'TIMESTAMP':
+        case 'DATE':
+          type = 'TIME';
+          break;
 
-          case 'VARCHAR':
-          case 'STRING':
-            type = 'STRING';
-            break;
+        case 'IPADDRESS':
+        case 'IPPREFIX':
+          type = 'IP';
+          break;
 
-          case 'DOUBLE':
-          case 'FLOAT':
-          case 'BIGINT':
-          case 'LONG':
-            type = 'NUMBER';
-            break;
+        case 'VARCHAR':
+        case 'STRING':
+          type = 'STRING';
+          break;
 
-          case 'BOOLEAN':
-            type = 'BOOLEAN';
-            break;
+        case 'DOUBLE':
+        case 'FLOAT':
+        case 'BIGINT':
+        case 'LONG':
+          type = 'NUMBER';
+          break;
 
-          default:
-            // OTHER
-            type = 'NULL';
-            break;
-        }
+        case 'BOOLEAN':
+          type = 'BOOLEAN';
+          break;
 
-        return new AttributeInfo({
-          name,
-          type,
-          nativeType,
-        });
-      })
-      .filter(Boolean);
+        default:
+          // OTHER
+          type = 'NULL';
+          break;
+      }
+
+      return new AttributeInfo({
+        name,
+        type,
+        nativeType: effectiveType,
+      });
+    });
   }
 
   static async getSourceList(requester: PlywoodRequester<any>): Promise<string[]> {
@@ -173,13 +175,16 @@ export class DruidSQLExternal extends SQLExternal {
         throw new Error(`could not parse withQuery: ${e.message}`);
       }
 
-      const queryPayload = Introspect.Limit0QueryColumnIntrospectionPayload(withQueryParsed);
-      queryPayload.context = this.context;
+      const queryPayload = Introspect.getQueryColumnIntrospectionPayload(withQueryParsed);
 
       // Query for sample also
       const rawResult = await toArray(
         this.requester({
-          query: queryPayload,
+          query: {
+            ...queryPayload,
+            resultFormat: 'array',
+            context: this.context,
+          },
         }),
       );
 
@@ -192,7 +197,7 @@ export class DruidSQLExternal extends SQLExternal {
       );
 
       return DruidSQLExternal.postProcessIntrospect(
-        Introspect.decodeLimit0QueryColumnIntrospectionResult(queryResult),
+        Introspect.decodeQueryColumnIntrospectionResult(queryResult),
       );
     } else {
       let table: string;

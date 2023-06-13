@@ -26,7 +26,7 @@ import {
   FilterExpression,
   SortExpression,
   SplitExpression,
-} from '../expressions/index';
+} from '../expressions';
 
 import {
   External,

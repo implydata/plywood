@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ComputeFn, Dataset, Datum, PlywoodValue } from '../datatypes/index';
+import { ComputeFn, Dataset, Datum, PlywoodValue } from '../datatypes';
 import { SQLDialect } from '../dialect/baseDialect';
 import { External } from '../external/baseExternal';
 import { DatasetFullType } from '../types';

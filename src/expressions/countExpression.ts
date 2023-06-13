@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Dataset, Datum, PlywoodValue } from '../datatypes/index';
+import { Dataset, Datum, PlywoodValue } from '../datatypes';
 import { SQLDialect } from '../dialect/baseDialect';
 
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';

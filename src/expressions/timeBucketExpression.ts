@@ -17,7 +17,7 @@
 import { Duration, Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
 
-import { PlywoodValue } from '../datatypes/index';
+import { PlywoodValue } from '../datatypes';
 import { TimeRange } from '../datatypes/timeRange';
 import { SQLDialect } from '../dialect/baseDialect';
 

@@ -17,7 +17,7 @@
 import * as hasOwnProp from 'has-own-prop';
 import { NamedArray } from 'immutable-class';
 
-import { AttributeInfo } from '../../datatypes/index';
+import { AttributeInfo } from '../../datatypes';
 import {
   $,
   AddExpression,

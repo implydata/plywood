@@ -22,11 +22,6 @@ import { generalLookupsEqual, Instance, isImmutableClass } from 'immutable-class
 import { PassThrough } from 'readable-stream';
 
 import {
-  failIfIntrospectNeededInDatum,
-  getFullTypeFromDatum,
-  introspectDatum,
-} from '../datatypes/common';
-import {
   ComputeFn,
   Dataset,
   DatasetExternalAlterations,
@@ -39,7 +34,12 @@ import {
   sizeOfDatasetExternalAlterations,
   StringRange,
   TimeRange,
-} from '../datatypes/index';
+} from '../datatypes';
+import {
+  failIfIntrospectNeededInDatum,
+  getFullTypeFromDatum,
+  introspectDatum,
+} from '../datatypes/common';
 import { Ip } from '../datatypes/ip';
 import { iteratorFactory, PlyBit } from '../datatypes/valueStream';
 import { SQLDialect } from '../dialect/baseDialect';

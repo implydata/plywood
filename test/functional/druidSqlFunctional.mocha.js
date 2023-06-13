@@ -64,17 +64,14 @@ describe('DruidSQL Functional', function () {
       type: 'TIME',
     },
     {
-      maker: {
-        expression: {
-          name: 'added',
-          op: 'ref',
-        },
-        op: 'sum',
-      },
-      name: 'added',
+      name: 'sometimeLater',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'sometimeLaterMs',
       nativeType: 'LONG',
       type: 'NUMBER',
-      unsplitable: true,
     },
     {
       name: 'channel',
@@ -92,6 +89,11 @@ describe('DruidSQL Functional', function () {
       type: 'STRING',
     },
     {
+      name: 'commentTerms',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
       name: 'commentLength',
       nativeType: 'LONG',
       type: 'NUMBER',
@@ -102,15 +104,6 @@ describe('DruidSQL Functional', function () {
       type: 'STRING',
     },
     {
-      maker: {
-        op: 'count',
-      },
-      name: 'count',
-      nativeType: 'LONG',
-      type: 'NUMBER',
-      unsplitable: true,
-    },
-    {
       name: 'countryIsoCode',
       nativeType: 'STRING',
       type: 'STRING',
@@ -119,6 +112,98 @@ describe('DruidSQL Functional', function () {
       name: 'countryName',
       nativeType: 'STRING',
       type: 'STRING',
+    },
+    {
+      name: 'deltaBucket100',
+      nativeType: 'FLOAT',
+      type: 'NUMBER',
+    },
+    {
+      name: 'isAnonymous',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'isMinor',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'isNew',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'isRobot',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'isUnpatrolled',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'metroCode',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'namespace',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'page',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'regionIsoCode',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'regionName',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'geohash',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'user',
+      nativeType: 'STRING',
+      type: 'STRING',
+    },
+    {
+      name: 'userChars',
+      nativeType: 'STRING',
+      type: 'SET/STRING',
+    },
+    {
+      maker: {
+        expression: {
+          name: 'added',
+          op: 'ref',
+        },
+        op: 'sum',
+      },
+      name: 'added',
+      nativeType: 'LONG',
+      type: 'NUMBER',
+      unsplitable: true,
+    },
+    {
+      maker: {
+        op: 'count',
+      },
+      name: 'count',
+      nativeType: 'LONG',
+      type: 'NUMBER',
+      unsplitable: true,
     },
     {
       maker: {
@@ -147,11 +232,6 @@ describe('DruidSQL Functional', function () {
       unsplitable: true,
     },
     {
-      name: 'deltaBucket100',
-      nativeType: 'FLOAT',
-      type: 'NUMBER',
-    },
-    {
       maker: {
         expression: {
           name: 'deltaByTen',
@@ -177,36 +257,6 @@ describe('DruidSQL Functional', function () {
       unsplitable: true,
     },
     {
-      name: 'geohash',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
-      name: 'isAnonymous',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
-      name: 'isMinor',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
-      name: 'isNew',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
-      name: 'isRobot',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
-      name: 'isUnpatrolled',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
       maker: {
         expression: {
           name: 'max_delta',
@@ -218,11 +268,6 @@ describe('DruidSQL Functional', function () {
       nativeType: 'LONG',
       type: 'NUMBER',
       unsplitable: true,
-    },
-    {
-      name: 'metroCode',
-      nativeType: 'STRING',
-      type: 'STRING',
     },
     {
       maker: {
@@ -238,50 +283,10 @@ describe('DruidSQL Functional', function () {
       unsplitable: true,
     },
     {
-      name: 'namespace',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
-      name: 'page',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
       name: 'page_unique',
       nativeType: 'hyperUnique',
       type: 'NULL',
       unsplitable: true,
-    },
-    {
-      name: 'regionIsoCode',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
-      name: 'regionName',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
-      name: 'sometimeLater',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
-      name: 'sometimeLaterMs',
-      nativeType: 'LONG',
-      type: 'NUMBER',
-    },
-    {
-      name: 'user',
-      nativeType: 'STRING',
-      type: 'STRING',
-    },
-    {
-      name: 'userChars',
-      nativeType: 'STRING',
-      type: 'SET/STRING',
     },
     {
       name: 'user_hll',
@@ -1803,7 +1808,7 @@ describe('DruidSQL Functional', function () {
       ).introspect();
 
       expect(external.version).to.equal(info.druidVersion);
-      expect(external.toJS().attributes.slice(0, 5)).to.deep.equal([
+      expect(external.toJS().attributes.slice(0, 7)).to.deep.equal([
         {
           name: 'pageLol',
           nativeType: 'STRING',
@@ -1815,7 +1820,12 @@ describe('DruidSQL Functional', function () {
           type: 'TIME',
         },
         {
-          name: 'added',
+          name: 'sometimeLater',
+          nativeType: 'STRING',
+          type: 'STRING',
+        },
+        {
+          name: 'sometimeLaterMs',
           nativeType: 'LONG',
           type: 'NUMBER',
         },
@@ -1826,6 +1836,11 @@ describe('DruidSQL Functional', function () {
         },
         {
           name: 'cityName',
+          nativeType: 'STRING',
+          type: 'STRING',
+        },
+        {
+          name: 'comment',
           nativeType: 'STRING',
           type: 'STRING',
         },
@@ -1924,17 +1939,17 @@ describe('DruidSQL Functional', function () {
         },
         {
           name: 'user_hll',
-          nativeType: 'COMPLEX',
+          nativeType: 'COMPLEX<HLLSketch>',
           type: 'NULL',
         },
         {
           name: 'user_theta',
-          nativeType: 'COMPLEX',
+          nativeType: 'COMPLEX<thetaSketch>',
           type: 'NULL',
         },
         {
           name: 'user_unique',
-          nativeType: 'COMPLEX',
+          nativeType: 'COMPLEX<hyperUnique>',
           type: 'NULL',
         },
       ]);
@@ -1987,9 +2002,9 @@ describe('DruidSQL Functional', function () {
       return basicExecutor(ex).then(result => {
         expect(result.toJS().data).to.deep.equal([
           {
-            commentLength95: 146,
+            commentLength95: 152,
             commentLengthMedian: 29,
-            deltaBucket95: 800,
+            deltaBucket95: 900,
             deltaBucketMedian: 0,
             deltaHist95: 161.95516967773438,
             deltaHistMedian: 129.01910400390625,
