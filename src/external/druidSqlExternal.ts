@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Column, Introspect, QueryResult, SqlColumn, SqlQuery } from 'druid-query-toolkit';
+import { Column, Introspect, QueryResult, SqlColumn, SqlQuery } from '@druid-toolkit/query';
 import { PlywoodRequester } from 'plywood-base-api';
 import * as toArray from 'stream-to-array';
 
