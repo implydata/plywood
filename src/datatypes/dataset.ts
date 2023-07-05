@@ -315,12 +315,17 @@ export class Dataset implements Instance<DatasetValue, DatasetJS> {
 
   static CSV_FINALIZER: Finalizer = (v: string) => {
     v = removeLineBreaks(v);
+    if (v === 'null') return '';
+    if (v === '') return `""`;
     if (v.indexOf('"') === -1 && v.indexOf(',') === -1) return v;
     return `"${v.replace(/"/g, '""')}"`;
   };
 
   static TSV_FINALIZER: Finalizer = (v: string) => {
-    return removeLineBreaks(v).replace(/\t/g, '').replace(/"/g, '""');
+    v = removeLineBreaks(v).replace(/\t/g, '');
+    if (v === 'null') return '';
+    if (v === '') return `""`;
+    return v.replace(/"/g, '""');
   };
 
   static datumToLine(
