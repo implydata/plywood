@@ -1260,7 +1260,7 @@ describe('Dataset', () => {
         expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
           w,x,y,z
           "1, 2",1,"hel,lo, mo on","Thu Feb 19 2015 16:00:00 GMT-0800 (PST), Fri Feb 20 2015 16:00:00 GMT-0800 (PST)"
-          null,2,"wo rld, mo on",stars
+          ,2,"wo rld, mo on",stars
         `);
       });
 
@@ -1279,7 +1279,7 @@ describe('Dataset', () => {
 
         expect(ds.toCSV({ lineBreak: '\n', finalLineBreak: 'suppress' })).to.equal(sane`
         letter
-        null
+
         `);
       });
 
