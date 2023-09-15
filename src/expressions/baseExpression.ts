@@ -251,6 +251,7 @@ export interface ExpressionValue {
   mvArray?: string[];
   ipToSearch?: Ip;
   ipSearchType?: string;
+  bounds?: string;
 }
 
 export interface ExpressionJS {
@@ -290,6 +291,7 @@ export interface ExpressionJS {
   mvArray?: string[];
   ipToSearch?: Ip;
   ipSearchType?: string;
+  bounds?: string;
 }
 
 export interface ExtractAndRest {

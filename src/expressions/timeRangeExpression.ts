@@ -40,12 +40,14 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
   public duration: Duration;
   public step: number;
   public timezone: Timezone;
+  public bounds: string;
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this.duration = parameters.duration;
     this.step = parameters.step || TimeRangeExpression.DEFAULT_STEP;
     this.timezone = parameters.timezone;
+    this.bounds = parameters.bounds;
     this._ensureOp('timeRange');
     this._checkOperandTypes('TIME');
     if (!(this.duration instanceof Duration)) {
@@ -59,6 +61,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     value.duration = this.duration;
     value.step = this.step;
     if (this.timezone) value.timezone = this.timezone;
+    if (this.bounds) value.bounds = this.bounds;
     return value;
   }
 
@@ -67,6 +70,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     js.duration = this.duration.toJS();
     js.step = this.step;
     if (this.timezone) js.timezone = this.timezone.toJS();
+    if (this.bounds) js.bounds = this.bounds;
     return js;
   }
 
@@ -75,6 +79,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
       super.equals(other) &&
       this.duration.equals(other.duration) &&
       this.step === other.step &&
+      this.bounds === other.bounds &&
       immutableEqual(this.timezone, other.timezone)
     );
   }
@@ -99,9 +104,9 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     if (operandValue === null) return null;
     const other = duration.shift(operandValue, timezone, step);
     if (step > 0) {
-      return new TimeRange({ start: operandValue, end: other });
+      return new TimeRange({ start: operandValue, end: other, bounds: this.bounds });
     } else {
-      return new TimeRange({ start: other, end: operandValue });
+      return new TimeRange({ start: other, end: operandValue, bounds: this.bounds });
     }
   }
 
@@ -112,6 +117,8 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
   // HasTimezone mixin:
   public getTimezone: () => Timezone;
   public changeTimezone: (timezone: Timezone) => TimeRangeExpression;
+  public getBounds: () => String;
+  public changeBounds: (bounds: String) => TimeRangeExpression;
 }
 
 Expression.applyMixins(TimeRangeExpression, [HasTimezone]);
