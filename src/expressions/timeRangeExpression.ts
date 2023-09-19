@@ -33,6 +33,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     const value = ChainableExpression.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
     value.step = parameters.step;
+    value.bounds = parameters.bounds;
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
     return new TimeRangeExpression(value);
   }
@@ -114,11 +115,15 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     throw new Error('implement me');
   }
 
+  public changeBounds(bounds: string): Expression {
+    const value = this.valueOf();
+    value.bounds = bounds;
+    return Expression.fromValue(value);
+  }
+
   // HasTimezone mixin:
   public getTimezone: () => Timezone;
   public changeTimezone: (timezone: Timezone) => TimeRangeExpression;
-  public getBounds: () => String;
-  public changeBounds: (bounds: String) => TimeRangeExpression;
 }
 
 Expression.applyMixins(TimeRangeExpression, [HasTimezone]);

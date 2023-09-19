@@ -68,13 +68,18 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
     return dateToIntervalPart(date) + '/' + dateToIntervalPart(new Date(date.valueOf() + 1));
   }
 
-  static timeBucket(date: Date, duration: Duration, timezone: Timezone): TimeRange {
+  static timeBucket(
+    date: Date,
+    duration: Duration,
+    timezone: Timezone,
+    bounds?: string,
+  ): TimeRange {
     if (!date) return null;
     const start = duration.floor(date, timezone);
     return new TimeRange({
       start: start,
       end: duration.shift(start, timezone, 1),
-      bounds: Range.DEFAULT_BOUNDS,
+      bounds: bounds ?? Range.DEFAULT_BOUNDS,
     });
   }
 
@@ -181,6 +186,12 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
       end: end ? new Date(end.valueOf() - start.valueOf() + newStart.valueOf()) : end,
       bounds,
     });
+  }
+
+  public changeBounds(bounds: string): TimeRange {
+    const value = this.toJS();
+    value.bounds = bounds;
+    return TimeRange.fromJS(value);
   }
 
   public shift(duration: Duration, timezone: Timezone, step?: number): TimeRange {
