@@ -37,6 +37,7 @@ export class TimeBucketExpression extends ChainableExpression {
   public duration: Duration;
   public timezone: Timezone;
   public bounds: string;
+
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     const duration = parameters.duration;
