@@ -19,10 +19,9 @@ const { expect } = require('chai');
 
 const { testImmutableClass } = require('immutable-class-tester');
 
-const { Timezone } = require('chronoshift');
+const { Timezone, Duration } = require('chronoshift');
 const plywood = require('../plywood');
-
-const { TimeRange, $, ply, r } = plywood;
+const { Range, TimeRange } = plywood;
 
 describe('TimeRange', () => {
   it('is immutable class', () => {
@@ -225,6 +224,52 @@ describe('TimeRange', () => {
       expect(timeRange.rebaseOnStart(new Date('2015-02-26T04:54:10Z')).toJS()).to.deep.equal({
         start: new Date('2015-02-26T04:54:10.000Z'),
         end: new Date('2015-02-26T05:00:00.000Z'),
+      });
+    });
+  });
+
+  describe('Accepts bounds', () => {
+    it('Can create a Time Range from a time bucket with bounds', () => {
+      const timeRange = TimeRange.timeBucket(
+        new Date('2015-02-26T05:00:00.000Z'),
+        Duration.fromJS('PT1H'),
+        Timezone.fromJS('Etc/UTC'),
+        '[]',
+      );
+      expect(timeRange.toJS()).to.deep.equal({
+        start: new Date('2015-02-26T05:00:00.000Z'),
+        end: new Date('2015-02-26T06:00:00.000Z'),
+        bounds: '[]',
+      });
+    });
+
+    it('Can create a Time Range from a time bucket without explicit bounds', () => {
+      const timeRange = TimeRange.timeBucket(
+        new Date('2015-02-26T05:00:00.000Z'),
+        Duration.fromJS('PT1H'),
+        Timezone.fromJS('Etc/UTC'),
+      );
+
+      // does not include bounds in toJS if default bounds are used
+      expect(timeRange.toJS()).to.deep.equal({
+        start: new Date('2015-02-26T05:00:00.000Z'),
+        end: new Date('2015-02-26T06:00:00.000Z'),
+      });
+      expect(timeRange.bounds).to.equal(Range.DEFAULT_BOUNDS);
+    });
+
+    it('Can change bounds', () => {
+      const timeRange = TimeRange.timeBucket(
+        new Date('2015-02-26T05:00:00.000Z'),
+        Duration.fromJS('PT1H'),
+        Timezone.fromJS('Etc/UTC'),
+      );
+
+      // does not include bounds in toJS if default bounds are used
+      expect(timeRange.changeBounds('()').toJS()).to.deep.equal({
+        start: new Date('2015-02-26T05:00:00.000Z'),
+        end: new Date('2015-02-26T06:00:00.000Z'),
+        bounds: '()',
       });
     });
   });

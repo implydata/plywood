@@ -76,6 +76,7 @@ export class TimeRange extends Range<Date> implements Instance<TimeRangeValue, T
   ): TimeRange {
     if (!date) return null;
     const start = duration.floor(date, timezone);
+
     return new TimeRange({
       start: start,
       end: duration.shift(start, timezone, 1),

@@ -32,6 +32,14 @@ export interface PlywoodRangeJS {
 export abstract class Range<T> {
   static DEFAULT_BOUNDS = '[)';
 
+  static areEquivalentBounds(bounds1: string | undefined, bounds2: string | undefined): boolean {
+    return (
+      bounds1 === bounds2 ||
+      (!bounds1 && bounds2 === Range.DEFAULT_BOUNDS) ||
+      (!bounds2 && bounds1 === Range.DEFAULT_BOUNDS)
+    );
+  }
+
   static isRange(candidate: any): candidate is PlywoodRange {
     return candidate instanceof Range;
   }

@@ -17,7 +17,7 @@
 import { Duration, Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
 
-import { PlywoodValue } from '../datatypes';
+import { PlywoodValue, Range } from '../datatypes';
 import { TimeRange } from '../datatypes/timeRange';
 import { SQLDialect } from '../dialect/baseDialect';
 
@@ -75,7 +75,7 @@ export class TimeBucketExpression extends ChainableExpression {
     return (
       super.equals(other) &&
       this.duration.equals(other.duration) &&
-      this.bounds === other.bounds &&
+      Range.areEquivalentBounds(this.bounds, other.bounds) &&
       immutableEqual(this.timezone, other.timezone)
     );
   }
