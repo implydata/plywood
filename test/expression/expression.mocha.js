@@ -229,6 +229,8 @@ describe('Expression', () => {
         { op: 'timeBucket', duration: 'P1D' },
         { op: 'timeBucket', duration: 'PT2H', timezone: 'Etc/UTC' },
         { op: 'timeBucket', duration: 'PT2H', timezone: 'America/Los_Angeles' },
+        { op: 'timeBucket', duration: 'PT2H', timezone: 'America/Los_Angeles', bounds: '[]' },
+        { op: 'timeBucket', duration: 'PT3H', timezone: 'America/Los_Angeles', bounds: '[)' },
 
         { op: 'timePart', part: 'DAY_OF_WEEK' },
         { op: 'timePart', part: 'DAY_OF_MONTH', timezone: 'Etc/UTC' },
@@ -243,6 +245,20 @@ describe('Expression', () => {
         { op: 'timeRange', duration: 'P1D', step: -2 },
         { op: 'timeRange', duration: 'P2D', step: 3, timezone: 'Etc/UTC' },
         { op: 'timeRange', duration: 'P2D', step: 3, timezone: 'America/Los_Angeles' },
+        {
+          op: 'timeRange',
+          duration: 'P2D',
+          step: 3,
+          timezone: 'America/Los_Angeles',
+          bounds: '[]',
+        },
+        {
+          op: 'timeRange',
+          duration: 'P2D',
+          step: 4,
+          timezone: 'America/Los_Angeles',
+          bounds: '[)',
+        },
 
         { op: 'transformCase', transformType: 'upperCase' },
         { op: 'transformCase', transformType: 'lowerCase' },

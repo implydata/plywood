@@ -17,7 +17,7 @@
 import { Duration, Timezone } from 'chronoshift';
 import { immutableEqual } from 'immutable-class';
 
-import { PlywoodValue } from '../datatypes';
+import { PlywoodValue, Range } from '../datatypes';
 import { TimeRange } from '../datatypes/timeRange';
 import { SQLDialect } from '../dialect/baseDialect';
 import { pluralIfNeeded } from '../helper/utils';
@@ -33,6 +33,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     const value = ChainableExpression.jsToValue(parameters);
     value.duration = Duration.fromJS(parameters.duration);
     value.step = parameters.step;
+    value.bounds = parameters.bounds;
     if (parameters.timezone) value.timezone = Timezone.fromJS(parameters.timezone);
     return new TimeRangeExpression(value);
   }
@@ -40,12 +41,14 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
   public duration: Duration;
   public step: number;
   public timezone: Timezone;
+  public bounds: string;
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
     this.duration = parameters.duration;
     this.step = parameters.step || TimeRangeExpression.DEFAULT_STEP;
     this.timezone = parameters.timezone;
+    this.bounds = parameters.bounds;
     this._ensureOp('timeRange');
     this._checkOperandTypes('TIME');
     if (!(this.duration instanceof Duration)) {
@@ -59,6 +62,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     value.duration = this.duration;
     value.step = this.step;
     if (this.timezone) value.timezone = this.timezone;
+    if (this.bounds) value.bounds = this.bounds;
     return value;
   }
 
@@ -67,6 +71,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     js.duration = this.duration.toJS();
     js.step = this.step;
     if (this.timezone) js.timezone = this.timezone.toJS();
+    if (this.bounds) js.bounds = this.bounds;
     return js;
   }
 
@@ -75,6 +80,7 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
       super.equals(other) &&
       this.duration.equals(other.duration) &&
       this.step === other.step &&
+      Range.areEquivalentBounds(this.bounds, other.bounds) &&
       immutableEqual(this.timezone, other.timezone)
     );
   }
@@ -99,14 +105,20 @@ export class TimeRangeExpression extends ChainableExpression implements HasTimez
     if (operandValue === null) return null;
     const other = duration.shift(operandValue, timezone, step);
     if (step > 0) {
-      return new TimeRange({ start: operandValue, end: other });
+      return new TimeRange({ start: operandValue, end: other, bounds: this.bounds });
     } else {
-      return new TimeRange({ start: other, end: operandValue });
+      return new TimeRange({ start: other, end: operandValue, bounds: this.bounds });
     }
   }
 
   protected _getSQLChainableHelper(_dialect: SQLDialect, _operandSQL: string): string {
     throw new Error('implement me');
+  }
+
+  public changeBounds(bounds: string): Expression {
+    const value = this.valueOf();
+    value.bounds = bounds;
+    return Expression.fromValue(value);
   }
 
   // HasTimezone mixin:
