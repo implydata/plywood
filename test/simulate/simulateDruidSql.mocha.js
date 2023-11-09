@@ -309,9 +309,16 @@ describe('simulate DruidSql', () => {
         .filter(s$('t.isNice').overlap([true, false]))
         .split(s$('t.tags'), 'Tag')
         .apply('count', $('diamonds').count())
+        .apply(
+          'filteredCount',
+          $('diamonds')
+            .filter(s$('t.cut').equals('good'))
+            .sqlAggregate('COUNT(*) + COUNT(*)')
+            .divide(2),
+        )
         .sort('$count', 'descending')
         .limit(10)
-        .select('Tag', 'count'),
+        .select('Tag', 'count', 'filteredCount'),
     );
 
     const queryPlan = ex.simulateQueryPlan({
@@ -338,7 +345,7 @@ describe('simulate DruidSql', () => {
             sqlTimeZone: 'Etc/UTC',
           },
           query:
-            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND (((t.isNice)=TRUE) OR ((t.isNice)=FALSE)))\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
+            'SELECT\n(t.tags) AS "Tag",\nCOUNT(*) AS "count",\n((COUNT(*) FILTER (WHERE FALSE) + COUNT(*) FILTER (WHERE FALSE))*1.0/2) AS "filteredCount"\nFROM "diamonds" AS t\nWHERE ((TIMESTAMP \'2015-03-12 00:00:00\'<="time" AND "time"<TIMESTAMP \'2015-03-19 00:00:00\') AND (((t.isNice)=TRUE) OR ((t.isNice)=FALSE)))\nGROUP BY 1\nORDER BY "count" DESC\nLIMIT 10',
         },
       ],
     ]);
