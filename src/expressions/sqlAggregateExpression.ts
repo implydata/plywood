@@ -110,12 +110,12 @@ export class SqlAggregateExpression extends ChainableExpression {
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
+    let sql = this.sql;
     if (operandSQL.includes(' WHERE ')) {
       const filterParse = SqlExpression.parse(operandSQL.split(' WHERE ')[1]);
-      return String(SqlAggregateExpression.substituteFilter(this.parsedSql, filterParse));
-    } else {
-      return `(${this.sql})`;
+      sql = String(SqlAggregateExpression.substituteFilter(this.parsedSql, filterParse));
     }
+    return `(${sql})`;
   }
 }
 
