@@ -18,6 +18,7 @@
 const { expect } = require('chai');
 
 const plywood = require('../plywood');
+const { sane } = require('../utils');
 
 const { Expression, External, Dataset, TimeRange, $, ply, r, s$ } = plywood;
 
@@ -506,6 +507,44 @@ describe('simulate DruidSql', () => {
         },
       ],
     ]);
+  });
+
+  it('works with boolean cast', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds').filter($('color').in(['red', 'green', 'blue'])))
+      .apply(
+        'Tags',
+        $('diamonds')
+          .split(s$('t.tags').cast('BOOLEAN'), 'B')
+          .apply('count', $('diamonds').count())
+          .sort('$count', 'descending')
+          .limit(10)
+          .select('B', 'count'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'diamonds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        mode: 'raw',
+      }),
+    });
+
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan[0][0].query).to.deep.equal(sane`
+      SELECT
+      CASE CAST((t.tags) AS VARCHAR) WHEN '1' THEN TRUE WHEN 'true' THEN TRUE WHEN '0' THEN FALSE WHEN 'false' THEN FALSE END AS "B",
+      COUNT(*) AS "count"
+      FROM "diamonds" AS t
+      WHERE "color" IN ('red','green','blue')
+      GROUP BY 1
+      ORDER BY "count" DESC
+      LIMIT 10
+    `);
   });
 
   it('works with mvFilterOnly and mvOverlap', () => {
