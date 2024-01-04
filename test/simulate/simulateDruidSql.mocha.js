@@ -224,7 +224,7 @@ describe('simulate DruidSql', () => {
             sqlTimeZone: 'Etc/UTC',
           },
           query:
-            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE (NOT((("pugs" IS NULL) OR "pugs" IN (\'pugA\',\'pugB\',\'null\'))) AND (("tags" IS NULL) OR "tags" IN (\'tagA\',\'tagB\',\'null\')))\nGROUP BY 1',
+            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE (((("pugs" IS NULL) OR "pugs" IN (\'pugA\',\'pugB\',\'null\'))) IS NOT TRUE AND (("tags" IS NULL) OR "tags" IN (\'tagA\',\'tagB\',\'null\')))\nGROUP BY 1',
         },
       ],
     ]);
@@ -257,7 +257,7 @@ describe('simulate DruidSql', () => {
             sqlTimeZone: 'Etc/UTC',
           },
           query:
-            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE (NOT((("pugs" IS NULL) OR "pugs" IN (\'pugA\',\'pugB\',\'\'))) AND (("tags" IS NULL) OR "tags" IN (\'tagA\',\'tagB\',\'null\',\'\')))\nGROUP BY 1',
+            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE (((("pugs" IS NULL) OR "pugs" IN (\'pugA\',\'pugB\',\'\'))) IS NOT TRUE AND (("tags" IS NULL) OR "tags" IN (\'tagA\',\'tagB\',\'null\',\'\')))\nGROUP BY 1',
         },
       ],
     ]);

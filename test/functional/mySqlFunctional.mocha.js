@@ -385,6 +385,45 @@ describe('MySQL Functional', function () {
       });
     });
 
+    it('works with negation', () => {
+      const ex = $('wiki')
+        .filter($('cityName').isnt('Tokyo'))
+        .split($('cityName'), 'City')
+        .apply('Count', $('wiki').sum('$count'))
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS()).to.deep.equal({
+          attributes: [
+            {
+              name: 'City',
+              type: 'STRING',
+            },
+            {
+              name: 'Count',
+              type: 'NUMBER',
+            },
+          ],
+          data: [
+            {
+              City: null,
+              Count: 371151,
+            },
+            {
+              City: 'Central District',
+              Count: 425,
+            },
+            {
+              City: 'Moscow',
+              Count: 330,
+            },
+          ],
+          keys: ['City'],
+        });
+      });
+    });
+
     it('works with boolean GROUP BYs', () => {
       const ex = $('wiki')
         .split($('channel').is('en'), 'ChannelIsEn')

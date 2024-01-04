@@ -22,7 +22,7 @@ exports.druidContext = {
   populateCache: false,
 };
 
-exports.mySqlVersion = '5.7.29';
+exports.mySqlVersion = '5.7.41';
 exports.mySqlHost = `localhost:3306`;
 exports.mySqlDatabase = 'datazoo';
 exports.mySqlUser = 'datazoo';

@@ -366,6 +366,45 @@ describe('DruidSQL Functional', function () {
       });
     });
 
+    it('works with negation', () => {
+      const ex = $('wiki')
+        .filter($('cityName').isnt('Tokyo'))
+        .split($('cityName'), 'City')
+        .apply('Count', $('wiki').sum('$count'))
+        .sort('$Count', 'descending')
+        .limit(3);
+
+      return basicExecutor(ex).then(result => {
+        expect(result.toJS()).to.deep.equal({
+          attributes: [
+            {
+              name: 'City',
+              type: 'STRING',
+            },
+            {
+              name: 'Count',
+              type: 'NUMBER',
+            },
+          ],
+          data: [
+            {
+              City: null,
+              Count: 371151,
+            },
+            {
+              City: 'Central District',
+              Count: 425,
+            },
+            {
+              City: 'Moscow',
+              Count: 330,
+            },
+          ],
+          keys: ['City'],
+        });
+      });
+    });
+
     it('can do compare column', () => {
       const prevRange = TimeRange.fromJS({
         start: new Date('2015-09-12T00:00:00Z'),
