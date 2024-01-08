@@ -83,7 +83,7 @@ export class DruidDialect extends SQLDialect {
     BOOLEAN: {
       NUMBER: '($$ = 1)',
       STRING: `($$ = 'true')`,
-      _: `CASE CAST($$ AS VARCHAR) WHEN '1' THEN TRUE WHEN 'true' THEN TRUE WHEN '0' THEN FALSE WHEN 'false' THEN FALSE END`,
+      _: `(CAST($$ AS VARCHAR) IN ('1','true'))`,
     },
   };
 
