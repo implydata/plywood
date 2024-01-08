@@ -37,7 +37,7 @@ export class NotExpression extends ChainableExpression {
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return `NOT(${operandSQL})`;
+    return `(${operandSQL}) IS NOT TRUE`;
   }
 
   protected specialSimplify(): Expression {
