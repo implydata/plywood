@@ -248,7 +248,7 @@ export interface ExpressionValue {
   outputType?: PlyTypeSimple;
   tuning?: string;
   sql?: string;
-  mvArray?: string[];
+  mvArray?: (string | null)[];
   ipToSearch?: Ip;
   ipSearchType?: string;
   bounds?: string;

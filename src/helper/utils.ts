@@ -163,3 +163,17 @@ export function pipeWithError(src: ReadableStream, dest: WritableStream): any {
   src.on('error', (e: Error) => dest.emit('error', e));
   return dest;
 }
+
+export function handleNullCheckIfNeeded<T>(
+  xs: T[],
+  nullCheck: string,
+  orAnd: 'OR' | 'AND',
+  fn: (withoutNull: T[]) => string,
+): string {
+  const withoutNull = xs.filter(x => x != null);
+  if (withoutNull.length === xs.length) {
+    return fn(xs);
+  } else {
+    return `(${nullCheck} ${orAnd} ${fn(withoutNull)})`;
+  }
+}

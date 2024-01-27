@@ -223,7 +223,67 @@ describe('simulate DruidSql', () => {
             sqlTimeZone: 'Etc/UTC',
           },
           query:
-            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE (((("pugs" IS NULL) OR "pugs" IN (\'pugA\',\'pugB\',\'null\'))) IS NOT TRUE AND (("tags" IS NULL) OR "tags" IN (\'tagA\',\'tagB\',\'null\')))\nGROUP BY 1',
+            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE ((("pugs" IS NULL OR "pugs" IN (\'pugA\',\'pugB\',\'null\'))) IS NOT TRUE AND ("tags" IS NULL OR "tags" IN (\'tagA\',\'tagB\',\'null\')))\nGROUP BY 1',
+        },
+      ],
+    ]);
+  });
+
+  it('works with null and null string are both included in a filter expression (mvOverlap)', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds').filter($('tags').mvOverlap(['tagA', 'tagB', null, 'null'])))
+      .apply('Tags', $('diamonds').split('$tags', 'Tag'));
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'dia.monds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        filter: $('pugs').mvOverlap(['pugA', 'pugB', null, 'null']).not(),
+      }),
+    });
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
+          query:
+            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE ((("pugs" IS NULL OR MV_OVERLAP("pugs", ARRAY[\'pugA\',\'pugB\',\'null\']))) IS NOT TRUE AND ("tags" IS NULL OR MV_OVERLAP("tags", ARRAY[\'tagA\',\'tagB\',\'null\'])))\nGROUP BY 1',
+        },
+      ],
+    ]);
+  });
+
+  it('works with null and null string are both included in a filter expression (mvContains)', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds').filter($('tags').mvContains(['tagA', 'tagB', null, 'null'])))
+      .apply('Tags', $('diamonds').split('$tags', 'Tag'));
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'dia.monds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        filter: $('pugs').mvContains(['pugA', 'pugB', null, 'null']).not(),
+      }),
+    });
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
+          query:
+            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE ((("pugs" IS NULL AND MV_CONTAINS("pugs", ARRAY[\'pugA\',\'pugB\',\'null\']))) IS NOT TRUE AND ("tags" IS NULL AND MV_CONTAINS("tags", ARRAY[\'tagA\',\'tagB\',\'null\'])))\nGROUP BY 1',
         },
       ],
     ]);
@@ -256,7 +316,7 @@ describe('simulate DruidSql', () => {
             sqlTimeZone: 'Etc/UTC',
           },
           query:
-            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE (((("pugs" IS NULL) OR "pugs" IN (\'pugA\',\'pugB\',\'\'))) IS NOT TRUE AND (("tags" IS NULL) OR "tags" IN (\'tagA\',\'tagB\',\'null\',\'\')))\nGROUP BY 1',
+            'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE ((("pugs" IS NULL OR "pugs" IN (\'pugA\',\'pugB\',\'\'))) IS NOT TRUE AND ("tags" IS NULL OR "tags" IN (\'tagA\',\'tagB\',\'null\',\'\')))\nGROUP BY 1',
         },
       ],
     ]);

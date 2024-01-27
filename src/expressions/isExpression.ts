@@ -16,6 +16,7 @@
 
 import { NumberRange, PlywoodValue, Set, TimeRange } from '../datatypes';
 import { SQLDialect } from '../dialect/baseDialect';
+import { handleNullCheckIfNeeded } from '../helper';
 
 import {
   ChainableUnaryExpression,
@@ -56,23 +57,22 @@ export class IsExpression extends ChainableUnaryExpression {
     operandSQL: string,
     expressionSQL: string,
   ): string {
-    let expressionSet = this.expression.getLiteralValue();
+    const expressionSet = this.expression.getLiteralValue();
     if (expressionSet instanceof Set) {
       if (expressionSet.empty()) return 'FALSE';
 
       switch (this.expression.type) {
         case 'SET/STRING':
         case 'SET/NUMBER': {
-          let nullCheck: string = null;
-          if (expressionSet.has(null)) {
-            nullCheck = `(${operandSQL} IS NULL)`;
-            expressionSet = expressionSet.remove(null);
-          }
-
-          const inCheck = `${operandSQL} IN (${expressionSet.elements
-            .map((v: any) => (typeof v === 'number' ? v : dialect.escapeLiteral(v)))
-            .join(',')})`;
-          return nullCheck ? `(${nullCheck} OR ${inCheck})` : inCheck;
+          return handleNullCheckIfNeeded(
+            expressionSet.elements,
+            `${operandSQL} IS NULL`,
+            'OR',
+            withoutNull =>
+              `${operandSQL} IN (${withoutNull
+                .map((v: any) => (typeof v === 'number' ? v : dialect.escapeLiteral(v)))
+                .join(',')})`,
+          );
         }
 
         default:
