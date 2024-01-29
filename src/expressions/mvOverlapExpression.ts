@@ -18,6 +18,7 @@ import { generalArraysEqual } from 'immutable-class';
 
 import { PlywoodValue } from '../datatypes';
 import { SQLDialect } from '../dialect/baseDialect';
+import { handleNullCheckIfNeeded } from '../helper';
 
 import { ChainableExpression, Expression, ExpressionJS, ExpressionValue } from './baseExpression';
 
@@ -29,7 +30,7 @@ export class MvOverlapExpression extends ChainableExpression {
     return new MvOverlapExpression(value);
   }
 
-  public mvArray: string[];
+  public mvArray: (string | null)[];
 
   constructor(parameters: ExpressionValue) {
     super(parameters, dummyObject);
@@ -70,7 +71,9 @@ export class MvOverlapExpression extends ChainableExpression {
   }
 
   protected _getSQLChainableHelper(dialect: SQLDialect, operandSQL: string): string {
-    return dialect.mvOverlapExpression(operandSQL, this.mvArray);
+    return handleNullCheckIfNeeded(this.mvArray, `${operandSQL} IS NULL`, 'OR', withoutNull =>
+      dialect.mvOverlapExpression(operandSQL, withoutNull),
+    );
   }
 }
 
