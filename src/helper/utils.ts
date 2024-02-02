@@ -167,13 +167,20 @@ export function pipeWithError(src: ReadableStream, dest: WritableStream): any {
 export function handleNullCheckIfNeeded<T>(
   xs: T[],
   nullCheck: string,
-  orAnd: 'OR' | 'AND',
+  andOr: 'AND' | 'OR',
   fn: (withoutNull: T[]) => string,
 ): string {
+  if (!xs.length) {
+    // This should never happen in real usage but in general return the 'zero' value of the andOr op
+    return andOr === 'AND' ? 'FALSE' : 'TRUE';
+  }
+
   const withoutNull = xs.filter(x => x != null);
   if (withoutNull.length === xs.length) {
     return fn(xs);
+  } else if (withoutNull.length === 0) {
+    return nullCheck;
   } else {
-    return `(${nullCheck} ${orAnd} ${fn(withoutNull)})`;
+    return `(${nullCheck} ${andOr} ${fn(withoutNull)})`;
   }
 }
