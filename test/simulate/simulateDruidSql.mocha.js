@@ -229,6 +229,35 @@ describe('simulate DruidSql', () => {
     ]);
   });
 
+  it('works with overlap of [null]', () => {
+    const ex = ply()
+      .apply('diamonds', $('diamonds'))
+      .apply('Tags', $('diamonds').split('$tags', 'Tag'));
+
+    const queryPlan = ex.simulateQueryPlan({
+      diamonds: External.fromJS({
+        engine: 'druidsql',
+        version: '0.20.0',
+        source: 'dia.monds',
+        timeAttribute: 'time',
+        attributes,
+        allowSelectQueries: true,
+        filter: $('pugs').overlap([null]),
+      }),
+    });
+    expect(queryPlan.length).to.equal(1);
+    expect(queryPlan).to.deep.equal([
+      [
+        {
+          context: {
+            sqlTimeZone: 'Etc/UTC',
+          },
+          query: 'SELECT\n"tags" AS "Tag"\nFROM "dia.monds" AS t\nWHERE "pugs" IS NULL\nGROUP BY 1',
+        },
+      ],
+    ]);
+  });
+
   it('works with null and null string are both included in a filter expression (mvOverlap)', () => {
     const ex = ply()
       .apply('diamonds', $('diamonds').filter($('tags').mvOverlap(['tagA', 'tagB', null, 'null'])))
