@@ -102,7 +102,7 @@ export function valueFromJS(v: any, typeOverride: string | null = null): any {
   if (v == null) {
     return null;
   } else if (Array.isArray(v)) {
-    if (v.length && typeof v[0] !== 'object') {
+    if ((v.length && typeof v[0] !== 'object') || String(typeOverride).indexOf('SET') === 0) {
       return Set.fromJS(v);
     } else {
       return Dataset.fromJS(v);
