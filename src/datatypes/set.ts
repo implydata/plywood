@@ -505,9 +505,14 @@ export class Set implements Instance<SetValue, SetJS> {
     if (!this.contains(value)) return this;
     const keyFn = this.keyFn;
     const key = keyFn(value);
+
+    const newElements = this.elements.filter(element => keyFn(element) !== key);
+
     return new Set({
-      setType: this.setType, // There must be a set type since at least the value is there
-      elements: this.elements.filter(element => keyFn(element) !== key),
+      // In the case where we removed a string and all that's left is null, we need
+      // to change the setType accordingly
+      setType: getValueType(newElements.length ? newElements[0] : null),
+      elements: newElements,
     });
   }
 
