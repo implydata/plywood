@@ -291,6 +291,11 @@ describe('Set', () => {
         setType: 'STRING',
         elements: ['A'],
       });
+
+      expect(Set.fromJS([null, 'A']).remove('A').toJS()).to.deep.equal({
+        setType: 'NULL',
+        elements: [null],
+      });
     });
   });
 
