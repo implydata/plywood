@@ -131,7 +131,7 @@ export class DruidFilterBuilder {
       if (filter.value === true) {
         return null;
       } else {
-        throw new Error('should never get here');
+        return { type: 'false' };
       }
     } else if (filter instanceof NotExpression) {
       return {
