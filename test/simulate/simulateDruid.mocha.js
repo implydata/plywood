@@ -524,6 +524,57 @@ describe('simulate Druid', () => {
     });
   });
 
+  it('works with double filtered expression with no overlap', () => {
+    const ex = $('diamonds')
+      .split('$color', 'Color')
+      .apply(
+        'Price',
+        $('diamonds')
+          .filter(
+            $('time').overlap({
+              start: new Date('2015-03-12T00:00:00Z'),
+              end: new Date('2015-03-15T00:00:00Z'),
+            }),
+          )
+          .filter(
+            $('time').overlap({
+              start: new Date('2015-03-17T00:00:00Z'),
+              end: new Date('2015-03-19T00:00:00Z'),
+            }),
+          )
+          .sum('$price'),
+      );
+
+    const queryPlan = ex.simulateQueryPlan(context);
+    expect(queryPlan[0][0]).to.deep.equal({
+      aggregations: [
+        {
+          aggregator: {
+            fieldName: 'price',
+            name: 'Price',
+            type: 'doubleSum',
+          },
+          filter: {
+            type: 'false',
+          },
+          name: 'Price',
+          type: 'filtered',
+        },
+      ],
+      dataSource: 'diamonds-compact',
+      dimensions: [
+        {
+          dimension: 'color',
+          outputName: 'Color',
+          type: 'default',
+        },
+      ],
+      granularity: 'all',
+      intervals: '2015-03-12T00Z/2015-03-19T00Z',
+      queryType: 'groupBy',
+    });
+  });
+
   it('works on OVERLAP (single value) filter', () => {
     const ex = ply()
       .apply('diamonds', $('diamonds').filter("$color.overlap(['D'])"))
