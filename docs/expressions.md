@@ -453,7 +453,7 @@ ex.compute({ x: 7 }).then(console.log); // => [5, 10)
 Returns the cardinality of the set
 
 ```javascript
-var ex = $('colors').length();
+var ex = $('colors').cardinality();
 ex.compute({ colors: ['red', 'orange', 'green', 'blue'] }).then(console.log); // => 4
 ```
 
