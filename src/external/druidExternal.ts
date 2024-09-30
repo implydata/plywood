@@ -357,6 +357,16 @@ export class DruidExternal extends External {
             );
             break;
 
+          case 'imply-ts':
+            attributes.push(
+              new AttributeInfo({
+                name,
+                type: 'TIME_SERIES',
+                nativeType,
+              }),
+            );
+            break;
+
           case 'hyperUnique':
           case 'approximateHistogram':
           case 'thetaSketch':

@@ -44,6 +44,7 @@ export const POSSIBLE_TYPES: Record<string, number> = {
   'SET/TIME_RANGE': 1,
   'SET/IP': 1,
   'DATASET': 1,
+  'TIME_SERIES': 1,
 };
 
 const GENERATIONS_REGEXP = /^\^+/;

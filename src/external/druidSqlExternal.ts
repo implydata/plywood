@@ -79,6 +79,10 @@ export class DruidSQLExternal extends SQLExternal {
           type = 'BOOLEAN';
           break;
 
+        case 'imply-ts':
+          type = 'TIME_SERIES';
+          break;
+
         default:
           // OTHER
           type = 'NULL';
