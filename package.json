@@ -74,7 +74,7 @@
     "immutable-class-tester": "0.7.2",
     "imonit": "0.2.0",
     "istanbul": "0.4.5",
-    "mocha": "5.2.0",
+    "mocha": "10.2.0",
     "pegjs": "0.10.0",
     "plywood-druid-requester": "2.6.5",
     "plywood-mysql-requester": "2.3.0",
