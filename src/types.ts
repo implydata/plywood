@@ -32,7 +32,8 @@ export type PlyTypeSimple =
   | 'SET/NUMBER_RANGE'
   | 'SET/TIME_RANGE'
   | 'SET/IP'
-  | 'SET/STRING_RANGE';
+  | 'SET/STRING_RANGE'
+  | 'TIME_SERIES';
 
 export type PlyType = PlyTypeSimple | 'DATASET';
 
