@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const { SqlExpression } = require('@druid-toolkit/query');
+const { SqlExpression } = require('druid-query-toolkit');
 const { expect } = require('chai');
 
 const plywood = require('../plywood');

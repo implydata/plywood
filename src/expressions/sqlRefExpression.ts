@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { SqlExpression, SqlFunction } from '@druid-toolkit/query';
+import { SqlExpression, SqlFunction } from 'druid-query-toolkit';
 
 import { ComputeFn, Datum, PlywoodValue } from '../datatypes';
 import { SQLDialect } from '../dialect';
