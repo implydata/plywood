@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.36.0
+
+- Switch to using druid-query-toolkit
+
 ## 0.30.7
 
 - Fix cast target
