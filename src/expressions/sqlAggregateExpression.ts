@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { SqlExpression } from '@druid-toolkit/query';
+import { SqlExpression } from 'druid-query-toolkit';
 
 import { PlywoodValue } from '../datatypes';
 import { SQLDialect } from '../dialect/baseDialect';

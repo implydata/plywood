@@ -45,9 +45,9 @@
     "npm": "6.14.12"
   },
   "dependencies": {
-    "@druid-toolkit/query": "^0.19.1",
     "chronoshift": "^0.10.0",
     "druid.d.ts": "^0.12.1",
+    "druid-query-toolkit": "^1.0.0",
     "has-own-prop": "^1.0.1",
     "immutable-class": "^0.11.1",
     "moment-timezone": "^0.5.26",
